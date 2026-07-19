@@ -22,7 +22,10 @@ extern crate core as std;
 extern crate creusot_std;
 
 #[allow(unused_imports)]
-use creusot_std::prelude::trusted;
+use creusot_std::prelude::{
+    ensures, invariant, logic, pearlite, proof_assert, requires, trusted, variant, DeepModel, Int,
+    Invariant, Seq, View,
+};
 
 mod algo;
 
@@ -93,9 +96,249 @@ pub struct Adler32 {
     a: u16,
     b: u16,
 }
+
+impl View for Adler32 {
+    type ViewTy = (u16, u16);
+
+    /// The two reduced Adler-32 accumulators `(a, b)`.
+    #[logic]
+    fn view(self) -> Self::ViewTy {
+        (self.a, self.b)
+    }
+}
+
+impl DeepModel for Adler32 {
+    type DeepModelTy = (Int, Int);
+
+    /// Mathematical integer form of the two Adler-32 accumulators.
+    #[logic]
+    fn deep_model(self) -> Self::DeepModelTy {
+        (self.a.deep_model(), self.b.deep_model())
+    }
+}
+
+impl Invariant for Adler32 {
+    /// Both stored accumulators are canonical residues modulo 65521.
+    #[logic(open)]
+    fn invariant(self) -> bool {
+        pearlite! { self.deep_model().0 < 65521 && self.deep_model().1 < 65521 }
+    }
+}
+
+/// One mathematical Adler-32 transition.
+#[logic(open)]
+pub fn adler32_step(state: (Int, Int), byte: u8) -> (Int, Int) {
+    pearlite! {
+        let next_a = (state.0 + byte@) % 65521;
+        (next_a, (state.1 + next_a) % 65521)
+    }
+}
+
+/// Sum of all byte values in `bytes`.
+#[logic]
+#[variant(bytes.len())]
+#[ensures(bytes.len() == 0 ==> result == 0)]
+#[ensures(bytes.len() > 0 ==> result == adler32_byte_sum(
+    bytes.subsequence(0, bytes.len() - 1)
+) + bytes[bytes.len() - 1]@)]
+pub fn adler32_byte_sum(bytes: Seq<u8>) -> Int {
+    if bytes.len() == 0 {
+        0
+    } else {
+        adler32_byte_sum(bytes.subsequence(0, bytes.len() - 1))
+            + bytes[bytes.len() - 1].deep_model()
+    }
+}
+
+/// Weighted byte sum used by Adler-32's second accumulator.
+///
+/// For `[D1, ..., Dn]` this is `n*D1 + ... + 1*Dn`.
+#[logic]
+#[variant(bytes.len())]
+#[ensures(bytes.len() == 0 ==> result == 0)]
+#[ensures(bytes.len() > 0 ==> result == adler32_weighted_sum(
+    bytes.subsequence(0, bytes.len() - 1)
+) + adler32_byte_sum(bytes))]
+pub fn adler32_weighted_sum(bytes: Seq<u8>) -> Int {
+    if bytes.len() == 0 {
+        0
+    } else {
+        adler32_weighted_sum(bytes.subsequence(0, bytes.len() - 1)) + adler32_byte_sum(bytes)
+    }
+}
+
+#[logic]
+#[variant(bytes.len())]
+#[ensures(0 <= adler32_byte_sum(bytes))]
+fn adler32_byte_sum_nonnegative(bytes: Seq<u8>) {
+    if bytes.len() > 0 {
+        adler32_byte_sum_nonnegative(bytes.subsequence(0, bytes.len() - 1));
+    }
+}
+
+#[logic]
+#[variant(bytes.len())]
+#[ensures(0 <= adler32_weighted_sum(bytes))]
+fn adler32_weighted_sum_nonnegative(bytes: Seq<u8>) {
+    if bytes.len() > 0 {
+        let prefix = bytes.subsequence(0, bytes.len() - 1);
+        adler32_weighted_sum_nonnegative(prefix);
+        adler32_byte_sum_nonnegative(bytes);
+    }
+}
+
+/// The mathematical Adler-32 state after processing `bytes` from `state`.
+#[logic(open)]
+pub fn adler32_update(state: (Int, Int), bytes: Seq<u8>) -> (Int, Int) {
+    pearlite! {
+        (
+            (state.0 + adler32_byte_sum(bytes)) % 65521,
+            (state.1 + bytes.len() * state.0 + adler32_weighted_sum(bytes)) % 65521,
+        )
+    }
+}
+
+#[logic]
+#[ensures(adler32_byte_sum(bytes.push_back(byte))
+    == adler32_byte_sum(bytes) + byte@)]
+fn adler32_byte_sum_push(bytes: Seq<u8>, byte: u8) {
+    proof_assert!(bytes.push_back(byte).len() == bytes.len() + 1);
+    proof_assert!(bytes.push_back(byte).subsequence(0, bytes.len()) == bytes);
+    proof_assert!(bytes.push_back(byte)[bytes.len()] == byte);
+}
+
+#[logic]
+#[ensures(adler32_weighted_sum(bytes.push_back(byte))
+    == adler32_weighted_sum(bytes) + adler32_byte_sum(bytes) + byte@)]
+fn adler32_weighted_sum_push(bytes: Seq<u8>, byte: u8) {
+    adler32_byte_sum_push(bytes, byte);
+    proof_assert!(bytes.push_back(byte).len() == bytes.len() + 1);
+    proof_assert!(bytes.push_back(byte).subsequence(0, bytes.len()) == bytes);
+}
+
+#[logic]
+#[variant(right.len())]
+#[ensures(adler32_byte_sum(left.concat(right))
+    == adler32_byte_sum(left) + adler32_byte_sum(right))]
+pub(crate) fn adler32_byte_sum_concat(left: Seq<u8>, right: Seq<u8>) {
+    if right.len() > 0 {
+        let prefix = right.subsequence(0, right.len() - 1);
+        let byte = right[right.len() - 1];
+        proof_assert!(prefix.len() == right.len() - 1);
+        adler32_byte_sum_concat(left, prefix);
+        proof_assert!(right.ext_eq(prefix.push_back(byte)));
+        proof_assert!(right == prefix.push_back(byte));
+        proof_assert!(left
+            .concat(right)
+            .ext_eq(left.concat(prefix).push_back(byte)));
+        proof_assert!(left.concat(right) == left.concat(prefix).push_back(byte));
+        adler32_byte_sum_push(left.concat(prefix), byte);
+        adler32_byte_sum_push(prefix, byte);
+    } else {
+        proof_assert!(right.len() == 0);
+        proof_assert!(adler32_byte_sum(right) == 0);
+        proof_assert!(left.concat(right) == left);
+    }
+}
+
+#[logic]
+#[variant(right.len())]
+#[ensures(adler32_weighted_sum(left.concat(right))
+    == adler32_weighted_sum(left)
+        + right.len() * adler32_byte_sum(left)
+        + adler32_weighted_sum(right))]
+pub(crate) fn adler32_weighted_sum_concat(left: Seq<u8>, right: Seq<u8>) {
+    if right.len() > 0 {
+        let prefix = right.subsequence(0, right.len() - 1);
+        let byte = right[right.len() - 1];
+        proof_assert!(prefix.len() == right.len() - 1);
+        adler32_byte_sum_concat(left, right);
+        adler32_byte_sum_concat(left, prefix);
+        adler32_weighted_sum_concat(left, prefix);
+        proof_assert!(right.len() == prefix.len() + 1);
+        proof_assert!(right.ext_eq(prefix.push_back(byte)));
+        proof_assert!(right == prefix.push_back(byte));
+        proof_assert!(left
+            .concat(right)
+            .ext_eq(left.concat(prefix).push_back(byte)));
+        proof_assert!(left.concat(right) == left.concat(prefix).push_back(byte));
+        adler32_weighted_sum_push(left.concat(prefix), byte);
+        adler32_weighted_sum_push(prefix, byte);
+        proof_assert!(
+            right.len() * adler32_byte_sum(left)
+                == prefix.len() * adler32_byte_sum(left) + adler32_byte_sum(left)
+        );
+        proof_assert!(
+            adler32_weighted_sum(left.concat(right))
+                == adler32_weighted_sum(left)
+                    + right.len() * adler32_byte_sum(left)
+                    + adler32_weighted_sum(right)
+        );
+    } else {
+        proof_assert!(right.len() == 0);
+        proof_assert!(adler32_byte_sum(right) == 0);
+        proof_assert!(adler32_weighted_sum(right) == 0);
+        proof_assert!(left.concat(right) == left);
+    }
+}
+
+#[logic]
+#[requires(bytes.len() >= 4)]
+#[ensures(adler32_byte_sum(bytes) == adler32_byte_sum(
+    bytes.subsequence(0, bytes.len() - 4)
+) + bytes[bytes.len() - 4]@ + bytes[bytes.len() - 3]@
+    + bytes[bytes.len() - 2]@ + bytes[bytes.len() - 1]@)]
+pub(crate) fn adler32_byte_sum_last_four(bytes: Seq<u8>) {
+    let p1 = bytes.subsequence(0, bytes.len() - 1);
+    let p2 = p1.subsequence(0, p1.len() - 1);
+    let p3 = p2.subsequence(0, p2.len() - 1);
+    proof_assert!(p3.subsequence(0, p3.len() - 1) == bytes.subsequence(0, bytes.len() - 4));
+    proof_assert!(p3[p3.len() - 1] == bytes[bytes.len() - 4]);
+    proof_assert!(p2[p2.len() - 1] == bytes[bytes.len() - 3]);
+    proof_assert!(p1[p1.len() - 1] == bytes[bytes.len() - 2]);
+}
+
+#[logic]
+#[requires(bytes.len() >= 4)]
+#[ensures(adler32_weighted_sum(bytes) == adler32_weighted_sum(
+    bytes.subsequence(0, bytes.len() - 4)
+) + 4 * adler32_byte_sum(bytes.subsequence(0, bytes.len() - 4))
+    + 4 * bytes[bytes.len() - 4]@ + 3 * bytes[bytes.len() - 3]@
+    + 2 * bytes[bytes.len() - 2]@ + bytes[bytes.len() - 1]@)]
+pub(crate) fn adler32_weighted_sum_last_four(bytes: Seq<u8>) {
+    let p1 = bytes.subsequence(0, bytes.len() - 1);
+    let p2 = p1.subsequence(0, p1.len() - 1);
+    let p3 = p2.subsequence(0, p2.len() - 1);
+    adler32_byte_sum_last_four(bytes);
+    proof_assert!(p3.subsequence(0, p3.len() - 1) == bytes.subsequence(0, bytes.len() - 4));
+    proof_assert!(p3[p3.len() - 1] == bytes[bytes.len() - 4]);
+    proof_assert!(p2[p2.len() - 1] == bytes[bytes.len() - 3]);
+    proof_assert!(p1[p1.len() - 1] == bytes[bytes.len() - 2]);
+}
+
+/// Updating a reduced state produces another reduced state.
+#[logic]
+#[requires(0 <= state.0 && state.0 < 65521)]
+#[requires(0 <= state.1 && state.1 < 65521)]
+#[ensures(0 <= adler32_update(state, bytes).0
+    && adler32_update(state, bytes).0 < 65521)]
+#[ensures(0 <= adler32_update(state, bytes).1
+    && adler32_update(state, bytes).1 < 65521)]
+pub fn adler32_update_reduced(state: (Int, Int), bytes: Seq<u8>) {
+    adler32_byte_sum_nonnegative(bytes);
+    adler32_weighted_sum_nonnegative(bytes);
+}
+
+/// Packs a mathematical Adler-32 state into its public checksum value.
+#[logic(open)]
+pub fn adler32_pack(state: (Int, Int)) -> Int {
+    pearlite! { state.1 * 65536 + state.0 }
+}
+
 impl Adler32 {
     /// Creates a new Adler-32 instance with default state.
     #[inline]
+    #[ensures(result.deep_model() == (1, 0))]
     pub fn new() -> Self {
         Self::default()
     }
@@ -126,6 +369,8 @@ impl Adler32 {
     /// assert_eq!(sum.checksum(), whole);
     /// ```
     #[inline]
+    #[ensures(result.deep_model().0 == sum@ % 65536)]
+    #[ensures(result.deep_model().1 == sum@ / 65536)]
     pub const fn from_checksum(sum: u32) -> Self {
         Adler32 {
             a: sum as u16,
@@ -135,6 +380,7 @@ impl Adler32 {
 
     /// Returns the calculated checksum at this point in time.
     #[inline]
+    #[ensures(result@ == adler32_pack(self.deep_model()))]
     pub fn checksum(&self) -> u32 {
         (u32::from(self.b) << 16) | u32::from(self.a)
     }
@@ -143,6 +389,7 @@ impl Adler32 {
     ///
     /// If efficiency matters, this should be called with Byte slices that contain at least a few
     /// thousand Bytes.
+    #[ensures((^self).deep_model() == adler32_update((*self).deep_model(), bytes@))]
     pub fn write_slice(&mut self, bytes: &[u8]) {
         self.compute(bytes);
     }
@@ -150,6 +397,7 @@ impl Adler32 {
 
 impl Default for Adler32 {
     #[inline]
+    #[ensures(result.deep_model() == (1, 0))]
     fn default() -> Self {
         Adler32 { a: 1, b: 0 }
     }
@@ -157,10 +405,12 @@ impl Default for Adler32 {
 
 impl Hasher for Adler32 {
     #[inline]
+    #[ensures(result@ == adler32_pack(self.deep_model()))]
     fn finish(&self) -> u64 {
         u64::from(self.checksum())
     }
 
+    #[ensures((^self).deep_model() == adler32_update((*self).deep_model(), bytes@))]
     fn write(&mut self, bytes: &[u8]) {
         self.write_slice(bytes);
     }
@@ -171,6 +421,7 @@ impl Hasher for Adler32 {
 /// This is a convenience function around the [`Adler32`] type.
 ///
 /// [`Adler32`]: struct.Adler32.html
+#[ensures(result@ == adler32_pack(adler32_update((1, 0), data@)))]
 pub fn adler32_slice(data: &[u8]) -> u32 {
     let mut h = Adler32::new();
     h.write_slice(data);

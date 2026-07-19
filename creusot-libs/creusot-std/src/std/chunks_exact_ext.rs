@@ -4,9 +4,9 @@
 // The opaque View is therefore the external boundary. The constructor
 // contract defines that view as the exact sequence of full chunks plus the
 // leftover suffix and the nonzero chunk size; IteratorSpec then defines
-// progression by chunk counts. Element correspondence is intentionally
-// outside this extension's safety-oriented contract; `next` records the
-// exact size of the currently yielded chunk.
+// progression by the exact chunks consumed. This element correspondence is
+// required by clients that prove functional properties of chunked algorithms,
+// rather than only memory and arithmetic safety.
 
 #[logic]
 #[requires(chunk_size@ > 0)]
@@ -65,7 +65,16 @@ impl<'a, T> IteratorSpec for ChunksExact<'a, T> {
     #[logic(open, inline)]
     fn produces(self, visited: Seq<Self::Item>, remaining: Self) -> bool {
         pearlite! {
-            visited.len() + remaining@.0.len() == self@.0.len()
+            0 <= visited.len() && visited.len() <= self@.0.len()
+                && visited.len() + remaining@.0.len() == self@.0.len()
+                && (remaining@.0 == Seq::empty() ==> visited.len() == self@.0.len())
+                && remaining@.0
+                    == self@.0.subsequence(visited.len(), self@.0.len())
+                && forall<i> 0 <= i && i < visited.len()
+                    ==> visited[i]@ == self@.0[i]
+                && forall<i> 0 <= i && i < visited.len()
+                    ==> visited[i]@.len() == self@.2
+                && remaining@.1 == self@.1
                 && remaining@.2 == self@.2
         }
     }
@@ -90,6 +99,9 @@ extern_spec! {
         #[ensures(result@.0.len() == self@.len() / chunk_size@)]
         #[ensures(result@.1.len() == self@.len() % chunk_size@)]
         #[ensures(result@.1.len() < chunk_size@)]
+        #[ensures(forall<index> 0 <= index && index < result@.0.len() ==>
+            result@.0[index]
+                == self@.subsequence(index * chunk_size@, (index + 1) * chunk_size@))]
         #[ensures(self@.len() >= chunk_size@ ==> result@.0 != Seq::empty())]
         fn chunks_exact(&self, chunk_size: usize) -> ChunksExact<'_, T>;
     }
