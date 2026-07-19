@@ -13,6 +13,7 @@ Run proofs with:
 ./verify.bash crates/adler2/2.0.0
 ./verify.bash crates/fnv/1.0.7
 ./crates/hex/0.4.3/verify-all.bash
+./crates/percent-encoding/2.3.2/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -65,3 +66,21 @@ The only trusted portions are explicit generic-adapter boundaries for
 audit found no algorithm change from 0.4.2, but did find a feature-level source
 incompatibility: alloc-backed APIs that were available with
 `default-features = false` in 0.4.2 require the new `alloc` feature in 0.4.3.
+
+### percent-encoding 2.3.2
+
+`percent-encoding` 2.3.2 has exact models for ASCII encode sets and for the
+remaining output of its encoder and decoder iterators. Contracts cover set
+operations, uppercase `%HH` encoding, WHATWG-style decoding, iterator yields
+and size hints, structural equality, `Display`/`Debug`, `Cow` conversions, and
+strict and lossy UTF-8 conversion. All three public nominal types have an
+explicit view, deep model, and invariant.
+
+The proof matrix covers `no-default-features`, `alloc`, and all features. The
+codec models, decoder loop, set operations, constructors, and size hints are
+proved. Explicit trusted boundaries remain for the runtime `%HH` lookup table,
+the encoder's maximal unchanged-chunk search, iterator composition laws,
+formatter behavior, allocation/ownership adapters, and standard-library UTF-8
+observers. These boundaries retain meaningful output contracts and are listed
+in the crate's `PROVENANCE.md`; exhaustive byte and bridge tests connect the
+runtime implementations to those contracts.
