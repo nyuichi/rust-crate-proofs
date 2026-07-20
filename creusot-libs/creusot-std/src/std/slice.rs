@@ -514,6 +514,11 @@ impl<'a, T> IteratorSpec for Iter<'a, T> {
     fn produces(self, visited: Seq<Self::Item>, tl: Self) -> bool {
         pearlite! {
             self@.to_ref_seq() == visited.concat(tl@.to_ref_seq())
+                && visited.len() + tl@.to_ref_seq().len()
+                    == self@.to_ref_seq().len()
+                && visited == self@.to_ref_seq().subsequence(0, visited.len())
+                && forall<i: Int> 0 <= i && i < visited.len() ==>
+                    *visited[i] == (*self@)[i]
         }
     }
 
