@@ -13,6 +13,7 @@ Run proofs with:
 ./verify.bash crates/adler2/2.0.0
 ./verify.bash crates/fnv/1.0.7
 ./crates/crc/3.4.0/verify-all.bash
+./crates/arrayvec/0.7.8/verify-all.bash
 ./crates/byteorder/1.5.0/verify-all.bash
 ./crates/hex/0.4.3/verify-all.bash
 ./crates/percent-encoding/2.3.2/verify-all.bash
@@ -41,6 +42,22 @@ eight-round bitvector helpers, runtime bit reversal during initialization and
 finalization, the optimized byte/slicing-by-16 update bodies, and generic Clone
 adapters. Each boundary has a functional contract and removal condition in
 `PROVENANCE.md`.
+
+### arrayvec 0.7.8
+
+`arrayvec` 0.7.8 has length views for `ArrayVec` and `ArrayString`, with an
+invariant that the stored length does not exceed the fixed capacity. Exact
+contracts cover empty construction and the public length/capacity observers.
+The proof matrix passes for default (`std`), `no-default-features` (`no_std`),
+and all-feature configurations.
+
+This is a structural verification, not a full element-sequence proof. Raw
+`MaybeUninit` storage operations, collection mutation, UTF-8 construction,
+iterator contents, drops, formatting, and several generic standard-library
+adapters remain explicit trusted boundaries or `cfg(creusot)` exclusions. The
+crate's `PROVENANCE.md` records those limits; the serde, borsh, and zeroize
+implementations compile in the all-feature configuration but are excluded from
+the proof translation.
 
 ### byteorder 1.5.0
 
