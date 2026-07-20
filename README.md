@@ -15,6 +15,7 @@ Run proofs with:
 ./crates/byteorder/1.5.0/verify-all.bash
 ./crates/hex/0.4.3/verify-all.bash
 ./crates/percent-encoding/2.3.2/verify-all.bash
+./crates/fugit/0.4.0/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -99,3 +100,22 @@ formatter behavior, allocation/ownership adapters, and standard-library UTF-8
 observers. These boundaries retain meaningful output contracts and are listed
 in the crate's `PROVENANCE.md`; exhaustive byte and bridge tests connect the
 runtime implementations to those contracts.
+
+### fugit 0.4.0
+
+`fugit` 0.4.0 models `Duration`, `Instant`, and `Rate` by their exact stored
+tick/raw values. Contracts cover every public API and specify floor, ceiling,
+and nearest base conversions, checked and saturating arithmetic, reciprocal
+period/rate conversion, `u32`/`u64` conversion, and wrap-aware instant
+arithmetic. Every public nominal type has an explicit invariant; public aliases
+inherit the invariant of their underlying type.
+
+The feature matrix covers no features and all features. Cross-base/GCD
+arithmetic, floating-point and `core::time` adapters, formatting, and several
+operator adapters remain explicit trusted bodies with reviewed contracts.
+Serde/postcard derives and defmt formatting are preserved for normal builds but
+excluded from Creusot translation. Standard comparison traits are likewise
+excluded because the upstream wrap-aware/overflow-aware semantics do not obey
+the total-order and equivalence laws assumed by Creusot; the contracted
+`const_*` comparison APIs are retained as the verification interface. Full
+boundary details are recorded in the crate's `PROVENANCE.md`.

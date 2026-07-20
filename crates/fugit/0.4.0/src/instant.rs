@@ -1,0 +1,587 @@
+use crate::duration::Duration;
+use crate::helpers::Helpers;
+use core::cmp::Ordering;
+use core::ops;
+#[allow(unused_imports)]
+use creusot_std::prelude::{
+    ensures, logic, pearlite, requires, trusted, DeepModel, Int, Invariant, View,
+};
+
+/// Represents an instant in time.
+///
+/// The generic `T` can either be `u32` or `u64`, and the const generics represent the ratio of the
+/// ticks contained within the instant: `instant in seconds = NOM / DENOM * ticks`
+#[cfg_attr(
+    all(feature = "serde", not(creusot)),
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[cfg_attr(
+    all(feature = "postcard_max_size", not(creusot)),
+    derive(postcard::experimental::max_size::MaxSize)
+)]
+pub struct Instant<T, const NOM: u64, const DENOM: u64> {
+    ticks: T,
+}
+
+impl<T: Clone, const NOM: u64, const DENOM: u64> Clone for Instant<T, NOM, DENOM> {
+    #[trusted]
+    #[ensures(creusot_std::prelude::inv(result))]
+    fn clone(&self) -> Self {
+        Self {
+            ticks: self.ticks.clone(),
+        }
+    }
+}
+
+impl<T: Copy, const NOM: u64, const DENOM: u64> Copy for Instant<T, NOM, DENOM> {}
+
+impl<T: core::fmt::Debug, const NOM: u64, const DENOM: u64> core::fmt::Debug
+    for Instant<T, NOM, DENOM>
+{
+    #[trusted]
+    #[ensures(creusot_std::std::fmt::formatter_extends(
+        formatter.deep_model(),
+        (^formatter).deep_model()
+    ))]
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter
+            .debug_struct("Instant")
+            .field("ticks", &self.ticks)
+            .finish()
+    }
+}
+
+macro_rules! impl_instant_model {
+    ($i:ty) => {
+        impl<const NOM: u64, const DENOM: u64> View for Instant<$i, NOM, DENOM> {
+            type ViewTy = Int;
+
+            /// The stored wrapping tick count.
+            #[logic]
+            fn view(self) -> Self::ViewTy {
+                pearlite! { self.ticks@ }
+            }
+        }
+
+        impl<const NOM: u64, const DENOM: u64> DeepModel for Instant<$i, NOM, DENOM> {
+            type DeepModelTy = Int;
+
+            #[logic]
+            fn deep_model(self) -> Self::DeepModelTy {
+                pearlite! { self.ticks@ }
+            }
+        }
+
+        impl<const NOM: u64, const DENOM: u64> Invariant for Instant<$i, NOM, DENOM> {
+            /// Every unsigned storage value is a valid instant representation.
+            #[logic(open)]
+            fn invariant(self) -> bool {
+                pearlite! { true }
+            }
+        }
+    };
+}
+
+impl_instant_model!(u32);
+impl_instant_model!(u64);
+
+macro_rules! impl_instant_for_integer {
+    ($i:ty) => {
+        impl<const NOM: u64, const DENOM: u64> Instant<$i, NOM, DENOM> {
+            /// Create an `Instant` from a ticks value.
+            ///
+            /// ```
+            /// # use fugit::*;
+            #[doc = concat!("let _i = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(1);")]
+            /// ```
+            #[inline]
+            #[ensures(result@ == ticks@)]
+            pub const fn from_ticks(ticks: $i) -> Self {
+                const { assert!(NOM > 0) };
+                const { assert!(DENOM > 0) };
+
+                Instant { ticks }
+            }
+
+            /// Extract the ticks from an `Instant`.
+            ///
+            /// ```
+            /// # use fugit::*;
+            #[doc = concat!("let i = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(234);")]
+            ///
+            /// assert_eq!(i.as_ticks(), 234);
+            /// ```
+            #[inline]
+            #[ensures(result@ == self@)]
+            pub const fn as_ticks(&self) -> $i {
+                self.ticks
+            }
+
+            /// Const comparison of `Instant`s.
+            ///
+            /// ```
+            /// # use fugit::*;
+            #[doc = concat!("let i1 = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(1);")]
+            #[doc = concat!("let i2 = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(2);")]
+            ///
+            /// assert_eq!(i1.const_cmp(i2), core::cmp::Ordering::Less);
+            /// ```
+            ///
+            /// This function takes into account that ticks might wrap around. If the absolute
+            /// values of `self` and `other` differ by more than half the possible range, it is
+            /// assumed that an overflow occured and the result is reversed:
+            ///
+            /// ```
+            /// # use fugit::*;
+            #[doc = concat!("let i1 = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(", stringify!($i),"::MAX);")]
+            #[doc = concat!("let i2 = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(1);")]
+            ///
+            /// assert_eq!(i1.const_cmp(i2), core::cmp::Ordering::Less);
+            /// ```
+            #[inline]
+            #[trusted]
+            #[ensures(match result {
+                Ordering::Less => self@ != other@ && (self@ - other@) % (<$i>::MAX@ + 1) > <$i>::MAX@ / 2,
+                Ordering::Greater => self@ != other@ && (self@ - other@) % (<$i>::MAX@ + 1) < <$i>::MAX@ / 2,
+                Ordering::Equal => self@ == other@ || (self@ - other@) % (<$i>::MAX@ + 1) == <$i>::MAX@ / 2,
+            })]
+            pub const fn const_cmp(self, other: Self) -> Ordering {
+                if self.ticks == other.ticks {
+                    Ordering::Equal
+                } else {
+                    let v = self.ticks.wrapping_sub(other.ticks);
+
+                    // not using `v.cmp(<$i>::MAX / 2).reverse()` due to `cmp` being non-const
+                    if v > <$i>::MAX / 2 {
+                        Ordering::Less
+                    } else if v < <$i>::MAX / 2 {
+                        Ordering::Greater
+                    } else {
+                        Ordering::Equal
+                    }
+                }
+            }
+
+            /// Duration between since the start of the `Instant`. This assumes an instant which
+            /// won't wrap within the execution of the program.
+            ///
+            /// ```
+            /// # use fugit::*;
+            #[doc = concat!("let i = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(11);")]
+            ///
+            /// assert_eq!(i.duration_since_epoch().as_ticks(), 11);
+            /// ```
+            #[inline]
+            #[ensures(result@ == self@)]
+            pub const fn duration_since_epoch(self) -> Duration<$i, NOM, DENOM> {
+                Duration::<$i, NOM, DENOM>::from_ticks(self.as_ticks())
+            }
+
+            /// Duration between `Instant`s.
+            ///
+            /// Returns `None` if `self` is before `other` under the wrap-aware
+            /// ordering used by [`const_cmp`](Self::const_cmp): if `self` and
+            /// `other` differ by more than half the tick range, the result is
+            /// reversed.
+            ///
+            /// ```
+            /// # use fugit::*;
+            #[doc = concat!("let i1 = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(1);")]
+            #[doc = concat!("let i2 = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(2);")]
+            ///
+            /// assert_eq!(i1.checked_duration_since(i2), None);
+            /// assert_eq!(i2.checked_duration_since(i1).unwrap().as_ticks(), 1);
+            /// ```
+            #[inline]
+            #[trusted]
+            #[ensures(match result {
+                Some(value) => value@ == (self@ - other@) % (<$i>::MAX@ + 1)
+                    && value@ <= <$i>::MAX@ / 2,
+                None => (self@ - other@) % (<$i>::MAX@ + 1) > <$i>::MAX@ / 2,
+            })]
+            pub const fn checked_duration_since(
+                self,
+                other: Self,
+            ) -> Option<Duration<$i, NOM, DENOM>> {
+                match self.const_cmp(other) {
+                    Ordering::Greater | Ordering::Equal => {
+                        Some(Duration::<$i, NOM, DENOM>::from_ticks(
+                            self.ticks.wrapping_sub(other.ticks),
+                        ))
+                    }
+                    Ordering::Less => None,
+                }
+            }
+
+            /// Subtract a `Duration` from an `Instant`.
+            ///
+            /// The tick subtraction itself wraps (Instants are circular). Returns
+            /// `None` only when converting `other` into this Instant's base
+            /// overflows.
+            ///
+            /// ```
+            /// # use fugit::*;
+            #[doc = concat!("let i = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(1);")]
+            #[doc = concat!("let d = Duration::<", stringify!($i), ", 1, 1_000>::from_ticks(1);")]
+            ///
+            /// assert_eq!(i.checked_sub_duration(d).unwrap().as_ticks(), 0);
+            /// ```
+            #[trusted]
+            #[ensures(match result {
+                Some(value) => value@ == (self@ - crate::scale_floor(other@, O_NOM, O_DENOM, NOM, DENOM)) % (<$i>::MAX@ + 1),
+                None => true,
+            })]
+            pub const fn checked_sub_duration<const O_NOM: u64, const O_DENOM: u64>(
+                self,
+                other: Duration<$i, O_NOM, O_DENOM>,
+            ) -> Option<Self> {
+                if Helpers::<NOM, DENOM, O_NOM, O_DENOM>::SAME_BASE {
+                    Some(Self::from_ticks(
+                        self.ticks.wrapping_sub(other.as_ticks()),
+                    ))
+                } else {
+                    if let Some(lh) = other
+                        .as_ticks()
+                        .checked_mul(Helpers::<NOM, DENOM, O_NOM, O_DENOM>::LD_TIMES_RN as $i)
+                    {
+                        let ticks = lh / Helpers::<NOM, DENOM, O_NOM, O_DENOM>::RD_TIMES_LN as $i;
+
+                        Some(Self::from_ticks(self.ticks.wrapping_sub(ticks)))
+                    } else {
+                        None
+                    }
+                }
+            }
+
+            /// Add a `Duration` to an `Instant`.
+            ///
+            /// The tick addition itself wraps (Instants are circular). Returns
+            /// `None` only when converting `other` into this Instant's base
+            /// overflows.
+            ///
+            /// ```
+            /// # use fugit::*;
+            #[doc = concat!("let i = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(1);")]
+            #[doc = concat!("let d = Duration::<", stringify!($i), ", 1, 1_000>::from_ticks(1);")]
+            ///
+            /// assert_eq!(i.checked_add_duration(d).unwrap().as_ticks(), 2);
+            /// ```
+            #[trusted]
+            #[ensures(match result {
+                Some(value) => value@ == (self@ + crate::scale_floor(other@, O_NOM, O_DENOM, NOM, DENOM)) % (<$i>::MAX@ + 1),
+                None => true,
+            })]
+            pub const fn checked_add_duration<const O_NOM: u64, const O_DENOM: u64>(
+                self,
+                other: Duration<$i, O_NOM, O_DENOM>,
+            ) -> Option<Self> {
+                if Helpers::<NOM, DENOM, O_NOM, O_DENOM>::SAME_BASE {
+                    Some(Self::from_ticks(
+                        self.ticks.wrapping_add(other.as_ticks()),
+                    ))
+                } else {
+                    if let Some(lh) = other
+                        .as_ticks()
+                        .checked_mul(Helpers::<NOM, DENOM, O_NOM, O_DENOM>::LD_TIMES_RN as $i)
+                    {
+                        let ticks = lh / Helpers::<NOM, DENOM, O_NOM, O_DENOM>::RD_TIMES_LN as $i;
+
+                        Some(Self::from_ticks(self.ticks.wrapping_add(ticks)))
+                    } else {
+                        None
+                    }
+                }
+            }
+        }
+
+        #[allow(clippy::non_canonical_partial_ord_impl)]
+        #[cfg(not(creusot))]
+                impl<const NOM: u64, const DENOM: u64> PartialOrd for Instant<$i, NOM, DENOM> {
+            /// This implementation deviates from the definition of
+            /// [PartialOrd::partial_cmp](core::cmp::PartialOrd::partial_cmp):
+            ///
+            /// It takes into account that ticks might wrap around. If the absolute
+            /// values of `self` and `other` differ by more than half the possible range, it is
+            /// assumed that an overflow occured and the result is reversed.
+            ///
+            /// That breaks the transitivity invariant: a < b and b < c no longer implies a < c.
+            #[inline]
+            #[ensures(true)]
+            fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+                Some(self.const_cmp(*other))
+            }
+        }
+
+                #[cfg(not(creusot))]
+                impl<const NOM: u64, const DENOM: u64> Ord for Instant<$i, NOM, DENOM> {
+            /// This implementation deviates from the definition of
+            /// [Ord::cmp](core::cmp::Ord::cmp):
+            ///
+            /// It takes into account that ticks might wrap around. If the absolute
+            /// values of `self` and `other` differ by more than half the possible range, it is
+            /// assumed that an overflow occured and the result is reversed.
+            ///
+            /// That breaks the transitivity invariant: a < b and b < c no longer implies a < c.
+            #[inline]
+            #[ensures(true)]
+            fn cmp(&self, other: &Self) -> Ordering {
+                self.const_cmp(*other)
+            }
+        }
+
+                impl<const NOM: u64, const DENOM: u64> PartialEq for Instant<$i, NOM, DENOM> {
+            #[inline]
+            #[trusted]
+            #[ensures(result == (self@ == other@))]
+            fn eq(&self, other: &Self) -> bool {
+                self.ticks == other.ticks
+            }
+        }
+
+                impl<const NOM: u64, const DENOM: u64> Eq for Instant<$i, NOM, DENOM> {}
+
+        // Instant - Instant = Duration
+        // We have limited this to use same numerator and denominator in both left and right hand sides,
+        // this allows for the extension traits to work. For usage with different fraction, use
+        // `checked_duration_since`.
+                impl<const NOM: u64, const DENOM: u64> ops::Sub<Instant<$i, NOM, DENOM>>
+            for Instant<$i, NOM, DENOM>
+        {
+            type Output = Duration<$i, NOM, DENOM>;
+
+            #[inline]
+            #[track_caller]
+            #[trusted]
+            #[requires((self@ - other@) % (<$i>::MAX@ + 1) <= <$i>::MAX@ / 2)]
+            #[ensures(result@ == (self@ - other@) % (<$i>::MAX@ + 1))]
+            fn sub(self, other: Self) -> Self::Output {
+                if let Some(v) = self.checked_duration_since(other) {
+                    v
+                } else {
+                    panic!("Sub failed! Other > self");
+                }
+            }
+        }
+
+        // Instant - Duration = Instant
+        // We have limited this to use same numerator and denominator in both left and right hand sides,
+        // this allows for the extension traits to work. For usage with different fraction, use
+        // `checked_sub_duration`.
+                impl<const NOM: u64, const DENOM: u64> ops::Sub<Duration<$i, NOM, DENOM>>
+            for Instant<$i, NOM, DENOM>
+        {
+            type Output = Self;
+
+            #[inline]
+            #[track_caller]
+            #[trusted]
+            #[ensures(result@ == (self@ - other@) % (<$i>::MAX@ + 1))]
+            fn sub(self, other: Duration<$i, NOM, DENOM>) -> Self::Output {
+                if let Some(v) = self.checked_sub_duration(other) {
+                    v
+                } else {
+                    panic!("Sub failed! Overflow");
+                }
+            }
+        }
+
+        // Instant -= Duration
+        // We have limited this to use same numerator and denominator in both left and right hand sides,
+        // this allows for the extension traits to work. For usage with different fraction, use
+        // `checked_sub_duration`.
+                impl<const NOM: u64, const DENOM: u64> ops::SubAssign<Duration<$i, NOM, DENOM>>
+            for Instant<$i, NOM, DENOM>
+        {
+            #[inline]
+            #[track_caller]
+            #[trusted]
+            #[ensures((^self)@ == ((*self)@ - other@) % (<$i>::MAX@ + 1))]
+            fn sub_assign(&mut self, other: Duration<$i, NOM, DENOM>) {
+                *self = *self - other;
+            }
+        }
+
+        // Instant + Duration = Instant
+        // We have limited this to use same numerator and denominator in both left and right hand sides,
+        // this allows for the extension traits to work. For usage with different fraction, use
+        // `checked_add_duration`.
+                impl<const NOM: u64, const DENOM: u64> ops::Add<Duration<$i, NOM, DENOM>>
+            for Instant<$i, NOM, DENOM>
+        {
+            type Output = Self;
+
+            #[inline]
+            #[track_caller]
+            #[trusted]
+            #[ensures(result@ == (self@ + other@) % (<$i>::MAX@ + 1))]
+            fn add(self, other: Duration<$i, NOM, DENOM>) -> Self::Output {
+                if let Some(v) = self.checked_add_duration(other) {
+                    v
+                } else {
+                    panic!("Add failed! Overflow");
+                }
+            }
+        }
+
+        // Instant += Duration
+        // We have limited this to use same numerator and denominator in both left and right hand sides,
+        // this allows for the extension traits to work. For usage with different fraction, use
+        // `checked_add_duration`.
+                impl<const NOM: u64, const DENOM: u64> ops::AddAssign<Duration<$i, NOM, DENOM>>
+            for Instant<$i, NOM, DENOM>
+        {
+            #[inline]
+            #[track_caller]
+            #[trusted]
+            #[ensures((^self)@ == ((*self)@ + other@) % (<$i>::MAX@ + 1))]
+            fn add_assign(&mut self, other: Duration<$i, NOM, DENOM>) {
+                *self = *self + other;
+            }
+        }
+
+        #[cfg(all(feature = "defmt", not(creusot)))]
+        impl<const NOM: u64, const DENOM: u64> defmt::Format for Instant<$i, NOM, DENOM> {
+            #[trusted]
+            #[ensures(true)]
+            fn format(&self, f: defmt::Formatter) {
+                if NOM == 3_600 && DENOM == 1 {
+                    defmt::write!(f, "{} h", self.ticks)
+                } else if NOM == 60 && DENOM == 1 {
+                    defmt::write!(f, "{} min", self.ticks)
+                } else if NOM == 1 && DENOM == 1 {
+                    defmt::write!(f, "{} s", self.ticks)
+                } else if NOM == 1 && DENOM == 1_000 {
+                    defmt::write!(f, "{} ms", self.ticks)
+                } else if NOM == 1 && DENOM == 1_000_000 {
+                    defmt::write!(f, "{} us", self.ticks)
+                } else if NOM == 1 && DENOM == 1_000_000_000 {
+                    defmt::write!(f, "{} ns", self.ticks)
+                } else {
+                    defmt::write!(f, "{} ticks @ ({}/{})", self.ticks, NOM, DENOM)
+                }
+            }
+        }
+
+        impl<const NOM: u64, const DENOM: u64> core::fmt::Display for Instant<$i, NOM, DENOM> {
+            // `core::fmt::Formatter` has no Creusot protocol model.
+            #[trusted]
+            #[ensures(creusot_std::std::fmt::formatter_extends(
+                f.deep_model(),
+                (^f).deep_model()
+            ))]
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                if NOM == 3_600 && DENOM == 1 {
+                    write!(f, "{} h", self.ticks)
+                } else if NOM == 60 && DENOM == 1 {
+                    write!(f, "{} min", self.ticks)
+                } else if NOM == 1 && DENOM == 1 {
+                    write!(f, "{} s", self.ticks)
+                } else if NOM == 1 && DENOM == 1_000 {
+                    write!(f, "{} ms", self.ticks)
+                } else if NOM == 1 && DENOM == 1_000_000 {
+                    write!(f, "{} us", self.ticks)
+                } else if NOM == 1 && DENOM == 1_000_000_000 {
+                    write!(f, "{} ns", self.ticks)
+                } else {
+                    write!(f, "{} ticks @ ({}/{})", self.ticks, NOM, DENOM)
+                }
+            }
+        }
+    };
+}
+
+impl_instant_for_integer!(u32);
+impl_instant_for_integer!(u64);
+
+//
+// Operations between u32 Duration and u64 Instant
+//
+
+// Instant - Duration = Instant
+// We have limited this to use same numerator and denominator in both left and right hand sides,
+// this allows for the extension traits to work. For usage with different fraction, use
+// `checked_sub_duration`.
+impl<const NOM: u64, const DENOM: u64> ops::Sub<Duration<u32, NOM, DENOM>>
+    for Instant<u64, NOM, DENOM>
+{
+    type Output = Self;
+
+    #[inline]
+    #[track_caller]
+    #[trusted]
+    #[ensures(result@ == (self@ - other@) % (u64::MAX@ + 1))]
+    fn sub(self, other: Duration<u32, NOM, DENOM>) -> Self::Output {
+        if let Some(v) = self.checked_sub_duration(other.into()) {
+            v
+        } else {
+            panic!("Sub failed! Overflow");
+        }
+    }
+}
+
+// Instant -= Duration
+// We have limited this to use same numerator and denominator in both left and right hand sides,
+// this allows for the extension traits to work. For usage with different fraction, use
+// `checked_sub_duration`.
+impl<const NOM: u64, const DENOM: u64> ops::SubAssign<Duration<u32, NOM, DENOM>>
+    for Instant<u64, NOM, DENOM>
+{
+    #[inline]
+    #[track_caller]
+    #[trusted]
+    #[ensures((^self)@ == ((*self)@ - other@) % (u64::MAX@ + 1))]
+    fn sub_assign(&mut self, other: Duration<u32, NOM, DENOM>) {
+        *self = *self - other;
+    }
+}
+
+// Instant + Duration = Instant
+// We have limited this to use same numerator and denominator in both left and right hand sides,
+// this allows for the extension traits to work. For usage with different fraction, use
+// `checked_add_duration`.
+impl<const NOM: u64, const DENOM: u64> ops::Add<Duration<u32, NOM, DENOM>>
+    for Instant<u64, NOM, DENOM>
+{
+    type Output = Self;
+
+    #[inline]
+    #[track_caller]
+    #[trusted]
+    #[ensures(result@ == (self@ + other@) % (u64::MAX@ + 1))]
+    fn add(self, other: Duration<u32, NOM, DENOM>) -> Self::Output {
+        if let Some(v) = self.checked_add_duration(other.into()) {
+            v
+        } else {
+            panic!("Add failed! Overflow");
+        }
+    }
+}
+
+// Instant += Duration
+// We have limited this to use same numerator and denominator in both left and right hand sides,
+// this allows for the extension traits to work. For usage with different fraction, use
+// `checked_add_duration`.
+impl<const NOM: u64, const DENOM: u64> ops::AddAssign<Duration<u32, NOM, DENOM>>
+    for Instant<u64, NOM, DENOM>
+{
+    #[inline]
+    #[track_caller]
+    #[trusted]
+    #[ensures((^self)@ == ((*self)@ + other@) % (u64::MAX@ + 1))]
+    fn add_assign(&mut self, other: Duration<u32, NOM, DENOM>) {
+        *self = *self + other;
+    }
+}
+
+// impl<const L_NOM: u64, const L_DENOM: u64, const R_NOM: u64, const R_DENOM: u64>
+//     ops::Add<Duration<u32, R_NOM, R_DENOM>> for Duration<u64, L_NOM, L_DENOM>
+// {
+//     type Output = Duration<u64, L_NOM, L_DENOM>;
+//
+//     #[inline]
+//     fn add(self, other: Duration<u32, R_NOM, R_DENOM>) -> Self::Output {
+//         self.add(Duration::<u64, L_NOM, L_DENOM>::from_ticks(
+//             other.as_ticks() as u64
+//         ))
+//     }
+// }
