@@ -26,6 +26,7 @@ Run proofs with:
 ./semver/1.0.28/verify-all.bash
 ./fixedbitset/0.5.7/verify-all.bash
 ./uuid/1.24.0/verify-all.bash
+./bstr/1.13.0/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -82,6 +83,20 @@ remain explicit trusted boundaries or Creusot-only exclusions. The generated
 verification manifest keeps the library target named `uuid` but uses a distinct
 package name to avoid Cargo selector ambiguity. Full scope and removal
 conditions are recorded in the crate's `PROVENANCE.md`.
+
+### bstr 1.13.0
+
+`bstr` 1.13.0 has exact positional contracts for its scalar non-ASCII scan and
+the forward and reverse single-byte inverse searches. The proof-facing loops
+establish both the returned differing byte and equality of the complete skipped
+prefix or suffix; unsuccessful searches establish equality of the whole input.
+The proof matrix covers no-default-features, default, and all features.
+
+The published optimized implementations use raw pointers, unaligned word loads,
+and SSE2, so their bodies remain an explicit excluded boundary behind the same
+contracts. UTF-8 decoding, Unicode segmentation, public string types and the
+remaining search, split, allocation, I/O, and serde APIs are not yet verified.
+Full boundary and removal-condition details are in `PROVENANCE.md`.
 
 ### bytes 1.11.1
 
