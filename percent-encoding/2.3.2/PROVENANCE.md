@@ -50,12 +50,11 @@ declarations retain meaningful postconditions and are listed explicitly:
   the upstream static lookup table and a 256-arm verification surrogate creates
   one impractically large VC; its contract is exact and the upstream exhaustive
   test checks all 256 runtime table entries;
-- `PercentEncode::next`'s maximal unchanged-chunk search and both iterators'
-  associative composition laws; the exact yielded-prefix/remaining-tail
-  contracts are retained,
-  and a bridge test checks the runtime iterator's exact unchanged/encoded chunk
-  boundaries while the upstream collect, display, ASCII-set, and UTF-8 tests
-  check its complete output;
+- the narrow `ascii_slice_as_str` bridge used by `PercentEncode::next`, whose
+  precondition proves every byte is ASCII and whose postcondition preserves the
+  exact byte sequence; the maximal unchanged-chunk search, its recursive
+  sequence decomposition, the complete `next` body, and both iterators'
+  associative composition laws are body-proved;
 - the verification-only allocation adapter behind `Cow<[u8]>`, whose contract
   fixes both exact decoded contents and the allocation decision;
 - the `Cow<str>` encoder conversion's multi-chunk allocation composition; its

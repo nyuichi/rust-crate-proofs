@@ -18,16 +18,18 @@ boundary and its removal condition must be explicit in `PROVENANCE.md`.
 
 | Tier | Crates | Meaning |
 |---|---|---|
-| Complete / complete-equivalent | `fnv`, `hex`, `rustc-hash` | Complete crate-owned deterministic algorithm; only documented external integration remains where applicable. |
-| Strong functional core | `byteorder`, `cobs`, `crc`, `fugit`, `percent-encoding` | Broad exact functional models, but material optimized leaves or public integration protocols remain trusted. |
+| Complete / complete-equivalent | `fnv`, `hex`, `percent-encoding`, `rustc-hash` | Complete crate-owned deterministic algorithm; only documented external integration remains where applicable. |
+| Strong functional core | `byteorder`, `cobs`, `crc`, `fugit` | Broad exact functional models, but material optimized leaves or public integration protocols remain trusted. |
 | Substantial public subset | `fixedbitset`, `heapless`, `semver`, `uuid` | A coherent and useful public subsystem is proved; other major public subsystems remain excluded. |
 | Structural or narrow partial proof | `adler2`, `arrayvec`, `base64`, `bstr`, `bytes`, `ipnet`, `slab`, `smallvec` | Safety, representation, length, or a small algorithmic slice is proved; this is not close to whole-crate functional coverage. |
 
-The complete-equivalent count is therefore **3 of 20** after this audit. `fnv`
+The complete-equivalent count is therefore **4 of 20** after this audit. `fnv`
 is the strictest case: every crate-owned executable public API is body-proved and
 there are no `#[trusted]` declarations. `hex` retains only generic/serde/fmt
-protocol boundaries, and `rustc-hash` retains only optional thread-local random
-seed creation outside its fully proved deterministic hashing algorithm.
+protocol boundaries, `percent-encoding` retains exact static-table,
+allocation/UTF-8, and formatting protocol boundaries outside its body-proved
+encoder/decoder algorithms, and `rustc-hash` retains only optional thread-local
+random seed creation outside its fully proved deterministic hashing algorithm.
 
 ## Changes in the current coverage pass
 
@@ -40,16 +42,18 @@ seed creation outside its fully proved deterministic hashing algorithm.
   trust-free complete status.
 - `hex`: made the unmodeled derived `Debug` formatter boundary explicit in the
   Creusot build; all four feature configurations and 31 ordinary tests pass.
+- `percent-encoding`: removed trust from both iterator composition laws and the
+  complete encoder `next` algorithm. Its maximal unchanged-prefix search and
+  recursive output decomposition are body-proved; the only new boundary is the
+  exact standard-library fact that an all-ASCII byte slice is valid UTF-8.
 
 ## Next payoff order
 
-1. `percent-encoding`: prove the encoder chunk search and iterator composition,
-   then reassess the allocation/UTF-8 boundaries.
-2. `fixedbitset`: add range mutations/counting and lazy iterator sequence models;
+1. `fixedbitset`: add range mutations/counting and lazy iterator sequence models;
    raw SIMD ownership remains a separate representation-refinement project.
-3. `crc` or `byteorder`: replace optimized trusted leaves with verified indexed
+2. `crc` or `byteorder`: replace optimized trusted leaves with verified indexed
    implementations while retaining upstream runtime spellings.
-4. `semver`: only after a sequence model for the pointer-tagged identifier is
+3. `semver`: only after a sequence model for the pointer-tagged identifier is
    available; parsing and formatting are a separate large scope.
 
 Low-payoff blockers are documented rather than hidden: `ipnet` needs a logical
