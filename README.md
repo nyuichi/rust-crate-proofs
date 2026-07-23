@@ -19,6 +19,7 @@ Run proofs with:
 ./crates/percent-encoding/2.3.2/verify-all.bash
 ./crates/fugit/0.4.0/verify-all.bash
 ./crates/cobs/0.5.1/verify-all.bash
+./crates/rustc-hash/2.1.3/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -26,6 +27,21 @@ Run proofs with:
 standard-library specifications used by the proofs.
 
 ## Current proofs
+
+### rustc-hash 2.1.3
+
+`rustc-hash` 2.1.3 has exact machine-word transition models for integer input
+and a byte-compression model covering little-endian reads, 16-byte bulk blocks,
+the overlapping suffix, length mixing, and platform-selected multiplication.
+Contracts cover `FxHasher`, `FxBuildHasher`, `FxSeededState`, and the optional
+`FxRandomState`; all four public nominal types have explicit invariants.
+
+Integer updates, the multiply-mix primitive on the x86-64 proof target, seeded
+builders, and the public byte-write orchestration are proved. The optimized
+slice compression body, final rotate primitive, and thread-local random seed
+creation remain explicit trusted boundaries with reviewed contracts and
+removal conditions in `PROVENANCE.md`. The proof matrix covers `no_std`,
+default `std`, `rand`, and all features including `nightly`.
 
 ### crc 3.4.0
 
