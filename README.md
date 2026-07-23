@@ -28,6 +28,7 @@ Run proofs with:
 ./uuid/1.24.0/verify-all.bash
 ./bstr/1.13.0/verify-all.bash
 ./base64/0.22.1/verify-all.bash
+./ipnet/2.12.0/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -112,6 +113,22 @@ and allocation adapters, formatting, and streaming I/O remain explicit trusted
 boundaries or Creusot exclusions. The upstream all-feature suite passes 179
 unit tests, 13 integration tests, and 25 documentation tests. Full boundary and
 removal-condition details are in `PROVENANCE.md`.
+
+### ipnet 2.12.0
+
+`ipnet` 2.12.0 has a prefix-length model for `Ipv4Net`, `Ipv6Net`, and
+`IpNet`, with invariants enforcing the IPv4 and IPv6 limits. Checked and
+asserting constructors, prefix observers, maximum-prefix observers, and
+family-level orchestration are proved in `no_std`, default `std`, and
+all-feature configurations.
+
+This is a structural prefix-state proof, not an address-content proof. The
+pinned Creusot library has no logical model or method contracts for
+`core::net` address types, so mask arithmetic, containment, network/broadcast
+calculation, ranges, subnet iteration, aggregation, parsing, formatting, and
+optional adapters remain explicitly excluded from translation. Ordinary builds
+retain the upstream implementation and API. Full scope and the removal
+condition are recorded in the crate's `PROVENANCE.md`.
 
 ### bytes 1.11.1
 
