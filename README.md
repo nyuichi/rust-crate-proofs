@@ -21,6 +21,7 @@ Run proofs with:
 ./crates/cobs/0.5.1/verify-all.bash
 ./crates/rustc-hash/2.1.3/verify-all.bash
 ./crates/slab/0.4.12/verify-all.bash
+./crates/smallvec/1.15.2/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -43,6 +44,23 @@ contents, formatting, `FromIterator`, and serde remain explicit trusted
 boundaries or `cfg(creusot)` exclusions. The proof matrix covers `no_std`,
 default `std`, and all features. Full boundary details are recorded in the
 crate's `PROVENANCE.md`.
+
+### smallvec 1.15.2
+
+`smallvec` 1.15.2 has a representation-aware logical length model for the
+default enum representation and an explicit nonnegative-length invariant.
+Contracts cover empty and slice/vector construction, length and capacity
+observers, push/pop, truncation, clearing, insertion/removal, slice extension,
+resizing, raw-parts construction, and allocation operations. The `len`,
+`is_empty`, `clear`, and `Default` bodies are proved against those contracts.
+
+Raw `MaybeUninit` storage, allocator and pointer operations, element contents,
+mutation bodies, drops, iterators, and generic standard-library adapters remain
+explicit trusted boundaries or `cfg(creusot)` exclusions. The proof matrix
+covers no features, `const_generics`, and `const_new`; it does not claim the
+alternate `union` representation or the remaining optional adapters. The
+default upstream suite passes 62 unit tests and 13 documentation tests. Full
+boundary and removal-condition details are recorded in `PROVENANCE.md`.
 
 ### rustc-hash 2.1.3
 
