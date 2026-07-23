@@ -23,6 +23,7 @@ Run proofs with:
 ./slab/0.4.12/verify-all.bash
 ./smallvec/1.15.2/verify-all.bash
 ./bytes/1.11.1/verify-all.bash
+./bstr/1.13.0/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -30,6 +31,20 @@ Run proofs with:
 standard-library specifications used by the proofs.
 
 ## Current proofs
+
+### bstr 1.13.0
+
+`bstr` 1.13.0 has exact positional contracts for its scalar non-ASCII scan and
+the forward and reverse single-byte inverse searches. The proof-facing loops
+establish both the returned differing byte and equality of the complete skipped
+prefix or suffix; unsuccessful searches establish equality of the whole input.
+The proof matrix covers no-default-features, default, and all features.
+
+The published optimized implementations use raw pointers, unaligned word loads,
+and SSE2, so their bodies remain an explicit excluded boundary behind the same
+contracts. UTF-8 decoding, Unicode segmentation, public string types and the
+remaining search, split, allocation, I/O, and serde APIs are not yet verified.
+Full boundary and removal-condition details are in `PROVENANCE.md`.
 
 ### bytes 1.11.1
 
