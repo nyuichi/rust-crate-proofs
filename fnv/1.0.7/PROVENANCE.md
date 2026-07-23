@@ -1,5 +1,7 @@
 # fnv 1.0.7 provenance
 
+**Verification status: complete.**
+
 This source tree is copied from the crate published on crates.io as `fnv`
 version `1.0.7`. The published archive has SHA-256 checksum
 `3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1`.

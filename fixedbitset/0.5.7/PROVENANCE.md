@@ -1,5 +1,7 @@
 # fixedbitset 0.5.7 provenance and verification scope
 
+**Verification status: substantial public subset (partial).**
+
 This source tree is the published `fixedbitset` 0.5.7 crate. Its
 `.cargo_vcs_info.json` records upstream revision
 `f1db5d17dabc4b8f3ba68c1228a3ee7601c7f33c`. The `creusot-std` dependency,

@@ -7,8 +7,22 @@ Each `<name>/<version>` directory is a complete copy of the
 published crate with specifications and proof annotations added in place.
 Public APIs and runtime behavior are preserved.
 
-See [`COVERAGE.md`](COVERAGE.md) for the 20-crate completion audit, the
-definition of "complete-equivalent", and the prioritized remaining work.
+## Verification status
+
+"Complete-equivalent" means that all crate-owned core algorithm semantics are
+modeled and proved; any remaining trusted body is a documented narrow standard
+library, formatting, allocation, randomness, or other external protocol
+boundary with an exact contract.
+
+| Status | Crates |
+|---|---|
+| Complete / complete-equivalent | `fnv`, `hex`, `percent-encoding`, `rustc-hash` |
+| Strong functional core (partial) | `byteorder`, `cobs`, `crc`, `fugit` |
+| Substantial public subset (partial) | `fixedbitset`, `heapless`, `semver`, `uuid` |
+| Structural or narrow proof (partial) | `adler2`, `arrayvec`, `base64`, `bstr`, `bytes`, `ipnet`, `slab`, `smallvec` |
+
+Each crate's exact proved surface, remaining boundaries, feature matrix, and
+reproduction command are recorded in its `PROVENANCE.md`.
 
 Run proofs with:
 
@@ -78,15 +92,17 @@ fixed-length state machine. Construction, length/full/clear observation, exact
 minimum and maximum, out-of-range membership, clearing, insertion, removal,
 put, toggle, set, bit copying, grow-and-insert orchestration, set relations,
 all four in-place set algebra operations, and their exact cardinalities are
-proved with element-wise contracts. The proof matrix covers
+proved with element-wise contracts. All range counting, mutation, and
+all/any-predicate APIs are also proved for `..`, `a..`, `..b`, and `a..b`.
+The proof matrix covers
 no-default-features, default `std`, and all features.
 
-The upstream aligned SIMD allocation, raw-pointer ownership, range operations
-and range counting, lazy set-algebra iterators, raw block counting, formatting,
-adapters, and unsafe APIs remain outside proof translation. Ordinary builds
-retain the complete upstream implementation, whose all-feature suite passes 63
-unit tests and 7 documentation tests. Full boundary and removal conditions are
-in `PROVENANCE.md`.
+The upstream aligned SIMD allocation, raw-pointer ownership, lazy set-algebra
+iterators, raw block counting, formatting, adapters, and unsafe APIs remain
+outside proof translation. Ordinary builds retain the complete upstream
+implementation, whose all-feature suite passes 63 unit tests and 7
+documentation tests. Full boundary and removal conditions are in
+`PROVENANCE.md`.
 
 ### uuid 1.24.0
 

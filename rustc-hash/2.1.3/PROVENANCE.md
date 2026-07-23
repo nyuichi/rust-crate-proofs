@@ -1,5 +1,7 @@
 # rustc-hash 2.1.3 provenance
 
+**Verification status: complete-equivalent.**
+
 This source tree is copied from the crate published on crates.io as
 `rustc-hash` version `2.1.3`. The published archive has SHA-256 checksum
 `6b1e7f9a428571be2dc5bc0505c13fb6bf936822b894ec87abf8a08a4e51742d`.

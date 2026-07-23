@@ -1,5 +1,7 @@
 # hex 0.4.3 provenance and verification scope
 
+**Verification status: complete-equivalent.**
+
 This source tree is copied from the crate published on crates.io as `hex`
 version `0.4.3`. The published archive has SHA-256 checksum
 `7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70`.

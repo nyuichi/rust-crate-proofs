@@ -1,5 +1,7 @@
 # percent-encoding 2.3.2 provenance and verification scope
 
+**Verification status: complete-equivalent.**
+
 This source tree is copied from the crate published on crates.io as
 `percent-encoding` version `2.3.2`. The published archive has SHA-256 checksum
 `9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220`.
