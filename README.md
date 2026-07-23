@@ -24,6 +24,7 @@ Run proofs with:
 ./smallvec/1.15.2/verify-all.bash
 ./bytes/1.11.1/verify-all.bash
 ./semver/1.0.28/verify-all.bash
+./fixedbitset/0.5.7/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -48,6 +49,22 @@ formatting, serde, and identifier storage/ordering bodies remain outside proof
 translation. The ordinary all-feature upstream suite passes 34 tests. Full
 boundary and removal-condition details are recorded in the crate's
 `PROVENANCE.md`.
+
+### fixedbitset 0.5.7
+
+`fixedbitset` 0.5.7 has an exact finite Boolean-sequence model for its core
+fixed-length state machine. Construction, length and emptiness observation,
+out-of-range membership, clearing, insertion, removal, put, toggle, set, bit
+copying, and grow-and-insert orchestration are proved with element-wise
+contracts. The proof matrix covers no-default-features, default `std`, and all
+features.
+
+The upstream aligned SIMD allocation, raw-pointer ownership, range and set
+algebra, iterators, counting, formatting, adapters, and unsafe APIs remain
+outside proof translation. Ordinary builds retain the complete upstream
+implementation, whose all-feature suite
+passes 63 unit tests and 7 documentation tests. Full boundary and removal
+conditions are in `PROVENANCE.md`.
 
 ### bytes 1.11.1
 
