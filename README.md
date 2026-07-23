@@ -20,6 +20,7 @@ Run proofs with:
 ./crates/fugit/0.4.0/verify-all.bash
 ./crates/cobs/0.5.1/verify-all.bash
 ./crates/rustc-hash/2.1.3/verify-all.bash
+./crates/slab/0.4.12/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -27,6 +28,21 @@ Run proofs with:
 standard-library specifications used by the proofs.
 
 ## Current proofs
+
+### slab 0.4.12
+
+`slab` 0.4.12 has an occupied-count view and a closed representation invariant
+that bounds both the count and vacant-list head by the backing vector length.
+Empty construction, length and emptiness observation, and clearing are proved.
+Contracts specify the occupied-count effects of insertion, removal, retention,
+compaction, and draining.
+
+This is a structural verification, not a key-to-value functional proof. Entry
+contents, the vacant linked list, raw and disjoint mutable access, iterator
+contents, formatting, `FromIterator`, and serde remain explicit trusted
+boundaries or `cfg(creusot)` exclusions. The proof matrix covers `no_std`,
+default `std`, and all features. Full boundary details are recorded in the
+crate's `PROVENANCE.md`.
 
 ### rustc-hash 2.1.3
 
