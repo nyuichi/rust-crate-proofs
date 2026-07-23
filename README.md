@@ -25,6 +25,7 @@ Run proofs with:
 ./bytes/1.11.1/verify-all.bash
 ./semver/1.0.28/verify-all.bash
 ./fixedbitset/0.5.7/verify-all.bash
+./uuid/1.24.0/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -65,6 +66,22 @@ outside proof translation. Ordinary builds retain the complete upstream
 implementation, whose all-feature suite
 passes 63 unit tests and 7 documentation tests. Full boundary and removal
 conditions are in `PROVENANCE.md`.
+
+### uuid 1.24.0
+
+`uuid` 1.24.0 has an exact 16-byte model for `Uuid` and `Builder`. The
+no-default-features proof establishes byte-preserving construction and access,
+the mixed-endian field permutation, nil/max values, variant and version-bit
+extraction, and the exact byte footprints of the consuming builder
+variant/version mutations.
+
+This is not a parser, formatter, generator, or randomness proof. Parsing,
+actual text encoding, `u128`/field/reference reinterpretation adapters,
+timestamps, UUID generation, and the real `NonZero<u128>`-backed `NonNilUuid`
+remain explicit trusted boundaries or Creusot-only exclusions. The generated
+verification manifest keeps the library target named `uuid` but uses a distinct
+package name to avoid Cargo selector ambiguity. Full scope and removal
+conditions are recorded in the crate's `PROVENANCE.md`.
 
 ### bytes 1.11.1
 
