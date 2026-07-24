@@ -16,15 +16,15 @@ boundary with an exact contract.
 
 | Status | Crates |
 |---|---|
-| Complete / complete-equivalent | `adler2`, `fnv`, `hex`, `percent-encoding`, `rustc-hash` |
-| Strong functional core (partial) | `byteorder`, `cobs`, `crc`, `fugit` |
+| Complete / complete-equivalent | `adler2`, `fnv`, `hex`, `itoa`, `percent-encoding`, `rustc-hash`, `unicode-ident` |
+| Strong functional core (partial) | `byteorder`, `cobs`, `crc`, `crossbeam-queue`, `fugit`, `indexmap`, `utf8parse` |
 | Substantial public subset (partial) | `fixedbitset`, `heapless`, `semver`, `uuid` |
-| Structural or narrow proof (partial) | `arrayvec`, `base64`, `bstr`, `bytes`, `ipnet`, `slab`, `smallvec` |
+| Structural or narrow proof (partial) | `arrayvec`, `base64`, `bitflags`, `bstr`, `bytes`, `ipnet`, `lru`, `slab`, `smallvec` |
+
+## Running proofs
 
 Each crate's exact proved surface, remaining boundaries, feature matrix, and
-reproduction command are recorded in its `PROVENANCE.md`.
-
-Run proofs with:
+reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 
 ```sh
 ./adler2/2.0.0/verify-all.bash
@@ -47,6 +47,12 @@ Run proofs with:
 ./base64/0.22.1/verify-all.bash
 ./ipnet/2.12.0/verify-all.bash
 ./heapless/0.9.2/verify-all.bash
+./bitflags/2.13.1/verify-all.bash
+./itoa/1.0.18/verify-all.bash
+./crossbeam-queue/0.3.13/verify-all.bash
+./indexmap/2.14.0/verify-all.bash
+./utf8parse/0.2.2/verify-all.bash
+./unicode-ident/1.0.24/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -54,6 +60,94 @@ Run proofs with:
 standard-library specifications used by the proofs.
 
 ## Current proofs
+
+### bitflags 2.13.1
+
+`bitflags` 2.13.1 has an exact `u8` bit-vector model for a representative
+three-flag macro expansion. Construction, checked/retaining/truncating
+conversion, known and unknown bit observations, containment and intersection,
+all four set-algebra operations, known-bit complement, mutations, and value and
+assignment operator adapters are proved. The matrix covers no-default-features,
+default features, and all features.
+
+This is a representative generated-core proof, not a proof of generic macro
+expansion for every integer width. Parsing, formatting, iteration, named lookup,
+and optional integrations remain outside translation. Full scope and the
+generic-model removal condition are recorded in `PROVENANCE.md`.
+
+### itoa 1.0.18
+
+`itoa` 1.0.18 has an exact signed decimal ASCII model for every supported
+integer primitive. The proof establishes magnitude and sign conversion,
+recursive digit writing, the 40-byte capacity bound, exact start indices, and
+the complete result of public `Buffer::format`, including `i128::MIN`. Default
+and all-feature integrated runs each prove 67 files.
+
+Ordinary builds retain the published lookup-table and `MaybeUninit` runtime
+implementation. The verification build uses an equivalent initialized-buffer
+writer so that raw-memory details do not obscure the decimal algorithm. The
+only trusted leaf converts an already-proved ASCII suffix to `str`; its exact
+byte contract and removal condition are recorded in `PROVENANCE.md`.
+
+### crossbeam-queue 0.3.13
+
+`crossbeam-queue` 0.3.13 has exact element-sequence models for `ArrayQueue` and
+`SegQueue`. Empty construction, length and emptiness observations, bounded
+capacity/fullness, and the FIFO effects of the exclusive `push_mut` and
+`pop_mut` APIs are proved. Full bounded pushes preserve the queue and return
+the rejected value; successful pops return and remove the logical head.
+
+This is a single-owner state-machine proof, not a proof of the lock-free
+implementation. Atomics, compare-exchange loops, memory ordering,
+linearizability, progress, raw slot storage, allocation/reclamation, concurrent
+APIs, drops, and iterators remain explicitly excluded. Ordinary builds retain
+the complete upstream implementation. The proof matrix covers `no_std +
+alloc`, default `std`, and all features; the ordinary all-feature suite passes
+23 integration tests and 19 documentation tests. Full boundaries are recorded
+in the crate's `PROVENANCE.md`.
+
+### indexmap 2.14.0
+
+`indexmap` 2.14.0 has exact ordered-sequence models for `IndexMap` and
+`IndexSet`. Caller-hasher construction, length and emptiness observation,
+clearing, exact prefix truncation, ordered popping, shift removal by index,
+position exchange, and content-preserving capacity operations are body-proved.
+The proof matrix covers `no_std`, default `std`, and all features.
+
+This is a positional order proof, not a hash-table or key-uniqueness proof.
+Hash/equality coherence, key lookup and insertion, entry APIs, iterators,
+sorting, draining, raw and disjoint access, and optional adapters remain outside
+proof translation. Random-state construction is the sole narrow trusted body;
+its contract asserts only that the result is empty. Full boundaries and the
+removal condition are recorded in `PROVENANCE.md`.
+
+### utf8parse 0.2.2
+
+`utf8parse` 0.2.2 has an exact model of all byte-class transitions and parser
+accumulator updates. The proof establishes the complete transition table,
+state-specific reachable ranges, preservation of the parser invariant for every
+input byte, and the safety of the unchecked Unicode scalar construction. The
+integrated no-feature run proves 14 files.
+
+Receiver callbacks remain abstract because the public `Receiver` trait imposes
+no semantic model on implementors. Two verification-only equality adapters are
+trusted and tied to exact deep models; the transition, accumulator, scalar
+safety, and public `advance` bodies are all proved. Full scope and removal
+conditions are recorded in the crate's `PROVENANCE.md`.
+
+### unicode-ident 1.0.24
+
+`unicode-ident` 1.0.24 has exact classification models for both XID_Start and
+XID_Continue. The ASCII branches, non-ASCII trie/half-chunk offset arithmetic,
+leaf bounds, all eight leaf-bit positions, and both public API bodies are
+proved. An exhaustive runtime comparison checks every valid Unicode scalar
+value against independently generated Unicode 17.0.0 range tables.
+
+The pinned Creusot cannot translate immutable static arrays or `char`-to-
+integer casts, so generated table-byte access and scalar-value conversion are
+narrow explicit trusted boundaries with exact contracts. The published
+compressed tables and optimized runtime implementation are preserved. Full
+scope and removal conditions are recorded in `PROVENANCE.md`.
 
 ### heapless 0.9.2
 
