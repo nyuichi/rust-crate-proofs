@@ -33,6 +33,7 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 ./base64/0.22.1/verify-all.bash
 ./ipnet/2.12.0/verify-all.bash
 ./heapless/0.9.2/verify-all.bash
+./unicode-ident/1.0.24/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -40,6 +41,20 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 standard-library specifications used by the proofs.
 
 ## Current proofs
+
+### unicode-ident 1.0.24
+
+`unicode-ident` 1.0.24 has exact classification models for both XID_Start and
+XID_Continue. The ASCII branches, non-ASCII trie/half-chunk offset arithmetic,
+leaf bounds, all eight leaf-bit positions, and both public API bodies are
+proved. An exhaustive runtime comparison checks every valid Unicode scalar
+value against independently generated Unicode 17.0.0 range tables.
+
+The pinned Creusot cannot translate immutable static arrays or `char`-to-
+integer casts, so generated table-byte access and scalar-value conversion are
+narrow explicit trusted boundaries with exact contracts. The published
+compressed tables and optimized runtime implementation are preserved. Full
+scope and removal conditions are recorded in `PROVENANCE.md`.
 
 ### heapless 0.9.2
 
