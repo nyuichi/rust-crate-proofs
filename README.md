@@ -33,6 +33,7 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 ./base64/0.22.1/verify-all.bash
 ./ipnet/2.12.0/verify-all.bash
 ./heapless/0.9.2/verify-all.bash
+./utf8parse/0.2.2/verify-all.bash
 ./unicode-ident/1.0.24/verify-all.bash
 ```
 
@@ -41,6 +42,20 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 standard-library specifications used by the proofs.
 
 ## Current proofs
+
+### utf8parse 0.2.2
+
+`utf8parse` 0.2.2 has an exact model of all byte-class transitions and parser
+accumulator updates. The proof establishes the complete transition table,
+state-specific reachable ranges, preservation of the parser invariant for every
+input byte, and the safety of the unchecked Unicode scalar construction. The
+integrated no-feature run proves 14 files.
+
+Receiver callbacks remain abstract because the public `Receiver` trait imposes
+no semantic model on implementors. Two verification-only equality adapters are
+trusted and tied to exact deep models; the transition, accumulator, scalar
+safety, and public `advance` bodies are all proved. Full scope and removal
+conditions are recorded in the crate's `PROVENANCE.md`.
 
 ### unicode-ident 1.0.24
 
