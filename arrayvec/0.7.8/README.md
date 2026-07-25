@@ -16,6 +16,15 @@ A vector with fixed capacity.
 
 Please read the [`API documentation here`](https://docs.rs/arrayvec)
 
+## Creusot verification status
+
+The common initialized-prefix pilot proves the bodies of `push`, `try_push`,
+`push_unchecked`, and `pop` against ordered-element and ownership contracts.
+The consuming iterator has a strong sequence protocol, but its moved-hole
+representation bridge is still explicitly trusted. See
+[`../../UNSAFE_COLLECTION_VERIFICATION.md`](../../UNSAFE_COLLECTION_VERIFICATION.md)
+for the status table, trusted removal conditions, and scoped commands.
+
 # License
 
 Dual-licensed to be compatible with the Rust project.

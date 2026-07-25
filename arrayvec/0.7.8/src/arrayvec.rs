@@ -29,6 +29,12 @@ use creusot_std::prelude::{
     check, ensures, logic, pearlite, requires, trusted, DoubleEndedIteratorSpec,
     DeepModel, FromIteratorSpec, Int, Invariant, IteratorSpec, Seq, View,
 };
+#[allow(unused_imports)]
+use creusot_std::std::unsafe_collection::{pop_array_slot, push_array_slot};
+#[cfg(creusot)]
+use creusot_std::std::unsafe_collection::{owned_prefix, prefix_values};
+#[cfg(creusot)]
+use creusot_std::prelude::resolve;
 
 /// A vector with a fixed capacity.
 ///
@@ -58,9 +64,26 @@ impl<T, const CAP: usize> View for ArrayVec<T, CAP> {
     fn view(self) -> Int { self.len.deep_model() }
 }
 
+impl<T, const CAP: usize> ArrayVec<T, CAP> {
+    /// The representation invariant used by functional collection contracts.
+    #[logic]
+    pub fn owns_initialized_prefix(self) -> bool {
+        pearlite! { owned_prefix(self.xs@, self@) }
+    }
+
+    /// The element sequence represented by the initialized prefix.
+    #[logic]
+    #[requires(self.owns_initialized_prefix())]
+    pub fn elements(self) -> Seq<T> {
+        pearlite! { prefix_values(self.xs@, self@) }
+    }
+}
+
 impl<T, const CAP: usize> Invariant for ArrayVec<T, CAP> {
     #[logic(open, prophetic)]
-    fn invariant(self) -> bool { pearlite! { self@ <= CAP@ } }
+    fn invariant(self) -> bool {
+        pearlite! { self@ <= CAP@ && CAP@ <= LenUint::MAX@ }
+    }
 }
 
 impl<T, const CAP: usize> Drop for ArrayVec<T, CAP> {
@@ -104,6 +127,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     #[track_caller]
     #[trusted]
     #[ensures(result@ == 0)]
+    #[ensures(result.owns_initialized_prefix())]
+    #[ensures(result.elements() == Seq::empty())]
     pub fn new() -> ArrayVec<T, CAP> {
         assert_capacity_limit!(CAP);
         unsafe {
@@ -122,6 +147,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     #[trusted]
     #[ensures(result@ == 0)]
+    #[ensures(result.owns_initialized_prefix())]
+    #[ensures(result.elements() == Seq::empty())]
     pub const fn new_const() -> ArrayVec<T, CAP> {
         assert_capacity_limit_const!(CAP);
         ArrayVec { xs: MakeMaybeUninit::ARRAY, len: 0 }
@@ -207,9 +234,12 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&array[..], &[1, 2]);
     /// ```
     #[track_caller]
-    #[trusted]
+    #[requires(self.owns_initialized_prefix())]
+    #[requires(self@ < CAP@)]
+    #[ensures((^self).owns_initialized_prefix())]
+    #[ensures((^self).elements() == self.elements().push_back(element))]
     pub fn push(&mut self, element: T) {
-        ArrayVecImpl::push(self, element)
+        unsafe { self.push_unchecked(element) }
     }
 
     /// Push `element` to the end of the vector.
@@ -234,8 +264,21 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// assert!(overflow.is_err());
     /// ```
+    #[requires(self.owns_initialized_prefix())]
+    #[ensures((^self).owns_initialized_prefix())]
+    #[ensures(match result {
+        Ok(()) => (^self).elements() == self.elements().push_back(element),
+        Err(_) => (^self).elements() == self.elements(),
+    })]
     pub fn try_push(&mut self, element: T) -> Result<(), CapacityError<T>> {
-        ArrayVecImpl::try_push(self, element)
+        let len = self.len();
+        if len < CAP {
+            push_array_slot(&mut self.xs, len, element);
+            self.len = (len + 1) as LenUint;
+            Ok(())
+        } else {
+            Err(CapacityError::new(element))
+        }
     }
 
     /// Push `element` to the end of the vector without checking the capacity.
@@ -259,8 +302,14 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// assert_eq!(&array[..], &[1, 2]);
     /// ```
+    #[requires(self.owns_initialized_prefix())]
+    #[requires(self@ < CAP@)]
+    #[ensures((^self).owns_initialized_prefix())]
+    #[ensures((^self).elements() == self.elements().push_back(element))]
     pub unsafe fn push_unchecked(&mut self, element: T) {
-        ArrayVecImpl::push_unchecked(self, element)
+        let len = self.len();
+        push_array_slot(&mut self.xs, len, element);
+        self.len = (len + 1) as LenUint;
     }
 
     /// Shortens the vector, keeping the first `len` elements and dropping
@@ -386,8 +435,24 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(array.pop(), Some(1));
     /// assert_eq!(array.pop(), None);
     /// ```
+    #[requires(self.owns_initialized_prefix())]
+    #[ensures((^self).owns_initialized_prefix())]
+    #[ensures(match result {
+        Some(value) =>
+            self.elements() == (^self).elements().push_back(value)
+                && (^self)@ == self@ - 1,
+        None => self@ == 0 && (^self).elements() == self.elements(),
+    })]
     pub fn pop(&mut self) -> Option<T> {
-        ArrayVecImpl::pop(self)
+        let len = self.len();
+        if len == 0 {
+            None
+        } else {
+            let new_len = len - 1;
+            let value = unsafe { pop_array_slot(&mut self.xs, len) };
+            self.len = new_len as LenUint;
+            Some(value)
+        }
     }
 
     /// Remove the element at `index` and swap the last element into its place.
@@ -939,7 +1004,13 @@ impl<'a, T: 'a, const CAP: usize> IntoIterator for &'a mut ArrayVec<T, CAP> {
 impl<T, const CAP: usize> IntoIterator for ArrayVec<T, CAP> {
     type Item = T;
     type IntoIter = IntoIter<T, CAP>;
+    #[trusted]
+    #[ensures(self.owns_initialized_prefix() ==> result@ == self.elements())]
     fn into_iter(self) -> IntoIter<T, CAP> {
+        // TRUSTED together with IntoIter::next: the runtime representation
+        // reuses ArrayVec while creating moved-out holes. Removal condition:
+        // introduce a dedicated initialized range [index, len) and prove this
+        // initial correspondence from the common prefix model.
         IntoIter { index: 0, v: self, }
     }
 }
@@ -977,35 +1048,72 @@ pub struct IntoIter<T, const CAP: usize> {
     v: ArrayVec<T, CAP>,
 }
 
-// Creusot cannot model the initialized prefix behind `MaybeUninit` yet.
-// Keep iterator protocol calls available, but expose no element-order facts.
+impl<T, const CAP: usize> View for IntoIter<T, CAP> {
+    type ViewTy = Seq<T>;
+
+    /// Remaining elements in forward iteration order.
+    #[cfg(creusot)]
+    #[trusted]
+    #[logic(opaque)]
+    fn view(self) -> Seq<T> {
+        *creusot_std::__stubs::dead()
+    }
+
+    #[cfg(not(creusot))]
+    fn view(self) -> Seq<T> {
+        panic!("called logic-only iterator model")
+    }
+}
+
 impl<T, const CAP: usize> IteratorSpec for IntoIter<T, CAP> {
     #[logic(open, prophetic)]
-    fn produces(self, _visited: Seq<Self::Item>, _o: Self) -> bool { true }
+    fn produces(self, visited: Seq<Self::Item>, o: Self) -> bool {
+        pearlite! { self@ == visited.concat(o@) }
+    }
 
     #[logic(open, prophetic)]
-    fn completed(&mut self) -> bool { true }
+    fn completed(&mut self) -> bool {
+        pearlite! { resolve(self) && self@ == Seq::empty() }
+    }
 
-    #[logic(law)]
+    #[logic(open, law)]
+    #[trusted]
     #[ensures(self.produces(Seq::empty(), self))]
-    fn produces_refl(self) {}
+    fn produces_refl(self) {
+        // Trusted with the IntoIter range model; see `next` removal condition.
+    }
 
-    #[logic(law)]
+    #[logic(open, law)]
+    #[trusted]
+    #[requires(a.produces(ab, b))]
+    #[requires(b.produces(bc, c))]
     #[ensures(a.produces(ab.concat(bc), c))]
-    fn produces_trans(a: Self, ab: Seq<Self::Item>, _b: Self, bc: Seq<Self::Item>, c: Self) {}
+    fn produces_trans(a: Self, ab: Seq<Self::Item>, b: Self, bc: Seq<Self::Item>, c: Self) {
+        // Trusted with the IntoIter range model; see `next` removal condition.
+    }
 }
 
 impl<T, const CAP: usize> DoubleEndedIteratorSpec for IntoIter<T, CAP> {
     #[logic(open, prophetic)]
-    fn produces_back(self, _visited: Seq<Self::Item>, _o: Self) -> bool { true }
+    fn produces_back(self, visited: Seq<Self::Item>, o: Self) -> bool {
+        pearlite! { self@.reverse() == visited.concat(o@.reverse()) }
+    }
 
-    #[logic(law)]
+    #[logic(open, law)]
+    #[trusted]
     #[ensures(self.produces_back(Seq::empty(), self))]
-    fn produces_back_refl(self) {}
+    fn produces_back_refl(self) {
+        // Trusted with the IntoIter range model; see `next_back` removal condition.
+    }
 
-    #[logic(law)]
+    #[logic(open, law)]
+    #[trusted]
+    #[requires(a.produces_back(ab, b))]
+    #[requires(b.produces_back(bc, c))]
     #[ensures(a.produces_back(ab.concat(bc), c))]
-    fn produces_back_trans(a: Self, ab: Seq<Self::Item>, _b: Self, bc: Seq<Self::Item>, c: Self) {}
+    fn produces_back_trans(a: Self, ab: Seq<Self::Item>, b: Self, bc: Seq<Self::Item>, c: Self) {
+        // Trusted with the IntoIter range model; see `next_back` removal condition.
+    }
 }
 impl<T, const CAP: usize> IntoIter<T, CAP> {
     /// Returns the remaining items of this iterator as a slice.
@@ -1024,8 +1132,15 @@ impl<T, const CAP: usize> IntoIter<T, CAP> {
 impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
     type Item = T;
 
-    #[cfg_attr(creusot, creusot::no_translate)]
+    #[trusted]
+    #[ensures(match result {
+        None => self.completed(),
+        Some(value) => (*self).produces(Seq::singleton(value), ^self),
+    })]
     fn next(&mut self) -> Option<Self::Item> {
+        // TRUSTED: `v` temporarily contains moved-out holes before `index`.
+        // Removal condition: give IntoIter its own slot-range representation
+        // and prove `self@ == [index..len]` using the common prefix model.
         if self.index == self.v.len() {
             None
         } else {
@@ -1045,8 +1160,13 @@ impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
 }
 
 impl<T, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
-    #[cfg_attr(creusot, creusot::no_translate)]
+    #[trusted]
+    #[ensures(match result {
+        None => self.completed(),
+        Some(value) => (*self).produces_back(Seq::singleton(value), ^self),
+    })]
     fn next_back(&mut self) -> Option<Self::Item> {
+        // Same temporary representation boundary as `next`.
         if self.index == self.v.len() {
             None
         } else {

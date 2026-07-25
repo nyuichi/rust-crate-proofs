@@ -26,6 +26,7 @@ pub mod slice;
 pub mod string;
 pub mod time;
 mod tuples;
+pub mod unsafe_collection;
 pub mod vec;
 
 // Every std-dependent part of the Creusot Standard Library must be disabled when
