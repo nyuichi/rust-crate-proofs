@@ -35,6 +35,7 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 ./heapless/0.9.2/verify-all.bash
 ./bitflags/2.13.1/verify-all.bash
 ./itoa/1.0.18/verify-all.bash
+./crossbeam-epoch/0.9.20/verify-all.bash
 ./crossbeam-queue/0.3.13/verify-all.bash
 ./indexmap/2.14.0/verify-all.bash
 ./utf8parse/0.2.2/verify-all.bash
@@ -47,6 +48,23 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 standard-library specifications used by the proofs.
 
 ## Current proofs
+
+### crossbeam-epoch 0.9.20
+
+`crossbeam-epoch` 0.9.20 has an exact single-owner model of the collector's
+participant and epoch state machine. Empty construction, participant
+registration, pinning and unpinning, current-epoch observations, the
+all-participants advancement gate, one-step advancement, retirement epoch
+capture, and the two-advancement reclamation threshold are body-proved.
+
+This is a sequential protocol proof, not a proof of the concurrent runtime
+implementation. Atomic epoch updates, participant-list synchronization,
+thread-local handles, memory ordering, raw tagged pointers, deferred
+destructors, reclamation safety, linearizability, and progress remain excluded.
+Ordinary builds retain the complete upstream implementation. The proof matrix
+covers `no_std + alloc`, default `std`, and all features; the ordinary
+all-feature suite passes 40 unit tests and 53 documentation tests. Full
+boundaries are recorded in the crate's `PROVENANCE.md`.
 
 ### hashbrown 0.17.1
 
