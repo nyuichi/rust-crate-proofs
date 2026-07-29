@@ -1,7 +1,7 @@
 # heapless 0.9.2 provenance and Deque verification scope
 
 **Verification status: substantial Creusot public subset plus a proved Verus
-slot-transition leaf (partial).**
+fixed-storage ring model and four slot transitions (partial).**
 
 This source tree is copied from the `heapless` 0.9.2 package published on
 crates.io. The published archive has SHA-256 checksum
@@ -39,10 +39,20 @@ With the `verus` feature, those helpers delegate their element move to two
 Verus-aware leaf functions in the same `src/deque.rs` source file. Verus proves
 that writing requires an uninitialized slot and leaves it initialized with the
 exact input value; reading requires an initialized slot, returns its exact
-value, and leaves the slot uninitialized. A representative roundtrip caller is
-also body-proved and establishes that writing and then reading returns the
-original value. These three Verus bodies are proved without `assume` or
-`external_body`.
+value, and leaves the slot uninitialized. The proof now lifts those leaves to a
+fixed-size array, with frame conditions stating that every non-selected slot is
+unchanged.
+
+The Verus model defines the occupied physical slots from `front`, logical
+length, and capacity, and relates occupation exactly to each slot's
+`MemContents::Init` state. Its logical `Seq<T>` reads initialized slots in
+front-to-back order. Body-proved executable array callers cover all four
+transitions: front/back pushes write only an uninitialized slot and insert the
+exact value at the corresponding end of the sequence; front/back pops read only
+an initialized slot, return the exact end value, and leave that slot
+uninitialized. Separate small lemmas prove cursor/full-state preservation,
+wraparound, and the checked push/pop space/nonempty preconditions. These Verus
+bodies are proved without project-local `assume` or `external_body`.
 
 The ordinary read implementation now performs the same explicit transition by
 swapping the slot with `MaybeUninit::uninit()` before `assume_init`, rather than
@@ -57,29 +67,47 @@ uninitialized state explicit.
 | unchecked front/back push and pop | yes | yes | no | yes |
 | slot read/write through `MaybeUninit` | yes | no | yes | yes |
 
-The table above records the existing Creusot proof. The additional Verus leaf
-status is:
+The table above records the existing Creusot proof. The additional Verus status
+is:
 
 | Verus component | Contract reviewed | Body proved | Trusted | Integrated run |
 |---|---:|---:|---:|---:|
 | one-slot write transition | yes | yes | no | yes |
 | one-slot read transition | yes | yes | no | yes |
+| physical-index and occupied-set lemmas | yes | yes | no | yes |
+| initialized-slot and logical-content relation | yes | spec/lemmas | no | yes |
+| fixed-array read/write with frame conditions | yes | yes | no | yes |
+| fixed-array front/back push transitions | yes | yes | no | yes |
+| fixed-array front/back pop transitions | yes | yes | no | yes |
+| cursor/full-state transition lemmas | yes | yes | no | yes |
+| checked push/pop precondition lemmas | yes | yes | no | yes |
 | write/read roundtrip caller | yes | yes | no | yes |
-| generic storage indexing and occupancy-to-initialization relation | no | no | absent | no |
+| public `DequeInner<T, S>` orchestration | no | no | absent | no |
+| generic `VecStorage`/`DequeView` relation | no | no | absent | no |
+| constructor, clear, and drop | partial | no | absent | no |
 
 ## Explicit trusted boundaries and exclusions
 
 Creusot does not currently model the initialized subset and ownership moves of a
 generic `MaybeUninit<T>` ring. Reading and writing one in-range slot therefore
 remain trusted to Creusot, with contracts preserving storage capacity. Verus
-proves the isolated element-move bodies, but does not yet prove that
-`VecStorage::borrow_mut` selects the intended physical slot or that the deque's
-front/back/full state makes that slot initialized before every read and
-uninitialized before every write. Connecting those facts is the next removal
-condition for the Creusot trusted boundary. Construction and `clear`
-are trusted because they respectively create uninitialized storage and drop the
-initialized elements; their contracts fix the resulting empty state and
-invariant.
+now proves the occupancy-to-initialization relation and all four value-preserving
+transitions for a fixed array, including the selected array index and the frame
+condition. It does not yet connect that fixed-array model through
+`VecStorage::borrow_mut` to the generic public `DequeInner<T, S>` method bodies.
+That production-orchestration connection is the next removal condition for the
+cross-verifier trusted boundary.
+
+Construction and `clear` remain trusted to Creusot. A direct Verus proof of the
+production constructor is currently blocked by Verus's unsupported non-`Copy`
+const array-fill expression (`[const { MaybeUninit::uninit() }; N]`); no trusted
+Verus stub was added for it. The preferred next step is a reusable verified
+non-`Copy` array initializer or an upstream `vstd` specification for the
+equivalent array construction, rather than a heapless-local assumption. `clear`
+and `Drop` also require a separate drop-loop model. Unconditional panic freedom
+for them is impossible for arbitrary `T` because `T::drop` may panic, so
+eventual contracts must distinguish memory safety during unwinding from panic
+freedom under a non-panicking-drop precondition.
 
 APIs whose essential result is element identity or initialized-memory exposure
 remain trusted or untranslated: slice and reference access, `make_contiguous`,
@@ -92,7 +120,9 @@ and optional adapters are outside this target's verification scope.
 Run `./verify-all.bash` in this directory to reproduce the default-feature
 Creusot Deque proof and the locked `verus`-feature proof. The current Creusot
 integrated result is `Proved (57 files)`; the Verus run proves the two slot
-transitions and their representative roundtrip caller. Verus is pinned to
+transitions, the fixed-array occupancy/content model, all four array
+push/pop transitions, and their cursor and checked-operation lemmas, with the
+current result `36 verified, 0 errors`. Verus is pinned to
 `0.2026.07.27.31579f0`, with `vstd` pinned to commit
 `31579f0b8542a8a9ae4ae5604c16107ccde23ef2` in `Cargo.toml` and `Cargo.lock`.
 The ordinary Deque unit-test module passes all 34 tests. Generated Why3, Verus,

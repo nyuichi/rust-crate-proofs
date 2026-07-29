@@ -60,9 +60,773 @@ use zeroize::Zeroize;
 use vstd::prelude::*;
 #[cfg(all(feature = "verus", verus_only))]
 use vstd::raw_ptr::MemContents;
+#[cfg(all(feature = "verus", verus_only))]
+use vstd::seq::Seq as VerusSeq;
+#[cfg(all(feature = "verus", verus_only))]
+use vstd::view::View as VerusView;
+#[cfg(all(feature = "verus", verus_only))]
+use vstd::assert_seqs_equal;
 
 #[cfg(feature = "verus")]
 verus! {
+
+/// Maps a logical deque offset to its physical slot. Callers establish
+/// `0 <= front < capacity` and `0 <= offset <= capacity`, so at most one wrap
+/// is necessary.
+pub open spec fn verus_physical_index(front: int, offset: int, capacity: int) -> int {
+    if front + offset < capacity {
+        front + offset
+    } else {
+        front + offset - capacity
+    }
+}
+
+/// The set of slots occupied by the logical interval `[0, len)`.
+pub open spec fn verus_occupied(
+    front: int,
+    len: int,
+    capacity: int,
+    index: int,
+) -> bool {
+    0 <= index < capacity
+        && exists|offset: int|
+            0 <= offset < len
+                && index == verus_physical_index(front, offset, capacity)
+}
+
+/// Arithmetic part of the deque representation invariant. The storage
+/// relation below is intentionally separate so ring reasoning and memory
+/// reasoning generate independent VCs.
+pub open spec fn verus_ring_wf(
+    front: int,
+    back: int,
+    full: bool,
+    len: int,
+    capacity: int,
+) -> bool {
+    &&& 0 < capacity
+    &&& 0 <= front < capacity
+    &&& 0 <= back < capacity
+    &&& 0 <= len <= capacity
+    &&& back == verus_physical_index(front, len, capacity)
+    &&& full == (len == capacity)
+}
+
+/// Advances one physical slot, wrapping at `capacity`.
+pub open spec fn verus_increment(index: int, capacity: int) -> int {
+    if index + 1 == capacity {
+        0
+    } else {
+        index + 1
+    }
+}
+
+/// Moves one physical slot backward, wrapping at zero.
+pub open spec fn verus_decrement(index: int, capacity: int) -> int {
+    if index == 0 {
+        capacity - 1
+    } else {
+        index - 1
+    }
+}
+
+/// Connects each physical `MaybeUninit` slot to the occupied interval.
+pub open spec fn verus_storage_matches<T>(
+    slots: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+) -> bool {
+    &&& 0 < capacity
+    &&& 0 <= front < capacity
+    &&& 0 <= len <= capacity
+    &&& slots.len() == capacity
+    &&& forall|index: int| 0 <= index < capacity ==> (
+        #[trigger] slots[index].mem_contents().is_init()
+            <==> verus_occupied(front, len, capacity, index)
+    )
+}
+
+/// Logical front-to-back contents. This is the functional model that later
+/// push/pop contracts will expose.
+pub open spec fn verus_contents<T>(
+    slots: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+) -> VerusSeq<T>
+    recommends
+        verus_storage_matches(slots, front, len, capacity),
+{
+    VerusSeq::new(len as nat, |offset: int|
+        slots[verus_physical_index(front, offset, capacity)]
+            .mem_contents()
+            .value())
+}
+
+proof fn verus_physical_index_in_range(front: int, offset: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 <= offset <= capacity,
+    ensures
+        0 <= verus_physical_index(front, offset, capacity) < capacity,
+{
+}
+
+proof fn verus_physical_index_injective(
+    front: int,
+    left: int,
+    right: int,
+    capacity: int,
+)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 <= left < capacity,
+        0 <= right < capacity,
+        verus_physical_index(front, left, capacity)
+            == verus_physical_index(front, right, capacity),
+    ensures
+        left == right,
+{
+}
+
+proof fn verus_physical_index_composes(
+    front: int,
+    first: int,
+    second: int,
+    capacity: int,
+)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 <= first,
+        0 <= second,
+        first + second <= capacity,
+    ensures
+        verus_physical_index(
+            verus_physical_index(front, first, capacity),
+            second,
+            capacity,
+        ) == verus_physical_index(front, first + second, capacity),
+{
+}
+
+proof fn verus_physical_index_next(front: int, offset: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 <= offset < capacity,
+    ensures
+        verus_increment(verus_physical_index(front, offset, capacity), capacity)
+            == verus_physical_index(front, offset + 1, capacity),
+{
+}
+
+proof fn verus_physical_index_previous(front: int, offset: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 < offset <= capacity,
+    ensures
+        verus_decrement(verus_physical_index(front, offset, capacity), capacity)
+            == verus_physical_index(front, offset - 1, capacity),
+{
+}
+
+proof fn verus_decrement_in_range(index: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= index < capacity,
+    ensures
+        0 <= verus_decrement(index, capacity) < capacity,
+{
+}
+
+proof fn verus_decrement_is_last_offset(front: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+    ensures
+        verus_decrement(front, capacity)
+            == verus_physical_index(front, capacity - 1, capacity),
+{
+}
+
+proof fn verus_physical_index_after_prepend(
+    front: int,
+    offset: int,
+    capacity: int,
+)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 <= offset < capacity,
+    ensures
+        verus_physical_index(
+            verus_decrement(front, capacity),
+            offset + 1,
+            capacity,
+        ) == verus_physical_index(front, offset, capacity),
+{
+}
+
+proof fn verus_ring_after_push_back(
+    front: int,
+    back: int,
+    full: bool,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_ring_wf(front, back, full, len, capacity),
+        len < capacity,
+    ensures
+        verus_ring_wf(
+            front,
+            verus_increment(back, capacity),
+            len + 1 == capacity,
+            len + 1,
+            capacity,
+        ),
+{
+    verus_physical_index_next(front, len, capacity);
+    verus_physical_index_in_range(front, len + 1, capacity);
+}
+
+proof fn verus_ring_after_push_front(
+    front: int,
+    back: int,
+    full: bool,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_ring_wf(front, back, full, len, capacity),
+        len < capacity,
+    ensures
+        verus_ring_wf(
+            verus_decrement(front, capacity),
+            back,
+            len + 1 == capacity,
+            len + 1,
+            capacity,
+        ),
+{
+    verus_decrement_in_range(front, capacity);
+    verus_physical_index_after_prepend(front, len, capacity);
+}
+
+proof fn verus_ring_after_pop_front(
+    front: int,
+    back: int,
+    full: bool,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_ring_wf(front, back, full, len, capacity),
+        0 < len,
+    ensures
+        verus_ring_wf(
+            verus_physical_index(front, 1, capacity),
+            back,
+            false,
+            len - 1,
+            capacity,
+        ),
+{
+    verus_physical_index_in_range(front, 1, capacity);
+    verus_physical_index_composes(front, 1, len - 1, capacity);
+}
+
+proof fn verus_ring_after_pop_back(
+    front: int,
+    back: int,
+    full: bool,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_ring_wf(front, back, full, len, capacity),
+        0 < len,
+    ensures
+        verus_ring_wf(
+            front,
+            verus_decrement(back, capacity),
+            false,
+            len - 1,
+            capacity,
+        ),
+{
+    verus_physical_index_previous(front, len, capacity);
+    verus_physical_index_in_range(front, len - 1, capacity);
+}
+
+proof fn verus_empty_iff_len_zero(
+    front: int,
+    back: int,
+    full: bool,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_ring_wf(front, back, full, len, capacity),
+    ensures
+        (front == back && !full) == (len == 0),
+{
+    if front == back && !full && len != 0 {
+        assert(len < capacity);
+        assert(verus_physical_index(front, 0, capacity) == front);
+        verus_physical_index_injective(front, len, 0, capacity);
+    }
+}
+
+proof fn verus_checked_push_has_space(
+    front: int,
+    back: int,
+    full: bool,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_ring_wf(front, back, full, len, capacity),
+        !full,
+    ensures
+        len < capacity,
+{
+}
+
+proof fn verus_checked_pop_has_element(
+    front: int,
+    back: int,
+    full: bool,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_ring_wf(front, back, full, len, capacity),
+        !(front == back && !full),
+    ensures
+        0 < len,
+{
+    verus_empty_iff_len_zero(front, back, full, len, capacity);
+}
+
+proof fn verus_push_back_slot_is_unoccupied(front: int, len: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 <= len < capacity,
+    ensures
+        !verus_occupied(
+            front,
+            len,
+            capacity,
+            verus_physical_index(front, len, capacity),
+        ),
+{
+    verus_physical_index_in_range(front, len, capacity);
+    if verus_occupied(
+        front,
+        len,
+        capacity,
+        verus_physical_index(front, len, capacity),
+    ) {
+        let offset = choose|offset: int|
+            0 <= offset < len
+                && verus_physical_index(front, len, capacity)
+                    == verus_physical_index(front, offset, capacity);
+        verus_physical_index_injective(front, len, offset, capacity);
+    }
+}
+
+proof fn verus_front_slot_is_occupied(front: int, len: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 < len <= capacity,
+    ensures
+        verus_occupied(front, len, capacity, front),
+{
+    assert(verus_physical_index(front, 0, capacity) == front);
+    assert(exists|offset: int|
+        0 <= offset < len
+            && front == verus_physical_index(front, offset, capacity)) by {
+        assert(0 <= 0 < len
+            && front == verus_physical_index(front, 0, capacity));
+    }
+}
+
+proof fn verus_back_slot_is_occupied(front: int, len: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 < len <= capacity,
+    ensures
+        verus_occupied(
+            front,
+            len,
+            capacity,
+            verus_physical_index(front, len - 1, capacity),
+        ),
+{
+    verus_physical_index_in_range(front, len - 1, capacity);
+    assert(exists|offset: int|
+        0 <= offset < len
+            && verus_physical_index(front, len - 1, capacity)
+                == #[trigger] verus_physical_index(front, offset, capacity)) by {
+        assert(0 <= len - 1 < len);
+    }
+}
+
+proof fn verus_occupied_after_push_back(front: int, len: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 <= len < capacity,
+    ensures
+        forall|index: int|
+            #[trigger] verus_occupied(front, len + 1, capacity, index)
+                <==> verus_occupied(front, len, capacity, index)
+                    || index == verus_physical_index(front, len, capacity),
+{
+    verus_physical_index_in_range(front, len, capacity);
+    assert forall|index: int|
+        #[trigger] verus_occupied(front, len + 1, capacity, index)
+            <==> verus_occupied(front, len, capacity, index)
+                || index == verus_physical_index(front, len, capacity) by {
+        if verus_occupied(front, len + 1, capacity, index) {
+            let offset = choose|offset: int|
+                0 <= offset < len + 1
+                    && index == verus_physical_index(front, offset, capacity);
+            if offset < len {
+                assert(exists|old_offset: int|
+                    0 <= old_offset < len
+                        && index
+                            == #[trigger] verus_physical_index(
+                                front,
+                                old_offset,
+                                capacity,
+                            )) by {
+                    assert(0 <= offset < len
+                        && index == verus_physical_index(front, offset, capacity));
+                }
+            } else {
+                assert(offset == len);
+            }
+        }
+
+        if verus_occupied(front, len, capacity, index) {
+            let offset = choose|offset: int|
+                0 <= offset < len
+                    && index == verus_physical_index(front, offset, capacity);
+            assert(exists|new_offset: int|
+                0 <= new_offset < len + 1
+                    && index
+                        == #[trigger] verus_physical_index(front, new_offset, capacity)) by {
+                assert(0 <= offset < len + 1
+                    && index == verus_physical_index(front, offset, capacity));
+            }
+        }
+
+        if index == verus_physical_index(front, len, capacity) {
+            assert(exists|new_offset: int|
+                0 <= new_offset < len + 1
+                    && index
+                        == #[trigger] verus_physical_index(front, new_offset, capacity)) by {
+                assert(0 <= len < len + 1
+                    && index == verus_physical_index(front, len, capacity));
+            }
+        }
+    }
+}
+
+proof fn verus_occupied_after_pop_front(front: int, len: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 < len <= capacity,
+    ensures
+        forall|index: int|
+            #[trigger] verus_occupied(
+                verus_physical_index(front, 1, capacity),
+                len - 1,
+                capacity,
+                index,
+            ) <==> verus_occupied(front, len, capacity, index) && index != front,
+{
+    let new_front = verus_physical_index(front, 1, capacity);
+    verus_physical_index_in_range(front, 1, capacity);
+    assert forall|index: int|
+        #[trigger] verus_occupied(new_front, len - 1, capacity, index)
+            <==> verus_occupied(front, len, capacity, index) && index != front by {
+        if verus_occupied(new_front, len - 1, capacity, index) {
+            let new_offset = choose|new_offset: int|
+                0 <= new_offset < len - 1
+                    && index
+                        == verus_physical_index(new_front, new_offset, capacity);
+            verus_physical_index_composes(front, 1, new_offset, capacity);
+            let old_offset = new_offset + 1;
+            assert(exists|offset: int|
+                0 <= offset < len
+                    && index
+                        == #[trigger] verus_physical_index(front, offset, capacity)) by {
+                assert(0 <= old_offset < len);
+                assert(index == verus_physical_index(front, old_offset, capacity));
+            }
+            assert(index != front) by {
+                if index == front {
+                    assert(verus_physical_index(front, 0, capacity) == front);
+                    verus_physical_index_injective(
+                        front,
+                        old_offset,
+                        0,
+                        capacity,
+                    );
+                }
+            }
+        }
+
+        if verus_occupied(front, len, capacity, index) && index != front {
+            let old_offset = choose|old_offset: int|
+                0 <= old_offset < len
+                    && index == verus_physical_index(front, old_offset, capacity);
+            assert(old_offset != 0) by {
+                if old_offset == 0 {
+                    assert(verus_physical_index(front, 0, capacity) == front);
+                }
+            }
+            let new_offset = old_offset - 1;
+            verus_physical_index_composes(front, 1, new_offset, capacity);
+            assert(exists|offset: int|
+                0 <= offset < len - 1
+                    && index
+                        == #[trigger] verus_physical_index(new_front, offset, capacity)) by {
+                assert(0 <= new_offset < len - 1);
+                assert(index == verus_physical_index(new_front, new_offset, capacity));
+            }
+        }
+    }
+}
+
+proof fn verus_occupied_after_pop_back(front: int, len: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 < len <= capacity,
+    ensures
+        forall|index: int|
+            #[trigger] verus_occupied(front, len - 1, capacity, index)
+                <==> verus_occupied(front, len, capacity, index)
+                    && index != verus_physical_index(front, len - 1, capacity),
+{
+    let last = verus_physical_index(front, len - 1, capacity);
+    verus_physical_index_in_range(front, len - 1, capacity);
+    assert forall|index: int|
+        #[trigger] verus_occupied(front, len - 1, capacity, index)
+            <==> verus_occupied(front, len, capacity, index) && index != last by {
+        if verus_occupied(front, len - 1, capacity, index) {
+            let offset = choose|offset: int|
+                0 <= offset < len - 1
+                    && index == verus_physical_index(front, offset, capacity);
+            assert(exists|old_offset: int|
+                0 <= old_offset < len
+                    && index
+                        == #[trigger] verus_physical_index(front, old_offset, capacity)) by {
+                assert(0 <= offset < len);
+            }
+            assert(index != last) by {
+                if index == last {
+                    verus_physical_index_injective(
+                        front,
+                        offset,
+                        len - 1,
+                        capacity,
+                    );
+                }
+            }
+        }
+
+        if verus_occupied(front, len, capacity, index) && index != last {
+            let offset = choose|offset: int|
+                0 <= offset < len
+                    && index == verus_physical_index(front, offset, capacity);
+            assert(offset != len - 1) by {
+                if offset == len - 1 {
+                    assert(index == last);
+                }
+            }
+            assert(offset < len - 1);
+            assert(exists|new_offset: int|
+                0 <= new_offset < len - 1
+                    && index
+                        == #[trigger] verus_physical_index(front, new_offset, capacity)) by {
+                assert(0 <= offset < len - 1);
+            }
+        }
+    }
+}
+
+proof fn verus_push_front_slot_is_unoccupied(front: int, len: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 <= len < capacity,
+    ensures
+        !verus_occupied(
+            front,
+            len,
+            capacity,
+            verus_decrement(front, capacity),
+        ),
+{
+    verus_decrement_in_range(front, capacity);
+    verus_decrement_is_last_offset(front, capacity);
+    if verus_occupied(front, len, capacity, verus_decrement(front, capacity)) {
+        let offset = choose|offset: int|
+            0 <= offset < len
+                && verus_decrement(front, capacity)
+                    == verus_physical_index(front, offset, capacity);
+        verus_physical_index_injective(front, capacity - 1, offset, capacity);
+    }
+}
+
+proof fn verus_occupied_after_push_front(front: int, len: int, capacity: int)
+    requires
+        0 < capacity,
+        0 <= front < capacity,
+        0 <= len < capacity,
+    ensures
+        forall|index: int|
+            #[trigger] verus_occupied(
+                verus_decrement(front, capacity),
+                len + 1,
+                capacity,
+                index,
+            ) <==> verus_occupied(front, len, capacity, index)
+                || index == verus_decrement(front, capacity),
+{
+    let new_front = verus_decrement(front, capacity);
+    verus_decrement_in_range(front, capacity);
+    assert forall|index: int|
+        #[trigger] verus_occupied(new_front, len + 1, capacity, index)
+            <==> verus_occupied(front, len, capacity, index) || index == new_front by {
+        if verus_occupied(new_front, len + 1, capacity, index) {
+            let new_offset = choose|new_offset: int|
+                0 <= new_offset < len + 1
+                    && index
+                        == verus_physical_index(new_front, new_offset, capacity);
+            if new_offset == 0 {
+                assert(verus_physical_index(new_front, 0, capacity) == new_front);
+            } else {
+                let old_offset = new_offset - 1;
+                verus_physical_index_after_prepend(front, old_offset, capacity);
+                assert(exists|offset: int|
+                    0 <= offset < len
+                        && index
+                            == #[trigger] verus_physical_index(front, offset, capacity)) by {
+                    assert(0 <= old_offset < len);
+                    assert(index == verus_physical_index(front, old_offset, capacity));
+                }
+            }
+        }
+
+        if verus_occupied(front, len, capacity, index) {
+            let old_offset = choose|old_offset: int|
+                0 <= old_offset < len
+                    && index == verus_physical_index(front, old_offset, capacity);
+            let new_offset = old_offset + 1;
+            verus_physical_index_after_prepend(front, old_offset, capacity);
+            assert(exists|offset: int|
+                0 <= offset < len + 1
+                    && index
+                        == #[trigger] verus_physical_index(new_front, offset, capacity)) by {
+                assert(0 <= new_offset < len + 1);
+                assert(index == verus_physical_index(new_front, new_offset, capacity));
+            }
+        }
+
+        if index == new_front {
+            assert(exists|offset: int|
+                0 <= offset < len + 1
+                    && index
+                        == #[trigger] verus_physical_index(new_front, offset, capacity)) by {
+                assert(verus_physical_index(new_front, 0, capacity) == new_front);
+            }
+        }
+    }
+}
+
+proof fn verus_storage_push_back_slot_is_uninit<T>(
+    slots: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_storage_matches(slots, front, len, capacity),
+        len < capacity,
+    ensures
+        slots[verus_physical_index(front, len, capacity)]
+            .mem_contents()
+            .is_uninit(),
+{
+    verus_push_back_slot_is_unoccupied(front, len, capacity);
+    verus_physical_index_in_range(front, len, capacity);
+}
+
+proof fn verus_storage_push_front_slot_is_uninit<T>(
+    slots: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_storage_matches(slots, front, len, capacity),
+        len < capacity,
+    ensures
+        slots[verus_decrement(front, capacity)]
+            .mem_contents()
+            .is_uninit(),
+{
+    verus_push_front_slot_is_unoccupied(front, len, capacity);
+    verus_decrement_in_range(front, capacity);
+}
+
+proof fn verus_storage_front_slot_is_init<T>(
+    slots: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_storage_matches(slots, front, len, capacity),
+        0 < len,
+    ensures
+        slots[front].mem_contents().is_init(),
+{
+    verus_front_slot_is_occupied(front, len, capacity);
+}
+
+proof fn verus_storage_back_slot_is_init<T>(
+    slots: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+)
+    requires
+        verus_storage_matches(slots, front, len, capacity),
+        0 < len,
+    ensures
+        slots[verus_physical_index(front, len - 1, capacity)]
+            .mem_contents()
+            .is_init(),
+{
+    verus_back_slot_is_occupied(front, len, capacity);
+    verus_physical_index_in_range(front, len - 1, capacity);
+}
 
 fn verus_write_slot<T>(slot: &mut MaybeUninit<T>, item: T)
     requires
@@ -85,6 +849,566 @@ fn verus_read_slot<T>(slot: &mut MaybeUninit<T>) -> (item: T)
     let mut empty = MaybeUninit::uninit();
     core::mem::swap(slot, &mut empty);
     unsafe { empty.assume_init() }
+}
+
+#[allow(dead_code)]
+fn verus_write_slot_at<T, const N: usize>(
+    slots: &mut [MaybeUninit<T>; N],
+    index: usize,
+    item: T,
+)
+    requires
+        index < N,
+        old(slots)@[index as int].mem_contents().is_uninit(),
+    ensures
+        final(slots)@[index as int].mem_contents() == MemContents::Init(item),
+        forall|other: int| 0 <= other < N && other != index ==> (
+            #[trigger] final(slots)@[other].mem_contents()
+                == old(slots)@[other].mem_contents()
+        ),
+    no_unwind
+{
+    verus_write_slot(&mut slots[index], item);
+}
+
+#[allow(dead_code)]
+fn verus_read_slot_at<T, const N: usize>(
+    slots: &mut [MaybeUninit<T>; N],
+    index: usize,
+) -> (item: T)
+    requires
+        index < N,
+        old(slots)@[index as int].mem_contents().is_init(),
+    ensures
+        final(slots)@[index as int].mem_contents().is_uninit(),
+        item == old(slots)@[index as int].mem_contents().value(),
+        forall|other: int| 0 <= other < N && other != index ==> (
+            #[trigger] final(slots)@[other].mem_contents()
+                == old(slots)@[other].mem_contents()
+        ),
+    no_unwind
+{
+    verus_read_slot(&mut slots[index])
+}
+
+#[allow(dead_code, unused_variables)]
+fn verus_push_back_write_at<T, const N: usize>(
+    slots: &mut [MaybeUninit<T>; N],
+    front: usize,
+    len: usize,
+    index: usize,
+    item: T,
+)
+    requires
+        0 < N,
+        front < N,
+        len < N,
+        index < N,
+        index as int == verus_physical_index(front as int, len as int, N as int),
+        verus_storage_matches(old(slots)@, front as int, len as int, N as int),
+    ensures
+        verus_storage_matches(
+            final(slots)@,
+            front as int,
+            len as int + 1,
+            N as int,
+        ),
+        final(slots)@[index as int].mem_contents() == MemContents::Init(item),
+        verus_contents(
+            final(slots)@,
+            front as int,
+            len as int + 1,
+            N as int,
+        ) =~= verus_contents(
+            old(slots)@,
+            front as int,
+            len as int,
+            N as int,
+        ).push(item),
+    no_unwind
+{
+    let ghost before = slots@;
+    proof {
+        verus_storage_push_back_slot_is_uninit(
+            before,
+            front as int,
+            len as int,
+            N as int,
+        );
+    }
+    verus_write_slot_at(slots, index, item);
+    proof {
+        verus_occupied_after_push_back(front as int, len as int, N as int);
+        assert forall|other: int| 0 <= other < N implies (
+            #[trigger] slots@[other].mem_contents().is_init()
+                <==> verus_occupied(
+                    front as int,
+                    len as int + 1,
+                    N as int,
+                    other,
+                )
+        ) by {
+            if other == index {
+                assert(slots@[other].mem_contents().is_init());
+                assert(verus_occupied(
+                    front as int,
+                    len as int + 1,
+                    N as int,
+                    other,
+                ));
+            } else {
+                assert(slots@[other].mem_contents() == before[other].mem_contents());
+                assert(before[other].mem_contents().is_init()
+                    <==> verus_occupied(
+                        front as int,
+                        len as int,
+                        N as int,
+                        other,
+                    ));
+            }
+        }
+        assert(verus_storage_matches(
+            slots@,
+            front as int,
+            len as int + 1,
+            N as int,
+        ));
+        assert_seqs_equal!(
+            verus_contents(
+                slots@,
+                front as int,
+                len as int + 1,
+                N as int,
+            ) == verus_contents(
+                before,
+                front as int,
+                len as int,
+                N as int,
+            ).push(item),
+            offset => {
+                if offset < len {
+                    let physical = verus_physical_index(
+                        front as int,
+                        offset,
+                        N as int,
+                    );
+                    verus_physical_index_in_range(
+                        front as int,
+                        offset,
+                        N as int,
+                    );
+                    assert(physical != index as int) by {
+                        if physical == index as int {
+                            verus_physical_index_injective(
+                                front as int,
+                                offset,
+                                len as int,
+                                N as int,
+                            );
+                        }
+                    }
+                    assert(slots@[physical].mem_contents()
+                        == before[physical].mem_contents());
+                } else {
+                    assert(offset == len);
+                }
+            }
+        );
+    }
+}
+
+#[allow(dead_code, unused_variables)]
+fn verus_push_front_write_at<T, const N: usize>(
+    slots: &mut [MaybeUninit<T>; N],
+    front: usize,
+    len: usize,
+    index: usize,
+    item: T,
+)
+    requires
+        0 < N,
+        front < N,
+        len < N,
+        index < N,
+        index as int == verus_decrement(front as int, N as int),
+        verus_storage_matches(old(slots)@, front as int, len as int, N as int),
+    ensures
+        verus_storage_matches(
+            final(slots)@,
+            index as int,
+            len as int + 1,
+            N as int,
+        ),
+        final(slots)@[index as int].mem_contents() == MemContents::Init(item),
+        verus_contents(
+            final(slots)@,
+            index as int,
+            len as int + 1,
+            N as int,
+        ) =~= verus_contents(
+            old(slots)@,
+            front as int,
+            len as int,
+            N as int,
+        ).insert(0, item),
+    no_unwind
+{
+    let ghost before = slots@;
+    proof {
+        verus_storage_push_front_slot_is_uninit(
+            before,
+            front as int,
+            len as int,
+            N as int,
+        );
+    }
+    verus_write_slot_at(slots, index, item);
+    proof {
+        verus_occupied_after_push_front(front as int, len as int, N as int);
+        assert forall|other: int| 0 <= other < N implies (
+            #[trigger] slots@[other].mem_contents().is_init()
+                <==> verus_occupied(
+                    index as int,
+                    len as int + 1,
+                    N as int,
+                    other,
+                )
+        ) by {
+            if other == index {
+                assert(slots@[other].mem_contents().is_init());
+                assert(verus_occupied(
+                    index as int,
+                    len as int + 1,
+                    N as int,
+                    other,
+                ));
+            } else {
+                assert(slots@[other].mem_contents() == before[other].mem_contents());
+                assert(before[other].mem_contents().is_init()
+                    <==> verus_occupied(
+                        front as int,
+                        len as int,
+                        N as int,
+                        other,
+                    ));
+            }
+        }
+        assert(verus_storage_matches(
+            slots@,
+            index as int,
+            len as int + 1,
+            N as int,
+        ));
+        assert_seqs_equal!(
+            verus_contents(
+                slots@,
+                index as int,
+                len as int + 1,
+                N as int,
+            ) == verus_contents(
+                before,
+                front as int,
+                len as int,
+                N as int,
+            ).insert(0, item),
+            offset => {
+                if offset == 0 {
+                    assert(verus_physical_index(index as int, 0, N as int)
+                        == index as int);
+                } else {
+                    let old_offset = offset - 1;
+                    verus_physical_index_after_prepend(
+                        front as int,
+                        old_offset,
+                        N as int,
+                    );
+                    let physical = verus_physical_index(
+                        front as int,
+                        old_offset,
+                        N as int,
+                    );
+                    verus_physical_index_in_range(
+                        front as int,
+                        old_offset,
+                        N as int,
+                    );
+                    assert(physical != index as int) by {
+                        if physical == index as int {
+                            verus_decrement_is_last_offset(front as int, N as int);
+                            verus_physical_index_injective(
+                                front as int,
+                                old_offset,
+                                N as int - 1,
+                                N as int,
+                            );
+                        }
+                    }
+                    assert(slots@[physical].mem_contents()
+                        == before[physical].mem_contents());
+                }
+            }
+        );
+    }
+}
+
+#[allow(dead_code, unused_variables)]
+fn verus_pop_front_read<T, const N: usize>(
+    slots: &mut [MaybeUninit<T>; N],
+    front: usize,
+    len: usize,
+) -> (item: T)
+    requires
+        0 < N,
+        front < N,
+        0 < len <= N,
+        verus_storage_matches(old(slots)@, front as int, len as int, N as int),
+    ensures
+        verus_storage_matches(
+            final(slots)@,
+            verus_physical_index(front as int, 1, N as int),
+            len as int - 1,
+            N as int,
+        ),
+        item == verus_contents(
+            old(slots)@,
+            front as int,
+            len as int,
+            N as int,
+        )[0],
+        verus_contents(
+            final(slots)@,
+            verus_physical_index(front as int, 1, N as int),
+            len as int - 1,
+            N as int,
+        ) =~= verus_contents(
+            old(slots)@,
+            front as int,
+            len as int,
+            N as int,
+        ).drop_first(),
+    no_unwind
+{
+    let ghost before = slots@;
+    proof {
+        verus_storage_front_slot_is_init(before, front as int, len as int, N as int);
+    }
+    let item = verus_read_slot_at(slots, front);
+    proof {
+        let new_front = verus_physical_index(front as int, 1, N as int);
+        verus_occupied_after_pop_front(front as int, len as int, N as int);
+        assert forall|other: int| 0 <= other < N implies (
+            #[trigger] slots@[other].mem_contents().is_init()
+                <==> verus_occupied(
+                    new_front,
+                    len as int - 1,
+                    N as int,
+                    other,
+                )
+        ) by {
+            if other == front {
+                assert(slots@[other].mem_contents().is_uninit());
+                assert(!verus_occupied(new_front, len as int - 1, N as int, other));
+            } else {
+                assert(slots@[other].mem_contents() == before[other].mem_contents());
+                assert(before[other].mem_contents().is_init()
+                    <==> verus_occupied(
+                        front as int,
+                        len as int,
+                        N as int,
+                        other,
+                    ));
+            }
+        }
+        assert(verus_storage_matches(
+            slots@,
+            new_front,
+            len as int - 1,
+            N as int,
+        ));
+        assert(verus_physical_index(front as int, 0, N as int) == front as int);
+        assert(item == verus_contents(
+            before,
+            front as int,
+            len as int,
+            N as int,
+        )[0]);
+        assert_seqs_equal!(
+            verus_contents(
+                slots@,
+                new_front,
+                len as int - 1,
+                N as int,
+            ) == verus_contents(
+                before,
+                front as int,
+                len as int,
+                N as int,
+            ).drop_first(),
+            offset => {
+                let old_offset = offset + 1;
+                verus_physical_index_composes(
+                    front as int,
+                    1,
+                    offset,
+                    N as int,
+                );
+                let physical = verus_physical_index(
+                    front as int,
+                    old_offset,
+                    N as int,
+                );
+                verus_physical_index_in_range(
+                    front as int,
+                    old_offset,
+                    N as int,
+                );
+                assert(physical != front as int) by {
+                    if physical == front as int {
+                        assert(verus_physical_index(front as int, 0, N as int)
+                            == front as int);
+                        verus_physical_index_injective(
+                            front as int,
+                            old_offset,
+                            0,
+                            N as int,
+                        );
+                    }
+                }
+                assert(slots@[physical].mem_contents()
+                    == before[physical].mem_contents());
+            }
+        );
+    }
+    item
+}
+
+#[allow(dead_code, unused_variables)]
+fn verus_pop_back_read<T, const N: usize>(
+    slots: &mut [MaybeUninit<T>; N],
+    front: usize,
+    len: usize,
+    index: usize,
+) -> (item: T)
+    requires
+        0 < N,
+        front < N,
+        0 < len <= N,
+        index < N,
+        index as int
+            == verus_physical_index(front as int, len as int - 1, N as int),
+        verus_storage_matches(old(slots)@, front as int, len as int, N as int),
+    ensures
+        verus_storage_matches(
+            final(slots)@,
+            front as int,
+            len as int - 1,
+            N as int,
+        ),
+        item == verus_contents(
+            old(slots)@,
+            front as int,
+            len as int,
+            N as int,
+        )[len as int - 1],
+        verus_contents(
+            final(slots)@,
+            front as int,
+            len as int - 1,
+            N as int,
+        ) =~= verus_contents(
+            old(slots)@,
+            front as int,
+            len as int,
+            N as int,
+        ).drop_last(),
+    no_unwind
+{
+    let ghost before = slots@;
+    proof {
+        verus_storage_back_slot_is_init(before, front as int, len as int, N as int);
+    }
+    let item = verus_read_slot_at(slots, index);
+    proof {
+        verus_occupied_after_pop_back(front as int, len as int, N as int);
+        assert forall|other: int| 0 <= other < N implies (
+            #[trigger] slots@[other].mem_contents().is_init()
+                <==> verus_occupied(
+                    front as int,
+                    len as int - 1,
+                    N as int,
+                    other,
+                )
+        ) by {
+            if other == index {
+                assert(slots@[other].mem_contents().is_uninit());
+                assert(!verus_occupied(
+                    front as int,
+                    len as int - 1,
+                    N as int,
+                    other,
+                ));
+            } else {
+                assert(slots@[other].mem_contents() == before[other].mem_contents());
+                assert(before[other].mem_contents().is_init()
+                    <==> verus_occupied(
+                        front as int,
+                        len as int,
+                        N as int,
+                        other,
+                    ));
+            }
+        }
+        assert(verus_storage_matches(
+            slots@,
+            front as int,
+            len as int - 1,
+            N as int,
+        ));
+        assert(item == verus_contents(
+            before,
+            front as int,
+            len as int,
+            N as int,
+        )[len as int - 1]);
+        assert_seqs_equal!(
+            verus_contents(
+                slots@,
+                front as int,
+                len as int - 1,
+                N as int,
+            ) == verus_contents(
+                before,
+                front as int,
+                len as int,
+                N as int,
+            ).drop_last(),
+            offset => {
+                let physical = verus_physical_index(
+                    front as int,
+                    offset,
+                    N as int,
+                );
+                verus_physical_index_in_range(
+                    front as int,
+                    offset,
+                    N as int,
+                );
+                assert(physical != index as int) by {
+                    if physical == index as int {
+                        verus_physical_index_injective(
+                            front as int,
+                            offset,
+                            len as int - 1,
+                            N as int,
+                        );
+                    }
+                }
+                assert(slots@[physical].mem_contents()
+                    == before[physical].mem_contents());
+            }
+        );
+    }
+    item
 }
 
 #[allow(dead_code)]
