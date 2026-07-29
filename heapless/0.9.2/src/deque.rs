@@ -37,6 +37,8 @@ use crate::{
     vec::{OwnedVecStorage, VecStorage, VecStorageInner},
     CapacityError,
 };
+#[cfg(feature = "verus")]
+use crate::vec::VecSealedStorage;
 #[cfg(not(creusot))]
 use crate::vec::ViewVecStorage;
 use core::{
@@ -828,6 +830,275 @@ proof fn verus_storage_back_slot_is_init<T>(
     verus_physical_index_in_range(front, len - 1, capacity);
 }
 
+proof fn verus_storage_after_push_back<T>(
+    before: VerusSeq<MaybeUninit<T>>,
+    after: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+    index: int,
+    item: T,
+)
+    requires
+        verus_storage_matches(before, front, len, capacity),
+        len < capacity,
+        index == verus_physical_index(front, len, capacity),
+        after.len() == before.len(),
+        after[index].mem_contents() == MemContents::Init(item),
+        forall|other: int| 0 <= other < before.len() && other != index ==> (
+            #[trigger] after[other].mem_contents() == before[other].mem_contents()
+        ),
+    ensures
+        verus_storage_matches(after, front, len + 1, capacity),
+        verus_contents(after, front, len + 1, capacity)
+            =~= verus_contents(before, front, len, capacity).push(item),
+{
+    verus_occupied_after_push_back(front, len, capacity);
+    assert forall|other: int| 0 <= other < capacity implies (
+        #[trigger] after[other].mem_contents().is_init()
+            <==> verus_occupied(front, len + 1, capacity, other)
+    ) by {
+        if other == index {
+            assert(after[other].mem_contents().is_init());
+            assert(verus_occupied(front, len + 1, capacity, other));
+        } else {
+            assert(after[other].mem_contents() == before[other].mem_contents());
+            assert(before[other].mem_contents().is_init()
+                <==> verus_occupied(front, len, capacity, other));
+        }
+    }
+    assert(verus_storage_matches(after, front, len + 1, capacity));
+    assert_seqs_equal!(
+        verus_contents(after, front, len + 1, capacity)
+            == verus_contents(before, front, len, capacity).push(item),
+        offset => {
+            if offset < len {
+                let physical = verus_physical_index(front, offset, capacity);
+                verus_physical_index_in_range(front, offset, capacity);
+                assert(physical != index) by {
+                    if physical == index {
+                        verus_physical_index_injective(
+                            front,
+                            offset,
+                            len,
+                            capacity,
+                        );
+                    }
+                }
+                assert(after[physical].mem_contents()
+                    == before[physical].mem_contents());
+            } else {
+                assert(offset == len);
+            }
+        }
+    );
+}
+
+proof fn verus_storage_after_push_front<T>(
+    before: VerusSeq<MaybeUninit<T>>,
+    after: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+    index: int,
+    item: T,
+)
+    requires
+        verus_storage_matches(before, front, len, capacity),
+        len < capacity,
+        index == verus_decrement(front, capacity),
+        after.len() == before.len(),
+        after[index].mem_contents() == MemContents::Init(item),
+        forall|other: int| 0 <= other < before.len() && other != index ==> (
+            #[trigger] after[other].mem_contents() == before[other].mem_contents()
+        ),
+    ensures
+        verus_storage_matches(after, index, len + 1, capacity),
+        verus_contents(after, index, len + 1, capacity)
+            =~= verus_contents(before, front, len, capacity).insert(0, item),
+{
+    verus_occupied_after_push_front(front, len, capacity);
+    assert forall|other: int| 0 <= other < capacity implies (
+        #[trigger] after[other].mem_contents().is_init()
+            <==> verus_occupied(index, len + 1, capacity, other)
+    ) by {
+        if other == index {
+            assert(after[other].mem_contents().is_init());
+            assert(verus_occupied(index, len + 1, capacity, other));
+        } else {
+            assert(after[other].mem_contents() == before[other].mem_contents());
+            assert(before[other].mem_contents().is_init()
+                <==> verus_occupied(front, len, capacity, other));
+        }
+    }
+    assert(verus_storage_matches(after, index, len + 1, capacity));
+    assert_seqs_equal!(
+        verus_contents(after, index, len + 1, capacity)
+            == verus_contents(before, front, len, capacity).insert(0, item),
+        offset => {
+            if offset == 0 {
+                assert(verus_physical_index(index, 0, capacity) == index);
+            } else {
+                let old_offset = offset - 1;
+                verus_physical_index_after_prepend(front, old_offset, capacity);
+                let physical = verus_physical_index(front, old_offset, capacity);
+                verus_physical_index_in_range(front, old_offset, capacity);
+                assert(physical != index) by {
+                    if physical == index {
+                        verus_decrement_is_last_offset(front, capacity);
+                        verus_physical_index_injective(
+                            front,
+                            old_offset,
+                            capacity - 1,
+                            capacity,
+                        );
+                    }
+                }
+                assert(after[physical].mem_contents()
+                    == before[physical].mem_contents());
+            }
+        }
+    );
+}
+
+proof fn verus_storage_after_pop_front<T>(
+    before: VerusSeq<MaybeUninit<T>>,
+    after: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+    item: T,
+)
+    requires
+        verus_storage_matches(before, front, len, capacity),
+        0 < len,
+        after.len() == before.len(),
+        after[front].mem_contents().is_uninit(),
+        item == before[front].mem_contents().value(),
+        forall|other: int| 0 <= other < before.len() && other != front ==> (
+            #[trigger] after[other].mem_contents() == before[other].mem_contents()
+        ),
+    ensures
+        verus_storage_matches(
+            after,
+            verus_physical_index(front, 1, capacity),
+            len - 1,
+            capacity,
+        ),
+        item == verus_contents(before, front, len, capacity)[0],
+        verus_contents(
+            after,
+            verus_physical_index(front, 1, capacity),
+            len - 1,
+            capacity,
+        ) =~= verus_contents(before, front, len, capacity).drop_first(),
+{
+    let new_front = verus_physical_index(front, 1, capacity);
+    verus_occupied_after_pop_front(front, len, capacity);
+    assert forall|other: int| 0 <= other < capacity implies (
+        #[trigger] after[other].mem_contents().is_init()
+            <==> verus_occupied(new_front, len - 1, capacity, other)
+    ) by {
+        if other == front {
+            assert(after[other].mem_contents().is_uninit());
+            assert(!verus_occupied(new_front, len - 1, capacity, other));
+        } else {
+            assert(after[other].mem_contents() == before[other].mem_contents());
+            assert(before[other].mem_contents().is_init()
+                <==> verus_occupied(front, len, capacity, other));
+        }
+    }
+    assert(verus_storage_matches(after, new_front, len - 1, capacity));
+    assert(verus_physical_index(front, 0, capacity) == front);
+    assert(item == verus_contents(before, front, len, capacity)[0]);
+    assert_seqs_equal!(
+        verus_contents(after, new_front, len - 1, capacity)
+            == verus_contents(before, front, len, capacity).drop_first(),
+        offset => {
+            let old_offset = offset + 1;
+            verus_physical_index_composes(front, 1, offset, capacity);
+            let physical = verus_physical_index(front, old_offset, capacity);
+            verus_physical_index_in_range(front, old_offset, capacity);
+            assert(physical != front) by {
+                if physical == front {
+                    assert(verus_physical_index(front, 0, capacity) == front);
+                    verus_physical_index_injective(
+                        front,
+                        old_offset,
+                        0,
+                        capacity,
+                    );
+                }
+            }
+            assert(after[physical].mem_contents()
+                == before[physical].mem_contents());
+        }
+    );
+}
+
+proof fn verus_storage_after_pop_back<T>(
+    before: VerusSeq<MaybeUninit<T>>,
+    after: VerusSeq<MaybeUninit<T>>,
+    front: int,
+    len: int,
+    capacity: int,
+    index: int,
+    item: T,
+)
+    requires
+        verus_storage_matches(before, front, len, capacity),
+        0 < len,
+        index == verus_physical_index(front, len - 1, capacity),
+        after.len() == before.len(),
+        after[index].mem_contents().is_uninit(),
+        item == before[index].mem_contents().value(),
+        forall|other: int| 0 <= other < before.len() && other != index ==> (
+            #[trigger] after[other].mem_contents() == before[other].mem_contents()
+        ),
+    ensures
+        verus_storage_matches(after, front, len - 1, capacity),
+        item == verus_contents(before, front, len, capacity)[len - 1],
+        verus_contents(after, front, len - 1, capacity)
+            =~= verus_contents(before, front, len, capacity).drop_last(),
+{
+    verus_occupied_after_pop_back(front, len, capacity);
+    assert forall|other: int| 0 <= other < capacity implies (
+        #[trigger] after[other].mem_contents().is_init()
+            <==> verus_occupied(front, len - 1, capacity, other)
+    ) by {
+        if other == index {
+            assert(after[other].mem_contents().is_uninit());
+            assert(!verus_occupied(front, len - 1, capacity, other));
+        } else {
+            assert(after[other].mem_contents() == before[other].mem_contents());
+            assert(before[other].mem_contents().is_init()
+                <==> verus_occupied(front, len, capacity, other));
+        }
+    }
+    assert(verus_storage_matches(after, front, len - 1, capacity));
+    assert(item == verus_contents(before, front, len, capacity)[len - 1]);
+    assert_seqs_equal!(
+        verus_contents(after, front, len - 1, capacity)
+            == verus_contents(before, front, len, capacity).drop_last(),
+        offset => {
+            let physical = verus_physical_index(front, offset, capacity);
+            verus_physical_index_in_range(front, offset, capacity);
+            assert(physical != index) by {
+                if physical == index {
+                    verus_physical_index_injective(
+                        front,
+                        offset,
+                        len - 1,
+                        capacity,
+                    );
+                }
+            }
+            assert(after[physical].mem_contents()
+                == before[physical].mem_contents());
+        }
+    );
+}
+
 fn verus_write_slot<T>(slot: &mut MaybeUninit<T>, item: T)
     requires
         old(slot).mem_contents() == MemContents::Uninit,
@@ -1429,7 +1700,7 @@ fn verus_slot_roundtrip<T>(item: T) -> (result: T)
 /// In most cases you should use [`Deque`] or [`DequeView`] directly. Only use this
 /// struct if you want to write code that's generic over both.
 #[cfg_attr(feature = "zeroize", derive(Zeroize))]
-#[cfg(not(creusot))]
+#[cfg(all(not(creusot), not(feature = "verus")))]
 pub struct DequeInner<T, S: VecStorage<T> + ?Sized> {
     // This phantomdata is required because otherwise rustc thinks that `T` is not used
     phantom: PhantomData<T>,
@@ -1442,6 +1713,19 @@ pub struct DequeInner<T, S: VecStorage<T> + ?Sized> {
     /// May only be `true` if `front == back`, always `false` otherwise.
     full: bool,
     buffer: S,
+}
+
+// Verus external type specifications require public fields to expose a
+// transparent representation. This feature is verification-only; the ordinary
+// public API retains the upstream field privacy above.
+#[cfg(all(not(creusot), feature = "verus"))]
+#[allow(missing_docs)]
+pub struct DequeInner<T, S: VecStorage<T> + ?Sized> {
+    pub phantom: PhantomData<T>,
+    pub front: usize,
+    pub back: usize,
+    pub full: bool,
+    pub buffer: S,
 }
 
 // Verification exposes the representation to logic only. The ordinary build
@@ -1562,6 +1846,788 @@ pub type Deque<T, const N: usize> = DequeInner<T, OwnedVecStorage<T, N>>;
 #[cfg(not(creusot))]
 pub type DequeView<T> = DequeInner<T, ViewVecStorage<T>>;
 
+#[cfg(feature = "verus")]
+verus! {
+
+/// Abstract slot sequence used at the sealed `VecStorage` boundary.
+pub uninterp spec fn verus_storage_slots<T, S: ?Sized>(storage: &S)
+    -> VerusSeq<MaybeUninit<T>>;
+
+#[verifier::external_trait_specification]
+#[allow(missing_docs)]
+pub trait ExVecSealedStorage<T> {
+    type ExternalTraitSpecificationFor: VecSealedStorage<T>;
+
+    fn borrow(&self) -> (result: &[MaybeUninit<T>])
+        ensures
+            result@ == verus_storage_slots::<T, Self>(self),
+        no_unwind
+    ;
+
+    fn borrow_mut(&mut self) -> (result: &mut [MaybeUninit<T>])
+        ensures
+            result@ == verus_storage_slots::<T, Self>(old(self)),
+            final(result)@ == verus_storage_slots::<T, Self>(final(self)),
+        no_unwind
+    ;
+}
+
+#[verifier::external_trait_specification]
+#[allow(missing_docs)]
+pub trait ExVecStorage<T>: VecSealedStorage<T> {
+    type ExternalTraitSpecificationFor: VecStorage<T>;
+}
+
+#[verifier::external_type_specification]
+#[verifier::reject_recursive_types(T)]
+#[verifier::reject_recursive_types(S)]
+#[allow(missing_docs)]
+pub struct ExDequeInner<T, S>(DequeInner<T, S>)
+where
+    S: VecStorage<T> + ?Sized;
+
+#[verifier::external_type_specification]
+#[verifier::reject_recursive_types(T)]
+#[allow(missing_docs)]
+pub struct ExVecStorageInner<T: ?Sized>(VecStorageInner<T>);
+
+#[verifier::external_type_specification]
+#[allow(missing_docs)]
+pub struct ExCapacityError(CapacityError);
+
+/// Verus view of the fixed-capacity deque's physical storage.
+pub open spec fn verus_owned_slots<T, const N: usize>(
+    deque: &Deque<T, N>,
+) -> VerusSeq<MaybeUninit<T>> {
+    deque.buffer.buffer@
+}
+
+/// Mathematical length computed from the production cursor fields.
+pub open spec fn verus_owned_len<T, const N: usize>(deque: &Deque<T, N>) -> int {
+    if deque.full {
+        N as int
+    } else if deque.back < deque.front {
+        N as int - deque.front as int + deque.back as int
+    } else {
+        deque.back as int - deque.front as int
+    }
+}
+
+/// Full Verus representation invariant for fixed-capacity production deques.
+pub open spec fn verus_owned_wf<T, const N: usize>(deque: &Deque<T, N>) -> bool {
+    &&& 0 < N
+    &&& verus_ring_wf(
+        deque.front as int,
+        deque.back as int,
+        deque.full,
+        verus_owned_len(deque),
+        N as int,
+    )
+    &&& verus_storage_matches(
+        verus_owned_slots(deque),
+        deque.front as int,
+        verus_owned_len(deque),
+        N as int,
+    )
+}
+
+/// Front-to-back values stored in a well-formed production deque.
+pub open spec fn verus_owned_contents<T, const N: usize>(
+    deque: &Deque<T, N>,
+) -> VerusSeq<T>
+    recommends
+        verus_owned_wf(deque),
+{
+    verus_contents(
+        verus_owned_slots(deque),
+        deque.front as int,
+        verus_owned_len(deque),
+        N as int,
+    )
+}
+
+/// Mathematical capacity of a generic production storage object.
+pub open spec fn verus_generic_capacity<T, S>(deque: &DequeInner<T, S>) -> int
+where
+    S: VecStorage<T> + ?Sized,
+{
+    verus_storage_slots::<T, S>(&deque.buffer).len() as int
+}
+
+/// Mathematical length computed from a generic production deque's cursors.
+pub open spec fn verus_generic_len<T, S>(deque: &DequeInner<T, S>) -> int
+where
+    S: VecStorage<T> + ?Sized,
+{
+    if deque.full {
+        verus_generic_capacity(deque)
+    } else if deque.back < deque.front {
+        verus_generic_capacity(deque) - deque.front as int + deque.back as int
+    } else {
+        deque.back as int - deque.front as int
+    }
+}
+
+/// Full Verus representation invariant for generic production deques.
+pub open spec fn verus_generic_wf<T, S>(deque: &DequeInner<T, S>) -> bool
+where
+    S: VecStorage<T> + ?Sized,
+{
+    &&& verus_ring_wf(
+        deque.front as int,
+        deque.back as int,
+        deque.full,
+        verus_generic_len(deque),
+        verus_generic_capacity(deque),
+    )
+    &&& verus_storage_matches(
+        verus_storage_slots::<T, S>(&deque.buffer),
+        deque.front as int,
+        verus_generic_len(deque),
+        verus_generic_capacity(deque),
+    )
+}
+
+/// Front-to-back values stored in a well-formed generic production deque.
+pub open spec fn verus_generic_contents<T, S>(
+    deque: &DequeInner<T, S>,
+) -> VerusSeq<T>
+where
+    S: VecStorage<T> + ?Sized,
+    recommends
+        verus_generic_wf(deque),
+{
+    verus_contents(
+        verus_storage_slots::<T, S>(&deque.buffer),
+        deque.front as int,
+        verus_generic_len(deque),
+        verus_generic_capacity(deque),
+    )
+}
+
+/// Trusted constructor boundary: Verus cannot currently translate the
+/// production non-`Copy` const array-fill expression. Remove this assumption
+/// once that expression or an equivalent verified initializer is supported.
+pub assume_specification<T, const N: usize>[ Deque::<T, N>::new ]()
+    -> (result: Deque<T, N>)
+    requires
+        0 < N,
+    ensures
+        verus_storage_slots::<T, OwnedVecStorage<T, N>>(&result.buffer)
+            == result.buffer.buffer@,
+        verus_owned_wf(&result),
+        verus_generic_wf(&result),
+        verus_owned_len(&result) == 0,
+        verus_generic_len(&result) == 0,
+        verus_owned_contents(&result) =~= VerusSeq::<T>::empty(),
+        verus_generic_contents(&result) =~= VerusSeq::<T>::empty(),
+        forall|index: int| 0 <= index < N ==> (
+            #[trigger] result.buffer.buffer@[index].mem_contents().is_uninit()
+        ),
+    no_unwind
+;
+
+/// Trusted only because the current vstd slice-length specification omits
+/// `no_unwind`; Rust slice length observation itself cannot panic.
+#[verifier::external_body]
+fn verus_slice_len<T>(slice: &[T]) -> (len: usize)
+    ensures
+        len == slice@.len(),
+    no_unwind
+{
+    slice.len()
+}
+
+#[allow(dead_code)]
+fn verus_generic_write_storage<T, S>(
+    storage: &mut S,
+    index: usize,
+    item: T,
+)
+where
+    S: VecStorage<T> + ?Sized,
+    requires
+        index < verus_storage_slots::<T, S>(old(storage)).len(),
+        verus_storage_slots::<T, S>(old(storage))[index as int]
+            .mem_contents()
+            .is_uninit(),
+    ensures
+        verus_storage_slots::<T, S>(final(storage))[index as int]
+            .mem_contents() == MemContents::Init(item),
+        forall|other: int|
+            0 <= other < verus_storage_slots::<T, S>(old(storage)).len()
+                && other != index ==> (
+                    #[trigger] verus_storage_slots::<T, S>(final(storage))[other]
+                        .mem_contents()
+                        == verus_storage_slots::<T, S>(old(storage))[other]
+                            .mem_contents()
+                ),
+        verus_storage_slots::<T, S>(final(storage)).len()
+            == verus_storage_slots::<T, S>(old(storage)).len(),
+    no_unwind
+{
+    let slots = storage.borrow_mut();
+    verus_write_slot(&mut slots[index], item);
+}
+
+#[allow(dead_code)]
+fn verus_generic_read_storage<T, S>(
+    storage: &mut S,
+    index: usize,
+) -> (item: T)
+where
+    S: VecStorage<T> + ?Sized,
+    requires
+        index < verus_storage_slots::<T, S>(old(storage)).len(),
+        verus_storage_slots::<T, S>(old(storage))[index as int]
+            .mem_contents()
+            .is_init(),
+    ensures
+        verus_storage_slots::<T, S>(final(storage))[index as int]
+            .mem_contents()
+            .is_uninit(),
+        item == verus_storage_slots::<T, S>(old(storage))[index as int]
+            .mem_contents()
+            .value(),
+        forall|other: int|
+            0 <= other < verus_storage_slots::<T, S>(old(storage)).len()
+                && other != index ==> (
+                    #[trigger] verus_storage_slots::<T, S>(final(storage))[other]
+                        .mem_contents()
+                        == verus_storage_slots::<T, S>(old(storage))[other]
+                            .mem_contents()
+                ),
+        verus_storage_slots::<T, S>(final(storage)).len()
+            == verus_storage_slots::<T, S>(old(storage)).len(),
+    no_unwind
+{
+    let slots = storage.borrow_mut();
+    verus_read_slot(&mut slots[index])
+}
+
+#[allow(dead_code, unused_variables)]
+unsafe fn verus_generic_push_back_unchecked<T, S>(
+    deque: &mut DequeInner<T, S>,
+    item: T,
+)
+where
+    S: VecStorage<T> + ?Sized,
+    requires
+        verus_generic_wf(old(deque)),
+        verus_generic_len(old(deque)) < verus_generic_capacity(old(deque)),
+    ensures
+        verus_generic_wf(final(deque)),
+        verus_generic_contents(final(deque))
+            =~= verus_generic_contents(old(deque)).push(item),
+    no_unwind
+{
+    let capacity = verus_slice_len(deque.buffer.borrow());
+    let front = deque.front;
+    let back = deque.back;
+    let full = deque.full;
+    let len = if full {
+        capacity
+    } else if back < front {
+        capacity - front + back
+    } else {
+        back - front
+    };
+    let ghost before_slots = verus_storage_slots::<T, S>(&deque.buffer);
+    let ghost before_contents = verus_generic_contents(deque);
+    proof {
+        assert(capacity as int == verus_generic_capacity(deque));
+        assert(len as int == verus_generic_len(deque));
+        assert(back as int == verus_physical_index(
+            front as int,
+            len as int,
+            capacity as int,
+        ));
+        verus_storage_push_back_slot_is_uninit(
+            before_slots,
+            front as int,
+            len as int,
+            capacity as int,
+        );
+    }
+    verus_generic_write_storage(&mut deque.buffer, back, item);
+    deque.back = if back + 1 == capacity { 0 } else { back + 1 };
+    deque.full = len + 1 == capacity;
+    proof {
+        let after_slots = verus_storage_slots::<T, S>(&deque.buffer);
+        verus_storage_after_push_back(
+            before_slots,
+            after_slots,
+            front as int,
+            len as int,
+            capacity as int,
+            back as int,
+            item,
+        );
+        verus_ring_after_push_back(
+            front as int,
+            back as int,
+            full,
+            len as int,
+            capacity as int,
+        );
+        assert(verus_generic_capacity(deque) == capacity as int);
+        assert(verus_generic_len(deque) == len as int + 1);
+        assert(verus_generic_wf(deque));
+        assert(verus_generic_contents(deque) =~= before_contents.push(item));
+    }
+}
+
+#[allow(dead_code, unused_variables)]
+unsafe fn verus_generic_push_front_unchecked<T, S>(
+    deque: &mut DequeInner<T, S>,
+    item: T,
+)
+where
+    S: VecStorage<T> + ?Sized,
+    requires
+        verus_generic_wf(old(deque)),
+        verus_generic_len(old(deque)) < verus_generic_capacity(old(deque)),
+    ensures
+        verus_generic_wf(final(deque)),
+        verus_generic_contents(final(deque))
+            =~= verus_generic_contents(old(deque)).insert(0, item),
+    no_unwind
+{
+    let capacity = verus_slice_len(deque.buffer.borrow());
+    let front = deque.front;
+    let back = deque.back;
+    let full = deque.full;
+    let len = if full {
+        capacity
+    } else if back < front {
+        capacity - front + back
+    } else {
+        back - front
+    };
+    let index = if front == 0 { capacity - 1 } else { front - 1 };
+    let ghost before_slots = verus_storage_slots::<T, S>(&deque.buffer);
+    let ghost before_contents = verus_generic_contents(deque);
+    proof {
+        assert(capacity as int == verus_generic_capacity(deque));
+        assert(len as int == verus_generic_len(deque));
+        assert(index as int == verus_decrement(front as int, capacity as int));
+        verus_storage_push_front_slot_is_uninit(
+            before_slots,
+            front as int,
+            len as int,
+            capacity as int,
+        );
+    }
+    verus_generic_write_storage(&mut deque.buffer, index, item);
+    deque.front = index;
+    deque.full = len + 1 == capacity;
+    proof {
+        let after_slots = verus_storage_slots::<T, S>(&deque.buffer);
+        verus_storage_after_push_front(
+            before_slots,
+            after_slots,
+            front as int,
+            len as int,
+            capacity as int,
+            index as int,
+            item,
+        );
+        verus_ring_after_push_front(
+            front as int,
+            back as int,
+            full,
+            len as int,
+            capacity as int,
+        );
+        assert(verus_generic_capacity(deque) == capacity as int);
+        assert(verus_generic_len(deque) == len as int + 1);
+        assert(verus_generic_wf(deque));
+        assert(verus_generic_contents(deque) =~= before_contents.insert(0, item));
+    }
+}
+
+#[allow(dead_code, unused_variables)]
+unsafe fn verus_generic_pop_front_unchecked<T, S>(
+    deque: &mut DequeInner<T, S>,
+) -> (item: T)
+where
+    S: VecStorage<T> + ?Sized,
+    requires
+        verus_generic_wf(old(deque)),
+        0 < verus_generic_len(old(deque)),
+    ensures
+        verus_generic_wf(final(deque)),
+        item == verus_generic_contents(old(deque))[0],
+        verus_generic_contents(final(deque))
+            =~= verus_generic_contents(old(deque)).drop_first(),
+    no_unwind
+{
+    let capacity = verus_slice_len(deque.buffer.borrow());
+    let front = deque.front;
+    let back = deque.back;
+    let full = deque.full;
+    let len = if full {
+        capacity
+    } else if back < front {
+        capacity - front + back
+    } else {
+        back - front
+    };
+    let ghost before_slots = verus_storage_slots::<T, S>(&deque.buffer);
+    let ghost before_contents = verus_generic_contents(deque);
+    proof {
+        assert(capacity as int == verus_generic_capacity(deque));
+        assert(len as int == verus_generic_len(deque));
+        verus_storage_front_slot_is_init(
+            before_slots,
+            front as int,
+            len as int,
+            capacity as int,
+        );
+    }
+    let item = verus_generic_read_storage(&mut deque.buffer, front);
+    deque.front = if front + 1 == capacity { 0 } else { front + 1 };
+    deque.full = false;
+    proof {
+        let after_slots = verus_storage_slots::<T, S>(&deque.buffer);
+        verus_storage_after_pop_front(
+            before_slots,
+            after_slots,
+            front as int,
+            len as int,
+            capacity as int,
+            item,
+        );
+        verus_ring_after_pop_front(
+            front as int,
+            back as int,
+            full,
+            len as int,
+            capacity as int,
+        );
+        assert(verus_generic_capacity(deque) == capacity as int);
+        assert(verus_generic_len(deque) == len as int - 1);
+        assert(verus_generic_wf(deque));
+        assert(item == before_contents[0]);
+        assert(verus_generic_contents(deque) =~= before_contents.drop_first());
+    }
+    item
+}
+
+#[allow(dead_code, unused_variables)]
+unsafe fn verus_generic_pop_back_unchecked<T, S>(
+    deque: &mut DequeInner<T, S>,
+) -> (item: T)
+where
+    S: VecStorage<T> + ?Sized,
+    requires
+        verus_generic_wf(old(deque)),
+        0 < verus_generic_len(old(deque)),
+    ensures
+        verus_generic_wf(final(deque)),
+        item == verus_generic_contents(old(deque))[
+            verus_generic_len(old(deque)) - 1
+        ],
+        verus_generic_contents(final(deque))
+            =~= verus_generic_contents(old(deque)).drop_last(),
+    no_unwind
+{
+    let capacity = verus_slice_len(deque.buffer.borrow());
+    let front = deque.front;
+    let back = deque.back;
+    let full = deque.full;
+    let len = if full {
+        capacity
+    } else if back < front {
+        capacity - front + back
+    } else {
+        back - front
+    };
+    let index = if back == 0 { capacity - 1 } else { back - 1 };
+    let ghost before_slots = verus_storage_slots::<T, S>(&deque.buffer);
+    let ghost before_contents = verus_generic_contents(deque);
+    proof {
+        assert(capacity as int == verus_generic_capacity(deque));
+        assert(len as int == verus_generic_len(deque));
+        assert(index as int == verus_decrement(back as int, capacity as int));
+        verus_physical_index_previous(front as int, len as int, capacity as int);
+        assert(index as int == verus_physical_index(
+            front as int,
+            len as int - 1,
+            capacity as int,
+        ));
+        verus_storage_back_slot_is_init(
+            before_slots,
+            front as int,
+            len as int,
+            capacity as int,
+        );
+    }
+    let item = verus_generic_read_storage(&mut deque.buffer, index);
+    deque.back = index;
+    deque.full = false;
+    proof {
+        let after_slots = verus_storage_slots::<T, S>(&deque.buffer);
+        verus_storage_after_pop_back(
+            before_slots,
+            after_slots,
+            front as int,
+            len as int,
+            capacity as int,
+            index as int,
+            item,
+        );
+        verus_ring_after_pop_back(
+            front as int,
+            back as int,
+            full,
+            len as int,
+            capacity as int,
+        );
+        assert(verus_generic_capacity(deque) == capacity as int);
+        assert(verus_generic_len(deque) == len as int - 1);
+        assert(verus_generic_wf(deque));
+        assert(item == before_contents[len as int - 1]);
+        assert(verus_generic_contents(deque) =~= before_contents.drop_last());
+    }
+    item
+}
+
+// Under the verification-only feature these are the public production entry
+// points.  Keeping the wrappers inside `verus!` lets their contracts compose
+// directly with the body-proved generic storage transitions above.  The
+// ordinary build continues to use the upstream bodies below.
+#[allow(missing_docs)]
+impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
+    /// Removes all values.  The element destructor itself remains a trusted
+    /// boundary because Verus does not model arbitrary Rust drop glue.  The
+    /// executable body drains one proved transition before each destructor,
+    /// so an unwinding destructor cannot make an already-dropped slot reachable
+    /// from the deque metadata again.
+    #[verifier::external_body]
+    pub fn clear(&mut self)
+        requires
+            verus_generic_wf(old(self)),
+        ensures
+            verus_generic_wf(final(self)),
+            verus_generic_len(final(self)) == 0,
+            verus_generic_contents(final(self)) =~= VerusSeq::<T>::empty(),
+    {
+        while let Some(item) = self.pop_front() {
+            drop(item);
+        }
+        self.front = 0;
+        self.back = 0;
+        self.full = false;
+    }
+
+    pub unsafe fn push_back_unchecked(&mut self, item: T)
+        requires
+            verus_generic_wf(old(self)),
+            verus_generic_len(old(self)) < verus_generic_capacity(old(self)),
+        ensures
+            verus_generic_wf(final(self)),
+            verus_generic_contents(final(self))
+                =~= verus_generic_contents(old(self)).push(item),
+        no_unwind
+    {
+        verus_generic_push_back_unchecked(self, item)
+    }
+
+    pub unsafe fn push_front_unchecked(&mut self, item: T)
+        requires
+            verus_generic_wf(old(self)),
+            verus_generic_len(old(self)) < verus_generic_capacity(old(self)),
+        ensures
+            verus_generic_wf(final(self)),
+            verus_generic_contents(final(self))
+                =~= verus_generic_contents(old(self)).insert(0, item),
+        no_unwind
+    {
+        verus_generic_push_front_unchecked(self, item)
+    }
+
+    pub unsafe fn pop_front_unchecked(&mut self) -> (item: T)
+        requires
+            verus_generic_wf(old(self)),
+            0 < verus_generic_len(old(self)),
+        ensures
+            verus_generic_wf(final(self)),
+            item == verus_generic_contents(old(self))[0],
+            verus_generic_contents(final(self))
+                =~= verus_generic_contents(old(self)).drop_first(),
+        no_unwind
+    {
+        verus_generic_pop_front_unchecked(self)
+    }
+
+    pub unsafe fn pop_back_unchecked(&mut self) -> (item: T)
+        requires
+            verus_generic_wf(old(self)),
+            0 < verus_generic_len(old(self)),
+        ensures
+            verus_generic_wf(final(self)),
+            item == verus_generic_contents(old(self))[
+                verus_generic_len(old(self)) - 1
+            ],
+            verus_generic_contents(final(self))
+                =~= verus_generic_contents(old(self)).drop_last(),
+        no_unwind
+    {
+        verus_generic_pop_back_unchecked(self)
+    }
+
+    pub fn push_back(&mut self, item: T) -> (result: Result<(), T>)
+        requires
+            verus_generic_wf(old(self)),
+        ensures
+            verus_generic_wf(final(self)),
+            match result {
+                Ok(()) => {
+                    verus_generic_len(old(self)) < verus_generic_capacity(old(self))
+                    && verus_generic_contents(final(self))
+                        =~= verus_generic_contents(old(self)).push(item)
+                },
+                Err(returned) => {
+                    verus_generic_len(old(self)) == verus_generic_capacity(old(self))
+                    && returned == item
+                    && verus_generic_contents(final(self))
+                        =~= verus_generic_contents(old(self))
+                },
+            },
+        no_unwind
+    {
+        if self.full {
+            Err(item)
+        } else {
+            proof {
+                verus_checked_push_has_space(
+                    self.front as int,
+                    self.back as int,
+                    self.full,
+                    verus_generic_len(self),
+                    verus_generic_capacity(self),
+                );
+            }
+            unsafe { self.push_back_unchecked(item) };
+            Ok(())
+        }
+    }
+
+    pub fn push_front(&mut self, item: T) -> (result: Result<(), T>)
+        requires
+            verus_generic_wf(old(self)),
+        ensures
+            verus_generic_wf(final(self)),
+            match result {
+                Ok(()) => {
+                    verus_generic_len(old(self)) < verus_generic_capacity(old(self))
+                    && verus_generic_contents(final(self))
+                        =~= verus_generic_contents(old(self)).insert(0, item)
+                },
+                Err(returned) => {
+                    verus_generic_len(old(self)) == verus_generic_capacity(old(self))
+                    && returned == item
+                    && verus_generic_contents(final(self))
+                        =~= verus_generic_contents(old(self))
+                },
+            },
+        no_unwind
+    {
+        if self.full {
+            Err(item)
+        } else {
+            proof {
+                verus_checked_push_has_space(
+                    self.front as int,
+                    self.back as int,
+                    self.full,
+                    verus_generic_len(self),
+                    verus_generic_capacity(self),
+                );
+            }
+            unsafe { self.push_front_unchecked(item) };
+            Ok(())
+        }
+    }
+
+    pub fn pop_front(&mut self) -> (result: Option<T>)
+        requires
+            verus_generic_wf(old(self)),
+        ensures
+            verus_generic_wf(final(self)),
+            match result {
+                None => {
+                    verus_generic_len(old(self)) == 0
+                    && verus_generic_contents(final(self))
+                        =~= verus_generic_contents(old(self))
+                },
+                Some(item) => {
+                    0 < verus_generic_len(old(self))
+                    && item == verus_generic_contents(old(self))[0]
+                    && verus_generic_contents(final(self))
+                        =~= verus_generic_contents(old(self)).drop_first()
+                },
+            },
+        no_unwind
+    {
+        if self.front == self.back && !self.full {
+            None
+        } else {
+            proof {
+                verus_checked_pop_has_element(
+                    self.front as int,
+                    self.back as int,
+                    self.full,
+                    verus_generic_len(self),
+                    verus_generic_capacity(self),
+                );
+            }
+            Some(unsafe { self.pop_front_unchecked() })
+        }
+    }
+
+    pub fn pop_back(&mut self) -> (result: Option<T>)
+        requires
+            verus_generic_wf(old(self)),
+        ensures
+            verus_generic_wf(final(self)),
+            match result {
+                None => {
+                    verus_generic_len(old(self)) == 0
+                    && verus_generic_contents(final(self))
+                        =~= verus_generic_contents(old(self))
+                },
+                Some(item) => {
+                    0 < verus_generic_len(old(self))
+                    && item == verus_generic_contents(old(self))[
+                        verus_generic_len(old(self)) - 1
+                    ]
+                    && verus_generic_contents(final(self))
+                        =~= verus_generic_contents(old(self)).drop_last()
+                },
+            },
+        no_unwind
+    {
+        if self.front == self.back && !self.full {
+            None
+        } else {
+            proof {
+                verus_checked_pop_has_element(
+                    self.front as int,
+                    self.back as int,
+                    self.full,
+                    verus_generic_len(self),
+                    verus_generic_capacity(self),
+                );
+            }
+            Some(unsafe { self.pop_back_unchecked() })
+        }
+    }
+}
+
+} // verus!
+
 impl<T, const N: usize> Deque<T, N> {
     const INIT: MaybeUninit<T> = MaybeUninit::uninit();
 
@@ -1629,33 +2695,21 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[trusted]
     #[requires(index@ < buffer.capacity())]
     #[ensures((^buffer).capacity() == buffer.capacity())]
+    #[cfg(not(feature = "verus"))]
     unsafe fn read_storage(buffer: &mut S, index: usize) -> T {
         let slot = buffer.borrow_mut().get_unchecked_mut(index);
-        #[cfg(feature = "verus")]
-        {
-            verus_read_slot(slot)
-        }
-        #[cfg(not(feature = "verus"))]
-        {
-            let mut empty = MaybeUninit::uninit();
-            core::mem::swap(slot, &mut empty);
-            empty.assume_init()
-        }
+        let mut empty = MaybeUninit::uninit();
+        core::mem::swap(slot, &mut empty);
+        empty.assume_init()
     }
 
     #[trusted]
     #[requires(index@ < buffer.capacity())]
     #[ensures((^buffer).capacity() == buffer.capacity())]
+    #[cfg(not(feature = "verus"))]
     unsafe fn write_storage(buffer: &mut S, index: usize, item: T) {
         let slot = buffer.borrow_mut().get_unchecked_mut(index);
-        #[cfg(feature = "verus")]
-        {
-            verus_write_slot(slot, item);
-        }
-        #[cfg(not(feature = "verus"))]
-        {
-            *slot = MaybeUninit::new(item);
-        }
+        *slot = MaybeUninit::new(item);
     }
 
     /// Get a reference to the `Deque`, erasing the `N` const-generic.
@@ -1687,6 +2741,7 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(i@ < self.buffer.capacity())]
     #[ensures(result@ < self.buffer.capacity())]
     #[ensures(result@ == if i@ + 1 == self.buffer.capacity() { 0 } else { i@ + 1 })]
+    #[cfg(not(feature = "verus"))]
     fn increment(&self, i: usize) -> usize {
         if i + 1 == self.storage_capacity() {
             0
@@ -1725,23 +2780,29 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(self.invariant())]
     #[ensures((^self)@ == 0)]
     #[ensures((^self).invariant())]
+    #[cfg(not(feature = "verus"))]
     pub fn clear(&mut self) {
-        // safety: we're immediately setting a consistent empty state.
+        // Each element is removed from the deque metadata before its destructor
+        // runs.  If a destructor unwinds, the deque remains consistent and no
+        // already-dropped slot can be dropped again.
         unsafe { self.drop_contents() }
         self.front = 0;
         self.back = 0;
         self.full = false;
     }
 
-    /// Drop all items in the `Deque`, leaving the state `back/front/full` unmodified.
+    /// Drop all items in the `Deque`, advancing the cursors before each destructor.
     ///
-    /// safety: leaves the `Deque` in an inconsistent state, so can cause duplicate drops.
+    /// Safety: the initialized-slot invariant must hold on entry. The deque is
+    /// empty on normal return and remains consistent if an element destructor
+    /// unwinds.
     #[trusted]
     unsafe fn drop_contents(&mut self) {
-        // We drop each element used in the deque by turning into a &mut[T]
-        let (a, b) = self.as_mut_slices();
-        ptr::drop_in_place(a);
-        ptr::drop_in_place(b);
+        // Advance the proved deque state before invoking arbitrary drop glue.
+        // On unwind, remaining elements stay represented by a valid deque.
+        while !self.is_empty() {
+            drop(self.pop_front_unchecked());
+        }
     }
 
     /// Returns whether the deque is empty.
@@ -2055,6 +3116,7 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(self.invariant())]
     #[ensures((^self).invariant())]
     #[ensures((^self)@ == if self@ == 0 { 0 } else { self@ - 1 })]
+    #[cfg(not(feature = "verus"))]
     pub fn pop_front(&mut self) -> Option<T> {
         if self.is_empty() {
             None
@@ -2067,6 +3129,7 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(self.invariant())]
     #[ensures((^self).invariant())]
     #[ensures((^self)@ == if self@ == 0 { 0 } else { self@ - 1 })]
+    #[cfg(not(feature = "verus"))]
     pub fn pop_back(&mut self) -> Option<T> {
         if self.is_empty() {
             None
@@ -2081,6 +3144,7 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(self.invariant())]
     #[ensures((^self).invariant())]
     #[ensures((^self)@ == if self@ == self.buffer.capacity() { self@ } else { self@ + 1 })]
+    #[cfg(not(feature = "verus"))]
     pub fn push_front(&mut self, item: T) -> Result<(), T> {
         if self.is_full() {
             Err(item)
@@ -2096,6 +3160,7 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(self.invariant())]
     #[ensures((^self).invariant())]
     #[ensures((^self)@ == if self@ == self.buffer.capacity() { self@ } else { self@ + 1 })]
+    #[cfg(not(feature = "verus"))]
     pub fn push_back(&mut self, item: T) -> Result<(), T> {
         if self.is_full() {
             Err(item)
@@ -2115,6 +3180,7 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(0 < self@)]
     #[ensures((^self)@ == self@ - 1)]
     #[ensures((^self).invariant())]
+    #[cfg(not(feature = "verus"))]
     pub unsafe fn pop_front_unchecked(&mut self) -> T {
         debug_assert!(!self.is_empty());
 
@@ -2134,6 +3200,7 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(0 < self@)]
     #[ensures((^self)@ == self@ - 1)]
     #[ensures((^self).invariant())]
+    #[cfg(not(feature = "verus"))]
     pub unsafe fn pop_back_unchecked(&mut self) -> T {
         debug_assert!(!self.is_empty());
 
@@ -2151,6 +3218,7 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(self@ < self.buffer.capacity())]
     #[ensures((^self)@ == self@ + 1)]
     #[ensures((^self).invariant())]
+    #[cfg(not(feature = "verus"))]
     pub unsafe fn push_front_unchecked(&mut self, item: T) {
         debug_assert!(!self.is_full());
 
@@ -2173,6 +3241,7 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(self@ < self.buffer.capacity())]
     #[ensures((^self)@ == self@ + 1)]
     #[ensures((^self).invariant())]
+    #[cfg(not(feature = "verus"))]
     pub unsafe fn push_back_unchecked(&mut self, item: T) {
         debug_assert!(!self.is_full());
 
@@ -2895,7 +3964,10 @@ impl<T, const NS: usize, const ND: usize> TryFrom<[T; NS]> for Deque<T, ND> {
         }
 
         deq.front = 0;
-        deq.back = NS;
+        // A full ring has equal, in-range cursors.  Using `NS` here when
+        // `NS == ND` would put `back` one past the storage and violate the
+        // representation invariant even though `full` is set.
+        deq.back = if NS == ND { 0 } else { NS };
         deq.full = NS == ND;
 
         Ok(deq)
@@ -3241,6 +4313,52 @@ mod tests {
 
         q.push_back(0).unwrap();
         assert_eq!(q.len(), 1);
+    }
+
+    #[test]
+    fn clear_removes_an_item_before_its_panicking_drop() {
+        use std::{
+            cell::RefCell,
+            panic::{catch_unwind, AssertUnwindSafe},
+            rc::Rc,
+        };
+
+        struct PanicOnDrop {
+            id: usize,
+            dropped: Rc<RefCell<Vec<usize>>>,
+        }
+
+        impl Drop for PanicOnDrop {
+            fn drop(&mut self) {
+                self.dropped.borrow_mut().push(self.id);
+                if self.id == 0 {
+                    panic!("expected destructor panic");
+                }
+            }
+        }
+
+        let dropped = Rc::new(RefCell::new(Vec::new()));
+        let mut q: Deque<PanicOnDrop, 2> = Deque::new();
+        q.push_back(PanicOnDrop {
+            id: 0,
+            dropped: dropped.clone(),
+        })
+        .ok()
+        .unwrap();
+        q.push_back(PanicOnDrop {
+            id: 1,
+            dropped: dropped.clone(),
+        })
+        .ok()
+        .unwrap();
+
+        let result = catch_unwind(AssertUnwindSafe(|| q.clear()));
+        assert!(result.is_err());
+        assert_eq!(q.len(), 1);
+        assert_eq!(q.front().map(|item| item.id), Some(1));
+        core::mem::drop(q.pop_front());
+        assert!(q.is_empty());
+        assert_eq!(&*dropped.borrow(), &[0, 1]);
     }
 
     #[test]

@@ -1,7 +1,7 @@
 # heapless 0.9.2 provenance and Deque verification scope
 
-**Verification status: substantial Creusot public subset plus a proved Verus
-fixed-storage ring model and four slot transitions (partial).**
+**Verification status: substantial Creusot public subset plus Verus-verified
+generic `DequeInner<T, S>` push/pop orchestration (partial).**
 
 This source tree is copied from the `heapless` 0.9.2 package published on
 crates.io. The published archive has SHA-256 checksum
@@ -46,13 +46,14 @@ unchanged.
 The Verus model defines the occupied physical slots from `front`, logical
 length, and capacity, and relates occupation exactly to each slot's
 `MemContents::Init` state. Its logical `Seq<T>` reads initialized slots in
-front-to-back order. Body-proved executable array callers cover all four
-transitions: front/back pushes write only an uninitialized slot and insert the
-exact value at the corresponding end of the sequence; front/back pops read only
-an initialized slot, return the exact end value, and leave that slot
-uninitialized. Separate small lemmas prove cursor/full-state preservation,
-wraparound, and the checked push/pop space/nonempty preconditions. These Verus
-bodies are proved without project-local `assume` or `external_body`.
+front-to-back order. Body-proved executable array callers cover all four fixed
+array transitions. The proof also projects generic `VecStorage` through
+`borrow_mut`, proves selected-slot and all-other-slot frame conditions, and
+lifts them to the actual production `DequeInner<T, S>` fields. Both the four
+unchecked public methods and their four checked wrappers are body-proved with
+exact front/back sequence effects and `no_unwind`. Separate small lemmas prove
+cursor/full-state preservation, wraparound, and checked space/nonempty
+preconditions.
 
 The ordinary read implementation now performs the same explicit transition by
 swapping the slot with `MaybeUninit::uninit()` before `assume_init`, rather than
@@ -79,35 +80,57 @@ is:
 | fixed-array read/write with frame conditions | yes | yes | no | yes |
 | fixed-array front/back push transitions | yes | yes | no | yes |
 | fixed-array front/back pop transitions | yes | yes | no | yes |
+| generic `VecStorage` read/write with frame conditions | yes | yes | projection contract | yes |
+| generic production cursor/storage transitions | yes | yes | no | yes |
+| public unchecked `DequeInner<T, S>` push/pop | yes | yes | no | yes |
+| public checked `DequeInner<T, S>` push/pop | yes | yes | no | yes |
 | cursor/full-state transition lemmas | yes | yes | no | yes |
 | checked push/pop precondition lemmas | yes | yes | no | yes |
 | write/read roundtrip caller | yes | yes | no | yes |
-| public `DequeInner<T, S>` orchestration | no | no | absent | no |
-| generic `VecStorage`/`DequeView` relation | no | no | absent | no |
-| constructor, clear, and drop | partial | no | absent | no |
+| `Deque::new` | yes | no | assume specification | yes |
+| `clear` normal-return state | yes | no | external body/drop glue | yes |
+| `Drop` | partial | no | arbitrary `T::drop` | runtime-tested |
 
 ## Explicit trusted boundaries and exclusions
 
 Creusot does not currently model the initialized subset and ownership moves of a
 generic `MaybeUninit<T>` ring. Reading and writing one in-range slot therefore
 remain trusted to Creusot, with contracts preserving storage capacity. Verus
-now proves the occupancy-to-initialization relation and all four value-preserving
-transitions for a fixed array, including the selected array index and the frame
-condition. It does not yet connect that fixed-array model through
-`VecStorage::borrow_mut` to the generic public `DequeInner<T, S>` method bodies.
-That production-orchestration connection is the next removal condition for the
-cross-verifier trusted boundary.
+proves these slot moves, their generic frame conditions, all four
+value-preserving transitions, and the public checked and unchecked orchestration.
+
+Verus still trusts the external `VecSealedStorage::borrow`/`borrow_mut`
+specification that connects an abstract storage projection to the returned
+slice. This contract states exact before/final sequence equality and is the only
+trusted step between a generic storage object and the body-proved slot update.
+Its removal condition is native Verus support/specifications for heapless's
+sealed storage trait. A tiny `verus_slice_len` external body is also retained
+only because the pinned vstd slice `len` contract omits `no_unwind`.
 
 Construction and `clear` remain trusted to Creusot. A direct Verus proof of the
 production constructor is currently blocked by Verus's unsupported non-`Copy`
-const array-fill expression (`[const { MaybeUninit::uninit() }; N]`); no trusted
-Verus stub was added for it. The preferred next step is a reusable verified
-non-`Copy` array initializer or an upstream `vstd` specification for the
-equivalent array construction, rather than a heapless-local assumption. `clear`
-and `Drop` also require a separate drop-loop model. Unconditional panic freedom
-for them is impossible for arbitrary `T` because `T::drop` may panic, so
-eventual contracts must distinguish memory safety during unwinding from panic
-freedom under a non-panicking-drop precondition.
+const array-fill expression (`[const { MaybeUninit::uninit() }; N]`). It has a
+reviewed Verus assume specification establishing empty cursors, all slots
+uninitialized, both fixed and generic invariants, and `no_unwind`. The removal
+condition is a reusable verified non-`Copy` array initializer or an upstream
+vstd specification for the equivalent construction.
+
+`clear` and `Drop` now remove each item from the proved deque state before
+invoking its destructor. This is a runtime change from the former bulk slice
+drop and preserves a valid remaining deque if `T::drop` unwinds; a regression
+test checks that a panicking first destructor is not invoked twice. The
+one-element drain transition is the body-proved public `pop_front`. The loop and
+arbitrary Rust drop glue remain a Verus external/trusted boundary. `clear` has a
+normal-return contract establishing the empty invariant, but deliberately no
+`no_unwind`: unconditional panic freedom is impossible for arbitrary `T`.
+`Drop` is likewise not claimed panic-free. Its next proof step needs a Verus
+model for destructor effects and unwinding, or a separately stated
+non-panicking-destructor precondition.
+
+Array conversion now normalizes the full-ring `back` cursor to zero. The prior
+`back = capacity` state violated the representation invariant and prevented a
+cursor-based drain from terminating, even though ordinary element order often
+appeared correct.
 
 APIs whose essential result is element identity or initialized-memory exposure
 remain trusted or untranslated: slice and reference access, `make_contiguous`,
@@ -119,11 +142,12 @@ and optional adapters are outside this target's verification scope.
 
 Run `./verify-all.bash` in this directory to reproduce the default-feature
 Creusot Deque proof and the locked `verus`-feature proof. The current Creusot
-integrated result is `Proved (57 files)`; the Verus run proves the two slot
-transitions, the fixed-array occupancy/content model, all four array
-push/pop transitions, and their cursor and checked-operation lemmas, with the
-current result `36 verified, 0 errors`. Verus is pinned to
+integrated result is `Proved (57 files)`; the Verus run includes the slot and
+fixed-array layers, generic storage framing, actual `DequeInner<T, S>`
+transitions, and all eight public push/pop methods, with the current result
+`54 verified, 0 errors`. Verus is pinned to
 `0.2026.07.27.31579f0`, with `vstd` pinned to commit
 `31579f0b8542a8a9ae4ae5604c16107ccde23ef2` in `Cargo.toml` and `Cargo.lock`.
-The ordinary Deque unit-test module passes all 34 tests. Generated Why3, Verus,
+The ordinary and `verus`-feature Deque unit-test modules each pass all 35 tests.
+Generated Why3, Verus,
 and Cargo build artifacts are intentionally not tracked.

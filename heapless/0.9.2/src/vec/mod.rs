@@ -100,7 +100,9 @@ mod storage {
     // One sealed layer of indirection to hide the internal details (The MaybeUninit).
     #[cfg_attr(feature = "zeroize", derive(Zeroize))]
     pub struct VecStorageInner<T: ?Sized> {
-        pub(crate) buffer: T,
+        // The containing module is private, so public visibility here only
+        // exposes the representation to verification type specifications.
+        pub buffer: T,
     }
 
     /// Implementation of [`VecStorage`] that stores the data in an array `[T; N]` whose size is
@@ -215,6 +217,8 @@ mod storage {
 }
 pub use storage::{OwnedVecStorage, VecStorage, ViewVecStorage};
 
+#[cfg(feature = "verus")]
+pub(crate) use storage::VecSealedStorage;
 pub(crate) use storage::VecStorageInner;
 
 pub use drain::Drain;
