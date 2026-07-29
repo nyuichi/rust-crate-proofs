@@ -55,6 +55,9 @@ rustdoc-args = [
     "docsrs",
 ]
 
+[package.metadata.verus]
+verify = true
+
 [features]
 alloc = []
 bytes = ["dep:bytes"]
@@ -79,6 +82,7 @@ ufmt = [
     "dep:ufmt-write",
 ]
 zeroize = ["dep:zeroize"]
+verus = ["dep:vstd"]
 
 [lib]
 name = "heapless"
@@ -130,6 +134,11 @@ version = "1.8"
 features = ["derive"]
 optional = true
 default-features = false
+
+[dependencies.vstd]
+git = "https://github.com/verus-lang/verus.git"
+rev = "31579f0b8542a8a9ae4ae5604c16107ccde23ef2"
+optional = true
 
 [dependencies.creusot-std]
 path = "../../creusot-libs/creusot-std"
