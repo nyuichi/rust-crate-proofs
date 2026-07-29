@@ -149,6 +149,9 @@
 
 extern crate creusot_std;
 
+#[cfg(feature = "verus")]
+extern crate vstd;
+
 #[cfg(feature = "alloc")]
 extern crate alloc;
 

@@ -56,6 +56,50 @@ use creusot_std::prelude::{
 #[cfg(feature = "zeroize")]
 use zeroize::Zeroize;
 
+#[cfg(feature = "verus")]
+use vstd::prelude::*;
+#[cfg(all(feature = "verus", verus_only))]
+use vstd::raw_ptr::MemContents;
+
+#[cfg(feature = "verus")]
+verus! {
+
+fn verus_write_slot<T>(slot: &mut MaybeUninit<T>, item: T)
+    requires
+        old(slot).mem_contents() == MemContents::Uninit,
+    ensures
+        final(slot).mem_contents() == MemContents::Init(item),
+    no_unwind
+{
+    *slot = MaybeUninit::new(item);
+}
+
+fn verus_read_slot<T>(slot: &mut MaybeUninit<T>) -> (item: T)
+    requires
+        old(slot).mem_contents().is_init(),
+    ensures
+        final(slot).mem_contents() == MemContents::Uninit,
+        item == old(slot).mem_contents().value(),
+    no_unwind
+{
+    let mut empty = MaybeUninit::uninit();
+    core::mem::swap(slot, &mut empty);
+    unsafe { empty.assume_init() }
+}
+
+#[allow(dead_code)]
+fn verus_slot_roundtrip<T>(item: T) -> (result: T)
+    ensures
+        result == item,
+    no_unwind
+{
+    let mut slot = MaybeUninit::uninit();
+    verus_write_slot(&mut slot, item);
+    verus_read_slot(&mut slot)
+}
+
+} // verus!
+
 /// Base struct for [`Deque`] and [`DequeView`], generic over the [`VecStorage`].
 ///
 /// In most cases you should use [`Deque`] or [`DequeView`] directly. Only use this
@@ -262,18 +306,32 @@ impl<T, S: VecStorage<T> + ?Sized> DequeInner<T, S> {
     #[requires(index@ < buffer.capacity())]
     #[ensures((^buffer).capacity() == buffer.capacity())]
     unsafe fn read_storage(buffer: &mut S, index: usize) -> T {
-        buffer
-            .borrow_mut()
-            .get_unchecked_mut(index)
-            .as_ptr()
-            .read()
+        let slot = buffer.borrow_mut().get_unchecked_mut(index);
+        #[cfg(feature = "verus")]
+        {
+            verus_read_slot(slot)
+        }
+        #[cfg(not(feature = "verus"))]
+        {
+            let mut empty = MaybeUninit::uninit();
+            core::mem::swap(slot, &mut empty);
+            empty.assume_init()
+        }
     }
 
     #[trusted]
     #[requires(index@ < buffer.capacity())]
     #[ensures((^buffer).capacity() == buffer.capacity())]
     unsafe fn write_storage(buffer: &mut S, index: usize, item: T) {
-        *buffer.borrow_mut().get_unchecked_mut(index) = MaybeUninit::new(item);
+        let slot = buffer.borrow_mut().get_unchecked_mut(index);
+        #[cfg(feature = "verus")]
+        {
+            verus_write_slot(slot, item);
+        }
+        #[cfg(not(feature = "verus"))]
+        {
+            *slot = MaybeUninit::new(item);
+        }
     }
 
     /// Get a reference to the `Deque`, erasing the `N` const-generic.
