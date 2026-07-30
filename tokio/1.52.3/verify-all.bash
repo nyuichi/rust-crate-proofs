@@ -18,7 +18,7 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full \
   --test sync_set_once
 
-# Exercise only SetOnce's three loom model tests. `test-util` is needed because
+# Exercise only SetOnce's four loom model tests. `test-util` is needed because
 # Tokio's cfg(loom) lib-test module also compiles paused-time runtime helpers.
 RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-set-once" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \

@@ -68,7 +68,9 @@ representation correspondence is trusted, and vstd currently exposes
 sequentially-consistent atomics. Production ordering selection is now isolated
 behind `SetOnceFlag` and its SetOnce-specific protocol is body-proved, but the
 foundational weak-memory refinement and Tokio's `NotifyGuard` writer lease
-remain explicit boundaries.
+exclusivity contract remain explicit boundaries. Production now carries the
+actual guard in `SetOnceWriteGuard`, so its second check, write, Release store,
+and notification form one isolated critical section matching the proved lease.
 `wait`, cancellation, wakers, drop, and `Send`/`Sync` also remain outside the
 formal milestone. A separate oneshot poll-signature
 probe records the current `Pin`/`Poll`/`Context`/`Waker` translation boundary.

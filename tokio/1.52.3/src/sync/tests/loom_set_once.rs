@@ -95,3 +95,26 @@ fn set_once_get_publication_test() {
         thread.join().unwrap();
     });
 }
+
+#[test]
+fn set_once_three_writers_test() {
+    loom::model(|| {
+        let cell = Arc::new(SetOnce::new());
+        let first = Arc::clone(&cell);
+        let second = Arc::clone(&cell);
+
+        let first_thread = thread::spawn(move || first.set(10).is_ok());
+        let second_thread = thread::spawn(move || second.set(20).is_ok());
+        let third = cell.set(30).is_ok();
+
+        let first = first_thread.join().unwrap();
+        let second = second_thread.join().unwrap();
+        assert_eq!(first as usize + second as usize + third as usize, 1);
+
+        let value = *cell.get().unwrap();
+        assert!(value == 10 || value == 20 || value == 30);
+        assert_eq!(value == 10, first);
+        assert_eq!(value == 20, second);
+        assert_eq!(value == 30, third);
+    });
+}

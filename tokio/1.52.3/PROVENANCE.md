@@ -59,6 +59,10 @@ The body proofs establish:
 - `WriterLease<T>` body-proves the locked double-check and first-writer-wins
   portion of production `SetOnce::set`, including exact return of a rejected
   value and preservation of the first value.
+- production `SetOnceWriteGuard` now owns the actual `NotifyGuard` and encloses
+  the second check, value write, Release publication, and waiter notification;
+- a three-writer loom model checks that exactly one writer succeeds and that
+  the published value identifies that writer.
 
 | Component | Contract reviewed | Body proved | Trusted | Integrated run |
 |---|---:|---:|---:|---:|
@@ -71,7 +75,7 @@ The body proofs establish:
 | `PublishedCell<T>` publish/get/take bodies | yes | yes | no | yes |
 | Tokio loom-cell proof view and `get_unchecked` | yes | yes | representation correspondence | yes |
 | SC flag/slot publication kernel | yes | yes | vstd atomic primitive | yes |
-| writer-lease double-check/set body | yes | yes | no | yes |
+| writer-lease double-check/set body | yes | yes | Notify mutex exclusivity | Verus/loom |
 | production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | production `wait()` and wake protocol | no | no | excluded | no |
@@ -93,8 +97,9 @@ yet connected to the abstract model.
 Three proof-library or adapter components remain before the production bodies
 are formally connected end to end:
 
-1. an exact contract transferring the single writer permission through
-   `Notify::lock_waiter_list` and its guard;
+1. replacement of the structurally connected `SetOnceWriteGuard` boundary
+   with a direct Verus contract for `Notify::lock_waiter_list`; the production
+   critical section and first-writer-wins body are already isolated and tested;
 2. replacement of the SC proof primitive with a foundational Acquire/Release
    atomic ghost implementation; production operation selection and the
    SetOnce-specific protocol are already connected;
@@ -117,6 +122,11 @@ matching Tokio's loom wrapper and exact Acquire/Release operations. Current
 vstd atomics expose sequentially-consistent operations only, so substituting
 Tokio's weaker but sufficient ordering is not claimed as body-proved.
 
+The production `SetOnceWriteGuard` is the concrete counterpart of the verified
+`WriterLease<T>`. Its remaining trusted fact is that Tokio's waiter-list mutex
+grants exclusive ownership of that logical lease. The production loom tests
+exercise two- and three-writer races.
+
 The production loom test `set_once_get_publication_test` deliberately reads via
 `SetOnce::get` before joining the writer. This makes the production Release
 store and Acquire load the publication edge under test. `wait()`, cancellation
@@ -137,7 +147,7 @@ proof. The probe README records the exact exclusions and removal requirements.
 Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 
 1. runs the upstream `sync_set_once` integration target with `full` features;
-2. runs the three `loom_set_once` model tests with `full,test-util` features;
+2. runs the four `loom_set_once` model tests with `full,test-util` features;
 3. checks the pinned Verus version;
 4. verifies the nested SetOnce and publication models with the locked vstd
    revision;

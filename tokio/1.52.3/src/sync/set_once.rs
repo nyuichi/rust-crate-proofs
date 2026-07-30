@@ -1,5 +1,6 @@
-use super::Notify;
+use super::notify::NotifyGuard;
 use super::set_once_atomic::SetOnceFlag;
+use super::Notify;
 
 use crate::loom::cell::UnsafeCell;
 
@@ -93,6 +94,37 @@ pub struct SetOnce<T> {
     notify: Notify,
 }
 
+/// The production counterpart of the verified writer lease.
+///
+/// Constructing this guard requires locking `Notify`'s waiter list. The lock
+/// serializes the second initialization check, value write, and publication
+/// store across all callers of `SetOnce::set`.
+struct SetOnceWriteGuard<'a, T> {
+    cell: &'a SetOnce<T>,
+    notify: NotifyGuard<'a>,
+}
+
+impl<T> SetOnceWriteGuard<'_, T> {
+    fn try_set(self, value: T) -> Result<(), SetOnceError<T>> {
+        if self.cell.initialized() {
+            return Err(SetOnceError(value));
+        }
+
+        // SAFETY: the waiter-list guard serializes all SetOnce writers, and
+        // the second initialized check established that the slot is empty.
+        unsafe {
+            self.cell
+                .value
+                .with_mut(|ptr| (*ptr).as_mut_ptr().write(value));
+        }
+
+        self.cell.value_set.store_release(true);
+        self.notify.notify_waiters();
+
+        Ok(())
+    }
+}
+
 impl<T> Default for SetOnce<T> {
     fn default() -> SetOnce<T> {
         SetOnce::new()
@@ -143,6 +175,13 @@ impl<T> From<T> for SetOnce<T> {
 }
 
 impl<T> SetOnce<T> {
+    fn lock_writer(&self) -> SetOnceWriteGuard<'_, T> {
+        SetOnceWriteGuard {
+            cell: self,
+            notify: self.notify.lock_waiter_list(),
+        }
+    }
+
     /// Creates a new empty `SetOnce` instance.
     pub fn new() -> Self {
         Self {
@@ -281,28 +320,7 @@ impl<T> SetOnce<T> {
             return Err(SetOnceError(value));
         }
 
-        // SAFETY: lock notify to ensure only one caller of set
-        // can run at a time.
-        let guard = self.notify.lock_waiter_list();
-
-        if self.initialized() {
-            return Err(SetOnceError(value));
-        }
-
-        // SAFETY: We have locked the mutex and checked if the value is
-        // initialized or not, so we can safely write to the value
-        unsafe {
-            self.value.with_mut(|ptr| (*ptr).as_mut_ptr().write(value));
-        }
-
-        // Using release ordering so any threads that read a true from this
-        // atomic is able to read the value we just stored.
-        self.value_set.store_release(true);
-
-        // notify the waiting wakers that the value is set
-        guard.notify_waiters();
-
-        Ok(())
+        self.lock_writer().try_set(value)
     }
 
     /// Takes the value from the cell, destroying the cell in the process.
