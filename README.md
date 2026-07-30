@@ -73,6 +73,10 @@ actual guard in `SetOnceWriteGuard`, so its second check, write, Release store,
 and notification form one isolated critical section matching the proved lease.
 Production `into_inner` and `Drop` also share a proved one-time take protocol
 that clears publication before moving or destroying the value.
+The SetOnce-specific wait protocol now covers both sides of waiter
+registration and cancellation/re-wait. Pin/Poll/Context/Waker and
+`Notified::poll` are intentionally isolated as the agreed trusted poll-surface
+adapter and exercised by targeted loom tests.
 `wait`, cancellation, wakers, drop, and `Send`/`Sync` also remain outside the
 formal milestone. A separate oneshot poll-signature
 probe records the current `Pin`/`Poll`/`Context`/`Waker` translation boundary.

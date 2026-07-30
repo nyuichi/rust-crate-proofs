@@ -69,6 +69,13 @@ The body proofs establish:
   which clears the flag before moving the value;
 - the proof kernel establishes exact-value first take, empty second take, and
   a well-formed empty representation afterward.
+- `WaitProtocol<T>` body-proves publication before registration, publication
+  after registration, readiness-only Relaxed recheck, outer Acquire get, and
+  cancellation followed by a fresh wait;
+- production `poll_waiter` isolates the agreed Pin/Poll/Context/Waker and
+  `Notified::poll` trusted surface from the SetOnce-specific wait loop;
+- a loom test polls a wait to Pending, cancels it, publishes, and successfully
+  waits again, exercising waiter unlinking and re-registration.
 
 | Component | Contract reviewed | Body proved | Trusted | Integrated run |
 |---|---:|---:|---:|---:|
@@ -86,7 +93,8 @@ The body proofs establish:
 | owned take/into_inner/Drop protocol | yes | yes | destructor semantics | Verus/tests/loom |
 | production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
-| production `wait()` and wake protocol | no | no | excluded | no |
+| SetOnce wait/lost-wakeup protocol | yes | yes | poll surface | Verus/loom |
+| production `Notified::poll`/waiter list | partial | no | agreed adapter | loom |
 
 The verification crate itself contains no `external_body` or `assume` on
 `PublishedCell::{publish,get,take}`, `PublishedOnce::get`, or the writer-lease
@@ -137,11 +145,13 @@ exercise two- and three-writer races.
 
 The production loom test `set_once_get_publication_test` deliberately reads via
 `SetOnce::get` before joining the writer. This makes the production Release
-store and Acquire load the publication edge under test. `wait()`, cancellation
-safety, waker registration, arbitrary destructor behavior, and the `Send`/`Sync`
+store and Acquire load the publication edge under test. The SetOnce-specific
+wait protocol and cancellation state preservation are now proved. As agreed,
+Pin/Poll/Context/Waker behavior, `Notified::poll`, intrusive waiter unlinking,
+and wake delivery remain one explicit poll-surface boundary exercised by loom.
+Arbitrary user destructor behavior, unwind, and the `Send`/`Sync`
 implementations remain outside the formal milestone. The ownership transition
-used by production `Drop` is now proved, while arbitrary user destructor
-behavior and unwind remain foundational Rust boundaries.
+used by production `Drop` is proved.
 
 ## oneshot polling connection probe
 
@@ -157,7 +167,7 @@ proof. The probe README records the exact exclusions and removal requirements.
 Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 
 1. runs the upstream `sync_set_once` integration target with `full` features;
-2. runs the four `loom_set_once` model tests with `full,test-util` features;
+2. runs the five `loom_set_once` model tests with `full,test-util` features;
 3. checks the pinned Verus version;
 4. verifies the nested SetOnce and publication models with the locked vstd
    revision;

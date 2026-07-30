@@ -3,8 +3,10 @@ use crate::sync::SetOnce;
 use loom::future::block_on;
 use loom::sync::atomic::AtomicU32;
 use loom::thread;
+use std::future::Future;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use std::task::{Context, Poll};
 
 #[derive(Clone)]
 struct DropCounter {
@@ -116,5 +118,25 @@ fn set_once_three_writers_test() {
         assert_eq!(value == 10, first);
         assert_eq!(value == 20, second);
         assert_eq!(value == 30, third);
+    });
+}
+
+#[test]
+fn set_once_cancel_wait_then_rewait_test() {
+    loom::model(|| {
+        let cell = SetOnce::new();
+
+        // Poll once so `Notified` registers a waiter, then cancel by dropping
+        // the future. Its cancellation path must unlink safely and must not
+        // alter SetOnce's publication state.
+        let mut cancelled = Box::pin(cell.wait());
+        let waker = futures::task::noop_waker();
+        let mut cx = Context::from_waker(&waker);
+        assert!(matches!(cancelled.as_mut().poll(&mut cx), Poll::Pending));
+        drop(cancelled);
+
+        assert!(cell.get().is_none());
+        cell.set(77).unwrap();
+        assert_eq!(*block_on(cell.wait()), 77);
     });
 }

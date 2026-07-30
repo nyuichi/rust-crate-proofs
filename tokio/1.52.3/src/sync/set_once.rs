@@ -9,8 +9,9 @@ use std::fmt;
 use std::future::{poll_fn, Future};
 use std::mem::MaybeUninit;
 use std::ops::Drop;
+use std::pin::Pin;
 use std::ptr;
-use std::task::Poll;
+use std::task::{Context, Poll};
 
 // This file contains an implementation of an SetOnce. The value of SetOnce
 // can only be modified once during initialization.
@@ -198,6 +199,26 @@ impl<T> SetOnce<T> {
         Some(unsafe { self.value.with_mut(|ptr| ptr::read(ptr).assume_init()) })
     }
 
+    /// Poll-surface adapter for `wait`.
+    ///
+    /// `Notified::poll` registers its waiter while holding Notify's internal
+    /// lock. The relaxed flag check then closes the race where publication
+    /// happened after `wait`'s initial Acquire load but before registration.
+    /// A Ready result only causes the outer loop to retry `get`, whose Acquire
+    /// load is what grants access to the published value.
+    fn poll_waiter(
+        &self,
+        mut notified: Pin<&mut super::notify::Notified<'_>>,
+        cx: &mut Context<'_>,
+    ) -> Poll<()> {
+        let notified = notified.as_mut().poll(cx);
+        if self.value_set.load_relaxed() {
+            Poll::Ready(())
+        } else {
+            notified
+        }
+    }
+
     /// Creates a new empty `SetOnce` instance.
     pub fn new() -> Self {
         Self {
@@ -363,12 +384,7 @@ impl<T> SetOnce<T> {
             pin!(notify_fut);
 
             poll_fn(|cx| {
-                // Register under the notify's internal lock.
-                let ret = notify_fut.as_mut().poll(cx);
-                if self.value_set.load_relaxed() {
-                    return Poll::Ready(());
-                }
-                ret
+                self.poll_waiter(notify_fut.as_mut(), cx)
             })
             .await;
         }

@@ -146,6 +146,19 @@ impl<T> PublishedOnce<T> {
         self.flag.load_acquire()
     }
 
+    /// Readiness-only relaxed observation used by `wait` after polling its
+    /// notification future. This result never grants a reference; the outer
+    /// loop must call `get` and perform an Acquire load before reading T.
+    pub fn relaxed_is_set(&self) -> (result: bool)
+        requires
+            self.well_formed(),
+        ensures
+            result == self.contents().is_init(),
+        no_unwind
+    {
+        self.flag.load_relaxed()
+    }
+
     /// Production-shaped read: the flag check justifies the reference-producing
     /// operation, and a false observation returns no reference.
     pub fn get<'a>(&'a self) -> (result: Option<&'a T>)
