@@ -1,0 +1,160 @@
+use vstd::prelude::*;
+
+verus! {
+
+/// A sequential abstraction of the ownership states used by `SetOnce<T>`.
+///
+/// This deliberately does not model Tokio's atomics, `Notify`, or returned
+/// references.  It is the small value-preserving state machine to which a
+/// later production proof can connect those concurrent implementation details.
+pub enum SetOnceState<T> {
+    Empty,
+    Published(T),
+    Taken,
+}
+
+pub open spec fn state_value<T>(state: SetOnceState<T>) -> Option<T> {
+    match state {
+        SetOnceState::Published(value) => Some(value),
+        SetOnceState::Empty | SetOnceState::Taken => None,
+    }
+}
+
+pub struct SetOnceModel<T> {
+    state: SetOnceState<T>,
+}
+
+impl<T> SetOnceModel<T> {
+    pub closed spec fn view(&self) -> SetOnceState<T> {
+        self.state
+    }
+
+    pub fn new() -> (model: Self)
+        ensures
+            model.view() == SetOnceState::Empty,
+        no_unwind
+    {
+        SetOnceModel { state: SetOnceState::Empty }
+    }
+
+    pub fn new_with(value: T) -> (model: Self)
+        ensures
+            model.view() == SetOnceState::Published(value),
+        no_unwind
+    {
+        SetOnceModel { state: SetOnceState::Published(value) }
+    }
+
+    pub fn is_empty(&self) -> (result: bool)
+        ensures
+            result == matches!(self.view(), SetOnceState::Empty),
+        no_unwind
+    {
+        match &self.state {
+            SetOnceState::Empty => true,
+            SetOnceState::Published(_) | SetOnceState::Taken => false,
+        }
+    }
+
+    /// Publish `value` exactly once.  On failure, the input value is returned
+    /// unchanged and the previous abstract state is preserved.
+    pub fn set(&mut self, value: T) -> (result: Result<(), T>)
+        ensures
+            match old(self).view() {
+                SetOnceState::Empty => {
+                    result == Ok(())
+                        && final(self).view() == SetOnceState::Published(value)
+                },
+                SetOnceState::Published(previous) => {
+                    result == Err(value)
+                        && final(self).view() == SetOnceState::Published(previous)
+                },
+                SetOnceState::Taken => {
+                    result == Err(value)
+                        && final(self).view() == SetOnceState::Taken
+                },
+            },
+        no_unwind
+    {
+        if self.is_empty() {
+            self.state = SetOnceState::Published(value);
+            Ok(())
+        } else {
+            Err(value)
+        }
+    }
+
+    /// Value-returning observer used in place of production `get() -> &T`.
+    pub fn get_by_value(&self) -> (result: Option<T>)
+        where T: Copy
+        ensures
+            result == state_value(self.view()),
+        no_unwind
+    {
+        match &self.state {
+            SetOnceState::Published(value) => Some(*value),
+            SetOnceState::Empty | SetOnceState::Taken => None,
+        }
+    }
+
+    /// `into_inner`-like transition which leaves `Taken` observable in the
+    /// model and moves the published value to the caller at most once.
+    pub fn take_into_inner(&mut self) -> (result: Option<T>)
+        ensures
+            result == state_value(old(self).view()),
+            final(self).view() == SetOnceState::Taken,
+        no_unwind
+    {
+        let mut previous = SetOnceState::Taken;
+        core::mem::swap(&mut self.state, &mut previous);
+        match previous {
+            SetOnceState::Published(value) => Some(value),
+            SetOnceState::Empty | SetOnceState::Taken => None,
+        }
+    }
+
+    /// Consuming form corresponding to Tokio's public `into_inner` shape.
+    pub fn into_inner(self) -> (result: Option<T>)
+        ensures
+            result == state_value(self.view()),
+        no_unwind
+    {
+        let mut owned = self;
+        owned.take_into_inner()
+    }
+}
+
+pub fn verify_successful_roundtrip(value: u64)
+{
+    let mut model = SetOnceModel::new();
+    let set_result = model.set(value);
+    assert(set_result == Ok(()));
+    let observed = model.get_by_value();
+    assert(observed == Some(value));
+    let taken = model.take_into_inner();
+    assert(taken == Some(value));
+    let after_take = model.get_by_value();
+    assert(after_take.is_none());
+    let taken_again = model.take_into_inner();
+    assert(taken_again.is_none());
+}
+
+pub fn verify_failed_set_preserves(first: u64, second: u64)
+{
+    let mut model = SetOnceModel::new_with(first);
+    let set_result = model.set(second);
+    assert(set_result == Err(second));
+    let observed = model.get_by_value();
+    assert(observed == Some(first));
+    let inner = model.into_inner();
+    assert(inner == Some(first));
+}
+
+pub fn verify_empty_into_inner()
+{
+    let model = SetOnceModel::<u64>::new();
+    let inner = model.into_inner();
+    assert(inner.is_none());
+}
+
+} // verus!

@@ -41,6 +41,7 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 ./utf8parse/0.2.2/verify-all.bash
 ./unicode-ident/1.0.24/verify-all.bash
 ./hashbrown/0.17.1/verify-all.bash
+./tokio/1.52.3/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -48,6 +49,23 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 standard-library specifications used by the proofs.
 
 ## Current proofs
+
+### tokio 1.52.3
+
+`tokio` 1.52.3 has a body-proved Verus ownership model for the first
+`SetOnce<T>` milestone. Empty and pre-populated construction, exact
+publish-once behavior, rejected publication with state preservation, value
+observation for `Copy` values, one-time taking, and representative callers are
+proved. The upstream `sync_set_once` integration target remains unchanged and
+passes in the `full` feature configuration.
+
+This is the specification and orchestration foundation for a production
+concurrency refinement, not a proof of Tokio's production `SetOnce` bodies.
+Tokio's `Notify` writer lock, Acquire/Release publication, loom `UnsafeCell`,
+persistent shared references, `wait`, cancellation, wakers, drop, and
+`Send`/`Sync` remain explicit boundaries. A separate oneshot poll-signature
+probe records the current `Pin`/`Poll`/`Context`/`Waker` translation boundary.
+Full status and removal conditions are recorded in `PROVENANCE.md`.
 
 ### crossbeam-epoch 0.9.20
 
