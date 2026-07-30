@@ -5,11 +5,13 @@ use vstd::raw_ptr::MemContents;
 
 verus! {
 
-/// Verus-side publication bit.
+/// Verus proof view of production `SetOnceFlag`.
 ///
 /// vstd currently implements this primitive with a sequentially-consistent
-/// atomic.  Its role here is to prove the flag/slot protocol.  Refining it to
-/// Tokio's Release store and Acquire load is a separate, explicit boundary.
+/// atomic. Production uses `load_acquire` and `store_release`; the fact that
+/// one-shot publication needs no stronger ordering is the explicit weak-memory
+/// refinement boundary. All SetOnce-specific flag/slot reasoning is proved
+/// below rather than included in that boundary.
 pub struct PublicationFlag {
     atomic: PAtomicBool,
     permission: Tracked<PermissionBool>,
@@ -33,7 +35,7 @@ impl PublicationFlag {
         PublicationFlag { atomic, permission }
     }
 
-    pub fn load(&self) -> (result: bool)
+    pub fn load_acquire(&self) -> (result: bool)
         ensures
             result == self.value(),
         no_unwind
@@ -44,7 +46,7 @@ impl PublicationFlag {
         self.atomic.load(Tracked(self.permission.borrow()))
     }
 
-    pub fn store(&mut self, value: bool)
+    pub fn store_release(&mut self, value: bool)
         ensures
             final(self).value() == value,
         no_unwind
@@ -102,7 +104,7 @@ impl<T> PublishedOnce<T> {
             result == self.contents().is_init(),
         no_unwind
     {
-        self.flag.load()
+        self.flag.load_acquire()
     }
 
     /// Production-shaped read: the flag check justifies the reference-producing
@@ -117,7 +119,7 @@ impl<T> PublishedOnce<T> {
             },
         no_unwind
     {
-        if self.flag.load() {
+        if self.flag.load_acquire() {
             Some(unsafe { self.value.get_unchecked() })
         } else {
             None
@@ -135,7 +137,7 @@ impl<T> PublishedOnce<T> {
         no_unwind
     {
         self.value.write(value);
-        self.flag.store(true);
+        self.flag.store_release(true);
     }
 
     pub fn take(&mut self) -> (result: T)
@@ -148,7 +150,7 @@ impl<T> PublishedOnce<T> {
             final(self).well_formed(),
         no_unwind
     {
-        self.flag.store(false);
+        self.flag.store_release(false);
         self.value.take()
     }
 }

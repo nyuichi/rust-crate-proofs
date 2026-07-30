@@ -1,8 +1,8 @@
 # tokio 1.52.3 verification provenance
 
 **Verification status: body-proved reusable publication slot and SetOnce
-publication kernel; production Release/Acquire path exercised by loom, with
-the memory-order refinement still an explicit trusted boundary.**
+publication kernel; production atomic orderings are encapsulated and exercised
+by loom, with the weak-memory refinement kept as one explicit trusted boundary.**
 
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
@@ -51,6 +51,8 @@ The body proofs establish:
   payloads;
 - `PublicationFlag` body-proves its load/store wrapper contracts over vstd's
   sequentially-consistent atomic primitive;
+- production `SetOnceFlag` exposes only operation-specific Acquire, Release,
+  and Relaxed methods, so SetOnce call sites cannot select arbitrary orderings;
 - `PublishedOnce<T>` maintains `flag == slot.is_init()`, and its
   production-shaped `initialized`, `get`, publish, and take bodies preserve
   that relation;
@@ -70,7 +72,7 @@ The body proofs establish:
 | Tokio loom-cell proof view and `get_unchecked` | yes | yes | representation correspondence | yes |
 | SC flag/slot publication kernel | yes | yes | vstd atomic primitive | yes |
 | writer-lease double-check/set body | yes | yes | no | yes |
-| production Release/Acquire `set` -> `get` | yes | no | memory-order refinement | loom |
+| production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | production `wait()` and wake protocol | no | no | excluded | no |
 
@@ -93,8 +95,9 @@ are formally connected end to end:
 
 1. an exact contract transferring the single writer permission through
    `Notify::lock_waiter_list` and its guard;
-2. an Acquire/Release atomic ghost specification relating `value_set` to the
-   initialized-slot permission;
+2. replacement of the SC proof primitive with a foundational Acquire/Release
+   atomic ghost implementation; production operation selection and the
+   SetOnce-specific protocol are already connected;
 3. replacement of the checked/trusted representation correspondence with a
    direct vstd contract for Tokio's loom `UnsafeCell` wrapper.
 

@@ -1,7 +1,7 @@
 use super::Notify;
+use super::set_once_atomic::SetOnceFlag;
 
 use crate::loom::cell::UnsafeCell;
-use crate::loom::sync::atomic::AtomicBool;
 
 use std::error::Error;
 use std::fmt;
@@ -9,7 +9,6 @@ use std::future::{poll_fn, Future};
 use std::mem::MaybeUninit;
 use std::ops::Drop;
 use std::ptr;
-use std::sync::atomic::Ordering;
 use std::task::Poll;
 
 // This file contains an implementation of an SetOnce. The value of SetOnce
@@ -89,7 +88,7 @@ use std::task::Poll;
 ///
 /// [`asyncio.Event`]: https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event
 pub struct SetOnce<T> {
-    value_set: AtomicBool,
+    value_set: SetOnceFlag,
     value: UnsafeCell<MaybeUninit<T>>,
     notify: Notify,
 }
@@ -125,7 +124,7 @@ impl<T: Eq> Eq for SetOnce<T> {}
 impl<T> Drop for SetOnce<T> {
     fn drop(&mut self) {
         // TODO: Use get_mut()
-        if self.value_set.load(Ordering::Relaxed) {
+        if self.value_set.load_relaxed() {
             // SAFETY: If the value_set is true, then the value is initialized
             // then there is a value to be dropped and this is safe
             unsafe { self.value.with_mut(|ptr| ptr::drop_in_place(ptr as *mut T)) }
@@ -136,7 +135,7 @@ impl<T> Drop for SetOnce<T> {
 impl<T> From<T> for SetOnce<T> {
     fn from(value: T) -> Self {
         SetOnce {
-            value_set: AtomicBool::new(true),
+            value_set: SetOnceFlag::new(true),
             value: UnsafeCell::new(MaybeUninit::new(value)),
             notify: Notify::new(),
         }
@@ -147,7 +146,7 @@ impl<T> SetOnce<T> {
     /// Creates a new empty `SetOnce` instance.
     pub fn new() -> Self {
         Self {
-            value_set: AtomicBool::new(false),
+            value_set: SetOnceFlag::new(false),
             value: UnsafeCell::new(MaybeUninit::uninit()),
             notify: Notify::new(),
         }
@@ -189,7 +188,7 @@ impl<T> SetOnce<T> {
     #[cfg(not(all(loom, test)))]
     pub const fn const_new() -> Self {
         Self {
-            value_set: AtomicBool::new(false),
+            value_set: SetOnceFlag::new(false),
             value: UnsafeCell::new(MaybeUninit::uninit()),
             notify: Notify::const_new(),
         }
@@ -239,7 +238,7 @@ impl<T> SetOnce<T> {
     #[cfg(not(all(loom, test)))]
     pub const fn const_new_with(value: T) -> Self {
         Self {
-            value_set: AtomicBool::new(true),
+            value_set: SetOnceFlag::new(true),
             value: UnsafeCell::new(MaybeUninit::new(value)),
             notify: Notify::const_new(),
         }
@@ -250,7 +249,7 @@ impl<T> SetOnce<T> {
     pub fn initialized(&self) -> bool {
         // Using acquire ordering so we're able to read/catch any writes that
         // are done with `Ordering::Release`
-        self.value_set.load(Ordering::Acquire)
+        self.value_set.load_acquire()
     }
 
     // SAFETY: The SetOnce must not be empty.
@@ -298,7 +297,7 @@ impl<T> SetOnce<T> {
 
         // Using release ordering so any threads that read a true from this
         // atomic is able to read the value we just stored.
-        self.value_set.store(true, Ordering::Release);
+        self.value_set.store_release(true);
 
         // notify the waiting wakers that the value is set
         guard.notify_waiters();
@@ -310,14 +309,14 @@ impl<T> SetOnce<T> {
     /// Returns `None` if the cell is empty.
     pub fn into_inner(self) -> Option<T> {
         // TODO: Use get_mut()
-        let value_set = self.value_set.load(Ordering::Relaxed);
+        let value_set = self.value_set.load_relaxed();
 
         if value_set {
             // Since we have taken ownership of self, its drop implementation
             // will be called by the end of this function, to prevent a double
             // free we will set the value_set to false so that the drop
             // implementation does not try to drop the value again.
-            self.value_set.store(false, Ordering::Relaxed);
+            self.value_set.store_relaxed(false);
 
             // SAFETY: The SetOnce is currently initialized, we can assume the
             // value is initialized and return that, when we return the value
@@ -348,7 +347,7 @@ impl<T> SetOnce<T> {
             poll_fn(|cx| {
                 // Register under the notify's internal lock.
                 let ret = notify_fut.as_mut().poll(cx);
-                if self.value_set.load(Ordering::Relaxed) {
+                if self.value_set.load_relaxed() {
                     return Poll::Ready(());
                 }
                 ret

@@ -65,8 +65,10 @@ The Phase 1 representation adapter now body-proves a production-shaped
 Tokio's transparent `UnsafeCell<MaybeUninit<T>>` field. This is not yet an
 end-to-end formal proof of the production `SetOnce` bodies: the remaining
 representation correspondence is trusted, and vstd currently exposes
-sequentially-consistent atomics, so exact Acquire/Release refinement and
-Tokio's `NotifyGuard` writer lease remain explicit boundaries.
+sequentially-consistent atomics. Production ordering selection is now isolated
+behind `SetOnceFlag` and its SetOnce-specific protocol is body-proved, but the
+foundational weak-memory refinement and Tokio's `NotifyGuard` writer lease
+remain explicit boundaries.
 `wait`, cancellation, wakers, drop, and `Send`/`Sync` also remain outside the
 formal milestone. A separate oneshot poll-signature
 probe records the current `Pin`/`Poll`/`Context`/`Waker` translation boundary.
