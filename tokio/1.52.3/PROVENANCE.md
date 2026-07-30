@@ -1,7 +1,8 @@
 # tokio 1.52.3 verification provenance
 
-**Verification status: body-proved SetOnce ownership model; production
-concurrency refinement not yet connected.**
+**Verification status: body-proved reusable publication slot and SetOnce
+publication kernel; production Release/Acquire path exercised by loom, with
+the memory-order refinement still an explicit trusted boundary.**
 
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
@@ -12,8 +13,10 @@ Its `.cargo_vcs_info.json` records upstream revision
 The complete upstream source and ordinary public API are retained unchanged.
 The first Verus milestone is intentionally isolated in the nested
 `verification` crate so Verus does not translate unrelated Tokio subsystems.
-It defines the value-preserving ownership model that a later refinement proof
-must connect to `sync::SetOnce<T>`.
+It defines both the value-preserving ownership model and a reusable
+`PublishedCell<T>`/`PublishedOnce<T>` kernel. The production source retains
+Tokio's representation; a targeted loom test connects its actual `set` and
+`get` path to the intended Release/Acquire publication behavior.
 
 ## Established model contracts
 
@@ -35,6 +38,17 @@ The body proofs establish:
 - repeated taking returns `None`;
 - representative successful, rejected-publication, and empty callers compose
   the method contracts.
+- `PublishedCell<T>` keeps its `PCell` permission with the slot and body-proves
+  exact-value `publish`, lifetime-correct `get() -> &T`, and `take` operations;
+- the reference proof works for a representative non-`Copy` payload;
+- `PublicationFlag` body-proves its load/store wrapper contracts over vstd's
+  sequentially-consistent atomic primitive;
+- `PublishedOnce<T>` maintains `flag == slot.is_init()`, and its
+  production-shaped `initialized`, `get`, publish, and take bodies preserve
+  that relation;
+- `WriterLease<T>` body-proves the locked double-check and first-writer-wins
+  portion of production `SetOnce::set`, including exact return of a rejected
+  value and preservation of the first value.
 
 | Component | Contract reviewed | Body proved | Trusted | Integrated run |
 |---|---:|---:|---:|---:|
@@ -44,11 +58,18 @@ The body proofs establish:
 | value-returning observation | yes | yes | no | yes |
 | take/consuming transitions | yes | yes | no | yes |
 | representative callers | yes | yes | no | yes |
-| production `sync::SetOnce<T>` bodies | partial | no | excluded | no |
+| `PublishedCell<T>` publish/get/take bodies | yes | yes | no | yes |
+| SC flag/slot publication kernel | yes | yes | vstd atomic primitive | yes |
+| writer-lease double-check/set body | yes | yes | no | yes |
+| production Release/Acquire `set` -> `get` | yes | no | memory-order refinement | loom |
+| production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | production `wait()` and wake protocol | no | no | excluded | no |
 
-The abstract model contains no `external_body`, `assume`, or trusted transition.
-It is not a proof of Tokio's production representation or concurrent execution.
+The verification crate itself contains no `external_body` or `assume` on
+`PublishedCell::{publish,get,take}`, `PublishedOnce::get`, or the writer-lease
+set body. Like other vstd physical-memory proofs, it relies on vstd's trusted
+`PCell` and atomic primitive implementations. It is not a complete formal
+proof of Tokio's production representation or the Rust memory model.
 
 ## Production boundaries and removal conditions
 
@@ -58,20 +79,29 @@ Production `SetOnce<T>` uses Tokio's loom-compatible `AtomicBool`,
 publish the initialized value to readers. Those implementation facts are not
 yet connected to the abstract model.
 
-Three proof-library or adapter components are needed to remove this boundary:
+Three proof-library or adapter components remain before the production bodies
+are formally connected end to end:
 
 1. an exact contract transferring the single writer permission through
    `Notify::lock_waiter_list` and its guard;
 2. an Acquire/Release atomic ghost specification relating `value_set` to the
    initialized-slot permission;
-3. a persistent read-only publication abstraction that can return `&T` with
-   the lifetime of `&SetOnce<T>` after the atomic invariant is closed.
+3. a representation adapter relating loom's
+   `UnsafeCell<MaybeUninit<T>>` to the proved `PublishedCell<T>` permission.
 
-The current vstd `PCell` borrow is tied to the lifetime of its points-to
-permission, so it cannot directly justify production `get() -> Option<&T>`
-after closing an invariant. `wait()`, cancellation safety, waker registration,
-`Drop`, arbitrary destructor behavior, and the `Send`/`Sync` implementations
-also remain outside this milestone.
+The earlier reference-lifetime blocker is removed: keeping the points-to
+permission inside `PublishedCell<T>` lets its body-proved `get` return a
+reference with the lifetime of `&PublishedCell<T>`. The remaining difficulty
+is transferring that permission through a concurrent atomic invariant while
+matching Tokio's loom wrapper and exact Acquire/Release operations. Current
+vstd atomics expose sequentially-consistent operations only, so substituting
+Tokio's weaker but sufficient ordering is not claimed as body-proved.
+
+The production loom test `set_once_get_publication_test` deliberately reads via
+`SetOnce::get` before joining the writer. This makes the production Release
+store and Acquire load the publication edge under test. `wait()`, cancellation
+safety, waker registration, `Drop`, arbitrary destructor behavior, and the
+`Send`/`Sync` implementations remain outside the formal milestone.
 
 ## oneshot polling connection probe
 
@@ -87,9 +117,11 @@ proof. The probe README records the exact exclusions and removal requirements.
 Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 
 1. runs the upstream `sync_set_once` integration target with `full` features;
-2. checks the pinned Verus version;
-3. verifies the nested SetOnce model with the locked vstd revision;
-4. runs the oneshot polling connection probe.
+2. runs the three `loom_set_once` model tests with `full,test-util` features;
+3. checks the pinned Verus version;
+4. verifies the nested SetOnce and publication models with the locked vstd
+   revision;
+5. runs the oneshot polling connection probe.
 
 The pinned Verus version is `0.2026.07.27.31579f0`; vstd is pinned to commit
 `31579f0b8542a8a9ae4ae5604c16107ccde23ef2`. Generated Cargo and Verus build

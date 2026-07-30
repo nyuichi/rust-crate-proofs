@@ -1,5 +1,9 @@
 use vstd::prelude::*;
 
+pub mod publication;
+pub mod published_cell;
+pub mod writer_lease;
+
 verus! {
 
 /// A sequential abstraction of the ownership states used by `SetOnce<T>`.

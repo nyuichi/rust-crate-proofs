@@ -70,3 +70,28 @@ fn set_once_wait_test() {
         thread.join().unwrap();
     });
 }
+
+#[test]
+fn set_once_get_publication_test() {
+    loom::model(|| {
+        let cell = Arc::new(SetOnce::new());
+        let writer = Arc::clone(&cell);
+
+        let thread = thread::spawn(move || {
+            writer.set((0x1234_u32, 0x5678_u32)).unwrap();
+        });
+
+        // Observe through `get`, rather than through `join`, so the Release
+        // store and Acquire load in SetOnce are the publication edge checked
+        // by loom.
+        loop {
+            if let Some(value) = cell.get() {
+                assert_eq!(*value, (0x1234, 0x5678));
+                break;
+            }
+            thread::yield_now();
+        }
+
+        thread.join().unwrap();
+    });
+}

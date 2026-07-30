@@ -17,6 +17,15 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full \
   --test sync_set_once
 
+# Exercise only SetOnce's three loom model tests. `test-util` is needed because
+# Tokio's cfg(loom) lib-test module also compiles paused-time runtime helpers.
+RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-set-once" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  loom_set_once
+
 expected_verus="0.2026.07.27.31579f0"
 actual_verus=$(verus --version)
 if [[ "$actual_verus" != *"$expected_verus"* ]]; then

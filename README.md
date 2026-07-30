@@ -52,18 +52,20 @@ standard-library specifications used by the proofs.
 
 ### tokio 1.52.3
 
-`tokio` 1.52.3 has a body-proved Verus ownership model for the first
-`SetOnce<T>` milestone. Empty and pre-populated construction, exact
-publish-once behavior, rejected publication with state preservation, value
-observation for `Copy` values, one-time taking, and representative callers are
-proved. The upstream `sync_set_once` integration target remains unchanged and
-passes in the `full` feature configuration.
+`tokio` 1.52.3 has a body-proved Verus ownership model plus reusable
+`PublishedCell<T>`, flag/slot publication, and writer-lease abstractions for the
+first `SetOnce<T>` milestone. Exact publish-once behavior, lifetime-correct
+`get() -> &T` for non-`Copy` values, rejected publication with state
+preservation, and one-time taking are proved. The upstream `sync_set_once`
+integration target passes, and targeted loom tests exercise the production
+Release-store/Acquire-load `set` to `get` path.
 
-This is the specification and orchestration foundation for a production
-concurrency refinement, not a proof of Tokio's production `SetOnce` bodies.
-Tokio's `Notify` writer lock, Acquire/Release publication, loom `UnsafeCell`,
-persistent shared references, `wait`, cancellation, wakers, drop, and
-`Send`/`Sync` remain explicit boundaries. A separate oneshot poll-signature
+This is not yet an end-to-end formal proof of Tokio's production `SetOnce`
+bodies. vstd currently exposes sequentially-consistent atomics, so the exact
+Acquire/Release memory-order refinement, Tokio's `NotifyGuard` writer lease,
+and the loom `UnsafeCell` representation adapter remain explicit boundaries.
+`wait`, cancellation, wakers, drop, and `Send`/`Sync` also remain outside the
+formal milestone. A separate oneshot poll-signature
 probe records the current `Pin`/`Poll`/`Context`/`Waker` translation boundary.
 Full status and removal conditions are recorded in `PROVENANCE.md`.
 
