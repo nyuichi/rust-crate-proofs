@@ -77,6 +77,11 @@ The SetOnce-specific wait protocol now covers both sides of waiter
 registration and cancellation/re-wait. Pin/Poll/Context/Waker and
 `Notified::poll` are intentionally isolated as the agreed trusted poll-surface
 adapter and exercised by targeted loom tests.
+Clone/Eq proof views and production Send/Sync bounds are checked, with trait
+behavior covered by the SetOnce integration target. A five-case mutation audit
+confirms that the tests reject weakened Acquire/Release ordering, removal of
+the second writer check or owned-take clear, and removal of wait's readiness
+recheck.
 `wait`, cancellation, wakers, drop, and `Send`/`Sync` also remain outside the
 formal milestone. A separate oneshot poll-signature
 probe records the current `Pin`/`Poll`/`Context`/`Waker` translation boundary.

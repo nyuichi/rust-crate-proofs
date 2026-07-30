@@ -380,6 +380,11 @@ impl<T> SetOnce<T> {
                 return val;
             }
 
+            // Force loom to explore publication in the narrow interval between
+            // the failed Acquire get and creation of the notification future.
+            #[cfg(all(loom, test))]
+            crate::loom::thread::yield_now();
+
             let notify_fut = self.notify.notified();
             pin!(notify_fut);
 

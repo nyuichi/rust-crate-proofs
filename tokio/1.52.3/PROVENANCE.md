@@ -1,8 +1,9 @@
 # tokio 1.52.3 verification provenance
 
-**Verification status: body-proved reusable publication slot and SetOnce
-publication kernel; production atomic orderings are encapsulated and exercised
-by loom, with the weak-memory refinement kept as one explicit trusted boundary.**
+**Verification status: SetOnce-specific Phases 1--6 complete under the listed
+foundational boundaries. Publication, ownership, wait, cancellation, and trait
+views are body-proved models structurally connected to production and exercised
+by targeted runtime, loom, layout, and mutation checks.**
 
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
@@ -76,6 +77,11 @@ The body proofs establish:
   `Notified::poll` trusted surface from the SetOnce-specific wait loop;
 - a loom test polls a wait to Pending, cancels it, publishes, and successfully
   waits again, exercising waiter unlinking and re-registration.
+- `Clone` and `PartialEq` state/value projections are body-proved for `u64`;
+- production compile checks establish the positive and negative `Send`/`Sync`
+  bounds, and runtime tests cover Default, Clone, Eq, Debug, Display, and Error;
+- five deliberate mutations are rejected by the targeted tests, including
+  weakened publication orderings and removal of the lost-wakeup recheck.
 
 | Component | Contract reviewed | Body proved | Trusted | Integrated run |
 |---|---:|---:|---:|---:|
@@ -95,12 +101,23 @@ The body proofs establish:
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | SetOnce wait/lost-wakeup protocol | yes | yes | poll surface | Verus/loom |
 | production `Notified::poll`/waiter list | partial | no | agreed adapter | loom |
+| Clone/Eq state and value views | yes | yes | generic std traits | Verus/tests |
+| Send/Sync bounds | yes | Rust type system | unsafe impl justification | compile tests |
+| Debug/Display/Error views | yes | no | formatting std traits | tests |
+| mutation sensitivity | yes | n/a | no | five rejected mutations |
 
 The verification crate itself contains no `external_body` or `assume` on
 `PublishedCell::{publish,get,take}`, `PublishedOnce::get`, or the writer-lease
 set body. Like other vstd physical-memory proofs, it relies on vstd's trusted
 `PCell` and atomic primitive implementations. It is not a complete formal
 proof of Tokio's production representation or the Rust memory model.
+
+Under the agreed scope, “SetOnce complete” means the SetOnce-specific state
+machines and method logic are proved while five foundational interfaces remain
+explicit: vstd physical-cell correspondence, weak-memory atomics, Notify mutex
+exclusivity, the Pin/Poll/Context/Waker poll surface, and arbitrary destructor
+or unwind behavior. Removing those boundaries is library/toolchain work rather
+than additional SetOnce protocol reasoning.
 
 ## Production boundaries and removal conditions
 
@@ -173,6 +190,11 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    revision;
 5. checks the erased loom-cell proof-view layout;
 6. runs the oneshot polling connection probe.
+
+The integrated SetOnce target currently contains 17 ordinary tests and five
+loom model tests. [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) records the separate
+destructive-copy audit; mutations are intentionally not rerun by
+`verify-all.bash`.
 
 The pinned Verus version is `0.2026.07.27.31579f0`; vstd is pinned to commit
 `31579f0b8542a8a9ae4ae5604c16107ccde23ef2`. Generated Cargo and Verus build

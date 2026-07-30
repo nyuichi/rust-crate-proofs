@@ -7,6 +7,24 @@ use std::sync::{
 };
 use tokio::sync::SetOnce;
 
+macro_rules! assert_not_impl {
+    ($ty:ty: $trait:path) => {
+        const _: fn() = || {
+            trait AmbiguousIfImpl<A> {
+                fn marker() {}
+            }
+            struct Invalid;
+            impl<T: ?Sized> AmbiguousIfImpl<()> for T {}
+            impl<T: ?Sized + $trait> AmbiguousIfImpl<Invalid> for T {}
+            let _ = <$ty as AmbiguousIfImpl<_>>::marker;
+        };
+    };
+}
+
+assert_not_impl!(SetOnce<std::rc::Rc<()>>: Send);
+assert_not_impl!(SetOnce<std::rc::Rc<()>>: Sync);
+assert_not_impl!(SetOnce<std::cell::Cell<u8>>: Sync);
+
 #[derive(Clone)]
 struct DropCounter {
     drops: Arc<AtomicU32>,
@@ -177,4 +195,41 @@ fn into_inner_int_empty_setonce() {
     let val = once.into_inner();
 
     assert!(val.is_none());
+}
+
+#[test]
+fn auto_trait_bounds() {
+    fn assert_send<T: Send>() {}
+    fn assert_sync<T: Sync>() {}
+
+    assert_send::<SetOnce<std::cell::Cell<u8>>>();
+    assert_send::<SetOnce<u64>>();
+    assert_sync::<SetOnce<u64>>();
+}
+
+#[test]
+fn trait_views_preserve_state_and_value() {
+    let empty = SetOnce::<String>::default();
+    let empty_clone = empty.clone();
+    assert_eq!(empty, empty_clone);
+    assert_eq!(format!("{empty:?}"), "SetOnce { value: None }");
+
+    let initialized = SetOnce::from(String::from("published"));
+    let initialized_clone = initialized.clone();
+    assert_eq!(initialized, initialized_clone);
+    assert_eq!(
+        format!("{initialized:?}"),
+        "SetOnce { value: Some(\"published\") }"
+    );
+}
+
+#[test]
+fn set_once_error_traits() {
+    use std::error::Error;
+
+    let error = tokio::sync::SetOnceError(7_u64);
+    assert_eq!(error.to_string(), "SetOnceError");
+    assert!(error.source().is_none());
+    assert_eq!(error, tokio::sync::SetOnceError(7));
+    assert_eq!(format!("{error:?}"), "SetOnceError(7)");
 }
