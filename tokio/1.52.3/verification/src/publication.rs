@@ -56,6 +56,31 @@ impl PublicationFlag {
         }
         self.atomic.store(Tracked(self.permission.borrow_mut()), value);
     }
+
+    /// Relaxed observation used only under exclusive ownership of the full
+    /// SetOnce representation.
+    pub fn load_relaxed(&self) -> (result: bool)
+        ensures
+            result == self.value(),
+        no_unwind
+    {
+        proof {
+            use_type_invariant(self);
+        }
+        self.atomic.load(Tracked(self.permission.borrow()))
+    }
+
+    /// Relaxed update used only under exclusive ownership.
+    pub fn store_relaxed(&mut self, value: bool)
+        ensures
+            final(self).value() == value,
+        no_unwind
+    {
+        proof {
+            use_type_invariant(&*self);
+        }
+        self.atomic.store(Tracked(self.permission.borrow_mut()), value);
+    }
 }
 
 /// The reusable SetOnce publication kernel.
@@ -95,6 +120,20 @@ impl<T> PublishedOnce<T> {
         let value = TokioLoomCell::initialized(value);
         let flag = PublicationFlag::new(true);
         PublishedOnce { value, flag }
+    }
+
+    pub fn new_with(value: Option<T>) -> (result: Self)
+        ensures
+            result.well_formed(),
+            match value {
+                Some(value) => result.contents() == MemContents::Init(value),
+                None => result.contents() == MemContents::Uninit,
+            },
+    {
+        match value {
+            Some(value) => PublishedOnce::new(value),
+            None => PublishedOnce::empty(),
+        }
     }
 
     pub fn initialized(&self) -> (result: bool)
@@ -153,6 +192,27 @@ impl<T> PublishedOnce<T> {
         self.flag.store_release(false);
         self.value.take()
     }
+
+    /// Production-shaped `take_inner`, shared by `into_inner` and `Drop`.
+    pub fn take_inner(&mut self) -> (result: Option<T>)
+        requires
+            old(self).well_formed(),
+        ensures
+            final(self).well_formed(),
+            final(self).contents() == MemContents::Uninit,
+            match old(self).contents() {
+                MemContents::Init(value) => result == Some(value),
+                MemContents::Uninit => result == None,
+            },
+        no_unwind
+    {
+        if !self.flag.load_relaxed() {
+            None
+        } else {
+            self.flag.store_relaxed(false);
+            Some(self.value.take())
+        }
+    }
 }
 
 pub struct Payload {
@@ -177,6 +237,15 @@ pub fn verify_publication_roundtrip(value: u64)
     assert(removed.value == value);
     let after_take = once.get();
     assert(after_take.is_none());
+}
+
+pub fn verify_owned_take_is_exactly_once(value: u64)
+{
+    let mut once = PublishedOnce::new_with(Some(Payload { value }));
+    let first = once.take_inner();
+    assert(first matches Some(payload) && payload.value == value);
+    let second = once.take_inner();
+    assert(second.is_none());
 }
 
 } // verus!

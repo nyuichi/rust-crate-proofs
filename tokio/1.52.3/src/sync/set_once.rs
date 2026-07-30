@@ -155,12 +155,10 @@ impl<T: Eq> Eq for SetOnce<T> {}
 
 impl<T> Drop for SetOnce<T> {
     fn drop(&mut self) {
-        // TODO: Use get_mut()
-        if self.value_set.load_relaxed() {
-            // SAFETY: If the value_set is true, then the value is initialized
-            // then there is a value to be dropped and this is safe
-            unsafe { self.value.with_mut(|ptr| ptr::drop_in_place(ptr as *mut T)) }
-        }
+        // `take_inner` clears the flag before returning the value, so dropping
+        // the option runs T's destructor exactly once and leaves this cell
+        // empty for the remainder of SetOnce's destructor.
+        drop(self.take_inner());
     }
 }
 
@@ -180,6 +178,24 @@ impl<T> SetOnce<T> {
             cell: self,
             notify: self.notify.lock_waiter_list(),
         }
+    }
+
+    /// Move the initialized value out while holding exclusive ownership.
+    ///
+    /// Relaxed ordering is sufficient because `&mut self` rules out concurrent
+    /// access. Clearing the flag first prevents SetOnce's destructor from
+    /// observing and destroying the same value a second time.
+    fn take_inner(&mut self) -> Option<T> {
+        if !self.value_set.load_relaxed() {
+            return None;
+        }
+
+        self.value_set.store_relaxed(false);
+
+        // SAFETY: exclusive ownership prevents concurrent access, and a true
+        // flag means the slot is initialized. The flag was cleared first, so
+        // this value cannot also be read by SetOnce's Drop implementation.
+        Some(unsafe { self.value.with_mut(|ptr| ptr::read(ptr).assume_init()) })
     }
 
     /// Creates a new empty `SetOnce` instance.
@@ -325,24 +341,8 @@ impl<T> SetOnce<T> {
 
     /// Takes the value from the cell, destroying the cell in the process.
     /// Returns `None` if the cell is empty.
-    pub fn into_inner(self) -> Option<T> {
-        // TODO: Use get_mut()
-        let value_set = self.value_set.load_relaxed();
-
-        if value_set {
-            // Since we have taken ownership of self, its drop implementation
-            // will be called by the end of this function, to prevent a double
-            // free we will set the value_set to false so that the drop
-            // implementation does not try to drop the value again.
-            self.value_set.store_relaxed(false);
-
-            // SAFETY: The SetOnce is currently initialized, we can assume the
-            // value is initialized and return that, when we return the value
-            // we give the drop handler to the return scope.
-            Some(unsafe { self.value.with_mut(|ptr| ptr::read(ptr).assume_init()) })
-        } else {
-            None
-        }
+    pub fn into_inner(mut self) -> Option<T> {
+        self.take_inner()
     }
 
     /// Waits until the value is set.

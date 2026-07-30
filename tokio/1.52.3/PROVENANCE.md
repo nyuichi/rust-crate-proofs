@@ -63,6 +63,12 @@ The body proofs establish:
   the second check, value write, Release publication, and waiter notification;
 - a three-writer loom model checks that exactly one writer succeeds and that
   the published value identifies that writer.
+- constructors and `new_with` preserve the exact initialized/uninitialized
+  state in the proof kernel;
+- production `into_inner` and `Drop` share one exclusive `take_inner` path
+  which clears the flag before moving the value;
+- the proof kernel establishes exact-value first take, empty second take, and
+  a well-formed empty representation afterward.
 
 | Component | Contract reviewed | Body proved | Trusted | Integrated run |
 |---|---:|---:|---:|---:|
@@ -76,6 +82,8 @@ The body proofs establish:
 | Tokio loom-cell proof view and `get_unchecked` | yes | yes | representation correspondence | yes |
 | SC flag/slot publication kernel | yes | yes | vstd atomic primitive | yes |
 | writer-lease double-check/set body | yes | yes | Notify mutex exclusivity | Verus/loom |
+| constructors/new_with | yes | yes | const adapter | Verus/tests |
+| owned take/into_inner/Drop protocol | yes | yes | destructor semantics | Verus/tests/loom |
 | production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | production `wait()` and wake protocol | no | no | excluded | no |
@@ -130,8 +138,10 @@ exercise two- and three-writer races.
 The production loom test `set_once_get_publication_test` deliberately reads via
 `SetOnce::get` before joining the writer. This makes the production Release
 store and Acquire load the publication edge under test. `wait()`, cancellation
-safety, waker registration, `Drop`, arbitrary destructor behavior, and the
-`Send`/`Sync` implementations remain outside the formal milestone.
+safety, waker registration, arbitrary destructor behavior, and the `Send`/`Sync`
+implementations remain outside the formal milestone. The ownership transition
+used by production `Drop` is now proved, while arbitrary user destructor
+behavior and unwind remain foundational Rust boundaries.
 
 ## oneshot polling connection probe
 
