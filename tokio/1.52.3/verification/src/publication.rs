@@ -1,4 +1,4 @@
-use crate::published_cell::PublishedCell;
+use crate::tokio_loom_cell::TokioLoomCell;
 use vstd::atomic::{PAtomicBool, PermissionBool};
 use vstd::prelude::*;
 use vstd::raw_ptr::MemContents;
@@ -62,7 +62,7 @@ impl PublicationFlag {
 /// The central safety relation says that a visible publication bit
 /// is equivalent to an initialized value slot.
 pub struct PublishedOnce<T> {
-    value: PublishedCell<T>,
+    value: TokioLoomCell<T>,
     flag: PublicationFlag,
 }
 
@@ -80,7 +80,7 @@ impl<T> PublishedOnce<T> {
             result.contents() == MemContents::Uninit,
             result.well_formed(),
     {
-        let value = PublishedCell::empty();
+        let value = TokioLoomCell::uninit();
         let flag = PublicationFlag::new(false);
         PublishedOnce { value, flag }
     }
@@ -90,7 +90,7 @@ impl<T> PublishedOnce<T> {
             result.contents() == MemContents::Init(value),
             result.well_formed(),
     {
-        let value = PublishedCell::new(value);
+        let value = TokioLoomCell::initialized(value);
         let flag = PublicationFlag::new(true);
         PublishedOnce { value, flag }
     }
@@ -118,7 +118,7 @@ impl<T> PublishedOnce<T> {
         no_unwind
     {
         if self.flag.load() {
-            Some(self.value.get())
+            Some(unsafe { self.value.get_unchecked() })
         } else {
             None
         }
@@ -134,7 +134,7 @@ impl<T> PublishedOnce<T> {
             final(self).well_formed(),
         no_unwind
     {
-        self.value.publish(value);
+        self.value.write(value);
         self.flag.store(true);
     }
 

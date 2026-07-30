@@ -8,6 +8,7 @@ export CARGO_NET_OFFLINE=true
 rust_target_dir="${CARGO_TARGET_DIR:-$repo_root/target}"
 verus_target_dir="${VERUS_CARGO_TARGET_DIR:-$repo_root/target/verus/tokio-1.52.3}"
 oneshot_probe_target_dir="${VERUS_ONESHOT_PROBE_TARGET_DIR:-$repo_root/target/verus/tokio-1.52.3-oneshot-poll-probe}"
+verification_test_target_dir="${VERIFICATION_TEST_TARGET_DIR:-$repo_root/target/tokio-1.52.3-verification-tests}"
 
 # Keep the runtime regression focused on SetOnce. The upstream integration
 # test is gated on `full`, so its exact test target still requires that feature.
@@ -38,6 +39,14 @@ CARGO_TARGET_DIR="$verus_target_dir" cargo verus verify \
   --manifest-path "$script_dir/verification/Cargo.toml" \
   --locked \
   --offline
+
+# Check the erased proof-view representation against the standard
+# UnsafeCell<MaybeUninit<T>> used by Tokio's transparent non-loom wrapper.
+CARGO_TARGET_DIR="$verification_test_target_dir" cargo test \
+  --manifest-path "$script_dir/verification/Cargo.toml" \
+  --locked \
+  --offline \
+  tokio_loom_cell::layout_tests::erased_layout_matches_tokio_value_field
 
 # This is a connection/translation probe for the production-shaped
 # `Future::poll` signature. Its body is an explicit external boundary, so

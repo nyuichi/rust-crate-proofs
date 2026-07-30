@@ -10,7 +10,9 @@ crates.io. The published archive has SHA-256 checksum
 Its `.cargo_vcs_info.json` records upstream revision
 `d87569164fb61145e79e7ffe0b25783569cc8f93` and path `tokio`.
 
-The complete upstream source and ordinary public API are retained unchanged.
+The complete upstream source and ordinary public API are retained. The
+non-loom `UnsafeCell<T>` wrapper is marked `repr(transparent)` to make its
+already single-field runtime representation an explicit adapter guarantee.
 The first Verus milestone is intentionally isolated in the nested
 `verification` crate so Verus does not translate unrelated Tokio subsystems.
 It defines both the value-preserving ownership model and a reusable
@@ -41,6 +43,12 @@ The body proofs establish:
 - `PublishedCell<T>` keeps its `PCell` permission with the slot and body-proves
   exact-value `publish`, lifetime-correct `get() -> &T`, and `take` operations;
 - the reference proof works for a representative non-`Copy` payload;
+- `TokioLoomCell<T>` specializes the proof view to Tokio's
+  `UnsafeCell<MaybeUninit<T>>` field and body-proves the production-shaped
+  unsafe `get_unchecked() -> &T` contract;
+- erased size and alignment are checked against
+  `UnsafeCell<MaybeUninit<T>>` for zero-sized, scalar, array, and over-aligned
+  payloads;
 - `PublicationFlag` body-proves its load/store wrapper contracts over vstd's
   sequentially-consistent atomic primitive;
 - `PublishedOnce<T>` maintains `flag == slot.is_init()`, and its
@@ -59,6 +67,7 @@ The body proofs establish:
 | take/consuming transitions | yes | yes | no | yes |
 | representative callers | yes | yes | no | yes |
 | `PublishedCell<T>` publish/get/take bodies | yes | yes | no | yes |
+| Tokio loom-cell proof view and `get_unchecked` | yes | yes | representation correspondence | yes |
 | SC flag/slot publication kernel | yes | yes | vstd atomic primitive | yes |
 | writer-lease double-check/set body | yes | yes | no | yes |
 | production Release/Acquire `set` -> `get` | yes | no | memory-order refinement | loom |
@@ -86,8 +95,16 @@ are formally connected end to end:
    `Notify::lock_waiter_list` and its guard;
 2. an Acquire/Release atomic ghost specification relating `value_set` to the
    initialized-slot permission;
-3. a representation adapter relating loom's
-   `UnsafeCell<MaybeUninit<T>>` to the proved `PublishedCell<T>` permission.
+3. replacement of the checked/trusted representation correspondence with a
+   direct vstd contract for Tokio's loom `UnsafeCell` wrapper.
+
+Phase 1 introduces `TokioLoomCell<T>` as the explicit proof view of production
+`UnsafeCell<MaybeUninit<T>>`. Its write, `get_unchecked`, and take operations
+are body-proved; only correspondence between the production wrapper and the
+vstd physical cell remains trusted. Tokio's non-loom wrapper is now explicitly
+transparent, and the integrated run checks the erased layout. This is stronger
+than a disconnected value model, but it is not yet a direct Verus translation
+of Tokio's private wrapper body.
 
 The earlier reference-lifetime blocker is removed: keeping the points-to
 permission inside `PublishedCell<T>` lets its body-proved `get` return a
@@ -121,7 +138,8 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 3. checks the pinned Verus version;
 4. verifies the nested SetOnce and publication models with the locked vstd
    revision;
-5. runs the oneshot polling connection probe.
+5. checks the erased loom-cell proof-view layout;
+6. runs the oneshot polling connection probe.
 
 The pinned Verus version is `0.2026.07.27.31579f0`; vstd is pinned to commit
 `31579f0b8542a8a9ae4ae5604c16107ccde23ef2`. Generated Cargo and Verus build

@@ -1,4 +1,5 @@
 #[derive(Debug)]
+#[repr(transparent)]
 pub(crate) struct UnsafeCell<T>(std::cell::UnsafeCell<T>);
 
 impl<T> UnsafeCell<T> {
