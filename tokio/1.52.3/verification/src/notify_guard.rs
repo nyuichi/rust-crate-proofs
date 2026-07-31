@@ -1,3 +1,5 @@
+#![allow(non_shorthand_field_patterns)]
+
 use crate::publication::PublishedOnce;
 use vstd::prelude::*;
 use vstd::raw_ptr::MemContents;

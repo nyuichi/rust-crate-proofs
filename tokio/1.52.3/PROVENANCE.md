@@ -1,9 +1,10 @@
 # tokio 1.52.3 verification provenance
 
-**Verification status: SetOnce-specific Phases 1--6 complete under the listed
-foundational boundaries. Publication, ownership, wait, cancellation, and trait
-views are body-proved models structurally connected to production and exercised
-by targeted runtime, loom, layout, and mutation checks.**
+**Verification status: SetOnce is complete under the frozen scoped-completion
+definition below. Publication, ownership, lock exclusivity, waiter-list
+membership, wait, cancellation, and trait views are body-proved models
+structurally connected to production and exercised by targeted runtime, loom,
+layout, and mutation checks.**
 
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
@@ -44,9 +45,11 @@ The body proofs establish:
 - `PublishedCell<T>` keeps its `PCell` permission with the slot and body-proves
   exact-value `publish`, lifetime-correct `get() -> &T`, and `take` operations;
 - the reference proof works for a representative non-`Copy` payload;
-- `TokioLoomCell<T>` specializes the proof view to Tokio's
-  `UnsafeCell<MaybeUninit<T>>` field and body-proves the production-shaped
-  unsafe `get_unchecked() -> &T` contract;
+- production `SetOnceValue<T>` confines the generic loom-cell callback surface
+  to the same four operations as the proof view: construction, serialized
+  write, publication-justified shared read, and exclusively-owned take;
+- `TokioLoomCell<T>` body-proves those operation contracts over vstd's physical
+  cell, including the production-shaped unsafe `get() -> &T` contract;
 - erased size and alignment are checked against
   `UnsafeCell<MaybeUninit<T>>` for zero-sized, scalar, array, and over-aligned
   payloads; the same test directly compiles Tokio's production wrapper source
@@ -75,8 +78,10 @@ The body proofs establish:
   the value published and rejects later writers;
 - production `SetOnceWriteGuard` now owns the actual `NotifyGuard` and encloses
   the second check, value write, Release publication, and waiter notification;
-- `NotifyMutexModel` body-proves issuance and consuming return of a linear,
-  non-cloneable writer permission, while `GuardedSetOnce<T>` proves the exact
+- `NotifyMutexModel` uses vstd's verified concurrent lock and linear
+  `WriteHandle`; acquiring produces a non-cloneable writer permission and
+  notification consumes it to return the protected state;
+- `GuardedSetOnce<T>` proves the exact
   optimistic-check, lock, second-check, publication, and notification shape;
 - a three-writer loom model checks that exactly one writer succeeds and that
   the published value identifies that writer.
@@ -96,6 +101,10 @@ The body proofs establish:
   cancellation forwarding of an unconsumed notify-one permit;
 - the detailed `NotifiedCore` state machine refines the smaller waiter-state
   projection used by the SetOnce wait proof;
+- `IntrusiveWaiters` proves global node conservation and disjoint ownership
+  across detached, main, and guarded broadcast lists, including
+  unlink-before-notification; its broadcast transfers are coupled to
+  `NotifiedCore` in a refinement caller;
 - production `poll_waiter` isolates the agreed Pin/Poll/Context/Waker and
   `Notified::poll` trusted surface from the SetOnce-specific wait loop;
 - a loom test polls a wait to Pending, cancels it, publishes, and successfully
@@ -126,19 +135,19 @@ The body proofs establish:
 | take/consuming transitions | yes | yes | no | yes |
 | representative callers | yes | yes | no | yes |
 | `PublishedCell<T>` publish/get/take bodies | yes | yes | no | yes |
-| Tokio loom-cell proof view and `get_unchecked` | yes | yes | representation correspondence | yes |
+| production `SetOnceValue` / loom-cell proof view | yes | operations yes | std UnsafeCell semantics | yes |
 | Acquire/Release flag/token publication kernel | yes | protocol yes | raw atomic bridge | yes |
-| writer-lease double-check/set body | yes | yes | production Mutex implements lock contract | Verus/loom |
-| NotifyGuard permission lifecycle | yes | yes | loom Mutex adapter | Verus/loom |
+| writer-lease double-check/set body | yes | yes | loom Mutex representation adapter | Verus/loom |
+| NotifyGuard permission lifecycle | yes | yes via vstd WriteHandle | loom Mutex representation adapter | Verus/loom |
 | SetOnce set/get linearization refinement | yes | yes | raw atomic memory-model bridge | Verus/tests |
 | constructors/new_with/const state equivalence | yes | yes | instrumentation | Verus/tests |
 | owned take/into_inner/Drop protocol | yes | yes | arbitrary destructor semantics | Verus/tests/loom |
 | notification exceptional-state protocol | yes | yes | Waker panic execution | Verus/tests |
 | production Release/Acquire `set` -> `get` | yes | wrapper/protocol | raw atomic/representation adapters | Verus/loom |
-| production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
+| production `sync::SetOnce<T>` orchestration | yes | refinement bodies | representation adapters | Verus/tests/loom |
 | SetOnce wait/lost-wakeup protocol | yes | yes | poll surface | Verus/loom |
-| `Notified` core state/list projection | yes | yes | pointer/waker adapter | Verus/loom |
-| production `Notified::poll`/intrusive list | partial | no | Pin/list/waker adapter | loom |
+| `Notified` core and global list ownership | yes | yes | raw pointer/waker adapter | Verus/loom |
+| production `Notified::poll`/intrusive links | partial | state/membership yes | Pin/raw-link/waker adapter | Verus/loom |
 | generic Clone/Eq state lifting | yes | yes | std trait value contract | Verus/tests |
 | Send/Sync bounds | yes | Rust type system | unsafe impl justification | compile tests |
 | Debug/Display/Error views | yes | no | formatting std traits | tests |
@@ -155,12 +164,16 @@ physical-memory proofs, this still trusts the primitive bridge to Rust's memory
 model and vstd's `PCell`. It is not a complete formal proof of Tokio's
 production representation or the Rust memory model.
 
-Under the agreed scope, “SetOnce complete” means the SetOnce-specific state
-machines and method logic are proved while five foundational interfaces remain
-explicit: vstd physical-cell correspondence, the raw weak-memory atomic bridge, Notify mutex
-exclusivity, the Pin/Poll/Context/Waker poll surface, and arbitrary destructor
-or unwind behavior. Removing those boundaries is library/toolchain work rather
-than additional SetOnce protocol reasoning.
+The frozen scoped-completion definition is: all SetOnce-specific state
+machines, value/ownership transitions, ordering selection, writer exclusion,
+wait/list membership, cancellation, and unwind-state logic are proved and the
+production paths are covered by the integrated tests. The remaining interfaces
+are foundational adapters: standard `UnsafeCell` semantics, the raw weak-memory
+atomic bridge, correspondence between Tokio's loom Mutex and the verified lock,
+Pin/raw intrusive links/Waker execution, and arbitrary user destructor or trait
+semantics. Removing them is library, language-model, or toolchain work rather
+than additional SetOnce protocol reasoning. This definition is fixed so later
+status reports do not silently move the completion threshold.
 
 ## Production boundaries and removal conditions
 
@@ -168,22 +181,22 @@ Production `SetOnce<T>` uses Tokio's loom-compatible `AtomicBool`,
 `UnsafeCell<MaybeUninit<T>>`, and the waiter-list lock inside `Notify`.
 `NotifyGuard` serializes writers, while a Release store and Acquire loads
 publish the initialized value to readers. Those implementation facts are not
-yet connected to the abstract model.
+translated as one production body, but are connected to the abstract model by
+the reviewed operation-specific adapters and refinement proofs.
 
-Three proof-library or adapter components remain before the production bodies
-are formally connected end to end:
+Three foundational components remain before a no-local-trust end-to-end claim:
 
-1. replacement of the structurally connected `SetOnceWriteGuard` boundary
-   with a direct Verus contract for `Notify::lock_waiter_list`; the production
-   critical section and first-writer-wins body are already isolated and tested;
+1. direct verification that Tokio's loom Mutex representation refines vstd's
+   verified lock; guard uniqueness and consuming release are already
+   body-proved with `WriteHandle`;
 2. upstreaming or independently validating the local vstd-style
    Acquire/Release raw atomic bridge; its ghost implementation and
    SetOnce-specific composition are now connected and body-proved;
-3. replacement of the checked/trusted representation correspondence with a
-   direct vstd contract for Tokio's loom `UnsafeCell` wrapper.
+3. a permission-carrying vstd contract for standard `UnsafeCell`; production
+   now isolates this behind operation-specific `SetOnceValue<T>` methods.
 
-Phase 1 introduces `TokioLoomCell<T>` as the explicit proof view of production
-`UnsafeCell<MaybeUninit<T>>`. Its write, `get_unchecked`, and take operations
+`TokioLoomCell<T>` is the explicit proof view of production
+`SetOnceValue<T>`. Its write, shared get, and take operations
 are body-proved; only correspondence between the production wrapper and the
 vstd physical cell remains trusted. Tokio's non-loom wrapper is now explicitly
 transparent, and the integrated run checks the erased layout. This is stronger
@@ -218,18 +231,19 @@ vstd atomics do not expose these operation-specific orderings.
 The production `SetOnceWriteGuard` is the concrete counterpart of the verified
 `WriterLease<T>` and `NotifyGuardPermission`. Permission issuance, consumption,
 the second check, and returning the lock on both success and rejection are
-body-proved. The remaining trusted fact is narrowed to Tokio's loom Mutex
-implementing the stated exclusive lock contract. The production loom tests
+body-proved using vstd's concurrent lock rather than a sequential held-bit
+model. The remaining trusted fact is narrowed to Tokio's loom Mutex refining
+that verified lock representation. The production loom tests
 exercise two- and three-writer races.
 
 The production loom test `set_once_get_publication_test` deliberately reads via
 `SetOnce::get` before joining the writer. This makes the production Release
 store and Acquire load the publication edge under test. The SetOnce-specific
 wait protocol and cancellation state preservation are now proved. As agreed,
-Pin/Poll/Context/Waker execution, intrusive list pointer safety, and wake
-delivery remain explicit poll-surface boundaries exercised by loom. The
-underlying `Notified` state, generation, membership, notification, and
-cancellation transitions are now body-proved.
+Pin/Poll/Context/Waker execution, raw intrusive-link validity, and wake delivery
+remain explicit poll-surface boundaries exercised by loom. Global node
+ownership across both lists, plus the underlying `Notified` state, generation,
+membership, notification, and cancellation transitions, are body-proved.
 Arbitrary user destructor semantics and the `Send`/`Sync` implementations remain
 language/runtime boundaries. The ownership transitions used by production
 `Drop` and `into_inner` are proved and their panicking destructor paths are

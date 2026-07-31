@@ -6,8 +6,9 @@ use vstd::raw_ptr::MemContents;
 
 verus! {
 
-/// SetOnce-specific projection of the `Notified` lifecycle. Pin, Context,
-/// Waker, and the intrusive waiter list remain inside the poll-surface adapter.
+/// SetOnce-specific projection of the `Notified` lifecycle. Global waiter-list
+/// ownership is proved separately; Pin, Context, Waker execution, and raw link
+/// validity remain inside the poll-surface adapter.
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum WaiterState {
     Idle,

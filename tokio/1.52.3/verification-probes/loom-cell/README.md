@@ -14,14 +14,18 @@ interfaces:
    cannot establish the closure precondition.
 
 No opaque specification from this experiment is retained because that would
-move rather than remove the trusted boundary. The integrated verification uses
-the body-proved vstd `PCell` adapter and directly compiles the production source
-in its layout test, checking size, alignment, field address, and both callback
-pointer paths.
+move rather than remove the trusted boundary. Production SetOnce now confines
+both generic callbacks inside the transparent, operation-specific
+`SetOnceValue<T>` wrapper. The integrated verification uses the body-proved
+vstd `PCell` counterpart, checks the erased representation, and directly runs
+all four production operations under loom. This removes generic callback
+reasoning from SetOnce itself, while standard `UnsafeCell` semantics remain the
+foundational adapter.
 
 The direct production boundary can be removed when vstd provides:
 
 - a permission-carrying specification for `UnsafeCell::new` and
   `UnsafeCell::get`; and
-- callable `FnOnce` contracts capable of transferring the corresponding raw
-  pointer permission into and back out of these callbacks.
+- raw-pointer permission transfer sufficient to verify the four small
+  `SetOnceValue<T>` method bodies (generic callback contracts are no longer
+  required by the rest of SetOnce).
