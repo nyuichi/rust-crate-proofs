@@ -126,6 +126,7 @@
 use crate::loom::cell::UnsafeCell;
 use crate::loom::sync::atomic::AtomicUsize;
 use crate::loom::sync::Arc;
+use crate::sync::oneshot_value::OneshotValue;
 #[cfg(all(tokio_unstable, feature = "tracing"))]
 use crate::util::trace;
 
@@ -389,7 +390,7 @@ struct Inner<T> {
 
     /// The value. This is set by `Sender` and read by `Receiver`. The state of
     /// the cell is tracked by `state`.
-    value: UnsafeCell<Option<T>>,
+    value: OneshotValue<T>,
 
     /// The task to notify when the receiver drops without consuming the value.
     ///
@@ -546,7 +547,7 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
 
     let inner = Arc::new(Inner {
         state: AtomicUsize::new(State::new().as_usize()),
-        value: UnsafeCell::new(None),
+        value: OneshotValue::empty(),
         tx_task: Task(UnsafeCell::new(MaybeUninit::uninit())),
         rx_task: Task(UnsafeCell::new(MaybeUninit::uninit())),
     });
@@ -622,7 +623,7 @@ impl<T> Sender<T> {
     pub fn send(mut self, t: T) -> Result<(), T> {
         let inner = self.inner.take().unwrap();
 
-        inner.value.with_mut(|ptr| unsafe {
+        unsafe {
             // SAFETY: The receiver will not access the `UnsafeCell` unless the
             // channel has been marked as "complete" (the `VALUE_SENT` state bit
             // is set).
@@ -630,8 +631,8 @@ impl<T> Sender<T> {
             // calling this method consumes `self`. Therefore, if it was possible to
             // call this method, we know that the `VALUE_SENT` bit is unset, and
             // the receiver is not currently accessing the `UnsafeCell`.
-            *ptr = Some(t);
-        });
+            inner.value.store(t);
+        }
 
         if !inner.complete() {
             unsafe {
@@ -1417,7 +1418,7 @@ impl<T> Inner<T> {
     /// If `VALUE_SENT` is not set, then only the sender may call this method;
     /// if it is set, then only the receiver may call this method.
     unsafe fn consume_value(&self) -> Option<T> {
-        self.value.with_mut(|ptr| unsafe { (*ptr).take() })
+        unsafe { self.value.take() }
     }
 
     /// Returns true if there is a value. This function does not check `state`.
@@ -1430,7 +1431,7 @@ impl<T> Inner<T> {
     /// If `VALUE_SENT` is not set, then only the sender may call this method;
     /// if it is set, then only the receiver may call this method.
     unsafe fn has_value(&self) -> bool {
-        self.value.with(|ptr| unsafe { (*ptr).is_some() })
+        unsafe { self.value.has_value() }
     }
 }
 

@@ -6,6 +6,13 @@ membership, wait, cancellation, and trait views are body-proved models
 structurally connected to production and exercised by targeted runtime, loom,
 layout, and mutation checks.**
 
+**Oneshot status: its channel-specific protocol is complete under the scoped
+definition below. Exact state-bit transitions, payload ownership, ordered
+atomic operations, both polling protocols, Waker replacement, two-owner
+cleanup, and destructor-state behavior are body-proved models. The production
+payload slot is isolated behind the matching operation-specific adapter and the
+connection is exercised by targeted runtime, loom, trait, and mutation checks.**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.
@@ -252,6 +259,60 @@ and a panicking production waker cannot roll the initialized state back or leave
 the remaining waiter nodes linked. Clone and equality panics are also checked to
 preserve their source cells.
 
+## Oneshot scoped verification
+
+The oneshot proof is split along the production implementation's ownership
+boundaries rather than translating the whole async body as one function:
+
+- `oneshot_state` proves the exact four-bit state representation and all
+  send-versus-close outcomes;
+- `oneshot_value` proves `Option<T>` slot ownership, exact-value send/take,
+  rejection, close, and cleanup transitions with `PCell` permissions;
+- `oneshot_atomic` exposes only the production orderings—Relaxed observation,
+  Acquire load, and AcqRel read-modify-write—and couples them to persistent
+  protocol knowledge through an atomic invariant;
+- `oneshot_poll` proves receiver initial observation, Waker registration,
+  mandatory completion recheck, stale-Waker replacement, and ready/pending
+  ownership results;
+- `oneshot_closed` proves the dual sender `poll_closed` protocol and tx-Waker
+  replacement;
+- `oneshot_drop` proves conservation of the two `Arc`-like endpoint owners,
+  unique final cleanup, and exactly-once payload destruction at the model
+  level;
+- production `OneshotValue<T>` confines loom `UnsafeCell<Option<T>>` access to
+  empty construction, sender-only store, state-authorized take, and
+  publication-authorized observation.
+
+The scoped-completion definition is: all oneshot-specific state, payload,
+ordering selection, poll/recheck/Waker identity, endpoint ownership, and
+cleanup transitions are proved, and the matching production paths pass the
+integrated tests. The remaining interfaces are foundational adapters: the raw
+Rust weak-memory implementation of atomics, correspondence between loom
+`UnsafeCell`/`Arc`/Waker and the proof permissions, `Pin`/`Poll`/`Context`
+execution, arbitrary destructor/unwind semantics, and scheduler liveness.
+Accordingly this is a complete oneshot protocol proof under explicit trusted
+boundaries, not a no-trust direct translation of Tokio's production bodies.
+
+The production tests cover send/receive, close, polling and Waker replacement,
+endpoint drops, and panicking payload destructors on both receiver cleanup and
+rejected send. The existing `async_send_sync` target compiles the positive and
+negative `Send`/`Sync`/`Unpin` assertions for `Sender`, `Receiver`, and
+`Sender::closed`. [`ONESHOT-MUTATION-AUDIT.md`](ONESHOT-MUTATION-AUDIT.md)
+records three independently rejected production mutations covering publication
+ordering, the lost-wakeup recheck, and Waker replacement.
+
+| Oneshot component | Contract reviewed | Body proved | Trusted boundary | Integrated run |
+|---|---:|---:|---:|---:|
+| state bits and send/close races | yes | yes | no | Verus/loom |
+| payload slot ownership | yes | yes | physical cell adapter | Verus/tests/loom |
+| Acquire/AcqRel atomic protocol | yes | protocol yes | raw atomic bridge | Verus/loom |
+| receiver poll/recheck/Waker state | yes | yes | poll/Waker execution | Verus/loom |
+| sender close poll/Waker state | yes | yes | poll/Waker execution | Verus/loom |
+| endpoint ownership/final cleanup | yes | yes | Arc/destructor execution | Verus/tests/loom |
+| production `OneshotValue<T>` operations | yes | proof-view operations | loom UnsafeCell semantics | tests/loom |
+| Send/Sync/Unpin bounds | yes | Rust type system | unsafe impl justification | compile target |
+| mutation sensitivity | yes | n/a | no | three rejected mutations |
+
 ## oneshot polling connection probe
 
 `verification-probes/oneshot-poll` preserves the production-shaped
@@ -265,17 +326,22 @@ proof. The probe README records the exact exclusions and removal requirements.
 
 Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 
-1. runs the upstream `sync_set_once` integration target with `full` features;
-2. runs the five `loom_set_once` model tests with `full,test-util` features;
-3. checks the pinned Verus version;
-4. verifies the nested SetOnce and publication models with the locked vstd
-   revision;
-5. checks the erased loom-cell proof-view layout;
-6. runs the oneshot polling connection probe.
+1. runs the upstream `sync_set_once` and `sync_oneshot` integration targets
+   with `full` features;
+2. runs the `loom_set_once` and `loom_oneshot` model-test modules with
+   `full,test-util` features;
+3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
+4. checks the pinned Verus version;
+5. verifies the nested SetOnce, publication, and oneshot models with the locked
+   vstd revision;
+6. checks the erased loom-cell proof-view layout;
+7. runs the oneshot polling connection probe.
 
-The integrated SetOnce target currently contains 24 ordinary tests and seven
-loom model tests. [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) records the separate
-destructive-copy audit; mutations are intentionally not rerun by
+The integrated SetOnce target currently contains 24 ordinary tests and eight
+loom model tests. The oneshot target contains 24 ordinary tests and eight loom
+model tests. [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) and
+[`ONESHOT-MUTATION-AUDIT.md`](ONESHOT-MUTATION-AUDIT.md) record separate
+destructive-copy audits; mutations are intentionally not rerun by
 `verify-all.bash`.
 
 The pinned Verus version is `0.2026.07.27.31579f0`; vstd is pinned to commit

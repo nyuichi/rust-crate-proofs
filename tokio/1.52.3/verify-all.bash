@@ -10,22 +10,44 @@ verus_target_dir="${VERUS_CARGO_TARGET_DIR:-$repo_root/target/verus/tokio-1.52.3
 oneshot_probe_target_dir="${VERUS_ONESHOT_PROBE_TARGET_DIR:-$repo_root/target/verus/tokio-1.52.3-oneshot-poll-probe}"
 verification_test_target_dir="${VERIFICATION_TEST_TARGET_DIR:-$repo_root/target/tokio-1.52.3-verification-tests}"
 
-# Keep the runtime regression focused on SetOnce. The integration
-# test is gated on `full`, so its exact test target still requires that feature.
+# Keep runtime regressions focused on SetOnce and oneshot. Both exact
+# integration targets are gated on `full`.
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
   --features full \
   --test sync_set_once
 
-# Exercise only SetOnce's five loom model tests. `test-util` is needed because
-# Tokio's cfg(loom) lib-test module also compiles paused-time runtime helpers.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_oneshot
+
+# Exercise only the SetOnce and oneshot loom modules. `test-util` is needed
+# because Tokio's cfg(loom) lib-test module also compiles paused-time helpers.
 RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-set-once" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
   --features full,test-util \
   --lib \
   loom_set_once
+
+RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-oneshot" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  loom_oneshot
+
+# Compile the existing positive and negative Send/Sync/Unpin assertions for
+# Sender, Receiver, and Sender::closed without running unrelated tests.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test async_send_sync \
+  --no-run
 
 expected_verus="0.2026.07.27.31579f0"
 actual_verus=$(verus --version)

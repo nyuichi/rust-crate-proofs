@@ -1,10 +1,24 @@
 use crate::sync::oneshot;
+use crate::sync::oneshot_value::OneshotValue;
 
 use loom::future::block_on;
 use loom::thread;
 use std::future::poll_fn;
 use std::pin::Pin;
 use std::task::Poll::{Pending, Ready};
+
+#[test]
+fn oneshot_value_contract() {
+    loom::model(|| {
+        let value = OneshotValue::empty();
+        assert!(!unsafe { value.has_value() });
+        unsafe { value.store(String::from("message")) };
+        assert!(unsafe { value.has_value() });
+        assert_eq!(unsafe { value.take() }.as_deref(), Some("message"));
+        assert!(!unsafe { value.has_value() });
+        assert!(unsafe { value.take() }.is_none());
+    });
+}
 
 #[test]
 fn smoke() {

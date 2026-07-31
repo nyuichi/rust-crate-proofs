@@ -469,6 +469,7 @@ cfg_sync! {
     pub use notify::Notify;
 
     pub mod oneshot;
+    mod oneshot_value;
 
     pub(crate) mod batch_semaphore;
     pub use batch_semaphore::{AcquireError, TryAcquireError};
