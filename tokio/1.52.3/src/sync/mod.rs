@@ -493,6 +493,7 @@ cfg_sync! {
 
     mod set_once;
     mod set_once_atomic;
+    mod set_once_value;
     pub use self::set_once::{SetOnce, SetOnceError};
 
     pub mod watch;

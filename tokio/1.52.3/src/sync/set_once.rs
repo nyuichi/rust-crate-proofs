@@ -1,16 +1,13 @@
 use super::notify::NotifyGuard;
 use super::set_once_atomic::SetOnceFlag;
+use super::set_once_value::SetOnceValue;
 use super::Notify;
-
-use crate::loom::cell::UnsafeCell;
 
 use std::error::Error;
 use std::fmt;
 use std::future::{poll_fn, Future};
-use std::mem::MaybeUninit;
 use std::ops::Drop;
 use std::pin::Pin;
-use std::ptr;
 use std::task::{Context, Poll};
 
 // This file contains an implementation of an SetOnce. The value of SetOnce
@@ -91,7 +88,7 @@ use std::task::{Context, Poll};
 /// [`asyncio.Event`]: https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event
 pub struct SetOnce<T> {
     value_set: SetOnceFlag,
-    value: UnsafeCell<MaybeUninit<T>>,
+    value: SetOnceValue<T>,
     notify: Notify,
 }
 
@@ -114,9 +111,7 @@ impl<T> SetOnceWriteGuard<'_, T> {
         // SAFETY: the waiter-list guard serializes all SetOnce writers, and
         // the second initialized check established that the slot is empty.
         unsafe {
-            self.cell
-                .value
-                .with_mut(|ptr| (*ptr).as_mut_ptr().write(value));
+            self.cell.value.write(value);
         }
 
         self.cell.value_set.store_release(true);
@@ -167,7 +162,7 @@ impl<T> From<T> for SetOnce<T> {
     fn from(value: T) -> Self {
         SetOnce {
             value_set: SetOnceFlag::new(true),
-            value: UnsafeCell::new(MaybeUninit::new(value)),
+            value: SetOnceValue::initialized(value),
             notify: Notify::new(),
         }
     }
@@ -196,7 +191,7 @@ impl<T> SetOnce<T> {
         // SAFETY: exclusive ownership prevents concurrent access, and a true
         // flag means the slot is initialized. The flag was cleared first, so
         // this value cannot also be read by SetOnce's Drop implementation.
-        Some(unsafe { self.value.with_mut(|ptr| ptr::read(ptr).assume_init()) })
+        Some(unsafe { self.value.take() })
     }
 
     /// Poll-surface adapter for `wait`.
@@ -223,7 +218,7 @@ impl<T> SetOnce<T> {
     pub fn new() -> Self {
         Self {
             value_set: SetOnceFlag::new(false),
-            value: UnsafeCell::new(MaybeUninit::uninit()),
+            value: SetOnceValue::uninit(),
             notify: Notify::new(),
         }
     }
@@ -265,7 +260,7 @@ impl<T> SetOnce<T> {
     pub const fn const_new() -> Self {
         Self {
             value_set: SetOnceFlag::new(false),
-            value: UnsafeCell::new(MaybeUninit::uninit()),
+            value: SetOnceValue::uninit(),
             notify: Notify::const_new(),
         }
     }
@@ -315,7 +310,7 @@ impl<T> SetOnce<T> {
     pub const fn const_new_with(value: T) -> Self {
         Self {
             value_set: SetOnceFlag::new(true),
-            value: UnsafeCell::new(MaybeUninit::new(value)),
+            value: SetOnceValue::initialized(value),
             notify: Notify::const_new(),
         }
     }
@@ -330,7 +325,7 @@ impl<T> SetOnce<T> {
 
     // SAFETY: The SetOnce must not be empty.
     unsafe fn get_unchecked(&self) -> &T {
-        unsafe { &*self.value.with(|ptr| (*ptr).as_ptr()) }
+        unsafe { self.value.get() }
     }
 
     /// Returns a reference to the value currently stored in the `SetOnce`, or
@@ -388,10 +383,7 @@ impl<T> SetOnce<T> {
             let notify_fut = self.notify.notified();
             pin!(notify_fut);
 
-            poll_fn(|cx| {
-                self.poll_waiter(notify_fut.as_mut(), cx)
-            })
-            .await;
+            poll_fn(|cx| self.poll_waiter(notify_fut.as_mut(), cx)).await;
         }
     }
 }

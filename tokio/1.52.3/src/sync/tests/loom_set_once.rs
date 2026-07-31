@@ -1,3 +1,4 @@
+use crate::sync::set_once_value::SetOnceValue;
 use crate::sync::{Notify, SetOnce};
 
 use loom::future::block_on;
@@ -29,6 +30,20 @@ impl Drop for DropCounter {
     fn drop(&mut self) {
         self.drops.fetch_add(1, Ordering::Relaxed);
     }
+}
+
+#[test]
+fn set_once_value_contract_test() {
+    loom::model(|| {
+        let mut value = SetOnceValue::uninit();
+        unsafe { value.write((17_u64, 29_u64)) };
+        assert_eq!(unsafe { value.get() }, &(17, 29));
+        assert_eq!(unsafe { value.take() }, (17, 29));
+
+        let mut initialized = SetOnceValue::initialized(String::from("ready"));
+        assert_eq!(unsafe { initialized.get() }, "ready");
+        assert_eq!(unsafe { initialized.take() }, "ready");
+    });
 }
 
 #[test]

@@ -4,14 +4,14 @@ use vstd::raw_ptr::MemContents;
 
 verus! {
 
-/// Proof view of Tokio's loom-compatible
-/// `UnsafeCell<MaybeUninit<T>>` value field.
+/// Proof view of production `SetOnceValue<T>`, the operation-specific wrapper
+/// around Tokio's loom-compatible `UnsafeCell<MaybeUninit<T>>` value field.
 ///
 /// `PublishedCell<T>` erases to vstd's `PCell` representation, which vstd
 /// documents as an `UnsafeCell<MaybeUninit<T>>` at runtime.  The representation
-/// correspondence with Tokio's private loom wrapper is the Phase 1 adapter
-/// boundary; initialization and reference-producing operations below are
-/// body-proved and are not part of that boundary.
+/// correspondence with its transparent physical wrapper is the adapter
+/// boundary; the same four operations are body-proved below and exercised
+/// directly against production by the focused loom contract test.
 #[repr(transparent)]
 pub struct TokioLoomCell<T> {
     slot: PublishedCell<T>,
