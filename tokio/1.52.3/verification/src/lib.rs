@@ -3,6 +3,7 @@
 use vstd::prelude::*;
 
 pub mod linearizability;
+pub mod intrusive_waiters;
 pub mod notified_core;
 pub mod notify_guard;
 pub mod publication;

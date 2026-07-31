@@ -1,3 +1,4 @@
+use crate::intrusive_waiters::IntrusiveWaiters;
 use vstd::prelude::*;
 
 verus! {
@@ -364,6 +365,36 @@ pub fn verify_cancel_forwards_notify_one(epoch: u64)
     waiter.notify_one();
     let forward = waiter.cancel();
     assert(forward);
+}
+
+/// Couples the per-future poll state with the global intrusive-list ownership
+/// transfer performed by production `notify_waiters`.
+pub fn verify_poll_list_broadcast_refinement(node: u64, epoch: u64)
+    requires
+        epoch < u64::MAX,
+{
+    let mut waiter = NotifiedCore::new(epoch);
+    let tracked mut list = IntrusiveWaiters::new(Set::empty().insert(node));
+
+    let started = waiter.start_poll(1);
+    assert(!started);
+    let registered = waiter.finish_registration();
+    assert(!registered);
+    proof { list.register(node); }
+    assert(waiter.location() == ListLocation::Main);
+    assert(list.main_list().contains(node));
+
+    waiter.begin_broadcast();
+    proof { list.begin_broadcast(); }
+    assert(waiter.location() == ListLocation::Broadcast);
+    assert(list.broadcast().contains(node));
+
+    proof { list.finish_broadcast_node(node); }
+    waiter.finish_broadcast();
+    assert(waiter.location() == ListLocation::Detached);
+    assert(waiter.notification() == Notification::All);
+    assert(list.detached().contains(node));
+    assert(list.notified_all().contains(node));
 }
 
 } // verus!
