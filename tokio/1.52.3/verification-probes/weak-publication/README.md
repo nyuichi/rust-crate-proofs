@@ -1,4 +1,4 @@
-# Acquire/Release publication feasibility result
+# Acquire/Release publication feasibility result (implemented follow-up)
 
 This spike evaluated whether the pinned Verus/vstd revision can remove the
 remaining weak-memory boundary for production `SetOnce::set` and `SetOnce::get`
@@ -34,12 +34,11 @@ required to construct a physical reference. Leaking a read handle is also not
 valid: `into_inner` and `Drop` must later regain exclusive ownership, relying on
 Rust lifetimes to establish that no returned reference remains live.
 
-## Result and removal choices
+## Result and selected implementation
 
-The SetOnce-specific Release/Acquire protocol is proved against the existing
-publication interface and production orderings are mutation-tested with loom.
-Removing the final memory-model refinement needs one of these foundational
-changes:
+The SetOnce-specific Release/Acquire protocol is proved and production
+orderings are mutation-tested with loom. The first architectural choice below
+was selected:
 
 1. extend vstd with ordering-aware atomics plus an immutable-after-publication
    cell whose shared borrow is tied directly to `&self` after an Acquire token;
@@ -48,5 +47,16 @@ changes:
 3. connect a separate weak-memory verifier and treat its theorem as the
    implementation of the existing Verus publication interface.
 
-Adding `external_body` Acquire/Release methods locally was rejected because it
-would rename rather than remove the trusted boundary.
+`verification/src/release_acquire.rs` now supplies that local vstd-style
+extension. Its tokenized state machine and atomic-invariant composition are
+body-proved. Release consumes the unique writer token; an Acquire load that
+observes publication returns persistent exact-value knowledge; a Relaxed load
+returns readiness only. `PublishedOnce<T>` uses that token to justify its
+lifetime-bound immutable cell read without changing Tokio's API.
+
+The raw permissioned atomic methods and owned epoch reset remain a deliberately
+small trusted bridge to Rust's weak-memory semantics. Their executable bodies
+use the exact `Acquire`, `Release`, and `Relaxed` operations. Thus this follow-up
+removes the earlier SetOnce-level SC refinement assumption, but it does not
+claim to prove Rust's atomic memory model inside Verus. Full removal requires
+upstream vstd support or independent validation of those raw contracts.

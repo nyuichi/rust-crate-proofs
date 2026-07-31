@@ -559,4 +559,23 @@ pub fn verify_persistent_publication_token(value: u64)
     assert(acquired_again.value() == value);
 }
 
+pub fn verify_ordered_publication_roundtrip(value: u64)
+{
+    let mut flag = ReleaseAcquireFlag::<u64>::new();
+    let initially_ready = flag.load_relaxed();
+    assert(!initially_ready);
+    let initially_acquired = flag.load_acquire();
+    assert(initially_acquired.is_none());
+
+    flag.store_release(Ghost(value));
+    let ready = flag.load_relaxed();
+    assert(ready);
+
+    let first = flag.load_acquire().unwrap();
+    let second = flag.load_acquire().unwrap();
+    assert(first.value() == value);
+    proof { first.agrees(&second); }
+    assert(second.value() == value);
+}
+
 } // verus!

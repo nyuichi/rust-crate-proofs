@@ -52,8 +52,13 @@ The body proofs establish:
   payloads; the same test directly compiles Tokio's production wrapper source
   and checks its size, alignment, field address, and `with`/`with_mut` pointer
   behavior;
-- `PublicationFlag` body-proves its load/store wrapper contracts over vstd's
-  sequentially-consistent atomic primitive;
+- `ReleaseAcquireFlag<T>` combines an atomic invariant with a tokenized state
+  machine: Release publication consumes the unique writer token, and an
+  Acquire load that observes publication returns clonable persistent knowledge
+  of the exact value;
+- its executable raw bridge uses the exact Rust `Acquire`, `Release`, and
+  `Relaxed` orderings; Relaxed observation proves readiness but returns no
+  value-publication token;
 - production `SetOnceFlag` exposes only operation-specific Acquire, Release,
   and Relaxed methods, so SetOnce call sites cannot select arbitrary orderings;
 - `PublishedOnce<T>` maintains `flag == slot.is_init()`, and its
@@ -122,14 +127,14 @@ The body proofs establish:
 | representative callers | yes | yes | no | yes |
 | `PublishedCell<T>` publish/get/take bodies | yes | yes | no | yes |
 | Tokio loom-cell proof view and `get_unchecked` | yes | yes | representation correspondence | yes |
-| SC flag/slot publication kernel | yes | yes | vstd atomic primitive | yes |
+| Acquire/Release flag/token publication kernel | yes | protocol yes | raw atomic bridge | yes |
 | writer-lease double-check/set body | yes | yes | production Mutex implements lock contract | Verus/loom |
 | NotifyGuard permission lifecycle | yes | yes | loom Mutex adapter | Verus/loom |
-| SetOnce set/get linearization refinement | yes | yes | weak-memory refinement | Verus/tests |
+| SetOnce set/get linearization refinement | yes | yes | raw atomic memory-model bridge | Verus/tests |
 | constructors/new_with/const state equivalence | yes | yes | instrumentation | Verus/tests |
 | owned take/into_inner/Drop protocol | yes | yes | arbitrary destructor semantics | Verus/tests/loom |
 | notification exceptional-state protocol | yes | yes | Waker panic execution | Verus/tests |
-| production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
+| production Release/Acquire `set` -> `get` | yes | wrapper/protocol | raw atomic/representation adapters | Verus/loom |
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | SetOnce wait/lost-wakeup protocol | yes | yes | poll surface | Verus/loom |
 | `Notified` core state/list projection | yes | yes | pointer/waker adapter | Verus/loom |
@@ -141,13 +146,18 @@ The body proofs establish:
 
 The verification crate itself contains no `external_body` or `assume` on
 `PublishedCell::{publish,get,take}`, `PublishedOnce::get`, or the writer-lease
-set body. Like other vstd physical-memory proofs, it relies on vstd's trusted
-`PCell` and atomic primitive implementations. It is not a complete formal
-proof of Tokio's production representation or the Rust memory model.
+set body. Its local vstd-style atomic extension deliberately places
+`external_body` only on the raw permissioned atomic operations and owned epoch
+reset; their executable bodies spell the exact Rust orderings. The persistent
+token state machine, atomic invariant, Release publication, Acquire token
+extraction, and PublishedOnce composition are body-proved. Like other vstd
+physical-memory proofs, this still trusts the primitive bridge to Rust's memory
+model and vstd's `PCell`. It is not a complete formal proof of Tokio's
+production representation or the Rust memory model.
 
 Under the agreed scope, “SetOnce complete” means the SetOnce-specific state
 machines and method logic are proved while five foundational interfaces remain
-explicit: vstd physical-cell correspondence, weak-memory atomics, Notify mutex
+explicit: vstd physical-cell correspondence, the raw weak-memory atomic bridge, Notify mutex
 exclusivity, the Pin/Poll/Context/Waker poll surface, and arbitrary destructor
 or unwind behavior. Removing those boundaries is library/toolchain work rather
 than additional SetOnce protocol reasoning.
@@ -166,9 +176,9 @@ are formally connected end to end:
 1. replacement of the structurally connected `SetOnceWriteGuard` boundary
    with a direct Verus contract for `Notify::lock_waiter_list`; the production
    critical section and first-writer-wins body are already isolated and tested;
-2. replacement of the SC proof primitive with a foundational Acquire/Release
-   atomic ghost implementation; production operation selection and the
-   SetOnce-specific protocol are already connected;
+2. upstreaming or independently validating the local vstd-style
+   Acquire/Release raw atomic bridge; its ghost implementation and
+   SetOnce-specific composition are now connected and body-proved;
 3. replacement of the checked/trusted representation correspondence with a
    direct vstd contract for Tokio's loom `UnsafeCell` wrapper.
 
@@ -191,17 +201,19 @@ test remain the strongest assumption-free connection available here.
 The earlier reference-lifetime blocker is removed: keeping the points-to
 permission inside `PublishedCell<T>` lets its body-proved `get` return a
 reference with the lifetime of `&PublishedCell<T>`. The remaining difficulty
-is transferring that permission through a concurrent atomic invariant while
-matching Tokio's loom wrapper and exact Acquire/Release operations. Current
-vstd atomics expose sequentially-consistent operations only, so substituting
-Tokio's weaker but sufficient ordering is not claimed as body-proved.
+of matching Tokio's loom wrapper is isolated from publication ordering.
+`ReleaseAcquireFlag<T>` now transfers persistent value knowledge through an
+atomic invariant while its executable primitive calls use the exact weaker
+orderings. The SetOnce protocol above that primitive is body-proved; the raw
+operation specifications remain the trusted memory-model bridge.
 
-The `verification-probes/weak-publication` feasibility record evaluates both
-available vstd designs. An atomic invariant cannot keep a PCell permission open
-while returning a long-lived reference, while vstd's verified RwLock ties the
-reference to an explicit read handle that Tokio's SetOnce API does not return.
-The record lists the three architectural removal choices. No local
-`external_body` ordering specification was added.
+The `verification-probes/weak-publication` feasibility record captures the
+earlier design alternatives. The selected implementation separates immutable
+cell ownership from persistent publication knowledge: Acquire returns a
+clonable exact-value token, then `PublishedOnce::get` uses its stable cell
+invariant to justify the lifetime-bound reference. The local raw atomic methods
+are the intentionally small `external_body` surface needed because current
+vstd atomics do not expose these operation-specific orderings.
 
 The production `SetOnceWriteGuard` is the concrete counterpart of the verified
 `WriterLease<T>` and `NotifyGuardPermission`. Permission issuance, consumption,
