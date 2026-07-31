@@ -15,7 +15,21 @@ use tokio_test::*;
 
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::task::{Context, Poll};
+
+#[derive(Debug)]
+struct PanicOnDrop {
+    drops: Arc<AtomicUsize>,
+}
+
+impl Drop for PanicOnDrop {
+    fn drop(&mut self) {
+        self.drops.fetch_add(1, Ordering::Relaxed);
+        panic!("payload drop panic");
+    }
+}
 
 #[allow(unused)]
 trait AssertSend: Send {}
@@ -437,4 +451,32 @@ fn receiver_is_empty_rx_close() {
     assert!(rx.is_empty());
     rx.close();
     assert!(rx.is_empty());
+}
+
+#[test]
+fn receiver_drop_panic_destroys_payload_once() {
+    let drops = Arc::new(AtomicUsize::new(0));
+    let (tx, rx) = oneshot::channel();
+    tx.send(PanicOnDrop {
+        drops: Arc::clone(&drops),
+    })
+    .unwrap();
+
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| drop(rx)));
+    assert!(result.is_err());
+    assert_eq!(drops.load(Ordering::Relaxed), 1);
+}
+
+#[test]
+fn rejected_send_panic_destroys_returned_payload_once() {
+    let drops = Arc::new(AtomicUsize::new(0));
+    let (tx, mut rx) = oneshot::channel();
+    rx.close();
+    let rejected = tx.send(PanicOnDrop {
+        drops: Arc::clone(&drops),
+    });
+
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| drop(rejected)));
+    assert!(result.is_err());
+    assert_eq!(drops.load(Ordering::Relaxed), 1);
 }
