@@ -53,6 +53,20 @@ tokenized_state_machine! {
             }
         }
 
+        property! {
+            publication_implies_flag(value: T) {
+                have published >= Some(value);
+                assert(pre.flag);
+            }
+        }
+
+        property! {
+            writer_implies_clear() {
+                have writer >= Some(());
+                assert(!pre.flag);
+            }
+        }
+
         #[invariant]
         pub fn flag_matches_publication(&self) -> bool {
             self.flag == self.published.is_some()
@@ -167,6 +181,24 @@ impl RawReleaseAcquireBool {
     {
         self.atomic.store(value, Ordering::Release)
     }
+
+    #[verifier::external_body]
+    #[verifier::atomic]
+    pub fn store_relaxed(
+        &self,
+        Tracked(permission): Tracked<&mut RawPermissionBool>,
+        value: bool,
+    )
+        requires
+            old(permission).id() == self.id(),
+        ensures
+            final(permission).id() == self.id(),
+            final(permission).value() == value,
+        opens_invariants none
+        no_unwind
+    {
+        self.atomic.store(value, Ordering::Relaxed)
+    }
 }
 
 pub tracked struct PublicationGhost<T> {
@@ -248,7 +280,21 @@ impl<T> ReleaseAcquireFlag<T> {
         }
     }
 
-    pub fn new() -> (result: Self) {
+    pub proof fn unpublished_iff_no_value(&self)
+        requires
+            self.well_formed(),
+        ensures
+            self.unpublished() == self.published_value().is_none(),
+    {
+    }
+
+    pub fn new() -> (result: Self)
+        ensures
+            result.well_formed(),
+            result.unpublished(),
+            result.published_value().is_none(),
+        no_unwind
+    {
         let (raw, Tracked(permission)) = RawReleaseAcquireBool::new(false);
         let tracked (Tracked(instance), Tracked(flag), Tracked(published), Tracked(writer)) =
             PublicationTokens::Instance::initialize();
@@ -321,7 +367,7 @@ impl<T> ReleaseAcquireFlag<T> {
                         && acquired.instance_id() == self.instance_id()
                         && self.published_value() == Some(acquired.value())
                 },
-                None => true,
+                None => self.published_value().is_none(),
             },
         no_unwind
     {
@@ -332,6 +378,22 @@ impl<T> ReleaseAcquireFlag<T> {
             let tracked (permission, ghost) = pair;
             loaded = self.raw.load_acquire(Tracked(&permission));
             proof {
+                match &self.published {
+                    Some(stored) => {
+                        self.instance.borrow().publication_implies_flag(
+                            stored@.value(),
+                            &ghost.flag,
+                            stored.borrow(),
+                        );
+                    },
+                    None => {
+                        let tracked writer = match &self.writer {
+                            Some(writer) => writer.borrow(),
+                            None => proof_from_false(),
+                        };
+                        self.instance.borrow().writer_implies_clear(&ghost.flag, writer);
+                    },
+                }
                 if loaded {
                     let tracked token = match &ghost.published {
                         Option::Some(token) => token.clone(),
@@ -386,6 +448,8 @@ impl<T> ReleaseAcquireFlag<T> {
     pub fn load_relaxed(&self) -> (result: bool)
         requires
             self.well_formed(),
+        ensures
+            result == self.published_value().is_some(),
         no_unwind
     {
         proof { use_type_invariant(self); }
@@ -393,9 +457,44 @@ impl<T> ReleaseAcquireFlag<T> {
         open_atomic_invariant!(self.invariant.borrow() => pair => {
             let tracked (permission, ghost) = pair;
             loaded = self.raw.load_relaxed(Tracked(&permission));
+            proof {
+                match &self.published {
+                    Some(stored) => {
+                        self.instance.borrow().publication_implies_flag(
+                            stored@.value(),
+                            &ghost.flag,
+                            stored.borrow(),
+                        );
+                    },
+                    None => {
+                        let tracked writer = match &self.writer {
+                            Some(writer) => writer.borrow(),
+                            None => proof_from_false(),
+                        };
+                        self.instance.borrow().writer_implies_clear(&ghost.flag, writer);
+                    },
+                }
+            }
             proof { pair = (permission, ghost); }
         });
         loaded
+    }
+
+    /// Consume the exclusively owned epoch, clear its runtime bit with the
+    /// production Relaxed ordering, and begin a fresh unpublished epoch. Any
+    /// persistent reader tokens remain valid only for the consumed instance.
+    #[verifier::external_body]
+    pub fn reset_relaxed_owned(&mut self)
+        requires
+            old(self).well_formed(),
+        ensures
+            final(self).well_formed(),
+            final(self).unpublished(),
+            final(self).published_value().is_none(),
+        no_unwind
+    {
+        self.raw.atomic.store(false, Ordering::Relaxed);
+        *self = ReleaseAcquireFlag::new();
     }
 }
 

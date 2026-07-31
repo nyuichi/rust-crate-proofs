@@ -1,87 +1,9 @@
+use crate::release_acquire::ReleaseAcquireFlag;
 use crate::tokio_loom_cell::TokioLoomCell;
-use vstd::atomic::{PAtomicBool, PermissionBool};
 use vstd::prelude::*;
 use vstd::raw_ptr::MemContents;
 
 verus! {
-
-/// Verus proof view of production `SetOnceFlag`.
-///
-/// vstd currently implements this primitive with a sequentially-consistent
-/// atomic. Production uses `load_acquire` and `store_release`; the fact that
-/// one-shot publication needs no stronger ordering is the explicit weak-memory
-/// refinement boundary. All SetOnce-specific flag/slot reasoning is proved
-/// below rather than included in that boundary.
-pub struct PublicationFlag {
-    atomic: PAtomicBool,
-    permission: Tracked<PermissionBool>,
-}
-
-impl PublicationFlag {
-    #[verifier::type_invariant]
-    spec fn wf(&self) -> bool {
-        self.permission@.id() == self.atomic.id()
-    }
-
-    pub closed spec fn value(&self) -> bool {
-        self.permission@.value()
-    }
-
-    pub fn new(value: bool) -> (result: Self)
-        ensures
-            result.value() == value,
-    {
-        let (atomic, permission) = PAtomicBool::new(value);
-        PublicationFlag { atomic, permission }
-    }
-
-    pub fn load_acquire(&self) -> (result: bool)
-        ensures
-            result == self.value(),
-        no_unwind
-    {
-        proof {
-            use_type_invariant(self);
-        }
-        self.atomic.load(Tracked(self.permission.borrow()))
-    }
-
-    pub fn store_release(&mut self, value: bool)
-        ensures
-            final(self).value() == value,
-        no_unwind
-    {
-        proof {
-            use_type_invariant(&*self);
-        }
-        self.atomic.store(Tracked(self.permission.borrow_mut()), value);
-    }
-
-    /// Relaxed observation used only under exclusive ownership of the full
-    /// SetOnce representation.
-    pub fn load_relaxed(&self) -> (result: bool)
-        ensures
-            result == self.value(),
-        no_unwind
-    {
-        proof {
-            use_type_invariant(self);
-        }
-        self.atomic.load(Tracked(self.permission.borrow()))
-    }
-
-    /// Relaxed update used only under exclusive ownership.
-    pub fn store_relaxed(&mut self, value: bool)
-        ensures
-            final(self).value() == value,
-        no_unwind
-    {
-        proof {
-            use_type_invariant(&*self);
-        }
-        self.atomic.store(Tracked(self.permission.borrow_mut()), value);
-    }
-}
 
 /// The reusable SetOnce publication kernel.
 ///
@@ -90,12 +12,16 @@ impl PublicationFlag {
 /// is equivalent to an initialized value slot.
 pub struct PublishedOnce<T> {
     value: TokioLoomCell<T>,
-    flag: PublicationFlag,
+    flag: ReleaseAcquireFlag<T>,
 }
 
 impl<T> PublishedOnce<T> {
     pub closed spec fn well_formed(&self) -> bool {
-        self.flag.value() == self.value.contents().is_init()
+        self.flag.well_formed()
+            && match self.flag.published_value() {
+                Some(value) => self.value.contents() == MemContents::Init(value),
+                None => self.value.contents() == MemContents::Uninit,
+            }
     }
 
     pub closed spec fn contents(&self) -> MemContents<T> {
@@ -108,7 +34,7 @@ impl<T> PublishedOnce<T> {
             result.well_formed(),
     {
         let value = TokioLoomCell::uninit();
-        let flag = PublicationFlag::new(false);
+        let flag = ReleaseAcquireFlag::new();
         PublishedOnce { value, flag }
     }
 
@@ -117,9 +43,10 @@ impl<T> PublishedOnce<T> {
             result.contents() == MemContents::Init(value),
             result.well_formed(),
     {
-        let value = TokioLoomCell::initialized(value);
-        let flag = PublicationFlag::new(true);
-        PublishedOnce { value, flag }
+        let mut flag = ReleaseAcquireFlag::new();
+        let cell = TokioLoomCell::initialized(value);
+        flag.store_release(Ghost(value));
+        PublishedOnce { value: cell, flag }
     }
 
     pub fn new_with(value: Option<T>) -> (result: Self)
@@ -143,7 +70,7 @@ impl<T> PublishedOnce<T> {
             result == self.contents().is_init(),
         no_unwind
     {
-        self.flag.load_acquire()
+        self.flag.load_acquire().is_some()
     }
 
     /// Readiness-only relaxed observation used by `wait` after polling its
@@ -171,10 +98,9 @@ impl<T> PublishedOnce<T> {
             },
         no_unwind
     {
-        if self.flag.load_acquire() {
-            Some(unsafe { self.value.get_unchecked() })
-        } else {
-            None
+        match self.flag.load_acquire() {
+            Some(_acquired) => Some(unsafe { self.value.get_unchecked() }),
+            None => None,
         }
     }
 
@@ -188,8 +114,13 @@ impl<T> PublishedOnce<T> {
             final(self).well_formed(),
         no_unwind
     {
+        assert(self.flag.well_formed());
+        assert(self.flag.published_value().is_none());
+        proof { self.flag.unpublished_iff_no_value(); }
+        assert(self.flag.unpublished());
         self.value.write(value);
-        self.flag.store_release(true);
+        assert(self.flag.unpublished());
+        self.flag.store_release(Ghost(value));
     }
 
     pub fn take(&mut self) -> (result: T)
@@ -202,7 +133,7 @@ impl<T> PublishedOnce<T> {
             final(self).well_formed(),
         no_unwind
     {
-        self.flag.store_release(false);
+        self.flag.reset_relaxed_owned();
         self.value.take()
     }
 
@@ -222,7 +153,7 @@ impl<T> PublishedOnce<T> {
         if !self.flag.load_relaxed() {
             None
         } else {
-            self.flag.store_relaxed(false);
+            self.flag.reset_relaxed_owned();
             Some(self.value.take())
         }
     }
