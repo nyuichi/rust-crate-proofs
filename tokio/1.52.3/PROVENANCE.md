@@ -70,6 +70,9 @@ The body proofs establish:
   the value published and rejects later writers;
 - production `SetOnceWriteGuard` now owns the actual `NotifyGuard` and encloses
   the second check, value write, Release publication, and waiter notification;
+- `NotifyMutexModel` body-proves issuance and consuming return of a linear,
+  non-cloneable writer permission, while `GuardedSetOnce<T>` proves the exact
+  optimistic-check, lock, second-check, publication, and notification shape;
 - a three-writer loom model checks that exactly one writer succeeds and that
   the published value identifies that writer.
 - constructors and `new_with` preserve the exact initialized/uninitialized
@@ -115,7 +118,8 @@ The body proofs establish:
 | `PublishedCell<T>` publish/get/take bodies | yes | yes | no | yes |
 | Tokio loom-cell proof view and `get_unchecked` | yes | yes | representation correspondence | yes |
 | SC flag/slot publication kernel | yes | yes | vstd atomic primitive | yes |
-| writer-lease double-check/set body | yes | yes | Notify mutex exclusivity | Verus/loom |
+| writer-lease double-check/set body | yes | yes | production Mutex implements lock contract | Verus/loom |
+| NotifyGuard permission lifecycle | yes | yes | loom Mutex adapter | Verus/loom |
 | SetOnce set/get linearization refinement | yes | yes | weak-memory refinement | Verus/tests |
 | constructors/new_with/const state equivalence | yes | yes | instrumentation | Verus/tests |
 | owned take/into_inner/Drop protocol | yes | yes | arbitrary destructor semantics | Verus/tests/loom |
@@ -179,8 +183,10 @@ vstd atomics expose sequentially-consistent operations only, so substituting
 Tokio's weaker but sufficient ordering is not claimed as body-proved.
 
 The production `SetOnceWriteGuard` is the concrete counterpart of the verified
-`WriterLease<T>`. Its remaining trusted fact is that Tokio's waiter-list mutex
-grants exclusive ownership of that logical lease. The production loom tests
+`WriterLease<T>` and `NotifyGuardPermission`. Permission issuance, consumption,
+the second check, and returning the lock on both success and rejection are
+body-proved. The remaining trusted fact is narrowed to Tokio's loom Mutex
+implementing the stated exclusive lock contract. The production loom tests
 exercise two- and three-writer races.
 
 The production loom test `set_once_get_publication_test` deliberately reads via
