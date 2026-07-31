@@ -196,6 +196,13 @@ matching Tokio's loom wrapper and exact Acquire/Release operations. Current
 vstd atomics expose sequentially-consistent operations only, so substituting
 Tokio's weaker but sufficient ordering is not claimed as body-proved.
 
+The `verification-probes/weak-publication` feasibility record evaluates both
+available vstd designs. An atomic invariant cannot keep a PCell permission open
+while returning a long-lived reference, while vstd's verified RwLock ties the
+reference to an explicit read handle that Tokio's SetOnce API does not return.
+The record lists the three architectural removal choices. No local
+`external_body` ordering specification was added.
+
 The production `SetOnceWriteGuard` is the concrete counterpart of the verified
 `WriterLease<T>` and `NotifyGuardPermission`. Permission issuance, consumption,
 the second check, and returning the lock on both success and rejection are
