@@ -29,6 +29,7 @@ impl<'a, T> WriterLease<'a, T> {
         ensures
             result.well_formed(),
             result.contents() == old(target).contents(),
+        no_unwind
     {
         WriterLease { target }
     }

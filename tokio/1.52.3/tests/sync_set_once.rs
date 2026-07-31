@@ -116,6 +116,20 @@ fn set_and_get() {
     assert_eq!(*value, 5);
 }
 
+#[test]
+fn const_constructors_match_runtime_state() {
+    const EMPTY: SetOnce<u64> = SetOnce::const_new();
+    const FULL: SetOnce<u64> = SetOnce::const_new_with(73);
+
+    let runtime_empty = SetOnce::<u64>::new();
+    let runtime_full = SetOnce::new_with(Some(73));
+
+    assert_eq!(EMPTY.get(), runtime_empty.get());
+    assert_eq!(FULL.get(), runtime_full.get());
+    assert_eq!(EMPTY.initialized(), runtime_empty.initialized());
+    assert_eq!(FULL.initialized(), runtime_full.initialized());
+}
+
 #[tokio::test]
 async fn set_and_wait() {
     static ONCE: SetOnce<u32> = SetOnce::const_new();

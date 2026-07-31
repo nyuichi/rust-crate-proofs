@@ -71,7 +71,8 @@ The body proofs establish:
 - a three-writer loom model checks that exactly one writer succeeds and that
   the published value identifies that writer.
 - constructors and `new_with` preserve the exact initialized/uninitialized
-  state in the proof kernel;
+  state in the proof kernel; a constructor-equivalence proof and production
+  test connect the runtime and const forms at the value/state level;
 - production `into_inner` and `Drop` share one exclusive `take_inner` path
   which clears the flag before moving the value;
 - the proof kernel establishes exact-value first take, empty second take, and
@@ -83,7 +84,9 @@ The body proofs establish:
   `Notified::poll` trusted surface from the SetOnce-specific wait loop;
 - a loom test polls a wait to Pending, cancels it, publishes, and successfully
   waits again, exercising waiter unlinking and re-registration.
-- `Clone` and `PartialEq` state/value projections are body-proved for `u64`;
+- generic `Clone` and `PartialEq` lifting through SetOnce is body-proved once
+  the underlying standard trait call supplies its value-level contract; a
+  concrete `u64` caller discharges that boundary;
 - production compile checks establish the positive and negative `Send`/`Sync`
   bounds, and runtime tests cover Default, Clone, Eq, Debug, Display, and Error;
 - five deliberate mutations are rejected by the targeted tests, including
@@ -102,13 +105,13 @@ The body proofs establish:
 | SC flag/slot publication kernel | yes | yes | vstd atomic primitive | yes |
 | writer-lease double-check/set body | yes | yes | Notify mutex exclusivity | Verus/loom |
 | SetOnce set/get linearization refinement | yes | yes | weak-memory refinement | Verus/tests |
-| constructors/new_with | yes | yes | const adapter | Verus/tests |
+| constructors/new_with/const state equivalence | yes | yes | instrumentation | Verus/tests |
 | owned take/into_inner/Drop protocol | yes | yes | destructor semantics | Verus/tests/loom |
 | production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | SetOnce wait/lost-wakeup protocol | yes | yes | poll surface | Verus/loom |
 | production `Notified::poll`/waiter list | partial | no | agreed adapter | loom |
-| Clone/Eq state and value views | yes | yes | generic std traits | Verus/tests |
+| generic Clone/Eq state lifting | yes | yes | std trait value contract | Verus/tests |
 | Send/Sync bounds | yes | Rust type system | unsafe impl justification | compile tests |
 | Debug/Display/Error views | yes | no | formatting std traits | tests |
 | mutation sensitivity | yes | n/a | no | five rejected mutations |
@@ -201,7 +204,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 5. checks the erased loom-cell proof-view layout;
 6. runs the oneshot polling connection probe.
 
-The integrated SetOnce target currently contains 18 ordinary tests and five
+The integrated SetOnce target currently contains 19 ordinary tests and five
 loom model tests. [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) records the separate
 destructive-copy audit; mutations are intentionally not rerun by
 `verify-all.bash`.

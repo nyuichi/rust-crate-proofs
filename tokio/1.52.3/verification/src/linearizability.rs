@@ -1,5 +1,4 @@
 use crate::publication::PublishedOnce;
-use crate::writer_lease::WriterLease;
 use vstd::prelude::*;
 use vstd::raw_ptr::MemContents;
 
@@ -48,8 +47,15 @@ pub fn set_production_shape<T>(
     if target.initialized() {
         Err(value)
     } else {
-        let mut lease = WriterLease::new(target);
-        lease.set(value)
+        // Acquiring `&mut target` is the proof-view writer lease. Keep the
+        // production second check explicit even though no interference can
+        // occur after that exclusive capability has been obtained here.
+        if target.initialized() {
+            Err(value)
+        } else {
+            target.publish(value);
+            Ok(())
+        }
     }
 }
 

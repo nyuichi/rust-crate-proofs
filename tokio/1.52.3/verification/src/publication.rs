@@ -261,4 +261,17 @@ pub fn verify_owned_take_is_exactly_once(value: u64)
     assert(second.is_none());
 }
 
+/// The runtime and const production constructors share these same two abstract
+/// representations; instrumentation is intentionally outside this value view.
+pub fn verify_constructor_equivalence(value: u64)
+{
+    let runtime_empty = PublishedOnce::<u64>::empty();
+    let const_empty_view = PublishedOnce::<u64>::empty();
+    assert(runtime_empty.contents() == const_empty_view.contents());
+
+    let runtime_full = PublishedOnce::new_with(Some(value));
+    let const_full_view = PublishedOnce::new(value);
+    assert(runtime_full.contents() == const_full_view.contents());
+}
+
 } // verus!
