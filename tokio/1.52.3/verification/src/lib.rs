@@ -9,6 +9,7 @@ pub mod publication;
 pub mod published_cell;
 pub mod tokio_loom_cell;
 pub mod trait_views;
+pub mod unwind;
 pub mod wait_protocol;
 pub mod writer_lease;
 

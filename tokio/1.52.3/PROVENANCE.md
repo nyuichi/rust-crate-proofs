@@ -104,6 +104,11 @@ The body proofs establish:
   bounds, and runtime tests cover Default, Clone, Eq, Debug, Display, and Error;
 - production unwind tests check that a panicking payload destructor runs once
   both through `SetOnce::drop` and after ownership transfer by `into_inner`;
+- `NotificationUnwind<T>` proves the explicit publication-before-waking,
+  successful-wake, and exceptional-wake transitions preserve the exact value;
+- production panic tests additionally preserve the source across panicking
+  Clone and both operands across panicking PartialEq, and exercise a wake-all
+  panic between two other waiters whose nodes remain safely detached and ready;
 - five deliberate mutations are rejected by the targeted tests, including
   weakened publication orderings and removal of the lost-wakeup recheck.
 
@@ -123,6 +128,7 @@ The body proofs establish:
 | SetOnce set/get linearization refinement | yes | yes | weak-memory refinement | Verus/tests |
 | constructors/new_with/const state equivalence | yes | yes | instrumentation | Verus/tests |
 | owned take/into_inner/Drop protocol | yes | yes | arbitrary destructor semantics | Verus/tests/loom |
+| notification exceptional-state protocol | yes | yes | Waker panic execution | Verus/tests |
 | production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | SetOnce wait/lost-wakeup protocol | yes | yes | poll surface | Verus/loom |
@@ -205,12 +211,13 @@ Pin/Poll/Context/Waker execution, intrusive list pointer safety, and wake
 delivery remain explicit poll-surface boundaries exercised by loom. The
 underlying `Notified` state, generation, membership, notification, and
 cancellation transitions are now body-proved.
-Arbitrary user destructor behavior and the `Send`/`Sync` implementations remain
-outside the formal milestone. The ownership transition used by production
-`Drop` is proved. Notification unwind is covered specifically: publication
-precedes notification in the proof refinement, and a panicking production waker
-cannot roll the initialized state back. Panics during arbitrary `T` destructors
-remain a standard-library/runtime boundary.
+Arbitrary user destructor semantics and the `Send`/`Sync` implementations remain
+language/runtime boundaries. The ownership transitions used by production
+`Drop` and `into_inner` are proved and their panicking destructor paths are
+tested. Notification unwind is modeled explicitly: publication precedes waking,
+and a panicking production waker cannot roll the initialized state back or leave
+the remaining waiter nodes linked. Clone and equality panics are also checked to
+preserve their source cells.
 
 ## oneshot polling connection probe
 
@@ -233,7 +240,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 5. checks the erased loom-cell proof-view layout;
 6. runs the oneshot polling connection probe.
 
-The integrated SetOnce target currently contains 21 ordinary tests and seven
+The integrated SetOnce target currently contains 24 ordinary tests and seven
 loom model tests. [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) records the separate
 destructive-copy audit; mutations are intentionally not rerun by
 `verify-all.bash`.

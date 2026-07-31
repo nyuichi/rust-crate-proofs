@@ -56,6 +56,30 @@ struct PanicDrop {
     drops: Arc<AtomicU32>,
 }
 
+struct PanicClone {
+    clones: Arc<AtomicU32>,
+    id: u64,
+}
+
+impl Clone for PanicClone {
+    fn clone(&self) -> Self {
+        self.clones.fetch_add(1, Ordering::Relaxed);
+        panic!("payload clone panic");
+    }
+}
+
+struct PanicEq {
+    comparisons: Arc<AtomicU32>,
+    id: u64,
+}
+
+impl PartialEq for PanicEq {
+    fn eq(&self, _other: &Self) -> bool {
+        self.comparisons.fetch_add(1, Ordering::Relaxed);
+        panic!("payload equality panic");
+    }
+}
+
 impl Drop for PanicDrop {
     fn drop(&mut self) {
         self.drops.fetch_add(1, Ordering::Relaxed);
@@ -136,6 +160,39 @@ fn into_inner_transfers_panicking_destructor() {
     let result = catch_unwind(AssertUnwindSafe(|| drop(value)));
     assert!(result.is_err());
     assert_eq!(drops.load(Ordering::Relaxed), 1);
+}
+
+#[test]
+fn clone_panic_preserves_source() {
+    let clones = Arc::new(AtomicU32::new(0));
+    let cell = SetOnce::from(PanicClone {
+        clones: Arc::clone(&clones),
+        id: 17,
+    });
+
+    let result = catch_unwind(AssertUnwindSafe(|| cell.clone()));
+    assert!(result.is_err());
+    assert_eq!(clones.load(Ordering::Relaxed), 1);
+    assert_eq!(cell.get().map(|value| value.id), Some(17));
+}
+
+#[test]
+fn equality_panic_preserves_both_cells() {
+    let comparisons = Arc::new(AtomicU32::new(0));
+    let left = SetOnce::from(PanicEq {
+        comparisons: Arc::clone(&comparisons),
+        id: 23,
+    });
+    let right = SetOnce::from(PanicEq {
+        comparisons: Arc::clone(&comparisons),
+        id: 29,
+    });
+
+    let result = catch_unwind(AssertUnwindSafe(|| left == right));
+    assert!(result.is_err());
+    assert_eq!(comparisons.load(Ordering::Relaxed), 1);
+    assert_eq!(left.get().map(|value| value.id), Some(23));
+    assert_eq!(right.get().map(|value| value.id), Some(29));
 }
 
 #[test]
@@ -297,6 +354,16 @@ impl Wake for PanicWake {
     }
 }
 
+struct CountingWake {
+    wakes: Arc<AtomicU32>,
+}
+
+impl Wake for CountingWake {
+    fn wake(self: Arc<Self>) {
+        self.wakes.fetch_add(1, Ordering::Relaxed);
+    }
+}
+
 #[test]
 fn publication_survives_panicking_waiter_wake() {
     let cell = SetOnce::new();
@@ -314,4 +381,54 @@ fn publication_survives_panicking_waiter_wake() {
     drop(waiter);
     assert_eq!(cell.get(), Some(&41));
     assert_eq!(cell.set(42), Err(tokio::sync::SetOnceError(42)));
+}
+
+#[test]
+fn panicking_waker_leaves_remaining_waiters_unlinked_and_ready() {
+    let cell = SetOnce::new();
+    let before_count = Arc::new(AtomicU32::new(0));
+    let after_count = Arc::new(AtomicU32::new(0));
+
+    let mut before = Box::pin(cell.wait());
+    let mut panics = Box::pin(cell.wait());
+    let mut after = Box::pin(cell.wait());
+
+    let before_waker = Waker::from(Arc::new(CountingWake {
+        wakes: Arc::clone(&before_count),
+    }));
+    let panic_waker = Waker::from(Arc::new(PanicWake));
+    let after_waker = Waker::from(Arc::new(CountingWake {
+        wakes: Arc::clone(&after_count),
+    }));
+    let mut before_cx = Context::from_waker(&before_waker);
+    let mut panic_cx = Context::from_waker(&panic_waker);
+    let mut after_cx = Context::from_waker(&after_waker);
+
+    assert!(matches!(
+        before.as_mut().poll(&mut before_cx),
+        Poll::Pending
+    ));
+    assert!(matches!(panics.as_mut().poll(&mut panic_cx), Poll::Pending));
+    assert!(matches!(after.as_mut().poll(&mut after_cx), Poll::Pending));
+
+    let result = catch_unwind(AssertUnwindSafe(|| cell.set(47_u64)));
+    assert!(result.is_err());
+    assert_eq!(before_count.load(Ordering::Relaxed), 1);
+    assert_eq!(after_count.load(Ordering::Relaxed), 0);
+
+    let noop = futures::task::noop_waker();
+    let mut noop_cx = Context::from_waker(&noop);
+    assert!(matches!(
+        before.as_mut().poll(&mut noop_cx),
+        Poll::Ready(&47)
+    ));
+    assert!(matches!(
+        panics.as_mut().poll(&mut noop_cx),
+        Poll::Ready(&47)
+    ));
+    assert!(matches!(
+        after.as_mut().poll(&mut noop_cx),
+        Poll::Ready(&47)
+    ));
+    assert_eq!(cell.get(), Some(&47));
 }
