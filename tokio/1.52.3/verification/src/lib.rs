@@ -7,6 +7,7 @@ pub mod notified_core;
 pub mod notify_guard;
 pub mod publication;
 pub mod published_cell;
+pub mod release_acquire;
 pub mod tokio_loom_cell;
 pub mod trait_views;
 pub mod unwind;
