@@ -3,6 +3,7 @@
 use vstd::prelude::*;
 
 pub mod linearizability;
+pub mod notified_core;
 pub mod publication;
 pub mod published_cell;
 pub mod tokio_loom_cell;

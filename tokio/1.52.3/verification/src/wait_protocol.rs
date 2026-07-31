@@ -1,3 +1,4 @@
+use crate::notified_core::{FutureState, NotifiedCore};
 use crate::publication::PublishedOnce;
 use vstd::pervasive::unreached;
 use vstd::prelude::*;
@@ -14,6 +15,15 @@ pub enum WaiterState {
     Registered,
     Notified,
     Cancelled,
+}
+
+pub open spec fn project_notified_state(state: FutureState) -> WaiterState {
+    match state {
+        FutureState::Init | FutureState::Registering => WaiterState::Created,
+        FutureState::Waiting => WaiterState::Registered,
+        FutureState::Done => WaiterState::Notified,
+        FutureState::Dropped => WaiterState::Cancelled,
+    }
 }
 
 pub struct WaitProtocol<T> {
@@ -207,6 +217,38 @@ pub fn verify_cancel_then_rewait(value: u64)
     protocol.publish_and_notify(value);
     let ready = protocol.poll_waiter();
     assert(ready);
+    let observed = protocol.get().unwrap();
+    assert(*observed == value);
+}
+
+/// The detailed Notified core refines the smaller waiter projection used by
+/// SetOnce's publication/wait proof.
+pub fn verify_notified_core_refines_wait_protocol(value: u64, epoch: u64)
+    requires epoch < u64::MAX,
+{
+    let mut protocol = WaitProtocol::empty();
+    protocol.create_waiter();
+
+    let mut notified = NotifiedCore::new(epoch);
+    assert(project_notified_state(notified.state()) == protocol.waiter_state());
+
+    let started = notified.start_poll(1);
+    assert(!started);
+    let registered = notified.finish_registration();
+    assert(!registered);
+    let protocol_pending = protocol.poll_notified();
+    assert(!protocol_pending);
+    assert(project_notified_state(notified.state()) == protocol.waiter_state());
+
+    protocol.publish_and_notify(value);
+    notified.begin_broadcast();
+    notified.finish_broadcast();
+    let notified_ready = notified.poll_waiting(1);
+    assert(notified_ready);
+    assert(project_notified_state(notified.state()) == protocol.waiter_state());
+
+    let protocol_ready = protocol.poll_waiter();
+    assert(protocol_ready);
     let observed = protocol.get().unwrap();
     assert(*observed == value);
 }

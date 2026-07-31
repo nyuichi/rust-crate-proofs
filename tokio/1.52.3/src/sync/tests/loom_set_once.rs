@@ -1,4 +1,4 @@
-use crate::sync::SetOnce;
+use crate::sync::{Notify, SetOnce};
 
 use loom::future::block_on;
 use loom::sync::atomic::AtomicU32;
@@ -91,6 +91,23 @@ fn set_once_wakes_all_registered_waiters_test() {
         drop(first);
         drop(second);
         assert_eq!(cell.get(), Some(&19));
+    });
+}
+
+#[test]
+fn set_once_notify_generation_before_registration_test() {
+    loom::model(|| {
+        let notify = Notify::new();
+        let mut notified = Box::pin(notify.notified());
+
+        // The future captured the old notify_waiters generation but has not
+        // registered in the intrusive list yet.
+        notify.notify_waiters();
+
+        // Its first poll must observe the changed generation and complete.
+        let waker = futures::task::noop_waker();
+        let mut cx = Context::from_waker(&waker);
+        assert!(matches!(notified.as_mut().poll(&mut cx), Poll::Ready(())));
     });
 }
 

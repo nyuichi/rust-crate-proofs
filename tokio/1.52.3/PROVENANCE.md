@@ -82,6 +82,12 @@ The body proofs establish:
 - `WaitProtocol<T>` body-proves publication before registration, publication
   after registration, readiness-only Relaxed recheck, outer Acquire get, and
   cancellation followed by a fresh wait;
+- `NotifiedCore` body-proves the production `Init`, registering, `Waiting`,
+  `Done`, and dropped states; main and guarded broadcast-list membership;
+  generation rechecks; notification consumption; waker replacement; and
+  cancellation forwarding of an unconsumed notify-one permit;
+- the detailed `NotifiedCore` state machine refines the smaller waiter-state
+  projection used by the SetOnce wait proof;
 - production `poll_waiter` isolates the agreed Pin/Poll/Context/Waker and
   `Notified::poll` trusted surface from the SetOnce-specific wait loop;
 - a loom test polls a wait to Pending, cancels it, publishes, and successfully
@@ -116,7 +122,8 @@ The body proofs establish:
 | production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | SetOnce wait/lost-wakeup protocol | yes | yes | poll surface | Verus/loom |
-| production `Notified::poll`/waiter list | partial | no | agreed adapter | loom |
+| `Notified` core state/list projection | yes | yes | pointer/waker adapter | Verus/loom |
+| production `Notified::poll`/intrusive list | partial | no | Pin/list/waker adapter | loom |
 | generic Clone/Eq state lifting | yes | yes | std trait value contract | Verus/tests |
 | Send/Sync bounds | yes | Rust type system | unsafe impl justification | compile tests |
 | Debug/Display/Error views | yes | no | formatting std traits | tests |
@@ -180,8 +187,10 @@ The production loom test `set_once_get_publication_test` deliberately reads via
 `SetOnce::get` before joining the writer. This makes the production Release
 store and Acquire load the publication edge under test. The SetOnce-specific
 wait protocol and cancellation state preservation are now proved. As agreed,
-Pin/Poll/Context/Waker behavior, `Notified::poll`, intrusive waiter unlinking,
-and wake delivery remain one explicit poll-surface boundary exercised by loom.
+Pin/Poll/Context/Waker execution, intrusive list pointer safety, and wake
+delivery remain explicit poll-surface boundaries exercised by loom. The
+underlying `Notified` state, generation, membership, notification, and
+cancellation transitions are now body-proved.
 Arbitrary user destructor behavior and the `Send`/`Sync` implementations remain
 outside the formal milestone. The ownership transition used by production
 `Drop` is proved. Notification unwind is covered specifically: publication
@@ -210,7 +219,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 5. checks the erased loom-cell proof-view layout;
 6. runs the oneshot polling connection probe.
 
-The integrated SetOnce target currently contains 21 ordinary tests and six
+The integrated SetOnce target currently contains 21 ordinary tests and seven
 loom model tests. [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) records the separate
 destructive-copy audit; mutations are intentionally not rerun by
 `verify-all.bash`.
