@@ -6,6 +6,7 @@ pub mod linearizability;
 pub mod intrusive_waiters;
 pub mod notified_core;
 pub mod notify_guard;
+pub mod oneshot_state;
 pub mod publication;
 pub mod published_cell;
 pub mod release_acquire;
