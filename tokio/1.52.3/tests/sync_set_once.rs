@@ -52,6 +52,17 @@ impl Drop for DropCounter {
     }
 }
 
+struct PanicDrop {
+    drops: Arc<AtomicU32>,
+}
+
+impl Drop for PanicDrop {
+    fn drop(&mut self) {
+        self.drops.fetch_add(1, Ordering::Relaxed);
+        panic!("payload destructor panic");
+    }
+}
+
 #[test]
 fn drop_cell() {
     let fooer = DropCounter::new();
@@ -99,6 +110,32 @@ fn drop_into_inner_new_with() {
     fooer.assert_num_drops(0);
     drop(val);
     fooer.assert_num_drops(1);
+}
+
+#[test]
+fn panicking_payload_destructor_runs_once() {
+    let drops = Arc::new(AtomicU32::new(0));
+    let cell = SetOnce::from(PanicDrop {
+        drops: Arc::clone(&drops),
+    });
+
+    let result = catch_unwind(AssertUnwindSafe(|| drop(cell)));
+    assert!(result.is_err());
+    assert_eq!(drops.load(Ordering::Relaxed), 1);
+}
+
+#[test]
+fn into_inner_transfers_panicking_destructor() {
+    let drops = Arc::new(AtomicU32::new(0));
+    let cell = SetOnce::from(PanicDrop {
+        drops: Arc::clone(&drops),
+    });
+    let value = cell.into_inner().unwrap();
+
+    assert_eq!(drops.load(Ordering::Relaxed), 0);
+    let result = catch_unwind(AssertUnwindSafe(|| drop(value)));
+    assert!(result.is_err());
+    assert_eq!(drops.load(Ordering::Relaxed), 1);
 }
 
 #[test]

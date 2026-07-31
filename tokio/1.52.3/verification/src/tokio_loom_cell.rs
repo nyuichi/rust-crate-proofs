@@ -96,8 +96,12 @@ pub fn verify_production_get_unchecked_shape(first: u64, second: u64)
 } // verus!
 
 #[cfg(test)]
+#[path = "../../src/loom/std/unsafe_cell.rs"]
+mod production_unsafe_cell;
+
+#[cfg(test)]
 mod layout_tests {
-    use super::TokioLoomCell;
+    use super::{production_unsafe_cell, TokioLoomCell};
     use core::cell::UnsafeCell;
     use core::mem::{align_of, size_of, MaybeUninit};
 
@@ -113,6 +117,14 @@ mod layout_tests {
             align_of::<TokioLoomCell<T>>(),
             align_of::<UnsafeCell<MaybeUninit<T>>>()
         );
+        assert_eq!(
+            size_of::<TokioLoomCell<T>>(),
+            size_of::<production_unsafe_cell::UnsafeCell<MaybeUninit<T>>>()
+        );
+        assert_eq!(
+            align_of::<TokioLoomCell<T>>(),
+            align_of::<production_unsafe_cell::UnsafeCell<MaybeUninit<T>>>()
+        );
     }
 
     #[test]
@@ -121,5 +133,22 @@ mod layout_tests {
         assert_layout::<u64>();
         assert_layout::<[u8; 31]>();
         assert_layout::<Aligned>();
+
+        let cell = production_unsafe_cell::UnsafeCell::new(MaybeUninit::new(11_u64));
+        let wrapper_address = (&cell as *const _) as *const ();
+        cell.with(|inner| {
+            assert_eq!(wrapper_address, inner.cast::<()>());
+            // SAFETY: this test constructed the field initialized above.
+            assert_eq!(unsafe { (*inner).assume_init_ref() }, &11);
+        });
+        cell.with_mut(|inner| {
+            // SAFETY: the field is initialized and exclusively accessed by
+            // this synchronous test callback.
+            unsafe { (*inner).as_mut_ptr().write(12) };
+        });
+        cell.with(|inner| {
+            // SAFETY: the preceding callback wrote an initialized value.
+            assert_eq!(unsafe { (*inner).assume_init_ref() }, &12);
+        });
     }
 }

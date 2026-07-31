@@ -74,6 +74,27 @@ fn set_once_wait_test() {
 }
 
 #[test]
+fn set_once_wakes_all_registered_waiters_test() {
+    loom::model(|| {
+        let cell = SetOnce::new();
+        let mut first = Box::pin(cell.wait());
+        let mut second = Box::pin(cell.wait());
+        let waker = futures::task::noop_waker();
+        let mut cx = Context::from_waker(&waker);
+
+        assert!(matches!(first.as_mut().poll(&mut cx), Poll::Pending));
+        assert!(matches!(second.as_mut().poll(&mut cx), Poll::Pending));
+        cell.set(19).unwrap();
+
+        assert!(matches!(first.as_mut().poll(&mut cx), Poll::Ready(&19)));
+        assert!(matches!(second.as_mut().poll(&mut cx), Poll::Ready(&19)));
+        drop(first);
+        drop(second);
+        assert_eq!(cell.get(), Some(&19));
+    });
+}
+
+#[test]
 fn set_once_get_publication_test() {
     loom::model(|| {
         let cell = Arc::new(SetOnce::new());

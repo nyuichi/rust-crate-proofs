@@ -49,7 +49,9 @@ The body proofs establish:
   unsafe `get_unchecked() -> &T` contract;
 - erased size and alignment are checked against
   `UnsafeCell<MaybeUninit<T>>` for zero-sized, scalar, array, and over-aligned
-  payloads;
+  payloads; the same test directly compiles Tokio's production wrapper source
+  and checks its size, alignment, field address, and `with`/`with_mut` pointer
+  behavior;
 - `PublicationFlag` body-proves its load/store wrapper contracts over vstd's
   sequentially-consistent atomic primitive;
 - production `SetOnceFlag` exposes only operation-specific Acquire, Release,
@@ -84,11 +86,15 @@ The body proofs establish:
   `Notified::poll` trusted surface from the SetOnce-specific wait loop;
 - a loom test polls a wait to Pending, cancels it, publishes, and successfully
   waits again, exercising waiter unlinking and re-registration.
+- another loom test registers two wait futures before publication and checks
+  that both return the exact value after `notify_waiters`;
 - generic `Clone` and `PartialEq` lifting through SetOnce is body-proved once
   the underlying standard trait call supplies its value-level contract; a
   concrete `u64` caller discharges that boundary;
 - production compile checks establish the positive and negative `Send`/`Sync`
   bounds, and runtime tests cover Default, Clone, Eq, Debug, Display, and Error;
+- production unwind tests check that a panicking payload destructor runs once
+  both through `SetOnce::drop` and after ownership transfer by `into_inner`;
 - five deliberate mutations are rejected by the targeted tests, including
   weakened publication orderings and removal of the lost-wakeup recheck.
 
@@ -106,7 +112,7 @@ The body proofs establish:
 | writer-lease double-check/set body | yes | yes | Notify mutex exclusivity | Verus/loom |
 | SetOnce set/get linearization refinement | yes | yes | weak-memory refinement | Verus/tests |
 | constructors/new_with/const state equivalence | yes | yes | instrumentation | Verus/tests |
-| owned take/into_inner/Drop protocol | yes | yes | destructor semantics | Verus/tests/loom |
+| owned take/into_inner/Drop protocol | yes | yes | arbitrary destructor semantics | Verus/tests/loom |
 | production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
 | production `sync::SetOnce<T>` bodies | partial | no | representation adapter | tests/loom |
 | SetOnce wait/lost-wakeup protocol | yes | yes | poll surface | Verus/loom |
@@ -204,7 +210,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 5. checks the erased loom-cell proof-view layout;
 6. runs the oneshot polling connection probe.
 
-The integrated SetOnce target currently contains 19 ordinary tests and five
+The integrated SetOnce target currently contains 21 ordinary tests and six
 loom model tests. [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) records the separate
 destructive-copy audit; mutations are intentionally not rerun by
 `verify-all.bash`.
