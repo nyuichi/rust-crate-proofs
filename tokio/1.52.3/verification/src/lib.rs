@@ -7,6 +7,7 @@ pub mod intrusive_waiters;
 pub mod notified_core;
 pub mod notify_guard;
 pub mod oneshot_atomic;
+pub mod oneshot_closed;
 pub mod oneshot_poll;
 pub mod oneshot_state;
 pub mod oneshot_value;
