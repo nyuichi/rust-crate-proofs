@@ -24,6 +24,20 @@ impl OneshotBits {
     pub closed spec fn closed(&self) -> bool { self.closed }
     pub closed spec fn tx_task_set(&self) -> bool { self.tx_task_set }
 
+    pub fn is_complete(&self) -> (result: bool)
+        ensures result == self.value_sent(),
+        no_unwind
+    {
+        self.value_sent
+    }
+
+    pub fn is_closed(&self) -> (result: bool)
+        ensures result == self.closed(),
+        no_unwind
+    {
+        self.closed
+    }
+
     pub closed spec fn encoded(&self) -> nat {
         (if self.rx_task_set { RX_TASK_SET as nat } else { 0 })
             + (if self.value_sent { VALUE_SENT as nat } else { 0 })
