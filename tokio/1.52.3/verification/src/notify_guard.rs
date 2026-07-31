@@ -1,9 +1,22 @@
-use crate::linearizability::set_step;
 use crate::publication::PublishedOnce;
 use vstd::prelude::*;
 use vstd::raw_ptr::MemContents;
 
 verus! {
+
+pub open spec fn guarded_set_step<T>(
+    before: MemContents<T>,
+    input: T,
+    result: Result<(), T>,
+    after: MemContents<T>,
+) -> bool {
+    match before {
+        MemContents::Uninit => result == Ok(()) && after == MemContents::Init(input),
+        MemContents::Init(previous) => {
+            result == Err(input) && after == MemContents::Init(previous)
+        },
+    }
+}
 
 /// Linear permission issued by the waiter-list mutex. The private field and
 /// lack of Clone make the capability non-duplicable by clients.
@@ -94,7 +107,7 @@ impl<T> GuardedSetOnce<T> {
             old(self).well_formed(),
         ensures
             final(self).well_formed(),
-            set_step(old(self).contents(), value, result, final(self).contents()),
+            guarded_set_step(old(self).contents(), value, result, final(self).contents()),
         no_unwind
     {
         if self.target.initialized() {
