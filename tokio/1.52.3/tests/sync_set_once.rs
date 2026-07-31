@@ -1,10 +1,14 @@
 #![warn(rust_2018_idioms)]
 #![cfg(feature = "full")]
 
+use std::future::Future;
+use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::pin::Pin;
 use std::sync::{
     atomic::{AtomicU32, Ordering},
     Arc,
 };
+use std::task::{Context, Poll, Wake, Waker};
 use tokio::sync::SetOnce;
 
 macro_rules! assert_not_impl {
@@ -232,4 +236,31 @@ fn set_once_error_traits() {
     assert!(error.source().is_none());
     assert_eq!(error, tokio::sync::SetOnceError(7));
     assert_eq!(format!("{error:?}"), "SetOnceError(7)");
+}
+
+struct PanicWake;
+
+impl Wake for PanicWake {
+    fn wake(self: Arc<Self>) {
+        panic!("wake requested");
+    }
+}
+
+#[test]
+fn publication_survives_panicking_waiter_wake() {
+    let cell = SetOnce::new();
+    let mut waiter = Box::pin(cell.wait());
+    let waker = Waker::from(Arc::new(PanicWake));
+    let mut cx = Context::from_waker(&waker);
+
+    assert!(matches!(Pin::new(&mut waiter).poll(&mut cx), Poll::Pending));
+
+    let set_result = catch_unwind(AssertUnwindSafe(|| cell.set(41_u64)));
+    assert!(set_result.is_err());
+
+    // Publication precedes notification. Even though waking unwound through
+    // `set`, the value remains initialized and later writers are rejected.
+    drop(waiter);
+    assert_eq!(cell.get(), Some(&41));
+    assert_eq!(cell.set(42), Err(tokio::sync::SetOnceError(42)));
 }

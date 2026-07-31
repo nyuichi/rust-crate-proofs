@@ -60,6 +60,12 @@ The body proofs establish:
 - `WriterLease<T>` body-proves the locked double-check and first-writer-wins
   portion of production `SetOnce::set`, including exact return of a rejected
   value and preservation of the first value.
+- production-shaped `set` and `get` refinement functions identify the successful
+  Release publication and observing Acquire checks as their linearization
+  points, including both the optimistic and locked rejection paths;
+- publication is proved to precede the notification phase, and a production
+  test registers a panicking waker to establish that notification unwind leaves
+  the value published and rejects later writers;
 - production `SetOnceWriteGuard` now owns the actual `NotifyGuard` and encloses
   the second check, value write, Release publication, and waiter notification;
 - a three-writer loom model checks that exactly one writer succeeds and that
@@ -95,6 +101,7 @@ The body proofs establish:
 | Tokio loom-cell proof view and `get_unchecked` | yes | yes | representation correspondence | yes |
 | SC flag/slot publication kernel | yes | yes | vstd atomic primitive | yes |
 | writer-lease double-check/set body | yes | yes | Notify mutex exclusivity | Verus/loom |
+| SetOnce set/get linearization refinement | yes | yes | weak-memory refinement | Verus/tests |
 | constructors/new_with | yes | yes | const adapter | Verus/tests |
 | owned take/into_inner/Drop protocol | yes | yes | destructor semantics | Verus/tests/loom |
 | production Release/Acquire `set` -> `get` | yes | wrapper/protocol | weak-memory refinement | Verus/loom |
@@ -166,9 +173,12 @@ store and Acquire load the publication edge under test. The SetOnce-specific
 wait protocol and cancellation state preservation are now proved. As agreed,
 Pin/Poll/Context/Waker behavior, `Notified::poll`, intrusive waiter unlinking,
 and wake delivery remain one explicit poll-surface boundary exercised by loom.
-Arbitrary user destructor behavior, unwind, and the `Send`/`Sync`
-implementations remain outside the formal milestone. The ownership transition
-used by production `Drop` is proved.
+Arbitrary user destructor behavior and the `Send`/`Sync` implementations remain
+outside the formal milestone. The ownership transition used by production
+`Drop` is proved. Notification unwind is covered specifically: publication
+precedes notification in the proof refinement, and a panicking production waker
+cannot roll the initialized state back. Panics during arbitrary `T` destructors
+remain a standard-library/runtime boundary.
 
 ## oneshot polling connection probe
 
@@ -191,7 +201,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 5. checks the erased loom-cell proof-view layout;
 6. runs the oneshot polling connection probe.
 
-The integrated SetOnce target currently contains 17 ordinary tests and five
+The integrated SetOnce target currently contains 18 ordinary tests and five
 loom model tests. [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) records the separate
 destructive-copy audit; mutations are intentionally not rerun by
 `verify-all.bash`.
