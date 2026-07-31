@@ -174,6 +174,14 @@ transparent, and the integrated run checks the erased layout. This is stronger
 than a disconnected value model, but it is not yet a direct Verus translation
 of Tokio's private wrapper body.
 
+A later direct-translation probe reached the exact remaining toolchain
+interfaces: vstd lacks specifications for `std::cell::UnsafeCell::{new,get}`;
+after temporary opaque specifications were supplied, generic `FnOnce` callback
+preconditions remained unavailable. Those opaque assumptions were not retained.
+The probe record under `verification-probes/loom-cell` gives the removal
+conditions; the body-proved PCell adapter and direct production representation
+test remain the strongest assumption-free connection available here.
+
 The earlier reference-lifetime blocker is removed: keeping the points-to
 permission inside `PublishedCell<T>` lets its body-proved `get` return a
 reference with the lifetime of `&PublishedCell<T>`. The remaining difficulty
