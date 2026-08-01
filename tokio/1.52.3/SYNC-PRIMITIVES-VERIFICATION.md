@@ -63,6 +63,24 @@ declared common adapters. The integrated run includes both public Notify test
 suites and bounded exact loom races for notify-one, broadcast, and cancellation
 forwarding/drop.
 
+## Barrier
+
+`barrier_protocol` composes the trusted Mutex adapter with the proved watch
+generation protocol and body-proves:
+
+- `Barrier::new(0)` normalization to a one-party barrier;
+- arrival counts remain below the configured party count between releases;
+- exactly the nth arrival is recorded as the unique leader of a generation;
+- followers become ready only after that generation is published;
+- all pending followers are released together and the arrival count resets;
+- later generations reuse the barrier without confusing earlier followers;
+- the documented non-cancel-safe behavior: cancelling a pending wait removes
+  its future but deliberately leaves its arrival counted for that generation.
+
+Production's synchronous Mutex and watch storage/waker execution remain the
+frozen adapters. The exact public Barrier suite, including ten generations of
+100 parties, is included in the integrated run.
+
 ## AtomicWaker
 
 `atomic_waker_protocol` body-proves the Tokio-specific two-bit protocol:

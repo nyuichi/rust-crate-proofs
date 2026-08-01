@@ -75,6 +75,12 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
   --features full,test-util \
+  --test sync_barrier
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
   --lib \
   sync::tests::atomic_waker
 
