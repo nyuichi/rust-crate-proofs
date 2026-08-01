@@ -84,6 +84,13 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --lib \
   sync::tests::atomic_waker
 
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  sync::barrier::tests::generation_wraps_without_panicking
+
 # Exercise only the SetOnce and oneshot loom modules. `test-util` is needed
 # because Tokio's cfg(loom) lib-test module also compiles paused-time helpers.
 RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-set-once" cargo test \

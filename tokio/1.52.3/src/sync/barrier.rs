@@ -54,6 +54,11 @@ struct BarrierState {
     generation: usize,
 }
 
+#[inline]
+fn next_generation(generation: usize) -> usize {
+    generation.wrapping_add(1)
+}
+
 impl Barrier {
     /// Creates a new barrier that can block a given number of tasks.
     ///
@@ -174,7 +179,10 @@ impl Barrier {
                     .send(state.generation)
                     .expect("there is at least one receiver");
                 state.arrived = 0;
-                state.generation += 1;
+                // The generation is only an ordering token. Make rollover
+                // explicit so debug and release builds have identical
+                // behavior after the final machine-word generation.
+                state.generation = next_generation(state.generation);
                 return BarrierWaitResult(true);
             }
 
@@ -195,6 +203,15 @@ impl Barrier {
         }
 
         BarrierWaitResult(false)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn generation_wraps_without_panicking() {
+        assert_eq!(super::next_generation(usize::MAX), 0);
+        assert_eq!(super::next_generation(0), 1);
     }
 }
 

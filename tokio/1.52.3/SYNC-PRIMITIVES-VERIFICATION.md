@@ -98,9 +98,22 @@ generation protocol and body-proves:
 - the documented non-cancel-safe behavior: cancelling a pending wait removes
   its future but deliberately leaves its arrival counted for that generation.
 
+`barrier_refinement` additionally proves the exact production critical-section
+values: zero-party normalization, bounded `arrived + 1`, nth-arrival leader
+selection, publication of the captured generation, cohort reset, and explicit
+machine-word rollover. Production now uses `wrapping_add(1)`, eliminating its
+former debug-only panic after publishing generation `usize::MAX`. The exact
+`published >= captured` follower predicate is also proved to accept the
+leader's equal generation token.
+
 Production's synchronous Mutex and watch storage/waker execution remain the
-frozen adapters. The exact public Barrier suite, including ten generations of
-100 parties, is included in the integrated run.
+frozen adapters. A follower suspended across an entire machine-word generation
+cycle remains a finite-counter liveness boundary under the already-frozen
+scheduler-liveness assumption; safety and unique leadership do not rely on
+excluding it. The exact public Barrier suite, including ten generations of 100
+parties, and the rollover regression are included in the integrated run.
+[`BARRIER-MUTATION-AUDIT.md`](BARRIER-MUTATION-AUDIT.md) records the rejected
+production mutations.
 
 ## AtomicWaker
 

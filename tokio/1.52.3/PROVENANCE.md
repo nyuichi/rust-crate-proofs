@@ -41,6 +41,12 @@ repair, and broadcast-before-permit poll ordering are proved. Raw atomic and
 mutex execution, intrusive pointers, and Waker execution remain frozen
 foundation adapters.**
 
+**Barrier production refinement: exact arrived/generation transitions, leader
+publication, reset, follower comparison, and machine-word rollover are proved.
+Production uses explicit wrapping generation advance so debug and release
+behavior agree; Mutex/watch execution and scheduler liveness remain frozen
+foundation adapters.**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.
