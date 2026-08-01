@@ -16,6 +16,10 @@ exact Tokio integration and bounded loom cases in `verify-all.bash`.
 - closure only by the final Sender, and reopening by subscription while a
   Sender remains.
 
+`watch_completion` additionally proves the exact closed-bit/even-version
+encoding including wrap, modified/unmodified/panicking update outcomes,
+publication-before-notification, and composition with the Receiver recheck.
+
 The production representation's low closed bit, wrapping version arithmetic,
 RwLock guards, BigNotify selection, and future/Waker execution remain adapters.
 The integration target has 22 tests. Three bounded loom cases cover
@@ -23,6 +27,9 @@ multi-Receiver publication, concurrent final-Sender drop, and value/lock
 consistency. The upstream `wait_for_test` scheduler search is intentionally not
 integrated because it exhibits combinatorial explosion even with bounded
 preemptions; predicate closure execution remains outside the model.
+[`WATCH-MUTATION-AUDIT.md`](WATCH-MUTATION-AUDIT.md) records the rejected
+register-after-check mutation and the deliberately unclaimed atomic-ordering
+mutation.
 
 ## broadcast
 

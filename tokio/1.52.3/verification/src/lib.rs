@@ -21,6 +21,7 @@ pub mod tokio_loom_cell;
 pub mod trait_views;
 pub mod unwind;
 pub mod wait_protocol;
+pub mod watch_completion;
 pub mod watch_protocol;
 pub mod writer_lease;
 
