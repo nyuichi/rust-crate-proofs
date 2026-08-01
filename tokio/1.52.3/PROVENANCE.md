@@ -13,10 +13,12 @@ cleanup, and destructor-state behavior are body-proved models. The production
 payload slot is isolated behind the matching operation-specific adapter and the
 connection is exercised by targeted runtime, loom, trait, and mutation checks.**
 
-**Channel expansion status: watch generation/closure, broadcast logical ring
-and lag, and mpsc capacity plus local FIFO/close protocols are now body-proved
-models and connected to targeted production tests. Mpsc raw block-list
-allocation/reclamation remains partial. See
+**Channel expansion status: watch, broadcast, and mpsc are complete under the
+frozen scoped-channel definition. Their channel-specific generation, ring,
+lag, FIFO, permit, endpoint, poll/recheck, unwind, and cleanup protocols are
+body-proved models and mutation-tested against production. Raw block pointer
+validity and allocation remain common runtime adapters; the channel-specific
+reclamation precondition is proved. See
 [`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md) for the exact boundaries.**
 
 This source tree is copied from the `tokio` 1.52.3 package published on
@@ -330,7 +332,7 @@ proof. The probe README records the exact exclusions and removal requirements.
 
 ## Watch, broadcast, and mpsc expansion
 
-The follow-on channel work raises the integrated Verus result to 242 verified
+The follow-on channel work raises the integrated Verus result to 282 verified
 bodies. It reuses the publication, ownership, register/recheck, endpoint-count,
 and cleanup patterns established for SetOnce and oneshot. Watch adds independent
 Receiver generations; broadcast adds bounded ring generations and lag recovery;
@@ -338,9 +340,11 @@ mpsc adds linear permits and FIFO claim-versus-publication ordering.
 
 These models are intentionally split at production's foundational interfaces.
 They do not claim direct verification of RwLock/Mutex, BigNotify/AtomicWaker,
-intrusive waiters, arbitrary Clone/destructor execution, wrapping integer
-representations, or mpsc raw block allocation and reclamation. The exact proved
-transitions, tests, exclusions, and removal conditions are recorded in
+raw intrusive links, arbitrary Clone/destructor execution, or raw mpsc block
+allocation and pointer validity. Wrapping state behavior, logical waiter
+membership, arbitrary slot ownership, and the all-consumed reclamation
+condition are proved above those adapters. The exact transitions, tests,
+exclusions, and removal conditions are recorded in
 [`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md).
 
 ## Reproduction
@@ -353,7 +357,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 242 nested SetOnce, publication, oneshot, watch, broadcast, and
+5. verifies 282 nested SetOnce, publication, oneshot, watch, broadcast, and
    mpsc model bodies with the locked vstd revision;
 6. checks the erased loom-cell proof-view layout;
 7. runs the oneshot polling connection probe.
@@ -366,6 +370,11 @@ tests, 28 mpsc weak-Sender tests, and nine bounded exact loom cases.
 [`ONESHOT-MUTATION-AUDIT.md`](ONESHOT-MUTATION-AUDIT.md) record separate
 destructive-copy audits; mutations are intentionally not rerun by
 `verify-all.bash`.
+
+The channel expansion mutation records are
+[`WATCH-MUTATION-AUDIT.md`](WATCH-MUTATION-AUDIT.md),
+[`BROADCAST-MUTATION-AUDIT.md`](BROADCAST-MUTATION-AUDIT.md), and
+[`MPSC-MUTATION-AUDIT.md`](MPSC-MUTATION-AUDIT.md).
 
 The pinned Verus version is `0.2026.07.27.31579f0`; vstd is pinned to commit
 `31579f0b8542a8a9ae4ae5604c16107ccde23ef2`. Generated Cargo and Verus build
