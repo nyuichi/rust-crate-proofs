@@ -20,6 +20,14 @@ listed below is Tokio-specific protocol logic above that foundation.
 - the common borrowed/owned permit lifecycle: split, same-semaphore merge,
   forget, and drop/release.
 
+`semaphore_refinement` additionally proves the production representation:
+
+- low-bit CLOSED encoding, `PERMIT_SHIFT`, and the reserved `MAX_PERMITS` bound;
+- exact successful/failed try-acquire subtraction while preserving CLOSED;
+- saturating `forget_permits` with mandatory CLOSED-bit reattachment;
+- unqueued release addition and its overflow precondition;
+- production `push_front` plus `last/pop_back` is exactly FIFO.
+
 The production correspondence is:
 
 | Production operation | Proved transition |
@@ -38,8 +46,10 @@ declared foundation adapters. The integrated run exercises both borrowed and
 owned public API suites and bounded exact loom cases for basic acquisition,
 concurrent cancellation, and multi-permit FIFO assignment.
 
-This is scoped completion of the logical Semaphore protocol, not yet a direct
-translation of the production bodies into Verus.
+The raw atomic operation remains the declared memory-model adapter. The
+Tokio-specific values passed to and returned from that adapter are now directly
+refined. [`SEMAPHORE-MUTATION-AUDIT.md`](SEMAPHORE-MUTATION-AUDIT.md) records
+the formally rejected encoding and queue-order mutations.
 
 ## Notify
 

@@ -30,6 +30,11 @@ rules, plus AtomicWaker's complete two-bit state protocol, are body-proved above
 the frozen common foundation. See
 [`SYNC-PRIMITIVES-VERIFICATION.md`](SYNC-PRIMITIVES-VERIFICATION.md).**
 
+**Semaphore production refinement: CLOSED/permit encoding, MAX_PERMITS,
+try-acquire, forget, release, and the reversed intrusive FIFO convention are
+proved against their exact production formulas. Only raw atomic execution and
+pointer validity remain in the frozen foundation.**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.
