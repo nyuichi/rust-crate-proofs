@@ -10,8 +10,7 @@ verus_target_dir="${VERUS_CARGO_TARGET_DIR:-$repo_root/target/verus/tokio-1.52.3
 oneshot_probe_target_dir="${VERUS_ONESHOT_PROBE_TARGET_DIR:-$repo_root/target/verus/tokio-1.52.3-oneshot-poll-probe}"
 verification_test_target_dir="${VERIFICATION_TEST_TARGET_DIR:-$repo_root/target/tokio-1.52.3-verification-tests}"
 
-# Keep runtime regressions focused on SetOnce and oneshot. Both exact
-# integration targets are gated on `full`.
+# Keep runtime regressions focused on the verified sync primitives.
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
@@ -23,6 +22,30 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --locked \
   --features full \
   --test sync_oneshot
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_watch
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_broadcast
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_mpsc
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_mpsc_weak
 
 # Exercise only the SetOnce and oneshot loom modules. `test-util` is needed
 # because Tokio's cfg(loom) lib-test module also compiles paused-time helpers.
@@ -39,6 +62,36 @@ RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-oneshot" cargo te
   --features full,test-util \
   --lib \
   loom_oneshot
+
+# The full upstream watch and mpsc loom modules have deliberately explosive
+# scheduler searches. Verus proves their protocol state spaces; these bounded
+# exact cases connect the important production races without making the
+# integrated run unbounded in practice.
+run_loom_exact() {
+  local target_name="$1"
+  local test_name="$2"
+  RUSTFLAGS="--cfg=loom" LOOM_MAX_PREEMPTIONS=2 \
+    CARGO_TARGET_DIR="$rust_target_dir/$target_name" cargo test \
+    --manifest-path "$script_dir/Cargo.toml" \
+    --locked \
+    --features full,test-util \
+    --lib \
+    "$test_name" \
+    -- \
+    --exact
+}
+
+run_loom_exact loom-watch sync::tests::loom_watch::smoke
+run_loom_exact loom-watch sync::tests::loom_watch::multiple_sender_drop_concurrently
+run_loom_exact loom-watch sync::tests::loom_watch::wait_for_returns_correct_value
+
+run_loom_exact loom-broadcast sync::tests::loom_broadcast::broadcast_wrap
+run_loom_exact loom-broadcast sync::tests::loom_broadcast::broadcast_two
+run_loom_exact loom-broadcast sync::tests::loom_broadcast::drop_rx
+
+run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_tx
+run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_unbounded_tx
+run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_and_sending
 
 # Compile the existing positive and negative Send/Sync/Unpin assertions for
 # Sender, Receiver, and Sender::closed without running unrelated tests.

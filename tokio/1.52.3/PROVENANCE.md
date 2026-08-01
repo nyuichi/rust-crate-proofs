@@ -13,6 +13,12 @@ cleanup, and destructor-state behavior are body-proved models. The production
 payload slot is isolated behind the matching operation-specific adapter and the
 connection is exercised by targeted runtime, loom, trait, and mutation checks.**
 
+**Channel expansion status: watch generation/closure, broadcast logical ring
+and lag, and mpsc capacity plus local FIFO/close protocols are now body-proved
+models and connected to targeted production tests. Mpsc raw block-list
+allocation/reclamation remains partial. See
+[`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md) for the exact boundaries.**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.
@@ -322,24 +328,41 @@ body, are declared as explicit external boundaries. Its expected result is
 `0 verified, 0 errors`; this is a translation connection probe, not a body
 proof. The probe README records the exact exclusions and removal requirements.
 
+## Watch, broadcast, and mpsc expansion
+
+The follow-on channel work raises the integrated Verus result to 242 verified
+bodies. It reuses the publication, ownership, register/recheck, endpoint-count,
+and cleanup patterns established for SetOnce and oneshot. Watch adds independent
+Receiver generations; broadcast adds bounded ring generations and lag recovery;
+mpsc adds linear permits and FIFO claim-versus-publication ordering.
+
+These models are intentionally split at production's foundational interfaces.
+They do not claim direct verification of RwLock/Mutex, BigNotify/AtomicWaker,
+intrusive waiters, arbitrary Clone/destructor execution, wrapping integer
+representations, or mpsc raw block allocation and reclamation. The exact proved
+transitions, tests, exclusions, and removal conditions are recorded in
+[`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md).
+
 ## Reproduction
 
 Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 
-1. runs the upstream `sync_set_once` and `sync_oneshot` integration targets
-   with `full` features;
-2. runs the `loom_set_once` and `loom_oneshot` model-test modules with
-   `full,test-util` features;
+1. runs the exact SetOnce, oneshot, watch, broadcast, mpsc, and mpsc-weak
+   integration targets;
+2. runs the full SetOnce and oneshot loom modules plus nine bounded exact loom
+   cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies the nested SetOnce, publication, and oneshot models with the locked
-   vstd revision;
+5. verifies 242 nested SetOnce, publication, oneshot, watch, broadcast, and
+   mpsc model bodies with the locked vstd revision;
 6. checks the erased loom-cell proof-view layout;
 7. runs the oneshot polling connection probe.
 
 The integrated SetOnce target currently contains 24 ordinary tests and eight
 loom model tests. The oneshot target contains 24 ordinary tests and eight loom
-model tests. [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) and
+model tests. The expansion adds 22 watch tests, 32 broadcast tests, 100 mpsc
+tests, 28 mpsc weak-Sender tests, and nine bounded exact loom cases.
+[`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) and
 [`ONESHOT-MUTATION-AUDIT.md`](ONESHOT-MUTATION-AUDIT.md) record separate
 destructive-copy audits; mutations are intentionally not rerun by
 `verify-all.bash`.
