@@ -66,6 +66,11 @@ lag-cursor and remaining-reader mutations.
 - all values precede the final Sender close marker;
 - the mandatory pop, AtomicWaker registration, pop-again polling shape.
 
+`mpsc_completion` lifts the local proof to arbitrary logical slot ownership
+using tracked claimed/ready/consumed sets, specifies the all-consumed condition
+for block reclamation, proves reserve-many iterator conservation, and proves
+that weak Senders cannot resurrect a channel after the final strong Sender.
+
 The two-slot executable queue is a local proof of the production block-list
 ordering rule, not a proof of arbitrary raw block allocation and reclamation.
 Block pointers, index wrapping, block reuse, Semaphore/AtomicWaker execution,
@@ -75,12 +80,15 @@ adapters. The ordinary mpsc target has 100 tests and its weak-Sender target has
 send-versus-Receiver-close race. The upstream `try_recv` loom case is excluded
 from integration after its scheduler search exceeded one minute; ordinary
 tests and the deterministic Busy/FIFO proof cover its channel-specific logic.
+[`MPSC-MUTATION-AUDIT.md`](MPSC-MUTATION-AUDIT.md) records three independently
+rejected mutations for recheck, capacity return, and weak upgrade.
 
 ## Status terminology
 
-Watch's generation protocol and broadcast's logical ring protocol are proved
-under the adapters listed above. Mpsc's permit lifecycle and local FIFO/close
-ordering are proved, but the arbitrary-length lock-free block list is only
-represented by a two-slot refinement. Therefore this work is a substantial
-channel-core milestone, not a complete end-to-end proof of all three
-production modules.
+Watch's generation protocol, broadcast's logical ring protocol, and mpsc's
+arbitrary logical slot ownership, permits, close ordering, and reclamation
+precondition are proved under the adapters listed above. The raw block pointer
+representation is connected through the exact-value two-slot refinement and
+production tests, while pointer validity and allocation remain the declared
+common adapter. This is scoped channel-protocol completion, not a no-trust
+proof of the foundational runtime implementations.

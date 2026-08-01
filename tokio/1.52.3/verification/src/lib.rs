@@ -6,6 +6,7 @@ pub mod broadcast_completion;
 pub mod broadcast_protocol;
 pub mod intrusive_waiters;
 pub mod linearizability;
+pub mod mpsc_completion;
 pub mod mpsc_protocol;
 pub mod notified_core;
 pub mod notify_guard;
