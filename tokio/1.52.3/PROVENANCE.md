@@ -21,6 +21,12 @@ validity and allocation remain common runtime adapters; the channel-specific
 reclamation precondition is proved. See
 [`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md) for the exact boundaries.**
 
+**Sync primitive expansion: Semaphore and batch_semaphore protocol verification
+is integrated. Permit conservation, FIFO head blocking, partial assignment,
+cancellation return, close, and borrowed/owned permit transformations are
+body-proved above the frozen common foundation. See
+[`SYNC-PRIMITIVES-VERIFICATION.md`](SYNC-PRIMITIVES-VERIFICATION.md).**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.
