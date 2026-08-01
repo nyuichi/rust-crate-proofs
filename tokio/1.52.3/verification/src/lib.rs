@@ -2,6 +2,7 @@
 
 use vstd::prelude::*;
 
+pub mod broadcast_completion;
 pub mod broadcast_protocol;
 pub mod intrusive_waiters;
 pub mod linearizability;

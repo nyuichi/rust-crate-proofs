@@ -41,11 +41,17 @@ mutation.
 - recovery to the oldest retained position after lag;
 - last-Sender and last-Receiver closure plus resubscription.
 
+`broadcast_completion` additionally proves arbitrary-length Receiver draining
+with one cursor invariant, Clone-success/panic guard release, and intrusive
+waiter membership/Waker replacement at the non-pointer protocol level.
+
 The logical proof uses non-wrapping positions. Production u64 wrapping, Mutex
 and atomic implementations, `T::clone` execution, intrusive waiter links, and
 Waker delivery remain adapters. The integration target has 32 tests. Three
 bounded loom cases cover ring overwrite/lag, two Receiver value delivery, and
 Receiver drop while values remain.
+[`BROADCAST-MUTATION-AUDIT.md`](BROADCAST-MUTATION-AUDIT.md) records rejected
+lag-cursor and remaining-reader mutations.
 
 ## mpsc
 
