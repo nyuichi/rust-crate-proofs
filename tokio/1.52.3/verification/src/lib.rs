@@ -12,6 +12,7 @@ pub mod mpsc_completion;
 pub mod mpsc_protocol;
 pub mod notified_core;
 pub mod notify_protocol;
+pub mod notify_refinement;
 pub mod notify_guard;
 pub mod oneshot_atomic;
 pub mod oneshot_closed;

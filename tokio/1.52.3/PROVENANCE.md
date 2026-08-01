@@ -35,6 +35,12 @@ try-acquire, forget, release, and the reversed intrusive FIFO convention are
 proved against their exact production formulas. Only raw atomic execution and
 pointer validity remain in the frozen foundation.**
 
+**Notify production refinement: the exact generation/state word, increment by
+four with generation wrap, stored-permit preservation, locked notify-one state
+repair, and broadcast-before-permit poll ordering are proved. Raw atomic and
+mutex execution, intrusive pointers, and Waker execution remain frozen
+foundation adapters.**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.

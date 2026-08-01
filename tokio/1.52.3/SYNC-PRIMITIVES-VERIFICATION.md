@@ -67,11 +67,22 @@ replacement, guarded broadcast-list ownership, and unlink-before-publication.
   marker using its original FIFO/LIFO strategy;
 - identical borrowed `Notified` and Arc-owned `OwnedNotified` logical behavior.
 
-The production state-word atomics, mutex, intrusive pointer representation,
+`notify_refinement` additionally proves the production state-word formulas:
+
+- the upper `notify_waiters` call count and the EMPTY/WAITING/NOTIFIED low bits;
+- increment-by-four and machine-word generation wrap without corrupting state;
+- preservation of an already stored notify-one permit across a broadcast;
+- exact locked notify-one selection and final-waiter state repair;
+- first-poll branch priority: a newer broadcast is observed before consuming a
+  stored permit.
+
+The raw state-word atomic operation, mutex, intrusive pointer representation,
 Pin/Poll/Context/Waker operations, and arbitrary waker destruction remain the
-declared common adapters. The integrated run includes both public Notify test
-suites and bounded exact loom races for notify-one, broadcast, and cancellation
-forwarding/drop.
+declared common adapters. The Tokio-specific values and branch ordering around
+those adapters are directly refined. The integrated run includes both public
+Notify test suites and bounded exact loom races for notify-one, broadcast, and
+cancellation forwarding/drop. [`NOTIFY-MUTATION-AUDIT.md`](NOTIFY-MUTATION-AUDIT.md)
+records the rejected state-word and poll-order mutations.
 
 ## Barrier
 
