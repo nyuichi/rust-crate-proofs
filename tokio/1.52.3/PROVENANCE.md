@@ -21,10 +21,11 @@ validity and allocation remain common runtime adapters; the channel-specific
 reclamation precondition is proved. See
 [`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md) for the exact boundaries.**
 
-**Sync primitive expansion: Semaphore and batch_semaphore protocol verification
-is integrated. Permit conservation, FIFO head blocking, partial assignment,
-cancellation return, close, and borrowed/owned permit transformations are
-body-proved above the frozen common foundation. See
+**Sync primitive expansion: Semaphore/batch_semaphore and Notify protocol
+verification is integrated. Permit conservation, FIFO head blocking, partial
+assignment, cancellation return, close, permit transformations, Notify's
+stored permit, FIFO/LIFO selection, broadcast generation, enable, and
+cancellation forwarding are body-proved above the frozen common foundation. See
 [`SYNC-PRIMITIVES-VERIFICATION.md`](SYNC-PRIMITIVES-VERIFICATION.md).**
 
 This source tree is copied from the `tokio` 1.52.3 package published on

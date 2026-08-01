@@ -59,6 +59,18 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full,test-util \
   --test sync_semaphore_owned
 
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_notify
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_notify_owned
+
 # Exercise only the SetOnce and oneshot loom modules. `test-util` is needed
 # because Tokio's cfg(loom) lib-test module also compiles paused-time helpers.
 RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-set-once" cargo test \
@@ -108,6 +120,10 @@ run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_and_sending
 run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::basic_usage
 run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::concurrent_cancel
 run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::batch
+
+run_loom_exact loom-notify sync::tests::loom_notify::notify_one
+run_loom_exact loom-notify sync::tests::loom_notify::notify_waiters
+run_loom_exact loom-notify sync::tests::loom_notify::notify_drop
 
 # Compile the existing positive and negative Send/Sync/Unpin assertions for
 # Sender, Receiver, and Sender::closed without running unrelated tests.

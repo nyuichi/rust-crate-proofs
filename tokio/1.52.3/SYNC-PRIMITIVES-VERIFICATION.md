@@ -40,3 +40,25 @@ concurrent cancellation, and multi-permit FIFO assignment.
 
 This is scoped completion of the logical Semaphore protocol, not yet a direct
 translation of the production bodies into Verus.
+
+## Notify
+
+The earlier `NotifiedCore` and `IntrusiveWaiters` proofs establish each
+future's Init/Waiting/Done/drop lifecycle, generation rechecks, waker
+replacement, guarded broadcast-list ownership, and unlink-before-publication.
+`notify_protocol` now closes the remaining global public protocol by proving:
+
+- the single stored notify-one permit and coalescing of repeated notifications;
+- exact FIFO `notify_one` and LIFO `notify_last` selection;
+- `enable`/first-poll priority for a newer broadcast generation over a stored
+  permit;
+- atomic `notify_waiters` generation advance and arbitrary-length queue drain;
+- cancellation of a waiting node and forwarding of an unconsumed notify-one
+  marker using its original FIFO/LIFO strategy;
+- identical borrowed `Notified` and Arc-owned `OwnedNotified` logical behavior.
+
+The production state-word atomics, mutex, intrusive pointer representation,
+Pin/Poll/Context/Waker operations, and arbitrary waker destruction remain the
+declared common adapters. The integrated run includes both public Notify test
+suites and bounded exact loom races for notify-one, broadcast, and cancellation
+forwarding/drop.
