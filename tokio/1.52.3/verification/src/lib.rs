@@ -4,6 +4,7 @@ use vstd::prelude::*;
 
 pub mod broadcast_completion;
 pub mod broadcast_protocol;
+pub mod atomic_waker_protocol;
 pub mod intrusive_waiters;
 pub mod linearizability;
 pub mod mpsc_completion;

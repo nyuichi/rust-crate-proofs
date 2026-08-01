@@ -62,3 +62,22 @@ Pin/Poll/Context/Waker operations, and arbitrary waker destruction remain the
 declared common adapters. The integrated run includes both public Notify test
 suites and bounded exact loom races for notify-one, broadcast, and cancellation
 forwarding/drop.
+
+## AtomicWaker
+
+`atomic_waker_protocol` body-proves the Tokio-specific two-bit protocol:
+
+- the exact WAITING, REGISTERING, REGISTERING|WAKING, and WAKING states;
+- exclusive logical ownership of the optional waker slot;
+- replacement by a successful registration and preservation after a panicking
+  waker clone;
+- wake taking a registered value at most once;
+- wake racing with registration is completed by the registering thread;
+- registration racing with an active wake directly wakes its input;
+- redundant wake and competing-register paths cannot access the slot;
+- every critical-section path restores WAITING.
+
+This proves the wake-state algorithm, not Waker callback execution or the Rust
+atomic memory model. Those are explicitly frozen adapters. The integrated run
+adds Tokio's ordinary AtomicWaker tests and bounded exact loom cases for
+multiple racing notifications and a panicking waker clone.
