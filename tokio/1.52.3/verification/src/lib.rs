@@ -2,8 +2,8 @@
 
 use vstd::prelude::*;
 
-pub mod linearizability;
 pub mod intrusive_waiters;
+pub mod linearizability;
 pub mod notified_core;
 pub mod notify_guard;
 pub mod oneshot_atomic;
@@ -19,6 +19,7 @@ pub mod tokio_loom_cell;
 pub mod trait_views;
 pub mod unwind;
 pub mod wait_protocol;
+pub mod watch_protocol;
 pub mod writer_lease;
 
 verus! {
