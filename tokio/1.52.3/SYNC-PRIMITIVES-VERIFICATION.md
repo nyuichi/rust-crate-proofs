@@ -129,7 +129,20 @@ production mutations.
 - redundant wake and competing-register paths cannot access the slot;
 - every critical-section path restores WAITING.
 
-This proves the wake-state algorithm, not Waker callback execution or the Rust
-atomic memory model. Those are explicitly frozen adapters. The integrated run
-adds Tokio's ordinary AtomicWaker tests and bounded exact loom cases for
-multiple racing notifications and a panicking waker clone.
+`atomic_waker_refinement` additionally proves the literal production values
+WAITING=0, REGISTERING=1, WAKING=2, and REGISTERING|WAKING=3, including:
+
+- the complete `compare_exchange(WAITING, REGISTERING)` result table;
+- the complete `fetch_or(WAKING)` table and which result alone owns the slot;
+- the release-CAS/swap return branches and final WAITING restoration;
+- preservation of the old slot when Waker cloning panics;
+- exact callback ownership in the register+wake race: on successful
+  replacement both the displaced old Waker and the new Waker are consumed,
+  while the panic branch consumes the old Waker before resuming the panic.
+
+This proves the wake-state algorithm and callback identities, not Waker callback
+execution or the Rust atomic memory model. Those are explicitly frozen
+adapters. The integrated run adds Tokio's ordinary AtomicWaker tests and
+bounded exact loom cases for multiple racing notifications and a panicking
+waker clone. [`ATOMIC-WAKER-MUTATION-AUDIT.md`](ATOMIC-WAKER-MUTATION-AUDIT.md)
+records the rejected bit, lock-ownership, and unwind mutations.
