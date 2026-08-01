@@ -5,6 +5,7 @@ use vstd::prelude::*;
 pub mod broadcast_protocol;
 pub mod intrusive_waiters;
 pub mod linearizability;
+pub mod mpsc_protocol;
 pub mod notified_core;
 pub mod notify_guard;
 pub mod oneshot_atomic;
