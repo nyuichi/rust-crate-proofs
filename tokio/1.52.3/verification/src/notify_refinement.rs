@@ -48,9 +48,10 @@ impl EncodedNotifyWord {
         no_unwind
     { self.state = state; }
 
-    /// Both `fetch_add(4)` and the locked `data + 4` represent this wrapping
-    /// generation advance. Draining a WAITING list transitions it to EMPTY;
-    /// EMPTY and a stored NOTIFIED permit are preserved.
+    /// Abstract wrapping generation advance. Production `fetch_add(4)` has
+    /// this behavior. The locked WAITING expression `data + 4` refines it only
+    /// below the terminal call count: with overflow checks enabled that
+    /// expression panics at the terminal value instead of wrapping.
     pub fn notify_waiters(&mut self)
         requires old(self).well_formed(),
         ensures
@@ -139,6 +140,14 @@ pub fn verify_notify_word_wrap_preserves_permit()
     assert(word.calls() == 0);
     assert(word.state() == NotifyWordState::Notified);
     assert(word.raw() == 2);
+}
+
+pub proof fn verify_locked_waiting_increment_boundary()
+{
+    let terminal_calls = usize::MAX as nat / 4;
+    let waiting_raw = 4nat * terminal_calls + 1nat;
+    assert(waiting_raw <= usize::MAX as nat);
+    assert(waiting_raw + 4nat > usize::MAX as nat);
 }
 
 pub proof fn verify_notify_mutants_rejected()

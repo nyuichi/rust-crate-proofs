@@ -67,14 +67,23 @@ replacement, guarded broadcast-list ownership, and unlink-before-publication.
   marker using its original FIFO/LIFO strategy;
 - identical borrowed `Notified` and Arc-owned `OwnedNotified` logical behavior.
 
-`notify_refinement` additionally proves the production state-word formulas:
+`notify_refinement` additionally proves the production state-word formulas
+below the terminal call-count value, plus the wrapping abstract transition:
 
 - the upper `notify_waiters` call count and the EMPTY/WAITING/NOTIFIED low bits;
-- increment-by-four and machine-word generation wrap without corrupting state;
+- increment-by-four without corrupting state and the intended wrapping result;
 - preservation of an already stored notify-one permit across a broadcast;
 - exact locked notify-one selection and final-waiter state repair;
 - first-poll branch priority: a newer broadcast is observed before consuming a
   stored permit.
+
+This is partial rather than complete production refinement. In production the
+EMPTY/NOTIFIED path uses wrapping atomic `fetch_add(4)`, but the WAITING path
+computes ordinary `data + 4`. At call count `usize::MAX / 4`, the latter panics
+when overflow checks are enabled; without them it wraps and a future whose
+snapshot spans the complete counter period cannot distinguish the broadcast.
+The wrapping proof therefore specifies the intended/release transition and is
+not evidence that the checked WAITING expression is total.
 
 The raw state-word atomic operation, mutex, intrusive pointer representation,
 Pin/Poll/Context/Waker operations, and arbitrary waker destruction remain the
@@ -82,7 +91,8 @@ declared common adapters. The Tokio-specific values and branch ordering around
 those adapters are directly refined. The integrated run includes both public
 Notify test suites and bounded exact loom races for notify-one, broadcast, and
 cancellation forwarding/drop. [`NOTIFY-MUTATION-AUDIT.md`](NOTIFY-MUTATION-AUDIT.md)
-records the rejected state-word and poll-order mutations.
+records the rejected state-word and poll-order mutations, the checked-overflow
+counterexample, and the complete-cycle ABA boundary.
 
 ## Barrier
 

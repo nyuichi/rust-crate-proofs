@@ -16,12 +16,20 @@ exact Tokio integration and bounded loom cases in `verify-all.bash`.
 - closure only by the final Sender, and reopening by subscription while a
   Sender remains.
 
-`watch_completion` additionally proves the exact closed-bit/even-version
-encoding including wrap, modified/unmodified/panicking update outcomes,
-publication-before-notification, and composition with the Receiver recheck.
+`watch_completion` and `watch_refinement` additionally prove the exact
+closed-bit/even-version encoding including wrap, arbitrary post-update values
+for modified/unmodified/panicking closure outcomes, the separate lock-held
+publication and post-unlock notification phases, circular shard selection,
+all-eight BigNotify call-generation fanout, registration snapshots, repeated
+notification, and latest-version recheck after multiple publications.
 
-The production representation's low closed bit, wrapping version arithmetic,
-RwLock guards, BigNotify selection, and future/Waker execution remain adapters.
+The production RwLock and future/Waker execution remain frozen adapters. Full
+machine-word cycles remain explicit ABA boundaries for both the watch version
+and a newly-created Notify future's call-generation snapshot. Additionally,
+Notify's production WAITING counter increment panics at its terminal value in
+overflow-checking builds, whereas the abstract shard model wraps. Predicate
+orchestration in `wait_for`, endpoint/refcount/closed registration races, and
+the RNG-backed selector's connection to U02 remain production-refinement gaps.
 The integration target has 22 tests. Three bounded loom cases cover
 multi-Receiver publication, concurrent final-Sender drop, and value/lock
 consistency. The upstream `wait_for_test` scheduler search is intentionally not

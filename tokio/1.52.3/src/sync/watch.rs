@@ -423,6 +423,43 @@ mod big_notify {
             self.inner[i].notified()
         }
     }
+
+    #[cfg(test)]
+    mod verification_tests {
+        use super::BigNotify;
+        use tokio_test::{assert_pending, assert_ready};
+
+        fn exercise_every_shard() {
+            let notify = BigNotify::new();
+            let mut waiters: Vec<_> = notify
+                .inner
+                .iter()
+                .map(|shard| tokio_test::task::spawn(shard.notified()))
+                .collect();
+
+            for waiter in &mut waiters {
+                assert_pending!(waiter.poll());
+            }
+
+            notify.notify_waiters();
+
+            for waiter in &mut waiters {
+                assert_ready!(waiter.poll());
+            }
+        }
+
+        #[cfg(not(loom))]
+        #[test]
+        fn watch_big_notify_reaches_every_shard() {
+            exercise_every_shard();
+        }
+
+        #[cfg(loom)]
+        #[test]
+        fn watch_big_notify_loom_reaches_every_shard() {
+            loom::model(exercise_every_shard);
+        }
+    }
 }
 
 use self::state::{AtomicState, Version};
@@ -511,6 +548,35 @@ mod state {
         /// Set the closed bit in the state.
         pub(super) fn set_closed(&self) {
             self.0.fetch_or(CLOSED_BIT, Ordering::Release);
+        }
+    }
+
+    #[cfg(test)]
+    mod verification_tests {
+        use super::{AtomicState, AtomicUsize, Version};
+
+        #[test]
+        fn watch_state_wrap_preserves_closed_bit_and_even_version() {
+            let state = AtomicState(AtomicUsize::new(usize::MAX - 1));
+            state.increment_version_while_locked();
+
+            let wrapped = state.load();
+            assert_eq!(wrapped.version(), Version::INITIAL);
+            assert!(!wrapped.is_closed());
+
+            state.set_closed();
+            state.increment_version_while_locked();
+
+            let after_closed_increment = state.load();
+            assert_eq!(after_closed_increment.version(), Version(2));
+            assert!(after_closed_increment.is_closed());
+        }
+
+        #[test]
+        fn watch_mark_changed_wraps_to_previous_even_version() {
+            let mut version = Version::INITIAL;
+            version.decrement();
+            assert_eq!(version, Version(usize::MAX - 1));
         }
     }
 }

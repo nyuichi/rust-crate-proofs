@@ -1,4 +1,3 @@
-use crate::watch_protocol::{WatchChange, WatchReceiver};
 use vstd::prelude::*;
 
 verus! {
@@ -77,24 +76,42 @@ impl EncodedWatchState {
     }
 }
 
-/// RwLock-independent exact-value view of all watch update forms. A user
-/// closure may mutate before returning false or panicking. Both outcomes expose
-/// the new value but do not advance the generation and do not notify.
+/// Owned phase witness returned by a successful lock-held publication. Caller
+/// proofs use it to record the generation before modeling the distinct
+/// post-unlock `BigNotify::notify_waiters` call. This ordinary exec value does
+/// not by itself enforce fanout at the Rust type level.
+pub struct WatchNotification {
+    generation: usize,
+}
+
+impl WatchNotification {
+    pub closed spec fn generation(&self) -> usize { self.generation }
+
+    pub fn complete(self) -> (generation: usize)
+        ensures generation == self.generation(),
+        no_unwind
+    {
+        self.generation
+    }
+}
+
+/// RwLock-independent exact-value view of the lock-held phase of every watch
+/// update form. The caller supplies the arbitrary post-closure value and
+/// outcome. False-returning and panicking closures may therefore mutate the
+/// value, but neither advances the generation nor creates a notification
+/// phase witness.
 pub struct WatchUpdate<T> {
     value: T,
     state: EncodedWatchState,
-    notified_generation: usize,
 }
 
 impl<T> WatchUpdate<T> {
     pub closed spec fn value(&self) -> T { self.value }
     pub closed spec fn generation(&self) -> usize { self.state.generation() }
     pub closed spec fn closed(&self) -> bool { self.state.closed() }
-    pub closed spec fn notified_generation(&self) -> usize { self.notified_generation }
 
     pub closed spec fn well_formed(&self) -> bool {
-        &&& self.state.well_formed()
-        &&& self.notified_generation() <= self.generation()
+        self.state.well_formed()
     }
 
     pub fn new(value: T) -> (result: Self)
@@ -102,31 +119,34 @@ impl<T> WatchUpdate<T> {
             result.well_formed(),
             result.value() == value,
             result.generation() == 0,
-            result.notified_generation() == 0,
             !result.closed(),
         no_unwind
     {
-        WatchUpdate { value, state: EncodedWatchState::new(), notified_generation: 0 }
+        WatchUpdate { value, state: EncodedWatchState::new() }
     }
 
-    /// Models the closure result after releasing neither the value write lock
-    /// nor any notification. `previous` makes ownership conservation explicit.
-    pub fn apply_update(&mut self, value: T, kind: WatchUpdateKind) -> (previous: T)
-        requires
-            old(self).well_formed(),
-            old(self).generation() < usize::MAX / 2,
+    /// Phase 1: mutate under the production write lock and, on a true closure
+    /// result, advance the encoded version before unlocking. Notification is
+    /// deliberately absent from this method.
+    pub fn apply_update_under_lock(&mut self, value: T, kind: WatchUpdateKind)
+        -> (result: (T, Option<WatchNotification>))
+        requires old(self).well_formed(),
         ensures
             final(self).well_formed(),
-            previous == old(self).value(),
+            result.0 == old(self).value(),
             final(self).value() == value,
-            kind == WatchUpdateKind::Modified ==>
+            kind == WatchUpdateKind::Modified
+                && old(self).generation() < usize::MAX / 2 ==>
                 final(self).generation() == old(self).generation() + 1,
-            kind == WatchUpdateKind::Modified ==>
-                final(self).notified_generation() == final(self).generation(),
+            kind == WatchUpdateKind::Modified
+                && old(self).generation() == usize::MAX / 2 ==>
+                final(self).generation() == 0,
             kind != WatchUpdateKind::Modified ==>
                 final(self).generation() == old(self).generation(),
-            kind != WatchUpdateKind::Modified ==>
-                final(self).notified_generation() == old(self).notified_generation(),
+            kind == WatchUpdateKind::Modified ==> result.1.is_some(),
+            kind == WatchUpdateKind::Modified ==>
+                result.1.unwrap().generation() == final(self).generation(),
+            kind != WatchUpdateKind::Modified ==> result.1.is_none(),
             final(self).closed() == old(self).closed(),
         no_unwind
     {
@@ -136,22 +156,16 @@ impl<T> WatchUpdate<T> {
                 generation: self.state.generation,
                 closed: self.state.closed,
             },
-            notified_generation: self.notified_generation,
         };
         core::mem::swap(&mut self.value, &mut replacement.value);
-        match kind {
+        let notification = match kind {
             WatchUpdateKind::Modified => {
-                let previous_generation = self.state.generation;
                 self.state.advance();
-                assert(self.state.generation == previous_generation + 1);
-                // Production releases the write lock after advancing the state and
-                // only then calls notify_waiters. This assignment is that linear
-                // notification phase in the proof view.
-                self.notified_generation = self.state.generation;
+                Some(WatchNotification { generation: self.state.generation })
             },
-            WatchUpdateKind::Unmodified | WatchUpdateKind::Panicked => {},
-        }
-        replacement.value
+            WatchUpdateKind::Unmodified | WatchUpdateKind::Panicked => None,
+        };
+        (replacement.value, notification)
     }
 
     pub fn close(&mut self)
@@ -161,7 +175,6 @@ impl<T> WatchUpdate<T> {
             final(self).closed(),
             final(self).value() == old(self).value(),
             final(self).generation() == old(self).generation(),
-            final(self).notified_generation() == old(self).notified_generation(),
         no_unwind
     {
         self.state.close();
@@ -177,35 +190,32 @@ impl<T> WatchUpdate<T> {
     }
 }
 
-pub fn verify_watch_modified_reaches_registered_receiver(first: u64, second: u64)
+pub fn verify_watch_modified_creates_post_unlock_phase(first: u64, second: u64)
 {
     let mut channel = WatchUpdate::new(first);
-    let mut receiver = WatchReceiver::new(0);
-    let initial = receiver.begin_changed(0, false);
-    assert(initial == WatchChange::Pending);
-    let previous = channel.apply_update(second, WatchUpdateKind::Modified);
+    let (previous, notification) = channel.apply_update_under_lock(
+        second, WatchUpdateKind::Modified);
     assert(previous == first);
-    let completed = receiver.finish_registration(
-        channel.state.generation as u64,
-        channel.state.closed,
-    );
-    assert(completed == WatchChange::Changed);
+    assert(notification.is_some());
+    let published = notification.unwrap().complete();
+    assert(published == channel.generation());
     let observed = channel.snapshot();
     assert(observed == second);
-    assert(channel.notified_generation() == channel.generation());
 }
 
 pub fn verify_watch_unmodified_and_panic_do_not_notify(first: u64, changed: u64)
 {
     let mut channel = WatchUpdate::new(first);
-    let previous = channel.apply_update(changed, WatchUpdateKind::Unmodified);
+    let (previous, unmodified_notification) = channel.apply_update_under_lock(
+        changed, WatchUpdateKind::Unmodified);
     assert(previous == first);
     assert(channel.generation() == 0);
-    assert(channel.notified_generation() == 0);
-    let after_silent_change = channel.apply_update(first, WatchUpdateKind::Panicked);
+    assert(unmodified_notification.is_none());
+    let (after_silent_change, panic_notification) = channel.apply_update_under_lock(
+        first, WatchUpdateKind::Panicked);
     assert(after_silent_change == changed);
     assert(channel.generation() == 0);
-    assert(channel.notified_generation() == 0);
+    assert(panic_notification.is_none());
 }
 
 pub fn verify_watch_wrapping_preserves_closed_bit()

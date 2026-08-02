@@ -33,6 +33,7 @@ pub mod unwind;
 pub mod wait_protocol;
 pub mod watch_completion;
 pub mod watch_protocol;
+pub mod watch_refinement;
 pub mod writer_lease;
 
 verus! {

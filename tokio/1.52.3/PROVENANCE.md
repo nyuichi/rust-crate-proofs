@@ -370,11 +370,16 @@ Receiver generations; broadcast adds bounded ring generations and lag recovery;
 mpsc adds linear permits and FIFO claim-versus-publication ordering.
 
 These models are intentionally split at production's foundational interfaces.
-They do not claim direct verification of RwLock/Mutex, BigNotify/AtomicWaker,
+They do not claim direct verification of RwLock/Mutex or the foundational
+AtomicWaker machinery,
 raw intrusive links, arbitrary Clone/destructor execution, or raw mpsc block
 allocation and pointer validity. Wrapping state behavior, logical waiter
 membership, arbitrary slot ownership, and the all-consumed reclamation
-condition are proved above those adapters. The exact transitions, tests,
+condition are proved above those adapters. Watch now additionally refines
+BigNotify's eight-shard loop, circular selector arithmetic, per-shard call
+generations, registration snapshots, and repeated fanout; Notify's terminal
+checked-overflow and complete-cycle ABA remain explicit production boundaries.
+The exact transitions, tests,
 exclusions, and removal conditions are recorded in
 [`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md).
 
@@ -384,11 +389,11 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 
 1. runs the exact SetOnce, oneshot, watch, broadcast, mpsc, and mpsc-weak
    integration targets;
-2. runs the full SetOnce and oneshot loom modules plus nine bounded exact loom
+2. runs the full SetOnce and oneshot loom modules plus ten bounded exact loom
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 378 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 407 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;
@@ -397,7 +402,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 The integrated SetOnce target currently contains 24 ordinary tests and eight
 loom model tests. The oneshot target contains 24 ordinary tests and eight loom
 model tests. The expansion adds 22 watch tests, 32 broadcast tests, 100 mpsc
-tests, 28 mpsc weak-Sender tests, and nine bounded exact loom cases.
+tests, 28 mpsc weak-Sender tests, and ten bounded exact loom cases.
 [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) and
 [`ONESHOT-MUTATION-AUDIT.md`](ONESHOT-MUTATION-AUDIT.md) record separate
 destructive-copy audits; mutations are intentionally not rerun by
