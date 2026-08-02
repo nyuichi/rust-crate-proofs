@@ -250,7 +250,7 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --locked \
   --features full,test-util \
   --lib \
-  sync::barrier::tests::generation_wraps_without_panicking
+  sync::barrier::tests::
 
 # Exercise only the SetOnce and oneshot loom modules. `test-util` is needed
 # because Tokio's cfg(loom) lib-test module also compiles paused-time helpers.

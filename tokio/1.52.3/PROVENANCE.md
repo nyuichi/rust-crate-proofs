@@ -51,11 +51,16 @@ broadcast-before-permit poll ordering are proved. Raw atomic and
 mutex execution, intrusive pointers, and Waker execution remain frozen
 foundation adapters.**
 
-**Barrier production refinement: exact arrived/generation transitions, leader
-publication, reset, follower comparison, and machine-word rollover are proved.
-Production uses explicit wrapping generation advance so debug and release
-behavior agree; Mutex/watch execution and scheduler liveness remain frozen
-foundation adapters.**
+**Barrier current closure: exact arrived/generation transitions, leader
+publication, reset, follower comparison, cancellation, and public result
+mapping are proved. Cohort admission reserves one S03 update and every private
+Receiver credit before the first arrival mutates state; exhaustion panics at a
+clean boundary and an admitted cohort cannot fail midway. S03's terminal gate
+prevents generation reuse, with Barrier generation proved exactly one above
+the cumulative watch update count throughout the reachable range. The leader
+boolean/result mapping is body-proved; Debug/Clone behavior and auto traits are
+runtime/compile evidence. Mutex/watch execution and scheduler liveness remain
+frozen foundation adapters.**
 
 **AtomicWaker production refinement: exact two-bit CAS/fetch-or/swap result
 tables, slot-lock ownership, clone-panic restoration, and both callback
@@ -593,7 +598,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 886 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 904 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;
@@ -603,6 +608,9 @@ The integrated SetOnce target currently contains 24 ordinary tests and eight
 loom model tests. The oneshot target contains 24 ordinary tests and eight loom
 model tests. The expansion adds 22 watch tests, 32 broadcast tests, 100 mpsc
 tests, 28 mpsc weak-Sender tests, and ten bounded exact loom cases.
+The Barrier target contributes seven public tests plus four focused unit
+regressions for reachable terminal cohort admission/rejection and defensive
+generation arithmetic.
 [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) and
 [`ONESHOT-MUTATION-AUDIT.md`](ONESHOT-MUTATION-AUDIT.md) record separate
 destructive-copy audits; mutations are intentionally not rerun by

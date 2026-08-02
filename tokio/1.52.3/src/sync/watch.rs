@@ -338,10 +338,28 @@ impl<T> Shared<T> {
         }
     }
 
+    fn try_reserve_receiver_notifications(&self, additional: usize) -> bool {
+        let mut current = self.rx_notify_reservations.load(Relaxed);
+        loop {
+            let Some(next) = current.checked_add(additional) else {
+                return false;
+            };
+            if next > MAX_NOTIFY_WAITERS_CALLS {
+                return false;
+            }
+            match self
+                .rx_notify_reservations
+                .compare_exchange_weak(current, next, Relaxed, Relaxed)
+            {
+                Ok(_) => return true,
+                Err(actual) => current = actual,
+            }
+        }
+    }
+
     #[cfg(test)]
     fn set_receiver_reservations_for_test(&self, reservations: usize) {
-        self.rx_notify_reservations
-            .store(reservations, Relaxed);
+        self.rx_notify_reservations.store(reservations, Relaxed);
     }
 }
 
@@ -504,6 +522,8 @@ mod big_notify {
 }
 
 use self::state::{AtomicState, Version};
+#[cfg(all(test, not(loom)))]
+pub(crate) const BARRIER_MAX_WATCH_UPDATES_FOR_TEST: usize = state::MAX_WATCH_UPDATES;
 mod state {
     use super::MAX_NOTIFY_WAITERS_CALLS;
     use crate::loom::sync::atomic::AtomicUsize;
@@ -703,6 +723,17 @@ impl<T> Receiver<T> {
         shared.ref_count_rx.fetch_add(1, Relaxed);
 
         Self { shared, version }
+    }
+
+    /// Constructs a Receiver whose cumulative last-drop notification credit
+    /// was reserved by `Sender::try_reserve_barrier_cohort`.
+    pub(crate) fn clone_with_reserved_notification(&self) -> Self {
+        let shared = self.shared.clone();
+        shared.ref_count_rx.fetch_add(1, Relaxed);
+        Self {
+            shared,
+            version: self.version,
+        }
     }
 
     /// Returns a reference to the most recently sent value.
@@ -1145,6 +1176,35 @@ impl<T> Drop for Receiver<T> {
 }
 
 impl<T> Sender<T> {
+    /// Reserves the finite watch resources needed by one Barrier cohort.
+    ///
+    /// Barrier owns the channel's only Sender and serializes this call with
+    /// every publication. Therefore a successful update-capacity preflight
+    /// remains valid until that cohort publishes. Receiver construction
+    /// credits are claimed eagerly and consumed through
+    /// `Receiver::clone_with_reserved_notification`.
+    pub(crate) fn try_reserve_barrier_cohort(&self, receiver_credits: usize) -> bool {
+        if !self.shared.state.update_has_notify_reserve_while_locked() {
+            return false;
+        }
+        self.shared
+            .try_reserve_receiver_notifications(receiver_credits)
+    }
+
+    #[cfg(all(test, not(loom)))]
+    pub(crate) fn set_barrier_resources_for_test(
+        &self,
+        update_generation: usize,
+        receiver_reservations: usize,
+    ) {
+        self.shared.state.set_version_for_test(update_generation);
+        self.shared
+            .notify_rx
+            .set_notify_waiters_calls_for_test(update_generation);
+        self.shared
+            .set_receiver_reservations_for_test(receiver_reservations);
+    }
+
     /// Creates the sending-half of the [`watch`] channel.
     ///
     /// See documentation of [`watch::channel`] for errors when calling this function.
@@ -1654,9 +1714,7 @@ mod terminal_verification_tests {
     #[test]
     fn watch_last_update_preserves_final_sender_drop_notify_slot() {
         let (tx, rx) = channel("initial");
-        tx.shared
-            .state
-            .set_version_for_test(MAX_WATCH_UPDATES - 1);
+        tx.shared.state.set_version_for_test(MAX_WATCH_UPDATES - 1);
         tx.shared
             .notify_rx
             .set_notify_waiters_calls_for_test(MAX_WATCH_UPDATES - 1);
@@ -1784,12 +1842,10 @@ mod tests {
                 .shared
                 .set_receiver_reservations_for_test(super::MAX_NOTIFY_WAITERS_CALLS - 1);
 
-            let first = thread::spawn(move || {
-                catch_unwind(AssertUnwindSafe(|| send1.subscribe())).is_ok()
-            });
-            let second = thread::spawn(move || {
-                catch_unwind(AssertUnwindSafe(|| send2.subscribe())).is_ok()
-            });
+            let first =
+                thread::spawn(move || catch_unwind(AssertUnwindSafe(|| send1.subscribe())).is_ok());
+            let second =
+                thread::spawn(move || catch_unwind(AssertUnwindSafe(|| send2.subscribe())).is_ok());
 
             assert_ne!(first.join().unwrap(), second.join().unwrap());
             assert_eq!(recv.shared.ref_count_rx.load(super::Relaxed), 1);

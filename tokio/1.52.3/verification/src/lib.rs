@@ -4,6 +4,7 @@ use vstd::prelude::*;
 
 pub mod atomic_waker_protocol;
 pub mod atomic_waker_refinement;
+pub mod barrier_orchestration;
 pub mod barrier_protocol;
 pub mod barrier_refinement;
 pub mod blocking_recv_refinement;

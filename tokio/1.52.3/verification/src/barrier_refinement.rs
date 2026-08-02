@@ -26,6 +26,22 @@ impl BarrierMachine {
         self.parties() > 0 && self.arrived() < self.parties()
     }
 
+    pub fn parties_value(&self) -> (result: usize)
+        requires self.well_formed(),
+        ensures result == self.parties(), result > 0,
+        no_unwind
+    {
+        self.parties
+    }
+
+    pub fn arrived_value(&self) -> (result: usize)
+        requires self.well_formed(),
+        ensures result == self.arrived(),
+        no_unwind
+    {
+        self.arrived
+    }
+
     pub fn new(requested: usize) -> (result: Self)
         ensures
             result.well_formed(),
@@ -39,6 +55,18 @@ impl BarrierMachine {
             arrived: 0,
             generation: 1,
         }
+    }
+
+    pub fn at_boundary(parties: usize, generation: usize) -> (result: Self)
+        requires parties > 0,
+        ensures
+            result.well_formed(),
+            result.parties() == parties,
+            result.arrived() == 0,
+            result.generation() == generation,
+        no_unwind
+    {
+        BarrierMachine { parties, arrived: 0, generation }
     }
 
     /// Refines the production critical section: increment `arrived`, publish
@@ -103,7 +131,9 @@ pub fn verify_two_party_publication()
         leader.published_generation.unwrap(), follower.captured_generation));
 }
 
-pub fn verify_generation_wrap_is_non_panicking()
+/// Arithmetic leaf for `wrapping_add`. S03's admitted-cohort terminal gate
+/// makes this state unreachable in the integrated Barrier orchestration.
+pub fn verify_generation_advance_arithmetic_is_total()
 {
     let mut barrier = BarrierMachine { parties: 1, arrived: 0, generation: usize::MAX };
     assert(barrier.well_formed());

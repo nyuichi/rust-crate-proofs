@@ -70,6 +70,29 @@ fn tango() {
 }
 
 #[test]
+fn cancelled_follower_still_counts_toward_cohort() {
+    let b = Barrier::new(2);
+
+    let mut cancelled = spawn(b.wait());
+    assert_pending!(cancelled.poll());
+    drop(cancelled);
+
+    let mut leader = spawn(b.wait());
+    assert!(assert_ready!(leader.poll()).is_leader());
+}
+
+#[test]
+fn wait_result_clone_and_debug_preserve_leadership() {
+    let b = Barrier::new(1);
+    let mut wait = spawn(b.wait());
+    let result = assert_ready!(wait.poll());
+    let cloned = result.clone();
+
+    assert_eq!(result.is_leader(), cloned.is_leader());
+    assert_eq!(format!("{result:?}"), format!("{cloned:?}"));
+}
+
+#[test]
 fn lots() {
     let b = Barrier::new(100);
 

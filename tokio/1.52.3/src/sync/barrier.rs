@@ -52,6 +52,7 @@ struct BarrierState {
     waker: watch::Sender<usize>,
     arrived: usize,
     generation: usize,
+    reserved_receivers: usize,
 }
 
 #[inline]
@@ -107,6 +108,7 @@ impl Barrier {
                 waker,
                 arrived: 0,
                 generation: 1,
+                reserved_receivers: 0,
             }),
             n,
             wait,
@@ -127,6 +129,12 @@ impl Barrier {
     /// # Cancel safety
     ///
     /// This method is not cancel safe.
+    ///
+    /// # Panics
+    ///
+    /// Panics before admitting the first task of a new cohort if the finite
+    /// watch publication or Receiver-construction budget is exhausted. An
+    /// already admitted cohort has reserved all resources needed to complete.
     pub async fn wait(&self) -> BarrierWaitResult {
         #[cfg(all(tokio_unstable, feature = "tracing"))]
         return trace::async_op(
@@ -151,9 +159,33 @@ impl Barrier {
         // the asynchronous counter-parts, so we should use them where possible [citation needed].
         // NOTE: the extra scope here is so that the compiler doesn't think `state` is held across
         // a yield point, and thus marks the returned future as !Send.
+        let mut wait = None;
         let generation = {
             let mut state = self.state.lock();
+
+            if state.arrived == 0 {
+                let receiver_credits = self.n - 1;
+                if !state.waker.try_reserve_barrier_cohort(receiver_credits) {
+                    // Release the synchronous lock normally. Rejection occurs
+                    // at a cohort boundary before any Barrier state mutation.
+                    drop(state);
+                    panic!("barrier cohort count overflow");
+                }
+                state.reserved_receivers = receiver_credits;
+            }
+
             let generation = state.generation;
+            let is_leader = state.arrived + 1 == self.n;
+
+            // Every non-leader needs one private Receiver. Construct it from
+            // the cohort's reserved credit before committing its arrival, so
+            // an admitted cohort cannot fail between arrival and waiting.
+            if !is_leader {
+                assert!(state.reserved_receivers > 0);
+                wait = Some(self.wait.clone_with_reserved_notification());
+                state.reserved_receivers -= 1;
+            }
+
             state.arrived += 1;
             #[cfg(all(tokio_unstable, feature = "tracing"))]
             tracing::trace!(
@@ -166,7 +198,8 @@ impl Barrier {
                 target: "runtime::resource::async_op::state_update",
                 arrived = true,
             );
-            if state.arrived == self.n {
+            if is_leader {
+                assert_eq!(state.reserved_receivers, 0);
                 #[cfg(all(tokio_unstable, feature = "tracing"))]
                 tracing::trace!(
                     target: "runtime::resource::async_op::state_update",
@@ -190,7 +223,7 @@ impl Barrier {
         };
 
         // we're going to have to wait for the last of the generation to arrive
-        let mut wait = self.wait.clone();
+        let mut wait = wait.expect("non-leader reserved a watch receiver");
 
         loop {
             let _ = wait.changed().await;
@@ -208,10 +241,118 @@ impl Barrier {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(not(loom))]
+    use super::Barrier;
+    #[cfg(not(loom))]
+    use crate::sync::notify::MAX_NOTIFY_WAITERS_CALLS;
+    #[cfg(not(loom))]
+    use crate::sync::watch::BARRIER_MAX_WATCH_UPDATES_FOR_TEST as MAX_WATCH_UPDATES;
+    #[cfg(not(loom))]
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+    #[cfg(not(loom))]
+    use tokio_test::task::spawn;
+    #[cfg(not(loom))]
+    use tokio_test::{assert_pending, assert_ready};
+
     #[test]
-    fn generation_wraps_without_panicking() {
+    fn generation_advance_arithmetic_is_build_mode_independent() {
         assert_eq!(super::next_generation(usize::MAX), 0);
         assert_eq!(super::next_generation(0), 1);
+    }
+
+    #[cfg(not(loom))]
+    #[test]
+    fn terminal_resources_admit_last_complete_three_party_cohort() {
+        let barrier = Barrier::new(3);
+        {
+            let mut state = barrier.state.lock();
+            state.waker.set_barrier_resources_for_test(
+                MAX_WATCH_UPDATES - 1,
+                MAX_NOTIFY_WAITERS_CALLS - 2,
+            );
+            state.generation = MAX_WATCH_UPDATES;
+        }
+
+        let mut first = spawn(barrier.wait());
+        let mut second = spawn(barrier.wait());
+        assert_pending!(first.poll());
+        assert_pending!(second.poll());
+
+        let mut third = spawn(barrier.wait());
+        assert!(assert_ready!(third.poll()).is_leader());
+        assert!(!assert_ready!(first.poll()).is_leader());
+        assert!(!assert_ready!(second.poll()).is_leader());
+
+        let before = {
+            let state = barrier.state.lock();
+            assert_eq!(state.arrived, 0);
+            assert_eq!(state.reserved_receivers, 0);
+            assert_eq!(state.generation, MAX_WATCH_UPDATES + 1);
+            (state.arrived, state.generation, state.reserved_receivers)
+        };
+
+        let result = catch_unwind(AssertUnwindSafe(|| {
+            let mut next = spawn(barrier.wait());
+            let _ = next.poll();
+        }));
+        assert!(result.is_err());
+        let state = barrier.state.lock();
+        assert_eq!(
+            (state.arrived, state.generation, state.reserved_receivers),
+            before
+        );
+    }
+
+    #[cfg(not(loom))]
+    #[test]
+    fn terminal_next_cohort_panics_without_barrier_mutation() {
+        let barrier = Barrier::new(1);
+        {
+            let mut state = barrier.state.lock();
+            state
+                .waker
+                .set_barrier_resources_for_test(MAX_WATCH_UPDATES, MAX_NOTIFY_WAITERS_CALLS);
+            state.generation = MAX_WATCH_UPDATES + 1;
+        }
+
+        let before = {
+            let state = barrier.state.lock();
+            (state.arrived, state.generation, state.reserved_receivers)
+        };
+        let result = catch_unwind(AssertUnwindSafe(|| {
+            let mut wait = spawn(barrier.wait());
+            let _ = wait.poll();
+        }));
+        assert!(result.is_err());
+        let state = barrier.state.lock();
+        assert_eq!(
+            (state.arrived, state.generation, state.reserved_receivers),
+            before
+        );
+    }
+
+    #[cfg(not(loom))]
+    #[test]
+    fn receiver_credit_shortage_rejects_three_party_cohort_before_arrival() {
+        let barrier = Barrier::new(3);
+        {
+            let mut state = barrier.state.lock();
+            state.waker.set_barrier_resources_for_test(
+                MAX_WATCH_UPDATES - 1,
+                MAX_NOTIFY_WAITERS_CALLS - 1,
+            );
+            state.generation = MAX_WATCH_UPDATES;
+        }
+
+        let result = catch_unwind(AssertUnwindSafe(|| {
+            let mut wait = spawn(barrier.wait());
+            let _ = wait.poll();
+        }));
+        assert!(result.is_err());
+        let state = barrier.state.lock();
+        assert_eq!(state.arrived, 0);
+        assert_eq!(state.generation, MAX_WATCH_UPDATES);
+        assert_eq!(state.reserved_receivers, 0);
     }
 }
 

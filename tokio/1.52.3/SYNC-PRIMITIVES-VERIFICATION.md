@@ -107,18 +107,33 @@ generation protocol and body-proves:
 
 `barrier_refinement` additionally proves the exact production critical-section
 values: zero-party normalization, bounded `arrived + 1`, nth-arrival leader
-selection, publication of the captured generation, cohort reset, and explicit
-machine-word rollover. Production now uses `wrapping_add(1)`, eliminating its
-former debug-only panic after publishing generation `usize::MAX`. The exact
+selection, publication of the captured generation, and cohort reset. The exact
 `published >= captured` follower predicate is also proved to accept the
-leader's equal generation token.
+leader's equal generation token. The defensive `wrapping_add(1)` leaf is proved
+total, but rollover is not claimed reachable through the integrated policy.
+
+`barrier_orchestration` composes those leaves with S03's finite budgets. The
+first arrival of a cohort reserves one watch update and all `n - 1` private
+Receiver-construction credits before mutating Barrier state. Followers consume
+those credits before committing their arrivals, so cancellation does not
+return a credit and no admitted cohort can fail midway for watch exhaustion.
+Insufficient capacity releases the Mutex and panics at a clean cohort boundary
+without changing `arrived`, generation, or reservation state.
+The orchestration additionally proves the exact reachable cross-state relation
+`Barrier generation = watch update generation + 1`, including terminal
+fixtures, so the S03 gate rejects before any Barrier token can be reused.
+
+The production-shaped `BarrierWaitResult(bool)` mapping is body-proved for
+leader construction, `is_leader`, and clone observation. Debug/Clone behavior
+is runtime-tested, while Send/Sync/Unpin properties and the wait future's
+traits are compile-tested; those trait checks are not described as body proofs.
 
 Production's synchronous Mutex and watch storage/waker execution remain the
-frozen adapters. A follower suspended across an entire machine-word generation
-cycle remains a finite-counter liveness boundary under the already-frozen
-scheduler-liveness assumption; safety and unique leadership do not rely on
-excluding it. The exact public Barrier suite, including ten generations of 100
-parties, and the rollover regression are included in the integrated run.
+frozen adapters. S03's terminal gate prevents a full machine-word Barrier
+generation cycle, eliminating generation-reuse ambiguity. The exact public
+Barrier suite, including cancellation, result traits, ten generations of 100
+parties, terminal three-party admission/rejection, and the arithmetic rollover
+leaf regression are included in the integrated run.
 [`BARRIER-MUTATION-AUDIT.md`](BARRIER-MUTATION-AUDIT.md) records the rejected
 production mutations.
 
