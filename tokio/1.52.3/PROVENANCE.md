@@ -424,7 +424,8 @@ Pending and exposes either the immediate wake call or the selected scheduler
 queue effect. Focused production tests cover deduplication, clone panic,
 Waker-panic pop ordering, queued clone release, and cooperative broadcast recv.
 
-The `YieldNow` refinement preserves the source order: `trace_leaf` is checked
+The `YieldNow` refinement preserves the source order and captured poll_fn state:
+`trace_leaf` is checked
 before the yielded-state recheck; only the first trace-ready poll changes the
 state, defers the Waker, and returns Pending; only a later trace-ready poll
 returns Ready. The existing public outside-runtime test checks Pending+woken
@@ -432,19 +433,24 @@ then Ready. Existing upstream loom cases for both current-thread and
 multi-thread schedulers check that deferred yield parks before same-thread
 rescheduling; both exact cases are part of `verify-all.bash`.
 
-This is P/R(partial), not whole-row closure. Pin/Poll/Context/Waker mechanics
-and scheduler liveness remain frozen. Only the generic `vstd_ext::thread_local`
+`ConsumeBudgetFuture` separately proves the captured status recheck, trace
+Pending preservation, forced-Pending registration, and exactly one committed
+budget decrement. `UnconstrainedFuture` proves pin identity, exact inner Poll
+mapping, and restoration of the caller budget on Pending, Ready, and unwind.
+`ForcedYieldMetric` proves zero-hit/cfg/current-context call cardinality under
+the explicit finite-execution premise below `u64::MAX`; atomic metric storage
+remains the common atomic boundary. Focused runtime tests exercise all three
+scheduler flavors, wrapper unwind, and the unstable metric result.
+
+T01 is C/R/I for the standard `rt` scope. Pin/Poll/Context/Waker mechanics and
+scheduler liveness remain frozen. Only the generic `vstd_ext::thread_local`
 correspondence is trusted; `ThreadLocalBudgetCell` and
 `SchedulerContextAccess` are body-proved mappings rather than TLS assumptions.
-Remaining T01 residuals are `poll_fn` capture/pinning for
-`consume_budget` and `yield_now`, `Unconstrained<F>::poll`, and metric
-increment. Taskdump-gated consumer projections, including their Pending and
-panic ordering, are owned by R08 rather than T01. Scheduler liveness is not
-established by these safety proofs.
+Taskdump-gated consumer projections are owned by R08 rather than T01. Scheduler
+liveness is not established by these safety proofs.
 [`COOP-MUTATION-AUDIT.md`](COOP-MUTATION-AUDIT.md)
-records the rejected counterexamples and exact residual. The integrated Tokio
-1.52.3 Verus crate currently reaches
-`788 verified, 0 errors` after the S03 watch closure work.
+records the rejected counterexamples and exact scope. The integrated Tokio
+1.52.3 Verus crate currently reaches `946 verified, 0 errors`.
 
 | T01 component | Contract reviewed | Body proved | Trusted boundary | Integrated run |
 |---|---:|---:|---:|---:|
@@ -455,6 +461,9 @@ records the rejected counterexamples and exact residual. The integrated Tokio
 | scheduler selection and scoped binding | yes | yes, including TLS route and LIFO scope | generic TLS/Cell semantics | Verus/tests |
 | Defer queue ownership and panic cleanup | yes | yes | Waker execution; allocation; scheduler liveness | Verus/tests/loom |
 | yield trace/defer/recheck state | yes | yes | Pin/Poll/Context/Waker mechanics; scheduler liveness | Verus/test/loom |
+| consume_budget poll_fn capture | yes | yes | Pin/Poll/Context/Waker mechanics | Verus/tests |
+| Unconstrained pinned poll and unwind | yes | yes | arbitrary inner Future/Poll execution | Verus/tests |
+| forced-yield metric consumer mapping | yes | yes | atomics; finite execution below `u64::MAX` | Verus/test |
 
 ## oneshot polling connection probe
 
@@ -595,13 +604,14 @@ the machine-word boundary. Non-mutating fixtures record both residuals; see
 
 Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
 
-1. runs the exact SetOnce, oneshot, watch, broadcast, mpsc, and mpsc-weak
-   integration targets;
-2. runs the full SetOnce and oneshot loom modules plus ten bounded exact loom
-   cases for watch, broadcast, and mpsc;
+1. runs the exact SetOnce, OnceCell, oneshot, watch, broadcast, mpsc, mpsc-weak,
+   Barrier, and cooperative wrapper/metric integration targets;
+2. runs the full SetOnce, OnceCell, and oneshot loom modules plus bounded exact
+   loom cases for watch, broadcast, mpsc, Semaphore, Notify, AtomicWaker, and
+   cooperative scheduler yield;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 933 nested SetOnce, OnceCell, publication, channel, Semaphore,
+5. verifies 946 nested SetOnce, OnceCell, publication, channel, Semaphore,
    Notify, Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;

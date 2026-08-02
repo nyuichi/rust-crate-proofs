@@ -208,6 +208,31 @@ RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-yield" c
   --features full \
   --test task_yield_now
 
+# Close the remaining T01 public wrapper/capture projections on all supported
+# scheduler flavors, plus exact unstable forced-yield metric cardinality.
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-surface" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test rt_common \
+  coop_unconstrained
+
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-surface" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test rt_common \
+  coop_consume_budget
+
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-surface" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test rt_unstable_metrics \
+  budget_exhaustion_yield \
+  -- \
+  --exact
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \

@@ -201,6 +201,203 @@ pub struct YieldNow {
     phase: YieldPhase,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum InnerPoll {
+    Pending,
+    Ready,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub struct ConsumePoll {
+    pub ready: bool,
+    pub registered: bool,
+}
+
+/// Captured `status` field of production `consume_budget`'s `poll_fn`
+/// closure. Pin/Poll/Context mechanics belong to the frozen Future adapter;
+/// this state proves that repeated closure calls retain the exact status.
+pub struct ConsumeBudgetFuture {
+    complete: bool,
+}
+
+impl ConsumeBudgetFuture {
+    pub closed spec fn complete(&self) -> bool { self.complete }
+
+    pub fn new() -> (result: Self)
+        ensures !result.complete(),
+        no_unwind
+    {
+        ConsumeBudgetFuture { complete: false }
+    }
+
+    pub fn poll(
+        &mut self,
+        budget: &mut CoopBudget,
+        trace_ready: bool,
+    ) -> (result: ConsumePoll)
+        ensures
+            !trace_ready ==> {
+                &&& final(self).complete() == old(self).complete()
+                &&& final(budget).current() == old(budget).current()
+                &&& result == (ConsumePoll { ready: false, registered: false })
+            },
+            trace_ready && old(self).complete() ==> {
+                &&& final(self).complete()
+                &&& final(budget).current() == old(budget).current()
+                &&& result == (ConsumePoll { ready: true, registered: false })
+            },
+            trace_ready && !old(self).complete()
+                && old(budget).current() == BudgetValue::Constrained(0) ==> {
+                    &&& !final(self).complete()
+                    &&& final(budget).current() == BudgetValue::Constrained(0)
+                    &&& result == (ConsumePoll { ready: false, registered: true })
+                },
+            trace_ready && !old(self).complete()
+                && old(budget).current().has_remaining() ==> {
+                    &&& final(self).complete()
+                    &&& result == (ConsumePoll { ready: true, registered: false })
+                    &&& match old(budget).current() {
+                        BudgetValue::Unconstrained =>
+                            final(budget).current() == BudgetValue::Unconstrained,
+                        BudgetValue::Constrained(value) =>
+                            value > 0 && final(budget).current()
+                                == BudgetValue::Constrained((value - 1) as u8),
+                    }
+                },
+        no_unwind
+    {
+        if !trace_ready {
+            return ConsumePoll { ready: false, registered: false };
+        }
+        if self.complete {
+            return ConsumePoll { ready: true, registered: false };
+        }
+
+        match budget.poll_proceed() {
+            ProceedResult::Ready { mut restore, .. } => {
+                restore.made_progress();
+                budget.drop_restore(restore);
+                self.complete = true;
+                ConsumePoll { ready: true, registered: false }
+            },
+            ProceedResult::Pending { registered } => {
+                ConsumePoll { ready: false, registered }
+            },
+        }
+    }
+}
+
+/// Pinned wrapper identity plus the exact budget scope installed around one
+/// arbitrary inner Future poll. `inner_identity` is unchanged, representing
+/// pin projection without moving the inner future.
+pub struct UnconstrainedFuture {
+    inner_identity: u64,
+}
+
+impl UnconstrainedFuture {
+    pub closed spec fn inner_identity(&self) -> u64 { self.inner_identity }
+
+    pub fn new(inner_identity: u64) -> (result: Self)
+        ensures result.inner_identity() == inner_identity,
+        no_unwind
+    {
+        UnconstrainedFuture { inner_identity }
+    }
+
+    pub fn poll(
+        &mut self,
+        budget: &mut CoopBudget,
+        coop_enabled: bool,
+        inner_result: InnerPoll,
+    ) -> (result: InnerPoll)
+        ensures
+            result == inner_result,
+            final(self).inner_identity() == old(self).inner_identity(),
+            final(budget).current() == old(budget).current(),
+        no_unwind
+    {
+        if coop_enabled {
+            let previous = budget.install(BudgetValue::Unconstrained);
+            // The arbitrary inner poll is represented by `inner_result`.
+            budget.reset(previous);
+        }
+        inner_result
+    }
+
+    /// State effect of ResetGuard drop if the arbitrary inner Future panics.
+    pub fn poll_unwind(&mut self, budget: &mut CoopBudget, coop_enabled: bool)
+        ensures
+            final(self).inner_identity() == old(self).inner_identity(),
+            final(budget).current() == old(budget).current(),
+        no_unwind
+    {
+        if coop_enabled {
+            let previous = budget.install(BudgetValue::Unconstrained);
+            budget.reset(previous);
+        }
+    }
+}
+
+/// T01-scoped physical execution premise: a runtime cannot record `u64::MAX`
+/// forced cooperative yields and then perform one more increment. This is the
+/// same finite-machine-resource style used by closed channel refinements.
+pub struct CoopFiniteExecutionResources {
+    metric_increment_available: bool,
+}
+
+impl CoopFiniteExecutionResources {
+    pub closed spec fn metric_increment_available(&self) -> bool {
+        self.metric_increment_available
+    }
+
+    pub fn available() -> (result: Self)
+        ensures result.metric_increment_available(),
+        no_unwind
+    {
+        CoopFiniteExecutionResources { metric_increment_available: true }
+    }
+}
+
+pub struct ForcedYieldMetric {
+    value: u64,
+}
+
+impl ForcedYieldMetric {
+    pub closed spec fn value(&self) -> u64 { self.value }
+
+    pub fn new(value: u64) -> (result: Self)
+        ensures result.value() == value,
+        no_unwind
+    {
+        ForcedYieldMetric { value }
+    }
+
+    /// Exact consumer projection: `poll_proceed` calls the metric hook only on
+    /// the successful decrement that hits zero; cfg-disabled metrics and a
+    /// missing current runtime handle are no-ops.
+    pub fn record_decrement(
+        &mut self,
+        hit_zero: bool,
+        metrics_enabled: bool,
+        current_handle: bool,
+        resources: &CoopFiniteExecutionResources,
+    )
+        requires
+            resources.metric_increment_available(),
+            hit_zero && metrics_enabled && current_handle ==> old(self).value() < u64::MAX,
+        ensures
+            hit_zero && metrics_enabled && current_handle ==>
+                final(self).value() == old(self).value() + 1,
+            !(hit_zero && metrics_enabled && current_handle) ==>
+                final(self).value() == old(self).value(),
+        no_unwind
+    {
+        if hit_zero && metrics_enabled && current_handle {
+            self.value += 1;
+        }
+    }
+}
+
 impl YieldNow {
     pub closed spec fn phase(&self) -> YieldPhase { self.phase }
 
@@ -349,6 +546,72 @@ pub fn verify_yield_register_recheck_order()
     let second = future.poll(true);
     assert(second == (YieldPoll { ready: true, deferred: false }));
     assert(future.phase() == YieldPhase::Complete);
+}
+
+pub fn verify_consume_budget_poll_fn_capture()
+{
+    let mut budget = CoopBudget::new(BudgetValue::Constrained(1));
+    let mut future = ConsumeBudgetFuture::new();
+
+    let trace_pending = future.poll(&mut budget, false);
+    assert(trace_pending == (ConsumePoll { ready: false, registered: false }));
+    assert(!future.complete());
+    assert(budget.current() == BudgetValue::Constrained(1));
+
+    let ready = future.poll(&mut budget, true);
+    assert(ready == (ConsumePoll { ready: true, registered: false }));
+    assert(future.complete());
+    assert(budget.current() == BudgetValue::Constrained(0));
+
+    // This is the captured `status.is_ready()` branch. The closure keeps its
+    // completion state and does not consume another credit.
+    let repeated = future.poll(&mut budget, true);
+    assert(repeated == (ConsumePoll { ready: true, registered: false }));
+    assert(budget.current() == BudgetValue::Constrained(0));
+
+    let mut exhausted = ConsumeBudgetFuture::new();
+    let pending = exhausted.poll(&mut budget, true);
+    assert(pending == (ConsumePoll { ready: false, registered: true }));
+    assert(!exhausted.complete());
+}
+
+pub fn verify_unconstrained_pin_and_scope_mapping(inner_identity: u64)
+{
+    let mut budget = CoopBudget::new(BudgetValue::Constrained(37));
+    let mut future = UnconstrainedFuture::new(inner_identity);
+
+    let pending = future.poll(&mut budget, true, InnerPoll::Pending);
+    assert(pending == InnerPoll::Pending);
+    assert(future.inner_identity() == inner_identity);
+    assert(budget.current() == BudgetValue::Constrained(37));
+
+    let ready = future.poll(&mut budget, true, InnerPoll::Ready);
+    assert(ready == InnerPoll::Ready);
+    assert(future.inner_identity() == inner_identity);
+    assert(budget.current() == BudgetValue::Constrained(37));
+
+    future.poll_unwind(&mut budget, true);
+    assert(future.inner_identity() == inner_identity);
+    assert(budget.current() == BudgetValue::Constrained(37));
+
+    let disabled = future.poll(&mut budget, false, InnerPoll::Pending);
+    assert(disabled == InnerPoll::Pending);
+    assert(budget.current() == BudgetValue::Constrained(37));
+}
+
+pub fn verify_forced_yield_metric_cardinality()
+{
+    let resources = CoopFiniteExecutionResources::available();
+    let mut metric = ForcedYieldMetric::new(0);
+
+    metric.record_decrement(false, true, true, &resources);
+    assert(metric.value() == 0);
+    metric.record_decrement(true, false, true, &resources);
+    assert(metric.value() == 0);
+    metric.record_decrement(true, true, false, &resources);
+    assert(metric.value() == 0);
+    metric.record_decrement(true, true, true, &resources);
+    assert(metric.value() == 1);
 }
 
 pub proof fn verify_coop_mutants_rejected()

@@ -623,4 +623,41 @@ mod test {
 
         assert_eq!(get().0, None);
     }
+
+    #[test]
+    fn unconstrained_future_restores_budget_after_pending_ready_and_panic() {
+        use std::future::poll_fn;
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+        use tokio_test::{assert_pending, assert_ready, task};
+
+        budget(|| {
+            let mut first_poll = true;
+            let inner = poll_fn(move |_cx| {
+                assert_eq!(get().0, None);
+                if first_poll {
+                    first_poll = false;
+                    Poll::Pending
+                } else {
+                    Poll::Ready(17_u32)
+                }
+            });
+            let mut wrapped = task::spawn(unconstrained(inner));
+
+            assert_pending!(wrapped.poll());
+            assert_eq!(get().0, Some(128));
+            assert_eq!(assert_ready!(wrapped.poll()), 17);
+            assert_eq!(get().0, Some(128));
+
+            let panicking = poll_fn(|_cx| -> Poll<()> {
+                assert_eq!(get().0, None);
+                panic!("inner future panic");
+            });
+            let mut wrapped = task::spawn(unconstrained(panicking));
+            let result = catch_unwind(AssertUnwindSafe(|| wrapped.poll()));
+            assert!(result.is_err());
+            assert_eq!(get().0, Some(128));
+        });
+
+        assert_eq!(get().0, None);
+    }
 }
