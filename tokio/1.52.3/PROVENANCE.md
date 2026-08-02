@@ -173,8 +173,11 @@ The body proofs establish:
 - another loom test registers two wait futures before publication and checks
   that both return the exact value after `notify_waiters`;
 - generic `Clone` and `PartialEq` lifting through SetOnce is body-proved once
-  the underlying standard trait call supplies its value-level contract; a
-  concrete `u64` caller discharges that boundary;
+  the underlying standard trait call supplies its value-level contract; the
+  `SetOnce::Debug` empty/published selection and `SetOnceError`
+  Display/Debug/Error-source surfaces are body-proved while actual generic
+  formatting remains the standard trait boundary; a concrete `u64` caller
+  discharges those boundaries;
 - production compile checks establish the positive and negative `Send`/`Sync`
   bounds, and runtime tests cover Default, Clone, Eq, Debug, Display, and Error;
 - production unwind tests check that a panicking payload destructor runs once
@@ -211,7 +214,7 @@ The body proofs establish:
 | production `Notified::poll`/intrusive links | partial | state/membership yes | Pin/raw-link/waker adapter | Verus/loom |
 | generic Clone/Eq state lifting | yes | yes | std trait value contract | Verus/tests |
 | Send/Sync bounds | yes | Rust type system | unsafe impl justification | compile tests |
-| Debug/Display/Error views | yes | no | formatting std traits | tests |
+| Debug/Display/Error views | yes | state/error orchestration yes | generic formatting std traits | Verus/tests |
 | mutation sensitivity | yes | n/a | no | five rejected mutations |
 
 The verification crate itself contains no `external_body` or `assume` on
@@ -598,7 +601,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 904 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 911 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;
