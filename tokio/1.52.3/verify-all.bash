@@ -251,6 +251,14 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full,test-util \
   --test sync_semaphore_owned
 
+# S11 public Mutex surface: FIFO cancellation, all borrowed/owned mapped guard
+# conversions and Drop paths, blocking wrappers, value ownership, and traits.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_mutex_verification
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
@@ -343,6 +351,9 @@ run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_and_sending
 run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::basic_usage
 run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::concurrent_cancel
 run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::batch
+
+run_loom_exact loom-mutex sync::tests::loom_mutex::borrowed_guard_excludes_and_releases
+run_loom_exact loom-mutex sync::tests::loom_mutex::cancelled_waiter_does_not_consume_permit
 
 run_loom_exact loom-notify sync::tests::loom_notify::notify_one
 run_loom_exact loom-notify sync::tests::loom_notify::notify_waiters

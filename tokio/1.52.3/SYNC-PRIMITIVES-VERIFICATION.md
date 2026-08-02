@@ -109,6 +109,33 @@ initialization cancellation, take/reuse, traits, and payload destruction.
 [`ONCE-CELL-CLOSURE-CHECKLIST.md`](ONCE-CELL-CLOSURE-CHECKLIST.md) records the
 scope and frozen adapters. Taskdump trace projection remains assigned to R08.
 
+## Async Mutex
+
+`mutex_refinement` composes S06's closed one-permit semaphore with a
+production-shaped guard capability and proves:
+
+- exact immediate success/failure and mutual exclusion for borrowed and owned
+  acquisition;
+- FIFO grant order and exact removal of a cancelled waiter without reordering
+  its survivors;
+- borrowed, owned, mapped, and owned-mapped guards all retain the same sole
+  permit across `map`, nested map, and both `try_map` outcomes;
+- failure of `try_map` returns the original live guard unchanged;
+- consuming any of the four guard types releases exactly one permit;
+- arbitrary values are conserved across guarded mutation, `get_mut`, and
+  `into_inner`;
+- Mutex formatting selects data only when `try_lock` succeeds, and the exact
+  `TryLockError` message is preserved.
+
+Focused public tests cover all guard transformations, owned Arc retention,
+FIFO cancellation, blocking wrappers, value surfaces, formatting, and errors.
+Bounded exact loom cases connect the production semaphore/UnsafeCell path to
+mutual exclusion, release, and pending-future cancellation. Arc mechanics,
+UnsafeCell/raw-pointer validity, atomics, Future polling, arbitrary Drop, and
+scheduler liveness remain frozen adapters. No production source was changed.
+[`MUTEX-CLOSURE-CHECKLIST.md`](MUTEX-CLOSURE-CHECKLIST.md) records the exact
+closure boundary.
+
 ## Barrier
 
 `barrier_protocol` composes the trusted Mutex adapter with the proved watch

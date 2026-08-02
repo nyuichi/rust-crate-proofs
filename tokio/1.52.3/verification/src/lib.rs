@@ -30,6 +30,7 @@ pub mod mpsc_refinement;
 pub mod mpsc_surface;
 pub mod mpsc_try_recv_raw_refinement;
 pub mod mpsc_try_recv_refinement;
+pub mod mutex_refinement;
 pub mod notified_core;
 pub mod notify_guard;
 pub mod notify_protocol;

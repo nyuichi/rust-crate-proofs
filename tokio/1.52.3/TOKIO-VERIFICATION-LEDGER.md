@@ -34,8 +34,8 @@ either been verified or declared as a reviewed environment adapter.
 A row counts as current progress only at C. The two scores are intentionally
 separate:
 
-- **legacy protocol-scope score: 9/53 (17%) L-or-C**, all integrated;
-- **current full-closure score: 9/53 (17%) C**, all fully production-refined
+- **legacy protocol-scope score: 10/53 (19%) L-or-C**, all integrated;
+- **current full-closure score: 10/53 (19%) C**, all fully production-refined
   and integrated.
 
 Oneshot is recorded separately as partial refinement. The legacy numerator is
@@ -77,7 +77,7 @@ global TLS registry freshness.
 | S08 | Barrier: `src/sync/barrier.rs` | new/wait, reusable cohorts and leader result | `sync` | **C / R / I**; `barrier_{protocol,refinement,orchestration}.rs`, `BARRIER-{MUTATION-AUDIT,CLOSURE-CHECKLIST}.md`; cohort-wide update/Receiver credit admission before arrival commit, exact Barrier/watch generation relation, mutation-free terminal rejection, cancellation, repeated cohorts, and leader-result behavioral mapping are body-proved; Debug/Clone runtime behavior and public cfg/auto traits are tested | Mutex, S03 watch storage/wake, scheduler liveness | Closed for standard `sync` above the frozen foundation. The S03 terminal gate prevents generation reuse; taskdump-gated trace projection is owned by R08. |
 | S09 | AtomicWaker: `src/sync/task/atomic_waker.rs` | internal wake/register primitive used by channels/runtime | `sync` and internal consumers | **C / R / I**; `atomic_waker_{protocol,refinement}.rs` | atomics, UnsafeCell, Waker execution | Closed under frozen scope. |
 | S10 | OnceCell: `src/sync/once_cell.rs` | new/get/set/get_or_init/get_or_try_init/take/traits | `sync` | **C / R / I**; `once_cell_refinement.rs`, `ONCE-CELL-CLOSURE-CHECKLIST.md`; Empty/Initializing/Published composition, unique initializer, waiter observation, cancellation/panic/error retry, recursive wait, set errors, mutable/take/drop, and public trait/error surfaces proved and tested | S06 semaphore; atomics, UnsafeCell, Pin/Poll/Context/Waker, arbitrary Future/Clone/Debug/Drop execution, scheduler liveness | Closed for standard `sync` above the frozen foundation. Tokio's loom AtomicBool path now matches its loom UnsafeCell; ordinary builds still use the standard AtomicBool. Taskdump-gated trace projection is owned by R08. |
-| S11 | async Mutex: `src/sync/mutex.rs` | lock/try_lock, owned and mapped guards, get_mut/into_inner | `sync`; internal under `fs` | **U** | batch semaphore, Arc, UnsafeCell, Drop | Refine one-permit exclusion to guard mapping/owned lifetimes, cancellation FIFO, unlock-on-drop, and value ownership. |
+| S11 | async Mutex: `src/sync/mutex.rs` | lock/try_lock, owned and mapped guards, get_mut/into_inner | `sync`; internal under `fs` | **C / R / I**; `verification/src/mutex_refinement.rs`, `MUTEX-CLOSURE-CHECKLIST.md`; exact one-permit exclusion, FIFO/cancellation, borrowed/owned and nested mapped guard capability preservation, all Drop releases, value transfers, blocking and trait surfaces proved or tested | S06 batch semaphore; Arc, UnsafeCell/raw pointers, Pin/Poll/Context/Waker, arbitrary Drop, scheduler liveness | Closed for standard `sync` above the frozen foundation. Taskdump-gated trace projection remains owned by R08. |
 | S12 | async RwLock: `src/sync/rwlock.rs`, `src/sync/rwlock/*.rs` | read/write/try/owned guards, map/downgrade/get_mut/into_inner | `sync` | **U** | batch semaphore, Arc, UnsafeCell, Drop | Prove reader/writer permit accounting, writer exclusion/fairness, downgrade atomicity, all mapped/owned guard Drop paths. |
 | F01 | future combinators: `src/future/{maybe_done,try_join}.rs`, `src/macros/try_join.rs` | `try_join!` orchestration and internal MaybeDone | `macros` for macro; core future internals | **U** | Pin/Poll/Context, arbitrary Future/Drop | Prove state transitions, no repoll after completion, early-error cancellation/drop, output ordering, and macro arities. |
 | T01 | cooperative yield/budget: `src/task/{yield_now,coop/*}` | yield_now, poll_proceed/consume_budget/unconstrained | `rt`; `test-util` controls | **C / R / I**; `verification/src/{coop_refinement,coop_tls_refinement,defer_refinement,vstd_ext/thread_local}.rs`, `COOP-MUTATION-AUDIT.md`; exact budget/TLS success and teardown, poll_fn captured states, restore/reset guards, forced-Pending registration, Unconstrained pin/result/unwind mapping, forced-yield metric cardinality, Defer ownership/panic cleanup, and trace-before-yielded ordering are proved and tested | Pin/Poll/Context/Waker mechanics, arbitrary Future/Drop execution, scheduler liveness; generic TLS/Cell correspondence; `CoopFiniteExecutionResources` | Closed for standard `rt`. The finite premise excludes another metric increment after `u64::MAX` forced yields. Taskdump-gated trace projections remain owned by R08; liveness remains a frozen adapter. |
@@ -179,7 +179,7 @@ The ledger makes the first residual pass deterministic:
 
 1. S05 `Block::has_value` membership and `Rx::reclaim_blocks` modular-order policies.
 2. S02 oneshot production orchestration and payload-slot refinement.
-3. S10, S11, and S12 to finish the remaining public `sync` primitives.
+3. S12 to finish the remaining public `sync` primitive.
 4. F01, T01, and U01 as small shared foundations before R02 and the schedulers.
 
 After each closure the row must be updated with proof files, adapter use,

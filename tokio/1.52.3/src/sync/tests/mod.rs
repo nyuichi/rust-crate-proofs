@@ -9,6 +9,7 @@ cfg_loom! {
     mod loom_broadcast;
     mod loom_list;
     mod loom_mpsc;
+    mod loom_mutex;
     mod loom_notify;
     mod loom_oneshot;
     mod loom_once_cell;
