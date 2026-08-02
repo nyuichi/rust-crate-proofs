@@ -113,26 +113,16 @@ for block reclamation, proves reserve-many iterator conservation, and proves
 that weak Senders cannot resurrect a channel after the final strong Sender.
 
 `mpsc_endpoint_refinement` connects that rule to production's exact
-`tx_count`/`tx_weak_count` updates for both bounded and unbounded wrappers. Its
-invariant is phase-accurate: each atomic count includes live, constructing, and
-retiring wrappers, so a count read during `downgrade`, clone, upgrade, or Drop
-is not misidentified as merely the number of fully returned handles. It proves
-strong/weak clone and Drop accounting, spurious-CAS Retry preservation,
-successful upgrade construction, and terminal no-resurrection. Strong owners
-are split into live Sender and live OwnedPermit counts: successful
-`reserve_owned` moves ownership without changing `tx_count`, `send`/`release`
-return the same owner as Sender, and OwnedPermit Drop retires it exactly once.
-The final strong `fetch_sub`
-establishes only `CloseRequested`; raw-list close insertion and wake execution
-remain outside this refinement. Three module-local tests connect sequential
-count observations and terminal upgrade behavior for bounded, unbounded, and
-owned-permit paths. Count additions are proved only under the explicit finite
-`endpoint_count_room` observation window. Production full-count behavior and
-the concurrent interval between Tokio's count increment and following Arc
-clone are not proved safe by this refinement.
+`tx_count`/`tx_weak_count` updates and Arc-owner phases for both wrapper
+families. Count-before-Arc gaps are explicit and bounded by the number of live
+threads in `MpscFiniteExecutionResources`, while completed owners are bounded
+by the physical Arc/execution environment. Strong/weak clone and Drop,
+spurious-CAS Retry, successful upgrade, no resurrection, Sender/OwnedPermit
+moves, and exactly-once retirement are body-proved. The final strong decrement
+composes in `mpsc_orchestration` with the raw queue's unique close marker and
+one receiver wake. Arc and Waker execution remain frozen foundations.
 
-`mpsc_try_recv_refinement` covers the smallest modeled Busy prefix of
-`Chan::try_recv` below its `usize` proof-counter saturation bounds. Initial
+`mpsc_try_recv_refinement` covers `Chan::try_recv` terminal priorities. Initial
 Value/Closed/Empty branches return without Busy-side
 effects. Initial Busy performs the one pre-parker AtomicWaker wake, prepares a
 park Waker, and each modeled loop step registers before rechecking. A Busy
@@ -144,11 +134,10 @@ AtomicWaker machine; the generic register transition is abstract protocol
 bookkeeping rather than a direct S09 composition. Two module-local production
 tests cover the observable non-Busy bounded and unbounded branches. They do not
 force a raw-list Busy schedule.
-`QueueRead::Busy` remains a logical oracle event, CachedParkThread
-construction/`waker().unwrap()`/park safety is not yet refined, and loop
-termination remains unproved. Scheduler liveness is an allowed foundation in
-general, but no liveness premise is instantiated to establish termination of
-this production loop. The upstream loom
+`mpsc_try_recv_raw_refinement` derives Busy from a claimed but unpublished FIFO
+head and proves arbitrary finite register/park repetition using one `nat` rank.
+CachedParkThread construction and Waker/park execution remain frozen generic
+adapters; finiteness is supplied by the scheduler-liveness foundation. The upstream loom
 `try_recv` case was again stopped after its preemption-1 search did not finish
 within the bounded run; it is not integration evidence.
 
@@ -191,32 +180,31 @@ compiled Drop execution. Nine module-local tests now exercise the
 bounded/unbounded recv poll and batch surfaces; they do not expose whether a
 particular Value arrived on production's first pop or post-registration pop.
 
-The two-slot executable queue is a local proof of the production block-list
-ordering rule, not a proof of arbitrary raw block allocation and reclamation.
-The refinement consumes `QueueRead` as the already-established logical pop
-oracle; it does not connect that oracle to the raw list/UnsafeCell chain. Its
-gate lemma preserves only modeled Waker/returned-permit/progress bookkeeping;
-queue, caller buffer, and capacity snapshots are not part of that lemma.
-Trace/coop execution itself and untouched raw queue state remain their owning
-boundaries. Block pointers, index wrapping, block reuse, full-count and
-pre-Arc-clone endpoint overflow behavior, last-strong raw-list close/wake
-completion, raw Busy production connection, CachedParkThread mechanics and
-production-loop termination and arbitrary-value drop paths remain open. The
+`mpsc_queue_refinement` derives raw-list observations from logical claims,
+ready/close bits, and the unique receiver cursor, and moves arbitrary payloads
+through linear slot permissions. It proves release-before-detach and
+reuse-or-free traversal leases over absolute generations. Raw allocation and
+pointer validity remain foundations. `mpsc_recv_compiled_refinement` frames the
+complete queue/buffer/accounting state across trace/coop and connects pop,
+guard recording, Vec append, bulk return, and unwind return without a spare
+capacity premise. `mpsc_orchestration` and `mpsc_surface` compose first recv,
+recv-many, last-close/wake, raw Busy, cooperative budget, blocking cfg result,
+identity, and error mappings. The
 previously reproduced `Vec<()>` capacity-overflow queue/accounting mismatch is
 repaired by exact unwind-time accounting and recorded in
 [`MPSC-RECV-MANY-UNWIND-AUDIT.md`](MPSC-RECV-MANY-UNWIND-AUDIT.md). Allocation
 and arbitrary destructors remain agreed boundaries. The
-generally allowed scheduler-liveness foundation is not a proof of this
-particular loop's termination. The source audit
-also found non-wrapping additions in `Block::grow` and `Block::has_value` at the
-final aligned machine-word block; debug can panic and release `has_value` can
-misclassify the wrapped range. Production was not changed; see
+source audit found final-word boundary issues in `Block::grow`,
+`Block::has_value`, and the reclamation comparison. `Block::grow` now uses
+explicit wrapping and has an exact regression. `Block::has_value` and
+`Rx::reclaim_blocks` remain unchanged and are the two explicit S05 residuals;
+see
 [`MPSC-WRAP-AUDIT.md`](MPSC-WRAP-AUDIT.md). The ordinary mpsc target has 100
 tests and its weak-Sender target has 28. Three bounded loom cases cover bounded
 close, unbounded close, and the send-versus-Receiver-close race. The upstream
 `try_recv` loom case is excluded from integration after its scheduler search
-exceeded one minute; the below-saturation modeled Busy-prefix proof covers
-branch safety, while the raw Busy connection and loop termination remain open.
+exceeded one minute; the raw Busy model and arbitrary finite-prefix rank cover
+its safety/conditional-termination obligation instead.
 [`MPSC-MUTATION-AUDIT.md`](MPSC-MUTATION-AUDIT.md) records three independently
 rejected production mutations plus formal receive-orchestration witnesses.
 

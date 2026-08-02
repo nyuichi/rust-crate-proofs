@@ -57,9 +57,9 @@ counterfactuals above the frozen atomic/Arc adapters:
 
 | Counterfactual | Rejected property |
 |---|---|
-| equate an atomic count only with fully returned wrappers | the invariant explicitly includes live, constructing, and retiring phases on both strong and weak sides |
-| omit or double the strong increment in `Tx::clone` or successful upgrade | the constructing-strong transition changes `tx_count` and its phase by exactly one |
-| omit or double the weak increment in downgrade or WeakSender clone | the constructing-weak transition changes `tx_weak_count` and its phase by exactly one |
+| equate an atomic count only with fully returned wrappers | the invariant explicitly includes live, count-before-Arc gap, upgrade, and retiring phases |
+| omit or double the strong increment in `Tx::clone` or successful upgrade | the strong gap/upgrade transition changes `tx_count` and ownership by exactly one |
+| omit or double the weak increment in downgrade or WeakSender clone | the weak gap transition changes `tx_weak_count` and ownership by exactly one |
 | omit or double either strong or weak Drop decrement | retirement preserves the count before linearization and decreases exactly the matching counter once afterward |
 | swap the strong and weak counters in any clone or Drop path | every transition preserves the opposite counter and all of its phases |
 | let a spurious `compare_exchange_weak` failure change endpoint state | Retry preserves every count and phase |
@@ -67,16 +67,17 @@ counterfactuals above the frozen atomic/Arc adapters:
 | let weak handles delay the final-strong decision | the last result depends only on the strong `fetch_sub(1)` linearization and establishes `CloseRequested` once |
 | count reserve-owned as a new endpoint, lose it on send/release, or retire it twice on Drop | owner-kind transitions move exactly one live owner between Sender and OwnedPermit with constant `tx_count`; Drop moves it once through retiring and decrements once |
 
-This proof does not identify `CloseRequested` with completed raw-list close
-insertion or wake execution. Count additions use the explicit finite
-`endpoint_count_room` window; production full-count behavior and the concurrent
-increment-before-Arc-clone interval remain unproved.
+The thin orchestration proof connects the final `CloseRequested` transition to
+one raw-list close insertion and receiver wake. Count-before-Arc gaps are
+bounded by the mpsc-scoped finite live-thread resource contract; Arc and Waker
+execution remain foundational.
 
-## Formal below-saturation finite-prefix `try_recv` witnesses
+## Formal arbitrary finite-prefix `try_recv` witnesses
 
-`verification/src/mpsc_try_recv_refinement.rs` rejects these control-flow
-counterfactuals for every modeled finite Busy prefix whose `usize` proof-trace
-counters remain below saturation:
+`verification/src/mpsc_try_recv_refinement.rs` and
+`mpsc_try_recv_raw_refinement.rs` reject these control-flow counterfactuals for
+every finite Busy prefix supplied by the scheduler-liveness foundation. The
+loop uses one `nat` rank rather than a saturating machine-word proof counter:
 
 | Counterfactual | Rejected property |
 |---|---|

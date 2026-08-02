@@ -455,3 +455,79 @@ impl<T> fmt::Debug for Rx<T> {
             .finish()
     }
 }
+
+#[cfg(all(test, not(loom)))]
+mod boundary_order_tests {
+    /// Eight-bit projection of the ordering fields used by
+    /// `Tx::find_block`/`tx_release` and `Rx::reclaim_blocks`. It deliberately
+    /// does not free or dereference a pointer; it only records whether the
+    /// current production comparison would permit reclaim while a sender still
+    /// owns its traversal lease.
+    struct ReducedTraversal {
+        claimed_slot: u8,
+        observed_tail: Option<u8>,
+        receiver_index: u8,
+        sender_lease_held: bool,
+        reclaim_permitted: bool,
+    }
+
+    impl ReducedTraversal {
+        fn claim_after_wrap(receiver_index: u8) -> Self {
+            Self {
+                claimed_slot: 0,
+                observed_tail: None,
+                receiver_index,
+                sender_lease_held: true,
+                reclaim_permitted: false,
+            }
+        }
+
+        fn record_tail_release(&mut self) {
+            // One post-wrap claim has completed the tail-position snapshot.
+            self.observed_tail = Some(1);
+        }
+
+        fn apply_current_reclaim_comparison(&mut self) {
+            let required = self.observed_tail.unwrap();
+            // Exact projection of `if required_index > self.index { return; }`.
+            self.reclaim_permitted = !(required > self.receiver_index);
+        }
+
+        fn resume_sender(&mut self) {
+            self.sender_lease_held = false;
+        }
+    }
+
+    #[test]
+    fn reclaim_boundary_lifetime_order_fixture() {
+        // (a) The receiver is still before the word boundary when a sender
+        // claims slot zero and retains the old-block traversal lease.
+        let mut state = ReducedTraversal::claim_after_wrap(u8::MAX - 1);
+        assert_eq!(state.claimed_slot, 0);
+        assert!(state.sender_lease_held);
+
+        // (b) A different sender advances the tail and records the post-wrap
+        // observation used by tx_release.
+        state.record_tail_release();
+        assert_eq!(state.observed_tail, Some(1));
+
+        // The logical forward distance is three, so required=1 is ahead of
+        // receiver=254 inside the unambiguous half-word live window.
+        let forward = state
+            .observed_tail
+            .unwrap()
+            .wrapping_sub(state.receiver_index);
+        assert_eq!(forward, 3);
+        assert!(forward < (1 << 7));
+
+        // (c) The current ordinary comparison permits reclaim even though the
+        // traversal lease is still held.
+        state.apply_current_reclaim_comparison();
+        assert!(state.reclaim_permitted);
+        assert!(state.sender_lease_held);
+
+        // (d) Resume the sender without performing any pointer reclamation.
+        state.resume_sender();
+        assert!(!state.sender_lease_held);
+    }
+}

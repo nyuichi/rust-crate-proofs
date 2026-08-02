@@ -150,6 +150,32 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --lib \
   mpsc_try_recv_public_
 
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  grow_wraps_final_block_generation_in_all_builds
+
+# Exact final-block probe for the still-unmodified `has_value` comparison. It
+# records the debug panic / release false classification while raw read sees
+# the value; it is evidence for the pending production decision, not a fix.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  final_block_has_value_boundary_probe
+
+# Deterministic reduced-word lifetime-order fixture for the still-unmodified
+# reclaim comparison. No pointer is reclaimed by this test.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  reclaim_boundary_lifetime_order_fixture
+
 # T01 production regressions: exact budget rollback/commit, a Waker on the
 # forced-Pending branch, unconstrained nesting, and ResetGuard unwind safety.
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \

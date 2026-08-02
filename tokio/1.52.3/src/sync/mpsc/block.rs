@@ -358,7 +358,7 @@ impl<T> Block<T> {
         // Create the new block. It is assumed that the block will become the
         // next one after `&self`. If this turns out to not be the case,
         // `start_index` is updated accordingly.
-        let new_block = Block::new(self.header.start_index + BLOCK_CAP);
+        let new_block = Block::new(self.header.start_index.wrapping_add(BLOCK_CAP));
 
         let mut new_block = unsafe { NonNull::new_unchecked(Box::into_raw(new_block)) };
 
@@ -469,4 +469,39 @@ fn assert_no_stack_overflow() {
     );
 
     let _block = Block::<Foo>::new(0);
+}
+
+#[cfg(all(test, not(loom)))]
+#[test]
+fn grow_wraps_final_block_generation_in_all_builds() {
+    let final_start = usize::MAX - (BLOCK_CAP - 1);
+    let block = Block::<()>::new(final_start);
+    let next = block.grow();
+
+    assert!(unsafe { next.as_ref() }.is_at_index(0));
+
+    drop(block);
+    drop(unsafe { Box::from_raw(next.as_ptr()) });
+}
+
+#[cfg(all(test, not(loom)))]
+#[test]
+fn final_block_has_value_boundary_probe() {
+    let final_start = usize::MAX - (BLOCK_CAP - 1);
+    let block = Block::<u8>::new(final_start);
+    unsafe { block.write(final_start, 7) };
+
+    let observed = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        block.has_value(final_start)
+    }));
+    if cfg!(debug_assertions) {
+        assert!(observed.is_err());
+    } else {
+        assert!(!observed.unwrap());
+    }
+
+    assert!(matches!(
+        unsafe { block.read(final_start) },
+        Some(Read::Value(7))
+    ));
 }

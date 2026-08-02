@@ -122,14 +122,16 @@ pending count can be taken once and composed with bounded
 including preservation of the unbounded receiver-closed bit. It is not a direct
 refinement connection to the compiled guard, raw-list pop, standard Vec unwind,
 or Drop execution. Allocation and arbitrary `T::Drop` execution remain agreed
-foundational boundaries. S05 remains partial for the unrelated raw queue,
-endpoint-overflow, Busy/parker, termination, and block-index residuals.
+foundational boundaries. Later S05 integration body-proves the mpsc-specific
+raw queue, finite-resource endpoint, Busy-prefix, and orchestration layers. S05
+remains partial for the two final machine-word index comparisons recorded in
+`MPSC-WRAP-AUDIT.md`.
 
 ## Validation
 
 The two permanent unwind regressions and all five module-local
-`mpsc_poll_recv_many_` tests pass. The Tokio 1.52.3 Verus crate reports `546
-verified, 0 errors` with both unwind-accounting witnesses. The target-local
+`mpsc_poll_recv_many_` tests pass. The integrated Tokio 1.52.3 Verus crate now
+reports `886 verified, 0 errors`, including the compiled recv-many model. The target-local
 `verify-all.bash` run completed successfully after the repair, including every
 configured Tokio 1.52.3 Rust and loom target. Independent review approved the
 runtime ordering, regressions, logical accounting model, and recorded proof
