@@ -30,6 +30,19 @@ These are proof-level counterfactuals in
 | register after `recv_many` has already added a value | any nonempty prefix returns immediately with its exact batch and preserves the pre-existing Waker |
 | inspect the queue for `recv_many(limit = 0)` before the outer gates pass | the zero-limit branch exists only after gate success and returns Ready(0) without changing the buffer |
 | decrement the unbounded encoded count twice, underflow it, or change it on a no-value terminal/Pending observation | the `(messages << 1) | receiver_closed` refinement requires a positive count for exactly one subtraction and preserves the word on no-value observations |
+| overwrite or discard the caller's existing `recv_many` prefix | the preallocated-buffer view is always the immutable initial prefix followed by exactly the observed Values |
+| append beyond the pre-reserved normal-path window | `initial_prefix.len() + limit <= buffer_capacity`, `added <= limit`, and the remaining-versus-spare invariant keep every modeled push within capacity |
+| report total buffer length instead of `number_added` | the return and permit count are both exactly the appended suffix length, independent of the initial prefix length |
+| return bounded permits one-by-one, apply the same completed batch twice, or decrement the unbounded word by the wrong batch | the general final-nonempty composition consumes `accounting_applied == false`, sets it true, and uses exactly `permits_returned == number_added`; bounded accounting returns that batch, while unbounded accounting proves `number_added << 1 == number_added * 2` under its explicit no-overflow bound and subtracts it once |
+| let Empty/Closed discard an already appended suffix, or let receiver-close override an outstanding permit with no appended value | a nonempty suffix returns immediately; the zero-value recheck stays Pending until receiver-close and semaphore-idle are both visible, while TX_CLOSED remains terminal |
+| require semaphore idle before processing a nonempty TX_CLOSED batch | the recv-many environment allows Closed observation before its deferred bulk return, and the composed witness establishes bounded idle only after applying that exact batch |
+
+The preallocated witnesses are conditional normal-path proofs, not an allocator
+model. Physical pre-reserved Vec tests assert `capacity() - len() >= limit` and
+confirm capacity is unchanged on the covered production branches. The vstd Vec
+contract does not formally connect that physical capacity to the logical proof
+field; insufficient-capacity growth, allocation failure, and unwind remain
+outside the proof.
 
 ## Formal endpoint-count witnesses
 

@@ -162,13 +162,28 @@ commit/send then Value then terminal, and cancel/drop then idle terminal. Value
 delivery composes with `MpscCapacity` to restore exactly one bounded permit.
 `recv_many` uses only the logical-oracle observation count as its progress
 measure, returns that many permits once, returns any nonempty observed prefix
-before registration, and handles `limit == 0` only after the outer gates. A
-bounded batch witness composes two observations with two capacity returns. The
-unbounded refinement proves the exact `(messages << 1) | receiver_closed`
-encoding, a single `fetch_sub(2)` effect per Value, preservation on
-Pending/Closed observations, and the positive-count no-underflow condition.
-Bounded and unbounded public poll behavior plus these capacity/batch cases are
-exercised by five module-local production tests; they do not expose whether a
+before registration, and handles `limit == 0` only after the outer gates. Its
+conditional preallocated-buffer refinement requires the caller prefix plus
+`limit` to fit within an explicit logical Vec capacity. Under that condition it
+preserves the caller prefix, proves every Value append stays within capacity,
+returns the exact `number_added`, and composes once with bounded
+`add_permits(number_added)` or unbounded
+`fetch_sub(number_added << 1)`. The latter has the explicit
+`number_added * 2 <= usize::MAX` normal-path precondition and proves the shift
+equals that multiplication; the unbounded receiver-closed bit is preserved.
+An `accounting_applied` phase bit is consumed by either bulk operation, so the
+same completed batch cannot apply its accounting twice. A recv-many-specific
+environment permits TX_CLOSED observation before the deferred bulk return; the
+Closed witness establishes semaphore idle only after applying that return.
+Limit completion, short nonempty Empty/Closed completion, and zero-value
+Closed versus receiver-close+idle versus outstanding-permit priorities are
+covered by proof witnesses. Two pre-reserved production tests assert physical
+`capacity() - len() >= limit` before each bounded and unbounded call and confirm
+capacity remains unchanged. The current vstd Vec interface does not formally
+connect physical capacity to the logical capacity field, and this is not a
+proof of Vec growth, allocator failure, or unwind when the condition is false.
+Seven module-local tests now exercise the
+bounded/unbounded recv poll and batch surfaces; they do not expose whether a
 particular Value arrived on production's first pop or post-registration pop.
 
 The two-slot executable queue is a local proof of the production block-list
@@ -181,8 +196,9 @@ Trace/coop execution itself and untouched raw queue state remain their owning
 boundaries. Block pointers, index wrapping, block reuse, full-count and
 pre-Arc-clone endpoint overflow behavior, last-strong raw-list close/wake
 completion, raw Busy production connection, CachedParkThread mechanics and
-production-loop termination, recv-many buffer-allocation/panic-guard/drop paths,
-and arbitrary destructors remain open. The generally allowed scheduler-liveness
+production-loop termination, recv-many insufficient-capacity Vec
+growth/allocator/unwind and arbitrary-value drop paths, and arbitrary
+destructors remain open. The generally allowed scheduler-liveness
 foundation is not a proof of this particular loop's termination. The source audit
 also found non-wrapping additions in `Block::grow` and `Block::has_value` at the
 final aligned machine-word block; debug can panic and release `has_value` can

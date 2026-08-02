@@ -206,6 +206,65 @@ mod verification_tests {
     }
 
     #[test]
+    fn mpsc_poll_recv_many_preallocated_bounded_branches() {
+        let (tx, mut rx) = channel(4);
+        let mut cx = Context::from_waker(Waker::noop());
+        let mut buffer = Vec::with_capacity(6);
+        buffer.push(5_u64);
+        let allocation_capacity = buffer.capacity();
+
+        tx.try_send(7).unwrap();
+        tx.try_send(11).unwrap();
+        tx.try_send(13).unwrap();
+        let held = tx.try_reserve().unwrap();
+
+        assert!(buffer.capacity() - buffer.len() >= 2);
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 2), Poll::Ready(2));
+        assert_eq!(buffer, vec![5, 7, 11]);
+        assert_eq!(buffer.capacity(), allocation_capacity);
+        assert_eq!(tx.capacity(), 2);
+
+        rx.close();
+        assert!(buffer.capacity() - buffer.len() >= 1);
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 1), Poll::Ready(1));
+        assert_eq!(buffer, vec![5, 7, 11, 13]);
+        assert_eq!(buffer.capacity(), allocation_capacity);
+        assert!(buffer.capacity() - buffer.len() >= 1);
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 1), Poll::Pending);
+
+        drop(held);
+        assert!(buffer.capacity() - buffer.len() >= 1);
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 1), Poll::Ready(0));
+        assert_eq!(buffer.capacity(), allocation_capacity);
+    }
+
+    #[test]
+    fn mpsc_poll_recv_many_preallocated_unbounded_branches() {
+        let (tx, mut rx) = unbounded_channel();
+        let mut cx = Context::from_waker(Waker::noop());
+        let mut buffer = Vec::with_capacity(6);
+        buffer.push(5_u64);
+        let allocation_capacity = buffer.capacity();
+
+        tx.send(7).unwrap();
+        tx.send(11).unwrap();
+        tx.send(13).unwrap();
+        drop(tx);
+
+        assert!(buffer.capacity() - buffer.len() >= 2);
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 2), Poll::Ready(2));
+        assert_eq!(buffer, vec![5, 7, 11]);
+        assert_eq!(buffer.capacity(), allocation_capacity);
+        assert!(buffer.capacity() - buffer.len() >= 2);
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 2), Poll::Ready(1));
+        assert_eq!(buffer, vec![5, 7, 11, 13]);
+        assert_eq!(buffer.capacity(), allocation_capacity);
+        assert!(buffer.capacity() - buffer.len() >= 1);
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 1), Poll::Ready(0));
+        assert_eq!(buffer.capacity(), allocation_capacity);
+    }
+
+    #[test]
     fn mpsc_poll_recv_unbounded_pending_then_value() {
         let (tx, mut rx) = unbounded_channel();
         let mut cx = Context::from_waker(Waker::noop());

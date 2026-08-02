@@ -395,6 +395,25 @@ and the post-gate zero-limit branch. The bounded and unbounded public poll
 surfaces are exercised by module-local production tests; those tests do not
 distinguish the internal first-pop and post-registration-pop paths.
 
+The `recv_many` refinement now also carries an immutable caller prefix and an
+explicit logical buffer capacity. With
+`initial_prefix.len() + limit <= buffer_capacity`, it proves each Value append
+stays inside that capacity, preserves the prefix, reports exactly the appended
+count, and performs one exact bounded bulk permit return or one unbounded
+`number_added << 1` decrement under the explicit
+`number_added * 2 <= usize::MAX` bound, including shift/multiplication
+equivalence. A consumed `accounting_applied` state prevents a completed batch
+from applying either accounting transition twice. The recv-many-specific
+environment reflects production's nonempty Closed order: observe TX_CLOSED,
+bulk-return the appended values, then establish semaphore idle. Witnesses cover
+limit completion, nonempty
+Empty/Closed completion, and the zero-value terminal priorities. Two
+module-local tests assert physical `capacity() - len() >= limit` before each
+bounded/unbounded call and confirm capacity does not change. The current vstd
+Vec contract does not connect physical capacity to the model's logical field;
+the proof is conditional and does not verify Vec growth, allocator failure, or
+unwind outside the capacity bound.
+
 The mpsc endpoint refinement additionally matches `tx_count` and
 `tx_weak_count` through live/constructing/retiring phases. It proves exact
 strong/weak clone and Drop count changes, state preservation across a spurious
@@ -446,8 +465,8 @@ lemma preserves only its modeled Waker/returned-permit/progress bookkeeping;
 queue, buffer, and capacity invariance at the gates is not connected. Index
 generation, block reuse/reclamation, endpoint full-count/pre-Arc-clone overflow,
 last-strong raw-list close/wake completion, raw Busy connection,
-CachedParkThread mechanics/loop termination, and recv-many allocation/unwind
-guards remain open. The source-only
+CachedParkThread mechanics/loop termination, and recv-many insufficient-capacity
+Vec growth/allocation/unwind guards remain open. The source-only
 [`MPSC-WRAP-AUDIT.md`](MPSC-WRAP-AUDIT.md) records non-wrapping additions in
 `Block::grow` and `Block::has_value` that can panic at the terminal aligned
 index in debug builds; release `has_value` can also misclassify that wrapped
@@ -463,7 +482,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 529 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 540 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;

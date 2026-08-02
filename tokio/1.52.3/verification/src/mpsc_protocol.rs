@@ -195,6 +195,29 @@ impl MpscCapacity {
         }
     }
 
+    /// Models one production `Semaphore::add_permits(number_added)` after a
+    /// preallocated `recv_many` batch. The queued-count precondition connects
+    /// the batch to values already removed from the logical queue.
+    pub fn receive_many(&mut self, count: u64)
+        requires
+            old(self).well_formed(),
+            count > 0,
+            count <= old(self).queued(),
+        ensures
+            final(self).well_formed(),
+            final(self).queued() + count == old(self).queued(),
+            final(self).available() == old(self).available() + count,
+            final(self).reserved() == old(self).reserved(),
+            final(self).senders() == old(self).senders(),
+            final(self).accepting() == old(self).accepting(),
+            final(self).receiver_alive() == old(self).receiver_alive(),
+            final(self).capacity() == old(self).capacity(),
+        no_unwind
+    {
+        self.queued -= count;
+        self.available += count;
+    }
+
     /// `Receiver::close`: new reservations stop, but already reserved permits
     /// may still publish and the receiver drains queued values.
     pub fn close_receiver(&mut self)
