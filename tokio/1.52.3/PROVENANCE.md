@@ -36,8 +36,9 @@ proved against their exact production formulas. Only raw atomic execution and
 pointer validity remain in the frozen foundation.**
 
 **Notify production refinement: the exact generation/state word, increment by
-four with generation wrap, stored-permit preservation, locked notify-one state
-repair, and broadcast-before-permit poll ordering are proved. Raw atomic and
+four below the all-build terminal gate, mutation-free terminal rejection,
+stored-permit preservation, locked notify-one state repair, and
+broadcast-before-permit poll ordering are proved. Raw atomic and
 mutex execution, intrusive pointers, and Waker execution remain frozen
 foundation adapters.**
 
@@ -382,16 +383,29 @@ the pre-decrement value. Dropping an uncommitted ticket restores that exact
 value; `made_progress` replaces it with the unconstrained sentinel so drop
 commits the consumed credit.
 
-The logical, production-shaped scoped-budget witnesses prove LIFO restoration
-across an unconstrained outer scope and an initial-budget inner scope. The same
-reset transition is used for normal and unwind exit and is matched to
-production `ResetGuard::drop` by source correspondence. Production regressions
-check the nested values and run the unconstrained scope under `catch_unwind`,
-demonstrating that the actual guard restores the prior task budget. The
-exhausted-budget regression now requires the pending task to have been woken,
-connecting the proof's mandatory registration flag to the observed behavior of
-`context::defer` outside a runtime; the context access and compiled call remain
-unproved.
+`vstd_ext::thread_local` supplies the narrow trusted correspondence for generic
+standard-library TLS/Cell mechanics: same-thread owned state, one dynamic
+`try_with` extent, success closure once versus teardown closure zero, and Cell
+get/set within that extent. Outer callback/fallback totality and scoped LIFO
+binding are ordinary body-proved Verus code in the same module, not trusted
+premises.
+`coop_tls_refinement.rs` body-proves Tokio's `ThreadLocalBudgetCell` mapping
+above it. It covers successful and teardown-failed
+`try_with`, closure cardinality, arbitrary constrained budgets, inaccessible
+`with_budget` fallback, and exact LIFO ResetGuard restoration on normal and
+unwind exit. Its standard broadcast composition follows production order:
+budget gate first, then trace, then the recv core only when budget permits.
+
+`defer_refinement.rs` body-proves the Tokio-specific
+`SchedulerContextAccess` mapping for `with_scheduler` selection and nonescaping
+same-thread scoped scheduler references. Defer queue behavior is not trusted:
+its bodies prove adjacent-only deduplication, exact one-entry push, queue
+preservation when Waker clone or allocation fails, pop before arbitrary Waker
+execution, and release of every remaining queued token on Drop. The top-level
+broadcast recv composition consumes `NeedsRegistration` before returning forced
+Pending and exposes either the immediate wake call or the selected scheduler
+queue effect. Focused production tests cover deduplication, clone panic,
+Waker-panic pop ordering, queued clone release, and cooperative broadcast recv.
 
 The `YieldNow` refinement preserves the source order: `trace_leaf` is checked
 before the yielded-state recheck; only the first trace-ready poll changes the
@@ -401,27 +415,29 @@ then Ready. Existing upstream loom cases for both current-thread and
 multi-thread schedulers check that deferred yield parks before same-thread
 rescheduling; both exact cases are part of `verify-all.bash`.
 
-This is P/R(partial), not whole-row closure. Only Pin/Poll/Context/Waker
-mechanics and scheduler liveness among the dependencies used here belong to
-the frozen foundation. Task-local/context access, the compiled TLS closure,
-`ResetGuard` Drop connection, `poll_fn` capture and pinning, `consume_budget`,
-`Unconstrained<F>::poll`, the inaccessible-TLS fallback, metric increment, and
-scheduler ownership of deferred wakeups remain unproved production-connection
-residuals. The accessible-context model is a logical, production-shaped
-refinement connected by source correspondence and tests, not a proof of
-task-local or compiled TLS execution.
+This is P/R(partial), not whole-row closure. Pin/Poll/Context/Waker mechanics
+and scheduler liveness remain frozen. Only the generic `vstd_ext::thread_local`
+correspondence is trusted; `ThreadLocalBudgetCell` and
+`SchedulerContextAccess` are body-proved mappings rather than TLS assumptions.
+Remaining T01 residuals are `poll_fn` capture/pinning for
+`consume_budget` and `yield_now`, `Unconstrained<F>::poll`, and metric
+increment. Taskdump-gated consumer projections, including their Pending and
+panic ordering, are owned by R08 rather than T01. Scheduler liveness is not
+established by these safety proofs.
 [`COOP-MUTATION-AUDIT.md`](COOP-MUTATION-AUDIT.md)
 records the rejected counterexamples and exact residual. The integrated Tokio
-1.52.3 Verus crate reached `565 verified, 0 errors`, up from 546, when this T01
-slice was integrated. The later S04 result is recorded in the reproduction
-summary below.
+The integrated Tokio 1.52.3 Verus crate currently reaches
+`746 verified, 0 errors` after the common TLS, T01, and S04 blocking composition
+work.
 
 | T01 component | Contract reviewed | Body proved | Trusted boundary | Integrated run |
 |---|---:|---:|---:|---:|
-| budget decrement and forced-Pending branch | yes | yes | Waker mechanics | Verus/tests |
+| budget decrement and forced-Pending branch | yes | yes | generic TLS/Cell semantics; Waker mechanics | Verus/tests |
 | restore ticket commit/rollback | yes | yes | none | Verus/tests |
 | unconstrained and initial-budget nesting | yes | yes | none | Verus/tests |
 | unwind reset state transition | yes | yes | arbitrary Drop execution | Verus/test |
+| scheduler selection and scoped binding | yes | yes, including TLS route and LIFO scope | generic TLS/Cell semantics | Verus/tests |
+| Defer queue ownership and panic cleanup | yes | yes | Waker execution; allocation; scheduler liveness | Verus/tests/loom |
 | yield trace/defer/recheck state | yes | yes | Pin/Poll/Context/Waker mechanics; scheduler liveness | Verus/test/loom |
 
 ## oneshot polling connection probe
@@ -458,9 +474,17 @@ distance with 32-bit saturation, direct emptiness, a capacity-two reachable
 terminal queried-slot witness, retained drain conservation, and exclusion of
 post-snapshot concurrent sends from Receiver Drop. Module-local tests cover all
 terminal branches, and an exact loom case connects the concurrent Drop/send
-race. This remains R(partial) because generic mask-generation equivalence,
-direct physical slot/rem coupling, waiter/slot orchestration, weak endpoints,
-and public trait/error surfaces remain open, as recorded in
+race. Later S04 modules cover generic mask-generation equivalence, direct
+physical slot/rem/value coupling, waiter/slot lock orchestration, weak endpoint
+lifecycle, public trait/error surfaces, unwind cleanup, and standard
+cooperative recv/defer. `blocking_recv_refinement.rs` additionally body-proves
+the shared-CONTEXT blocking-region and budget-teardown routes, distinct
+CURRENT_PARKER access, cfg(rt)/cfg(no-rt) selection, exact poll/park
+cardinality for arbitrary finite Pending repetitions, and terminal result
+mapping. Parker/Waker mechanics and scheduling liveness remain frozen. S04 is
+C / R / I under its recorded scope. The unstable taskdump-gated `trace_leaf`
+projection, including Pending and panic ordering at this consumer, is owned by
+R08 rather than being an S04 residual, as recorded in
 `BROADCAST-WRAP-AUDIT.md`.
 
 The `recv_many` refinement now also carries an immutable caller prefix and an
@@ -530,8 +554,9 @@ allocation and pointer validity. Wrapping state behavior, logical waiter
 membership, arbitrary slot ownership, and the all-consumed reclamation
 condition are proved above those adapters. Watch now additionally refines
 BigNotify's eight-shard loop, circular selector arithmetic, per-shard call
-generations, registration snapshots, and repeated fanout; Notify's terminal
-checked-overflow and complete-cycle ABA remain explicit production boundaries.
+generations, registration snapshots, and repeated fanout; Notify's former
+checked-overflow/full-cycle boundary is closed by mutation-free terminal
+rejection before generation zero can be reused.
 The exact transitions, tests,
 exclusions, and removal conditions are recorded in
 [`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md).

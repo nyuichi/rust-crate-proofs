@@ -46,15 +46,11 @@ encoded version has period `usize::MAX / 2 + 1`; after exactly that many
 successful modified updates, a receiver that has not observed any intermediate
 state again compares equal to its stored version. `verify_subcycle_update_is_detected`
 proves the corresponding strict subcycle case for every initial encoded version.
-Each underlying Notify call counter similarly has period
-`usize::MAX / 4 + 1`; `verify_complete_notify_cycle_aba` records the Init-state
-snapshot ABA without claiming delivery across a complete shard-generation cycle.
-Moreover, production Notify's WAITING path uses checked `data + 4`, so the
-terminal increment panics in overflow-checking builds instead of realizing the
-model's wrap; the EMPTY/NOTIFIED atomic path does wrap. Therefore
-unbounded `changed`/`has_changed` completeness is not claimed for the unchanged
-production representation; it requires either a finite observation-interval
-contract or a production design change.
+Each underlying Notify call counter now has an all-build terminal gate before
+generation zero can be reused. The earlier complete Notify-cycle ABA witness is
+retained only as a rejected wrapping-policy counterexample; it is unreachable
+under the selected production policy. Watch's own encoded-version period
+remains the boundary for unbounded `changed`/`has_changed` completeness.
 
 `WatchUpdateKind` and the post-closure value are unconstrained inputs to the
 update-closure refinement. This covers true, false-returning, and unwinding

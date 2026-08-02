@@ -1,4 +1,4 @@
-#![allow(dead_code, unused_imports, unused_variables)]
+#![allow(dead_code, unused_assignments, unused_imports, unused_variables)]
 
 use vstd::prelude::*;
 
@@ -6,10 +6,17 @@ pub mod atomic_waker_protocol;
 pub mod atomic_waker_refinement;
 pub mod barrier_protocol;
 pub mod barrier_refinement;
+pub mod blocking_recv_refinement;
 pub mod broadcast_completion;
+pub mod broadcast_endpoint_refinement;
+pub mod broadcast_orchestration;
+pub mod broadcast_physical_refinement;
 pub mod broadcast_protocol;
 pub mod broadcast_refinement;
+pub mod broadcast_surface;
 pub mod coop_refinement;
+pub mod coop_tls_refinement;
+pub mod defer_refinement;
 pub mod intrusive_waiters;
 pub mod linearizability;
 pub mod mpsc_completion;
@@ -36,6 +43,7 @@ pub mod semaphore_refinement;
 pub mod tokio_loom_cell;
 pub mod trait_views;
 pub mod unwind;
+pub mod vstd_ext;
 pub mod wait_protocol;
 pub mod watch_completion;
 pub mod watch_protocol;

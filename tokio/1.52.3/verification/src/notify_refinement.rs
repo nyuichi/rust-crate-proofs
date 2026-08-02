@@ -8,6 +8,9 @@ pub enum NotifyWordState { Empty, Waiting, Notified }
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum InitPoll { BroadcastReady, PermitReady, Registered }
 
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum NotifyWaitersAdvance { Advanced, TerminalRejected }
+
 pub open spec fn notify_max_calls() -> nat { usize::MAX as nat / 4 }
 
 /// Exact production state word: low two bits are EMPTY/WAITING/NOTIFIED and
@@ -48,24 +51,36 @@ impl EncodedNotifyWord {
         no_unwind
     { self.state = state; }
 
-    /// Abstract wrapping generation advance. Production `fetch_add(4)` has
-    /// this behavior. The locked WAITING expression `data + 4` refines it only
-    /// below the terminal call count: with overflow checks enabled that
-    /// expression panics at the terminal value instead of wrapping.
-    pub fn notify_waiters(&mut self)
+    /// Exact all-build terminal policy. Production checks the locked snapshot
+    /// before either its atomic EMPTY/NOTIFIED increment or WAITING store/list
+    /// transfer, so a terminal rejection preserves the full state.
+    pub fn notify_waiters(&mut self) -> (result: NotifyWaitersAdvance)
         requires old(self).well_formed(),
         ensures
             final(self).well_formed(),
-            old(self).calls() == usize::MAX / 4 ==> final(self).calls() == 0,
+            old(self).calls() == usize::MAX / 4 ==>
+                result == NotifyWaitersAdvance::TerminalRejected,
+            old(self).calls() == usize::MAX / 4 ==>
+                final(self).calls() == old(self).calls(),
+            old(self).calls() == usize::MAX / 4 ==>
+                final(self).state() == old(self).state(),
             old(self).calls() < usize::MAX / 4
                 ==> final(self).calls() == old(self).calls() + 1,
-            final(self).state() == if old(self).state() == NotifyWordState::Waiting {
-                NotifyWordState::Empty
-            } else { old(self).state() },
+            old(self).calls() < usize::MAX / 4 ==>
+                result == NotifyWaitersAdvance::Advanced,
+            old(self).calls() < usize::MAX / 4 ==>
+                final(self).state() == if old(self).state() == NotifyWordState::Waiting {
+                    NotifyWordState::Empty
+                } else { old(self).state() },
         no_unwind
     {
-        if self.calls == usize::MAX / 4 { self.calls = 0; } else { self.calls += 1; }
-        if let NotifyWordState::Waiting = self.state { self.state = NotifyWordState::Empty; }
+        if self.calls == usize::MAX / 4 {
+            NotifyWaitersAdvance::TerminalRejected
+        } else {
+            self.calls += 1;
+            if let NotifyWordState::Waiting = self.state { self.state = NotifyWordState::Empty; }
+            NotifyWaitersAdvance::Advanced
+        }
     }
 
     /// Exact `notify_locked`: no waiter stores one permit; otherwise the chosen
@@ -132,14 +147,15 @@ pub fn verify_broadcast_wins_without_consuming_permit()
     assert(word.state() == NotifyWordState::Notified);
 }
 
-pub fn verify_notify_word_wrap_preserves_permit()
+pub fn verify_notify_word_terminal_rejection_preserves_permit()
 {
     let mut word = EncodedNotifyWord { calls: usize::MAX / 4, state: NotifyWordState::Notified };
     assert(word.well_formed());
-    word.notify_waiters();
-    assert(word.calls() == 0);
+    let rejected = word.notify_waiters();
+    assert(rejected == NotifyWaitersAdvance::TerminalRejected);
+    assert(word.calls() == usize::MAX / 4);
     assert(word.state() == NotifyWordState::Notified);
-    assert(word.raw() == 2);
+    assert(word.raw() == usize::MAX as nat - 1nat);
 }
 
 pub proof fn verify_locked_waiting_increment_boundary()

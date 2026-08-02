@@ -43,9 +43,9 @@ tags. At a reachable terminal tail, every physical slot has long since been
 overwritten; the slot queried by `next == MAX` was most recently published at
 `MAX - capacity`. Production's existing equality order therefore rejects Ready
 and observes `slot.pos + capacity == next`, classifying Empty or Closed without
-position reuse. This generic relation is source correspondence; the current
-body proof instantiates it at capacity two, while generic mask-generation
-equivalence remains open.
+position reuse. `broadcast_physical_refinement.rs` proves this masked-index and
+generation relation for every power-of-two capacity exponent supported by the
+64-bit position model.
 
 ### `Receiver::len` and `is_empty`
 
@@ -93,11 +93,24 @@ the Drop snapshot race and checks that the surviving Receiver retains the
 concurrent value. Existing broadcast loom cases continue to cover ordinary
 physical ring reuse, two receivers, and receiver drop.
 
-## Remaining S04 boundary
+## Boundary ownership after S04 closure
 
 The full-cycle ABA, debug/release discrepancy, `len` truncation, wrapping Drop,
 and post-snapshot-release defects are closed by the selected policy and repairs.
-S04 remains R(partial), not C: generic mask-generation equivalence, the direct
-physical `Slot<T>`/`rem` coupling, waiter/slot lock orchestration, weak endpoint
-atomics, and public trait/error surfaces remain to be connected above the frozen
-atomics, Mutex, raw-link, Waker, and arbitrary Clone/Drop foundation.
+Generic mask-generation equivalence, direct physical `Slot<T>`/`rem` coupling,
+waiter/slot lock orchestration, weak endpoint lifecycle, public trait/error
+surfaces, arbitrary Clone/Drop cleanup, and the standard cooperative recv path
+are now connected by `broadcast_{physical,endpoint,orchestration,surface}.rs`,
+`coop_tls_refinement.rs`, `defer_refinement.rs`, and
+`blocking_recv_refinement.rs`. The narrow trusted inputs are
+`FiniteExecutionResources` for endpoint construction gaps and the generic
+standard-library TLS/Cell correspondence in `vstd_ext::thread_local`.
+`ThreadLocalBudgetCell`, `SchedulerContextAccess`, blocking-region selection,
+and `CurrentParkerCell` are Tokio-specific body-proved mappings above that
+primitive. `blocking_recv` is connected for cfg(rt) rejection, cfg(no-rt),
+CONTEXT teardown fallback, CURRENT_PARKER teardown error, any finite number of
+Pending/park iterations, and exact terminal Value/Closed/Lagged results.
+Waker/condvar mechanics and scheduler liveness remain in the frozen foundation.
+S04 is C / R / I under its recorded channel scope. The unstable taskdump-gated
+`trace_leaf` projection, including Pending and panic ordering at this consumer,
+is owned by R08 and is not an S04 residual.

@@ -10,6 +10,30 @@ use tokio_test::{assert_pending, assert_ready};
 const WAKE_LIST_SIZE: usize = 32;
 
 #[test]
+fn notify_waiters_terminal_rejects_concurrent_calls() {
+    loom::model(|| {
+        let notify = Arc::new(Notify::new());
+        notify.set_notify_waiters_calls_for_test(usize::MAX >> 2);
+        let first = notify.clone();
+        let second = notify.clone();
+        let th1 = thread::spawn(move || {
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                first.notify_waiters();
+            }))
+            .is_err()
+        });
+        let th2 = thread::spawn(move || {
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                second.notify_waiters();
+            }))
+            .is_err()
+        });
+        assert!(th1.join().unwrap());
+        assert!(th2.join().unwrap());
+    });
+}
+
+#[test]
 fn notify_one() {
     loom::model(|| {
         let tx = Arc::new(Notify::new());

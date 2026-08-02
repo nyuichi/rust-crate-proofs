@@ -668,8 +668,10 @@ impl<T> Sender<T> {
         // Set remaining receivers
         slot.rem.with_mut(|v| *v = rem);
 
-        // Write the value
-        slot.val = Some(value);
+        // Publish the new value without dropping the overwritten value while
+        // either channel lock is held. A user-provided `T::drop` may panic;
+        // notification processing and its cleanup must run before that Drop.
+        let old_value = slot.val.replace(value);
 
         // Release the slot lock before notifying the receivers.
         drop(slot);
@@ -678,6 +680,11 @@ impl<T> Sender<T> {
         // released, otherwise the writer lock bit could be cleared while another
         // thread is in the critical section.
         self.shared.notify_rx(tail);
+
+        // Drop arbitrary user code only after the new value is visible and
+        // notification processing has run. A panicking Waker can stop waking
+        // later entries, but cleanup still happens before this Drop.
+        drop(old_value);
 
         Ok(rem)
     }
@@ -1571,11 +1578,18 @@ impl<T> Drop for Receiver<T> {
         let remaining_rx = tail.rx_cnt;
 
         if remaining_rx == 0 {
-            self.shared.notify_last_rx_drop.notify_waiters();
             tail.closed = true;
         }
 
         drop(tail);
+
+        // Notify only after committing the last-receiver state and releasing
+        // the tail lock. This keeps rx_cnt/closed consistent if notification
+        // rejects its terminal generation or a user Waker panics, and permits
+        // Wakers to reenter subscribe without deadlocking on the tail.
+        if remaining_rx == 0 {
+            self.shared.notify_last_rx_drop.notify_waiters();
+        }
 
         while self.next < until {
             match self.recv_ref(None) {
@@ -1741,6 +1755,428 @@ fn is_unpin<T: Unpin>() {}
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn broadcast_public_trait_and_error_surfaces_are_exact() {
+        use std::error::Error;
+
+        let (sender, receiver) = channel::<u64>(1);
+        let weak = sender.downgrade();
+        assert_eq!(format!("{sender:?}"), "broadcast::Sender");
+        assert_eq!(format!("{weak:?}"), "broadcast::WeakSender");
+        assert_eq!(format!("{receiver:?}"), "broadcast::Receiver");
+
+        let send_error = SendError(7u64);
+        assert_eq!(send_error.to_string(), "channel closed");
+        assert!(send_error.source().is_none());
+        assert_eq!(RecvError::Closed.clone(), RecvError::Closed);
+        assert_eq!(RecvError::Closed.to_string(), "channel closed");
+        assert_eq!(RecvError::Lagged(3).to_string(), "channel lagged by 3");
+        assert_eq!(TryRecvError::Empty.clone(), TryRecvError::Empty);
+        assert_eq!(TryRecvError::Empty.to_string(), "channel empty");
+        assert_eq!(TryRecvError::Closed.to_string(), "channel closed");
+        assert_eq!(TryRecvError::Lagged(4).to_string(), "channel lagged by 4");
+    }
+
+    #[test]
+    fn broadcast_last_receiver_notify_terminal_keeps_tail_committed() {
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+
+        let (sender, receiver) = channel::<()>(1);
+        sender
+            .shared
+            .notify_last_rx_drop
+            .set_notify_waiters_calls_for_test(usize::MAX >> 2);
+
+        let result = catch_unwind(AssertUnwindSafe(|| drop(receiver)));
+        assert!(result.is_err());
+        let tail = sender.shared.tail.lock();
+        assert_eq!(tail.rx_cnt, 0);
+        assert!(tail.closed);
+    }
+
+    #[test]
+    fn broadcast_last_receiver_waker_can_reenter_then_panic_after_tail_unlock() {
+        use std::future::Future;
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+        use std::sync::atomic::{AtomicBool as StdAtomicBool, Ordering};
+        use std::task::{Context, Poll, Wake};
+
+        struct ReenterWake {
+            sender: Sender<()>,
+            woke: StdAtomicBool,
+        }
+
+        impl Wake for ReenterWake {
+            fn wake(self: Arc<Self>) {
+                let receiver = self.sender.subscribe();
+                drop(receiver);
+                self.woke.store(true, Ordering::SeqCst);
+                panic!("closed waker panic");
+            }
+        }
+
+        let (sender, receiver) = channel::<()>(1);
+        let wake = Arc::new(ReenterWake {
+            sender: sender.clone(),
+            woke: StdAtomicBool::new(false),
+        });
+        let waker = Waker::from(wake.clone());
+        let mut context = Context::from_waker(&waker);
+        let mut closed = Box::pin(sender.closed());
+        assert!(matches!(closed.as_mut().poll(&mut context), Poll::Pending));
+
+        let result = catch_unwind(AssertUnwindSafe(|| drop(receiver)));
+        assert!(result.is_err());
+        assert!(wake.woke.load(Ordering::SeqCst));
+        let tail = sender.shared.tail.lock();
+        assert_eq!(tail.rx_cnt, 0);
+        assert!(tail.closed);
+    }
+
+    #[test]
+    fn broadcast_overwrite_drop_panic_happens_after_waiter_notification() {
+        use std::future::Future;
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+        use std::sync::atomic::{AtomicUsize as StdAtomicUsize, Ordering};
+        use std::task::{Context, Poll, Wake};
+
+        #[derive(Clone, Debug, PartialEq)]
+        struct Payload {
+            id: usize,
+            panic_on_drop: bool,
+        }
+
+        impl Drop for Payload {
+            fn drop(&mut self) {
+                assert!(!self.panic_on_drop, "old payload drop panic");
+            }
+        }
+
+        struct CountWake(StdAtomicUsize);
+
+        impl Wake for CountWake {
+            fn wake(self: Arc<Self>) {
+                self.0.fetch_add(1, Ordering::SeqCst);
+            }
+
+            fn wake_by_ref(self: &Arc<Self>) {
+                self.0.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+
+        let (sender, mut lagger) = channel(1);
+        sender
+            .send(Payload {
+                id: 1,
+                panic_on_drop: true,
+            })
+            .unwrap();
+
+        // A receiver subscribed after the old send has a reachable cursor at
+        // the next generation and therefore registers Pending.
+        let mut receiver = sender.subscribe();
+        let wake_count = Arc::new(CountWake(StdAtomicUsize::new(0)));
+        let waker = Waker::from(wake_count.clone());
+        let mut context = Context::from_waker(&waker);
+        let mut recv = Box::pin(receiver.recv());
+        assert!(matches!(recv.as_mut().poll(&mut context), Poll::Pending));
+
+        let result = catch_unwind(AssertUnwindSafe(|| {
+            sender.send(Payload {
+                id: 2,
+                panic_on_drop: false,
+            })
+        }));
+        assert!(result.is_err());
+        assert!(wake_count.0.load(Ordering::SeqCst) > 0);
+
+        let received = match recv.as_mut().poll(&mut context) {
+            Poll::Ready(Ok(value)) => value,
+            _ => panic!("published replacement must be ready after wake"),
+        };
+        assert_eq!(received.id, 2);
+        assert_eq!(lagger.try_recv(), Err(TryRecvError::Lagged(1)));
+        assert_eq!(lagger.try_recv().unwrap().id, 2);
+        assert_eq!(sender.shared.buffer[0].lock().rem.load(SeqCst), 0);
+        assert!(sender.shared.buffer[0].lock().val.is_none());
+    }
+
+    #[test]
+    fn broadcast_overwrite_drop_can_reenter_send_without_deadlock() {
+        #[derive(Debug)]
+        struct Reentrant {
+            id: usize,
+            sender: Option<Sender<Reentrant>>,
+        }
+
+        impl Clone for Reentrant {
+            fn clone(&self) -> Self {
+                Reentrant {
+                    id: self.id,
+                    sender: self.sender.clone(),
+                }
+            }
+        }
+
+        impl Drop for Reentrant {
+            fn drop(&mut self) {
+                if let Some(sender) = self.sender.take() {
+                    sender
+                        .send(Reentrant {
+                            id: 3,
+                            sender: None,
+                        })
+                        .unwrap();
+                }
+            }
+        }
+
+        let (sender, mut receiver) = channel(1);
+        sender
+            .send(Reentrant {
+                id: 1,
+                sender: Some(sender.clone()),
+            })
+            .unwrap();
+        sender
+            .send(Reentrant {
+                id: 2,
+                sender: None,
+            })
+            .unwrap();
+
+        assert!(matches!(
+            receiver.try_recv(),
+            Err(TryRecvError::Lagged(2))
+        ));
+        assert_eq!(receiver.try_recv().unwrap().id, 3);
+        assert_eq!(sender.shared.tail.lock().pos, 3);
+        assert_eq!(sender.shared.buffer[0].lock().rem.load(SeqCst), 0);
+    }
+
+    #[test]
+    fn broadcast_notify_waker_panic_still_drops_old_once_and_keeps_new() {
+        use std::future::Future;
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+        use std::sync::atomic::{AtomicUsize as StdAtomicUsize, Ordering};
+        use std::task::{Context, Poll, Wake};
+
+        #[derive(Debug)]
+        struct CountDrop {
+            id: usize,
+            drops: Arc<StdAtomicUsize>,
+        }
+
+        impl Clone for CountDrop {
+            fn clone(&self) -> Self {
+                CountDrop {
+                    id: self.id,
+                    drops: self.drops.clone(),
+                }
+            }
+        }
+
+        impl Drop for CountDrop {
+            fn drop(&mut self) {
+                self.drops.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+
+        struct PanicWake;
+        impl Wake for PanicWake {
+            fn wake(self: Arc<Self>) {
+                panic!("waker panic");
+            }
+        }
+
+        struct NoopWake;
+        impl Wake for NoopWake {
+            fn wake(self: Arc<Self>) {}
+        }
+
+        let old_drops = Arc::new(StdAtomicUsize::new(0));
+        let new_drops = Arc::new(StdAtomicUsize::new(0));
+        let (sender, mut lagger) = channel(1);
+        sender
+            .send(CountDrop {
+                id: 1,
+                drops: old_drops.clone(),
+            })
+            .unwrap();
+
+        let mut receiver = sender.subscribe();
+        let panic_waker = Waker::from(Arc::new(PanicWake));
+        let mut panic_context = Context::from_waker(&panic_waker);
+        let mut recv = Box::pin(receiver.recv());
+        assert!(matches!(recv.as_mut().poll(&mut panic_context), Poll::Pending));
+
+        let send = catch_unwind(AssertUnwindSafe(|| {
+            sender.send(CountDrop {
+                id: 2,
+                drops: new_drops.clone(),
+            })
+        }));
+        assert!(send.is_err());
+        assert_eq!(old_drops.load(Ordering::SeqCst), 1);
+
+        let noop_waker = Waker::from(Arc::new(NoopWake));
+        let mut noop_context = Context::from_waker(&noop_waker);
+        let received = match recv.as_mut().poll(&mut noop_context) {
+            Poll::Ready(Ok(value)) => value,
+            _ => panic!("replacement must remain receivable after waker panic"),
+        };
+        assert_eq!(received.id, 2);
+        assert!(matches!(
+            lagger.try_recv(),
+            Err(TryRecvError::Lagged(1))
+        ));
+        assert_eq!(lagger.try_recv().unwrap().id, 2);
+        drop(received);
+        assert_eq!(old_drops.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn broadcast_waker_panic_unlinks_later_waiter_for_safe_repoll() {
+        use std::future::Future;
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+        use std::sync::atomic::{AtomicUsize as StdAtomicUsize, Ordering};
+        use std::task::{Context, Poll, Wake};
+
+        struct PanicWake;
+        impl Wake for PanicWake {
+            fn wake(self: Arc<Self>) {
+                panic!("first waker panic");
+            }
+        }
+
+        struct CountWake(StdAtomicUsize);
+        impl Wake for CountWake {
+            fn wake(self: Arc<Self>) {
+                self.0.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+
+        struct NoopWake;
+        impl Wake for NoopWake {
+            fn wake(self: Arc<Self>) {}
+        }
+
+        let (sender, mut lagger) = channel(1);
+        sender.send(1usize).unwrap();
+        let mut first = sender.subscribe();
+        let mut later = sender.subscribe();
+
+        let panic_waker = Waker::from(Arc::new(PanicWake));
+        let mut panic_context = Context::from_waker(&panic_waker);
+        let count_waker = Arc::new(CountWake(StdAtomicUsize::new(0)));
+        let count_task_waker = Waker::from(count_waker.clone());
+        let mut count_context = Context::from_waker(&count_task_waker);
+        let mut first_recv = Box::pin(first.recv());
+        let mut later_recv = Box::pin(later.recv());
+
+        // push_front + pop_back makes the first registered waiter wake first.
+        assert!(matches!(first_recv.as_mut().poll(&mut panic_context), Poll::Pending));
+        assert!(matches!(later_recv.as_mut().poll(&mut count_context), Poll::Pending));
+        let send = catch_unwind(AssertUnwindSafe(|| sender.send(2usize)));
+        assert!(send.is_err());
+        assert_eq!(count_waker.0.load(Ordering::SeqCst), 0);
+
+        let noop_waker = Waker::from(Arc::new(NoopWake));
+        let mut noop_context = Context::from_waker(&noop_waker);
+        assert!(matches!(
+            later_recv.as_mut().poll(&mut noop_context),
+            Poll::Ready(Ok(2))
+        ));
+        assert!(matches!(
+            first_recv.as_mut().poll(&mut noop_context),
+            Poll::Ready(Ok(2))
+        ));
+        drop(later_recv);
+        drop(first_recv);
+        assert!(matches!(lagger.try_recv(), Err(TryRecvError::Lagged(1))));
+        assert_eq!(lagger.try_recv(), Ok(2));
+        assert_eq!(sender.shared.buffer[0].lock().rem.load(SeqCst), 0);
+    }
+
+    #[test]
+    fn broadcast_clone_panic_releases_guard_and_original_once() {
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+        use std::sync::atomic::{AtomicUsize as StdAtomicUsize, Ordering};
+
+        #[derive(Debug)]
+        struct PanicClone {
+            drops: Arc<StdAtomicUsize>,
+        }
+
+        impl Clone for PanicClone {
+            fn clone(&self) -> Self {
+                panic!("clone panic");
+            }
+        }
+
+        impl Drop for PanicClone {
+            fn drop(&mut self) {
+                self.drops.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+
+        let drops = Arc::new(StdAtomicUsize::new(0));
+        let (sender, mut receiver) = channel(1);
+        sender.send(PanicClone { drops: drops.clone() }).unwrap();
+        let result = catch_unwind(AssertUnwindSafe(|| receiver.try_recv()));
+        assert!(result.is_err());
+        assert_eq!(drops.load(Ordering::SeqCst), 1);
+        assert_eq!(sender.shared.buffer[0].lock().rem.load(SeqCst), 0);
+        assert!(sender.shared.buffer[0].lock().val.is_none());
+    }
+
+    #[test]
+    fn broadcast_last_guard_original_drop_panic_does_not_double_release() {
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+        use std::sync::atomic::{AtomicUsize as StdAtomicUsize, Ordering};
+
+        #[derive(Debug)]
+        struct PanicOriginalDrop {
+            original: bool,
+            drops: Arc<StdAtomicUsize>,
+        }
+
+        impl Clone for PanicOriginalDrop {
+            fn clone(&self) -> Self {
+                PanicOriginalDrop {
+                    original: false,
+                    drops: self.drops.clone(),
+                }
+            }
+        }
+
+        impl Drop for PanicOriginalDrop {
+            fn drop(&mut self) {
+                self.drops.fetch_add(1, Ordering::SeqCst);
+                assert!(!self.original, "stored original drop panic");
+            }
+        }
+
+        let drops = Arc::new(StdAtomicUsize::new(0));
+        let (sender, mut receiver) = channel(1);
+        sender
+            .send(PanicOriginalDrop {
+                original: true,
+                drops: drops.clone(),
+            })
+            .unwrap();
+        let result = catch_unwind(AssertUnwindSafe(|| receiver.try_recv()));
+        assert!(result.is_err());
+        // The stored original is released exactly once. Rust may leave the
+        // already-constructed return-place clone undropped when a destructor
+        // panics while the function return is being assembled.
+        assert_eq!(drops.load(Ordering::SeqCst), 1);
+        assert_eq!(sender.shared.buffer[0].lock().rem.load(SeqCst), 0);
+        assert!(sender.shared.buffer[0].lock().val.is_none());
+        drop(receiver);
+        assert_eq!(drops.load(Ordering::SeqCst), 1);
+    }
 
     #[test]
     fn broadcast_position_terminal_send_receive_preserves_generation_order() {

@@ -8,6 +8,8 @@ pub enum NotifyStrategy {
     Lifo,
 }
 
+pub open spec fn notify_terminal_epoch() -> nat { usize::MAX as nat / 4 }
+
 /// Global, ordered protocol for production `Notify`. Existing `NotifiedCore`
 /// proves each future's poll lifecycle, while this model proves how all public
 /// operations select and conserve notifications across futures.
@@ -157,6 +159,7 @@ impl NotifyProtocol {
     /// whole pre-existing queue becomes ready. A stored one-permit is neither
     /// created nor consumed by `notify_waiters`.
     pub proof fn notify_waiters(tracked &mut self) -> (notified: Seq<u64>)
+        requires old(self).epoch() < notify_terminal_epoch(),
         ensures
             notified == old(self).queue(),
             final(self).queue().len() == 0,
@@ -173,6 +176,17 @@ impl NotifyProtocol {
         self.epoch = self.epoch + 1;
         notified
     }
+
+    /// Production rejects this state before changing its word or waiter list.
+    pub proof fn reject_terminal_notify_waiters(tracked &mut self)
+        requires old(self).epoch() == notify_terminal_epoch(),
+        ensures final(self).queue() == old(self).queue(),
+            final(self).stored_permit() == old(self).stored_permit(),
+            final(self).epoch() == old(self).epoch(),
+            final(self).notified_fifo() == old(self).notified_fifo(),
+            final(self).notified_lifo() == old(self).notified_lifo(),
+            final(self).notified_all() == old(self).notified_all(),
+    {}
 
     pub proof fn cancel_waiting(tracked &mut self, index: int) -> (id: u64)
         requires 0 <= index < old(self).queue().len(),

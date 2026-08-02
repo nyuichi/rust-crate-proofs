@@ -466,6 +466,13 @@ fn inc_num_notify_waiters_calls(data: usize) -> usize {
     data + (1 << NOTIFY_WAITERS_SHIFT)
 }
 
+fn assert_notify_waiters_not_terminal(data: usize) {
+    assert!(
+        get_num_notify_waiters_calls(data) != usize::MAX >> NOTIFY_WAITERS_SHIFT,
+        "notify_waiters call count overflow"
+    );
+}
+
 fn atomic_inc_num_notify_waiters_calls(data: &AtomicUsize) {
     data.fetch_add(1 << NOTIFY_WAITERS_SHIFT, SeqCst);
 }
@@ -740,6 +747,11 @@ impl Notify {
     /// println!("received notifications");
     /// # }
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics before changing state if the internal `notify_waiters`
+    /// generation has reached its terminal value. Generations are never reused.
     pub fn notify_waiters(&self) {
         self.lock_waiter_list().notify_waiters();
     }
@@ -749,6 +761,12 @@ impl Notify {
         curr: usize,
         mut waiters: crate::loom::sync::MutexGuard<'a, LinkedList<Waiter, Waiter>>,
     ) {
+        // A generation is never reused. The waiter lock makes this snapshot
+        // stable with respect to every other notify_waiters call. Reject before
+        // the atomic increment, state store, or guarded-list transfer in every
+        // state, so debug and release builds have identical terminal behavior.
+        assert_notify_waiters_not_terminal(curr);
+
         if matches!(get_state(curr), EMPTY | NOTIFIED) {
             // There are no waiting tasks. All we need to do is increment the
             // number of times this method was called.
@@ -829,6 +847,15 @@ impl Notify {
             guarded_waiters,
             current_state,
         }
+    }
+
+    #[cfg(test)]
+    pub(crate) fn set_notify_waiters_calls_for_test(&self, calls: usize) {
+        let current = self.state.load(SeqCst);
+        self.state.store(
+            (calls << NOTIFY_WAITERS_SHIFT) | get_state(current),
+            SeqCst,
+        );
     }
 }
 
@@ -1413,5 +1440,56 @@ impl NotifyGuard<'_> {
     pub(crate) fn notify_waiters(self) {
         self.guarded_notify
             .inner_notify_waiters(self.current_state, self.guarded_waiters);
+    }
+}
+
+#[cfg(all(test, not(loom)))]
+mod verification_tests {
+    use super::*;
+    use std::future::Future;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+    use std::pin::Pin;
+    use std::task::{Context, Poll, Wake, Waker};
+
+    struct NoopWake;
+    impl Wake for NoopWake {
+        fn wake(self: Arc<Self>) {}
+    }
+
+    #[test]
+    fn notify_waiters_terminal_rejects_before_empty_or_notified_mutation() {
+        for low_state in [EMPTY, NOTIFIED] {
+            let notify = Notify::new();
+            let terminal = NOTIFY_WAITERS_CALLS_MASK | low_state;
+            notify.state.store(terminal, SeqCst);
+            let result = catch_unwind(AssertUnwindSafe(|| notify.notify_waiters()));
+            assert!(result.is_err());
+            assert_eq!(notify.state.load(SeqCst), terminal);
+        }
+    }
+
+    #[test]
+    fn notify_waiters_terminal_rejects_before_waiting_list_mutation() {
+        let notify = Notify::new();
+        let mut notified = Box::pin(notify.notified());
+        let wake_owner = Arc::new(NoopWake);
+        let waker = Waker::from(wake_owner.clone());
+        let mut context = Context::from_waker(&waker);
+        assert!(matches!(
+            Pin::new(&mut notified).poll(&mut context),
+            Poll::Pending
+        ));
+
+        let terminal_waiting = NOTIFY_WAITERS_CALLS_MASK | WAITING;
+        notify.state.store(terminal_waiting, SeqCst);
+        let result = catch_unwind(AssertUnwindSafe(|| notify.notify_waiters()));
+        assert!(result.is_err());
+        assert_eq!(notify.state.load(SeqCst), terminal_waiting);
+        assert_eq!(Arc::strong_count(&wake_owner), 3);
+
+        // The unchanged waiter remains linked and can be cancelled safely.
+        drop(notified);
+        assert_ne!(get_state(notify.state.load(SeqCst)), WAITING);
+        assert_eq!(Arc::strong_count(&wake_owner), 2);
     }
 }

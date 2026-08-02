@@ -84,6 +84,29 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full \
   --test sync_broadcast
 
+# Blocking broadcast surface under both production block_on cfgs: the sync-only
+# build uses direct CachedParkThread, while full enables the runtime context
+# rejection path. The latter panic-location regression lives in sync_panic.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --no-default-features \
+  --features sync \
+  --test sync_broadcast_blocking
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_broadcast_blocking
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_panic \
+  broadcast_blocking_recv_panic_caller
+
 # S04 terminal-position connection: final-ticket send/recv and lag recovery,
 # mutation-free exhaustion, saturating len, and retained-value Drop.
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
@@ -128,6 +151,15 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full,test-util \
   --lib \
   task::coop::test::
+
+# T01 production Defer ownership: adjacent deduplication, clone-panic queue
+# preservation, pop-before-arbitrary-Waker execution, and queued clone release.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  runtime::scheduler::defer::verification_tests::
 
 # The public yield future is unstable-test gated in this upstream snapshot.
 # Its outside-runtime case checks Pending + wake before the Ready recheck.
@@ -242,6 +274,7 @@ run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::batch
 run_loom_exact loom-notify sync::tests::loom_notify::notify_one
 run_loom_exact loom-notify sync::tests::loom_notify::notify_waiters
 run_loom_exact loom-notify sync::tests::loom_notify::notify_drop
+run_loom_exact loom-notify sync::tests::loom_notify::notify_waiters_terminal_rejects_concurrent_calls
 
 run_loom_exact loom-atomic-waker sync::tests::loom_atomic_waker::basic_notification
 run_loom_exact loom-atomic-waker sync::tests::loom_atomic_waker::test_panicky_waker

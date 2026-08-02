@@ -58,6 +58,23 @@ fn oneshot_blocking_recv_panic_caller() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn broadcast_blocking_recv_panic_caller() -> Result<(), Box<dyn Error>> {
+    let panic_location_file = test_panic(|| {
+        let rt = current_thread();
+        let (_tx, mut rx) = broadcast::channel::<u8>(1);
+        rt.block_on(async {
+            let _ = rx.blocking_recv();
+        });
+    });
+
+    assert!(panic_location_file
+        .unwrap()
+        .ends_with("src/sync/broadcast.rs"));
+
+    Ok(())
+}
+
+#[test]
 fn rwlock_with_max_readers_panic_caller() -> Result<(), Box<dyn Error>> {
     let panic_location_file = test_panic(|| {
         let _ = RwLock::<u8>::with_max_readers(0, (u32::MAX >> 3) + 1);
