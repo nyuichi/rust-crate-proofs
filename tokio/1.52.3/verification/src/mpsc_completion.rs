@@ -235,7 +235,10 @@ impl PermitBatch {
     }
 }
 
-/// Strong/weak Sender state, including the no-resurrection rule for upgrade.
+/// Quiescent logical strong/weak Sender state, including no resurrection.
+/// This is not the representation invariant for production's atomic fields:
+/// constructing and retiring phases are refined separately in
+/// `mpsc_endpoint_refinement`.
 pub struct MpscSenderCounts {
     strong: u64,
     weak: u64,

@@ -112,6 +112,25 @@ using tracked claimed/ready/consumed sets, specifies the all-consumed condition
 for block reclamation, proves reserve-many iterator conservation, and proves
 that weak Senders cannot resurrect a channel after the final strong Sender.
 
+`mpsc_endpoint_refinement` connects that rule to production's exact
+`tx_count`/`tx_weak_count` updates for both bounded and unbounded wrappers. Its
+invariant is phase-accurate: each atomic count includes live, constructing, and
+retiring wrappers, so a count read during `downgrade`, clone, upgrade, or Drop
+is not misidentified as merely the number of fully returned handles. It proves
+strong/weak clone and Drop accounting, spurious-CAS Retry preservation,
+successful upgrade construction, and terminal no-resurrection. Strong owners
+are split into live Sender and live OwnedPermit counts: successful
+`reserve_owned` moves ownership without changing `tx_count`, `send`/`release`
+return the same owner as Sender, and OwnedPermit Drop retires it exactly once.
+The final strong `fetch_sub`
+establishes only `CloseRequested`; raw-list close insertion and wake execution
+remain outside this refinement. Three module-local tests connect sequential
+count observations and terminal upgrade behavior for bounded, unbounded, and
+owned-permit paths. Count additions are proved only under the explicit finite
+`endpoint_count_room` observation window. Production full-count behavior and
+the concurrent interval between Tokio's count increment and following Arc
+clone are not proved safe by this refinement.
+
 `mpsc_refinement` now proves the production branch order for single-message
 `Chan::recv` and `recv_many` after the trace/cooperative gates. It separates
 first pop, Waker registration, and second pop; first-pop Value/Closed never
@@ -137,8 +156,10 @@ The refinement consumes `QueueRead` as the already-established logical pop
 oracle; it does not connect that oracle to the raw list/UnsafeCell chain. Its
 gate lemma preserves only modeled Waker/returned-permit/progress bookkeeping;
 queue, caller buffer, and capacity snapshots are not part of that lemma.
-Trace/coop execution itself and untouched raw queue state remain their owning boundaries. Block
-pointers, index wrapping, block reuse, weak-count atomics, `try_recv`'s
+Trace/coop execution itself and untouched raw queue state remain their owning
+boundaries. Block pointers, index wrapping, block reuse, full-count and
+pre-Arc-clone endpoint overflow behavior, last-strong raw-list close/wake
+completion, `try_recv`'s
 CachedParkThread Busy loop, recv-many buffer-allocation/panic-guard/drop paths,
 arbitrary destructors, and scheduler liveness remain open. The source audit
 also found non-wrapping additions in `Block::grow` and `Block::has_value` at the

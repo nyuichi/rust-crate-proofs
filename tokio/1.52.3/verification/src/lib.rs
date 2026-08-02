@@ -11,6 +11,7 @@ pub mod barrier_refinement;
 pub mod intrusive_waiters;
 pub mod linearizability;
 pub mod mpsc_completion;
+pub mod mpsc_endpoint_refinement;
 pub mod mpsc_protocol;
 pub mod mpsc_refinement;
 pub mod notified_core;

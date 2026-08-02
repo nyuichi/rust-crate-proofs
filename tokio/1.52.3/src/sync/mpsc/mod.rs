@@ -147,7 +147,7 @@ pub(crate) const BLOCK_CAP: usize = 2;
 
 #[cfg(all(test, not(loom)))]
 mod verification_tests {
-    use super::{channel, unbounded_channel};
+    use super::{channel, error::TryRecvError, unbounded_channel};
     use std::task::{Context, Poll, Waker};
 
     #[test]
@@ -213,5 +213,81 @@ mod verification_tests {
         assert_eq!(rx.poll_recv(&mut cx), Poll::Pending);
         tx.send(29_u64).unwrap();
         assert_eq!(rx.poll_recv(&mut cx), Poll::Ready(Some(29)));
+    }
+
+    #[test]
+    fn mpsc_endpoint_counts_bounded_lifecycle_and_terminal_upgrade() {
+        let (tx, mut rx) = channel::<u64>(1);
+        let tx2 = tx.clone();
+        let weak = tx.downgrade();
+        let weak2 = weak.clone();
+
+        assert_eq!(tx.strong_count(), 2);
+        assert_eq!(rx.sender_strong_count(), 2);
+        assert_eq!(tx.weak_count(), 2);
+        assert_eq!(rx.sender_weak_count(), 2);
+
+        drop(tx2);
+        drop(weak2);
+        assert_eq!(weak.strong_count(), 1);
+        assert_eq!(weak.weak_count(), 1);
+
+        drop(tx);
+        assert_eq!(weak.strong_count(), 0);
+        assert!(weak.upgrade().is_none());
+        assert_eq!(rx.try_recv(), Err(TryRecvError::Disconnected));
+
+        drop(weak);
+        assert_eq!(rx.sender_weak_count(), 0);
+    }
+
+    #[test]
+    fn mpsc_endpoint_counts_unbounded_lifecycle_and_terminal_upgrade() {
+        let (tx, mut rx) = unbounded_channel::<u64>();
+        let tx2 = tx.clone();
+        let weak = tx.downgrade();
+        let weak2 = weak.clone();
+
+        assert_eq!(tx.strong_count(), 2);
+        assert_eq!(rx.sender_strong_count(), 2);
+        assert_eq!(tx.weak_count(), 2);
+        assert_eq!(rx.sender_weak_count(), 2);
+
+        drop(tx2);
+        drop(weak2);
+        drop(tx);
+        assert_eq!(weak.strong_count(), 0);
+        assert_eq!(weak.weak_count(), 1);
+        assert!(weak.upgrade().is_none());
+        assert_eq!(rx.try_recv(), Err(TryRecvError::Disconnected));
+
+        drop(weak);
+        assert_eq!(rx.sender_weak_count(), 0);
+    }
+
+    #[test]
+    fn mpsc_endpoint_counts_owned_permit_keeps_upgrade_open() {
+        let (tx, mut rx) = channel::<u64>(1);
+        let weak = tx.downgrade();
+        let permit = tx.try_reserve_owned().unwrap();
+
+        assert_eq!(weak.strong_count(), 1);
+        let upgraded = weak.upgrade().expect("owned permit retains its sender");
+        assert_eq!(upgraded.strong_count(), 2);
+        drop(upgraded);
+
+        let tx = permit.release();
+        assert_eq!(tx.strong_count(), 1);
+        let permit = tx.try_reserve_owned().unwrap();
+        let tx = permit.send(41);
+        assert_eq!(tx.strong_count(), 1);
+        assert_eq!(rx.try_recv(), Ok(41));
+
+        let permit = tx.try_reserve_owned().unwrap();
+        assert_eq!(weak.strong_count(), 1);
+        drop(permit);
+        assert_eq!(weak.strong_count(), 0);
+        assert!(weak.upgrade().is_none());
+        drop(rx);
     }
 }

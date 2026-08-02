@@ -101,6 +101,13 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
   --features full,test-util \
+  --lib \
+  mpsc_endpoint_counts_
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
   --test sync_mpsc_weak
 
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
