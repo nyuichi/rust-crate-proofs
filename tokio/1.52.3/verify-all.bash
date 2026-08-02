@@ -20,6 +20,12 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
+  --features full,test-util \
+  --test sync_once_cell
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
   --features full \
   --test sync_oneshot
 
@@ -260,6 +266,13 @@ RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-set-once" cargo t
   --features full,test-util \
   --lib \
   loom_set_once
+
+RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-once-cell" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  loom_once_cell
 
 RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-oneshot" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \

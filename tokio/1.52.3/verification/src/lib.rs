@@ -34,6 +34,7 @@ pub mod notified_core;
 pub mod notify_guard;
 pub mod notify_protocol;
 pub mod notify_refinement;
+pub mod once_cell_refinement;
 pub mod oneshot_atomic;
 pub mod oneshot_closed;
 pub mod oneshot_drop;

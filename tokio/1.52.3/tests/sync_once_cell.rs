@@ -1,11 +1,14 @@
 #![warn(rust_2018_idioms)]
 #![cfg(feature = "full")]
 
+use std::future::pending;
 use std::mem;
+use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::runtime;
+use tokio::sync::Notify;
 use tokio::sync::OnceCell;
 use tokio::sync::SetError;
 use tokio::time;
@@ -247,4 +250,155 @@ fn get_or_try_init() {
         let result2 = handle2.await.unwrap();
         assert_eq!(*result2.unwrap(), 10);
     });
+}
+
+#[test]
+fn cancellation_releases_initializer_for_retry() {
+    let rt = runtime::Builder::new_current_thread().build().unwrap();
+    rt.block_on(async {
+        let cell = Arc::new(OnceCell::new());
+        let started = Arc::new(Notify::new());
+        let task = {
+            let cell = cell.clone();
+            let started = started.clone();
+            tokio::spawn(async move {
+                let _ = cell
+                    .get_or_init(|| async move {
+                        started.notify_one();
+                        pending::<u32>().await
+                    })
+                    .await;
+            })
+        };
+
+        started.notified().await;
+        let initializing_clone = cell.as_ref().clone();
+        assert!(!initializing_clone.initialized());
+        assert_eq!(initializing_clone, OnceCell::new());
+        assert_eq!(format!("{:?}", cell.as_ref()), "OnceCell { value: None }");
+        task.abort();
+        assert!(task.await.unwrap_err().is_cancelled());
+        assert_eq!(*cell.get_or_init(|| async { 7 }).await, 7);
+    });
+}
+
+#[test]
+fn panicking_initializer_releases_permit_for_retry() {
+    let rt = runtime::Builder::new_current_thread().build().unwrap();
+    rt.block_on(async {
+        let cell = Arc::new(OnceCell::new());
+        let task = {
+            let cell = cell.clone();
+            tokio::spawn(async move {
+                let _ = cell
+                    .get_or_init(|| async { panic!("initializer panic") })
+                    .await;
+            })
+        };
+        assert!(task.await.unwrap_err().is_panic());
+        assert_eq!(*cell.get_or_init(|| async { 11 }).await, 11);
+    });
+}
+
+#[test]
+fn recursive_initialization_waits_and_cancellation_reopens_cell() {
+    let rt = runtime::Builder::new_current_thread()
+        .enable_time()
+        .build()
+        .unwrap();
+    rt.block_on(async {
+        let cell = Arc::new(OnceCell::new());
+        let nested = cell.clone();
+        let result = time::timeout(
+            Duration::from_millis(10),
+            cell.get_or_init(|| async move { *nested.get_or_init(|| async { 1 }).await + 1 }),
+        )
+        .await;
+        assert!(result.is_err());
+        assert_eq!(*cell.get_or_init(|| async { 13 }).await, 13);
+    });
+}
+
+#[test]
+fn take_get_mut_and_trait_surface() {
+    use std::error::Error;
+
+    let mut cell = OnceCell::from(String::from("first"));
+    cell.get_mut().unwrap().push_str("-updated");
+    let cloned = cell.clone();
+    assert_eq!(cell, cloned);
+    assert_eq!(
+        format!("{cell:?}"),
+        "OnceCell { value: Some(\"first-updated\") }"
+    );
+    assert_eq!(cell.take().as_deref(), Some("first-updated"));
+    assert!(!cell.initialized());
+    assert!(cell.get().is_none());
+    assert_eq!(cell.set(String::from("second")), Ok(()));
+
+    let already = cell.set(String::from("rejected")).unwrap_err();
+    assert!(already.is_already_init_err());
+    assert!(!already.is_initializing_err());
+    assert_eq!(already.to_string(), "AlreadyInitializedError");
+    assert!(already.source().is_none());
+    assert_eq!(
+        format!("{already:?}"),
+        "AlreadyInitializedError(\"rejected\")"
+    );
+}
+
+#[test]
+fn panicking_payload_drop_runs_once() {
+    struct PanicDrop<'a>(&'a AtomicU32);
+    impl Drop for PanicDrop<'_> {
+        fn drop(&mut self) {
+            self.0.fetch_add(1, Ordering::Relaxed);
+            panic!("payload drop panic");
+        }
+    }
+
+    let drops = AtomicU32::new(0);
+    let result = catch_unwind(AssertUnwindSafe(|| {
+        drop(OnceCell::from(PanicDrop(&drops)));
+    }));
+    assert!(result.is_err());
+    assert_eq!(drops.load(Ordering::Relaxed), 1);
+}
+
+#[test]
+fn trait_panics_preserve_source_cells() {
+    struct PanicClone;
+    impl Clone for PanicClone {
+        fn clone(&self) -> Self {
+            panic!("clone panic");
+        }
+    }
+
+    struct PanicEq;
+    impl PartialEq for PanicEq {
+        fn eq(&self, _other: &Self) -> bool {
+            panic!("equality panic");
+        }
+    }
+
+    struct PanicDebug;
+    impl std::fmt::Debug for PanicDebug {
+        fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            panic!("debug panic");
+        }
+    }
+
+    let clone_cell = OnceCell::from(PanicClone);
+    assert!(catch_unwind(AssertUnwindSafe(|| clone_cell.clone())).is_err());
+    assert!(clone_cell.get().is_some());
+
+    let left = OnceCell::from(PanicEq);
+    let right = OnceCell::from(PanicEq);
+    assert!(catch_unwind(AssertUnwindSafe(|| left == right)).is_err());
+    assert!(left.get().is_some());
+    assert!(right.get().is_some());
+
+    let debug_cell = OnceCell::from(PanicDebug);
+    assert!(catch_unwind(AssertUnwindSafe(|| format!("{debug_cell:?}"))).is_err());
+    assert!(debug_cell.get().is_some());
 }

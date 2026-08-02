@@ -1,12 +1,12 @@
 use super::{Semaphore, SemaphorePermit, TryAcquireError};
 use crate::loom::cell::UnsafeCell;
+use crate::loom::sync::atomic::{AtomicBool, Ordering};
 use std::error::Error;
 use std::fmt;
 use std::future::Future;
 use std::mem::MaybeUninit;
 use std::ops::Drop;
 use std::ptr;
-use std::sync::atomic::{AtomicBool, Ordering};
 
 // This file contains an implementation of an OnceCell. The principle
 // behind the safety of the cell is that any thread with an `&OnceCell` may
@@ -239,7 +239,14 @@ impl<T> OnceCell<T> {
     /// Returns `true` if the `OnceCell` currently contains a value, and `false`
     /// otherwise.
     fn initialized_mut(&mut self) -> bool {
-        *self.value_set.get_mut()
+        #[cfg(loom)]
+        {
+            self.value_set.load(Ordering::Relaxed)
+        }
+        #[cfg(not(loom))]
+        {
+            *self.value_set.get_mut()
+        }
     }
 
     // SAFETY: The OnceCell must not be empty.
@@ -442,7 +449,12 @@ impl<T> OnceCell<T> {
     pub fn into_inner(mut self) -> Option<T> {
         if self.initialized_mut() {
             // Set to uninitialized for the destructor of `OnceCell` to work properly
-            *self.value_set.get_mut() = false;
+            #[cfg(loom)]
+            self.value_set.store(false, Ordering::Relaxed);
+            #[cfg(not(loom))]
+            {
+                *self.value_set.get_mut() = false;
+            }
             Some(unsafe { self.value.with(|ptr| ptr::read(ptr).assume_init()) })
         } else {
             None

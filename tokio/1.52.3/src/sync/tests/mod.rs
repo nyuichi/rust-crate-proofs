@@ -11,6 +11,7 @@ cfg_loom! {
     mod loom_mpsc;
     mod loom_notify;
     mod loom_oneshot;
+    mod loom_once_cell;
     mod loom_semaphore_batch;
     mod loom_watch;
     mod loom_rwlock;

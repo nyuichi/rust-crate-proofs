@@ -601,14 +601,15 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 911 nested SetOnce, publication, channel, Semaphore, Notify,
-   Barrier, and AtomicWaker model/refinement bodies with the locked vstd
+5. verifies 933 nested SetOnce, OnceCell, publication, channel, Semaphore,
+   Notify, Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;
 7. runs the oneshot polling connection probe.
 
 The integrated SetOnce target currently contains 24 ordinary tests and eight
-loom model tests. The oneshot target contains 24 ordinary tests and eight loom
+loom model tests. OnceCell contributes 18 ordinary tests and three loom model
+tests. The oneshot target contains 24 ordinary tests and eight loom
 model tests. The expansion adds 22 watch tests, 32 broadcast tests, 100 mpsc
 tests, 28 mpsc weak-Sender tests, and ten bounded exact loom cases.
 The Barrier target contributes seven public tests plus four focused unit

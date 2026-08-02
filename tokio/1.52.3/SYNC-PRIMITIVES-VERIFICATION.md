@@ -91,6 +91,24 @@ Notify test suites and bounded exact loom races for notify-one, broadcast, and
 cancellation forwarding/drop. [`NOTIFY-MUTATION-AUDIT.md`](NOTIFY-MUTATION-AUDIT.md)
 records the rejected state-word, poll-order, and terminal-policy mutations.
 
+## OnceCell
+
+`once_cell_refinement` composes the closed one-permit Semaphore contract with
+the exact Empty, Initializing, and Published OnceCell phases. It body-proves
+nonblocking `set`, unique async initialization, waiter observation,
+cancellation/panic/error permit return, retry, recursive waiting, mutable
+replacement, take/into-inner, and public result/trait mapping. Initializer
+Future behavior and generic Clone/Debug/Drop execution remain specification
+inputs at the recorded standard trait boundary.
+
+Three loom models connect production ordering: concurrent initializers execute
+exactly one closure, cancelling a Pending initializer releases its permit, and
+an error from `get_or_try_init` reopens the cell. Eighteen public regressions
+cover constructors, all result branches, cancellation, panic retry, recursive
+initialization cancellation, take/reuse, traits, and payload destruction.
+[`ONCE-CELL-CLOSURE-CHECKLIST.md`](ONCE-CELL-CLOSURE-CHECKLIST.md) records the
+scope and frozen adapters. Taskdump trace projection remains assigned to R08.
+
 ## Barrier
 
 `barrier_protocol` composes the trusted Mutex adapter with the proved watch
