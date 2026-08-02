@@ -7,11 +7,13 @@ This audit covers the selected T01 slice in `src/task/yield_now.rs` and
 branch of `poll_proceed`, `RestoreOnPending`, scoped budget restoration,
 unconstrained nesting, and the register/recheck ordering of `yield_now`.
 
-The Verus projection is `verification/src/coop_refinement.rs`. Production
-correspondence is checked by the crate-local `task::coop::test` regressions,
-the public `task_yield_now` integration test, and the existing current-thread
-and multi-thread runtime loom yield cases. Task-local access and
-Pin/Poll/Context/Waker mechanics remain the frozen foundation boundaries.
+The Verus projection is a logical, production-shaped state refinement in
+`verification/src/coop_refinement.rs`. Production correspondence is checked by
+source comparison, the crate-local `task::coop::test` regressions, the public
+`task_yield_now` integration test, and the existing current-thread and
+multi-thread runtime loom yield cases. Pin/Poll/Context/Waker mechanics and
+scheduler liveness remain frozen foundation boundaries; task-local/context
+access is an unproved production-connection residual.
 
 ## Rejected counterexamples
 
@@ -30,6 +32,7 @@ All listed mutations are rejected without adding a trusted premise. The
 selected sequential state/refinement slice is body-proved. T01 as a whole is
 still partial: direct Verus translation of the compiled TLS closure, the
 `ResetGuard` Drop implementation, `poll_fn`/pin projection, `consume_budget`
-capture mechanics, and `Unconstrained<F>::poll` remains to be connected above
-the already frozen task-local and Future/Waker mechanics. Scheduler liveness
-is not claimed by these safety proofs.
+capture mechanics, `Unconstrained<F>::poll`, task-local/context access, and the
+inaccessible-TLS fallback remain to be connected. Only Pin/Poll/Context/Waker
+mechanics and scheduler liveness among these dependencies are frozen;
+scheduler liveness is not claimed by these safety proofs.

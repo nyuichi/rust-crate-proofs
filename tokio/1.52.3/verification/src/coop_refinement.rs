@@ -101,9 +101,10 @@ impl CoopBudget {
         CoopBudget { current: value }
     }
 
-    /// Refines the accessible-context closure in production `poll_proceed`.
-    /// `registered` records the call to `register_waker`; Waker mechanics are
-    /// an agreed foundation boundary, not a new protocol assumption.
+    /// Logical, production-shaped refinement of the accessible-context closure
+    /// in `poll_proceed`. Task-local/context access and the compiled TLS closure
+    /// remain an unproved production connection. `registered` records the call
+    /// to `register_waker`; Waker mechanics are an agreed foundation boundary.
     pub fn poll_proceed(&mut self) -> (result: ProceedResult)
         ensures
             match old(self).current() {
