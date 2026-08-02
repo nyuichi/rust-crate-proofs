@@ -1,100 +1,103 @@
-# Tokio broadcast position-wrap audit
+# Tokio broadcast terminal-position audit
 
-This audit records production obligations discovered while attempting to
-refine `broadcast`'s logical, non-wrapping ring proof to Tokio's `u64`
-positions. No finite-window assumption is part of the frozen trusted
-foundation, so these findings remain open until the position policy is chosen.
+This audit records the reviewed policy and production refinement for Tokio
+1.52.3 broadcast's `u64` positions. The previous implementation reused
+position zero after `u64::MAX`, which admitted a full-cycle ABA and made
+`Receiver::len`, `is_empty`, and Drop behave differently or incorrectly at
+rollover.
 
-## Confirmed production boundary defects
+## Selected policy
+
+Position exhaustion is terminal and identical in every build:
+
+- successful sends reserve only positions `0..=u64::MAX - 1`;
+- `tail.pos == u64::MAX` is an irreversible sentinel, never a send ticket;
+- with at least one active Receiver, a send at the sentinel panics before any
+  tail, slot, `rem`, value, or waiter mutation;
+- with no active Receiver, the pre-existing `SendError(value)` branch retains
+  priority and does not panic; and
+- subscribing at the sentinel creates an empty Receiver at `next == MAX` but
+  cannot restart sending.
+
+The input to a terminal send is dropped during unwind. Arbitrary Drop execution
+and a destructor's own panic/abort behavior remain in the frozen foundation;
+the Tokio-specific fact proved and tested here is that the gate precedes every
+channel mutation.
+
+The sentinel does not close the Sender. A Receiver at the empty terminal
+position can remain Pending until all Sender handles are dropped. This is the
+documented terminal liveness behavior, not a claim that exhaustion publishes a
+close event.
+
+## Production repairs
+
+### Send reservation and slot generation
+
+`Sender::send` checks `rx_cnt == 0` first and then rejects `tail.pos == MAX`
+with an all-build `assert!`. Its successful advance is ordinary checked
+addition. Consequently position zero is never reused and the maximum published
+slot tag is `MAX - 1`.
+
+Channel initialization still uses `index.wrapping_sub(capacity)` for empty slot
+tags. At a reachable terminal tail, every physical slot has long since been
+overwritten; the slot queried by `next == MAX` was most recently published at
+`MAX - capacity`. Production's existing equality order therefore rejects Ready
+and observes `slot.pos + capacity == next`, classifying Empty or Closed without
+position reuse. This generic relation is source correspondence; the current
+body proof instantiates it at capacity two, while generic mask-generation
+equivalence remains open.
 
 ### `Receiver::len` and `is_empty`
 
-Production computes `(tail.pos - receiver.next) as usize`.
+Reachable cursors now satisfy `next <= tail`. `len` computes the exact
+non-wrapping `tail - next` distance and saturates it to `usize::MAX`, preserving
+nonzero lag on 32-bit targets. `is_empty` compares `next == tail` directly and
+does not depend on a truncated length conversion.
 
-- With `receiver.next == u64::MAX` and `tail.pos == 0`, one send is unread.
-  The subtraction panics when overflow checks are enabled; a wrapping distance
-  is one.
-- On a 32-bit target, `receiver.next == 0` and `tail.pos == 2^32` produces a
-  logical distance of `2^32`, but the `usize` cast yields zero. Consequently
-  `is_empty`, which delegates to `len() == 0`, can report true for a lagged
-  receiver.
+### Lag recovery and Drop
 
-A local repair needs wrapping subtraction, a nonzero-preserving saturating
-conversion to `usize`, and an `is_empty` comparison that does not depend on a
-truncating length conversion.
+Under monotonic positions, lag recovery computes `oldest = tail - capacity` and
+`missed = oldest - next`. The lag branch has strictly positive `missed`; the old
+wrapping `missed == 0` special Ready path is removed. A Ready receive advances
+only through `MAX - 1` to the empty sentinel.
 
-### `Receiver::drop` snapshot drain
+Receiver Drop snapshots `until = tail.pos` while decrementing `rx_cnt` under the
+tail lock. Its existing `while next < until` condition is now the correct
+monotonic bound. Sends after the snapshot have tickets `>= until` and do not
+capture the dropped Receiver. A Ready iteration releases only its current
+ticket `< until`; a concurrent-overwrite lag jump releases nothing and may move
+`next >= until`, where the loop stops. It therefore cannot decrement `rem` for a
+post-snapshot send.
 
-Production snapshots `until = tail.pos` and drains while
-`receiver.next < until`. For capacity one with `next == u64::MAX`, `until == 0`,
-and the retained slot at position `u64::MAX`, the comparison is immediately
-false. The receiver's remaining-reader contribution is not released, so the
-payload and queued state persist until a later overwrite or destruction of the
-shared channel.
+## Proof and regression evidence
 
-Changing `<` to `!=` is insufficient: after the tail lock is released, a
-concurrent sender can make `recv_ref`'s lag recovery advance beyond the
-snapshot. A correct repair needs a bounded snapshot distance as its progress
-measure and must stop when a lag jump reaches or passes that original distance.
-It must release only slots whose send captured this receiver, never sends that
-occurred after the receiver count was decremented.
+`verification/src/broadcast_refinement.rs` body-proves:
 
-## Full-cycle representation limit
+- no-Receiver/terminal/reserved send-gate priority and rejection-state
+  preservation;
+- monotonic terminal reservation with `MAX - 1` as the final ticket;
+- exact non-wrapping unread distance, host-independent 32/64-bit saturation,
+  and equality-based emptiness;
+- a capacity-two reachable terminal queried-slot witness and Empty relation;
+- exact Ready/Empty/Lagged cursor transitions with positive lag;
+- retained-slot sequential drain conservation; and
+- a concurrent Drop step in which every released ticket is below the snapshot,
+  while lag advances without releasing.
 
-`Tail::pos`, `Slot::pos`, and `Receiver::next` are all `u64`. If a receiver at
-position zero is not observed while exactly `2^64` sends complete, the tail is
-again zero. With capacity one the newest slot is tagged `u64::MAX`, yet
-`recv_ref` can classify the receiver as empty or closed. After one additional
-send it can consume the latest value without reporting the unrepresentable lag.
+Module-local regressions cover final-ticket send/receive, terminal lag recovery,
+mutation-free panic and input destruction, no-Receiver error priority,
+subscribe-at-terminal, 32-bit-limit saturation, terminal emptiness, and retained
+value release. The exact loom regression
+`drop_rx_preserves_concurrent_send_for_surviving_receiver` covers both sides of
+the Drop snapshot race and checks that the surviving Receiver retains the
+concurrent value. Existing broadcast loom cases continue to cover ordinary
+physical ring reuse, two receivers, and receiver drop.
 
-This is an ABA collision, not an arithmetic lemma that can be repaired with
-another `wrapping_*` operation. `RecvError::Lagged(u64)` also cannot represent
-all larger distances. Closing the proof requires one reviewed policy:
+## Remaining S04 boundary
 
-1. an explicit invariant that fewer than `2^64` sends occur between relevant
-   observations of a receiver;
-2. a wider/tagged position representation together with a defined saturation
-   policy for `Lagged(u64)`; or
-3. a terminal, documented overflow behavior before position reuse.
-
-Under policy 1, the existing send, power-of-two mask, initial slot tags,
-subscribe, and `recv_ref` Ready/Empty/Lagged arithmetic can be refined for the
-single-cycle machine interval. The `len`, `is_empty`, and drop defects still
-need production changes and regression tests.
-
-## Verification status
-
-`verification/src/broadcast_refinement.rs` now body-proves a conditional,
-production-shaped single-cycle slice:
-
-- exact `u64::wrapping_add`/`wrapping_sub` position adapters and equality-based
-  empty classification;
-- subscribe-at-tail and send reservation across `u64::MAX`;
-- power-of-two mask index bounds;
-- the production initial tag `index.wrapping_sub(capacity)` and its empty
-  relation `tag.wrapping_add(capacity) == index`;
-- exact send-ticket publication into a physical-slot tag, once-only overwrite
-  indication, and tag-based Ready/Empty/DifferentGeneration classification;
-- wrap-crossing ready and lag recovery witnesses, including two tickets one
-  capacity apart that share an index but retain distinct generation tags; and
-- a sequential bounded drop skeleton that skips overwritten generations and
-  releases exactly `min(snapshot_unread, capacity)` retained reader
-  contributions.
-
-The module-local production tests
-`broadcast_position_wrap_send_receive_preserves_generation_order` and
-`broadcast_position_wrap_lag_recovers_to_oldest_generation` seed the private
-tail cursor near `u64::MAX` and exercise the compiled send/recv/lag branches
-across rollover. Existing exact loom cases continue to cover ordinary physical
-ring wrap, two receivers, and receiver drop races.
-
-The finite observation window is only a proof precondition for a candidate
-policy; it is neither frozen nor selected. The sequential drain model also
-holds its tail snapshot fixed and therefore does not refine sends concurrent
-with production's unlocked drop loop. The confirmed `len`/`is_empty` and drop
-defects above are unchanged. Generic mask-generation equivalence and the full
-physical slot/rem/waiter lock composition remain residuals.
-
-Production position wrapping is therefore **R(partial), not closed**. No new
-trusted assumption or production behavior change was introduced; production
-source changes are confined to `cfg(test)` regressions.
+The full-cycle ABA, debug/release discrepancy, `len` truncation, wrapping Drop,
+and post-snapshot-release defects are closed by the selected policy and repairs.
+S04 remains R(partial), not C: generic mask-generation equivalence, the direct
+physical `Slot<T>`/`rem` coupling, waiter/slot lock orchestration, weak endpoint
+atomics, and public trait/error surfaces remain to be connected above the frozen
+atomics, Mutex, raw-link, Waker, and arbitrary Clone/Drop foundation.

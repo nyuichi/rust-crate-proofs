@@ -449,19 +449,19 @@ and the post-gate zero-limit branch. The bounded and unbounded public poll
 surfaces are exercised by module-local production tests; those tests do not
 distinguish the internal first-pop and post-registration-pop paths.
 
-Broadcast now also has a production-position refinement slice in
-`broadcast_refinement.rs`. It body-proves exact `u64` wrapping distance and
-advance, subscribe/send/ready/lag cursor transitions, power-of-two mask bounds,
-initial and published slot-generation tags, wrap-crossing generation
-distinction, and a sequential retained-slot drop count. The accompanying
-module-local tests force the compiled tail cursor through `u64::MAX` and check
-send/recv ordering and lag recovery. This is R(partial): fewer than one full
-unobserved position cycle is an explicit conditional proof precondition, not a
-selected policy or trusted adapter. Production `Receiver::len`, `is_empty`, and
-the `<`-bounded unlocked Drop drain do not satisfy the proved wrapping/bounded
-interfaces; the full-cycle ABA, concurrent-drop connection, generic
-mask-generation equivalence, and physical slot/rem/waiter composition remain
-open as recorded in `BROADCAST-WRAP-AUDIT.md`.
+Broadcast now uses the reviewed all-build terminal position policy proved in
+`broadcast_refinement.rs`. Successful sends reserve through `u64::MAX - 1`;
+`tail == MAX` rejects an active-Receiver send before channel mutation and never
+reuses zero, while the no-Receiver `SendError` retains priority. The refinement
+body-proves the terminal gate, monotonic send/receive/lag cursors, exact 64-bit
+distance with 32-bit saturation, direct emptiness, a capacity-two reachable
+terminal queried-slot witness, retained drain conservation, and exclusion of
+post-snapshot concurrent sends from Receiver Drop. Module-local tests cover all
+terminal branches, and an exact loom case connects the concurrent Drop/send
+race. This remains R(partial) because generic mask-generation equivalence,
+direct physical slot/rem coupling, waiter/slot orchestration, weak endpoints,
+and public trait/error surfaces remain open, as recorded in
+`BROADCAST-WRAP-AUDIT.md`.
 
 The `recv_many` refinement now also carries an immutable caller prefix and an
 explicit logical buffer capacity. With
@@ -561,7 +561,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 592 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 597 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;

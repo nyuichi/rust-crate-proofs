@@ -180,6 +180,29 @@ fn drop_rx() {
 }
 
 #[test]
+fn drop_rx_preserves_concurrent_send_for_surviving_receiver() {
+    loom::model(|| {
+        let (tx, rx_drop) = broadcast::channel(1);
+        assert_ok!(tx.send("before-snapshot"));
+        let mut survivor = tx.subscribe();
+
+        let tx2 = tx.clone();
+        let drop_thread = thread::spawn(move || drop(rx_drop));
+        let send_thread = thread::spawn(move || assert_ok!(tx2.send("concurrent")));
+
+        assert_ok!(drop_thread.join());
+        assert_ok!(send_thread.join());
+        drop(tx);
+
+        assert_eq!(assert_ok!(block_on(survivor.recv())), "concurrent");
+        match assert_err!(block_on(survivor.recv())) {
+            Closed => {}
+            _ => panic!(),
+        }
+    });
+}
+
+#[test]
 fn drop_multiple_rx_with_overflow() {
     loom::model(move || {
         // It is essential to have multiple senders and receivers in this test case.

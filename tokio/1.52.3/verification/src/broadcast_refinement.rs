@@ -2,16 +2,8 @@ use vstd::prelude::*;
 
 verus! {
 
-pub open spec fn position_distance_spec(next: u64, tail: u64) -> u64 {
-    vstd::wrapping::u64_specs::wrapping_sub(tail, next)
-}
-
-pub open spec fn advance_position_spec(position: u64) -> u64 {
-    vstd::wrapping::u64_specs::wrapping_add(position, 1)
-}
-
-pub open spec fn oldest_position_spec(tail: u64, capacity: u64) -> u64 {
-    vstd::wrapping::u64_specs::wrapping_sub(tail, capacity)
+pub open spec fn initial_slot_tag_spec(index: u64, capacity: u64) -> u64 {
+    vstd::wrapping::u64_specs::wrapping_sub(index, capacity)
 }
 
 pub open spec fn advance_capacity_spec(position: u64, capacity: u64) -> u64 {
@@ -22,53 +14,11 @@ pub open spec fn masked_slot_spec(position: u64, capacity: u64) -> u64 {
     position & ((capacity - 1) as u64)
 }
 
-/// Production uses `u64` positions modulo 2^64.  This adapter keeps the
-/// single-cycle distance explicit: equality means empty only while the number
-/// of unobserved sends is strictly less than a complete `u64` cycle.
-pub fn position_distance(next: u64, tail: u64) -> (distance: u64)
-    ensures
-        distance == position_distance_spec(next, tail),
-        tail >= next ==> distance == tail - next,
-        tail < next ==> distance == u64::MAX - next + tail + 1,
-        distance == 0 <==> next == tail,
+pub fn initial_slot_tag(index: u64, capacity: u64) -> (tag: u64)
+    ensures tag == initial_slot_tag_spec(index, capacity),
     no_unwind
 {
-    let distance = tail.wrapping_sub(next);
-    assert(tail >= next ==> distance == tail - next);
-    assert(tail < next ==> distance == u64::MAX - next + tail + 1);
-    assert(distance == 0 <==> next == tail);
-    distance
-}
-
-/// Exact production `wrapping_add(1)` position advance.
-pub fn advance_position(position: u64) -> (next: u64)
-    ensures
-        next == advance_position_spec(position),
-        position == u64::MAX ==> next == 0,
-        position < u64::MAX ==> next == position + 1,
-    no_unwind
-{
-    let next = position.wrapping_add(1);
-    assert(position == u64::MAX ==> next == 0);
-    assert(position < u64::MAX ==> next == position + 1);
-    next
-}
-
-/// Exact production `tail.pos.wrapping_sub(capacity)` oldest-position adapter.
-pub fn oldest_position(tail: u64, capacity: u64) -> (oldest: u64)
-    ensures
-        tail >= capacity ==> oldest == tail - capacity,
-        tail < capacity ==> oldest == u64::MAX - capacity + tail + 1,
-        oldest == oldest_position_spec(tail, capacity),
-        position_distance_spec(oldest, tail) == capacity,
-    no_unwind
-{
-    let oldest = tail.wrapping_sub(capacity);
-    assert(tail >= capacity ==> oldest == tail - capacity);
-    assert(tail < capacity ==> oldest == u64::MAX - capacity + tail + 1);
-    let distance = position_distance(oldest, tail);
-    assert(distance == capacity);
-    oldest
+    index.wrapping_sub(capacity)
 }
 
 pub fn advance_capacity(position: u64, capacity: u64) -> (next: u64)
@@ -78,9 +28,9 @@ pub fn advance_capacity(position: u64, capacity: u64) -> (next: u64)
     position.wrapping_add(capacity)
 }
 
-/// Exact mask operation used by both send and recv_ref.  The power-of-two
-/// premise is the property established by `new_with_receiver_count` after
-/// `next_power_of_two`.
+/// Send and recv use the same power-of-two mask established by channel
+/// construction. Position arithmetic itself is monotonic and non-wrapping;
+/// only the physical index is masked.
 pub fn masked_slot(position: u64, capacity: u64) -> (index: u64)
     requires
         capacity > 0,
@@ -99,11 +49,259 @@ pub fn masked_slot(position: u64, capacity: u64) -> (index: u64)
     index
 }
 
+pub fn saturating_distance(distance: u64, maximum: u64) -> (result: u64)
+    ensures
+        distance <= maximum ==> result == distance,
+        distance > maximum ==> result == maximum,
+        result == 0 <==> distance == 0 || maximum == 0,
+    no_unwind
+{
+    if distance > maximum { maximum } else { distance }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum SendDecision {
+    NoReceivers,
+    Terminal,
+    Reserved(u64),
+}
+
+/// Tail-lock projection of production send's two pre-mutation gates. The
+/// receiver check has priority over terminal exhaustion. `writes` abstracts
+/// all slot/rem/value/waiter mutation, so both rejecting outcomes prove that
+/// the entire channel state remains unchanged before the input value unwinds.
+pub struct TerminalSendGate {
+    tail: u64,
+    receivers: u64,
+    writes: u64,
+}
+
+impl TerminalSendGate {
+    pub closed spec fn tail(&self) -> u64 { self.tail }
+    pub closed spec fn receivers(&self) -> u64 { self.receivers }
+    pub closed spec fn writes(&self) -> u64 { self.writes }
+
+    pub fn new(tail: u64, receivers: u64) -> (result: Self)
+        ensures
+            result.tail() == tail,
+            result.receivers() == receivers,
+            result.writes() == 0,
+        no_unwind
+    {
+        TerminalSendGate { tail, receivers, writes: 0 }
+    }
+
+    pub fn reserve(&mut self) -> (decision: SendDecision)
+        requires
+            old(self).receivers() > 0 && old(self).tail() < u64::MAX ==>
+                old(self).writes() < u64::MAX,
+        ensures
+            old(self).receivers() == 0 ==> decision == SendDecision::NoReceivers,
+            old(self).receivers() == 0 ==> final(self).tail() == old(self).tail(),
+            old(self).receivers() == 0 ==> final(self).writes() == old(self).writes(),
+            old(self).receivers() > 0 && old(self).tail() == u64::MAX ==>
+                decision == SendDecision::Terminal,
+            old(self).receivers() > 0 && old(self).tail() == u64::MAX ==>
+                final(self).tail() == old(self).tail(),
+            old(self).receivers() > 0 && old(self).tail() == u64::MAX ==>
+                final(self).writes() == old(self).writes(),
+            old(self).receivers() > 0 && old(self).tail() < u64::MAX ==>
+                decision == SendDecision::Reserved(old(self).tail()),
+            old(self).receivers() > 0 && old(self).tail() < u64::MAX ==>
+                final(self).tail() == old(self).tail() + 1,
+            old(self).receivers() > 0 && old(self).tail() < u64::MAX ==>
+                final(self).writes() == old(self).writes() + 1,
+            final(self).receivers() == old(self).receivers(),
+        no_unwind
+    {
+        if self.receivers == 0 {
+            SendDecision::NoReceivers
+        } else if self.tail == u64::MAX {
+            SendDecision::Terminal
+        } else {
+            let position = self.tail;
+            self.tail += 1;
+            self.writes += 1;
+            SendDecision::Reserved(position)
+        }
+    }
+}
+
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum RingLookup {
     Empty,
     Lagged(u64),
     Ready(u64),
+}
+
+/// Monotonic single-receiver projection selected for production. `tail ==
+/// u64::MAX` is an irreversible sentinel; no successful send reserves that
+/// position, so every reachable cursor satisfies `next <= tail` without wrap.
+pub struct BroadcastRing {
+    capacity: u64,
+    tail: u64,
+    next: u64,
+}
+
+impl BroadcastRing {
+    pub closed spec fn capacity(&self) -> u64 { self.capacity }
+    pub closed spec fn tail(&self) -> u64 { self.tail }
+    pub closed spec fn next(&self) -> u64 { self.next }
+    pub closed spec fn unread(&self) -> int { self.tail() - self.next() }
+
+    pub closed spec fn well_formed(&self) -> bool {
+        &&& self.capacity() > 0
+        &&& self.capacity() <= 0x8000_0000_0000_0000u64
+        &&& self.capacity() & ((self.capacity() - 1) as u64) == 0
+        &&& self.next() <= self.tail()
+    }
+
+    pub fn subscribe(capacity: u64, tail: u64) -> (result: Self)
+        requires
+            capacity > 0,
+            capacity <= 0x8000_0000_0000_0000u64,
+            capacity & ((capacity - 1) as u64) == 0,
+        ensures
+            result.well_formed(),
+            result.capacity() == capacity,
+            result.tail() == tail,
+            result.next() == tail,
+            result.unread() == 0,
+        no_unwind
+    {
+        BroadcastRing { capacity, tail, next: tail }
+    }
+
+    /// Active-receiver send. `None` is the exact terminal gate and changes no
+    /// state; `Some` reserves at most MAX-1 and advances monotonically.
+    pub fn reserve_send(&mut self) -> (position: Option<u64>)
+        requires old(self).well_formed(),
+        ensures
+            final(self).well_formed(),
+            final(self).capacity() == old(self).capacity(),
+            final(self).next() == old(self).next(),
+            old(self).tail() == u64::MAX ==> position.is_none(),
+            old(self).tail() == u64::MAX ==> final(self).tail() == old(self).tail(),
+            old(self).tail() < u64::MAX ==> position == Some(old(self).tail()),
+            old(self).tail() < u64::MAX ==> final(self).tail() == old(self).tail() + 1,
+            position.is_some() ==> position.unwrap() < u64::MAX,
+        no_unwind
+    {
+        if self.tail == u64::MAX {
+            None
+        } else {
+            let position = self.tail;
+            let _slot = masked_slot(position, self.capacity);
+            self.tail += 1;
+            Some(position)
+        }
+    }
+
+    pub fn len_with_maximum(&self, maximum: u64) -> (length: u64)
+        requires self.well_formed(),
+        ensures
+            self.unread() <= maximum ==> length == self.unread(),
+            self.unread() > maximum ==> length == maximum,
+        no_unwind
+    {
+        let distance = self.tail - self.next;
+        saturating_distance(distance, maximum)
+    }
+
+    pub fn is_empty(&self) -> (empty: bool)
+        requires self.well_formed(),
+        ensures empty == (self.unread() == 0),
+        no_unwind
+    {
+        self.next == self.tail
+    }
+
+    pub fn catch_up_if_lagged(&mut self) -> (lookup: RingLookup)
+        requires old(self).well_formed(),
+        ensures
+            final(self).well_formed(),
+            final(self).tail() == old(self).tail(),
+            final(self).capacity() == old(self).capacity(),
+            old(self).unread() == 0 ==> lookup == RingLookup::Empty,
+            0 < old(self).unread() <= old(self).capacity() ==>
+                lookup == RingLookup::Ready(old(self).next()),
+            old(self).unread() <= old(self).capacity() ==>
+                final(self).next() == old(self).next(),
+            old(self).unread() > old(self).capacity() ==>
+                lookup == RingLookup::Lagged(
+                    (old(self).unread() - old(self).capacity()) as u64),
+            old(self).unread() > old(self).capacity() ==>
+                final(self).next() == old(self).tail() - old(self).capacity(),
+            old(self).unread() > old(self).capacity() ==>
+                final(self).unread() == old(self).capacity(),
+        no_unwind
+    {
+        let unread = self.tail - self.next;
+        if unread == 0 {
+            RingLookup::Empty
+        } else if unread > self.capacity {
+            let oldest = self.tail - self.capacity;
+            let missed = oldest - self.next;
+            self.next = oldest;
+            RingLookup::Lagged(missed)
+        } else {
+            RingLookup::Ready(self.next)
+        }
+    }
+
+    pub fn receive_ready(&mut self) -> (position: u64)
+        requires
+            old(self).well_formed(),
+            0 < old(self).unread() <= old(self).capacity(),
+        ensures
+            final(self).well_formed(),
+            position == old(self).next(),
+            position < u64::MAX,
+            final(self).next() == old(self).next() + 1,
+            final(self).tail() == old(self).tail(),
+            final(self).capacity() == old(self).capacity(),
+            final(self).unread() + 1 == old(self).unread(),
+            masked_slot_spec(position, old(self).capacity()) < old(self).capacity(),
+        no_unwind
+    {
+        let position = self.next;
+        let _slot = masked_slot(position, self.capacity);
+        self.next += 1;
+        position
+    }
+
+    pub fn drain_snapshot(&mut self) -> (released: u64)
+        requires old(self).well_formed(),
+        ensures
+            final(self).well_formed(),
+            final(self).tail() == old(self).tail(),
+            final(self).next() == old(self).tail(),
+            final(self).unread() == 0,
+            old(self).unread() <= old(self).capacity() ==>
+                released == old(self).unread(),
+            old(self).unread() > old(self).capacity() ==>
+                released == old(self).capacity(),
+        no_unwind
+    {
+        let unread = self.tail - self.next;
+        if unread > self.capacity {
+            self.next = self.tail - self.capacity;
+        }
+        let initial_retained = self.tail - self.next;
+        let mut released = 0u64;
+        while self.next < self.tail
+            invariant
+                self.well_formed(),
+                self.capacity == old(self).capacity,
+                self.tail == old(self).tail,
+                released + self.tail - self.next == initial_retained,
+            decreases self.tail - self.next,
+        {
+            self.next += 1;
+            released += 1;
+        }
+        released
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
@@ -113,9 +311,9 @@ pub enum SlotLookup {
     DifferentGeneration,
 }
 
-/// Position-tag projection of production `Slot<T>`. Payload ownership and
-/// `rem` conservation are already body-proved in `broadcast_protocol`; this
-/// type adds the production initial tag and generation comparison.
+/// Position-tag projection of production's exact equality order. At a
+/// reachable terminal tail, the queried slot was most recently published at
+/// `MAX - capacity`; its `tag + capacity == next` relation classifies Empty.
 pub struct BroadcastGenerationSlot {
     capacity: u64,
     index: u64,
@@ -129,33 +327,25 @@ impl BroadcastGenerationSlot {
     pub closed spec fn tag(&self) -> u64 { self.tag }
     pub closed spec fn occupied(&self) -> bool { self.occupied }
 
-    /// Production initializes slot `i` with `i.wrapping_sub(capacity)`. Adding
-    /// capacity therefore makes the initial receiver cursor `i` classify the
-    /// slot as empty, not as a published value.
     pub fn initial(index: u64, capacity: u64) -> (result: Self)
-        requires
-            capacity > 0,
-            index < capacity,
+        requires capacity > 0, index < capacity,
         ensures
             result.capacity() == capacity,
             result.index() == index,
-            result.tag() == oldest_position_spec(index, capacity),
+            result.tag() == initial_slot_tag_spec(index, capacity),
             advance_capacity_spec(result.tag(), capacity) == index,
             !result.occupied(),
         no_unwind
     {
-        let tag = oldest_position(index, capacity);
+        let tag = initial_slot_tag(index, capacity);
         let initial_next = advance_capacity(tag, capacity);
         assert(initial_next == index);
         BroadcastGenerationSlot { capacity, index, tag, occupied: false }
     }
 
-    /// Send selects this physical slot with the mask before writing the exact
-    /// reservation ticket into `Slot::pos`. `evicted` records whether a prior
-    /// generation occupied the slot; value destruction remains the frozen Drop
-    /// boundary composed with `BroadcastSlot::publish`.
     pub fn publish(&mut self, position: u64) -> (evicted: bool)
         requires
+            position < u64::MAX,
             old(self).capacity() > 0,
             old(self).index() < old(self).capacity(),
             masked_slot_spec(position, old(self).capacity()) == old(self).index(),
@@ -173,18 +363,16 @@ impl BroadcastGenerationSlot {
         evicted
     }
 
-    /// Exact position tests from `recv_ref`: tag equality is ready; otherwise
-    /// `tag + capacity == receiver.next` is empty; every other tag is a
-    /// different generation and enters locked lag classification.
-    pub fn classify(&self, next: u64) -> (lookup: SlotLookup)
+    pub fn classify(&self, next: u64, tail: u64) -> (lookup: SlotLookup)
+        requires next <= tail,
         ensures
-            lookup == SlotLookup::Ready <==> self.tag() == next,
-            lookup == SlotLookup::Empty <==>
-                self.tag() != next
-                    && advance_capacity_spec(self.tag(), self.capacity()) == next,
-            lookup == SlotLookup::DifferentGeneration <==>
-                self.tag() != next
-                    && advance_capacity_spec(self.tag(), self.capacity()) != next,
+            self.tag() == next ==> lookup == SlotLookup::Ready,
+            self.tag() != next
+                && advance_capacity_spec(self.tag(), self.capacity()) == next
+                ==> lookup == SlotLookup::Empty,
+            self.tag() != next
+                && advance_capacity_spec(self.tag(), self.capacity()) != next
+                ==> lookup == SlotLookup::DifferentGeneration,
         no_unwind
     {
         if self.tag == next {
@@ -197,266 +385,158 @@ impl BroadcastGenerationSlot {
     }
 }
 
-/// A production-shaped single-receiver projection. `unread` is the canonical
-/// progress measure and records the distance since the receiver was last
-/// observed.  Excluding `u64::MAX + 1` unobserved sends is intentional: at a
-/// complete cycle the production representation has an ABA collision.
-pub struct BroadcastRing {
-    capacity: u64,
-    tail: u64,
-    next: u64,
-    unread: u64,
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum DrainStep {
+    Done,
+    Lagged,
+    Released(u64),
 }
 
-impl BroadcastRing {
-    pub closed spec fn capacity(&self) -> u64 { self.capacity }
-    pub closed spec fn tail(&self) -> u64 { self.tail }
+/// One iteration of Receiver::drop after its tail snapshot. Concurrent sends
+/// may increase `observed_tail`, but their tickets are at least `until`. A
+/// Ready step releases only the current ticket `< until`; a lag jump releases
+/// nothing and may move beyond the snapshot, causing the next step to stop.
+pub struct ConcurrentDropDrain {
+    next: u64,
+    until: u64,
+    released: u64,
+}
+
+impl ConcurrentDropDrain {
     pub closed spec fn next(&self) -> u64 { self.next }
-    pub closed spec fn unread(&self) -> u64 { self.unread }
+    pub closed spec fn until(&self) -> u64 { self.until }
+    pub closed spec fn released(&self) -> u64 { self.released }
 
     pub closed spec fn well_formed(&self) -> bool {
-        &&& self.capacity() > 0
-        &&& self.capacity() <= 0x8000_0000_0000_0000u64
-        &&& self.capacity() & ((self.capacity() - 1) as u64) == 0
-        &&& position_distance_spec(self.next(), self.tail()) == self.unread()
+        self.released() <= self.next()
     }
 
-    /// `subscribe` snapshots `tail.pos`, so it cannot receive a value that was
-    /// reserved before the tail lock snapshot.
-    pub fn subscribe(capacity: u64, tail: u64) -> (result: Self)
-        requires
-            capacity > 0,
-            capacity <= 0x8000_0000_0000_0000u64,
-            capacity & ((capacity - 1) as u64) == 0,
+    pub fn new(next: u64, until: u64) -> (result: Self)
+        requires next <= until,
         ensures
             result.well_formed(),
-            result.capacity() == capacity,
-            result.tail() == tail,
-            result.next() == tail,
-            result.unread() == 0,
+            result.next() == next,
+            result.until() == until,
+            result.released() == 0,
         no_unwind
     {
-        let distance = position_distance(tail, tail);
-        BroadcastRing { capacity, tail, next: tail, unread: distance }
+        ConcurrentDropDrain { next, until, released: 0 }
     }
 
-    /// Mirrors send's tail reservation. The precondition is an explicit proof
-    /// condition for a candidate finite-window policy; it is not a claim that
-    /// production enforces or that the user has selected that policy.
-    pub fn reserve_send(&mut self) -> (position: u64)
+    pub fn step(&mut self, observed_tail: u64, capacity: u64) -> (step: DrainStep)
         requires
             old(self).well_formed(),
-            old(self).unread() < u64::MAX,
+            old(self).until() <= observed_tail,
+            capacity > 0,
         ensures
             final(self).well_formed(),
-            position == old(self).tail(),
-            final(self).capacity() == old(self).capacity(),
-            final(self).tail() == advance_position_spec(old(self).tail()),
-            final(self).next() == old(self).next(),
-            final(self).unread() == old(self).unread() + 1,
-            masked_slot_spec(position, old(self).capacity()) < old(self).capacity(),
-        no_unwind
-    {
-        let position = self.tail;
-        let _slot = masked_slot(position, self.capacity);
-        self.tail = advance_position(self.tail);
-        self.unread += 1;
-        let distance = position_distance(self.next, self.tail);
-        assert(distance == self.unread);
-        position
-    }
-
-    pub fn is_empty(&self) -> (empty: bool)
-        requires self.well_formed(),
-        ensures empty == (self.unread() == 0),
-        no_unwind
-    {
-        self.next == self.tail
-    }
-
-    /// The lag branch corresponds to `tail.pos.wrapping_sub(capacity)` and its
-    /// `missed = next.wrapping_sub(receiver.next)`. It moves to exactly the
-    /// oldest retained generation and reports every skipped generation once.
-    pub fn catch_up_if_lagged(&mut self) -> (lookup: RingLookup)
-        requires old(self).well_formed(),
-        ensures
-            final(self).well_formed(),
-            final(self).tail() == old(self).tail(),
-            final(self).capacity() == old(self).capacity(),
-            old(self).unread() == 0 ==> lookup == RingLookup::Empty,
-            old(self).unread() == 0 ==> final(self).next() == old(self).next(),
-            old(self).unread() > 0 && old(self).unread() <= old(self).capacity() ==>
-                lookup == RingLookup::Ready(old(self).next()),
-            old(self).unread() <= old(self).capacity() ==>
+            final(self).until() == old(self).until(),
+            old(self).next() >= old(self).until() ==> step == DrainStep::Done,
+            old(self).next() >= old(self).until() ==>
                 final(self).next() == old(self).next(),
-            old(self).unread() > old(self).capacity() ==>
-                lookup == RingLookup::Lagged(
-                    (old(self).unread() - old(self).capacity()) as u64),
-            old(self).unread() > old(self).capacity() ==>
-                final(self).unread() == old(self).capacity(),
-            old(self).unread() > old(self).capacity() ==>
-                final(self).next() == oldest_position_spec(
-                    old(self).tail(), old(self).capacity()),
+            old(self).next() < old(self).until()
+                && observed_tail - old(self).next() > capacity ==>
+                step == DrainStep::Lagged,
+            old(self).next() < old(self).until()
+                && observed_tail - old(self).next() <= capacity ==>
+                step == DrainStep::Released(old(self).next()),
+            step == DrainStep::Done ==> final(self).released() == old(self).released(),
+            step == DrainStep::Released(old(self).next()) ==>
+                old(self).next() < old(self).until(),
+            step == DrainStep::Released(old(self).next()) ==>
+                final(self).next() == old(self).next() + 1,
+            step == DrainStep::Released(old(self).next()) ==>
+                final(self).released() == old(self).released() + 1,
+            step == DrainStep::Lagged ==> final(self).next() > old(self).next(),
+            step == DrainStep::Lagged ==>
+                final(self).next() == observed_tail - capacity,
+            step == DrainStep::Lagged ==>
+                final(self).released() == old(self).released(),
+            step != DrainStep::Done ==> final(self).next() > old(self).next(),
         no_unwind
     {
-        if self.unread == 0 {
-            RingLookup::Empty
-        } else if self.unread > self.capacity {
-            let missed = self.unread - self.capacity;
-            self.next = oldest_position(self.tail, self.capacity);
-            self.unread = self.capacity;
-            RingLookup::Lagged(missed)
+        if self.next >= self.until {
+            DrainStep::Done
+        } else if observed_tail - self.next > capacity {
+            self.next = observed_tail - capacity;
+            DrainStep::Lagged
         } else {
-            RingLookup::Ready(self.next)
+            let ticket = self.next;
+            self.next += 1;
+            self.released += 1;
+            DrainStep::Released(ticket)
         }
-    }
-
-    /// Consuming a ready generation advances the modulo cursor exactly once.
-    pub fn receive_ready(&mut self) -> (position: u64)
-        requires
-            old(self).well_formed(),
-            old(self).unread() > 0,
-            old(self).unread() <= old(self).capacity(),
-        ensures
-            final(self).well_formed(),
-            position == old(self).next(),
-            final(self).next() == advance_position_spec(old(self).next()),
-            final(self).tail() == old(self).tail(),
-            final(self).unread() + 1 == old(self).unread(),
-            masked_slot_spec(position, old(self).capacity()) < old(self).capacity(),
-        no_unwind
-    {
-        let position = self.next;
-        let _slot = masked_slot(position, self.capacity);
-        self.next = advance_position(self.next);
-        self.unread -= 1;
-        let distance = position_distance(self.next, self.tail);
-        assert(distance == self.unread);
-        position
-    }
-
-    /// Correct sequential bounded snapshot drain shape. Lagged, overwritten
-    /// generations have already released their values on the send side, so
-    /// this Receiver releases only the retained `min(unread, capacity)` slots.
-    /// Progress is that retained count, not an ordering comparison between
-    /// wrapping positions.
-    pub fn drain_snapshot(&mut self) -> (released: u64)
-        requires old(self).well_formed(),
-        ensures
-            final(self).well_formed(),
-            final(self).tail() == old(self).tail(),
-            final(self).next() == old(self).tail(),
-            final(self).unread() == 0,
-            old(self).unread() <= old(self).capacity() ==>
-                released == old(self).unread(),
-            old(self).unread() > old(self).capacity() ==>
-                released == old(self).capacity(),
-        no_unwind
-    {
-        if self.unread > self.capacity {
-            self.next = oldest_position(self.tail, self.capacity);
-            self.unread = self.capacity;
-        }
-        let initial_retained = self.unread;
-        let mut released = 0u64;
-        while self.unread > 0
-            invariant
-                self.well_formed(),
-                self.capacity == old(self).capacity,
-                self.tail == old(self).tail,
-                released + self.unread == initial_retained,
-            decreases self.unread,
-        {
-            self.next = advance_position(self.next);
-            self.unread -= 1;
-            released += 1;
-            let distance = position_distance(self.next, self.tail);
-            assert(distance == self.unread);
-        }
-        released
     }
 }
 
-pub fn verify_send_receive_across_wrap()
+pub fn verify_terminal_send_gate_priority()
 {
-    assert(2u64 & ((2u64 - 1) as u64) == 0) by (bit_vector);
-    let mut ring = BroadcastRing::subscribe(2, u64::MAX);
-    let first = ring.reserve_send();
-    assert(first == u64::MAX);
-    assert(ring.tail() == 0);
-    let nonempty = ring.is_empty();
-    assert(!nonempty);
-    let ready = ring.catch_up_if_lagged();
-    assert(ready == RingLookup::Ready(u64::MAX));
-    let received = ring.receive_ready();
-    assert(received == u64::MAX);
-    assert(ring.next() == 0);
-    let empty = ring.is_empty();
-    assert(empty);
+    let mut no_receivers = TerminalSendGate::new(u64::MAX, 0);
+    let no_rx = no_receivers.reserve();
+    assert(no_rx == SendDecision::NoReceivers);
+    assert(no_receivers.tail() == u64::MAX);
+    assert(no_receivers.writes() == 0);
+
+    let mut terminal = TerminalSendGate::new(u64::MAX, 1);
+    let rejected = terminal.reserve();
+    assert(rejected == SendDecision::Terminal);
+    assert(terminal.tail() == u64::MAX);
+    assert(terminal.writes() == 0);
 }
 
-pub fn verify_initial_and_overwritten_slot_generation_across_wrap()
-{
-    let mut slot = BroadcastGenerationSlot::initial(0, 2);
-    assert(slot.tag() == u64::MAX - 1);
-    let empty = slot.classify(0);
-    assert(empty == SlotLookup::Empty);
-
-    // `u64::MAX - 1` and zero are two send tickets exactly one capacity
-    // apart. They map to index zero on opposite sides of the u64 wrap, while
-    // the stored tag distinguishes which generation is currently published.
-    assert(((u64::MAX - 1) as u64) & 1u64 == 0) by (bit_vector);
-    let first_evicted = slot.publish(u64::MAX - 1);
-    assert(!first_evicted);
-    let first = slot.classify(u64::MAX - 1);
-    assert(first == SlotLookup::Ready);
-
-    assert(0u64 & 1u64 == 0) by (bit_vector);
-    let second_evicted = slot.publish(0);
-    assert(second_evicted);
-    assert(slot.tag() == 0);
-    let stale = slot.classify(u64::MAX - 1);
-    assert(stale == SlotLookup::DifferentGeneration);
-    let second = slot.classify(0);
-    assert(second == SlotLookup::Ready);
-}
-
-pub fn verify_lag_recovery_across_wrap()
+pub fn verify_terminal_boundary_send_receive()
 {
     assert(2u64 & ((2u64 - 1) as u64) == 0) by (bit_vector);
     let mut ring = BroadcastRing::subscribe(2, u64::MAX - 2);
-    ring.reserve_send();
-    ring.reserve_send();
-    ring.reserve_send();
-    assert(ring.tail() == 0);
-    assert(ring.unread() == 3);
-    assert(ring.capacity() == 2);
-    let lagged = ring.catch_up_if_lagged();
-    assert((3u64 - 2u64) as u64 == 1);
-    assert(lagged == RingLookup::Lagged(1));
-    assert(ring.next() == u64::MAX - 1);
-    let first = ring.receive_ready();
-    let second = ring.receive_ready();
-    assert(first == u64::MAX - 1);
-    assert(second == u64::MAX);
+    let first = ring.reserve_send();
+    let second = ring.reserve_send();
+    assert(first == Some((u64::MAX - 2) as u64));
+    assert(second == Some((u64::MAX - 1) as u64));
+    assert(ring.tail() == u64::MAX);
+    let terminal = ring.reserve_send();
+    assert(terminal.is_none());
+    let first_value = ring.receive_ready();
+    let second_value = ring.receive_ready();
+    assert(first_value == u64::MAX - 2);
+    assert(second_value == u64::MAX - 1);
+    assert(ring.next() == u64::MAX);
     let empty = ring.is_empty();
     assert(empty);
 }
 
-pub fn verify_snapshot_drain_across_wrap()
+pub fn verify_terminal_len_saturation()
 {
-    assert(2u64 & ((2u64 - 1) as u64) == 0) by (bit_vector);
-    let mut ring = BroadcastRing::subscribe(2, u64::MAX - 1);
-    ring.reserve_send();
-    ring.reserve_send();
-    assert(ring.tail() == 0);
-    assert(ring.unread() == 2);
-    assert(ring.capacity() == 2);
-    let released = ring.drain_snapshot();
-    assert(released == 2);
-    assert(ring.next() == 0);
+    assert(1u64 & ((1u64 - 1) as u64) == 0) by (bit_vector);
+    let ring = BroadcastRing { capacity: 1, tail: u64::MAX, next: 0 };
+    assert(ring.well_formed());
+    let host_32 = ring.len_with_maximum(u32::MAX as u64);
+    assert(host_32 == u32::MAX as u64);
+    let host_64 = ring.len_with_maximum(u64::MAX);
+    assert(host_64 == u64::MAX);
     let empty = ring.is_empty();
-    assert(empty);
+    assert(!empty);
+}
+
+pub fn verify_terminal_queried_slot_is_empty()
+{
+    let mut slot = BroadcastGenerationSlot::initial(1, 2);
+    assert(((u64::MAX - 2) as u64) & 1u64 == 1) by (bit_vector);
+    slot.publish(u64::MAX - 2);
+    assert(slot.tag() == u64::MAX - 2);
+    let terminal = slot.classify(u64::MAX, u64::MAX);
+    assert(terminal == SlotLookup::Empty);
+}
+
+pub fn verify_positive_lag_and_snapshot_bound()
+{
+    let mut drain = ConcurrentDropDrain::new(2, 4);
+    let lag = drain.step(7, 2);
+    assert(lag == DrainStep::Lagged);
+    assert(drain.next() == 5);
+    assert(drain.released() == 0);
+    let done = drain.step(8, 2);
+    assert(done == DrainStep::Done);
+    assert(drain.released() == 0);
 }
 
 } // verus!

@@ -604,6 +604,17 @@ impl<T> Sender<T> {
     /// [`Receiver`]: crate::sync::broadcast::Receiver
     /// [`subscribe`]: crate::sync::broadcast::Sender::subscribe
     ///
+    /// # Panics
+    ///
+    /// Panics if there is at least one active receiver and the channel's
+    /// internal position has reached its terminal `u64::MAX` sentinel. With no
+    /// active receivers, `send` retains its existing `SendError` behavior. The
+    /// last position that can be published is `u64::MAX - 1`; position zero is
+    /// never reused. This terminal state is irreversible, including after
+    /// subscribing a new receiver, and is the same in debug and release
+    /// builds. The supplied value is dropped during unwinding, before any
+    /// channel state is mutated.
+    ///
     /// # Examples
     ///
     /// ```
@@ -635,13 +646,18 @@ impl<T> Sender<T> {
             return Err(SendError(value));
         }
 
+        assert!(
+            tail.pos != u64::MAX,
+            "broadcast channel position overflow"
+        );
+
         // Position to write into
         let pos = tail.pos;
         let rem = tail.rx_cnt;
         let idx = (pos & self.shared.mask as u64) as usize;
 
         // Update the tail position
-        tail.pos = tail.pos.wrapping_add(1);
+        tail.pos += 1;
 
         // Get the slot
         let mut slot = self.shared.buffer[idx].lock();
@@ -1164,7 +1180,7 @@ impl<T> Receiver<T> {
     /// ```
     pub fn len(&self) -> usize {
         let next_send_pos = self.shared.tail.lock().pos;
-        (next_send_pos - self.next) as usize
+        saturating_u64_to_usize(next_send_pos - self.next)
     }
 
     /// Returns true if there aren't any messages in the channel that the [`Receiver`]
@@ -1193,7 +1209,7 @@ impl<T> Receiver<T> {
     /// # }
     /// ```
     pub fn is_empty(&self) -> bool {
-        self.len() == 0
+        self.shared.tail.lock().pos == self.next
     }
 
     /// Returns `true` if receivers belong to the same channel.
@@ -1303,18 +1319,11 @@ impl<T> Receiver<T> {
                 // catch up by skipping dropped messages and setting the
                 // internal cursor to the **oldest** message stored by the
                 // channel.
-                let next = tail.pos.wrapping_sub(self.shared.buffer.len() as u64);
+                let next = tail.pos - self.shared.buffer.len() as u64;
 
-                let missed = next.wrapping_sub(self.next);
+                let missed = next - self.next;
 
                 drop(tail);
-
-                // The receiver is slow but no values have been missed
-                if missed == 0 {
-                    self.next = self.next.wrapping_add(1);
-
-                    return Ok(RecvGuard { slot });
-                }
 
                 self.next = next;
 
@@ -1322,7 +1331,7 @@ impl<T> Receiver<T> {
             }
         }
 
-        self.next = self.next.wrapping_add(1);
+        self.next += 1;
 
         Ok(RecvGuard { slot })
     }
@@ -1545,6 +1554,14 @@ impl<T: Clone> Receiver<T> {
     }
 }
 
+fn saturating_u64(value: u64, maximum: u64) -> u64 {
+    value.min(maximum)
+}
+
+fn saturating_u64_to_usize(value: u64) -> usize {
+    saturating_u64(value, usize::MAX as u64) as usize
+}
+
 impl<T> Drop for Receiver<T> {
     fn drop(&mut self) {
         let mut tail = self.shared.tail.lock();
@@ -1726,27 +1743,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn broadcast_position_wrap_send_receive_preserves_generation_order() {
-        let (sender, mut receiver) = channel(2);
-
-        {
-            let mut tail = sender.shared.tail.lock();
-            tail.pos = u64::MAX - 1;
-            receiver.next = tail.pos;
-        }
-
-        assert_eq!(sender.send("before-wrap").unwrap(), 1);
-        assert_eq!(sender.send("at-wrap").unwrap(), 1);
-        assert_eq!(sender.shared.tail.lock().pos, 0);
-
-        assert_eq!(receiver.try_recv(), Ok("before-wrap"));
-        assert_eq!(receiver.try_recv(), Ok("at-wrap"));
-        assert_eq!(receiver.next, 0);
-        assert_eq!(receiver.try_recv(), Err(TryRecvError::Empty));
-    }
-
-    #[test]
-    fn broadcast_position_wrap_lag_recovers_to_oldest_generation() {
+    fn broadcast_position_terminal_send_receive_preserves_generation_order() {
         let (sender, mut receiver) = channel(2);
 
         {
@@ -1755,15 +1752,159 @@ mod tests {
             receiver.next = tail.pos;
         }
 
+        assert_eq!(sender.send("before-terminal").unwrap(), 1);
+        assert_eq!(sender.send("at-terminal").unwrap(), 1);
+        assert_eq!(sender.shared.tail.lock().pos, u64::MAX);
+
+        assert_eq!(receiver.try_recv(), Ok("before-terminal"));
+        assert_eq!(receiver.try_recv(), Ok("at-terminal"));
+        assert_eq!(receiver.next, u64::MAX);
+        assert_eq!(receiver.try_recv(), Err(TryRecvError::Empty));
+        drop(sender);
+        assert_eq!(receiver.try_recv(), Err(TryRecvError::Closed));
+
+    }
+
+    #[test]
+    fn broadcast_position_terminal_lag_recovers_to_oldest_generation() {
+        let (sender, mut receiver) = channel(2);
+
+        {
+            let mut tail = sender.shared.tail.lock();
+            tail.pos = u64::MAX - 3;
+            receiver.next = tail.pos;
+        }
+
         assert_eq!(sender.send("evicted").unwrap(), 1);
         assert_eq!(sender.send("oldest").unwrap(), 1);
         assert_eq!(sender.send("newest").unwrap(), 1);
-        assert_eq!(sender.shared.tail.lock().pos, 0);
+        assert_eq!(sender.shared.tail.lock().pos, u64::MAX);
 
         assert_eq!(receiver.try_recv(), Err(TryRecvError::Lagged(1)));
         assert_eq!(receiver.try_recv(), Ok("oldest"));
         assert_eq!(receiver.try_recv(), Ok("newest"));
-        assert_eq!(receiver.next, 0);
+        assert_eq!(receiver.next, u64::MAX);
+    }
+
+    #[test]
+    fn broadcast_position_terminal_send_panics_before_mutation() {
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+
+        let (sender, mut receiver) = channel::<Arc<()>>(2);
+        {
+            let mut tail = sender.shared.tail.lock();
+            tail.pos = u64::MAX - 1;
+            receiver.next = tail.pos;
+        }
+
+        let existing = Arc::new(());
+        {
+            let mut terminal_slot = sender.shared.buffer[1].lock();
+            terminal_slot.pos = u64::MAX - 2;
+        }
+        assert_eq!(sender.send(existing.clone()).unwrap(), 1);
+        assert_eq!(sender.shared.tail.lock().pos, u64::MAX);
+
+        let before: Vec<_> = sender
+            .shared
+            .buffer
+            .iter()
+            .map(|slot| {
+                let slot = slot.lock();
+                (
+                    slot.pos,
+                    slot.rem.load(SeqCst),
+                    slot.val.as_ref().map(Arc::as_ptr),
+                )
+            })
+            .collect();
+
+        let rejected = Arc::new(());
+        let rejected_witness = rejected.clone();
+        let panic = catch_unwind(AssertUnwindSafe(|| sender.send(rejected)));
+        assert!(panic.is_err());
+        assert_eq!(Arc::strong_count(&rejected_witness), 1);
+        assert_eq!(sender.shared.tail.lock().pos, u64::MAX);
+
+        let after: Vec<_> = sender
+            .shared
+            .buffer
+            .iter()
+            .map(|slot| {
+                let slot = slot.lock();
+                (
+                    slot.pos,
+                    slot.rem.load(SeqCst),
+                    slot.val.as_ref().map(Arc::as_ptr),
+                )
+            })
+            .collect();
+        assert_eq!(before, after);
+
+        assert!(Arc::ptr_eq(&receiver.try_recv().unwrap(), &existing));
+        assert_eq!(receiver.next, u64::MAX);
+        assert_eq!(receiver.try_recv(), Err(TryRecvError::Empty));
+
+        let terminal_receiver = sender.subscribe();
+        assert_eq!(terminal_receiver.next, u64::MAX);
+        assert!(terminal_receiver.is_empty());
+        let subscribed_panic = catch_unwind(AssertUnwindSafe(|| sender.send(Arc::new(()))));
+        assert!(subscribed_panic.is_err());
+        assert_eq!(sender.shared.tail.lock().pos, u64::MAX);
+    }
+
+    #[test]
+    fn broadcast_position_terminal_no_receiver_keeps_send_error_priority() {
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+
+        let (sender, receiver) = channel::<u64>(1);
+        drop(receiver);
+        sender.shared.tail.lock().pos = u64::MAX;
+
+        let result = catch_unwind(AssertUnwindSafe(|| sender.send(7)));
+        let error = result.expect("no-receiver send must not panic").unwrap_err();
+        assert_eq!(error.0, 7);
+        assert_eq!(sender.shared.tail.lock().pos, u64::MAX);
+    }
+
+    #[test]
+    fn broadcast_position_terminal_len_and_is_empty_are_exact() {
+        let (sender, mut receiver) = channel::<()>(1);
+        sender.shared.tail.lock().pos = u64::MAX;
+
+        receiver.next = 0;
+        assert_eq!(receiver.len(), usize::MAX);
+        assert!(!receiver.is_empty());
+        assert_eq!(
+            saturating_u64(1u64 << 32, u32::MAX as u64),
+            u32::MAX as u64
+        );
+
+        receiver.next = u64::MAX;
+        assert_eq!(receiver.len(), 0);
+        assert!(receiver.is_empty());
+    }
+
+    #[test]
+    fn broadcast_position_terminal_drop_releases_retained_values() {
+        let (sender, mut receiver) = channel::<Arc<()>>(2);
+        {
+            let mut tail = sender.shared.tail.lock();
+            tail.pos = u64::MAX - 2;
+            receiver.next = tail.pos;
+        }
+
+        let first = Arc::new(());
+        let second = Arc::new(());
+        assert_eq!(sender.send(first.clone()).unwrap(), 1);
+        assert_eq!(sender.send(second.clone()).unwrap(), 1);
+        assert_eq!(Arc::strong_count(&first), 2);
+        assert_eq!(Arc::strong_count(&second), 2);
+
+        drop(receiver);
+
+        assert_eq!(Arc::strong_count(&first), 1);
+        assert_eq!(Arc::strong_count(&second), 1);
     }
 
     #[test]

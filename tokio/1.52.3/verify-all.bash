@@ -84,14 +84,14 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full \
   --test sync_broadcast
 
-# S04 production-position connection: send/recv order and lag recovery across
-# the exact u64 rollover, using module-local access to seed the tail cursor.
+# S04 terminal-position connection: final-ticket send/recv and lag recovery,
+# mutation-free exhaustion, saturating len, and retained-value Drop.
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
   --features full,test-util \
   --lib \
-  broadcast_position_wrap_
+  broadcast_position_terminal_
 
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
@@ -229,6 +229,7 @@ run_loom_exact loom-watch sync::watch::big_notify::verification_tests::watch_big
 run_loom_exact loom-broadcast sync::tests::loom_broadcast::broadcast_wrap
 run_loom_exact loom-broadcast sync::tests::loom_broadcast::broadcast_two
 run_loom_exact loom-broadcast sync::tests::loom_broadcast::drop_rx
+run_loom_exact loom-broadcast sync::tests::loom_broadcast::drop_rx_preserves_concurrent_send_for_surviving_receiver
 
 run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_tx
 run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_unbounded_tx
