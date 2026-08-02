@@ -148,6 +148,7 @@ pub(crate) const BLOCK_CAP: usize = 2;
 #[cfg(all(test, not(loom)))]
 mod verification_tests {
     use super::{channel, error::TryRecvError, unbounded_channel};
+    use std::panic::{catch_unwind, AssertUnwindSafe};
     use std::task::{Context, Poll, Waker};
 
     #[test]
@@ -262,6 +263,55 @@ mod verification_tests {
         assert!(buffer.capacity() - buffer.len() >= 1);
         assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 1), Poll::Ready(0));
         assert_eq!(buffer.capacity(), allocation_capacity);
+    }
+
+    #[test]
+    fn mpsc_poll_recv_many_push_panic_restores_bounded_capacity() {
+        let (tx, mut rx) = channel(2);
+        let mut cx = Context::from_waker(Waker::noop());
+        let mut nearly_full_zst = vec![(); usize::MAX - 1];
+
+        tx.try_send(()).unwrap();
+        tx.try_send(()).unwrap();
+        assert_eq!(tx.capacity(), 0);
+
+        let panic = catch_unwind(AssertUnwindSafe(|| {
+            let _ = rx.poll_recv_many(&mut cx, &mut nearly_full_zst, 2);
+        }));
+        assert!(panic.is_err());
+        assert_eq!(nearly_full_zst.len(), usize::MAX);
+        assert!(rx.is_empty());
+        assert_eq!(tx.capacity(), 2);
+        tx.try_send(()).unwrap();
+        tx.try_send(()).unwrap();
+        assert_eq!(rx.try_recv(), Ok(()));
+        assert_eq!(rx.try_recv(), Ok(()));
+        assert_eq!(tx.capacity(), 2);
+
+        rx.close();
+        let mut fresh = Vec::new();
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut fresh, 1), Poll::Ready(0));
+    }
+
+    #[test]
+    fn mpsc_poll_recv_many_push_panic_clears_unbounded_count() {
+        let (tx, mut rx) = unbounded_channel();
+        let mut cx = Context::from_waker(Waker::noop());
+        let mut nearly_full_zst = vec![(); usize::MAX - 1];
+
+        tx.send(()).unwrap();
+        tx.send(()).unwrap();
+
+        let panic = catch_unwind(AssertUnwindSafe(|| {
+            let _ = rx.poll_recv_many(&mut cx, &mut nearly_full_zst, 2);
+        }));
+        assert!(panic.is_err());
+        assert_eq!(nearly_full_zst.len(), usize::MAX);
+        assert!(rx.is_empty());
+
+        rx.close();
+        let mut fresh = Vec::new();
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut fresh, 1), Poll::Ready(0));
     }
 
     #[test]

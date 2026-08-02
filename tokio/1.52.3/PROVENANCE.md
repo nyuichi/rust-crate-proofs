@@ -412,11 +412,16 @@ module-local tests assert physical `capacity() - len() >= limit` before each
 bounded/unbounded call and confirm capacity does not change. The current vstd
 Vec contract does not connect physical capacity to the model's logical field;
 the proof is conditional. A later zero-sized-Vec capacity-overflow probe
-confirmed that production can remove a value and then unwind before applying
-its deferred bounded or unbounded batch accounting. This is no longer merely an
-unmodeled allocator boundary: Tokio's queue/accounting ordering is inconsistent
-after a caught panic. `MPSC-RECV-MANY-UNWIND-AUDIT.md` records the reproducer,
-impact, and two production-contract choices; no repair is claimed here.
+confirmed that production could remove a value and then unwind before applying
+its deferred bounded or unbounded batch accounting. The selected repair
+installs a post-pop guard while preserving normal bulk accounting and allocation
+timing. Permanent safe-API regressions confirm bounded capacity restoration and
+removal of the unbounded phantom count. A linear Verus guard model and separate
+bounded/unbounded witnesses prove once-only consumption of a recorded pending
+count; raw pop, Vec unwind, and compiled Drop execution are source/test
+connections rather than direct Verus refinement.
+`MPSC-RECV-MANY-UNWIND-AUDIT.md` records the reproducer, selected contract, and
+remaining foundational allocation/destructor boundary.
 
 The mpsc endpoint refinement additionally matches `tx_count` and
 `tx_weak_count` through live/constructing/retiring phases. It proves exact
@@ -469,8 +474,10 @@ lemma preserves only its modeled Waker/returned-permit/progress bookkeeping;
 queue, buffer, and capacity invariance at the gates is not connected. Index
 generation, block reuse/reclamation, endpoint full-count/pre-Arc-clone overflow,
 last-strong raw-list close/wake completion, raw Busy connection,
-CachedParkThread mechanics/loop termination, and recv-many insufficient-capacity
-Vec growth/allocation/unwind guards remain open. The source-only
+CachedParkThread mechanics/loop termination, recv-many Vec growth/allocation,
+and arbitrary destructor execution remain open. Exact post-pop unwind
+accounting is covered by the source-reviewed production guard, two-value
+safe-API regressions, and logical bounded/unbounded accounting witnesses. The source-only
 [`MPSC-WRAP-AUDIT.md`](MPSC-WRAP-AUDIT.md) records non-wrapping additions in
 `Block::grow` and `Block::has_value` that can panic at the terminal aligned
 index in debug builds; release `has_value` can also misclassify that wrapped

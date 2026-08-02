@@ -180,9 +180,14 @@ Closed versus receiver-close+idle versus outstanding-permit priorities are
 covered by proof witnesses. Two pre-reserved production tests assert physical
 `capacity() - len() >= limit` before each bounded and unbounded call and confirm
 capacity remains unchanged. The current vstd Vec interface does not formally
-connect physical capacity to the logical capacity field, and this is not a
-proof of Vec growth, allocator failure, or unwind when the condition is false.
-Seven module-local tests now exercise the
+connect physical capacity to the logical capacity field, so the buffer-content
+proof remains conditional. Outside that window, a call-local production guard
+records every successful pop before `Vec::push`. Source review and two-pop
+zero-sized-Vec regressions cover its capacity-overflow control flow, exact
+bounded capacity restoration, and unbounded count decrement. A separate linear
+Verus projection shows that a recorded pending count can be consumed once by
+either accounting model; it does not directly refine raw pop, Vec unwind, or
+compiled Drop execution. Nine module-local tests now exercise the
 bounded/unbounded recv poll and batch surfaces; they do not expose whether a
 particular Value arrived on production's first pop or post-registration pop.
 
@@ -196,14 +201,11 @@ Trace/coop execution itself and untouched raw queue state remain their owning
 boundaries. Block pointers, index wrapping, block reuse, full-count and
 pre-Arc-clone endpoint overflow behavior, last-strong raw-list close/wake
 completion, raw Busy production connection, CachedParkThread mechanics and
-production-loop termination and arbitrary-value drop paths remain open. A
-standard `Vec<()>` capacity-overflow unwind confirms that recv-many can pop and
-drop a value before its deferred bounded permit return or unbounded count
-decrement. The resulting queue/accounting mismatch is recorded without a
-production change in
-[`MPSC-RECV-MANY-UNWIND-AUDIT.md`](MPSC-RECV-MANY-UNWIND-AUDIT.md); the choice
-between pre-reserving capacity and unwind-time accounting requires review before
-that boundary can be proved. Arbitrary destructors also remain open. The
+production-loop termination and arbitrary-value drop paths remain open. The
+previously reproduced `Vec<()>` capacity-overflow queue/accounting mismatch is
+repaired by exact unwind-time accounting and recorded in
+[`MPSC-RECV-MANY-UNWIND-AUDIT.md`](MPSC-RECV-MANY-UNWIND-AUDIT.md). Allocation
+and arbitrary destructors remain agreed boundaries. The
 generally allowed scheduler-liveness foundation is not a proof of this
 particular loop's termination. The source audit
 also found non-wrapping additions in `Block::grow` and `Block::has_value` at the

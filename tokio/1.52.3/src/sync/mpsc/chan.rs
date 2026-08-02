@@ -49,6 +49,39 @@ pub(crate) trait Semaphore {
     fn is_closed(&self) -> bool;
 }
 
+/// Applies channel accounting for values removed by `recv_many` if appending
+/// one of them to the caller's `Vec` unwinds before the normal bulk operation.
+struct RecvManyGuard<'a, S: Semaphore> {
+    semaphore: &'a S,
+    pending: usize,
+}
+
+impl<'a, S: Semaphore> RecvManyGuard<'a, S> {
+    fn new(semaphore: &'a S) -> Self {
+        Self {
+            semaphore,
+            pending: 0,
+        }
+    }
+
+    fn record_pop(&mut self) {
+        self.pending += 1;
+    }
+
+    fn release(&mut self) {
+        let pending = std::mem::take(&mut self.pending);
+        if pending > 0 {
+            self.semaphore.add_permits(pending);
+        }
+    }
+}
+
+impl<S: Semaphore> Drop for RecvManyGuard<'_, S> {
+    fn drop(&mut self) {
+        self.release();
+    }
+}
+
 pub(super) struct Chan<T, S> {
     /// Handle to the push half of the lock-free list.
     tx: CachePadded<list::Tx<T>>,
@@ -364,11 +397,13 @@ impl<T, S: Semaphore> Rx<T, S> {
 
         self.inner.rx_fields.with_mut(|rx_fields_ptr| {
             let rx_fields = unsafe { &mut *rx_fields_ptr };
+            let mut guard = RecvManyGuard::new(&self.inner.semaphore);
             macro_rules! try_recv {
                 () => {
                     while remaining > 0 {
                         match rx_fields.list.pop(&self.inner.tx) {
                             Some(Read::Value(value)) => {
+                                guard.record_pop();
                                 remaining -= 1;
                                 buffer.push(value);
                             }
@@ -376,7 +411,8 @@ impl<T, S: Semaphore> Rx<T, S> {
                             Some(Read::Closed) => {
                                 let number_added = buffer.len() - initial_length;
                                 if number_added > 0 {
-                                    self.inner.semaphore.add_permits(number_added);
+                                    debug_assert_eq!(guard.pending, number_added);
+                                    guard.release();
                                 }
                                 // A channel is closed when all tx handles are
                                 // dropped. Dropping a tx handle releases memory,
@@ -394,7 +430,8 @@ impl<T, S: Semaphore> Rx<T, S> {
                     }
                     let number_added = buffer.len() - initial_length;
                     if number_added > 0 {
-                        self.inner.semaphore.add_permits(number_added);
+                        debug_assert_eq!(guard.pending, number_added);
+                        guard.release();
                         coop.made_progress();
                         return Ready(number_added);
                     }

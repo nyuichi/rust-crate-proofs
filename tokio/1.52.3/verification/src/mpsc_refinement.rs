@@ -490,14 +490,78 @@ pub open spec fn many_observation_result<T>(
     }
 }
 
+/// Linear projection of the production `RecvManyGuard`. `pending` counts
+/// values already removed from the queue but not yet covered by the normal
+/// bulk accounting. A normal return and an unwind cleanup consume the same
+/// obligation; after either transition it cannot be applied again.
+pub struct RecvManyAccountingGuard {
+    pending: usize,
+    armed: bool,
+}
+
+impl RecvManyAccountingGuard {
+    pub closed spec fn pending(&self) -> usize { self.pending }
+    pub closed spec fn armed(&self) -> bool { self.armed }
+    pub closed spec fn well_formed(&self) -> bool {
+        !self.armed() ==> self.pending() == 0
+    }
+
+    pub fn new() -> (result: Self)
+        ensures result.well_formed(), result.armed(), result.pending() == 0,
+        no_unwind
+    {
+        RecvManyAccountingGuard { pending: 0, armed: true }
+    }
+
+    /// Mirrors the production update immediately after a successful queue pop
+    /// and before the potentially-unwinding `Vec::push`.
+    pub fn record_pop(&mut self)
+        requires old(self).well_formed(), old(self).armed(),
+            old(self).pending() < usize::MAX,
+        ensures final(self).well_formed(), final(self).armed(),
+            final(self).pending() == old(self).pending() + 1,
+        no_unwind
+    {
+        self.pending += 1;
+    }
+
+    pub fn disarm_for_normal_bulk_return(&mut self) -> (count: usize)
+        requires old(self).well_formed(), old(self).armed(),
+        ensures final(self).well_formed(), !final(self).armed(),
+            final(self).pending() == 0, count == old(self).pending(),
+        no_unwind
+    {
+        let count = self.pending;
+        self.pending = 0;
+        self.armed = false;
+        count
+    }
+
+    /// Models `Drop` taking the exact outstanding batch during unwind.
+    pub fn unwind_bulk_return(&mut self) -> (count: usize)
+        requires old(self).well_formed(), old(self).armed(),
+        ensures final(self).well_formed(), !final(self).armed(),
+            final(self).pending() == 0, count == old(self).pending(),
+        no_unwind
+    {
+        let count = self.pending;
+        self.pending = 0;
+        self.armed = false;
+        count
+    }
+}
+
 /// `recv_many` uses `values.len()` as its only progress measure. It is the
 /// exact number added after the immutable caller prefix, remaining is
 /// `limit - added`, and the same number of permits is returned once on every
 /// Ready-with-values path. `buffer_capacity - initial_prefix.len() >= limit`
 /// selects the no-grow production branch in this logical refinement. vstd does
 /// not expose physical Vec capacity here, so production tests check that
-/// precondition and capacity preservation separately. Vec growth, allocator
-/// failure, and its panic path remain unproved; no new trusted boundary is used.
+/// precondition and capacity preservation separately. The separate linear
+/// `RecvManyAccountingGuard` models once-only consumption of an already
+/// recorded pending count for the growth-unwind accounting case; allocation,
+/// raw-pop/unwind/Drop connection, and arbitrary destructor execution remain
+/// foundational rather than modeled, and no new trusted boundary is used.
 pub struct MpscRecvManyRefinement<T> {
     limit: usize,
     buffer_capacity: usize,
@@ -1212,6 +1276,54 @@ pub fn verify_recv_many_recheck_value_uses_latest_waker(value: u64, waker: u64)
     assert(many.waker() == Some(waker));
 }
 
+pub fn verify_recv_many_unwind_restores_exact_bounded_batch()
+{
+    let mut capacity = MpscCapacity::new(2);
+    let first = capacity.reserve();
+    assert(first == ReserveResult::Permit);
+    capacity.commit_permit();
+    let second = capacity.reserve();
+    assert(second == ReserveResult::Permit);
+    capacity.commit_permit();
+    assert(capacity.available() == 0);
+    assert(capacity.queued() == 2);
+
+    let mut guard = RecvManyAccountingGuard::new();
+    guard.record_pop();
+    guard.record_pop();
+    let returned = guard.unwind_bulk_return();
+    assert(returned == 2);
+    capacity.receive_many(returned as u64);
+
+    assert(!guard.armed());
+    assert(guard.pending() == 0);
+    assert(capacity.available() == 2);
+    assert(capacity.queued() == 0);
+}
+
+pub fn verify_recv_many_unwind_clears_exact_unbounded_count()
+{
+    let mut accounting = UnboundedAccounting::new();
+    accounting.publish();
+    accounting.publish();
+    accounting.close_receiver();
+    assert(accounting.encoded() == 5);
+
+    let mut guard = RecvManyAccountingGuard::new();
+    guard.record_pop();
+    guard.record_pop();
+    let returned = guard.unwind_bulk_return();
+    assert(returned == 2);
+    accounting.receive_many(returned);
+
+    assert(!guard.armed());
+    assert(guard.pending() == 0);
+    assert(accounting.encoded() == 1);
+    assert(accounting.messages() == 0);
+    let ready = accounting.finish_without_value();
+    assert(ready);
+}
+
 pub fn verify_recv_many_preallocated_bounded_bulk_return(
     first: u64,
     second: u64,
@@ -1235,10 +1347,13 @@ pub fn verify_recv_many_preallocated_bounded_bulk_return(
     let mut many = MpscRecvManyRefinement::new_preallocated(
         3, buffer_capacity, Ghost(prefix), None,
     );
+    let mut guard = RecvManyAccountingGuard::new();
     let started = many.start();
     assert(started == ManyPoll::Continue);
+    guard.record_pop();
     let first_step = many.observe_value(first);
     assert(first_step == ManyPoll::Continue);
+    guard.record_pop();
     let second_step = many.observe_value(second);
     assert(second_step == ManyPoll::Continue);
     let ready = many.observe_none(&open_with_held_permit, false);
@@ -1247,6 +1362,9 @@ pub fn verify_recv_many_preallocated_bounded_bulk_return(
     assert(many.buffer() == prefix.add(seq![first, second]));
     assert(many.buffer_capacity() == buffer_capacity);
     assert(many.permits_returned() == 2);
+    let normal_batch = guard.disarm_for_normal_bulk_return();
+    assert(normal_batch == many.permits_returned());
+    assert(!guard.armed());
 
     many.apply_bounded_bulk_return(&mut capacity);
     assert(capacity.available() == 2);

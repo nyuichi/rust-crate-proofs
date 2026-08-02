@@ -36,18 +36,19 @@ These are proof-level counterfactuals in
 | return bounded permits one-by-one, apply the same completed batch twice, or decrement the unbounded word by the wrong batch | the general final-nonempty composition consumes `accounting_applied == false`, sets it true, and uses exactly `permits_returned == number_added`; bounded accounting returns that batch, while unbounded accounting proves `number_added << 1 == number_added * 2` under its explicit no-overflow bound and subtracts it once |
 | let Empty/Closed discard an already appended suffix, or let receiver-close override an outstanding permit with no appended value | a nonempty suffix returns immediately; the zero-value recheck stays Pending until receiver-close and semaphore-idle are both visible, while TX_CLOSED remains terminal |
 | require semaphore idle before processing a nonempty TX_CLOSED batch | the recv-many environment allows Closed observation before its deferred bulk return, and the composed witness establishes bounded idle only after applying that exact batch |
+| omit the unwind guard, arm it after `Vec::push`, or apply a different count | the linear guard records each successful pop before push, and its unwind transition consumes exactly the outstanding count; bounded and unbounded witnesses restore/decrement precisely two popped values and leave no reusable obligation |
 
 The preallocated witnesses are conditional normal-path proofs, not an allocator
 model. Physical pre-reserved Vec tests assert `capacity() - len() >= limit` and
 confirm capacity is unchanged on the covered production branches. The vstd Vec
 contract does not formally connect that physical capacity to the logical proof
-field. A standard-library capacity-overflow unwind was subsequently reproduced
-after production had popped a value but before its deferred batch accounting;
-the bounded queue became empty while capacity stayed exhausted. This confirmed
-Tokio-specific inconsistency, its unbounded analogue, and the two possible
-repair contracts are recorded in
-[`MPSC-RECV-MANY-UNWIND-AUDIT.md`](MPSC-RECV-MANY-UNWIND-AUDIT.md). They remain
-outside the conditional proof pending a production decision.
+field. A standard-library capacity-overflow unwind was reproduced after
+production had popped a value but before its deferred batch accounting. The
+selected repair keeps normal-path batching and uses a post-pop guard to apply
+the exact outstanding batch on unwind. Permanent bounded/unbounded safe-API
+tests and the linear accounting witnesses are recorded in
+[`MPSC-RECV-MANY-UNWIND-AUDIT.md`](MPSC-RECV-MANY-UNWIND-AUDIT.md). Allocation
+and arbitrary destructor execution remain foundational rather than modeled.
 
 ## Formal endpoint-count witnesses
 
