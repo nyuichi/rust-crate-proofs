@@ -385,7 +385,15 @@ The follow-on channel work raises the integrated Verus result to 282 verified
 bodies. It reuses the publication, ownership, register/recheck, endpoint-count,
 and cleanup patterns established for SetOnce and oneshot. Watch adds independent
 Receiver generations; broadcast adds bounded ring generations and lag recovery;
-mpsc adds linear permits and FIFO claim-versus-publication ordering.
+mpsc adds linear permits and FIFO claim-versus-publication ordering. Its new
+production receive refinement additionally proves the exact `Chan::recv` and
+`recv_many` first-pop/register/recheck branch priorities, receiver-close with a
+reserved permit through both send and cancel continuations, latest-Waker
+preservation, bounded single/batch permit restoration, logical-oracle
+observation-order batch return, unbounded encoded message-count arithmetic,
+and the post-gate zero-limit branch. The bounded and unbounded public poll
+surfaces are exercised by module-local production tests; those tests do not
+distinguish the internal first-pop and post-registration-pop paths.
 
 These models are intentionally split at production's foundational interfaces.
 They do not claim direct verification of RwLock/Mutex or the foundational
@@ -401,6 +409,17 @@ The exact transitions, tests,
 exclusions, and removal conditions are recorded in
 [`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md).
 
+For mpsc specifically, `QueueRead` is still a logical pop oracle rather than a
+proved refinement of the raw block list and its UnsafeCell slots. The poll gate
+lemma preserves only its modeled Waker/returned-permit/progress bookkeeping;
+queue, buffer, and capacity invariance at the gates is not connected. Index
+generation, block reuse/reclamation, weak counts, `try_recv`'s blocking Busy
+loop, and recv-many allocation/unwind guards remain open. The source-only
+[`MPSC-WRAP-AUDIT.md`](MPSC-WRAP-AUDIT.md) records non-wrapping additions in
+`Block::grow` and `Block::has_value` that can panic at the terminal aligned
+index in debug builds; release `has_value` can also misclassify that wrapped
+block. No production fix is included.
+
 ## Reproduction
 
 Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
@@ -411,7 +430,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 453 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 498 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;

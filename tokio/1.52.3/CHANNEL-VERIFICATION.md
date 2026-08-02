@@ -112,17 +112,46 @@ using tracked claimed/ready/consumed sets, specifies the all-consumed condition
 for block reclamation, proves reserve-many iterator conservation, and proves
 that weak Senders cannot resurrect a channel after the final strong Sender.
 
+`mpsc_refinement` now proves the production branch order for single-message
+`Chan::recv` and `recv_many` after the trace/cooperative gates. It separates
+first pop, Waker registration, and second pop; first-pop Value/Closed never
+register, while post-registration Value, TX_CLOSED, receiver-close+idle, and
+Pending priorities preserve the latest Waker. A receiver closed with an
+outstanding permit remains Pending. Caller witnesses cover both continuations:
+commit/send then Value then terminal, and cancel/drop then idle terminal. Value
+delivery composes with `MpscCapacity` to restore exactly one bounded permit.
+`recv_many` uses only the logical-oracle observation count as its progress
+measure, returns that many permits once, returns any nonempty observed prefix
+before registration, and handles `limit == 0` only after the outer gates. A
+bounded batch witness composes two observations with two capacity returns. The
+unbounded refinement proves the exact `(messages << 1) | receiver_closed`
+encoding, a single `fetch_sub(2)` effect per Value, preservation on
+Pending/Closed observations, and the positive-count no-underflow condition.
+Bounded and unbounded public poll behavior plus these capacity/batch cases are
+exercised by five module-local production tests; they do not expose whether a
+particular Value arrived on production's first pop or post-registration pop.
+
 The two-slot executable queue is a local proof of the production block-list
 ordering rule, not a proof of arbitrary raw block allocation and reclamation.
-Block pointers, index wrapping, block reuse, Semaphore/AtomicWaker execution,
-weak-count atomics, arbitrary destructors, and scheduler liveness remain
-adapters. The ordinary mpsc target has 100 tests and its weak-Sender target has
-28. Three bounded loom cases cover bounded close, unbounded close, and the
-send-versus-Receiver-close race. The upstream `try_recv` loom case is excluded
-from integration after its scheduler search exceeded one minute; ordinary
-tests and the deterministic Busy/FIFO proof cover its channel-specific logic.
+The refinement consumes `QueueRead` as the already-established logical pop
+oracle; it does not connect that oracle to the raw list/UnsafeCell chain. Its
+gate lemma preserves only modeled Waker/returned-permit/progress bookkeeping;
+queue, caller buffer, and capacity snapshots are not part of that lemma.
+Trace/coop execution itself and untouched raw queue state remain their owning boundaries. Block
+pointers, index wrapping, block reuse, weak-count atomics, `try_recv`'s
+CachedParkThread Busy loop, recv-many buffer-allocation/panic-guard/drop paths,
+arbitrary destructors, and scheduler liveness remain open. The source audit
+also found non-wrapping additions in `Block::grow` and `Block::has_value` at the
+final aligned machine-word block; debug can panic and release `has_value` can
+misclassify the wrapped range. Production was not changed; see
+[`MPSC-WRAP-AUDIT.md`](MPSC-WRAP-AUDIT.md). The ordinary mpsc target has 100
+tests and its weak-Sender target has 28. Three bounded loom cases cover bounded
+close, unbounded close, and the send-versus-Receiver-close race. The upstream
+`try_recv` loom case is excluded from integration after its scheduler search
+exceeded one minute; ordinary tests and the deterministic Busy/FIFO proof cover
+its channel-specific logic.
 [`MPSC-MUTATION-AUDIT.md`](MPSC-MUTATION-AUDIT.md) records three independently
-rejected mutations for recheck, capacity return, and weak upgrade.
+rejected production mutations plus formal receive-orchestration witnesses.
 
 ## Status terminology
 

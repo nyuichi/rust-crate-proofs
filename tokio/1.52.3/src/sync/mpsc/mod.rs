@@ -144,3 +144,74 @@ pub(crate) const BLOCK_CAP: usize = 16;
 
 #[cfg(loom)]
 pub(crate) const BLOCK_CAP: usize = 2;
+
+#[cfg(all(test, not(loom)))]
+mod verification_tests {
+    use super::{channel, unbounded_channel};
+    use std::task::{Context, Poll, Waker};
+
+    #[test]
+    fn mpsc_poll_recv_pending_then_value_restores_capacity() {
+        let (tx, mut rx) = channel(1);
+        let mut cx = Context::from_waker(Waker::noop());
+
+        assert_eq!(rx.poll_recv(&mut cx), Poll::Pending);
+        tx.try_send(17_u64).unwrap();
+        assert_eq!(tx.capacity(), 0);
+        assert_eq!(rx.poll_recv(&mut cx), Poll::Ready(Some(17)));
+        assert_eq!(tx.capacity(), 1);
+    }
+
+    #[test]
+    fn mpsc_poll_recv_held_permit_send_then_value_then_closed() {
+        let (tx, mut rx) = channel(1);
+        let permit = tx.try_reserve().unwrap();
+        let mut cx = Context::from_waker(Waker::noop());
+
+        rx.close();
+        assert_eq!(rx.poll_recv(&mut cx), Poll::Pending);
+        permit.send(23_u64);
+        assert_eq!(rx.poll_recv(&mut cx), Poll::Ready(Some(23)));
+        assert_eq!(rx.poll_recv(&mut cx), Poll::Ready(None));
+    }
+
+    #[test]
+    fn mpsc_poll_recv_held_permit_drop_then_closed() {
+        let (tx, mut rx) = channel::<u64>(1);
+        let permit = tx.try_reserve().unwrap();
+        let mut cx = Context::from_waker(Waker::noop());
+
+        rx.close();
+        assert_eq!(rx.poll_recv(&mut cx), Poll::Pending);
+        drop(permit);
+        assert_eq!(tx.capacity(), 1);
+        assert_eq!(rx.poll_recv(&mut cx), Poll::Ready(None));
+    }
+
+    #[test]
+    fn mpsc_poll_recv_many_exact_batch_and_limit_zero() {
+        let (tx, mut rx) = channel(3);
+        let mut cx = Context::from_waker(Waker::noop());
+        let mut buffer = vec![5_u64];
+
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 0), Poll::Ready(0));
+        assert_eq!(buffer, vec![5]);
+
+        tx.try_send(7).unwrap();
+        tx.try_send(11).unwrap();
+        assert_eq!(tx.capacity(), 1);
+        assert_eq!(rx.poll_recv_many(&mut cx, &mut buffer, 3), Poll::Ready(2));
+        assert_eq!(buffer, vec![5, 7, 11]);
+        assert_eq!(tx.capacity(), 3);
+    }
+
+    #[test]
+    fn mpsc_poll_recv_unbounded_pending_then_value() {
+        let (tx, mut rx) = unbounded_channel();
+        let mut cx = Context::from_waker(Waker::noop());
+
+        assert_eq!(rx.poll_recv(&mut cx), Poll::Pending);
+        tx.send(29_u64).unwrap();
+        assert_eq!(rx.poll_recv(&mut cx), Poll::Ready(Some(29)));
+    }
+}

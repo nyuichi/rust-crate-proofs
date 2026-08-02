@@ -12,6 +12,7 @@ pub mod intrusive_waiters;
 pub mod linearizability;
 pub mod mpsc_completion;
 pub mod mpsc_protocol;
+pub mod mpsc_refinement;
 pub mod notified_core;
 pub mod notify_protocol;
 pub mod notify_refinement;
