@@ -568,6 +568,59 @@ mod test {
             }));
 
             assert_pending!(task.poll());
+            assert!(task.is_woken());
         });
+    }
+
+    #[test]
+    fn nested_unconstrained_restores_exact_budget() {
+        use tokio_test::*;
+
+        budget(|| {
+            let first = assert_ready!(task::spawn(()).enter(|cx, _| poll_proceed(cx)));
+            first.made_progress();
+            assert_eq!(get().0, Some(127));
+
+            with_unconstrained(|| {
+                assert_eq!(get().0, None);
+                let unconstrained =
+                    assert_ready!(task::spawn(()).enter(|cx, _| poll_proceed(cx)));
+                unconstrained.made_progress();
+                assert_eq!(get().0, None);
+
+                budget(|| {
+                    assert_eq!(get().0, Some(128));
+                    let nested =
+                        assert_ready!(task::spawn(()).enter(|cx, _| poll_proceed(cx)));
+                    nested.made_progress();
+                    assert_eq!(get().0, Some(127));
+                });
+
+                assert_eq!(get().0, None);
+            });
+
+            assert_eq!(get().0, Some(127));
+        });
+
+        assert_eq!(get().0, None);
+    }
+
+    #[test]
+    fn scoped_budget_restores_after_unwind() {
+        use std::panic::{catch_unwind, AssertUnwindSafe};
+
+        budget(|| {
+            let result = catch_unwind(AssertUnwindSafe(|| {
+                with_unconstrained(|| {
+                    assert_eq!(get().0, None);
+                    panic!("exercise ResetGuard during unwind");
+                });
+            }));
+
+            assert!(result.is_err());
+            assert_eq!(get().0, Some(128));
+        });
+
+        assert_eq!(get().0, None);
     }
 }

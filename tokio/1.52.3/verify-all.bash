@@ -111,6 +111,23 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --lib \
   mpsc_try_recv_public_
 
+# T01 production regressions: exact budget rollback/commit, a Waker on the
+# forced-Pending branch, unconstrained nesting, and ResetGuard unwind safety.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  task::coop::test::
+
+# The public yield future is unstable-test gated in this upstream snapshot.
+# Its outside-runtime case checks Pending + wake before the Ready recheck.
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-yield" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test task_yield_now
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
@@ -218,6 +235,11 @@ run_loom_exact loom-notify sync::tests::loom_notify::notify_drop
 
 run_loom_exact loom-atomic-waker sync::tests::loom_atomic_waker::basic_notification
 run_loom_exact loom-atomic-waker sync::tests::loom_atomic_waker::test_panicky_waker
+
+# Existing upstream T01 loom cases connect `context::defer` to both scheduler
+# variants and require a park before same-thread rescheduling.
+run_loom_exact loom-coop-current runtime::tests::loom_current_thread::yield_now::yield_calls_park_before_scheduling_again
+run_loom_exact loom-coop-multi runtime::tests::loom_multi_thread::yield_now::yield_calls_park_before_scheduling_again
 
 # Compile the existing positive and negative Send/Sync/Unpin assertions for
 # Sender, Receiver, and Sender::closed without running unrelated tests.

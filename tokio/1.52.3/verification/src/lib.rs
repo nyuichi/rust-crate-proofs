@@ -8,6 +8,7 @@ pub mod atomic_waker_protocol;
 pub mod atomic_waker_refinement;
 pub mod barrier_protocol;
 pub mod barrier_refinement;
+pub mod coop_refinement;
 pub mod intrusive_waiters;
 pub mod linearizability;
 pub mod mpsc_completion;

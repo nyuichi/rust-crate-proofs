@@ -370,6 +370,53 @@ ordering, the lost-wakeup recheck, and Waker replacement.
 | Send/Sync/Unpin bounds | yes | Rust type system | unsafe impl justification | compile target |
 | mutation sensitivity | yes | n/a | no | three rejected mutations |
 
+## T01 cooperative budget and yield slice
+
+`verification/src/coop_refinement.rs` is a production-shaped sequential
+refinement of the cooperative budget value and yield state. Its executable
+bodies prove the exact `Option<u8>` cases represented as constrained versus
+unconstrained budget, including successful decrement through one-to-zero,
+Pending only on a later zero-budget poll, and no decrement in the
+unconstrained case. A successful poll returns a linear restore ticket holding
+the pre-decrement value. Dropping an uncommitted ticket restores that exact
+value; `made_progress` replaces it with the unconstrained sentinel so drop
+commits the consumed credit.
+
+The scoped-budget witnesses prove LIFO restoration across an unconstrained
+outer scope and an initial-budget inner scope. The same reset transition is
+used for normal and unwind exit, corresponding to production
+`ResetGuard::drop`. Production regressions check the nested values and run the
+unconstrained scope under `catch_unwind`, demonstrating that the actual guard
+restores the prior task budget. The exhausted-budget regression now requires
+the pending task to have been woken, connecting the proof's mandatory
+registration flag to `context::defer` outside a runtime.
+
+The `YieldNow` refinement preserves the source order: `trace_leaf` is checked
+before the yielded-state recheck; only the first trace-ready poll changes the
+state, defers the Waker, and returns Pending; only a later trace-ready poll
+returns Ready. The existing public outside-runtime test checks Pending+woken
+then Ready. Existing upstream loom cases for both current-thread and
+multi-thread schedulers check that deferred yield parks before same-thread
+rescheduling; both exact cases are part of `verify-all.bash`.
+
+This is P/R(partial), not whole-row closure. Task-local access and
+Pin/Poll/Context/Waker execution are frozen adapters. The compiled TLS closure,
+`ResetGuard` Drop, `poll_fn` capture and pinning, `consume_budget`,
+`Unconstrained<F>::poll`, the inaccessible-TLS fallback, metric increment, and
+scheduler ownership of deferred wakeups do not yet have direct Verus
+production connections. [`COOP-MUTATION-AUDIT.md`](COOP-MUTATION-AUDIT.md)
+records the rejected counterexamples and exact residual. The integrated Tokio
+1.52.3 Verus crate reports `565 verified, 0 errors`, up from 546 before this
+slice, and the target-local `verify-all.bash` completes successfully.
+
+| T01 component | Contract reviewed | Body proved | Trusted boundary | Integrated run |
+|---|---:|---:|---:|---:|
+| budget decrement and forced-Pending branch | yes | yes | TLS/Waker mechanics | Verus/tests |
+| restore ticket commit/rollback | yes | yes | compiled Cell/Drop connection | Verus/tests |
+| unconstrained and initial-budget nesting | yes | yes | TLS access | Verus/tests |
+| unwind reset state transition | yes | yes | Rust unwind/compiled Drop connection | Verus/test |
+| yield trace/defer/recheck state | yes | yes | Poll/Context/Waker and scheduler defer | Verus/test/loom |
+
 ## oneshot polling connection probe
 
 `verification-probes/oneshot-poll` preserves the production-shaped
