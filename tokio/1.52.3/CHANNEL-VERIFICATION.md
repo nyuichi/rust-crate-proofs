@@ -196,10 +196,16 @@ Trace/coop execution itself and untouched raw queue state remain their owning
 boundaries. Block pointers, index wrapping, block reuse, full-count and
 pre-Arc-clone endpoint overflow behavior, last-strong raw-list close/wake
 completion, raw Busy production connection, CachedParkThread mechanics and
-production-loop termination, recv-many insufficient-capacity Vec
-growth/allocator/unwind and arbitrary-value drop paths, and arbitrary
-destructors remain open. The generally allowed scheduler-liveness
-foundation is not a proof of this particular loop's termination. The source audit
+production-loop termination and arbitrary-value drop paths remain open. A
+standard `Vec<()>` capacity-overflow unwind confirms that recv-many can pop and
+drop a value before its deferred bounded permit return or unbounded count
+decrement. The resulting queue/accounting mismatch is recorded without a
+production change in
+[`MPSC-RECV-MANY-UNWIND-AUDIT.md`](MPSC-RECV-MANY-UNWIND-AUDIT.md); the choice
+between pre-reserving capacity and unwind-time accounting requires review before
+that boundary can be proved. Arbitrary destructors also remain open. The
+generally allowed scheduler-liveness foundation is not a proof of this
+particular loop's termination. The source audit
 also found non-wrapping additions in `Block::grow` and `Block::has_value` at the
 final aligned machine-word block; debug can panic and release `has_value` can
 misclassify the wrapped range. Production was not changed; see

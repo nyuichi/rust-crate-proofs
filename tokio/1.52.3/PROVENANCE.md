@@ -411,8 +411,12 @@ Empty/Closed completion, and the zero-value terminal priorities. Two
 module-local tests assert physical `capacity() - len() >= limit` before each
 bounded/unbounded call and confirm capacity does not change. The current vstd
 Vec contract does not connect physical capacity to the model's logical field;
-the proof is conditional and does not verify Vec growth, allocator failure, or
-unwind outside the capacity bound.
+the proof is conditional. A later zero-sized-Vec capacity-overflow probe
+confirmed that production can remove a value and then unwind before applying
+its deferred bounded or unbounded batch accounting. This is no longer merely an
+unmodeled allocator boundary: Tokio's queue/accounting ordering is inconsistent
+after a caught panic. `MPSC-RECV-MANY-UNWIND-AUDIT.md` records the reproducer,
+impact, and two production-contract choices; no repair is claimed here.
 
 The mpsc endpoint refinement additionally matches `tx_count` and
 `tx_weak_count` through live/constructing/retiring phases. It proves exact

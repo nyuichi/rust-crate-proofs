@@ -41,8 +41,13 @@ The preallocated witnesses are conditional normal-path proofs, not an allocator
 model. Physical pre-reserved Vec tests assert `capacity() - len() >= limit` and
 confirm capacity is unchanged on the covered production branches. The vstd Vec
 contract does not formally connect that physical capacity to the logical proof
-field; insufficient-capacity growth, allocation failure, and unwind remain
-outside the proof.
+field. A standard-library capacity-overflow unwind was subsequently reproduced
+after production had popped a value but before its deferred batch accounting;
+the bounded queue became empty while capacity stayed exhausted. This confirmed
+Tokio-specific inconsistency, its unbounded analogue, and the two possible
+repair contracts are recorded in
+[`MPSC-RECV-MANY-UNWIND-AUDIT.md`](MPSC-RECV-MANY-UNWIND-AUDIT.md). They remain
+outside the conditional proof pending a production decision.
 
 ## Formal endpoint-count witnesses
 
