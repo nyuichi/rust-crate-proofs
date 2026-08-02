@@ -1726,6 +1726,47 @@ mod tests {
     use super::*;
 
     #[test]
+    fn broadcast_position_wrap_send_receive_preserves_generation_order() {
+        let (sender, mut receiver) = channel(2);
+
+        {
+            let mut tail = sender.shared.tail.lock();
+            tail.pos = u64::MAX - 1;
+            receiver.next = tail.pos;
+        }
+
+        assert_eq!(sender.send("before-wrap").unwrap(), 1);
+        assert_eq!(sender.send("at-wrap").unwrap(), 1);
+        assert_eq!(sender.shared.tail.lock().pos, 0);
+
+        assert_eq!(receiver.try_recv(), Ok("before-wrap"));
+        assert_eq!(receiver.try_recv(), Ok("at-wrap"));
+        assert_eq!(receiver.next, 0);
+        assert_eq!(receiver.try_recv(), Err(TryRecvError::Empty));
+    }
+
+    #[test]
+    fn broadcast_position_wrap_lag_recovers_to_oldest_generation() {
+        let (sender, mut receiver) = channel(2);
+
+        {
+            let mut tail = sender.shared.tail.lock();
+            tail.pos = u64::MAX - 2;
+            receiver.next = tail.pos;
+        }
+
+        assert_eq!(sender.send("evicted").unwrap(), 1);
+        assert_eq!(sender.send("oldest").unwrap(), 1);
+        assert_eq!(sender.send("newest").unwrap(), 1);
+        assert_eq!(sender.shared.tail.lock().pos, 0);
+
+        assert_eq!(receiver.try_recv(), Err(TryRecvError::Lagged(1)));
+        assert_eq!(receiver.try_recv(), Ok("oldest"));
+        assert_eq!(receiver.try_recv(), Ok("newest"));
+        assert_eq!(receiver.next, 0);
+    }
+
+    #[test]
     fn receiver_count_on_sender_constructor() {
         let sender = Sender::<i32>::new(16);
         assert_eq!(sender.receiver_count(), 0);

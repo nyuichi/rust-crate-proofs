@@ -2,12 +2,13 @@
 
 use vstd::prelude::*;
 
-pub mod broadcast_completion;
-pub mod broadcast_protocol;
 pub mod atomic_waker_protocol;
 pub mod atomic_waker_refinement;
 pub mod barrier_protocol;
 pub mod barrier_refinement;
+pub mod broadcast_completion;
+pub mod broadcast_protocol;
+pub mod broadcast_refinement;
 pub mod coop_refinement;
 pub mod intrusive_waiters;
 pub mod linearizability;
@@ -17,9 +18,9 @@ pub mod mpsc_protocol;
 pub mod mpsc_refinement;
 pub mod mpsc_try_recv_refinement;
 pub mod notified_core;
+pub mod notify_guard;
 pub mod notify_protocol;
 pub mod notify_refinement;
-pub mod notify_guard;
 pub mod oneshot_atomic;
 pub mod oneshot_closed;
 pub mod oneshot_drop;

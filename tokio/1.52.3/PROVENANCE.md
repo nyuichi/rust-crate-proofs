@@ -412,8 +412,9 @@ refinement connected by source correspondence and tests, not a proof of
 task-local or compiled TLS execution.
 [`COOP-MUTATION-AUDIT.md`](COOP-MUTATION-AUDIT.md)
 records the rejected counterexamples and exact residual. The integrated Tokio
-1.52.3 Verus crate reports `565 verified, 0 errors`, up from 546 before this
-slice, and the target-local `verify-all.bash` completes successfully.
+1.52.3 Verus crate reached `565 verified, 0 errors`, up from 546, when this T01
+slice was integrated. The later S04 result is recorded in the reproduction
+summary below.
 
 | T01 component | Contract reviewed | Body proved | Trusted boundary | Integrated run |
 |---|---:|---:|---:|---:|
@@ -447,6 +448,20 @@ observation-order batch return, unbounded encoded message-count arithmetic,
 and the post-gate zero-limit branch. The bounded and unbounded public poll
 surfaces are exercised by module-local production tests; those tests do not
 distinguish the internal first-pop and post-registration-pop paths.
+
+Broadcast now also has a production-position refinement slice in
+`broadcast_refinement.rs`. It body-proves exact `u64` wrapping distance and
+advance, subscribe/send/ready/lag cursor transitions, power-of-two mask bounds,
+initial and published slot-generation tags, wrap-crossing generation
+distinction, and a sequential retained-slot drop count. The accompanying
+module-local tests force the compiled tail cursor through `u64::MAX` and check
+send/recv ordering and lag recovery. This is R(partial): fewer than one full
+unobserved position cycle is an explicit conditional proof precondition, not a
+selected policy or trusted adapter. Production `Receiver::len`, `is_empty`, and
+the `<`-bounded unlocked Drop drain do not satisfy the proved wrapping/bounded
+interfaces; the full-cycle ABA, concurrent-drop connection, generic
+mask-generation equivalence, and physical slot/rem/waiter composition remain
+open as recorded in `BROADCAST-WRAP-AUDIT.md`.
 
 The `recv_many` refinement now also carries an immutable caller prefix and an
 explicit logical buffer capacity. With
@@ -546,7 +561,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 540 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 592 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;

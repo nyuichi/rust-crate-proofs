@@ -84,6 +84,15 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full \
   --test sync_broadcast
 
+# S04 production-position connection: send/recv order and lag recovery across
+# the exact u64 rollover, using module-local access to seed the tail cursor.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  broadcast_position_wrap_
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \

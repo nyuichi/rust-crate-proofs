@@ -64,6 +64,37 @@ need production changes and regression tests.
 
 ## Verification status
 
-The existing non-wrapping logical ring and receiver-conservation bodies remain
-proved. Production position wrapping is **not closed**. No new trusted
-assumption, production patch, or completion claim was introduced by this audit.
+`verification/src/broadcast_refinement.rs` now body-proves a conditional,
+production-shaped single-cycle slice:
+
+- exact `u64::wrapping_add`/`wrapping_sub` position adapters and equality-based
+  empty classification;
+- subscribe-at-tail and send reservation across `u64::MAX`;
+- power-of-two mask index bounds;
+- the production initial tag `index.wrapping_sub(capacity)` and its empty
+  relation `tag.wrapping_add(capacity) == index`;
+- exact send-ticket publication into a physical-slot tag, once-only overwrite
+  indication, and tag-based Ready/Empty/DifferentGeneration classification;
+- wrap-crossing ready and lag recovery witnesses, including two tickets one
+  capacity apart that share an index but retain distinct generation tags; and
+- a sequential bounded drop skeleton that skips overwritten generations and
+  releases exactly `min(snapshot_unread, capacity)` retained reader
+  contributions.
+
+The module-local production tests
+`broadcast_position_wrap_send_receive_preserves_generation_order` and
+`broadcast_position_wrap_lag_recovers_to_oldest_generation` seed the private
+tail cursor near `u64::MAX` and exercise the compiled send/recv/lag branches
+across rollover. Existing exact loom cases continue to cover ordinary physical
+ring wrap, two receivers, and receiver drop races.
+
+The finite observation window is only a proof precondition for a candidate
+policy; it is neither frozen nor selected. The sequential drain model also
+holds its tail snapshot fixed and therefore does not refine sends concurrent
+with production's unlocked drop loop. The confirmed `len`/`is_empty` and drop
+defects above are unchanged. Generic mask-generation equivalence and the full
+physical slot/rem/waiter lock composition remain residuals.
+
+Production position wrapping is therefore **R(partial), not closed**. No new
+trusted assumption or production behavior change was introduced; production
+source changes are confined to `cfg(test)` regressions.
