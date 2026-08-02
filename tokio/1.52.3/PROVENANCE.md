@@ -308,8 +308,9 @@ boundaries rather than translating the whole async body as one function:
 - `oneshot_value` proves `Option<T>` slot ownership, exact-value send/take,
   rejection, close, and cleanup transitions with `PCell` permissions;
 - `oneshot_atomic` exposes only the production orderings—Relaxed observation,
-  Acquire load, and AcqRel read-modify-write—and couples them to persistent
-  protocol knowledge through an atomic invariant;
+  Acquire load, and AcqRel read-modify-write—as a single tracked-permission
+  sequential bridge. It does not itself establish a concurrent atomic
+  invariant;
 - `oneshot_poll` proves receiver initial observation, Waker registration,
   mandatory completion recheck, stale-Waker replacement, and ready/pending
   ownership results;
@@ -318,19 +319,36 @@ boundaries rather than translating the whole async body as one function:
 - `oneshot_drop` proves conservation of the two `Arc`-like endpoint owners,
   unique final cleanup, and exactly-once payload destruction at the model
   level;
+- `oneshot_refinement` integrates the exact four production bits, monotonic
+  reachable weak-CAS snapshots for the unique active Sender, task-bit/Waker
+  state, the outer endpoint options and
+  local send Arc, and the physical proof-view slot. Its split
+  store/close-or-drop/complete paths prove the principal races where CLOSED is
+  set after the payload store but before completion, including exact take-back
+  and final local-Arc cleanup. It also proves repeated terminal try/close and
+  TX-Waker retention until terminal Receiver cleanup;
 - production `OneshotValue<T>` confines loom `UnsafeCell<Option<T>>` access to
   empty construction, sender-only store, state-authorized take, and
-  publication-authorized observation.
+  publication-authorized observation; layout and operation regressions check
+  the wrapper representation, but do not close its permission correspondence.
 
-The scoped-completion definition is: all oneshot-specific state, payload,
-ordering selection, poll/recheck/Waker identity, endpoint ownership, and
-cleanup transitions are proved, and the matching production paths pass the
-integrated tests. The remaining interfaces are foundational adapters: the raw
-Rust weak-memory implementation of atomics, correspondence between loom
-`UnsafeCell`/`Arc`/Waker and the proof permissions, `Pin`/`Poll`/`Context`
-execution, arbitrary destructor/unwind semantics, and scheduler liveness.
-Accordingly this is a complete oneshot protocol proof under explicit trusted
-boundaries, not a no-trust direct translation of Tokio's production bodies.
+The production-shaped channel protocol and its staged physical proof slot are
+proved above frozen raw atomic/UnsafeCell semantics and the Arc/Waker
+boundaries. In particular, the refinement proves the state capability that
+authorizes each slot operation. Connecting it to the permission inside
+production's shared-`&self` loom UnsafeCell is still an unclosed Tokio-specific
+representation refinement—not part of the frozen raw UnsafeCell adapter—and
+there is not yet a concurrent atomic invariant spanning task-bit/Waker
+transition-in-progress states. S02 therefore remains partial. Repeated terminal
+`try_recv` and terminal `close` are proved; Future repoll after Ready and its
+panic preservation are not. Other remaining Tokio-specific obligations are
+`coop::poll_proceed`/`trace_leaf`; `blocking_recv` through the `rt`
+runtime-context/BlockingRegion and non-`rt` CachedParkThread paths owned by the
+runtime/park rows, not T01; unstable tracing-panic preservation; and public
+error/Debug/Display/Error/Clone paths. The `oneshot` and
+`oneshot_value` declarations have the identical
+`cfg(any(feature = "rt", all(windows, feature = "process")))` predicate as
+source-equivalence evidence, but were not cross-compiled for Windows locally.
 
 The production tests cover send/receive, close, polling and Waker replacement,
 endpoint drops, and panicking payload destructors on both receiver cleanup and
@@ -344,11 +362,11 @@ ordering, the lost-wakeup recheck, and Waker replacement.
 |---|---:|---:|---:|---:|
 | state bits and send/close races | yes | yes | no | Verus/loom |
 | payload slot ownership | yes | yes | physical cell adapter | Verus/tests/loom |
-| Acquire/AcqRel atomic protocol | yes | protocol yes | raw atomic bridge | Verus/loom |
+| Acquire/AcqRel atomic protocol | yes | sequential permission bridge | raw atomic bridge | Verus/loom |
 | receiver poll/recheck/Waker state | yes | yes | poll/Waker execution | Verus/loom |
 | sender close poll/Waker state | yes | yes | poll/Waker execution | Verus/loom |
 | endpoint ownership/final cleanup | yes | yes | Arc/destructor execution | Verus/tests/loom |
-| production `OneshotValue<T>` operations | yes | proof-view operations | loom UnsafeCell semantics | tests/loom |
+| production `OneshotValue<T>` operations | yes | integrated proof-view capability/operations | shared-`&self` loom UnsafeCell correspondence | Verus/tests/loom |
 | Send/Sync/Unpin bounds | yes | Rust type system | unsafe impl justification | compile target |
 | mutation sensitivity | yes | n/a | no | three rejected mutations |
 
@@ -393,7 +411,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 407 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 453 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;

@@ -37,3 +37,35 @@ impl<T> OneshotValue<T> {
         self.inner.with(|ptr| unsafe { (*ptr).is_some() })
     }
 }
+
+#[cfg(test)]
+mod verification_tests {
+    use super::*;
+    use std::mem::{align_of, size_of};
+
+    #[test]
+    fn oneshot_value_layout_matches_unsafe_cell_option() {
+        assert_eq!(
+            size_of::<OneshotValue<u64>>(),
+            size_of::<UnsafeCell<Option<u64>>>()
+        );
+        assert_eq!(
+            align_of::<OneshotValue<u64>>(),
+            align_of::<UnsafeCell<Option<u64>>>()
+        );
+    }
+
+    #[test]
+    fn oneshot_value_store_take_roundtrip() {
+        let slot = OneshotValue::empty();
+
+        unsafe {
+            assert!(!slot.has_value());
+            slot.store(41_u64);
+            assert!(slot.has_value());
+            assert_eq!(slot.take(), Some(41));
+            assert!(!slot.has_value());
+            assert_eq!(slot.take(), None);
+        }
+    }
+}

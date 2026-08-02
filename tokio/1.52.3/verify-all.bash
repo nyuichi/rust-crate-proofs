@@ -26,6 +26,34 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
+  --features full,test-util \
+  --lib \
+  oneshot_value_layout_matches_unsafe_cell_option
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  oneshot_value_store_take_roundtrip
+
+# `oneshot` is also an internal runtime/process dependency when the public
+# sync feature is disabled. Keep its private slot module in those cfgs too.
+CARGO_TARGET_DIR="$rust_target_dir" cargo check \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --no-default-features \
+  --features rt
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo check \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --no-default-features \
+  --features sync
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
   --features full \
   --test sync_watch
 

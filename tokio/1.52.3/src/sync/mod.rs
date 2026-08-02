@@ -513,6 +513,9 @@ cfg_not_sync! {
     #[cfg(any(feature = "rt", all(windows, feature = "process")))]
     pub(crate) mod oneshot;
 
+    #[cfg(any(feature = "rt", all(windows, feature = "process")))]
+    mod oneshot_value;
+
     cfg_atomic_waker_impl! {
         mod task;
         pub(crate) use task::AtomicWaker;

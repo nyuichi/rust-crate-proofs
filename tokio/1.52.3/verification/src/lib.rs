@@ -20,6 +20,7 @@ pub mod oneshot_atomic;
 pub mod oneshot_closed;
 pub mod oneshot_drop;
 pub mod oneshot_poll;
+pub mod oneshot_refinement;
 pub mod oneshot_state;
 pub mod oneshot_value;
 pub mod publication;

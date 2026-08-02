@@ -5,6 +5,39 @@ models are executable Verus bodies with no assumptions in their
 channel-specific transitions. Production correspondence is checked by the
 exact Tokio integration and bounded loom cases in `verify-all.bash`.
 
+## oneshot
+
+`oneshot_refinement` connects the earlier state, poll, close, payload, and drop
+proofs to one production-shaped resource model. It proves the exact four state
+bits with no unknown-bit states, weak-CAS retry and lifecycle-bit monotonicity,
+task-bit/Waker correspondence, endpoint and local-Arc conservation, final
+cleanup, and the outer `Option<Arc<Inner<T>>>` transitions. Sender publication
+is deliberately split at its real interference point: `inner.take()` and the
+physical `Option<T>` store create a staged sender capability; receiver close
+may then win; completion either publishes `VALUE_SENT` and transfers the slot
+capability to the Receiver or returns that exact staged value to the Sender.
+This also proves the production behavior that `try_recv` releases its outer
+Receiver option without inventing a CLOSED bit.
+
+Production `OneshotValue<T>` has layout and store/take/observe regression tests,
+and both `rt`-only and `sync`-only feature builds are integrated. The raw
+UnsafeCell semantics are frozen, but connecting the proved state capability to
+the vstd permission inside production's shared-`&self` Tokio wrapper is a
+Tokio-specific, still-unclosed representation refinement—not a frozen adapter.
+Repeated terminal `try_recv` and terminal `close` no-op behavior are now proved.
+The remaining Tokio-specific gaps are `coop::poll_proceed`/`trace_leaf`
+orchestration; `blocking_recv` through the `rt` runtime-context/BlockingRegion
+and non-`rt` CachedParkThread paths owned by the runtime/park rows (not T01);
+Future repoll-after-Ready panic preservation; task-bit/Waker transition-in-
+progress states and their concurrent atomic invariant; arbitrary panic in the
+unstable tracing branch; and public error/Debug/Display/Error/Clone trait paths.
+`oneshot` and `oneshot_value` use
+the identical `cfg(any(feature = "rt", all(windows, feature = "process")))`
+predicate as source-equivalence evidence, but the Windows process-only
+cross-build remains unexecuted because that target is unavailable locally.
+Therefore
+S02 remains **L / R(partial) / I**, not current-closed.
+
 ## watch
 
 `watch_protocol` proves:

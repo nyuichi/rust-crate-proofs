@@ -50,6 +50,14 @@ impl<T> OneshotValue<T> {
         proof { use_type_invariant(&*self); }
         self.cell.replace(Tracked(self.permission.borrow_mut()), None)
     }
+
+    pub fn is_empty(&self) -> (result: bool)
+        ensures result == self.contents().is_none(),
+        no_unwind
+    {
+        proof { use_type_invariant(self); }
+        self.cell.borrow(Tracked(self.permission.borrow())).is_none()
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
