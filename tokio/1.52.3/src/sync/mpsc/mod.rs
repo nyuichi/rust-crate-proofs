@@ -290,4 +290,32 @@ mod verification_tests {
         assert!(weak.upgrade().is_none());
         drop(rx);
     }
+
+    #[test]
+    fn mpsc_try_recv_public_branches_bounded() {
+        let (tx, mut rx) = channel(1);
+        assert_eq!(rx.try_recv(), Err(TryRecvError::Empty));
+
+        tx.try_send(53_u64).unwrap();
+        assert_eq!(tx.capacity(), 0);
+        assert_eq!(rx.try_recv(), Ok(53));
+        assert_eq!(tx.capacity(), 1);
+
+        let permit = tx.try_reserve().unwrap();
+        rx.close();
+        assert_eq!(rx.try_recv(), Err(TryRecvError::Empty));
+        drop(permit);
+        assert_eq!(rx.try_recv(), Err(TryRecvError::Disconnected));
+    }
+
+    #[test]
+    fn mpsc_try_recv_public_branches_unbounded() {
+        let (tx, mut rx) = unbounded_channel();
+        assert_eq!(rx.try_recv(), Err(TryRecvError::Empty));
+        tx.send(59_u64).unwrap();
+        assert_eq!(rx.try_recv(), Ok(59));
+        assert_eq!(rx.try_recv(), Err(TryRecvError::Empty));
+        drop(tx);
+        assert_eq!(rx.try_recv(), Err(TryRecvError::Disconnected));
+    }
 }

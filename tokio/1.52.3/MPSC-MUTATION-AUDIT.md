@@ -52,3 +52,24 @@ This proof does not identify `CloseRequested` with completed raw-list close
 insertion or wake execution. Count additions use the explicit finite
 `endpoint_count_room` window; production full-count behavior and the concurrent
 increment-before-Arc-clone interval remain unproved.
+
+## Formal below-saturation finite-prefix `try_recv` witnesses
+
+`verification/src/mpsc_try_recv_refinement.rs` rejects these control-flow
+counterfactuals for every modeled finite Busy prefix whose `usize` proof-trace
+counters remain below saturation:
+
+| Counterfactual | Rejected property |
+|---|---|
+| return Empty or Disconnected immediately for Busy | Busy has only the internal Continue outcome and enters the wake/register path |
+| omit or repeat the pre-parker wake | the NeedWake transition performs exactly one wake before any registration or park |
+| recheck or park before registering the park Waker | phase preconditions require each recheck after registration and each park after a registered Busy |
+| park twice for one Busy observation | one NeedPark transition increments the finite park trace once and requires a new registration before another recheck |
+| treat receiver-close alone as Disconnected with a reserved permit | Empty is Disconnected only when receiver-close and semaphore-idle are both observed |
+| return a Value without restoring/decrementing accounting exactly once | Value exits with one logical permit and composes with bounded `receive` or unbounded `fetch_sub(2)` accounting |
+
+The raw-list source of Busy, CachedParkThread mechanics, and termination of the
+unbounded production loop are not claimed by these witnesses. Only the exact
+two-Busy witness directly composes with S09 AtomicWaker; the generic register
+transition is abstract protocol bookkeeping. Scheduler liveness is an allowed
+foundation, but no instantiated premise here proves this loop terminates.

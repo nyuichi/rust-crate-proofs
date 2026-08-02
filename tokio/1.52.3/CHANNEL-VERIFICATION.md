@@ -131,6 +131,27 @@ owned-permit paths. Count additions are proved only under the explicit finite
 the concurrent interval between Tokio's count increment and following Arc
 clone are not proved safe by this refinement.
 
+`mpsc_try_recv_refinement` covers the smallest modeled Busy prefix of
+`Chan::try_recv` below its `usize` proof-counter saturation bounds. Initial
+Value/Closed/Empty branches return without Busy-side
+effects. Initial Busy performs the one pre-parker AtomicWaker wake, prepares a
+park Waker, and each modeled loop step registers before rechecking. A Busy
+recheck permits exactly one park before the next registration; Value restores
+one bounded permit or decrements the unbounded encoded count once, and Empty
+distinguishes receiver-close+idle from an outstanding permit. A two-iteration
+witness directly composes the wake/register sequence with the proved S09
+AtomicWaker machine; the generic register transition is abstract protocol
+bookkeeping rather than a direct S09 composition. Two module-local production
+tests cover the observable non-Busy bounded and unbounded branches. They do not
+force a raw-list Busy schedule.
+`QueueRead::Busy` remains a logical oracle event, CachedParkThread
+construction/`waker().unwrap()`/park safety is not yet refined, and loop
+termination remains unproved. Scheduler liveness is an allowed foundation in
+general, but no liveness premise is instantiated to establish termination of
+this production loop. The upstream loom
+`try_recv` case was again stopped after its preemption-1 search did not finish
+within the bounded run; it is not integration evidence.
+
 `mpsc_refinement` now proves the production branch order for single-message
 `Chan::recv` and `recv_many` after the trace/cooperative gates. It separates
 first pop, Waker registration, and second pop; first-pop Value/Closed never
@@ -159,9 +180,10 @@ queue, caller buffer, and capacity snapshots are not part of that lemma.
 Trace/coop execution itself and untouched raw queue state remain their owning
 boundaries. Block pointers, index wrapping, block reuse, full-count and
 pre-Arc-clone endpoint overflow behavior, last-strong raw-list close/wake
-completion, `try_recv`'s
-CachedParkThread Busy loop, recv-many buffer-allocation/panic-guard/drop paths,
-arbitrary destructors, and scheduler liveness remain open. The source audit
+completion, raw Busy production connection, CachedParkThread mechanics and
+production-loop termination, recv-many buffer-allocation/panic-guard/drop paths,
+and arbitrary destructors remain open. The generally allowed scheduler-liveness
+foundation is not a proof of this particular loop's termination. The source audit
 also found non-wrapping additions in `Block::grow` and `Block::has_value` at the
 final aligned machine-word block; debug can panic and release `has_value` can
 misclassify the wrapped range. Production was not changed; see
@@ -169,8 +191,8 @@ misclassify the wrapped range. Production was not changed; see
 tests and its weak-Sender target has 28. Three bounded loom cases cover bounded
 close, unbounded close, and the send-versus-Receiver-close race. The upstream
 `try_recv` loom case is excluded from integration after its scheduler search
-exceeded one minute; ordinary tests and the deterministic Busy/FIFO proof cover
-its channel-specific logic.
+exceeded one minute; the below-saturation modeled Busy-prefix proof covers
+branch safety, while the raw Busy connection and loop termination remain open.
 [`MPSC-MUTATION-AUDIT.md`](MPSC-MUTATION-AUDIT.md) records three independently
 rejected production mutations plus formal receive-orchestration witnesses.
 

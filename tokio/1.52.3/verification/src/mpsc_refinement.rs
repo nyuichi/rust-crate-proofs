@@ -145,6 +145,14 @@ impl RecvEnvironment {
     {
         RecvEnvironment { semaphore_idle, receiver_closed, tx_closed_at_head }
     }
+
+    pub fn receiver_closed_and_idle(&self) -> (result: bool)
+        requires self.well_formed(),
+        ensures result == (self.receiver_closed() && self.semaphore_idle()),
+        no_unwind
+    {
+        self.receiver_closed && self.semaphore_idle
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]

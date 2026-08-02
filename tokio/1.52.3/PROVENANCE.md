@@ -410,6 +410,22 @@ not a production overflow-safety theorem: full-count behavior and the
 concurrent increment-before-Arc-clone interval remain open. Three module-local
 tests cover the bounded, unbounded, and owned-permit projections.
 
+The mpsc `try_recv` refinement proves, for modeled finite prefixes below its
+`usize` proof-counter saturation bounds, initial terminal priorities and the
+Busy control order: wake the displaced poll Waker once, construct the park
+Waker, register before every recheck, and park once only after another Busy.
+Value exit composes with one bounded capacity return or one unbounded encoded
+count decrement; receiver-close without semaphore idle remains Empty. The
+two-Busy witness directly uses the proved S09 AtomicWaker machine; the generic
+register transition is abstract protocol bookkeeping, not a direct S09
+composition. Two production tests cover public bounded/unbounded Value, Empty,
+Disconnected, and permit behavior,
+but do not force a raw-list Busy interleaving. `QueueRead::Busy` is still a
+logical oracle, CachedParkThread construction/waker/park safety is unrefined,
+and unbounded loop termination remains unproved. Although scheduler liveness is
+an allowed foundation, this proof instantiates no premise sufficient to prove
+termination of the production loop.
+
 These models are intentionally split at production's foundational interfaces.
 They do not claim direct verification of RwLock/Mutex or the foundational
 AtomicWaker machinery,
@@ -429,8 +445,9 @@ proved refinement of the raw block list and its UnsafeCell slots. The poll gate
 lemma preserves only its modeled Waker/returned-permit/progress bookkeeping;
 queue, buffer, and capacity invariance at the gates is not connected. Index
 generation, block reuse/reclamation, endpoint full-count/pre-Arc-clone overflow,
-last-strong raw-list close/wake completion, `try_recv`'s blocking Busy loop, and
-recv-many allocation/unwind guards remain open. The source-only
+last-strong raw-list close/wake completion, raw Busy connection,
+CachedParkThread mechanics/loop termination, and recv-many allocation/unwind
+guards remain open. The source-only
 [`MPSC-WRAP-AUDIT.md`](MPSC-WRAP-AUDIT.md) records non-wrapping additions in
 `Block::grow` and `Block::has_value` that can panic at the terminal aligned
 index in debug builds; release `has_value` can also misclassify that wrapped
@@ -446,7 +463,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 516 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 529 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;
