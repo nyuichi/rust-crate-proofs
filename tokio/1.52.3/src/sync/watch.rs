@@ -162,7 +162,7 @@
 //! [`Sender::closed`]: crate::sync::watch::Sender::closed
 //! [`Sender::subscribe()`]: crate::sync::watch::Sender::subscribe
 
-use crate::sync::notify::Notify;
+use crate::sync::notify::{Notify, MAX_NOTIFY_WAITERS_CALLS};
 use crate::task::coop::cooperative;
 
 use crate::loom::sync::atomic::AtomicUsize;
@@ -200,11 +200,9 @@ pub struct Sender<T> {
 
 impl<T> Clone for Sender<T> {
     fn clone(&self) -> Self {
-        self.shared.ref_count_tx.fetch_add(1, Relaxed);
-
-        Self {
-            shared: self.shared.clone(),
-        }
+        let shared = self.shared.clone();
+        shared.ref_count_tx.fetch_add(1, Relaxed);
+        Self { shared }
     }
 }
 
@@ -309,11 +307,42 @@ struct Shared<T> {
     /// Tracks the number of `Sender` instances.
     ref_count_tx: AtomicUsize,
 
+    /// Cumulative Receiver construction credits. Each Receiver reserves one
+    /// possible last-Receiver fanout; credits are never reused.
+    rx_notify_reservations: AtomicUsize,
+
     /// Notifies waiting receivers that the value changed.
     notify_rx: big_notify::BigNotify,
 
     /// Notifies any task listening for `Receiver` dropped events.
     notify_tx: Notify,
+}
+
+impl<T> Shared<T> {
+    fn reserve_receiver_notification(&self) {
+        let mut current = self.rx_notify_reservations.load(Relaxed);
+        loop {
+            assert!(
+                current < MAX_NOTIFY_WAITERS_CALLS,
+                "watch receiver creation count overflow"
+            );
+            match self.rx_notify_reservations.compare_exchange_weak(
+                current,
+                current + 1,
+                Relaxed,
+                Relaxed,
+            ) {
+                Ok(_) => return,
+                Err(actual) => current = actual,
+            }
+        }
+    }
+
+    #[cfg(test)]
+    fn set_receiver_reservations_for_test(&self, reservations: usize) {
+        self.rx_notify_reservations
+            .store(reservations, Relaxed);
+    }
 }
 
 impl<T: fmt::Debug> fmt::Debug for Shared<T> {
@@ -409,6 +438,18 @@ mod big_notify {
             }
         }
 
+        #[cfg(test)]
+        pub(super) fn set_notify_waiters_calls_for_test(&self, calls: usize) {
+            for notify in &self.inner {
+                notify.set_notify_waiters_calls_for_test(calls);
+            }
+        }
+
+        #[cfg(test)]
+        pub(super) fn notify_waiters_calls_for_test(&self) -> [usize; 8] {
+            std::array::from_fn(|i| self.inner[i].notify_waiters_calls_for_test())
+        }
+
         /// This function implements the case where randomness is not available.
         #[cfg(not(all(not(loom), feature = "sync", any(feature = "rt", feature = "macros"))))]
         pub(super) fn notified(&self) -> Notified<'_> {
@@ -464,6 +505,7 @@ mod big_notify {
 
 use self::state::{AtomicState, Version};
 mod state {
+    use super::MAX_NOTIFY_WAITERS_CALLS;
     use crate::loom::sync::atomic::AtomicUsize;
     use crate::loom::sync::atomic::Ordering;
 
@@ -471,6 +513,7 @@ mod state {
 
     // Using 2 as the step size preserves the `CLOSED_BIT`.
     const STEP_SIZE: usize = 2;
+    pub(super) const MAX_WATCH_UPDATES: usize = MAX_NOTIFY_WAITERS_CALLS - 1;
 
     /// The version part of the state. The lowest bit is always zero.
     #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -545,9 +588,19 @@ mod state {
             self.0.fetch_add(STEP_SIZE, Ordering::Release);
         }
 
+        pub(super) fn update_has_notify_reserve_while_locked(&self) -> bool {
+            let current = self.0.load(Ordering::Acquire);
+            current >> 1 < MAX_WATCH_UPDATES
+        }
+
         /// Set the closed bit in the state.
         pub(super) fn set_closed(&self) {
             self.0.fetch_or(CLOSED_BIT, Ordering::Release);
+        }
+
+        #[cfg(test)]
+        pub(super) fn set_version_for_test(&self, generation: usize) {
+            self.0.store(generation << 1, Ordering::Release);
         }
     }
 
@@ -623,6 +676,7 @@ pub fn channel<T>(init: T) -> (Sender<T>, Receiver<T>) {
         state: AtomicState::new(),
         ref_count_rx: AtomicUsize::new(1),
         ref_count_tx: AtomicUsize::new(1),
+        rx_notify_reservations: AtomicUsize::new(1),
         notify_rx: big_notify::BigNotify::new(),
         notify_tx: Notify::new(),
     });
@@ -640,7 +694,10 @@ pub fn channel<T>(init: T) -> (Sender<T>, Receiver<T>) {
 }
 
 impl<T> Receiver<T> {
-    fn from_shared(version: Version, shared: Arc<Shared<T>>) -> Self {
+    fn from_shared(version: Version, source: &Arc<Shared<T>>) -> Self {
+        source.reserve_receiver_notification();
+        let shared = source.clone();
+
         // No synchronization necessary as this is only used as a counter and
         // not memory access.
         shared.ref_count_rx.fetch_add(1, Relaxed);
@@ -1068,11 +1125,11 @@ async fn changed_impl<T>(
 }
 
 impl<T> Clone for Receiver<T> {
+    /// Panics before cloning shared ownership or changing the Receiver count
+    /// if the finite Receiver-construction notification budget is exhausted.
     fn clone(&self) -> Self {
         let version = self.version;
-        let shared = self.shared.clone();
-
-        Self::from_shared(version, shared)
+        Self::from_shared(version, &self.shared)
     }
 }
 
@@ -1127,6 +1184,11 @@ impl<T> Sender<T> {
     /// [`send_if_modified`]: Sender::send_if_modified
     /// [`send_modify`]: Sender::send_modify
     /// [`send_replace`]: Sender::send_replace
+    ///
+    /// # Panics
+    ///
+    /// Panics before changing the value if the finite update generation is
+    /// exhausted. Update generations are never reused.
     pub fn send(&self, value: T) -> Result<(), error::SendError<T>> {
         // This is pretty much only useful as a hint anyway, so synchronization isn't critical.
         if 0 == self.receiver_count() {
@@ -1153,7 +1215,8 @@ impl<T> Sender<T> {
     /// This function panics when the invocation of the `modify` closure panics.
     /// No receivers are notified when panicking. All changes of the watched
     /// value applied by the closure before panicking will be visible in
-    /// subsequent calls to `borrow`.
+    /// subsequent calls to `borrow`. It also panics before invoking `modify`
+    /// if the finite update generation is exhausted.
     ///
     /// # Examples
     ///
@@ -1203,7 +1266,8 @@ impl<T> Sender<T> {
     /// This function panics when the invocation of the `modify` closure panics.
     /// No receivers are notified when panicking. All changes of the watched
     /// value applied by the closure before panicking will be visible in
-    /// subsequent calls to `borrow`.
+    /// subsequent calls to `borrow`. It also panics before invoking `modify`
+    /// if the finite update generation is exhausted.
     ///
     /// # Examples
     ///
@@ -1241,6 +1305,13 @@ impl<T> Sender<T> {
         {
             // Acquire the write lock and update the value.
             let mut lock = self.shared.value.write();
+
+            if !self.shared.state.update_has_notify_reserve_while_locked() {
+                // Release normally before panicking so terminal rejection does
+                // not poison the standard RwLock.
+                drop(lock);
+                panic!("watch update count overflow");
+            }
 
             // Update the value and catch possible panic inside func.
             let result = panic::catch_unwind(panic::AssertUnwindSafe(|| modify(&mut lock)));
@@ -1283,6 +1354,10 @@ impl<T> Sender<T> {
     /// Additionally, this method permits sending values even when there are no
     /// receivers.
     ///
+    /// # Panics
+    ///
+    /// Panics before changing the value if the finite update generation is
+    /// exhausted. Update generations are never reused.
     /// # Examples
     ///
     /// ```
@@ -1403,6 +1478,11 @@ impl<T> Sender<T> {
     /// This method can be called even if there are no other receivers. In this
     /// case, the channel is reopened.
     ///
+    /// # Panics
+    ///
+    /// Panics before cloning shared ownership or changing the Receiver count
+    /// if the finite Receiver-construction notification budget is exhausted.
+    ///
     /// # Examples
     ///
     /// The new channel will receive messages sent on this `Sender`.
@@ -1451,12 +1531,11 @@ impl<T> Sender<T> {
     /// # }
     /// ```
     pub fn subscribe(&self) -> Receiver<T> {
-        let shared = self.shared.clone();
-        let version = shared.state.load().version();
+        let version = self.shared.state.load().version();
 
         // The CLOSED bit in the state tracks only whether the sender is
         // dropped, so we do not need to unset it if this reopens the channel.
-        Receiver::from_shared(version, shared)
+        Receiver::from_shared(version, &self.shared)
     }
 
     /// Returns the number of receivers that currently exist.
@@ -1540,10 +1619,182 @@ impl<T> ops::Deref for Ref<'_, T> {
     }
 }
 
+#[cfg(all(test, not(loom)))]
+mod terminal_verification_tests {
+    use super::{channel, state::MAX_WATCH_UPDATES, MAX_NOTIFY_WAITERS_CALLS};
+    use std::cell::Cell;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+
+    #[test]
+    fn watch_update_terminal_rejects_before_closure_or_state_mutation() {
+        let (tx, rx) = channel("initial");
+        tx.shared.state.set_version_for_test(MAX_WATCH_UPDATES);
+        tx.shared
+            .notify_rx
+            .set_notify_waiters_calls_for_test(MAX_WATCH_UPDATES);
+        let called = Cell::new(false);
+
+        let result = catch_unwind(AssertUnwindSafe(|| {
+            tx.send_if_modified(|value| {
+                called.set(true);
+                *value = "mutated";
+                false
+            });
+        }));
+
+        assert!(result.is_err());
+        assert!(!called.get());
+        assert_eq!(*rx.borrow(), "initial");
+        assert_eq!(
+            tx.shared.notify_rx.notify_waiters_calls_for_test(),
+            [MAX_WATCH_UPDATES; 8]
+        );
+    }
+
+    #[test]
+    fn watch_last_update_preserves_final_sender_drop_notify_slot() {
+        let (tx, rx) = channel("initial");
+        tx.shared
+            .state
+            .set_version_for_test(MAX_WATCH_UPDATES - 1);
+        tx.shared
+            .notify_rx
+            .set_notify_waiters_calls_for_test(MAX_WATCH_UPDATES - 1);
+
+        assert!(tx.send_if_modified(|value| {
+            *value = "terminal";
+            true
+        }));
+        assert_eq!(*rx.borrow(), "terminal");
+        drop(tx);
+        assert_eq!(
+            rx.shared.notify_rx.notify_waiters_calls_for_test(),
+            [MAX_NOTIFY_WAITERS_CALLS; 8]
+        );
+    }
+
+    #[test]
+    fn watch_receiver_terminal_rejects_before_arc_or_count_mutation() {
+        let (tx, rx) = channel(0usize);
+        tx.shared
+            .set_receiver_reservations_for_test(MAX_NOTIFY_WAITERS_CALLS);
+        let receivers_before = tx.receiver_count();
+        let senders_before = tx.sender_count();
+
+        let result = catch_unwind(AssertUnwindSafe(|| rx.clone()));
+        assert!(result.is_err());
+        assert_eq!(tx.receiver_count(), receivers_before);
+        assert_eq!(tx.sender_count(), senders_before);
+    }
+
+    #[test]
+    fn watch_final_receiver_reservation_guarantees_last_drop_fanout() {
+        let (tx, rx) = channel(0usize);
+        tx.shared
+            .set_receiver_reservations_for_test(MAX_NOTIFY_WAITERS_CALLS - 1);
+        tx.shared
+            .notify_tx
+            .set_notify_waiters_calls_for_test(MAX_NOTIFY_WAITERS_CALLS - 1);
+        let rx2 = rx.clone();
+        assert_eq!(tx.receiver_count(), 2);
+
+        drop(rx);
+        drop(rx2);
+        assert_eq!(tx.receiver_count(), 0);
+        assert_eq!(
+            tx.shared.notify_tx.notify_waiters_calls_for_test(),
+            MAX_NOTIFY_WAITERS_CALLS
+        );
+
+        let result = catch_unwind(AssertUnwindSafe(|| tx.subscribe()));
+        assert!(result.is_err());
+        assert_eq!(tx.receiver_count(), 0);
+    }
+
+    #[test]
+    fn watch_sender_clone_keeps_counts_exact() {
+        let (tx, _rx) = channel(0usize);
+        let tx2 = tx.clone();
+        assert_eq!(tx.sender_count(), 2);
+        drop(tx2);
+        assert_eq!(tx.sender_count(), 1);
+    }
+
+    #[test]
+    fn watch_terminal_thresholds_match_32_and_64_bit_layouts() {
+        for bits in [32u32, 64u32] {
+            let word_max = (1u128 << bits) - 1;
+            let notify_limit = word_max >> 2;
+            let update_limit = notify_limit - 1;
+            let terminal_raw_version = update_limit << 1;
+
+            assert!(terminal_raw_version <= word_max);
+            assert_eq!(update_limit + 1, notify_limit);
+            assert_eq!(notify_limit, (1u128 << (bits - 2)) - 1);
+        }
+    }
+}
+
 #[cfg(all(test, loom))]
 mod tests {
     use futures::future::FutureExt;
     use loom::thread;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+
+    #[test]
+    fn watch_update_terminal_concurrent_calls_have_one_winner() {
+        loom::model(|| {
+            let (send1, recv) = crate::sync::watch::channel(0usize);
+            let send2 = send1.clone();
+            send1
+                .shared
+                .state
+                .set_version_for_test(super::state::MAX_WATCH_UPDATES - 1);
+            send1
+                .shared
+                .notify_rx
+                .set_notify_waiters_calls_for_test(super::state::MAX_WATCH_UPDATES - 1);
+
+            let first = thread::spawn(move || {
+                catch_unwind(AssertUnwindSafe(|| {
+                    send1.send_modify(|value| *value += 1);
+                }))
+                .is_ok()
+            });
+            let second = thread::spawn(move || {
+                catch_unwind(AssertUnwindSafe(|| {
+                    send2.send_modify(|value| *value += 1);
+                }))
+                .is_ok()
+            });
+
+            let first_succeeded = first.join().unwrap();
+            let second_succeeded = second.join().unwrap();
+            assert_ne!(first_succeeded, second_succeeded);
+            assert_eq!(*recv.borrow(), 1);
+        });
+    }
+
+    #[test]
+    fn watch_receiver_terminal_concurrent_subscribe_has_one_winner() {
+        loom::model(|| {
+            let (send1, recv) = crate::sync::watch::channel(0usize);
+            let send2 = send1.clone();
+            send1
+                .shared
+                .set_receiver_reservations_for_test(super::MAX_NOTIFY_WAITERS_CALLS - 1);
+
+            let first = thread::spawn(move || {
+                catch_unwind(AssertUnwindSafe(|| send1.subscribe())).is_ok()
+            });
+            let second = thread::spawn(move || {
+                catch_unwind(AssertUnwindSafe(|| send2.subscribe())).is_ok()
+            });
+
+            assert_ne!(first.join().unwrap(), second.join().unwrap());
+            assert_eq!(recv.shared.ref_count_rx.load(super::Relaxed), 1);
+        });
+    }
 
     // test for https://github.com/tokio-rs/tokio/issues/3168
     #[test]

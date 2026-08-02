@@ -21,6 +21,15 @@ validity and allocation remain common runtime adapters; the channel-specific
 reclamation precondition is proved. See
 [`CHANNEL-VERIFICATION.md`](CHANNEL-VERIFICATION.md) for the exact boundaries.**
 
+**Watch current closure: S03 is current-closed for standard `sync` cfg. The
+production version stops before reuse and before arbitrary update code, with a
+final Sender-drop fanout reserved. Receiver construction claims cumulative
+last-drop notification credit before Arc/count mutation, while Sender clone is
+Arc-first. `wait_for` predicate panic preservation, endpoint/reopen races,
+eight-shard RNG/circular selection, cooperative polling, errors, traits, and
+identity are body-proved and connected by runtime and Loom regressions.
+Taskdump trace projection remains assigned to R08.**
+
 **Sync primitive expansion: Semaphore/batch_semaphore, Notify, Barrier, and
 AtomicWaker protocol verification is integrated. Permit conservation, FIFO head blocking, partial
 assignment, cancellation return, close, permit transformations, Notify's
@@ -426,9 +435,8 @@ panic ordering, are owned by R08 rather than T01. Scheduler liveness is not
 established by these safety proofs.
 [`COOP-MUTATION-AUDIT.md`](COOP-MUTATION-AUDIT.md)
 records the rejected counterexamples and exact residual. The integrated Tokio
-The integrated Tokio 1.52.3 Verus crate currently reaches
-`746 verified, 0 errors` after the common TLS, T01, and S04 blocking composition
-work.
+1.52.3 Verus crate currently reaches
+`788 verified, 0 errors` after the S03 watch closure work.
 
 | T01 component | Contract reviewed | Body proved | Trusted boundary | Integrated run |
 |---|---:|---:|---:|---:|
@@ -586,7 +594,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cases for watch, broadcast, and mpsc;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 597 nested SetOnce, publication, channel, Semaphore, Notify,
+5. verifies 788 nested SetOnce, publication, channel, Semaphore, Notify,
    Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;

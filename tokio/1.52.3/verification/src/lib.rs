@@ -46,8 +46,13 @@ pub mod unwind;
 pub mod vstd_ext;
 pub mod wait_protocol;
 pub mod watch_completion;
+pub mod watch_endpoint_refinement;
+pub mod watch_orchestration;
 pub mod watch_protocol;
 pub mod watch_refinement;
+pub mod watch_selector_refinement;
+pub mod watch_surface;
+pub mod watch_terminal_refinement;
 pub mod writer_lease;
 
 verus! {

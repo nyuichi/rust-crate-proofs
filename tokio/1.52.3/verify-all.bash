@@ -81,6 +81,13 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
+  --features full,test-util \
+  --lib \
+  terminal_verification_tests::
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
   --features full \
   --test sync_broadcast
 
@@ -257,6 +264,8 @@ run_loom_exact loom-watch sync::tests::loom_watch::smoke
 run_loom_exact loom-watch sync::tests::loom_watch::multiple_sender_drop_concurrently
 run_loom_exact loom-watch sync::tests::loom_watch::wait_for_returns_correct_value
 run_loom_exact loom-watch sync::watch::big_notify::verification_tests::watch_big_notify_loom_reaches_every_shard
+run_loom_exact loom-watch sync::watch::tests::watch_update_terminal_concurrent_calls_have_one_winner
+run_loom_exact loom-watch sync::watch::tests::watch_receiver_terminal_concurrent_subscribe_has_one_winner
 
 run_loom_exact loom-broadcast sync::tests::loom_broadcast::broadcast_wrap
 run_loom_exact loom-broadcast sync::tests::loom_broadcast::broadcast_two

@@ -175,18 +175,17 @@ impl EncodedReceiverVersion {
 }
 
 fn advance_notify_generation(generation: usize) -> (result: usize)
-    requires (generation as nat) < notify_call_period(),
+    requires generation < usize::MAX / 4,
     ensures (result as nat) < notify_call_period(),
-        generation == usize::MAX / 4 ==> result == 0,
-        generation < usize::MAX / 4 ==> result == generation + 1,
+        result == generation + 1,
     no_unwind
 {
-    if generation == usize::MAX / 4 { 0 } else { generation + 1 }
+    generation + 1
 }
 
 /// Exact eight-way `BigNotify` view. Each member stores the upper call-count
 /// bits of its production `EncodedNotifyWord`; `notify_waiters` advances every
-/// member with that word's wrapping rule.
+/// member with that word's terminal, non-wrapping rule.
 pub struct BigNotifyGenerations {
     gen0: usize, gen1: usize, gen2: usize, gen3: usize,
     gen4: usize, gen5: usize, gen6: usize, gen7: usize,
@@ -237,14 +236,20 @@ impl BigNotifyGenerations {
 
     pub fn notify_waiters(&mut self)
         requires old(self).well_formed(),
+            old(self).generation(0) < usize::MAX / 4,
+            old(self).generation(1) < usize::MAX / 4,
+            old(self).generation(2) < usize::MAX / 4,
+            old(self).generation(3) < usize::MAX / 4,
+            old(self).generation(4) < usize::MAX / 4,
+            old(self).generation(5) < usize::MAX / 4,
+            old(self).generation(6) < usize::MAX / 4,
+            old(self).generation(7) < usize::MAX / 4,
+            forall |shard: usize| shard < 8 ==>
+                old(self).generation(shard) < usize::MAX / 4,
         ensures final(self).well_formed(),
             forall |shard: usize| shard < 8 ==>
-                (old(self).generation(shard) == usize::MAX / 4
-                    ==> final(self).generation(shard) == 0),
-            forall |shard: usize| shard < 8 ==>
-                (old(self).generation(shard) < usize::MAX / 4
-                    ==> final(self).generation(shard)
-                        == old(self).generation(shard) + 1),
+                final(self).generation(shard)
+                    == old(self).generation(shard) + 1,
         no_unwind
     {
         self.gen0 = advance_notify_generation(self.gen0);

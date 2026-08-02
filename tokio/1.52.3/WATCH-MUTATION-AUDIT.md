@@ -41,23 +41,30 @@ caller proofs establish publication-before-fanout and the two-publication
 overlap, but do not claim that the model's type system makes omission of every
 fanout call impossible.
 
-`verify_complete_watch_cycle_aba` records a separate finite-counter boundary. The
-encoded version has period `usize::MAX / 2 + 1`; after exactly that many
-successful modified updates, a receiver that has not observed any intermediate
-state again compares equal to its stored version. `verify_subcycle_update_is_detected`
-proves the corresponding strict subcycle case for every initial encoded version.
-Each underlying Notify call counter now has an all-build terminal gate before
-generation zero can be reused. The earlier complete Notify-cycle ABA witness is
-retained only as a rejected wrapping-policy counterexample; it is unreachable
-under the selected production policy. Watch's own encoded-version period
-remains the boundary for unbounded `changed`/`has_changed` completeness.
+`verify_complete_watch_cycle_aba` is retained as the rejected wrapping-policy
+counterexample. Production now rejects updates at `Notify::MAX - 1`, before
+invoking arbitrary update code or changing the value, version, or fanout state.
+This is strictly before the watch word's own cycle and leaves one BigNotify call
+reserved for final Sender drop. Terminal rejection normally releases the write
+lock before panicking, so it cannot poison the RwLock. Exact boundary and
+concurrent-one-winner regressions cover the production connection.
+
+Receiver clone and subscribe reserve cumulative last-drop notification credit
+before Arc or live-count mutation. The last Receiver therefore always has a
+nonterminal `notify_tx` call available. At terminal credit, creation panics with
+Arc ownership and receiver count unchanged; a two-subscriber Loom race proves
+that exactly one final credit can be claimed. Sender clone now clones Arc first,
+so Arc's owner bound directly supplies room in `ref_count_tx` without a
+counter-before-Arc gap.
 
 `WatchUpdateKind` and the post-closure value are unconstrained inputs to the
 update-closure refinement. This covers true, false-returning, and unwinding
 update closure outcomes without assuming or trusting execution of the arbitrary
 user closure itself.
 
-Still-open production refinement includes `wait_for` predicate orchestration,
-endpoint/refcount/closed registration races, and the RNG-backed BigNotify
-selector's connection to the U02 random helper. Those paths are not promoted to
-component-complete status by this audit.
+`watch_orchestration`, `watch_endpoint_refinement`,
+`watch_selector_refinement`, and `watch_surface` close the former `wait_for`,
+endpoint/closed, RNG selector, cooperative wrapper, identity, and error-surface
+residuals. The standard `sync` path is component-complete above the recorded
+RwLock/atomic/Arc/Waker/Clone/Drop foundation. Taskdump trace projection remains
+owned by R08 rather than S03.

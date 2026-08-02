@@ -131,16 +131,13 @@ impl<T> WatchUpdate<T> {
     pub fn apply_update_under_lock(&mut self, value: T, kind: WatchUpdateKind)
         -> (result: (T, Option<WatchNotification>))
         requires old(self).well_formed(),
+            old(self).generation() < usize::MAX / 4 - 1,
         ensures
             final(self).well_formed(),
             result.0 == old(self).value(),
             final(self).value() == value,
-            kind == WatchUpdateKind::Modified
-                && old(self).generation() < usize::MAX / 2 ==>
+            kind == WatchUpdateKind::Modified ==>
                 final(self).generation() == old(self).generation() + 1,
-            kind == WatchUpdateKind::Modified
-                && old(self).generation() == usize::MAX / 2 ==>
-                final(self).generation() == 0,
             kind != WatchUpdateKind::Modified ==>
                 final(self).generation() == old(self).generation(),
             kind == WatchUpdateKind::Modified ==> result.1.is_some(),

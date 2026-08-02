@@ -440,6 +440,7 @@ enum State {
 const NOTIFY_WAITERS_SHIFT: usize = 2;
 const STATE_MASK: usize = (1 << NOTIFY_WAITERS_SHIFT) - 1;
 const NOTIFY_WAITERS_CALLS_MASK: usize = !STATE_MASK;
+pub(crate) const MAX_NOTIFY_WAITERS_CALLS: usize = usize::MAX >> NOTIFY_WAITERS_SHIFT;
 
 /// Initial "idle" state.
 const EMPTY: usize = 0;
@@ -468,7 +469,7 @@ fn inc_num_notify_waiters_calls(data: usize) -> usize {
 
 fn assert_notify_waiters_not_terminal(data: usize) {
     assert!(
-        get_num_notify_waiters_calls(data) != usize::MAX >> NOTIFY_WAITERS_SHIFT,
+        get_num_notify_waiters_calls(data) != MAX_NOTIFY_WAITERS_CALLS,
         "notify_waiters call count overflow"
     );
 }
@@ -856,6 +857,11 @@ impl Notify {
             (calls << NOTIFY_WAITERS_SHIFT) | get_state(current),
             SeqCst,
         );
+    }
+
+    #[cfg(test)]
+    pub(crate) fn notify_waiters_calls_for_test(&self) -> usize {
+        get_num_notify_waiters_calls(self.state.load(SeqCst))
     }
 }
 

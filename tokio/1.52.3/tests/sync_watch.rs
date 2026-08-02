@@ -306,6 +306,26 @@ fn reopened_after_subscribe() {
 }
 
 #[test]
+fn watch_public_traits_errors_and_identity() {
+    struct NoDebug;
+
+    let send_error = watch::error::SendError(NoDebug);
+    assert_eq!(format!("{send_error:?}"), "SendError { .. }");
+    assert_eq!(send_error.to_string(), "channel closed");
+
+    let (tx, rx) = watch::channel(1usize);
+    let tx2 = tx.clone();
+    let rx2 = rx.clone();
+    assert!(tx.same_channel(&tx2));
+    assert!(rx.same_channel(&rx2));
+
+    let default = watch::Sender::<usize>::default();
+    assert_eq!(*default.borrow(), 0);
+    assert_eq!(default.sender_count(), 1);
+    assert_eq!(default.receiver_count(), 0);
+}
+
+#[test]
 #[cfg(panic = "unwind")]
 #[cfg(not(target_family = "wasm"))] // wasm currently doesn't support unwinding
 fn send_modify_panic() {
@@ -332,6 +352,27 @@ fn send_modify_panic() {
 
     tx.send_modify(|old| *old = "three");
     assert_ready_ok!(task.poll());
+    assert_eq!(*rx.borrow_and_update(), "three");
+}
+
+#[test]
+#[cfg(panic = "unwind")]
+#[cfg(not(target_family = "wasm"))]
+fn wait_for_predicate_panic_marks_seen_and_releases_read_lock() {
+    let (tx, mut rx) = watch::channel("one");
+    tx.send_replace("two");
+    assert!(rx.has_changed().unwrap());
+
+    let mut task = spawn(rx.wait_for(|_| -> bool { panic!("predicate panic") }));
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| task.poll()));
+    assert!(result.is_err());
+    drop(result);
+    drop(task);
+
+    // `wait_for_inner` records the version before invoking the predicate, but
+    // explicitly releases the read lock before resuming the panic.
+    assert!(!rx.has_changed().unwrap());
+    tx.send_modify(|value| *value = "three");
     assert_eq!(*rx.borrow_and_update(), "three");
 }
 
