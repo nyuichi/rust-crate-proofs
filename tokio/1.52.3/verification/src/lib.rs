@@ -18,6 +18,7 @@ pub mod broadcast_surface;
 pub mod coop_refinement;
 pub mod coop_tls_refinement;
 pub mod defer_refinement;
+pub mod future_try_join_refinement;
 pub mod intrusive_waiters;
 pub mod linearizability;
 pub mod mpsc_completion;

@@ -277,6 +277,14 @@ RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-surface"
   -- \
   --exact
 
+# F01 public macro surface: recursive arity normalization, rotating/biased
+# order, early-error cancellation, and completed-output Drop ownership.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test macros_try_join
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \

@@ -1,7 +1,16 @@
 #![cfg(feature = "macros")]
 #![allow(clippy::disallowed_names)]
 
-use std::{convert::Infallible, sync::Arc};
+use std::{
+    convert::Infallible,
+    future::Future,
+    pin::Pin,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
+    task::{Context, Poll},
+};
 
 use tokio::sync::{oneshot, Semaphore};
 use tokio_test::{assert_pending, assert_ready, task};
@@ -266,4 +275,82 @@ async fn caller_names_const_count() {
     // This passing demonstrates that the const in the macro is
     // not shadowing the caller-specified COUNT value
     assert_eq!(2, res);
+}
+
+#[tokio::test]
+async fn eight_branch_output_order_and_biased_normalization() {
+    let normal = tokio::try_join!(
+        async { ok(0) },
+        async { ok(1) },
+        async { ok(2) },
+        async { ok(3) },
+        async { ok(4) },
+        async { ok(5) },
+        async { ok(6) },
+        async { ok(7) },
+    );
+    assert_eq!(normal, Ok((0, 1, 2, 3, 4, 5, 6, 7)));
+
+    let biased = tokio::try_join!(
+        biased;
+        async { ok(0) }, async { ok(1) }, async { ok(2) }, async { ok(3) },
+        async { ok(4) }, async { ok(5) }, async { ok(6) }, async { ok(7) },
+    );
+    assert_eq!(biased, Ok((0, 1, 2, 3, 4, 5, 6, 7)));
+}
+
+struct DropOutput(Arc<AtomicUsize>);
+
+impl Drop for DropOutput {
+    fn drop(&mut self) {
+        self.0.fetch_add(1, Ordering::Relaxed);
+    }
+}
+
+struct PanicOnPoll;
+
+impl Future for PanicOnPoll {
+    type Output = Result<(), &'static str>;
+
+    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
+        panic!("later branch must not be polled after an earlier error");
+    }
+}
+
+#[tokio::test]
+async fn early_error_stops_later_poll_and_drops_completed_output_once() {
+    let drops = Arc::new(AtomicUsize::new(0));
+    let completed = DropOutput(Arc::clone(&drops));
+
+    let result = tokio::try_join!(
+        biased;
+        async { Ok::<_, &'static str>(completed) },
+        async { Err::<(), _>("first error") },
+        PanicOnPoll,
+    );
+
+    match result {
+        Err(error) => assert_eq!(error, "first error"),
+        Ok(_) => panic!("try_join unexpectedly succeeded"),
+    }
+    assert_eq!(drops.load(Ordering::Relaxed), 1);
+}
+
+#[test]
+fn maybe_done_output_mut_take_and_gone_repoll() {
+    let mut future = Box::pin(tokio::macros::support::maybe_done(std::future::ready(
+        5_u64,
+    )));
+    let waker = futures::task::noop_waker();
+    let mut context = Context::from_waker(&waker);
+
+    assert_eq!(future.as_mut().poll(&mut context), Poll::Ready(()));
+    *future.as_mut().output_mut().unwrap() = 7;
+    assert_eq!(future.as_mut().take_output(), Some(7));
+    assert_eq!(future.as_mut().take_output(), None);
+
+    let repoll = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        future.as_mut().poll(&mut context)
+    }));
+    assert!(repoll.is_err());
 }

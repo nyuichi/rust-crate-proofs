@@ -68,6 +68,12 @@ tables, slot-lock ownership, clone-panic restoration, and both callback
 identities in the register+wake race are proved. Raw atomic/UnsafeCell and
 arbitrary Waker execution remain frozen foundation adapters.**
 
+**Future combinator closure: F01 is current-closed. `MaybeDone`'s exact
+Future/Done/Gone ownership, output mutation/take and Gone repoll panic;
+private process `try_join3` success/error/cancellation; and public `try_join!`
+rotation, biased order, recursive arity, early-return cleanup, and output Drop
+are body-proved or integrated above frozen Pin/Future/Waker/Drop mechanics.**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.
@@ -626,7 +632,7 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cooperative scheduler yield;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 1,032 nested SetOnce, OnceCell, publication, channel, Semaphore,
+5. verifies 1,054 nested SetOnce, OnceCell, publication, channel, Semaphore,
    Notify, Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;
