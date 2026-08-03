@@ -259,6 +259,15 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full,test-util \
   --test sync_mutex_verification
 
+# S12 public RwLock surface: reader/writer permit accounting, writer
+# preference/cancellation, all map families, downgrade, owned lifetimes,
+# blocking wrappers, constructors, and value ownership.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_rwlock_verification
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
@@ -321,7 +330,8 @@ RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-oneshot" cargo te
 run_loom_exact() {
   local target_name="$1"
   local test_name="$2"
-  RUSTFLAGS="--cfg=loom" LOOM_MAX_PREEMPTIONS=2 \
+  local preemptions="${3:-2}"
+  RUSTFLAGS="--cfg=loom" LOOM_MAX_PREEMPTIONS="$preemptions" \
     CARGO_TARGET_DIR="$rust_target_dir/$target_name" cargo test \
     --manifest-path "$script_dir/Cargo.toml" \
     --locked \
@@ -354,6 +364,10 @@ run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::batch
 
 run_loom_exact loom-mutex sync::tests::loom_mutex::borrowed_guard_excludes_and_releases
 run_loom_exact loom-mutex sync::tests::loom_mutex::cancelled_waiter_does_not_consume_permit
+
+run_loom_exact loom-rwlock sync::tests::loom_rwlock::concurrent_write
+run_loom_exact loom-rwlock sync::tests::loom_rwlock::concurrent_read_write 1
+run_loom_exact loom-rwlock sync::tests::loom_rwlock::downgrade
 
 run_loom_exact loom-notify sync::tests::loom_notify::notify_one
 run_loom_exact loom-notify sync::tests::loom_notify::notify_waiters

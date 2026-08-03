@@ -46,6 +46,7 @@ pub mod oneshot_value;
 pub mod publication;
 pub mod published_cell;
 pub mod release_acquire;
+pub mod rwlock_refinement;
 pub mod semaphore_protocol;
 pub mod semaphore_refinement;
 pub mod tokio_loom_cell;

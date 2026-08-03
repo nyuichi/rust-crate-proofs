@@ -450,7 +450,7 @@ Taskdump-gated consumer projections are owned by R08 rather than T01. Scheduler
 liveness is not established by these safety proofs.
 [`COOP-MUTATION-AUDIT.md`](COOP-MUTATION-AUDIT.md)
 records the rejected counterexamples and exact scope. The integrated Tokio
-1.52.3 Verus crate currently reaches `968 verified, 0 errors`.
+1.52.3 Verus crate currently reaches `994 verified, 0 errors`.
 
 | T01 component | Contract reviewed | Body proved | Trusted boundary | Integrated run |
 |---|---:|---:|---:|---:|

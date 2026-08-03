@@ -136,6 +136,31 @@ scheduler liveness remain frozen adapters. No production source was changed.
 [`MUTEX-CLOSURE-CHECKLIST.md`](MUTEX-CLOSURE-CHECKLIST.md) records the exact
 closure boundary.
 
+## Async RwLock
+
+`rwlock_refinement` composes S06's batch semaphore and proves that production
+starts with exactly `mr` permits, each reader holds one, and a writer holds all
+of them. This yields shared-read safety, writer exclusion, exact try-operation
+results, FIFO writer preference, and cancellation without survivor reordering.
+
+Every borrowed/owned read projection retains one permit. Every borrowed/owned
+write and mapped-write projection retains all `mr` permits. Failed `try_map`
+and `try_downgrade_map` return the original live guard without release.
+Downgrade retains one writer permit as the new read guard and atomically
+releases exactly `mr - 1`; a queued writer therefore cannot interleave before
+the downgraded reader exists. All read, write, mapped, and owned destructor
+amounts are covered by the same linear capability.
+
+Focused public tests cover constructor limits, writer preference/cancellation,
+every map family, owned Arc identity, downgrade, blocking wrappers, formatting,
+and value ownership. Existing loom tests connect concurrent read/write and
+downgrade behavior; the mixed case uses preemption bound one to keep integrated
+runtime finite, while the general state space is body-proved in Verus.
+Arc/UnsafeCell/raw-pointer mechanics, atomics, polling, arbitrary Drop, and
+scheduler liveness remain frozen. No production source was changed.
+[`RWLOCK-CLOSURE-CHECKLIST.md`](RWLOCK-CLOSURE-CHECKLIST.md) records the exact
+closure boundary.
+
 ## Barrier
 
 `barrier_protocol` composes the trusted Mutex adapter with the proved watch
