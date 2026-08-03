@@ -54,6 +54,7 @@ pub mod semaphore_protocol;
 pub mod semaphore_refinement;
 pub mod tokio_loom_cell;
 pub mod task_state_refinement;
+pub mod task_harness_refinement;
 pub mod trait_views;
 pub mod util_collections_refinement;
 pub mod unwind;

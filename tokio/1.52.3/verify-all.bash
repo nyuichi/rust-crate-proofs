@@ -317,6 +317,14 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --lib \
   runtime::task::state::verification_tests::
 
+# R02-2 public spawn -> wake/reschedule -> completion on both schedulers.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  spawn_wake_reschedule_and_complete
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \

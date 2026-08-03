@@ -6,7 +6,7 @@ join/abort task-core connection.
 | Phase | Obligation | Status |
 |---|---|---|
 | R02-1 | packed state constants, lifecycle flags, notification, cancellation, join-interest/Waker flags, and reference transitions | body-proved / integrated |
-| R02-2 | spawn → schedule → poll → pending/reschedule/complete normal orchestration | pending |
+| R02-2 | spawn → schedule → poll → pending/reschedule/complete normal orchestration | body-proved / integrated on current- and multi-thread schedulers |
 | R02-3 | abort/cancel and exact JoinHandle result ownership | pending |
 | R02-4 | raw vtable/layout, final deallocation, future/output/waker panic cleanup | pending |
 
