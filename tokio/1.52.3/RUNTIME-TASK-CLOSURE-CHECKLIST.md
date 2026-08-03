@@ -7,7 +7,7 @@ join/abort task-core connection.
 |---|---|---|
 | R02-1 | packed state constants, lifecycle flags, notification, cancellation, join-interest/Waker flags, and reference transitions | body-proved / integrated |
 | R02-2 | spawn → schedule → poll → pending/reschedule/complete normal orchestration | body-proved / integrated on current- and multi-thread schedulers |
-| R02-3 | abort/cancel and exact JoinHandle result ownership | pending |
+| R02-3 | abort/cancel and exact JoinHandle result ownership | body-proved / integrated, including cloned AbortHandle and completed-output Drop |
 | R02-4 | raw vtable/layout, final deallocation, future/output/waker panic cleanup | pending |
 
 The R02-1 proof uses the exact six low state bits and `REF_ONE == 64`; the

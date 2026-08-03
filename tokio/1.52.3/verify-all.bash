@@ -325,6 +325,22 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --test task_core_verification \
   spawn_wake_reschedule_and_complete
 
+# R02-3 cancellation, cloned AbortHandle references, JoinError transfer, and
+# completed-output ownership when JoinHandle is dropped.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  abort_handle_cancels_and_join_transfers_error_once
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  dropping_completed_join_handle_drops_output_once
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \

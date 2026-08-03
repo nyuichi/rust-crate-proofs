@@ -1,3 +1,4 @@
+use vstd::pervasive::unreached;
 use vstd::prelude::*;
 
 verus! {
@@ -19,6 +20,9 @@ pub enum FuturePoll { Pending, PendingAndWake, Ready(u64), Panic(u64) }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum HarnessPoll { Idle, Resubmit, Complete, AlreadyDone }
+
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum JoinRead { Pending, Output(u64), Cancelled(u64), Panicked(u64) }
 
 /// Ownership-level composition of `RawTask::new`, `Harness::poll_inner`, and
 /// `Harness::complete`. Pin/Poll/Waker and arbitrary Future execution are
@@ -49,6 +53,8 @@ impl TaskHarnessModel {
     }
     pub closed spec fn well_formed(&self) -> bool {
         &&& (self.life() == HarnessLife::Complete ==> !matches!(self.stage(), TaskStage::Future(_)))
+        &&& (self.life() == HarnessLife::Complete && self.join_owned() ==>
+            matches!(self.stage(), TaskStage::Output(_) | TaskStage::Cancelled(_) | TaskStage::Panicked(_)))
         &&& (self.life() == HarnessLife::Deallocated ==> self.live_refs() == 0)
         &&& (self.queue_ref() ==> self.notified() && self.life() == HarnessLife::Idle)
         &&& (self.life() == HarnessLife::Idle && self.notified() ==> self.queue_ref())
@@ -139,6 +145,83 @@ impl TaskHarnessModel {
             FuturePoll::Panic(_) => HarnessPoll::AlreadyDone,
         }
     }
+
+    /// Composition of remote abort, cancelled transition-to-running,
+    /// `cancel_task`, and completion. The future identity is consumed and the
+    /// exact cancellation result becomes the stage owner.
+    pub fn abort_and_poll(&mut self, error_id: u64) -> (completed: bool)
+        requires old(self).well_formed(), old(self).life() == HarnessLife::Idle,
+            matches!(old(self).stage(), TaskStage::Future(_)),
+        ensures final(self).well_formed(), completed,
+            final(self).life() == HarnessLife::Complete,
+            final(self).stage() == TaskStage::Cancelled(error_id),
+            !final(self).queue_ref(), !final(self).execution_ref(),
+            final(self).scheduler_owned() == old(self).scheduler_owned(),
+            final(self).join_owned() == old(self).join_owned(),
+        no_unwind
+    {
+        self.stage = TaskStage::Cancelled(error_id);
+        self.life = HarnessLife::Complete;
+        self.notified = true;
+        self.queue_ref = false;
+        self.execution_ref = false;
+        true
+    }
+
+    /// JoinHandle is the unique output reader after COMPLETE. Pending keeps
+    /// ownership; Ready moves the exact terminal value and its reference out.
+    pub fn join_read(&mut self) -> (result: JoinRead)
+        requires old(self).well_formed(), old(self).join_owned(),
+        ensures
+            old(self).life() != HarnessLife::Complete ==> result == JoinRead::Pending
+                && final(self).stage() == old(self).stage() && final(self).join_owned(),
+            old(self).life() == HarnessLife::Complete ==> {
+                &&& !final(self).join_owned() && final(self).stage() == TaskStage::Empty
+                &&& match old(self).stage() {
+                    TaskStage::Output(value) => result == JoinRead::Output(value),
+                    TaskStage::Cancelled(id) => result == JoinRead::Cancelled(id),
+                    TaskStage::Panicked(id) => result == JoinRead::Panicked(id),
+                    _ => false,
+                }
+            },
+            final(self).scheduler_owned() == old(self).scheduler_owned(),
+            final(self).life() == old(self).life(),
+        no_unwind
+    {
+        if !matches!(self.life, HarnessLife::Complete) {
+            JoinRead::Pending
+        } else {
+            self.join_owned = false;
+            let mut stage = TaskStage::Empty;
+            core::mem::swap(&mut self.stage, &mut stage);
+            match stage {
+                TaskStage::Output(value) => JoinRead::Output(value),
+                TaskStage::Cancelled(id) => JoinRead::Cancelled(id),
+                TaskStage::Panicked(id) => JoinRead::Panicked(id),
+                _ => unreached(),
+            }
+        }
+    }
+
+    /// Dropping JoinHandle detaches an incomplete task, or consumes the exact
+    /// completed output/error so deallocation cannot drop it on another thread.
+    pub fn drop_join(&mut self) -> (dropped_stage: Option<TaskStage>)
+        requires old(self).well_formed(), old(self).join_owned(),
+        ensures
+            !final(self).join_owned(), final(self).life() == old(self).life(),
+            old(self).life() == HarnessLife::Complete ==> dropped_stage == Some(old(self).stage())
+                && final(self).stage() == TaskStage::Empty,
+            old(self).life() != HarnessLife::Complete ==> dropped_stage.is_none()
+                && final(self).stage() == old(self).stage(),
+        no_unwind
+    {
+        self.join_owned = false;
+        if matches!(self.life, HarnessLife::Complete) {
+            let mut stage = TaskStage::Empty;
+            core::mem::swap(&mut self.stage, &mut stage);
+            Some(stage)
+        } else { None }
+    }
 }
 
 pub fn verify_spawn_pending_wake_ready(future: u64, output: u64)
@@ -153,6 +236,17 @@ pub fn verify_spawn_pending_wake_ready(future: u64, output: u64)
     let ready = task.poll_normal(FuturePoll::Ready(output));
     assert(ready == HarnessPoll::Complete);
     assert(task.stage() == TaskStage::Output(output));
+}
+
+pub fn verify_abort_join_once(future: u64, error: u64)
+{
+    let mut task = TaskHarnessModel::spawn(future);
+    let completed = task.abort_and_poll(error);
+    assert(completed);
+    let joined = task.join_read();
+    assert(joined == JoinRead::Cancelled(error));
+    assert(task.stage() == TaskStage::Empty);
+    assert(!task.join_owned());
 }
 
 } // verus!
