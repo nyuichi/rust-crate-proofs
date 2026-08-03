@@ -41,6 +41,7 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 ./utf8parse/0.2.2/verify-all.bash
 ./unicode-ident/1.0.24/verify-all.bash
 ./hashbrown/0.17.1/verify-all.bash
+./tokio/1.52.3/verify-all.bash
 ```
 
 `creusot-libs` contains the Creusot libraries pinned at commit
@@ -48,6 +49,43 @@ reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
 standard-library specifications used by the proofs.
 
 ## Current proofs
+
+### tokio 1.52.3
+
+`tokio` 1.52.3 has a body-proved Verus ownership model plus reusable
+`PublishedCell<T>`, flag/slot publication, and writer-lease abstractions for the
+first `SetOnce<T>` milestone. Exact publish-once behavior, lifetime-correct
+`get() -> &T` for non-`Copy` values, rejected publication with state
+preservation, and one-time taking are proved. The upstream `sync_set_once`
+integration target passes, and targeted loom tests exercise the production
+Release-store/Acquire-load `set` to `get` path.
+
+The Phase 1 representation adapter now body-proves a production-shaped
+`get_unchecked() -> &T` over a proof view whose erased layout is checked against
+Tokio's transparent `UnsafeCell<MaybeUninit<T>>` field. This is not yet an
+end-to-end formal proof of the production `SetOnce` bodies: the remaining
+representation correspondence is trusted, and vstd currently exposes
+sequentially-consistent atomics. Production ordering selection is now isolated
+behind `SetOnceFlag` and its SetOnce-specific protocol is body-proved, but the
+foundational weak-memory refinement and Tokio's `NotifyGuard` writer lease
+exclusivity contract remain explicit boundaries. Production now carries the
+actual guard in `SetOnceWriteGuard`, so its second check, write, Release store,
+and notification form one isolated critical section matching the proved lease.
+Production `into_inner` and `Drop` also share a proved one-time take protocol
+that clears publication before moving or destroying the value.
+The SetOnce-specific wait protocol now covers both sides of waiter
+registration and cancellation/re-wait. Pin/Poll/Context/Waker and
+`Notified::poll` are intentionally isolated as the agreed trusted poll-surface
+adapter and exercised by targeted loom tests.
+Clone/Eq proof views and production Send/Sync bounds are checked, with trait
+behavior covered by the SetOnce integration target. A five-case mutation audit
+confirms that the tests reject weakened Acquire/Release ordering, removal of
+the second writer check or owned-take clear, and removal of wait's readiness
+recheck.
+`wait`, cancellation, wakers, drop, and `Send`/`Sync` also remain outside the
+formal milestone. A separate oneshot poll-signature
+probe records the current `Pin`/`Poll`/`Context`/`Waker` translation boundary.
+Full status and removal conditions are recorded in `PROVENANCE.md`.
 
 ### crossbeam-epoch 0.9.20
 

@@ -1,0 +1,552 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir=$(cd "$(dirname "$0")" && pwd)
+repo_root=$(cd "$script_dir/../.." && pwd)
+
+export CARGO_NET_OFFLINE=true
+rust_target_dir="${CARGO_TARGET_DIR:-$repo_root/target}"
+verus_target_dir="${VERUS_CARGO_TARGET_DIR:-$repo_root/target/verus/tokio-1.52.3}"
+oneshot_probe_target_dir="${VERUS_ONESHOT_PROBE_TARGET_DIR:-$repo_root/target/verus/tokio-1.52.3-oneshot-poll-probe}"
+verification_test_target_dir="${VERIFICATION_TEST_TARGET_DIR:-$repo_root/target/tokio-1.52.3-verification-tests}"
+
+# Keep runtime regressions focused on the verified sync primitives.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_set_once
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_once_cell
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_oneshot
+
+# The same `future::block_on` adapter has distinct cfg paths. Full exercises
+# runtime-context rejection, while sync-only uses CachedParkThread directly.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --no-default-features \
+  --features sync \
+  --test sync_oneshot_blocking
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_oneshot_blocking
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_panic \
+  oneshot_blocking_recv_panic_caller \
+  -- \
+  --exact
+
+# Compile and run the unstable tracing-owned channel construction/drop path.
+# `trace_leaf` taskdump callbacks themselves remain the shared R08 boundary.
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/oneshot-tracing" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,tracing \
+  --test tracing_sync \
+  test_oneshot_creates_span \
+  -- \
+  --exact
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  oneshot_value_layout_matches_unsafe_cell_option
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  oneshot_value_store_take_roundtrip
+
+# `oneshot` is also an internal runtime/process dependency when the public
+# sync feature is disabled. Keep its private slot module in those cfgs too.
+CARGO_TARGET_DIR="$rust_target_dir" cargo check \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --no-default-features \
+  --features rt
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo check \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --no-default-features \
+  --features sync
+
+# `oneshot` is compiled privately by Windows process support even without the
+# public sync feature. This target must be installed in the invoking toolchain.
+CARGO_TARGET_DIR="$rust_target_dir/windows-process" cargo check \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --target x86_64-pc-windows-gnu \
+  --no-default-features \
+  --features process
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_watch
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  watch_big_notify_reaches_every_shard
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  watch_state_wrap_preserves_closed_bit_and_even_version
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  watch_mark_changed_wraps_to_previous_even_version
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  terminal_verification_tests::
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_broadcast
+
+# Blocking broadcast surface under both production block_on cfgs: the sync-only
+# build uses direct CachedParkThread, while full enables the runtime context
+# rejection path. The latter panic-location regression lives in sync_panic.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --no-default-features \
+  --features sync \
+  --test sync_broadcast_blocking
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_broadcast_blocking
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_panic \
+  broadcast_blocking_recv_panic_caller
+
+# S04 terminal-position connection: final-ticket send/recv and lag recovery,
+# mutation-free exhaustion, saturating len, and retained-value Drop.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  broadcast_position_terminal_
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_mpsc
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  mpsc_poll_recv_
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  mpsc_endpoint_counts_
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  mpsc_try_recv_public_
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  grow_wraps_final_block_generation_in_all_builds
+
+# Exact final-block probe for the still-unmodified `has_value` comparison. It
+# records the debug panic / release false classification while raw read sees
+# the value; it is evidence for the pending production decision, not a fix.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  final_block_has_value_boundary_probe
+
+# Deterministic reduced-word lifetime-order fixture for the still-unmodified
+# reclaim comparison. No pointer is reclaimed by this test.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  reclaim_boundary_lifetime_order_fixture
+
+# T01 production regressions: exact budget rollback/commit, a Waker on the
+# forced-Pending branch, unconstrained nesting, and ResetGuard unwind safety.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  task::coop::test::
+
+# T01 production Defer ownership: adjacent deduplication, clone-panic queue
+# preservation, pop-before-arbitrary-Waker execution, and queued clone release.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  runtime::scheduler::defer::verification_tests::
+
+# The public yield future is unstable-test gated in this upstream snapshot.
+# Its outside-runtime case checks Pending + wake before the Ready recheck.
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-yield" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test task_yield_now
+
+# Close the remaining T01 public wrapper/capture projections on all supported
+# scheduler flavors, plus exact unstable forced-yield metric cardinality.
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-surface" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test rt_common \
+  coop_unconstrained
+
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-surface" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test rt_common \
+  coop_consume_budget
+
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/t01-surface" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test rt_unstable_metrics \
+  budget_exhaustion_yield \
+  -- \
+  --exact
+
+# F01 public macro surface: recursive arity normalization, rotating/biased
+# order, early-error cancellation, and completed-output Drop ownership.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test macros_try_join
+
+# U01 shared collection foundation: intrusive-list order/removal and unwind,
+# initialized WakeList ownership, and IdleNotifiedSet wake/drain mutation.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  util::linked_list::tests::
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  util::wake_list::tests::
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  util::idle_notified_set::tests::
+
+# R02-1 packed task-state encoding and representative normal/wake/cancel
+# transitions. The complete transition table is body-proved by Verus.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  runtime::task::state::verification_tests::
+
+# R02-2 public spawn -> wake/reschedule -> completion on both schedulers.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  spawn_wake_reschedule_and_complete
+
+# R02-3 cancellation, cloned AbortHandle references, JoinError transfer, and
+# completed-output ownership when JoinHandle is dropped.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  abort_handle_cancels_and_join_transfers_error_once
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  dropping_completed_join_handle_drops_output_once
+
+# R02-4 panic-to-JoinError ownership, detached shutdown reclamation, and the
+# existing panicking output destructor regression.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  poll_panic_drops_future_and_transfers_join_error_once
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  runtime_shutdown_releases_detached_pending_task_once
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test join_handle_panic
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_mpsc_weak
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_semaphore
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_semaphore_owned
+
+# S11 public Mutex surface: FIFO cancellation, all borrowed/owned mapped guard
+# conversions and Drop paths, blocking wrappers, value ownership, and traits.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_mutex_verification
+
+# S12 public RwLock surface: reader/writer permit accounting, writer
+# preference/cancellation, all map families, downgrade, owned lifetimes,
+# blocking wrappers, constructors, and value ownership.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_rwlock_verification
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_notify
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_notify_owned
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test sync_barrier
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  sync::tests::atomic_waker
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  sync::barrier::tests::
+
+# Exercise only the SetOnce and oneshot loom modules. `test-util` is needed
+# because Tokio's cfg(loom) lib-test module also compiles paused-time helpers.
+RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-set-once" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  loom_set_once
+
+RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-once-cell" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  loom_once_cell
+
+RUSTFLAGS="--cfg=loom" CARGO_TARGET_DIR="$rust_target_dir/loom-oneshot" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  loom_oneshot
+
+# The full upstream watch and mpsc loom modules have deliberately explosive
+# scheduler searches. Verus proves their protocol state spaces; these bounded
+# exact cases connect the important production races without making the
+# integrated run unbounded in practice.
+run_loom_exact() {
+  local target_name="$1"
+  local test_name="$2"
+  local preemptions="${3:-2}"
+  RUSTFLAGS="--cfg=loom" LOOM_MAX_PREEMPTIONS="$preemptions" \
+    CARGO_TARGET_DIR="$rust_target_dir/$target_name" cargo test \
+    --manifest-path "$script_dir/Cargo.toml" \
+    --locked \
+    --features full,test-util \
+    --lib \
+    "$test_name" \
+    -- \
+    --exact
+}
+
+run_loom_exact loom-watch sync::tests::loom_watch::smoke
+run_loom_exact loom-watch sync::tests::loom_watch::multiple_sender_drop_concurrently
+run_loom_exact loom-watch sync::tests::loom_watch::wait_for_returns_correct_value
+run_loom_exact loom-watch sync::watch::big_notify::verification_tests::watch_big_notify_loom_reaches_every_shard
+run_loom_exact loom-watch sync::watch::tests::watch_update_terminal_concurrent_calls_have_one_winner
+run_loom_exact loom-watch sync::watch::tests::watch_receiver_terminal_concurrent_subscribe_has_one_winner
+
+run_loom_exact loom-broadcast sync::tests::loom_broadcast::broadcast_wrap
+run_loom_exact loom-broadcast sync::tests::loom_broadcast::broadcast_two
+run_loom_exact loom-broadcast sync::tests::loom_broadcast::drop_rx
+run_loom_exact loom-broadcast sync::tests::loom_broadcast::drop_rx_preserves_concurrent_send_for_surviving_receiver
+
+run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_tx
+run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_unbounded_tx
+run_loom_exact loom-mpsc sync::tests::loom_mpsc::closing_and_sending
+
+run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::basic_usage
+run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::concurrent_cancel
+run_loom_exact loom-semaphore sync::tests::loom_semaphore_batch::batch
+
+run_loom_exact loom-mutex sync::tests::loom_mutex::borrowed_guard_excludes_and_releases
+run_loom_exact loom-mutex sync::tests::loom_mutex::cancelled_waiter_does_not_consume_permit
+
+run_loom_exact loom-rwlock sync::tests::loom_rwlock::concurrent_write
+run_loom_exact loom-rwlock sync::tests::loom_rwlock::concurrent_read_write 1
+run_loom_exact loom-rwlock sync::tests::loom_rwlock::downgrade
+
+run_loom_exact loom-notify sync::tests::loom_notify::notify_one
+run_loom_exact loom-notify sync::tests::loom_notify::notify_waiters
+run_loom_exact loom-notify sync::tests::loom_notify::notify_drop
+run_loom_exact loom-notify sync::tests::loom_notify::notify_waiters_terminal_rejects_concurrent_calls
+
+run_loom_exact loom-atomic-waker sync::tests::loom_atomic_waker::basic_notification
+run_loom_exact loom-atomic-waker sync::tests::loom_atomic_waker::test_panicky_waker
+
+# Existing upstream T01 loom cases connect `context::defer` to both scheduler
+# variants and require a park before same-thread rescheduling.
+run_loom_exact loom-coop-current runtime::tests::loom_current_thread::yield_now::yield_calls_park_before_scheduling_again
+run_loom_exact loom-coop-multi runtime::tests::loom_multi_thread::yield_now::yield_calls_park_before_scheduling_again
+
+# Compile the existing positive and negative Send/Sync/Unpin assertions for
+# Sender, Receiver, and Sender::closed without running unrelated tests.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test async_send_sync \
+  --no-run
+
+expected_verus="0.2026.07.27.31579f0"
+actual_verus=$(verus --version)
+if [[ "$actual_verus" != *"$expected_verus"* ]]; then
+  echo "expected Verus $expected_verus" >&2
+  echo "$actual_verus" >&2
+  exit 1
+fi
+
+CARGO_TARGET_DIR="$verus_target_dir" cargo verus verify \
+  --manifest-path "$script_dir/verification/Cargo.toml" \
+  --locked \
+  --offline
+
+# Check the erased proof-view representation against the standard
+# UnsafeCell<MaybeUninit<T>> used by Tokio's transparent non-loom wrapper.
+CARGO_TARGET_DIR="$verification_test_target_dir" cargo test \
+  --manifest-path "$script_dir/verification/Cargo.toml" \
+  --locked \
+  --offline \
+  tokio_loom_cell::layout_tests::erased_layout_matches_tokio_value_field
+
+# This is a connection/translation probe for the production-shaped
+# `Future::poll` signature. Its body is an explicit external boundary, so
+# `0 verified, 0 errors` means the signature connected successfully; it is not
+# a proof of the oneshot poll body or its wake-up behavior.
+CARGO_TARGET_DIR="$oneshot_probe_target_dir" cargo verus verify \
+  --manifest-path "$script_dir/verification-probes/oneshot-poll/Cargo.toml" \
+  --locked \
+  --offline
