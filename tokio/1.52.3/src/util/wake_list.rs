@@ -81,3 +81,78 @@ impl Drop for WakeList {
         unsafe { ptr::drop_in_place(slice) };
     }
 }
+
+#[cfg(all(test, not(loom)))]
+mod tests {
+    use super::*;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
+    use std::task::Wake;
+
+    struct Probe {
+        wakes: Arc<AtomicUsize>,
+        drops: Arc<AtomicUsize>,
+        panic_on_wake: bool,
+    }
+
+    impl Wake for Probe {
+        fn wake(self: Arc<Self>) {
+            self.wakes.fetch_add(1, Ordering::SeqCst);
+            if self.panic_on_wake {
+                panic!("wake probe");
+            }
+        }
+    }
+
+    impl Drop for Probe {
+        fn drop(&mut self) {
+            self.drops.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    fn probe(wakes: &Arc<AtomicUsize>, drops: &Arc<AtomicUsize>, panic_on_wake: bool) -> Waker {
+        Waker::from(Arc::new(Probe {
+            wakes: wakes.clone(),
+            drops: drops.clone(),
+            panic_on_wake,
+        }))
+    }
+
+    #[test]
+    fn capacity_and_drop_cover_exact_initialized_prefix() {
+        let wakes = Arc::new(AtomicUsize::new(0));
+        let drops = Arc::new(AtomicUsize::new(0));
+        {
+            let mut list = WakeList::new();
+            for _ in 0..NUM_WAKERS {
+                assert!(list.can_push());
+                list.push(probe(&wakes, &drops, false));
+            }
+            assert!(!list.can_push());
+        }
+        assert_eq!(wakes.load(Ordering::SeqCst), 0);
+        assert_eq!(drops.load(Ordering::SeqCst), NUM_WAKERS);
+    }
+
+    #[test]
+    fn wake_panic_transfers_then_cleans_the_remaining_suffix() {
+        let wakes = Arc::new(AtomicUsize::new(0));
+        let drops = Arc::new(AtomicUsize::new(0));
+        let mut list = WakeList::new();
+        for index in 0..NUM_WAKERS {
+            list.push(probe(&wakes, &drops, index == 3));
+        }
+
+        let result = catch_unwind(AssertUnwindSafe(|| list.wake_all()));
+        assert!(result.is_err());
+        assert_eq!(wakes.load(Ordering::SeqCst), 4);
+        assert_eq!(drops.load(Ordering::SeqCst), NUM_WAKERS);
+        assert!(list.can_push());
+
+        // `curr` was cleared before the first arbitrary wake call, so dropping
+        // the list cannot touch the transferred wakers a second time.
+        drop(list);
+        assert_eq!(drops.load(Ordering::SeqCst), NUM_WAKERS);
+    }
+}

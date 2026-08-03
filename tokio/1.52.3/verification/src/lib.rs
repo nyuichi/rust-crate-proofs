@@ -54,6 +54,7 @@ pub mod semaphore_protocol;
 pub mod semaphore_refinement;
 pub mod tokio_loom_cell;
 pub mod trait_views;
+pub mod util_collections_refinement;
 pub mod unwind;
 pub mod vstd_ext;
 pub mod wait_protocol;

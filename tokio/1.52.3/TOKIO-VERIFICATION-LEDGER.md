@@ -34,8 +34,8 @@ either been verified or declared as a reviewed environment adapter.
 A row counts as current progress only at C. The two scores are intentionally
 separate:
 
-- **legacy protocol-scope score: 13/53 (25%) L-or-C**, all integrated;
-- **current full-closure score: 13/53 (25%) C**, all fully production-refined
+- **legacy protocol-scope score: 14/53 (26%) L-or-C**, all integrated;
+- **current full-closure score: 14/53 (26%) C**, all fully production-refined
   and integrated.
 
 The legacy numerator is historical evidence, not an alternative whole-Tokio
@@ -117,7 +117,7 @@ global TLS registry freshness.
 | M01 | join macro: `src/macros/join.rs`, `src/future/maybe_done.rs` | `join!` | `macros` | **U** | Pin/Poll, arbitrary futures | Prove output order, fair polling rotation, completion/drop and supported arities; share F01 kernel. |
 | M02 | select macro runtime support: `src/macros/select.rs` | `select!` | `macros` | **U** | macro expansion, Pin/Poll, user guards/patterns/futures | Verify branch enablement, fair/random and biased order, precondition evaluation, disabled patterns, cancellation/drop and else/panic behavior. |
 | M03 | attribute macro integration: reexports in `src/lib.rs`; implementation dependency `tokio-macros` | `#[tokio::main]`, `#[tokio::test]` | `macros`; runtime flavor cfgs | **U** | external proc-macro implementation, Runtime Builder | Denominator covers Tokio-side expansion contract only: validate generated Runtime configuration, argument/result/panic behavior, and feature diagnostics; dependency implementation remains out of scope. |
-| U01 | intrusive/wake collections: `src/util/{linked_list,wake_list,idle_notified_set}.rs` | scheduler/sync/time downstream foundation | internal cfgs | **U** | raw pointer validity, Waker | Prove membership/ownership, remove/drain/drop, capacity boundaries, wake extraction and mutation sensitivity; then reuse in dependent refinements. |
+| U01 | intrusive/wake collections: `src/util/{linked_list,wake_list,idle_notified_set}.rs` | scheduler/sync/time downstream foundation | internal cfgs | **C / R / I**; `verification/src/util_collections_refinement.rs`, `UTIL-COLLECTIONS-CLOSURE-CHECKLIST.md`; exact intrusive order/membership, guarded and ordinary removal, list transfer, filter-panic preservation, fixed-capacity initialized-prefix ownership, wake-panic suffix cleanup, idle/notified movement, registered-Waker consumption, value/length transfer, snapshot mutation, and drain/drop cleanup are proved or tested | raw pointer validity, Arc/Mutex/UnsafeCell and allocation, arbitrary Waker/Drop/callback execution; finite simultaneous allocation | Closed above the frozen foundation. Live-length arithmetic uses allocation's finite-resource premise; no cumulative counter is introduced. Production changes are test-only. |
 | U02 | atomic/cell/random helpers: `src/util/{atomic_cell,rc_cell,bit,rand}.rs`, `src/loom/*` | runtime/sync downstream foundation | internal platform/loom cfgs | **U** | Rust atomics/UnsafeCell; entropy source | Prove Tokio-specific encodings and ownership APIs; retain raw atomic/cell and entropy semantics as adapters. |
 | U03 | sharded/auxiliary ownership: `src/util/{sharded_list,try_lock,wake,sync_wrapper}.rs` | task lists, scheduler and utility downstream | internal cfgs | **U** | Mutex/atomics/raw pointers/Waker | Prove shard selection, list ownership, lock-state protocol, wake-by-ref ownership, Send/Sync wrapper justification and all drop paths. |
 
@@ -177,8 +177,10 @@ a written denominator-change reason.
 
 The ledger makes the first residual pass deterministic:
 
-1. S05 `Block::has_value` membership and `Rx::reclaim_blocks` modular-order policies.
-2. U01 as a small shared foundation before R02 and the schedulers.
+1. S05 remains intentionally partial pending upstream decisions for
+   `Block::has_value` and `Rx::reclaim_blocks` modular-order policies.
+2. R02 task core/state now has the U01 ownership foundation needed by task and
+   scheduler consumers.
 
 After each closure the row must be updated with proof files, adapter use,
 mutation evidence, integrated feature/cfg coverage, and any newly discovered

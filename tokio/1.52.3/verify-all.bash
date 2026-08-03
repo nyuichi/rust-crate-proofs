@@ -285,6 +285,29 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full \
   --test macros_try_join
 
+# U01 shared collection foundation: intrusive-list order/removal and unwind,
+# initialized WakeList ownership, and IdleNotifiedSet wake/drain mutation.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  util::linked_list::tests::
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  util::wake_list::tests::
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  util::idle_notified_set::tests::
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \

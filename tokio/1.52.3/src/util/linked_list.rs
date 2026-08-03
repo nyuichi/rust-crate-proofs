@@ -746,6 +746,43 @@ pub(crate) mod tests {
         }
     }
 
+    #[cfg(any(
+        feature = "fs",
+        feature = "net",
+        all(unix, feature = "process"),
+        feature = "signal",
+    ))]
+    #[test]
+    fn drain_filter_keeps_order_and_leaves_panicking_node_linked() {
+        let a = entry(1);
+        let b = entry(2);
+        let c = entry(3);
+        let mut list = LinkedList::new();
+        push_all(&mut list, &[a.as_ref(), b.as_ref(), c.as_ref()]);
+
+        let removed: Vec<_> = list.drain_filter(|entry| entry.val % 2 == 0).collect();
+        assert_eq!(
+            removed.iter().map(|entry| entry.val).collect::<Vec<_>>(),
+            [2]
+        );
+        assert_eq!(collect_list(&mut list), [1, 3]);
+
+        let mut list = LinkedList::new();
+        push_all(&mut list, &[a.as_ref(), b.as_ref(), c.as_ref()]);
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _: Vec<_> = list
+                .drain_filter(|entry| {
+                    if entry.val == 2 {
+                        panic!("filter probe");
+                    }
+                    entry.val == 3
+                })
+                .collect();
+        }));
+        assert!(result.is_err());
+        assert_eq!(collect_list(&mut list), [1, 2]);
+    }
+
     /// This is a fuzz test. You run it by entering `cargo fuzz run fuzz_linked_list` in CLI in `/tokio/` module.
     #[cfg(fuzzing)]
     pub fn fuzz_linked_list(ops: &[u8]) {

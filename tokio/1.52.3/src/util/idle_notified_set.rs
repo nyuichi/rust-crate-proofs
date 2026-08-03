@@ -494,8 +494,12 @@ unsafe impl<T> linked_list::Link for ListEntry<T> {
 
 #[cfg(all(test, not(loom)))]
 mod tests {
+    use super::IdleNotifiedSet;
     use crate::runtime::Builder;
     use crate::task::JoinSet;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
 
     // A test that runs under miri.
     //
@@ -508,5 +512,106 @@ mod tests {
         set.spawn_on(futures::future::ready(()), rt.handle());
 
         rt.block_on(set.join_next()).unwrap().unwrap();
+    }
+
+    #[test]
+    fn idle_wake_pop_remove_preserves_value_and_length() {
+        let mut set = IdleNotifiedSet::new();
+        let waker = {
+            let mut entry = set.insert_idle(40usize);
+            entry.with_value_and_context(|value, context| {
+                *value += 2;
+                context.waker().clone()
+            })
+        };
+        assert_eq!(set.len(), 1);
+        assert!(set.try_pop_notified().is_none());
+
+        waker.wake_by_ref();
+        waker.wake_by_ref();
+        let entry = set.try_pop_notified().expect("woken entry");
+        assert_eq!(entry.remove(), 42);
+        assert!(set.is_empty());
+    }
+
+    struct WakeCounter(Arc<AtomicUsize>);
+
+    impl std::task::Wake for WakeCounter {
+        fn wake(self: Arc<Self>) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    #[test]
+    fn empty_notified_pop_registers_one_consumable_waker() {
+        let mut set = IdleNotifiedSet::new();
+        let entry_waker = {
+            let mut entry = set.insert_idle(());
+            entry.with_value_and_context(|_, context| context.waker().clone())
+        };
+        let calls = Arc::new(AtomicUsize::new(0));
+        let outer_waker = std::task::Waker::from(Arc::new(WakeCounter(calls.clone())));
+
+        assert!(set.pop_notified(&outer_waker).is_none());
+        entry_waker.wake_by_ref();
+        entry_waker.wake_by_ref();
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        assert!(set.try_pop_notified().is_some());
+    }
+
+    #[test]
+    fn for_each_visits_idle_and_notified_entries_once() {
+        let mut set = IdleNotifiedSet::new();
+        let first_waker = {
+            let mut entry = set.insert_idle(1usize);
+            entry.with_value_and_context(|_, context| context.waker().clone())
+        };
+        let second = set.insert_idle(10usize);
+        drop(second);
+        first_waker.wake_by_ref();
+
+        let mut visits = 0;
+        set.for_each(|value| {
+            visits += 1;
+            *value += 1;
+        });
+        assert_eq!(visits, 2);
+
+        let first = set.try_pop_notified().expect("notified entry").remove();
+        assert_eq!(first, 2);
+        let mut remaining = Vec::new();
+        set.drain(|value| remaining.push(value));
+        assert_eq!(remaining, vec![11]);
+        assert!(set.is_empty());
+    }
+
+    struct DropProbe(Arc<AtomicUsize>);
+
+    impl Drop for DropProbe {
+        fn drop(&mut self) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    #[test]
+    fn drain_panic_bomb_processes_every_remaining_value() {
+        let drops = Arc::new(AtomicUsize::new(0));
+        let mut set = IdleNotifiedSet::new();
+        for _ in 0..8 {
+            let _entry = set.insert_idle(DropProbe(drops.clone()));
+        }
+        let mut first = true;
+        let result = catch_unwind(AssertUnwindSafe(|| {
+            set.drain(|value| {
+                drop(value);
+                if first {
+                    first = false;
+                    panic!("drain probe");
+                }
+            });
+        }));
+        assert!(result.is_err());
+        assert_eq!(drops.load(Ordering::SeqCst), 8);
+        assert!(set.is_empty());
     }
 }

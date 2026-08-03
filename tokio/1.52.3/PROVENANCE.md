@@ -74,6 +74,15 @@ private process `try_join3` success/error/cancellation; and public `try_join!`
 rotation, biased order, recursive arity, early-return cleanup, and output Drop
 are body-proved or integrated above frozen Pin/Future/Waker/Drop mechanics.**
 
+**Utility collection closure: U01 is current-closed. Intrusive-list
+membership/order and guarded removal, list-to-list movement, filter unwind,
+WakeList's 32-slot initialized prefix and wake-panic suffix cleanup, and
+IdleNotifiedSet's two-list/value/Waker/drain transitions are body-proved and
+connected by focused runtime tests. Raw pointer, Arc/Mutex/UnsafeCell,
+allocation, and arbitrary Waker/Drop/callback execution remain the frozen
+foundation. The live `usize` length bound follows from finite simultaneous
+allocation; no production logic was changed.**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.
@@ -632,9 +641,9 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cooperative scheduler yield;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 1,054 nested SetOnce, OnceCell, publication, channel, Semaphore,
-   Notify, Barrier, and AtomicWaker model/refinement bodies with the locked vstd
-   revision;
+5. verifies 1,079 nested SetOnce, OnceCell, publication, channel, Semaphore,
+   Notify, Barrier, AtomicWaker, future-combinator, and utility-collection
+   model/refinement bodies with the locked vstd revision;
 6. checks the erased loom-cell proof-view layout;
 7. runs the oneshot polling connection probe and the Windows process-only
    cross-build.
@@ -647,6 +656,8 @@ tests, 28 mpsc weak-Sender tests, and ten bounded exact loom cases.
 The Barrier target contributes seven public tests plus four focused unit
 regressions for reachable terminal cohort admission/rejection and defensive
 generation arithmetic.
+U01 additionally runs five intrusive-list tests, two WakeList ownership/unwind
+tests, and five IdleNotifiedSet/JoinSet tests.
 [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) and
 [`ONESHOT-MUTATION-AUDIT.md`](ONESHOT-MUTATION-AUDIT.md) record separate
 destructive-copy audits; mutations are intentionally not rerun by
