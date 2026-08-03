@@ -83,6 +83,13 @@ allocation, and arbitrary Waker/Drop/callback execution remain the frozen
 foundation. The live `usize` length bound follows from finite simultaneous
 allocation; no production logic was changed.**
 
+**Runtime task-core progress: R02-1 body-proves the exact packed task state.
+The six flag bits, three-reference initial value 204, running/idle/complete,
+by-value/by-reference notification, cancellation/shutdown, JoinHandle/Waker
+flags, and reference increments/decrements are connected by focused state
+tests. Spawn/poll orchestration, join result ownership, raw deallocation, and
+unwind remain explicit later R02 phases.**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.

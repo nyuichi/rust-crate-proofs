@@ -660,3 +660,65 @@ impl fmt::Debug for Snapshot {
             .finish()
     }
 }
+
+#[cfg(all(test, not(loom)))]
+mod verification_tests {
+    use super::*;
+
+    #[test]
+    fn initial_state_encoding_and_normal_pending_cycle_are_exact() {
+        assert_eq!(REF_COUNT_SHIFT, 6);
+        assert_eq!(INITIAL_STATE, 204);
+        let state = State::new();
+        let initial = state.load();
+        assert_eq!(initial.ref_count(), 3);
+        assert!(initial.is_idle());
+        assert!(initial.is_notified());
+        assert!(initial.is_join_interested());
+
+        assert!(matches!(
+            state.transition_to_running(),
+            TransitionToRunning::Success
+        ));
+        assert!(matches!(state.transition_to_idle(), TransitionToIdle::Ok));
+        let idle = state.load();
+        assert_eq!(idle.ref_count(), 2);
+        assert!(idle.is_idle());
+        assert!(!idle.is_notified());
+    }
+
+    #[test]
+    fn wake_during_poll_retains_and_resubmits_notification_reference() {
+        let state = State::new();
+        assert!(matches!(
+            state.transition_to_running(),
+            TransitionToRunning::Success
+        ));
+        assert!(matches!(
+            state.transition_to_notified_by_ref(),
+            TransitionToNotifiedByRef::DoNothing
+        ));
+        assert!(matches!(
+            state.transition_to_idle(),
+            TransitionToIdle::OkNotified
+        ));
+        let snapshot = state.load();
+        assert_eq!(snapshot.ref_count(), 4);
+        assert!(snapshot.is_idle());
+        assert!(snapshot.is_notified());
+    }
+
+    #[test]
+    fn abort_before_first_poll_selects_cancelled_running_transition() {
+        let state = State::new();
+        assert!(!state.transition_to_notified_and_cancel());
+        assert!(matches!(
+            state.transition_to_running(),
+            TransitionToRunning::Cancelled
+        ));
+        let snapshot = state.transition_to_complete();
+        assert!(snapshot.is_complete());
+        assert!(snapshot.is_cancelled());
+        assert!(!snapshot.is_running());
+    }
+}

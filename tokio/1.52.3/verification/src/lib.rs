@@ -53,6 +53,7 @@ pub mod rwlock_refinement;
 pub mod semaphore_protocol;
 pub mod semaphore_refinement;
 pub mod tokio_loom_cell;
+pub mod task_state_refinement;
 pub mod trait_views;
 pub mod util_collections_refinement;
 pub mod unwind;

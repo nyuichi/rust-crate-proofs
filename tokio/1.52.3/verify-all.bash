@@ -308,6 +308,15 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --lib \
   util::idle_notified_set::tests::
 
+# R02-1 packed task-state encoding and representative normal/wake/cancel
+# transitions. The complete transition table is body-proved by Verus.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --lib \
+  runtime::task::state::verification_tests::
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
