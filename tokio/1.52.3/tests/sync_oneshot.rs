@@ -10,7 +10,7 @@ use wasm_bindgen_test::wasm_bindgen_test as maybe_tokio_test;
 use tokio::test as maybe_tokio_test;
 
 use tokio::sync::oneshot;
-use tokio::sync::oneshot::error::TryRecvError;
+use tokio::sync::oneshot::error::{RecvError, TryRecvError};
 use tokio_test::*;
 
 use std::future::Future;
@@ -479,4 +479,46 @@ fn rejected_send_panic_destroys_returned_payload_once() {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| drop(rejected)));
     assert!(result.is_err());
     assert_eq!(drops.load(Ordering::Relaxed), 1);
+}
+
+#[test]
+fn ready_receiver_repoll_panics_without_touching_payload_again() {
+    let (tx, mut rx) = oneshot::channel();
+    tx.send(17).unwrap();
+    let mut task = task::spawn(());
+
+    let first = task.enter(|cx, _| Pin::new(&mut rx).poll(cx));
+    assert_ready_eq!(first, Ok(17));
+    assert!(rx.is_terminated());
+
+    let second = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        task.enter(|cx, _| Pin::new(&mut rx).poll(cx))
+    }));
+    assert!(second.is_err());
+    assert!(rx.is_terminated());
+}
+
+#[test]
+fn public_error_clone_debug_display_and_source() {
+    use std::error::Error;
+
+    let (tx, mut rx) = oneshot::channel::<()>();
+    assert_eq!(rx.try_recv(), Err(TryRecvError::Empty));
+    drop(tx);
+    let recv_error: RecvError = futures::executor::block_on(rx).unwrap_err();
+
+    assert_eq!(recv_error.clone(), recv_error);
+    assert_eq!(format!("{recv_error}"), "channel closed");
+    assert_eq!(format!("{recv_error:?}"), "RecvError(())");
+    assert!(recv_error.source().is_none());
+
+    for (error, display, debug) in [
+        (TryRecvError::Empty, "channel empty", "Empty"),
+        (TryRecvError::Closed, "channel closed", "Closed"),
+    ] {
+        assert_eq!(error.clone(), error);
+        assert_eq!(format!("{error}"), display);
+        assert_eq!(format!("{error:?}"), debug);
+        assert!(error.source().is_none());
+    }
 }

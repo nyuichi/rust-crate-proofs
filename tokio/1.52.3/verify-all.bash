@@ -29,6 +29,41 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --features full \
   --test sync_oneshot
 
+# The same `future::block_on` adapter has distinct cfg paths. Full exercises
+# runtime-context rejection, while sync-only uses CachedParkThread directly.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --no-default-features \
+  --features sync \
+  --test sync_oneshot_blocking
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_oneshot_blocking
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test sync_panic \
+  oneshot_blocking_recv_panic_caller \
+  -- \
+  --exact
+
+# Compile and run the unstable tracing-owned channel construction/drop path.
+# `trace_leaf` taskdump callbacks themselves remain the shared R08 boundary.
+RUSTFLAGS="--cfg tokio_unstable" CARGO_TARGET_DIR="$rust_target_dir/oneshot-tracing" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,tracing \
+  --test tracing_sync \
+  test_oneshot_creates_span \
+  -- \
+  --exact
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \
@@ -56,6 +91,15 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo check \
   --locked \
   --no-default-features \
   --features sync
+
+# `oneshot` is compiled privately by Windows process support even without the
+# public sync feature. This target must be installed in the invoking toolchain.
+CARGO_TARGET_DIR="$rust_target_dir/windows-process" cargo check \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --target x86_64-pc-windows-gnu \
+  --no-default-features \
+  --features process
 
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \

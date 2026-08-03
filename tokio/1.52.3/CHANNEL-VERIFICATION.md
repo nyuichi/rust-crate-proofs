@@ -19,24 +19,24 @@ capability to the Receiver or returns that exact staged value to the Sender.
 This also proves the production behavior that `try_recv` releases its outer
 Receiver option without inventing a CLOSED bit.
 
-Production `OneshotValue<T>` has layout and store/take/observe regression tests,
-and both `rt`-only and `sync`-only feature builds are integrated. The raw
-UnsafeCell semantics are frozen, but connecting the proved state capability to
-the vstd permission inside production's shared-`&self` Tokio wrapper is a
-Tokio-specific, still-unclosed representation refinement—not a frozen adapter.
-Repeated terminal `try_recv` and terminal `close` no-op behavior are now proved.
-The remaining Tokio-specific gaps are `coop::poll_proceed`/`trace_leaf`
-orchestration; `blocking_recv` through the `rt` runtime-context/BlockingRegion
-and non-`rt` CachedParkThread paths owned by the runtime/park rows (not T01);
-Future repoll-after-Ready panic preservation; task-bit/Waker transition-in-
-progress states and their concurrent atomic invariant; arbitrary panic in the
-unstable tracing branch; and public error/Debug/Display/Error/Clone trait paths.
-`oneshot` and `oneshot_value` use
-the identical `cfg(any(feature = "rt", all(windows, feature = "process")))`
-predicate as source-equivalence evidence, but the Windows process-only
-cross-build remains unexecuted because that target is unavailable locally.
-Therefore
-S02 remains **L / R(partial) / I**, not current-closed.
+Production `OneshotValue<T>` has layout and store/take/observe regression tests.
+The generic body-proved `vstd_ext::shared_pcell` now separates the PCell from
+its exact permission, allowing `oneshot_shared_refinement` to retain
+production's shared-`&self` access shape while transferring that permission
+through Sender, staged, Receiver, Inner-drop, and released roles. RX/TX Waker
+slots likewise carry exact Vacant/Writing/Published/Detached/Released
+capabilities, so the task bit is set exactly while the Waker is fully
+initialized and readable.
+
+`oneshot_surface` closes trace-before-coop ordering, budget restore/commit,
+Ready termination and later-poll panic, then instantiates the proved
+runtime-context/BlockingRegion and CachedParkThread block-on model for oneshot
+Value/Closed. Repeated terminal calls, public error traits, unstable tracing,
+`full`, `sync`-only, `rt`-only, and Windows process-only cfgs are integrated.
+The remaining interfaces are only the frozen atomic/UnsafeCell/Arc,
+Pin/Poll/Context/Waker, arbitrary user trait/Drop, and scheduler/parking
+boundaries; taskdump callback mechanics remain assigned to R08. Therefore S02
+is **C / R / I**. See `ONESHOT-CLOSURE-CHECKLIST.md`.
 
 ## watch
 

@@ -6,12 +6,13 @@ membership, wait, cancellation, and trait views are body-proved models
 structurally connected to production and exercised by targeted runtime, loom,
 layout, and mutation checks.**
 
-**Oneshot status: its channel-specific protocol is complete under the scoped
-definition below. Exact state-bit transitions, payload ownership, ordered
-atomic operations, both polling protocols, Waker replacement, two-owner
-cleanup, and destructor-state behavior are body-proved models. The production
-payload slot is isolated behind the matching operation-specific adapter and the
-connection is exercised by targeted runtime, loom, trait, and mutation checks.**
+**Oneshot current closure: S02 is current-closed above the frozen foundation.
+Exact state-bit transitions, payload ownership, shared-cell PCell permission
+handoff, ordered atomic operations, Waker transition-in-progress ownership,
+both polling protocols, trace/cooperative ordering, Ready-repoll panic,
+runtime and non-runtime blocking paths, endpoint cleanup, public traits, and
+cfg gates are body-proved or connected by targeted runtime, loom, tracing,
+cross-build, and mutation checks.**
 
 **Channel expansion status: watch, broadcast, and mpsc are complete under the
 frozen scoped-channel definition. Their channel-specific generation, ring,
@@ -345,28 +346,38 @@ boundaries rather than translating the whole async body as one function:
   set after the payload store but before completion, including exact take-back
   and final local-Arc cleanup. It also proves repeated terminal try/close and
   TX-Waker retention until terminal Receiver cleanup;
+- `vstd_ext::shared_pcell` separates a vstd `PCell` from its linear
+  `PointsTo` permission using body-proved methods only; `oneshot_shared_refinement`
+  transfers that exact permission through Sender, staged, Receiver,
+  Inner-drop, and released roles while all cell operations retain production's
+  shared-`&self` shape;
+- the same refinement gives each RX/TX Waker slot a linear
+  Vacant/Writing/Published/Detached/Released capability. The task bit is true
+  exactly in Published, excluding a concurrent read of partially initialized
+  Waker storage and preserving exact replacement/terminal cleanup ownership;
+- `oneshot_surface` composes trace-before-coop gating, budget rollback on
+  Pending and commitment on Ready, outer Receiver termination and Ready-repoll
+  panic, then instantiates the already proved runtime BlockingRegion/TLS/parker
+  block-on path with oneshot Value/Closed outcomes;
 - production `OneshotValue<T>` confines loom `UnsafeCell<Option<T>>` access to
   empty construction, sender-only store, state-authorized take, and
   publication-authorized observation; layout and operation regressions check
-  the wrapper representation, but do not close its permission correspondence.
+  the wrapper representation, while the separate PCell permission closes the
+  Tokio-specific access-capability correspondence above frozen UnsafeCell
+  mechanics.
 
-The production-shaped channel protocol and its staged physical proof slot are
-proved above frozen raw atomic/UnsafeCell semantics and the Arc/Waker
-boundaries. In particular, the refinement proves the state capability that
-authorizes each slot operation. Connecting it to the permission inside
-production's shared-`&self` loom UnsafeCell is still an unclosed Tokio-specific
-representation refinement—not part of the frozen raw UnsafeCell adapter—and
-there is not yet a concurrent atomic invariant spanning task-bit/Waker
-transition-in-progress states. S02 therefore remains partial. Repeated terminal
-`try_recv` and terminal `close` are proved; Future repoll after Ready and its
-panic preservation are not. Other remaining Tokio-specific obligations are
-`coop::poll_proceed`/`trace_leaf`; `blocking_recv` through the `rt`
-runtime-context/BlockingRegion and non-`rt` CachedParkThread paths owned by the
-runtime/park rows, not T01; unstable tracing-panic preservation; and public
-error/Debug/Display/Error/Clone paths. The `oneshot` and
-`oneshot_value` declarations have the identical
-`cfg(any(feature = "rt", all(windows, feature = "process")))` predicate as
-source-equivalence evidence, but were not cross-compiled for Windows locally.
+The production-shaped channel protocol is proved above frozen raw
+atomic/UnsafeCell semantics and Arc/Waker mechanics. The shared PCell
+extension introduces no new axiom: the physical permission is linear and its
+store/borrow/take bodies call vstd directly. Task-slot capability transitions
+cover both the bit-clear write interval and bit-published wake/read interval;
+the existing Loom races connect those transitions to production atomics.
+Repeated terminal `try_recv`/`close`, Future Ready-repoll panic, public errors,
+both blocking cfg paths, and unstable tracing construction/drop preservation
+are integrated. The private Windows process-only cfg was cross-compiled for
+`x86_64-pc-windows-gnu`. Taskdump callback execution remains R08's shared
+boundary; S02 proves that Pending or unwind at that gate precedes any oneshot
+or cooperative-budget mutation.
 
 The production tests cover send/receive, close, polling and Waker replacement,
 endpoint drops, and panicking payload destructors on both receiver cleanup and
@@ -384,7 +395,11 @@ ordering, the lost-wakeup recheck, and Waker replacement.
 | receiver poll/recheck/Waker state | yes | yes | poll/Waker execution | Verus/loom |
 | sender close poll/Waker state | yes | yes | poll/Waker execution | Verus/loom |
 | endpoint ownership/final cleanup | yes | yes | Arc/destructor execution | Verus/tests/loom |
-| production `OneshotValue<T>` operations | yes | integrated proof-view capability/operations | shared-`&self` loom UnsafeCell correspondence | Verus/tests/loom |
+| production `OneshotValue<T>` operations | yes | shared-`&self` PCell permission operations | UnsafeCell mechanics | Verus/tests/loom |
+| task-bit/Waker transition ownership | yes | yes | Waker execution | Verus/loom |
+| trace/coop/Future terminal surface | yes | yes | Pin/Poll/Context and trace callback mechanics | Verus/tests |
+| blocking runtime/TLS/parker routing | yes | Tokio-specific composition yes | parking/liveness | Verus/tests |
+| errors/Debug/Display/Error/Clone | yes | Tokio state selection yes | formatter execution | Verus/tests |
 | Send/Sync/Unpin bounds | yes | Rust type system | unsafe impl justification | compile target |
 | mutation sensitivity | yes | n/a | no | three rejected mutations |
 
@@ -611,16 +626,17 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cooperative scheduler yield;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 946 nested SetOnce, OnceCell, publication, channel, Semaphore,
+5. verifies 1,032 nested SetOnce, OnceCell, publication, channel, Semaphore,
    Notify, Barrier, and AtomicWaker model/refinement bodies with the locked vstd
    revision;
 6. checks the erased loom-cell proof-view layout;
-7. runs the oneshot polling connection probe.
+7. runs the oneshot polling connection probe and the Windows process-only
+   cross-build.
 
 The integrated SetOnce target currently contains 24 ordinary tests and eight
 loom model tests. OnceCell contributes 18 ordinary tests and three loom model
-tests. The oneshot target contains 24 ordinary tests and eight loom
-model tests. The expansion adds 22 watch tests, 32 broadcast tests, 100 mpsc
+tests. The oneshot target contains 26 ordinary tests, two blocking-only cfg
+tests, and eight loom model tests. The expansion adds 22 watch tests, 32 broadcast tests, 100 mpsc
 tests, 28 mpsc weak-Sender tests, and ten bounded exact loom cases.
 The Barrier target contributes seven public tests plus four focused unit
 regressions for reachable terminal cohort admission/rejection and defensive

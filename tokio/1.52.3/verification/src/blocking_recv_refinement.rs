@@ -128,6 +128,13 @@ impl BlockingRecvReport {
     pub closed spec fn budget_tls_closure_runs(&self) -> int {
         self.budget_tls_closure_runs@
     }
+
+    pub fn into_execution(self) -> (result: BlockingRecvExecution)
+        ensures result == self.result(),
+        no_unwind
+    {
+        self.result
+    }
 }
 
 pub open spec fn core_is_pending(core: BroadcastCorePoll) -> bool {
