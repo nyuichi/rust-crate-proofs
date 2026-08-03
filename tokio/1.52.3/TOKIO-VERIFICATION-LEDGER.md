@@ -34,8 +34,8 @@ either been verified or declared as a reviewed environment adapter.
 A row counts as current progress only at C. The two scores are intentionally
 separate:
 
-- **legacy protocol-scope score: 14/53 (26%) L-or-C**, all integrated;
-- **current full-closure score: 14/53 (26%) C**, all fully production-refined
+- **legacy protocol-scope score: 15/53 (28%) L-or-C**, all integrated;
+- **current full-closure score: 15/53 (28%) C**, all fully production-refined
   and integrated.
 
 The legacy numerator is historical evidence, not an alternative whole-Tokio
@@ -86,7 +86,7 @@ global TLS registry freshness.
 | T04 | LocalSet/local spawn: `src/task/local.rs` | LocalSet, spawn_local, run_until, enter | `rt` | **U** | thread identity/TLS, scheduler, Waker | Prove owner-thread confinement, queue ownership, wake routing, enter nesting, and shutdown/drop. |
 | T05 | task-local storage: `src/task/task_local.rs` | task_local!, LocalKey::scope/sync_scope/get/try_with | `rt`; macro surface core | **U** | TLS/context, Future/Drop/unwind | Prove scoped replacement/restoration including panic/cancel and nested values. |
 | R01 | runtime construction/lifecycle: `src/runtime/{builder,runtime,handle,context,config}.rs`, `local_runtime/{runtime,options}.rs` | Builder, Runtime, LocalRuntime, Handle, enter/block_on/shutdown | `rt`; multi-thread options `rt-multi-thread`; local runtime unstable | **U** | OS threads/parking/time/I/O contracts | Define lifecycle state and prove construction rollback, enter context, shutdown ownership, and driver/scheduler composition. |
-| R02 | task core/state: `src/runtime/task/{state,core,raw,harness,waker}.rs` | downstream basis of spawned tasks | `rt` | **P / R(partial) / I**; R02-1/2/3 via `verification/src/{task_state,task_harness}_refinement.rs`, `RUNTIME-TASK-CLOSURE-CHECKLIST.md`; exact packed state, normal polling, abort-to-cancel completion, exact JoinError/output transfer, detach, and cloned AbortHandle references are body-proved and tested | atomics, raw allocation/vtable, Pin/Poll/Waker, panic/Drop; finite simultaneous references | State, normal orchestration, and abort/join ownership closed. Connect raw deallocation and unwind before claiming C. |
+| R02 | task core/state: `src/runtime/task/{state,core,raw,harness,waker}.rs` | downstream basis of spawned tasks | `rt` | **C / R / I**; `verification/src/{task_state,task_harness}_refinement.rs`, `RUNTIME-TASK-CLOSURE-CHECKLIST.md`; exact packed state/refcounts, spawn, notification transfer, pending/self-wake/Ready, cancel/shutdown, JoinError/output ownership, detach, raw vtable routing, scheduler release, panic cleanup, and final deallocation are proved or tested on both scheduler flavors | atomics, raw allocation/pointer/vtable mechanics, Pin/Poll/Context/Waker, arbitrary Future/Drop execution, scheduler liveness; finite simultaneous references | Closed above the frozen foundation. Generic raw-pointer validity and allocation remain adapters. Unstable hooks/taskdump callbacks are owned by R08; R02 proves their surrounding state ordering. |
 | R03 | current-thread scheduler: `src/runtime/scheduler/current_thread/*` | current-thread Runtime execution | `rt` | **U** | R02, parking/clock/I/O, liveness | Prove local/remote queue ownership, tick/poll ordering, wake injection, block_on and shutdown drain. |
 | R04 | multi-thread local queues: `src/runtime/scheduler/multi_thread/{queue,overflow}.rs` | internal work queue / stealing | `rt-multi-thread` | **U** | atomics, raw task ownership, liveness | Prove ring indices, push/pop/steal/overflow races, wrap, and exact task conservation. |
 | R05 | multi-thread workers: `src/runtime/scheduler/multi_thread/{worker,idle,park,handle}.rs` | multi-thread Runtime scheduling | `rt-multi-thread` | **U** | R02/R04, threads, parking, randomness, liveness | Compose task ownership across workers/inject/steal, search/park transitions, shutdown, and blocking handoff. |
@@ -179,8 +179,8 @@ The ledger makes the first residual pass deterministic:
 
 1. S05 remains intentionally partial pending upstream decisions for
    `Block::has_value` and `Rx::reclaim_blocks` modular-order policies.
-2. R02 task core/state now has the U01 ownership foundation needed by task and
-   scheduler consumers.
+2. R03 current-thread scheduler can now compose the closed R02 task core with
+   queue, park, block_on, and shutdown ownership.
 
 After each closure the row must be updated with proof files, adapter use,
 mutation evidence, integrated feature/cfg coverage, and any newly discovered

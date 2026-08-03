@@ -117,3 +117,53 @@ fn dropping_completed_join_handle_drops_output_once() {
     });
     assert_eq!(drops.load(Ordering::SeqCst), 1);
 }
+
+struct PanicPollDrop {
+    drops: Arc<AtomicUsize>,
+}
+
+impl Future for PanicPollDrop {
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
+        panic!("poll panic probe");
+    }
+}
+
+impl Drop for PanicPollDrop {
+    fn drop(&mut self) {
+        self.drops.fetch_add(1, Ordering::SeqCst);
+    }
+}
+
+#[test]
+fn poll_panic_drops_future_and_transfers_join_error_once() {
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .build()
+        .unwrap();
+    let drops = Arc::new(AtomicUsize::new(0));
+    let handle = runtime.spawn(PanicPollDrop {
+        drops: drops.clone(),
+    });
+    let error = runtime.block_on(handle).unwrap_err();
+    assert!(error.is_panic());
+    assert_eq!(drops.load(Ordering::SeqCst), 1);
+    drop(error);
+    assert_eq!(drops.load(Ordering::SeqCst), 1);
+}
+
+#[test]
+fn runtime_shutdown_releases_detached_pending_task_once() {
+    let drops = Arc::new(AtomicUsize::new(0));
+    {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .build()
+            .unwrap();
+        let handle = runtime.spawn(PendingDrop {
+            drops: drops.clone(),
+        });
+        drop(handle);
+        assert_eq!(drops.load(Ordering::SeqCst), 0);
+    }
+    assert_eq!(drops.load(Ordering::SeqCst), 1);
+}

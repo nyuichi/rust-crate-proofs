@@ -90,6 +90,16 @@ flags, and reference increments/decrements are connected by focused state
 tests. Spawn/poll orchestration, join result ownership, raw deallocation, and
 unwind remain explicit later R02 phases.**
 
+**Runtime task-core closure: R02 is current-closed. The packed state proof is
+composed with spawn, queue/execution reference transfer, Pending/self-wake,
+Ready and panic completion, cancellation, JoinHandle/AbortHandle ownership,
+detach, scheduler release, stage cleanup, and final zero-reference
+deallocation. Current- and multi-thread public paths plus cancellation,
+shutdown, panic, and panicking-output regressions connect the model. Raw
+pointer/allocation/vtable mechanics, Pin/Poll/Waker, arbitrary Future/Drop,
+and scheduler liveness remain frozen; unstable hooks/taskdump consumers remain
+assigned to R08. No production logic changed.**
+
 This source tree is copied from the `tokio` 1.52.3 package published on
 crates.io. The published archive has SHA-256 checksum
 `8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe`.
@@ -648,9 +658,9 @@ Run `./verify-all.bash` in this directory. It checks only tokio 1.52.3 and:
    cooperative scheduler yield;
 3. compiles Tokio's existing async Send/Sync/Unpin assertion target;
 4. checks the pinned Verus version;
-5. verifies 1,079 nested SetOnce, OnceCell, publication, channel, Semaphore,
-   Notify, Barrier, AtomicWaker, future-combinator, and utility-collection
-   model/refinement bodies with the locked vstd revision;
+5. verifies 1,116 nested SetOnce, OnceCell, publication, channel, Semaphore,
+   Notify, Barrier, AtomicWaker, future-combinator, utility-collection, and
+   runtime-task model/refinement bodies with the locked vstd revision;
 6. checks the erased loom-cell proof-view layout;
 7. runs the oneshot polling connection probe and the Windows process-only
    cross-build.
@@ -665,6 +675,8 @@ regressions for reachable terminal cohort admission/rejection and defensive
 generation arithmetic.
 U01 additionally runs five intrusive-list tests, two WakeList ownership/unwind
 tests, and five IdleNotifiedSet/JoinSet tests.
+R02 adds three direct packed-state tests, six public task-core lifecycle tests,
+and the existing panicking-output JoinHandle regression.
 [`MUTATION-AUDIT.md`](MUTATION-AUDIT.md) and
 [`ONESHOT-MUTATION-AUDIT.md`](ONESHOT-MUTATION-AUDIT.md) record separate
 destructive-copy audits; mutations are intentionally not rerun by

@@ -341,6 +341,28 @@ CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --test task_core_verification \
   dropping_completed_join_handle_drops_output_once
 
+# R02-4 panic-to-JoinError ownership, detached shutdown reclamation, and the
+# existing panicking output destructor regression.
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  poll_panic_drops_future_and_transfers_join_error_once
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full,test-util \
+  --test task_core_verification \
+  runtime_shutdown_releases_detached_pending_task_once
+
+CARGO_TARGET_DIR="$rust_target_dir" cargo test \
+  --manifest-path "$script_dir/Cargo.toml" \
+  --locked \
+  --features full \
+  --test join_handle_panic
+
 CARGO_TARGET_DIR="$rust_target_dir" cargo test \
   --manifest-path "$script_dir/Cargo.toml" \
   --locked \

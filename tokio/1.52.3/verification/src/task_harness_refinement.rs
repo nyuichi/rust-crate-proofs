@@ -186,6 +186,9 @@ impl TaskHarnessModel {
             },
             final(self).scheduler_owned() == old(self).scheduler_owned(),
             final(self).life() == old(self).life(),
+            final(self).notified() == old(self).notified(),
+            final(self).queue_ref() == old(self).queue_ref(),
+            final(self).execution_ref() == old(self).execution_ref(),
         no_unwind
     {
         if !matches!(self.life, HarnessLife::Complete) {
@@ -222,6 +225,72 @@ impl TaskHarnessModel {
             Some(stage)
         } else { None }
     }
+
+    /// `poll_future` catches the panic after its guard consumes the future,
+    /// stores the exact JoinError payload, then follows normal completion.
+    pub fn poll_panics(&mut self, panic_id: u64) -> (result: HarnessPoll)
+        requires old(self).well_formed(), old(self).life() == HarnessLife::Running,
+            old(self).execution_ref(), matches!(old(self).stage(), TaskStage::Future(_)),
+        ensures final(self).well_formed(), result == HarnessPoll::Complete,
+            final(self).life() == HarnessLife::Complete,
+            final(self).stage() == TaskStage::Panicked(panic_id),
+            !final(self).execution_ref(), !final(self).queue_ref(),
+            final(self).scheduler_owned() == old(self).scheduler_owned(),
+            final(self).join_owned() == old(self).join_owned(),
+        no_unwind
+    {
+        self.stage = TaskStage::Panicked(panic_id);
+        self.life = HarnessLife::Complete;
+        self.execution_ref = false;
+        self.queue_ref = false;
+        HarnessPoll::Complete
+    }
+
+    /// Completion with no JoinHandle drops the terminal stage under Tokio's
+    /// panic guard. The stage is Empty before arbitrary Drop code executes.
+    pub fn discard_unjoined_terminal(&mut self) -> (dropped: TaskStage)
+        requires old(self).well_formed(), old(self).life() == HarnessLife::Complete,
+            !old(self).join_owned(), old(self).stage() != TaskStage::Empty,
+        ensures dropped == old(self).stage(), final(self).stage() == TaskStage::Empty,
+            final(self).well_formed(), final(self).live_refs() == old(self).live_refs(),
+        no_unwind
+    {
+        let mut dropped = TaskStage::Empty;
+        core::mem::swap(&mut self.stage, &mut dropped);
+        dropped
+    }
+
+    /// `scheduler.release` removes the owned-list reference. Whether it hands
+    /// a concrete Task back or lets completion subtract it in bulk is a raw
+    /// representation detail; the logical token is consumed exactly once.
+    pub fn release_scheduler(&mut self)
+        requires old(self).well_formed(), old(self).life() == HarnessLife::Complete,
+            old(self).scheduler_owned(), !old(self).queue_ref(), !old(self).execution_ref(),
+        ensures final(self).well_formed(), !final(self).scheduler_owned(),
+            final(self).join_owned() == old(self).join_owned(),
+            final(self).stage() == old(self).stage(),
+            final(self).life() == old(self).life(),
+            final(self).notified() == old(self).notified(),
+            final(self).queue_ref() == old(self).queue_ref(),
+            final(self).execution_ref() == old(self).execution_ref(),
+            final(self).live_refs() + 1 == old(self).live_refs(),
+        no_unwind
+    {
+        self.scheduler_owned = false;
+    }
+
+    /// The raw Box is reclaimed only after all logical references and stage
+    /// resources have been consumed. Pointer validity/allocation are frozen.
+    pub fn deallocate(&mut self)
+        requires old(self).well_formed(), old(self).life() == HarnessLife::Complete,
+            old(self).live_refs() == 0, old(self).stage() == TaskStage::Empty,
+        ensures final(self).well_formed(), final(self).life() == HarnessLife::Deallocated,
+            final(self).live_refs() == 0, final(self).stage() == TaskStage::Empty,
+        no_unwind
+    {
+        self.life = HarnessLife::Deallocated;
+        self.notified = false;
+    }
 }
 
 pub fn verify_spawn_pending_wake_ready(future: u64, output: u64)
@@ -247,6 +316,21 @@ pub fn verify_abort_join_once(future: u64, error: u64)
     assert(joined == JoinRead::Cancelled(error));
     assert(task.stage() == TaskStage::Empty);
     assert(!task.join_owned());
+}
+
+pub fn verify_panic_join_release_deallocate(future: u64, panic_id: u64)
+{
+    let mut task = TaskHarnessModel::spawn(future);
+    let started = task.begin_poll();
+    assert(started);
+    let complete = task.poll_panics(panic_id);
+    assert(complete == HarnessPoll::Complete);
+    task.release_scheduler();
+    let joined = task.join_read();
+    assert(joined == JoinRead::Panicked(panic_id));
+    assert(task.live_refs() == 0);
+    task.deallocate();
+    assert(task.life() == HarnessLife::Deallocated);
 }
 
 } // verus!
