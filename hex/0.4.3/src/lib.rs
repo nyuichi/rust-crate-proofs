@@ -49,10 +49,16 @@ use core::iter;
 #[allow(unused_imports)]
 use creusot_std::prelude::{
     ensures, invariant, logic, pearlite, proof_assert, requires, snapshot, trusted,
-    FromIteratorSpec, Int, Seq, View,
+    Int, Seq, View,
 };
 #[allow(unused_imports)]
 use creusot_std::std::ops::FnExt;
+
+#[cfg(creusot)]
+pub trait FromIteratorSpec<A>: iter::FromIterator<A> {
+    #[logic]
+    fn from_iter_post(prod: Seq<A>, res: Self) -> bool;
+}
 
 mod error;
 pub use crate::error::FromHexError;

@@ -1,0 +1,37 @@
+[report]
+title = "Creusot verification of hex 0.4.3 core codec"
+explanation = """
+Verification of hex 0.4.3's core slice-based hexadecimal encoder and decoder.
+The codec loops and all error branches are proved against exact behavioral
+contracts.
+"""
+trusted_assumptions = """
+Creusot does not currently specify generic AsRef<[u8]>. A narrow trusted bridge
+assumes that the byte slice returned by AsRef corresponds exactly to the logical
+input byte sequence.
+"""
+limitations = """
+Verified with --no-default-features. Alloc-backed convenience APIs, formatting,
+serde integration, and generic trait adapters are outside this report.
+
+The core loops are the crate's runtime implementation with two
+verification-friendly equivalent expressions:
+- decode combines nibbles as high * 16 + low;
+- encode checks the exact output length using division/remainder rather than
+  input.len() * 2.
+"""
+
+environment = """
+Linux x86_64; Rust nightly-2026-06-22 (rustc 91fe22da8).
+Creusot 0.13.0 (upstream v0.13.0); crates.io creusot-std 0.13.0.
+Unmodified Why3 at 54c92f96bb0711d6e991c18f10bfbc08d90d028b.
+All generated Coma files were exported using split_vc and the z3_4_12 driver,
+then checked directly by Z3 4.15.3, without Unix sockets or why3find sessions.
+Result: 167/167 obligations proved from 20 Coma files.
+Reproduce with python3 verify-core.py; see CREUSOT-0.13.md.
+"""
+
+[tool]
+name = "creusot"
+version = "0.13.0"
+target = "annotated"

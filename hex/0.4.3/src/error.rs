@@ -2,7 +2,21 @@ use core::fmt;
 #[allow(unused_imports)]
 use creusot_std::invariant::inv;
 #[allow(unused_imports)]
-use creusot_std::prelude::{ensures, logic, pearlite, trusted, DeepModel, Invariant, View};
+use creusot_std::prelude::{ensures, logic, pearlite, trusted, DeepModel, Invariant, View, Seq, Int};
+
+// Local model for the trusted formatting boundary; not used by codec proofs.
+#[cfg(creusot)]
+#[trusted]
+#[logic(opaque)]
+fn formatter_model(_f: fmt::Formatter<'_>) -> Seq<Int> {
+    pearlite! { dead }
+}
+
+#[cfg(creusot)]
+#[logic(open)]
+fn formatter_extends(before: Seq<Int>, after: Seq<Int>) -> bool {
+    pearlite! { exists<suffix: Seq<Int>> after == before.concat(suffix) }
+}
 
 /// The error type for decoding a hex string into `Vec<u8>` or `[u8; N]`.
 #[cfg_attr(not(creusot), derive(Debug))]
@@ -28,9 +42,9 @@ pub enum FromHexError {
 #[cfg(creusot)]
 impl fmt::Debug for FromHexError {
     #[trusted]
-    #[ensures(creusot_std::std::fmt::formatter_extends(
-        f.deep_model(),
-        (^f).deep_model(),
+    #[ensures(formatter_extends(
+        formatter_model(*f),
+        formatter_model(^f),
     ))]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
