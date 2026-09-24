@@ -1,0 +1,23 @@
+[report]
+title = "Creusot verification of utf8parse 0.2.2 parser core"
+explanation = """
+Verification of utf8parse 0.2.2's public Parser state transition API.
+Parser::new and Parser::advance are proved against the parser state model and
+reachable-state invariant.
+"""
+trusted_assumptions = """
+The contract for core::char::from_u32_unchecked is treated as an external
+standard-library contract. The parser proof discharges its Unicode scalar-value
+preconditions before each call.
+"""
+limitations = """
+Receiver callback side effects are intentionally abstract because the public Receiver
+trait has no semantic history model. Verification-only equality adapters are trusted;
+the parser transition, accumulator update, scalar-safety obligation, and public parser
+bodies are proved.
+"""
+
+[tool]
+name = "creusot"
+version = "0.11.0-dev"
+target = "annotated"
