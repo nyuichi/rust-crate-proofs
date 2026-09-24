@@ -1,0 +1,17 @@
+[report]
+title = "Creusot verification of fnv 1.0.7 FnvHasher::with_key"
+explanation = """
+Verification of the public inherent constructor FnvHasher::with_key in fnv 1.0.7.
+The function is proved to preserve the supplied u64 exactly as the hasher state.
+"""
+limitations = """
+The underlying proof also covers Default and the Hasher trait methods finish and write,
+including the FNV-1a loop, but cargo-proofs currently does not discover trait methods
+for Creusot publication. This report therefore contains only the publishable inherent
+method FnvHasher::with_key.
+"""
+
+[tool]
+name = "creusot"
+version = "0.11.0-dev"
+target = "annotated"
