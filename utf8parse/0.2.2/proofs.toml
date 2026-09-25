@@ -1,0 +1,41 @@
+[report]
+title = "Creusot verification of utf8parse 0.2.2 parser core"
+explanation = """
+Verification of Parser::new, Parser::advance, and Parser's Default::default and
+Clone::clone implementations. The proof establishes the exact table-driven
+state/accumulator transition and preservation of the reachable-state invariant,
+including discharge of Unicode scalar-value preconditions at every call to
+char::from_u32_unchecked. Published machine-readable claims are panic_contract
+only; functional postconditions and unsafe-call reasoning are proof context,
+not separate functional-correctness or no_ub claims.
+"""
+trusted_assumptions = """
+Verification-only PartialEq implementations for State and Parser are trusted;
+their equality contracts refer to the exact deep models. The external contract
+for core::char::from_u32_unchecked is assumed, and its scalar-value preconditions
+are proved at every call. Also relies on Creusot standard-library contracts,
+Why3 translation, and SMT solver soundness.
+"""
+limitations = """
+Verified with --no-default-features. Receiver callback side effects and output
+event histories are abstract; no guarantees are made for an arbitrary receiver
+implementation.
+The verification fork changes the private perform_action helper from a method
+borrowing the entire Parser (&mut self) into a function borrowing only its
+codepoint accumulator (point: &mut u32). Parser::advance passes &mut self.point;
+updates to self.point inside the helper become updates through *point. This
+separates accumulator updates from parser-state updates for verification;
+the byte-processing operations and receiver callback order are preserved.
+"""
+environment = """
+macOS aarch64; Rust nightly-2026-06-22 (rustc 91fe22da8).
+Creusot 0.13.0, upstream v0.13.0 commit 318615be3b8bbc60d1f6d52469ba5c0bdebed4f1;
+crates.io creusot-std =0.13.0. Why3 54c92f96bb0711d6e991c18f10bfbc08d90d028b;
+why3find eab37557d3e24e1913a3c4f44bc5528ef497c6c9; Z3 4.16.0 and CVC5 1.3.1.
+Native why3find proof.json sessions, with proof cache disabled.
+"""
+
+[tool]
+name = "creusot"
+version = "0.13.0"
+target = "annotated"
