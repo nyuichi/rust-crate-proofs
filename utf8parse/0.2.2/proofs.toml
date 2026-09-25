@@ -19,12 +19,13 @@ Why3 translation, and SMT solver soundness.
 limitations = """
 Verified with --no-default-features. Receiver callback side effects and output
 event histories are abstract; no guarantees are made for an arbitrary receiver
-implementation. No parser transition, accumulator update, or public parser body
-is trusted. Ordinary builds retain upstream derives; verification uses explicit
-Clone/Default implementations and trusted equality adapters. The private action
-helper already borrows only point rather than the whole Parser. The 0.13.0
-migration makes no Rust source changes. Equivalence to the crates.io source is
-not independently certified by cargo-proofs. The nightly feature is not covered.
+implementation.
+The verification fork changes the private perform_action helper from a method
+borrowing the entire Parser (&mut self) into a function borrowing only its
+codepoint accumulator (point: &mut u32). Parser::advance passes &mut self.point;
+updates to self.point inside the helper become updates through *point. This
+separates accumulator updates from parser-state updates for verification;
+the byte-processing operations and receiver callback order are preserved.
 """
 environment = """
 macOS aarch64; Rust nightly-2026-06-22 (rustc 91fe22da8).

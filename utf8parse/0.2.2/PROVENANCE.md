@@ -75,7 +75,7 @@ cargo proofs publish --dry-run
 ```
 
 The source and lockfile must first be committed and pushed. Recording requires
-the cargo-proofs Creusot 0.13 version-command and Coma method-span adapter fix.
+cargo-proofs 0.3.2 or later for Creusot 0.13 method sessions and proof trees.
 Published claims are `panic_contract` only; see `proofs.toml` for the exact
 assumptions and limits. Functional specifications do not become separate
 functional-correctness claims.

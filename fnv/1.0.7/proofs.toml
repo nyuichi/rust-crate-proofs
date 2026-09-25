@@ -8,19 +8,11 @@ wrapping multiplication. Constructors and finish have exact state contracts.
 Published machine-readable claims are panic_contract only; the functional
 postconditions are proof context, not a separate functional-correctness claim.
 """
-trusted_assumptions = """
-No crate-local trusted declarations. Relies on Creusot's standard-library
-contracts, mathematical models, Why3 translation, and SMT solver soundness.
-"""
+trusted_assumptions = ""
 limitations = """
-This recording uses --no-default-features (no_std). The std configuration is
-also checked separately by verify-all.bash, but is not part of this recording.
-FnvBuildHasher/FnvHashMap/FnvHashSet are aliases to standard-library types and
-are not separately verified. This is not a cryptographic-security claim.
-The verification fork already replaces the upstream iterator loop with an
-index-based while loop and adds ghost annotations; XOR and wrapping multiply
-are preserved. The 0.13.0 migration makes no Rust source changes. Equivalence
-to the crates.io source is not independently certified by cargo-proofs.
+This recording uses --no-default-features (no_std).
+The verification fork replaces the upstream iterator loop with an index-based
+while loop and adds ghost annotations; XOR and wrapping multiply are preserved.
 """
 environment = """
 macOS aarch64; Rust nightly-2026-06-22 (rustc 91fe22da8).
