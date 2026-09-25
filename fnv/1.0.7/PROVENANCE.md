@@ -47,3 +47,29 @@ the std configuration additionally passes 2 documentation tests.
 
 Generated Why3 and Cargo build artifacts are intentionally not tracked. Run
 `./verify-all.bash` to regenerate and check them.
+
+## Creusot 0.13.0 migration (2026-09-25)
+
+The crate now pins crates.io `creusot-std =0.13.0` and Rust
+`nightly-2026-06-22` in a crate-local toolchain file. No Rust source or contracts
+were changed for this migration. `verify-all.bash` uses the 0.13 CLI syntax
+and disables the proof cache. Native Why3/why3find sessions prove 8 files
+per checked feature configuration.
+
+Environment: macOS aarch64, Why3 `54c92f96`, why3find `eab37557`,
+Z3 4.16.0 and CVC5 1.3.1. For publication, run from this crate directory:
+
+```sh
+cargo proofs run -- cargo creusot --no-cache -- --no-default-features
+cargo proofs publish --dry-run
+```
+
+The source and lockfile must first be committed and pushed. Recording requires
+the cargo-proofs Creusot 0.13 version-command and Coma method-span adapter fix.
+Published claims are `panic_contract` only; see `proofs.toml` for the exact
+assumptions and limits. Functional specifications do not become separate
+functional-correctness claims.
+
+The existing verification fork changes the upstream iterator loop into an
+index-based while loop; this is not a byte-for-byte upstream implementation.
+The FNV XOR/wrapping-multiply operations are preserved.
