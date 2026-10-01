@@ -2,6 +2,11 @@
 
 **Verification status: complete-equivalent.**
 
+The established contract and proof record below describes the current
+`cfg(creusot)` recursive decimal model. Production-code coverage is being added
+phase by phase; see [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md) for its
+separate scope and proof status.
+
 This source tree is copied from the crate published on crates.io as `itoa`
 version `1.0.18`. The published archive has SHA-256 checksum
 `8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682`.

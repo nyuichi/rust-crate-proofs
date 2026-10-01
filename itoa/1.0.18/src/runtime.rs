@@ -1,6 +1,7 @@
 #[path = "u128_ext.rs"]
 mod u128_ext;
 
+use crate::divmod100::divmod100;
 use core::hint;
 use core::mem::{self, MaybeUninit};
 use core::str;
@@ -174,15 +175,6 @@ static DECIMAL_PAIRS: DecimalPairs = DecimalPairs(
        6061626364656667686970717273747576777879\
        8081828384858687888990919293949596979899",
 );
-
-// Returns {value / 100, value % 100} correct for values of up to 4 digits.
-fn divmod100(value: u32) -> (u32, u32) {
-    debug_assert!(value < 10_000);
-    const EXP: u32 = 19; // 19 is faster or equal to 12 even for 3 digits.
-    const SIG: u32 = (1 << EXP) / 100 + 1;
-    let div = (value * SIG) >> EXP; // value / 100
-    (div, value - div * 100)
-}
 
 /// This function converts a slice of ascii characters into a `&str` starting
 /// from `offset`.

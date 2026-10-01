@@ -21,6 +21,7 @@
 
 extern crate creusot_std;
 
+mod divmod100;
 #[cfg(not(creusot))]
 mod runtime;
 #[cfg(not(creusot))]
