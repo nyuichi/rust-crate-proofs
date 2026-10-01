@@ -1,6 +1,7 @@
 #[path = "u128_ext.rs"]
 mod u128_ext;
 
+use crate::decimal_pairs::DECIMAL_PAIRS;
 use crate::divmod100::divmod100;
 use core::hint;
 use core::mem::{self, MaybeUninit};
@@ -163,18 +164,6 @@ impl_Integer_size!(isize as i32 #[cfg(target_pointer_width = "32")]);
 impl_Integer_size!(usize as u32 #[cfg(target_pointer_width = "32")]);
 impl_Integer_size!(isize as i64 #[cfg(target_pointer_width = "64")]);
 impl_Integer_size!(usize as u64 #[cfg(target_pointer_width = "64")]);
-
-#[repr(C, align(2))]
-struct DecimalPairs([u8; 200]);
-
-// The string of all two-digit numbers in range 00..99 is used as a lookup table.
-static DECIMAL_PAIRS: DecimalPairs = DecimalPairs(
-    *b"0001020304050607080910111213141516171819\
-       2021222324252627282930313233343536373839\
-       4041424344454647484950515253545556575859\
-       6061626364656667686970717273747576777879\
-       8081828384858687888990919293949596979899",
-);
 
 /// This function converts a slice of ascii characters into a `&str` starting
 /// from `offset`.

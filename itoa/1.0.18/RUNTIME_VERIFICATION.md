@@ -22,7 +22,7 @@ digit/chunk writers to the already-proved decimal model.
 | --- | --- | --- | --- | --- |
 | Existing recursive decimal model and public verification-facing API | yes | yes (per current provenance record) | pre-existing ASCII-slice-to-`str` leaf | baseline only; does not cover runtime code |
 | Shared optimized `divmod100` (Phase 1) | yes | yes | none added | yes; leaf only, callers remain pending |
-| `DECIMAL_PAIRS` representation and lookup operations | pending | no | none | pending |
+| `DECIMAL_PAIRS` representation and indexed lookup lemma | yes | yes (2 VCs) | none | data bridge via CTFE; formatter writes pending |
 | Four-digit / two-digit output and loop invariants | pending | no | none | pending |
 | `u128` reciprocal division and chunk encoder | pending | no | none | pending |
 | Runtime buffer, sign, and output-string integration | pending | no | no new boundary planned | pending |
@@ -35,11 +35,38 @@ No trusted declaration is introduced for this phase. The pre-existing trusted
 string-construction leaf belongs to the separate recursive verification model;
 it is not used to justify the `divmod100` body.
 
-The default and `--all-features` post-change `verify-all.bash` runs both pass.
-Each configuration translates 69 libraries and discharges 190 VCs with zero
-failures. The `magic_quotient` arithmetic lemma and the actual shared
-`divmod100` body each discharge one VC. The crate's established recursive-model
-obligations also remain green.
+Phase 2 moves the production table declaration into the shared `decimal_pairs`
+module while preserving the original runtime `static` and its byte-string
+initializer. The formatter body continues to use the same indexed reads.
+
+Creusot 0.11.0-dev cannot translate the safe immutable static definition; the
+driver reports `Static { safety: Safe, mutability: Not, nested: false }` as an
+unsupported definition kind. Changing the table to a `const` initialized by
+`DecimalPairs(*b"...")` also fails translation with
+`Unsupported constant value: Scalar(alloc94) of type &'?2 [u8; 200_usize]`.
+These are Creusot translation limits for statics and the byte-string array
+constant.
+
+The module therefore has an explicit cfg representation difference: normal Rust
+uses the unchanged byte-string literal in the runtime static; Creusot uses a
+`const` built from an explicit 200-byte scalar array. Both scalar initializers
+come from one macro. In the normal cfg, a const-evaluated loop checks all 200
+scalar bytes against the 200 literal bytes, and a compile-time assertion fails
+on any mismatch. Thus normal Rust compilation ties the Creusot const to the exact
+runtime table value without a trusted axiom.
+
+`decimal_pair_correct(n)` requires `n < 100`. Its postcondition proves the
+actual proof-table cells at indices `2*n` and `2*n+1` equal
+`48 + n/10` and `48 + n%10`, proves the latter index is below 200, and ties its
+returned bytes to those cells. The helper reads the array cells directly. The
+Creusot run proves both the constant setter and this indexed lookup contract (2
+VCs); the runtime formatter's unsafe write sites remain a later proof phase.
+
+Immediately after Phase 1 and before the Phase 2 table patch, the default and
+`--all-features` `verify-all.bash` runs both passed. Each configuration produced
+69 proof units and 190 split goals with zero failures. The `magic_quotient`
+arithmetic lemma and the actual shared `divmod100` body each discharged one VC.
+The crate's established recursive-model obligations also remained green.
 
 ## Runtime test checks
 
@@ -47,8 +74,10 @@ After extracting the shared leaf, `cargo test --manifest-path Cargo.toml`
 passes all 11 integration tests and 2 doctests. The release test command
 `cargo test --manifest-path Cargo.toml --tests --all-features --release`
 passes all 11 integration tests. `--tests` excludes doctests from that
-all-features release run. Setup also recorded that `cargo test --all-features`
-fails at the `no-panic` linker step in debug, and
+all-features release run. These normal and release commands also passed after
+Phase 2 extracted the table declaration; a normal `cargo check` passed the
+compile-time table equality assertion. Setup also recorded that
+`cargo test --all-features` fails at the `no-panic` linker step in debug, and
 `cargo test --all-features --release` passes integration tests but fails while
 linking doctests. The all-features proof configuration separately enables
 `no-panic`; it does not run the upstream test suite.
@@ -85,3 +114,11 @@ to `/workspace/proof-tools` to avoid `/tmp` disk limits), with
 use Unix sockets. Baseline used
 `CARGO_TARGET_DIR=/workspace/proof-tools/targets/itoa-baseline`; Phase 1 used
 `CARGO_TARGET_DIR=/workspace/proof-tools/targets/phase1`.
+After Phase 2, `./verify-all.bash` passes in both default and `--all-features`
+configurations. Each run has 70 generated proof units and 192 split goals with
+zero failures (up from 69 units / 190 split goals after Phase 1). The two new
+table goals are the constant setter and `decimal_pair_correct`. The Phase 2
+change adds no trusted declarations. The proof configuration change to a scalar
+`const` is paired with the normal-config CTFE byte equality assertion described
+above.
+
