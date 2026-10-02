@@ -1,0 +1,261 @@
+diff --git a/itoa/1.0.18/src/runtime.rs b/itoa/1.0.18/src/runtime.rs
+index 787fe5a..be89816 100644
+--- a/itoa/1.0.18/src/runtime.rs
++++ b/itoa/1.0.18/src/runtime.rs
+@@ -11 +11,2 @@ use crate::verification::{
+-    decimal_seq_concat_assoc, decimal_values, decimal_values_compose_1x2, logical_slot_bytes,
++    decimal_seq_concat_assoc, decimal_values, decimal_values_compose_1x2, integer_decimal_values,
++    integer_value, logical_slot_bytes, logical_slot_states, range_from_prefix_raw_frame,
+@@ -110,0 +112,18 @@ mod private {
++macro_rules! signed_write_offset {
++    (i8, u8, $value:ident, $buf:ident) => {
++        signed_write_i8($value, $buf)
++    };
++    ($Signed:ident, $Unsigned:ident, $value:ident, $buf:ident) => {{
++        let mut offset = Self::MAX_STR_LEN - $Unsigned::MAX_STR_LEN;
++        offset += Unsigned::fmt(
++            $value.unsigned_abs(),
++            (&mut $buf[offset..]).try_into().unwrap(),
++        );
++        if $value < 0 {
++            offset -= 1;
++            $buf[offset].write(b'-');
++        }
++        offset
++    }};
++}
++
+@@ -147,9 +166 @@ macro_rules! impl_Integer {
+-                let mut offset = Self::MAX_STR_LEN - $Unsigned::MAX_STR_LEN;
+-                offset += Unsigned::fmt(
+-                    self.unsigned_abs(),
+-                    (&mut buf[offset..]).try_into().unwrap(),
+-                );
+-                if self < 0 {
+-                    offset -= 1;
+-                    buf[offset].write(b'-');
+-                }
++                let offset = signed_write_offset!($Signed, $Unsigned, self, buf);
+@@ -724,0 +736,140 @@ impl_Unsigned!(u64, decimal_values_len_u64);
++/// Format an i8 magnitude into the digit-capacity suffix used by the native
++/// signed writer. This is the original signed-wrapper operation extracted so
++/// its mutable slice-to-array view can be related to the containing buffer.
++#[inline]
++#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
++#[cfg_attr(creusot, ensures(result@ + decimal_values(value@).len() == buf@.len()))]
++#[cfg_attr(creusot, ensures(forall<i: Int>
++    result@ <= i && i < buf@.len() ==> buf@[i]@ != None))]
++#[cfg_attr(creusot, ensures(forall<i: Int>
++    result@ <= i && i < buf@.len() ==>
++        buf@[i]@.unwrap_logic()@ == decimal_values(value@)[i - result@]))]
++#[cfg_attr(creusot, ensures(forall<i: Int>
++    0 <= i && i < result@ ==> (^buf)@[i]@ == buf@[i]@))]
++fn write_u8_suffix_i8(
++    value: u8,
++    buf: &mut [MaybeUninit<u8>; <i8 as Integer>::MAX_STR_LEN],
++) -> usize {
++    #[cfg(creusot)]
++    let buf_before = snapshot!(buf@);
++    let mut offset = <i8 as Integer>::MAX_STR_LEN - <u8 as Integer>::MAX_STR_LEN;
++    #[cfg(creusot)]
++    let old_offset = offset;
++
++    let slice: &mut [MaybeUninit<u8>] = buf;
++    let range = &mut slice[offset..];
++    #[cfg(creusot)]
++    let range_before = snapshot!(range@);
++    let suffix: &mut [MaybeUninit<u8>; <u8 as Integer>::MAX_STR_LEN] =
++        range.try_into().unwrap();
++    #[cfg(creusot)]
++    let suffix_before = snapshot!(suffix@);
++    #[cfg(creusot)]
++    proof_assert!(*suffix_before == *range_before);
++
++    let digit_len = Unsigned::fmt(value, suffix);
++    offset += digit_len;
++
++    #[cfg(creusot)]
++    {
++        proof_assert! {
++            let range_current = *range_before;
++            let range_final = (^range)@;
++            let suffix_current = *suffix_before;
++            let suffix_final = (^suffix)@;
++            suffix_current == range_current && suffix_final == range_final
++                && range_current == (*buf_before).subsequence(old_offset@, (*buf_before).len())
++                && range_final == buf@.subsequence(old_offset@, buf@.len())
++        };
++        proof_assert! {
++            let suffix_current = *suffix_before;
++            let suffix_final = (^suffix)@;
++            forall<i: Int> 0 <= i && i < digit_len@ ==>
++                suffix_final[i]@ == suffix_current[i]@
++        };
++        proof_assert! {
++            let suffix_current = *suffix_before;
++            let suffix_final = (^suffix)@;
++            forall<i: Int> 0 <= i && i < digit_len@ ==>
++                logical_slot_states(suffix_final)[i] == logical_slot_states(suffix_current)[i]
++        };
++        proof_assert! {
++            let suffix_current = *suffix_before;
++            let suffix_final = (^suffix)@;
++            logical_slot_states(suffix_current).subsequence(0, digit_len@)
++                == logical_slot_states(suffix_final).subsequence(0, digit_len@)
++        };
++        proof_assert! {
++            let _ = range_from_prefix_raw_frame(
++                *buf_before,
++                buf@,
++                *suffix_before,
++                (^suffix)@,
++                old_offset@,
++                digit_len@,
++            );
++            forall<i: Int> old_offset@ <= i && i < old_offset@ + digit_len@ ==>
++                (^buf)@[i]@ == buf@[i]@
++        };
++        proof_assert!(forall<i: Int> 0 <= i && i < old_offset@ ==>
++            (^buf)@[i]@ == (*buf_before)[i]@);
++        proof_assert!(offset@ + decimal_values(value@).len() == buf@.len());
++        proof_assert!(forall<i: Int> offset@ <= i && i < buf@.len() ==> buf@[i]@ != None);
++        proof_assert!(forall<i: Int> offset@ <= i && i < buf@.len() ==>
++            buf@[i]@.unwrap_logic()@ == decimal_values(value@)[i - offset@]);
++        proof_assert!(forall<i: Int> 0 <= i && i < offset@ ==> (^buf)@[i]@ == (*buf_before)[i]@);
++    }
++
++    offset
++}
++
++/// Signed i8 adapter used by the native `Sealed::write` implementation.
++/// It calls the proved u8 runtime formatter, then performs the original sign
++/// placement and byte write.
++#[inline]
++#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
++#[cfg_attr(creusot, ensures(result@ + integer_decimal_values(value).len() == buf@.len()))]
++#[cfg_attr(creusot, ensures(forall<i: Int>
++    result@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
++#[cfg_attr(creusot, ensures(forall<i: Int>
++    result@ <= i && i < buf@.len() ==>
++        (^buf)@[i]@.unwrap_logic()@ == integer_decimal_values(value)[i - result@]))]
++#[cfg_attr(creusot, ensures(forall<i: Int>
++    0 <= i && i < result@ ==> (^buf)@[i]@ == buf@[i]@))]
++fn signed_write_i8(
++    value: i8,
++    buf: &mut [MaybeUninit<u8>; <i8 as Integer>::MAX_STR_LEN],
++) -> usize {
++    let magnitude = value.unsigned_abs();
++    #[cfg(creusot)]
++    {
++        proof_assert!(integer_value(value) == value@);
++        proof_assert!(magnitude@ == if integer_value(value) < 0 {
++            -integer_value(value)
++        } else {
++            integer_value(value)
++        });
++        proof_assert! {
++            let _ = decimal_values_len_u8(magnitude);
++            decimal_values(magnitude@).len() <= 3
++        };
++    }
++
++    let mut offset = write_u8_suffix_i8(magnitude, buf);
++    if value < 0 {
++        offset -= 1;
++        buf[offset].write(b'-');
++    }
++    offset
++}
++
++#[cfg(creusot)]
++fn check_signed_i8_write(value: i8) {
++    let mut buf = [MaybeUninit::<u8>::uninit(); <i8 as Integer>::MAX_STR_LEN];
++    let start = signed_write_i8(value, &mut buf);
++    proof_assert!(start@ + integer_decimal_values(value).len() == buf@.len());
++    proof_assert!(forall<i: Int> start@ <= i && i < buf@.len() ==> buf@[i]@ != None);
++    proof_assert!(forall<i: Int> start@ <= i && i < buf@.len() ==>
++        buf@[i]@.unwrap_logic()@ == integer_decimal_values(value)[i - start@]);
++}
++
+diff --git a/itoa/1.0.18/src/verification.rs b/itoa/1.0.18/src/verification.rs
+index 5434f39..171c689 100644
+--- a/itoa/1.0.18/src/verification.rs
++++ b/itoa/1.0.18/src/verification.rs
+@@ -7 +7 @@ use creusot_std::prelude::{
+-    bitwise_proof, check, ensures, logic, pearlite, proof_assert, requires, snapshot, trusted,
++    bitwise_proof, check, ensures, extern_spec, logic, pearlite, proof_assert, requires, snapshot, trusted,
+@@ -41,0 +42,74 @@ pub fn logical_slot_bytes(slots: Seq<MaybeUninit<u8>>) -> Seq<Int> {
++/// Injective state view for framing writes that may touch previously
++/// uninitialized slots. Unlike `logical_slot_bytes`, this distinguishes
++/// `None` from every initialized byte.
++#[logic(open)]
++#[ensures(result.len() == slots.len())]
++pub(crate) fn logical_slot_states(slots: Seq<MaybeUninit<u8>>) -> Seq<Int> {
++    slots.map(|slot: MaybeUninit<u8>| {
++        pearlite! {
++            if slot@ == None {
++                -1
++            } else {
++                slot@.unwrap_logic()@
++            }
++        }
++    })
++}
++
++#[logic]
++#[requires(0 <= start && start <= end && end <= slots.len())]
++#[ensures(logical_slot_states(slots.subsequence(start, end))
++    == logical_slot_states(slots).subsequence(start, end))]
++pub(crate) fn logical_slot_states_subsequence(
++    slots: Seq<MaybeUninit<u8>>,
++    start: Int,
++    end: Int,
++) {
++    let mapped_slice = logical_slot_states(slots.subsequence(start, end));
++    let sliced_map = logical_slot_states(slots).subsequence(start, end);
++    proof_assert!(mapped_slice.len() == end - start);
++    proof_assert!(sliced_map.len() == end - start);
++    proof_assert!(forall<i: Int> 0 <= i && i < end - start ==>
++        mapped_slice[i] == sliced_map[i]);
++}
++
++/// Lift an unchanged initialized-state prefix of a suffix view back to the
++/// containing buffer.
++#[logic]
++#[requires(0 <= offset && offset <= old_outer.len() && offset <= new_outer.len())]
++#[requires(old_outer.len() == new_outer.len())]
++#[requires(old_suffix == old_outer.subsequence(offset, old_outer.len()))]
++#[requires(new_suffix == new_outer.subsequence(offset, new_outer.len()))]
++#[requires(0 <= width && width <= old_suffix.len() && width <= new_suffix.len())]
++#[requires(logical_slot_states(old_suffix).subsequence(0, width)
++    == logical_slot_states(new_suffix).subsequence(0, width))]
++#[ensures(forall<i: Int> offset <= i && i < offset + width
++    ==> old_outer[i]@ == new_outer[i]@)]
++pub(crate) fn range_from_prefix_raw_frame(
++    old_outer: Seq<MaybeUninit<u8>>,
++    new_outer: Seq<MaybeUninit<u8>>,
++    old_suffix: Seq<MaybeUninit<u8>>,
++    new_suffix: Seq<MaybeUninit<u8>>,
++    offset: Int,
++    width: Int,
++) {
++    logical_slot_states_subsequence(old_outer, offset, old_outer.len());
++    logical_slot_states_subsequence(new_outer, offset, new_outer.len());
++    logical_slot_states_subsequence(old_suffix, 0, width);
++    logical_slot_states_subsequence(new_suffix, 0, width);
++    proof_assert!(forall<i: Int> offset <= i && i < offset + width ==>
++        logical_slot_states(old_outer)[i] == logical_slot_states(new_outer)[i]);
++    proof_assert!(forall<i: Int> offset <= i && i < offset + width ==>
++        old_outer[i]@ == new_outer[i]@);
++}
++
++// Pinned core's i8 unsigned_abs is `wrapping_abs() as u8`; this narrow model
++// records its mathematical magnitude contract for the signed adapter proof.
++extern_spec! {
++    impl i8 {
++        #[check(terminates)]
++        #[ensures(result@ == if self@ < 0 { -self@ } else { self@ })]
++        fn unsigned_abs(self) -> u8;
++    }
++}
++

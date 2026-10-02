@@ -1,0 +1,216 @@
+--- a/src/runtime.rs
++++ b/src/runtime.rs
+@@ -9,0 +10 @@
++    initialized_slot_suffix_non_sentinel, logical_slot_states_suffix_initialized,
+@@ -15,0 +17,2 @@
++    logical_slot_states_subsequence, range_from_prefix_frame,
++    range_from_initialized_suffix_projection,
+@@ -18,0 +22 @@
++    i128_min_signed_decimal_model,
+@@ -1195,0 +1200 @@
++#[cfg_attr(creusot, ensures(result@ >= 1))]
+@@ -1211,4 +1216,94 @@
+-    offset += Unsigned::fmt(
+-        value,
+-        (&mut buf[offset..]).try_into().unwrap(),
+-    );
++    #[cfg(creusot)]
++    let outer_before = snapshot!(buf@);
++    #[cfg(creusot)]
++    proof_assert!(offset@ == 1);
++    let digit_len = {
++        let range = &mut buf[offset..];
++        #[cfg(creusot)]
++        let range_before = snapshot!(range@);
++        let array: &mut [MaybeUninit<u8>; 39] = range.try_into().unwrap();
++        #[cfg(creusot)]
++        let array_before = snapshot!(array@);
++        #[cfg(creusot)]
++        proof_assert!(*array_before == *range_before);
++        let digit_len = Unsigned::fmt(value, array);
++
++        #[cfg(creusot)]
++        proof_assert! {
++            let array_current = *array_before;
++            let array_final = (^array)@;
++            let range_current = *range_before;
++            let range_final = (^range)@;
++            let outer_current = *outer_before;
++            let outer_final = (^buf)@;
++            array_current == range_current
++                && array_final == range_final
++                && range_current == outer_current.subsequence(offset@, outer_current.len())
++                && range_final == outer_final.subsequence(offset@, outer_final.len())
++        };
++        #[cfg(creusot)]
++        proof_assert! {
++            let old_outer_states = logical_slot_states(*outer_before);
++            let new_outer_states = logical_slot_states((^buf)@);
++            let old_suffix_states = logical_slot_states(*array_before);
++            let new_suffix_states = logical_slot_states((^array)@);
++            let _ = logical_slot_states_subsequence(
++                *outer_before,
++                offset@,
++                outer_before.len(),
++            );
++            let _ = logical_slot_states_subsequence(
++                (^buf)@,
++                offset@,
++                (^buf)@.len(),
++            );
++            let _ = range_from_prefix_frame(
++                old_outer_states,
++                new_outer_states,
++                old_suffix_states,
++                new_suffix_states,
++                offset@,
++                digit_len,
++            );
++            forall<i: Int>
++                1 <= i && i < offset@ + digit_len@ ==> (^buf)@[i]@ == buf@[i]@
++        };
++        #[cfg(creusot)]
++        proof_assert! {
++            let outer_final = (^buf)@;
++            let array_final = (^array)@;
++            let _ = logical_slot_states_subsequence(
++                outer_final,
++                offset@,
++                outer_final.len(),
++            );
++            logical_slot_states(array_final)
++                == logical_slot_states(outer_final).subsequence(offset@, outer_final.len())
++        };
++        #[cfg(creusot)]
++        proof_assert! {
++            let outer_final = (^buf)@;
++            let array_final = (^array)@;
++            let outer_states = logical_slot_states(outer_final);
++            let local_states = logical_slot_states(array_final);
++            let _ = logical_slot_states_subsequence(
++                outer_final,
++                offset@,
++                outer_final.len(),
++            );
++            let _ = initialized_slot_suffix_non_sentinel(array_final, digit_len@);
++            let _ = range_from_initialized_suffix_projection(
++                outer_states,
++                local_states,
++                offset@,
++                digit_len@,
++            );
++            let _ = logical_slot_states_suffix_initialized(outer_final, offset@ + digit_len@);
++            forall<i: Int> offset@ + digit_len@ <= i && i < outer_final.len() ==>
++                (^buf)@[i]@ != None
++        };
++        digit_len
++    };
++    offset += digit_len;
++    #[cfg(creusot)]
++    proof_assert!(offset@ >= 1);
+@@ -1245,0 +1341,2 @@
++    let _ = i128_min_signed_decimal_model();
++    proof_assert!(offset@ + integer_decimal_values(i128::MIN).len() == 40);
+--- a/src/verification.rs
++++ b/src/verification.rs
+@@ -57,0 +58,100 @@
++/// Lift a raw initialized-slot suffix fact to the state-sequence view.
++#[logic]
++#[requires(0 <= start && start <= slots.len())]
++#[requires(forall<i: Int> start <= i && i < slots.len() ==> slots[i]@ != None)]
++#[ensures(forall<i: Int> start <= i && i < slots.len() ==>
++    logical_slot_states(slots)[i] != -1)]
++pub fn initialized_slot_suffix_non_sentinel(
++    slots: Seq<MaybeUninit<u8>>,
++    start: Int,
++) {
++    proof_assert!(forall<i: Int> start <= i && i < slots.len() ==>
++        logical_slot_states(slots)[i] != -1);
++}
++
++/// Turn a suffix of non-sentinel state values back into initialized slots.
++#[logic]
++#[requires(0 <= start && start <= slots.len())]
++#[requires(forall<i: Int> start <= i && i < slots.len() ==>
++    logical_slot_states(slots)[i] != -1)]
++#[ensures(forall<i: Int> start <= i && i < slots.len() ==> slots[i]@ != None)]
++pub fn logical_slot_states_suffix_initialized(
++    slots: Seq<MaybeUninit<u8>>,
++    start: Int,
++) {
++    proof_assert!(forall<i: Int> start <= i && i < slots.len() ==> slots[i]@ != None);
++}
++
++#[logic]
++#[requires(0 <= start && start <= end && end <= slots.len())]
++#[ensures(logical_slot_states(slots.subsequence(start, end))
++    == logical_slot_states(slots).subsequence(start, end))]
++pub fn logical_slot_states_subsequence(
++    slots: Seq<MaybeUninit<u8>>,
++    start: Int,
++    end: Int,
++) {
++    let mapped_slice = logical_slot_states(slots.subsequence(start, end));
++    let sliced_map = logical_slot_states(slots).subsequence(start, end);
++    proof_assert!(mapped_slice.len() == end - start);
++    proof_assert!(sliced_map.len() == end - start);
++    proof_assert!(forall<i: Int> 0 <= i && i < end - start ==>
++        mapped_slice[i] == sliced_map[i]);
++}
++
++/// Lift a pointwise frame on a suffix view back to its containing sequence.
++#[logic]
++#[requires(0 <= offset && offset <= old_outer.len())]
++#[requires(offset <= new_outer.len())]
++#[requires(old_outer.len() == new_outer.len())]
++#[requires(old_suffix == old_outer.subsequence(offset, old_outer.len()))]
++#[requires(new_suffix == new_outer.subsequence(offset, new_outer.len()))]
++#[requires(0 <= width@ && width@ <= old_suffix.len())]
++#[requires(width@ <= new_suffix.len())]
++#[requires(forall<j: Int> 0 <= j && j < width@ ==> new_suffix[j] == old_suffix[j])]
++#[ensures(forall<i: Int> offset <= i && i < offset + width@ ==> new_outer[i] == old_outer[i])]
++pub fn range_from_prefix_frame(
++    old_outer: Seq<Int>,
++    new_outer: Seq<Int>,
++    old_suffix: Seq<Int>,
++    new_suffix: Seq<Int>,
++    offset: Int,
++    width: usize,
++) {
++    proof_assert!(forall<i: Int> 0 <= i && i < old_suffix.len() ==>
++        old_suffix[i] == old_outer[i + offset]);
++    proof_assert!(forall<i: Int> 0 <= i && i < new_suffix.len() ==>
++        new_suffix[i] == new_outer[i + offset]);
++    proof_assert!(forall<i: Int> offset <= i && i < offset + width@ ==>
++        new_outer[i] == old_outer[i]);
++}
++
++/// Project initialized local suffix states back to the containing sequence.
++#[logic]
++#[requires(0 <= offset && offset <= outer_states.len())]
++#[requires(local_states == outer_states.subsequence(offset, outer_states.len()))]
++#[requires(0 <= start && start <= local_states.len())]
++#[requires(forall<j: Int> start <= j && j < local_states.len() ==>
++    local_states[j] != -1)]
++#[ensures(forall<i: Int> offset + start <= i && i < outer_states.len() ==>
++    outer_states[i] != -1)]
++pub fn range_from_initialized_suffix_projection(
++    outer_states: Seq<Int>,
++    local_states: Seq<Int>,
++    offset: Int,
++    start: Int,
++) {
++    proof_assert!(forall<i: Int>
++        offset + start <= i && i < outer_states.len() ==>
++            0 <= i - offset && i - offset < local_states.len());
++    proof_assert!(forall<i: Int>
++        offset + start <= i && i < outer_states.len() ==>
++            local_states[i - offset] != -1);
++    proof_assert!(forall<i: Int>
++        offset + start <= i && i < outer_states.len() ==>
++            outer_states[i] == local_states[i - offset]);
++    proof_assert!(forall<i: Int>
++        offset + start <= i && i < outer_states.len() ==>
++            outer_states[i] != -1);
++}
++
