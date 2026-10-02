@@ -1,0 +1,1343 @@
+diff --git a/itoa/1.0.18/src/lib.rs b/itoa/1.0.18/src/lib.rs
+index 9d8ba6e..adb1b34 100644
+--- a/itoa/1.0.18/src/lib.rs
++++ b/itoa/1.0.18/src/lib.rs
+@@ -9,0 +10 @@
++#![recursion_limit = "256"]
+@@ -26,0 +28 @@ mod divmod100;
++mod arithmetic;
+diff --git a/itoa/1.0.18/src/runtime.rs b/itoa/1.0.18/src/runtime.rs
+index 787fe5a..e043fc3 100644
+--- a/itoa/1.0.18/src/runtime.rs
++++ b/itoa/1.0.18/src/runtime.rs
+@@ -1,4 +1 @@
+-#[cfg(not(creusot))]
+-#[path = "u128_ext.rs"]
+-mod u128_ext;
+-
++use crate::arithmetic::div_rem_1e16;
+@@ -6 +2,0 @@ use crate::divmod100::divmod100;
+-#[cfg(not(creusot))]
+@@ -11,0 +8 @@ use crate::verification::{
++    logical_slot_bytes_initialized_range,
+@@ -16 +13 @@ use crate::verification::{
+-    decimal_values_len_u32, decimal_values_len_u64,
++    decimal_values_len_u32, decimal_values_len_u64, decimal_values_len_u128,
+@@ -18,0 +16,2 @@ use crate::verification::{
++    decimal_values_compose_16, decimal_values_compose_16x2, power_of_ten_16,
++    fixed_width_decimal_values_len,
+@@ -742 +740,0 @@ fn check_u16_fmt_call_site(n: u16) {
+-#[cfg(not(creusot))]
+@@ -744 +742,9 @@ impl Unsigned for u128 {
+-    #[cfg_attr(feature = "no-panic", no_panic)]
++    #[cfg_attr(creusot, ensures(result@ + decimal_values(self@).len() == buf@.len()))]
++    #[cfg_attr(creusot, ensures(forall<i: Int>
++        result@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
++    #[cfg_attr(creusot, ensures(forall<i: Int>
++        result@ <= i && i < buf@.len() ==>
++            (^buf)@[i]@.unwrap_logic()@ == decimal_values(self@)[i - result@]))]
++    #[cfg_attr(creusot, ensures(forall<i: Int>
++        0 <= i && i < result@ ==> (^buf)@[i]@ == buf@[i]@))]
++    #[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
+@@ -745,0 +752,10 @@ impl Unsigned for u128 {
++        #[cfg(creusot)]
++        let original = self;
++        #[cfg(creusot)]
++        let buf_before = snapshot!(buf@);
++        #[cfg(creusot)]
++        proof_assert! {
++            let _ = decimal_values_len_u128(self);
++            decimal_values(self@).len() <= buf@.len()
++        };
++
+@@ -750,0 +767,13 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            {
++                proof_assert!(offset@ + 1 == buf@.len());
++                proof_assert! {
++                    let _ = decimal_values_one_digit(0);
++                    decimal_values(0) == Seq::singleton(48)
++                };
++                proof_assert!(forall<i: Int>
++                    offset@ <= i && i < buf@.len() ==> buf@[i]@ != None);
++                proof_assert!(buf@[offset@]@.unwrap_logic()@ == 48);
++                proof_assert!(forall<i: Int>
++                    0 <= i && i < offset@ ==> buf@[i]@ == (*buf_before)[i]@);
++            }
+@@ -752,0 +782 @@ impl Unsigned for u128 {
++
+@@ -754,0 +785,3 @@ impl Unsigned for u128 {
++        #[cfg(creusot)]
++        proof_assert!(quot_1e16@ * 10_000_000_000_000_000 + mod_1e16@ == original@);
++
+@@ -755,0 +789,2 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            proof_assert!(mod_1e16@ == original@);
+@@ -759,0 +795,20 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            proof_assert! {
++                let _ = power_of_ten_16();
++                let _ = fixed_width_decimal_values_len(mod_1e16@, 16);
++                fixed_width_decimal_values(mod_1e16@, 16).len() == 16
++            };
++            #[cfg(creusot)]
++            proof_assert!(forall<i: Int> 0 <= i && i < 16 ==>
++                buf@[23 + i]@ != None
++                    && buf@[23 + i]@.unwrap_logic()@
++                        == fixed_width_decimal_values(mod_1e16@, 16)[i]);
++            #[cfg(creusot)]
++            proof_assert! {
++                let segment_bytes = logical_slot_bytes_initialized_range(
++                    buf@.subsequence(23, buf@.len()),
++                    fixed_width_decimal_values(mod_1e16@, 16),
++                );
++                segment_bytes == fixed_width_decimal_values(mod_1e16@, 16)
++                    && segment_bytes == logical_slot_bytes(buf@.subsequence(23, buf@.len()))
++            };
+@@ -762,0 +818,2 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            proof_assert!(quot2@ * 10_000_000_000_000_000 + mod2@ == quot_1e16@);
+@@ -763,0 +821,13 @@ impl Unsigned for u128 {
++                #[cfg(creusot)]
++                {
++                    proof_assert!(mod2@ == quot_1e16@);
++                    proof_assert! {
++                        let _ = decimal_values_compose_16(quot_1e16@, mod_1e16@);
++                        decimal_values(original@)
++                            == decimal_values(quot_1e16@)
++                                .concat(fixed_width_decimal_values(mod_1e16@, 16))
++                    };
++                    proof_assert!(logical_slot_bytes(
++                        buf@.subsequence(23, buf@.len())
++                    ) == fixed_width_decimal_values(mod_1e16@, 16));
++                }
+@@ -767,0 +838,50 @@ impl Unsigned for u128 {
++                #[cfg(creusot)]
++                proof_assert! {
++                    let _ = power_of_ten_16();
++                    let _ = fixed_width_decimal_values_len(mod2@, 16);
++                    fixed_width_decimal_values(mod2@, 16).len() == 16
++                };
++                #[cfg(creusot)]
++                proof_assert!(forall<i: Int> 0 <= i && i < 16 ==>
++                    buf@[7 + i]@ != None
++                        && buf@[7 + i]@.unwrap_logic()@
++                            == fixed_width_decimal_values(mod2@, 16)[i]);
++                #[cfg(creusot)]
++                proof_assert! {
++                    let segment_bytes = logical_slot_bytes_initialized_range(
++                        buf@.subsequence(7, 23),
++                        fixed_width_decimal_values(mod2@, 16),
++                    );
++                    segment_bytes == fixed_width_decimal_values(mod2@, 16)
++                        && segment_bytes == logical_slot_bytes(buf@.subsequence(7, 23))
++                };
++                #[cfg(creusot)]
++                {
++                    proof_assert! {
++                        let _ = decimal_values_compose_16x2(
++                            quot2@,
++                            mod2@,
++                            mod_1e16@,
++                        );
++                        decimal_values(original@)
++                            == decimal_values(quot2@)
++                                .concat(fixed_width_decimal_values(mod2@, 16))
++                                .concat(fixed_width_decimal_values(mod_1e16@, 16))
++                    };
++                    proof_assert! {
++                        let _ = logical_slot_bytes_split(buf@, 7, 23, buf@.len());
++                        logical_slot_bytes(buf@.subsequence(7, buf@.len()))
++                            == logical_slot_bytes(buf@.subsequence(7, 23))
++                                .concat(logical_slot_bytes(buf@.subsequence(23, buf@.len())))
++                    };
++                    proof_assert!(logical_slot_bytes(
++                        buf@.subsequence(7, 23)
++                    ) == fixed_width_decimal_values(mod2@, 16));
++                    proof_assert!(logical_slot_bytes(
++                        buf@.subsequence(23, buf@.len())
++                    ) == fixed_width_decimal_values(mod_1e16@, 16));
++                    proof_assert!(logical_slot_bytes(
++                        buf@.subsequence(7, buf@.len())
++                    ) == fixed_width_decimal_values(mod2@, 16)
++                        .concat(fixed_width_decimal_values(mod_1e16@, 16)));
++                }
+@@ -772,0 +893,18 @@ impl Unsigned for u128 {
++        #[cfg(creusot)]
++        {
++            proof_assert!(remain@ != 0);
++            proof_assert!(forall<i: Int>
++                offset@ <= i && i < buf@.len() ==> buf@[i]@ != None);
++            proof_assert!((if remain@ == 0 {
++                Seq::empty()
++            } else {
++                decimal_values(remain@)
++            }).concat(logical_slot_bytes(buf@.subsequence(offset@, buf@.len())))
++                == decimal_values(original@));
++            proof_assert!((if remain@ == 0 {
++                0
++            } else {
++                decimal_values(remain@).len()
++            }) <= offset@);
++        }
++
+@@ -773,0 +912,15 @@ impl Unsigned for u128 {
++        #[cfg_attr(creusot, invariant(offset@ <= buf@.len()))]
++        #[cfg_attr(creusot, invariant(offset@ % 4 == buf@.len() % 4))]
++        #[cfg_attr(creusot, invariant(buf@.len() == (*buf_before).len()))]
++        #[cfg_attr(creusot, invariant(forall<i: Int>
++            offset@ <= i && i < buf@.len() ==> buf@[i]@ != None))]
++        #[cfg_attr(creusot, invariant(forall<i: Int>
++            0 <= i && i < offset@ ==> buf@[i]@ == (*buf_before)[i]@))]
++        #[cfg_attr(creusot, invariant(
++            (if remain@ == 0 { Seq::empty() } else { decimal_values(remain@) })
++                .concat(logical_slot_bytes(buf@.subsequence(offset@, buf@.len())))
++                == decimal_values(original@)))]
++        #[cfg_attr(creusot, invariant(
++            (if remain@ == 0 { 0 } else { decimal_values(remain@).len() })
++                <= offset@))]
++        #[cfg_attr(creusot, variant(remain))]
+@@ -774,0 +928,21 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            let old_remain = remain;
++            #[cfg(creusot)]
++            let quad_old_offset = offset;
++            #[cfg(creusot)]
++            let quad_old_written_suffix = snapshot!(
++                logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
++            );
++            #[cfg(creusot)]
++            proof_assert! {
++                let _ = decimal_values_split_4(old_remain@);
++                (if old_remain@ == 0 { Seq::empty() } else { decimal_values(old_remain@) })
++                    .concat(*quad_old_written_suffix)
++                    == decimal_values(original@)
++            };
++            #[cfg(creusot)]
++            proof_assert! {
++                let _ = decimal_values_len_ge_4(old_remain@);
++                4 <= offset@
++            };
++
+@@ -781,5 +955,43 @@ impl Unsigned for u128 {
+-            unsafe {
+-                buf[offset + 0].write(*DECIMAL_PAIRS.0.get_unchecked(pair1 as usize * 2 + 0));
+-                buf[offset + 1].write(*DECIMAL_PAIRS.0.get_unchecked(pair1 as usize * 2 + 1));
+-                buf[offset + 2].write(*DECIMAL_PAIRS.0.get_unchecked(pair2 as usize * 2 + 0));
+-                buf[offset + 3].write(*DECIMAL_PAIRS.0.get_unchecked(pair2 as usize * 2 + 1));
++            #[cfg(creusot)]
++            proof_assert!(quad@ == pair1@ * 100 + pair2@);
++            write_decimal_quad(buf, offset, pair1, pair2);
++            #[cfg(creusot)]
++            {
++                proof_assert!(quad_old_offset@ == offset@ + 4);
++                proof_assert!(logical_slot_bytes(
++                    buf@.subsequence(quad_old_offset@, buf@.len())
++                ) == *quad_old_written_suffix);
++                proof_assert!(logical_slot_bytes(
++                    buf@.subsequence(offset@, buf@.len())
++                ) == fixed_width_decimal_values(quad@, 4)
++                    .concat(*quad_old_written_suffix));
++                proof_assert!(old_remain@ / 10_000 == remain@);
++                proof_assert!(old_remain@ % 10_000 == quad@);
++                proof_assert! {
++                    let _ = decimal_values_split_4(old_remain@);
++                    (if remain@ == 0 { Seq::empty() } else { decimal_values(remain@) })
++                        .concat(fixed_width_decimal_values(quad@, 4))
++                        == decimal_values(old_remain@)
++                };
++                proof_assert! {
++                    let prefix = if remain@ == 0 {
++                        Seq::empty()
++                    } else {
++                        decimal_values(remain@)
++                    };
++                    let chunk = fixed_width_decimal_values(quad@, 4);
++                    let _ = decimal_seq_concat_assoc(
++                        prefix,
++                        chunk,
++                        *quad_old_written_suffix,
++                    );
++                    prefix.concat(chunk.concat(*quad_old_written_suffix))
++                        == decimal_values(original@)
++                };
++                proof_assert! {
++                    (if remain@ == 0 {
++                        0
++                    } else {
++                        decimal_values(remain@).len()
++                    }) <= offset@
++                };
+@@ -788,0 +1001,3 @@ impl Unsigned for u128 {
++        #[cfg(creusot)]
++        proof_assert!(remain@ <= 999);
++
+@@ -790,0 +1006,14 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            let tail_old_offset = offset;
++            #[cfg(creusot)]
++            let old_written_suffix = snapshot!(
++                logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
++            );
++            #[cfg(creusot)]
++            proof_assert!(decimal_values(remain@).concat(*old_written_suffix)
++                == decimal_values(original@));
++            #[cfg(creusot)]
++            proof_assert! {
++                let _ = decimal_values_len_ge_2(remain@);
++                2 <= offset@
++            };
+@@ -792,0 +1022,2 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            let tail_before = remain;
+@@ -793,0 +1025,17 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            {
++                proof_assert!(tail_before@ >= 10 && tail_before@ <= 999);
++                proof_assert!(last@ == tail_before@ / 100);
++                proof_assert!(pair@ == tail_before@ % 100);
++                proof_assert!(last@ <= 9 && pair@ < 100);
++                proof_assert!(if last@ == 0 {
++                    let _ = fixed_width_decimal_values_2_is_decimal(tail_before@);
++                    fixed_width_decimal_values(tail_before@, 2)
++                        == fixed_width_decimal_values(pair@, 2)
++                } else {
++                    let _ = decimal_values_compose_1x2(tail_before@);
++                    decimal_values(tail_before@)
++                        == decimal_values(last@)
++                            .concat(fixed_width_decimal_values(pair@, 2))
++                });
++            }
+@@ -795,3 +1043,37 @@ impl Unsigned for u128 {
+-            unsafe {
+-                buf[offset + 0].write(*DECIMAL_PAIRS.0.get_unchecked(pair as usize * 2 + 0));
+-                buf[offset + 1].write(*DECIMAL_PAIRS.0.get_unchecked(pair as usize * 2 + 1));
++            write_decimal_pair(buf, offset, pair);
++            #[cfg(creusot)]
++            {
++                proof_assert!(logical_slot_bytes(
++                    buf@.subsequence(tail_old_offset@, buf@.len())
++                ) == *old_written_suffix);
++                proof_assert!(logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
++                    == fixed_width_decimal_values(pair@, 2).concat(*old_written_suffix));
++                proof_assert!(if remain@ == 0 {
++                    fixed_width_decimal_values(tail_before@, 2)
++                        == fixed_width_decimal_values(pair@, 2)
++                } else {
++                    decimal_values(tail_before@)
++                        == decimal_values(remain@)
++                            .concat(fixed_width_decimal_values(pair@, 2))
++                });
++                proof_assert! {
++                    let tail = if remain@ == 0 {
++                        Seq::empty()
++                    } else {
++                        decimal_values(remain@)
++                    };
++                    let pair_values = fixed_width_decimal_values(pair@, 2);
++                    let _ = decimal_seq_concat_assoc(
++                        tail,
++                        pair_values,
++                        *old_written_suffix,
++                    );
++                    tail.concat(pair_values.concat(*old_written_suffix))
++                        == decimal_values(tail_before@).concat(*old_written_suffix)
++                };
++                proof_assert!((if remain@ == 0 {
++                    Seq::empty()
++                } else {
++                    decimal_values(remain@)
++                }).concat(logical_slot_bytes(buf@.subsequence(offset@, buf@.len())))
++                    == decimal_values(original@));
+@@ -802,0 +1085,20 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            let last_digit_value = remain;
++            #[cfg(creusot)]
++            proof_assert! {
++                let _ = decimal_values_len_at_least_one(last_digit_value@);
++                true
++            };
++            #[cfg(creusot)]
++            proof_assert!(last_digit_value@ <= 9);
++            #[cfg(creusot)]
++            proof_assert!(1 <= offset@);
++            #[cfg(creusot)]
++            let last_old_offset = offset;
++            #[cfg(creusot)]
++            let last_old_written_suffix = snapshot!(
++                logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
++            );
++            #[cfg(creusot)]
++            proof_assert!(remain@ != 0 && decimal_values(remain@)
++                .concat(*last_old_written_suffix) == decimal_values(original@));
+@@ -803,0 +1106,6 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            proof_assert!(last_old_offset@ == offset@ + 1);
++            #[cfg(creusot)]
++            proof_assert!(logical_slot_bytes(
++                buf@.subsequence(offset@ + 1, buf@.len())
++            ) == *last_old_written_suffix);
+@@ -806,0 +1115,4 @@ impl Unsigned for u128 {
++            #[cfg(creusot)]
++            proof_assert!((remain as u8)@ == remain@);
++            #[cfg(creusot)]
++            let last_digit_proof = masked_decimal_digit(remain as u8);
+@@ -808 +1120,14 @@ impl Unsigned for u128 {
+-            buf[offset].write(b'0' + last);
++            #[cfg(creusot)]
++            proof_assert!(last == last_digit_proof);
++            #[cfg(creusot)]
++            proof_assert!(48 + last_digit_proof@ <= 57);
++            write_decimal_digit(buf, offset, last);
++            #[cfg(creusot)]
++            {
++                proof_assert!(last@ == last_digit_value@);
++                proof_assert!(decimal_values(last_digit_value@)
++                    == Seq::singleton(48 + last_digit_value@));
++                proof_assert!(logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
++                    == Seq::singleton(48 + last_digit_value@)
++                        .concat(*last_old_written_suffix));
++            }
+@@ -811,21 +1135,0 @@ impl Unsigned for u128 {
+-        offset
+-    }
+-}
+-
+-// Euclidean division plus remainder with constant 1E16 basically consumes 16
+-// decimals from n.
+-//
+-// The integer division algorithm is based on the following paper:
+-//
+-//   T. Granlund and P. Montgomery, “Division by Invariant Integers Using Multiplication”
+-//   in Proc. of the SIGPLAN94 Conference on Programming Language Design and
+-//   Implementation, 1994, pp. 61–72
+-//
+-#[cfg_attr(feature = "no-panic", no_panic)]
+-#[cfg(not(creusot))]
+-fn div_rem_1e16(n: u128) -> (u128, u64) {
+-    const D: u128 = 1_0000_0000_0000_0000;
+-    // The check inlines well with the caller flow.
+-    if n < D {
+-        return (0, n as u64);
+-    }
+@@ -833,4 +1137,11 @@ fn div_rem_1e16(n: u128) -> (u128, u64) {
+-    // These constant values are computed with the CHOOSE_MULTIPLIER procedure
+-    // from the Granlund & Montgomery paper, using N=128, prec=128 and d=1E16.
+-    const M_HIGH: u128 = 76624777043294442917917351357515459181;
+-    const SH_POST: u8 = 51;
++        #[cfg(creusot)]
++        proof_assert!(forall<i: Int>
++            offset@ <= i && i < buf@.len() ==> buf@[i]@ != None);
++        #[cfg(creusot)]
++        proof_assert!(logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
++            == decimal_values(original@));
++        #[cfg(creusot)]
++        proof_assert!(offset@ + decimal_values(original@).len() == buf@.len());
++        #[cfg(creusot)]
++        proof_assert!(forall<i: Int>
++            0 <= i && i < offset@ ==> buf@[i]@ == (*buf_before)[i]@);
+@@ -838,4 +1149,2 @@ fn div_rem_1e16(n: u128) -> (u128, u64) {
+-    // n.widening_mul(M_HIGH).1 >> SH_POST
+-    let quot = u128_ext::mulhi(n, M_HIGH) >> SH_POST;
+-    let rem = n - quot * D;
+-    (quot, rem as u64)
++        offset
++    }
+diff --git a/itoa/1.0.18/src/u128_ext.rs b/itoa/1.0.18/src/u128_ext.rs
+index 866a733..0490a22 100644
+--- a/itoa/1.0.18/src/u128_ext.rs
++++ b/itoa/1.0.18/src/u128_ext.rs
+@@ -3,0 +4,174 @@ use no_panic::no_panic;
++#[cfg(creusot)]
++use creusot_std::prelude::{bitwise_proof, ensures, logic, opaque, proof_assert, requires, Int};
++
++
++#[cfg(creusot)]
++#[logic]
++#[requires(a >= 0 && b >= 0)]
++#[ensures((a + b).pow2() == a.pow2() * b.pow2())]
++pub(super) fn power_two_sum(a: Int, b: Int) {}
++
++#[cfg(creusot)]
++#[logic]
++#[ensures(64.pow2() * 64.pow2() == 128.pow2())]
++fn limb_base_square() {
++    let _ = power_two_sum(64, 64);
++    proof_assert!(64.pow2() * 64.pow2() == 128.pow2());
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(n >= 0 && n < 128.pow2())]
++#[ensures(n.div_euclid(64.pow2()) < 64.pow2())]
++fn euclidean_u128_half_bound(n: Int) {
++    let _ = limb_base_square();
++    let d = 64.pow2();
++    let q = n.div_euclid(d);
++    let r = n.rem_euclid(d);
++    proof_assert!(0 < d);
++    proof_assert!(n == q * d + r);
++    proof_assert!(0 <= r && r < d);
++    proof_assert!(n < d * d);
++    proof_assert!(q * d <= n);
++    proof_assert!(q < d);
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(n >= 0 && d > 0)]
++#[requires(n == q * d + r)]
++#[requires(0 <= r && r < d)]
++#[ensures(q == n / d)]
++pub(super) fn exact_floor_from_split(n: Int, q: Int, r: Int, d: Int) {
++    proof_assert!(q * d <= n);
++    proof_assert!(n < (q + 1) * d);
++    proof_assert!(q == n / d);
++}
++
++/// Bitwise proof draft: establish the quotient/remainder interpretation of
++/// the actual high/low limb operations in the proof build.
++#[cfg(creusot)]
++#[bitwise_proof]
++#[ensures(result.0@ == n@ / 64.pow2())]
++#[ensures(result.1@ == n@ % 64.pow2())]
++#[ensures(result.0@ * 64.pow2() + result.1@ == n@)]
++#[ensures(0 <= result.0@ && result.0@ < 64.pow2())]
++#[ensures(0 <= result.1@ && result.1@ < 64.pow2())]
++pub(crate) fn u128_halves(n: u128) -> (u64, u64) {
++    ((n >> 64) as u64, n as u64)
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(0 <= a && a < 64.pow2())]
++#[requires(0 <= b && b < 64.pow2())]
++#[ensures(a * b < 128.pow2())]
++#[ensures(a * b <= 18_446_744_073_709_551_615 * 18_446_744_073_709_551_615)]
++fn limb_product_fits(a: Int, b: Int) {
++    let top: Int = 18_446_744_073_709_551_615;
++    proof_assert!(0 <= top - a && 0 <= top - b);
++    proof_assert!(0 <= b && 0 <= top);
++    proof_assert!((top - a) * b >= 0);
++    proof_assert!(a * b <= top * b);
++    proof_assert!(top * (top - b) >= 0);
++    proof_assert!(top * b <= top * top);
++    proof_assert!(a * b <= top * top);
++    proof_assert!(top * top < 128.pow2());
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(0 <= a && a < 64.pow2())]
++#[requires(0 <= b && b < 64.pow2())]
++#[requires(0 <= c && c < 64.pow2())]
++#[ensures(a * b < 128.pow2())]
++#[ensures(a * b + c < 128.pow2())]
++fn limb_product_plus_limb_fits(a: Int, b: Int, c: Int) {
++    let top: Int = 18_446_744_073_709_551_615;
++    let _ = limb_product_fits(a, b);
++    proof_assert!(c <= top);
++    proof_assert!(a * b + c <= top * top + c);
++    proof_assert!(a * b + c <= top * top + top);
++    proof_assert!(top * top + top < 128.pow2());
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(0 <= a && a < 64.pow2())]
++#[requires(0 <= b && b < 64.pow2())]
++#[requires(0 <= c && c < 64.pow2())]
++#[requires(0 <= d && d < 64.pow2())]
++#[ensures(a * b < 128.pow2())]
++#[ensures(a * b + c < 128.pow2())]
++#[ensures(a * b + c + d < 128.pow2())]
++fn limb_product_plus_two_limbs_fits(a: Int, b: Int, c: Int, d: Int) {
++    let top: Int = 18_446_744_073_709_551_615;
++    let _ = limb_product_fits(a, b);
++    proof_assert!(c + d <= 2 * top);
++    proof_assert!(a * b + c + d <= top * top + c + d);
++    proof_assert!(a * b + c + d <= top * top + 2 * top);
++    proof_assert!(top * top + 2 * top < 128.pow2());
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(0 <= x && 0 <= y)]
++#[requires(x == x_hi * 64.pow2() + x_lo)]
++#[requires(y == y_hi * 64.pow2() + y_lo)]
++#[requires(p00 == x_lo * y_lo)]
++#[requires(carry * 64.pow2() + r00 == p00)]
++#[requires(m == x_lo * y_hi + carry)]
++#[requires(high1 * 64.pow2() + m_lo == m)]
++#[requires(p10 == x_hi * y_lo + m_lo)]
++#[requires(high2 * 64.pow2() + r10 == p10)]
++#[requires(final_result == x_hi * y_hi + high1 + high2)]
++#[requires(0 <= r00 && r00 < 64.pow2())]
++#[requires(0 <= r10 && r10 < 64.pow2())]
++#[ensures(result == final_result)]
++#[ensures(result == x * y / 128.pow2())]
++fn mulhi_limb_identity(
++    x: Int,
++    y: Int,
++    x_hi: Int,
++    x_lo: Int,
++    y_hi: Int,
++    y_lo: Int,
++    p00: Int,
++    carry: Int,
++    r00: Int,
++    m: Int,
++    high1: Int,
++    m_lo: Int,
++    p10: Int,
++    high2: Int,
++    r10: Int,
++    final_result: Int,
++) -> Int {
++    let _ = limb_base_square();
++    proof_assert!(x * y
++        == x_hi * y_hi * 128.pow2()
++            + x_hi * y_lo * 64.pow2()
++            + x_lo * y_hi * 64.pow2()
++            + x_lo * y_lo);
++    proof_assert!(x_lo * y_hi * 64.pow2() + x_lo * y_lo
++        == high1 * 128.pow2()
++            + m_lo * 64.pow2() + r00);
++    proof_assert!(x_hi * y_lo * 64.pow2()
++        + m_lo * 64.pow2()
++        == high2 * 128.pow2()
++            + r10 * 64.pow2());
++    proof_assert!(x * y
++        == (x_hi * y_hi + high1 + high2)
++            * 128.pow2()
++            + r10 * 64.pow2() + r00);
++    proof_assert!(r10 * 64.pow2() + r00
++        < 128.pow2());
++    let _ = exact_floor_from_split(
++        x * y,
++        final_result,
++        r10 * 64.pow2() + r00,
++        128.pow2(),
++    );
++    final_result
++}
++
+@@ -6,0 +181,2 @@ use no_panic::no_panic;
++#[cfg_attr(creusot, ensures(result@ == x@ * y@ / 128.pow2()))]
++#[cfg_attr(creusot, bitwise_proof)]
+@@ -12,0 +189,59 @@ pub(crate) fn mulhi(x: u128, y: u128) -> u128 {
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = limb_base_square();
++        64.pow2() * 64.pow2() == 128.pow2()
++    };
++
++    #[cfg(creusot)]
++    let x_hi_shifted = shift_by_64_actual(x);
++    #[cfg(creusot)]
++    proof_assert!(x_hi_shifted == x >> 64i32);
++    #[cfg(creusot)]
++    proof_assert!(x_hi_shifted@ == x@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert!(x@ >= 0);
++    #[cfg(creusot)]
++    proof_assert!(x@ < 128.pow2());
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = euclidean_u128_half_bound(x@);
++        x_hi_shifted@ < 64.pow2()
++    };
++    // Keep the proof connection in the integer model; the cast's logical
++    // bitvector embedding is partial even though its Rust implementation is
++    // the modulo cast handled by the executable cast model.
++    #[cfg(creusot)]
++    proof_assert!(0 < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(computer_division_matches_shift64(x@)
++        && x@ / 64.pow2() == x@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert!(x_hi@ == x@ / 64.pow2());
++    #[cfg(creusot)]
++    let y_hi_shifted = shift_by_64_actual(y);
++    #[cfg(creusot)]
++    proof_assert!(y_hi_shifted == y >> 64i32);
++    #[cfg(creusot)]
++    proof_assert!(y_hi_shifted@ == y@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert!(y@ >= 0);
++    #[cfg(creusot)]
++    proof_assert!(y@ < 128.pow2());
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = euclidean_u128_half_bound(y@);
++        y_hi_shifted@ < 64.pow2()
++    };
++    #[cfg(creusot)]
++    proof_assert!(0 < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(computer_division_matches_shift64(y@)
++        && y@ / 64.pow2() == y@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert!(y_hi@ == y@ / 64.pow2());
++
++    #[cfg(creusot)]
++    proof_assert!(x_hi@ == x@ / 64.pow2() && x_lo@ == x@ % 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(y_hi@ == y@ / 64.pow2() && y_lo@ == y@ % 64.pow2());
++
+@@ -13,0 +249,5 @@ pub(crate) fn mulhi(x: u128, y: u128) -> u128 {
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = limb_product_fits(x_lo@, y_lo@);
++        x_lo@ * y_lo@ < 128.pow2()
++    };
+@@ -14,0 +255,37 @@ pub(crate) fn mulhi(x: u128, y: u128) -> u128 {
++
++    #[cfg(creusot)]
++    let carry_product = u128::from(x_lo) * u128::from(y_lo);
++    #[cfg(creusot)]
++    let carry_shifted = shift_by_64_actual(carry_product);
++    #[cfg(creusot)]
++    proof_assert!(carry_product@ == x_lo@ * y_lo@);
++    #[cfg(creusot)]
++    proof_assert!(carry_product@ < 128.pow2());
++    #[cfg(creusot)]
++    proof_assert!(carry_shifted == carry_product >> 64i32);
++    #[cfg(creusot)]
++    proof_assert!(carry_shifted@ == carry_product@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = euclidean_u128_half_bound(carry_product@);
++        carry_shifted@ < 64.pow2()
++    };
++    #[cfg(creusot)]
++    proof_assert!(carry == carry_shifted);
++    #[cfg(creusot)]
++    proof_assert!(carry@ < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(carry_product@ >= 0);
++    #[cfg(creusot)]
++    proof_assert!(0 < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(computer_division_matches_shift64(carry_product@)
++        && carry_product@ / 64.pow2() == carry_product@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert!(carry@ == carry_product@ / 64.pow2());
++
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = limb_product_plus_limb_fits(x_lo@, y_hi@, carry@);
++        x_lo@ * y_hi@ + carry@ < 128.pow2()
++    };
+@@ -16 +292,0 @@ pub(crate) fn mulhi(x: u128, y: u128) -> u128 {
+-    let high1 = m >> 64;
+@@ -17,0 +294 @@ pub(crate) fn mulhi(x: u128, y: u128) -> u128 {
++    let high1 = m >> 64;
+@@ -18,0 +296,34 @@ pub(crate) fn mulhi(x: u128, y: u128) -> u128 {
++    #[cfg(creusot)]
++    let high1_shifted = shift_by_64_actual(m);
++    #[cfg(creusot)]
++    proof_assert!(high1_shifted == m >> 64i32);
++    #[cfg(creusot)]
++    proof_assert!(high1_shifted@ == m@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert!(high1 == high1_shifted);
++    #[cfg(creusot)]
++    proof_assert!(m@ < 128.pow2());
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = euclidean_u128_half_bound(m@);
++        high1_shifted@ < 64.pow2()
++    };
++    #[cfg(creusot)]
++    proof_assert!(high1@ < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(m@ >= 0);
++    #[cfg(creusot)]
++    proof_assert!(0 < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(computer_division_matches_shift64(m@)
++        && m@ / 64.pow2() == m@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert!(high1@ == m@ / 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(m_lo@ == m@ % 64.pow2());
++
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = limb_product_plus_limb_fits(x_hi@, y_lo@, m_lo@);
++        x_hi@ * y_lo@ + m_lo@ < 128.pow2()
++    };
+@@ -21 +332,203 @@ pub(crate) fn mulhi(x: u128, y: u128) -> u128 {
+-    u128::from(x_hi) * u128::from(y_hi) + high1 + high2
++    #[cfg(creusot)]
++    let high2_product = u128::from(x_hi) * u128::from(y_lo) + u128::from(m_lo);
++    #[cfg(creusot)]
++    let high2_shifted = shift_by_64_actual(high2_product);
++    #[cfg(creusot)]
++    proof_assert!(high2_product@ < 128.pow2());
++    #[cfg(creusot)]
++    proof_assert!(high2_shifted == high2_product >> 64i32);
++    #[cfg(creusot)]
++    proof_assert!(high2_shifted@ == high2_product@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = euclidean_u128_half_bound(high2_product@);
++        high2_shifted@ < 64.pow2()
++    };
++    #[cfg(creusot)]
++    proof_assert!(high2 == high2_shifted);
++    #[cfg(creusot)]
++    proof_assert!(high2@ < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(high2_product@ >= 0);
++    #[cfg(creusot)]
++    proof_assert!(0 < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(computer_division_matches_shift64(high2_product@)
++        && high2_product@ / 64.pow2() == high2_product@.div_euclid(64.pow2()));
++    #[cfg(creusot)]
++    proof_assert!(high2@ == high2_product@ / 64.pow2());
++
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = limb_product_plus_two_limbs_fits(x_hi@, y_hi@, high1@, high2@);
++        x_hi@ * y_hi@ + high1@ + high2@ < 128.pow2()
++    };
++    let result = u128::from(x_hi) * u128::from(y_hi) + high1 + high2;
++
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = mulhi_limb_identity(
++            x@,
++            y@,
++            x_hi@,
++            x_lo@,
++            y_hi@,
++            y_lo@,
++            x_lo@ * y_lo@,
++            carry@,
++            (x_lo@ * y_lo@) % 64.pow2(),
++            m@,
++            high1@,
++            m_lo@,
++            x_hi@ * y_lo@ + m_lo@,
++            high2@,
++            (x_hi@ * y_lo@ + m_lo@) % 64.pow2(),
++            result@,
++        );
++        result@ == x@ * y@ / 128.pow2()
++    };
++    result
++}
++
++#[cfg(creusot)]
++#[bitwise_proof]
++#[requires(k@ >= 0 && k@ < 128)]
++#[ensures(result@ == n@ / k@.pow2())]
++pub(crate) fn shift_by(n: u128, k: u32) -> u128 {
++    #[cfg(creusot)]
++    proof_assert!(n@ >= 0);
++    n >> k
++}
++
++#[cfg(creusot)]
++#[bitwise_proof]
++#[requires(k@ >= 0 && k@ < 128)]
++#[ensures(result@ == n@ / k@.pow2())]
++#[ensures(result == n >> k)]
++pub(crate) fn shift_by_u128(n: u128, k: u128) -> u128 {
++    #[cfg(creusot)]
++    proof_assert!(n@ >= 0);
++    n >> k
++}
++
++#[cfg(creusot)]
++#[bitwise_proof]
++#[requires(k@ >= 0 && k@ < 128)]
++#[ensures(result@ == n@.div_euclid(k@.pow2()))]
++#[ensures(result == n >> k)]
++pub(crate) fn shift_by_u128_euclid(n: u128, k: u128) -> u128 {
++    n >> k
++}
++
++#[cfg(creusot)]
++#[bitwise_proof]
++#[requires(k@ >= 0 && k@ < 128)]
++#[ensures(result@ == n@.div_euclid(k@.pow2()))]
++#[ensures(result == n >> k)]
++pub(crate) fn shift_by_i32_euclid(n: u128, k: i32) -> u128 {
++    n >> k
++}
++
++#[cfg(creusot)]
++#[bitwise_proof]
++#[ensures(result@ == n@.div_euclid(64.pow2()))]
++#[ensures(result == n >> 64i32)]
++pub(crate) fn shift_by_64_actual(n: u128) -> u128 {
++    n >> 64
++}
++
++#[cfg(creusot)]
++#[bitwise_proof]
++#[ensures(result@ == n@.div_euclid(64.pow2()))]
++pub(crate) fn high_half_as_u64(n: u128) -> u64 {
++    proof_assert!(n@ >= 0);
++    proof_assert!(0 < 64.pow2());
++    (n >> 64i32) as u64
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(q@ == ((n >> 64i32) as u64)@)]
++#[ensures(q@ == n@ / 64.pow2())]
++pub(super) fn high_half_cast_view(n: u128, q: u64) {
++    proof_assert!(q@ == n@ / 64.pow2());
++}
++
++#[cfg(creusot)]
++#[bitwise_proof]
++#[requires(q == (n >> 64i32) as u64)]
++#[ensures(q@ == n@.div_euclid(64.pow2()))]
++pub(super) fn high_half_cast_bitwise(n: u128, q: u64) {}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(x <= y && z >= 0)]
++#[ensures(x * z <= y * z)]
++fn positive_multiplication_monotone(x: Int, y: Int, z: Int) {
++    proof_assert!((y - x) * z >= 0);
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(n >= 0 && d > 0)]
++#[requires(n == q * d + r)]
++#[requires(n == qe * d + re)]
++#[requires(0 <= r && r < d)]
++#[requires(0 <= re && re < d)]
++#[ensures(q == qe)]
++fn quotient_equal_from_remainders(n: Int, d: Int, q: Int, r: Int, qe: Int, re: Int) {
++    if q < qe {
++        proof_assert!(q + 1 <= qe);
++        let _ = positive_multiplication_monotone(q + 1, qe, d);
++        proof_assert!((q + 1) * d <= qe * d);
++        proof_assert!(n < (q + 1) * d);
++        proof_assert!(qe * d <= n);
++        proof_assert!(n < n);
++    }
++    if qe < q {
++        proof_assert!(qe + 1 <= q);
++        let _ = positive_multiplication_monotone(qe + 1, q, d);
++        proof_assert!((qe + 1) * d <= q * d);
++        proof_assert!(n < (qe + 1) * d);
++        proof_assert!(q * d <= n);
++        proof_assert!(n < n);
++    }
++}
++
++#[cfg(creusot)]
++#[logic]
++#[opaque]
++#[requires(n >= 0 && d > 0)]
++#[ensures(n / d == n.div_euclid(d))]
++fn computer_division_euclidean_compat(n: Int, d: Int) {
++    let q = n / d;
++    let r = n % d;
++    let qe = n.div_euclid(d);
++    let re = n.rem_euclid(d);
++    proof_assert!(n == d * q + r);
++    proof_assert!(0 <= r && r < d);
++    proof_assert!(n == qe * d + re);
++    proof_assert!(0 <= re && re < d);
++    let _ = quotient_equal_from_remainders(n, d, q, r, qe, re);
++    proof_assert!(q == qe);
++    proof_assert!(n / d == q);
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(n >= 0)]
++#[ensures(result && result == (n / 64.pow2() == n.div_euclid(64.pow2())))]
++pub(super) fn computer_division_matches_shift64(n: Int) -> bool {
++    let _ = computer_division_euclidean_compat(n, 64.pow2());
++    proof_assert!(n / 64.pow2() == n.div_euclid(64.pow2()));
++    n / 64.pow2() == n.div_euclid(64.pow2())
++}
++
++#[cfg(creusot)]
++#[logic]
++#[requires(n >= 0)]
++#[ensures(result && result == (n / 51.pow2() == n.div_euclid(51.pow2())))]
++pub(super) fn computer_division_matches_shift51(n: Int) -> bool {
++    let _ = computer_division_euclidean_compat(n, 51.pow2());
++    proof_assert!(n / 51.pow2() == n.div_euclid(51.pow2()));
++    n / 51.pow2() == n.div_euclid(51.pow2())
+diff --git a/itoa/1.0.18/src/verification.rs b/itoa/1.0.18/src/verification.rs
+index 5434f39..0c9b417 100644
+--- a/itoa/1.0.18/src/verification.rs
++++ b/itoa/1.0.18/src/verification.rs
+@@ -58,0 +59,22 @@ pub fn logical_slot_bytes_subsequence(
++/// Convert exact initialized-slot contents into the corresponding byte model.
++#[logic]
++#[requires(slots.len() == digits.len())]
++#[requires(forall<i: Int> 0 <= i && i < slots.len() ==>
++    slots[i]@ != None)]
++#[requires(forall<i: Int> 0 <= i && i < slots.len() ==>
++    slots[i]@.unwrap_logic()@ == digits[i])]
++#[ensures(result == logical_slot_bytes(slots))]
++#[ensures(result == digits)]
++#[ensures(result.len() == slots.len())]
++pub(crate) fn logical_slot_bytes_initialized_range(
++    slots: Seq<MaybeUninit<u8>>,
++    digits: Seq<Int>,
++) -> Seq<Int> {
++    let bytes = logical_slot_bytes(slots);
++    proof_assert!(bytes.len() == digits.len());
++    proof_assert!(forall<i: Int> 0 <= i && i < slots.len() ==>
++        bytes[i] == digits[i]);
++    proof_assert!(bytes == digits);
++    bytes
++}
++
+@@ -972,0 +995,340 @@ pub(crate) fn decimal_values_split_4(n: Int) {
++
++
++// Phase 6: proved canonical 10^16 chunk composition support.
++/// The powers-of-ten model is multiplicative across addition of exponents.
++#[logic]
++#[requires(exponent >= 0)]
++#[ensures(power_of_ten(exponent) >= 1)]
++#[variant(exponent)]
++pub(crate) fn power_of_ten_positive(exponent: Int) {
++    power_of_ten_unfold(exponent);
++    if exponent == 0 {
++        power_of_ten_unfold(0);
++        proof_assert!(power_of_ten(0) == 1);
++    } else {
++        proof_assert!(exponent > 0);
++        power_of_ten_positive(exponent - 1);
++        proof_assert!(power_of_ten(exponent - 1) >= 1);
++        proof_assert!(power_of_ten(exponent) == 10 * power_of_ten(exponent - 1));
++        proof_assert!(power_of_ten(exponent) >= 1);
++    }
++}
++
++#[logic]
++#[requires(a >= 0)]
++#[requires(b >= 0)]
++#[ensures(power_of_ten(a + b) == power_of_ten(a) * power_of_ten(b))]
++#[variant(b)]
++pub(crate) fn power_of_ten_add(a: Int, b: Int) {
++    power_of_ten_unfold(b);
++    if b == 0 {
++        power_of_ten_unfold(0);
++        proof_assert!(power_of_ten(0) == 1);
++        proof_assert!(power_of_ten(a + 0) == power_of_ten(a));
++    } else {
++        proof_assert!(b > 0);
++        proof_assert!(a + b >= 0);
++        power_of_ten_unfold(a + b);
++        power_of_ten_add(a, b - 1);
++        power_of_ten_unfold(b - 1);
++        proof_assert!(a + b == a + (b - 1) + 1);
++        proof_assert!(power_of_ten(a + b) == 10 * power_of_ten(a + b - 1));
++        proof_assert!(power_of_ten(b) == 10 * power_of_ten(b - 1));
++        proof_assert!(power_of_ten(a + b) == power_of_ten(a) * power_of_ten(b));
++    }
++}
++
++/// Euclidean quotient and remainder after splitting a radix that is a
++/// multiple of ten. This packages the division facts used by decimal models.
++#[logic]
++#[requires(high >= 0)]
++#[requires(base > 0)]
++#[requires(rem >= 0)]
++#[requires(rem < base)]
++#[ensures((high * base + rem) / base == high)]
++#[ensures((high * base + rem) % base == rem)]
++pub(crate) fn euclidean_mul_add(high: Int, base: Int, rem: Int) {
++    proof_assert!(high * base + rem == high * base + rem);
++}
++
++#[logic]
++#[requires(high >= 0)]
++#[requires(base > 0)]
++#[requires(low >= 0)]
++#[requires(low < 10 * base)]
++#[requires(n == high * (10 * base) + low)]
++#[ensures(n / 10 == high * base + low / 10)]
++#[ensures(n % 10 == low % 10)]
++#[ensures((n / 10) / base == high)]
++#[ensures((n / 10) % base == low / 10)]
++pub(crate) fn decimal_division_split_10(
++    n: Int,
++    high: Int,
++    base: Int,
++    low: Int,
++) {
++    proof_assert!(low == 10 * (low / 10) + low % 10);
++    proof_assert!(n == (n / 10) * 10 + n % 10);
++    proof_assert!((n / 10)
++        == ((n / 10) / base) * base + (n / 10) % base);
++    proof_assert!(0 <= low % 10 && low % 10 < 10);
++    proof_assert!(low / 10 < base);
++    proof_assert!(n == 10 * (high * base + low / 10) + low % 10);
++    proof_assert!(high * base + low / 10 >= 0);
++    proof_assert!(n / 10 == high * base + low / 10);
++    proof_assert!(n % 10 == low % 10);
++    euclidean_mul_add(high, base, low / 10);
++}
++
++/// Split a fixed-width sequence at any positive low width.
++#[logic]
++#[requires(n >= 0)]
++#[requires(high_width >= 1)]
++#[requires(low_width >= 1)]
++#[requires(n < power_of_ten(high_width + low_width))]
++#[ensures(fixed_width_decimal_values(n, high_width + low_width)
++    == fixed_width_decimal_values(n / power_of_ten(low_width), high_width)
++        .concat(fixed_width_decimal_values(n % power_of_ten(low_width), low_width)))]
++#[variant(low_width)]
++pub(crate) fn fixed_width_decimal_values_split_width(
++    n: Int,
++    high_width: Int,
++    low_width: Int,
++) {
++    if low_width == 1 {
++        let _ = fixed_width_decimal_values_unfold(n, high_width + 1);
++        let _ = fixed_width_decimal_values_unfold(n % 10, 1);
++        let _ = decimal_values_one_digit(n % 10);
++        power_of_ten_unfold(1);
++        power_of_ten_unfold(0);
++        proof_assert!(power_of_ten(1) == 10);
++        proof_assert!(power_of_ten(0) == 1);
++        proof_assert!(n % power_of_ten(1) == n % 10);
++        proof_assert!(n / power_of_ten(1) == n / 10);
++        decimal_seq_snoc_singleton(
++            fixed_width_decimal_values(n / 10, high_width),
++            48 + n % 10,
++        );
++    } else {
++        power_of_ten_positive(low_width);
++        power_of_ten_positive(low_width - 1);
++        power_of_ten_positive(high_width + low_width);
++        power_of_ten_positive(high_width + low_width - 1);
++        power_of_ten_unfold(high_width + low_width);
++        power_of_ten_unfold(low_width);
++        power_of_ten_unfold(low_width - 1);
++        proof_assert!(high_width + low_width > 1);
++        proof_assert!(power_of_ten(high_width + low_width)
++            == 10 * power_of_ten(high_width + low_width - 1));
++        proof_assert!(power_of_ten(low_width)
++            == 10 * power_of_ten(low_width - 1));
++        proof_assert!(n / 10 >= 0);
++        proof_assert!(n / 10 < power_of_ten(high_width + low_width - 1));
++        fixed_width_decimal_values_split_width(n / 10, high_width, low_width - 1);
++
++        let high = n / power_of_ten(low_width);
++        let low = n % power_of_ten(low_width);
++        proof_assert!(n == high * power_of_ten(low_width) + low);
++        proof_assert!(0 <= low && low < power_of_ten(low_width));
++        proof_assert!(power_of_ten(low_width)
++            == 10 * power_of_ten(low_width - 1));
++        proof_assert!(high * power_of_ten(low_width)
++            == high * 10 * power_of_ten(low_width - 1));
++        proof_assert!(n == high * 10 * power_of_ten(low_width - 1) + low);
++        decimal_division_split_10(
++            n,
++            high,
++            power_of_ten(low_width - 1),
++            low,
++        );
++
++        let _ = fixed_width_decimal_values_unfold(n, high_width + low_width);
++        let _ = fixed_width_decimal_values_unfold(low, low_width);
++        decimal_seq_concat_snoc(
++            fixed_width_decimal_values(high, high_width),
++            fixed_width_decimal_values(low / 10, low_width - 1),
++            48 + n % 10,
++        );
++        proof_assert!(fixed_width_decimal_values(n, high_width + low_width)
++            == fixed_width_decimal_values(high, high_width)
++                .concat(fixed_width_decimal_values(low, low_width)));
++    }
++}
++
++/// Split a canonical decimal sequence at any positive number of low digits.
++#[logic]
++#[requires(width >= 1)]
++#[requires(n >= power_of_ten(width - 1))]
++#[ensures(decimal_values(n)
++    == (if n / power_of_ten(width) == 0 {
++        Seq::empty()
++    } else {
++        decimal_values(n / power_of_ten(width))
++    }).concat(fixed_width_decimal_values(n % power_of_ten(width), width)))]
++#[variant(width)]
++pub(crate) fn decimal_values_split_width(n: Int, width: Int) {
++    if width == 1 {
++        power_of_ten_unfold(1);
++        power_of_ten_unfold(0);
++        proof_assert!(power_of_ten(1) == 10);
++        proof_assert!(power_of_ten(0) == 1);
++        let high = n / 10;
++        let low = n % 10;
++        proof_assert!(n == high * 10 + low);
++        proof_assert!(0 <= low && low < 10);
++        let _ = fixed_width_decimal_values_unfold(low, 1);
++        let _ = decimal_values_one_digit(low);
++        if high == 0 {
++            proof_assert!(n < 10);
++            proof_assert!(low == n);
++            decimal_values_unfold(n);
++            proof_assert!(decimal_values(n) == Seq::singleton(48 + n));
++            proof_assert!((if high == 0 { Seq::empty() } else {
++                decimal_values(high)
++            }).concat(fixed_width_decimal_values(low, 1)) == decimal_values(n));
++        } else {
++            proof_assert!(high > 0);
++            proof_assert!(n >= 10);
++            decimal_values_unfold(n);
++            decimal_seq_snoc_singleton(decimal_values(high), 48 + low);
++            proof_assert!((if high == 0 { Seq::empty() } else {
++                decimal_values(high)
++            }).concat(fixed_width_decimal_values(low, 1)) == decimal_values(n));
++        }
++    } else {
++        power_of_ten_positive(width);
++        power_of_ten_positive(width - 1);
++        power_of_ten_positive(width - 2);
++        power_of_ten_unfold(width);
++        power_of_ten_unfold(width - 1);
++        proof_assert!(width - 1 >= 1);
++        proof_assert!(power_of_ten(width) == 10 * power_of_ten(width - 1));
++        proof_assert!(n / 10 >= power_of_ten(width - 2));
++        decimal_values_split_width(n / 10, width - 1);
++
++        let high = n / power_of_ten(width);
++        let low = n % power_of_ten(width);
++        proof_assert!(n == high * power_of_ten(width) + low);
++        proof_assert!(0 <= low && low < power_of_ten(width));
++        proof_assert!(power_of_ten(width)
++            == 10 * power_of_ten(width - 1));
++        proof_assert!(high * power_of_ten(width)
++            == high * 10 * power_of_ten(width - 1));
++        proof_assert!(n == high * 10 * power_of_ten(width - 1) + low);
++        decimal_division_split_10(
++            n,
++            high,
++            power_of_ten(width - 1),
++            low,
++        );
++
++        decimal_values_unfold(n);
++        let _ = fixed_width_decimal_values_unfold(low, width);
++        decimal_seq_concat_snoc(
++            if high == 0 { Seq::empty() } else { decimal_values(high) },
++            fixed_width_decimal_values(low / 10, width - 1),
++            48 + n % 10,
++        );
++        proof_assert!(decimal_values(n)
++            == (if high == 0 { Seq::empty() } else { decimal_values(high) })
++                .concat(fixed_width_decimal_values(low, width)));
++    }
++}
++
++/// A concrete power used by the u128 formatter's 16-digit radix.
++#[logic]
++#[ensures(power_of_ten(16) == 10_000_000_000_000_000)]
++pub(crate) fn power_of_ten_16() {
++    power_of_ten_unfold(16);
++    power_of_ten_unfold(15);
++    power_of_ten_unfold(14);
++    power_of_ten_unfold(13);
++    power_of_ten_unfold(12);
++    power_of_ten_unfold(11);
++    power_of_ten_unfold(10);
++    power_of_ten_unfold(9);
++    power_of_ten_unfold(8);
++    power_of_ten_unfold(7);
++    power_of_ten_unfold(6);
++    power_of_ten_unfold(5);
++    power_of_ten_unfold(4);
++    power_of_ten_unfold(3);
++    power_of_ten_unfold(2);
++    power_of_ten_unfold(1);
++    power_of_ten_unfold(0);
++}
++
++/// Canonical decimal values split into an optional high prefix and a padded
++/// low 16-digit block. Requires at least 16 canonical digits.
++#[logic]
++#[requires(n >= 1_000_000_000_000_000)]
++#[ensures(decimal_values(n)
++    == (if n / 10_000_000_000_000_000 == 0 {
++        Seq::empty()
++    } else {
++        decimal_values(n / 10_000_000_000_000_000)
++    }).concat(fixed_width_decimal_values(
++        n % 10_000_000_000_000_000,
++        16,
++    )))]
++pub(crate) fn decimal_values_split_16(n: Int) {
++    power_of_ten_16();
++    power_of_ten_unfold(16);
++    proof_assert!(power_of_ten(15) == 1_000_000_000_000_000);
++    decimal_values_split_width(n, 16);
++    proof_assert!(power_of_ten(16) == 10_000_000_000_000_000);
++}
++
++/// Canonical fixed-width sequence composed from two 16-digit radix blocks.
++#[logic]
++#[requires(n >= 0)]
++#[requires(n < 100_000_000_000_000_000_000_000_000_000_000)]
++#[ensures(fixed_width_decimal_values(n, 32)
++    == fixed_width_decimal_values(n / 10_000_000_000_000_000, 16)
++        .concat(fixed_width_decimal_values(n % 10_000_000_000_000_000, 16)))]
++pub(crate) fn fixed_width_decimal_values_split_16x16(n: Int) {
++    power_of_ten_16();
++    power_of_ten_add(16, 16);
++    proof_assert!(power_of_ten(32)
++        == 100_000_000_000_000_000_000_000_000_000_000);
++    fixed_width_decimal_values_split_width(n, 16, 16);
++    proof_assert!(power_of_ten(16) == 10_000_000_000_000_000);
++}
++
++/// Concatenate the canonical high prefix with a zero-padded low radix block.
++#[logic]
++#[requires(high > 0)]
++#[requires(0 <= low && low < 10_000_000_000_000_000)]
++#[ensures(decimal_values(high * 10_000_000_000_000_000 + low)
++    == decimal_values(high).concat(fixed_width_decimal_values(low, 16)))]
++pub(crate) fn decimal_values_compose_16(high: Int, low: Int) {
++    power_of_ten_16();
++    decimal_values_split_16(high * 10_000_000_000_000_000 + low);
++    proof_assert!(
++        (high * 10_000_000_000_000_000 + low) / 10_000_000_000_000_000 == high
++    );
++    proof_assert!(
++        (high * 10_000_000_000_000_000 + low) % 10_000_000_000_000_000 == low
++    );
++}
++
++/// Compose two consecutive 16-digit low blocks after a nonzero high prefix.
++#[logic]
++#[requires(top > 0)]
++#[requires(0 <= middle && middle < 10_000_000_000_000_000)]
++#[requires(0 <= low && low < 10_000_000_000_000_000)]
++#[ensures(decimal_values(
++    (top * 10_000_000_000_000_000 + middle) * 10_000_000_000_000_000 + low
++) == decimal_values(top)
++    .concat(fixed_width_decimal_values(middle, 16))
++    .concat(fixed_width_decimal_values(low, 16)))]
++pub(crate) fn decimal_values_compose_16x2(top: Int, middle: Int, low: Int) {
++    let high = top * 10_000_000_000_000_000 + middle;
++    decimal_values_compose_16(high, low);
++    decimal_values_compose_16(top, middle);
++    decimal_seq_concat_assoc(
++        decimal_values(top),
++        fixed_width_decimal_values(middle, 16),
++        fixed_width_decimal_values(low, 16),
++    );
++}
