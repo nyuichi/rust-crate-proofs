@@ -621,7 +621,11 @@ Only the 64-bit `usize` and `isize` writer adapters are covered on x86_64; the
 16- and 32-bit fallback adapters remain pending. The `u128` writer still
 inherits the exact accepted `mulhi` high-half contract from Phase 4. Full
 source details and standard-library assumptions are in
-[RUNTIME_MEMORY_LEDGER.md](RUNTIME_MEMORY_LEDGER.md).
+[RUNTIME_MEMORY_LEDGER.md](RUNTIME_MEMORY_LEDGER.md). The Creusot/Verus boundary
+contracts, Phase 11 partial Verus result, and exact remaining raw-memory gaps
+are recorded in [CROSS_TOOL_BOUNDARIES.md](CROSS_TOOL_BOUNDARIES.md); the
+standalone post-conversion Verus lemma is
+[verus/ascii_bytes_to_str.rs](verus/ascii_bytes_to_str.rs).
 
 ### Historical pre-integration verification of the boundary note
 

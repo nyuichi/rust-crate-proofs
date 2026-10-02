@@ -7,7 +7,8 @@ The established contract and proof record below describes the current
 phase by phase; see [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md) for its
 separate scope and proof status. The Phase 8 audit of initialized runtime
 suffixes and remaining raw-memory boundaries is in
-[RUNTIME_MEMORY_LEDGER.md](RUNTIME_MEMORY_LEDGER.md).
+[RUNTIME_MEMORY_LEDGER.md](RUNTIME_MEMORY_LEDGER.md), with cross-tool contract
+status in [CROSS_TOOL_BOUNDARIES.md](CROSS_TOOL_BOUNDARIES.md).
 
 This source tree is copied from the crate published on crates.io as `itoa`
 version `1.0.18`. The published archive has SHA-256 checksum
