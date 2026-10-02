@@ -16,7 +16,7 @@ use crate::verification::{
     decimal_values_split_4, masked_decimal_digit,
     fixed_width_decimal_values, fixed_width_decimal_values_2_is_decimal,
     decimal_values_compose_16, decimal_values_compose_16x2, power_of_ten_16,
-    fixed_width_decimal_values_len, integer_decimal_values, logical_slot_states,
+    fixed_width_decimal_values_len, integer_decimal_values, integer_value, logical_slot_states,
     logical_slot_bytes_equal_states_initialized, i64_signed_decimal_capacity,
     logical_slot_states_subsequence, range_from_prefix_raw_frame,
     initialized_slot_suffix_non_sentinel, logical_slot_states_suffix_initialized,
@@ -238,7 +238,7 @@ impl_Integer!(i64, u64);
 impl_Integer!(i128, u128);
 
 macro_rules! impl_Integer_size {
-    ($t:ty as $primitive:ident #[cfg(target_pointer_width = $width:literal)]) => {
+    ($t:ident as $primitive:ident #[cfg(target_pointer_width = $width:literal)]) => {
         #[cfg(target_pointer_width = $width)]
         impl Integer for $t {
             const MAX_STR_LEN: usize = <$primitive as Integer>::MAX_STR_LEN;
@@ -252,10 +252,80 @@ macro_rules! impl_Integer_size {
             #[cfg_attr(feature = "no-panic", no_panic)]
             #[cfg(not(creusot))]
             fn write(self, buf: &mut Self::Buffer) -> &str {
-                (self as $primitive).write(buf)
+                integer_size_write!($t, $primitive, self, buf)
             }
         }
     };
+}
+
+macro_rules! integer_size_write {
+    (usize, u64, $value:ident, $buf:ident) => {{
+        let offset = fmt_usize_via_u64($value, $buf);
+        unsafe { slice_buffer_to_str($buf, offset) }
+    }};
+    (isize, i64, $value:ident, $buf:ident) => {{
+        let offset = fmt_isize_via_i64($value, $buf);
+        unsafe { slice_buffer_to_str($buf, offset) }
+    }};
+    ($t:ty, $primitive:ident, $value:ident, $buf:ident) => {
+        ($value as $primitive).write($buf)
+    };
+}
+
+#[cfg(target_pointer_width = "64")]
+#[cfg_attr(creusot, ensures(result@ == value@))]
+#[cfg_attr(creusot, ensures(integer_value(value) == integer_value(result)))]
+#[cfg_attr(creusot, ensures(integer_decimal_values(value) == integer_decimal_values(result)))]
+#[inline]
+fn cast_usize_to_u64(value: usize) -> u64 {
+    value as u64
+}
+
+#[cfg(target_pointer_width = "64")]
+#[cfg_attr(creusot, ensures(result@ == value@))]
+#[cfg_attr(creusot, ensures(integer_value(value) == integer_value(result)))]
+#[cfg_attr(creusot, ensures(integer_decimal_values(value) == integer_decimal_values(result)))]
+#[inline]
+fn cast_isize_to_i64(value: isize) -> i64 {
+    value as i64
+}
+
+#[cfg(target_pointer_width = "64")]
+#[cfg_attr(creusot, ensures(result@ + integer_decimal_values(value).len() == buf@.len()))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    result@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    result@ <= i && i < buf@.len() ==>
+        (^buf)@[i]@.unwrap_logic()@ == integer_decimal_values(value)[i - result@]))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    0 <= i && i < result@ ==> (^buf)@[i]@ == buf@[i]@))]
+fn fmt_usize_via_u64(
+    value: usize,
+    buf: &mut <usize as private::Sealed>::Buffer,
+) -> usize {
+    let widened = cast_usize_to_u64(value);
+    #[cfg(creusot)]
+    proof_assert!(integer_decimal_values(value) == integer_decimal_values(widened));
+    Unsigned::fmt(widened, buf)
+}
+
+#[cfg(target_pointer_width = "64")]
+#[cfg_attr(creusot, ensures(result@ + integer_decimal_values(value).len() == buf@.len()))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    result@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    result@ <= i && i < buf@.len() ==>
+        (^buf)@[i]@.unwrap_logic()@ == integer_decimal_values(value)[i - result@]))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    0 <= i && i < result@ ==> (^buf)@[i]@ == buf@[i]@))]
+fn fmt_isize_via_i64(
+    value: isize,
+    buf: &mut <isize as private::Sealed>::Buffer,
+) -> usize {
+    let widened = cast_isize_to_i64(value);
+    #[cfg(creusot)]
+    proof_assert!(integer_decimal_values(value) == integer_decimal_values(widened));
+    signed_write_i64(widened, buf)
 }
 
 impl_Integer_size!(isize as i16 #[cfg(target_pointer_width = "16")]);

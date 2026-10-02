@@ -39,14 +39,14 @@ establishes the following:
 
 The original recursive-model baseline proved 67 translated files in both
 configurations. The latest integrated runtime matrix is recorded in
-[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 196
-libraries / 1,696 VCs and all-features proves 197 / 1,700 at the Phase 7 i128
-checkpoint. The i8 checkpoint reported 200 / 1,771 and 201 / 1,775. The current
-signed checkpoint reports 210 / 1,869 and 211 / 1,873. It includes the actual
-unsigned formatter bodies, signed i8/i16/i32/i64/i128 buffer writers, and an
-`i128::MIN` witness; the `u128` path remains conditional on the accepted
-trusted `mulhi` result contract. The all-features configuration includes the
-upstream optional `no-panic` dependency.
+[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 214
+libraries / 1,877 VCs and all-features proves 215 / 1,881 on the current
+x86_64 target. This includes the actual unsigned formatter bodies, signed
+i8/i16/i32/i64/i128 buffer writers, the 64-bit `usize`/`isize` buffer-writer
+adapters, and an `i128::MIN` witness. The `u128` path remains conditional on
+the accepted trusted `mulhi` result contract. Raw `Buffer::format` and the
+runtime borrowed-`str` conversion are not included. The all-features
+configuration includes the upstream optional `no-panic` dependency.
 
 ## Explicit trusted boundaries
 

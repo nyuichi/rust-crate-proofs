@@ -9,9 +9,10 @@ construction. Under `cfg(creusot)`, the shared `Unsigned::fmt` bodies for
 `u8`, `u16`, `u32`, `u64`, and `u128` are translated and proved. The public
 formatting facade still comes from `verification.rs`. Phase 7 also proves the
 actual signed `i8`, `i16`, `i32`, `i64`, and `i128` buffer writers, including
-the `i128::MIN` path.
-Raw `Buffer::format`, the borrowed-`str` conversion, and the other signed
-wrappers remain outside this runtime proof. The `u64` 16-digit chunk encoder called by
+the `i128::MIN` path. The 64-bit `usize` and `isize` buffer-writer adapters
+are also proved on the x86_64 target.
+Raw `Buffer::format`, the borrowed-`str` conversion, and the 16- and 32-bit
+pointer-width fallback adapters remain outside this runtime proof. The `u64` 16-digit chunk encoder called by
 the native `u128` formatter is translated and proved as a separate component.
 The recursive decimal model in `verification.rs` remains the formatter's
 specification, and all existing model proofs are retained.
@@ -20,7 +21,8 @@ The first shared implementation boundary is `divmod100`: normal runtime callers
 use this body, and Creusot translates and proves the same executable body as an
 independent leaf. Phase 3 connects the actual `u8`, `u16`, `u32`, and `u64`
 formatter bodies to the decimal model; Phase 7 proves the signed `i128`
-buffer writer. Other signed wrappers and public adapters remain later phases.
+buffer writers and the x86_64 pointer-width byte-writer adapters. Raw public
+formatting and string-conversion adapters remain pending.
 
 ## Proof status
 
@@ -43,7 +45,8 @@ buffer writer. Other signed wrappers and public adapters remain later phases.
 | Actual signed `i16` buffer writer (Phase 7) | yes | yes (suffix 27; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
 | Actual signed `i32` buffer writer (Phase 7) | yes | yes (suffix 27; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
 | Actual signed `i64` buffer writer (Phase 7) | yes | yes (suffix 22; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
-| Raw `Buffer::format`, runtime borrowed-`str` conversion, and pointer `usize`/`isize` adapters | pending | no | no runtime memory proof; separate pre-existing recursive-model ASCII-to-`str` trust | pending |
+| 64-bit `usize`/`isize` buffer-writer adapters (Phase 7) | yes | yes (each cast 1; each formatter adapter 3) | no local trust; delegates to proved `u64`/signed `i64` bodies | yes on x86_64; default and all-features |
+| Raw `Buffer::format`, runtime borrowed-`str` conversion, and 16/32-bit pointer-width fallbacks | pending | no | no runtime memory proof; separate pre-existing recursive-model ASCII-to-`str` trust | pending |
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
 pair equals Euclidean quotient/remainder by 100, the remainder is below 100,
@@ -489,7 +492,7 @@ all-features `--tests` passed all 11 integration tests. Logs are
 `/tmp/phase7-i128-native-release-all-features-tests.log`.
 
 Raw `Buffer::format`, the borrowed-`str` conversion, and pointer `usize` and
-signed `isize` adapters remain pending.
+signed `isize` adapters were still pending at this signed-i128 checkpoint.
 
 ## Phase 7: signed `i16`, `i32`, and `i64` buffer writers
 
@@ -518,7 +521,7 @@ source. The integrated proof log is
 `/tmp/phase7-small-current-i8/`.
 
 Raw `Buffer::format`, the borrowed-`str` conversion, and pointer `usize` and
-signed `isize` adapters remain pending.
+signed `isize` adapters were still pending at this signed-small checkpoint.
 
 ## Phase 7: signed `i8` buffer writer
 
@@ -554,8 +557,34 @@ all-features `--tests` passed all 11 integration tests. Logs are
 `/tmp/phase7-i8-main-native-default.log`, and
 `/tmp/phase7-i8-main-native-release-all-features-tests.log`.
 
-Raw `Buffer::format`, the borrowed-`str` conversion, pointer adapters, and
-signed wrappers other than i8/i16/i32/i64/i128 remain pending.
+At this i8 checkpoint, raw `Buffer::format`, the borrowed-`str` conversion,
+pointer adapters, and signed wrappers other than i8/i16/i32/i64/i128 remained
+pending.
+
+## Phase 7: 64-bit pointer-width buffer writers
+
+On x86_64, the `usize` adapter uses a same-width `u64` cast bridge and calls
+the actual `Unsigned::fmt(u64)` body. The `isize` adapter uses a same-width
+`i64` cast bridge and calls the actual `signed_write_i64` body. Both adapter
+contracts establish the canonical initialized output suffix, returned offset,
+and preservation of the unwritten prefix; the cast bridges preserve the
+integer view and decimal model. The production `Integer` implementation
+dispatches to these same helpers on 64-bit targets. The 16- and 32-bit fallback
+dispatches are unchanged and are not covered by this target-specific proof.
+
+The integrated default proof reported 214 libraries / 1,877 VCs, and the
+all-features proof reported 215 / 1,881, with no failed goals. Each cast bridge
+discharged one VC and each buffer-writer adapter discharged three. The full
+suite log is `/tmp/phase7-pointer64-19df-main-verify-all.log`. Native default
+tests passed 11 integration tests and 2 doctests; release all-features
+`--tests` passed all 11 integration tests. Their logs are
+`/tmp/phase7-pointer64-19df-native-default.log` and
+`/tmp/phase7-pointer64-19df-native-release-all-features-tests.log`.
+
+This proves the pointer-sized numeric buffer writers on the current x86_64
+target. The normal `Sealed::write` path still converts the initialized byte
+suffix into `&str`, and public `Buffer::format` still crosses raw buffer
+memory; neither memory boundary is included here.
 
 ### Historical pre-integration verification of the boundary note
 
