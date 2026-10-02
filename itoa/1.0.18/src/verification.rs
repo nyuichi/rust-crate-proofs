@@ -39,6 +39,80 @@ pub fn logical_slot_bytes(slots: Seq<MaybeUninit<u8>>) -> Seq<Int> {
     })
 }
 
+#[logic]
+#[requires(0 <= start && start <= end && end <= slots.len())]
+#[ensures(logical_slot_bytes(slots.subsequence(start, end))
+    == logical_slot_bytes(slots).subsequence(start, end))]
+pub fn logical_slot_bytes_subsequence(
+    slots: Seq<MaybeUninit<u8>>,
+    start: Int,
+    end: Int,
+) {
+    let mapped_slice = logical_slot_bytes(slots.subsequence(start, end));
+    let sliced_map = logical_slot_bytes(slots).subsequence(start, end);
+    proof_assert!(mapped_slice.len() == end - start);
+    proof_assert!(sliced_map.len() == end - start);
+    proof_assert!(forall<i: Int> 0 <= i && i < end - start ==>
+        mapped_slice[i] == sliced_map[i]);
+}
+
+#[logic]
+#[requires(0 <= start && start <= middle && middle <= end && end <= slots.len())]
+#[ensures(logical_slot_bytes(slots.subsequence(start, end))
+    == logical_slot_bytes(slots.subsequence(start, middle)).concat(
+        logical_slot_bytes(slots.subsequence(middle, end))
+    ))]
+pub fn logical_slot_bytes_split(
+    slots: Seq<MaybeUninit<u8>>,
+    start: Int,
+    middle: Int,
+    end: Int,
+) {
+    let bytes = logical_slot_bytes(slots);
+    let _ = sequence_subsequence_split(bytes, start, middle, end);
+    let _ = logical_slot_bytes_subsequence(slots, start, end);
+    let _ = logical_slot_bytes_subsequence(slots, start, middle);
+    let _ = logical_slot_bytes_subsequence(slots, middle, end);
+}
+
+#[logic]
+#[requires(0 <= start && start <= middle && middle <= end && end <= seq.len())]
+#[ensures(seq.subsequence(start, end)
+    == seq.subsequence(start, middle).concat(seq.subsequence(middle, end)))]
+pub fn sequence_subsequence_split(
+    seq: Seq<Int>,
+    start: Int,
+    middle: Int,
+    end: Int,
+) {
+    let whole = seq.subsequence(start, end);
+    let left = seq.subsequence(start, middle);
+    let right = seq.subsequence(middle, end);
+    let combined = left.concat(right);
+    proof_assert!(whole.len() == end - start);
+    proof_assert!(left.len() == middle - start);
+    proof_assert!(right.len() == end - middle);
+    proof_assert!(combined.len() == end - start);
+    proof_assert!(forall<i: Int> 0 <= i && i < middle - start ==>
+        whole[i] == combined[i]);
+    proof_assert!(forall<i: Int> middle - start <= i && i < end - start ==>
+        whole[i] == combined[i]);
+}
+
+#[logic]
+#[requires(a.len() == 2 && b.len() == 2)]
+#[ensures(a.concat(b)[0] == a[0])]
+#[ensures(a.concat(b)[1] == a[1])]
+#[ensures(a.concat(b)[2] == b[0])]
+#[ensures(a.concat(b)[3] == b[1])]
+pub fn concat_two_get_digits(a: Seq<Int>, b: Seq<Int>) {
+    proof_assert!(a.concat(b).len() == 4);
+    proof_assert!(a.concat(b)[0] == a[0]);
+    proof_assert!(a.concat(b)[1] == a[1]);
+    proof_assert!(a.concat(b)[2] == b[0]);
+    proof_assert!(a.concat(b)[3] == b[1]);
+}
+
 /// A proof witness for the optimized last-digit mask used by the runtime body.
 /// The formatter still evaluates its original `remain as u8 & 15` expression;
 /// this checked bitwise lemma connects that expression to its decimal-digit

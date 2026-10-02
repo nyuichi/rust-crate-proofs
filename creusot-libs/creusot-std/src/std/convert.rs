@@ -97,6 +97,15 @@ extern_spec! {
     }
 }
 
+extern_spec! {
+    impl TryFrom<i32> for u32 {
+        #[check(terminates)]
+        #[ensures(value@ < 0 ||
+            exists<x: u32> result == Ok(x) && x@ == value@)]
+        fn try_from(value: i32) -> Result<u32, core::num::TryFromIntError>;
+    }
+}
+
 #[cfg(feature = "std")]
 extern_spec! {
     impl<T: Clone> From<&[T]> for Vec<T>

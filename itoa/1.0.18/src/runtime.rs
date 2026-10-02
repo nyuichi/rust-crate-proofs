@@ -7,8 +7,10 @@ use crate::decimal_pairs::DECIMAL_PAIRS;
 #[cfg(creusot)]
 use crate::verification::{
     decimal_seq_concat_assoc, decimal_values, decimal_values_compose_1x2, logical_slot_bytes,
+    concat_two_get_digits, logical_slot_bytes_split,
     decimal_values_len_at_least_one, decimal_values_one_digit,
     decimal_values_len_ge_2, decimal_values_len_ge_4, decimal_values_len_u16,
+    decimal_values_len_u32,
     decimal_values_split_4, masked_decimal_digit,
     fixed_width_decimal_values, fixed_width_decimal_values_2_is_decimal,
 };
@@ -17,7 +19,7 @@ use crate::decimal_pairs::decimal_pair_correct;
 #[cfg(creusot)]
 use crate::verification::{fixed_width_decimal_values_compose_2x2, fixed_width_decimal_values_pair};
 #[cfg(creusot)]
-use creusot_std::prelude::{ensures, invariant, proof_assert, requires, snapshot, Int, Seq};
+use creusot_std::prelude::{check, ensures, invariant, proof_assert, requires, snapshot, Int, Seq};
 #[cfg(creusot)]
 use creusot_std::std::option::OptionExt;
 #[cfg(not(creusot))]
@@ -233,6 +235,190 @@ fn write_decimal_digit(buf: &mut [MaybeUninit<u8>], index: usize, digit: u8) {
     buf[index].write(b'0' + digit);
 }
 
+/// Write one two-digit pair using the production lookup table.
+#[inline]
+#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
+#[cfg_attr(creusot, requires(pair@ < 100))]
+#[cfg_attr(creusot, requires(index@ + 2 <= buf@.len()))]
+#[cfg_attr(creusot, requires(forall<i: Int>
+    index@ + 2 <= i && i < buf@.len() ==> buf@[i]@ != None))]
+#[cfg_attr(creusot, ensures((^buf)@.len() == buf@.len()))]
+#[cfg_attr(creusot, ensures((^buf)@[index@]@ != None))]
+#[cfg_attr(creusot, ensures((^buf)@[index@]@.unwrap_logic()@ == 48 + pair@ / 10))]
+#[cfg_attr(creusot, ensures((^buf)@[index@ + 1]@ != None))]
+#[cfg_attr(creusot, ensures((^buf)@[index@ + 1]@.unwrap_logic()@ == 48 + pair@ % 10))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    0 <= i && i < buf@.len() && i != index@ && i != index@ + 1
+        ==> (^buf)@[i]@ == buf@[i]@))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    index@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
+#[cfg_attr(creusot, ensures(
+    logical_slot_bytes((^buf)@.subsequence(index@, buf@.len()))
+        == fixed_width_decimal_values(pair@, 2).concat(
+            logical_slot_bytes(buf@.subsequence(index@ + 2, buf@.len()))
+        )
+))]
+#[cfg_attr(creusot, check(terminates))]
+fn write_decimal_pair(buf: &mut [MaybeUninit<u8>], index: usize, pair: u32) {
+    #[cfg(creusot)]
+    let pair_buf_before = snapshot!(buf@);
+    #[cfg(creusot)]
+    let pair_old_tail = snapshot!(
+        logical_slot_bytes(buf@.subsequence(index@ + 2, buf@.len()))
+    );
+    let tens_index = pair as usize * 2 + 0;
+    let ones_index = pair as usize * 2 + 1;
+    #[cfg(creusot)]
+    let (tens, ones) = decimal_pair_correct(pair);
+    #[cfg(creusot)]
+    proof_assert!(tens_index@ < 200 && ones_index@ < 200);
+    #[cfg(creusot)]
+    let tens_from_runtime_table = unsafe { *DECIMAL_PAIRS.0.get_unchecked(tens_index) };
+    #[cfg(creusot)]
+    let ones_from_runtime_table = unsafe { *DECIMAL_PAIRS.0.get_unchecked(ones_index) };
+    #[cfg(creusot)]
+    proof_assert!(tens_from_runtime_table == tens && ones_from_runtime_table == ones);
+    #[cfg(creusot)]
+    proof_assert! {
+        let _ = fixed_width_decimal_values_pair(pair@);
+        tens@ == fixed_width_decimal_values(pair@, 2)[0]
+            && ones@ == fixed_width_decimal_values(pair@, 2)[1]
+    };
+
+    unsafe {
+        buf[index + 0].write(*DECIMAL_PAIRS.0.get_unchecked(tens_index));
+        buf[index + 1].write(*DECIMAL_PAIRS.0.get_unchecked(ones_index));
+    }
+    #[cfg(creusot)]
+    {
+        proof_assert!(forall<i: Int>
+            index@ + 2 <= i && i < buf@.len()
+                ==> buf@[i]@ == (*pair_buf_before)[i]@);
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@ + 2, buf@.len()))
+            == *pair_old_tail);
+        proof_assert! {
+            let _ = logical_slot_bytes_split(buf@, index@, index@ + 2, buf@.len());
+            true
+        };
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, index@ + 2))[0]
+            == fixed_width_decimal_values(pair@, 2)[0]);
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, index@ + 2))[1]
+            == fixed_width_decimal_values(pair@, 2)[1]);
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, index@ + 2))
+            == fixed_width_decimal_values(pair@, 2));
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, buf@.len()))
+            == fixed_width_decimal_values(pair@, 2).concat(*pair_old_tail));
+    }
+}
+
+/// Write one four-digit chunk with the same four production table stores.
+#[inline]
+#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
+#[cfg_attr(creusot, requires(pair1@ < 100 && pair2@ < 100))]
+#[cfg_attr(creusot, requires(index@ + 4 <= buf@.len()))]
+#[cfg_attr(creusot, requires(forall<i: Int>
+    index@ + 4 <= i && i < buf@.len() ==> buf@[i]@ != None))]
+#[cfg_attr(creusot, ensures((^buf)@.len() == buf@.len()))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    index@ <= i && i < index@ + 4 ==> (^buf)@[i]@ != None))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    index@ <= i && i < index@ + 4 ==>
+        (^buf)@[i]@.unwrap_logic()@
+            == fixed_width_decimal_values(pair1@ * 100 + pair2@, 4)[i - index@]))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    0 <= i && i < buf@.len() && (i < index@ || index@ + 4 <= i)
+        ==> (^buf)@[i]@ == buf@[i]@))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    index@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
+#[cfg_attr(creusot, ensures(
+    logical_slot_bytes((^buf)@.subsequence(index@, buf@.len()))
+        == fixed_width_decimal_values(pair1@ * 100 + pair2@, 4).concat(
+            logical_slot_bytes(buf@.subsequence(index@ + 4, buf@.len()))
+        )
+))]
+#[cfg_attr(creusot, check(terminates))]
+fn write_decimal_quad(buf: &mut [MaybeUninit<u8>], index: usize, pair1: u32, pair2: u32) {
+    #[cfg(creusot)]
+    let quad_buf_before = snapshot!(buf@);
+    #[cfg(creusot)]
+    let quad_old_tail = snapshot!(
+        logical_slot_bytes(buf@.subsequence(index@ + 4, buf@.len()))
+    );
+    let pair1_tens_index = pair1 as usize * 2 + 0;
+    let pair1_ones_index = pair1 as usize * 2 + 1;
+    let pair2_tens_index = pair2 as usize * 2 + 0;
+    let pair2_ones_index = pair2 as usize * 2 + 1;
+    #[cfg(creusot)]
+    {
+        let (pair1_tens, pair1_ones) = decimal_pair_correct(pair1);
+        let (pair2_tens, pair2_ones) = decimal_pair_correct(pair2);
+        proof_assert!(pair1_tens_index@ < 200 && pair1_ones_index@ < 200);
+        proof_assert!(pair2_tens_index@ < 200 && pair2_ones_index@ < 200);
+        let pair1_tens_from_runtime_table = unsafe {
+            *DECIMAL_PAIRS.0.get_unchecked(pair1_tens_index)
+        };
+        let pair1_ones_from_runtime_table = unsafe {
+            *DECIMAL_PAIRS.0.get_unchecked(pair1_ones_index)
+        };
+        let pair2_tens_from_runtime_table = unsafe {
+            *DECIMAL_PAIRS.0.get_unchecked(pair2_tens_index)
+        };
+        let pair2_ones_from_runtime_table = unsafe {
+            *DECIMAL_PAIRS.0.get_unchecked(pair2_ones_index)
+        };
+        proof_assert!(pair1_tens_from_runtime_table == pair1_tens);
+        proof_assert!(pair1_ones_from_runtime_table == pair1_ones);
+        proof_assert!(pair2_tens_from_runtime_table == pair2_tens);
+        proof_assert!(pair2_ones_from_runtime_table == pair2_ones);
+        proof_assert! {
+            let pair1_digits = fixed_width_decimal_values(pair1@, 2);
+            let pair2_digits = fixed_width_decimal_values(pair2@, 2);
+            let _ = fixed_width_decimal_values_pair(pair1@);
+            let _ = fixed_width_decimal_values_pair(pair2@);
+            let n = pair1@ * 100 + pair2@;
+            let _ = fixed_width_decimal_values_compose_2x2(n);
+            let _ = concat_two_get_digits(pair1_digits, pair2_digits);
+            fixed_width_decimal_values(n, 4)
+                == pair1_digits.concat(pair2_digits)
+                && pair1_tens@ == fixed_width_decimal_values(n, 4)[0]
+                && pair1_ones@ == fixed_width_decimal_values(n, 4)[1]
+                && pair2_tens@ == fixed_width_decimal_values(n, 4)[2]
+                && pair2_ones@ == fixed_width_decimal_values(n, 4)[3]
+        };
+    }
+
+    unsafe {
+        buf[index + 0].write(*DECIMAL_PAIRS.0.get_unchecked(pair1_tens_index));
+        buf[index + 1].write(*DECIMAL_PAIRS.0.get_unchecked(pair1_ones_index));
+        buf[index + 2].write(*DECIMAL_PAIRS.0.get_unchecked(pair2_tens_index));
+        buf[index + 3].write(*DECIMAL_PAIRS.0.get_unchecked(pair2_ones_index));
+    }
+    #[cfg(creusot)]
+    {
+        proof_assert!(forall<i: Int>
+            index@ + 4 <= i && i < buf@.len()
+                ==> buf@[i]@ == (*quad_buf_before)[i]@);
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@ + 4, buf@.len()))
+            == *quad_old_tail);
+        proof_assert! {
+            let _ = logical_slot_bytes_split(buf@, index@, index@ + 4, buf@.len());
+            true
+        };
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, index@ + 4))[0]
+            == fixed_width_decimal_values(pair1@ * 100 + pair2@, 4)[0]);
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, index@ + 4))[1]
+            == fixed_width_decimal_values(pair1@ * 100 + pair2@, 4)[1]);
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, index@ + 4))[2]
+            == fixed_width_decimal_values(pair1@ * 100 + pair2@, 4)[2]);
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, index@ + 4))[3]
+            == fixed_width_decimal_values(pair1@ * 100 + pair2@, 4)[3]);
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, index@ + 4))
+            == fixed_width_decimal_values(pair1@ * 100 + pair2@, 4));
+        proof_assert!(logical_slot_bytes(buf@.subsequence(index@, buf@.len()))
+            == fixed_width_decimal_values(pair1@ * 100 + pair2@, 4).concat(*quad_old_tail));
+    }
+}
+
 trait Unsigned: Integer {
     fn fmt(self, buf: &mut Self::Buffer) -> usize;
 }
@@ -317,93 +503,18 @@ macro_rules! impl_Unsigned {
                     let quad = remain % scale;
                     remain /= scale;
                     let (pair1, pair2) = divmod100(quad as u32);
-                    // Share the exact lookup indices between the proof and the
-                    // production writes so each stored cell is tied to the
-                    // corresponding runtime table read.
-                    let pair1_tens_index = pair1 as usize * 2 + 0;
-                    let pair1_ones_index = pair1 as usize * 2 + 1;
-                    let pair2_tens_index = pair2 as usize * 2 + 0;
-                    let pair2_ones_index = pair2 as usize * 2 + 1;
-                    #[cfg(creusot)]
-                    let (
-                        pair1_tens,
-                        pair1_ones,
-                        pair2_tens,
-                        pair2_ones,
-                        pair1_tens_from_runtime_table,
-                        pair1_ones_from_runtime_table,
-                        pair2_tens_from_runtime_table,
-                        pair2_ones_from_runtime_table,
-                    ) = {
-                        let (pair1_tens, pair1_ones) = decimal_pair_correct(pair1);
-                        let (pair2_tens, pair2_ones) = decimal_pair_correct(pair2);
-                        proof_assert!(pair1@ < 100 && pair2@ < 100);
-                        proof_assert!(pair1_tens_index@ < 200);
-                        proof_assert!(pair1_ones_index@ < 200);
-                        proof_assert!(pair2_tens_index@ < 200);
-                        proof_assert!(pair2_ones_index@ < 200);
-                        let pair1_tens_from_runtime_table = unsafe {
-                            *DECIMAL_PAIRS.0.get_unchecked(pair1_tens_index)
-                        };
-                        let pair1_ones_from_runtime_table = unsafe {
-                            *DECIMAL_PAIRS.0.get_unchecked(pair1_ones_index)
-                        };
-                        let pair2_tens_from_runtime_table = unsafe {
-                            *DECIMAL_PAIRS.0.get_unchecked(pair2_tens_index)
-                        };
-                        let pair2_ones_from_runtime_table = unsafe {
-                            *DECIMAL_PAIRS.0.get_unchecked(pair2_ones_index)
-                        };
-                        proof_assert!(pair1_tens_from_runtime_table == pair1_tens);
-                        proof_assert!(pair1_ones_from_runtime_table == pair1_ones);
-                        proof_assert!(pair2_tens_from_runtime_table == pair2_tens);
-                        proof_assert!(pair2_ones_from_runtime_table == pair2_ones);
-                        proof_assert! {
-                            let _ = fixed_width_decimal_values_pair(pair1@);
-                            let _ = fixed_width_decimal_values_pair(pair2@);
-                            let _ = fixed_width_decimal_values_compose_2x2(quad@);
-                            fixed_width_decimal_values(quad@, 4)
-                                == fixed_width_decimal_values(pair1@, 2)
-                                    .concat(fixed_width_decimal_values(pair2@, 2))
-                        };
-                        proof_assert!(pair1_tens@ == fixed_width_decimal_values(pair1@, 2)[0]);
-                        proof_assert!(pair1_ones@ == fixed_width_decimal_values(pair1@, 2)[1]);
-                        proof_assert!(pair2_tens@ == fixed_width_decimal_values(pair2@, 2)[0]);
-                        proof_assert!(pair2_ones@ == fixed_width_decimal_values(pair2@, 2)[1]);
-                        (
-                            pair1_tens,
-                            pair1_ones,
-                            pair2_tens,
-                            pair2_ones,
-                            pair1_tens_from_runtime_table,
-                            pair1_ones_from_runtime_table,
-                            pair2_tens_from_runtime_table,
-                            pair2_ones_from_runtime_table,
-                        )
-                    };
-                    unsafe {
-                        buf[offset + 0].write(*DECIMAL_PAIRS.0.get_unchecked(pair1_tens_index));
-                        buf[offset + 1].write(*DECIMAL_PAIRS.0.get_unchecked(pair1_ones_index));
-                        buf[offset + 2].write(*DECIMAL_PAIRS.0.get_unchecked(pair2_tens_index));
-                        buf[offset + 3].write(*DECIMAL_PAIRS.0.get_unchecked(pair2_ones_index));
-                    }
+                    write_decimal_quad(buf, offset, pair1, pair2);
                     #[cfg(creusot)]
                     {
                         proof_assert!(logical_slot_bytes(buf@.subsequence(quad_old_offset@, buf@.len()))
                             == *quad_old_written_suffix);
                         proof_assert!(quad@ == old_remain@ % 10_000
                             && remain@ == old_remain@ / 10_000);
-                        let quad_written = snapshot!(logical_slot_bytes(
-                            buf@.subsequence(offset@, offset@ + 4),
-                        ));
-                        proof_assert!((*quad_written).len() == 4);
-                        proof_assert!((*quad_written)[0] == pair1_tens_from_runtime_table@);
-                        proof_assert!((*quad_written)[1] == pair1_ones_from_runtime_table@);
-                        proof_assert!((*quad_written)[2] == pair2_tens_from_runtime_table@);
-                        proof_assert!((*quad_written)[3] == pair2_ones_from_runtime_table@);
-                        proof_assert!(*quad_written == fixed_width_decimal_values(quad@, 4));
+                        proof_assert!(quad@ == pair1@ * 100 + pair2@);
+                        proof_assert!(fixed_width_decimal_values(pair1@ * 100 + pair2@, 4)
+                            == fixed_width_decimal_values(quad@, 4));
                         proof_assert!(logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
-                            == fixed_width_decimal_values(quad@, 4)
+                            == fixed_width_decimal_values(pair1@ * 100 + pair2@, 4)
                                 .concat(*quad_old_written_suffix));
                         proof_assert! {
                         let _ = decimal_values_split_4(old_remain@);
@@ -462,26 +573,6 @@ macro_rules! impl_Unsigned {
                         proof_assert!(last@ == tail_before@ / 100);
                         proof_assert!(pair@ == tail_before@ % 100);
                         proof_assert!(last@ <= 9 && pair@ < 100);
-                        let (pair_tens, pair_ones) = decimal_pair_correct(pair);
-                        let pair_tens_index = pair as usize * 2 + 0;
-                        let pair_ones_index = pair as usize * 2 + 1;
-                        proof_assert!(pair_tens_index@ < 200);
-                        proof_assert!(pair_ones_index@ < 200);
-                        let pair_tens_from_runtime_table = unsafe {
-                            *DECIMAL_PAIRS.0.get_unchecked(pair_tens_index)
-                        };
-                        let pair_ones_from_runtime_table = unsafe {
-                            *DECIMAL_PAIRS.0.get_unchecked(pair_ones_index)
-                        };
-                        proof_assert!(pair_tens_from_runtime_table == pair_tens);
-                        proof_assert!(pair_ones_from_runtime_table == pair_ones);
-                        proof_assert! {
-                            let _ = fixed_width_decimal_values_pair(pair@);
-                            fixed_width_decimal_values(pair@, 2)
-                                == Seq::singleton(pair_tens@).push_back(pair_ones@)
-                        };
-                        proof_assert!(pair_tens@ == fixed_width_decimal_values(pair@, 2)[0]);
-                        proof_assert!(pair_ones@ == fixed_width_decimal_values(pair@, 2)[1]);
                         proof_assert!(if last@ == 0 {
                             let _ = fixed_width_decimal_values_2_is_decimal(tail_before@);
                             fixed_width_decimal_values(tail_before@, 2)
@@ -494,18 +585,11 @@ macro_rules! impl_Unsigned {
                         });
                     }
                     remain = last as Self;
-                    unsafe {
-                        buf[offset + 0]
-                            .write(*DECIMAL_PAIRS.0.get_unchecked(pair as usize * 2 + 0));
-                        buf[offset + 1]
-                            .write(*DECIMAL_PAIRS.0.get_unchecked(pair as usize * 2 + 1));
-                    }
+                    write_decimal_pair(buf, offset, pair);
                     #[cfg(creusot)]
                     {
                         proof_assert!(logical_slot_bytes(buf@.subsequence(tail_old_offset@, buf@.len()))
                             == *old_written_suffix);
-                        proof_assert!(logical_slot_bytes(buf@.subsequence(offset@, offset@ + 2))
-                            == fixed_width_decimal_values(pair@, 2));
                         proof_assert!(logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
                             == fixed_width_decimal_values(pair@, 2)
                                 .concat(*old_written_suffix));
@@ -625,6 +709,8 @@ macro_rules! impl_Unsigned {
 impl_Unsigned!(u8, decimal_values_len_u8);
 impl_Unsigned!(u16, decimal_values_len_u16);
 #[cfg(not(creusot))]
+impl_Unsigned!(u32, decimal_values_len_u32);
+#[cfg(creusot)]
 impl_Unsigned!(u32, decimal_values_len_u32);
 #[cfg(not(creusot))]
 impl_Unsigned!(u64, decimal_values_len_u64);
