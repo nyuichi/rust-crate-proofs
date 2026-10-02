@@ -248,6 +248,20 @@ actual high-half result. The existing accepted trusted `mulhi` equation
 `result == x * y / 2^128` remains unchanged; no new trust or runtime change was
 introduced.
 
+### Exact-goal Why3 pruning experiment
+
+A scratch-only Why3 plugin matched the generated post-WP leaf using its exact
+goal name, strict formula hash, and expected wrapper-axiom declarations. It
+removed only 22 `Paxiom` declarations from two `creusot/int.coma` wrapper
+families; the task log confirms that the goal formula stayed unchanged. The
+actual assertion still did not close: Z3 returned `Out of memory (1.80s)` at
+one job and 1024 MiB. The plugin was exercised through direct `why3 prove`;
+normal `cargo creusot prove` / `why3find` replay was not tested, and no plugin
+or runner change was integrated. The existing trusted `mulhi` equation remains
+unchanged. The plugin source, compressed before/after task exports, logs, and
+environment-dependent reproduction notes are preserved in the
+[`Step 3 checkpoint`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/step3-why3-pruning/REPORT.md).
+
 ### Structural split follow-up
 
 A later scratch reproduction confirmed that the actual open Why3 task already
