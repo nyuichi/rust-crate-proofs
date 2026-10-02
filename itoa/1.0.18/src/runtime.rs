@@ -17,6 +17,7 @@ use crate::verification::{
     fixed_width_decimal_values, fixed_width_decimal_values_2_is_decimal,
     decimal_values_compose_16, decimal_values_compose_16x2, power_of_ten_16,
     fixed_width_decimal_values_len, integer_decimal_values, integer_value, logical_slot_states,
+    integer_decimal_values_ascii,
     logical_slot_bytes_equal_states_initialized, i64_signed_decimal_capacity,
     logical_slot_states_subsequence, range_from_prefix_raw_frame,
     initialized_slot_suffix_non_sentinel, logical_slot_states_suffix_initialized,
@@ -1642,6 +1643,13 @@ fn check_signed_i8_write(value: i8) {
         start@ <= i && i < buf@.len() ==> buf@[i]@ != None);
     proof_assert!(forall<i: Int> start@ <= i && i < buf@.len() ==>
         buf@[i]@.unwrap_logic()@ == integer_decimal_values(value)[i - start@]);
+    proof_assert! {
+        let _ = integer_decimal_values_ascii(value);
+        true
+    };
+    proof_assert!(forall<i: Int> start@ <= i && i < buf@.len() ==>
+        buf@[i]@.unwrap_logic()@ == 45
+            || (48 <= buf@[i]@.unwrap_logic()@ && buf@[i]@.unwrap_logic()@ <= 57));
 }
 
 macro_rules! impl_small_signed_formatter {
@@ -1858,5 +1866,13 @@ fn i128_min_formatted_output_witness() -> [MaybeUninit<u8>; 40] {
     let _ = i128_min_signed_decimal_model();
     proof_assert!(offset@ + integer_decimal_values(i128::MIN).len() == 40);
     proof_assert!(offset@ == 0);
+    proof_assert! {
+        let _ = integer_decimal_values_ascii(i128::MIN);
+        true
+    };
+    proof_assert!(forall<i: Int> 0 <= i && i < 40 ==>
+        buf@[i]@ != None
+            && (buf@[i]@.unwrap_logic()@ == 45
+                || (48 <= buf@[i]@.unwrap_logic()@ && buf@[i]@.unwrap_logic()@ <= 57)));
     buf
 }

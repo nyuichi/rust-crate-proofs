@@ -5,7 +5,9 @@
 The established contract and proof record below describes the current
 `cfg(creusot)` recursive decimal model. Production-code coverage is being added
 phase by phase; see [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md) for its
-separate scope and proof status.
+separate scope and proof status. The Phase 8 audit of initialized runtime
+suffixes and remaining raw-memory boundaries is in
+[RUNTIME_MEMORY_LEDGER.md](RUNTIME_MEMORY_LEDGER.md).
 
 This source tree is copied from the crate published on crates.io as `itoa`
 version `1.0.18`. The published archive has SHA-256 checksum
@@ -36,11 +38,15 @@ establishes the following:
   its argument, with no leading zeroes other than the representation of zero;
 - the public orchestration and all supporting arithmetic, sequence, and
   representation lemmas have proved bodies.
+- Phase 8 proves the ASCII range of the existing unsigned, signed, and
+  whole-integer decimal models, then checks it against initialized output from
+  the actual i8 and `i128::MIN` writers. This establishes the writer-to-ASCII
+  handoff; it does not prove the runtime raw pointer or string conversions.
 
 The original recursive-model baseline proved 67 translated files in both
 configurations. The latest integrated runtime matrix is recorded in
-[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 214
-libraries / 1,877 VCs and all-features proves 215 / 1,881 on the current
+[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 217
+libraries / 1,880 VCs and all-features proves 218 / 1,884 on the current
 x86_64 target. This includes the actual unsigned formatter bodies, signed
 i8/i16/i32/i64/i128 buffer writers, the 64-bit `usize`/`isize` buffer-writer
 adapters, and an `i128::MIN` witness. The `u128` path remains conditional on

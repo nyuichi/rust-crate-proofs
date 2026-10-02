@@ -554,6 +554,68 @@ pub fn integer_decimal_values<I: Integer>(value: I) -> Seq<Int> {
     signed_decimal_values(integer_value(value))
 }
 
+/// Every element in the canonical unsigned decimal model is an ASCII digit.
+#[logic]
+#[requires(n >= 0)]
+#[ensures(forall<i: Int> 0 <= i && i < decimal_values(n).len() ==>
+    48 <= decimal_values(n)[i] && decimal_values(n)[i] <= 57)]
+#[variant(n)]
+pub(crate) fn decimal_values_ascii(n: Int) {
+    decimal_values_unfold(n);
+    if n < 10 {
+        proof_assert!(decimal_values(n) == Seq::singleton(48 + n));
+        proof_assert!(decimal_values(n).len() == 1);
+        proof_assert!(48 <= 48 + n && 48 + n <= 57);
+        proof_assert!(forall<i: Int> 0 <= i && i < decimal_values(n).len() ==>
+            48 <= decimal_values(n)[i] && decimal_values(n)[i] <= 57);
+    } else {
+        let prefix = decimal_values(n / 10);
+        decimal_values_ascii(n / 10);
+        proof_assert!(0 <= n % 10 && n % 10 < 10);
+        proof_assert!(decimal_values(n) == prefix.push_back(48 + n % 10));
+        proof_assert!(decimal_values(n).len() == prefix.len() + 1);
+        proof_assert!(forall<i: Int> 0 <= i && i < prefix.len() ==>
+            decimal_values(n)[i] == prefix[i]);
+        proof_assert!(decimal_values(n)[prefix.len()] == 48 + n % 10);
+        proof_assert!(48 <= 48 + n % 10 && 48 + n % 10 <= 57);
+        proof_assert!(forall<i: Int> 0 <= i && i < decimal_values(n).len() ==>
+            48 <= decimal_values(n)[i] && decimal_values(n)[i] <= 57);
+    }
+}
+
+/// Every element in the canonical signed decimal model is an ASCII minus sign
+/// or an ASCII digit.
+#[logic]
+#[ensures(forall<i: Int> 0 <= i && i < signed_decimal_values(n).len() ==>
+    signed_decimal_values(n)[i] == 45
+        || (48 <= signed_decimal_values(n)[i] && signed_decimal_values(n)[i] <= 57))]
+pub(crate) fn signed_decimal_values_ascii(n: Int) {
+    if n < 0 {
+        decimal_values_ascii(-n);
+        proof_assert!(signed_decimal_values(n).len() == decimal_values(-n).len() + 1);
+        proof_assert!(signed_decimal_values(n)[0] == 45);
+        proof_assert!(forall<i: Int> 1 <= i && i < signed_decimal_values(n).len() ==>
+            signed_decimal_values(n)[i] == decimal_values(-n)[i - 1]);
+        proof_assert!(forall<i: Int> 0 <= i && i < signed_decimal_values(n).len() ==>
+            signed_decimal_values(n)[i] == 45
+                || (48 <= signed_decimal_values(n)[i]
+                    && signed_decimal_values(n)[i] <= 57));
+    } else {
+        decimal_values_ascii(n);
+        proof_assert!(signed_decimal_values(n) == decimal_values(n));
+    }
+}
+
+/// Every byte in the formatter's canonical whole-integer model is ASCII.
+#[logic]
+#[ensures(forall<i: Int> 0 <= i && i < integer_decimal_values(value).len() ==>
+    integer_decimal_values(value)[i] == 45
+        || (48 <= integer_decimal_values(value)[i]
+            && integer_decimal_values(value)[i] <= 57))]
+pub(crate) fn integer_decimal_values_ascii<I: Integer>(value: I) {
+    signed_decimal_values_ascii(integer_value(value));
+}
+
 macro_rules! impl_unsigned {
     ($($ty:ty => $len:expr),* $(,)?) => {$($crate::verification::impl_unsigned!(@one $ty, $len);)*};
     (@one $ty:ty, $len:expr) => {

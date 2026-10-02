@@ -17,6 +17,11 @@ the native `u128` formatter is translated and proved as a separate component.
 The recursive decimal model in `verification.rs` remains the formatter's
 specification, and all existing model proofs are retained.
 
+Phase 8 proves ASCII bounds directly from that canonical model and checks the
+result on actual i8 and `i128::MIN` writer witnesses. The writer memory audit,
+source-ground `MaybeUninit` contracts, and remaining runtime memory boundaries
+are recorded in [RUNTIME_MEMORY_LEDGER.md](RUNTIME_MEMORY_LEDGER.md).
+
 The first shared implementation boundary is `divmod100`: normal runtime callers
 use this body, and Creusot translates and proves the same executable body as an
 independent leaf. Phase 3 connects the actual `u8`, `u16`, `u32`, and `u64`
@@ -46,6 +51,7 @@ formatting and string-conversion adapters remain pending.
 | Actual signed `i32` buffer writer (Phase 7) | yes | yes (suffix 27; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
 | Actual signed `i64` buffer writer (Phase 7) | yes | yes (suffix 22; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
 | 64-bit `usize`/`isize` buffer-writer adapters (Phase 7) | yes | yes (each cast 1; each formatter adapter 3) | no local trust; delegates to proved `u64`/signed `i64` bodies | yes on x86_64; default and all-features |
+| Canonical decimal ASCII lemmas and actual writer witnesses (Phase 8) | yes | yes (three model lemmas: 1 goal each; i8 witness 3; `i128::MIN` witness 4) | none added | yes; default and all-features |
 | Raw `Buffer::format`, runtime borrowed-`str` conversion, and 16/32-bit pointer-width fallbacks | pending | no | no runtime memory proof; separate pre-existing recursive-model ASCII-to-`str` trust | pending |
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
@@ -585,6 +591,37 @@ This proves the pointer-sized numeric buffer writers on the current x86_64
 target. The normal `Sealed::write` path still converts the initialized byte
 suffix into `&str`, and public `Buffer::format` still crosses raw buffer
 memory; neither memory boundary is included here.
+
+## Phase 8: initialized ASCII suffixes and runtime memory boundaries
+
+The new `decimal_values_ascii`, `signed_decimal_values_ascii`, and
+`integer_decimal_values_ascii` lemmas reuse the existing canonical decimal
+models. Each model lemma passed its focused one-goal proof. The actual signed
+i8 writer witness passed with 3 goals, including the initialized suffix ASCII
+assertion, and the actual signed `i128::MIN` witness passed with 4 goals,
+including the complete 40-slot initialization and ASCII assertion. The full
+dual-configuration `verify-all.bash` run passed with 217 proof libraries /
+1,880 VCs by default and 218 / 1,884 with all features, with no failed goals.
+Native `cargo test --offline --locked` passed 11 integration tests and 2
+doctests; release `cargo test --release --all-features --tests --offline
+--locked` passed all 11 integration tests. Logs are
+`/tmp/phase8-runtime-verify-all.log`, `/tmp/phase8-native-default.log`, and
+`/tmp/phase8-native-release-all-features-tests.log`.
+
+The writer contracts establish that every byte in `[offset, N)` is initialized
+and matches its unsigned or signed decimal model, while `[0, offset)` retains
+its old `MaybeUninit` state. The source model of `MaybeUninit::write` records
+the transition to `Some(value)`, and the new lemmas prove the canonical bytes
+are ASCII. No initialization-state fact was missing. `Buffer::format`'s
+40-byte-to-typed-buffer pointer reinterpretation and
+`slice_buffer_to_str`'s raw `MaybeUninit` slice conversion and unchecked `&str`
+construction remain outside Creusot; the recursive model's trusted
+initialized-`[u8; 40]` string leaf does not prove those runtime operations.
+Only the 64-bit `usize` and `isize` writer adapters are covered on x86_64; the
+16- and 32-bit fallback adapters remain pending. The `u128` writer still
+inherits the exact accepted `mulhi` high-half contract from Phase 4. Full
+source details and standard-library assumptions are in
+[RUNTIME_MEMORY_LEDGER.md](RUNTIME_MEMORY_LEDGER.md).
 
 ### Historical pre-integration verification of the boundary note
 
