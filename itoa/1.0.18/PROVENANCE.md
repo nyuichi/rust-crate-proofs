@@ -71,12 +71,17 @@ Two narrow boundaries are currently trusted:
   `result == x * y / 2^128`, accepted by the user on 2026-10-02. The actual
   limb algorithm lives in `mulhi_core`; its operation bounds, casts, shifts,
   and overflow checks are verified, but the wrapper's assumed equation is not
-  yet derived from the core's returned value.
+  yet derived from the core's returned value. A second isolated attempt proved
+  two arithmetic helper lemmas, but its full core-composition candidate still
+  had one open goal; see the Phase 4 follow-up in
+  [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md).
 
 Removal conditions: replace the string boundary when Creusot can prove ASCII
 UTF-8 validity and model the slice-to-`str` reference conversion without a
 raw representation cast. Remove the `mulhi` trust when the high-half equation
-is proved from `mulhi_core` while retaining its operation checks.
+is proved from `mulhi_core` while retaining its operation checks. The second
+attempt has not met this condition; the accepted equation remains the exact
+temporary boundary for the `u128` path.
 
 The signed `i128` proof also uses narrow external models for core array
 `IndexMut`, mutable-slice-to-array borrowing, and primitive `unsigned_abs`.

@@ -184,6 +184,33 @@ limb results left the final high-half equation unresolved in the focused
 attempts; this is a temporary proof boundary, not a claim that the equation is
 unprovable.
 
+### Second isolated `mulhi` proof attempt
+
+A follow-up candidate preserves the limb algorithm and attempts to prove the
+core's exact result equation before removing the wrapper trust. Its independent
+`mulhi_product_congruence` and `mulhi_product_expansion` helper bodies each
+passed their single focused VC. An early caller variant reached 62/64 goals;
+both failures were applications of the congruence helper's opaque
+postconditions. Later variants discharged the first product substitution, but
+the final `int-proof-assert` candidate reached 67/68 and left
+`vc_mulhi_core.54`, the second product substitution, open:
+
+```text
+(x_hi * 2^64 + x_lo) * y
+  == (x_hi * 2^64 + x_lo) * (y_hi * 2^64 + y_lo)
+```
+
+The preceding fact `y == y_hi * 2^64 + y_lo` is already available at that
+assertion. Because this caller VC remains open, the candidate's exact-result
+postcondition is not a proved consequence of `mulhi_core`; the integrated
+wrapper continues to use the exact accepted trusted equation above. The
+attempt snapshots, generated Why3 session, and focused result are preserved in
+[`tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/REPORT.md`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/REPORT.md),
+with the final candidate under
+[`int-proof-assert/`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/int-proof-assert/).
+The removal condition remains proving the wrapper equation from the core while
+keeping the core operation checks discharged.
+
 The integrated Phase 4 `run-verify-all.sh` command completed with exit 0 in
 both configurations. Default reported 168 proof libraries / 1,312 VCs;
 all-features reported 169 / 1,316. The focused `mulhi_core` target passed

@@ -2,7 +2,7 @@
 use no_panic::no_panic;
 
 #[cfg(creusot)]
-use creusot_std::prelude::{bitwise_proof, ensures, logic, opaque, proof_assert, requires, trusted, Int};
+use creusot_std::prelude::{bitwise_proof, ensures, logic, opaque, proof_assert, requires, snapshot, Int};
 
 
 #[cfg(creusot)]
@@ -273,22 +273,16 @@ fn limb_product_plus_two_limbs_fits(a: Int, b: Int, c: Int, d: Int) {
     proof_assert!(top * top + 2 * top < 128.pow2());
 }
 
-// Reusable bridge for substituting exact limb decompositions inside products.
-// Its standalone proof is established; applying it to mulhi's local facts was
-// attempted in the saved candidate, where one caller-side congruence VC stays open.
 #[cfg(creusot)]
-#[logic]
+#[logic(opaque)]
 #[requires(x == a)]
 #[requires(y == b)]
-#[ensures(result == x * y)]
-#[ensures(result == a * b)]
+#[ensures(result == x * y && result == a * b)]
 fn mulhi_product_congruence(x: Int, y: Int, a: Int, b: Int) -> Int {
     proof_assert!(x * y == a * b);
     x * y
 }
 
-// Independently checked four-limb ring expansion used as a small algebraic
-// building block while composing the exact mulhi result equation.
 #[cfg(creusot)]
 #[logic(opaque)]
 #[ensures(result == (x_hi * 64.pow2() + x_lo) * (y_hi * 64.pow2() + y_lo))]
@@ -311,6 +305,7 @@ fn mulhi_product_expansion(x_hi: Int, x_lo: Int, y_hi: Int, y_lo: Int) -> Int {
 #[inline(always)]
 #[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
 #[cfg_attr(creusot, bitwise_proof)]
+#[cfg_attr(creusot, ensures(result@ == x@ * y@ / 128.pow2()))]
 fn mulhi_core(x: u128, y: u128) -> u128 {
     let (x_lo, x_hi) = u128_halves(x);
     let (y_lo, y_hi) = u128_halves(y);
@@ -452,6 +447,86 @@ fn mulhi_core(x: u128, y: u128) -> u128 {
     };
     #[cfg(creusot)]
     proof_assert!(0 <= high2_lo@ && high2_lo@ < 64.pow2());
+
+    #[cfg(creusot)]
+    proof_assert!(x@ == x_hi@ * 64.pow2() + x_lo@);
+    #[cfg(creusot)]
+    proof_assert!(y@ == y_hi@ * 64.pow2() + y_lo@);
+    #[cfg(creusot)]
+    proof_assert!(carry@ * 64.pow2() + (x_lo@ * y_lo@) % 64.pow2()
+        == x_lo@ * y_lo@);
+    #[cfg(creusot)]
+    proof_assert!(m@ == x_lo@ * y_hi@ + carry@);
+    #[cfg(creusot)]
+    proof_assert!(high1@ * 64.pow2() + m_lo@ == m@);
+    #[cfg(creusot)]
+    proof_assert!(high2_product@ == x_hi@ * y_lo@ + m_lo@);
+    #[cfg(creusot)]
+    proof_assert!(high2@ * 64.pow2() + high2_lo@ == high2_product@);
+    #[cfg(creusot)]
+    proof_assert!(result@ == x_hi@ * y_hi@ + high1@ + high2@);
+
+    #[cfg(creusot)]
+    proof_assert!(x@ * y@ == (x_hi@ * 64.pow2() + x_lo@) * y@);
+    #[cfg(creusot)]
+    proof_assert! {
+        let _ = mulhi_product_congruence(
+            x_hi@ * 64.pow2() + x_lo@,
+            y@,
+            x_hi@ * 64.pow2() + x_lo@,
+            y_hi@ * 64.pow2() + y_lo@,
+        );
+        (x_hi@ * 64.pow2() + x_lo@) * y@
+            == (x_hi@ * 64.pow2() + x_lo@) * (y_hi@ * 64.pow2() + y_lo@)
+    };
+    #[cfg(creusot)]
+    let expanded_product = snapshot!(mulhi_product_expansion(x_hi@, x_lo@, y_hi@, y_lo@));
+    #[cfg(creusot)]
+    proof_assert!(*expanded_product
+        == (x_hi@ * 64.pow2() + x_lo@) * (y_hi@ * 64.pow2() + y_lo@));
+    #[cfg(creusot)]
+    proof_assert!(*expanded_product == x_hi@ * y_hi@ * 128.pow2()
+        + x_hi@ * y_lo@ * 64.pow2()
+        + x_lo@ * y_hi@ * 64.pow2()
+        + x_lo@ * y_lo@);
+    #[cfg(creusot)]
+    proof_assert!(x@ * y@ == x_hi@ * y_hi@ * 128.pow2()
+        + x_hi@ * y_lo@ * 64.pow2()
+        + x_lo@ * y_hi@ * 64.pow2()
+        + x_lo@ * y_lo@);
+    #[cfg(creusot)]
+    proof_assert!(x_lo@ * y_hi@ * 64.pow2() + x_lo@ * y_lo@
+        == high1@ * 128.pow2() + m_lo@ * 64.pow2()
+            + (x_lo@ * y_lo@) % 64.pow2());
+    #[cfg(creusot)]
+    proof_assert!(high2@ * 64.pow2() + high2_lo@ == x_hi@ * y_lo@ + m_lo@);
+    #[cfg(creusot)]
+    proof_assert!(64.pow2() * 64.pow2() == 128.pow2());
+    #[cfg(creusot)]
+    proof_assert!((x_hi@ * y_lo@ + m_lo@) * 64.pow2()
+        == (high2@ * 64.pow2() + high2_lo@) * 64.pow2());
+    #[cfg(creusot)]
+    proof_assert!(x_hi@ * y_lo@ * 64.pow2() + m_lo@ * 64.pow2()
+        == high2@ * 64.pow2() * 64.pow2() + high2_lo@ * 64.pow2());
+    #[cfg(creusot)]
+    proof_assert!(x_hi@ * y_lo@ * 64.pow2() + m_lo@ * 64.pow2()
+        == high2@ * 128.pow2() + high2_lo@ * 64.pow2());
+    #[cfg(creusot)]
+    proof_assert!(x@ * y@ == (x_hi@ * y_hi@ + high1@ + high2@)
+        * 128.pow2() + high2_lo@ * 64.pow2() + (x_lo@ * y_lo@) % 64.pow2());
+    #[cfg(creusot)]
+    proof_assert!(high2_lo@ * 64.pow2() + (x_lo@ * y_lo@) % 64.pow2()
+        < 128.pow2());
+    #[cfg(creusot)]
+    proof_assert! {
+        let _ = exact_floor_from_split(
+            x@ * y@,
+            result@,
+            high2_lo@ * 64.pow2() + (x_lo@ * y_lo@) % 64.pow2(),
+            128.pow2(),
+        );
+        result@ == x@ * y@ / 128.pow2()
+    };
     result
 }
 
@@ -463,7 +538,6 @@ fn mulhi_core(x: u128, y: u128) -> u128 {
 /// separately verified.
 #[inline]
 #[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
-#[cfg_attr(creusot, trusted)]
 #[cfg_attr(creusot, ensures(result@ == x@ * y@ / 128.pow2()))]
 pub(crate) fn mulhi(x: u128, y: u128) -> u128 {
     mulhi_core(x, y)
