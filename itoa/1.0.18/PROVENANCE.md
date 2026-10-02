@@ -1,6 +1,7 @@
 # itoa 1.0.18 provenance and verification scope
 
-**Verification status: complete-equivalent.**
+**Recursive `cfg(creusot)` model: complete-equivalent. Actual runtime public
+`Buffer::format`: end-to-end proof incomplete.**
 
 The established contract and proof record below describes the current
 `cfg(creusot)` recursive decimal model. Production-code coverage is being added
@@ -35,8 +36,9 @@ establishes the following:
   index, and writes precisely the canonical unsigned decimal sequence;
 - the 40-byte buffer is sufficient for every `u128` magnitude and leaves room
   for the sign of every negative supported integer;
-- `Buffer::format` returns exactly the signed decimal ASCII representation of
-  its argument, with no leading zeroes other than the representation of zero;
+- the recursive model's `Buffer::format` returns exactly the signed decimal
+  ASCII representation of its argument, with no leading zeroes other than the
+  representation of zero;
 - the public orchestration and all supporting arithmetic, sequence, and
   representation lemmas have proved bodies.
 - Phase 8 proves the ASCII range of the existing unsigned, signed, and
@@ -46,8 +48,8 @@ establishes the following:
 
 The original recursive-model baseline proved 67 translated files in both
 configurations. The latest integrated runtime matrix is recorded in
-[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 217
-libraries / 1,880 VCs and all-features proves 218 / 1,884 on the current
+[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): the Phase 12 rerun proves
+218 libraries / 1,884 VCs in each of default and all-features on the current
 x86_64 target. This includes the actual unsigned formatter bodies, signed
 i8/i16/i32/i64/i128 buffer writers, the 64-bit `usize`/`isize` buffer-writer
 adapters, and an `i128::MIN` witness. The `u128` path remains conditional on

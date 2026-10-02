@@ -40,11 +40,41 @@ These line numbers belong to the two isolated scratch probes, not the checked-in
 
 | Area | Current evidence and status |
 | --- | --- |
-| A. Creusot functional decimal model | The canonical decimal model and its proof remain established. Actual unsigned formatter bodies and signed buffer writers are proved, with the `u128` path conditional on the accepted exact `mulhi` result equation. These functional facts do not include the raw public buffer/string path. |
-| B. Runtime operation coverage | Arithmetic bodies, table reads, digit/chunk stores, initialized suffixes, and ASCII writer witnesses are checked by Creusot as documented in `RUNTIME_VERIFICATION.md`. The physical `Buffer::format` cast, runtime `MaybeUninit` suffix-to-`&[u8]` conversion, unchecked `&str` construction, and `unreachable_unchecked` branch remain unproved. The x86_64 scope does not cover 16/32-bit pointer-width fallbacks. |
+| A. Creusot functional decimal model | The canonical decimal model and its proof remain established. Actual unsigned formatter bodies and signed buffer writers are proved. The `u128` formatter and signed `i128` writer inherit the accepted exact `mulhi` result equation. These functional facts do not include the raw public buffer/string path. |
+| B. Runtime operation coverage | Arithmetic bodies, table reads, digit/chunk stores, initialized suffixes, and ASCII writer witnesses are checked by Creusot as documented in `RUNTIME_VERIFICATION.md`. The actual public `Buffer::format` body is excluded from Creusot. Its physical cast, runtime `MaybeUninit` suffix-to-`&[u8]` conversion, unchecked `&str` construction, and `unreachable_unchecked` branch remain unproved. The x86_64 scope does not cover 16/32-bit pointer-width fallbacks. |
 | C. Verus evidence | The standalone proof in [`verus/ascii_bytes_to_str.rs`](verus/ascii_bytes_to_str.rs) proves ASCII `&[u8]` → `valid_utf8` → `&str` for an already-formed byte slice (1 verified, 0 errors), using vstd's assumed `from_utf8_unchecked` specification. Verus has not proved the borrowed array cast or the raw `MaybeUninit<u8>`-to-`u8` slice conversion. |
 | D. Cross-tool correspondence | None is installed or asserted. No decimal correctness theorem crosses from Creusot to Verus. Any future correspondence requires human review after Verus proves the matching source operations and memory effects. |
-| E. Separate assumptions | The accepted `mulhi` result equation, the pre-existing recursive-model ASCII-suffix-to-`str` leaf, and the narrow standard/core models remain separate assumptions. None supplies a raw runtime pointer or slice conversion contract. |
+| E. Separate assumptions | The accepted `mulhi` result equation, the pre-existing recursive-model ASCII-suffix-to-`str` leaf, narrow standard/core models, and vstd's assumed `str::from_utf8_unchecked` specification remain separate assumptions. The vstd specification starts with an already-valid `&[u8]`; none supplies the physical buffer cast or the `MaybeUninit<u8>`-to-`u8` slice reborrow. |
+
+The final target is **not established**: the writer proof does not reach the
+actual public `Buffer::format` return, and there is no proved cross-tool memory
+contract to bridge that gap. Closing it requires proofs of both raw boundaries,
+the length guard for every sealed integer type, and correspondence between any
+Creusot assumptions and the exact operations proved in the other tool. The
+accepted `mulhi` equation must remain visible as an arithmetic assumption until
+it is derived from the proved limb implementation. Passing tests or a bounded
+checker must be reported separately from this deductive claim.
+
+## Supplementary checker feasibility: Kani and Miri
+
+This is a capability assessment, not a completed Kani or Miri verification.
+Neither `cargo-kani` nor `kani` is installed in this workspace. A `cargo-miri`
+launcher exists, but the selected nightly toolchain lacks the Miri component;
+no Miri run was performed.
+
+| Tool | Useful check against the actual runtime path | Limit for the outstanding claim |
+| --- | --- | --- |
+| Kani / CBMC | Separate concrete-type harnesses can make the integer input symbolic, call the production `Buffer::format`, assert returned length and bytes, exercise buffer reuse, and check modeled bounds/initialization failures. Smaller harnesses around each actual raw operation could check capacities, offsets, ASCII, and suffix bytes. A successful exhaustive bitvector check requires complete type-specific loop unwinding; solver feasibility, especially for `u128`, and support for this crate's `MaybeUninit` and raw slice casts must be measured with a pinned Kani version. | A pass means no counterexample within Kani's configured and supported memory/UB model. It does not on its own establish Rust abstract-machine provenance, reference uniqueness, or borrow lifetime for the cast/reborrow, nor does it provide the missing cross-tool contract. It must not be labeled a proof of those obligations without checking that version's exact semantics. |
+| Miri | Execute the unchanged public function on boundary values, small exhaustive domains such as `u8`, and repeated use of one buffer. Its Rust interpreter can reveal undefined behavior in executed raw-pointer, initialization, and aliasing paths under its chosen borrow/provenance mode. | Dynamic runs cover only executed values and paths. They cannot establish the forall-input property for `u128` or supply a compositional contract for Creusot. |
+
+If Kani is added later, the harness should explicitly pin target width,
+unwinding bounds, active undefined-behavior checks, and any unsupported
+intrinsic/model assumptions. Test the raw cast and suffix conversion in source
+or in extracted source-identical helpers, and state how a helper corresponds to
+the production call. An independent decimal oracle can check end-to-end output,
+but it does not replace the already-proved Creusot decimal specification.
+Kani and Miri would improve confidence and may expose a counterexample; neither
+currently closes Boundary A or B as a Rust-semantic proof.
 
 ## Boundary A — physical 40-slot buffer to typed mutable prefix
 
@@ -102,7 +132,7 @@ Only after the prefix view and suffix/string path are accounted for is `Buffer::
 
 ## Keep independent assumptions separate
 
-- The accepted arithmetic assumption is exactly `u128_ext::mulhi`'s result equation `result == x * y / 2^128` (accepted 2026-10-02). It supports the `u128` arithmetic path only; it supplies no pointer provenance, reference validity, initialization, or string-conversion fact.
+- The accepted arithmetic assumption is exactly `u128_ext::mulhi`'s result equation `result == x * y / 2^128` (accepted 2026-10-02). It supports the `u128` formatter and, through the magnitude formatter, the signed `i128` writer; it supplies no pointer provenance, reference validity, initialization, or string-conversion fact.
 - Existing standard/core models are separate from local raw-memory contracts. The runtime proof consumes `MaybeUninit::write`, slice `get_unchecked`, and narrow models for signed `unsigned_abs`, array `IndexMut`, and mutable-slice-to-array borrowing as documented in `RUNTIME_VERIFICATION.md` and `RUNTIME_MEMORY_LEDGER.md`. Their use does not prove either raw boundary.
 - The recursive verification model's trusted ASCII-suffix-to-`str` leaf applies to its initialized model array only. It is not the runtime raw conversion contract.
 - The x86_64 restriction here covers the 64-bit `usize`/`isize` writer adapters. It does not silently extend evidence to the 16/32-bit pointer-width adapters or to other targets.

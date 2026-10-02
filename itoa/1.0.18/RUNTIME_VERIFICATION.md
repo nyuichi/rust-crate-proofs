@@ -627,6 +627,47 @@ are recorded in [CROSS_TOOL_BOUNDARIES.md](CROSS_TOOL_BOUNDARIES.md); the
 standalone post-conversion Verus lemma is
 [verus/ascii_bytes_to_str.rs](verus/ascii_bytes_to_str.rs).
 
+## Phase 12: final end-to-end claim
+
+The current checkout **does not prove** the stated property for the actual
+public `Buffer::format` method. On x86_64, Creusot proves the optimized
+unsigned and signed numeric writer bodies against `integer_decimal_values`,
+including initialized, ASCII output suffixes and their arithmetic/bounds
+obligations. The `u128` formatter and signed `i128` writer inherit the accepted
+exact `mulhi` result equation. These statements concern the writer bodies,
+which are shared with normal builds; the Creusot public facade remains the
+separate recursive model.
+
+The real `Buffer::format` body, its typed-prefix reference formation, and its
+`unreachable_unchecked` length guard are excluded under `cfg(creusot)`. The
+actual `slice_buffer_to_str` raw reborrow and `&str` construction are also
+excluded. Creusot rejects the two raw dereferences during translation in
+source-equivalent probes. Verus proves only the post-conversion ASCII
+`&[u8]`-to-`&str` step, using its standard-library specification; it has not
+proved either raw-memory conversion. No cross-tool correspondence contract is
+installed. The 16- and 32-bit `usize`/`isize` paths are outside this x86_64
+proof scope.
+
+At this Phase 12 documentation checkpoint, a fresh serialized
+`run-verify-all.sh` run completed with exit 0 in both configurations: default
+and all-features each reported 218 proof libraries / 1,884 VCs. Native
+`cargo test --offline --locked` passed 11 integration tests and 2 doctests;
+release `cargo test --release --all-features --tests --offline --locked`
+passed 11 integration tests. The checked-in partial Verus artifact replayed
+with 1 verified / 0 errors. Logs are `/tmp/itoa-phase12-verify-all.log`,
+`/tmp/itoa-phase12-native-default.log`,
+`/tmp/itoa-phase12-native-release-tests.log`, and
+`/tmp/itoa-phase12-verus-ascii.log`. These checks do not include the excluded
+raw runtime public method.
+
+The separate assumption ledger consists of the accepted `mulhi` high-half
+equation, the pre-existing recursive-model string leaf, the narrow Creusot
+standard/core operation models, and the Verus `from_utf8_unchecked`
+specification consumed by the partial proof. No decimal-correctness or raw
+memory contract has been trusted across tools. The exact A–E classification,
+candidate memory contracts, removal conditions, and Kani/Miri feasibility
+assessment are in [CROSS_TOOL_BOUNDARIES.md](CROSS_TOOL_BOUNDARIES.md).
+
 ### Historical pre-integration verification of the boundary note
 
 Before the Phase 4 source integration, the unchanged `itoa/1.0.18` source
