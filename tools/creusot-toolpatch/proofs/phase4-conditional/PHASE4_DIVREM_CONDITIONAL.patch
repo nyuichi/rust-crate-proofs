@@ -1,0 +1,293 @@
+diff --git a/itoa/1.0.18/src/lib.rs b/itoa/1.0.18/src/lib.rs
+index 9d8ba6e83c87a5a2a4692a3f1fb98615210f697f..1432fd0d01f8a8a4abf0660c18d82269a1a3ffb8 100644
+--- a/itoa/1.0.18/src/lib.rs
++++ b/itoa/1.0.18/src/lib.rs
+@@ -27,6 +27,8 @@ mod divmod100;
+ mod decimal_pairs;
+ mod runtime;
+ mod enc_16lsd;
++#[cfg(creusot)]
++mod math;
+ #[cfg(not(creusot))]
+ pub use runtime::{Buffer, Integer};
+
+diff --git a/itoa/1.0.18/src/math.rs b/itoa/1.0.18/src/math.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..7df72355731e8075d27b05180fe77143bf74a5ee
+--- /dev/null
++++ b/itoa/1.0.18/src/math.rs
+@@ -0,0 +1,130 @@
++use creusot_std::prelude::{logic, proof_assert, requires, ensures, Int};
++
++#[logic]
++#[requires(a >= 0 && b >= 0)]
++#[ensures((a + b).pow2() == a.pow2() * b.pow2())]
++fn power_two_sum(a: Int, b: Int) {}
++
++#[logic]
++#[ensures(179.pow2() == 128.pow2() * 51.pow2())]
++fn pow2_179_decomposition() {
++    let _ = power_two_sum(128, 51);
++    proof_assert!(179 == 128 + 51);
++    proof_assert!(179.pow2() == 128.pow2() * 51.pow2());
++}
++
++#[logic]
++#[ensures(128.pow2() == 64.pow2() * 64.pow2())]
++fn pow2_128_decomposition() {
++    let _ = power_two_sum(64, 64);
++    proof_assert!(128 == 64 + 64);
++    proof_assert!(128.pow2() == 64.pow2() * 64.pow2());
++}
++
++#[logic]
++#[ensures(10_000_000_000_000_000
++    * 76_624_777_043_294_442_917_917_351_357_515_459_181
++    == 179.pow2() + 630_438_908_198_912)]
++fn magic_multiplier_identity() {
++    let _ = pow2_179_decomposition();
++    let _ = pow2_128_decomposition();
++    proof_assert!(51.pow2() == 2_251_799_813_685_248);
++    proof_assert!(64.pow2() == 18_446_744_073_709_551_616);
++    proof_assert!(10_000_000_000_000_000
++        * 76_624_777_043_294_442_917_917_351_357_515_459_181
++        == 179.pow2() + 630_438_908_198_912);
++}
++
++/// Exact Euclidean floor division for the Granlund–Montgomery multiplier.
++#[logic]
++#[requires(0 <= n && n < 128.pow2())]
++#[ensures(n * 76_624_777_043_294_442_917_917_351_357_515_459_181
++    / 179.pow2()
++    == n / 10_000_000_000_000_000)]
++fn magic_division_floor(n: Int) {
++    let q = n / 10_000_000_000_000_000;
++    let r = n % 10_000_000_000_000_000;
++    proof_assert!(n == q * 10_000_000_000_000_000 + r);
++    proof_assert!(0 <= q && 0 <= r && r < 10_000_000_000_000_000);
++
++    let _ = magic_multiplier_identity();
++    proof_assert!(0 < 630_438_908_198_912 && 630_438_908_198_912 < 50.pow2());
++    proof_assert!(128.pow2() * 50.pow2() < 179.pow2());
++    proof_assert!(n * 630_438_908_198_912 < 179.pow2());
++
++    proof_assert!(10_000_000_000_000_000
++        * (q * 630_438_908_198_912
++            + r * 76_624_777_043_294_442_917_917_351_357_515_459_181)
++        == n * 630_438_908_198_912 + r * 179.pow2());
++    proof_assert!(n * 630_438_908_198_912 + r * 179.pow2()
++        < 10_000_000_000_000_000 * 179.pow2());
++    proof_assert!(q * 630_438_908_198_912
++        + r * 76_624_777_043_294_442_917_917_351_357_515_459_181
++        < 179.pow2());
++    proof_assert!(q * 179.pow2()
++        <= n * 76_624_777_043_294_442_917_917_351_357_515_459_181);
++    proof_assert!(n * 76_624_777_043_294_442_917_917_351_357_515_459_181
++        < (q + 1) * 179.pow2());
++    proof_assert!(n * 76_624_777_043_294_442_917_917_351_357_515_459_181
++        / 179.pow2()
++        == q);
++}
++
++#[logic]
++#[requires(n >= 0 && d > 0)]
++#[requires(n == q * d + r && 0 <= r && r < d)]
++#[ensures(q == n / d)]
++pub(crate) fn exact_floor_from_split(n: Int, q: Int, r: Int, d: Int) {
++    proof_assert!(q * d <= n);
++    proof_assert!(n < (q + 1) * d);
++    proof_assert!(q == n / d);
++}
++
++#[logic(opaque)]
++#[requires(n >= 0 && d > 0)]
++#[ensures(n == (n / d) * d + n % d)]
++#[ensures(0 <= n % d && n % d < d)]
++pub(crate) fn euclidean_div_mod(n: Int, d: Int) {
++    let q = n / d;
++    let r = n % d;
++    proof_assert!(n == q * d + r);
++    proof_assert!(0 <= r && r < d);
++}
++
++#[logic]
++#[requires(n >= 0 && p > 0 && s > 0)]
++#[ensures((n / p) / s == n / (p * s))]
++fn nested_floor(n: Int, p: Int, s: Int) {
++    let h = n / p;
++    let t = n % p;
++    let q = h / s;
++    let r = h % s;
++    proof_assert!(n == h * p + t);
++    proof_assert!(0 <= t && t < p);
++    proof_assert!(h == q * s + r);
++    proof_assert!(0 <= r && r < s);
++    proof_assert!(h >= 0);
++    proof_assert!(q >= 0);
++    proof_assert!(r * p + t < p * s);
++    proof_assert!(n == q * (p * s) + (r * p + t));
++    let _ = exact_floor_from_split(n, q, r * p + t, p * s);
++}
++
++/// Pure-integer bridge from the exact high product and post-shift to `/ 10^16`.
++#[logic(opaque)]
++#[requires(0 <= n && n < 128.pow2())]
++#[requires(high == n * 76_624_777_043_294_442_917_917_351_357_515_459_181
++    / 128.pow2())]
++#[requires(q == high / 51.pow2())]
++#[ensures(result == q && result == n / 10_000_000_000_000_000)]
++pub(crate) fn magic_shift_floor(n: Int, high: Int, q: Int) -> Int {
++    let _ = pow2_179_decomposition();
++    let _ = nested_floor(
++        n * 76_624_777_043_294_442_917_917_351_357_515_459_181,
++        128.pow2(),
++        51.pow2(),
++    );
++    let _ = magic_division_floor(n);
++    proof_assert!(q == n / 10_000_000_000_000_000);
++    q
++}
+diff --git a/itoa/1.0.18/src/runtime.rs b/itoa/1.0.18/src/runtime.rs
+index 787fe5a8f8e1a6e1d3d140c00c9853daebdda7f8..f7b210d6d781a0b1030b5071ab0bf3325f772f21 100644
+--- a/itoa/1.0.18/src/runtime.rs
++++ b/itoa/1.0.18/src/runtime.rs
+@@ -1,4 +1,3 @@
+-#[cfg(not(creusot))]
+ #[path = "u128_ext.rs"]
+ mod u128_ext;
+
+@@ -22,7 +21,9 @@ use crate::decimal_pairs::decimal_pair_correct;
+ #[cfg(creusot)]
+ use crate::verification::{fixed_width_decimal_values_compose_2x2, fixed_width_decimal_values_pair};
+ #[cfg(creusot)]
+-use creusot_std::prelude::{check, ensures, invariant, proof_assert, requires, snapshot, Int, Seq};
++use crate::math::magic_shift_floor;
++#[cfg(creusot)]
++use creusot_std::prelude::{bitwise_proof, check, ensures, invariant, proof_assert, requires, snapshot, Int, Seq};
+ #[cfg(creusot)]
+ use creusot_std::std::option::OptionExt;
+ #[cfg(not(creusot))]
+@@ -33,6 +34,45 @@ use core::str;
+ #[cfg(feature = "no-panic")]
+ use no_panic::no_panic;
+
++const D: u128 = 1_0000_0000_0000_0000;
++const M_HIGH: u128 = 76624777043294442917917351357515459181;
++const SH_POST: u8 = 51;
++
++#[inline(always)]
++#[cfg_attr(creusot, bitwise_proof)]
++#[cfg_attr(creusot, requires(SH_POST@ >= 0 && SH_POST@ < 128))]
++#[cfg_attr(creusot, ensures(result@ == n@.div_euclid(SH_POST@.pow2())))]
++#[cfg_attr(creusot, ensures(result == n >> SH_POST))]
++fn shift_by_51(n: u128) -> u128 {
++    n >> SH_POST
++}
++
++// Keep the optimized Granlund–Montgomery quotient calculation single-sourced.
++#[inline(always)]
++#[cfg_attr(creusot, bitwise_proof)]
++#[cfg_attr(creusot, ensures(result@ == n@ / D@))]
++fn magic_quotient(n: u128) -> u128 {
++    let high = u128_ext::mulhi(n, M_HIGH);
++    #[cfg(creusot)]
++    proof_assert!(n@ >= 0 && n@ < 128.pow2());
++    #[cfg(creusot)]
++    proof_assert!(M_HIGH@ == 76_624_777_043_294_442_917_917_351_357_515_459_181);
++    #[cfg(creusot)]
++    proof_assert!(high@ == n@ * 76_624_777_043_294_442_917_917_351_357_515_459_181
++        / 128.pow2());
++    #[cfg(creusot)]
++    proof_assert!(high@ >= 0 && high@ < 128.pow2());
++    let quot = shift_by_51(high);
++    #[cfg(creusot)]
++    proof_assert!(quot@ == high@ / 51.pow2());
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = magic_shift_floor(n@, high@, quot@);
++        quot@ == n@ / D@
++    };
++    quot
++}
++
+ /// A correctly sized stack allocation for the formatted integer to be written
+ /// into.
+ ///
+@@ -821,22 +861,51 @@ impl Unsigned for u128 {
+ //   in Proc. of the SIGPLAN94 Conference on Programming Language Design and
+ //   Implementation, 1994, pp. 61–72
+ //
+-#[cfg_attr(feature = "no-panic", no_panic)]
+-#[cfg(not(creusot))]
++#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
++#[cfg_attr(creusot, bitwise_proof)]
++#[cfg_attr(creusot, ensures(result.0@ == n@ / 10_000_000_000_000_000))]
++#[cfg_attr(creusot, ensures(result.1@ == n@ % 10_000_000_000_000_000))]
++#[cfg_attr(creusot, ensures(result.0@ * 10_000_000_000_000_000 + result.1@ == n@))]
++#[cfg_attr(creusot, ensures(result.1@ < 10_000_000_000_000_000))]
+ fn div_rem_1e16(n: u128) -> (u128, u64) {
+-    const D: u128 = 1_0000_0000_0000_0000;
+     // The check inlines well with the caller flow.
+     if n < D {
++        #[cfg(creusot)]
++        proof_assert!(n@ < D@);
++        #[cfg(creusot)]
++        proof_assert!(D@ < 64.pow2());
++        #[cfg(creusot)]
++        proof_assert!(n@ < 64.pow2());
++        #[cfg(creusot)]
++        proof_assert!(n@ / D@ == 0);
++        #[cfg(creusot)]
++        proof_assert!(n@ % D@ == n@);
+         return (0, n as u64);
+     }
+
+     // These constant values are computed with the CHOOSE_MULTIPLIER procedure
+     // from the Granlund & Montgomery paper, using N=128, prec=128 and d=1E16.
+-    const M_HIGH: u128 = 76624777043294442917917351357515459181;
+-    const SH_POST: u8 = 51;
+-
+     // n.widening_mul(M_HIGH).1 >> SH_POST
+-    let quot = u128_ext::mulhi(n, M_HIGH) >> SH_POST;
++    let quot = magic_quotient(n);
++    #[cfg(creusot)]
++    proof_assert!(D@ == 10_000_000_000_000_000);
++    #[cfg(creusot)]
++    proof_assert!(quot@ * D@ <= n@);
++    #[cfg(creusot)]
++    proof_assert!(quot@ * D@ < 128.pow2());
+     let rem = n - quot * D;
++    #[cfg(creusot)]
++    proof_assert!(rem@ == n@ % D@);
++    #[cfg(creusot)]
++    proof_assert!(0 <= rem@ && rem@ < D@);
++    #[cfg(creusot)]
++    proof_assert!(D@ < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert!(rem@ < 64.pow2());
++    #[cfg(creusot)]
++    proof_assert! {
++        let _ = crate::math::euclidean_div_mod(n@, D@);
++        quot@ * D@ + rem@ == n@
++    };
+     (quot, rem as u64)
+ }
+diff --git a/itoa/1.0.18/src/u128_ext.rs b/itoa/1.0.18/src/u128_ext.rs
+index 866a7334df8f6439bbc454092091b046992a8b60..fb2e8a6b8da717a64e8f0c8535b0c953664b1bf0 100644
+--- a/itoa/1.0.18/src/u128_ext.rs
++++ b/itoa/1.0.18/src/u128_ext.rs
+@@ -1,9 +1,13 @@
+ #[cfg(feature = "no-panic")]
+ use no_panic::no_panic;
++#[cfg(creusot)]
++use creusot_std::prelude::{bitwise_proof, ensures};
+
+ /// Multiply unsigned 128 bit integers, return upper 128 bits of the result
+ #[inline]
+-#[cfg_attr(feature = "no-panic", no_panic)]
++#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
++#[cfg_attr(creusot, bitwise_proof)]
++#[cfg_attr(creusot, ensures(result@ == x@ * y@ / 128.pow2()))]
+ pub(crate) fn mulhi(x: u128, y: u128) -> u128 {
+     let x_lo = x as u64;
+     let x_hi = (x >> 64) as u64;

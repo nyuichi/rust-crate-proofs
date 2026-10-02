@@ -31,7 +31,9 @@ formatter bodies to the decimal model; adapters remain later phases.
 | Actual optimized `Unsigned::fmt` body for `u64` | yes | yes (104 goals in current integrated runs; 105 targeted no-cache) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u8` | yes | yes (98 goals) | no formatter boundary | yes; default and all-features |
 | Actual `enc_16lsd` 16-digit chunk encoder body (Phase 5) | yes | yes (`enc_16lsd`: 55 goals; quad writer: 87; digit bridge: 50) | none | yes; component in both full crate proof configurations, not the `u128` caller |
-| `u128` reciprocal division and formatter caller | pending | no | none | pending |
+| `u128_ext::mulhi` high-half product body (Phase 4) | yes | no (49/51 in the latest bounded attempt; two obligations remain) | none declared; its result contract is consumed by the conditional divider proof | pending |
+| `div_rem_1e16` reciprocal divider body (Phase 4) | yes | 31/31 conditionally, assuming the `mulhi` result contract | no trusted attribute; the actual `mulhi` body is not yet proved | staged evidence only; not integrated |
+| `u128` formatter caller | pending | no | none | pending |
 | Raw `Buffer::format`, signed adapters, and output-string integration | pending | no | no new boundary planned | pending |
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
@@ -130,6 +132,53 @@ unsigned bodies until their proof phases. It also translates and proves the
 same `enc_16lsd` body used by the native `u128` implementation; the `u128`
 formatter caller and reciprocal divider remain excluded. The ordinary Rust cfg
 continues to compile the production runtime implementations.
+
+## Phase 4: `u128` reciprocal divider boundary
+
+The remaining Phase 4 boundary is the actual 128-bit high-half multiply used
+by the reciprocal divider. The runtime quotient is computed with the original
+Granlund–Montgomery operation: multiply by
+`76_624_777_043_294_442_917_917_351_357_515_459_181`, take the high half, then
+shift it right by 51; the divider subtracts `quotient * 10^16` to obtain the
+remainder. The staged divider contract states the exact quotient, remainder,
+reconstruction, and remainder bound. No replacement arithmetic is used.
+
+The divider components have completed focused proofs in a candidate based on
+`51090b4`: `shift_by_51` passed 2/2 goals, `magic_quotient` passed 10/10,
+`math::magic_shift_floor` passed 1/1, and `div_rem_1e16` passed 31/31. These
+divider results are conditional because their callers consume the `mulhi`
+postcondition while its body remains unfinished. The actual `mulhi` body has a
+bounded 49/51 result; the two remaining formulas are:
+
+```text
+x * y == result * 2^128 + residual
+quotient == result
+```
+
+The second obligation occurs after a call to
+`exact_floor_from_split(x * y, result, residual, 2^128)`. The neighboring
+`quotient == x * y / 2^128` obligation passed. This run stopped at its 90-second
+bound; it does not show that either formula is unprovable. The issue is the
+caller-side composition of the residual helper with the reconstruction and
+exact-floor facts. No trusted declaration was added, and no complete `u128`
+runtime proof is claimed.
+
+The candidate patch, source, generated COMA, proof JSON, and bounded-run report
+are preserved under
+[`tools/creusot-toolpatch/proofs/phase4-conditional/`](../../tools/creusot-toolpatch/proofs/phase4-conditional/).
+The divider patch and the `mulhi` candidate patch were developed separately
+against `51090b4`; both change `u128_ext.rs`, so they must not be applied in
+sequence. Each artifact's README gives its isolated replay steps. Use the pinned
+environment in
+[`tools/creusot-toolpatch/records/versions.md`](../../tools/creusot-toolpatch/records/versions.md)
+and run the focused no-cache proof targets. The saved `mulhi.coma` and
+`proof.json` identify the exact obligations from that attempt. The patched
+compiler and Why3 overlay are required for the 128-bit shift/cast obligations;
+the checked-in toolpatch scripts document how to rebuild that environment.
+
+The divider patch has a negative control: replacing one quotient assertion
+with `quot < 0` made the target fail (26/27). This checks that the conditional
+body proof responds to a false claim; it does not remove the `mulhi` dependency.
 
 ## Phase 5: actual 16-digit chunk encoder
 
@@ -323,3 +372,14 @@ proofs. `cargo test --manifest-path Cargo.toml` passed 11 integration tests and
 --release` passed all 11 integration tests. Their logs are
 `/tmp/phase5-tests-default.log` and
 `/tmp/phase5-tests-release-allfeatures.log`.
+
+After recording the Phase 4 boundary, the unchanged `itoa/1.0.18` source passed
+a fresh `tools/creusot-toolpatch/scripts/run-verify-all.sh
+/workspace/rust-crate-proofs` run: default reported 134 proof units / 1,141
+goals, and all-features reported 135 units / 1,145 goals. The normal native
+test command passed 11 integration tests and 2 doctests; the release
+all-features `--tests` command passed all 11 integration tests. The complete
+logs are preserved in
+`tools/creusot-toolpatch/proofs/phase4-conditional/logs/`. This validates the
+documentation and evidence-package change against the current integrated
+source; the conditional Phase 4 candidate patches were not applied to this run.
