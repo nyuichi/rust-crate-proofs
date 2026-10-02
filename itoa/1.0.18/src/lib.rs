@@ -20,10 +20,13 @@
 )]
 
 extern crate creusot_std;
+#[cfg(creusot)]
+extern crate core as std;
 
 mod divmod100;
 mod decimal_pairs;
 mod runtime;
+mod enc_16lsd;
 #[cfg(not(creusot))]
 pub use runtime::{Buffer, Integer};
 

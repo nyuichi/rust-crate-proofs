@@ -8,7 +8,9 @@ by 100, four-digit chunking, the specialized `u128` path, and output string
 construction. Under `cfg(creusot)`, this phase compiles `runtime.rs` and proves
 the actual shared `Unsigned::fmt` bodies for `u8`, `u16`, `u32`, and `u64`. The
 public formatting facade still comes from `verification.rs`; raw
-`Buffer::format`, signed adapters, and the `u128` path remain outside this phase.
+`Buffer::format`, signed adapters, and the `u128` formatter caller remain
+outside this phase. The `u64` 16-digit chunk encoder called by that native
+caller is now translated and proved as a separate component.
 The recursive decimal model in `verification.rs` remains the formatter's
 specification, and all existing model proofs are retained.
 
@@ -28,7 +30,8 @@ formatter bodies to the decimal model; adapters remain later phases.
 | Actual optimized `Unsigned::fmt` body for `u32` | yes | yes (102 goals in current integrated runs; 104 targeted no-cache) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u64` | yes | yes (104 goals in current integrated runs; 105 targeted no-cache) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u8` | yes | yes (98 goals) | no formatter boundary | yes; default and all-features |
-| `u128` reciprocal division and chunk encoder | pending | no | none | pending |
+| Actual `enc_16lsd` 16-digit chunk encoder body (Phase 5) | yes | yes (`enc_16lsd`: 55 goals; quad writer: 87; digit bridge: 50) | none | yes; component in both full crate proof configurations, not the `u128` caller |
+| `u128` reciprocal division and formatter caller | pending | no | none | pending |
 | Raw `Buffer::format`, signed adapters, and output-string integration | pending | no | no new boundary planned | pending |
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
@@ -123,14 +126,52 @@ targeted no-cache proof discharged 98 body goals and one refinement goal.
 The staged Creusot build enables the runtime module and compiles the actual
 `u8`, `u16`, `u32`, and `u64` unsigned formatter bodies. It omits the raw public
 `Buffer::format` and string conversion adapters, signed wrappers, and other
-unsigned bodies until their proof phases. The ordinary Rust cfg continues to
-compile the production runtime implementations.
+unsigned bodies until their proof phases. It also translates and proves the
+same `enc_16lsd` body used by the native `u128` implementation; the `u128`
+formatter caller and reciprocal divider remain excluded. The ordinary Rust cfg
+continues to compile the production runtime implementations.
+
+## Phase 5: actual 16-digit chunk encoder
+
+The original `enc_16lsd` runtime body is moved from `runtime.rs` to
+`src/enc_16lsd.rs`, where both normal Rust and Creusot compile the same
+executable loop. Its four table reads and four `MaybeUninit::write` operations
+are grouped in `write_decimal_quad`; the reads and writes themselves retain the
+original expressions. The loop still consumes the input in four-digit chunks
+using `% 10_000`, `/ 10_000`, and `divmod100`. No replacement formatter or
+trusted local writer is introduced.
+
+The quad writer contract proves that exactly its selected four slots are
+initialized with the corresponding fixed-width digits and that every slot
+outside that range preserves its prior `Option<u8>` state. The enclosing
+encoder contract proves all 16 output slots initialized with
+`fixed_width_decimal_values(n, 16)`, while preserving the prefix and suffix
+outside its output region. Creusot proves the writer in 87 goals, the runtime
+quad-to-digit bridge in 50, and the encoder body in 55. An isolated negative
+control changed the first loop's chunk relation to a false assertion; Creusot
+rejected it.
+
+This loop uses `(1..4).rev()`. The external `DoubleEndedIteratorSpec` model was
+narrowed to `Range<usize>` and corrected to describe the native reverse
+iteration: visited length is `original_end - current_end`, and visited item
+`i` is `original_end - 1 - i`. The previous generic model had the length
+subtraction reversed and omitted the `-1`, which did not describe `next_back`.
+The model adds no generic termination assumption or `check(terminates)`
+annotation for the iterator. This is a narrow external specification of
+`Range<usize>::next_back`; its removal condition is verification of the native
+core iterator implementation or an equivalent source-level specification.
+
+The proof-only arithmetic and loop annotations are under `cfg(creusot)`; normal
+Rust uses the same executable body. The `no_panic` attribute remains enabled in
+normal builds and is omitted under Creusot because its proc-macro expansion is
+not supported by the translator. This omission affects only instrumentation,
+not the encoder arithmetic or its contracts.
 
 ### Standard-library model assumptions used by Phase 3
 
 Six narrow external models describe native standard-library operations used
-by the formatter. These are assumptions about core APIs, not trusted local
-formatter functions:
+by the Phase 3 formatter. These are assumptions about core APIs, not trusted
+local formatter functions:
 
 - `MaybeUninit::write` requires the old value to be `None` or resolved, then
   establishes the exact new `Some(value)` state. This matches the native
@@ -271,3 +312,14 @@ targeted U8 body and refinement runs are in
 tests and 2 doctests; all-features release tests passed 11 integration tests,
 recorded in `/tmp/itoa-u8-tests-default.log` and
 `/tmp/itoa-u8-tests-allfeatures-release.log`.
+
+After adding Phase 5, a fresh `./verify-all.bash` completed with exit 0 in both
+configurations. The log is `/tmp/phase5-official-fresh.log`: default reported
+134 proof units and 1,141 split goals; `--all-features` reported 135 units and
+1,145 goals. Both runs proved `enc_16lsd` (55 goals), `write_decimal_quad`
+(87), and its runtime digit bridge (50), while retaining the Phase 3 formatter
+proofs. `cargo test --manifest-path Cargo.toml` passed 11 integration tests and
+2 doctests; `cargo test --manifest-path Cargo.toml --tests --all-features
+--release` passed all 11 integration tests. Their logs are
+`/tmp/phase5-tests-default.log` and
+`/tmp/phase5-tests-release-allfeatures.log`.

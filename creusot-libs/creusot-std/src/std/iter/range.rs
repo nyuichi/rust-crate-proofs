@@ -35,15 +35,15 @@ impl<Idx: DeepModel<DeepModelTy = Int> + Step> IteratorSpec for Range<Idx> {
 }
 
 #[cfg(feature = "nightly")]
-impl<Idx: DeepModel<DeepModelTy = Int> + Step> DoubleEndedIteratorSpec for Range<Idx> {
+impl DoubleEndedIteratorSpec for Range<usize> {
     #[logic(open)]
     fn produces_back(self, visited: Seq<Self::Item>, o: Self) -> bool {
         pearlite! {
             self.start == o.start && self.end.deep_model() >= o.end.deep_model()
             && (visited.len() > 0 ==> o.end.deep_model() >= o.start.deep_model())
-            && visited.len() == o.end.deep_model() - self.end.deep_model()
+            && visited.len() == self.end.deep_model() - o.end.deep_model()
             && forall<i> 0 <= i && i < visited.len() ==>
-                visited[i].deep_model() == self.end.deep_model() - i
+                visited[i].deep_model() == self.end.deep_model() - 1 - i
         }
     }
 
