@@ -52,6 +52,22 @@ pub(crate) fn logical_slot_states(slots: Seq<MaybeUninit<u8>>) -> Seq<Int> {
     })
 }
 
+/// On an initialized range, the byte view and the injective slot-state view
+/// agree. The byte view uses zero as a filler for uninitialized slots, while
+/// this precondition excludes those slots.
+#[logic]
+#[requires(forall<i: Int> 0 <= i && i < slots.len() ==> slots[i]@ != None)]
+#[ensures(result)]
+#[ensures(logical_slot_bytes(slots) == logical_slot_states(slots))]
+pub(crate) fn logical_slot_bytes_equal_states_initialized(
+    slots: Seq<MaybeUninit<u8>>,
+) -> bool {
+    proof_assert!(forall<i: Int> 0 <= i && i < slots.len() ==>
+        logical_slot_bytes(slots)[i] == logical_slot_states(slots)[i]);
+    proof_assert!(logical_slot_bytes(slots) == logical_slot_states(slots));
+    true
+}
+
 #[logic]
 #[requires(0 <= start && start <= end && end <= slots.len())]
 #[ensures(logical_slot_states(slots.subsequence(start, end))
