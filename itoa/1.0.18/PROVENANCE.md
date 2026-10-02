@@ -73,7 +73,10 @@ Two narrow boundaries are currently trusted:
   and overflow checks are verified, but the wrapper's assumed equation is not
   yet derived from the core's returned value. A second isolated attempt proved
   two arithmetic helper lemmas, but its full core-composition candidate still
-  had one open goal; see the Phase 4 follow-up in
+  had one open goal. A later structural follow-up confirmed that the failing
+  Why3 task already contains the `y` limb decomposition; isolated cut and
+  helper experiments did not close the integrated goal. The exact equation
+  therefore remains trusted; see the Phase 4 follow-up in
   [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md).
 
 Removal conditions: replace the string boundary when Creusot can prove ASCII

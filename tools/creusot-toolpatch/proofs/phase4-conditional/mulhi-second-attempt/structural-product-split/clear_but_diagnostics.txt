@@ -1,0 +1,9 @@
+Toy-only diagnostic (not the generated Creusot VC):
+  `why3 prove -P 'Z3,4.15.3' -t 5 -a 'clear_but splits' /tmp/mulhi-clear-but.mlw -T MulhiSubst -G product_substitution`
+  Result: `Valid (0.02s, 49716 steps)`.
+
+Actual COMA-source attempt on the selected x-limb assertion:
+  `why3 prove -F coma -a split_vc -a 'clear_but Assert' ... -T Coma -G vc_mulhi_product_from_halves -g <u128_ext.rs>:331@assertion`
+  Result: `Symbol 'Assert' not found, ignored`; the unpruned selected subgoal returned `Out of memory (1.88s)`.
+
+The generated `why3find` task does display an `Assert` conjunction containing the two exact limb equations. The distinction above is why the toy result is not reported as a proof of the actual VC.

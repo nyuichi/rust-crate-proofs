@@ -1,0 +1,478 @@
+Proof resources: jobs=1, memory=1024 MiB per prover; shared lock held
+Goal Coma.vc_mulhi_core: ✘ (67/68)
+--------------------------- Local Context ---------------------------
+
+type tup2_u64_u64 =
+  | Tup2_u64_u64'mk (f0:t) (f1:t)
+
+function power_two_sum (a:int) (b:int) : unit = ()
+
+axiom power_two_sum_spec :
+  forall a:int, b:int. a >= 0 /\ b >= 0 -> pow2 (a + b) = (pow2 a * pow2 b)
+
+constant limb_base_square : unit = let _ = power_two_sum 64 64 in ()
+
+axiom limb_base_square_spec : (pow2 64 * pow2 64) = pow2 128
+
+function euclidean_u128_half_bound (n:int) : unit =
+  let _ = limb_base_square in
+  let d = pow2 64 in let q = div n d in let r = mod n d in ()
+
+axiom euclidean_u128_half_bound_spec :
+  forall n:int. n >= 0 /\ n < pow2 128 -> div n (pow2 64) < pow2 64
+
+function computer_division_euclidean_compat int int : unit
+
+axiom computer_division_euclidean_compat_spec :
+  forall n:int, d:int. n >= 0 /\ d > 0 -> div1 n d = div n d
+
+axiom computer_division_euclidean_compat_spec'0 :
+  forall n:int, d:int. n >= 0 /\ d > 0 -> mod1 n d = mod n d
+
+predicate computer_division_matches_shift64 (n:int) =
+  let _ = computer_division_euclidean_compat n (pow2 64) in
+  div1 n (pow2 64) = div n (pow2 64)
+
+axiom computer_division_matches_shift64_spec :
+  forall n:int.
+   n >= 0 ->
+   computer_division_matches_shift64 n /\
+   (computer_division_matches_shift64 n <->
+    div1 n (pow2 64) = div n (pow2 64))
+
+axiom computer_division_matches_shift64_spec'0 :
+  forall n:int. n >= 0 -> mod1 n (pow2 64) = mod n (pow2 64)
+
+function limb_product_fits (a:int) (b:int) : unit =
+  let top = 18446744073709551615 in ()
+
+axiom limb_product_fits_spec :
+  forall a:int, b:int.
+   0 <= a /\ a < pow2 64 -> 0 <= b /\ b < pow2 64 -> (a * b) < pow2 128
+
+axiom limb_product_fits_spec'0 :
+  forall a:int, b:int.
+   0 <= a /\ a < pow2 64 ->
+   0 <= b /\ b < pow2 64 ->
+   (a * b) <= (18446744073709551615 * 18446744073709551615)
+
+function limb_product_plus_limb_fits (a:int) (b:int) (c:int) : unit =
+  let top = 18446744073709551615 in let _ = limb_product_fits a b in ()
+
+axiom limb_product_plus_limb_fits_spec :
+  forall a:int, b:int, c:int.
+   0 <= a /\ a < pow2 64 ->
+   0 <= b /\ b < pow2 64 -> 0 <= c /\ c < pow2 64 -> (a * b) < pow2 128
+
+axiom limb_product_plus_limb_fits_spec'0 :
+  forall a:int, b:int, c:int.
+   0 <= a /\ a < pow2 64 ->
+   0 <= b /\ b < pow2 64 -> 0 <= c /\ c < pow2 64 -> ((a * b) + c) < pow2 128
+
+function limb_product_plus_two_limbs_fits (a:int) (b:int) (c:int) (d:int) :
+  unit =
+  let top = 18446744073709551615 in let _ = limb_product_fits a b in ()
+
+axiom limb_product_plus_two_limbs_fits_spec :
+  forall a:int, b:int, c:int, d:int.
+   0 <= a /\ a < pow2 64 ->
+   0 <= b /\ b < pow2 64 ->
+   0 <= c /\ c < pow2 64 -> 0 <= d /\ d < pow2 64 -> (a * b) < pow2 128
+
+axiom limb_product_plus_two_limbs_fits_spec'0 :
+  forall a:int, b:int, c:int, d:int.
+   0 <= a /\ a < pow2 64 ->
+   0 <= b /\ b < pow2 64 ->
+   0 <= c /\ c < pow2 64 -> 0 <= d /\ d < pow2 64 -> ((a * b) + c) < pow2 128
+
+axiom limb_product_plus_two_limbs_fits_spec'1 :
+  forall a:int, b:int, c:int, d:int.
+   0 <= a /\ a < pow2 64 ->
+   0 <= b /\ b < pow2 64 ->
+   0 <= c /\ c < pow2 64 ->
+   0 <= d /\ d < pow2 64 -> (((a * b) + c) + d) < pow2 128
+
+function split_u128_at_64 int int int : int
+
+axiom split_u128_at_64_spec :
+  forall n:int, hi:int, lo:int.
+   n >= 0 ->
+   hi = div1 n (pow2 64) ->
+   lo = mod1 n (pow2 64) -> split_u128_at_64 n hi lo = n
+
+axiom split_u128_at_64_spec'0 :
+  forall n:int, hi:int, lo:int.
+   n >= 0 ->
+   hi = div1 n (pow2 64) ->
+   lo = mod1 n (pow2 64) -> split_u128_at_64 n hi lo = ((hi * pow2 64) + lo)
+
+function mulhi_product_congruence int int int int : int
+
+axiom mulhi_product_congruence_spec :
+  forall x:int, y:int, a:int, b:int.
+   x = a ->
+   y = b ->
+   mulhi_product_congruence x y a b = (x * y) /\
+   mulhi_product_congruence x y a b = (a * b)
+
+function mulhi_product_expansion int int int int : int
+
+axiom mulhi_product_expansion_spec :
+  forall x_hi:int, x_lo:int, y_hi:int, y_lo:int.
+   mulhi_product_expansion x_hi x_lo y_hi y_lo =
+   (((x_hi * pow2 64) + x_lo) * ((y_hi * pow2 64) + y_lo))
+
+axiom mulhi_product_expansion_spec'0 :
+  forall x_hi:int, x_lo:int, y_hi:int, y_lo:int.
+   mulhi_product_expansion x_hi x_lo y_hi y_lo =
+   (((((x_hi * y_hi) * pow2 128) + ((x_hi * y_lo) * pow2 64))
+     + ((x_lo * y_hi) * pow2 64))
+    + (x_lo * y_lo))
+
+function exact_floor_from_split int int int int : int
+
+axiom exact_floor_from_split_spec :
+  forall n:int, q:int, r:int, d:int.
+   n >= 0 /\ d > 0 ->
+   n = ((q * d) + r) ->
+   0 <= r /\ r < d ->
+   exact_floor_from_split n q r d = q /\
+   exact_floor_from_split n q r d = div1 n d
+
+constant x : t1
+
+constant y : t1
+
+constant result : tup2_u64_u64
+
+axiom Assert :
+  t'int (result.f0) = mod1 (t'int1 x) (pow2 64) /\
+  t'int (result.f1) = div1 (t'int1 x) (pow2 64) /\
+  (t'int (result.f0) + (t'int (result.f1) * pow2 64)) = t'int1 x /\
+  (0 <= t'int (result.f0) /\ t'int (result.f0) < pow2 64) /\
+  0 <= t'int (result.f1) /\ t'int (result.f1) < pow2 64
+
+constant result1 : tup2_u64_u64
+
+axiom Assert1 :
+  t'int (result1.f0) = mod1 (t'int1 y) (pow2 64) /\
+  t'int (result1.f1) = div1 (t'int1 y) (pow2 64) /\
+  (t'int (result1.f0) + (t'int (result1.f1) * pow2 64)) = t'int1 y /\
+  (0 <= t'int (result1.f0) /\ t'int (result1.f0) < pow2 64) /\
+  0 <= t'int (result1.f1) /\ t'int (result1.f1) < pow2 64
+
+axiom Assert2 : (pow2 64 * pow2 64) = pow2 128
+
+axiom Assert3 :
+  t'int1 (shr x (of_BV256 (to_BV256 (64:t2)))) = div (t'int1 x) (pow2 64)
+
+axiom Assert4 :
+  t'int1 (shr x (of_BV256 (to_BV256 (64:t2)))) = div (t'int1 x) (pow2 64)
+
+axiom Assert5 : t'int1 x >= 0
+
+axiom Assert6 : t'int1 x < pow2 128
+
+axiom Assert7 : t'int1 (shr x (of_BV256 (to_BV256 (64:t2)))) < pow2 64
+
+axiom Assert8 : 0 < pow2 64
+
+axiom Assert9 :
+  computer_division_matches_shift64 (t'int1 x) /\
+  div1 (t'int1 x) (pow2 64) = div (t'int1 x) (pow2 64)
+
+axiom Assert10 : t'int (result.f1) = div1 (t'int1 x) (pow2 64)
+
+axiom Assert11 :
+  t'int1 (shr y (of_BV256 (to_BV256 (64:t2)))) = div (t'int1 y) (pow2 64)
+
+axiom Assert12 :
+  t'int1 (shr y (of_BV256 (to_BV256 (64:t2)))) = div (t'int1 y) (pow2 64)
+
+axiom Assert13 : t'int1 y >= 0
+
+axiom Assert14 : t'int1 y < pow2 128
+
+axiom Assert15 : t'int1 (shr y (of_BV256 (to_BV256 (64:t2)))) < pow2 64
+
+axiom Assert16 : 0 < pow2 64
+
+axiom Assert17 :
+  computer_division_matches_shift64 (t'int1 y) /\
+  div1 (t'int1 y) (pow2 64) = div (t'int1 y) (pow2 64)
+
+axiom Assert18 : t'int (result1.f1) = div1 (t'int1 y) (pow2 64)
+
+axiom Assert19 :
+  t'int (result.f1) = div1 (t'int1 x) (pow2 64) /\
+  t'int (result.f0) = mod1 (t'int1 x) (pow2 64)
+
+axiom Assert20 :
+  t'int (result1.f1) = div1 (t'int1 y) (pow2 64) /\
+  t'int (result1.f0) = mod1 (t'int1 y) (pow2 64)
+
+axiom Assert21 : (t'int (result.f0) * t'int (result1.f0)) < pow2 128
+
+axiom Assert22 :
+  t'int1
+  (mul (of_BV256 (to_BV2561 (result.f0))) (of_BV256 (to_BV2561 (result1.f0)))) =
+  (t'int1 (of_BV256 (to_BV2561 (result.f0)))
+   * t'int1 (of_BV256 (to_BV2561 (result1.f0))))
+
+axiom Assert23 :
+  t'int1
+  (mul (of_BV256 (to_BV2561 (result.f0))) (of_BV256 (to_BV2561 (result1.f0)))) =
+  (t'int1 (of_BV256 (to_BV2561 (result.f0)))
+   * t'int1 (of_BV256 (to_BV2561 (result1.f0))))
+
+axiom Assert24 :
+  t'int1
+  (shr
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0))))
+   (of_BV256 (to_BV256 (64:t2)))) =
+  div
+  (t'int1
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0)))))
+  (pow2 64)
+
+axiom Assert25 :
+  t'int1
+  (mul (of_BV256 (to_BV2561 (result.f0))) (of_BV256 (to_BV2561 (result1.f0)))) =
+  (t'int (result.f0) * t'int (result1.f0))
+
+axiom Assert26 :
+  t'int1
+  (mul (of_BV256 (to_BV2561 (result.f0))) (of_BV256 (to_BV2561 (result1.f0))))
+  < pow2 128
+
+axiom Assert27 :
+  t'int1
+  (shr
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0))))
+   (of_BV256 (to_BV256 (64:t2)))) =
+  div
+  (t'int1
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0)))))
+  (pow2 64)
+
+axiom Assert28 :
+  t'int1
+  (shr
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0))))
+   (of_BV256 (to_BV256 (64:t2))))
+  < pow2 64
+
+axiom Assert29 :
+  shr
+  (mul (of_BV256 (to_BV2561 (result.f0))) (of_BV256 (to_BV2561 (result1.f0))))
+  (of_int (to_int (64:t2))) =
+  shr
+  (mul (of_BV256 (to_BV2561 (result.f0))) (of_BV256 (to_BV2561 (result1.f0))))
+  (of_BV256 (to_BV256 (64:t2)))
+
+axiom Assert30 :
+  t'int1
+  (shr
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0))))
+   (of_int (to_int (64:t2))))
+  < pow2 64
+
+axiom Assert31 :
+  t'int1
+  (mul (of_BV256 (to_BV2561 (result.f0))) (of_BV256 (to_BV2561 (result1.f0))))
+  >= 0
+
+axiom Assert32 : 0 < pow2 64
+
+axiom Assert33 :
+  computer_division_matches_shift64
+  (t'int1
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0))))) /\
+  div1
+  (t'int1
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0)))))
+  (pow2 64) =
+  div
+  (t'int1
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0)))))
+  (pow2 64)
+
+axiom Assert34 :
+  t'int1
+  (shr
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0))))
+   (of_int (to_int (64:t2)))) =
+  div1
+  (t'int1
+   (mul (of_BV256 (to_BV2561 (result.f0)))
+    (of_BV256 (to_BV2561 (result1.f0)))))
+  (pow2 64)
+
+constant result2 : t1
+
+axiom Assert35 :
+  t'int1 result2 =
+  ((t'int (result.f0) * t'int (result1.f1))
+   + t'int1
+     (shr
+      (mul (of_BV256 (to_BV2561 (result.f0)))
+       (of_BV256 (to_BV2561 (result1.f0))))
+      (of_int (to_int (64:t2))))) /\
+  t'int1 result2 < pow2 128
+
+axiom Assert36 :
+  t'int1 result2 =
+  ((t'int (result.f0) * t'int (result1.f1))
+   + t'int1
+     (shr
+      (mul (of_BV256 (to_BV2561 (result.f0)))
+       (of_BV256 (to_BV2561 (result1.f0))))
+      (of_int (to_int (64:t2)))))
+
+constant result3 : tup2_u64_u64
+
+axiom Assert37 :
+  t'int (result3.f0) = mod1 (t'int1 result2) (pow2 64) /\
+  t'int (result3.f1) = div1 (t'int1 result2) (pow2 64) /\
+  (t'int (result3.f0) + (t'int (result3.f1) * pow2 64)) = t'int1 result2 /\
+  (0 <= t'int (result3.f0) /\ t'int (result3.f0) < pow2 64) /\
+  0 <= t'int (result3.f1) /\ t'int (result3.f1) < pow2 64
+
+axiom Assert38 :
+  ((t'int (result.f1) * t'int (result1.f0)) + t'int (result3.f0)) < pow2 128
+
+constant result4 : t1
+
+axiom Assert39 :
+  t'int1 result4 =
+  ((t'int (result.f1) * t'int (result1.f0))
+   + t'int1 (of_BV256 (to_BV2561 (result3.f0)))) /\
+  t'int1 result4 < pow2 128
+
+constant result5 : tup2_u64_u64
+
+axiom Assert40 :
+  t'int (result5.f0) = mod1 (t'int1 result4) (pow2 64) /\
+  t'int (result5.f1) = div1 (t'int1 result4) (pow2 64) /\
+  (t'int (result5.f0) + (t'int (result5.f1) * pow2 64)) = t'int1 result4 /\
+  (0 <= t'int (result5.f0) /\ t'int (result5.f0) < pow2 64) /\
+  0 <= t'int (result5.f1) /\ t'int (result5.f1) < pow2 64
+
+axiom Assert41 :
+  t'int1 result4 =
+  ((t'int (result.f1) * t'int (result1.f0)) + t'int (result3.f0))
+
+axiom Assert42 :
+  (((t'int (result.f1) * t'int (result1.f1)) + t'int (result3.f1))
+   + t'int (result5.f1))
+  < pow2 128
+
+constant result6 : t1
+
+axiom Assert43 :
+  t'int1 result6 =
+  (((t'int (result.f1) * t'int (result1.f1)) + t'int (result3.f1))
+   + t'int (result5.f1))
+
+axiom Assert44 :
+  split_u128_at_64 (t'int1 x) (t'int (result.f1)) (t'int (result.f0)) =
+  t'int1 x
+
+axiom Assert45 :
+  split_u128_at_64 (t'int1 y) (t'int (result1.f1)) (t'int (result1.f0)) =
+  t'int1 y
+
+axiom Assert46 :
+  (t'int (result.f0) * t'int (result1.f0)) =
+  ((t'int1
+    (shr
+     (mul (of_BV256 (to_BV2561 (result.f0)))
+      (of_BV256 (to_BV2561 (result1.f0))))
+     (of_int (to_int (64:t2))))
+    * pow2 64)
+   + mod1 (t'int (result.f0) * t'int (result1.f0)) (pow2 64))
+
+axiom Assert47 :
+  ((t'int (result.f0) * t'int (result1.f1))
+   + t'int1
+     (shr
+      (mul (of_BV256 (to_BV2561 (result.f0)))
+       (of_BV256 (to_BV2561 (result1.f0))))
+      (of_int (to_int (64:t2))))) =
+  ((t'int (result3.f1) * pow2 64) + t'int (result3.f0))
+
+axiom Assert48 :
+  ((t'int (result.f1) * t'int (result1.f0)) + t'int (result3.f0)) =
+  ((t'int (result5.f1) * pow2 64) + t'int (result5.f0))
+
+axiom Assert49 :
+  let r00 = mod1 (t'int (result.f0) * t'int (result1.f0)) (pow2 64) in
+  0 <= r00 /\ r00 < pow2 64
+
+axiom Assert50 : 0 <= t'int (result5.f0) /\ t'int (result5.f0) < pow2 64
+
+axiom Assert51 :
+  t'int1 x = ((t'int (result.f1) * pow2 64) + t'int (result.f0))
+
+axiom Assert52 :
+  t'int1 y = ((t'int (result1.f1) * pow2 64) + t'int (result1.f0))
+
+axiom Assert53 :
+  ((t'int1
+    (shr
+     (mul (of_BV256 (to_BV2561 (result.f0)))
+      (of_BV256 (to_BV2561 (result1.f0))))
+     (of_int (to_int (64:t2))))
+    * pow2 64)
+   + mod1 (t'int (result.f0) * t'int (result1.f0)) (pow2 64)) =
+  (t'int (result.f0) * t'int (result1.f0))
+
+axiom Assert54 :
+  t'int1 result2 =
+  ((t'int (result.f0) * t'int (result1.f1))
+   + t'int1
+     (shr
+      (mul (of_BV256 (to_BV2561 (result.f0)))
+       (of_BV256 (to_BV2561 (result1.f0))))
+      (of_int (to_int (64:t2)))))
+
+axiom Assert55 :
+  ((t'int (result3.f1) * pow2 64) + t'int (result3.f0)) = t'int1 result2
+
+axiom Assert56 :
+  t'int1 result4 =
+  ((t'int (result.f1) * t'int (result1.f0)) + t'int (result3.f0))
+
+axiom Assert57 :
+  ((t'int (result5.f1) * pow2 64) + t'int (result5.f0)) = t'int1 result4
+
+axiom Assert58 :
+  t'int1 result6 =
+  (((t'int (result.f1) * t'int (result1.f1)) + t'int (result3.f1))
+   + t'int (result5.f1))
+
+axiom Assert59 :
+  (t'int1 x * t'int1 y) =
+  (((t'int (result.f1) * pow2 64) + t'int (result.f0)) * t'int1 y)
+
+------------------------------- Goal --------------------------------
+
+goal vc_mulhi_core :
+  (((t'int (result.f1) * pow2 64) + t'int (result.f0)) * t'int1 y) =
+  (((t'int (result.f1) * pow2 64) + t'int (result.f0))
+   * ((t'int (result1.f1) * pow2 64) + t'int (result1.f0)))
+
+[verif/itoa_rlib/runtime/u128_ext/mulhi_core.coma:-4611686018427387904:assertion]
+---------------------------------------------------------------------
+Theory verif.itoa_rlib.runtime.u128_ext.mulhi_core.Coma: ✘ (67/68)
+Error: 1 unproved file

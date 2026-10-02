@@ -1,0 +1,90 @@
+Proof resources: jobs=1, memory=1024 MiB per prover; shared lock held
+Goal Coma.vc_mulhi_exact_certificate: ✘ (9/10)
+--------------------------- Local Context ---------------------------
+
+function power_two_sum (a:int) (b:int) : unit = ()
+
+axiom power_two_sum_spec :
+  forall a:int, b:int. a >= 0 /\ b >= 0 -> pow2 (a + b) = (pow2 a * pow2 b)
+
+constant limb_base_square : unit = let _ = power_two_sum 64 64 in ()
+
+axiom limb_base_square_spec : (pow2 64 * pow2 64) = pow2 128
+
+function mulhi_product_expansion int int int int : int
+
+axiom mulhi_product_expansion_spec :
+  forall x_hi:int, x_lo:int, y_hi:int, y_lo:int.
+   mulhi_product_expansion x_hi x_lo y_hi y_lo =
+   (((x_hi * pow2 64) + x_lo) * ((y_hi * pow2 64) + y_lo))
+
+axiom mulhi_product_expansion_spec'0 :
+  forall x_hi:int, x_lo:int, y_hi:int, y_lo:int.
+   mulhi_product_expansion x_hi x_lo y_hi y_lo =
+   (((((x_hi * y_hi) * pow2 128) + ((x_hi * y_lo) * pow2 64))
+     + ((x_lo * y_hi) * pow2 64))
+    + (x_lo * y_lo))
+
+function exact_floor_from_split int int int int : int
+
+axiom exact_floor_from_split_spec :
+  forall n:int, q:int, r:int, d:int.
+   n >= 0 /\ d > 0 ->
+   n = ((q * d) + r) ->
+   0 <= r /\ r < d ->
+   exact_floor_from_split n q r d = q /\
+   exact_floor_from_split n q r d = div n d
+
+constant x : t
+
+constant y : t
+
+constant x_hi : t1
+
+constant x_lo : t1
+
+constant y_hi : t1
+
+constant y_lo : t1
+
+constant carry : t
+
+constant high1 : t1
+
+constant m_lo : t1
+
+constant high2 : t1
+
+constant high2_lo : t1
+
+constant candidate : t
+
+axiom Assert :
+  (t'int x >= 0 /\ t'int y >= 0) /\
+  t'int x = ((t'int1 x_hi * pow2 64) + t'int1 x_lo) /\
+  t'int y = ((t'int1 y_hi * pow2 64) + t'int1 y_lo) /\
+  (t'int1 x_lo * t'int1 y_lo) =
+  ((t'int carry * pow2 64) + mod (t'int1 x_lo * t'int1 y_lo) (pow2 64)) /\
+  ((t'int1 x_lo * t'int1 y_hi) + t'int carry) =
+  ((t'int1 high1 * pow2 64) + t'int1 m_lo) /\
+  ((t'int1 x_hi * t'int1 y_lo) + t'int1 m_lo) =
+  ((t'int1 high2 * pow2 64) + t'int1 high2_lo) /\
+  t'int candidate =
+  (((t'int1 x_hi * t'int1 y_hi) + t'int1 high1) + t'int1 high2) /\
+  0 <= mod (t'int1 x_lo * t'int1 y_lo) (pow2 64) /\
+  mod (t'int1 x_lo * t'int1 y_lo) (pow2 64) < pow2 64 /\
+  0 <= t'int1 high2_lo /\ t'int1 high2_lo < pow2 64
+
+axiom Assert1 : (pow2 64 * pow2 64) = pow2 128
+
+------------------------------- Goal --------------------------------
+
+goal vc_mulhi_exact_certificate :
+  (t'int x * t'int y) =
+  (((t'int1 x_hi * pow2 64) + t'int1 x_lo)
+   * ((t'int1 y_hi * pow2 64) + t'int1 y_lo))
+
+[verif/itoa_rlib/runtime/u128_ext/mulhi_exact_certificate.coma:-4611686018427387904:assertion]
+---------------------------------------------------------------------
+Theory verif.itoa_rlib.runtime.u128_ext.mulhi_exact_certificate.Coma: ✘ (9/10)
+Error: 1 unproved file

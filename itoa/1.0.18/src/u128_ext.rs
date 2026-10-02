@@ -287,6 +287,16 @@ fn mulhi_product_congruence(x: Int, y: Int, a: Int, b: Int) -> Int {
     x * y
 }
 
+// Standalone, untrusted program lemma for substituting one exact limb split
+// under an arbitrary multiplication factor. Its caller-side use in mulhi
+// remains open in the generated nonlinear arithmetic VC.
+#[cfg(creusot)]
+#[requires(y@ == y_hi@ * 64.pow2() + y_lo@)]
+#[ensures(factor@ * y@ == factor@ * (y_hi@ * 64.pow2() + y_lo@))]
+fn mulhi_factor_y_split_product(factor: u128, y: u128, y_hi: u64, y_lo: u64) {
+    proof_assert!(factor@ * y@ == factor@ * (y_hi@ * 64.pow2() + y_lo@));
+}
+
 // Independently checked four-limb ring expansion used as a small algebraic
 // building block while composing the exact mulhi result equation.
 #[cfg(creusot)]

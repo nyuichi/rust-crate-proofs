@@ -211,6 +211,21 @@ with the final candidate under
 The removal condition remains proving the wrapper equation from the core while
 keeping the core operation checks discharged.
 
+### Structural split follow-up
+
+A later scratch reproduction confirmed that the actual open Why3 task already
+contains `y == y_hi * 2^64 + y_lo` over the same translated integer terms used
+in the failed product substitution. The missing-premise explanation is
+therefore ruled out. Cutting immediately after the limb decompositions did not
+improve the caller proof. A small four-input `cfg(creusot)` helper and a
+reduced Why3 theory prove in isolation, but the full certificate and a sparse
+six-input lemma still leave product substitutions open; these isolated results
+do not prove the integrated VC. Direct selection of the generated assertion
+for a COMA context cut was also unavailable in the current transformation
+stage. The `mulhi` result contract remains trusted. The task inspection and
+follow-up experiments are recorded in
+[`structural-product-split/REPORT.md`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/structural-product-split/REPORT.md).
+
 The integrated Phase 4 `run-verify-all.sh` command completed with exit 0 in
 both configurations. Default reported 168 proof libraries / 1,312 VCs;
 all-features reported 169 / 1,316. The focused `mulhi_core` target passed
