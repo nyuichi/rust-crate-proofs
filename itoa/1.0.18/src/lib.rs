@@ -7,6 +7,7 @@
 
 #![doc(html_root_url = "https://docs.rs/itoa/1.0.18")]
 #![no_std]
+#![recursion_limit = "256"]
 #![allow(
     clippy::cast_lossless,
     clippy::cast_possible_truncation,
@@ -27,6 +28,8 @@ mod divmod100;
 mod decimal_pairs;
 mod runtime;
 mod enc_16lsd;
+#[cfg(creusot)]
+mod math;
 #[cfg(not(creusot))]
 pub use runtime::{Buffer, Integer};
 

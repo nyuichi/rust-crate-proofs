@@ -1,4 +1,3 @@
-#[cfg(not(creusot))]
 #[path = "u128_ext.rs"]
 mod u128_ext;
 
@@ -22,7 +21,9 @@ use crate::decimal_pairs::decimal_pair_correct;
 #[cfg(creusot)]
 use crate::verification::{fixed_width_decimal_values_compose_2x2, fixed_width_decimal_values_pair};
 #[cfg(creusot)]
-use creusot_std::prelude::{check, ensures, invariant, proof_assert, requires, snapshot, Int, Seq};
+use crate::math::magic_shift_floor;
+#[cfg(creusot)]
+use creusot_std::prelude::{bitwise_proof, check, ensures, invariant, proof_assert, requires, snapshot, Int, Seq};
 #[cfg(creusot)]
 use creusot_std::std::option::OptionExt;
 #[cfg(not(creusot))]
@@ -32,6 +33,45 @@ use core::mem::{self, MaybeUninit};
 use core::str;
 #[cfg(feature = "no-panic")]
 use no_panic::no_panic;
+
+const D: u128 = 1_0000_0000_0000_0000;
+const M_HIGH: u128 = 76624777043294442917917351357515459181;
+const SH_POST: u8 = 51;
+
+#[inline(always)]
+#[cfg_attr(creusot, bitwise_proof)]
+#[cfg_attr(creusot, requires(SH_POST@ >= 0 && SH_POST@ < 128))]
+#[cfg_attr(creusot, ensures(result@ == n@.div_euclid(SH_POST@.pow2())))]
+#[cfg_attr(creusot, ensures(result == n >> SH_POST))]
+fn shift_by_51(n: u128) -> u128 {
+    n >> SH_POST
+}
+
+// Keep the optimized Granlund–Montgomery quotient calculation single-sourced.
+#[inline(always)]
+#[cfg_attr(creusot, bitwise_proof)]
+#[cfg_attr(creusot, ensures(result@ == n@ / D@))]
+fn magic_quotient(n: u128) -> u128 {
+    let high = u128_ext::mulhi(n, M_HIGH);
+    #[cfg(creusot)]
+    proof_assert!(n@ >= 0 && n@ < 128.pow2());
+    #[cfg(creusot)]
+    proof_assert!(M_HIGH@ == 76_624_777_043_294_442_917_917_351_357_515_459_181);
+    #[cfg(creusot)]
+    proof_assert!(high@ == n@ * 76_624_777_043_294_442_917_917_351_357_515_459_181
+        / 128.pow2());
+    #[cfg(creusot)]
+    proof_assert!(high@ >= 0 && high@ < 128.pow2());
+    let quot = shift_by_51(high);
+    #[cfg(creusot)]
+    proof_assert!(quot@ == high@ / 51.pow2());
+    #[cfg(creusot)]
+    proof_assert! {
+        let _ = magic_shift_floor(n@, high@, quot@);
+        quot@ == n@ / D@
+    };
+    quot
+}
 
 /// A correctly sized stack allocation for the formatted integer to be written
 /// into.
@@ -821,22 +861,51 @@ impl Unsigned for u128 {
 //   in Proc. of the SIGPLAN94 Conference on Programming Language Design and
 //   Implementation, 1994, pp. 61–72
 //
-#[cfg_attr(feature = "no-panic", no_panic)]
-#[cfg(not(creusot))]
+#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
+#[cfg_attr(creusot, bitwise_proof)]
+#[cfg_attr(creusot, ensures(result.0@ == n@ / 10_000_000_000_000_000))]
+#[cfg_attr(creusot, ensures(result.1@ == n@ % 10_000_000_000_000_000))]
+#[cfg_attr(creusot, ensures(result.0@ * 10_000_000_000_000_000 + result.1@ == n@))]
+#[cfg_attr(creusot, ensures(result.1@ < 10_000_000_000_000_000))]
 fn div_rem_1e16(n: u128) -> (u128, u64) {
-    const D: u128 = 1_0000_0000_0000_0000;
     // The check inlines well with the caller flow.
     if n < D {
+        #[cfg(creusot)]
+        proof_assert!(n@ < D@);
+        #[cfg(creusot)]
+        proof_assert!(D@ < 64.pow2());
+        #[cfg(creusot)]
+        proof_assert!(n@ < 64.pow2());
+        #[cfg(creusot)]
+        proof_assert!(n@ / D@ == 0);
+        #[cfg(creusot)]
+        proof_assert!(n@ % D@ == n@);
         return (0, n as u64);
     }
 
     // These constant values are computed with the CHOOSE_MULTIPLIER procedure
     // from the Granlund & Montgomery paper, using N=128, prec=128 and d=1E16.
-    const M_HIGH: u128 = 76624777043294442917917351357515459181;
-    const SH_POST: u8 = 51;
-
     // n.widening_mul(M_HIGH).1 >> SH_POST
-    let quot = u128_ext::mulhi(n, M_HIGH) >> SH_POST;
+    let quot = magic_quotient(n);
+    #[cfg(creusot)]
+    proof_assert!(D@ == 10_000_000_000_000_000);
+    #[cfg(creusot)]
+    proof_assert!(quot@ * D@ <= n@);
+    #[cfg(creusot)]
+    proof_assert!(quot@ * D@ < 128.pow2());
     let rem = n - quot * D;
+    #[cfg(creusot)]
+    proof_assert!(rem@ == n@ % D@);
+    #[cfg(creusot)]
+    proof_assert!(0 <= rem@ && rem@ < D@);
+    #[cfg(creusot)]
+    proof_assert!(D@ < 64.pow2());
+    #[cfg(creusot)]
+    proof_assert!(rem@ < 64.pow2());
+    #[cfg(creusot)]
+    proof_assert! {
+        let _ = crate::math::euclidean_div_mod(n@, D@);
+        quot@ * D@ + rem@ == n@
+    };
     (quot, rem as u64)
 }

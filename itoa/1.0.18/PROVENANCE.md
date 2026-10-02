@@ -37,23 +37,33 @@ establishes the following:
 - the public orchestration and all supporting arithmetic, sequence, and
   representation lemmas have proved bodies.
 
-The latest integrated default and all-feature runs each prove 67 translated
-files. The all-feature configuration includes the upstream optional `no-panic`
-dependency.
+The original recursive-model baseline proved 67 translated files in both
+configurations. The latest integrated runtime matrix is recorded in
+[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 168
+libraries / 1,312 VCs and all-features proves 169 / 1,316. The all-features
+configuration includes the upstream optional `no-panic` dependency.
 
-## Explicit trusted boundary
+## Explicit trusted boundaries
 
-One narrow leaf remains trusted: converting the already-proved ASCII suffix
-of the buffer into a borrowed `str`. Its contract states that the result's
-bytes are exactly that suffix. The decimal algorithm, sign handling, buffer
-bounds, and returned contents are not trusted.
+Two narrow boundaries are currently trusted:
 
-Removal condition: replace this boundary when Creusot can prove ASCII UTF-8
-validity and model the slice-to-`str` reference conversion without a raw
-representation cast.
+- The existing conversion of the already-proved ASCII suffix into a borrowed
+  `str`. Its contract states that the result's bytes are exactly that suffix.
+  The decimal algorithm, sign handling, buffer bounds, and returned contents
+  are not trusted.
+- The `u128_ext::mulhi` wrapper's exact result equation,
+  `result == x * y / 2^128`, accepted by the user on 2026-10-02. The actual
+  limb algorithm lives in `mulhi_core`; its operation bounds, casts, shifts,
+  and overflow checks are verified, but the wrapper's assumed equation is not
+  yet derived from the core's returned value.
+
+Removal conditions: replace the string boundary when Creusot can prove ASCII
+UTF-8 validity and model the slice-to-`str` reference conversion without a
+raw representation cast. Remove the `mulhi` trust when the high-half equation
+is proved from `mulhi_core` while retaining its operation checks.
 
 Run `./verify-all.bash` in this directory to reproduce the proof matrix. The
 ordinary upstream suite passes 11 integration tests and 2 documentation tests.
-The upstream CI-equivalent optimized test build with the `no-panic` feature
-also succeeds. Generated Cargo and Why3 artifacts are intentionally not
-tracked.
+The optimized all-features integration-test build with the `no-panic` feature
+also passes all 11 tests. Generated Cargo and Why3 artifacts are intentionally
+not tracked.

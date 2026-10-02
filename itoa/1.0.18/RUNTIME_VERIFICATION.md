@@ -31,8 +31,9 @@ formatter bodies to the decimal model; adapters remain later phases.
 | Actual optimized `Unsigned::fmt` body for `u64` | yes | yes (104 goals in current integrated runs; 105 targeted no-cache) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u8` | yes | yes (98 goals) | no formatter boundary | yes; default and all-features |
 | Actual `enc_16lsd` 16-digit chunk encoder body (Phase 5) | yes | yes (`enc_16lsd`: 55 goals; quad writer: 87; digit bridge: 50) | none | yes; component in both full crate proof configurations, not the `u128` caller |
-| `u128_ext::mulhi` high-half product body (Phase 4) | yes | no (49/51 in the latest bounded attempt; two obligations remain) | none declared; its result contract is consumed by the conditional divider proof | pending |
-| `div_rem_1e16` reciprocal divider body (Phase 4) | yes | 31/31 conditionally, assuming the `mulhi` result contract | no trusted attribute; the actual `mulhi` body is not yet proved | staged evidence only; not integrated |
+| `u128_ext::mulhi_core` limb operations (Phase 4) | yes | yes (50 goals) | no correctness postcondition on the core; operation checks are proved directly | yes; default and all-features |
+| `u128_ext::mulhi` high-half result contract (Phase 4) | yes | no body VC (trusted wrapper delegates to the proven core) | exact high-half quotient equation, accepted 2026-10-02 | yes; contract assumed |
+| `div_rem_1e16` reciprocal divider body (Phase 4) | yes | yes (31 goals) under the `mulhi` result contract | consumes only the exact high-half result contract | yes; default and all-features |
 | `u128` formatter caller | pending | no | none | pending |
 | Raw `Buffer::format`, signed adapters, and output-string integration | pending | no | no new boundary planned | pending |
 
@@ -145,30 +146,51 @@ reconstruction, and remainder bound. No replacement arithmetic is used.
 
 The divider components have completed focused proofs in a candidate based on
 `51090b4`: `shift_by_51` passed 2/2 goals, `magic_quotient` passed 10/10,
-`math::magic_shift_floor` passed 1/1, and `div_rem_1e16` passed 31/31. These
-divider results are conditional because their callers consume the `mulhi`
-postcondition while its body remains unfinished. The actual `mulhi` body has a
-bounded 49/51 result; the two remaining formulas are:
+`math::magic_shift_floor` passed 1/1, and `div_rem_1e16` passed 31/31. The
+integrated source keeps the original `mulhi` limb algorithm in
+`mulhi_core`, with its operation-range and overflow proof obligations checked
+separately. The public-in-crate `mulhi` entrypoint is a thin inline wrapper
+whose exact trusted result contract is:
 
 ```text
-x * y == result * 2^128 + residual
-quotient == result
+result == x * y / 2^128
 ```
 
-The second obligation occurs after a call to
-`exact_floor_from_split(x * y, result, residual, 2^128)`. The neighboring
-`quotient == x * y / 2^128` obligation passed. This run stopped at its 90-second
-bound; it does not show that either formula is unprovable. The issue is the
-caller-side composition of the residual helper with the reconstruction and
-exact-floor facts. No trusted declaration was added, and no complete `u128`
-runtime proof is claimed.
+The user accepted this exact temporary proof boundary on 2026-10-02. The
+wrapper's call to `mulhi_core` is not itself checked, so the integrated proof
+does not connect the core's returned limb value to this quotient equation.
+The core's arithmetic operations, casts, shifts, bounds, and overflow checks
+remain checked; the high-half correctness of their composed result is the
+assumed fact. Remove `#[trusted]` and prove the wrapper equation from the core
+before claiming a fully proved high-half multiply. Direct composition from the
+limb results left the final high-half equation unresolved in the focused
+attempts; this is a temporary proof boundary, not a claim that the equation is
+unprovable.
 
-The candidate patch, source, generated COMA, proof JSON, and bounded-run report
-are preserved under
+The integrated Phase 4 `run-verify-all.sh` command completed with exit 0 in
+both configurations. Default reported 168 proof libraries / 1,312 VCs;
+all-features reported 169 / 1,316. The focused `mulhi_core` target passed
+50/50 goals. The native default `cargo test --offline --locked` passed 11
+integration tests and 2 doctests; optimized `cargo test --release
+--all-features --tests --offline --locked` passed all 11 integration tests.
+A separate full release/all-features run failed while linking the two doctests
+with undefined `no-panic` symbols; the successful release result is scoped to
+the 11 integration tests. The same 0/2 doctest link failure was reproduced on
+baseline commit `bf86f1e` with `cargo test --doc --release --all-features
+--offline --locked`, so it predates this Phase 4 change. The proof log is
+`/tmp/phase4-verify-all-integrated.log`.
+
+This milestone does not prove the `u128` formatter caller, raw `Buffer::format`,
+signed adapters, string conversion, or end-to-end `u128` formatting.
+
+The isolated candidate patches, generated COMA files, proof JSON, and bounded
+run reports are preserved under
 [`tools/creusot-toolpatch/proofs/phase4-conditional/`](../../tools/creusot-toolpatch/proofs/phase4-conditional/).
-The divider patch and the `mulhi` candidate patch were developed separately
-against `51090b4`; both change `u128_ext.rs`, so they must not be applied in
-sequence. Each artifact's README gives its isolated replay steps. Use the pinned
+Those snapshots document development attempts; the integrated source and
+metrics above are authoritative for the current checkout. The divider patch
+and the earlier `mulhi` candidate patch were developed separately against
+`51090b4`; both change `u128_ext.rs`, so they must not be applied in sequence.
+Each artifact's README gives its isolated replay steps. Use the pinned
 environment in
 [`tools/creusot-toolpatch/records/versions.md`](../../tools/creusot-toolpatch/records/versions.md)
 and run the focused no-cache proof targets. The saved `mulhi.coma` and
@@ -373,13 +395,15 @@ proofs. `cargo test --manifest-path Cargo.toml` passed 11 integration tests and
 `/tmp/phase5-tests-default.log` and
 `/tmp/phase5-tests-release-allfeatures.log`.
 
-After recording the Phase 4 boundary, the unchanged `itoa/1.0.18` source passed
-a fresh `tools/creusot-toolpatch/scripts/run-verify-all.sh
+### Historical pre-integration verification of the boundary note
+
+Before the Phase 4 source integration, the unchanged `itoa/1.0.18` source
+passed a fresh `tools/creusot-toolpatch/scripts/run-verify-all.sh
 /workspace/rust-crate-proofs` run: default reported 134 proof units / 1,141
 goals, and all-features reported 135 units / 1,145 goals. The normal native
 test command passed 11 integration tests and 2 doctests; the release
 all-features `--tests` command passed all 11 integration tests. The complete
 logs are preserved in
-`tools/creusot-toolpatch/proofs/phase4-conditional/logs/`. This validates the
-documentation and evidence-package change against the current integrated
-source; the conditional Phase 4 candidate patches were not applied to this run.
+`tools/creusot-toolpatch/proofs/phase4-conditional/logs/`. This run is a
+historical validation of the boundary documentation and evidence package; the
+conditional Phase 4 source had not yet been applied.
