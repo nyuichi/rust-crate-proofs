@@ -1,5 +1,17 @@
 # Repository instructions
 
+## Session policy for itoa runtime verification
+
+The user authorized pushing to `origin/main` on 2026-10-02. Push after every
+new commit; do not force-push. Record temporary accepted proof gaps explicitly.
+
+For `itoa/1.0.18`, all agents must launch proofs through
+`tools/creusot-toolpatch/scripts/run-proof.sh` (from the crate directory), or
+the adjacent `run-verify-all.sh`. The shared lock serializes proof invocations;
+defaults are one prover and a 1024 MiB Why3 memory limit per prover. Do not
+launch additional solvers outside this wrapper while a proof is running.
+Ordinary builds and source-analysis work may still run in parallel.
+
 ## Keep verification scoped to the requested crate
 
 Each `<name>/<version>` directory is an independent verification target.
