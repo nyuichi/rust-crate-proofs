@@ -1,0 +1,38 @@
+(* #"/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/high-half/src/lib.rs" 8 0 8 39 *)
+
+let%span slib = "/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/high-half/src/lib.rs" 9 18 9 25
+let%span slib'0 = "/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/high-half/src/lib.rs" 10 18 10 31
+let%span slib'1 = "/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/high-half/src/lib.rs" 11 10 11 15
+let%span slib'2 = "/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/high-half/src/lib.rs" 11 4 11 16
+let%span slib'3 = "/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/high-half/src/lib.rs" 7 10 7 45
+
+use creusot.int.UInt128BW
+use bv.Pow2int
+use creusot.int.Int32BW
+use int.ComputerDivision
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+use int.EuclideanDivision
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec high_half_as_u64
+  [#"/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/high-half/src/lib.rs" 8 0 8 39]
+  (n: UInt128BW.t) (return (x: UInt64BW.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#slib] UInt128BW.t'int n >= 0} s1
+    | s1 = {[@expl:assertion] [%#slib'0] 0 < Pow2int.pow2 64} s2
+    | s2 = UInt128BW.shr [%#slib'2] {n} {Int32BW.to_int ([%#slib'1] (64: Int32BW.t))}
+        (fun (_x: UInt128BW.t) -> [ &_9 <- _x ] s3)
+    | s3 = {0 <= UInt128BW.t'int _9}
+      {0 <= ComputerDivision.mod (UInt128BW.t'int _9) 18446744073709551616}
+      {ComputerDivision.mod (UInt128BW.t'int _9) 18446744073709551616 < 18446744073709551616}
+      [ &_ret <- UInt64BW.of_int (ComputerDivision.mod (UInt128BW.t'int _9) 18446744073709551616) ] s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: UInt64BW.t = Any.any_l () | & n: UInt128BW.t = n | & _9: UInt128BW.t = Any.any_l () ])
+  [ return (result: UInt64BW.t) -> {[@stop_split] [@expl:high_half_as_u64 ensures] [%#slib'3] UInt64BW.t'int result
+    = EuclideanDivision.div (UInt128BW.t'int n) (Pow2int.pow2 64)}
+    (! return {result}) ]

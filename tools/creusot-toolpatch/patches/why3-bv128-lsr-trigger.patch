@@ -1,0 +1,43 @@
+--- a/stdlib/bv.mlw
++++ b/stdlib/bv.mlw
+@@ -705,6 +705,20 @@
+ 
+ end
+ 
++module BV_Gen_Triggered
++
++  type t
++  clone export BV_Gen with type t = t
++  use int.EuclideanDivision
++  use Pow2int
++
++  lemma to_uint_lsr_triggered:
++    forall v n : t [to_uint (lsr_bv v n)].
++      to_uint (lsr_bv v n) = div (to_uint v) (pow2 (to_uint n))
++  meta "remove_unused:dependency" lemma to_uint_lsr_triggered, function lsr_bv
++
++end
++
+ module BV128
+   constant size           : int = 128
+   constant two_power_size : int = 0x1_0000_0000_0000_0000_0000_0000_0000_0000
+@@ -723,7 +737,7 @@
+   constant max_sint  : t = 0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF
+   constant max_uint  : t = 0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF
+ 
+-  clone export BV_Gen with
++  clone export BV_Gen_Triggered with
+     type t = t,
+     function to_uint = t'int,
+     constant size = size,
+--- a/drivers/z3_bv.gen
++++ b/drivers/z3_bv.gen
+@@ -17,7 +17,7 @@
+ end
+ 
+ theory bv.BV128
+-  (* syntax function of_int "((_ int2bv 128) %1)" *)
++  syntax function of_int "((_ int2bv 128) %1)"
+   syntax function t'int "(bv2int %1)"
+ 
+   remove prop Nth_bv_is_nth

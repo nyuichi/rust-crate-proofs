@@ -1,0 +1,30 @@
+(* #"/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/ediv-shift/src/lib.rs" 10 0 10 53 *)
+
+let%span slib = "/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/ediv-shift/src/lib.rs" 11 4 11 10
+let%span slib'0 = "/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/ediv-shift/src/lib.rs" 7 11 7 30
+let%span slib'1 = "/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/ediv-shift/src/lib.rs" 8 10 8 45
+let%span slib'2 = "/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/ediv-shift/src/lib.rs" 9 10 9 26
+
+use creusot.int.UInt128BW
+use creusot.prelude.Any
+use int.EuclideanDivision
+use bv.Pow2int
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec shift_by_u128_euclid
+  [#"/tmp/creusot-toolpatch-repo-ready/tools/creusot-toolpatch/witnesses/ediv-shift/src/lib.rs" 10 0 10 53]
+  (n: UInt128BW.t) (k: UInt128BW.t) (return (x: UInt128BW.t)) =
+  {[@stop_split] [@expl:shift_by_u128_euclid requires] [%#slib'0] UInt128BW.t'int k >= 0 /\ UInt128BW.t'int k < 128}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = UInt128BW.shr [%#slib] {n} {UInt128BW.t'int k} (fun (_x: UInt128BW.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ] [ & _ret: UInt128BW.t = Any.any_l () | & n: UInt128BW.t = n | & k: UInt128BW.t = k ])
+  [ return (result: UInt128BW.t) ->
+  {[@stop_split] [@expl:shift_by_u128_euclid ensures] ([@stop_split] [@expl:shift_by_u128_euclid ensures #0] [%#slib'1] UInt128BW.t'int result
+      = EuclideanDivision.div (UInt128BW.t'int n) (Pow2int.pow2 (UInt128BW.t'int k)))
+    /\ ([@stop_split] [@expl:shift_by_u128_euclid ensures #1] [%#slib'2] result = UInt128BW.shr n k)}
+    (! return {result}) ]

@@ -1,0 +1,26 @@
+(* #"/tmp/creusot-toolpatch-bundle/witnesses/narrowcast/src/lib.rs" 7 0 7 35 *)
+
+let%span slib = "/tmp/creusot-toolpatch-bundle/witnesses/narrowcast/src/lib.rs" 6 10 6 35
+
+use int.ComputerDivision
+use creusot.int.UInt128BW
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+use bv.Pow2int
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec trunc_u64_bw [#"/tmp/creusot-toolpatch-bundle/witnesses/narrowcast/src/lib.rs" 7 0 7 35] (n: UInt128BW.t)
+  (return (x: UInt64BW.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = {0 <= UInt128BW.t'int n}
+      {0 <= ComputerDivision.mod (UInt128BW.t'int n) 18446744073709551616}
+      {ComputerDivision.mod (UInt128BW.t'int n) 18446744073709551616 < 18446744073709551616}
+      [ &_ret <- UInt64BW.of_int (ComputerDivision.mod (UInt128BW.t'int n) 18446744073709551616) ] s1
+    | s1 = return {_ret} ] ] [ & _ret: UInt64BW.t = Any.any_l () | & n: UInt128BW.t = n ])
+  [ return (result: UInt64BW.t) -> {[@stop_split] [@expl:trunc_u64_bw ensures] [%#slib] UInt64BW.t'int result
+    = ComputerDivision.mod (UInt128BW.t'int n) (Pow2int.pow2 64)}
+    (! return {result}) ]
