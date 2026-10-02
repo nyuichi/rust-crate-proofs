@@ -21,6 +21,14 @@ ASCII digits and an optional ASCII minus sign, then consumes that fact in the
 actual i8 and `i128::MIN` initialized-output witnesses. This does not establish
 safety of the public runtime casts or runtime borrowed-`str` construction.
 
+The separate arithmetic dependency on `u128_ext::mulhi` is now proved: the
+focused joint-helper proof derives the exact high-half result equation from
+`mulhi_core` (body 68/68, module 74/74) and proves the wrapper with no
+`#[trusted]` annotation (2/2 goals). This closes the arithmetic assumption used by the
+`u128` formatter and signed `i128` writer; it does not change or prove either
+raw-memory boundary described below. See the
+[current closure report](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/REPORT.md).
+
 There are two runtime raw-memory boundaries left in the path:
 
 1. `Buffer::format` at `runtime.rs:129-132` obtains `self.bytes.as_mut_ptr()`,
@@ -170,9 +178,9 @@ existing actual bodies and adapter contracts.
   enforces equality of the two 200-byte initializers at compile time
   (`decimal_pairs.rs:35-61`). This is a source/data representation bridge,
   not a memory-conversion contract.
-- The accepted `mulhi` high-half result contract is a separate arithmetic
-  assumption inherited by `u128::fmt`; it does not justify any pointer cast,
-  initialization, or string construction (`RUNTIME_VERIFICATION.md:38-43`).
+- The proved `mulhi` high-half result contract is a separate arithmetic fact
+  consumed by `u128::fmt`; it does not justify any pointer cast, initialization,
+  or string construction (`RUNTIME_VERIFICATION.md`, Current mulhi closure).
 
 The core native bodies behind these external models are not translated by the
 crate proof. The status and removal conditions are detailed in
@@ -196,8 +204,9 @@ The source-ground `MaybeUninit::write` model is
 slot or a resolved old value, and ensures the written slot becomes
 `Some(value)`. The actual writers establish initialized-state and exact-byte
 postconditions from that contract. The audit found no missing initialized-slot
-fact. The temporary accepted high-half `mulhi` contract remains the only
-formatter arithmetic assumption; it does not support either raw-memory
+fact. At the Phase 8 checkpoint, the accepted high-half `mulhi` contract was
+the formatter arithmetic assumption; the current joint-helper proof derives
+that equation from the limb core. It does not support either raw-memory
 boundary above. The x86_64 pointer-sized writers are proved, while 16- and
 32-bit pointer-width fallbacks remain outside the runtime proof.
 

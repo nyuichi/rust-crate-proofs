@@ -41,11 +41,11 @@ formatting and string-conversion adapters remain pending.
 | Actual optimized `Unsigned::fmt` body for `u64` | yes | yes (119 goals in current integrated runs) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u8` | yes | yes (104 goals in current integrated runs) | no formatter boundary | yes; default and all-features |
 | Actual `enc_16lsd` 16-digit chunk encoder body (Phase 5) | yes | yes (`enc_16lsd`: 55 goals; quad writer: 87; digit bridge: 50) | none | yes; component called by the Phase 6 `u128` body |
-| `u128_ext::mulhi_core` limb operations (Phase 4) | yes | yes (50 goals) | no correctness postcondition on the core; operation checks are proved directly | yes; default and all-features |
-| `u128_ext::mulhi` high-half result contract (Phase 4) | yes | no body VC (trusted wrapper delegates to the proven core) | exact high-half quotient equation, accepted 2026-10-02 | yes; contract assumed |
-| `div_rem_1e16` reciprocal divider body (Phase 4) | yes | yes (31 goals) under the `mulhi` result contract | consumes only the exact high-half result contract | yes; default and all-features |
-| Actual optimized `Unsigned::fmt` body for `u128` (Phase 6; strengthened in Phase 7) | yes | yes (147 goals; refinement 1) | exact `mulhi` high-half result contract | yes; default and all-features |
-| Actual signed `i128` buffer writer and `i128::MIN` output witness (Phase 7) | yes | yes (suffix 24; signed writer 4; MIN witness 4) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing; inherits `mulhi` contract | yes; default and all-features |
+| `u128_ext::mulhi_core` limb operations and exact high-half result (joint-helper closure) | yes | yes (body 68/68; core module 74/74) | none; exact quotient postcondition is proved from the limb result with operation checks retained | yes; default and all-features |
+| `u128_ext::mulhi` wrapper and exact result contract | yes | yes (wrapper module 2/2) | none; delegates to the proved core | yes; default and all-features |
+| `div_rem_1e16` reciprocal divider body (Phase 4) | yes | yes (31 goals) | consumes the proved exact high-half result contract | yes; default and all-features |
+| Actual optimized `Unsigned::fmt` body for `u128` (Phase 6; strengthened in Phase 7) | yes | yes (147 goals; refinement 1) | consumes the proved exact `mulhi` high-half result contract | yes; default and all-features |
+| Actual signed `i128` buffer writer and `i128::MIN` output witness (Phase 7) | yes | yes (suffix 24; signed writer 4; MIN witness 4) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing; consumes the proved `mulhi` contract | yes; default and all-features |
 | Actual signed `i8` buffer writer (Phase 7) | yes | yes (suffix 23; signed body 4 integrated / 16 targeted; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
 | Actual signed `i16` buffer writer (Phase 7) | yes | yes (suffix 27; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
 | Actual signed `i32` buffer writer (Phase 7) | yes | yes (suffix 27; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
@@ -53,6 +53,28 @@ formatting and string-conversion adapters remain pending.
 | 64-bit `usize`/`isize` buffer-writer adapters (Phase 7) | yes | yes (each cast 1; each formatter adapter 3) | no local trust; delegates to proved `u64`/signed `i64` bodies | yes on x86_64; default and all-features |
 | Canonical decimal ASCII lemmas and actual writer witnesses (Phase 8) | yes | yes (three model lemmas: 1 goal each; i8 witness 3; `i128::MIN` witness 4) | none added | yes; default and all-features |
 | Raw `Buffer::format`, runtime borrowed-`str` conversion, and 16/32-bit pointer-width fallbacks | pending | no | no runtime memory proof; separate pre-existing recursive-model ASCII-to-`str` trust | pending |
+
+## Current mulhi closure
+
+The joint-helper proof now closes the exact result contract from the actual
+`mulhi_core` limb implementation: `result@ == x@ * y@ / 128.pow2()`. The
+focused `mulhi_core` body discharged 68/68 goals, its core module discharged
+74/74, and all 74 generated Why3 theory leaves were valid with no unresolved
+goals. The `mulhi` wrapper has no `#[trusted]` annotation; its body proof
+discharged 2/2 goals. Its exact contract is consumed by
+the existing `u128` formatter and signed `i128` writer proofs, so this removes
+the previous accepted arithmetic assumption without changing the executable
+runtime body. The evidence and replay details are in the
+[`Power_sum composition report`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/REPORT.md).
+
+Native checks on the same proof-only source candidate passed 11 integration
+tests plus 2 doctests with `cargo test --offline --locked`, and 11 integration
+tests with `cargo test --offline --locked --release --all-features --tests`.
+The integrated `run-verify-all.sh` rerun after closure passed in both
+configurations: default and all-features each reported 224 proof libraries /
+1,917 VCs, with no failed goals. The earlier Phase 12 totals below are
+explicitly pre-closure historical results. The integrated proof log is
+[`fullsuite.log.gz`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/fullsuite.log.gz).
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
 pair equals Euclidean quotient/remainder by 100, the remainder is below 100,
@@ -153,16 +175,21 @@ continues to compile the production runtime implementations.
 
 ## Phase 4: `u128` reciprocal divider boundary
 
-The remaining Phase 4 boundary is the actual 128-bit high-half multiply used
-by the reciprocal divider. The runtime quotient is computed with the original
+The Phase 4 candidate reports and failed attempts below are historical records
+from before the joint-helper closure. Their open-goal and accepted-trust
+conclusions describe those checkpoints only; see [Current mulhi closure](#current-mulhi-closure)
+for the current result.
+
+At the original Phase 4 checkpoint, the remaining boundary was the actual
+128-bit high-half multiply used by the reciprocal divider. The runtime quotient is computed with the original
 Granlund–Montgomery operation: multiply by
 `76_624_777_043_294_442_917_917_351_357_515_459_181`, take the high half, then
 shift it right by 51; the divider subtracts `quotient * 10^16` to obtain the
 remainder. The staged divider contract states the exact quotient, remainder,
 reconstruction, and remainder bound. No replacement arithmetic is used.
 
-The divider components have completed focused proofs in a candidate based on
-`51090b4`: `shift_by_51` passed 2/2 goals, `magic_quotient` passed 10/10,
+At that historical checkpoint, a candidate based on `51090b4` had completed
+focused proofs for the divider components: `shift_by_51` passed 2/2 goals, `magic_quotient` passed 10/10,
 `math::magic_shift_floor` passed 1/1, and `div_rem_1e16` passed 31/31. The
 integrated source keeps the original `mulhi` limb algorithm in
 `mulhi_core`, with its operation-range and overflow proof obligations checked
@@ -173,16 +200,13 @@ whose exact trusted result contract is:
 result == x * y / 2^128
 ```
 
-The user accepted this exact temporary proof boundary on 2026-10-02. The
-wrapper's call to `mulhi_core` is not itself checked, so the integrated proof
-does not connect the core's returned limb value to this quotient equation.
-The core's arithmetic operations, casts, shifts, bounds, and overflow checks
-remain checked; the high-half correctness of their composed result is the
-assumed fact. Remove `#[trusted]` and prove the wrapper equation from the core
-before claiming a fully proved high-half multiply. Direct composition from the
-limb results left the final high-half equation unresolved in the focused
-attempts; this is a temporary proof boundary, not a claim that the equation is
-unprovable.
+The user accepted this exact temporary proof boundary on 2026-10-02. At that
+checkpoint, the wrapper's call to `mulhi_core` was not itself checked, so the
+integrated proof did not connect the core's returned limb value to this
+quotient equation. The core's arithmetic operations, casts, shifts, bounds,
+and overflow checks remained checked; the high-half correctness of their
+composed result was assumed. The joint-helper closure documented above has
+since proved this equation from the core and removed that temporary boundary.
 
 ### Second isolated `mulhi` proof attempt
 
@@ -201,15 +225,15 @@ the final `int-proof-assert` candidate reached 67/68 and left
 ```
 
 The preceding fact `y == y_hi * 2^64 + y_lo` is already available at that
-assertion. Because this caller VC remains open, the candidate's exact-result
-postcondition is not a proved consequence of `mulhi_core`; the integrated
-wrapper continues to use the exact accepted trusted equation above. The
+assertion. Because this caller VC remained open, that candidate's exact-result
+postcondition was not a proved consequence of `mulhi_core`; the then-integrated
+wrapper continued to use the exact accepted trusted equation above. The
 attempt snapshots, generated Why3 session, and focused result are preserved in
 [`tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/REPORT.md`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/REPORT.md),
 with the final candidate under
 [`int-proof-assert/`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/int-proof-assert/).
-The removal condition remains proving the wrapper equation from the core while
-keeping the core operation checks discharged.
+At that historical attempt, the removal condition was to prove the wrapper
+equation from the core while keeping its operation checks discharged.
 
 ### x-side product-split follow-up
 
@@ -222,9 +246,9 @@ open: the run reports 3/4 goals, with the `assertion` task
 The caller's result contract proves from its preconditions, but the explicit
 assertion in the body does not discharge from the generated caller context. An
 attempt to add both calls and the exact high-half result contract directly to
-`mulhi_core` reached the 120-second run limit without a proof result. The
-integrated source keeps only the independently proved x-side lemma; the trusted
-`mulhi` result equation remains unchanged. The failed small caller and its
+`mulhi_core` reached the 120-second run limit without a proof result. That
+candidate kept only the independently proved x-side lemma; the trusted
+`mulhi` result equation was unchanged at that point. The failed small caller and its
 COMA, Why3 session, and proof JSON are preserved in
 [`step1-x-split/`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/step1-x-split/).
 With only this helper integrated, the crate's `run-verify-all.sh` passes in
@@ -243,10 +267,9 @@ run of that transformed task returned `Out of memory (1.81s)` at the required
 are preserved in the
 [`Step 2 checkpoint`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/step2-task-pruning/REPORT.md).
 
-This experiment does not close the product split in `mulhi_core` or prove the
-actual high-half result. The existing accepted trusted `mulhi` equation
-`result == x * y / 2^128` remains unchanged; no new trust or runtime change was
-introduced.
+This experiment did not close the product split in `mulhi_core` or prove the
+actual high-half result; the accepted trusted equation remained in place at
+that checkpoint. No new trust or runtime change was introduced.
 
 ### Exact-goal Why3 pruning experiment
 
@@ -257,8 +280,8 @@ families; the task log confirms that the goal formula stayed unchanged. The
 actual assertion still did not close: Z3 returned `Out of memory (1.80s)` at
 one job and 1024 MiB. The plugin was exercised through direct `why3 prove`;
 normal `cargo creusot prove` / `why3find` replay was not tested, and no plugin
-or runner change was integrated. The existing trusted `mulhi` equation remains
-unchanged. The plugin source, compressed before/after task exports, logs, and
+or runner change was integrated. The trusted `mulhi` equation remained
+unchanged at that checkpoint. The plugin source, compressed before/after task exports, logs, and
 environment-dependent reproduction notes are preserved in the
 [`Step 3 checkpoint`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/step3-why3-pruning/REPORT.md).
 
@@ -272,9 +295,9 @@ of memory, and its capped profile attributed 336 of 354 instantiations to the
 `Power_sum` quantifier. The full matching trace was not captured, so the cause
 remains a strong hypothesis. This hand-edited SMT diagnostic is not a Rust or
 `mulhi_core` proof. Because `power_two_sum` is a general empty-body helper, the
-next candidate is an additional Z3 driver variant that omits `Power_sum` while
-keeping the ordinary driver available. Driver selection/replay remains
-unverified; the existing trusted wrapper is unchanged. See the
+next candidate was an additional Z3 driver variant that omits `Power_sum` while
+keeping the ordinary driver available. Driver selection/replay was then
+unverified; the wrapper trust was unchanged at that checkpoint. See the
 [`Power_sum cause-analysis checkpoint`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-cause-analysis/REPORT.md)
 for the reproduction task, logs, and plan.
 
@@ -286,10 +309,10 @@ in the failed product substitution. The missing-premise explanation is
 therefore ruled out. Cutting immediately after the limb decompositions did not
 improve the caller proof. A small four-input `cfg(creusot)` helper and a
 reduced Why3 theory prove in isolation, but the full certificate and a sparse
-six-input lemma still leave product substitutions open; these isolated results
-do not prove the integrated VC. Direct selection of the generated assertion
+six-input lemma still left product substitutions open; these isolated results
+did not prove the integrated VC. Direct selection of the generated assertion
 for a COMA context cut was also unavailable in the current transformation
-stage. The `mulhi` result contract remains trusted. The task inspection and
+stage. The `mulhi` result contract remained trusted at that point. The task inspection and
 follow-up experiments are recorded in
 [`structural-product-split/REPORT.md`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/structural-product-split/REPORT.md).
 
@@ -570,9 +593,9 @@ The capacity fact is derived inside the body from
 At the Phase 6 checkpoint, the body and its trait refinement passed 140 and 1
 goals in both full-suite configurations. The default run reported 182 proof
 libraries / 1,637 VCs; all-features reported 183 / 1,641, with zero failed
-goals. The result depends on Phase 4's exact trusted `mulhi` high-half
-contract; the divider and formatter proofs do not derive that contract from
-the limb core. Default native tests passed 11 integration tests and 2
+goals. At this Phase 6 checkpoint, the result depended on Phase 4's exact trusted
+`mulhi` high-half contract; the divider and formatter proofs did not derive
+that contract from the limb core. Default native tests passed 11 integration tests and 2
 doctests, and release all-features integration tests passed all 11. Logs are
 `/tmp/phase6-verify-all-integrated.log`,
 `/tmp/phase6-native-test-default.log`, and
@@ -597,8 +620,9 @@ The integrated default proof run reported 196 libraries / 1,696 VCs; the
 all-features run reported 197 / 1,700, with zero failed goals. It proved the
 actual `u128::fmt` body (147 VCs and one refinement), `write_u128_suffix_i128`
 (24), `signed_write_i128` (4), and the `i128::MIN` whole-buffer witness (4).
-The underlying `u128` arithmetic remains conditional on the accepted exact
-`mulhi` high-half result contract. No formatter function is trusted.
+At this Phase 7 checkpoint, the underlying `u128` arithmetic was still
+conditional on the accepted exact `mulhi` high-half result contract. No
+formatter function was trusted locally.
 
 The native default suite passed 11 integration tests and 2 doctests. Release
 all-features `--tests` passed all 11 integration tests. Logs are
@@ -626,8 +650,9 @@ all-features reported 211 / 1,873, with zero failed goals. The i16 writer and
 harness discharged 4 and 3 goals, with a 27-goal suffix writer. The i32 writer
 and harness discharged 4 and 3 goals, with a 27-goal suffix writer. The i64
 writer and harness discharged 4 and 3 goals, with a 22-goal suffix writer; its
-typed decimal-capacity lemma discharged one goal. The result inherits the
-Phase 4 `mulhi` result contract only along the u128 formatting path.
+typed decimal-capacity lemma discharged one goal. At this Phase 7 checkpoint, the result inherited the Phase 4 `mulhi` result
+contract only along the `u128` formatting path; the current focused closure
+proves that contract from the core.
 
 Native default tests passed 11 integration tests and 2 doctests; release
 all-features `--tests` passed all 11 integration tests on the exact patch
@@ -663,8 +688,8 @@ u32, and 119 for u64; each has one trait-refinement goal. The i8 suffix writer
 discharged 23 goals, the signed writer 4 in the integrated run (16 in its
 focused target), and its all-input contract harness 3. The state-view bridge
 discharged one goal. The actual u128 and i128 proof counts remain as recorded
-above. The result still inherits Phase 4's accepted
-`mulhi` result contract for the u128 path.
+above. At that i8 checkpoint, the `u128` path still inherited Phase 4's accepted
+`mulhi` result contract.
 
 The native default suite passed 11 integration tests and 2 doctests. Release
 all-features `--tests` passed all 11 integration tests. Logs are
@@ -727,8 +752,9 @@ are ASCII. No initialization-state fact was missing. `Buffer::format`'s
 construction remain outside Creusot; the recursive model's trusted
 initialized-`[u8; 40]` string leaf does not prove those runtime operations.
 Only the 64-bit `usize` and `isize` writer adapters are covered on x86_64; the
-16- and 32-bit fallback adapters remain pending. The `u128` writer still
-inherits the exact accepted `mulhi` high-half contract from Phase 4. Full
+16- and 32-bit fallback adapters remain pending. At this Phase 8 checkpoint,
+the `u128` writer inherited the then-accepted `mulhi` high-half contract; the
+current joint-helper closure proves that equation from the core. Full
 source details and standard-library assumptions are in
 [RUNTIME_MEMORY_LEDGER.md](RUNTIME_MEMORY_LEDGER.md). The Creusot/Verus boundary
 contracts, Phase 11 partial Verus result, and exact remaining raw-memory gaps
@@ -738,14 +764,15 @@ standalone post-conversion Verus lemma is
 
 ## Phase 12: final end-to-end claim
 
-The current checkout **does not prove** the stated property for the actual
-public `Buffer::format` method. On x86_64, Creusot proves the optimized
+The current checkout still does **not prove** the stated property for the
+actual public `Buffer::format` method. On x86_64, Creusot proves the optimized
 unsigned and signed numeric writer bodies against `integer_decimal_values`,
 including initialized, ASCII output suffixes and their arithmetic/bounds
-obligations. The `u128` formatter and signed `i128` writer inherit the accepted
-exact `mulhi` result equation. These statements concern the writer bodies,
-which are shared with normal builds; the Creusot public facade remains the
-separate recursive model.
+obligations. The `u128` formatter and signed `i128` writer now consume the exact
+high-half equation proved from `mulhi_core` (68/68 focused goals; see [Current
+mulhi closure](#current-mulhi-closure)); that arithmetic result is no longer an
+accepted assumption. These writer-body statements concern code shared with
+normal builds; the Creusot public facade remains the separate recursive model.
 
 The real `Buffer::format` body, its typed-prefix reference formation, and its
 `unreachable_unchecked` length guard are excluded under `cfg(creusot)`. The
@@ -757,20 +784,24 @@ proved either raw-memory conversion. No cross-tool correspondence contract is
 installed. The 16- and 32-bit `usize`/`isize` paths are outside this x86_64
 proof scope.
 
-At this Phase 12 documentation checkpoint, a fresh serialized
-`run-verify-all.sh` run completed with exit 0 in both configurations: default
-and all-features each reported 218 proof libraries / 1,884 VCs. Native
-`cargo test --offline --locked` passed 11 integration tests and 2 doctests;
-release `cargo test --release --all-features --tests --offline --locked`
-passed 11 integration tests. The checked-in partial Verus artifact replayed
-with 1 verified / 0 errors. Logs are `/tmp/itoa-phase12-verify-all.log`,
-`/tmp/itoa-phase12-native-default.log`,
+The earlier Phase 12 full-suite result predates the `mulhi` closure: default
+and all-features each reported 218 proof libraries / 1,884 VCs in that run. The
+latest integrated rerun after closure passed in both configurations: default
+and all-features each reported 224 proof libraries / 1,917 VCs, with no failed
+goals. Native checks on the same proof-only source candidate passed
+`cargo test --offline --locked` with 11 integration tests and 2 doctests, and
+release
+`cargo test --offline --locked --release --all-features --tests` passed all 11
+integration tests. The checked-in partial Verus artifact replayed with 1
+verified / 0 errors. The historical proof/native/Verus logs are
+`/tmp/itoa-phase12-verify-all.log`, `/tmp/itoa-phase12-native-default.log`,
 `/tmp/itoa-phase12-native-release-tests.log`, and
-`/tmp/itoa-phase12-verus-ascii.log`. These checks do not include the excluded
-raw runtime public method.
+`/tmp/itoa-phase12-verus-ascii.log`; the current native run logs are recorded
+with the joint-helper proof evidence. None of these checks includes the
+excluded raw runtime public method.
 
-The separate assumption ledger consists of the accepted `mulhi` high-half
-equation, the pre-existing recursive-model string leaf, the narrow Creusot
+The separate assumption ledger no longer includes the `mulhi` equation. It
+consists of the pre-existing recursive-model string leaf, narrow Creusot
 standard/core operation models, and the Verus `from_utf8_unchecked`
 specification consumed by the partial proof. No decimal-correctness or raw
 memory contract has been trusted across tools. The exact A–E classification,

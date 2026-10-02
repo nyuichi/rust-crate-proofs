@@ -47,19 +47,22 @@ establishes the following:
   handoff; it does not prove the runtime raw pointer or string conversions.
 
 The original recursive-model baseline proved 67 translated files in both
-configurations. The latest integrated runtime matrix is recorded in
-[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): the Phase 12 rerun proves
-218 libraries / 1,884 VCs in each of default and all-features on the current
-x86_64 target. This includes the actual unsigned formatter bodies, signed
-i8/i16/i32/i64/i128 buffer writers, the 64-bit `usize`/`isize` buffer-writer
-adapters, and an `i128::MIN` witness. The `u128` path remains conditional on
-the accepted trusted `mulhi` result contract. Raw `Buffer::format` and the
-runtime borrowed-`str` conversion are not included. The all-features
-configuration includes the upstream optional `no-panic` dependency.
+configurations. The Phase 12 matrix before the `mulhi` closure reported 218
+libraries / 1,884 VCs in each configuration; the latest integrated
+`run-verify-all.sh` rerun after closure passed with 224 libraries / 1,917 VCs
+in both default and all-features on the current x86_64 target. The focused
+joint-helper proof discharged the `mulhi_core` body 68/68 and its module
+74/74; the `mulhi` wrapper has no `#[trusted]` annotation and its body proof
+discharged 2/2 goals. It establishes the exact
+high-half equation from the limb implementation, which the actual `u128`
+formatter and signed `i128` writer consume. Raw `Buffer::format` and the
+runtime borrowed-`str` conversion remain outside the proof. The all-features
+configuration includes the upstream optional `no-panic` dependency. Full
+proof evidence and logs are linked from [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md).
 
 ## Explicit trusted boundaries
 
-Two narrow boundaries are currently trusted:
+The recursive verification model retains one local trusted boundary:
 
 - The recursive verification model's conversion of its already-proved ASCII
   suffix into a borrowed `str`. Its contract states that the result's bytes
@@ -67,26 +70,20 @@ Two narrow boundaries are currently trusted:
   the native runtime's raw `MaybeUninit` slice-to-`str` conversion, which is
   still outside the runtime proof. The decimal algorithm, sign handling,
   buffer bounds, and returned contents are not trusted.
-- The `u128_ext::mulhi` wrapper's exact result equation,
-  `result == x * y / 2^128`, accepted by the user on 2026-10-02. The actual
-  limb algorithm lives in `mulhi_core`; its operation bounds, casts, shifts,
-  and overflow checks are verified, but the wrapper's assumed equation is not
-  yet derived from the core's returned value. A second isolated attempt proved
-  two arithmetic helper lemmas, but its full core-composition candidate still
-  had one open goal. A later structural follow-up confirmed that the failing
-  Why3 task already contains the `y` limb decomposition; isolated cut and
-  helper experiments did not close the integrated goal. The symmetric x-side
-  split helper also passes alone, while a small caller combining both split
-  lemmas leaves its explicit product-substitution assertion open. The exact
-  equation therefore remains trusted; see the Phase 4 follow-up in
-  [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md).
 
-Removal conditions: replace the string boundary when Creusot can prove ASCII
-UTF-8 validity and model the slice-to-`str` reference conversion without a
-raw representation cast. Remove the `mulhi` trust when the high-half equation
-is proved from `mulhi_core` while retaining its operation checks. The second
-attempt has not met this condition; the accepted equation remains the exact
-temporary boundary for the `u128` path.
+The previous arithmetic boundary on `u128_ext::mulhi` is closed in the focused
+joint-helper proof. It proves the exact equation
+`result == x * y / 2^128` from the limb algorithm, preserving the core's
+operation-range and overflow checks. The same proved contract now connects to
+the `u128` formatter and signed `i128` writer. The earlier isolated attempts
+and their open goals remain documented as history; the current proof result
+and evidence are summarized in [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md)
+and the [joint-helper report](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/REPORT.md).
+
+The remaining removal condition for the recursive-model string boundary is
+for Creusot to prove ASCII UTF-8 validity and model the slice-to-`str` reference
+conversion without a raw representation cast. The `mulhi` result equation is
+no longer an accepted arithmetic assumption in the focused proof.
 
 The signed `i128` proof also uses narrow external models for core array
 `IndexMut`, mutable-slice-to-array borrowing, and primitive `unsigned_abs`.
@@ -94,8 +91,10 @@ These are standard-library assumptions, not additional local `#[trusted]`
 functions; their exact bounds, view/frame contracts, source basis, and removal
 conditions are documented in [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md).
 
-Run `./verify-all.bash` in this directory to reproduce the proof matrix. The
-ordinary upstream suite passes 11 integration tests and 2 documentation tests.
+Run `../../tools/creusot-toolpatch/scripts/run-proof.sh ./verify-all.bash` from
+this crate directory to reproduce the proof matrix with the registered
+Power_sum-pruned Z3 driver variant. The ordinary upstream suite passes 11
+integration tests and 2 documentation tests.
 The optimized all-features integration-test build with the `no-panic` feature
 also passes all 11 tests. Generated Cargo and Why3 artifacts are intentionally
 not tracked.

@@ -40,20 +40,21 @@ These line numbers belong to the two isolated scratch probes, not the checked-in
 
 | Area | Current evidence and status |
 | --- | --- |
-| A. Creusot functional decimal model | The canonical decimal model and its proof remain established. Actual unsigned formatter bodies and signed buffer writers are proved. The `u128` formatter and signed `i128` writer inherit the accepted exact `mulhi` result equation. These functional facts do not include the raw public buffer/string path. |
+| A. Creusot functional decimal model | The canonical decimal model and its proof remain established. Actual unsigned formatter bodies and signed buffer writers are proved. The `u128` formatter and signed `i128` writer consume the exact `mulhi` result equation, now proved from `mulhi_core` by the focused joint-helper closure. These functional facts do not include the raw public buffer/string path. |
 | B. Runtime operation coverage | Arithmetic bodies, table reads, digit/chunk stores, initialized suffixes, and ASCII writer witnesses are checked by Creusot as documented in `RUNTIME_VERIFICATION.md`. The actual public `Buffer::format` body is excluded from Creusot. Its physical cast, runtime `MaybeUninit` suffix-to-`&[u8]` conversion, unchecked `&str` construction, and `unreachable_unchecked` branch remain unproved. The x86_64 scope does not cover 16/32-bit pointer-width fallbacks. |
 | C. Verus evidence | The standalone proof in [`verus/ascii_bytes_to_str.rs`](verus/ascii_bytes_to_str.rs) proves ASCII `&[u8]` → `valid_utf8` → `&str` for an already-formed byte slice (1 verified, 0 errors), using vstd's assumed `from_utf8_unchecked` specification. Verus has not proved the borrowed array cast or the raw `MaybeUninit<u8>`-to-`u8` slice conversion. |
 | D. Cross-tool correspondence | None is installed or asserted. No decimal correctness theorem crosses from Creusot to Verus. Any future correspondence requires human review after Verus proves the matching source operations and memory effects. |
-| E. Separate assumptions | The accepted `mulhi` result equation, the pre-existing recursive-model ASCII-suffix-to-`str` leaf, narrow standard/core models, and vstd's assumed `str::from_utf8_unchecked` specification remain separate assumptions. The vstd specification starts with an already-valid `&[u8]`; none supplies the physical buffer cast or the `MaybeUninit<u8>`-to-`u8` slice reborrow. |
+| E. Separate assumptions | The pre-existing recursive-model ASCII-suffix-to-`str` leaf, narrow standard/core models, and vstd's assumed `str::from_utf8_unchecked` specification remain separate assumptions. The `mulhi` result equation is proved, not assumed. The vstd specification starts with an already-valid `&[u8]`; none supplies the physical buffer cast or the `MaybeUninit<u8>`-to-`u8` slice reborrow. |
 
 The final target is **not established**: the writer proof does not reach the
 actual public `Buffer::format` return, and there is no proved cross-tool memory
 contract to bridge that gap. Closing it requires proofs of both raw boundaries,
 the length guard for every sealed integer type, and correspondence between any
 Creusot assumptions and the exact operations proved in the other tool. The
-accepted `mulhi` equation must remain visible as an arithmetic assumption until
-it is derived from the proved limb implementation. Passing tests or a bounded
-checker must be reported separately from this deductive claim.
+`mulhi` equation is now derived from the proved limb implementation; this
+closes that arithmetic dependency but does not bridge either raw-memory gap.
+Passing tests or a bounded checker must be reported separately from this
+deductive claim.
 
 ## Supplementary checker feasibility: Kani and Miri
 
@@ -132,7 +133,8 @@ Only after the prefix view and suffix/string path are accounted for is `Buffer::
 
 ## Keep independent assumptions separate
 
-- The accepted arithmetic assumption is exactly `u128_ext::mulhi`'s result equation `result == x * y / 2^128` (accepted 2026-10-02). It supports the `u128` formatter and, through the magnitude formatter, the signed `i128` writer; it supplies no pointer provenance, reference validity, initialization, or string-conversion fact.
+- The proved arithmetic contract is exactly `u128_ext::mulhi`'s result equation `result == x * y / 2^128`; the joint-helper proof derives it from `mulhi_core`; the wrapper has no
+`#[trusted]` annotation and its body proof discharged 2/2 goals. It supports the `u128` formatter and, through the magnitude formatter, the signed `i128` writer; it supplies no pointer provenance, reference validity, initialization, or string-conversion fact.
 - Existing standard/core models are separate from local raw-memory contracts. The runtime proof consumes `MaybeUninit::write`, slice `get_unchecked`, and narrow models for signed `unsigned_abs`, array `IndexMut`, and mutable-slice-to-array borrowing as documented in `RUNTIME_VERIFICATION.md` and `RUNTIME_MEMORY_LEDGER.md`. Their use does not prove either raw boundary.
 - The recursive verification model's trusted ASCII-suffix-to-`str` leaf applies to its initialized model array only. It is not the runtime raw conversion contract.
 - The x86_64 restriction here covers the 64-bit `usize`/`isize` writer adapters. It does not silently extend evidence to the 16/32-bit pointer-width adapters or to other targets.
@@ -142,7 +144,8 @@ Only after the prefix view and suffix/string path are accounted for is `Buffer::
 The translator errors and rejected expressions are reproduced above, so this status remains understandable if temporary files are later removed. The `/tmp` paths below identify optional session reports and scratch artifacts used to assemble the evidence.
 
 - `itoa/1.0.18/RUNTIME_MEMORY_LEDGER.md` and `RUNTIME_VERIFICATION.md`, in the Phase 8 tree at commit `8204b28`.
-- `PROVENANCE.md`, which distinguishes existing model/trusted leaves, the accepted `mulhi` assumption, proved writers, and raw runtime exclusions.
+- `PROVENANCE.md`, which distinguishes existing model/trusted leaves, the proved `mulhi` result contract, proved writers, and raw runtime exclusions.
+- [`pow2-composition/REPORT.md`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/REPORT.md): current joint-helper proof, driver selection, replay command, and integrated 224-library / 1,917-VC run evidence. The focused arithmetic result does not prove the raw runtime memory path.
 - `/tmp/PHASE9_CAST_REPORT.md`: i8 pointer-cast probe; raw dereference translation rejection before VCs.
 - `/tmp/PHASE10_SLICE_REPORT.md`: runtime slice-conversion probe; `get_unchecked` translated, raw dereference rejected before VCs.
 - `/tmp/VERUS_RAW_API_AUDIT.md`: pinned vstd API inventory; not a proof.

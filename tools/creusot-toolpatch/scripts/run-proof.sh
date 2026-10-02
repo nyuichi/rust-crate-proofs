@@ -55,5 +55,37 @@ if [[ -z "${WHY3DATA:-}" ]]; then
   export WHY3DATA=$("$bundle_dir/scripts/prepare-why3-overlay.sh")
   toolpatch_temp_why3data=$WHY3DATA
 fi
+pow2pruned_driver="$bundle_dir/drivers/z3-pow2pruned.drv"
+if [[ ! -f "$pow2pruned_driver" ]]; then
+  printf 'Power-sum-pruned Why3 driver not found: %s\n' "$pow2pruned_driver" >&2
+  exit 1
+fi
+cp "$pow2pruned_driver" "$proof_config_root/creusot/z3-pow2pruned.drv"
+python3 - "$WHY3CONFIG" "$CREUSOT_DATA_HOME/bin/z3" <<'PYPROVER'
+import json, pathlib, shlex, sys
+
+config_path, z3_path = map(pathlib.Path, sys.argv[1:])
+driver_path = config_path.parent / "z3-pow2pruned.drv"
+config = config_path.read_text()
+if 'name = "Z3-Pow2Pruned"' in config:
+    raise SystemExit("Z3-Pow2Pruned prover identity is already configured")
+command = shlex.join([
+    str(z3_path), "-smt2", "-T:%t", "sat.random_seed=42",
+    "nlsat.randomize=false", "smt.random_seed=42", "-st", "%f",
+])
+command_steps = shlex.join([
+    str(z3_path), "-smt2", "sat.random_seed=42", "nlsat.randomize=false",
+    "smt.random_seed=42", "-st", "rlimit=%S", "%f",
+])
+config += (
+    "\n[prover]\n"
+    'name = "Z3-Pow2Pruned"\n'
+    'version = "4.15.3"\n'
+    f"command = {json.dumps(command)}\n"
+    f"command_steps = {json.dumps(command_steps)}\n"
+    f"driver = {json.dumps(str(driver_path))}\n"
+)
+config_path.write_text(config)
+PYPROVER
 printf 'Proof resources: jobs=%s, memory=%s MiB per prover; shared lock held\n' "${ITOA_PROOF_JOBS:-1}" "${ITOA_PROOF_MEMORY_MB:-1024}"
 "$@"
