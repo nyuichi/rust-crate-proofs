@@ -89,6 +89,15 @@ extern_spec! {
 }
 
 extern_spec! {
+    impl TryFrom<i32> for u8 {
+        #[check(terminates)]
+        #[ensures(value@ < 0 || value@ > 255 ||
+            exists<x: u8> result == Ok(x) && x@ == value@)]
+        fn try_from(value: i32) -> Result<u8, core::num::TryFromIntError>;
+    }
+}
+
+extern_spec! {
     impl TryFrom<i32> for u16 {
         #[check(terminates)]
         #[ensures(value@ < 0 || value@ > 65_535 ||

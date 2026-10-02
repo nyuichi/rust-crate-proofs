@@ -9,7 +9,8 @@ use crate::verification::{
     decimal_seq_concat_assoc, decimal_values, decimal_values_compose_1x2, logical_slot_bytes,
     concat_two_get_digits, logical_slot_bytes_split,
     decimal_values_len_at_least_one, decimal_values_one_digit,
-    decimal_values_len_ge_2, decimal_values_len_ge_4, decimal_values_len_u16,
+    decimal_values_len_ge_2, decimal_values_len_ge_4, decimal_values_len_u8,
+    decimal_values_len_u16,
     decimal_values_len_u32, decimal_values_len_u64,
     decimal_values_split_4, masked_decimal_digit,
     fixed_width_decimal_values, fixed_width_decimal_values_2_is_decimal,
@@ -706,6 +707,8 @@ macro_rules! impl_Unsigned {
 }
 
 #[cfg(not(creusot))]
+impl_Unsigned!(u8, decimal_values_len_u8);
+#[cfg(creusot)]
 impl_Unsigned!(u8, decimal_values_len_u8);
 impl_Unsigned!(u16, decimal_values_len_u16);
 #[cfg(not(creusot))]
