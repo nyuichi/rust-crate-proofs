@@ -262,6 +262,22 @@ unchanged. The plugin source, compressed before/after task exports, logs, and
 environment-dependent reproduction notes are preserved in the
 [`Step 3 checkpoint`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/step3-why3-pruning/REPORT.md).
 
+### `Power_sum` SMT diagnosis
+
+A follow-up isolated the imported Why3 lemma `bv.Pow2int.Power_sum` as a
+quantifier-instantiation hotspot candidate: removing only that premise from
+the original exported task, while retaining all 22 wrapper premises and the
+exact goal, gave Z3 `unsat` in 0.025 s (18.61 MiB); the baseline still ran out
+of memory, and its capped profile attributed 336 of 354 instantiations to the
+`Power_sum` quantifier. The full matching trace was not captured, so the cause
+remains a strong hypothesis. This hand-edited SMT diagnostic is not a Rust or
+`mulhi_core` proof. Because `power_two_sum` is a general empty-body helper, the
+next candidate is an additional Z3 driver variant that omits `Power_sum` while
+keeping the ordinary driver available. Driver selection/replay remains
+unverified; the existing trusted wrapper is unchanged. See the
+[`Power_sum cause-analysis checkpoint`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-cause-analysis/REPORT.md)
+for the reproduction task, logs, and plan.
+
 ### Structural split follow-up
 
 A later scratch reproduction confirmed that the actual open Why3 task already
