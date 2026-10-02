@@ -211,6 +211,26 @@ with the final candidate under
 The removal condition remains proving the wrapper equation from the core while
 keeping the core operation checks discharged.
 
+### x-side product-split follow-up
+
+The source now includes the ordinary `#[cfg(creusot)]` lemma
+`mulhi_x_split_product`, symmetric to the y-side lemma. Its focused body proof
+passes 1/1 VC. A small caller invokes both lemmas under their exact split
+preconditions and still leaves the explicit two-sided product substitution
+open: the run reports 3/4 goals, with the `assertion` task
+`vc_mulhi_product_split_from_limbs.2.0` unknown for Z3 and timed out for CVC5.
+The caller's result contract proves from its preconditions, but the explicit
+assertion in the body does not discharge from the generated caller context. An
+attempt to add both calls and the exact high-half result contract directly to
+`mulhi_core` reached the 120-second run limit without a proof result. The
+integrated source keeps only the independently proved x-side lemma; the trusted
+`mulhi` result equation remains unchanged. The failed small caller and its
+COMA, Why3 session, and proof JSON are preserved in
+[`step1-x-split/`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/step1-x-split/).
+With only this helper integrated, the crate's `run-verify-all.sh` passes in
+both default and all-features configurations; scoped native test results are
+recorded in the same report.
+
 ### Structural split follow-up
 
 A later scratch reproduction confirmed that the actual open Why3 task already

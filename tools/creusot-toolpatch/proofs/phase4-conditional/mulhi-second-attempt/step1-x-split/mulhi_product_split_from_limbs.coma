@@ -1,0 +1,70 @@
+(* #"/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 315 0 322 1 *)
+
+let%span su128_ext = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 323 12 323 51
+let%span su128_ext'0 = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 324 12 324 58
+let%span su128_ext'1 = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 325 18 325 86
+let%span su128_ext'2 = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 312 11 312 42
+let%span su128_ext'3 = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 313 11 313 42
+let%span su128_ext'4 = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 314 10 314 78
+let%span su128_ext'5 = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 303 11 303 42
+let%span su128_ext'6 = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 304 10 304 63
+let%span su128_ext'7 = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 294 11 294 42
+let%span su128_ext'8 = "/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 295 10 295 63
+
+use creusot.int.UInt128
+use creusot.int.UInt64
+use bv.Pow2int
+use creusot.prelude.Any
+use int.Int
+
+let rec mulhi_x_split_product (x: UInt128.t) (factor: UInt128.t) (x_hi: UInt64.t) (x_lo: UInt64.t) (return (x'0: ())) =
+  {[@stop_split] [@expl:mulhi_x_split_product requires] [%#su128_ext'5] UInt128.t'int x
+  = UInt64.t'int x_hi * Pow2int.pow2 64 + UInt64.t'int x_lo}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:mulhi_x_split_product ensures] [%#su128_ext'6] UInt128.t'int x
+      * UInt128.t'int factor
+    = (UInt64.t'int x_hi * Pow2int.pow2 64 + UInt64.t'int x_lo) * UInt128.t'int factor}
+    (! return {result}) ]
+
+let rec mulhi_factor_y_split_product (factor: UInt128.t) (y: UInt128.t) (y_hi: UInt64.t) (y_lo: UInt64.t)
+  (return (x: ())) = {[@stop_split] [@expl:mulhi_factor_y_split_product requires] [%#su128_ext'7] UInt128.t'int y
+  = UInt64.t'int y_hi * Pow2int.pow2 64 + UInt64.t'int y_lo}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:mulhi_factor_y_split_product ensures] [%#su128_ext'8] UInt128.t'int factor * UInt128.t'int y
+    = UInt128.t'int factor * (UInt64.t'int y_hi * Pow2int.pow2 64 + UInt64.t'int y_lo)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec mulhi_product_split_from_limbs [#"/tmp/itoa-mulhi-step1/itoa/1.0.18/src/u128_ext.rs" 315 0 322 1] (x: UInt128.t)
+  (y: UInt128.t) (x_hi: UInt64.t) (x_lo: UInt64.t) (y_hi: UInt64.t) (y_lo: UInt64.t) (return (x'0: ())) =
+  {[@stop_split] [@expl:mulhi_product_split_from_limbs requires] ([@stop_split] [@expl:mulhi_product_split_from_limbs requires #0] [%#su128_ext'2] UInt128.t'int x
+    = UInt64.t'int x_hi * Pow2int.pow2 64 + UInt64.t'int x_lo)
+  /\ ([@stop_split] [@expl:mulhi_product_split_from_limbs requires #1] [%#su128_ext'3] UInt128.t'int y
+  = UInt64.t'int y_hi * Pow2int.pow2 64 + UInt64.t'int y_lo)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = mulhi_x_split_product [%#su128_ext] {x} {y} {x_hi} {x_lo} (fun (_x: ()) -> [ &_22 <- _x ] s1)
+    | s1 = mulhi_factor_y_split_product [%#su128_ext'0] {x} {y} {y_hi} {y_lo} (fun (_x: ()) -> [ &_27 <- _x ] s2)
+    | s2 = {[@expl:assertion] [%#su128_ext'1] UInt128.t'int x * UInt128.t'int y
+      = (UInt64.t'int x_hi * Pow2int.pow2 64 + UInt64.t'int x_lo)
+      * (UInt64.t'int y_hi * Pow2int.pow2 64 + UInt64.t'int y_lo)}
+      s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & x: UInt128.t = x
+  | & y: UInt128.t = y
+  | & x_hi: UInt64.t = x_hi
+  | & x_lo: UInt64.t = x_lo
+  | & y_hi: UInt64.t = y_hi
+  | & y_lo: UInt64.t = y_lo
+  | & _22: () = Any.any_l ()
+  | & _27: () = Any.any_l () ])
+  [ return (result: ()) -> {[@stop_split] [@expl:mulhi_product_split_from_limbs ensures] [%#su128_ext'4] UInt128.t'int x
+      * UInt128.t'int y
+    = (UInt64.t'int x_hi * Pow2int.pow2 64 + UInt64.t'int x_lo)
+    * (UInt64.t'int y_hi * Pow2int.pow2 64 + UInt64.t'int y_lo)}
+    (! return {result}) ]

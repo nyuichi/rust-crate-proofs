@@ -75,8 +75,10 @@ Two narrow boundaries are currently trusted:
   two arithmetic helper lemmas, but its full core-composition candidate still
   had one open goal. A later structural follow-up confirmed that the failing
   Why3 task already contains the `y` limb decomposition; isolated cut and
-  helper experiments did not close the integrated goal. The exact equation
-  therefore remains trusted; see the Phase 4 follow-up in
+  helper experiments did not close the integrated goal. The symmetric x-side
+  split helper also passes alone, while a small caller combining both split
+  lemmas leaves its explicit product-substitution assertion open. The exact
+  equation therefore remains trusted; see the Phase 4 follow-up in
   [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md).
 
 Removal conditions: replace the string boundary when Creusot can prove ASCII

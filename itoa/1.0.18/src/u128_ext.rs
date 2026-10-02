@@ -297,6 +297,15 @@ fn mulhi_factor_y_split_product(factor: u128, y: u128, y_hi: u64, y_lo: u64) {
     proof_assert!(factor@ * y@ == factor@ * (y_hi@ * 64.pow2() + y_lo@));
 }
 
+// Symmetric untrusted program lemma for substituting the left operand's
+// exact limb decomposition under an arbitrary multiplication factor.
+#[cfg(creusot)]
+#[requires(x@ == x_hi@ * 64.pow2() + x_lo@)]
+#[ensures(x@ * factor@ == (x_hi@ * 64.pow2() + x_lo@) * factor@)]
+fn mulhi_x_split_product(x: u128, factor: u128, x_hi: u64, x_lo: u64) {
+    proof_assert!(x@ * factor@ == (x_hi@ * 64.pow2() + x_lo@) * factor@);
+}
+
 // Independently checked four-limb ring expansion used as a small algebraic
 // building block while composing the exact mulhi result equation.
 #[cfg(creusot)]

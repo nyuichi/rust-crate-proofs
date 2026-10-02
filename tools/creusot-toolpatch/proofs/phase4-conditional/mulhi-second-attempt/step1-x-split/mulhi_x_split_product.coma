@@ -1,0 +1,35 @@
+(* #"/workspace/rust-crate-proofs/itoa/1.0.18/src/u128_ext.rs" 305 0 305 69 *)
+
+let%span su128_ext = "/workspace/rust-crate-proofs/itoa/1.0.18/src/u128_ext.rs" 306 18 306 71
+let%span su128_ext'0 = "/workspace/rust-crate-proofs/itoa/1.0.18/src/u128_ext.rs" 303 11 303 42
+let%span su128_ext'1 = "/workspace/rust-crate-proofs/itoa/1.0.18/src/u128_ext.rs" 304 10 304 63
+
+use creusot.int.UInt128
+use creusot.int.UInt64
+use bv.Pow2int
+use creusot.prelude.Any
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec mulhi_x_split_product [#"/workspace/rust-crate-proofs/itoa/1.0.18/src/u128_ext.rs" 305 0 305 69] (x: UInt128.t)
+  (factor: UInt128.t) (x_hi: UInt64.t) (x_lo: UInt64.t) (return (x'0: ())) =
+  {[@stop_split] [@expl:mulhi_x_split_product requires] [%#su128_ext'0] UInt128.t'int x
+  = UInt64.t'int x_hi * Pow2int.pow2 64 + UInt64.t'int x_lo}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#su128_ext] UInt128.t'int x * UInt128.t'int factor
+      = (UInt64.t'int x_hi * Pow2int.pow2 64 + UInt64.t'int x_lo) * UInt128.t'int factor}
+      s1
+    | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & x: UInt128.t = x
+  | & factor: UInt128.t = factor
+  | & x_hi: UInt64.t = x_hi
+  | & x_lo: UInt64.t = x_lo ])
+  [ return (result: ()) -> {[@stop_split] [@expl:mulhi_x_split_product ensures] [%#su128_ext'1] UInt128.t'int x
+      * UInt128.t'int factor
+    = (UInt64.t'int x_hi * Pow2int.pow2 64 + UInt64.t'int x_lo) * UInt128.t'int factor}
+    (! return {result}) ]
