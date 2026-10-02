@@ -231,6 +231,23 @@ With only this helper integrated, the crate's `run-verify-all.sh` passes in
 both default and all-features configurations; scoped native test results are
 recorded in the same report.
 
+### Actual caller task pruning follow-up
+
+The actual open assertion is `vc_mulhi_product_split_from_limbs.2.0`. Why3's
+session export preserves the solver task, but no persistent context-pruning or
+replay path was found. Applying `remove_unused` and
+`simplify_formula_and_task` to this post-WP task left it byte-for-byte
+unchanged, including the generic quantified u128 wrapper axioms. A bounded Z3
+run of that transformed task returned `Out of memory (1.81s)` at the required
+1024 MiB prover limit. The task, session, proof summary, commands, and results
+are preserved in the
+[`Step 2 checkpoint`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/step2-task-pruning/REPORT.md).
+
+This experiment does not close the product split in `mulhi_core` or prove the
+actual high-half result. The existing accepted trusted `mulhi` equation
+`result == x * y / 2^128` remains unchanged; no new trust or runtime change was
+introduced.
+
 ### Structural split follow-up
 
 A later scratch reproduction confirmed that the actual open Why3 task already
