@@ -4,6 +4,10 @@
 
 The user authorized pushing to `origin/main` on 2026-10-02. Push after every
 new commit; do not force-push. Record temporary accepted proof gaps explicitly.
+If HTTPS `git push` fails in this environment while `gh api` is authenticated,
+`tools/push-github-objects.py` uploads exact local Git objects through the API.
+Pass the last published SHA as `--base`, the committed SHA as `--head`, and
+`--update-ref`; it checks every object SHA and updates the ref with `force:false`.
 
 For `itoa/1.0.18`, all agents must launch proofs through
 `tools/creusot-toolpatch/scripts/run-proof.sh` (from the crate directory), or
