@@ -2,19 +2,21 @@
 mod u128_ext;
 
 use crate::divmod100::divmod100;
-#[cfg(not(creusot))]
 use crate::enc_16lsd::enc_16lsd;
 use crate::decimal_pairs::DECIMAL_PAIRS;
 #[cfg(creusot)]
 use crate::verification::{
     decimal_seq_concat_assoc, decimal_values, decimal_values_compose_1x2, logical_slot_bytes,
+    logical_slot_bytes_initialized_range,
     concat_two_get_digits, logical_slot_bytes_split,
     decimal_values_len_at_least_one, decimal_values_one_digit,
     decimal_values_len_ge_2, decimal_values_len_ge_4, decimal_values_len_u8,
     decimal_values_len_u16,
-    decimal_values_len_u32, decimal_values_len_u64,
+    decimal_values_len_u32, decimal_values_len_u64, decimal_values_len_u128,
     decimal_values_split_4, masked_decimal_digit,
     fixed_width_decimal_values, fixed_width_decimal_values_2_is_decimal,
+    decimal_values_compose_16, decimal_values_compose_16x2, power_of_ten_16,
+    fixed_width_decimal_values_len,
 };
 #[cfg(creusot)]
 use crate::decimal_pairs::decimal_pair_correct;
@@ -779,78 +781,418 @@ fn check_u16_fmt_call_site(n: u16) {
             buf@[i]@.unwrap_logic()@ == decimal_values(n@)[i - start@]);
 }
 
-#[cfg(not(creusot))]
 impl Unsigned for u128 {
-    #[cfg_attr(feature = "no-panic", no_panic)]
+    #[cfg_attr(creusot, ensures(result@ + decimal_values(self@).len() == buf@.len()))]
+    #[cfg_attr(creusot, ensures(forall<i: Int>
+        result@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
+    #[cfg_attr(creusot, ensures(forall<i: Int>
+        result@ <= i && i < buf@.len() ==>
+            (^buf)@[i]@.unwrap_logic()@ == decimal_values(self@)[i - result@]))]
+    #[cfg_attr(creusot, ensures(forall<i: Int>
+        0 <= i && i < result@ ==> (^buf)@[i]@ == buf@[i]@))]
+    #[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
     fn fmt(self, buf: &mut Self::Buffer) -> usize {
+        #[cfg(creusot)]
+        let original = self;
+        #[cfg(creusot)]
+        let buf_before = snapshot!(buf@);
+        #[cfg(creusot)]
+        proof_assert! {
+            let _ = decimal_values_len_u128(self);
+            decimal_values(self@).len() <= buf@.len()
+        };
+
         // Optimize common-case zero, which would also need special treatment due to
         // its "leading" zero.
         if self == 0 {
             let offset = buf.len() - 1;
             buf[offset].write(b'0');
+            #[cfg(creusot)]
+            {
+                proof_assert!(offset@ + 1 == buf@.len());
+                proof_assert! {
+                    let _ = decimal_values_one_digit(0);
+                    decimal_values(0) == Seq::singleton(48)
+                };
+                proof_assert!(forall<i: Int>
+                    offset@ <= i && i < buf@.len() ==> buf@[i]@ != None);
+                proof_assert!(buf@[offset@]@.unwrap_logic()@ == 48);
+                proof_assert!(forall<i: Int>
+                    0 <= i && i < offset@ ==> buf@[i]@ == (*buf_before)[i]@);
+            }
             return offset;
         }
+
         // Take the 16 least-significant decimals.
         let (quot_1e16, mod_1e16) = div_rem_1e16(self);
+        #[cfg(creusot)]
+        proof_assert!(quot_1e16@ * 10_000_000_000_000_000 + mod_1e16@ == original@);
+
         let (mut remain, mut offset) = if quot_1e16 == 0 {
+            #[cfg(creusot)]
+            proof_assert!(mod_1e16@ == original@);
             (mod_1e16, u128::MAX_STR_LEN)
         } else {
             // Write digits at buf[23..39].
             enc_16lsd::<{ u128::MAX_STR_LEN - 16 }>(buf, mod_1e16);
+            #[cfg(creusot)]
+            proof_assert! {
+                let _ = power_of_ten_16();
+                let _ = fixed_width_decimal_values_len(mod_1e16@, 16);
+                fixed_width_decimal_values(mod_1e16@, 16).len() == 16
+            };
+            #[cfg(creusot)]
+            proof_assert!(forall<i: Int> 0 <= i && i < 16 ==>
+                buf@[23 + i]@ != None
+                    && buf@[23 + i]@.unwrap_logic()@
+                        == fixed_width_decimal_values(mod_1e16@, 16)[i]);
+            #[cfg(creusot)]
+            proof_assert! {
+                let segment_bytes = logical_slot_bytes_initialized_range(
+                    buf@.subsequence(23, buf@.len()),
+                    fixed_width_decimal_values(mod_1e16@, 16),
+                );
+                segment_bytes == fixed_width_decimal_values(mod_1e16@, 16)
+                    && segment_bytes == logical_slot_bytes(buf@.subsequence(23, buf@.len()))
+            };
 
             // Take another 16 decimals.
             let (quot2, mod2) = div_rem_1e16(quot_1e16);
+            #[cfg(creusot)]
+            proof_assert!(quot2@ * 10_000_000_000_000_000 + mod2@ == quot_1e16@);
             if quot2 == 0 {
+                #[cfg(creusot)]
+                {
+                    proof_assert!(mod2@ == quot_1e16@);
+                    proof_assert! {
+                        let _ = decimal_values_compose_16(quot_1e16@, mod_1e16@);
+                        decimal_values(original@)
+                            == decimal_values(quot_1e16@)
+                                .concat(fixed_width_decimal_values(mod_1e16@, 16))
+                    };
+                    proof_assert!(logical_slot_bytes(
+                        buf@.subsequence(23, buf@.len())
+                    ) == fixed_width_decimal_values(mod_1e16@, 16));
+                }
                 (mod2, u128::MAX_STR_LEN - 16)
             } else {
                 // Write digits at buf[7..23].
                 enc_16lsd::<{ u128::MAX_STR_LEN - 32 }>(buf, mod2);
+                #[cfg(creusot)]
+                proof_assert! {
+                    let _ = power_of_ten_16();
+                    let _ = fixed_width_decimal_values_len(mod2@, 16);
+                    fixed_width_decimal_values(mod2@, 16).len() == 16
+                };
+                #[cfg(creusot)]
+                proof_assert!(forall<i: Int> 0 <= i && i < 16 ==>
+                    buf@[7 + i]@ != None
+                        && buf@[7 + i]@.unwrap_logic()@
+                            == fixed_width_decimal_values(mod2@, 16)[i]);
+                #[cfg(creusot)]
+                proof_assert! {
+                    let segment_bytes = logical_slot_bytes_initialized_range(
+                        buf@.subsequence(7, 23),
+                        fixed_width_decimal_values(mod2@, 16),
+                    );
+                    segment_bytes == fixed_width_decimal_values(mod2@, 16)
+                        && segment_bytes == logical_slot_bytes(buf@.subsequence(7, 23))
+                };
+                #[cfg(creusot)]
+                {
+                    proof_assert! {
+                        let _ = decimal_values_compose_16x2(
+                            quot2@,
+                            mod2@,
+                            mod_1e16@,
+                        );
+                        decimal_values(original@)
+                            == decimal_values(quot2@)
+                                .concat(fixed_width_decimal_values(mod2@, 16))
+                                .concat(fixed_width_decimal_values(mod_1e16@, 16))
+                    };
+                    proof_assert! {
+                        let _ = logical_slot_bytes_split(buf@, 7, 23, buf@.len());
+                        logical_slot_bytes(buf@.subsequence(7, buf@.len()))
+                            == logical_slot_bytes(buf@.subsequence(7, 23))
+                                .concat(logical_slot_bytes(buf@.subsequence(23, buf@.len())))
+                    };
+                    proof_assert!(logical_slot_bytes(
+                        buf@.subsequence(7, 23)
+                    ) == fixed_width_decimal_values(mod2@, 16));
+                    proof_assert!(logical_slot_bytes(
+                        buf@.subsequence(23, buf@.len())
+                    ) == fixed_width_decimal_values(mod_1e16@, 16));
+                    proof_assert!(logical_slot_bytes(
+                        buf@.subsequence(7, buf@.len())
+                    ) == fixed_width_decimal_values(mod2@, 16)
+                        .concat(fixed_width_decimal_values(mod_1e16@, 16)));
+                }
                 // Quot2 has at most 7 decimals remaining after two 1e16 divisions.
                 (quot2 as u64, u128::MAX_STR_LEN - 32)
             }
         };
 
+        #[cfg(creusot)]
+        {
+            proof_assert!(remain@ != 0);
+            proof_assert!(forall<i: Int>
+                offset@ <= i && i < buf@.len() ==> buf@[i]@ != None);
+            proof_assert!((if remain@ == 0 {
+                Seq::empty()
+            } else {
+                decimal_values(remain@)
+            }).concat(logical_slot_bytes(buf@.subsequence(offset@, buf@.len())))
+                == decimal_values(original@));
+            proof_assert!((if remain@ == 0 {
+                0
+            } else {
+                decimal_values(remain@).len()
+            }) <= offset@);
+        }
+
         // Format per four digits from the lookup table.
+        #[cfg_attr(creusot, invariant(offset@ <= buf@.len()))]
+        #[cfg_attr(creusot, invariant(offset@ % 4 == buf@.len() % 4))]
+        #[cfg_attr(creusot, invariant(buf@.len() == (*buf_before).len()))]
+        #[cfg_attr(creusot, invariant(forall<i: Int>
+            offset@ <= i && i < buf@.len() ==> buf@[i]@ != None))]
+        #[cfg_attr(creusot, invariant(forall<i: Int>
+            0 <= i && i < offset@ ==> buf@[i]@ == (*buf_before)[i]@))]
+        #[cfg_attr(creusot, invariant(
+            (if remain@ == 0 { Seq::empty() } else { decimal_values(remain@) })
+                .concat(logical_slot_bytes(buf@.subsequence(offset@, buf@.len())))
+                == decimal_values(original@)))]
+        #[cfg_attr(creusot, invariant(
+            (if remain@ == 0 { 0 } else { decimal_values(remain@).len() })
+                <= offset@))]
+        #[cfg_attr(creusot, variant(remain))]
         while remain > 999 {
+            #[cfg(creusot)]
+            let old_remain = remain;
+            #[cfg(creusot)]
+            let quad_old_offset = offset;
+            #[cfg(creusot)]
+            let quad_old_written_suffix = snapshot!(
+                logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
+            );
+            #[cfg(creusot)]
+            proof_assert! {
+                let _ = decimal_values_split_4(old_remain@);
+                (if old_remain@ == 0 { Seq::empty() } else { decimal_values(old_remain@) })
+                    .concat(*quad_old_written_suffix)
+                    == decimal_values(original@)
+            };
+            #[cfg(creusot)]
+            proof_assert! {
+                let _ = decimal_values_len_ge_4(old_remain@);
+                4 <= offset@
+            };
+
             offset -= 4;
 
             // pull two pairs
             let quad = remain % 1_00_00;
             remain /= 1_00_00;
             let (pair1, pair2) = divmod100(quad as u32);
-            unsafe {
-                buf[offset + 0].write(*DECIMAL_PAIRS.0.get_unchecked(pair1 as usize * 2 + 0));
-                buf[offset + 1].write(*DECIMAL_PAIRS.0.get_unchecked(pair1 as usize * 2 + 1));
-                buf[offset + 2].write(*DECIMAL_PAIRS.0.get_unchecked(pair2 as usize * 2 + 0));
-                buf[offset + 3].write(*DECIMAL_PAIRS.0.get_unchecked(pair2 as usize * 2 + 1));
+            #[cfg(creusot)]
+            proof_assert!(quad@ == pair1@ * 100 + pair2@);
+            write_decimal_quad(buf, offset, pair1, pair2);
+            #[cfg(creusot)]
+            {
+                proof_assert!(quad_old_offset@ == offset@ + 4);
+                proof_assert!(logical_slot_bytes(
+                    buf@.subsequence(quad_old_offset@, buf@.len())
+                ) == *quad_old_written_suffix);
+                proof_assert!(logical_slot_bytes(
+                    buf@.subsequence(offset@, buf@.len())
+                ) == fixed_width_decimal_values(quad@, 4)
+                    .concat(*quad_old_written_suffix));
+                proof_assert!(old_remain@ / 10_000 == remain@);
+                proof_assert!(old_remain@ % 10_000 == quad@);
+                proof_assert! {
+                    let _ = decimal_values_split_4(old_remain@);
+                    (if remain@ == 0 { Seq::empty() } else { decimal_values(remain@) })
+                        .concat(fixed_width_decimal_values(quad@, 4))
+                        == decimal_values(old_remain@)
+                };
+                proof_assert! {
+                    let prefix = if remain@ == 0 {
+                        Seq::empty()
+                    } else {
+                        decimal_values(remain@)
+                    };
+                    let chunk = fixed_width_decimal_values(quad@, 4);
+                    let _ = decimal_seq_concat_assoc(
+                        prefix,
+                        chunk,
+                        *quad_old_written_suffix,
+                    );
+                    prefix.concat(chunk.concat(*quad_old_written_suffix))
+                        == decimal_values(original@)
+                };
+                proof_assert! {
+                    (if remain@ == 0 {
+                        0
+                    } else {
+                        decimal_values(remain@).len()
+                    }) <= offset@
+                };
             }
         }
 
+        #[cfg(creusot)]
+        proof_assert!(remain@ <= 999);
+
         // Format per two digits from the lookup table.
         if remain > 9 {
+            #[cfg(creusot)]
+            let tail_old_offset = offset;
+            #[cfg(creusot)]
+            let old_written_suffix = snapshot!(
+                logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
+            );
+            #[cfg(creusot)]
+            proof_assert!(decimal_values(remain@).concat(*old_written_suffix)
+                == decimal_values(original@));
+            #[cfg(creusot)]
+            proof_assert! {
+                let _ = decimal_values_len_ge_2(remain@);
+                2 <= offset@
+            };
             offset -= 2;
 
+            #[cfg(creusot)]
+            let tail_before = remain;
             let (last, pair) = divmod100(remain as u32);
+            #[cfg(creusot)]
+            {
+                proof_assert!(tail_before@ >= 10 && tail_before@ <= 999);
+                proof_assert!(last@ == tail_before@ / 100);
+                proof_assert!(pair@ == tail_before@ % 100);
+                proof_assert!(last@ <= 9 && pair@ < 100);
+                proof_assert!(if last@ == 0 {
+                    let _ = fixed_width_decimal_values_2_is_decimal(tail_before@);
+                    fixed_width_decimal_values(tail_before@, 2)
+                        == fixed_width_decimal_values(pair@, 2)
+                } else {
+                    let _ = decimal_values_compose_1x2(tail_before@);
+                    decimal_values(tail_before@)
+                        == decimal_values(last@)
+                            .concat(fixed_width_decimal_values(pair@, 2))
+                });
+            }
             remain = last as u64;
-            unsafe {
-                buf[offset + 0].write(*DECIMAL_PAIRS.0.get_unchecked(pair as usize * 2 + 0));
-                buf[offset + 1].write(*DECIMAL_PAIRS.0.get_unchecked(pair as usize * 2 + 1));
+            write_decimal_pair(buf, offset, pair);
+            #[cfg(creusot)]
+            {
+                proof_assert!(logical_slot_bytes(
+                    buf@.subsequence(tail_old_offset@, buf@.len())
+                ) == *old_written_suffix);
+                proof_assert!(logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
+                    == fixed_width_decimal_values(pair@, 2).concat(*old_written_suffix));
+                proof_assert!(if remain@ == 0 {
+                    fixed_width_decimal_values(tail_before@, 2)
+                        == fixed_width_decimal_values(pair@, 2)
+                } else {
+                    decimal_values(tail_before@)
+                        == decimal_values(remain@)
+                            .concat(fixed_width_decimal_values(pair@, 2))
+                });
+                proof_assert! {
+                    let tail = if remain@ == 0 {
+                        Seq::empty()
+                    } else {
+                        decimal_values(remain@)
+                    };
+                    let pair_values = fixed_width_decimal_values(pair@, 2);
+                    let _ = decimal_seq_concat_assoc(
+                        tail,
+                        pair_values,
+                        *old_written_suffix,
+                    );
+                    tail.concat(pair_values.concat(*old_written_suffix))
+                        == decimal_values(tail_before@).concat(*old_written_suffix)
+                };
+                proof_assert!((if remain@ == 0 {
+                    Seq::empty()
+                } else {
+                    decimal_values(remain@)
+                }).concat(logical_slot_bytes(buf@.subsequence(offset@, buf@.len())))
+                    == decimal_values(original@));
             }
         }
 
         // Format the last remaining digit, if any.
         if remain != 0 {
+            #[cfg(creusot)]
+            let last_digit_value = remain;
+            #[cfg(creusot)]
+            proof_assert! {
+                let _ = decimal_values_len_at_least_one(last_digit_value@);
+                true
+            };
+            #[cfg(creusot)]
+            proof_assert!(last_digit_value@ <= 9);
+            #[cfg(creusot)]
+            proof_assert!(1 <= offset@);
+            #[cfg(creusot)]
+            let last_old_offset = offset;
+            #[cfg(creusot)]
+            let last_old_written_suffix = snapshot!(
+                logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
+            );
+            #[cfg(creusot)]
+            proof_assert!(remain@ != 0 && decimal_values(remain@)
+                .concat(*last_old_written_suffix) == decimal_values(original@));
             offset -= 1;
+            #[cfg(creusot)]
+            proof_assert!(last_old_offset@ == offset@ + 1);
+            #[cfg(creusot)]
+            proof_assert!(logical_slot_bytes(
+                buf@.subsequence(offset@ + 1, buf@.len())
+            ) == *last_old_written_suffix);
 
             // Either the compiler sees that remain < 10, or it prevents
             // a boundary check up next.
+            #[cfg(creusot)]
+            proof_assert!((remain as u8)@ == remain@);
+            #[cfg(creusot)]
+            let last_digit_proof = masked_decimal_digit(remain as u8);
             let last = remain as u8 & 15;
-            buf[offset].write(b'0' + last);
+            #[cfg(creusot)]
+            proof_assert!(last == last_digit_proof);
+            #[cfg(creusot)]
+            proof_assert!(48 + last_digit_proof@ <= 57);
+            write_decimal_digit(buf, offset, last);
+            #[cfg(creusot)]
+            {
+                proof_assert!(last@ == last_digit_value@);
+                proof_assert!(decimal_values(last_digit_value@)
+                    == Seq::singleton(48 + last_digit_value@));
+                proof_assert!(logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
+                    == Seq::singleton(48 + last_digit_value@)
+                        .concat(*last_old_written_suffix));
+            }
             // not used: remain = 0;
         }
+
+        #[cfg(creusot)]
+        proof_assert!(forall<i: Int>
+            offset@ <= i && i < buf@.len() ==> buf@[i]@ != None);
+        #[cfg(creusot)]
+        proof_assert!(logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))
+            == decimal_values(original@));
+        #[cfg(creusot)]
+        proof_assert!(offset@ + decimal_values(original@).len() == buf@.len());
+        #[cfg(creusot)]
+        proof_assert!(forall<i: Int>
+            0 <= i && i < offset@ ==> buf@[i]@ == (*buf_before)[i]@);
+
         offset
     }
 }
+
 
 // Euclidean division plus remainder with constant 1E16 basically consumes 16
 // decimals from n.

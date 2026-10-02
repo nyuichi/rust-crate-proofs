@@ -39,9 +39,11 @@ establishes the following:
 
 The original recursive-model baseline proved 67 translated files in both
 configurations. The latest integrated runtime matrix is recorded in
-[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 168
-libraries / 1,312 VCs and all-features proves 169 / 1,316. The all-features
-configuration includes the upstream optional `no-panic` dependency.
+[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 182
+libraries / 1,637 VCs and all-features proves 183 / 1,641. This includes the
+actual unsigned `u128` formatter body and remains conditional on the trusted
+`mulhi` result contract. The all-features configuration includes the upstream
+optional `no-panic` dependency.
 
 ## Explicit trusted boundaries
 

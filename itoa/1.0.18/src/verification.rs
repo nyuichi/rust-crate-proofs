@@ -56,6 +56,29 @@ pub fn logical_slot_bytes_subsequence(
         mapped_slice[i] == sliced_map[i]);
 }
 
+/// Convert exact initialized-slot contents into the corresponding byte model.
+#[logic]
+#[requires(slots.len() == digits.len())]
+#[requires(forall<i: Int> 0 <= i && i < slots.len() ==>
+    slots[i]@ != None)]
+#[requires(forall<i: Int> 0 <= i && i < slots.len() ==>
+    slots[i]@.unwrap_logic()@ == digits[i])]
+#[ensures(result == logical_slot_bytes(slots))]
+#[ensures(result == digits)]
+#[ensures(result.len() == slots.len())]
+pub(crate) fn logical_slot_bytes_initialized_range(
+    slots: Seq<MaybeUninit<u8>>,
+    digits: Seq<Int>,
+) -> Seq<Int> {
+    let bytes = logical_slot_bytes(slots);
+    proof_assert!(bytes.len() == digits.len());
+    proof_assert!(forall<i: Int> 0 <= i && i < slots.len() ==>
+        bytes[i] == digits[i]);
+    proof_assert!(bytes == digits);
+    bytes
+}
+
+
 #[logic]
 #[requires(0 <= start && start <= middle && middle <= end && end <= slots.len())]
 #[ensures(logical_slot_bytes(slots.subsequence(start, end))
@@ -969,4 +992,343 @@ pub(crate) fn decimal_values_split_4(n: Int) {
             48 + (low / 100) % 10,
         );
     }
+}
+
+// Phase 6: proved canonical 10^16 chunk composition support.
+/// The powers-of-ten model is multiplicative across addition of exponents.
+#[logic]
+#[requires(exponent >= 0)]
+#[ensures(power_of_ten(exponent) >= 1)]
+#[variant(exponent)]
+pub(crate) fn power_of_ten_positive(exponent: Int) {
+    power_of_ten_unfold(exponent);
+    if exponent == 0 {
+        power_of_ten_unfold(0);
+        proof_assert!(power_of_ten(0) == 1);
+    } else {
+        proof_assert!(exponent > 0);
+        power_of_ten_positive(exponent - 1);
+        proof_assert!(power_of_ten(exponent - 1) >= 1);
+        proof_assert!(power_of_ten(exponent) == 10 * power_of_ten(exponent - 1));
+        proof_assert!(power_of_ten(exponent) >= 1);
+    }
+}
+
+#[logic]
+#[requires(a >= 0)]
+#[requires(b >= 0)]
+#[ensures(power_of_ten(a + b) == power_of_ten(a) * power_of_ten(b))]
+#[variant(b)]
+pub(crate) fn power_of_ten_add(a: Int, b: Int) {
+    power_of_ten_unfold(b);
+    if b == 0 {
+        power_of_ten_unfold(0);
+        proof_assert!(power_of_ten(0) == 1);
+        proof_assert!(power_of_ten(a + 0) == power_of_ten(a));
+    } else {
+        proof_assert!(b > 0);
+        proof_assert!(a + b >= 0);
+        power_of_ten_unfold(a + b);
+        power_of_ten_add(a, b - 1);
+        power_of_ten_unfold(b - 1);
+        proof_assert!(a + b == a + (b - 1) + 1);
+        proof_assert!(power_of_ten(a + b) == 10 * power_of_ten(a + b - 1));
+        proof_assert!(power_of_ten(b) == 10 * power_of_ten(b - 1));
+        proof_assert!(power_of_ten(a + b) == power_of_ten(a) * power_of_ten(b));
+    }
+}
+
+/// Euclidean quotient and remainder after splitting a radix that is a
+/// multiple of ten. This packages the division facts used by decimal models.
+#[logic]
+#[requires(high >= 0)]
+#[requires(base > 0)]
+#[requires(rem >= 0)]
+#[requires(rem < base)]
+#[ensures((high * base + rem) / base == high)]
+#[ensures((high * base + rem) % base == rem)]
+pub(crate) fn euclidean_mul_add(high: Int, base: Int, rem: Int) {
+    proof_assert!(high * base + rem == high * base + rem);
+}
+
+#[logic]
+#[requires(high >= 0)]
+#[requires(base > 0)]
+#[requires(low >= 0)]
+#[requires(low < 10 * base)]
+#[requires(n == high * (10 * base) + low)]
+#[ensures(n / 10 == high * base + low / 10)]
+#[ensures(n % 10 == low % 10)]
+#[ensures((n / 10) / base == high)]
+#[ensures((n / 10) % base == low / 10)]
+pub(crate) fn decimal_division_split_10(
+    n: Int,
+    high: Int,
+    base: Int,
+    low: Int,
+) {
+    proof_assert!(low == 10 * (low / 10) + low % 10);
+    proof_assert!(n == (n / 10) * 10 + n % 10);
+    proof_assert!((n / 10)
+        == ((n / 10) / base) * base + (n / 10) % base);
+    proof_assert!(0 <= low % 10 && low % 10 < 10);
+    proof_assert!(low / 10 < base);
+    proof_assert!(n == 10 * (high * base + low / 10) + low % 10);
+    proof_assert!(high * base + low / 10 >= 0);
+    proof_assert!(n / 10 == high * base + low / 10);
+    proof_assert!(n % 10 == low % 10);
+    euclidean_mul_add(high, base, low / 10);
+}
+
+/// Split a fixed-width sequence at any positive low width.
+#[logic]
+#[requires(n >= 0)]
+#[requires(high_width >= 1)]
+#[requires(low_width >= 1)]
+#[requires(n < power_of_ten(high_width + low_width))]
+#[ensures(fixed_width_decimal_values(n, high_width + low_width)
+    == fixed_width_decimal_values(n / power_of_ten(low_width), high_width)
+        .concat(fixed_width_decimal_values(n % power_of_ten(low_width), low_width)))]
+#[variant(low_width)]
+pub(crate) fn fixed_width_decimal_values_split_width(
+    n: Int,
+    high_width: Int,
+    low_width: Int,
+) {
+    if low_width == 1 {
+        let _ = fixed_width_decimal_values_unfold(n, high_width + 1);
+        let _ = fixed_width_decimal_values_unfold(n % 10, 1);
+        let _ = decimal_values_one_digit(n % 10);
+        power_of_ten_unfold(1);
+        power_of_ten_unfold(0);
+        proof_assert!(power_of_ten(1) == 10);
+        proof_assert!(power_of_ten(0) == 1);
+        proof_assert!(n % power_of_ten(1) == n % 10);
+        proof_assert!(n / power_of_ten(1) == n / 10);
+        decimal_seq_snoc_singleton(
+            fixed_width_decimal_values(n / 10, high_width),
+            48 + n % 10,
+        );
+    } else {
+        power_of_ten_positive(low_width);
+        power_of_ten_positive(low_width - 1);
+        power_of_ten_positive(high_width + low_width);
+        power_of_ten_positive(high_width + low_width - 1);
+        power_of_ten_unfold(high_width + low_width);
+        power_of_ten_unfold(low_width);
+        power_of_ten_unfold(low_width - 1);
+        proof_assert!(high_width + low_width > 1);
+        proof_assert!(power_of_ten(high_width + low_width)
+            == 10 * power_of_ten(high_width + low_width - 1));
+        proof_assert!(power_of_ten(low_width)
+            == 10 * power_of_ten(low_width - 1));
+        proof_assert!(n / 10 >= 0);
+        proof_assert!(n / 10 < power_of_ten(high_width + low_width - 1));
+        fixed_width_decimal_values_split_width(n / 10, high_width, low_width - 1);
+
+        let high = n / power_of_ten(low_width);
+        let low = n % power_of_ten(low_width);
+        proof_assert!(n == high * power_of_ten(low_width) + low);
+        proof_assert!(0 <= low && low < power_of_ten(low_width));
+        proof_assert!(power_of_ten(low_width)
+            == 10 * power_of_ten(low_width - 1));
+        proof_assert!(high * power_of_ten(low_width)
+            == high * 10 * power_of_ten(low_width - 1));
+        proof_assert!(n == high * 10 * power_of_ten(low_width - 1) + low);
+        decimal_division_split_10(
+            n,
+            high,
+            power_of_ten(low_width - 1),
+            low,
+        );
+
+        let _ = fixed_width_decimal_values_unfold(n, high_width + low_width);
+        let _ = fixed_width_decimal_values_unfold(low, low_width);
+        decimal_seq_concat_snoc(
+            fixed_width_decimal_values(high, high_width),
+            fixed_width_decimal_values(low / 10, low_width - 1),
+            48 + n % 10,
+        );
+        proof_assert!(fixed_width_decimal_values(n, high_width + low_width)
+            == fixed_width_decimal_values(high, high_width)
+                .concat(fixed_width_decimal_values(low, low_width)));
+    }
+}
+
+/// Split a canonical decimal sequence at any positive number of low digits.
+#[logic]
+#[requires(width >= 1)]
+#[requires(n >= power_of_ten(width - 1))]
+#[ensures(decimal_values(n)
+    == (if n / power_of_ten(width) == 0 {
+        Seq::empty()
+    } else {
+        decimal_values(n / power_of_ten(width))
+    }).concat(fixed_width_decimal_values(n % power_of_ten(width), width)))]
+#[variant(width)]
+pub(crate) fn decimal_values_split_width(n: Int, width: Int) {
+    if width == 1 {
+        power_of_ten_unfold(1);
+        power_of_ten_unfold(0);
+        proof_assert!(power_of_ten(1) == 10);
+        proof_assert!(power_of_ten(0) == 1);
+        let high = n / 10;
+        let low = n % 10;
+        proof_assert!(n == high * 10 + low);
+        proof_assert!(0 <= low && low < 10);
+        let _ = fixed_width_decimal_values_unfold(low, 1);
+        let _ = decimal_values_one_digit(low);
+        if high == 0 {
+            proof_assert!(n < 10);
+            proof_assert!(low == n);
+            decimal_values_unfold(n);
+            proof_assert!(decimal_values(n) == Seq::singleton(48 + n));
+            proof_assert!((if high == 0 { Seq::empty() } else {
+                decimal_values(high)
+            }).concat(fixed_width_decimal_values(low, 1)) == decimal_values(n));
+        } else {
+            proof_assert!(high > 0);
+            proof_assert!(n >= 10);
+            decimal_values_unfold(n);
+            decimal_seq_snoc_singleton(decimal_values(high), 48 + low);
+            proof_assert!((if high == 0 { Seq::empty() } else {
+                decimal_values(high)
+            }).concat(fixed_width_decimal_values(low, 1)) == decimal_values(n));
+        }
+    } else {
+        power_of_ten_positive(width);
+        power_of_ten_positive(width - 1);
+        power_of_ten_positive(width - 2);
+        power_of_ten_unfold(width);
+        power_of_ten_unfold(width - 1);
+        proof_assert!(width - 1 >= 1);
+        proof_assert!(power_of_ten(width) == 10 * power_of_ten(width - 1));
+        proof_assert!(n / 10 >= power_of_ten(width - 2));
+        decimal_values_split_width(n / 10, width - 1);
+
+        let high = n / power_of_ten(width);
+        let low = n % power_of_ten(width);
+        proof_assert!(n == high * power_of_ten(width) + low);
+        proof_assert!(0 <= low && low < power_of_ten(width));
+        proof_assert!(power_of_ten(width)
+            == 10 * power_of_ten(width - 1));
+        proof_assert!(high * power_of_ten(width)
+            == high * 10 * power_of_ten(width - 1));
+        proof_assert!(n == high * 10 * power_of_ten(width - 1) + low);
+        decimal_division_split_10(
+            n,
+            high,
+            power_of_ten(width - 1),
+            low,
+        );
+
+        decimal_values_unfold(n);
+        let _ = fixed_width_decimal_values_unfold(low, width);
+        decimal_seq_concat_snoc(
+            if high == 0 { Seq::empty() } else { decimal_values(high) },
+            fixed_width_decimal_values(low / 10, width - 1),
+            48 + n % 10,
+        );
+        proof_assert!(decimal_values(n)
+            == (if high == 0 { Seq::empty() } else { decimal_values(high) })
+                .concat(fixed_width_decimal_values(low, width)));
+    }
+}
+
+/// A concrete power used by the u128 formatter's 16-digit radix.
+#[logic]
+#[ensures(power_of_ten(16) == 10_000_000_000_000_000)]
+pub(crate) fn power_of_ten_16() {
+    power_of_ten_unfold(16);
+    power_of_ten_unfold(15);
+    power_of_ten_unfold(14);
+    power_of_ten_unfold(13);
+    power_of_ten_unfold(12);
+    power_of_ten_unfold(11);
+    power_of_ten_unfold(10);
+    power_of_ten_unfold(9);
+    power_of_ten_unfold(8);
+    power_of_ten_unfold(7);
+    power_of_ten_unfold(6);
+    power_of_ten_unfold(5);
+    power_of_ten_unfold(4);
+    power_of_ten_unfold(3);
+    power_of_ten_unfold(2);
+    power_of_ten_unfold(1);
+    power_of_ten_unfold(0);
+}
+
+/// Canonical decimal values split into an optional high prefix and a padded
+/// low 16-digit block. Requires at least 16 canonical digits.
+#[logic]
+#[requires(n >= 1_000_000_000_000_000)]
+#[ensures(decimal_values(n)
+    == (if n / 10_000_000_000_000_000 == 0 {
+        Seq::empty()
+    } else {
+        decimal_values(n / 10_000_000_000_000_000)
+    }).concat(fixed_width_decimal_values(
+        n % 10_000_000_000_000_000,
+        16,
+    )))]
+pub(crate) fn decimal_values_split_16(n: Int) {
+    power_of_ten_16();
+    power_of_ten_unfold(16);
+    proof_assert!(power_of_ten(15) == 1_000_000_000_000_000);
+    decimal_values_split_width(n, 16);
+    proof_assert!(power_of_ten(16) == 10_000_000_000_000_000);
+}
+
+/// Canonical fixed-width sequence composed from two 16-digit radix blocks.
+#[logic]
+#[requires(n >= 0)]
+#[requires(n < 100_000_000_000_000_000_000_000_000_000_000)]
+#[ensures(fixed_width_decimal_values(n, 32)
+    == fixed_width_decimal_values(n / 10_000_000_000_000_000, 16)
+        .concat(fixed_width_decimal_values(n % 10_000_000_000_000_000, 16)))]
+pub(crate) fn fixed_width_decimal_values_split_16x16(n: Int) {
+    power_of_ten_16();
+    power_of_ten_add(16, 16);
+    proof_assert!(power_of_ten(32)
+        == 100_000_000_000_000_000_000_000_000_000_000);
+    fixed_width_decimal_values_split_width(n, 16, 16);
+    proof_assert!(power_of_ten(16) == 10_000_000_000_000_000);
+}
+
+/// Concatenate the canonical high prefix with a zero-padded low radix block.
+#[logic]
+#[requires(high > 0)]
+#[requires(0 <= low && low < 10_000_000_000_000_000)]
+#[ensures(decimal_values(high * 10_000_000_000_000_000 + low)
+    == decimal_values(high).concat(fixed_width_decimal_values(low, 16)))]
+pub(crate) fn decimal_values_compose_16(high: Int, low: Int) {
+    power_of_ten_16();
+    decimal_values_split_16(high * 10_000_000_000_000_000 + low);
+    proof_assert!(
+        (high * 10_000_000_000_000_000 + low) / 10_000_000_000_000_000 == high
+    );
+    proof_assert!(
+        (high * 10_000_000_000_000_000 + low) % 10_000_000_000_000_000 == low
+    );
+}
+
+/// Compose two consecutive 16-digit low blocks after a nonzero high prefix.
+#[logic]
+#[requires(top > 0)]
+#[requires(0 <= middle && middle < 10_000_000_000_000_000)]
+#[requires(0 <= low && low < 10_000_000_000_000_000)]
+#[ensures(decimal_values(
+    (top * 10_000_000_000_000_000 + middle) * 10_000_000_000_000_000 + low
+) == decimal_values(top)
+    .concat(fixed_width_decimal_values(middle, 16))
+    .concat(fixed_width_decimal_values(low, 16)))]
+pub(crate) fn decimal_values_compose_16x2(top: Int, middle: Int, low: Int) {
+    let high = top * 10_000_000_000_000_000 + middle;
+    decimal_values_compose_16(high, low);
+    decimal_values_compose_16(top, middle);
+    decimal_seq_concat_assoc(
+        decimal_values(top),
+        fixed_width_decimal_values(middle, 16),
+        fixed_width_decimal_values(low, 16),
+    );
 }

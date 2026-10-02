@@ -5,12 +5,12 @@
 The production `runtime` module contains the optimized implementation: a
 `MaybeUninit` output buffer, the decimal-pair lookup table, reciprocal division
 by 100, four-digit chunking, the specialized `u128` path, and output string
-construction. Under `cfg(creusot)`, this phase compiles `runtime.rs` and proves
-the actual shared `Unsigned::fmt` bodies for `u8`, `u16`, `u32`, and `u64`. The
-public formatting facade still comes from `verification.rs`; raw
-`Buffer::format`, signed adapters, and the `u128` formatter caller remain
-outside this phase. The `u64` 16-digit chunk encoder called by that native
-caller is now translated and proved as a separate component.
+construction. Under `cfg(creusot)`, the shared `Unsigned::fmt` bodies for
+`u8`, `u16`, `u32`, `u64`, and `u128` are translated and proved. The public
+formatting facade still comes from `verification.rs`; raw `Buffer::format`,
+signed adapters, string conversion, and end-to-end `u128` formatting remain
+outside this phase. The `u64` 16-digit chunk encoder called by the native
+`u128` formatter is translated and proved as a separate component.
 The recursive decimal model in `verification.rs` remains the formatter's
 specification, and all existing model proofs are retained.
 
@@ -25,16 +25,16 @@ formatter bodies to the decimal model; adapters remain later phases.
 | --- | --- | --- | --- | --- |
 | Existing recursive decimal model and public verification-facing API | yes | yes (per current provenance record) | pre-existing ASCII-slice-to-`str` leaf | baseline only; does not cover runtime code |
 | Shared optimized `divmod100` (Phase 1) | yes | yes | none added | yes; leaf only, callers remain pending |
-| `DECIMAL_PAIRS` representation and indexed lookup lemma | yes | yes (2 VCs) | none | data bridge via CTFE; formatter use proved for `u8`, `u16`, `u32`, and `u64` |
+| `DECIMAL_PAIRS` representation and indexed lookup lemma | yes | yes (2 VCs) | none | data bridge via CTFE; formatter use proved for `u8`, `u16`, `u32`, `u64`, and `u128` |
 | Actual optimized `Unsigned::fmt` body for `u16` | yes | yes (104 goals in current integrated runs; 105 targeted no-cache) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u32` | yes | yes (102 goals in current integrated runs; 104 targeted no-cache) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u64` | yes | yes (104 goals in current integrated runs; 105 targeted no-cache) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u8` | yes | yes (98 goals) | no formatter boundary | yes; default and all-features |
-| Actual `enc_16lsd` 16-digit chunk encoder body (Phase 5) | yes | yes (`enc_16lsd`: 55 goals; quad writer: 87; digit bridge: 50) | none | yes; component in both full crate proof configurations, not the `u128` caller |
+| Actual `enc_16lsd` 16-digit chunk encoder body (Phase 5) | yes | yes (`enc_16lsd`: 55 goals; quad writer: 87; digit bridge: 50) | none | yes; component called by the Phase 6 `u128` body |
 | `u128_ext::mulhi_core` limb operations (Phase 4) | yes | yes (50 goals) | no correctness postcondition on the core; operation checks are proved directly | yes; default and all-features |
 | `u128_ext::mulhi` high-half result contract (Phase 4) | yes | no body VC (trusted wrapper delegates to the proven core) | exact high-half quotient equation, accepted 2026-10-02 | yes; contract assumed |
 | `div_rem_1e16` reciprocal divider body (Phase 4) | yes | yes (31 goals) under the `mulhi` result contract | consumes only the exact high-half result contract | yes; default and all-features |
-| `u128` formatter caller | pending | no | none | pending |
+| Actual optimized `Unsigned::fmt` body for `u128` (Phase 6) | yes | yes (140 goals; refinement 1) | exact `mulhi` high-half result contract | yes; default and all-features |
 | Raw `Buffer::format`, signed adapters, and output-string integration | pending | no | no new boundary planned | pending |
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
@@ -180,8 +180,10 @@ baseline commit `bf86f1e` with `cargo test --doc --release --all-features
 --offline --locked`, so it predates this Phase 4 change. The proof log is
 `/tmp/phase4-verify-all-integrated.log`.
 
-This milestone does not prove the `u128` formatter caller, raw `Buffer::format`,
-signed adapters, string conversion, or end-to-end `u128` formatting.
+At the Phase 4 checkpoint, the `u128` formatter caller was still pending; the
+actual shared body is proved in Phase 6 below. Phase 4 does not prove raw
+`Buffer::format`, signed adapters, string conversion, or end-to-end `u128`
+formatting.
 
 The isolated candidate patches, generated COMA files, proof JSON, and bounded
 run reports are preserved under
@@ -394,6 +396,31 @@ proofs. `cargo test --manifest-path Cargo.toml` passed 11 integration tests and
 --release` passed all 11 integration tests. Their logs are
 `/tmp/phase5-tests-default.log` and
 `/tmp/phase5-tests-release-allfeatures.log`.
+
+## Phase 6: actual `u128` formatter body
+
+The native `Unsigned::fmt` implementation for `u128` now shares one body
+between normal Rust and Creusot. It retains reciprocal division, the 16-digit
+encoder calls, four-digit and two-digit table writes, and the final masked
+digit. Its contracts prove the exact returned offset, initialized output
+suffix, canonical decimal bytes, and preservation of the unwritten prefix.
+The capacity fact is derived inside the body from
+`decimal_values_len_u128`; no input precondition was added.
+
+The body and its trait refinement passed 140 and 1 goals in both full-suite
+configurations. The default run reported 182 proof libraries / 1,637 VCs;
+all-features reported 183 / 1,641, with zero failed goals. The result depends
+on Phase 4's exact trusted `mulhi` high-half contract; the divider and
+formatter proofs do not derive that contract from the limb core. Default
+native tests passed 11 integration tests and 2 doctests, and release
+all-features integration tests passed all 11. Logs are
+`/tmp/phase6-verify-all-integrated.log`,
+`/tmp/phase6-native-test-default.log`, and
+`/tmp/phase6-native-test-release-allfeatures.log`.
+
+This phase proves the actual unsigned `u128` formatter body. Raw
+`Buffer::format`, signed wrappers, string conversion, and the complete public
+formatting path remain pending.
 
 ### Historical pre-integration verification of the boundary note
 
