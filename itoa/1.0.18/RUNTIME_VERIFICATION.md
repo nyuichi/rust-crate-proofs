@@ -7,17 +7,19 @@ The production `runtime` module contains the optimized implementation: a
 by 100, four-digit chunking, the specialized `u128` path, and output string
 construction. Under `cfg(creusot)`, the shared `Unsigned::fmt` bodies for
 `u8`, `u16`, `u32`, `u64`, and `u128` are translated and proved. The public
-formatting facade still comes from `verification.rs`; raw `Buffer::format`,
-signed adapters, string conversion, and end-to-end `u128` formatting remain
-outside this phase. The `u64` 16-digit chunk encoder called by the native
-`u128` formatter is translated and proved as a separate component.
+formatting facade still comes from `verification.rs`. Phase 7 also proves the
+actual signed `i128` buffer writer, including the `i128::MIN` path. Raw
+`Buffer::format`, the borrowed-`str` conversion, and the other signed wrappers
+remain outside this runtime proof. The `u64` 16-digit chunk encoder called by
+the native `u128` formatter is translated and proved as a separate component.
 The recursive decimal model in `verification.rs` remains the formatter's
 specification, and all existing model proofs are retained.
 
 The first shared implementation boundary is `divmod100`: normal runtime callers
 use this body, and Creusot translates and proves the same executable body as an
 independent leaf. Phase 3 connects the actual `u8`, `u16`, `u32`, and `u64`
-formatter bodies to the decimal model; adapters remain later phases.
+formatter bodies to the decimal model; Phase 7 proves the signed `i128`
+buffer writer. Other signed wrappers and public adapters remain later phases.
 
 ## Proof status
 
@@ -34,8 +36,9 @@ formatter bodies to the decimal model; adapters remain later phases.
 | `u128_ext::mulhi_core` limb operations (Phase 4) | yes | yes (50 goals) | no correctness postcondition on the core; operation checks are proved directly | yes; default and all-features |
 | `u128_ext::mulhi` high-half result contract (Phase 4) | yes | no body VC (trusted wrapper delegates to the proven core) | exact high-half quotient equation, accepted 2026-10-02 | yes; contract assumed |
 | `div_rem_1e16` reciprocal divider body (Phase 4) | yes | yes (31 goals) under the `mulhi` result contract | consumes only the exact high-half result contract | yes; default and all-features |
-| Actual optimized `Unsigned::fmt` body for `u128` (Phase 6) | yes | yes (140 goals; refinement 1) | exact `mulhi` high-half result contract | yes; default and all-features |
-| Raw `Buffer::format`, signed adapters, and output-string integration | pending | no | no new boundary planned | pending |
+| Actual optimized `Unsigned::fmt` body for `u128` (Phase 6; strengthened in Phase 7) | yes | yes (147 goals; refinement 1) | exact `mulhi` high-half result contract | yes; default and all-features |
+| Actual signed `i128` buffer writer and `i128::MIN` output witness (Phase 7) | yes | yes (suffix 24; signed writer 4; MIN witness 4) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing; inherits `mulhi` contract | yes; default and all-features |
+| Raw `Buffer::format`, runtime borrowed-`str` conversion, and remaining signed wrappers | pending | no | no runtime memory proof; separate pre-existing recursive-model ASCII-to-`str` trust | pending |
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
 pair equals Euclidean quotient/remainder by 100, the remainder is below 100,
@@ -242,8 +245,8 @@ not the encoder arithmetic or its contracts.
 
 ### Standard-library model assumptions used by Phase 3
 
-Six narrow external models describe native standard-library operations used
-by the Phase 3 formatter. These are assumptions about core APIs, not trusted
+Narrow external models describe native standard-library operations used by
+the Phase 3 formatter. These are assumptions about core APIs, not trusted
 local formatter functions:
 
 - `MaybeUninit::write` requires the old value to be `None` or resolved, then
@@ -278,6 +281,40 @@ The native standard-library source bodies are not translated as part of this
 crate proof. Removal condition: verify the native bodies or integrate
 equivalent source-level models with the same exact preconditions and
 postconditions. These models provide no decimal-formatting arithmetic facts.
+
+### Standard-library model assumptions used by Phase 7
+
+The signed `i128` buffer writer uses three additional external models for
+native core operations. They are assumptions about those operations, not
+trusted formatter functions:
+
+- Array `IndexMut` is modeled only for the two index forms used by the writer:
+  `usize` and `RangeFrom<usize>`. The model requires the standard
+  `SliceIndexSpec` bounds condition and describes the selected current and
+  final views, unchanged array length, and the frame outside a `RangeFrom`
+  index. A local whitelist prevents the contract from applying to unrelated
+  index types. The pinned core array implementation is at
+  `library/core/src/array/mod.rs:394–403`; the corresponding slice-index
+  implementations are at `library/core/src/slice/index.rs:214–279` and
+  `:541–588`.
+- `TryFrom<&mut [T]> for &mut [T; N]` requires the slice length to equal `N`.
+  Under that condition it returns `Ok` with the same current and final views
+  as the input slice, including pointwise equality for each array element.
+  This models the exact-length branch in pinned core at
+  `library/core/src/array/mod.rs:312–333` and
+  `library/core/src/slice/mod.rs:862–878`; the signed writer's slice has 39
+  slots.
+- Primitive `unsigned_abs` for `i8`, `i16`, `i32`, `i64`, and `i128` returns
+  the mathematical absolute value, including each signed minimum. This matches
+  the core integer macro implementation using `wrapping_abs` followed by the
+  corresponding unsigned cast (`library/core/src/num/int_macros.rs:2397–2403`
+  and `:2421–2423`). The integrated signed-body proof currently consumes the
+  `i128` instance.
+
+The standard-library bodies are not translated in this crate proof. Removal
+condition: verify those native implementations or replace the external models
+with verified source-level adapters that preserve these exact bounds and
+current/final view relations. These models establish no decimal digit facts.
 
 For a negative control, an isolated copy changed the first four-digit loop
 relation from equality to inequality. Creusot then failed specifically on that
@@ -407,20 +444,47 @@ suffix, canonical decimal bytes, and preservation of the unwritten prefix.
 The capacity fact is derived inside the body from
 `decimal_values_len_u128`; no input precondition was added.
 
-The body and its trait refinement passed 140 and 1 goals in both full-suite
-configurations. The default run reported 182 proof libraries / 1,637 VCs;
-all-features reported 183 / 1,641, with zero failed goals. The result depends
-on Phase 4's exact trusted `mulhi` high-half contract; the divider and
-formatter proofs do not derive that contract from the limb core. Default
-native tests passed 11 integration tests and 2 doctests, and release
-all-features integration tests passed all 11. Logs are
+At the Phase 6 checkpoint, the body and its trait refinement passed 140 and 1
+goals in both full-suite configurations. The default run reported 182 proof
+libraries / 1,637 VCs; all-features reported 183 / 1,641, with zero failed
+goals. The result depends on Phase 4's exact trusted `mulhi` high-half
+contract; the divider and formatter proofs do not derive that contract from
+the limb core. Default native tests passed 11 integration tests and 2
+doctests, and release all-features integration tests passed all 11. Logs are
 `/tmp/phase6-verify-all-integrated.log`,
 `/tmp/phase6-native-test-default.log`, and
 `/tmp/phase6-native-test-release-allfeatures.log`.
 
-This phase proves the actual unsigned `u128` formatter body. Raw
-`Buffer::format`, signed wrappers, string conversion, and the complete public
-formatting path remain pending.
+This phase proved the actual unsigned `u128` formatter body. The Phase 7
+checkpoint below strengthens its state-sequence interface and proves the
+signed `i128` buffer writer. Raw `Buffer::format`, the borrowed-`str`
+conversion, and the remaining signed wrappers are still pending.
+
+## Phase 7: signed `i128` buffer writer
+
+The signed writer keeps the original one-byte leading gap, calls the actual
+`u128::fmt` body on the 39-byte suffix through the original
+slice-to-array `try_into().unwrap()`, and writes `'-'` for negative values.
+Its contract preserves the unwritten prefix and proves the exact initialized
+suffix bytes and returned offset. A concrete `i128::MIN` witness establishes
+that all 40 slots are initialized and match the canonical signed decimal
+sequence; the unsigned suffix has 39 digits and the returned start is zero.
+
+The integrated default proof run reported 196 libraries / 1,696 VCs; the
+all-features run reported 197 / 1,700, with zero failed goals. It proved the
+actual `u128::fmt` body (147 VCs and one refinement), `write_u128_suffix_i128`
+(24), `signed_write_i128` (4), and the `i128::MIN` whole-buffer witness (4).
+The underlying `u128` arithmetic remains conditional on the accepted exact
+`mulhi` high-half result contract. No formatter function is trusted.
+
+The native default suite passed 11 integration tests and 2 doctests. Release
+all-features `--tests` passed all 11 integration tests. Logs are
+`/tmp/phase7-i128-final-verify-all.log`,
+`/tmp/phase7-i128-native-default.log`, and
+`/tmp/phase7-i128-native-release-all-features-tests.log`.
+
+Raw `Buffer::format`, the borrowed-`str` conversion, and signed wrappers other
+than the `i128` buffer writer remain pending.
 
 ### Historical pre-integration verification of the boundary note
 

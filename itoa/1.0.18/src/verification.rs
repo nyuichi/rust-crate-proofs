@@ -39,6 +39,122 @@ pub fn logical_slot_bytes(slots: Seq<MaybeUninit<u8>>) -> Seq<Int> {
     })
 }
 
+/// An injective mathematical state view for each buffer slot. `None` maps to
+/// -1, while every initialized u8 maps to its value in 0..=255. This is only a
+/// ghost view; it does not inspect or initialize memory.
+#[logic(open)]
+#[ensures(result.len() == slots.len())]
+pub(crate) fn logical_slot_states(slots: Seq<MaybeUninit<u8>>) -> Seq<Int> {
+    slots.map(|slot: MaybeUninit<u8>| {
+        pearlite! {
+            if slot@ == None { -1 } else { slot@.unwrap_logic()@ }
+        }
+    })
+}
+
+#[logic]
+#[requires(0 <= start && start <= end && end <= slots.len())]
+#[ensures(logical_slot_states(slots.subsequence(start, end))
+    == logical_slot_states(slots).subsequence(start, end))]
+pub(crate) fn logical_slot_states_subsequence(
+    slots: Seq<MaybeUninit<u8>>,
+    start: Int,
+    end: Int,
+) {
+    let mapped_slice = logical_slot_states(slots.subsequence(start, end));
+    let sliced_map = logical_slot_states(slots).subsequence(start, end);
+    proof_assert!(mapped_slice.len() == end - start);
+    proof_assert!(sliced_map.len() == end - start);
+    proof_assert!(forall<i: Int> 0 <= i && i < end - start ==>
+        mapped_slice[i] == sliced_map[i]);
+}
+
+/// Lift an unchanged initialized-state prefix of a suffix view to the outer
+/// buffer, preserving the exact MaybeUninit state of each slot.
+#[logic]
+#[requires(0 <= offset && offset <= old_outer.len() && offset <= new_outer.len())]
+#[requires(old_outer.len() == new_outer.len())]
+#[requires(old_suffix == old_outer.subsequence(offset, old_outer.len()))]
+#[requires(new_suffix == new_outer.subsequence(offset, new_outer.len()))]
+#[requires(0 <= width && width <= old_suffix.len() && width <= new_suffix.len())]
+#[requires(logical_slot_states(old_suffix).subsequence(0, width)
+    == logical_slot_states(new_suffix).subsequence(0, width))]
+#[ensures(forall<i: Int> offset <= i && i < offset + width
+    ==> old_outer[i]@ == new_outer[i]@)]
+pub(crate) fn range_from_prefix_raw_frame(
+    old_outer: Seq<MaybeUninit<u8>>,
+    new_outer: Seq<MaybeUninit<u8>>,
+    old_suffix: Seq<MaybeUninit<u8>>,
+    new_suffix: Seq<MaybeUninit<u8>>,
+    offset: Int,
+    width: Int,
+) {
+    logical_slot_states_subsequence(old_outer, offset, old_outer.len());
+    logical_slot_states_subsequence(new_outer, offset, new_outer.len());
+    logical_slot_states_subsequence(old_suffix, 0, width);
+    logical_slot_states_subsequence(new_suffix, 0, width);
+    proof_assert!(forall<i: Int> offset <= i && i < offset + width ==>
+        logical_slot_states(old_outer)[i] == logical_slot_states(new_outer)[i]);
+    proof_assert!(forall<i: Int> offset <= i && i < offset + width ==>
+        old_outer[i]@ == new_outer[i]@);
+}
+
+#[logic]
+#[requires(0 <= start && start <= slots.len())]
+#[requires(forall<i: Int> start <= i && i < slots.len() ==> slots[i]@ != None)]
+#[ensures(forall<i: Int> start <= i && i < slots.len() ==>
+    logical_slot_states(slots)[i] != -1)]
+pub(crate) fn initialized_slot_suffix_non_sentinel(
+    slots: Seq<MaybeUninit<u8>>,
+    start: Int,
+) {
+    proof_assert!(forall<i: Int> start <= i && i < slots.len() ==>
+        logical_slot_states(slots)[i] != -1);
+}
+
+#[logic]
+#[requires(0 <= start && start <= slots.len())]
+#[requires(forall<i: Int> start <= i && i < slots.len() ==>
+    logical_slot_states(slots)[i] != -1)]
+#[ensures(result)]
+#[ensures(forall<i: Int> start <= i && i < slots.len() ==> slots[i]@ != None)]
+pub(crate) fn logical_slot_states_suffix_initialized(
+    slots: Seq<MaybeUninit<u8>>,
+    start: Int,
+) -> bool {
+    pearlite! {
+        forall<i: Int> start <= i && i < slots.len() ==> slots[i]@ != None
+    }
+}
+
+#[logic]
+#[requires(0 <= offset && offset <= outer_states.len())]
+#[requires(local_states == outer_states.subsequence(offset, outer_states.len()))]
+#[requires(0 <= start && start <= local_states.len())]
+#[requires(forall<j: Int> start <= j && j < local_states.len() ==>
+    local_states[j] != -1)]
+#[ensures(forall<i: Int> offset + start <= i && i < outer_states.len() ==>
+    outer_states[i] != -1)]
+pub(crate) fn range_from_initialized_suffix_projection(
+    outer_states: Seq<Int>,
+    local_states: Seq<Int>,
+    offset: Int,
+    start: Int,
+) {
+    proof_assert!(forall<i: Int>
+        offset + start <= i && i < outer_states.len() ==>
+            0 <= i - offset && i - offset < local_states.len());
+    proof_assert!(forall<i: Int>
+        offset + start <= i && i < outer_states.len() ==>
+            local_states[i - offset] != -1);
+    proof_assert!(forall<i: Int>
+        offset + start <= i && i < outer_states.len() ==>
+            outer_states[i] == local_states[i - offset]);
+    proof_assert!(forall<i: Int>
+        offset + start <= i && i < outer_states.len() ==>
+            outer_states[i] != -1);
+}
+
 #[logic]
 #[requires(0 <= start && start <= end && end <= slots.len())]
 #[ensures(logical_slot_bytes(slots.subsequence(start, end))
@@ -1331,4 +1447,145 @@ pub(crate) fn decimal_values_compose_16x2(top: Int, middle: Int, low: Int) {
         fixed_width_decimal_values(middle, 16),
         fixed_width_decimal_values(low, 16),
     );
+}
+
+
+/// Values at least 10^38 have at least 39 canonical decimal digits.
+#[logic]
+#[requires(n >= power_of_ten(38))]
+#[ensures(decimal_values(n).len() >= 39)]
+pub(crate) fn decimal_values_len_ge_39(n: Int) {
+    let _ = power_of_ten_16();
+    power_of_ten_unfold(16);
+    power_of_ten_add(16, 16);
+    power_of_ten_unfold(6);
+    power_of_ten_unfold(5);
+    power_of_ten_unfold(4);
+    power_of_ten_unfold(3);
+    power_of_ten_unfold(2);
+    power_of_ten_unfold(1);
+    power_of_ten_unfold(0);
+    power_of_ten_add(32, 6);
+    proof_assert!(power_of_ten(16) == 10_000_000_000_000_000);
+    proof_assert!(power_of_ten(32)
+        == 100_000_000_000_000_000_000_000_000_000_000);
+    proof_assert!(power_of_ten(38)
+        == 100_000_000_000_000_000_000_000_000_000_000_000_000);
+    proof_assert!(n >= 100_000_000_000_000_000_000_000_000_000_000_000_000);
+
+    let high = n / 10_000_000_000_000_000;
+    let low = n % 10_000_000_000_000_000;
+    proof_assert!(n == high * 10_000_000_000_000_000 + low);
+    proof_assert!(0 <= low && low < 10_000_000_000_000_000);
+    proof_assert!(high >= 10_000_000_000_000_000_000_000);
+
+    let top = high / 10_000_000_000_000_000;
+    let middle = high % 10_000_000_000_000_000;
+    proof_assert!(high == top * 10_000_000_000_000_000 + middle);
+    proof_assert!(0 <= middle && middle < 10_000_000_000_000_000);
+    proof_assert!(top >= 1_000_000);
+
+    decimal_values_split_16(n);
+    decimal_values_split_16(high);
+    proof_assert!(n / 10_000_000_000_000_000 > 0);
+    proof_assert!(high / 10_000_000_000_000_000 > 0);
+    fixed_width_decimal_values_len(low, 16);
+    fixed_width_decimal_values_len(middle, 16);
+    decimal_values_len_ge_7(top);
+    proof_assert!(decimal_values(n).len() == decimal_values(high).len() + 16);
+    proof_assert!(decimal_values(high).len() == decimal_values(top).len() + 16);
+    proof_assert!(decimal_values(n).len() >= 39);
+}
+
+/// A value at least one million has at least seven canonical digits.
+#[logic]
+#[requires(n >= 1_000_000)]
+#[ensures(decimal_values(n).len() >= 7)]
+pub(crate) fn decimal_values_len_ge_7(n: Int) {
+    decimal_values_unfold(n);
+    decimal_values_unfold(n / 10);
+    decimal_values_unfold(n / 100);
+    proof_assert!(n / 1_000 >= 1_000);
+    decimal_values_len_ge_4(n / 1_000);
+    proof_assert!(decimal_values(n).len() >= 7);
+}
+
+#[logic(open)]
+pub(crate) fn i128_min_magnitude_model() -> Int {
+    pearlite! { -i128::MIN@ }
+}
+
+#[ensures(result@ == i128_min_magnitude_model())]
+pub(crate) fn i128_min_unsigned_magnitude() -> u128 {
+    let magnitude = i128::MIN.unsigned_abs();
+    proof_assert!(i128::MIN@ < 0);
+    proof_assert!(magnitude@ == -i128::MIN@);
+    magnitude
+}
+
+#[ensures(result@ == -i128::MIN@)]
+#[ensures(decimal_values(result@).len() == 39)]
+#[ensures(decimal_values(result@).len() <= 39)]
+pub(crate) fn i128_min_unsigned_decimal_len() -> u128 {
+    let magnitude = i128_min_unsigned_magnitude();
+    proof_assert! {
+        let _ = decimal_values_len_u128(magnitude);
+        decimal_values(magnitude@).len() <= 39
+    };
+    proof_assert! {
+        power_of_ten_unfold(39);
+        power_of_ten_unfold(38);
+        power_of_ten_unfold(37);
+        power_of_ten_unfold(36);
+        power_of_ten_unfold(35);
+        power_of_ten_unfold(34);
+        power_of_ten_unfold(33);
+        power_of_ten_unfold(32);
+        power_of_ten_unfold(31);
+        power_of_ten_unfold(30);
+        power_of_ten_unfold(29);
+        power_of_ten_unfold(28);
+        power_of_ten_unfold(27);
+        power_of_ten_unfold(26);
+        power_of_ten_unfold(25);
+        power_of_ten_unfold(24);
+        power_of_ten_unfold(23);
+        power_of_ten_unfold(22);
+        power_of_ten_unfold(21);
+        power_of_ten_unfold(20);
+        power_of_ten_unfold(19);
+        power_of_ten_unfold(18);
+        power_of_ten_unfold(17);
+        power_of_ten_unfold(16);
+        power_of_ten_unfold(15);
+        power_of_ten_unfold(14);
+        power_of_ten_unfold(13);
+        power_of_ten_unfold(12);
+        power_of_ten_unfold(11);
+        power_of_ten_unfold(10);
+        power_of_ten_unfold(9);
+        power_of_ten_unfold(8);
+        power_of_ten_unfold(7);
+        power_of_ten_unfold(6);
+        power_of_ten_unfold(5);
+        power_of_ten_unfold(4);
+        power_of_ten_unfold(3);
+        power_of_ten_unfold(2);
+        power_of_ten_unfold(1);
+        power_of_ten_unfold(0);
+        -i128::MIN@ >= power_of_ten(38)
+    };
+    proof_assert! {
+        let _ = decimal_values_len_ge_39(-i128::MIN@);
+        decimal_values(-i128::MIN@).len() >= 39
+    };
+    magnitude
+}
+
+#[ensures(signed_decimal_values(i128::MIN@).len() == 40)]
+#[ensures(signed_decimal_values(i128::MIN@)[0] == 45)]
+#[ensures(signed_decimal_values(i128::MIN@).subsequence(1, 40)
+    == decimal_values(-i128::MIN@))]
+pub(crate) fn i128_min_signed_decimal_model() {
+    let _magnitude = i128_min_unsigned_decimal_len();
 }

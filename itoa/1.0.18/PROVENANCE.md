@@ -39,20 +39,23 @@ establishes the following:
 
 The original recursive-model baseline proved 67 translated files in both
 configurations. The latest integrated runtime matrix is recorded in
-[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 182
-libraries / 1,637 VCs and all-features proves 183 / 1,641. This includes the
-actual unsigned `u128` formatter body and remains conditional on the trusted
-`mulhi` result contract. The all-features configuration includes the upstream
-optional `no-panic` dependency.
+[RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md): default proves 196
+libraries / 1,696 VCs and all-features proves 197 / 1,700. It includes the
+actual unsigned `u128` formatter body and signed `i128` buffer writer with an
+`i128::MIN` witness; the `u128` path remains conditional on the accepted
+trusted `mulhi` result contract. The all-features configuration includes the
+upstream optional `no-panic` dependency.
 
 ## Explicit trusted boundaries
 
 Two narrow boundaries are currently trusted:
 
-- The existing conversion of the already-proved ASCII suffix into a borrowed
-  `str`. Its contract states that the result's bytes are exactly that suffix.
-  The decimal algorithm, sign handling, buffer bounds, and returned contents
-  are not trusted.
+- The recursive verification model's conversion of its already-proved ASCII
+  suffix into a borrowed `str`. Its contract states that the result's bytes
+  are exactly that suffix. This pre-existing model boundary does not justify
+  the native runtime's raw `MaybeUninit` slice-to-`str` conversion, which is
+  still outside the runtime proof. The decimal algorithm, sign handling,
+  buffer bounds, and returned contents are not trusted.
 - The `u128_ext::mulhi` wrapper's exact result equation,
   `result == x * y / 2^128`, accepted by the user on 2026-10-02. The actual
   limb algorithm lives in `mulhi_core`; its operation bounds, casts, shifts,
@@ -63,6 +66,12 @@ Removal conditions: replace the string boundary when Creusot can prove ASCII
 UTF-8 validity and model the slice-to-`str` reference conversion without a
 raw representation cast. Remove the `mulhi` trust when the high-half equation
 is proved from `mulhi_core` while retaining its operation checks.
+
+The signed `i128` proof also uses narrow external models for core array
+`IndexMut`, mutable-slice-to-array borrowing, and primitive `unsigned_abs`.
+These are standard-library assumptions, not additional local `#[trusted]`
+functions; their exact bounds, view/frame contracts, source basis, and removal
+conditions are documented in [RUNTIME_VERIFICATION.md](RUNTIME_VERIFICATION.md).
 
 Run `./verify-all.bash` in this directory to reproduce the proof matrix. The
 ordinary upstream suite passes 11 integration tests and 2 documentation tests.

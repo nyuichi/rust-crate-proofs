@@ -16,8 +16,13 @@ use crate::verification::{
     decimal_values_split_4, masked_decimal_digit,
     fixed_width_decimal_values, fixed_width_decimal_values_2_is_decimal,
     decimal_values_compose_16, decimal_values_compose_16x2, power_of_ten_16,
-    fixed_width_decimal_values_len,
+    fixed_width_decimal_values_len, integer_decimal_values, logical_slot_states,
+    logical_slot_states_subsequence, range_from_prefix_raw_frame,
+    initialized_slot_suffix_non_sentinel, logical_slot_states_suffix_initialized,
+    range_from_initialized_suffix_projection,
 };
+#[cfg(creusot)]
+use crate::verification::i128_min_signed_decimal_model;
 #[cfg(creusot)]
 use crate::decimal_pairs::decimal_pair_correct;
 #[cfg(creusot)]
@@ -150,6 +155,25 @@ mod private {
     }
 }
 
+macro_rules! signed_write_offset {
+    (i128, u128, $value:ident, $buf:ident) => {
+        signed_write_i128($value, $buf)
+    };
+    ($Signed:ident, $Unsigned:ident, $value:ident, $buf:ident) => {{
+        let mut offset = <$Signed as Integer>::MAX_STR_LEN
+            - <$Unsigned as Integer>::MAX_STR_LEN;
+        offset += Unsigned::fmt(
+            $value.unsigned_abs(),
+            (&mut $buf[offset..]).try_into().unwrap(),
+        );
+        if $value < 0 {
+            offset -= 1;
+            $buf[offset].write(b'-');
+        }
+        offset
+    }};
+}
+
 macro_rules! impl_Integer {
     ($Signed:ident, $Unsigned:ident) => {
         const _: () = {
@@ -186,15 +210,7 @@ macro_rules! impl_Integer {
             #[cfg_attr(feature = "no-panic", no_panic)]
             #[cfg(not(creusot))]
             fn write(self, buf: &mut Self::Buffer) -> &str {
-                let mut offset = Self::MAX_STR_LEN - $Unsigned::MAX_STR_LEN;
-                offset += Unsigned::fmt(
-                    self.unsigned_abs(),
-                    (&mut buf[offset..]).try_into().unwrap(),
-                );
-                if self < 0 {
-                    offset -= 1;
-                    buf[offset].write(b'-');
-                }
+                let offset = signed_write_offset!($Signed, $Unsigned, self, buf);
                 // SAFETY: Starting from `offset`, all elements of the slice have been set.
                 unsafe { slice_buffer_to_str(buf, offset) }
             }
@@ -783,6 +799,10 @@ fn check_u16_fmt_call_site(n: u16) {
 
 impl Unsigned for u128 {
     #[cfg_attr(creusot, ensures(result@ + decimal_values(self@).len() == buf@.len()))]
+    #[cfg_attr(creusot, ensures(logical_slot_states((^buf)@.subsequence(result@, buf@.len()))
+        == decimal_values(self@)))]
+    #[cfg_attr(creusot, ensures(logical_slot_states((^buf)@.subsequence(0, result@))
+        == logical_slot_states(buf@.subsequence(0, result@))))]
     #[cfg_attr(creusot, ensures(forall<i: Int>
         result@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
     #[cfg_attr(creusot, ensures(forall<i: Int>
@@ -1250,4 +1270,154 @@ fn div_rem_1e16(n: u128) -> (u128, u64) {
         quot@ * D@ + rem@ == n@
     };
     (quot, rem as u64)
+}
+
+
+/// The unsigned suffix portion of i128's original signed writer. This keeps
+/// the original capacity gap, slice-to-array conversion, and formatter call.
+#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
+#[cfg_attr(creusot, ensures(result@ + decimal_values(value@).len() == buf@.len()))]
+#[cfg_attr(creusot, ensures(result@ >= 1))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    result@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    result@ <= i && i < buf@.len() ==>
+        (^buf)@[i]@.unwrap_logic()@ == decimal_values(value@)[i - result@]))]
+#[cfg_attr(creusot, ensures((^buf)@[0]@ == buf@[0]@))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    1 <= i && i < result@ ==> (^buf)@[i]@ == buf@[i]@))]
+fn write_u128_suffix_i128(value: u128, buf: &mut [MaybeUninit<u8>; 40]) -> usize {
+    #[cfg(creusot)]
+    proof_assert! {
+        let _ = decimal_values_len_u128(value);
+        decimal_values(value@).len() <= 39
+    };
+    let mut offset = i128::MAX_STR_LEN - u128::MAX_STR_LEN;
+    #[cfg(creusot)]
+    let outer_before = snapshot!(buf@);
+    #[cfg(creusot)]
+    proof_assert!(offset@ == 1);
+    let digit_len = {
+        let range = &mut buf[offset..];
+        #[cfg(creusot)]
+        let range_before = snapshot!(range@);
+        let array: &mut [MaybeUninit<u8>; 39] = range.try_into().unwrap();
+        #[cfg(creusot)]
+        let array_before = snapshot!(array@);
+        #[cfg(creusot)]
+        proof_assert!(*array_before == *range_before);
+        let digit_len = Unsigned::fmt(value, array);
+
+        #[cfg(creusot)]
+        proof_assert! {
+            let array_current = *array_before;
+            let array_final = (^array)@;
+            let range_current = *range_before;
+            let range_final = (^range)@;
+            let outer_current = *outer_before;
+            let outer_final = (^buf)@;
+            array_current == range_current
+                && array_final == range_final
+                && range_current == outer_current.subsequence(offset@, outer_current.len())
+                && range_final == outer_final.subsequence(offset@, outer_final.len())
+        };
+        #[cfg(creusot)]
+        proof_assert! {
+            let _ = logical_slot_states_subsequence(
+                *outer_before,
+                offset@,
+                outer_before.len(),
+            );
+            let _ = logical_slot_states_subsequence(
+                (^buf)@,
+                offset@,
+                (^buf)@.len(),
+            );
+            let _ = range_from_prefix_raw_frame(
+                *outer_before,
+                (^buf)@,
+                *array_before,
+                (^array)@,
+                offset@,
+                digit_len@,
+            );
+            forall<i: Int>
+                1 <= i && i < offset@ + digit_len@ ==> (^buf)@[i]@ == buf@[i]@
+        };
+        #[cfg(creusot)]
+        proof_assert! {
+            let outer_final = (^buf)@;
+            let array_final = (^array)@;
+            let _ = logical_slot_states_subsequence(
+                outer_final,
+                offset@,
+                outer_final.len(),
+            );
+            logical_slot_states(array_final)
+                == logical_slot_states(outer_final).subsequence(offset@, outer_final.len())
+        };
+        #[cfg(creusot)]
+        proof_assert! {
+            let outer_final = (^buf)@;
+            let array_final = (^array)@;
+            let outer_states = logical_slot_states(outer_final);
+            let local_states = logical_slot_states(array_final);
+            let _ = logical_slot_states_subsequence(
+                outer_final,
+                offset@,
+                outer_final.len(),
+            );
+            let _ = initialized_slot_suffix_non_sentinel(array_final, digit_len@);
+            let _ = range_from_initialized_suffix_projection(
+                outer_states,
+                local_states,
+                offset@,
+                digit_len@,
+            );
+            proof_assert!(logical_slot_states_suffix_initialized(
+                outer_final,
+                offset@ + digit_len@,
+            ));
+            forall<i: Int> offset@ + digit_len@ <= i && i < outer_final.len() ==>
+                (^buf)@[i]@ != None
+        };
+        digit_len
+    };
+    offset += digit_len;
+    #[cfg(creusot)]
+    proof_assert!(offset@ >= 1);
+    offset
+}
+
+/// The original signed i128 arithmetic with the actual unsigned suffix writer.
+#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
+#[cfg_attr(creusot, ensures(result@ + integer_decimal_values(value).len() == buf@.len()))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    result@ <= i && i < buf@.len() ==> (^buf)@[i]@ != None))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    result@ <= i && i < buf@.len() ==>
+        (^buf)@[i]@.unwrap_logic()@ == integer_decimal_values(value)[i - result@]))]
+#[cfg_attr(creusot, ensures(forall<i: Int>
+    0 <= i && i < result@ ==> (^buf)@[i]@ == buf@[i]@))]
+fn signed_write_i128(value: i128, buf: &mut [MaybeUninit<u8>; 40]) -> usize {
+    let mut offset = write_u128_suffix_i128(value.unsigned_abs(), buf);
+    if value < 0 {
+        offset -= 1;
+        buf[offset].write(b'-');
+    }
+    offset
+}
+
+/// Concrete whole-buffer witness for the original i128::MIN writer path.
+#[cfg(creusot)]
+#[ensures(forall<i: Int> 0 <= i && i < 40 ==> result@[i]@ != None)]
+#[ensures(forall<i: Int> 0 <= i && i < 40 ==>
+    result@[i]@.unwrap_logic()@ == integer_decimal_values(i128::MIN)[i])]
+fn i128_min_formatted_output_witness() -> [MaybeUninit<u8>; 40] {
+    let mut buf = [MaybeUninit::<u8>::uninit(); 40];
+    let offset = signed_write_i128(i128::MIN, &mut buf);
+    let _ = i128_min_signed_decimal_model();
+    proof_assert!(offset@ + integer_decimal_values(i128::MIN).len() == 40);
+    proof_assert!(offset@ == 0);
+    buf
 }
