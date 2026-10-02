@@ -79,6 +79,14 @@ overlay at exit. Pass `WHY3DATA` explicitly to inspect or preserve a chosen
 overlay. The official `verify-all.bash` itself is unchanged and runs its
 default and `--all-features` proof configurations.
 
+Proof runs now use `scripts/run-proof.sh`: a shared `flock` permits one proof
+invocation across agents, and an isolated Why3 configuration defaults to one
+prover and 1024 MiB per prover. `ITOA_PROOF_JOBS` permits 1 or 2 and
+`ITOA_PROOF_MEMORY_MB` permits 512–2048; increasing these requires a specific
+diagnostic reason. From the crate directory, use the same wrapper for focused
+`cargo creusot ... prove` commands. Source analysis and ordinary builds may run
+in parallel. The original Why3 configuration is never modified.
+
 The recorded Phase 2 replay passed 70 proof units and 192 goals in each
 configuration. The witness source and compact `.coma` / proof JSON results are
 under `witnesses/` and `proofs/`. The separate Phase 4 arithmetic bodies are
