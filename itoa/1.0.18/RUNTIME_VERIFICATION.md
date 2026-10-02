@@ -2,19 +2,20 @@
 
 ## Scope map
 
-The production `runtime` module contains the upstream optimized implementation: a
+The production `runtime` module contains the optimized implementation: a
 `MaybeUninit` output buffer, the decimal-pair lookup table, reciprocal division
 by 100, four-digit chunking, the specialized `u128` path, and output string
-construction. The current `cfg(creusot)` build selects `verification.rs`
-for the public formatting API and also compiles the shared `divmod100` module.
-The verification module proves a separate recursive digit writer over an
-initialized byte array. That proof remains useful and must stay intact, but it
-does not currently translate or prove the rest of the production algorithm.
+construction. Under `cfg(creusot)`, this phase compiles `runtime.rs` and proves
+the actual shared `Unsigned::fmt` body for `u16`. The public formatting facade
+still comes from `verification.rs`; raw `Buffer::format`, signed adapters,
+other unsigned implementations, and the `u128` path remain outside this phase.
+The recursive decimal model in `verification.rs` remains the formatter's
+specification, and all existing model proofs are retained.
 
 The first shared implementation boundary is `divmod100`: normal runtime callers
 use this body, and Creusot translates and proves the same executable body as an
-independent leaf. Later phases can connect the lookup-table writes and optimized
-digit/chunk writers to the already-proved decimal model.
+independent leaf. Phase 3 connects the actual `u16` chunk and table writes to the
+decimal model; other widths and adapters remain later phases.
 
 ## Proof status
 
@@ -23,9 +24,10 @@ digit/chunk writers to the already-proved decimal model.
 | Existing recursive decimal model and public verification-facing API | yes | yes (per current provenance record) | pre-existing ASCII-slice-to-`str` leaf | baseline only; does not cover runtime code |
 | Shared optimized `divmod100` (Phase 1) | yes | yes | none added | yes; leaf only, callers remain pending |
 | `DECIMAL_PAIRS` representation and indexed lookup lemma | yes | yes (2 VCs) | none | data bridge via CTFE; formatter writes pending |
-| Four-digit / two-digit output and loop invariants | pending | no | none | pending |
+| Actual optimized `Unsigned::fmt` body for `u16` | yes | yes (201 integrated goals per cfg) | no formatter boundary | yes; default and all-features |
+| Actual `Unsigned::fmt` bodies for `u8`, `u32`, and `u64` | pending | no | none | pending |
 | `u128` reciprocal division and chunk encoder | pending | no | none | pending |
-| Runtime buffer, sign, and output-string integration | pending | no | no new boundary planned | pending |
+| Raw `Buffer::format`, signed adapters, and output-string integration | pending | no | no new boundary planned | pending |
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
 pair equals Euclidean quotient/remainder by 100, the remainder is below 100,
@@ -60,7 +62,67 @@ actual proof-table cells at indices `2*n` and `2*n+1` equal
 `48 + n/10` and `48 + n%10`, proves the latter index is below 200, and ties its
 returned bytes to those cells. The helper reads the array cells directly. The
 Creusot run proves both the constant setter and this indexed lookup contract (2
-VCs); the runtime formatter's unsafe write sites remain a later proof phase.
+VCs).
+
+## Phase 3: actual `u16` formatter body
+
+The proof translates the production `impl_Unsigned!(u16)` body, including the
+four-digit loop, two-digit tail, final masked digit, lookup-table reads, and
+`MaybeUninit` writes. Its strong contract preserves the unwritten prefix,
+initializes every output slot, and gives each output byte as the corresponding
+element of `decimal_values(self@)`. `./verify-all.bash` proves the body in 201
+goals and its generated
+trait-refinement obligation in one goal in each configuration. The concrete
+method has no added precondition: a typed capacity lemma proves at body entry
+that every `u16` fits its five-byte buffer. The final-digit writer proves
+independently in 11 VCs and in 2 integrated goals. A call-site check consumes
+the formatter contract after deriving the same capacity fact.
+
+The one-slot writer is an inline extraction of the existing operation
+`buf[offset].write(b'0' + last)`. The production mask expression
+`remain as u8 & 15` and the chunking arithmetic remain in the actual formatter.
+The extracted helper has proved bounds, exact byte, initialization, frame, and
+suffix-concatenation contracts; it is not trusted. In normal builds its
+`no_panic` instrumentation remains enabled. Under `cfg(creusot)`, the
+`no_panic` attribute is omitted because that proc-macro instrumentation cannot
+be translated; the Rust body and formatter contracts are unchanged.
+
+The staged Creusot build enables the runtime module but compiles only the
+`u16` unsigned formatter body. It omits the raw public `Buffer::format` and
+string conversion adapters, signed wrappers, and other unsigned bodies until
+their proof phases. The ordinary Rust cfg continues to compile the production
+runtime implementations.
+
+### Standard-library model assumptions used by Phase 3
+
+Three narrow external models describe native standard-library operations used
+by the formatter. These are assumptions about core APIs, not trusted local
+formatter functions:
+
+- `MaybeUninit::write` requires the old value to be `None` or resolved, then
+  establishes the exact new `Some(value)` state. This matches the native
+  operation, which overwrites without dropping an old value. The formatter's
+  element type is `u8`; separate invariants track initialized slots, and the
+  proof does not read an uninitialized prefix.
+- `TryFrom<i32> for u16` establishes that each in-range value converts to
+  `Ok(value)`. The formatter uses it for the concrete constants `999` and
+  `10_000`; the blanket `TryInto` model only forwards the associated
+  `TryFrom` precondition and postcondition and assumes no generic totality.
+  The existing `Result::expect` model requires `Ok`, which the range facts
+  prove for those constants.
+- The `get_unchecked` standard model retains its in-bounds/result contract and
+  has a checked termination classification for the table's built-in `usize`
+  indices.
+
+The native standard-library source bodies are not translated as part of this
+crate proof. Removal condition: verify the native bodies or integrate
+equivalent source-level models with the same exact preconditions and
+postconditions. These models provide no decimal-formatting arithmetic facts.
+
+For a negative control, an isolated copy changed the first four-digit loop
+relation from equality to inequality. Creusot then failed specifically on that
+assertion, confirming that this loop proof is sensitive to the actual chunk
+arithmetic.
 
 Immediately after Phase 1 and before the Phase 2 table patch, the default and
 `--all-features` `verify-all.bash` runs both passed. Each configuration produced
@@ -76,7 +138,8 @@ passes all 11 integration tests and 2 doctests. The release test command
 passes all 11 integration tests. `--tests` excludes doctests from that
 all-features release run. These normal and release commands also passed after
 Phase 2 extracted the table declaration; a normal `cargo check` passed the
-compile-time table equality assertion. Setup also recorded that
+compile-time table equality assertion. The same commands were rerun after
+Phase 3 and passed. Setup also recorded that
 `cargo test --all-features` fails at the `no-panic` linker step in debug, and
 `cargo test --all-features --release` passes integration tests but fails while
 linking doctests. The all-features proof configuration separately enables
@@ -114,11 +177,14 @@ to `/workspace/proof-tools` to avoid `/tmp` disk limits), with
 use Unix sockets. Baseline used
 `CARGO_TARGET_DIR=/workspace/proof-tools/targets/itoa-baseline`; Phase 1 used
 `CARGO_TARGET_DIR=/workspace/proof-tools/targets/phase1`.
-After Phase 2, `./verify-all.bash` passes in both default and `--all-features`
-configurations. Each run has 70 generated proof units and 192 split goals with
-zero failures (up from 69 units / 190 split goals after Phase 1). The two new
-table goals are the constant setter and `decimal_pair_correct`. The Phase 2
-change adds no trusted declarations. The proof configuration change to a scalar
-`const` is paired with the normal-config CTFE byte equality assertion described
-above.
+After Phase 2, `./verify-all.bash` passed in both default and `--all-features`
+configurations with 70 proof units and 192 split goals per run (up from 69 / 190
+after Phase 1). The Phase 2 change adds no trusted declarations. The proof
+configuration change to a scalar `const` is paired with the normal-config CTFE
+byte equality assertion described above.
 
+After Phase 3, a clean crate-local `./verify-all.bash` run passed in both
+configurations. Each configuration proved 103 libraries and 514 reported split
+goals with zero failures; `fmt_u16` contributed 201 goals and `fmt__refines`
+one. The ordinary test command passed 11 integration tests and 2 doctests; the
+optimized all-features test command passed all 11 integration tests.

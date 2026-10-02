@@ -11,6 +11,12 @@ extern_spec! {
                 // #[requires(true)]
                 fn from(value: T) -> Self;
             }
+            trait TryFrom<T> where Self: TryFrom<T> {
+                fn try_from(value: T) -> Result<Self, <Self as TryFrom<T>>::Error>;
+            }
+            trait TryInto<T> where Self: TryInto<T> {
+                fn try_into(self) -> Result<T, <Self as TryInto<T>>::Error>;
+            }
         }
     }
 
@@ -18,6 +24,15 @@ extern_spec! {
         #[check(ghost)]
         #[ensures(result == self)]
         fn from(self) -> T;
+    }
+
+    impl<T, U> TryInto<U> for T
+    where
+        U: TryFrom<T>,
+    {
+        #[requires(<U as TryFrom<T>>::try_from.precondition((self,)))]
+        #[ensures(<U as TryFrom<T>>::try_from.postcondition((self,), result))]
+        fn try_into(self) -> Result<U, <U as TryFrom<T>>::Error>;
     }
 
     impl<T, U> Into<U> for T
@@ -70,6 +85,15 @@ extern_spec! {
         fn from(s: [T; N]) -> Self {
             Box::new(s)
         }
+    }
+}
+
+extern_spec! {
+    impl TryFrom<i32> for u16 {
+        #[check(terminates)]
+        #[ensures(value@ < 0 || value@ > 65_535 ||
+            exists<x: u16> result == Ok(x) && x@ == value@)]
+        fn try_from(value: i32) -> Result<u16, core::num::TryFromIntError>;
     }
 }
 

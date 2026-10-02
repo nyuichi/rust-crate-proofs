@@ -1,9 +1,11 @@
 use core::str;
+use core::mem::MaybeUninit;
+use creusot_std::std::option::OptionExt;
 
 #[allow(unused_imports)]
 use creusot_std::prelude::{
-    check, ensures, logic, pearlite, proof_assert, requires, snapshot, trusted, variant, Int, Seq,
-    View,
+    bitwise_proof, check, ensures, logic, pearlite, proof_assert, requires, snapshot, trusted,
+    variant, Int, Seq, View,
 };
 
 /// Decimal ASCII byte values for a nonnegative mathematical integer.
@@ -18,6 +20,41 @@ pub fn decimal_values(n: Int) -> Seq<Int> {
     }
 }
 
+/// A total ghost view of buffer slots used only for sequence bookkeeping.
+/// Initialized slots map to their byte value; an uninitialized slot maps to
+/// zero as a mathematical filler. This does not read or initialize memory.
+/// Any use of a value as a written output byte must be accompanied by the
+/// formatter's separate initialized-slot invariant or postcondition.
+#[logic(open)]
+#[ensures(result.len() == slots.len())]
+pub fn logical_slot_bytes(slots: Seq<MaybeUninit<u8>>) -> Seq<Int> {
+    slots.map(|slot: MaybeUninit<u8>| {
+        pearlite! {
+            if slot@ == None {
+                0
+            } else {
+                slot@.unwrap_logic()@
+            }
+        }
+    })
+}
+
+/// A proof witness for the optimized last-digit mask used by the runtime body.
+/// The formatter still evaluates its original `remain as u8 & 15` expression;
+/// this checked bitwise lemma connects that expression to its decimal-digit
+/// range when the remaining value is already known to be at most nine.
+#[cfg(creusot)]
+#[check(terminates)]
+#[bitwise_proof]
+#[requires(d@ <= 9)]
+#[ensures((d & 15u8)@ == d@)]
+#[ensures(48 + (d & 15u8)@ <= 57)]
+#[ensures(result@ == d@)]
+#[ensures(48 + result@ <= 57)]
+pub(crate) fn masked_decimal_digit(d: u8) -> u8 {
+    d & 15
+}
+
 #[logic]
 #[requires(n >= 0)]
 #[ensures(decimal_values(n) == if n < 10 {
@@ -30,7 +67,7 @@ fn decimal_values_unfold(n: Int) {}
 #[logic]
 #[requires(0 <= n && n < 10)]
 #[ensures(decimal_values(n) == Seq::singleton(48 + n))]
-fn decimal_values_one_digit(n: Int) {
+pub fn decimal_values_one_digit(n: Int) {
     decimal_values_unfold(n);
 }
 
@@ -302,6 +339,38 @@ impl_unsigned! {
     usize => 20,
 }
 
+macro_rules! unsigned_decimal_capacity {
+    ($name:ident, $ty:ty, $digits:literal; $($exponent:literal),* $(,)?) => {
+        #[logic]
+        #[ensures(decimal_values(n@).len() <= $digits)]
+        #[ensures(decimal_values(n@).len() <= (<$ty as Integer>::MAX_STR_LEN)@)]
+        #[ensures((<$ty as Integer>::MAX_STR_LEN)@ == $digits)]
+        pub(crate) fn $name(n: $ty) {
+            let mathematical = pearlite! { n@ };
+            $(power_of_ten_unfold($exponent);)*
+            proof_assert!(mathematical < power_of_ten($digits));
+            decimal_len_bounded(mathematical, $digits);
+        }
+    };
+}
+
+unsigned_decimal_capacity!(decimal_values_len_u8, u8, 3; 3, 2, 1, 0);
+unsigned_decimal_capacity!(decimal_values_len_u16, u16, 5; 5, 4, 3, 2, 1, 0);
+unsigned_decimal_capacity!(decimal_values_len_u32, u32, 10; 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+unsigned_decimal_capacity!(decimal_values_len_u64, u64, 20;
+    20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+
+#[logic]
+#[ensures(decimal_values(n@).len() <= 39)]
+#[ensures(decimal_values(n@).len() <= (<u128 as Integer>::MAX_STR_LEN)@)]
+#[ensures((<u128 as Integer>::MAX_STR_LEN)@ == 39)]
+pub(crate) fn decimal_values_len_u128(n: u128) {
+    let mathematical = pearlite! { n@ };
+    let _ = power_of_ten_39();
+    proof_assert!(mathematical < power_of_ten(39));
+    decimal_len_bounded(mathematical, 39);
+}
+
 macro_rules! impl_signed_widening {
     ($($ty:ty => $len:expr),* $(,)?) => {$($crate::verification::impl_signed_widening!(@one $ty, $len);)*};
     (@one $ty:ty, $len:expr) => {
@@ -544,4 +613,286 @@ fn write_unsigned(n: u128, buf: &mut [u8], end: usize) -> usize {
 #[ensures(result@.to_bytes() == buf@.subsequence(start@, buf@.len()))]
 unsafe fn decimal_slice_to_str(buf: &[u8], start: usize) -> &str {
     unsafe { str::from_utf8_unchecked(&buf[start..]) }
+}
+#[logic(open)]
+#[requires(n >= 0)]
+#[requires(width >= 1)]
+#[variant(width)]
+/// Recursive decimal padding model. Under `0 <= n < 10^width`, it gives exactly
+/// `width` digits, as established by `fixed_width_decimal_values_len`.
+pub fn fixed_width_decimal_values(n: Int, width: Int) -> Seq<Int> {
+    if width == 1 {
+        decimal_values(n)
+    } else {
+        fixed_width_decimal_values(n / 10, width - 1).push_back(48 + n % 10)
+    }
+}
+
+#[logic]
+#[requires(n >= 0)]
+#[requires(width >= 1)]
+#[ensures(fixed_width_decimal_values(n, width) == if width == 1 {
+    decimal_values(n)
+} else {
+    fixed_width_decimal_values(n / 10, width - 1).push_back(48 + n % 10)
+})]
+fn fixed_width_decimal_values_unfold(n: Int, width: Int) {}
+
+#[logic]
+#[requires(0 <= n && n < 10)]
+#[ensures(decimal_values(n).len() == 1)]
+fn decimal_values_one_digit_len(n: Int) {
+    decimal_values_unfold(n);
+}
+
+#[logic]
+#[requires(n >= 0)]
+#[ensures(decimal_values(n).len() >= 1)]
+#[variant(n)]
+pub(crate) fn decimal_values_len_at_least_one(n: Int) {
+    decimal_values_unfold(n);
+    if n >= 10 {
+        proof_assert!(n / 10 >= 0);
+        decimal_values_len_at_least_one(n / 10);
+        proof_assert!(decimal_values(n).len() >= 1);
+    }
+}
+
+/// Values at least 10 have at least two canonical decimal digits.
+#[logic]
+#[requires(n >= 10)]
+#[ensures(decimal_values(n).len() >= 2)]
+pub(crate) fn decimal_values_len_ge_2(n: Int) {
+    decimal_values_unfold(n);
+    proof_assert!(n / 10 >= 0);
+    decimal_values_len_at_least_one(n / 10);
+    proof_assert!(decimal_values(n).len() >= 2);
+}
+
+#[logic]
+#[ensures(s.push_back(value) == s.concat(Seq::singleton(value)))]
+fn decimal_seq_snoc_singleton(s: Seq<Int>, value: Int) {}
+
+#[logic]
+#[ensures((s.concat(t)).push_back(value) == s.concat(t.push_back(value)))]
+fn decimal_seq_concat_snoc(s: Seq<Int>, t: Seq<Int>, value: Int) {}
+
+#[logic]
+#[ensures((s.concat(t)).concat(u) == s.concat(t.concat(u)))]
+pub(crate) fn decimal_seq_concat_assoc(s: Seq<Int>, t: Seq<Int>, u: Seq<Int>) {}
+
+/// Values at least 1000 have at least four canonical decimal digits.
+#[logic]
+#[requires(n >= 1_000)]
+#[ensures(decimal_values(n).len() >= 4)]
+pub(crate) fn decimal_values_len_ge_4(n: Int) {
+    proof_assert!(n >= 10);
+    proof_assert!(n / 10 >= 10);
+    proof_assert!(n / 100 >= 10);
+    decimal_values_unfold(n);
+    decimal_values_unfold(n / 10);
+    decimal_values_len_ge_2(n / 100);
+    proof_assert!(decimal_values(n).len() == decimal_values(n / 10).len() + 1);
+    proof_assert!(decimal_values(n / 10).len() == decimal_values(n / 100).len() + 1);
+    proof_assert!(decimal_values(n).len() >= 4);
+}
+
+/// Every value below 10^width has exactly `width` fixed-width decimal bytes.
+#[logic]
+#[requires(n >= 0)]
+#[requires(width >= 1)]
+#[requires(n < power_of_ten(width))]
+#[ensures(fixed_width_decimal_values(n, width).len() == width)]
+#[variant(width)]
+pub(crate) fn fixed_width_decimal_values_len(n: Int, width: Int) {
+    fixed_width_decimal_values_unfold(n, width);
+    if width == 1 {
+        power_of_ten_unfold(1);
+        power_of_ten_unfold(0);
+        proof_assert!(power_of_ten(1) == 10);
+        decimal_values_one_digit_len(n);
+    } else {
+        power_of_ten_unfold(width);
+        proof_assert!(n / 10 >= 0);
+        proof_assert!(width - 1 >= 1);
+        proof_assert!(n / 10 < power_of_ten(width - 1));
+        fixed_width_decimal_values_len(n / 10, width - 1);
+    }
+}
+
+/// A width-2 digit pair has exactly the same sequence meaning as the model.
+#[logic]
+#[requires(0 <= pair && pair < 100)]
+#[ensures(Seq::singleton(48 + pair / 10).push_back(48 + pair % 10)
+    == fixed_width_decimal_values(pair, 2))]
+#[ensures(fixed_width_decimal_values(pair, 2).len() == 2)]
+#[ensures(fixed_width_decimal_values(pair, 2)[0] == 48 + pair / 10)]
+#[ensures(fixed_width_decimal_values(pair, 2)[1] == 48 + pair % 10)]
+pub(crate) fn fixed_width_decimal_values_pair(pair: Int) {
+    power_of_ten_unfold(2);
+    power_of_ten_unfold(1);
+    proof_assert!(power_of_ten(2) == 100);
+    proof_assert!(power_of_ten(1) == 10);
+    proof_assert!(pair / 10 >= 0);
+    proof_assert!(pair / 10 < power_of_ten(1));
+    fixed_width_decimal_values_unfold(pair, 2);
+    fixed_width_decimal_values_unfold(pair / 10, 1);
+    decimal_values_unfold(pair / 10);
+}
+
+/// A two-digit value already has the same unpadded and fixed-width sequence.
+#[logic]
+#[requires(10 <= n && n < 100)]
+#[ensures(fixed_width_decimal_values(n, 2) == decimal_values(n))]
+pub(crate) fn fixed_width_decimal_values_2_is_decimal(n: Int) {
+    fixed_width_decimal_values_unfold(n, 2);
+    fixed_width_decimal_values_unfold(n / 10, 1);
+    decimal_values_unfold(n);
+    decimal_values_unfold(n / 10);
+    proof_assert!(1 <= n / 10 && n / 10 < 10);
+    proof_assert!(fixed_width_decimal_values(n / 10, 1) == decimal_values(n / 10));
+    proof_assert!(fixed_width_decimal_values(n, 2) == decimal_values(n));
+}
+
+/// Splits a three-digit value into its leading digit and a two-digit suffix.
+#[logic]
+#[requires(100 <= n && n < 1_000)]
+#[ensures(decimal_values(n)
+    == decimal_values(n / 100).concat(fixed_width_decimal_values(n % 100, 2)))]
+pub(crate) fn decimal_values_compose_1x2(n: Int) {
+    let high = n / 100;
+    let low = n % 100;
+    proof_assert!(n == high * 100 + low);
+    proof_assert!(1 <= high && high < 10);
+    proof_assert!(0 <= low && low < 100);
+    proof_assert!(n / 10 == 10 * high + low / 10);
+    proof_assert!(n % 10 == low % 10);
+    proof_assert!((n / 10) / 10 == high);
+    proof_assert!((n / 10) % 10 == low / 10);
+    decimal_values_unfold(n);
+    decimal_values_unfold(n / 10);
+    decimal_values_unfold(high);
+    fixed_width_decimal_values_unfold(low, 2);
+    fixed_width_decimal_values_unfold(low / 10, 1);
+    decimal_values_unfold(low / 10);
+    proof_assert!(decimal_values(n)
+        == decimal_values(high).concat(fixed_width_decimal_values(low, 2)));
+}
+
+/// Relates the tens digit of the low pair to the final two digits of a quad.
+#[logic]
+#[requires(0 <= quad && quad < 10_000)]
+#[ensures(quad / 10 == (quad / 100) * 10 + (quad % 100) / 10)]
+#[ensures((quad % 100) / 10 == (quad / 10) % 10)]
+pub(crate) fn decimal_quad_split_digits(quad: Int) {
+    let q = quad / 100;
+    let r = quad % 100;
+    proof_assert!(quad == 100 * q + r);
+    proof_assert!(0 <= r && r < 100);
+    proof_assert!(0 <= q && q < 100);
+    proof_assert!(quad / 10 == 10 * q + r / 10);
+    proof_assert!(r / 10 < 10);
+    proof_assert!((10 * q + r / 10) % 10 == r / 10);
+}
+
+/// Splits a four-digit model into two two-digit models.
+#[logic]
+#[requires(0 <= quad && quad < 10_000)]
+#[ensures(fixed_width_decimal_values(quad, 4)
+    == fixed_width_decimal_values(quad / 100, 2)
+        .concat(fixed_width_decimal_values(quad % 100, 2)))]
+pub(crate) fn fixed_width_decimal_values_compose_2x2(quad: Int) {
+    power_of_ten_unfold(4);
+    power_of_ten_unfold(3);
+    power_of_ten_unfold(2);
+    power_of_ten_unfold(1);
+    proof_assert!(power_of_ten(4) == 10_000);
+    proof_assert!(power_of_ten(3) == 1_000);
+    proof_assert!(power_of_ten(2) == 100);
+    proof_assert!(power_of_ten(1) == 10);
+
+    proof_assert!(quad / 10 >= 0 && quad / 10 < power_of_ten(3));
+    proof_assert!(quad / 100 >= 0 && quad / 100 < power_of_ten(2));
+    proof_assert!(quad / 1_000 >= 0 && quad / 1_000 < power_of_ten(1));
+    proof_assert!(quad % 100 >= 0 && quad % 100 < power_of_ten(2));
+    proof_assert!((quad % 100) / 10 >= 0 && (quad % 100) / 10 < power_of_ten(1));
+
+    fixed_width_decimal_values_unfold(quad, 4);
+    fixed_width_decimal_values_unfold(quad / 10, 3);
+    fixed_width_decimal_values_unfold(quad / 100, 2);
+    fixed_width_decimal_values_unfold(quad / 1_000, 1);
+    fixed_width_decimal_values_unfold(quad % 100, 2);
+    fixed_width_decimal_values_unfold((quad % 100) / 10, 1);
+    decimal_values_unfold((quad % 100) / 10);
+
+    decimal_quad_split_digits(quad);
+    proof_assert!(quad / 1_000 == (quad / 100) / 10);
+    proof_assert!((quad % 100) % 10 == quad % 10);
+}
+
+/// Splits a canonical value into a prefix and a fixed-width four-digit suffix.
+#[logic]
+#[requires(n >= 1_000)]
+#[ensures(decimal_values(n) == (if n / 10_000 == 0 {
+    Seq::empty()
+} else {
+    decimal_values(n / 10_000)
+}).concat(fixed_width_decimal_values(n % 10_000, 4)))]
+pub(crate) fn decimal_values_split_4(n: Int) {
+    let high = n / 10_000;
+    let low = n % 10_000;
+    proof_assert!(n == high * 10_000 + low);
+    proof_assert!(0 <= low && low < 10_000);
+    proof_assert!(0 <= low / 1_000 && low / 1_000 < 10);
+    decimal_values_one_digit(low / 1_000);
+
+    if high == 0 {
+        proof_assert!(n < 10_000);
+        proof_assert!(low == n);
+        fixed_width_decimal_values_unfold(low, 4);
+        fixed_width_decimal_values_unfold(low / 10, 3);
+        fixed_width_decimal_values_unfold(low / 100, 2);
+        fixed_width_decimal_values_unfold(low / 1_000, 1);
+        decimal_values_unfold(n);
+        decimal_values_unfold(n / 10);
+        decimal_values_unfold(n / 100);
+        decimal_values_unfold(n / 1_000);
+    } else {
+        proof_assert!(0 < high);
+        fixed_width_decimal_values_unfold(low, 4);
+        fixed_width_decimal_values_unfold(low / 10, 3);
+        fixed_width_decimal_values_unfold(low / 100, 2);
+        fixed_width_decimal_values_unfold(low / 1_000, 1);
+        decimal_values_unfold(n);
+        decimal_values_unfold(n / 10);
+        decimal_values_unfold(n / 100);
+        decimal_values_unfold(n / 1_000);
+        proof_assert!(n / 1_000 == 10 * high + low / 1_000);
+        proof_assert!(n / 100 == 100 * high + low / 100);
+        proof_assert!(n / 10 == 1_000 * high + low / 10);
+        proof_assert!(n == 10_000 * high + low);
+        proof_assert!((n / 1_000) % 10 == low / 1_000);
+        proof_assert!((n / 100) % 10 == (low / 100) % 10);
+        proof_assert!((n / 10) % 10 == (low / 10) % 10);
+        proof_assert!(n % 10 == low % 10);
+        proof_assert!((n / 1_000) / 10 == high);
+        proof_assert!((n / 100) / 10 == n / 1_000);
+        proof_assert!((n / 10) / 10 == n / 100);
+        proof_assert!(decimal_values(n) == decimal_values(high)
+            .push_back(48 + low / 1_000)
+            .push_back(48 + (low / 100) % 10)
+            .push_back(48 + (low / 10) % 10)
+            .push_back(48 + low % 10));
+        proof_assert!(fixed_width_decimal_values(low, 4)
+            == Seq::singleton(48 + low / 1_000)
+                .push_back(48 + (low / 100) % 10)
+                .push_back(48 + (low / 10) % 10)
+                .push_back(48 + low % 10));
+        decimal_seq_snoc_singleton(decimal_values(high), 48 + low / 1_000);
+        decimal_seq_concat_snoc(
+            decimal_values(high),
+            Seq::singleton(48 + low / 1_000),
+            48 + (low / 100) % 10,
+        );
+    }
 }

@@ -388,6 +388,7 @@ extern_spec! {
 
         #[requires(ix.in_bounds(self@))]
         #[ensures(ix.has_value(self@, *result))]
+        #[check(terminates)]
         unsafe fn get_unchecked<I: SliceIndexSpec<[T]>>(&self, ix: I)
             -> &<I as SliceIndex<[T]>>::Output;
 

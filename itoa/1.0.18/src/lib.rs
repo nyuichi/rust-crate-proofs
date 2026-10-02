@@ -23,7 +23,6 @@ extern crate creusot_std;
 
 mod divmod100;
 mod decimal_pairs;
-#[cfg(not(creusot))]
 mod runtime;
 #[cfg(not(creusot))]
 pub use runtime::{Buffer, Integer};

@@ -74,7 +74,10 @@ extern_spec! {
         #[check(ghost)]
         fn uninit() -> Self;
 
-        #[requires(self@ == None)] // NOTE: we could allow calling this on an initialized `MaybeUninit`, but this would leak the contents.
+        // `MaybeUninit::write` does not drop old contents. If a resolved
+        // value is already present, replacing it deliberately leaks that
+        // value; unresolved mutable-borrow prophecies must remain in place.
+        #[requires(self@ == None || resolve(self@))]
         #[ensures(*result == val)]
         #[ensures((^self)@ == Some(^result))]
         #[check(ghost)]
