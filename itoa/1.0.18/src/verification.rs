@@ -381,6 +381,30 @@ fn decimal_len_bounded(n: Int, digits: Int) {
     }
 }
 
+/// i64 magnitudes use at most 19 digits; its signed buffer has room for 20.
+#[logic]
+#[requires(i64::MIN@ <= n && n <= i64::MAX@)]
+#[ensures(decimal_values(if n < 0 { -n } else { n }).len() <= 19)]
+#[ensures(signed_decimal_values(n).len() <= 20)]
+pub(crate) fn i64_signed_decimal_capacity(n: Int) {
+    let magnitude = if n < 0 { -n } else { n };
+    let _ = power_of_ten_16();
+    power_of_ten_unfold(3);
+    power_of_ten_unfold(2);
+    power_of_ten_unfold(1);
+    power_of_ten_unfold(0);
+    let _ = power_of_ten_add(16, 3);
+    proof_assert!(power_of_ten(19) == 10_000_000_000_000_000_000);
+    proof_assert!(0 <= magnitude);
+    proof_assert!(magnitude <= -i64::MIN@);
+    proof_assert!(-i64::MIN@ < power_of_ten(19));
+    proof_assert!(magnitude < power_of_ten(19));
+    decimal_len_bounded(magnitude, 19);
+    proof_assert!(decimal_values(magnitude).len() <= 19);
+    proof_assert!(signed_decimal_values(n).len() <= decimal_values(magnitude).len() + 1);
+    proof_assert!(signed_decimal_values(n).len() <= 20);
+}
+
 /// Decimal ASCII byte values, including a leading minus sign when needed.
 #[logic(open)]
 pub fn signed_decimal_values(n: Int) -> Seq<Int> {

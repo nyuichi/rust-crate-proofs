@@ -8,7 +8,8 @@ by 100, four-digit chunking, the specialized `u128` path, and output string
 construction. Under `cfg(creusot)`, the shared `Unsigned::fmt` bodies for
 `u8`, `u16`, `u32`, `u64`, and `u128` are translated and proved. The public
 formatting facade still comes from `verification.rs`. Phase 7 also proves the
-actual signed `i8` and `i128` buffer writers, including the `i128::MIN` path.
+actual signed `i8`, `i16`, `i32`, `i64`, and `i128` buffer writers, including
+the `i128::MIN` path.
 Raw `Buffer::format`, the borrowed-`str` conversion, and the other signed
 wrappers remain outside this runtime proof. The `u64` 16-digit chunk encoder called by
 the native `u128` formatter is translated and proved as a separate component.
@@ -39,7 +40,10 @@ buffer writer. Other signed wrappers and public adapters remain later phases.
 | Actual optimized `Unsigned::fmt` body for `u128` (Phase 6; strengthened in Phase 7) | yes | yes (147 goals; refinement 1) | exact `mulhi` high-half result contract | yes; default and all-features |
 | Actual signed `i128` buffer writer and `i128::MIN` output witness (Phase 7) | yes | yes (suffix 24; signed writer 4; MIN witness 4) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing; inherits `mulhi` contract | yes; default and all-features |
 | Actual signed `i8` buffer writer (Phase 7) | yes | yes (suffix 23; signed body 4 integrated / 16 targeted; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
-| Raw `Buffer::format`, runtime borrowed-`str` conversion, and signed wrappers other than i8/i128 | pending | no | no runtime memory proof; separate pre-existing recursive-model ASCII-to-`str` trust | pending |
+| Actual signed `i16` buffer writer (Phase 7) | yes | yes (suffix 27; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
+| Actual signed `i32` buffer writer (Phase 7) | yes | yes (suffix 27; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
+| Actual signed `i64` buffer writer (Phase 7) | yes | yes (suffix 22; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
+| Raw `Buffer::format`, runtime borrowed-`str` conversion, and pointer `usize`/`isize` adapters | pending | no | no runtime memory proof; separate pre-existing recursive-model ASCII-to-`str` trust | pending |
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
 pair equals Euclidean quotient/remainder by 100, the remainder is below 100,
@@ -285,8 +289,8 @@ postconditions. These models provide no decimal-formatting arithmetic facts.
 
 ### Standard-library model assumptions used by Phase 7
 
-The signed `i8` and `i128` buffer writers use three additional external models
-for native core operations. They are assumptions about those operations, not
+The signed `i8`, `i16`, `i32`, `i64`, and `i128` buffer writers use three
+additional external models for native core operations. They are assumptions about those operations, not
 trusted formatter functions:
 
 - Array `IndexMut` is modeled only for the two index forms used by the writer:
@@ -303,14 +307,14 @@ trusted formatter functions:
   as the input slice, including pointwise equality for each array element.
   This models the exact-length branch in pinned core at
   `library/core/src/array/mod.rs:312–333` and
-  `library/core/src/slice/mod.rs:862–878`; the i8 writer's slice has 3 slots
-  and the i128 writer's slice has 39.
+  `library/core/src/slice/mod.rs:862–878`; the unsigned suffix slices have 3,
+  5, 10, 20, and 39 slots for the i8, i16, i32, i64, and i128 writers.
 - Primitive `unsigned_abs` for `i8`, `i16`, `i32`, `i64`, and `i128` returns
   the mathematical absolute value, including each signed minimum. This matches
   the core integer macro implementation using `wrapping_abs` followed by the
   corresponding unsigned cast (`library/core/src/num/int_macros.rs:2397–2403`
-  and `:2421–2423`). The integrated signed-body proofs consume the `i8` and
-  `i128` instances.
+  and `:2421–2423`). The integrated signed-body proofs consume the `i8`,
+  `i16`, `i32`, `i64`, and `i128` instances.
 
 The standard-library bodies are not translated in this crate proof. Removal
 condition: verify those native implementations or replace the external models
@@ -484,8 +488,37 @@ all-features `--tests` passed all 11 integration tests. Logs are
 `/tmp/phase7-i128-native-default.log`, and
 `/tmp/phase7-i128-native-release-all-features-tests.log`.
 
-Raw `Buffer::format`, the borrowed-`str` conversion, and signed wrappers other
-than the `i8` and `i128` buffer writers remain pending.
+Raw `Buffer::format`, the borrowed-`str` conversion, and pointer `usize` and
+signed `isize` adapters remain pending.
+
+## Phase 7: signed `i16`, `i32`, and `i64` buffer writers
+
+The shared small-signed writer macro extracts the native `unsigned_abs`,
+capacity gap, actual unsigned formatter call, and optional sign write without
+changing that operation sequence. The i16 and i32 paths preserve one leading
+slot and call the actual u16/u32 formatter on the remaining 5/10 slots. The i64
+path calls the actual u64 formatter on its 20-slot buffer; the signed capacity
+lemma proves every i64 magnitude uses at most 19 digits, leaving one slot for
+the sign when needed, including `i64::MIN`. Each signed writer proves canonical
+bytes, initialization, returned offset, and the unwritten-prefix frame for all
+inputs. Their all-input harnesses consume those contracts.
+
+The current integrated default proof reported 210 libraries / 1,869 VCs and
+all-features reported 211 / 1,873, with zero failed goals. The i16 writer and
+harness discharged 4 and 3 goals, with a 27-goal suffix writer. The i32 writer
+and harness discharged 4 and 3 goals, with a 27-goal suffix writer. The i64
+writer and harness discharged 4 and 3 goals, with a 22-goal suffix writer; its
+typed decimal-capacity lemma discharged one goal. The result inherits the
+Phase 4 `mulhi` result contract only along the u128 formatting path.
+
+Native default tests passed 11 integration tests and 2 doctests; release
+all-features `--tests` passed all 11 integration tests on the exact patch
+source. The integrated proof log is
+`/tmp/phase7-small-signed-main-verify-all.log`; focused and native logs are in
+`/tmp/phase7-small-current-i8/`.
+
+Raw `Buffer::format`, the borrowed-`str` conversion, and pointer `usize` and
+signed `isize` adapters remain pending.
 
 ## Phase 7: signed `i8` buffer writer
 
@@ -505,8 +538,8 @@ initialization, length, and prefix contracts remain in place. A small proved
 bridge equates the byte and slot-state ghost views only on ranges whose slots
 are already known initialized.
 
-The integrated default run reported 200 proof libraries / 1,771 VCs; the
-all-features run reported 201 / 1,775, with zero failed goals. The actual
+At the i8 checkpoint, the integrated default run reported 200 proof libraries
+/ 1,771 VCs and all-features reported 201 / 1,775. The actual
 unsigned formatter bodies discharged 104 goals for u8, 113 for u16, 116 for
 u32, and 119 for u64; each has one trait-refinement goal. The i8 suffix writer
 discharged 23 goals, the signed writer 4 in the integrated run (16 in its
@@ -521,8 +554,8 @@ all-features `--tests` passed all 11 integration tests. Logs are
 `/tmp/phase7-i8-main-native-default.log`, and
 `/tmp/phase7-i8-main-native-release-all-features-tests.log`.
 
-Raw `Buffer::format`, the borrowed-`str` conversion, and signed wrappers other
-than the i8 and i128 buffer writers remain pending.
+Raw `Buffer::format`, the borrowed-`str` conversion, pointer adapters, and
+signed wrappers other than i8/i16/i32/i64/i128 remain pending.
 
 ### Historical pre-integration verification of the boundary note
 
