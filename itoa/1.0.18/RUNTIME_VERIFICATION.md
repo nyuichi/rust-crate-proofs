@@ -6,17 +6,17 @@ The production `runtime` module contains the optimized implementation: a
 `MaybeUninit` output buffer, the decimal-pair lookup table, reciprocal division
 by 100, four-digit chunking, the specialized `u128` path, and output string
 construction. Under `cfg(creusot)`, this phase compiles `runtime.rs` and proves
-the actual shared `Unsigned::fmt` bodies for `u16` and `u32`. The public
+the actual shared `Unsigned::fmt` bodies for `u16`, `u32`, and `u64`. The public
 formatting facade still comes from `verification.rs`; raw `Buffer::format`,
-signed adapters, the `u8` and `u64` unsigned bodies, and the `u128` path remain
-outside this phase.
+signed adapters, the `u8` unsigned body, and the `u128` path remain outside
+this phase.
 The recursive decimal model in `verification.rs` remains the formatter's
 specification, and all existing model proofs are retained.
 
 The first shared implementation boundary is `divmod100`: normal runtime callers
 use this body, and Creusot translates and proves the same executable body as an
-independent leaf. Phase 3 connects the actual `u16` and `u32` chunk and table
-writes to the decimal model; other widths and adapters remain later phases.
+independent leaf. Phase 3 connects the actual `u16`, `u32`, and `u64` chunk and
+table writes to the decimal model; other widths and adapters remain later phases.
 
 ## Proof status
 
@@ -24,10 +24,11 @@ writes to the decimal model; other widths and adapters remain later phases.
 | --- | --- | --- | --- | --- |
 | Existing recursive decimal model and public verification-facing API | yes | yes (per current provenance record) | pre-existing ASCII-slice-to-`str` leaf | baseline only; does not cover runtime code |
 | Shared optimized `divmod100` (Phase 1) | yes | yes | none added | yes; leaf only, callers remain pending |
-| `DECIMAL_PAIRS` representation and indexed lookup lemma | yes | yes (2 VCs) | none | data bridge via CTFE; formatter use proved for `u16` and `u32` |
+| `DECIMAL_PAIRS` representation and indexed lookup lemma | yes | yes (2 VCs) | none | data bridge via CTFE; formatter use proved for `u16`, `u32`, and `u64` |
 | Actual optimized `Unsigned::fmt` body for `u16` | yes | yes (104 goals in current integrated runs; 105 targeted no-cache) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u32` | yes | yes (102 goals in current integrated runs; 104 targeted no-cache) | no formatter boundary | yes; default and all-features |
-| Actual `Unsigned::fmt` bodies for `u8` and `u64` | pending | no | none | pending |
+| Actual optimized `Unsigned::fmt` body for `u64` | yes | yes (104 goals in current integrated runs; 105 targeted no-cache) | no formatter boundary | yes; default and all-features |
+| Actual `Unsigned::fmt` body for `u8` | pending | no | none | pending |
 | `u128` reciprocal division and chunk encoder | pending | no | none | pending |
 | Raw `Buffer::format`, signed adapters, and output-string integration | pending | no | no new boundary planned | pending |
 
@@ -66,7 +67,7 @@ returned bytes to those cells. The helper reads the array cells directly. The
 Creusot run proves both the constant setter and this indexed lookup contract (2
 VCs).
 
-## Phase 3: actual `u16` formatter body
+## Phase 3: actual unsigned formatter bodies
 
 The proof translates the production `impl_Unsigned!(u16)` body, including the
 four-digit loop, two-digit tail, final masked digit, lookup-table reads, and
@@ -108,15 +109,20 @@ goal. The fresh integrated default and all-features runs each reported 102 goals
 for `u32::fmt` and one refinement goal, and 104 goals for `u16::fmt` and one
 refinement goal.
 
+The `u64` formatter reuses the same shared macro body and dynamic-index
+two- and four-digit writers. Its targeted no-cache proof discharged 105 `fmt`
+goals and one trait-refinement goal. Fresh integrated default and all-features
+runs each discharged 104 goals for `u64::fmt` and one trait-refinement goal.
+
 The staged Creusot build enables the runtime module and compiles the actual
-`u16` and `u32` unsigned formatter bodies. It omits the raw public
+`u16`, `u32`, and `u64` unsigned formatter bodies. It omits the raw public
 `Buffer::format` and string conversion adapters, signed wrappers, and other
 unsigned bodies until their proof phases. The ordinary Rust cfg continues to
 compile the production runtime implementations.
 
 ### Standard-library model assumptions used by Phase 3
 
-Four narrow external models describe native standard-library operations used
+Five narrow external models describe native standard-library operations used
 by the formatter. These are assumptions about core APIs, not trusted local
 formatter functions:
 
@@ -133,6 +139,10 @@ formatter functions:
   prove for those constants.
 - `TryFrom<i32> for u32` establishes `Ok(value)` when the input is
   nonnegative; every nonnegative `i32` fits in `u32`. The same blanket
+  `TryInto` forwarding model and `Result::expect` contract apply to the
+  formatter's concrete constants.
+- `TryFrom<i32> for u64` establishes `Ok(value)` when the input is
+  nonnegative; every nonnegative `i32` fits in `u64`. The same blanket
   `TryInto` forwarding model and `Result::expect` contract apply to the
   formatter's concrete constants.
 - The `get_unchecked` standard model retains its in-bounds/result contract and
@@ -164,9 +174,9 @@ passes all 11 integration tests. `--tests` excludes doctests from that
 all-features release run. These normal and release commands also passed after
 Phase 2 extracted the table declaration; a normal `cargo check` passed the
 compile-time table equality assertion. The same commands were rerun after
-adding the actual `u32` formatter helpers and both passed: the normal run had
-11 integration tests and 2 doctests, and the release all-features run had 11
-integration tests. Setup also recorded that
+adding the actual `u32` and `u64` formatter helpers and both passed: the normal
+run had 11 integration tests and 2 doctests, and the release all-features run
+had 11 integration tests. Setup also recorded that
 `cargo test --all-features` fails at the `no-panic` linker step in debug, and
 `cargo test --all-features --release` passes integration tests but fails while
 linking doctests. The all-features proof configuration separately enables
@@ -224,3 +234,17 @@ The log is `/tmp/itoa-u32-verify-fresh-main.log`; each config reports
 one refinement. A separate no-cache targeted replay is recorded at
 `/tmp/itoa-u32-bodies-current.log`; it proves `u32::fmt` at 104 goals and its
 refinement at one, and rechecks `u16::fmt` at 105 plus one refinement.
+
+After adding the actual `u64` formatter body, a fresh `./verify-all.bash`
+completed with exit 0 for both configurations; the log is
+`/tmp/itoa-u64-verify-fresh-main.log`. Each run reports 104 goals for
+`u64::fmt` and one refinement goal, 102 for `u32::fmt` and one refinement
+goal, and 104 for `u16::fmt` and one refinement goal. The no-cache targeted
+U64 body/refinement replay is in `/tmp/itoa-u64-targeted-final.log` (105 and
+one goal). The U64 negative control changed the first four-digit chunk
+equality to inequality and failed at that assertion; the actual source was
+restored and re-proved. Native test logs are
+`/tmp/itoa-u64-tests-default.log` and
+`/tmp/itoa-u64-tests-allfeatures-release.log`; they contain 11 integration
+tests plus 2 doctests in the default run and 11 integration tests in the
+all-features release run.
