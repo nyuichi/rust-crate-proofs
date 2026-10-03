@@ -1,61 +1,59 @@
-# Phase 8 — itoa 1.0.18 runtime memory and ASCII ledger
+# itoa 1.0.18 runtime memory and ASCII ledger
 
-This ledger records the writer-state audit and the Phase 8 ASCII proof added on
-top of source revision `6d150d3`. The proof-only changes reuse the existing
-decimal models and do not change normal runtime behavior or the proof
-configuration. Repository guidance was read from `AGENTS.md` and
-`.agents/playbooks/verification.md`; the playbook requires clear separation of
-proved bodies, external contracts, and trusted assumptions.
+The detailed storage table and writer invariants below preserve the Phase 8
+audit as a historical checkpoint. The current source has since adopted the two
+Creusot-enabling changes in [RUNTIME_BOUNDARY_BRIDGE.md](RUNTIME_BOUNDARY_BRIDGE.md):
+Boundary A uses a safe prefix-to-array `.try_into().unwrap()`, and Boundary B
+isolates the initialized `MaybeUninit<u8>` slice reinterpretation in the narrow
+trusted `assume_init_slice` helper. This is an acknowledged source deviation
+from the preferred unchanged runtime path. The actual public method now passes
+the integrated proof on x86_64; descriptions below that say a boundary
+“remains outside” refer to the Phase 8 checkpoint unless marked current.
 
-## Boundary and current proof state
+## Current boundary and proof state
 
-`runtime.rs` contains the optimized production writers. Under `cfg(creusot)`,
-the numeric writer bodies and their contracts are translated and proved. The
-normal runtime entry and conversion are excluded: `Buffer::format` is guarded by
-`#[cfg(not(creusot))]` at `runtime.rs:128-136`, and
-`slice_buffer_to_str` by the same guard at `runtime.rs:346-354`. Creusot instead
-exports the separate initialized-byte model in `verification.rs:765-827`.
-Phase 7 establishes writer facts about `MaybeUninit` slots. Phase 8 proves that
-the existing unsigned, signed, and whole-integer decimal models contain only
-ASCII digits and an optional ASCII minus sign, then consumes that fact in the
-actual i8 and `i128::MIN` initialized-output witnesses. This does not establish
-safety of the public runtime casts or runtime borrowed-`str` construction.
+The actual public `Buffer::format` body is now compiled under `cfg(creusot)`.
+Each sealed writer takes a prefix of the physical 40-slot buffer and obtains
+its fixed-size typed array through safe slice-to-array `.try_into().unwrap()`.
+Focused proofs establish the concrete length equality and successful
+conversion for every concrete writer. `slice_buffer_to_str` uses
+`get_unchecked` for the proved suffix and calls the narrowly trusted
+`assume_init_slice` helper for the initialized `MaybeUninit<u8>`-to-`u8` view.
+Its caller proves the logical initialization precondition; the helper trusts
+only the representation conversion and its memory-validity relation. The
+integrated proof establishes ASCII/UTF-8, output equality, the public length
+guard, and the other runtime obligations.
 
-The separate arithmetic dependency on `u128_ext::mulhi` is now proved: the
-focused joint-helper proof derives the exact high-half result equation from
-`mulhi_core` (body 68/68, module 74/74) and proves the wrapper with no
-`#[trusted]` annotation (2/2 goals). This closes the arithmetic assumption used by the
-`u128` formatter and signed `i128` writer; it does not change or prove either
-raw-memory boundary described below. See the
-[current closure report](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/REPORT.md).
+This accepted approach changes the production source at A and B to make the
+real optimized route available to Creusot. It does not replace the optimized
+formatter with the recursive model. The integrated run reports 254 libraries
+/ 2,083 VCs by default and 269 / 2,145 with all features; see the
+[proof report](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/REPORT.md)
+and [full log](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/integrated/fullsuite.log.gz).
+See [RUNTIME_BOUNDARY_BRIDGE.md](RUNTIME_BOUNDARY_BRIDGE.md) for the exact
+trust contract, reason, and removal conditions. Current end-to-end proof status
+is **proved under the stated models and local Boundary B trust**; the helper's
+physical permission transfer remains unproved.
 
-There are two runtime raw-memory boundaries left in the path:
+The caller proves the helper's initialization precondition in Creusot's
+logical writer model. The raw slice reinterpretation and the physical memory
+permission transfer it requires remain trusted; Creusot does not prove those
+concrete permissions. The separate Verus audit is historical and supplies no
+correspondence theorem for the current helper.
 
-1. `Buffer::format` at `runtime.rs:129-132` obtains `self.bytes.as_mut_ptr()`,
-   casts it to `*mut I::Buffer`, and forms `&mut *buf_ptr`. This reinterprets
-   the first `N` bytes of the physical `[MaybeUninit<u8>; 40]` storage as the
-   sealed implementation's typed `[MaybeUninit<u8>; N]` array. For every
-   implementation `N <= 40`; the exact `N` values are tabulated below. The
-   runtime proof has not checked this raw cast/reference construction, its
-   typed extent, or its exclusivity/lifetime relation.
-2. `slice_buffer_to_str` at `runtime.rs:348-353` uses
-   `buf.get_unchecked(offset..)`, casts the resulting
-   `&[MaybeUninit<u8>]` through raw slice pointers to `&[u8]`, then calls
-   `str::from_utf8_unchecked`. The writers prove the logical requirements for
-   the returned suffix (bounds, initialization, canonical bytes), but the
-   raw slice reborrow/cast and `&str` construction are not in the runtime proof.
-   `Buffer::format` also contains `unreachable_unchecked` behind a length guard
-   (`runtime.rs:132-134`); the public method and guard are likewise outside the
-   Creusot runtime proof.
+The physical buffer remains 40 slots (`runtime.rs`, `Buffer::new`). Each
+formatter's existing contract describes a returned offset `o`, canonical
+initialized output in `[o,N)`, and preservation of the prefix `[0,o)`. For a
+fresh buffer that prefix is uninitialized; for a reused buffer it retains its
+prior `MaybeUninit` state. The string conversion selects only the suffix, not
+the physical tail `[N,40)`.
 
-The physical buffer is always 40 slots (`runtime.rs:93-96`, constructed fully
-uninitialized by `runtime.rs:120-123`). The selected typed view is only its
-first `N` slots. Each formatter proves the returned offset `o` satisfies
-`o + output_len = N`, proves every slot in `[o, N)` is initialized and has the
-canonical output byte, and frames the prefix `[0, o)`. For the fresh buffer
-from `Buffer::new`, that framed prefix stays uninitialized; for a reused buffer
-it stays in its prior `MaybeUninit` state and need not be uninitialized. The
-string helper slices only `[o, N)`, not the physical tail `[N, 40)`.
+The separate arithmetic dependency on `u128_ext::mulhi` is already proved: the
+focused joint-helper proof derives the exact high-half equation from
+`mulhi_core` (body 68/68, module 74/74), and the wrapper has no `#[trusted]`
+annotation (2/2 goals). That proof supports the optimized `u128` formatter and
+signed `i128` writer, but supplies no memory-conversion fact. See the
+[mulhi closure report](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/REPORT.md).
 
 ## Per-formatter storage and output suffix
 
@@ -144,6 +142,14 @@ bodies; they are assumptions about library operations, not locally trusted
 formatter functions. Their concrete preconditions are discharged in the
 existing actual bodies and adapter contracts.
 
+The ASCII-to-UTF-8 witness also uses the `CharExt::to_utf8` logic model in
+`creusot-libs/creusot-std/src/std/char.rs`. Its open body spells out Unicode
+UTF-8 encoding through `utf8_byte`; both `utf8_byte` and `to_utf8` passed a
+focused one-VC proof. This proves the mathematical encoding used by the ASCII
+lemma, not Rust core's runtime character encoder. The `from_utf8_unchecked`
+standard-library contract remains a separate assumption. Details are in
+[`stdlib-utf8/REPORT.md`](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/stdlib-utf8/REPORT.md).
+
 - `MaybeUninit::write` in `creusot-libs/creusot-std/src/std/mem.rs:68-84`
   requires the old state to be `None` or resolved and ensures the new state is
   exactly `Some(value)`. The production digit/pair/quad stores call this
@@ -210,20 +216,21 @@ that equation from the limb core. It does not support either raw-memory
 boundary above. The x86_64 pointer-sized writers are proved, while 16- and
 32-bit pointer-width fallbacks remain outside the runtime proof.
 
-## Separate recursive-model ASCII trust
+## Recursive-model string construction after Phase 8
 
-`verification.rs:922-931` contains a pre-existing trusted
-`decimal_slice_to_str(&[u8], start)`. Its precondition is only `start <= len`,
-and its postcondition says the returned `str` bytes equal the selected suffix.
-The caller has already proved the initialized-byte recursive model's canonical
-ASCII suffix. This function works on the verification model's initialized
-`[u8; 40]`, not the runtime `MaybeUninit` buffer. It does not establish that a
-`MaybeUninit<u8>` suffix may be reinterpreted as `[u8]`, that the native
-`get_unchecked` range is valid, or that the raw `&str` conversion in
-`runtime.rs:348-353` is safe. The trusted recursive-model leaf must remain a
-separate ledger item and cannot close either Phase 8 runtime boundary.
+The former trusted `verification::decimal_slice_to_str(&[u8], start)` leaf has
+been removed. Its current body requires `start <= len` and an ASCII bound for
+every selected byte, proves the ASCII-to-UTF-8 witness, and retains the same
+postcondition that the returned `str` bytes equal the selected suffix. Its
+caller establishes the stronger ASCII condition from the canonical decimal
+model. The body and caller precondition pass the integrated proof; this
+conversion is no longer part of the trusted set.
 
-## Phase 8 disposition
+This verification-model helper operates on initialized `[u8; 40]` storage and
+does not discharge the separate runtime `assume_init_slice` trusted view
+conversion from `[MaybeUninit<u8>]` to `[u8]`.
+
+## Phase 8 disposition (historical)
 
 The body proofs establish a strong handoff fact for every formatter:
 `[offset, N)` is initialized and equals the canonical decimal result;
@@ -237,7 +244,9 @@ default tests passed 11 integration tests and 2 doctests; release all-features
 `--tests` passed all 11 integration tests. Logs are
 `/tmp/phase8-runtime-verify-all.log`, `/tmp/phase8-native-default.log`, and
 `/tmp/phase8-native-release-all-features-tests.log`. No additional
-initialization fact is missing. The public 40-byte-to-typed-`N` mutable reference construction
-and the initialized-suffix-to-`&str` raw conversion remain unproved runtime
-memory boundaries. The earlier trusted string leaf applies only to the
-initialized recursive model and does not close either boundary.
+initialization fact was missing at that checkpoint. Its final statements that
+the public typed-prefix reference was unproved and that the recursive-model
+string leaf remained trusted are superseded by the accepted source changes
+described at the start of this ledger. The runtime initialized-slice view is
+now isolated in `assume_init_slice`; caller composition passes, while its
+physical memory-permission transfer remains within the local trusted boundary.

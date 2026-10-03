@@ -7,15 +7,23 @@ The production `runtime` module contains the optimized implementation: a
 by 100, four-digit chunking, the specialized `u128` path, and output string
 construction. Under `cfg(creusot)`, the shared `Unsigned::fmt` bodies for
 `u8`, `u16`, `u32`, `u64`, and `u128` are translated and proved. The public
-formatting facade still comes from `verification.rs`. Phase 7 also proves the
-actual signed `i8`, `i16`, `i32`, `i64`, and `i128` buffer writers, including
-the `i128::MIN` path. The 64-bit `usize` and `isize` buffer-writer adapters
-are also proved on the x86_64 target.
-Raw `Buffer::format`, the borrowed-`str` conversion, and the 16- and 32-bit
-pointer-width fallback adapters remain outside this runtime proof. The `u64` 16-digit chunk encoder called by
-the native `u128` formatter is translated and proved as a separate component.
-The recursive decimal model in `verification.rs` remains the formatter's
-specification, and all existing model proofs are retained.
+formatting facade runs the actual `runtime::Buffer::format` body, and the
+integrated default and all-features proofs pass on x86_64. The default run
+reported 254 proof libraries / 2,083 VCs; all-features reported 269 / 2,145.
+Boundary A uses a safe prefix-to-array `.try_into().unwrap()`, proved for all
+12 concrete writers. Boundary B isolates the initialized
+`MaybeUninit<u8>`-to-`u8` slice view in the sole new local trusted helper,
+`assume_init_slice`; its caller proves initialization, while the trust covers
+only the borrowed slice view, length, and bytes; physical permissions remain
+unproved. These are acknowledged source changes from the preferred unchanged upstream path; the
+exact contracts and removal conditions are in
+[RUNTIME_BOUNDARY_BRIDGE.md](RUNTIME_BOUNDARY_BRIDGE.md). Phase 7 also proves
+the actual signed `i8`, `i16`, `i32`, `i64`, and `i128` buffer writers,
+including the `i128::MIN` path. The 64-bit `usize` and `isize` buffer-writer
+adapters are proved on the x86_64 target; 16- and 32-bit pointer-width paths
+remain outside this proof. The `u64` 16-digit chunk encoder called by the
+native `u128` formatter is translated and proved separately. The recursive
+decimal model in `verification.rs` remains the formatter's specification.
 
 Phase 8 proves ASCII bounds directly from that canonical model and checks the
 result on actual i8 and `i128::MIN` writer witnesses. The writer memory audit,
@@ -26,15 +34,17 @@ The first shared implementation boundary is `divmod100`: normal runtime callers
 use this body, and Creusot translates and proves the same executable body as an
 independent leaf. Phase 3 connects the actual `u8`, `u16`, `u32`, and `u64`
 formatter bodies to the decimal model; Phase 7 proves the signed `i128`
-buffer writers and the x86_64 pointer-width byte-writer adapters. Raw public
-formatting and string-conversion adapters remain pending.
+buffer writers and the x86_64 pointer-width byte-writer adapters. The actual
+public formatting and string-conversion bodies are also proved in the integrated
+run. The only new local runtime trust is the narrow `assume_init_slice` view
+conversion; no formatting arithmetic or table-correctness fact is trusted.
 
 ## Proof status
 
 | Component | Contract reviewed | Body proved | Trusted | Integrated runtime proof |
 | --- | --- | --- | --- | --- |
-| Existing recursive decimal model and public verification-facing API | yes | yes (per current provenance record) | pre-existing ASCII-slice-to-`str` leaf | baseline only; does not cover runtime code |
-| Shared optimized `divmod100` (Phase 1) | yes | yes | none added | yes; leaf only, callers remain pending |
+| Existing recursive decimal model and retained model `Buffer` | yes | yes; string leaf has a proved ASCII precondition and ordinary body | none locally; standard/core models remain separately listed | yes; default and all-features |
+| Shared optimized `divmod100` (Phase 1) | yes | yes | none added | yes; leaf and formatter callers |
 | `DECIMAL_PAIRS` representation and indexed lookup lemma | yes | yes (2 VCs) | none | data bridge via CTFE; formatter use proved for `u8`, `u16`, `u32`, `u64`, and `u128` |
 | Actual optimized `Unsigned::fmt` body for `u16` | yes | yes (113 goals in current integrated runs) | no formatter boundary | yes; default and all-features |
 | Actual optimized `Unsigned::fmt` body for `u32` | yes | yes (116 goals in current integrated runs) | no formatter boundary | yes; default and all-features |
@@ -52,9 +62,49 @@ formatting and string-conversion adapters remain pending.
 | Actual signed `i64` buffer writer (Phase 7) | yes | yes (suffix 22; signed body 4; all-input harness 3) | no local formatter trust; exact core models for `unsigned_abs` and array borrowing | yes; default and all-features |
 | 64-bit `usize`/`isize` buffer-writer adapters (Phase 7) | yes | yes (each cast 1; each formatter adapter 3) | no local trust; delegates to proved `u64`/signed `i64` bodies | yes on x86_64; default and all-features |
 | Canonical decimal ASCII lemmas and actual writer witnesses (Phase 8) | yes | yes (three model lemmas: 1 goal each; i8 witness 3; `i128::MIN` witness 4) | none added | yes; default and all-features |
-| Raw `Buffer::format`, runtime borrowed-`str` conversion, and 16/32-bit pointer-width fallbacks | pending | no | no runtime memory proof; separate pre-existing recursive-model ASCII-to-`str` trust | pending |
+| Concrete `Sealed::write` bodies and trait refinements (all 12 x86_64 types) | yes | yes (focused: u8 20 goals; other 11 8 each; 12 refinements 1 each) | Boundary B helper only | yes; default and all-features |
+| Actual public `Buffer::format` and runtime string conversion | yes | yes (`Buffer::format`: 3/5 VCs; slice conversion: 4/6, default/all-features) | one narrow local trust: `assume_init_slice` for initialized `MaybeUninit<u8>` slice view only | yes; default and all-features |
+| 16/32-bit pointer-width fallbacks | not covered on x86_64 | no claim | none added | pending |
 
-## Current mulhi closure
+The integrated default and all-features `verify-all.bash` runs both exited 0.
+Default reported 254 proof libraries / 2,083 VCs; all-features reported 269 /
+2,145. The actual `Buffer::format` body discharged 3 VCs by default and 5 with
+all features; initialized-suffix string conversion discharged 4 and 6. The
+focused proofs discharged all 12 actual `Sealed::write` bodies and their 12
+refinements, including the safe prefix conversions: the `u8` body used 20 VCs,
+each other body used 8, and each refinement used 1 (120 VCs total). The focused
+ASCII proof discharged `ascii_byte_map_to_utf8` in 30 VCs and
+`ascii_bytes_are_utf8` in 3 VCs, with no trusted helper. The full run is
+[`integrated/fullsuite.log.gz`](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/integrated/fullsuite.log.gz);
+the result and focused evidence are summarized in the
+[`runtime boundary report`](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/REPORT.md).
+
+## Accepted runtime boundary changes
+
+The source change was explicitly accepted to let Creusot analyze the actual
+public method. It changes only the two earlier translation boundaries:
+
+- **A:** the concrete sealed writer receives the existing 40-slot physical
+  buffer, takes the prefix of its `MAX_STR_LEN`, and converts it safely to the
+  fixed associated array using `.try_into().unwrap()`. The proof shows the
+  conversion length matches for every sealed type. No unsafe or trusted
+  contract is added here.
+- **B:** `assume_init_slice` contains the raw slice reinterpretation. Its
+  precondition is that every input slot is initialized; its postconditions
+  preserve length and each logical byte. It assumes no ASCII or decimal fact.
+  Creusot does not currently model this initialized-slice view conversion, so
+  this operation alone carries local `#[trusted]`. The caller proves the
+  logical initialization precondition; the physical permission transfer remains
+  unproved.
+
+The verification model's old trusted `decimal_slice_to_str` leaf was removed.
+Its replacement requires a proved ASCII suffix and retains the same byte
+postcondition. Its ordinary body and caller precondition pass in the current
+integrated run; there is no additional local trusted string-conversion leaf.
+The exact rationale and removal conditions are recorded in
+[RUNTIME_BOUNDARY_BRIDGE.md](RUNTIME_BOUNDARY_BRIDGE.md).
+
+## Proved `mulhi` closure
 
 The joint-helper proof now closes the exact result contract from the actual
 `mulhi_core` limb implementation: `result@ == x@ * y@ / 128.pow2()`. The
@@ -67,13 +117,15 @@ the previous accepted arithmetic assumption without changing the executable
 runtime body. The evidence and replay details are in the
 [`Power_sum composition report`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/REPORT.md).
 
-Native checks on the same proof-only source candidate passed 11 integration
-tests plus 2 doctests with `cargo test --offline --locked`, and 11 integration
-tests with `cargo test --offline --locked --release --all-features --tests`.
-The integrated `run-verify-all.sh` rerun after closure passed in both
-configurations: default and all-features each reported 224 proof libraries /
-1,917 VCs, with no failed goals. The earlier Phase 12 totals below are
-explicitly pre-closure historical results. The integrated proof log is
+The pre-bridge source candidate passed 11 integration tests plus 2 doctests
+with `cargo test --offline --locked`, and 11 integration tests with
+`cargo test --offline --locked --release --all-features --tests`. Its
+post-closure `run-verify-all.sh` runs reported 224 proof libraries / 1,917
+VCs in both configurations, with no failed goals. These are historical
+pre-bridge results and do not include the current public runtime method or the
+new reused-buffer regression test. Current integrated proof and native test
+results are recorded in [Current end-to-end status](#current-end-to-end-status).
+The historical proof log is
 [`fullsuite.log.gz`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/fullsuite.log.gz).
 
 Phase 1 proves only the leaf contract: for `value < 10_000`, the returned
@@ -177,7 +229,7 @@ continues to compile the production runtime implementations.
 
 The Phase 4 candidate reports and failed attempts below are historical records
 from before the joint-helper closure. Their open-goal and accepted-trust
-conclusions describe those checkpoints only; see [Current mulhi closure](#current-mulhi-closure)
+conclusions describe those checkpoints only; see [Proved `mulhi` closure](#proved-mulhi-closure)
 for the current result.
 
 At the original Phase 4 checkpoint, the remaining boundary was the actual
@@ -475,6 +527,25 @@ The crate's established recursive-model obligations also remained green.
 
 ## Runtime test checks
 
+The earlier results below are phase-scoped historical checks. The current
+primary workspace passes 12 integration tests and 2 doctests with default
+features. The release all-features run also passes 12 integration tests and 2
+doctests with fat LTO, one codegen unit, and matching `RUSTDOCFLAGS`. The exact
+commands and logs are in the [native runtime check record](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/native/README.md).
+
+The no-panic investigation found two separate instrumentation issues. First,
+the private `write_decimal_digit`, `write_decimal_pair`, and
+`write_decimal_quad` helpers had no-panic attributes despite requiring caller-
+supplied bounds or value ranges, so their contracts cannot promise unconditional
+panic freedom. The accepted correction removes only those
+three checker attributes; the public `Buffer::format` and sealed writer
+attributes remain. This changes metadata only: executable bodies and Creusot
+contracts are unchanged, and no additional trusted fact is introduced.
+Second, rustdoc's generated doctest binaries need the release optimization
+flags explicitly in `RUSTDOCFLAGS`; with those flags, both release
+all-features doctests pass. The older test results below predate the added
+reused-buffer regression test and the helper-attribute correction.
+
 After extracting the shared leaf, `cargo test --manifest-path Cargo.toml`
 passes all 11 integration tests and 2 doctests. The release test command
 `cargo test --manifest-path Cargo.toml --tests --all-features --release`
@@ -489,6 +560,27 @@ run had 11 integration tests. Setup also recorded that
 `cargo test --all-features --release` passes integration tests but fails while
 linking doctests. The all-features proof configuration separately enables
 `no-panic`; it does not run the upstream test suite.
+
+A diagnostic copy of original upstream HEAD passed 24 tests across 14 test
+targets after removing only the three private-helper `no_panic` attributes.
+A mirrored current-source candidate passed 12 tests with fat LTO and one
+codegen unit; the primary-workspace result is recorded above. The
+baseline diagnostic run used this command:
+
+```sh
+env PATH=/tmp/cargo-home/bin:$PATH \
+  RUSTUP_HOME=/tmp/rustup-home \
+  RUSTUP_TOOLCHAIN=nightly-2026-02-27 \
+  CARGO_HOME=/tmp/cargo-home \
+  CARGO_NET_OFFLINE=true \
+  CARGO_PROFILE_RELEASE_LTO=fat \
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 \
+  CARGO_TARGET_DIR=/workspace/proof-tools/targets/itoa-boundary-baseline-native \
+  cargo test --offline --locked --release --all-features --tests \
+    --manifest-path /tmp/itoa-boundary-baseline/itoa/1.0.18/Cargo.toml
+```
+
+The mirrored run is separate from the primary-workspace result above.
 
 ## Baseline and run record
 
@@ -726,7 +818,13 @@ target. The normal `Sealed::write` path still converts the initialized byte
 suffix into `&str`, and public `Buffer::format` still crosses raw buffer
 memory; neither memory boundary is included here.
 
-## Phase 8: initialized ASCII suffixes and runtime memory boundaries
+## Phase 8 checkpoint: initialized ASCII suffixes and earlier runtime boundaries
+
+This section records the Phase 8 state before the accepted Boundary A/B source
+changes. Its statements that the actual public method is excluded and the
+verification model has a trusted string leaf are historical; current source
+status is described in [Accepted runtime boundary changes](#accepted-runtime-boundary-changes)
+and [Current end-to-end status](#current-end-to-end-status).
 
 The new `decimal_values_ascii`, `signed_decimal_values_ascii`, and
 `integer_decimal_values_ascii` lemmas reuse the existing canonical decimal
@@ -762,51 +860,82 @@ are recorded in [CROSS_TOOL_BOUNDARIES.md](CROSS_TOOL_BOUNDARIES.md); the
 standalone post-conversion Verus lemma is
 [verus/ascii_bytes_to_str.rs](verus/ascii_bytes_to_str.rs).
 
-## Phase 12: final end-to-end claim
+## Current end-to-end status
 
-The current checkout still does **not prove** the stated property for the
-actual public `Buffer::format` method. On x86_64, Creusot proves the optimized
-unsigned and signed numeric writer bodies against `integer_decimal_values`,
-including initialized, ASCII output suffixes and their arithmetic/bounds
-obligations. The `u128` formatter and signed `i128` writer now consume the exact
-high-half equation proved from `mulhi_core` (68/68 focused goals; see [Current
-mulhi closure](#current-mulhi-closure)); that arithmetic result is no longer an
-accepted assumption. These writer-body statements concern code shared with
-normal builds; the Creusot public facade remains the separate recursive model.
+The current x86_64 integrated Creusot run passes in both configurations.
+Default reported 254 proof libraries / 2,083 VCs; all-features reported 269 /
+2,145. The actual `Buffer::format` body discharged 3 VCs by default and 5 with
+all features. The initialized-suffix string conversion discharged 4 and 6.
+The archived full output is
+[`integrated/fullsuite.log.gz`](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/integrated/fullsuite.log.gz),
+and the aggregate results are in the
+[`runtime boundary report`](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/REPORT.md).
 
-The real `Buffer::format` body, its typed-prefix reference formation, and its
-`unreachable_unchecked` length guard are excluded under `cfg(creusot)`. The
-actual `slice_buffer_to_str` raw reborrow and `&str` construction are also
-excluded. Creusot rejects the two raw dereferences during translation in
-source-equivalent probes. Verus proves only the post-conversion ASCII
-`&[u8]`-to-`&str` step, using its standard-library specification; it has not
-proved either raw-memory conversion. No cross-tool correspondence contract is
-installed. The 16- and 32-bit `usize`/`isize` paths are outside this x86_64
-proof scope.
+All 12 concrete x86_64 writers (five unsigned, five signed, and `usize`/`isize`)
+and all 12 refinements pass. In the focused run, `u8::write` used 20 VCs, each
+other writer used 8, and each refinement used 1, for 120 VCs total. The
+all-features instrumentation discharges 24 VCs for the `u8` writer and 10 for
+each other writer. Each concrete `Sealed::write` implementation states its own
+exact decimal-byte and maximum-length postconditions. The `u128` formatter and
+signed `i128` writer consume the exact high-half equation proved from
+`mulhi_core` (68/68 focused goals; see [Proved `mulhi` closure](#proved-mulhi-closure)).
+The focused writer log is
+[`writers/focused-all/focused-proof.log`](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/writers/focused-all/focused-proof.log).
+The ASCII proof discharged `ascii_byte_map_to_utf8` in 30 VCs and
+`ascii_bytes_are_utf8` in 3, with no trusted helper; its log is
+[`ascii/focused-final/focused-proof.log`](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/ascii/focused-final/focused-proof.log).
 
-The earlier Phase 12 full-suite result predates the `mulhi` closure: default
-and all-features each reported 218 proof libraries / 1,884 VCs in that run. The
-latest integrated rerun after closure passed in both configurations: default
-and all-features each reported 224 proof libraries / 1,917 VCs, with no failed
-goals. Native checks on the same proof-only source candidate passed
-`cargo test --offline --locked` with 11 integration tests and 2 doctests, and
-release
-`cargo test --offline --locked --release --all-features --tests` passed all 11
-integration tests. The checked-in partial Verus artifact replayed with 1
-verified / 0 errors. The historical proof/native/Verus logs are
+Boundary A uses the safe `.try_into().unwrap()` prefix conversion; the focused
+concrete writer proofs establish success for all 12 sealed types. Boundary B
+is isolated in `assume_init_slice`: its caller proves the initialization
+precondition in the logical writer model, and its local trust describes only
+the borrowed slice view, length, and bytes. The physical permission transfer
+remains unproved. No formatting arithmetic or table-correctness fact is
+trusted. The recursive model's former trusted `decimal_slice_to_str` leaf has
+been removed; its ordinary replacement requires a proved ASCII suffix and
+retains the output-byte postcondition. The formatter uses the proved
+`CharExt::to_utf8` logic model, discharged in 2 VCs; that proves the model, not
+Rust core's runtime character encoder. Creusot's standard/core operation models
+remain assumptions. The `cfg(not(creusot))` sealed-trait declaration, the
+conditional `no_panic` instrumentation, and the cfg-specific table
+representations are metadata/model accommodations; the compile-time table
+equality check ties the representations, and no executable formatter body is
+excluded from the proof target. The 16- and 32-bit `usize`/`isize` paths remain
+outside this x86_64 proof scope.
+
+Native checks also pass: the default debug command and the optimized
+all-features command each passed 12 integration tests and 2 doctests. The latter
+uses fat LTO, one codegen unit, and explicit matching `RUSTDOCFLAGS`; exact
+commands and logs are in the
+[`native runtime check record`](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/native/README.md).
+
+The pre-bridge Phase 12 runs reported 218 libraries / 1,884 VCs before the
+`mulhi` closure and 224 / 1,917 afterward, with no failed goals. Those runs
+proved the then-current writer and arithmetic components but excluded the
+public runtime method; they are not current integrated totals. The partial
+Verus artifact reported 1 verified / 0 errors for an already-formed ASCII
+`&[u8]`; its result does not cover the raw slice conversion and relies on
+vstd's assumed `from_utf8_unchecked` specification. Historical logs are
 `/tmp/itoa-phase12-verify-all.log`, `/tmp/itoa-phase12-native-default.log`,
 `/tmp/itoa-phase12-native-release-tests.log`, and
-`/tmp/itoa-phase12-verus-ascii.log`; the current native run logs are recorded
-with the joint-helper proof evidence. None of these checks includes the
-excluded raw runtime public method.
+`/tmp/itoa-phase12-verus-ascii.log`.
 
-The separate assumption ledger no longer includes the `mulhi` equation. It
-consists of the pre-existing recursive-model string leaf, narrow Creusot
-standard/core operation models, and the Verus `from_utf8_unchecked`
-specification consumed by the partial proof. No decimal-correctness or raw
-memory contract has been trusted across tools. The exact A–E classification,
-candidate memory contracts, removal conditions, and Kani/Miri feasibility
-assessment are in [CROSS_TOOL_BOUNDARIES.md](CROSS_TOOL_BOUNDARIES.md).
+The current `CharExt::to_utf8` logic model is an open Unicode UTF-8 encoding
+definition built from `utf8_byte`; its focused proof discharged 2 logic VCs.
+This proves the mathematical model consumed by the ASCII witness, not Rust
+core's runtime character encoder. The focused report is
+[`stdlib-utf8/REPORT.md`](../../tools/creusot-toolpatch/proofs/runtime-boundary-bridge/stdlib-utf8/REPORT.md).
+
+The pre-bridge assumption ledger no longer includes the `mulhi` equation. For
+the current source, the one intended local trust is `assume_init_slice`; narrow
+Creusot standard/core operation models remain separate, and the Verus
+`from_utf8_unchecked` specification applies only to its separate partial
+artifact. Standard-library operation models used in the current Creusot model
+remain assumptions. The recursive model's former trusted leaf is removed. No
+decimal-correctness or cross-tool memory contract is trusted. The current A/B
+contracts, historical raw-pointer probes, and Kani/Miri feasibility assessment
+are in [CROSS_TOOL_BOUNDARIES.md](CROSS_TOOL_BOUNDARIES.md). Aggregate proof and
+native test results are recorded above and in the linked reports.
 
 ### Historical pre-integration verification of the boundary note
 

@@ -42,11 +42,48 @@ pub trait CharExt {
 }
 
 impl CharExt for char {
-    #[trusted]
-    #[logic(opaque)]
+    #[logic(open)]
     #[ensures(1 <= result.len() && result.len() <= 4)]
     fn to_utf8(self) -> Seq<u8> {
-        dead
+        let code = pearlite! { self@ };
+        pearlite! {
+            if code < 0x80 {
+                Seq::singleton(utf8_byte(code))
+            } else if code < 0x800 {
+                Seq::singleton(utf8_byte(0xC0 + code / 64))
+                    .push_back(utf8_byte(0x80 + code % 64))
+            } else if code < 0x10000 {
+                Seq::singleton(utf8_byte(0xE0 + code / 4096))
+                    .push_back(utf8_byte(0x80 + (code / 64) % 64))
+                    .push_back(utf8_byte(0x80 + code % 64))
+            } else {
+                Seq::singleton(utf8_byte(0xF0 + code / 262144))
+                    .push_back(utf8_byte(0x80 + (code / 4096) % 64))
+                    .push_back(utf8_byte(0x80 + (code / 64) % 64))
+                    .push_back(utf8_byte(0x80 + code % 64))
+            }
+        }
+    }
+}
+
+/// Construct a byte from its mathematical value by successor steps.
+///
+/// Logic `Int` values cannot be cast back to machine integers. This recursive
+/// constructor keeps that conversion explicit and proves the result's value.
+#[logic]
+#[requires(0 <= value && value <= 255)]
+#[ensures(result@ == value)]
+#[variant(value)]
+#[doc(hidden)]
+pub fn utf8_byte(value: Int) -> u8 {
+    if value == 0 {
+        0u8
+    } else {
+        proof_assert!(0 <= value - 1 && value - 1 <= 255);
+        let previous = utf8_byte(value - 1);
+        proof_assert!(previous@ == value - 1);
+        proof_assert!(previous@ < 255);
+        pearlite! { previous + 1u8 }
     }
 }
 

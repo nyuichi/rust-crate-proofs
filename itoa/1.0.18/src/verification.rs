@@ -4,7 +4,7 @@ use creusot_std::std::option::OptionExt;
 
 #[allow(unused_imports)]
 use creusot_std::prelude::{
-    bitwise_proof, check, ensures, logic, pearlite, proof_assert, requires, snapshot, trusted,
+    bitwise_proof, check, ensures, logic, pearlite, proof_assert, requires, snapshot,
     variant, Int, Seq, View,
 };
 
@@ -816,6 +816,19 @@ impl Buffer {
             proof_assert!(self.bytes@.subsequence(start@, 40).map(|byte: u8| byte@)
                 == signed_decimal_values(integer_value(i)));
         }
+        proof_assert!(self.bytes@.subsequence(start@, 40).map(|byte: u8| byte@)
+            == integer_decimal_values(i));
+        proof_assert!(self.bytes@.subsequence(start@, 40).map(|byte: u8| byte@).len()
+            == 40 - start@);
+        proof_assert!(self.bytes@.subsequence(start@, 40).map(|byte: u8| byte@).len()
+            == integer_decimal_values(i).len());
+        proof_assert! {
+            let _ = integer_decimal_values_ascii(i);
+            forall<j: Int> start@ <= j && j < 40 ==>
+                self.bytes@[j]@ == integer_decimal_values(i)[j - start@]
+        };
+        proof_assert!(forall<j: Int> start@ <= j && j < 40 ==>
+            self.bytes@[j]@ < 128);
         // SAFETY: write_unsigned emits only ASCII digits, and the optional byte
         // immediately before them is the ASCII minus sign.
         let output = unsafe { decimal_slice_to_str(&self.bytes, start) };
@@ -919,14 +932,18 @@ fn write_unsigned(n: u128, buf: &mut [u8], end: usize) -> usize {
     result
 }
 
-/// UTF-8/reference construction boundary. The caller proves the complete byte
-/// suffix; this leaf only exposes the corresponding `str` byte sequence.
-// TODO: remove `trusted` once Creusot can derive ASCII UTF-8 validity and model
-// the slice-to-str reference conversion without raw representation casts.
-#[trusted]
+/// Construct a `str` view from a model buffer suffix after proving ASCII.
 #[requires(start@ <= buf@.len())]
+#[requires(forall<i: Int> start@ <= i && i < buf@.len() ==> buf@[i]@ < 128)]
 #[ensures(result@.to_bytes() == buf@.subsequence(start@, buf@.len()))]
 unsafe fn decimal_slice_to_str(buf: &[u8], start: usize) -> &str {
+    proof_assert! {
+        let _ = crate::ascii::ascii_bytes_are_utf8(
+            buf@.subsequence(start@, buf@.len()),
+        );
+        exists<characters: Seq<char>>
+            characters.to_bytes() == buf@.subsequence(start@, buf@.len())
+    };
     unsafe { str::from_utf8_unchecked(&buf[start..]) }
 }
 #[logic(open)]

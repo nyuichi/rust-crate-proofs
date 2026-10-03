@@ -29,15 +29,16 @@ mod decimal_pairs;
 mod runtime;
 mod enc_16lsd;
 #[cfg(creusot)]
+mod ascii;
+#[cfg(creusot)]
 mod math;
 #[cfg(creusot)]
 mod array_models;
 #[cfg(creusot)]
 mod signed_primitive_models;
-#[cfg(not(creusot))]
 pub use runtime::{Buffer, Integer};
 
 #[cfg(creusot)]
 mod verification;
 #[cfg(creusot)]
-pub use verification::{decimal_values, integer_decimal_values, Buffer, Integer};
+pub use verification::{decimal_values, integer_decimal_values};

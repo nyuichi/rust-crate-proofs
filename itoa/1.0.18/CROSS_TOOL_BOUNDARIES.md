@@ -1,17 +1,54 @@
-# itoa 1.0.18: runtime memory-boundary status and candidate contracts
+# itoa 1.0.18: runtime memory-boundary status and historical audits
 
-This source-grounded note records the current evidence and candidate contracts for the production `Buffer::format` path and its initialized-suffix string conversion on x86_64. The contract sketches are proof targets, not accepted Creusot/Verus syntax or established results. They are not installed trusted specifications. The 16- and 32-bit `usize`/`isize` fallback adapters are out of scope.
+The current source takes the actual optimized `Buffer::format` path under
+`cfg(creusot)`. The integrated proof passes in default and all-features
+configurations (254 libraries / 2,083 VCs and 269 / 2,145, respectively).
+The two source changes
+explicitly accepted for that path are recorded in
+[RUNTIME_BOUNDARY_BRIDGE.md](RUNTIME_BOUNDARY_BRIDGE.md): Boundary A uses a
+safe typed-prefix `.try_into().unwrap()`; Boundary B isolates the initialized
+`MaybeUninit<u8>`-to-`u8` slice view in one narrow local trusted helper. These
+changes are acknowledged departures from the preferred unchanged source. The
+caller proves the helper's initialization precondition in the Creusot writer
+model; the trusted helper covers the representation conversion and
+byte/length relation only. It assumes no ASCII or decimal fact. There is no
+Verus proof or cross-tool correspondence claim for it. The 16- and 32-bit
+`usize`/`isize` fallback adapters remain
+outside the current x86_64 scope.
 
-## Existing evidence and exact status
+## Current evidence and exact status
 
-Phase 8 proves the numeric writers' initialized suffixes and ASCII facts. For the writer's returned offset `o` and selected associated buffer width `N`, every slot in `[o,N)` is initialized and has the modeled decimal byte; `[0,o)` retains its old `MaybeUninit` state. The physical `Buffer.bytes` array has 40 slots, and every sealed `I::Buffer` is `[MaybeUninit<u8>; N]` with `N <= 40` (the largest is 40 for `i128`). On x86_64, the proved pointer-sized writer adapters dispatch through `u64`/`i64`; this does not establish the `Buffer::format` cast or borrowed `str` conversion. See `RUNTIME_MEMORY_LEDGER.md` and `RUNTIME_VERIFICATION.md`.
+The existing numeric-writer contracts establish initialized canonical output
+in `[o,N)` and preserve the `MaybeUninit` state of `[0,o)`. The physical
+`Buffer.bytes` array has 40 slots; each sealed typed buffer length `N` is at
+most 40. The accepted Boundary A source edit replaces the old raw typed-prefix
+cast with a safe fixed-array conversion. Focused body/refinement proofs have
+established successful conversion for all 12 concrete x86_64 writers; the
+original raw A cast remains unproved.
 
-The two concrete runtime operations are:
+The accepted Boundary B edit keeps the raw slice reinterpretation inside
+`assume_init_slice`. Its contract requires all selected slots to be initialized
+and preserves slice length and each byte value. The caller proves the logical
+initialization precondition; the helper trusts only the representation
+conversion and its memory-validity relation. The integrated proof establishes
+the suffix bounds, initialization, ASCII/UTF-8, exact returned bytes, and the
+public `unreachable_unchecked` length guard. The physical memory-permission
+transfer for the raw view remains trusted.
 
-1. `runtime.rs:129-132`: `self.bytes.as_mut_ptr().cast::<I::Buffer>()`, followed by `&mut *buf_ptr`. It intends to view exactly the first `N` slots of the physical 40-slot allocation as the sealed typed buffer.
-2. `runtime.rs:349-354`: `get_unchecked(offset..)`, followed by a raw cast from `&[MaybeUninit<u8>]` to `&[u8]`, then `str::from_utf8_unchecked`. The selected range is `[offset,N)`, not `[N,40)`.
+The caller proves the initialization precondition in Creusot's logical writer
+model. The physical permission transfer and soundness of the helper's raw byte
+view remain inside the trusted contract; Creusot does not prove those concrete
+permissions. The old Verus audit is separate historical evidence and provides
+no correspondence proof for the current Creusot assumption.
 
-**Creusot status:** the Phase 9 concrete i8 cast probe and Phase 10 slice probe both stop in translation at the actual raw-pointer dereference, before Why3 and before any VCs. Phase 9 reports rejection at `&mut *buf_ptr`; Phase 10 accepted its contract/model expression and translated `get_unchecked`, then rejected `&*(written as *const [MaybeUninit<u8>] as *const [u8])`. Neither probe installed a trusted contract or changed the shared repository. Phase 10 did not reach the ASCII-to-UTF-8 obligation.
+The Phase 9/10 diagnostics and Phase 11 Verus API audit below are historical
+investigations of the original raw expressions. They explain why A and B were
+changed; they do not describe the current source path.
+
+**Historical Creusot probe status:** the Phase 9 concrete i8 cast probe and
+Phase 10 slice probe stopped during translation at raw-pointer dereferences,
+before Why3 and before VCs. Neither probe installed a trusted contract or
+changed the source tree. Phase 10 did not reach the ASCII-to-UTF-8 obligation.
 
 The exact translator diagnostics and rejected source expressions were:
 
@@ -32,29 +69,26 @@ error: Dereference of a raw pointer is forbidden in creusot:
 
 These line numbers belong to the two isolated scratch probes, not the checked-in `runtime.rs`; both diagnostics occurred during translation, before Why3 or VC generation.
 
-**Verus status:** the Phase 11 cast audit is **model-blocked; no raw-memory proof completed**. The pinned vstd models pointer casts as preserving address/provenance, but does not provide a way to derive a typed-prefix permission for this borrowed stack array. `PointsToRaw::into_typed` requires an exact aligned range and returns an `Uninit` token; `ptr_mut_ref` requires an initialized token. There is no vstd bridge from `&mut self.bytes`/`as_mut_ptr()` to the needed permission, and no borrowed `MaybeUninit` prefix-reborrow helper. No Verus solver was started for that blocked attempt. The Phase 11 Verus slice probe proves an ASCII-to-UTF-8/string lemma for an already-formed `&[u8]` (1 verified, 0 errors); it does not prove the preceding `MaybeUninit<u8>`-to-`u8` slice conversion.
+**Historical Verus status:** the Phase 11 cast audit was model-blocked; no raw-memory proof completed. The pinned vstd models did not provide the typed-prefix permission for the borrowed stack array. The Phase 11 slice probe proved an ASCII-to-UTF-8/string lemma for an already-formed `&[u8]` (1 verified, 0 errors), but did not prove the preceding `MaybeUninit<u8>`-to-`u8` conversion.
 
-**Cross-tool status:** no trusted Creusot raw-memory contract is installed; no cross-tool correspondence assertion has been made. Creusot writer facts cannot be imported as Verus premises, and this document makes no decimal-correctness claim across tools. Any later correspondence statement requires human review after Verus proves the matching source operations and memory effects.
+**Current cross-tool status:** the trusted Creusot helper is documented as a local assumption in the source and in `RUNTIME_BOUNDARY_BRIDGE.md`. No Verus proof or cross-tool correspondence assertion is made. Arithmetic and decimal facts are proved as Creusot obligations; none is
+imported as a Verus premise.
 
 ## Phase 12 status summary
 
 | Area | Current evidence and status |
 | --- | --- |
-| A. Creusot functional decimal model | The canonical decimal model and its proof remain established. Actual unsigned formatter bodies and signed buffer writers are proved. The `u128` formatter and signed `i128` writer consume the exact `mulhi` result equation, now proved from `mulhi_core` by the focused joint-helper closure. These functional facts do not include the raw public buffer/string path. |
-| B. Runtime operation coverage | Arithmetic bodies, table reads, digit/chunk stores, initialized suffixes, and ASCII writer witnesses are checked by Creusot as documented in `RUNTIME_VERIFICATION.md`. The actual public `Buffer::format` body is excluded from Creusot. Its physical cast, runtime `MaybeUninit` suffix-to-`&[u8]` conversion, unchecked `&str` construction, and `unreachable_unchecked` branch remain unproved. The x86_64 scope does not cover 16/32-bit pointer-width fallbacks. |
-| C. Verus evidence | The standalone proof in [`verus/ascii_bytes_to_str.rs`](verus/ascii_bytes_to_str.rs) proves ASCII `&[u8]` → `valid_utf8` → `&str` for an already-formed byte slice (1 verified, 0 errors), using vstd's assumed `from_utf8_unchecked` specification. Verus has not proved the borrowed array cast or the raw `MaybeUninit<u8>`-to-`u8` slice conversion. |
-| D. Cross-tool correspondence | None is installed or asserted. No decimal correctness theorem crosses from Creusot to Verus. Any future correspondence requires human review after Verus proves the matching source operations and memory effects. |
-| E. Separate assumptions | The pre-existing recursive-model ASCII-suffix-to-`str` leaf, narrow standard/core models, and vstd's assumed `str::from_utf8_unchecked` specification remain separate assumptions. The `mulhi` result equation is proved, not assumed. The vstd specification starts with an already-valid `&[u8]`; none supplies the physical buffer cast or the `MaybeUninit<u8>`-to-`u8` slice reborrow. |
+| A. Creusot functional decimal model | The existing canonical decimal model remains the specification. The strengthened ASCII precondition on the former recursive-model string leaf and its ordinary body pass in the integrated proof. The actual unsigned/signed writer and `mulhi` body results are recorded in `RUNTIME_VERIFICATION.md`. |
+| B. Runtime operation coverage | The actual public `Buffer::format` path is compiled under `cfg(creusot)`. The integrated proof establishes safe prefix conversions, all writer contracts, suffix bounds/initialization/ASCII facts, returned string bytes, and guard unreachability. Boundary B's byte-slice representation view alone is trusted under the exact contract in `RUNTIME_BOUNDARY_BRIDGE.md`. |
+| C. Verus evidence | The standalone [`verus/ascii_bytes_to_str.rs`](verus/ascii_bytes_to_str.rs) artifact proves an ASCII fact for an already-formed byte slice using vstd's assumed `from_utf8_unchecked` specification (historical partial result). It does not prove the trusted helper's raw conversion. |
+| D. Cross-tool correspondence | None is asserted. No decimal correctness fact crosses from Creusot to Verus. |
+| E. Separate assumptions | Current local runtime trust: `assume_init_slice` only. Narrow Creusot standard/core models remain separately documented. The former trusted recursive-model string leaf was removed and its ASCII precondition strengthened; its body and caller pass. The Verus standard-library model applies only to the separate partial artifact. |
 
-The final target is **not established**: the writer proof does not reach the
-actual public `Buffer::format` return, and there is no proved cross-tool memory
-contract to bridge that gap. Closing it requires proofs of both raw boundaries,
-the length guard for every sealed integer type, and correspondence between any
-Creusot assumptions and the exact operations proved in the other tool. The
-`mulhi` equation is now derived from the proved limb implementation; this
-closes that arithmetic dependency but does not bridge either raw-memory gap.
-Passing tests or a bounded checker must be reported separately from this
-deductive claim.
+The end-to-end x86_64 result is proved under the stated Creusot models and the
+local Boundary B trust. User-requested source deviations A and B are explicit;
+the helper contract does not include decimal correctness, and no other
+formatter or arithmetic fact was accepted without a proved body. Native tests
+are reported separately from the deductive result.
 
 ## Supplementary checker feasibility: Kani and Miri
 
@@ -75,9 +109,15 @@ or in extracted source-identical helpers, and state how a helper corresponds to
 the production call. An independent decimal oracle can check end-to-end output,
 but it does not replace the already-proved Creusot decimal specification.
 Kani and Miri would improve confidence and may expose a counterexample; neither
-currently closes Boundary A or B as a Rust-semantic proof.
+proves the original raw A cast or removes the remaining physical memory-permission
+trust in Boundary B as a Rust-semantic proof.
 
-## Boundary A — physical 40-slot buffer to typed mutable prefix
+## Historical Boundary A analysis — original raw prefix cast
+
+The contract exploration below refers to the source before the accepted
+`.try_into().unwrap()` change. It records why a direct raw cast was difficult
+to model; it is not the current source contract. The current A contract and
+removal condition are in [RUNTIME_BOUNDARY_BRIDGE.md](RUNTIME_BOUNDARY_BRIDGE.md).
 
 ### Candidate contract target
 
@@ -101,7 +141,14 @@ The cast itself has a pointer-cast address/provenance model in vstd, and Creusot
 
 A future proof may close this only with a validated safe reborrow/splitting model or a proved standard-model helper for the concrete stack storage and prefix. Adding an `assume_specification`, external body, raw permission axiom, or trusted cast contract would instead create a new trusted memory-safety boundary and would not prove this operation. Removal condition: prove the prefix reborrow and frame from the source borrow (including its uninitialized `MaybeUninit` validity), then compose it with the existing writer contracts.
 
-## Boundary B — initialized ASCII `MaybeUninit` suffix to `&[u8]` and `&str`
+## Historical Boundary B analysis — combined suffix and string conversion
+
+The candidate below combined byte-view formation, ASCII validity, and `str`
+construction. The accepted current helper intentionally has a narrower
+contract: it assumes only initialized input and preserves byte values/length;
+it contains no ASCII premise. See
+[RUNTIME_BOUNDARY_BRIDGE.md](RUNTIME_BOUNDARY_BRIDGE.md). The remainder records
+the earlier tool analysis, not the current trusted contract.
 
 ### Candidate contract target
 
@@ -121,30 +168,43 @@ The byte-slice reinterpretation and the unchecked UTF-8 conversion are conceptua
 
 ### Missing model and removal condition
 
-Phase 10 precisely locates the Creusot blocker at `&*(written as *const [MaybeUninit<u8>] as *const [u8])`. The preconditions (suffix bounds, initialized slots, ASCII) were written as a probe target, and the body was unchanged; translation stopped before Why3. The existing recursive verification model's trusted initialized-`[u8;40]` ASCII-to-`str` leaf is a separate boundary and does not establish this runtime conversion.
+Phase 10 precisely located the Creusot blocker at `&*(written as *const [MaybeUninit<u8>] as *const [u8])`. The preconditions (suffix bounds, initialized slots, ASCII) were written as a probe target, and that probe's body was unchanged; translation stopped before Why3. At that checkpoint, the recursive verification model still had a trusted initialized-`[u8;40]` ASCII-to-`str` leaf. That leaf has since been removed with an ASCII precondition and the same byte postcondition; neither version establishes the runtime `assume_init_slice` representation conversion.
 
 The Phase 11 Verus slice audit confirms that pointer casts preserve address, provenance, and slice length but do not transfer typed memory permission or byte values. `ptr_ref` requires an initialized `PointsTo<T>`; `PointsToRaw::into_typed` yields `Uninit`; the nested `MaybeUninit::mem_contents()` model has single-value operations but no slice-wide conversion to readable `[u8]` permissions. The missing relation remains conversion of initialized `MaybeUninit<u8>` payload permissions into a shared readable `u8` slice while preserving the selected range. The proved ASCII helper starts after this missing step, so it cannot be composed with `slice_buffer_to_str` yet.
 
-Removal condition: prove the per-element payload-to-byte view plus shared-slice formation from existing permissions; prove the ASCII implication to `valid_utf8`; then establish the `from_utf8_unchecked` byte-view postcondition. Do not close the gap with a new trusted reinterpretation unless it is explicitly accepted as a trusted boundary rather than reported as a proof.
+At the time of the Phase 10/11 audit, the proposed removal condition was to
+prove the per-element payload-to-byte view plus shared-slice formation from
+existing permissions, prove the ASCII implication to `valid_utf8`, and then
+establish the `from_utf8_unchecked` byte-view postcondition. Boundary B was
+later accepted explicitly as a local trusted source change; it remains an
+assumption, not a proof of that physical conversion. The Verus audit and its
+post-conversion UTF-8 lemma do not discharge or justify this current Creusot
+trust. That Verus lemma uses vstd's assumed `from_utf8_unchecked`
+specification, which is another separate trust boundary.
 
-## Next obligation: `unreachable_unchecked` length guard
+## Current proof obligation: `unreachable_unchecked` length guard
 
-Only after the prefix view and suffix/string path are accounted for is `Buffer::format`'s guard in `runtime.rs:132-134` the next runtime obligation. The branch calls `unreachable_unchecked()` when `string.len() > I::MAX_STR_LEN`; a proof must establish, for each supported sealed implementation, that this condition is impossible (equivalently, `string.len() <= I::MAX_STR_LEN`) from a writer/output-length contract tied to the actual returned string. Merely observing that the implementation has a guard is not a proof of branch unreachability. The guard and public `Buffer::format` remain outside the current Creusot runtime proof. This document does not claim that the Creusot writer result can be consumed as a Verus premise or that a cross-tool length theorem exists.
+The guard in `runtime.rs` is now part of the current `Buffer::format` proof
+target. Its branch calls `unreachable_unchecked()` when
+`string.len() > I::MAX_STR_LEN`; the integrated Creusot proof establishes for
+every sealed implementation that `string.len() <= I::MAX_STR_LEN` from the
+actual writer contract and shows the guard is unreachable on x86_64. No Creusot writer fact is
+imported as a Verus premise and no cross-tool length theorem is claimed.
 
 ## Keep independent assumptions separate
 
 - The proved arithmetic contract is exactly `u128_ext::mulhi`'s result equation `result == x * y / 2^128`; the joint-helper proof derives it from `mulhi_core`; the wrapper has no
 `#[trusted]` annotation and its body proof discharged 2/2 goals. It supports the `u128` formatter and, through the magnitude formatter, the signed `i128` writer; it supplies no pointer provenance, reference validity, initialization, or string-conversion fact.
 - Existing standard/core models are separate from local raw-memory contracts. The runtime proof consumes `MaybeUninit::write`, slice `get_unchecked`, and narrow models for signed `unsigned_abs`, array `IndexMut`, and mutable-slice-to-array borrowing as documented in `RUNTIME_VERIFICATION.md` and `RUNTIME_MEMORY_LEDGER.md`. Their use does not prove either raw boundary.
-- The recursive verification model's trusted ASCII-suffix-to-`str` leaf applies to its initialized model array only. It is not the runtime raw conversion contract.
+- The recursive verification model's former trusted ASCII-suffix-to-`str` leaf has been removed. Its replacement requires ASCII and retains the same byte postcondition; its body and caller pass in the integrated proof. It is distinct from the runtime `assume_init_slice` helper.
 - The x86_64 restriction here covers the 64-bit `usize`/`isize` writer adapters. It does not silently extend evidence to the 16/32-bit pointer-width adapters or to other targets.
 
 ## Source and report basis
 
-The translator errors and rejected expressions are reproduced above, so this status remains understandable if temporary files are later removed. The `/tmp` paths below identify optional session reports and scratch artifacts used to assemble the evidence.
+The historical translator errors and rejected expressions are reproduced above, so the original probe results remain understandable if temporary files are later removed. The `/tmp` paths below identify session reports and scratch artifacts used to assemble that historical evidence.
 
 - `itoa/1.0.18/RUNTIME_MEMORY_LEDGER.md` and `RUNTIME_VERIFICATION.md`, in the Phase 8 tree at commit `8204b28`.
-- `PROVENANCE.md`, which distinguishes existing model/trusted leaves, the proved `mulhi` result contract, proved writers, and raw runtime exclusions.
+- `PROVENANCE.md`, which records current source changes, the one accepted local trust, the proved `mulhi` result contract, and the integrated runtime result.
 - [`pow2-composition/REPORT.md`](../../tools/creusot-toolpatch/proofs/phase4-conditional/mulhi-second-attempt/pow2-composition/REPORT.md): current joint-helper proof, driver selection, replay command, and integrated 224-library / 1,917-VC run evidence. The focused arithmetic result does not prove the raw runtime memory path.
 - `/tmp/PHASE9_CAST_REPORT.md`: i8 pointer-cast probe; raw dereference translation rejection before VCs.
 - `/tmp/PHASE10_SLICE_REPORT.md`: runtime slice-conversion probe; `get_unchecked` translated, raw dereference rejected before VCs.
@@ -161,4 +221,7 @@ The translator errors and rejected expressions are reproduced above, so this sta
   /workspace/rust-crate-proofs/itoa/1.0.18/verus/ascii_bytes_to_str.rs --crate-type=lib --rlimit 300
 ```
 
-No raw-memory trusted contract was added. The Verus proof covers only the post-conversion ASCII byte slice and does not close either runtime raw-memory boundary.
+No Verus raw-memory trusted contract or proof was added. The local Creusot
+`assume_init_slice` contract is the accepted Boundary B source change; it is
+not proved by the Verus artifact. The Verus proof covers only the post-
+conversion ASCII byte slice and does not establish that helper's operation.

@@ -17,7 +17,7 @@ use crate::verification::{
     fixed_width_decimal_values, fixed_width_decimal_values_2_is_decimal,
     decimal_values_compose_16, decimal_values_compose_16x2, power_of_ten_16,
     fixed_width_decimal_values_len, integer_decimal_values, integer_value, logical_slot_states,
-    integer_decimal_values_ascii,
+    integer_decimal_values_ascii, decimal_values_ascii,
     logical_slot_bytes_equal_states_initialized, i64_signed_decimal_capacity,
     logical_slot_states_subsequence, range_from_prefix_raw_frame,
     initialized_slot_suffix_non_sentinel, logical_slot_states_suffix_initialized,
@@ -32,13 +32,13 @@ use crate::verification::{fixed_width_decimal_values_compose_2x2, fixed_width_de
 #[cfg(creusot)]
 use crate::math::magic_shift_floor;
 #[cfg(creusot)]
-use creusot_std::prelude::{bitwise_proof, check, ensures, invariant, proof_assert, requires, snapshot, Int, Seq};
+use crate::ascii::ascii_bytes_are_utf8;
+#[cfg(creusot)]
+use creusot_std::prelude::{bitwise_proof, check, ensures, invariant, proof_assert, requires, snapshot, trusted, Int, Seq};
 #[cfg(creusot)]
 use creusot_std::std::option::OptionExt;
-#[cfg(not(creusot))]
 use core::hint;
 use core::mem::{self, MaybeUninit};
-#[cfg(not(creusot))]
 use core::str;
 #[cfg(feature = "no-panic")]
 use no_panic::no_panic;
@@ -126,11 +126,13 @@ impl Buffer {
     /// Print an integer into this buffer and return a reference to its string
     /// representation within the buffer.
     #[cfg_attr(feature = "no-panic", no_panic)]
-    #[cfg(not(creusot))]
+    #[cfg_attr(creusot, ensures(result@.to_bytes().map(|byte: u8| byte@) == integer_decimal_values(i)))]
+    #[cfg_attr(creusot, ensures(
+        result@.to_bytes().len() <= <I as Integer>::MAX_STR_LEN@
+    ))]
     pub fn format<I: Integer>(&mut self, i: I) -> &str {
-        let buf_ptr = self.bytes.as_mut_ptr().cast::<I::Buffer>();
-        let string = i.write(unsafe { &mut *buf_ptr });
-        if string.len() > I::MAX_STR_LEN {
+        let string = i.write(&mut self.bytes);
+        if string.len() > <I as Integer>::MAX_STR_LEN {
             unsafe { hint::unreachable_unchecked() };
         }
         string
@@ -148,12 +150,27 @@ pub trait Integer: private::Sealed {
 
 // Seal to prevent downstream implementations of the Integer trait.
 mod private {
+    use super::*;
+
     #[doc(hidden)]
+    #[cfg(creusot)]
+    pub trait Sealed: Copy + crate::verification::Integer {
+        #[doc(hidden)]
+        type Buffer: 'static;
+        #[doc(hidden)]
+        #[cfg_attr(creusot, ensures(result@.to_bytes().map(|byte: u8| byte@) == integer_decimal_values(self)))]
+        #[cfg_attr(creusot, ensures(result@.to_bytes().len() <= <Self as super::Integer>::MAX_STR_LEN@))]
+        fn write(self, buf: &mut [MaybeUninit<u8>; i128::MAX_STR_LEN]) -> &str
+        where
+            Self: super::Integer;
+    }
+
+    #[doc(hidden)]
+    #[cfg(not(creusot))]
     pub trait Sealed: Copy {
         #[doc(hidden)]
         type Buffer: 'static;
-        #[cfg(not(creusot))]
-        fn write(self, buf: &mut Self::Buffer) -> &str;
+        fn write(self, buf: &mut [MaybeUninit<u8>; i128::MAX_STR_LEN]) -> &str;
     }
 }
 
@@ -201,15 +218,29 @@ macro_rules! impl_Integer {
         }
 
         impl private::Sealed for $Unsigned {
-            type Buffer = [MaybeUninit<u8>; Self::MAX_STR_LEN];
+            type Buffer = [MaybeUninit<u8>; <$Unsigned as Integer>::MAX_STR_LEN];
 
             #[inline]
             #[cfg_attr(feature = "no-panic", no_panic)]
-            #[cfg(not(creusot))]
-            fn write(self, buf: &mut Self::Buffer) -> &str {
-                let offset = Unsigned::fmt(self, buf);
+            #[cfg_attr(creusot, ensures(result@.to_bytes().map(|byte: u8| byte@)
+                == integer_decimal_values(self)))]
+            #[cfg_attr(creusot, ensures(result@.to_bytes().len()
+                <= <Self as Integer>::MAX_STR_LEN@))]
+            fn write(self, buf: &mut [MaybeUninit<u8>; i128::MAX_STR_LEN]) -> &str
+            {
+                let prefix = &mut buf.as_mut_slice()[..<$Unsigned as Integer>::MAX_STR_LEN];
+                let typed_buf: &mut Self::Buffer = prefix.try_into().unwrap();
+                let offset = Unsigned::fmt(self, typed_buf);
+                #[cfg(creusot)]
+                proof_assert! {
+                    let _ = decimal_values_ascii(self@);
+                    forall<i: Int> offset@ <= i && i < typed_buf@.len() ==>
+                        typed_buf@[i]@ != None
+                            && 48 <= typed_buf@[i]@.unwrap_logic()@
+                            && typed_buf@[i]@.unwrap_logic()@ <= 57
+                };
                 // SAFETY: Starting from `offset`, all elements of the slice have been set.
-                unsafe { slice_buffer_to_str(buf, offset) }
+                unsafe { slice_buffer_to_str(typed_buf, offset) }
             }
         }
 
@@ -218,15 +249,30 @@ macro_rules! impl_Integer {
         }
 
         impl private::Sealed for $Signed {
-            type Buffer = [MaybeUninit<u8>; Self::MAX_STR_LEN];
+            type Buffer = [MaybeUninit<u8>; <$Signed as Integer>::MAX_STR_LEN];
 
             #[inline]
             #[cfg_attr(feature = "no-panic", no_panic)]
-            #[cfg(not(creusot))]
-            fn write(self, buf: &mut Self::Buffer) -> &str {
-                let offset = signed_write_offset!($Signed, $Unsigned, self, buf);
+            #[cfg_attr(creusot, ensures(result@.to_bytes().map(|byte: u8| byte@)
+                == integer_decimal_values(self)))]
+            #[cfg_attr(creusot, ensures(result@.to_bytes().len()
+                <= <Self as Integer>::MAX_STR_LEN@))]
+            fn write(self, buf: &mut [MaybeUninit<u8>; i128::MAX_STR_LEN]) -> &str
+            {
+                let prefix = &mut buf.as_mut_slice()[..<$Signed as Integer>::MAX_STR_LEN];
+                let typed_buf: &mut Self::Buffer = prefix.try_into().unwrap();
+                let offset = signed_write_offset!($Signed, $Unsigned, self, typed_buf);
+                #[cfg(creusot)]
+                proof_assert! {
+                    let _ = integer_decimal_values_ascii(self);
+                    forall<i: Int> offset@ <= i && i < typed_buf@.len() ==>
+                        typed_buf@[i]@ != None
+                            && (typed_buf@[i]@.unwrap_logic()@ == 45
+                                || (48 <= typed_buf@[i]@.unwrap_logic()@
+                                    && typed_buf@[i]@.unwrap_logic()@ <= 57))
+                };
                 // SAFETY: Starting from `offset`, all elements of the slice have been set.
-                unsafe { slice_buffer_to_str(buf, offset) }
+                unsafe { slice_buffer_to_str(typed_buf, offset) }
             }
         }
     };
@@ -251,9 +297,25 @@ macro_rules! impl_Integer_size {
 
             #[inline]
             #[cfg_attr(feature = "no-panic", no_panic)]
-            #[cfg(not(creusot))]
-            fn write(self, buf: &mut Self::Buffer) -> &str {
-                integer_size_write!($t, $primitive, self, buf)
+            #[cfg_attr(creusot, ensures(result@.to_bytes().map(|byte: u8| byte@)
+                == integer_decimal_values(self)))]
+            #[cfg_attr(creusot, ensures(result@.to_bytes().len()
+                <= <Self as Integer>::MAX_STR_LEN@))]
+            fn write(self, buf: &mut [MaybeUninit<u8>; i128::MAX_STR_LEN]) -> &str
+            {
+                let prefix = &mut buf.as_mut_slice()[..<Self as Integer>::MAX_STR_LEN];
+                let typed_buf: &mut Self::Buffer = prefix.try_into().unwrap();
+                let offset = integer_size_write!($t, $primitive, self, typed_buf);
+                #[cfg(creusot)]
+                proof_assert! {
+                    let _ = integer_decimal_values_ascii(self);
+                    forall<i: Int> offset@ <= i && i < typed_buf@.len() ==>
+                        typed_buf@[i]@ != None
+                            && (typed_buf@[i]@.unwrap_logic()@ == 45
+                                || (48 <= typed_buf@[i]@.unwrap_logic()@
+                                    && typed_buf@[i]@.unwrap_logic()@ <= 57))
+                };
+                unsafe { slice_buffer_to_str(typed_buf, offset) }
             }
         }
     };
@@ -261,16 +323,23 @@ macro_rules! impl_Integer_size {
 
 macro_rules! integer_size_write {
     (usize, u64, $value:ident, $buf:ident) => {{
-        let offset = fmt_usize_via_u64($value, $buf);
-        unsafe { slice_buffer_to_str($buf, offset) }
+        fmt_usize_via_u64($value, $buf)
     }};
     (isize, i64, $value:ident, $buf:ident) => {{
-        let offset = fmt_isize_via_i64($value, $buf);
-        unsafe { slice_buffer_to_str($buf, offset) }
+        fmt_isize_via_i64($value, $buf)
     }};
-    ($t:ty, $primitive:ident, $value:ident, $buf:ident) => {
-        ($value as $primitive).write($buf)
-    };
+    (usize, u16, $value:ident, $buf:ident) => {{
+        Unsigned::fmt($value as u16, $buf)
+    }};
+    (usize, u32, $value:ident, $buf:ident) => {{
+        Unsigned::fmt($value as u32, $buf)
+    }};
+    (isize, i16, $value:ident, $buf:ident) => {{
+        signed_write_i16($value as i16, $buf)
+    }};
+    (isize, i32, $value:ident, $buf:ident) => {{
+        signed_write_i32($value as i32, $buf)
+    }};
 }
 
 #[cfg(target_pointer_width = "64")]
@@ -337,21 +406,55 @@ impl_Integer_size!(isize as i64 #[cfg(target_pointer_width = "64")]);
 impl_Integer_size!(usize as u64 #[cfg(target_pointer_width = "64")]);
 
 
-/// This function converts a slice of ascii characters into a `&str` starting
-/// from `offset`.
+/// Expose initialized `MaybeUninit<u8>` payloads as an ordinary byte slice.
 ///
 /// # Safety
 ///
-/// `buf` content starting from `offset` index MUST BE initialized and MUST BE
-/// ascii characters.
+/// Every slot in `buf` must already be initialized.
+// TRUSTED: Creusot cannot model the slice metadata-preserving reinterpretation
+// from `[MaybeUninit<u8>]` to `[u8]`. Remove this helper when it can verify that
+// view conversion from the initialized-slot permission directly.
+#[cfg_attr(creusot, trusted)]
+#[cfg_attr(creusot, requires(forall<i: Int>
+    0 <= i && i < buf@.len() ==> buf@[i]@ != None))]
+#[cfg_attr(creusot, ensures(result@.len() == buf@.len()))]
+#[cfg_attr(creusot, ensures(result@.map(|byte: u8| byte@) == logical_slot_bytes(buf@)))]
+unsafe fn assume_init_slice(buf: &[MaybeUninit<u8>]) -> &[u8] {
+    // SAFETY: The caller establishes that every MaybeUninit payload is initialized.
+    unsafe { &*(buf as *const [MaybeUninit<u8>] as *const [u8]) }
+}
+
+/// This function converts an initialized suffix of ASCII bytes into a `&str`.
+///
+/// # Safety
+///
+/// `offset` must be in bounds. Every element in the suffix must be initialized
+/// and contain an ASCII byte.
 #[cfg_attr(feature = "no-panic", no_panic)]
-#[cfg(not(creusot))]
+#[cfg_attr(creusot, requires(offset@ <= buf@.len()))]
+#[cfg_attr(creusot, requires(forall<i: Int>
+    offset@ <= i && i < buf@.len() ==> buf@[i]@ != None))]
+#[cfg_attr(creusot, requires(forall<i: Int> offset@ <= i && i < buf@.len() ==>
+    buf@[i]@.unwrap_logic()@ < 128))]
+#[cfg_attr(creusot, ensures(result@.to_bytes().map(|byte: u8| byte@)
+    == logical_slot_bytes(buf@.subsequence(offset@, buf@.len()))))]
 unsafe fn slice_buffer_to_str(buf: &[MaybeUninit<u8>], offset: usize) -> &str {
-    // SAFETY: `offset` is always included between 0 and `buf`'s length.
+    // SAFETY: The function precondition establishes that offset is in bounds.
     let written = unsafe { buf.get_unchecked(offset..) };
-    // SAFETY: (`assume_init_ref`) All buf content since offset is set.
-    // SAFETY: (`from_utf8_unchecked`) Writes use ASCII from the lookup table exclusively.
-    unsafe { str::from_utf8_unchecked(&*(written as *const [MaybeUninit<u8>] as *const [u8])) }
+    // SAFETY: The function precondition establishes initialization of this suffix.
+    let initialized = unsafe { assume_init_slice(written) };
+    #[cfg(creusot)]
+    {
+        proof_assert!(forall<i: Int> 0 <= i && i < initialized@.len() ==>
+            initialized@[i]@ < 128);
+        proof_assert! {
+            let _ = ascii_bytes_are_utf8(initialized@);
+            exists<characters: Seq<char>> characters.to_bytes() == initialized@
+        };
+    }
+    // SAFETY: The ASCII lemma above establishes the model precondition for the
+    // byte-to-string conversion, and the actual suffix is initialized.
+    unsafe { str::from_utf8_unchecked(initialized) }
 }
 
 /// Store one already-masked decimal digit and describe exactly how that slot
@@ -359,7 +462,6 @@ unsafe fn slice_buffer_to_str(buf: &[MaybeUninit<u8>], offset: usize) -> &str {
 /// `write(b'0' + digit)` used by the formatter; the contracts let callers
 /// compose this one-slot update with the previously written suffix.
 #[inline]
-#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
 #[cfg_attr(creusot, requires(index@ < buf@.len()))]
 #[cfg_attr(creusot, requires(digit@ <= 9))]
 #[cfg_attr(creusot, requires(forall<i: Int>
@@ -382,7 +484,6 @@ fn write_decimal_digit(buf: &mut [MaybeUninit<u8>], index: usize, digit: u8) {
 
 /// Write one two-digit pair using the production lookup table.
 #[inline]
-#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
 #[cfg_attr(creusot, requires(pair@ < 100))]
 #[cfg_attr(creusot, requires(index@ + 2 <= buf@.len()))]
 #[cfg_attr(creusot, requires(forall<i: Int>
@@ -458,7 +559,6 @@ fn write_decimal_pair(buf: &mut [MaybeUninit<u8>], index: usize, pair: u32) {
 
 /// Write one four-digit chunk with the same four production table stores.
 #[inline]
-#[cfg_attr(all(feature = "no-panic", not(creusot)), no_panic)]
 #[cfg_attr(creusot, requires(pair1@ < 100 && pair2@ < 100))]
 #[cfg_attr(creusot, requires(index@ + 4 <= buf@.len()))]
 #[cfg_attr(creusot, requires(forall<i: Int>
@@ -868,18 +968,9 @@ macro_rules! impl_Unsigned {
     };
 }
 
-#[cfg(not(creusot))]
-impl_Unsigned!(u8, decimal_values_len_u8);
-#[cfg(creusot)]
 impl_Unsigned!(u8, decimal_values_len_u8);
 impl_Unsigned!(u16, decimal_values_len_u16);
-#[cfg(not(creusot))]
 impl_Unsigned!(u32, decimal_values_len_u32);
-#[cfg(creusot)]
-impl_Unsigned!(u32, decimal_values_len_u32);
-#[cfg(not(creusot))]
-impl_Unsigned!(u64, decimal_values_len_u64);
-#[cfg(creusot)]
 impl_Unsigned!(u64, decimal_values_len_u64);
 
 /// A small call-site check that consumes the contract of the actual u16 body.
