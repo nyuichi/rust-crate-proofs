@@ -61,6 +61,27 @@ the allocation recovery authority. Zero-length slice construction needs an
 independent non-null/alignment argument and grants no byte access. Split and
 join must not manufacture PtrLive.
 
-The next gate is an owned-region algebra proof, followed by a separately reviewed
-Vec/raw/access bridge. Actual split, mutation and cleanup integration remain
-unproved until those gates and the runtime callers are checked.
+## Owned-region algebra and native allocation bodies
+
+The [owned-region probe](probes/owned-region-kernel/README.md) proves seven
+generated files, including interval split/join bodies, a helper returning both
+regions, and a caller rejoining them with exact known and unknown slots.
+The overlap negative rejects the join precondition. These are pure ledger
+proofs: the model constructor establishes no physical allocation association.
+
+`src/ownership_proof/raw_buffer.rs` supplies separate native unsafe bodies for
+detaching a Vec, recovering it, and explicit zero-length deallocation. Its
+isolated native harness checks pointer/capacity preservation, disjoint writes,
+zero capacity, spare capacity and cleanup after re-uninitializing a former
+initialized prefix byte. The module is not connected to BytesMut,
+has no Drop implementation, and adds no Creusot trusted contracts.
+
+The next gate is the reviewed Vec/raw/access bridge. Pointer comparisons need
+particular care: native raw-pointer equality is translated to logical pointer
+equality, while the address-only comparison specification grants no such
+identity. The paired feasibility probe is being checked before accepting any
+physical bridge contract. Physical identity must come from extraction or
+provenance-preserving derivation, with allocation identity established by
+resource namespaces rather than address comparison.
+
+Actual BytesMut split, mutation and cleanup integration remain unproved.

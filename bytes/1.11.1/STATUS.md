@@ -8,8 +8,13 @@ vtable translation and automatic Drop as excluded integration paths under the
 no-large-compiler-change constraint. A real boxed immutable control block can
 be shared through existing lifetime fractions and recovered after joining all
 fractions; this is an isolated foundation, not a BytesMut/refcount proof.
-The new owned-region kernel is a model-only ledger until a reviewed physical
-Vec/raw bridge connects it to native allocation ownership.
+The new owned-region kernel proves seven isolated files, including split/join
+and exact slot preservation across a returned pair of regions. Its overlap
+negative rejects the intended join precondition. It remains a model-only
+ledger until a reviewed physical Vec/raw bridge connects it to native
+allocation ownership. Separate native RawBuffer bodies have five passing
+isolated tests; no physical trusted contracts or BytesMut integration are
+established by those tests.
 
 The 21-target replay and ordinary-test counts below refer to source checkpoint
 `27cc729`, preceding the ownership implementation changes. Its retained

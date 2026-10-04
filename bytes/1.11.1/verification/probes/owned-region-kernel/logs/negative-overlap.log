@@ -1,0 +1,92 @@
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/owned-region-kernel; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 7 files, 78.2KiB total
+    Checking bytes-owned-region-kernel v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/owned-region-kernel)
+warning: function `model_region` is never used
+  --> src/lib.rs:24:4
+   |
+24 | fn model_region() -> Ghost<OwnedRegion> {
+   |    ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `split_in_helper` is never used
+  --> src/lib.rs:62:4
+   |
+62 | fn split_in_helper() -> Ghost<(OwnedRegion, OwnedRegion)> {
+   |    ^^^^^^^^^^^^^^^
+
+warning: function `caller_rejoins_helper_regions` is never used
+  --> src/lib.rs:77:4
+   |
+77 | fn caller_rejoins_helper_regions() -> Ghost<OwnedRegion> {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `rejected_overlap` is never used
+  --> src/lib.rs:95:4
+   |
+95 | fn rejected_overlap(left: OwnedRegion, right: OwnedRegion) -> OwnedRegion {
+   |    ^^^^^^^^^^^^^^^^
+
+warning: type alias `KernelRA` is never used
+  --> src/../../../../src/ownership_proof/owned_region.rs:20:17
+   |
+20 | pub(crate) type KernelRA = (Option<Excl<()>>, FMap<Int, Excl<Option<u8>>>);
+   |                 ^^^^^^^^
+
+warning: type alias `SlotMap` is never used
+  --> src/../../../../src/ownership_proof/owned_region.rs:23:17
+   |
+23 | pub(crate) type SlotMap = FMap<Int, Excl<Option<u8>>>;
+   |                 ^^^^^^^
+
+warning: function `map_compose_eq` is never used
+  --> src/../../../../src/ownership_proof/owned_region.rs:32:15
+   |
+32 | pub(crate) fn map_compose_eq(
+   |               ^^^^^^^^^^^^^^
+
+warning: struct `OwnedRegion` is never constructed
+  --> src/../../../../src/ownership_proof/owned_region.rs:47:19
+   |
+47 | pub(crate) struct OwnedRegion {
+   |                   ^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src/../../../../src/ownership_proof/owned_region.rs:89:19
+    |
+ 76 | impl OwnedRegion {
+    | ---------------- associated items in this implementation
+...
+ 89 |     pub(crate) fn from_model_ledger(lo: Int, hi: Int, resource: Resource<KernelRA>) -> Self {
+    |                   ^^^^^^^^^^^^^^^^^
+...
+ 95 |     pub(crate) fn lo(self) -> Int {
+    |                   ^^
+...
+101 |     pub(crate) fn hi(self) -> Int {
+    |                   ^^
+...
+107 |     pub(crate) fn resource_id(self) -> Id {
+    |                   ^^^^^^^^^^^
+...
+113 |     pub(crate) fn slots(self) -> FMap<Int, Excl<Option<u8>>> {
+    |                   ^^^^^
+...
+120 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+    |                   ^^^^
+...
+131 |     fn restrict(
+    |        ^^^^^^^^
+...
+156 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+    |                   ^^^^^^^^
+...
+207 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: `bytes-owned-region-kernel` (lib) generated 9 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s
+No dangling files found
+Goal Coma.vc_rejected_overlap: ✘ (5/6)
+Error: 1 unproved file
+Error: 'why3find prove' failed
