@@ -2,7 +2,8 @@
 
 This probe extracts the exact `BytesMut`, `Shared`, and `SharedBuffer` declarations
 and actual `from_vec`, `promote_to_shared`, `shallow_clone`, `split_to`,
-`split_off`, `advance_unchecked`, `as_slice_mut`, `set_len`, `truncate`, and `clear` bodies from `src/bytes_mut.rs`. Source
+`split_off`, `advance_unchecked`, `as_slice_mut`, `spare_capacity_mut`,
+`set_len`, `truncate`, and `clear` bodies from `src/bytes_mut.rs`. Source
 offsets and hashes are recorded at build time. The gate starts with a freshly
 detached Vec at offset zero, performs one `split_to` or `split_off`, borrows both resulting
 mutable slices, and explicitly releases the handles in either order.
@@ -71,7 +72,7 @@ sequence model has no capacity field. Native edge tests supply valid indices.
 The actual `split_off` implementation does not clamp: its proved precondition
 and native assertion require `at <= capacity`.
 
-Current retained-prefix advance extension:
+Archived retained-prefix advance extension:
 
 - All 79 positive proof files pass. The actual internal `advance_unchecked`
   method supports registered interior views up to capacity, using saturating
@@ -97,12 +98,33 @@ capacity. The actual internal method requires `count <= cap`; its native pointer
 length and capacity operations are unchanged. This extension adds no trusted
 boundary: only body-proved ownership-view and frame contracts changed.
 
+Current spare-initialization extension:
+
+- All 86 positive proof files pass; twelve native integration tests pass.
+- Actual `spare_capacity_mut` uses the additional u8-only B4-uninit physical
+  reference bridge. It takes a sealed BoundPtr by value and an exclusive region
+  borrow. Standard `MaybeUninit<u8>` Option views exactly match Known/Unknown
+  slot state; prophetic writeback can initialize or re-uninitialize selected
+  slots, while metadata and every other slot are preserved. Empty slices imply
+  no allocation liveness. No ownership/refcount protocol is trusted.
+- Body-proved callers initialize one spare byte on each side when available,
+  using standard `write` or assignment from `MaybeUninit::new`, publish those
+  bytes with actual `set_len`, read the values, and release both orders.
+- Another caller truncates a Known prefix, writes `MaybeUninit::uninit`, proves
+  the ledger is Unknown, rewrites it, and republishes it. A guarded negative
+  attempts publication immediately after re-uninitialization; the Known-prefix
+  requirement rejects it: one intended failed leaf (16/17 in the caller),
+  among 87 proof files.
+- Native tests cover zero/full/spare capacity, all split positions, both release
+  orders, re-initialization, and unchanged exact A/S allocation/free counts with
+  zero realloc calls. The standard Vec and MaybeUninit models are unchanged.
+
 The initial descriptor/release-only checkpoint remains archived separately:
 61 positive proof files and one missing-ticket rejection among 62 files.
 
 The local trusted dependencies are the documented Vec/raw-allocation bridge,
 sequential native atomic operations, generic boxed-allocation alignment, and
-B4-bound initialized mutable access. The alignment-bit lemma, pending transfer,
+B4-bound initialized access and B4-uninit spare access. The alignment-bit lemma, pending transfer,
 ticket registry, packet borrowing, and actual handle protocol bodies are proved.
 No trusted BytesMut ownership or reference-count protocol is introduced. Standard
 `Perm::drop` is not treated as a formal physical-deallocation event; native
@@ -117,6 +139,7 @@ outside this gate.
 
 ```
 ./scripts/verify-bytes.sh sequential-bytesmut-split
+./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_reuninitialized_growth
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_advanced_unknown
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_split_off_unknown
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_unknown_access
@@ -127,6 +150,7 @@ cargo test --offline --locked --manifest-path verification/probes/sequential-byt
 ```
 
 Canonical evidence is under
-`verification/artifacts/evidence/sequential-bytesmut-split/retained-prefix-advance/`;
+`verification/artifacts/evidence/sequential-bytesmut-split/spare-initialization/`;
+the previous retained-prefix checkpoint is under `retained-prefix-advance/`,
 the previous split-off/length checkpoint is under `split-off-shrink/`, and
 the earlier mutable-access checkpoint remains under the sibling `mutable-access/`.

@@ -10,6 +10,18 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-04)
 
+- `B4-uninit`, `raw_vec::borrow_bound_uninit_mut`, is an additional reviewed
+  u8-only physical access bridge. Sealed BoundPtr metadata is passed by value;
+  the mutable affine region borrow controls the returned MaybeUninit slice
+  lifetime. Each slot inner Option maps to standard MaybeUninit<u8>::View, with
+  exact prophetic writeback and outside-range frame. Unknown access is allowed
+  as MaybeUninit only; publishing/reading bytes still requires Known evidence.
+  No generic drop/validity or ownership protocol fact is trusted. Its packet wrapper,
+  actual spare_capacity_mut body and initialization/publication callers are
+  body proved in the 86-file gate (87-file one-guard negative, native12).
+  The earlier frozen 79-file gate does not include this primitive.
+
+
 - `B4-bound`, `raw_vec::borrow_bound_mut`, adds a trusted physical mutable-slice
   bridge for a sealed bound descriptor and matching affine initialized region.
   The pointer is derived directly, with no arbitrary pointer/address match.

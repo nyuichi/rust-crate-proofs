@@ -236,3 +236,26 @@ simultaneous disjoint-write callers pass in the 68-file gate; native execution
 passes four tests. The earlier frozen 61-file split checkpoint excludes mutation.
 The canonical slot_known structure is body-proved equivalent to existence of
 a Known byte; this normalization preserves the physical access requirement.
+
+
+## u8 MaybeUninit access
+
+The additional reviewed `B4-uninit` physical boundary
+`raw_vec::borrow_bound_uninit_mut` derives its pointer from
+a sealed BoundPtr passed by value. A matching affine region must own the entire
+requested interval. The returned lifetime is bounded by the mutable region
+borrow, rather than by a temporary pointer descriptor. The byte ledger's inner
+Option maps to standard MaybeUninit<u8>::View, with prophetic final Option
+writeback and an exact outside-interval frame. Empty access claims no allocation
+liveness. This bridge is deliberately restricted to u8; it assumes no generic
+destructor, drop or initialized-type validity rule.
+
+No Known precondition is required to obtain MaybeUninit access. Publishing bytes
+through set_len or reading through as_slice_mut still requires every visible
+slot Known. MaybeUninit::uninit may remove Known evidence, and that change must
+return to the ledger when the borrow ends. Standard MaybeUninit new/uninit/write
+contracts are reused; ownership splitting, registration and recovery are not
+trusted. The actual spare_capacity_mut, packet adapter and initialization/
+publication callers pass the 86-file gate. Native twelve tests pass; the
+87-file re-uninitialized-growth negative rejects exactly one Known-prefix
+guard. The earlier 79-file advance checkpoint excludes this additional bridge.

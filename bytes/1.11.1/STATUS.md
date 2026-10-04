@@ -2,6 +2,26 @@
 
 ## Current working-tree status (2026-10-04)
 
+The bounded sequential lifecycle gate now passes 86 proof files and twelve
+native tests. Actual spare_capacity_mut connects to standard MaybeUninit<u8>
+initialization through reviewed B4-uninit. Callers initialize Unknown spare
+slots on both sides, publish via actual Known-only set_len, access initialized
+bytes and explicitly release both orders. Truncate -> uninit -> rewrite ->
+republish is proved; an 87-file negative rejects exactly one set_len Known
+prefix guard (16/17) after re-uninitializing a retained byte. Canonical sources,
+configuration, proof code/results and native logs are in spare-initialization.
+The only new trust is the u8 physical reference/slot-interpretation bridge.
+No Creusot compiler/std changes or trusted ownership protocol are added.
+
+The concrete sequential milestone is complete. Whole-crate verification is not:
+automatic destructor effects and Bytes vtable translation remain upstream
+blockers. Concurrent native ordering requires a synchronization/interference
+model beyond exclusive CounterOwn; repeated ARC splits require a scalable
+registration protocol beyond the two-ticket gate. Buf/BufMut trait dispatch,
+reserve/reallocation and freeze/Bytes remain outside this ownership extraction.
+Those exclusions must not be interpreted as failed numeric VCs or verified APIs.
+
+
 The retained-prefix actual advance_unchecked gate passes 79 proof files and
 nine native tests. Handles keep the full original affine packet while their
 live view becomes an interior suffix. The body-proved packet-borrow adapter
