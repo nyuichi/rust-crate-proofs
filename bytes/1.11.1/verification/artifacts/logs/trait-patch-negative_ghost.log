@@ -1,0 +1,15 @@
+    Checking bytes-trait-patch-regression v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/trait-patch)
+error: Illegal recursive trait
+  --> src/lib.rs:18:1
+   |
+18 | pub trait GhostBuffer {
+   | ^^^^^^^^^^^^^^^^^^^^^
+   |
+note: `GhostBuffer` is a bound of `GhostBuffer::chain`
+  --> src/lib.rs:20:17
+   |
+20 |     fn chain<U: GhostBuffer>(self, next: U) -> (Self, U)
+   |                 ^^^^^^^^^^^
+
+error: could not compile `bytes-trait-patch-regression` (lib) due to 1 previous error
+Error: Compilation failed

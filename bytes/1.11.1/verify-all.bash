@@ -1,16 +1,7 @@
 #!/usr/bin/env bash
+# Current verification scope is default std, x86_64, native atomics.
+# This entry intentionally verifies the actual runtime, and currently reports
+# the recorded translation blockers. Probe proofs are separate partial results.
 set -euo pipefail
-
 script_dir=$(cd "$(dirname "$0")" && pwd)
-repo_root=$(cd "$script_dir/../.." && pwd)
-cd "$script_dir"
-
-export CARGO_NET_OFFLINE=true
-export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$repo_root/target}"
-
-cargo creusot clean --force
-cargo creusot --simple-triggers=false prove -- --no-default-features
-cargo creusot clean --force
-cargo creusot --simple-triggers=false prove
-cargo creusot clean --force
-cargo creusot --simple-triggers=false prove -- --all-features
+exec "$script_dir/scripts/verify-bytes.sh" runtime "$@"

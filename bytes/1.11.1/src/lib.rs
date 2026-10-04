@@ -75,51 +75,26 @@
 #[allow(unused_extern_crates)]
 extern crate creusot_std;
 
-#[allow(unused_imports)]
-use creusot_std::prelude::{ensures, logic, pearlite, requires, trusted, Int, Invariant, View};
-
 #[allow(unused_extern_crates)]
 extern crate alloc;
 
 #[cfg(feature = "std")]
 extern crate std;
 
-#[cfg(not(creusot))]
 pub mod buf;
-#[cfg(not(creusot))]
 pub use crate::buf::{Buf, BufMut};
 
-#[cfg(not(creusot))]
 mod bytes;
-#[cfg(not(creusot))]
 mod bytes_mut;
-#[cfg(not(creusot))]
 mod fmt;
-#[cfg(not(creusot))]
 mod loom;
-#[cfg(not(creusot))]
 pub use crate::bytes::Bytes;
-#[cfg(not(creusot))]
 pub use crate::bytes_mut::BytesMut;
 
-// Creusot currently ICEs while translating the upstream generic Vec adapters
-// around the raw-pointer representation.  Verify the public length/capacity
-// state machine independently; PROVENANCE.md records this temporary boundary.
-#[cfg(creusot)]
-mod verification;
-#[cfg(creusot)]
-pub use crate::verification::{Buf, BufMut, Bytes, BytesMut};
-#[cfg(creusot)]
-/// Creusot-facing buffer traits.
-pub mod buf {
-    pub use crate::verification::{Buf, BufMut};
-}
-
 // Optional Serde support
-#[cfg(all(feature = "serde", not(creusot)))]
+#[cfg(feature = "serde")]
 mod serde;
 
-#[cfg(not(creusot))]
 #[inline(never)]
 #[cold]
 fn abort() -> ! {
@@ -141,34 +116,20 @@ fn abort() -> ! {
     }
 }
 
-#[inline(always)]
-#[cfg(feature = "std")]
-#[trusted]
-#[ensures(result@ == if b@ <= usize::MAX@ { a@ - b@ } else { 0 })]
-fn saturating_sub_usize_u64(a: usize, b: u64) -> usize {
-    match usize::try_from(b) {
-        Ok(b) => a.saturating_sub(b),
-        Err(_) => 0,
-    }
-}
+#[cfg(all(creusot, feature = "std"))]
+mod std_specs;
 
-#[inline(always)]
 #[cfg(feature = "std")]
-#[trusted]
-#[ensures(result@ == if a@ <= usize::MAX@ { if a@ < b@ { a@ } else { b@ } } else { b@ })]
-fn min_u64_usize(a: u64, b: usize) -> usize {
-    match usize::try_from(a) {
-        Ok(a) => usize::min(a, b),
-        Err(_) => b,
-    }
-}
+mod arithmetic;
+#[cfg(feature = "std")]
+use arithmetic::{min_u64_usize, saturating_sub_usize_u64};
 
 /// Error type for the `try_get_` methods of [`Buf`].
 /// Indicates that there were not enough remaining
 /// bytes in the buffer while attempting
 /// to get a value from a [`Buf`] with one
 /// of the `try_get_` methods.
-#[cfg_attr(not(creusot), derive(Debug, PartialEq, Eq))]
+#[derive(Debug, PartialEq, Eq)]
 pub struct TryGetError {
     /// The number of bytes necessary to get the value
     pub requested: usize,
@@ -177,7 +138,6 @@ pub struct TryGetError {
     pub available: usize,
 }
 
-#[cfg(not(creusot))]
 impl core::fmt::Display for TryGetError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
         write!(
@@ -189,10 +149,10 @@ impl core::fmt::Display for TryGetError {
     }
 }
 
-#[cfg(all(feature = "std", not(creusot)))]
+#[cfg(feature = "std")]
 impl std::error::Error for TryGetError {}
 
-#[cfg(all(feature = "std", not(creusot)))]
+#[cfg(feature = "std")]
 impl From<TryGetError> for std::io::Error {
     fn from(error: TryGetError) -> Self {
         std::io::Error::new(std::io::ErrorKind::Other, error)
@@ -200,7 +160,6 @@ impl From<TryGetError> for std::io::Error {
 }
 
 /// Panic with a nice error message.
-#[cfg(not(creusot))]
 #[cold]
 fn panic_advance(error_info: &TryGetError) -> ! {
     panic!(
@@ -209,7 +168,6 @@ fn panic_advance(error_info: &TryGetError) -> ! {
     );
 }
 
-#[cfg(not(creusot))]
 #[cold]
 fn panic_does_not_fit(size: usize, nbytes: usize) -> ! {
     panic!(

@@ -1,0 +1,109 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 19 0 19 23 *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 20 21 20 22
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 20 24 20 25
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 20 12 20 26
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 20 30 20 31
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 21 21 21 22
+let%span slib'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 21 24 21 25
+let%span slib'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 21 12 21 26
+let%span slib'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 21 30 21 31
+let%span slib'7 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 22 21 22 22
+let%span slib'8 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 22 24 22 25
+let%span slib'9 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 22 12 22 26
+let%span slib'10 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 22 30 22 31
+let%span slib'11 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 23 21 23 31
+let%span slib'12 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 23 33 23 34
+let%span slib'13 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 23 12 23 35
+let%span slib'14 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 23 39 23 49
+let%span slib'15 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 24 20 24 21
+let%span slib'16 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 24 23 24 33
+let%span slib'17 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 24 12 24 34
+let%span slib'18 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 24 38 24 39
+let%span slib'19 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 25 20 25 28
+let%span slib'20 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 25 30 25 31
+let%span slib'21 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 25 12 25 32
+let%span slib'22 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 25 36 25 37
+let%span slib'23 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 25 4 25 38
+let%span slib'24 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 24 4 24 40
+let%span slib'25 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 23 4 23 50
+let%span slib'26 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 22 4 22 32
+let%span slib'27 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 21 4 21 32
+let%span slib'28 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 20 4 20 32
+let%span slib'29 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 10 10 10 55
+let%span slib'30 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 14 10 14 50
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+let subtract (a: UInt64.t) (b: UInt64.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:subtract ensures] [%#slib'29] UInt64.t'int result
+    = (if UInt64.t'int b <= UInt64.t'int a then UInt64.t'int a - UInt64.t'int b else 0)}
+    (! return {result}) ]
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+let minimum (a: UInt64.t) (b: UInt64.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:minimum ensures] [%#slib'30] UInt64.t'int result
+    = (if UInt64.t'int a < UInt64.t'int b then UInt64.t'int a else UInt64.t'int b)}
+    (! return {result}) ]
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let positive_cases [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/helpers/src/lib.rs" 19 0 19 23]
+  (return (x: ())) = (! bb0
+  [ bb0 = s0
+    [ s0 = subtract [%#slib'1] {[%#slib] (0: UInt64.t)} {[%#slib'0] (1: UInt64.t)}
+        (fun (_x: UInt64.t) -> [ &_3 <- _x ] s1)
+    | s1 = [ &_2 <- _3 = ([%#slib'2] (0: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_2 = false} (! bb3) | br1 -> {_2} (! bb2) ] ]
+  | bb2 = s0
+    [ s0 = subtract [%#slib'5] {[%#slib'3] (5: UInt64.t)} {[%#slib'4] (3: UInt64.t)}
+        (fun (_x: UInt64.t) -> [ &_7 <- _x ] s1)
+    | s1 = [ &_6 <- _7 = ([%#slib'6] (2: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_6 = false} (! bb6) | br1 -> {_6} (! bb5) ] ]
+  | bb5 = s0
+    [ s0 = subtract [%#slib'9] {[%#slib'7] (5: UInt64.t)} {[%#slib'8] (8: UInt64.t)}
+        (fun (_x: UInt64.t) -> [ &_11 <- _x ] s1)
+    | s1 = [ &_10 <- _11 = ([%#slib'10] (0: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_10 = false} (! bb9) | br1 -> {_10} (! bb8) ] ]
+  | bb8 = s0
+    [ s0 = subtract [%#slib'13] {[%#slib'11] const_MAX} {[%#slib'12] (0: UInt64.t)}
+        (fun (_x: UInt64.t) -> [ &_15 <- _x ] s1)
+    | s1 = [ &_14 <- _15 = ([%#slib'14] const_MAX) ] s2
+    | s2 = any [ br0 -> {_14 = false} (! bb12) | br1 -> {_14} (! bb11) ] ]
+  | bb11 = s0
+    [ s0 = minimum [%#slib'17] {[%#slib'15] (0: UInt64.t)} {[%#slib'16] const_MAX}
+        (fun (_x: UInt64.t) -> [ &_19 <- _x ] s1)
+    | s1 = [ &_18 <- _19 = ([%#slib'18] (0: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_18 = false} (! bb15) | br1 -> {_18} (! bb14) ] ]
+  | bb14 = s0
+    [ s0 = minimum [%#slib'21] {[%#slib'19] const_MAX'0} {[%#slib'20] (1: UInt64.t)}
+        (fun (_x: UInt64.t) -> [ &_23 <- _x ] s1)
+    | s1 = [ &_22 <- _23 = ([%#slib'22] (1: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_22 = false} (! bb18) | br1 -> {_22} (! bb17) ] ]
+  | bb17 = return {_ret}
+  | bb18 = {[%#slib'23] false} any
+  | bb15 = {[%#slib'24] false} any
+  | bb12 = {[%#slib'25] false} any
+  | bb9 = {[%#slib'26] false} any
+  | bb6 = {[%#slib'27] false} any
+  | bb3 = {[%#slib'28] false} any ]
+  [ & _ret: () = Any.any_l ()
+  | & _2: bool = Any.any_l ()
+  | & _3: UInt64.t = Any.any_l ()
+  | & _6: bool = Any.any_l ()
+  | & _7: UInt64.t = Any.any_l ()
+  | & _10: bool = Any.any_l ()
+  | & _11: UInt64.t = Any.any_l ()
+  | & _14: bool = Any.any_l ()
+  | & _15: UInt64.t = Any.any_l ()
+  | & _18: bool = Any.any_l ()
+  | & _19: UInt64.t = Any.any_l ()
+  | & _22: bool = Any.any_l ()
+  | & _23: UInt64.t = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

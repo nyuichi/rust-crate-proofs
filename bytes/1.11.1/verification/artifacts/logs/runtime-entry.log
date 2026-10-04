@@ -1,0 +1,48 @@
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 728 files, 177.9MiB total
+    Checking bytes v1.11.1 (/workspace/bytes-runtime-verification/bytes/1.11.1)
+error: Illegal recursive trait
+    --> src/buf/buf_impl.rs:117:1
+     |
+ 117 | pub trait Buf {
+     | ^^^^^^^^^^^^^
+     |
+note: `buf::buf_impl::Buf` is a bound of `buf::buf_impl::Buf::chain`
+    --> src/buf/buf_impl.rs:2416:17
+     |
+2416 |     fn chain<U: Buf>(self, next: U) -> Chain<Self, U>
+     |                 ^^^
+
+error: Illegal recursive trait
+    --> src/buf/buf_mut.rs:30:1
+     |
+  30 | pub unsafe trait BufMut {
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: `buf::buf_mut::BufMut` is a bound of `buf::buf_mut::BufMut::chain_mut`
+    --> src/buf/buf_mut.rs:1345:21
+     |
+1345 |     fn chain_mut<U: BufMut>(self, next: U) -> Chain<Self, U>
+     |                     ^^^^^^
+
+error: internal compiler error: /rustc-dev/91fe22da8084a1c9e993d78d4a56f22ab8396236/compiler/rustc_middle/src/ty/normalize_erasing_regions.rs:201:13: Failed to normalize Alias(Alias { kind: Projection { def_id: DefId(2:1124 ~ creusot_std[638e]::model::DeepModel::DeepModelTy) }, args: [bytes::Bytes], .. }) in typing_env=TypingEnv { typing_mode: TypingModeEqWrapper(Typeck { defining_opaque_types_and_generators: [] }), param_env: ParamEnv { caller_bounds: [Binder { value: TraitPredicate(<bytes::Bytes as core::cmp::PartialOrd<T>>, polarity:Positive), bound_vars: [] }, Binder { value: TraitPredicate(<bytes::Bytes as core::cmp::PartialEq<T>>, polarity:Positive), bound_vars: [] }, Binder { value: TraitPredicate(<T as core::marker::MetaSized>, polarity:Positive), bound_vars: [] }] } }, maybe try to call `try_normalize_erasing_regions` instead
+
+
+thread 'rustc' (59103) panicked at /rustc-dev/91fe22da8084a1c9e993d78d4a56f22ab8396236/compiler/rustc_middle/src/ty/normalize_erasing_regions.rs:201:13:
+Box<dyn Any>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: using internal features is not supported and expected to cause internal compiler errors when used incorrectly
+
+note: please attach the file at `/workspace/bytes-runtime-verification/bytes/1.11.1/rustc-ice-2026-10-04T01_24_50-59102.txt` to your bug report
+
+note: rustc 1.98.0-nightly (91fe22da8 2026-06-21) running on x86_64-unknown-linux-gnu
+
+note: compiler flags: --crate-type lib -C embed-bitcode=no -C debuginfo=2
+
+note: some of the compiler flags provided by cargo are hidden
+
+query stack during panic:
+end of query stack
+error: could not compile `bytes` (lib) due to 2 previous errors
+Error: Compilation failed

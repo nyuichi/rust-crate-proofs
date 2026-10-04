@@ -1,0 +1,147 @@
+obligation_id,source_location,operation,required_permission,initialization_condition,layout_or_provenance_condition,ordering,discharging_lemma,proof_artifact,status
+src/buf/buf_impl.rs:30,src/buf/buf_impl.rs:30,.map(|src| unsafe { $typ::$conv(*(src as *const _ as *const [_; SIZE])) });,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:30,src/buf/buf_mut.rs:30,pub unsafe trait BufMut {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:85,src/buf/buf_mut.rs:85,/// unsafe { buf.advance_mut(2) };,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:90,src/buf/buf_mut.rs:90,/// unsafe { buf.advance_mut(3); },review,review,review,review,,,not_started
+src/buf/buf_mut.rs:107,src/buf/buf_mut.rs:107,"unsafe fn advance_mut(&mut self, cnt: usize);",review,review,review,review,,,not_started
+src/buf/buf_mut.rs:148,src/buf/buf_mut.rs:148,/// unsafe {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:221,src/buf/buf_mut.rs:221,unsafe { self.advance_mut(cnt) };,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:262,src/buf/buf_mut.rs:262,unsafe { self.advance_mut(cnt) };,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:304,src/buf/buf_mut.rs:304,"unsafe { core::ptr::write_bytes(dst.as_mut_ptr(), val, dst_len) };",review,review,review,review,,,not_started
+src/buf/buf_mut.rs:306,src/buf/buf_mut.rs:306,unsafe { self.advance_mut(dst_len) };,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1366,src/buf/buf_mut.rs:1366,"unsafe fn advance_mut(&mut self, cnt: usize) {",review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1477,src/buf/buf_mut.rs:1477,unsafe impl<T: BufMut + ?Sized> BufMut for &mut T {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1481,src/buf/buf_mut.rs:1481,unsafe impl<T: BufMut + ?Sized> BufMut for Box<T> {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1485,src/buf/buf_mut.rs:1485,unsafe impl BufMut for &mut [u8] {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1497,src/buf/buf_mut.rs:1497,"unsafe fn advance_mut(&mut self, cnt: usize) {",review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1521,src/buf/buf_mut.rs:1521,unsafe { self.advance_mut(src.len()) };,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1534,src/buf/buf_mut.rs:1534,unsafe {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1541,src/buf/buf_mut.rs:1541,unsafe impl BufMut for &mut [core::mem::MaybeUninit<u8>] {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1553,src/buf/buf_mut.rs:1553,"unsafe fn advance_mut(&mut self, cnt: usize) {",review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1576,src/buf/buf_mut.rs:1576,unsafe {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1592,src/buf/buf_mut.rs:1592,unsafe {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1599,src/buf/buf_mut.rs:1599,unsafe impl BufMut for Vec<u8> {,review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1607,src/buf/buf_mut.rs:1607,"unsafe fn advance_mut(&mut self, cnt: usize) {",review,review,review,review,,,not_started
+src/buf/buf_mut.rs:1635,src/buf/buf_mut.rs:1635,"unsafe { UninitSlice::from_raw_parts_mut(ptr.add(len), cap - len) }",review,review,review,review,,,not_started
+src/buf/chain.rs:191,src/buf/chain.rs:191,"unsafe impl<T, U> BufMut for Chain<T, U>",review,review,review,review,,,not_started
+src/buf/chain.rs:210,src/buf/chain.rs:210,"unsafe fn advance_mut(&mut self, mut cnt: usize) {",review,review,review,review,,,not_started
+src/buf/limit.rs:59,src/buf/limit.rs:59,unsafe impl<T: BufMut> BufMut for Limit<T> {,review,review,review,review,,,not_started
+src/buf/limit.rs:70,src/buf/limit.rs:70,"unsafe fn advance_mut(&mut self, cnt: usize) {",review,review,review,review,,,not_started
+src/buf/take.rs:175,src/buf/take.rs:175,"let buf = unsafe { std::mem::transmute::<&[u8], &'a [u8]>(buf) };",review,review,review,review,,,not_started
+src/buf/take.rs:180,src/buf/take.rs:180,"let buf = unsafe { std::mem::transmute::<&[u8], &'a [u8]>(slice) };",review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:37,src/buf/uninit_slice.rs:37,unsafe { &mut *(slice as *mut [u8] as *mut [MaybeUninit<u8>] as *mut UninitSlice) },review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:56,src/buf/uninit_slice.rs:56,unsafe { &mut *(slice as *mut [MaybeUninit<u8>] as *mut UninitSlice) },review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:60,src/buf/uninit_slice.rs:60,unsafe { &*(slice as *const [MaybeUninit<u8>] as *const UninitSlice) },review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:79,src/buf/uninit_slice.rs:79,"/// let slice = unsafe { UninitSlice::from_raw_parts_mut(ptr, len) };",review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:82,src/buf/uninit_slice.rs:82,"pub unsafe fn from_raw_parts_mut<'a>(ptr: *mut u8, len: usize) -> &'a mut UninitSlice {",review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:100,src/buf/uninit_slice.rs:100,"/// let slice = unsafe { UninitSlice::from_raw_parts_mut(data.as_mut_ptr(), 3) };",review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:110,src/buf/uninit_slice.rs:110,unsafe { self[index..].as_mut_ptr().write(byte) },review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:127,src/buf/uninit_slice.rs:127,"/// let slice = unsafe { UninitSlice::from_raw_parts_mut(data.as_mut_ptr(), 3) };",review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:139,src/buf/uninit_slice.rs:139,unsafe {,review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:182,src/buf/uninit_slice.rs:182,/// unsafe {,review,review,review,review,,,not_started
+src/buf/uninit_slice.rs:187,src/buf/uninit_slice.rs:187,pub unsafe fn as_uninit_slice_mut(&mut self) -> &mut [MaybeUninit<u8>] {,review,review,review,review,,,not_started
+src/bytes.rs:111,src/bytes.rs:111,"pub clone: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> Bytes,",review,review,review,review,,,not_started
+src/bytes.rs:115,src/bytes.rs:115,"pub into_vec: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> Vec<u8>,",review,review,review,review,,,not_started
+src/bytes.rs:116,src/bytes.rs:116,"pub into_mut: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> BytesMut,",review,review,review,review,,,not_started
+src/bytes.rs:118,src/bytes.rs:118,"pub is_unique: unsafe fn(&AtomicPtr<()>) -> bool,",review,review,review,review,,,not_started
+src/bytes.rs:120,src/bytes.rs:120,"pub drop: unsafe fn(&mut AtomicPtr<()>, *const u8, usize),",review,review,review,review,,,not_started
+src/bytes.rs:221,src/bytes.rs:221,"/// #         pub unsafe fn map(_file: &super::File) -> Result<Self, ()> {",review,review,review,review,,,not_started
+src/bytes.rs:237,src/bytes.rs:237,/// let mmap = unsafe { Mmap::map(&file) }?;,review,review,review,review,,,not_started
+src/bytes.rs:281,src/bytes.rs:281,let buf = unsafe { &*owned }.owner.as_ref();,review,review,review,review,,,not_started
+src/bytes.rs:339,src/bytes.rs:339,unsafe { (self.vtable.is_unique)(&self.data) },review,review,review,review,,,not_started
+src/bytes.rs:406,src/bytes.rs:406,ret.ptr = unsafe { ret.ptr.add(begin) };,review,review,review,review,,,not_started
+src/bytes.rs:515,src/bytes.rs:515,unsafe { ret.inc_start(at) };,review,review,review,review,,,not_started
+src/bytes.rs:563,src/bytes.rs:563,unsafe { self.inc_start(at) };,review,review,review,review,,,not_started
+src/bytes.rs:646,src/bytes.rs:646,pub(crate) unsafe fn with_vtable(,review,review,review,review,,,not_started
+src/bytes.rs:664,src/bytes.rs:664,"unsafe { slice::from_raw_parts(self.ptr, self.len) }",review,review,review,review,,,not_started
+src/bytes.rs:668,src/bytes.rs:668,"unsafe fn inc_start(&mut self, by: usize) {",review,review,review,review,,,not_started
+src/bytes.rs:677,src/bytes.rs:677,unsafe impl Send for Bytes {},review,review,review,review,,,not_started
+src/bytes.rs:678,src/bytes.rs:678,unsafe impl Sync for Bytes {},review,review,review,review,,,not_started
+src/bytes.rs:683,src/bytes.rs:683,"unsafe { (self.vtable.drop)(&mut self.data, self.ptr, self.len) }",review,review,review,review,,,not_started
+src/bytes.rs:690,src/bytes.rs:690,"unsafe { (self.vtable.clone)(&self.data, self.ptr, self.len) }",review,review,review,review,,,not_started
+src/bytes.rs:714,src/bytes.rs:714,unsafe {,review,review,review,review,,,not_started
+src/bytes.rs:1044,src/bytes.rs:1044,"unsafe { (bytes.vtable.into_mut)(&bytes.data, bytes.ptr, bytes.len) }",review,review,review,review,,,not_started
+src/bytes.rs:1057,src/bytes.rs:1057,"unsafe { (bytes.vtable.into_vec)(&bytes.data, bytes.ptr, bytes.len) }",review,review,review,review,,,not_started
+src/bytes.rs:1082,src/bytes.rs:1082,"unsafe fn static_clone(_: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {",review,review,review,review,,,not_started
+src/bytes.rs:1087,src/bytes.rs:1087,"unsafe fn static_to_vec(_: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {",review,review,review,review,,,not_started
+src/bytes.rs:1092,src/bytes.rs:1092,"unsafe fn static_to_mut(_: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {",review,review,review,review,,,not_started
+src/bytes.rs:1101,src/bytes.rs:1101,"unsafe fn static_drop(_: &mut AtomicPtr<()>, _: *const u8, _: usize) {",review,review,review,review,,,not_started
+src/bytes.rs:1123,src/bytes.rs:1123,"unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {",review,review,review,review,,,not_started
+src/bytes.rs:1138,src/bytes.rs:1138,"unsafe fn owned_to_vec<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {",review,review,review,review,,,not_started
+src/bytes.rs:1145,src/bytes.rs:1145,"unsafe fn owned_to_mut<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {",review,review,review,review,,,not_started
+src/bytes.rs:1149,src/bytes.rs:1149,unsafe fn owned_is_unique(_data: &AtomicPtr<()>) -> bool {,review,review,review,review,,,not_started
+src/bytes.rs:1153,src/bytes.rs:1153,unsafe fn owned_drop_impl<T>(owned: *mut ()) {,review,review,review,review,,,not_started
+src/bytes.rs:1171,src/bytes.rs:1171,"unsafe fn owned_drop<T>(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {",review,review,review,review,,,not_started
+src/bytes.rs:1194,src/bytes.rs:1194,"unsafe fn promotable_even_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {",review,review,review,review,,,not_started
+src/bytes.rs:1207,src/bytes.rs:1207,unsafe fn promotable_to_vec(,review,review,review,review,,,not_started
+src/bytes.rs:1233,src/bytes.rs:1233,unsafe fn promotable_to_mut(,review,review,review,review,,,not_started
+src/bytes.rs:1262,src/bytes.rs:1262,"unsafe fn promotable_even_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {",review,review,review,review,,,not_started
+src/bytes.rs:1268,src/bytes.rs:1268,"unsafe fn promotable_even_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {",review,review,review,review,,,not_started
+src/bytes.rs:1274,src/bytes.rs:1274,"unsafe fn promotable_even_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usize) {",review,review,review,review,,,not_started
+src/bytes.rs:1289,src/bytes.rs:1289,"unsafe fn promotable_odd_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {",review,review,review,review,,,not_started
+src/bytes.rs:1301,src/bytes.rs:1301,"unsafe fn promotable_odd_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {",review,review,review,review,,,not_started
+src/bytes.rs:1305,src/bytes.rs:1305,"unsafe fn promotable_odd_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {",review,review,review,review,,,not_started
+src/bytes.rs:1309,src/bytes.rs:1309,"unsafe fn promotable_odd_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usize) {",review,review,review,review,,,not_started
+src/bytes.rs:1324,src/bytes.rs:1324,unsafe fn promotable_is_unique(data: &AtomicPtr<()>) -> bool {,review,review,review,review,,,not_started
+src/bytes.rs:1336,src/bytes.rs:1336,"unsafe fn free_boxed_slice(buf: *mut u8, offset: *const u8, len: usize) {",review,review,review,review,,,not_started
+src/bytes.rs:1352,src/bytes.rs:1352,"unsafe { dealloc(self.buf, Layout::from_size_align(self.cap, 1).unwrap()) }",review,review,review,review,,,not_started
+src/bytes.rs:1374,src/bytes.rs:1374,"unsafe fn shared_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {",review,review,review,review,,,not_started
+src/bytes.rs:1379,src/bytes.rs:1379,"unsafe fn shared_to_vec_impl(shared: *mut Shared, ptr: *const u8, len: usize) -> Vec<u8> {",review,review,review,review,,,not_started
+src/bytes.rs:1408,src/bytes.rs:1408,"unsafe fn shared_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {",review,review,review,review,,,not_started
+src/bytes.rs:1412,src/bytes.rs:1412,"unsafe fn shared_to_mut_impl(shared: *mut Shared, ptr: *const u8, len: usize) -> BytesMut {",review,review,review,review,,,not_started
+src/bytes.rs:1447,src/bytes.rs:1447,"unsafe fn shared_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {",review,review,review,review,,,not_started
+src/bytes.rs:1451,src/bytes.rs:1451,pub(crate) unsafe fn shared_is_unique(data: &AtomicPtr<()>) -> bool {,review,review,review,review,,,not_started
+src/bytes.rs:1457,src/bytes.rs:1457,"unsafe fn shared_drop(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {",review,review,review,review,,,not_started
+src/bytes.rs:1463,src/bytes.rs:1463,"unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> Bytes {",review,review,review,review,,,not_started
+src/bytes.rs:1479,src/bytes.rs:1479,unsafe fn shallow_clone_vec(,review,review,review,review,,,not_started
+src/bytes.rs:1550,src/bytes.rs:1550,unsafe fn release_shared(ptr: *mut Shared) {,review,review,review,review,,,not_started
+src/bytes_mut.rs:249,src/bytes_mut.rs:249,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:262,src/bytes_mut.rs:262,"unsafe { Bytes::with_vtable(ptr, len, data, &SHARED_VTABLE) }",review,review,review,review,,,not_started
+src/bytes_mut.rs:326,src/bytes_mut.rs:326,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:402,src/bytes_mut.rs:402,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:436,src/bytes_mut.rs:436,unsafe { self.set_len(len) };,review,review,review,review,,,not_started
+src/bytes_mut.rs:453,src/bytes_mut.rs:453,unsafe { self.set_len(0) };,review,review,review,review,,,not_started
+src/bytes_mut.rs:494,src/bytes_mut.rs:494,"unsafe { ptr::write_bytes(dst, value, additional) };",review,review,review,review,,,not_started
+src/bytes_mut.rs:498,src/bytes_mut.rs:498,unsafe { self.set_len(new_len) };,review,review,review,review,,,not_started
+src/bytes_mut.rs:514,src/bytes_mut.rs:514,/// unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:520,src/bytes_mut.rs:520,/// unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:527,src/bytes_mut.rs:527,"pub unsafe fn set_len(&mut self, len: usize) {",review,review,review,review,,,not_started
+src/bytes_mut.rs:620,src/bytes_mut.rs:620,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:684,src/bytes_mut.rs:684,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:765,src/bytes_mut.rs:765,let original_capacity_repr = unsafe { (*shared).original_capacity_repr };,review,review,review,review,,,not_started
+src/bytes_mut.rs:778,src/bytes_mut.rs:778,unsafe { release_shared(shared) };,review,review,review,review,,,not_started
+src/bytes_mut.rs:870,src/bytes_mut.rs:870,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:878,src/bytes_mut.rs:878,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:946,src/bytes_mut.rs:946,"unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }",review,review,review,review,,,not_started
+src/bytes_mut.rs:951,src/bytes_mut.rs:951,"unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }",review,review,review,review,,,not_started
+src/bytes_mut.rs:959,src/bytes_mut.rs:959,"pub(crate) unsafe fn advance_unchecked(&mut self, count: usize) {",review,review,review,review,,,not_started
+src/bytes_mut.rs:1001,src/bytes_mut.rs:1001,let ptr = unsafe { self.ptr.as_ptr().add(self.len) };,review,review,review,review,,,not_started
+src/bytes_mut.rs:1021,src/bytes_mut.rs:1021,"unsafe fn promote_to_shared(&mut self, ref_cnt: usize) {",review,review,review,review,,,not_started
+src/bytes_mut.rs:1056,src/bytes_mut.rs:1056,"/// The kind of `self` doesn't matter, but this is unsafe",review,review,review,review,,,not_started
+src/bytes_mut.rs:1061,src/bytes_mut.rs:1061,unsafe fn shallow_clone(&mut self) -> BytesMut {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1072,src/bytes_mut.rs:1072,unsafe fn get_vec_pos(&self) -> usize {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1079,src/bytes_mut.rs:1079,"unsafe fn set_vec_pos(&mut self, pos: usize) {",review,review,review,review,,,not_started
+src/bytes_mut.rs:1109,src/bytes_mut.rs:1109,/// unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1117,src/bytes_mut.rs:1117,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1131,src/bytes_mut.rs:1131,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1138,src/bytes_mut.rs:1138,unsafe { release_shared(self.data) };,review,review,review,review,,,not_started
+src/bytes_mut.rs:1162,src/bytes_mut.rs:1162,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1174,src/bytes_mut.rs:1174,unsafe impl BufMut for BytesMut {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1182,src/bytes_mut.rs:1182,"unsafe fn advance_mut(&mut self, cnt: usize) {",review,review,review,review,,,not_started
+src/bytes_mut.rs:1239,src/bytes_mut.rs:1239,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1445,src/bytes_mut.rs:1445,unsafe fn increment_shared(ptr: *mut Shared) {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1453,src/bytes_mut.rs:1453,unsafe fn release_shared(ptr: *mut Shared) {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1572,src/bytes_mut.rs:1572,unsafe impl Send for BytesMut {},review,review,review,review,,,not_started
+src/bytes_mut.rs:1573,src/bytes_mut.rs:1573,unsafe impl Sync for BytesMut {},review,review,review,review,,,not_started
+src/bytes_mut.rs:1737,src/bytes_mut.rs:1737,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1744,src/bytes_mut.rs:1744,if unsafe { (*shared).is_unique() } {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1745,src/bytes_mut.rs:1745,let vec = core::mem::take(unsafe { &mut (*shared).vec });,review,review,review,review,,,not_started
+src/bytes_mut.rs:1747,src/bytes_mut.rs:1747,unsafe { release_shared(shared) };,review,review,review,review,,,not_started
+src/bytes_mut.rs:1757,src/bytes_mut.rs:1757,unsafe {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1771,src/bytes_mut.rs:1771,unsafe { NonNull::new_unchecked(ptr) },review,review,review,review,,,not_started
+src/bytes_mut.rs:1787,src/bytes_mut.rs:1787,"unsafe fn rebuild_vec(ptr: *mut u8, mut len: usize, mut cap: usize, off: usize) -> Vec<u8> {",review,review,review,review,,,not_started
+src/bytes_mut.rs:1805,src/bytes_mut.rs:1805,"unsafe fn shared_v_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {",review,review,review,review,,,not_started
+src/bytes_mut.rs:1813,src/bytes_mut.rs:1813,"unsafe fn shared_v_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {",review,review,review,review,,,not_started
+src/bytes_mut.rs:1835,src/bytes_mut.rs:1835,"unsafe fn shared_v_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {",review,review,review,review,,,not_started
+src/bytes_mut.rs:1864,src/bytes_mut.rs:1864,unsafe fn shared_v_is_unique(data: &AtomicPtr<()>) -> bool {,review,review,review,review,,,not_started
+src/bytes_mut.rs:1870,src/bytes_mut.rs:1870,"unsafe fn shared_v_drop(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {",review,review,review,review,,,not_started
