@@ -103,7 +103,7 @@ pub fn accepted_prefix_span(
 }
 
 /// Deterministic outcomes for the token scanner model.
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone)]
 pub enum TokenOutcome {
     /// A nonempty token ended at a space delimiter.
     Complete,
@@ -113,16 +113,27 @@ pub enum TokenOutcome {
     Error,
 }
 
-impl DeepModel for TokenOutcome {
-    type DeepModelTy = Int;
+#[logic(open)]
+pub fn token_outcome_is_complete(outcome: TokenOutcome) -> bool {
+    match outcome {
+        TokenOutcome::Complete => true,
+        _ => false,
+    }
+}
 
-    #[logic]
-    fn deep_model(self) -> Int {
-        match self {
-            TokenOutcome::Complete => 0,
-            TokenOutcome::Partial => 1,
-            TokenOutcome::Error => 2,
-        }
+#[logic(open)]
+pub fn token_outcome_is_partial(outcome: TokenOutcome) -> bool {
+    match outcome {
+        TokenOutcome::Partial => true,
+        _ => false,
+    }
+}
+
+#[logic(open)]
+pub fn token_outcome_is_error(outcome: TokenOutcome) -> bool {
+    match outcome {
+        TokenOutcome::Error => true,
+        _ => false,
     }
 }
 
@@ -138,6 +149,22 @@ pub struct TokenResult {
     pub token: Option<Span>,
 }
 
+#[logic(open)]
+pub fn token_result_has_no_span(parsed: TokenResult) -> bool {
+    match parsed.token {
+        None => true,
+        Some(_) => false,
+    }
+}
+
+#[logic(open)]
+pub fn token_result_span_is(parsed: TokenResult, start: Int, end: Int) -> bool {
+    match parsed.token {
+        None => false,
+        Some(span) => span.start == start && span.end == end,
+    }
+}
+
 /// Independent deterministic model of the scalar `parse_token` behavior.
 ///
 /// This is a representative caller of `maximal_prefix_end`: after proving the
@@ -145,22 +172,22 @@ pub struct TokenResult {
 /// and an invalid byte while retaining the exact consumed cursor.
 #[logic]
 #[requires(0 <= start && start <= end && end <= input.len())]
-#[ensures(start == end ==> result.outcome == TokenOutcome::Partial)]
-#[ensures(start == end ==> result.cursor == end && result.token == None)]
+#[ensures(start == end ==> token_outcome_is_partial(result.outcome))]
+#[ensures(start == end ==> result.cursor == end && token_result_has_no_span(result))]
 #[ensures(start < end && !accepts(ByteClass::Token, input[start])
-    ==> result.outcome == TokenOutcome::Error)]
+    ==> token_outcome_is_error(result.outcome))]
 #[ensures(start < end && !accepts(ByteClass::Token, input[start])
-    ==> result.cursor == start + 1 && result.token == None)]
+    ==> result.cursor == start + 1 && token_result_has_no_span(result))]
 #[ensures(start < end && accepts(ByteClass::Token, input[start])
     && maximal_prefix_end(input, start, end, ByteClass::Token) == end
-    ==> result.outcome == TokenOutcome::Partial)]
+    ==> token_outcome_is_partial(result.outcome))]
 #[ensures(start < end && accepts(ByteClass::Token, input[start])
     && maximal_prefix_end(input, start, end, ByteClass::Token) == end
-    ==> result.cursor == end && result.token == None)]
+    ==> result.cursor == end && token_result_has_no_span(result))]
 #[ensures(start < end && accepts(ByteClass::Token, input[start])
     && maximal_prefix_end(input, start, end, ByteClass::Token) < end
     && input[maximal_prefix_end(input, start, end, ByteClass::Token)]@ == 32
-    ==> result.outcome == TokenOutcome::Complete)]
+    ==> token_outcome_is_complete(result.outcome))]
 #[ensures(start < end && accepts(ByteClass::Token, input[start])
     && maximal_prefix_end(input, start, end, ByteClass::Token) < end
     && input[maximal_prefix_end(input, start, end, ByteClass::Token)]@ == 32
@@ -168,19 +195,17 @@ pub struct TokenResult {
 #[ensures(start < end && accepts(ByteClass::Token, input[start])
     && maximal_prefix_end(input, start, end, ByteClass::Token) < end
     && input[maximal_prefix_end(input, start, end, ByteClass::Token)]@ == 32
-    ==> result.token == Some(Span {
-        start,
-        end: maximal_prefix_end(input, start, end, ByteClass::Token),
-    }))]
+    ==> token_result_span_is(result, start,
+        maximal_prefix_end(input, start, end, ByteClass::Token)))]
 #[ensures(start < end && accepts(ByteClass::Token, input[start])
     && maximal_prefix_end(input, start, end, ByteClass::Token) < end
     && input[maximal_prefix_end(input, start, end, ByteClass::Token)]@ != 32
-    ==> result.outcome == TokenOutcome::Error)]
+    ==> token_outcome_is_error(result.outcome))]
 #[ensures(start < end && accepts(ByteClass::Token, input[start])
     && maximal_prefix_end(input, start, end, ByteClass::Token) < end
     && input[maximal_prefix_end(input, start, end, ByteClass::Token)]@ != 32
     ==> result.cursor == maximal_prefix_end(input, start, end, ByteClass::Token) + 1
-        && result.token == None)]
+        && token_result_has_no_span(result))]
 pub fn parse_token_model(input: Seq<u8>, start: Int, end: Int) -> TokenResult {
     if start == end {
         TokenResult {
@@ -225,21 +250,12 @@ pub fn parse_token_model(input: Seq<u8>, start: Int, end: Int) -> TokenResult {
 ///
 /// `Bytes::pos()` is relative to the current mark.  Parser models keep absolute
 /// indices so a returned span can be related directly to the immutable input.
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone)]
 pub struct Span {
     /// Absolute first byte, inclusive.
     pub start: Int,
     /// Absolute byte after the span, exclusive.
     pub end: Int,
-}
-
-impl DeepModel for Span {
-    type DeepModelTy = (Int, Int);
-
-    #[logic]
-    fn deep_model(self) -> (Int, Int) {
-        (self.start, self.end)
-    }
 }
 
 /// A span lies inside the original input and has ordered endpoints.

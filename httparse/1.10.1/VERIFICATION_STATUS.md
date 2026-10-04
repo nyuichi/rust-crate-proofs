@@ -1,10 +1,11 @@
 # httparse 1.10.1 verification status ledger
 
-This is an honest P0 checkpoint. No crate-owned algorithm body has a proved
-Creusot body or a runtime-refinement bridge yet. The default and no-default
-native test suites pass; exact counts and target/backend conditions are in
-`PROVENANCE.md`. The logical byte, token, and chunk models are model-only and
-have not yet been proven or connected to executable bodies.
+This is a partial P1 checkpoint. No executable crate-owned parser body has a
+proved Creusot body or a runtime-refinement bridge yet. The default and
+no-default native test suites pass; exact counts and target/backend conditions
+are in `PROVENANCE.md`. The independent byte/token model passes in isolation,
+but its logical byte predicates have not been connected to runtime table or
+scanner bodies. The separate chunk model remains model-only and unproved.
 
 **Full verification gate: OPEN.** `verify-all.bash` refuses to run until this
 gate is explicitly closed and every ledger row reports reviewed contracts,
@@ -27,7 +28,7 @@ or excluded gap.
 | Runtime SIMD dispatch and cache | no | no | no | none | Atomic-state/feature invariant and all runtime backend paths remain open. |
 | All public/trait/derived adapters and std/no_std surfaces | no | no | no | none | Formatting/error trait bodies, generic `TryFrom` adapter, reexports and cfg matrix remain open. |
 | `build.rs` backend cfg generation and supported target selection | no | no | no | none | Compiler-version, architecture, feature and environment cfg outcomes must be checked against each reachable backend. |
-| Independent byte, token and span models | no | no | no | none | Logic-only model; bodies and representative runtime consumers remain unproved/unlinked. |
+| Independent byte, token and span models | yes | yes: `maximal_prefix_end`, `accepted_prefix_span`, and `parse_token_model`; 7/7 total VCs including four derived Clone bodies | no | isolated harness only | Model-only; byte-table, cursor and executable scanner bridges remain open. |
 | Independent chunk-size state machine | no | no | no | none | Logic-only model; no body proof or runtime refinement connection yet. |
 
 The contract checklist and full callable/unsafe inventory are in

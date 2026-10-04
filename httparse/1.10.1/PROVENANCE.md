@@ -1,7 +1,8 @@
 # httparse 1.10.1 provenance and verification status
 
-**Status: partial; import and runtime-test baseline recorded. No parser body is
-yet claimed proved.**
+**Status: partial; import, runtime-test baseline, and an isolated model proof
+checkpoint are recorded. No executable httparse parser body is yet claimed
+proved.**
 
 This crate tree was copied from the published crates.io archive
 `httparse-1.10.1.crate`, whose SHA-256 is
@@ -57,13 +58,25 @@ any parser implementation body was claimed proved.
 The pinned verification environment provides cargo-creusot `0.11.0-dev`, Why3
 `1.8.2+git`, why3find `1.2.0+dev`, Z3 `4.15.3`, CVC5 `1.3.1`, and CVC4 `1.8`.
 The Z3, CVC5 and CVC4 versions were queried directly; cargo-creusot's pinned
-version comes from the activated proof environment. No proof command has been
-run for this checkpoint.
+version comes from the activated proof environment.
+
+An independent scalar model checkpoint passes translation and proof in
+`verification/probes/model-harness`. It includes `src/verification/model.rs`
+directly because metadata resolution for the upstream test/benchmark graph
+needs unavailable registry downloads. `CARGO_NET_OFFLINE=true ./verify.sh
+translate` completed successfully. `CARGO_NET_OFFLINE=true ./verify.sh prove`
+completed successfully through the target-local `run-proof.bash`, with one Z3
+4.15.3 prover and a 1000 MiB limit. Seven generated proof files and seven
+obligations passed: `maximal_prefix_end`, `accepted_prefix_span`,
+`parse_token_model`, and the four derived `Clone` bodies. The model function
+bodies are proved in isolation only; their open byte-class definitions are not
+runtime table contracts. The generated Coma files and per-goal `proof.json`
+session results are in the harness `verif/` tree for reproduction.
 
 The integrated Creusot proof, runtime-refinement bridge, initialized and
 uninitialized header storage, every seven-flag configuration, and SIMD/runtime
 dispatch are all outstanding. Baseline tests are behavioral evidence, not a
-proof claim. The complete callable and unsafe boundary inventory is in
+full runtime proof claim. The complete callable and unsafe boundary inventory is in
 [`API-INVENTORY.md`](API-INVENTORY.md); proof status and gaps are tracked in
 [`VERIFICATION_STATUS.md`](VERIFICATION_STATUS.md).
 
