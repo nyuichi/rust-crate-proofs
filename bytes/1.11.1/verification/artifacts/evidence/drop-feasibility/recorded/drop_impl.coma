@@ -1,0 +1,37 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/drop-feasibility/src/lib.rs" 13 4 13 22 *)
+
+(* <SetTrueOnDrop<'_> as std::ops::Drop> *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/drop-feasibility/src/lib.rs" 14 8 14 24
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/drop-feasibility/src/lib.rs" 7 10 7 23
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_SetTrueOnDrop = { f0: MutBorrow.t bool }
+
+let set_true (flag: MutBorrow.t bool) (return (x: ())) = any
+  [ return (result: ()) -> {[@stop_split] [@expl:set_true ensures] [%#slib'0] flag.final = true} (! return {result}) ]
+
+predicate resolve_refmut_SetTrueOnDrop [@inline:trivial] (_1: MutBorrow.t t_SetTrueOnDrop) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_SetTrueOnDrop
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let drop_SetTrueOnDrop [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/drop-feasibility/src/lib.rs" 13 4 13 22]
+  (self: MutBorrow.t t_SetTrueOnDrop) (return (x: ())) = (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_mut <bool> {self.current.f0.current}
+        (fun (_bor: MutBorrow.t bool) ->
+          [ &_3 <- _bor ] [ &self <- { self with current = { f0 = { self.current.f0 with current = _bor.final } } } ]
+          s1)
+    | s1 = set_true [%#slib] {_3} (fun (_x: ()) -> [ &_2 <- _x ] s2)
+    | s2 = -{resolve_refmut_SetTrueOnDrop self}- s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: MutBorrow.t t_SetTrueOnDrop = self
+  | & _2: () = Any.any_l ()
+  | & _3: MutBorrow.t bool = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

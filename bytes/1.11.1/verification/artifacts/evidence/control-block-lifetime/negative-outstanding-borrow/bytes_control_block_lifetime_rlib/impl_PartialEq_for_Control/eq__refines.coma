@@ -1,0 +1,35 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/control-block-lifetime/src/lib.rs" 17 20 17 52 *)
+
+(* <Control as std::cmp::PartialEq> *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/control-block-lifetime/src/lib.rs" 17 20 17 52
+let%span slib'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-proc-0.13.0/src/lib.rs" 91 0 91 44
+let%span smodel = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/model.rs" 37 8 37 28
+let%span snum = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 27 28 27 33
+let%span scmp = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/cmp.rs" 14 26 14 75
+
+use creusot.int.UInt64
+
+type t_Control = { metadata: UInt64.t }
+
+type t_ControlDeepModel = { metadata'0: int }
+
+function deep_model_u64 [@inline:trivial] (self: UInt64.t) : int = [%#snum] UInt64.t'int self
+
+meta "rewrite_def" function deep_model_u64
+
+function deep_model_Control [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/control-block-lifetime/src/lib.rs" 17 9 17 18] (self: t_Control) : t_ControlDeepModel
+ = [%#slib'0] { metadata'0 = deep_model_u64 self.metadata }
+
+function deep_model_ref_Control [@inline:trivial] (self: t_Control) : t_ControlDeepModel =
+  [%#smodel] deep_model_Control self
+
+meta "rewrite_def" function deep_model_ref_Control
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Control, rhs: t_Control. forall result: bool. ([%#slib] result
+        = (deep_model_ref_Control self_ = deep_model_ref_Control rhs))
+      -> ([%#scmp] result = (deep_model_ref_Control self_ = deep_model_ref_Control rhs))

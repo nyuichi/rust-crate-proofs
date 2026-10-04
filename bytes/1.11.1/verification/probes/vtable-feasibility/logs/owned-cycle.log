@@ -1,0 +1,85 @@
+$ BYTES_TRANSLATE_ONLY=1 scripts/verify-bytes.sh vtable-feasibility --no-default-features --features owned-cycle
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/vtable-feasibility; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 2 files, 11.5KiB total
+    Checking bytes-vtable-feasibility v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/vtable-feasibility)
+warning: unused import: `creusot_std::prelude::*`
+ --> src/lib.rs:5:5
+  |
+5 | use creusot_std::prelude::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `Vtable` is never constructed
+  --> src/lib.rs:49:16
+   |
+49 |     pub struct Vtable {
+   |                ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `Bytes` is never constructed
+  --> src/lib.rs:53:16
+   |
+53 |     pub struct Bytes {
+   |                ^^^^^
+
+warning: struct `Owned` is never constructed
+  --> src/lib.rs:57:12
+   |
+57 |     struct Owned<T>(PhantomData<T>);
+   |            ^^^^^
+
+warning: associated constant `VTABLE` is never used
+  --> src/lib.rs:60:15
+   |
+59 |     impl<T> Owned<T> {
+   |     ---------------- associated constant in this implementation
+60 |         const VTABLE: Vtable = Vtable {
+   |               ^^^^^^
+
+warning: function `from_owned` is never used
+  --> src/lib.rs:65:8
+   |
+65 |     fn from_owned<T>() -> Bytes {
+   |        ^^^^^^^^^^
+
+warning: function `owned_clone` is never used
+  --> src/lib.rs:77:15
+   |
+77 |     unsafe fn owned_clone<T>() -> Bytes {
+   |               ^^^^^^^^^^^
+
+warning: function `clone_owned` is never used
+  --> src/lib.rs:82:12
+   |
+82 |     pub fn clone_owned() -> Bytes {
+   |            ^^^^^^^^^^^
+
+error: Mutually recursive functions: when calling `owned_cycle::from_owned`...
+  --> src/lib.rs:65:5
+   |
+65 |     fn from_owned<T>() -> Bytes {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: `owned_cycle::from_owned` calls `owned_cycle::Owned::<T>::VTABLE`...
+  --> src/lib.rs:67:22
+   |
+67 |             vtable: &Owned::<T>::VTABLE,
+   |                      ^^^^^^^^^^^^^^^^^^
+note: then `owned_cycle::Owned::<T>::VTABLE` uses `owned_cycle::owned_clone`...
+  --> src/lib.rs:61:20
+   |
+61 |             clone: owned_clone::<T>,
+   |                    ^^^^^^^^^^^^^^^^
+note: finally `owned_cycle::owned_clone` calls `owned_cycle::from_owned`.
+  --> src/lib.rs:78:9
+   |
+78 |         from_owned::<T>()
+   |         ^^^^^^^^^^^^^^^
+
+warning: `bytes-vtable-feasibility` (lib) generated 8 warnings
+error: could not compile `bytes-vtable-feasibility` (lib) due to 1 previous error; 8 warnings emitted
+Error: Compilation failed
+
+exit status: 1

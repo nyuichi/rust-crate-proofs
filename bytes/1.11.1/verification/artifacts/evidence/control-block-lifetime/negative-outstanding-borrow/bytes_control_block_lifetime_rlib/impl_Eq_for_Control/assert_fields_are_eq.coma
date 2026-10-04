@@ -1,0 +1,16 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/control-block-lifetime/src/lib.rs" 17 54 17 69 *)
+
+(* <Control as std::cmp::Eq> *)
+
+use creusot.prelude.Any
+use creusot.int.UInt64
+
+type t_Control = { metadata: UInt64.t }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let assert_fields_are_eq_Control [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/control-block-lifetime/src/lib.rs" 17 54 17 69]
+  (self: t_Control) (return (x: ())) = (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

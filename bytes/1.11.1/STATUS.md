@@ -2,6 +2,20 @@
 
 ## Current working-tree status (2026-10-04)
 
+Implementation of the approved ownership design has started. The new
+[feasibility results](verification/OWNERSHIP_FEASIBILITY_RESULTS.md) record
+vtable translation and automatic Drop as excluded integration paths under the
+no-large-compiler-change constraint. A real boxed immutable control block can
+be shared through existing lifetime fractions and recovered after joining all
+fractions; this is an isolated foundation, not a BytesMut/refcount proof.
+The new owned-region kernel is a model-only ledger until a reviewed physical
+Vec/raw bridge connects it to native allocation ownership.
+
+The 21-target replay and ordinary-test counts below refer to source checkpoint
+`27cc729`, preceding the ownership implementation changes. Its retained
+`checkpoint-manifest.json` records that historical snapshot; it is not a hash
+manifest or fresh replay of the current worktree.
+
 Full runtime verification remains **incomplete**. The 19-target inventory in
 the historical section below was captured at commit `60e81ad`; its counts,
 hashes, and replay results apply only to that snapshot. The current working tree
