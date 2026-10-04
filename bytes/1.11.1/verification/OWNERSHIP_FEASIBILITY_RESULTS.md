@@ -41,6 +41,10 @@ This establishes a control-block ownership foundation only. It does not prove
 atomic/refcount correspondence, release-sequence synchronization, byte-region
 recovery, deallocation, or a BytesMut runtime body. A proof-only observation
 after recovery is not a runtime use-after-free test.
+The separate diagnostic with an actual field read after Box drop is rejected
+by Rust typechecking (E0505) at the attempted move of the borrowed token;
+translation never begins. This is compiler evidence, separate from the two
+fraction-accounting VC rejections.
 
 ## Physical byte bridge review constraints
 
