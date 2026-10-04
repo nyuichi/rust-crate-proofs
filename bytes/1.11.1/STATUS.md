@@ -2,6 +2,13 @@
 
 ## Current working-tree status (2026-10-04)
 
+The sealed retired-region pool core gate proves 23 generated files, including
+empty seed, affine retirement, full-coverage extraction and both explicit
+retirement orders followed by B3 deallocation. These are genuine B1 physical
+resources; no new trusted function was added. The gate does not contain native
+Shared, reference counting, or automatic Drop. Mutation and incomplete-recovery
+controls are the next extension.
+
 The exact-source constructor/explicit unique-at-zero cleanup gate now passes
 35 generated proof files. This proves the extracted actual annotated from_vec
 body, original byte prefix and dispatch metadata, plus the verification-only

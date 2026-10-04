@@ -159,3 +159,24 @@ tickets, last-owner uniqueness and physical resource recovery must be proved
 above it. No such bridge is implemented at this checkpoint. Cross-thread
 publication/view transfer and release-sequence reasoning remain separate open
 obligations, as do automatic Drop effects and the full-crate vtable cycles.
+
+
+## Sealed physical pool core gate
+
+The retired-region-pool core snapshot passes 23 proof files. PhysicalPool stores
+the actual Resource<KernelRA>, a sealed allocation descriptor, and NotObjective.
+empty_from owns only the RA unit. retire consumes PhysicalRegion and transfers
+its existing resource; finish(self, zero) requires zero == 0 and exact full
+capacity coverage before rewrapping that same resource as PhysicalRegion.
+B3 still requires the separate unique Recovery. No physical primitive or bytes
+protocol was newly trusted.
+
+A proved product-unit lemma exposes its empty-map value, and map_op_get exposes
+pointwise composition. The model extractor explicitly exports marker-None and
+interval-domain facts, so the physical caller can use them across the opaque
+module boundary. These are proved interface facts, not additional assumptions.
+
+Both retirement orders invoke explicit deallocation. This core gate does not
+prove native Shared, mutable access followed by retirement, refcount, tickets,
+concurrency or automatic Drop. Capacity-zero completion may use the empty unit,
+which grants no byte access; unique Recovery remains necessary to deallocate.

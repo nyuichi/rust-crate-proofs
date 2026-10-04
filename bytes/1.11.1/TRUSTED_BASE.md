@@ -116,3 +116,9 @@ inside its existing Vec/raw boundary; conversion merely moves that field and
 ghost metadata and is body proved. Current physical trusted functions are
 detach_vec, resume_vec, deallocate_vec, borrow_mut, and the deallocate_bound_vec
 variant. The exact constructor/explicit-release source gate passes 35 files.
+
+
+The sealed physical retired-pool core adds no trusted functions. Its seed,
+retirement, full-coverage extraction and supporting RA/extractor lemmas are
+body proved in the 23-file local gate, over the existing physical primitives.
+This does not establish native Shared/refcount or automatic Drop integration.
