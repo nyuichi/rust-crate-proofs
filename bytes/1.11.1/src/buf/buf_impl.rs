@@ -1,5 +1,6 @@
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", not(creusot)))]
 use crate::buf::{reader, Reader};
+#[cfg(not(creusot))]
 use crate::buf::{take, Chain, Take};
 use crate::{panic_advance, panic_does_not_fit, TryGetError};
 
@@ -2364,7 +2365,11 @@ pub trait Buf {
         }
 
         let mut ret = crate::BytesMut::with_capacity(len);
-        ret.put(self.take(len));
+        #[cfg(creusot)]
+        let taken = crate::buf::proof_convenience::take(self, len);
+        #[cfg(not(creusot))]
+        let taken = self.take(len);
+        ret.put(taken);
         ret.freeze()
     }
 
@@ -2389,6 +2394,7 @@ pub trait Buf {
     /// dst.put(&mut buf);
     /// assert_eq!(dst, b" world");
     /// ```
+    #[cfg(not(creusot))]
     fn take(self, limit: usize) -> Take<Self>
     where
         Self: Sized,
@@ -2411,6 +2417,7 @@ pub trait Buf {
     /// let full = chain.copy_to_bytes(11);
     /// assert_eq!(full.chunk(), b"hello world");
     /// ```
+    #[cfg(not(creusot))]
     fn chain<U: Buf>(self, next: U) -> Chain<Self, U>
     where
         Self: Sized,
@@ -2441,7 +2448,7 @@ pub trait Buf {
     /// assert_eq!(11, num);
     /// assert_eq!(&dst[..11], &b"hello world"[..]);
     /// ```
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", not(creusot)))]
     #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     fn reader(self) -> Reader<Self>
     where

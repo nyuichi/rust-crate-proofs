@@ -28,6 +28,8 @@ targets=(
   endian-ops
   signed-wide-ops
   region-permissions
+  provenance-ops
+  ownership-frontier
 )
 
 usage() {

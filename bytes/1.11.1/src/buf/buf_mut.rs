@@ -1,5 +1,7 @@
-use crate::buf::{limit, Chain, Limit, UninitSlice};
-#[cfg(feature = "std")]
+use crate::buf::{limit, Limit, UninitSlice};
+#[cfg(not(creusot))]
+use crate::buf::Chain;
+#[cfg(all(feature = "std", not(creusot)))]
 use crate::buf::{writer, Writer};
 use crate::{panic_advance, panic_does_not_fit, TryGetError};
 
@@ -1311,7 +1313,7 @@ pub unsafe trait BufMut {
     ///
     /// assert_eq!(*buf, b"hello world"[..]);
     /// ```
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", not(creusot)))]
     #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     #[inline]
     fn writer(self) -> Writer<Self>
@@ -1342,6 +1344,7 @@ pub unsafe trait BufMut {
     /// assert_eq!(&b[..], b" world");
     /// ```
     #[inline]
+    #[cfg(not(creusot))]
     fn chain_mut<U: BufMut>(self, next: U) -> Chain<Self, U>
     where
         Self: Sized,

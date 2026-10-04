@@ -1,5 +1,8 @@
 use crate::Buf;
 
+#[cfg(creusot)]
+use creusot_std::prelude::*;
+
 use std::io;
 
 /// A `Buf` adapter which implements `io::Read` for the inner value.
@@ -12,6 +15,7 @@ pub struct Reader<B> {
     buf: B,
 }
 
+#[cfg_attr(creusot, ensures(result.buf == buf))]
 pub fn new<B>(buf: B) -> Reader<B> {
     Reader { buf }
 }
@@ -30,6 +34,8 @@ impl<B: Buf> Reader<B> {
     ///
     /// assert_eq!(b"hello world", buf.get_ref());
     /// ```
+    #[cfg_attr(creusot, check(ghost))]
+    #[cfg_attr(creusot, ensures(*result == self.buf))]
     pub fn get_ref(&self) -> &B {
         &self.buf
     }

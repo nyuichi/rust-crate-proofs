@@ -190,7 +190,7 @@ impl Bytes {
 
         // Detach this pointer's provenance from whichever allocation it came from, and reattach it
         // to the provenance of the fake ZST [u8;0] at the same address.
-        let ptr = without_provenance(ptr as usize);
+        let ptr = without_provenance(crate::provenance_specs::pointer_addr(ptr));
 
         Bytes {
             ptr,
@@ -440,10 +440,10 @@ impl Bytes {
             return Bytes::new();
         }
 
-        let bytes_p = self.as_ptr() as usize;
+        let bytes_p = crate::provenance_specs::pointer_addr(self.as_ptr());
         let bytes_len = self.len();
 
-        let sub_p = subset.as_ptr() as usize;
+        let sub_p = crate::provenance_specs::pointer_addr(subset.as_ptr());
         let sub_len = subset.len();
 
         assert!(
@@ -778,6 +778,14 @@ impl FromIterator<u8> for Bytes {
 
 // impl Eq
 
+// The standard comparison trait contracts require Bytes itself to implement
+// DeepModel. The proof build has no representation invariant that connects
+// this raw-pointer handle to a logical byte sequence, so keep these runtime
+// trait impls out of Creusot while exposing the view-level adapters below.
+#[cfg(not(creusot))]
+mod runtime_comparisons {
+use super::*;
+
 impl PartialEq for Bytes {
     fn eq(&self, other: &Bytes) -> bool {
         crate::comparison_ops::equal(self.as_slice(), other.as_slice())
@@ -918,6 +926,7 @@ impl PartialOrd<Bytes> for &str {
     }
 }
 
+#[cfg(not(creusot))]
 impl<'a, T: ?Sized> PartialEq<&'a T> for Bytes
 where
     Bytes: PartialEq<T>,
@@ -927,12 +936,64 @@ where
     }
 }
 
+#[cfg(not(creusot))]
 impl<'a, T: ?Sized> PartialOrd<&'a T> for Bytes
 where
     Bytes: PartialOrd<T>,
 {
     fn partial_cmp(&self, other: &&'a T) -> Option<cmp::Ordering> {
         self.partial_cmp(&**other)
+    }
+}
+
+}
+
+/// Proof-only adapter bodies over the byte slice exposed by this handle. The
+/// bodies delegate to `comparison_ops`, but have no semantic postcondition:
+/// `as_slice` is a program operation over raw storage, and no logical view for
+/// `Bytes` is currently available to state that postcondition soundly.
+#[cfg(creusot)]
+impl Bytes {
+    /// Compare this handle's exposed bytes with another `Bytes` view.
+    #[doc(hidden)]
+    pub fn __creusot_eq_bytes(&self, other: &Bytes) -> bool {
+        crate::comparison_ops::equal(self.as_slice(), other.as_slice())
+    }
+
+    /// Compare this handle's exposed bytes lexicographically with another `Bytes` view.
+    #[doc(hidden)]
+    pub fn __creusot_cmp_bytes(&self, other: &Bytes) -> cmp::Ordering {
+        crate::comparison_ops::compare(self.as_slice(), other.as_slice())
+    }
+
+    /// Compare this handle's exposed bytes with a mutable byte view.
+    #[doc(hidden)]
+    pub fn __creusot_eq_bytes_mut(&self, other: &BytesMut) -> bool {
+        crate::comparison_ops::equal(self.as_slice(), other.as_ref())
+    }
+
+    /// Compare this handle's exposed bytes with a borrowed byte slice.
+    #[doc(hidden)]
+    pub fn __creusot_eq_slice(&self, other: &[u8]) -> bool {
+        crate::comparison_ops::equal(self.as_slice(), other)
+    }
+
+    /// Compare this handle's exposed bytes lexicographically with a borrowed byte slice.
+    #[doc(hidden)]
+    pub fn __creusot_cmp_slice(&self, other: &[u8]) -> cmp::Ordering {
+        crate::comparison_ops::compare(self.as_slice(), other)
+    }
+
+    /// Compare this handle's exposed bytes with a string's UTF-8 bytes.
+    #[doc(hidden)]
+    pub fn __creusot_eq_str(&self, other: &str) -> bool {
+        crate::comparison_ops::equal(self.as_slice(), other.as_bytes())
+    }
+
+    /// Compare this handle's exposed bytes lexicographically with a string's UTF-8 bytes.
+    #[doc(hidden)]
+    pub fn __creusot_cmp_str(&self, other: &str) -> cmp::Ordering {
+        crate::comparison_ops::compare(self.as_slice(), other.as_bytes())
     }
 }
 
@@ -980,7 +1041,7 @@ impl From<Vec<u8>> for Bytes {
         // The pointer should be aligned, so this assert should
         // always succeed.
         debug_assert!(
-            0 == (shared as usize & KIND_MASK),
+            0 == (crate::provenance_specs::pointer_addr(shared) & KIND_MASK),
             "internal: Box<Shared> should have an aligned pointer",
         );
         Bytes {
@@ -1004,7 +1065,7 @@ impl From<Box<[u8]>> for Bytes {
         let len = slice.len();
         let ptr = Box::into_raw(slice) as *mut u8;
 
-        if ptr as usize & 0x1 == 0 {
+        if crate::provenance_specs::pointer_addr(ptr) & 0x1 == 0 {
             let data = ptr_map(ptr, |addr| addr | KIND_VEC);
             Bytes {
                 ptr,
@@ -1193,7 +1254,7 @@ static PROMOTABLE_ODD_VTABLE: Vtable = Vtable {
 
 unsafe fn promotable_even_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let shared = data.load(Ordering::Acquire);
-    let kind = shared as usize & KIND_MASK;
+    let kind = crate::provenance_specs::pointer_addr(shared) & KIND_MASK;
 
     if kind == KIND_ARC {
         shallow_clone_arc(shared.cast(), ptr, len)
@@ -1211,7 +1272,7 @@ unsafe fn promotable_to_vec(
     f: fn(*mut ()) -> *mut u8,
 ) -> Vec<u8> {
     let shared = data.load(Ordering::Acquire);
-    let kind = shared as usize & KIND_MASK;
+    let kind = crate::provenance_specs::pointer_addr(shared) & KIND_MASK;
 
     if kind == KIND_ARC {
         shared_to_vec_impl(shared.cast(), ptr, len)
@@ -1237,7 +1298,7 @@ unsafe fn promotable_to_mut(
     f: fn(*mut ()) -> *mut u8,
 ) -> BytesMut {
     let shared = data.load(Ordering::Acquire);
-    let kind = shared as usize & KIND_MASK;
+    let kind = crate::provenance_specs::pointer_addr(shared) & KIND_MASK;
 
     if kind == KIND_ARC {
         shared_to_mut_impl(shared.cast(), ptr, len)
@@ -1274,7 +1335,7 @@ unsafe fn promotable_even_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usiz
 unsafe fn promotable_even_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usize) {
     data.with_mut(|shared| {
         let shared = *shared;
-        let kind = shared as usize & KIND_MASK;
+        let kind = crate::provenance_specs::pointer_addr(shared) & KIND_MASK;
 
         if kind == KIND_ARC {
             release_shared(shared.cast());
@@ -1288,7 +1349,7 @@ unsafe fn promotable_even_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: us
 
 unsafe fn promotable_odd_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let shared = data.load(Ordering::Acquire);
-    let kind = shared as usize & KIND_MASK;
+    let kind = crate::provenance_specs::pointer_addr(shared) & KIND_MASK;
 
     if kind == KIND_ARC {
         shallow_clone_arc(shared as _, ptr, len)
@@ -1309,7 +1370,7 @@ unsafe fn promotable_odd_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize
 unsafe fn promotable_odd_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usize) {
     data.with_mut(|shared| {
         let shared = *shared;
-        let kind = shared as usize & KIND_MASK;
+        let kind = crate::provenance_specs::pointer_addr(shared) & KIND_MASK;
 
         if kind == KIND_ARC {
             release_shared(shared.cast());
@@ -1323,7 +1384,7 @@ unsafe fn promotable_odd_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usi
 
 unsafe fn promotable_is_unique(data: &AtomicPtr<()>) -> bool {
     let shared = data.load(Ordering::Acquire);
-    let kind = shared as usize & KIND_MASK;
+    let kind = crate::provenance_specs::pointer_addr(shared) & KIND_MASK;
 
     if kind == KIND_ARC {
         let ref_cnt = (*shared.cast::<Shared>()).ref_cnt.load(Ordering::Relaxed);
@@ -1508,7 +1569,7 @@ unsafe fn shallow_clone_vec(
     // The pointer should be aligned, so this assert should
     // always succeed.
     debug_assert!(
-        0 == (shared as usize & KIND_MASK),
+        0 == (crate::provenance_specs::pointer_addr(shared) & KIND_MASK),
         "internal: Box<Shared> should have an aligned pointer",
     );
 
@@ -1579,24 +1640,22 @@ unsafe fn release_shared(ptr: *mut Shared) {
     drop(Box::from_raw(ptr));
 }
 
-// Ideally we would always use this version of `ptr_map` since it is strict
-// provenance compatible, but it results in worse codegen. We will however still
-// use it on miri because it gives better diagnostics for people who test bytes
-// code with miri.
-//
-// See https://github.com/tokio-rs/bytes/pull/545 for more info.
-#[cfg(miri)]
+// Preserve the allocation pointer's provenance when changing its tag bits.
+// The same code path is used by Miri and Creusot; optimized non-Miri builds
+// retain the integer-cast implementation below.
+// The isolated probe proves the numeric pointer adjustment, not arbitrary
+// behavior of this generic `FnOnce` closure.
+#[cfg(any(miri, creusot))]
 fn ptr_map<F>(ptr: *mut u8, f: F) -> *mut u8
 where
     F: FnOnce(usize) -> usize,
 {
-    let old_addr = ptr as usize;
+    let old_addr = crate::provenance_specs::pointer_addr(ptr);
     let new_addr = f(old_addr);
-    let diff = new_addr.wrapping_sub(old_addr);
-    ptr.wrapping_add(diff)
+    crate::provenance_specs::pointer_with_address(ptr, new_addr)
 }
 
-#[cfg(not(miri))]
+#[cfg(not(any(miri, creusot)))]
 fn ptr_map<F>(ptr: *mut u8, f: F) -> *mut u8
 where
     F: FnOnce(usize) -> usize,

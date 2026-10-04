@@ -47,9 +47,11 @@ TARGETS = (
     "endian-ops",
     "signed-wide-ops",
     "region-permissions",
+    "provenance-ops",
+    "ownership-frontier",
 )
 
-FOUNDATIONS = {"helpers", "storage", "deallocation", "region-permissions"}
+FOUNDATIONS = {"helpers", "storage", "deallocation", "region-permissions", "provenance-ops", "ownership-frontier"}
 DIRECT_PATH_RE = re.compile(r"#\s*\[\s*path\s*=\s*(\"(?:\\.|[^\"])*\")\s*\]", re.DOTALL)
 PROVED_RE = re.compile(r"^Proved \((?:(\d+) files?|((?:verif/)[^ )]+\.coma))\) ✔$", re.MULTILINE)
 RESULT_RE = re.compile(

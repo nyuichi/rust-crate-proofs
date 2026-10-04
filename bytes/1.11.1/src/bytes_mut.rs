@@ -995,7 +995,7 @@ impl BytesMut {
 
     #[inline]
     fn kind(&self) -> usize {
-        self.data as usize & KIND_MASK
+        crate::provenance_specs::pointer_addr(self.data) & KIND_MASK
     }
 
     unsafe fn promote_to_shared(&mut self, ref_cnt: usize) {
@@ -1003,11 +1003,15 @@ impl BytesMut {
         debug_assert!(ref_cnt == 1 || ref_cnt == 2);
 
         let original_capacity_repr =
-            crate::capacity_ops::original_capacity_repr_from_data(self.data as usize);
+            crate::capacity_ops::original_capacity_repr_from_data(
+                crate::provenance_specs::pointer_addr(self.data),
+            );
 
         // The vec offset cannot be concurrently mutated, so there
         // should be no danger reading it.
-        let off = crate::capacity_ops::vec_pos_from_data(self.data as usize);
+        let off = crate::capacity_ops::vec_pos_from_data(
+            crate::provenance_specs::pointer_addr(self.data),
+        );
 
         // First, allocate a new `Shared` instance containing the
         // `Vec` fields. It's important to note that `ptr`, `len`,
@@ -1026,7 +1030,10 @@ impl BytesMut {
 
         // The pointer should be aligned, so this assert should
         // always succeed.
-        debug_assert_eq!(shared as usize & KIND_MASK, KIND_ARC);
+        debug_assert_eq!(
+            crate::provenance_specs::pointer_addr(shared) & KIND_MASK,
+            KIND_ARC
+        );
 
         self.data = shared;
     }
@@ -1052,7 +1059,9 @@ impl BytesMut {
     unsafe fn get_vec_pos(&self) -> usize {
         debug_assert_eq!(self.kind(), KIND_VEC);
 
-        crate::capacity_ops::vec_pos_from_data(self.data as usize)
+        crate::capacity_ops::vec_pos_from_data(
+            crate::provenance_specs::pointer_addr(self.data),
+        )
     }
 
     #[inline]
@@ -1060,7 +1069,10 @@ impl BytesMut {
         debug_assert_eq!(self.kind(), KIND_VEC);
         debug_assert!(pos <= MAX_VEC_POS);
 
-        self.data = invalid_ptr(crate::capacity_ops::set_vec_pos_in_data(self.data as usize, pos));
+        self.data = invalid_ptr(crate::capacity_ops::set_vec_pos_in_data(
+            crate::provenance_specs::pointer_addr(self.data),
+            pos,
+        ));
     }
 
     /// Returns the remaining spare capacity of the buffer as a slice of `MaybeUninit<u8>`.
@@ -1134,14 +1146,14 @@ impl Buf for BytesMut {
     #[inline]
     fn advance(&mut self, cnt: usize) {
         assert!(
-            cnt <= self.remaining(),
+            cnt <= self.len,
             "cannot advance past `remaining`: {:?} <= {:?}",
             cnt,
-            self.remaining(),
+            self.len,
         );
         unsafe {
-            // SAFETY: We've checked that `cnt` <= `self.remaining()` and we know that
-            // `self.remaining()` <= `self.cap`.
+            // SAFETY: We've checked that `cnt` <= `self.len` and we know that
+            // `self.len` <= `self.cap`.
             self.advance_unchecked(cnt);
         }
     }
@@ -1276,6 +1288,10 @@ impl From<BytesMut> for Bytes {
     }
 }
 
+#[cfg(not(creusot))]
+mod runtime_self_comparisons {
+use super::*;
+
 impl PartialEq for BytesMut {
     fn eq(&self, other: &BytesMut) -> bool {
         crate::comparison_ops::equal(self.as_slice(), other.as_slice())
@@ -1295,6 +1311,57 @@ impl Ord for BytesMut {
 }
 
 impl Eq for BytesMut {}
+
+}
+
+/// Proof-only adapter bodies over the byte slice exposed by this handle. They
+/// delegate to `comparison_ops`, but have no semantic postcondition because
+/// `as_slice` is a program operation over raw storage and there is no logical
+/// `BytesMut` view available to state one soundly.
+#[cfg(creusot)]
+impl BytesMut {
+    /// Compare this mutable handle's exposed bytes with another `BytesMut` view.
+    #[doc(hidden)]
+    pub fn __creusot_eq_bytes_mut(&self, other: &BytesMut) -> bool {
+        crate::comparison_ops::equal(self.as_slice(), other.as_slice())
+    }
+
+    /// Compare this mutable handle's exposed bytes lexicographically with another `BytesMut` view.
+    #[doc(hidden)]
+    pub fn __creusot_cmp_bytes_mut(&self, other: &BytesMut) -> cmp::Ordering {
+        crate::comparison_ops::compare(self.as_slice(), other.as_slice())
+    }
+
+    /// Compare this mutable handle's exposed bytes with a borrowed byte slice.
+    #[doc(hidden)]
+    pub fn __creusot_eq_slice(&self, other: &[u8]) -> bool {
+        crate::comparison_ops::equal(self.as_slice(), other)
+    }
+
+    /// Compare this mutable handle's exposed bytes lexicographically with a borrowed byte slice.
+    #[doc(hidden)]
+    pub fn __creusot_cmp_slice(&self, other: &[u8]) -> cmp::Ordering {
+        crate::comparison_ops::compare(self.as_slice(), other)
+    }
+
+    /// Compare this mutable handle's exposed bytes with a string's UTF-8 bytes.
+    #[doc(hidden)]
+    pub fn __creusot_eq_str(&self, other: &str) -> bool {
+        crate::comparison_ops::equal(self.as_slice(), other.as_bytes())
+    }
+
+    /// Compare this mutable handle's exposed bytes lexicographically with a string's UTF-8 bytes.
+    #[doc(hidden)]
+    pub fn __creusot_cmp_str(&self, other: &str) -> cmp::Ordering {
+        crate::comparison_ops::compare(self.as_slice(), other.as_bytes())
+    }
+
+    /// Compare this mutable handle's exposed bytes with a frozen `Bytes` view.
+    #[doc(hidden)]
+    pub fn __creusot_eq_bytes(&self, other: &Bytes) -> bool {
+        crate::comparison_ops::equal(self.as_slice(), other.as_ref())
+    }
+}
 
 impl Default for BytesMut {
     #[inline]
@@ -1541,6 +1608,13 @@ unsafe impl Sync for BytesMut {}
  *
  */
 
+// Standard comparison contracts require a DeepModel for BytesMut. Until the
+// pointer-range ownership invariant supplies that model, these exact upstream
+// runtime impls stay outside the proof configuration.
+#[cfg(not(creusot))]
+mod runtime_cross_comparisons {
+use super::*;
+
 impl PartialEq<[u8]> for BytesMut {
     fn eq(&self, other: &[u8]) -> bool {
         &**self == other
@@ -1637,6 +1711,7 @@ impl PartialOrd<BytesMut> for String {
     }
 }
 
+#[cfg(not(creusot))]
 impl<'a, T: ?Sized> PartialEq<&'a T> for BytesMut
 where
     BytesMut: PartialEq<T>,
@@ -1646,6 +1721,7 @@ where
     }
 }
 
+#[cfg(not(creusot))]
 impl<'a, T: ?Sized> PartialOrd<&'a T> for BytesMut
 where
     BytesMut: PartialOrd<T>,
@@ -1689,6 +1765,8 @@ impl PartialEq<Bytes> for BytesMut {
     fn eq(&self, other: &Bytes) -> bool {
         other[..] == self[..]
     }
+}
+
 }
 
 impl From<BytesMut> for Vec<u8> {
@@ -1742,8 +1820,10 @@ fn vptr(ptr: *mut u8) -> NonNull<u8> {
 /// provenance checking is enabled.
 #[inline]
 fn invalid_ptr<T>(addr: usize) -> *mut T {
-    let ptr = core::ptr::null_mut::<u8>().wrapping_add(addr);
-    debug_assert_eq!(ptr as usize, addr);
+    // This null-derived pointer stores integer metadata only. It carries no
+    // allocation permission and must not be used as a dereferenceable pointer.
+    let ptr = crate::provenance_specs::metadata_pointer(addr);
+    debug_assert_eq!(crate::provenance_specs::pointer_addr(ptr), addr);
     ptr.cast::<T>()
 }
 

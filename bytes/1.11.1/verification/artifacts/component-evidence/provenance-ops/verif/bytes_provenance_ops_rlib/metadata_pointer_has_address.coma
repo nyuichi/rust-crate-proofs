@@ -1,0 +1,36 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 40 0 40 57 *)
+
+let%span sprovenance_specs = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/../../../../src/provenance_specs.rs" 78 28 78 55
+let%span sprovenance_specs'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/../../../../src/provenance_specs.rs" 33 28 33 54
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 41 35 41 75
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 41 4 41 76
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 39 10 39 24
+
+use creusot.int.UInt64
+use creusot.prelude.Opaque
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+
+let metadata_pointer (addr: UInt64.t) (return (x: Opaque.ptr)) = any
+  [ return (result: Opaque.ptr) ->
+  {[@stop_split] [@expl:metadata_pointer ensures] [%#sprovenance_specs] Ptr.addr_logic_u64 result = addr}
+    (! return {result}) ]
+
+let pointer_addr_u8 (ptr: Opaque.ptr) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:pointer_addr ensures] [%#sprovenance_specs'0] result
+    = Ptr.addr_logic_u64 ptr}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let metadata_pointer_has_address [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 40 0 40 57]
+  (addr: UInt64.t) (return (x: UInt64.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = metadata_pointer [%#slib] {addr} (fun (_x: Opaque.ptr) -> [ &_5 <- _x ] s1)
+    | s1 = pointer_addr_u8 [%#slib'0] {_5} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & addr: UInt64.t = addr | & _5: Opaque.ptr = Any.any_l () ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:metadata_pointer_has_address ensures] [%#slib'1] result = addr}
+    (! return {result}) ]

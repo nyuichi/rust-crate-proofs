@@ -1,0 +1,55 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 34 0 34 59 *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 35 18 35 34
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 35 4 35 35
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 31 11 31 49
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 32 10 32 49
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 15 11 15 49
+let%span slib'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 16 10 16 60
+let%span slib'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 23 11 23 51
+let%span slib'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 24 10 24 62
+let%span slib'7 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 34 0 34 59
+
+use creusot.prelude.Opaque
+use creusot.prelude.PtrBW
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+
+constant const_KIND_MASK: UInt64BW.t = [%#slib'7] (1: UInt64BW.t)
+
+constant const_KIND_VEC: UInt64BW.t = [%#slib'7] (1: UInt64BW.t)
+
+let tag_vec_ptr (ptr: Opaque.ptr) (return (x: Opaque.ptr)) =
+{[@stop_split] [@expl:tag_vec_ptr requires] [%#slib'3] UInt64BW.bw_and (PtrBW.addr_logic_u64 ptr) const_KIND_MASK
+  = (0: UInt64BW.t)}
+  any
+  [ return (result: Opaque.ptr) -> {[@stop_split] [@expl:tag_vec_ptr ensures] [%#slib'4] PtrBW.addr_logic_u64 result
+    = UInt64BW.bw_or (PtrBW.addr_logic_u64 ptr) const_KIND_VEC}
+    (! return {result}) ]
+
+let untag_vec_ptr (ptr: Opaque.ptr) (return (x: Opaque.ptr)) =
+{[@stop_split] [@expl:untag_vec_ptr requires] [%#slib'5] UInt64BW.bw_and (PtrBW.addr_logic_u64 ptr) const_KIND_MASK
+  = const_KIND_VEC}
+  any
+  [ return (result: Opaque.ptr) -> {[@stop_split] [@expl:untag_vec_ptr ensures] [%#slib'6] PtrBW.addr_logic_u64 result
+    = UInt64BW.bw_and (PtrBW.addr_logic_u64 ptr) (UInt64BW.bw_not const_KIND_MASK)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let tag_untag_address_roundtrip [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 34 0 34 59]
+  (ptr: Opaque.ptr) (return (x: Opaque.ptr)) =
+{[@stop_split] [@expl:tag_untag_address_roundtrip requires] [%#slib'1] UInt64BW.bw_and (PtrBW.addr_logic_u64 ptr) const_KIND_MASK
+  = (0: UInt64BW.t)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = tag_vec_ptr [%#slib] {ptr} (fun (_x: Opaque.ptr) -> [ &_6 <- _x ] s1)
+    | s1 = untag_vec_ptr [%#slib'0] {_6} (fun (_x: Opaque.ptr) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: Opaque.ptr = Any.any_l () | & ptr: Opaque.ptr = ptr | & _6: Opaque.ptr = Any.any_l () ])
+  [ return (result: Opaque.ptr) ->
+  {[@stop_split] [@expl:tag_untag_address_roundtrip ensures] [%#slib'2] PtrBW.addr_logic_u64 result
+    = PtrBW.addr_logic_u64 ptr}
+    (! return {result}) ]

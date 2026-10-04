@@ -19,6 +19,8 @@ mod buf_mut;
 mod chain;
 mod iter;
 mod limit;
+#[cfg(creusot)]
+pub(crate) mod proof_convenience;
 #[cfg(feature = "std")]
 mod reader;
 mod take;

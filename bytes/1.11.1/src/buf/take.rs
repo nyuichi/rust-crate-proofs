@@ -1,5 +1,7 @@
 use crate::Buf;
 
+#[cfg(creusot)]
+use creusot_std::prelude::*;
 
 #[cfg(feature = "std")]
 use std::io::IoSlice;
@@ -14,6 +16,8 @@ pub struct Take<T> {
     limit: usize,
 }
 
+#[cfg_attr(creusot, ensures(result.inner == inner))]
+#[cfg_attr(creusot, ensures(result.limit == limit))]
 pub fn new<T>(inner: T, limit: usize) -> Take<T> {
     Take { inner, limit }
 }
@@ -55,6 +59,8 @@ impl<T> Take<T> {
     ///
     /// assert_eq!(11, buf.get_ref().remaining());
     /// ```
+    #[cfg_attr(creusot, check(ghost))]
+    #[cfg_attr(creusot, ensures(*result == self.inner))]
     pub fn get_ref(&self) -> &T {
         &self.inner
     }
@@ -98,6 +104,8 @@ impl<T> Take<T> {
     /// assert_eq!(b'h', buf.get_u8());
     /// assert_eq!(1, buf.limit());
     /// ```
+    #[cfg_attr(creusot, check(ghost))]
+    #[cfg_attr(creusot, ensures(result == self.limit))]
     pub fn limit(&self) -> usize {
         self.limit
     }
@@ -148,7 +156,10 @@ impl<T: Buf> Buf for Take<T> {
     }
 
     fn copy_to_bytes(&mut self, len: usize) -> crate::Bytes {
-        assert!(len <= self.remaining(), "`len` greater than remaining");
+        assert!(
+            len <= crate::bounded_ops::bounded_len(self.inner.remaining(), self.limit),
+            "`len` greater than remaining"
+        );
 
         let r = self.inner.copy_to_bytes(len);
         crate::bounded_ops::decrease_limit(&mut self.limit, len);

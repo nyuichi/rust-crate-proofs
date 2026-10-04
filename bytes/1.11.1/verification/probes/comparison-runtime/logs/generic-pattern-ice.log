@@ -1,0 +1,58 @@
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/comparison-runtime; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 1 directory
+    Checking bytes-comparison-runtime v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/comparison-runtime)
+warning: unused import: `creusot_std::prelude::*`
+  --> src/lib.rs:86:9
+   |
+86 |     use creusot_std::prelude::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `Tiny` is never constructed
+  --> src/lib.rs:88:16
+   |
+88 |     pub struct Tiny(pub u8);
+   |                ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `compare_generic_reference` is never used
+   --> src/lib.rs:120:12
+    |
+120 |     pub fn compare_generic_reference(left: &Tiny, right: &&Tiny) -> bool {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `order_generic_reference` is never used
+   --> src/lib.rs:124:12
+    |
+124 |     pub fn order_generic_reference(left: &Tiny, right: &&Tiny) -> Option<Ordering> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: internal compiler error: /rustc-dev/91fe22da8084a1c9e993d78d4a56f22ab8396236/compiler/rustc_middle/src/ty/normalize_erasing_regions.rs:201:13: Failed to normalize Alias(Alias { kind: Projection { def_id: DefId(20:1124 ~ creusot_std[638e]::model::DeepModel::DeepModelTy) }, args: [generic_pattern_diagnostic::Tiny], .. }) in typing_env=TypingEnv { typing_mode: TypingModeEqWrapper(Typeck { defining_opaque_types_and_generators: [] }), param_env: ParamEnv { caller_bounds: [Binder { value: TraitPredicate(<generic_pattern_diagnostic::Tiny as std::cmp::PartialOrd<T>>, polarity:Positive), bound_vars: [] }, Binder { value: TraitPredicate(<generic_pattern_diagnostic::Tiny as std::cmp::PartialEq<T>>, polarity:Positive), bound_vars: [] }, Binder { value: TraitPredicate(<T as std::marker::MetaSized>, polarity:Positive), bound_vars: [] }] } }, maybe try to call `try_normalize_erasing_regions` instead
+
+
+thread 'rustc' (270753) panicked at /rustc-dev/91fe22da8084a1c9e993d78d4a56f22ab8396236/compiler/rustc_middle/src/ty/normalize_erasing_regions.rs:201:13:
+Box<dyn Any>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: using internal features is not supported and expected to cause internal compiler errors when used incorrectly
+
+note: please attach the file at `/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/comparison-runtime/rustc-ice-2026-10-04T04_31_47-270752.txt` to your bug report
+
+note: rustc 1.98.0-nightly (91fe22da8 2026-06-21) running on x86_64-unknown-linux-gnu
+
+note: compiler flags: --crate-type lib -C embed-bitcode=no -C debuginfo=2
+
+note: some of the compiler flags provided by cargo are hidden
+
+query stack during panic:
+end of query stack
+warning: `bytes-comparison-runtime` (lib) generated 4 warnings (run `cargo fix --lib -p bytes-comparison-runtime` to apply 1 suggestion)
+error: could not compile `bytes-comparison-runtime` (lib); 4 warnings emitted
+
+Caused by:
+  process didn't exit successfully: `/workspace/bytes-proof-tools/creusot-data/toolchains/nightly-2026-06-22/bin/creusot-rustc --crate-name bytes_comparison_runtime --edition=2021 src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata -C embed-bitcode=no -C debuginfo=2 --cfg 'feature="generic-pattern-diagnostic"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("actual-runtime", "default", "generic-pattern-diagnostic"))' -C metadata=5ffb794496a9525d -C extra-filename=-0138c2eb2420e321 --out-dir /workspace/bytes-proof-tools/targets/bytes/debug/deps -L dependency=/workspace/bytes-proof-tools/targets/bytes/debug/deps --extern creusot_std=/workspace/bytes-proof-tools/targets/bytes/debug/deps/libcreusot_std-9ff3718de388ec3f.rmeta` (exit status: 101)
+Error: Compilation failed
+
+runner_exit=1

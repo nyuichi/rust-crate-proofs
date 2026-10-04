@@ -1,24 +1,97 @@
 # bytes 1.11.1 runtime proof checkpoint
 
+## Current working-tree status (2026-10-04)
+
+Full runtime verification remains **incomplete**. The 19-target inventory in
+the historical section below was captured at commit `60e81ad`; its counts,
+hashes, and replay results apply only to that snapshot. The current working tree
+contains later structural proof changes and `src/provenance_specs.rs`, so those
+historical totals must not be read as a replay or validation of the current
+tree. The cfg-only Buf/BufMut convenience and comparison changes have passed
+the final native-source checks summarized here. No integrated crate proof of
+the current runtime is established.
+
+The adopted runtime ownership effort has reached stop condition **D**. The
+remaining blocker is a sound memory-resource interface, not another arithmetic
+or helper lemma. The concrete target is
+`Vec<u8> -> BytesMut::from_vec -> split_to/split_off -> mutate both handles ->
+drop both`: the split path promotes the shared backing allocation, gives each
+handle a distinct writable interval, and the last drop must recover and destroy
+the allocation with the actual Release/Acquire protocol. Current `Perm` and
+`PtrLive` support borrowed regions whose lifetimes end with a borrow of one
+owner; they do not provide independently transferable owned regions plus a
+separate allocation-recovery authority. The actual Vec raw-parts bridge and the
+Vec stored in `Shared` also need exact allocation/layout/init tracking and a
+suspended-ownership interface. Details and the proposed minimum extension are
+in [`verification/BYTESMUT_OWNERSHIP_DESIGN.md`](verification/BYTESMUT_OWNERSHIP_DESIGN.md).
+
+`src/provenance_specs.rs` adds `STD-PTRWRAP-01`, a narrow Creusot extern
+specification for one-byte `wrapping_add`. Its postcondition describes only
+the numerical address calculation. It does not specify pointer provenance,
+allocation liveness, `Perm`/`PtrLive`, or dereferenceability, and it does not
+make the tagged-pointer runtime path an ownership proof. Its isolated positive
+probe proves 8 files/23 VCs, including address tagging/untagging and metadata
+address calculations. The forged-metadata dereference negative control fails
+at the intended permission VC. Both are component-level evidence, not an
+integrated pointer-ownership proof.
+
+A fresh sequential positive replay of the current working tree passed all 21
+configured component targets (194 generated proof files and 581 named VCs,
+including repeated dependencies). The new ownership-frontier probe contributes
+2 helper-only files/18 VCs; it reuses the proved borrowed `Box` region helper
+and does not prove actual `BytesMut` split, mutation, or drop. The 39 recorded
+negative controls reject their intended VCs. Default std tests/doctests (997
+tests and 246 doctests) and the no-default-features build also pass. These
+results are component and behavior checks; no full-runtime proof is established.
+The final current-source checks also pass for the `cfg(miri)` compilation path
+(compilation only; Miri was not run). The current rustdoc API inventory has 997
+items, and the coverage updater links 67 actual helper rows; the normal-build
+pointer-address cast is excluded because only the proof-specific address
+variant was probed.
+
+The latest fresh full-crate translation now clears the earlier recursive
+`Buf`/`BufMut` and `PartialOrd` normalization blockers, but stops before VC
+generation on two vtable cycles: `static_clone` with `STATIC_VTABLE` and
+`owned_clone` with `Owned::VTABLE`. No Coma tasks are produced for the actual
+comparison adapters or constructor bodies, so those are not counted as
+translated or proved. See
+[`verification/artifacts/logs/runtime-ownership-frontier-translation.log`](verification/artifacts/logs/runtime-ownership-frontier-translation.log).
+The formal runtime proof entry also stops during translation with the same two
+cycles and produces no Coma tasks; see
+[`verification/artifacts/logs/runtime-ownership-frontier-proof-entry.log`](verification/artifacts/logs/runtime-ownership-frontier-proof-entry.log).
+This translation failure is separate from the stop-condition-D ownership
+resource gap described above. Historical totals and source hashes below remain
+specific to commit `60e81ad`; do not combine them with the fresh replay as if
+they came from one snapshot.
+
+## Historical component checkpoint at commit `60e81ad`
+
 Full runtime verification is **not complete**. Isolated helper and storage
 proofs establish useful parts of the implementation, and the helpers are wired
 into selected native call sites. They do not verify complete `Bytes` or
 `BytesMut` ownership, trait, reference-count, or destruction behavior.
 
-The latest crate-level `verify-all` attempt still stops during translation in
+The crate-level `verify-all` attempt recorded at this historical checkpoint
+stopped during translation in
 `src/buf/buf_impl.rs` and `src/buf/buf_mut.rs` on illegal recursive `Buf` and
-`BufMut` traits. It also reproduces a rustc internal compiler error while
-normalizing the `Bytes: PartialOrd<T>` `DeepModel` projection. See
-`verification/artifacts/logs/runtime-entry.log`. The default-std integrated
-tests (997 tests and 246 doctests) and the `no_std` check pass; these are build
+`BufMut` traits. It also stopped at a rustc internal compiler error while
+normalizing the `Bytes: PartialOrd<T>` `DeepModel` projection. The corresponding
+log at that revision is
+`git show 60e81ad:bytes/1.11.1/verification/artifacts/logs/runtime-entry.log`. The
+default-std integrated tests (997 tests and 246 doctests) and the `no_std`
+check pass; these are build
 and behavior checks, not a successful full-runtime proof. The compiler API
 inventory contains 993 items, with 64 helper function rows linked to isolated
 exact-source proofs. The final component replay passed all 19 targets: 184
 Coma/proof files and 540 named VCs, including repeated dependency helpers.
 These totals are not a completion percentage or a count of unique obligations.
 All 38 negative controls failed at their intended VCs. Source/configuration
-hashes and paired proof artifacts are saved in
-`verification/artifacts/component-evidence.json`.
+hashes and paired proof artifacts are the files as they existed at that
+revision, including
+`git show 60e81ad:bytes/1.11.1/verification/artifacts/component-evidence.json` and
+`git show 60e81ad:bytes/1.11.1/verification/artifacts/checkpoint-manifest.json`. The
+current working-tree evidence manifest has since been refreshed for the
+21-target replay above.
 
 | Component | Isolated vanilla Creusot 0.13 evidence | Runtime coverage |
 |---|---|---|
@@ -44,15 +117,16 @@ verification.
 Negative VCs exercise representative wrong results and ownership errors,
 including incorrect capacity encoding/reconstruction, lost packed flags,
 wrong vector positions, wrong byte order/value, short-read behavior, overlapping
-regions, and invalid Box recovery. The corresponding logs live beside each
-probe. These negative probes check that the specified properties reject the
-mutations; they do not expand runtime coverage.
+regions, and invalid Box recovery. The corresponding historical logs live
+beside each probe at commit `60e81ad`. These negative probes check that the
+specified properties reject the mutations; they do not expand runtime
+coverage.
 
-The default-std integrated test/doctest and no-std logs are under
-`verification/artifacts/logs/`. Component probes are under
-`verification/probes/`. `./verify-all.bash` currently reproduces the runtime
-translation blockers noted above. Proof commands require elevated execution
-because Why3 uses Unix-domain sockets.
+The default-std integrated test/doctest and no-std logs for this checkpoint are
+in `verification/artifacts/logs/` at commit `60e81ad`. Component probe sources
+are in `verification/probes/` at that revision. Its `./verify-all.bash` run
+reproduces the historical runtime translation blockers noted above. Proof
+commands require elevated execution because Why3 uses Unix-domain sockets.
 
 ## Remaining frontier
 

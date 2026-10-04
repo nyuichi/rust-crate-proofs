@@ -29,6 +29,9 @@ with coverage.open() as stream:
     rows = list(reader)
 updated = 0
 for row in rows:
+    # Normal pointer_addr uses a cast; the probe proves its cfg(creusot) addr() variant.
+    if row['source_path'] == 'src/provenance_specs.rs' and row['item'] == 'pointer_addr':
+        continue
     target = proved.get((row['source_path'], row['item']))
     if target and row['kind'] == 'function':
         row.update(

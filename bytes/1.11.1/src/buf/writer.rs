@@ -1,5 +1,8 @@
 use crate::BufMut;
 
+#[cfg(creusot)]
+use creusot_std::prelude::*;
+
 use std::io;
 
 /// A `BufMut` adapter which implements `io::Write` for the inner value.
@@ -12,6 +15,7 @@ pub struct Writer<B> {
     buf: B,
 }
 
+#[cfg_attr(creusot, ensures(result.buf == buf))]
 pub fn new<B>(buf: B) -> Writer<B> {
     Writer { buf }
 }
@@ -30,6 +34,8 @@ impl<B: BufMut> Writer<B> {
     ///
     /// assert_eq!(1024, buf.get_ref().capacity());
     /// ```
+    #[cfg_attr(creusot, check(ghost))]
+    #[cfg_attr(creusot, ensures(*result == self.buf))]
     pub fn get_ref(&self) -> &B {
         &self.buf
     }

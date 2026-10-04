@@ -1,0 +1,132 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 49 0 49 49 *)
+
+let%span sprovenance_specs = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/../../../../src/provenance_specs.rs" 33 28 33 54
+let%span sprovenance_specs'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/../../../../src/provenance_specs.rs" 78 28 78 55
+let%span sptr = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 583 4 583 64
+let%span sptr'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 580 14 580 42
+let%span sptr'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 581 14 581 35
+let%span sptr'2 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 426 18 426 37
+let%span sptr'3 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 632 40 632 43
+let%span sptr'4 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 628 15 628 33
+let%span sptr'5 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 629 14 629 35
+let%span sptr'6 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 537 12 539 34
+let%span sptr'7 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 142 8 142 35
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 50 32 50 53
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 52 8 52 48
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 51 19 53 5
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 54 27 54 48
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 54 14 54 60
+let%span slib'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 48 10 48 26
+let%span sghost = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/ghost.rs" 112 8 112 18
+let%span sinvariant = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/invariant.rs" 85 8 85 18
+
+use creusot.int.UInt8
+use creusot.prelude.Opaque
+use creusot.prelude.Ptr
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_Perm_ptr_u8
+
+type tup2_ptr_u8_Ghost_ref_Perm_ptr_u8 = { f0: Opaque.ptr; f1: t_Perm_ptr_u8 }
+
+predicate is_null_ptr_u8 (self: Opaque.ptr) = [%#sptr'7] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+function ward_ptr_u8 (self: t_Perm_ptr_u8) : Opaque.ptr
+
+predicate metadata_matches_u8 [@inline:trivial] (_value: UInt8.t) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_u8
+
+function val_ptr_u8 (self: t_Perm_ptr_u8) : UInt8.t
+
+function metadata_u8 (_1: Opaque.ptr) : ()
+
+predicate inv_ref_u8 [@inline:trivial] (_1: UInt8.t) = true
+
+meta "rewrite_def" predicate inv_ref_u8
+
+predicate invariant_Perm_ptr_u8 (self: t_Perm_ptr_u8) =
+  [%#sptr'6] not is_null_ptr_u8 (ward_ptr_u8 self)
+  /\ metadata_matches_u8 (val_ptr_u8 self) (metadata_u8 (ward_ptr_u8 self)) /\ inv_ref_u8 (val_ptr_u8 self)
+
+predicate inv_Perm_ptr_u8 (_1: t_Perm_ptr_u8)
+
+axiom inv_axiom [@rewrite]: forall x: t_Perm_ptr_u8 [inv_Perm_ptr_u8 x]. inv_Perm_ptr_u8 x = invariant_Perm_ptr_u8 x
+
+predicate invariant_ref_Perm_ptr_u8 [@inline:trivial] (self: t_Perm_ptr_u8) = [%#sinvariant] inv_Perm_ptr_u8 self
+
+meta "rewrite_def" predicate invariant_ref_Perm_ptr_u8
+
+predicate inv_ref_Perm_ptr_u8 [@inline:trivial] (_1: t_Perm_ptr_u8) = invariant_ref_Perm_ptr_u8 _1
+
+meta "rewrite_def" predicate inv_ref_Perm_ptr_u8
+
+predicate invariant_Ghost_ref_Perm_ptr_u8 [@inline:trivial] (self: t_Perm_ptr_u8) = [%#sghost] inv_ref_Perm_ptr_u8 self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_Perm_ptr_u8
+
+predicate inv_Ghost_ref_Perm_ptr_u8 [@inline:trivial] (_1: t_Perm_ptr_u8) = invariant_Ghost_ref_Perm_ptr_u8 _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_Perm_ptr_u8
+
+predicate inv_tup2_ptr_u8_Ghost_ref_Perm_ptr_u8 [@inline:trivial] (_1: tup2_ptr_u8_Ghost_ref_Perm_ptr_u8) =
+  inv_Ghost_ref_Perm_ptr_u8 _1.f1
+
+meta "rewrite_def" predicate inv_tup2_ptr_u8_Ghost_ref_Perm_ptr_u8
+
+let from_ref_u8 (r: UInt8.t) (return (x: tup2_ptr_u8_Ghost_ref_Perm_ptr_u8)) = any
+  [ return (result: tup2_ptr_u8_Ghost_ref_Perm_ptr_u8) ->
+  {[@stop_split] [@expl:from_ref_u8 ensures] ([@stop_split] [@expl:from_ref result type invariant] [%#sptr] inv_tup2_ptr_u8_Ghost_ref_Perm_ptr_u8 result)
+    /\ ([@stop_split] [@expl:from_ref ensures #0] [%#sptr'0] ward_ptr_u8 result.f1 = result.f0)
+    /\ ([@stop_split] [@expl:from_ref ensures #1] [%#sptr'1] val_ptr_u8 result.f1 = r)}
+    (! return {result}) ]
+
+let pointer_addr_u8 (ptr: Opaque.ptr) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:pointer_addr ensures] [%#sprovenance_specs] result
+    = Ptr.addr_logic_u64 ptr}
+    (! return {result}) ]
+
+let metadata_pointer (addr: UInt64.t) (return (x: Opaque.ptr)) = any
+  [ return (result: Opaque.ptr) ->
+  {[@stop_split] [@expl:metadata_pointer ensures] [%#sprovenance_specs'0] Ptr.addr_logic_u64 result = addr}
+    (! return {result}) ]
+
+let cast_const_u8 (self_: Opaque.ptr) (return (x: Opaque.ptr)) = any
+  [ return (result: Opaque.ptr) -> {[@stop_split] [@expl:cast_const ensures] [%#sptr'2] result = self_}
+    (! return {result}) ]
+
+let as_ref_u8 (ptr: Opaque.ptr) (own: t_Perm_ptr_u8) (return (x: UInt8.t)) =
+{[@stop_split] [@expl:as_ref_u8 requires] ([@stop_split] [@expl:as_ref 'own' type invariant] [%#sptr'3] inv_Ghost_ref_Perm_ptr_u8 own)
+  /\ ([@stop_split] [@expl:as_ref requires] [%#sptr'4] ptr = ward_ptr_u8 own)}
+  any
+  [ return (result: UInt8.t) -> {[@stop_split] [@expl:as_ref ensures] [%#sptr'5] result = val_ptr_u8 own}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let forged_metadata_reborrow [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/provenance-ops/src/lib.rs" 49 0 49 49]
+  (value: UInt8.t) (return (x: UInt8.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = from_ref_u8 [%#slib] {value} (fun (_x: tup2_ptr_u8_Ghost_ref_Perm_ptr_u8) -> [ &_6 <- _x ] s1)
+    | s1 = [ &real_ptr <- _6.f0 ] s2
+    | s2 = [ &ownership <- _6.f1 ] s3
+    | s3 = pointer_addr_u8 [%#slib'0] {real_ptr} (fun (_x: UInt64.t) -> [ &_9 <- _x ] s4)
+    | s4 = metadata_pointer [%#slib'1] {_9} (fun (_x: Opaque.ptr) -> [ &fake_ptr <- _x ] s5)
+    | s5 = cast_const_u8 [%#slib'2] {fake_ptr} (fun (_x: Opaque.ptr) -> [ &_12 <- _x ] s6)
+    | s6 = as_ref_u8 [%#slib'3] {_12} {ownership} (fun (_x: UInt8.t) -> [ &_11 <- _x ] s7)
+    | s7 = [ &_ret <- _11 ] s8
+    | s8 = return {_ret} ] ]
+  [ & _ret: UInt8.t = Any.any_l ()
+  | & value: UInt8.t = value
+  | & real_ptr: Opaque.ptr = Any.any_l ()
+  | & ownership: t_Perm_ptr_u8 = Any.any_l ()
+  | & _6: tup2_ptr_u8_Ghost_ref_Perm_ptr_u8 = Any.any_l ()
+  | & fake_ptr: Opaque.ptr = Any.any_l ()
+  | & _9: UInt64.t = Any.any_l ()
+  | & _11: UInt8.t = Any.any_l ()
+  | & _12: Opaque.ptr = Any.any_l () ])
+  [ return (result: UInt8.t) -> {[@stop_split] [@expl:forged_metadata_reborrow ensures] [%#slib'4] result = value}
+    (! return {result}) ]

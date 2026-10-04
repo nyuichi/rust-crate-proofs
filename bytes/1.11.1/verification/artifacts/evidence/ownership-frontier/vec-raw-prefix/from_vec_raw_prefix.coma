@@ -1,0 +1,57 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/ownership-frontier/src/lib.rs" 50 0 50 67 *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/ownership-frontier/src/lib.rs" 51 18 51 51
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/ownership-frontier/src/lib.rs" 48 10 48 33
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/ownership-frontier/src/lib.rs" 49 10 49 30
+let%span svec = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/vec.rs" 18 14 18 41
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.prelude.Any
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.int.UInt8
+use int.Int
+
+type tup3_ptr_u8_usize_usize = { f0: Opaque.ptr; f1: UInt64.t; f2: UInt64.t }
+
+type t_Vec_u8_Global
+
+type t_ManuallyDrop_Vec_u8_Global
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_u8_Global (self: t_Vec_u8_Global) : Seq.seq UInt8.t
+
+axiom view_Vec_u8_Global_spec:
+  forall self: t_Vec_u8_Global [view_Vec_u8_Global self]. [%#svec] Seq.length (view_Vec_u8_Global self)
+    <= UInt64.t'int const_MAX
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let from_vec_raw_prefix [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/ownership-frontier/src/lib.rs" 50 0 50 67]
+  (vec: t_Vec_u8_Global) (return (x: tup3_ptr_u8_usize_usize)) = (! bb0
+  [ bb0 = {[%#slib] false} any ]
+  [ & _ret: tup3_ptr_u8_usize_usize = Any.any_l ()
+  | & vec: t_Vec_u8_Global = vec
+  | & vec'0: t_ManuallyDrop_Vec_u8_Global = Any.any_l ()
+  | & ptr: Opaque.ptr = Any.any_l ()
+  | & _8: MutBorrow.t t_Vec_u8_Global = Any.any_l ()
+  | & _9: MutBorrow.t t_Vec_u8_Global = Any.any_l ()
+  | & _10: MutBorrow.t t_ManuallyDrop_Vec_u8_Global = Any.any_l ()
+  | & len: UInt64.t = Any.any_l ()
+  | & _12: t_Vec_u8_Global = Any.any_l ()
+  | & _13: t_Vec_u8_Global = Any.any_l ()
+  | & cap: UInt64.t = Any.any_l ()
+  | & _16: t_Vec_u8_Global = Any.any_l ()
+  | & _17: t_Vec_u8_Global = Any.any_l ()
+  | & _19: Opaque.ptr = Any.any_l ()
+  | & _20: UInt64.t = Any.any_l ()
+  | & _21: UInt64.t = Any.any_l () ])
+  [ return (result: tup3_ptr_u8_usize_usize) ->
+  {[@stop_split] [@expl:from_vec_raw_prefix ensures] ([@stop_split] [@expl:from_vec_raw_prefix ensures #0] [%#slib'0] UInt64.t'int result.f1
+      = Seq.length (view_Vec_u8_Global vec))
+    /\ ([@stop_split] [@expl:from_vec_raw_prefix ensures #1] [%#slib'1] UInt64.le result.f1 result.f2)}
+    (! return {result}) ]

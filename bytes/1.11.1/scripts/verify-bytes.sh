@@ -6,9 +6,9 @@ tool_root=${BYTES_TOOL_ROOT:-/workspace/bytes-proof-tools}
 source "$tool_root/activate.sh"
 export CARGO_NET_OFFLINE=true
 case "${1:-runtime}" in
-  helpers|storage|tool-blockers|trait-patch|deallocation|bounded-ops|slice-ops|cursor-ops|initialized-storage|byte-codecs|capacity-ops|comparison-ops|chain-ops|slice-read-ops|uninit-ops|wide-codecs|endian-ops|region-permissions|slice-wide-read-ops|variable-read-ops|signed-wide-ops) target=$crate_root/verification/probes/$1 ;;
+  helpers|storage|tool-blockers|trait-patch|deallocation|bounded-ops|slice-ops|cursor-ops|initialized-storage|byte-codecs|capacity-ops|comparison-ops|chain-ops|slice-read-ops|uninit-ops|wide-codecs|endian-ops|region-permissions|slice-wide-read-ops|variable-read-ops|signed-wide-ops|provenance-ops|comparison-runtime|ownership-frontier|runtime-convenience) target=$crate_root/verification/probes/$1 ;;
   runtime) target=$crate_root ;;
-  *) printf 'Usage: verify-bytes.sh [runtime|helpers|storage|tool-blockers|trait-patch|deallocation] [cargo flags]\n' >&2; exit 2 ;;
+  *) printf 'Usage: verify-bytes.sh [runtime|known-probe] [cargo flags]\n' >&2; exit 2 ;;
 esac
 if [[ $# -gt 0 ]]; then shift; fi
 cd "$target"
@@ -25,6 +25,13 @@ fi
 # Ensure this exact package/configuration really runs the translator each time.
 package_name=$(cargo metadata --no-deps --locked --format-version 1 | python3 -c 'import json,sys; d=json.load(sys.stdin); assert len(d["packages"]) == 1; print(d["packages"][0]["name"])')
 cargo clean --package "$package_name"
+# A failed runtime translation must not leave old model/feature VCs eligible
+# for a later selective proof. Saved evidence lives outside this live directory.
+rm -rf -- verif
 cargo creusot --only=coma -- --locked "$@"
 cargo creusot clean --force
+if [[ "${BYTES_TRANSLATE_ONLY:-0}" == 1 ]]; then
+  printf 'translation only: no proof phase requested\n'
+  exit 0
+fi
 cargo creusot --only=prove --why3find-arg=-j --why3find-arg=1

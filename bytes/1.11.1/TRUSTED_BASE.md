@@ -8,6 +8,29 @@ pearlite-syn 0.13.0 with Cargo locks, pinned Why3/Why3find and fixed solver vers
 Their translation, primitive specifications, solver logic, Rust/LLVM and Global
 allocator semantics are foundational assumptions, not proved by these probes.
 
+## Current working-tree addition (2026-10-04)
+
+- `STD-PTRWRAP-01`, in `src/provenance_specs.rs`, is an additional assumed
+  `extern_spec` for raw-pointer `wrapping_add`, restricted by precondition to
+  pointee types whose modeled size is one byte. It specifies only the
+  resulting numerical address modulo the address-space size. It does not
+  specify preservation/equality of provenance, allocation identity or
+  liveness, `Perm`, `PtrLive`, dereferenceability, or any allocation resource.
+  The tagged-pointer and null-derived metadata code therefore gets address
+  arithmetic facts only; the spec cannot authorize reading through a metadata
+  pointer. The isolated positive probe proves 8 files/23 VCs, and the negative
+  forged-metadata dereference probe fails at the intended permission VC. This
+  is a new TCB assumption and is not part of the historical component replay
+  below.
+
+No bytes-specific `#[trusted]` ownership theorem was added. The unresolved
+stop-condition-D requirement remains outside this pointer contract: actual
+`Vec<u8> -> BytesMut` split/mutation/drop needs independently transferable
+owned regions, exact initialization/allocation tracking, separate recovery
+authority, suspended `Vec` ownership in `Shared`, and view-indexed transfer
+through the native Release/Acquire protocol. The available borrowed `Perm`
+interfaces do not supply those resources.
+
 ## Additional reviewed standard primitive contracts
 
 - `STD-CONVERT-01`: u64 -> usize fallible integer conversion, in `src/std_specs.rs`.
@@ -39,7 +62,7 @@ Astra reviewed its restrictions and identified the external-spec guard. Dedicate
 positive and negative regressions are recorded; broader verifier soundness and
 invariant/resolve/spec dependency cycles remain review concerns.
 
-## Additional component proofs
+## Additional component proofs in the historical 60e81ad checkpoint
 
 The slice cursors, byte codecs, checked reads, initialized/uninitialized writes,
 comparison, chain arithmetic and capacity metadata helpers introduce no trusted

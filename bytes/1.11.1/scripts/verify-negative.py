@@ -19,6 +19,7 @@ EVIDENCE = ARTIFACTS / "evidence"
 # wide-codecs now has its own wrong-order encoder and decoder controls, so both
 # are exercised here rather than being treated as a positive-only component.
 CASES = (
+    ("provenance-ops", "negative_forged_dereference", "forged_metadata_reborrow"),
     ("helpers", "wrong_postcondition", "wrong_postcondition"),
     ("helpers", "reachable_false", "reachable_false"),
     ("storage", "wrong_byte", "wrong_byte"),

@@ -92,6 +92,7 @@ mod bytes_mut;
 mod capacity_ops;
 mod chain_ops;
 mod comparison_ops;
+mod provenance_specs;
 mod endian_ops;
 mod fmt;
 mod loom;

@@ -1,14 +1,13 @@
 # Runtime source correspondence
 
 The original runtime sources for this crate were extracted from the published
-`bytes` 1.11.1 release. The current verification branch changes `lib.rs` and
-selected call sites in `bytes.rs`, `bytes_mut.rs`, and `buf/` to connect pure
-helpers compiled in the normal runtime to isolated Creusot probes. These edits
-retain the published public representation. Pure expression extractions retain
-their native operations; byte codecs use explicit byte arithmetic and mutable
-fills use safe element assignments. Exact component contracts and ordinary
-tests support their byte behavior. They do not establish proof of the surrounding
-caller, ownership, trait, reference-count, or destruction behavior.
+`bytes` 1.11.1 release. The verification branch connects pure helpers to
+selected runtime call sites and now includes proof-only `cfg(creusot)` structural
+adapters for trait translation and handle comparisons, plus pointer-address
+helpers. These edits retain the published public representation and normal
+build trait implementations. Component proofs, source checks, and ordinary
+tests do not establish the surrounding runtime ownership, trait,
+reference-count, or destruction behavior.
 
 The correspondence below records which source operations are extracted and
 where the runtime calls them. Component proof logs and the latest integrated
@@ -19,7 +18,7 @@ build/test logs are listed in `STATUS.md`.
 | `src/slice_ops.rs`, `src/slice_read_ops.rs`, `src/slice_wide_read_ops.rs` | Slice advance/copy and fixed-width checked reads | Used by `buf/buf_impl.rs`; read helpers also compose with codec helpers. The proofs cover the isolated helper contracts, not the full `Buf` trait methods |
 | `src/cursor_ops.rs` | Cursor remaining length, visible chunk, and advancing position | Used by the `Cursor` implementation in `buf/buf_impl.rs`; the `Buf` caller and cursor trait composition remain unproved |
 | `src/chain_ops.rs` | Saturating remaining-length sum and split count | Used in `buf/chain.rs`; it does not prove the `Chain` ownership or trait implementation |
-| `src/comparison_ops.rs` | Byte-slice equality and ordering | Used by `Bytes` and `BytesMut` equality and comparison implementations. The isolated slice comparison is proved; compiler translation of the `Bytes: PartialOrd<T>` caller still ICEs |
+| `src/comparison_ops.rs` | Byte-slice equality and ordering | The normal `Bytes`/`BytesMut` trait implementations still delegate to this helper under `cfg(not(creusot))`. Proof-only handle adapters were added under `cfg(creusot)`, but no adapter or trait caller is translated/body-proved: the latest full-crate run stops before Coma generation on vtable cycles |
 | `src/capacity_ops.rs` | `BytesMut` original-capacity conversion and packed metadata operations | Used by `bytes_mut.rs` for initial capacity, metadata packing/extraction, and vector position. The pure helper proof does not cover adjacent pointer/integer casts or pointer reconstruction |
 | `src/byte_codec_ops.rs`, `src/byte_codec_wide_ops.rs`, `src/endian_ops.rs` | Fixed-width integer encoding/decoding in big- and little-endian forms | Used by `buf/buf_mut.rs` and read helpers in `buf/buf_impl.rs`; the component probes prove the codec/endian helpers, not each trait caller |
 | `src/slice_mut_ops.rs`, `src/uninit_ops.rs` | Mutable slice advance/copy/fill and uninitialized-prefix initialization/fill | Used by selected `BufMut` methods in `buf/buf_mut.rs`; caller ownership and trait composition are not part of the isolated proofs |
@@ -66,10 +65,61 @@ mechanical proof of the entire compiler's erasure or of Bytes caller resource
 supply.
 
 No replacement storage model, permission fabrication, vtable replacement, or
-stronger atomic ordering has been adopted for the runtime crate. None of the new
-pure helper modules adds a trusted contract. Pointer, layout, allocator, and
-permission foundation proofs rely on the existing `creusot-std` contracts for
-those standard primitives.
+stronger atomic ordering has been adopted for the runtime crate. The new
+`src/provenance_specs.rs` module adds the narrowly scoped `STD-PTRWRAP-01`
+extern specification, which is a TCB assumption for numerical address
+calculation only; it supplies no provenance or dereference permission. The
+other pure helper modules add no trusted contracts. Pointer, layout, allocator,
+and permission foundation proofs rely on the existing `creusot-std` contracts
+for those standard primitives.
+
+## Current proof-only structural boundaries
+
+The ordinary comparison trait implementation bodies remain enabled under
+`cfg(not(creusot))`. Under `cfg(creusot)`, the current source adds named
+`Bytes`/`BytesMut` comparison adapters that call `as_slice`, `as_ref`,
+`as_bytes`, and the proved `comparison_ops` helpers. They have no semantic
+postcondition relating those raw-backed views to logical handle contents. They
+are source adapters only: the latest full-crate formal entry fails during
+translation before producing any Coma tasks for them, so they are neither
+translated nor body-proved and do not establish caller correspondence.
+
+`buf::proof_convenience` is compiled only for `cfg(creusot)`. It routes selected
+`copy_to_bytes` operations through free wrappers for the actual `Take` and
+`Chain` constructors, avoiding recursive convenience-method trait signatures
+in Creusot. The normal build retains the existing trait methods and bodies;
+the wrappers call the actual constructors, whose own specs describe stored
+field preservation, and add no adapter-level content/advance or I/O behavior
+contract. Source acceptance of these proof paths did not produce body proof
+artifacts because full-crate translation stops earlier at the vtable cycles
+described below.
+
+The latest formal runtime entry has no report of the earlier recursive
+`Buf`/`BufMut` trait rejection or `Bytes: PartialOrd<T>` normalization ICE. It
+now stops at two mutually recursive translation cycles: `static_clone` through
+`STATIC_VTABLE`, and `owned_clone` through `Owned::VTABLE`. These are verifier
+translation cycles around runtime vtable constants, not claims of runtime
+recursion. No Coma tasks are generated. See
+`verification/artifacts/logs/runtime-ownership-frontier-proof-entry.log` and
+`verification/artifacts/logs/runtime-ownership-frontier-translation.log`.
+
+## Pointer-address source variants
+
+`src/provenance_specs.rs::pointer_addr` uses `ptr.addr()` for `cfg(miri)` and
+`cfg(creusot)`, while optimized non-Miri/non-Creusot builds retain the existing
+`ptr as usize` implementation. `bytes.rs::ptr_map` similarly uses
+`pointer_with_address` and raw-pointer `wrapping_add` on the original `*mut u8`
+in the Miri/Creusot branch, while the optimized branch retains integer
+extraction and reconstruction. `without_provenance` and
+`bytes_mut.rs::invalid_ptr` create null-derived pointers for integer metadata
+fields only.
+
+`STD-PTRWRAP-01` states only the one-byte pointer's numerical wrapping-address
+equation. The isolated `provenance-ops` probe proves eight helper files/23 VCs
+using the `.addr()` proof branch and rejects a negative dereference through a
+null-derived metadata pointer at the permission VC. It does not prove the
+normal optimized pointer cast, provenance preservation, allocation identity,
+live-range validity, `Perm`/`PtrLive`, or `Bytes`/`BytesMut` ownership.
 
 ## Bounded adapter extraction
 

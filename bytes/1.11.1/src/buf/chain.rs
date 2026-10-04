@@ -1,6 +1,9 @@
 use crate::buf::{IntoIter, UninitSlice};
 use crate::{Buf, BufMut};
 
+#[cfg(creusot)]
+use creusot_std::prelude::*;
+
 #[cfg(feature = "std")]
 use std::io::IoSlice;
 
@@ -34,6 +37,8 @@ pub struct Chain<T, U> {
 
 impl<T, U> Chain<T, U> {
     /// Creates a new `Chain` sequencing the provided values.
+    #[cfg_attr(creusot, ensures(result.a == a))]
+    #[cfg_attr(creusot, ensures(result.b == b))]
     pub(crate) fn new(a: T, b: U) -> Chain<T, U> {
         Chain { a, b }
     }
@@ -50,6 +55,8 @@ impl<T, U> Chain<T, U> {
     ///
     /// assert_eq!(buf.first_ref()[..], b"hello"[..]);
     /// ```
+    #[cfg_attr(creusot, check(ghost))]
+    #[cfg_attr(creusot, ensures(*result == self.a))]
     pub fn first_ref(&self) -> &T {
         &self.a
     }
@@ -85,6 +92,8 @@ impl<T, U> Chain<T, U> {
     ///
     /// assert_eq!(buf.last_ref()[..], b"world"[..]);
     /// ```
+    #[cfg_attr(creusot, check(ghost))]
+    #[cfg_attr(creusot, ensures(*result == self.b))]
     pub fn last_ref(&self) -> &U {
         &self.b
     }
@@ -182,7 +191,11 @@ where
             );
             let mut ret = crate::BytesMut::with_capacity(len);
             ret.put(&mut self.a);
-            ret.put((&mut self.b).take(len - a_rem));
+            #[cfg(creusot)]
+            let taken = crate::buf::proof_convenience::take(&mut self.b, len - a_rem);
+            #[cfg(not(creusot))]
+            let taken = (&mut self.b).take(len - a_rem);
+            ret.put(taken);
             ret.freeze()
         }
     }
