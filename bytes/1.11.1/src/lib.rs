@@ -85,10 +85,23 @@ pub mod buf;
 pub use crate::buf::{Buf, BufMut};
 
 mod bounded_ops;
+mod byte_codec_ops;
+mod byte_codec_wide_ops;
 mod bytes;
 mod bytes_mut;
+mod capacity_ops;
+mod chain_ops;
+mod comparison_ops;
+mod endian_ops;
 mod fmt;
 mod loom;
+mod slice_mut_ops;
+mod slice_ops;
+mod slice_read_ops;
+mod slice_wide_read_ops;
+mod signed_wide_ops;
+mod uninit_ops;
+mod variable_read_ops;
 pub use crate::bytes::Bytes;
 pub use crate::bytes_mut::BytesMut;
 
@@ -123,7 +136,7 @@ mod std_specs;
 #[cfg(feature = "std")]
 mod arithmetic;
 #[cfg(feature = "std")]
-use arithmetic::{min_u64_usize, saturating_sub_usize_u64};
+mod cursor_ops;
 
 /// Error type for the `try_get_` methods of [`Buf`].
 /// Indicates that there were not enough remaining

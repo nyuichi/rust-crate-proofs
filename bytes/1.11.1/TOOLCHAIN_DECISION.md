@@ -86,10 +86,12 @@ Record original/changed source correspondence, the proof configuration, and
 whether the normal runtime includes the change. Do not replace storage with a
 length-only model or use stronger atomic ordering as a verification workaround.
 
-The next concrete component gate is slice/cursor advance: prove remaining length,
-returned bytes, boundary checks and recovery using actual slice storage. Reuse or
-extract the runtime body so its callers and the proof share code. Subsequently
-cover Take/Limit accounting and initialized writes. Large compiler patches stay
-experimental and outside the adopted proof toolchain.
+The slice/cursor, bounded adapter accounting, initialized and uninitialized writes,
+byte codecs and checked reads now have exact-source isolated proofs. Borrowed
+Box regions can split, mutate and recombine under existing permission contracts.
+The next full-runtime gate remains the recursive trait/comparison translation
+failure, followed by indirect vtable calls, provenance casts, destructor effects
+and refcount resource recovery. These are not discharged by pure helper proofs.
+Large compiler patches remain experimental and outside the adopted toolchain.
 
 Push each committed checkpoint to origin/bytes-runtime-verification without force.

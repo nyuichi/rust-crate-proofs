@@ -1,0 +1,100 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_read_ops.rs" 16 0 16 54 *)
+
+let%span sslice = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 331 18 331 22
+let%span sslice_read_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_read_ops.rs" 17 7 17 18
+let%span sslice_read_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_read_ops.rs" 17 22 17 23
+let%span sslice_read_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_read_ops.rs" 20 26 20 27
+let%span sslice_read_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_read_ops.rs" 20 20 20 28
+let%span sslice_read_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_read_ops.rs" 21 47 21 48
+let%span sslice_read_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_read_ops.rs" 21 8 21 49
+let%span sslice_read_ops'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_read_ops.rs" 9 10 15 1
+let%span sslice_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_ops.rs" 12 11 12 33
+let%span sslice_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_ops.rs" 13 10 13 39
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.MutBorrow
+use creusot.prelude.Opaque
+use creusot.prelude.Any
+use int.Int
+
+let len_u8 (self_: Slice64.slice UInt8.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+predicate resolve_refmut_ref_slice_u8 [@inline:trivial] (_1: MutBorrow.t (Slice64.slice UInt8.t)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_ref_slice_u8
+
+type t_Option_u8 = None | Some UInt8.t
+
+type t_RangeFrom_Int = { start: int }
+
+function index_Seq_u8 [@inline:trivial] (self: Seq.seq UInt8.t) (range: t_RangeFrom_Int) : Seq.seq UInt8.t =
+  [%#sseq] Seq.([..]) self range.start (Seq.length self)
+
+meta "rewrite_def" function index_Seq_u8
+
+let advance_slice (input: MutBorrow.t (Slice64.slice UInt8.t)) (count: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:advance_slice requires] [%#sslice_ops] UInt64.t'int count
+  <= Seq.length (Slice64.view input.current)}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:advance_slice ensures] [%#sslice_ops'0] Slice64.view input.final
+    = index_Seq_u8 (Slice64.view input.current) { start = UInt64.t'int count }}
+    (! return {result}) ]
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let read_u8 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/slice_read_ops.rs" 16 0 16 54]
+  (input: MutBorrow.t (Slice64.slice UInt8.t)) (return (x: t_Option_u8)) = (! bb0
+  [ bb0 = s0
+    [ s0 = len_u8 [%#sslice_read_ops] {input.current} (fun (_x: UInt64.t) -> [ &_5 <- _x ] s1)
+    | s1 = [ &_4 <- _5 = ([%#sslice_read_ops'0] (0: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_4 = false} (! bb3) | br1 -> {_4} (! bb2) ] ]
+  | bb2 = s0 [ s0 = -{resolve_refmut_ref_slice_u8 input}- s1 | s1 = [ &_ret <- None ] s2 | s2 = return {_ret} ]
+  | bb3 = s0
+    [ s0 = [ &_8 <- [%#sslice_read_ops'1] (0: UInt64.t) ] s1
+    | s1 = Opaque.fresh_ptr
+        (fun (_ptr: Opaque.ptr) -> -{Slice64.slice_ptr_len _ptr = Slice64.length input.current}- [ &_9 <- _ptr ] s2)
+    | s2 = [ &_10 <- Slice64.slice_ptr_len _9 ] s3
+    | s3 = [ &_11 <- UInt64.lt _8 _10 ] s4
+    | s4 = {[@expl:index in bounds] [%#sslice_read_ops'2] _11} s5
+    | s5 = Slice64.get [%#sslice_read_ops'2] <UInt8.t> {input.current} {_8} (fun (r: UInt8.t) -> [ &value <- r ] s6)
+    | s6 = MutBorrow.borrow_final <Slice64.slice UInt8.t> {input.current} {MutBorrow.get_id input}
+        (fun (_bor: MutBorrow.t (Slice64.slice UInt8.t)) ->
+          [ &_13 <- _bor ] [ &input <- { input with current = _bor.final } ] s7)
+    | s7 = advance_slice [%#sslice_read_ops'4] {_13} {[%#sslice_read_ops'3] (1: UInt64.t)}
+        (fun (_x: ()) -> [ &_12 <- _x ] s8)
+    | s8 = -{resolve_refmut_ref_slice_u8 input}- s9
+    | s9 = [ &_ret <- Some value ] s10
+    | s10 = return {_ret} ] ]
+  [ & _ret: t_Option_u8 = Any.any_l ()
+  | & input: MutBorrow.t (Slice64.slice UInt8.t) = input
+  | & _4: bool = Any.any_l ()
+  | & _5: UInt64.t = Any.any_l ()
+  | & value: UInt8.t = Any.any_l ()
+  | & _8: UInt64.t = Any.any_l ()
+  | & _9: Opaque.ptr = Any.any_l ()
+  | & _10: UInt64.t = Any.any_l ()
+  | & _11: bool = Any.any_l ()
+  | & _12: () = Any.any_l ()
+  | & _13: MutBorrow.t (Slice64.slice UInt8.t) = Any.any_l () ])
+  [ return (result: t_Option_u8) -> {[@stop_split] [@expl:read_u8 ensures] [%#sslice_read_ops'5] match result with
+      | Some value -> ge_log_Int (Seq.length (Slice64.view input.current)) 1
+      /\ UInt8.t'int value = UInt8.t'int (Seq.get (Slice64.view input.current) 0)
+      /\ Slice64.view input.final = index_Seq_u8 (Slice64.view input.current) { start = 1 }
+      | None -> Seq.length (Slice64.view input.current) = 0 /\ Slice64.view input.final = Slice64.view input.current
+      end}
+    (! return {result}) ]

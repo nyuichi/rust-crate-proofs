@@ -1,0 +1,67 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/byte_codec_ops.rs" 21 0 21 50 *)
+
+let%span sbyte_codec_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/byte_codec_ops.rs" 22 14 22 17
+let%span sbyte_codec_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/byte_codec_ops.rs" 22 5 22 18
+let%span sbyte_codec_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/byte_codec_ops.rs" 22 35 22 38
+let%span sbyte_codec_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/byte_codec_ops.rs" 22 26 22 39
+let%span sbyte_codec_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/byte_codec_ops.rs" 21 43 21 50
+let%span sbyte_codec_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/byte_codec_ops.rs" 19 28 19 55
+let%span sbyte_codec_ops'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/byte_codec_ops.rs" 20 28 20 55
+let%span sarray = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/array.rs" 9 20 9 51
+
+use creusot.int.UInt16
+use creusot.int.UInt8
+use creusot.slice.Slice64
+use creusot.prelude.Any
+use seq.Seq
+use creusot.int.UInt64
+use int.ComputerDivision
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_2 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (2: UInt64.t)
+
+predicate inv_array_u8_2 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_2 _1
+
+meta "rewrite_def" predicate inv_array_u8_2
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let encode_be_u16 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/byte_codec_ops.rs" 21 0 21 50]
+  (value: UInt16.t) (return (x: Slice64.array UInt8.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_9 <- ([%#sbyte_codec_ops] (256: UInt16.t)) = ([%#sbyte_codec_ops'0] (0: UInt16.t)) ] s1
+    | s1 = {[@expl:division by zero] [%#sbyte_codec_ops'0] not _9} s2
+    | s2 = UInt16.div [%#sbyte_codec_ops'0] {value} {[%#sbyte_codec_ops] (256: UInt16.t)}
+        (fun (_x: UInt16.t) -> [ &_7 <- _x ] s3)
+    | s3 = [ &_6 <- UInt8.of_int (UInt16.t'int _7) ] s4
+    | s4 = [ &_13 <- ([%#sbyte_codec_ops'1] (256: UInt16.t)) = ([%#sbyte_codec_ops'2] (0: UInt16.t)) ] s5
+    | s5 = {[@expl:remainder by zero] [%#sbyte_codec_ops'2] not _13} s6
+    | s6 = UInt16.rem [%#sbyte_codec_ops'2] {value} {[%#sbyte_codec_ops'1] (256: UInt16.t)}
+        (fun (_x: UInt16.t) -> [ &_11 <- _x ] s7)
+    | s7 = [ &_10 <- UInt8.of_int (UInt16.t'int _11) ] s8
+    | s8 = any
+      [ any_ (__arr_temp: Slice64.array UInt8.t) -> (! -{Seq.get __arr_temp.Slice64.elts 0 = _6
+        /\ Seq.get __arr_temp.Slice64.elts 1 = _10 /\ Seq.length __arr_temp.Slice64.elts = 2}-
+        [ &_ret <- __arr_temp ] s9) ]
+    | s9 = return {_ret} ] ]
+  [ & _ret: Slice64.array UInt8.t = Any.any_l ()
+  | & value: UInt16.t = value
+  | & _6: UInt8.t = Any.any_l ()
+  | & _7: UInt16.t = Any.any_l ()
+  | & _9: bool = Any.any_l ()
+  | & _10: UInt8.t = Any.any_l ()
+  | & _11: UInt16.t = Any.any_l ()
+  | & _13: bool = Any.any_l () ])
+  [ return (result: Slice64.array UInt8.t) ->
+  {[@stop_split] [@expl:encode_be_u16 ensures] ([@stop_split] [@expl:encode_be_u16 result type invariant] [%#sbyte_codec_ops'3] inv_array_u8_2 result)
+    /\ ([@stop_split] [@expl:encode_be_u16 ensures #0] [%#sbyte_codec_ops'4] UInt8.t'int (Seq.get (Slice64.view result) 0)
+      = ComputerDivision.div (UInt16.t'int value) 256)
+    /\ ([@stop_split] [@expl:encode_be_u16 ensures #1] [%#sbyte_codec_ops'5] UInt8.t'int (Seq.get (Slice64.view result) 1)
+    = ComputerDivision.mod (UInt16.t'int value) 256)}
+    (! return {result}) ]

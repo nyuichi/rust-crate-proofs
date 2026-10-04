@@ -1,0 +1,40 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/uninit-ops/src/lib.rs" 48 0 48 44 *)
+
+let%span smem = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/mem.rs" 73 18 73 33
+let%span smem'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/mem.rs" 83 19 83 23
+let%span smem'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/mem.rs" 84 18 84 22
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/uninit-ops/src/lib.rs" 49 16 49 37
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/uninit-ops/src/lib.rs" 50 4 50 23
+
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+type t_MaybeUninit_u8
+
+type t_Option_u8 = None | Some UInt8.t
+
+function view_MaybeUninit_u8 (self: t_MaybeUninit_u8) : t_Option_u8
+
+let uninit_u8 (return (x: t_MaybeUninit_u8)) = any
+  [ return (result: t_MaybeUninit_u8) -> {[@stop_split] [@expl:uninit ensures] [%#smem] view_MaybeUninit_u8 result
+    = None}
+    (! return {result}) ]
+
+let assume_init_u8 (self_: t_MaybeUninit_u8) (return (x: UInt8.t)) =
+{[@stop_split] [@expl:assume_init requires] [%#smem'0] view_MaybeUninit_u8 self_ <> None}
+  any
+  [ return (result: UInt8.t) -> {[@stop_split] [@expl:assume_init ensures] [%#smem'1] view_MaybeUninit_u8 self_
+    = Some result}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let uninitialized_recovery [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/uninit-ops/src/lib.rs" 48 0 48 44]
+  (return (x: UInt8.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = uninit_u8 [%#slib] (fun (_x: t_MaybeUninit_u8) -> [ &value <- _x ] s1)
+    | s1 = assume_init_u8 [%#slib'0] {value} (fun (_x: UInt8.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ] [ & _ret: UInt8.t = Any.any_l () | & value: t_MaybeUninit_u8 = Any.any_l () ])
+  [ return (result: UInt8.t) -> (! return {result}) ]

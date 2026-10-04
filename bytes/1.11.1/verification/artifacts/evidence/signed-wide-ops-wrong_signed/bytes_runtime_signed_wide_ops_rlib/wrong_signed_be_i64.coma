@@ -1,0 +1,87 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/signed-wide-ops/src/lib.rs" 122 0 122 60 *)
+
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span ssigned_wide_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/signed-wide-ops/src/../../../../src/signed_wide_ops.rs" 49 10 63 1
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/signed-wide-ops/src/lib.rs" 123 4 123 39
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/signed-wide-ops/src/lib.rs" 109 11 109 28
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/signed-wide-ops/src/lib.rs" 110 11 110 28
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/signed-wide-ops/src/lib.rs" 111 10 121 1
+
+use creusot.prelude.MutBorrow
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.Int64
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_Option_i64 = None | Some Int64.t
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function signed_u64 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/signed-wide-ops/src/../../../../src/signed_wide_ops.rs" 9 0 9 42] (word: int) : int
+
+type t_RangeFrom_Int = { start: int }
+
+function index_Seq_u8 [@inline:trivial] (self: Seq.seq UInt8.t) (range: t_RangeFrom_Int) : Seq.seq UInt8.t =
+  [%#sseq] Seq.([..]) self range.start (Seq.length self)
+
+meta "rewrite_def" function index_Seq_u8
+
+let read_be_i64 (input: MutBorrow.t (Slice64.slice UInt8.t)) (return (x: t_Option_i64)) = any
+  [ return (result: t_Option_i64) -> {[@stop_split] [@expl:read_be_i64 ensures] [%#ssigned_wide_ops] match result with
+      | Some value -> ge_log_Int (Seq.length (Slice64.view input.current)) 8
+      /\ Int64.to_int value
+        = signed_u64 (UInt8.t'int (Seq.get (Slice64.view input.current) 0) * 72057594037927936
+                    + UInt8.t'int (Seq.get (Slice64.view input.current) 1) * 281474976710656
+                  + UInt8.t'int (Seq.get (Slice64.view input.current) 2) * 1099511627776
+                + UInt8.t'int (Seq.get (Slice64.view input.current) 3) * 4294967296
+              + UInt8.t'int (Seq.get (Slice64.view input.current) 4) * 16777216
+            + UInt8.t'int (Seq.get (Slice64.view input.current) 5) * 65536
+          + UInt8.t'int (Seq.get (Slice64.view input.current) 6) * 256
+        + UInt8.t'int (Seq.get (Slice64.view input.current) 7))
+      /\ Slice64.view input.final = index_Seq_u8 (Slice64.view input.current) { start = 8 }
+      | None -> Seq.length (Slice64.view input.current) < 8 /\ Slice64.view input.final = Slice64.view input.current
+      end}
+    (! return {result}) ]
+
+predicate resolve_refmut_ref_slice_u8 [@inline:trivial] (_1: MutBorrow.t (Slice64.slice UInt8.t)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_ref_slice_u8
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let wrong_signed_be_i64 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/signed-wide-ops/src/lib.rs" 122 0 122 60]
+  (input: MutBorrow.t (Slice64.slice UInt8.t)) (return (x: t_Option_i64)) =
+{[@stop_split] [@expl:wrong_signed_be_i64 requires] ([@stop_split] [@expl:wrong_signed_be_i64 requires #0] [%#slib'0] ge_log_Int (Seq.length (Slice64.view input.current)) 8)
+  /\ ([@stop_split] [@expl:wrong_signed_be_i64 requires #1] [%#slib'1] ge_log_Int (UInt8.t'int (Seq.get (Slice64.view input.current) 0)) 128)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <Slice64.slice UInt8.t> {input.current} {MutBorrow.get_id input}
+        (fun (_bor: MutBorrow.t (Slice64.slice UInt8.t)) ->
+          [ &_8 <- _bor ] [ &input <- { input with current = _bor.final } ] s1)
+    | s1 = read_be_i64 [%#slib] {_8} (fun (_x: t_Option_i64) -> [ &_ret <- _x ] s2)
+    | s2 = -{resolve_refmut_ref_slice_u8 input}- s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: t_Option_i64 = Any.any_l ()
+  | & input: MutBorrow.t (Slice64.slice UInt8.t) = input
+  | & _8: MutBorrow.t (Slice64.slice UInt8.t) = Any.any_l () ])
+  [ return (result: t_Option_i64) -> {[@stop_split] [@expl:wrong_signed_be_i64 ensures] [%#slib'2] match result with
+      | Some value -> Int64.to_int value
+      = UInt8.t'int (Seq.get (Slice64.view input.current) 0) * 72057594037927936
+                  + UInt8.t'int (Seq.get (Slice64.view input.current) 1) * 281474976710656
+                + UInt8.t'int (Seq.get (Slice64.view input.current) 2) * 1099511627776
+              + UInt8.t'int (Seq.get (Slice64.view input.current) 3) * 4294967296
+            + UInt8.t'int (Seq.get (Slice64.view input.current) 4) * 16777216
+          + UInt8.t'int (Seq.get (Slice64.view input.current) 5) * 65536
+        + UInt8.t'int (Seq.get (Slice64.view input.current) 6) * 256
+      + UInt8.t'int (Seq.get (Slice64.view input.current) 7)
+      | None -> false
+      end}
+    (! return {result}) ]

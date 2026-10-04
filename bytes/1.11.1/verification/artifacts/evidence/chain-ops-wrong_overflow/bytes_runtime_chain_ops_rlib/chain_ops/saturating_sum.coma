@@ -1,0 +1,54 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/chain-ops/src/../../../../src/chain_ops.rs" 8 0 8 57 *)
+
+let%span schain_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/chain-ops/src/../../../../src/chain_ops.rs" 9 4 9 23
+let%span schain_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/chain-ops/src/../../../../src/chain_ops.rs" 7 10 7 79
+let%span snum = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 347 20 348 51
+let%span snum'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 351 26 351 83
+let%span snum'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 352 26 352 83
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span sord'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 22 8 22 20
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+constant const_MIN: UInt64.t = (0: UInt64.t)
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+let saturating_add (self_: UInt64.t) (rhs: UInt64.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:saturating_add ensures] ([@stop_split] [@expl:saturating_add ensures #0] [%#snum] ge_log_Int (UInt64.t'int self_
+          + UInt64.t'int rhs) (UInt64.t'int const_MIN)
+        /\ UInt64.t'int self_ + UInt64.t'int rhs <= UInt64.t'int const_MAX
+      -> UInt64.t'int result = UInt64.t'int self_ + UInt64.t'int rhs)
+    /\ ([@stop_split] [@expl:saturating_add ensures #1] [%#snum'0] UInt64.t'int self_ + UInt64.t'int rhs
+        < UInt64.t'int const_MIN -> UInt64.t'int result = UInt64.t'int const_MIN)
+    /\ ([@stop_split] [@expl:saturating_add ensures #2] [%#snum'1] gt_log_Int (UInt64.t'int self_
+      + UInt64.t'int rhs) (UInt64.t'int const_MAX) -> UInt64.t'int result = UInt64.t'int const_MAX)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let saturating_sum [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/chain-ops/src/../../../../src/chain_ops.rs" 8 0 8 57]
+  (a: UInt64.t) (b: UInt64.t) (return (x: UInt64.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = saturating_add [%#schain_ops] {a} {b} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & a: UInt64.t = a | & b: UInt64.t = b ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:saturating_sum ensures] [%#schain_ops'0] UInt64.t'int result
+    = (if UInt64.t'int a + UInt64.t'int b <= UInt64.t'int const_MAX then
+      UInt64.t'int a + UInt64.t'int b
+    else
+      UInt64.t'int const_MAX
+    )}
+    (! return {result}) ]

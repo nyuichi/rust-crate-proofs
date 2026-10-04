@@ -1,0 +1,87 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 83 0 88 14 *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 89 4 89 65
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 77 11 77 28
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 78 11 78 46
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 79 11 79 38
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 80 10 80 43
+let%span slib'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 81 10 81 40
+let%span slib'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 82 10 82 44
+let%span slib'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 20 11 20 28
+let%span slib'7 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 21 11 21 46
+let%span slib'8 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 22 11 22 38
+let%span slib'9 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 23 10 23 39
+let%span slib'10 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 24 10 24 43
+let%span slib'11 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 25 10 25 40
+let%span slib'12 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 26 10 26 108
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span sboxed = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/boxed.rs" 24 8 24 22
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function view_Box_slice_u8_Global [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq UInt8.t =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_u8_Global
+
+let write_disjoint_regions (input: Slice64.slice UInt8.t) (split: UInt64.t) (left_value: UInt8.t) (right_value: UInt8.t)
+  (return (x: Slice64.slice UInt8.t)) =
+{[@stop_split] [@expl:write_disjoint_regions requires] ([@stop_split] [@expl:write_disjoint_regions requires #0] [%#slib'6] ge_log_Int (Seq.length (view_Box_slice_u8_Global input)) 2)
+  /\ ([@stop_split] [@expl:write_disjoint_regions requires #1] [%#slib'7] 0 < UInt64.t'int split
+    /\ UInt64.t'int split < Seq.length (view_Box_slice_u8_Global input))
+  /\ ([@stop_split] [@expl:write_disjoint_regions requires #2] [%#slib'8] UInt8.t'int left_value
+  <> UInt8.t'int right_value)}
+  any
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:write_disjoint_regions ensures] ([@stop_split] [@expl:write_disjoint_regions ensures #0] [%#slib'9] Seq.length (view_Box_slice_u8_Global result)
+      = Seq.length (view_Box_slice_u8_Global input))
+    /\ ([@stop_split] [@expl:write_disjoint_regions ensures #1] [%#slib'10] Seq.get (view_Box_slice_u8_Global result) (UInt64.t'int split
+        - 1)
+      = left_value)
+    /\ ([@stop_split] [@expl:write_disjoint_regions ensures #2] [%#slib'11] Seq.get (view_Box_slice_u8_Global result) (UInt64.t'int split)
+      = right_value)
+    /\ ([@stop_split] [@expl:write_disjoint_regions ensures #3] [%#slib'12] forall i: int. 0 <= i
+        /\ i < Seq.length (view_Box_slice_u8_Global input) /\ i <> UInt64.t'int split - 1 /\ i <> UInt64.t'int split
+      -> Seq.get (view_Box_slice_u8_Global result) i = Seq.get (view_Box_slice_u8_Global input) i)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let wrong_overlap [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/region-permissions/src/lib.rs" 83 0 88 14]
+  (input: Slice64.slice UInt8.t) (split: UInt64.t) (left_value: UInt8.t) (right_value: UInt8.t)
+  (return (x: Slice64.slice UInt8.t)) =
+{[@stop_split] [@expl:wrong_overlap requires] ([@stop_split] [@expl:wrong_overlap requires #0] [%#slib'0] ge_log_Int (Seq.length (view_Box_slice_u8_Global input)) 2)
+  /\ ([@stop_split] [@expl:wrong_overlap requires #1] [%#slib'1] 0 < UInt64.t'int split
+    /\ UInt64.t'int split < Seq.length (view_Box_slice_u8_Global input))
+  /\ ([@stop_split] [@expl:wrong_overlap requires #2] [%#slib'2] UInt8.t'int left_value <> UInt8.t'int right_value)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = write_disjoint_regions [%#slib] {input} {split} {left_value} {right_value}
+        (fun (_x: Slice64.slice UInt8.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ]
+  [ & _ret: Slice64.slice UInt8.t = Any.any_l ()
+  | & input: Slice64.slice UInt8.t = input
+  | & split: UInt64.t = split
+  | & left_value: UInt8.t = left_value
+  | & right_value: UInt8.t = right_value ])
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:wrong_overlap ensures] ([@stop_split] [@expl:wrong_overlap ensures #0] [%#slib'3] Seq.get (view_Box_slice_u8_Global result) (UInt64.t'int split
+        - 1)
+      = left_value)
+    /\ ([@stop_split] [@expl:wrong_overlap ensures #1] [%#slib'4] Seq.get (view_Box_slice_u8_Global result) (UInt64.t'int split)
+      = right_value)
+    /\ ([@stop_split] [@expl:wrong_overlap ensures #2] [%#slib'5] Seq.get (view_Box_slice_u8_Global result) (UInt64.t'int split
+      - 1)
+    = right_value)}
+    (! return {result}) ]

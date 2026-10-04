@@ -3,7 +3,7 @@ use crate::buf::{limit, Chain, Limit, UninitSlice};
 use crate::buf::{writer, Writer};
 use crate::{panic_advance, panic_does_not_fit, TryGetError};
 
-use core::{mem, ptr};
+use core::mem;
 
 use alloc::{boxed::Box, vec::Vec};
 
@@ -376,7 +376,7 @@ pub unsafe trait BufMut {
     /// `self`.
     #[inline]
     fn put_u16(&mut self, n: u16) {
-        self.put_slice(&n.to_be_bytes())
+        self.put_slice(&crate::byte_codec_ops::encode_be_u16(n))
     }
 
     /// Writes an unsigned 16 bit integer to `self` in little-endian byte order.
@@ -399,7 +399,7 @@ pub unsafe trait BufMut {
     /// `self`.
     #[inline]
     fn put_u16_le(&mut self, n: u16) {
-        self.put_slice(&n.to_le_bytes())
+        self.put_slice(&crate::endian_ops::encode_le_u16(n))
     }
 
     /// Writes an unsigned 16 bit integer to `self` in native-endian byte order.
@@ -522,7 +522,7 @@ pub unsafe trait BufMut {
     /// `self`.
     #[inline]
     fn put_u32(&mut self, n: u32) {
-        self.put_slice(&n.to_be_bytes())
+        self.put_slice(&crate::byte_codec_ops::encode_be_u32(n))
     }
 
     /// Writes an unsigned 32 bit integer to `self` in little-endian byte order.
@@ -545,7 +545,7 @@ pub unsafe trait BufMut {
     /// `self`.
     #[inline]
     fn put_u32_le(&mut self, n: u32) {
-        self.put_slice(&n.to_le_bytes())
+        self.put_slice(&crate::endian_ops::encode_le_u32(n))
     }
 
     /// Writes an unsigned 32 bit integer to `self` in native-endian byte order.
@@ -668,7 +668,7 @@ pub unsafe trait BufMut {
     /// `self`.
     #[inline]
     fn put_u64(&mut self, n: u64) {
-        self.put_slice(&n.to_be_bytes())
+        self.put_slice(&crate::byte_codec_wide_ops::encode_be_u64(n))
     }
 
     /// Writes an unsigned 64 bit integer to `self` in little-endian byte order.
@@ -691,7 +691,7 @@ pub unsafe trait BufMut {
     /// `self`.
     #[inline]
     fn put_u64_le(&mut self, n: u64) {
-        self.put_slice(&n.to_le_bytes())
+        self.put_slice(&crate::byte_codec_wide_ops::encode_le_u64(n))
     }
 
     /// Writes an unsigned 64 bit integer to `self` in native-endian byte order.
@@ -814,7 +814,7 @@ pub unsafe trait BufMut {
     /// `self`.
     #[inline]
     fn put_u128(&mut self, n: u128) {
-        self.put_slice(&n.to_be_bytes())
+        self.put_slice(&crate::byte_codec_wide_ops::encode_be_u128(n))
     }
 
     /// Writes an unsigned 128 bit integer to `self` in little-endian byte order.
@@ -837,7 +837,7 @@ pub unsafe trait BufMut {
     /// `self`.
     #[inline]
     fn put_u128_le(&mut self, n: u128) {
-        self.put_slice(&n.to_le_bytes())
+        self.put_slice(&crate::byte_codec_wide_ops::encode_le_u128(n))
     }
 
     /// Writes an unsigned 128 bit integer to `self` in native-endian byte order.
@@ -1502,9 +1502,7 @@ unsafe impl BufMut for &mut [u8] {
             });
         }
 
-        // Lifetime dance taken from `impl Write for &mut [u8]`.
-        let (_, b) = core::mem::take(self).split_at_mut(cnt);
-        *self = b;
+        let _ = crate::slice_mut_ops::advance_slice_mut(self, cnt);
     }
 
     #[inline]
@@ -1516,9 +1514,7 @@ unsafe impl BufMut for &mut [u8] {
             });
         }
 
-        self[..src.len()].copy_from_slice(src);
-        // SAFETY: We just initialized `src.len()` bytes.
-        unsafe { self.advance_mut(src.len()) };
+        let _ = crate::slice_mut_ops::copy_to_slice_mut(self, src);
     }
 
     #[inline]
@@ -1530,11 +1526,7 @@ unsafe impl BufMut for &mut [u8] {
             });
         }
 
-        // SAFETY: We just checked that the pointer is valid for `cnt` bytes.
-        unsafe {
-            ptr::write_bytes(self.as_mut_ptr(), val, cnt);
-            self.advance_mut(cnt);
-        }
+        let _ = crate::slice_mut_ops::fill_slice_mut(self, cnt, val);
     }
 }
 
@@ -1558,9 +1550,7 @@ unsafe impl BufMut for &mut [core::mem::MaybeUninit<u8>] {
             });
         }
 
-        // Lifetime dance taken from `impl Write for &mut [u8]`.
-        let (_, b) = core::mem::take(self).split_at_mut(cnt);
-        *self = b;
+        let _ = crate::slice_mut_ops::advance_slice_mut(self, cnt);
     }
 
     #[inline]
@@ -1572,11 +1562,7 @@ unsafe impl BufMut for &mut [core::mem::MaybeUninit<u8>] {
             });
         }
 
-        // SAFETY: We just checked that the pointer is valid for `src.len()` bytes.
-        unsafe {
-            ptr::copy_nonoverlapping(src.as_ptr(), self.as_mut_ptr().cast(), src.len());
-            self.advance_mut(src.len());
-        }
+        let _ = crate::uninit_ops::initialize_prefix(self, src);
     }
 
     #[inline]
@@ -1588,11 +1574,7 @@ unsafe impl BufMut for &mut [core::mem::MaybeUninit<u8>] {
             });
         }
 
-        // SAFETY: We just checked that the pointer is valid for `cnt` bytes.
-        unsafe {
-            ptr::write_bytes(self.as_mut_ptr() as *mut u8, val, cnt);
-            self.advance_mut(cnt);
-        }
+        let _ = crate::uninit_ops::fill_prefix(self, cnt, val);
     }
 }
 

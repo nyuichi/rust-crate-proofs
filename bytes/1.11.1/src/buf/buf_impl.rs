@@ -1,8 +1,6 @@
 #[cfg(feature = "std")]
 use crate::buf::{reader, Reader};
 use crate::buf::{take, Chain, Take};
-#[cfg(feature = "std")]
-use crate::{min_u64_usize, saturating_sub_usize_u64};
 use crate::{panic_advance, panic_does_not_fit, TryGetError};
 
 #[cfg(feature = "std")]
@@ -2906,7 +2904,7 @@ impl Buf for &[u8] {
             });
         }
 
-        *self = &self[cnt..];
+        crate::slice_ops::advance_slice(self, cnt);
     }
 
     #[inline]
@@ -2918,8 +2916,282 @@ impl Buf for &[u8] {
             });
         }
 
-        dst.copy_from_slice(&self[..dst.len()]);
-        self.advance(dst.len());
+        crate::slice_ops::copy_to_slice(self, dst);
+    }
+    #[inline]
+    fn get_u8(&mut self) -> u8 {
+        self.try_get_u8()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_u8(&mut self) -> Result<u8, TryGetError> {
+        crate::slice_read_ops::read_u8(self).ok_or(TryGetError {
+            requested: 1,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_u16(&mut self) -> u16 {
+        self.try_get_u16()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_u16(&mut self) -> Result<u16, TryGetError> {
+        crate::slice_read_ops::read_be_u16(self).ok_or(TryGetError {
+            requested: 2,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_u32(&mut self) -> u32 {
+        self.try_get_u32()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_u32(&mut self) -> Result<u32, TryGetError> {
+        crate::slice_read_ops::read_be_u32(self).ok_or(TryGetError {
+            requested: 4,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_u64(&mut self) -> u64 {
+        self.try_get_u64()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_u64(&mut self) -> Result<u64, TryGetError> {
+        crate::slice_wide_read_ops::read_be_u64(self).ok_or(TryGetError {
+            requested: 8,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_u128(&mut self) -> u128 {
+        self.try_get_u128()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_u128(&mut self) -> Result<u128, TryGetError> {
+        crate::slice_wide_read_ops::read_be_u128(self).ok_or(TryGetError {
+            requested: 16,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_u16_le(&mut self) -> u16 {
+        self.try_get_u16_le()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_u16_le(&mut self) -> Result<u16, TryGetError> {
+        crate::endian_ops::read_le_u16(self).ok_or(TryGetError {
+            requested: 2,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_u32_le(&mut self) -> u32 {
+        self.try_get_u32_le()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_u32_le(&mut self) -> Result<u32, TryGetError> {
+        crate::endian_ops::read_le_u32(self).ok_or(TryGetError {
+            requested: 4,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_u64_le(&mut self) -> u64 {
+        self.try_get_u64_le()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_u64_le(&mut self) -> Result<u64, TryGetError> {
+        crate::slice_wide_read_ops::read_le_u64(self).ok_or(TryGetError {
+            requested: 8,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_u128_le(&mut self) -> u128 {
+        self.try_get_u128_le()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_u128_le(&mut self) -> Result<u128, TryGetError> {
+        crate::slice_wide_read_ops::read_le_u128(self).ok_or(TryGetError {
+            requested: 16,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_uint(&mut self, nbytes: usize) -> u64 {
+        self.try_get_uint(nbytes)
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn get_uint_le(&mut self, nbytes: usize) -> u64 {
+        self.try_get_uint_le(nbytes)
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_uint(&mut self, nbytes: usize) -> Result<u64, TryGetError> {
+        let _slice_at = match 8usize.checked_sub(nbytes) {
+            Some(slice_at) => slice_at,
+            None => panic_does_not_fit(8, nbytes),
+        };
+
+        crate::variable_read_ops::read_be_u64(self, nbytes).ok_or(TryGetError {
+            requested: nbytes,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn try_get_uint_le(&mut self, nbytes: usize) -> Result<u64, TryGetError> {
+        let _slice_at = match 8usize.checked_sub(nbytes) {
+            Some(slice_at) => slice_at,
+            None => panic_does_not_fit(8, nbytes),
+        };
+
+        crate::variable_read_ops::read_le_u64(self, nbytes).ok_or(TryGetError {
+            requested: nbytes,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_i16(&mut self) -> i16 {
+        self.try_get_i16()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_i16(&mut self) -> Result<i16, TryGetError> {
+        crate::endian_ops::read_be_i16(self).ok_or(TryGetError {
+            requested: 2,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_i16_le(&mut self) -> i16 {
+        self.try_get_i16_le()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_i16_le(&mut self) -> Result<i16, TryGetError> {
+        crate::endian_ops::read_le_i16(self).ok_or(TryGetError {
+            requested: 2,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_i32(&mut self) -> i32 {
+        self.try_get_i32()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_i32(&mut self) -> Result<i32, TryGetError> {
+        crate::endian_ops::read_be_i32(self).ok_or(TryGetError {
+            requested: 4,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_i32_le(&mut self) -> i32 {
+        self.try_get_i32_le()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_i32_le(&mut self) -> Result<i32, TryGetError> {
+        crate::endian_ops::read_le_i32(self).ok_or(TryGetError {
+            requested: 4,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_i64(&mut self) -> i64 {
+        self.try_get_i64()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_i64(&mut self) -> Result<i64, TryGetError> {
+        crate::signed_wide_ops::read_be_i64(self).ok_or(TryGetError {
+            requested: 8,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_i64_le(&mut self) -> i64 {
+        self.try_get_i64_le()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_i64_le(&mut self) -> Result<i64, TryGetError> {
+        crate::signed_wide_ops::read_le_i64(self).ok_or(TryGetError {
+            requested: 8,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_i128(&mut self) -> i128 {
+        self.try_get_i128()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_i128(&mut self) -> Result<i128, TryGetError> {
+        crate::signed_wide_ops::read_be_i128(self).ok_or(TryGetError {
+            requested: 16,
+            available: self.len(),
+        })
+    }
+
+    #[inline]
+    fn get_i128_le(&mut self) -> i128 {
+        self.try_get_i128_le()
+            .unwrap_or_else(|error| panic_advance(&error))
+    }
+
+    #[inline]
+    fn try_get_i128_le(&mut self) -> Result<i128, TryGetError> {
+        crate::signed_wide_ops::read_le_i128(self).ok_or(TryGetError {
+            requested: 16,
+            available: self.len(),
+        })
     }
 }
 
@@ -2927,14 +3199,13 @@ impl Buf for &[u8] {
 impl<T: AsRef<[u8]>> Buf for std::io::Cursor<T> {
     #[inline]
     fn remaining(&self) -> usize {
-        saturating_sub_usize_u64(self.get_ref().as_ref().len(), self.position())
+        crate::cursor_ops::cursor_remaining(self.get_ref().as_ref().len(), self.position())
     }
 
     #[inline]
     fn chunk(&self) -> &[u8] {
         let slice = self.get_ref().as_ref();
-        let pos = min_u64_usize(self.position(), slice.len());
-        &slice[pos..]
+        crate::cursor_ops::cursor_chunk(slice, self.position())
     }
 
     #[inline]
@@ -2943,7 +3214,7 @@ impl<T: AsRef<[u8]>> Buf for std::io::Cursor<T> {
         let pos = self.position();
 
         // We intentionally allow `cnt == 0` here even if `pos > len`.
-        let max_cnt = saturating_sub_usize_u64(len, pos);
+        let max_cnt = crate::cursor_ops::cursor_remaining(len, pos);
         if cnt > max_cnt {
             panic_advance(&TryGetError {
                 requested: cnt,
@@ -2953,7 +3224,9 @@ impl<T: AsRef<[u8]>> Buf for std::io::Cursor<T> {
 
         // This will not overflow because either `cnt == 0` or the sum is not
         // greater than `len`.
-        self.set_position(pos + cnt as u64);
+        self.set_position(crate::cursor_ops::cursor_position_after_advance(
+            len, pos, cnt,
+        ));
     }
 }
 

@@ -1,0 +1,150 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 66 0 66 59 *)
+
+let%span sslice_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/slice_ops.rs" 12 11 12 33
+let%span sslice_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/slice_ops.rs" 13 10 13 39
+let%span sslice = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 331 18 331 22
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+let%span sbyte_codec_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 13 28 13 33
+let%span sbyte_codec_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 12 28 12 68
+let%span sarray = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/array.rs" 9 20 9 51
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 67 7 67 18
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 67 21 67 22
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 68 47 68 58
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 68 8 68 59
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 71 27 71 28
+let%span slib'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 71 21 71 29
+let%span slib'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 71 37 71 38
+let%span slib'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 71 31 71 39
+let%span slib'7 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 72 47 72 48
+let%span slib'8 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 72 8 72 49
+let%span slib'9 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 73 13 73 56
+let%span slib'10 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 64 11 64 28
+let%span slib'11 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 65 10 65 29
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.MutBorrow
+use creusot.int.UInt16
+use creusot.prelude.Opaque
+use creusot.prelude.Any
+use int.Int
+
+let len_u8 (self_: Slice64.slice UInt8.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+type t_RangeFrom_Int = { start: int }
+
+function index_Seq_u8 [@inline:trivial] (self: Seq.seq UInt8.t) (range: t_RangeFrom_Int) : Seq.seq UInt8.t =
+  [%#sseq] Seq.([..]) self range.start (Seq.length self)
+
+meta "rewrite_def" function index_Seq_u8
+
+let advance_slice (input: MutBorrow.t (Slice64.slice UInt8.t)) (count: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:advance_slice requires] [%#sslice_ops] UInt64.t'int count
+  <= Seq.length (Slice64.view input.current)}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:advance_slice ensures] [%#sslice_ops'0] Slice64.view input.final
+    = index_Seq_u8 (Slice64.view input.current) { start = UInt64.t'int count }}
+    (! return {result}) ]
+
+predicate resolve_refmut_ref_slice_u8 [@inline:trivial] (_1: MutBorrow.t (Slice64.slice UInt8.t)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_ref_slice_u8
+
+type t_Option_u16 = None | Some UInt16.t
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_2 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (2: UInt64.t)
+
+predicate inv_array_u8_2 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_2 _1
+
+meta "rewrite_def" predicate inv_array_u8_2
+
+let decode_be_u16 (bytes: Slice64.array UInt8.t) (return (x: UInt16.t)) =
+{[@stop_split] [@expl:decode_be_u16 'bytes' type invariant] [%#sbyte_codec_ops] inv_array_u8_2 bytes}
+  any
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:decode_be_u16 ensures] [%#sbyte_codec_ops'0] UInt16.t'int result
+    = UInt8.t'int (Seq.get (Slice64.view bytes) 0) * 256 + UInt8.t'int (Seq.get (Slice64.view bytes) 1)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let consumes_short_u16 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/lib.rs" 66 0 66 59]
+  (input: MutBorrow.t (Slice64.slice UInt8.t)) (return (x: t_Option_u16)) =
+{[@stop_split] [@expl:consumes_short_u16 requires] [%#slib'10] Seq.length (Slice64.view input.current) = 1}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = len_u8 [%#slib] {input.current} (fun (_x: UInt64.t) -> [ &_7 <- _x ] s1)
+    | s1 = [ &_6 <- UInt64.lt _7 ([%#slib'0] (2: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_6 = false} (! bb5) | br1 -> {_6} (! bb2) ] ]
+  | bb2 = s0
+    [ s0 = len_u8 [%#slib'1] {input.current} (fun (_x: UInt64.t) -> [ &_11 <- _x ] s1)
+    | s1 = MutBorrow.borrow_final <Slice64.slice UInt8.t> {input.current} {MutBorrow.get_id input}
+        (fun (_bor: MutBorrow.t (Slice64.slice UInt8.t)) ->
+          [ &_10 <- _bor ] [ &input <- { input with current = _bor.final } ] s2)
+    | s2 = advance_slice [%#slib'2] {_10} {_11} (fun (_x: ()) -> [ &_9 <- _x ] s3)
+    | s3 = -{resolve_refmut_ref_slice_u8 input}- s4
+    | s4 = [ &_ret <- None ] s5
+    | s5 = return {_ret} ]
+  | bb5 = s0
+    [ s0 = [ &_15 <- [%#slib'3] (0: UInt64.t) ] s1
+    | s1 = Opaque.fresh_ptr
+        (fun (_ptr: Opaque.ptr) -> -{Slice64.slice_ptr_len _ptr = Slice64.length input.current}- [ &_16 <- _ptr ] s2)
+    | s2 = [ &_17 <- Slice64.slice_ptr_len _16 ] s3
+    | s3 = [ &_18 <- UInt64.lt _15 _17 ] s4
+    | s4 = {[@expl:index in bounds] [%#slib'4] _18} s5
+    | s5 = Slice64.get [%#slib'4] <UInt8.t> {input.current} {_15} (fun (r: UInt8.t) -> [ &_14 <- r ] s6)
+    | s6 = [ &_20 <- [%#slib'5] (1: UInt64.t) ] s7
+    | s7 = Opaque.fresh_ptr
+        (fun (_ptr: Opaque.ptr) -> -{Slice64.slice_ptr_len _ptr = Slice64.length input.current}- [ &_21 <- _ptr ] s8)
+    | s8 = [ &_22 <- Slice64.slice_ptr_len _21 ] s9
+    | s9 = [ &_23 <- UInt64.lt _20 _22 ] s10
+    | s10 = {[@expl:index in bounds] [%#slib'6] _23} s11
+    | s11 = Slice64.get [%#slib'6] <UInt8.t> {input.current} {_20} (fun (r: UInt8.t) -> [ &_19 <- r ] s12)
+    | s12 = any
+      [ any_ (__arr_temp: Slice64.array UInt8.t) -> (! -{Seq.get __arr_temp.Slice64.elts 0 = _14
+        /\ Seq.get __arr_temp.Slice64.elts 1 = _19 /\ Seq.length __arr_temp.Slice64.elts = 2}-
+        [ &bytes <- __arr_temp ] s13) ]
+    | s13 = MutBorrow.borrow_final <Slice64.slice UInt8.t> {input.current} {MutBorrow.get_id input}
+        (fun (_bor: MutBorrow.t (Slice64.slice UInt8.t)) ->
+          [ &_25 <- _bor ] [ &input <- { input with current = _bor.final } ] s14)
+    | s14 = advance_slice [%#slib'8] {_25} {[%#slib'7] (2: UInt64.t)} (fun (_x: ()) -> [ &_24 <- _x ] s15)
+    | s15 = -{resolve_refmut_ref_slice_u8 input}- s16
+    | s16 = decode_be_u16 [%#slib'9] {bytes} (fun (_x: UInt16.t) -> [ &_26 <- _x ] s17)
+    | s17 = [ &_ret <- Some _26 ] s18
+    | s18 = return {_ret} ] ]
+  [ & _ret: t_Option_u16 = Any.any_l ()
+  | & input: MutBorrow.t (Slice64.slice UInt8.t) = input
+  | & _6: bool = Any.any_l ()
+  | & _7: UInt64.t = Any.any_l ()
+  | & _9: () = Any.any_l ()
+  | & _10: MutBorrow.t (Slice64.slice UInt8.t) = Any.any_l ()
+  | & _11: UInt64.t = Any.any_l ()
+  | & bytes: Slice64.array UInt8.t = Any.any_l ()
+  | & _14: UInt8.t = Any.any_l ()
+  | & _15: UInt64.t = Any.any_l ()
+  | & _16: Opaque.ptr = Any.any_l ()
+  | & _17: UInt64.t = Any.any_l ()
+  | & _18: bool = Any.any_l ()
+  | & _19: UInt8.t = Any.any_l ()
+  | & _20: UInt64.t = Any.any_l ()
+  | & _21: Opaque.ptr = Any.any_l ()
+  | & _22: UInt64.t = Any.any_l ()
+  | & _23: bool = Any.any_l ()
+  | & _24: () = Any.any_l ()
+  | & _25: MutBorrow.t (Slice64.slice UInt8.t) = Any.any_l ()
+  | & _26: UInt16.t = Any.any_l () ])
+  [ return (result: t_Option_u16) ->
+  {[@stop_split] [@expl:consumes_short_u16 ensures] [%#slib'11] Slice64.view input.final = Slice64.view input.current}
+    (! return {result}) ]

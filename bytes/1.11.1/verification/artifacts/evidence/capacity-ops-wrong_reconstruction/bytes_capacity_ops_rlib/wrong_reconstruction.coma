@@ -1,0 +1,58 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 84 0 84 49 *)
+
+let%span scapacity_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 65 29 65 97
+let%span scapacity_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 66 28 66 63
+let%span scapacity_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 67 28 67 83
+let%span scapacity_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 68 28 68 75
+let%span scapacity_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 69 28 69 57
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 22 8 22 20
+let%span sord'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 85 4 85 51
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 82 11 82 25
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 83 10 83 39
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 84 0 84 49
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+constant const_MAX_ORIGINAL_CAPACITY_WIDTH: UInt64.t = [%#slib'2] (17: UInt64.t)
+
+constant const_MIN_ORIGINAL_CAPACITY_WIDTH: UInt64.t = [%#slib'2] (10: UInt64.t)
+
+predicate gt_log_usize [@inline:trivial] (self: UInt64.t) (other: UInt64.t) = [%#sord] UInt64.lt other self
+
+meta "rewrite_def" predicate gt_log_usize
+
+predicate ge_log_usize [@inline:trivial] (self: UInt64.t) (other: UInt64.t) = [%#sord'0] UInt64.le other self
+
+meta "rewrite_def" predicate ge_log_usize
+
+let original_capacity_from_repr (repr: UInt64.t) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:original_capacity_from_repr requires] [%#scapacity_ops] UInt64.t'int repr
+  <= UInt64.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH}
+  any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:original_capacity_from_repr ensures] ([@stop_split] [@expl:original_capacity_from_repr ensures #0] [%#scapacity_ops'0] repr
+        = (0: UInt64.t) -> result = (0: UInt64.t))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #1] [%#scapacity_ops'1] gt_log_usize repr (0: UInt64.t)
+      -> result = UInt64.shl (1: UInt64.t) (UInt64.add repr (9: UInt64.t)))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #2] [%#scapacity_ops'2] gt_log_usize repr (0: UInt64.t)
+      -> ge_log_usize result (UInt64.shl (1: UInt64.t) (10: UInt64.t)))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #3] [%#scapacity_ops'3] UInt64.le result (UInt64.shl (1: UInt64.t) (16: UInt64.t)))}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let wrong_reconstruction [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 84 0 84 49]
+  (repr: UInt64.t) (return (x: UInt64.t)) = {[@stop_split] [@expl:wrong_reconstruction requires] [%#slib'0] repr
+  = (1: UInt64.t)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = original_capacity_from_repr [%#slib] {repr} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ] [ & _ret: UInt64.t = Any.any_l () | & repr: UInt64.t = repr ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:wrong_reconstruction ensures] [%#slib'1] result
+    = UInt64.shl (1: UInt64.t) (11: UInt64.t)}
+    (! return {result}) ]

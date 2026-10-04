@@ -1,0 +1,34 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 44 0 44 84 *)
+
+let%span scursor_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 45 4 45 20
+let%span scursor_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 41 11 41 63
+let%span scursor_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 42 10 42 32
+let%span scursor_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 43 10 43 34
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let cursor_position_after_advance [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 44 0 44 84]
+  (len: UInt64.t) (pos: UInt64.t) (cnt: UInt64.t) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:cursor_position_after_advance requires] [%#scursor_ops'0] UInt64.t'int cnt
+  <= (if UInt64.t'int pos <= UInt64.t'int len then UInt64.t'int len - UInt64.t'int pos else 0)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_15 <- cnt ] s1
+    | s1 = UInt64.add [%#scursor_ops] {pos} {_15} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & pos: UInt64.t = pos | & cnt: UInt64.t = cnt | & _15: UInt64.t = Any.any_l () ])
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:cursor_position_after_advance ensures] ([@stop_split] [@expl:cursor_position_after_advance ensures #0] [%#scursor_ops'1] UInt64.t'int result
+      = UInt64.t'int pos + UInt64.t'int cnt)
+    /\ ([@stop_split] [@expl:cursor_position_after_advance ensures #1] [%#scursor_ops'2] UInt64.t'int pos
+      + UInt64.t'int cnt
+    <= UInt64.t'int const_MAX)}
+    (! return {result}) ]

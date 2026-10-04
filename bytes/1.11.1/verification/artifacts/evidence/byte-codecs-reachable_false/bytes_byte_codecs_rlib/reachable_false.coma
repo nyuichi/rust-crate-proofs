@@ -1,0 +1,28 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 35 0 35 24 *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 36 27 36 28
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 36 12 36 29
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 37 12 37 17
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 37 4 37 18
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 11 10 11 27
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+
+let round_trip_u16 (value: UInt16.t) (return (x: UInt16.t)) = any
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:round_trip_u16 ensures] [%#slib'3] UInt16.t'int result
+    = UInt16.t'int value}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let reachable_false [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 35 0 35 24]
+  (return (x: ())) = (! bb0
+  [ bb0 = s0
+    [ s0 = round_trip_u16 [%#slib'0] {[%#slib] (0: UInt16.t)} (fun (_x: UInt16.t) -> [ &_1 <- _x ] s1)
+    | s1 = any [ br0 -> {([%#slib'1] false) = false} (! bb2) | br1 -> {[%#slib'1] false} (! bb3) ] ]
+  | bb3 = return {_ret}
+  | bb2 = {[%#slib'2] false} any ] [ & _ret: () = Any.any_l () | & _1: UInt16.t = Any.any_l () ])
+  [ return (result: ()) -> (! return {result}) ]

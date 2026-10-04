@@ -1,0 +1,52 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 99 0 99 42 *)
+
+let%span sarray = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/array.rs" 9 20 9 51
+let%span sendian_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/endian_ops.rs" 50 43 50 50
+let%span sendian_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/endian_ops.rs" 48 10 48 37
+let%span sendian_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/endian_ops.rs" 49 10 49 37
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 100 4 100 36
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 99 35 99 42
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 98 10 98 37
+
+use creusot.int.UInt16
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use int.ComputerDivision
+use creusot.prelude.Any
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_2 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (2: UInt64.t)
+
+predicate inv_array_u8_2 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_2 _1
+
+meta "rewrite_def" predicate inv_array_u8_2
+
+let encode_le_u16 (value: UInt16.t) (return (x: Slice64.array UInt8.t)) = any
+  [ return (result: Slice64.array UInt8.t) ->
+  {[@stop_split] [@expl:encode_le_u16 ensures] ([@stop_split] [@expl:encode_le_u16 result type invariant] [%#sendian_ops] inv_array_u8_2 result)
+    /\ ([@stop_split] [@expl:encode_le_u16 ensures #0] [%#sendian_ops'0] UInt8.t'int (Seq.get (Slice64.view result) 0)
+      = ComputerDivision.mod (UInt16.t'int value) 256)
+    /\ ([@stop_split] [@expl:encode_le_u16 ensures #1] [%#sendian_ops'1] UInt8.t'int (Seq.get (Slice64.view result) 1)
+    = ComputerDivision.div (UInt16.t'int value) 256)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let wrong_endian [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 99 0 99 42]
+  (value: UInt16.t) (return (x: Slice64.array UInt8.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = encode_le_u16 [%#slib] {value} (fun (_x: Slice64.array UInt8.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ] [ & _ret: Slice64.array UInt8.t = Any.any_l () | & value: UInt16.t = value ])
+  [ return (result: Slice64.array UInt8.t) ->
+  {[@stop_split] [@expl:wrong_endian ensures] ([@stop_split] [@expl:wrong_endian result type invariant] [%#slib'0] inv_array_u8_2 result)
+    /\ ([@stop_split] [@expl:wrong_endian ensures] [%#slib'1] UInt8.t'int (Seq.get (Slice64.view result) 0)
+    = ComputerDivision.div (UInt16.t'int value) 256)}
+    (! return {result}) ]

@@ -1,0 +1,32 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/../../../../src/bounded_ops.rs" 20 0 20 61 *)
+
+let%span sbounded_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/../../../../src/bounded_ops.rs" 21 4 21 19
+let%span sbounded_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/../../../../src/bounded_ops.rs" 18 29 18 48
+let%span sbounded_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/../../../../src/bounded_ops.rs" 19 28 19 59
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+use int.Int
+
+predicate resolve_refmut_usize [@inline:trivial] (_1: MutBorrow.t UInt64.t) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_usize
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let decrease_limit [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/../../../../src/bounded_ops.rs" 20 0 20 61]
+  (limit: MutBorrow.t UInt64.t) (count: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:decrease_limit requires] [%#sbounded_ops'0] UInt64.t'int count <= UInt64.t'int limit.current}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = UInt64.sub [%#sbounded_ops] {limit.current} {count}
+        (fun (_x: UInt64.t) -> [ &limit <- { limit with current = _x } ] s1)
+    | s1 = -{resolve_refmut_usize limit}- s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l () | & limit: MutBorrow.t UInt64.t = limit | & count: UInt64.t = count ])
+  [ return (result: ()) -> {[@stop_split] [@expl:decrease_limit ensures] [%#sbounded_ops'1] UInt64.t'int limit.final
+    = UInt64.t'int limit.current - UInt64.t'int count}
+    (! return {result}) ]

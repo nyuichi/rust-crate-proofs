@@ -1,0 +1,66 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 47 0 47 50 *)
+
+let%span scapacity_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 93 29 93 97
+let%span scapacity_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 94 28 94 83
+let%span scapacity_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 95 28 95 99
+let%span scapacity_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 96 28 96 58
+let%span scapacity_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 103 28 103 97
+let%span scapacity_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 104 28 104 98
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 48 51 48 88
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 48 4 48 89
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 45 11 45 21
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 46 10 46 24
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 47 0 47 50
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+constant const_MAX_ORIGINAL_CAPACITY_WIDTH: UInt64.t = [%#slib'3] (17: UInt64.t)
+
+constant const_MIN_ORIGINAL_CAPACITY_WIDTH: UInt64.t = [%#slib'3] (10: UInt64.t)
+
+constant const_ORIGINAL_CAPACITY_OFFSET: UInt64.t = [%#slib'3] (2: UInt64.t)
+
+constant const_KIND_VEC: UInt64.t = [%#slib'3] (1: UInt64.t)
+
+constant const_ORIGINAL_CAPACITY_MASK: UInt64.t = [%#slib'3] (28: UInt64.t)
+
+constant const_KIND_MASK: UInt64.t = [%#slib'3] (1: UInt64.t)
+
+let pack_vec_metadata (repr: UInt64.t) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:pack_vec_metadata requires] [%#scapacity_ops] UInt64.t'int repr
+  <= UInt64.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH}
+  any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:pack_vec_metadata ensures] ([@stop_split] [@expl:pack_vec_metadata ensures #0] [%#scapacity_ops'0] result
+      = UInt64.bw_or (UInt64.shl repr const_ORIGINAL_CAPACITY_OFFSET) const_KIND_VEC)
+    /\ ([@stop_split] [@expl:pack_vec_metadata ensures #1] [%#scapacity_ops'1] UInt64.shr (UInt64.bw_and result const_ORIGINAL_CAPACITY_MASK) const_ORIGINAL_CAPACITY_OFFSET
+      = repr)
+    /\ ([@stop_split] [@expl:pack_vec_metadata ensures #2] [%#scapacity_ops'2] UInt64.bw_and result const_KIND_MASK
+    = const_KIND_VEC)}
+    (! return {result}) ]
+
+let original_capacity_repr_from_data (data: UInt64.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:original_capacity_repr_from_data ensures] ([@stop_split] [@expl:original_capacity_repr_from_data ensures #0] [%#scapacity_ops'3] result
+      = UInt64.shr (UInt64.bw_and data const_ORIGINAL_CAPACITY_MASK) const_ORIGINAL_CAPACITY_OFFSET)
+    /\ ([@stop_split] [@expl:original_capacity_repr_from_data ensures #1] [%#scapacity_ops'4] UInt64.t'int result
+    <= UInt64.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let packed_repr_roundtrip [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 47 0 47 50]
+  (repr: UInt64.t) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:packed_repr_roundtrip requires] [%#slib'1] UInt64.t'int repr <= 7}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = pack_vec_metadata [%#slib] {repr} (fun (_x: UInt64.t) -> [ &_6 <- _x ] s1)
+    | s1 = original_capacity_repr_from_data [%#slib'0] {_6} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & repr: UInt64.t = repr | & _6: UInt64.t = Any.any_l () ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:packed_repr_roundtrip ensures] [%#slib'2] result = repr}
+    (! return {result}) ]

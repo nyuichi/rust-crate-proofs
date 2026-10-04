@@ -1,0 +1,46 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 96 0 96 81 *)
+
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 92 11 92 21
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 93 11 93 61
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 94 11 94 50
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 95 10 95 49
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_RangeFrom_Int = { start: int }
+
+function index_Seq_u8 [@inline:trivial] (self: Seq.seq UInt8.t) (range: t_RangeFrom_Int) : Seq.seq UInt8.t =
+  [%#sseq] Seq.([..]) self range.start (Seq.length self)
+
+meta "rewrite_def" function index_Seq_u8
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant whole : Seq.seq UInt8.t
+
+constant start'0 : int
+
+constant prefix : Seq.seq UInt8.t
+
+constant suffix : Seq.seq UInt8.t
+
+function suffix_of_window [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 96 0 96 81] (whole: Seq.seq UInt8.t) (start'0: int) (prefix: Seq.seq UInt8.t) (suffix: Seq.seq UInt8.t) : ()
+
+goal vc_suffix_of_window: ([%#slib] 0 <= start'0)
+  -> ([%#slib'0] Seq.length whole = start'0 + Seq.length prefix + Seq.length suffix)
+  -> ([%#slib'1] index_Seq_u8 whole { start = start'0 } = Seq.(++) prefix suffix)
+  -> (forall i: int. 0 <= i /\ i < Seq.length suffix
+      -> Seq.get (index_Seq_u8 whole { start = start'0 }) (Seq.length prefix + i) = Seq.get suffix i)
+  && (forall i: int. 0 <= i /\ i < Seq.length suffix
+      -> Seq.get whole (start'0 + Seq.length prefix + i)
+      = Seq.get (index_Seq_u8 whole { start = start'0 }) (Seq.length prefix + i))
+  && (forall i: int. 0 <= i /\ i < Seq.length suffix
+      -> Seq.get (index_Seq_u8 whole { start = start'0 + Seq.length prefix }) i = Seq.get suffix i)
+  && ([@stop_split] [@expl:suffix_of_window ensures] [%#slib'2] index_Seq_u8 whole { start = start'0
+                                                                                     + Seq.length prefix }
+  = suffix)

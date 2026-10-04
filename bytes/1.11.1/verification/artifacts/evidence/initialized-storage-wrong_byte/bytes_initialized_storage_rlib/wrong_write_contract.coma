@@ -1,0 +1,63 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 159 0 159 83 *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 160 4 160 34
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 155 11 155 32
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 156 11 156 26
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 157 10 157 39
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 158 10 158 40
+let%span slib'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 44 11 44 32
+let%span slib'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 45 10 45 39
+let%span slib'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 46 10 46 34
+let%span slib'7 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 47 10 47 89
+let%span sboxed = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/boxed.rs" 24 8 24 22
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+function view_Box_slice_u8_Global [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq UInt8.t =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_u8_Global
+
+let write_one (input: Slice64.slice UInt8.t) (index: UInt64.t) (value: UInt8.t) (return (x: Slice64.slice UInt8.t)) =
+{[@stop_split] [@expl:write_one requires] [%#slib'4] UInt64.t'int index < Seq.length (view_Box_slice_u8_Global input)}
+  any
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:write_one ensures] ([@stop_split] [@expl:write_one ensures #0] [%#slib'5] Seq.length (view_Box_slice_u8_Global result)
+      = Seq.length (view_Box_slice_u8_Global input))
+    /\ ([@stop_split] [@expl:write_one ensures #1] [%#slib'6] Seq.get (view_Box_slice_u8_Global result) (UInt64.t'int index)
+      = value)
+    /\ ([@stop_split] [@expl:write_one ensures #2] [%#slib'7] forall i: int. 0 <= i
+        /\ i < Seq.length (view_Box_slice_u8_Global input) /\ i <> UInt64.t'int index
+      -> Seq.get (view_Box_slice_u8_Global result) i = Seq.get (view_Box_slice_u8_Global input) i)}
+    (! return {result}) ]
+
+constant const_MAX: UInt8.t = (255: UInt8.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let wrong_write_contract [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/lib.rs" 159 0 159 83]
+  (input: Slice64.slice UInt8.t) (index: UInt64.t) (value: UInt8.t) (return (x: Slice64.slice UInt8.t)) =
+{[@stop_split] [@expl:wrong_write_contract requires] ([@stop_split] [@expl:wrong_write_contract requires #0] [%#slib'0] UInt64.t'int index
+    < Seq.length (view_Box_slice_u8_Global input))
+  /\ ([@stop_split] [@expl:wrong_write_contract requires #1] [%#slib'1] UInt8.lt value const_MAX)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = write_one [%#slib] {input} {index} {value} (fun (_x: Slice64.slice UInt8.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ]
+  [ & _ret: Slice64.slice UInt8.t = Any.any_l ()
+  | & input: Slice64.slice UInt8.t = input
+  | & index: UInt64.t = index
+  | & value: UInt8.t = value ])
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:wrong_write_contract ensures] ([@stop_split] [@expl:wrong_write_contract ensures #0] [%#slib'2] Seq.length (view_Box_slice_u8_Global result)
+      = Seq.length (view_Box_slice_u8_Global input))
+    /\ ([@stop_split] [@expl:wrong_write_contract ensures #1] [%#slib'3] UInt8.t'int (Seq.get (view_Box_slice_u8_Global result) (UInt64.t'int index))
+    = UInt8.t'int value + 1)}
+    (! return {result}) ]

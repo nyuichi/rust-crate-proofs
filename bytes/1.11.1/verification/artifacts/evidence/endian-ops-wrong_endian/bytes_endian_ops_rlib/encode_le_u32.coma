@@ -1,0 +1,67 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 25 0 25 43 *)
+
+let%span sarray = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/array.rs" 9 20 9 51
+let%span sendian_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/endian_ops.rs" 61 43 61 50
+let%span sendian_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/endian_ops.rs" 57 10 57 37
+let%span sendian_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/endian_ops.rs" 58 10 58 43
+let%span sendian_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/endian_ops.rs" 59 10 59 46
+let%span sendian_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/../../../../src/endian_ops.rs" 60 10 60 44
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 26 4 26 36
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 25 36 25 43
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 21 10 21 37
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 22 10 22 43
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 23 10 23 46
+let%span slib'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 24 10 24 44
+
+use creusot.int.UInt32
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use int.ComputerDivision
+use creusot.prelude.Any
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_4 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (4: UInt64.t)
+
+predicate inv_array_u8_4 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_4 _1
+
+meta "rewrite_def" predicate inv_array_u8_4
+
+let encode_le_u32 (value: UInt32.t) (return (x: Slice64.array UInt8.t)) = any
+  [ return (result: Slice64.array UInt8.t) ->
+  {[@stop_split] [@expl:encode_le_u32 ensures] ([@stop_split] [@expl:encode_le_u32 result type invariant] [%#sendian_ops] inv_array_u8_4 result)
+    /\ ([@stop_split] [@expl:encode_le_u32 ensures #0] [%#sendian_ops'0] UInt8.t'int (Seq.get (Slice64.view result) 0)
+      = ComputerDivision.mod (UInt32.t'int value) 256)
+    /\ ([@stop_split] [@expl:encode_le_u32 ensures #1] [%#sendian_ops'1] UInt8.t'int (Seq.get (Slice64.view result) 1)
+      = ComputerDivision.mod (ComputerDivision.div (UInt32.t'int value) 256) 256)
+    /\ ([@stop_split] [@expl:encode_le_u32 ensures #2] [%#sendian_ops'2] UInt8.t'int (Seq.get (Slice64.view result) 2)
+      = ComputerDivision.mod (ComputerDivision.div (UInt32.t'int value) 65536) 256)
+    /\ ([@stop_split] [@expl:encode_le_u32 ensures #3] [%#sendian_ops'3] UInt8.t'int (Seq.get (Slice64.view result) 3)
+    = ComputerDivision.div (UInt32.t'int value) 16777216)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let encode_le_u32'0 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/endian-ops/src/lib.rs" 25 0 25 43]
+  (value: UInt32.t) (return (x: Slice64.array UInt8.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = encode_le_u32 [%#slib] {value} (fun (_x: Slice64.array UInt8.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ] [ & _ret: Slice64.array UInt8.t = Any.any_l () | & value: UInt32.t = value ])
+  [ return (result: Slice64.array UInt8.t) ->
+  {[@stop_split] [@expl:encode_le_u32 ensures] ([@stop_split] [@expl:encode_le_u32 result type invariant] [%#slib'0] inv_array_u8_4 result)
+    /\ ([@stop_split] [@expl:encode_le_u32 ensures #0] [%#slib'1] UInt8.t'int (Seq.get (Slice64.view result) 0)
+      = ComputerDivision.mod (UInt32.t'int value) 256)
+    /\ ([@stop_split] [@expl:encode_le_u32 ensures #1] [%#slib'2] UInt8.t'int (Seq.get (Slice64.view result) 1)
+      = ComputerDivision.mod (ComputerDivision.div (UInt32.t'int value) 256) 256)
+    /\ ([@stop_split] [@expl:encode_le_u32 ensures #2] [%#slib'3] UInt8.t'int (Seq.get (Slice64.view result) 2)
+      = ComputerDivision.mod (ComputerDivision.div (UInt32.t'int value) 65536) 256)
+    /\ ([@stop_split] [@expl:encode_le_u32 ensures #3] [%#slib'4] UInt8.t'int (Seq.get (Slice64.view result) 3)
+    = ComputerDivision.div (UInt32.t'int value) 16777216)}
+    (! return {result}) ]

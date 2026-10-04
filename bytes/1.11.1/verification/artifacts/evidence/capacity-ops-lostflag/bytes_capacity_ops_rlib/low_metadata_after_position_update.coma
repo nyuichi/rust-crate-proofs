@@ -1,0 +1,75 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 61 0 61 75 *)
+
+let%span scapacity_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 118 29 118 49
+let%span scapacity_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 119 28 119 89
+let%span scapacity_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 120 28 120 61
+let%span scapacity_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 121 28 121 80
+let%span scapacity_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 122 28 122 66
+let%span scapacity_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 30 38 30 66
+let%span scapacity_ops'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 30 52 30 66
+let%span scapacity_ops'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 30 38 30 48
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 62 18 62 62
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 63 14 63 44
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 59 11 59 45
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 60 10 60 57
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 61 0 61 75
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+constant const_VEC_POS_OFFSET: UInt64.t = [%#slib'3] (5: UInt64.t)
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+constant const_MAX_VEC_POS [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/../../../../src/capacity_ops.rs" 30 0 30 35] : UInt64.t
+
+let set_MAX_VEC_POS (return) = bb0
+  [ bb0 = s0
+    [ s0 = [ &_1 <- UInt64.lt ([%#scapacity_ops'5] const_VEC_POS_OFFSET) ([%#scapacity_ops'4] (64: UInt64.t)) ] s1
+    | s1 = {[@expl:Shr overflow] [%#scapacity_ops'4] _1} s2
+    | s2 = UInt64.shr [%#scapacity_ops'4] {[%#scapacity_ops'6] const_MAX}
+        {UInt64.t'int ([%#scapacity_ops'5] const_VEC_POS_OFFSET)} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ] [ & _ret: UInt64.t = Any.any_l () | & _1: bool = Any.any_l () ]
+  [ return (_const: UInt64.t) -> -{const_MAX_VEC_POS = _const}- return ]
+
+constant const_NOT_VEC_POS_MASK: UInt64.t = [%#slib'3] (31: UInt64.t)
+
+constant const_KIND_MASK: UInt64.t = [%#slib'3] (1: UInt64.t)
+
+let set_vec_pos_in_data (data: UInt64.t) (pos: UInt64.t) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:set_vec_pos_in_data requires] [%#scapacity_ops] UInt64.t'int pos
+  <= UInt64.t'int const_MAX_VEC_POS}
+  any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:set_vec_pos_in_data ensures] ([@stop_split] [@expl:set_vec_pos_in_data ensures #0] [%#scapacity_ops'0] result
+      = UInt64.bw_or (UInt64.shl pos const_VEC_POS_OFFSET) (UInt64.bw_and data const_NOT_VEC_POS_MASK))
+    /\ ([@stop_split] [@expl:set_vec_pos_in_data ensures #1] [%#scapacity_ops'1] UInt64.shr result const_VEC_POS_OFFSET
+      = pos)
+    /\ ([@stop_split] [@expl:set_vec_pos_in_data ensures #2] [%#scapacity_ops'2] UInt64.bw_and result const_NOT_VEC_POS_MASK
+      = UInt64.bw_and data const_NOT_VEC_POS_MASK)
+    /\ ([@stop_split] [@expl:set_vec_pos_in_data ensures #3] [%#scapacity_ops'3] UInt64.bw_and result const_KIND_MASK
+    = UInt64.bw_and data const_KIND_MASK)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let low_metadata_after_position_update [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/capacity-ops/src/lib.rs" 61 0 61 75]
+  (data: UInt64.t) (pos: UInt64.t) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:low_metadata_after_position_update requires] [%#slib'1] UInt64.t'int pos
+  <= UInt64.t'int const_MAX_VEC_POS}
+  (! set_MAX_VEC_POS
+    (bb0
+    [ bb0 = s0
+      [ s0 = set_vec_pos_in_data [%#slib] {data} {pos} (fun (_x: UInt64.t) -> [ &updated <- _x ] s1)
+      | s1 = [ &_ret <- UInt64.bw_and updated ([%#slib'0] const_NOT_VEC_POS_MASK) ] s2
+      | s2 = return {_ret} ] ]
+    [ & _ret: UInt64.t = Any.any_l ()
+    | & data: UInt64.t = data
+    | & pos: UInt64.t = pos
+    | & updated: UInt64.t = Any.any_l () ]))
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:low_metadata_after_position_update ensures] [%#slib'2] result
+    = UInt64.bw_and data const_NOT_VEC_POS_MASK}
+    (! return {result}) ]

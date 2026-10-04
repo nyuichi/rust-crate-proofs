@@ -1,0 +1,36 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/chain-ops/src/lib.rs" 9 0 9 45 *)
+
+let%span schain_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/chain-ops/src/../../../../src/chain_ops.rs" 7 10 7 79
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/chain-ops/src/lib.rs" 10 4 10 35
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/chain-ops/src/lib.rs" 8 10 8 79
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+let saturating_sum (a: UInt64.t) (b: UInt64.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:saturating_sum ensures] [%#schain_ops] UInt64.t'int result
+    = (if UInt64.t'int a + UInt64.t'int b <= UInt64.t'int const_MAX then
+      UInt64.t'int a + UInt64.t'int b
+    else
+      UInt64.t'int const_MAX
+    )}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let sum_exact [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/chain-ops/src/lib.rs" 9 0 9 45]
+  (a: UInt64.t) (b: UInt64.t) (return (x: UInt64.t)) = (! bb0
+  [ bb0 = s0 [ s0 = saturating_sum [%#slib] {a} {b} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & a: UInt64.t = a | & b: UInt64.t = b ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:sum_exact ensures] [%#slib'0] UInt64.t'int result
+    = (if UInt64.t'int a + UInt64.t'int b <= UInt64.t'int const_MAX then
+      UInt64.t'int a + UInt64.t'int b
+    else
+      UInt64.t'int const_MAX
+    )}
+    (! return {result}) ]

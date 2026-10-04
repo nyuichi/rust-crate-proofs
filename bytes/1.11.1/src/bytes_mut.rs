@@ -90,29 +90,9 @@ const KIND_ARC: usize = 0b0;
 const KIND_VEC: usize = 0b1;
 const KIND_MASK: usize = 0b1;
 
-// The max original capacity value. Any `Bytes` allocated with a greater initial
-// capacity will default to this.
-const MAX_ORIGINAL_CAPACITY_WIDTH: usize = 17;
-// The original capacity algorithm will not take effect unless the originally
-// allocated capacity was at least 1kb in size.
-const MIN_ORIGINAL_CAPACITY_WIDTH: usize = 10;
-// The original capacity is stored in powers of 2 starting at 1kb to a max of
-// 64kb. Representing it as such requires only 3 bits of storage.
-const ORIGINAL_CAPACITY_MASK: usize = 0b11100;
-const ORIGINAL_CAPACITY_OFFSET: usize = 2;
-
-const VEC_POS_OFFSET: usize = 5;
-// When the storage is in the `Vec` representation, the pointer can be advanced
-// at most this value. This is due to the amount of storage available to track
-// the offset is usize - number of KIND bits and number of ORIGINAL_CAPACITY
-// bits.
-const MAX_VEC_POS: usize = usize::MAX >> VEC_POS_OFFSET;
-const NOT_VEC_POS_MASK: usize = 0b11111;
-
-#[cfg(target_pointer_width = "64")]
-const PTR_WIDTH: usize = 64;
-#[cfg(target_pointer_width = "32")]
-const PTR_WIDTH: usize = 32;
+use crate::capacity_ops::{original_capacity_from_repr, original_capacity_to_repr, MAX_VEC_POS};
+#[cfg(test)]
+use crate::capacity_ops::{MAX_ORIGINAL_CAPACITY_WIDTH, MIN_ORIGINAL_CAPACITY_WIDTH};
 
 /*
  *
@@ -778,7 +758,7 @@ impl BytesMut {
         unsafe { release_shared(shared) };
 
         // Update self
-        let data = (original_capacity_repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC;
+        let data = crate::capacity_ops::pack_vec_metadata(original_capacity_repr);
         self.data = invalid_ptr(data);
         self.ptr = vptr(v.as_mut_ptr());
         self.cap = v.capacity();
@@ -931,7 +911,7 @@ impl BytesMut {
         let cap = vec.capacity();
 
         let original_capacity_repr = original_capacity_to_repr(cap);
-        let data = (original_capacity_repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC;
+        let data = crate::capacity_ops::pack_vec_metadata(original_capacity_repr);
 
         BytesMut {
             ptr,
@@ -1023,11 +1003,11 @@ impl BytesMut {
         debug_assert!(ref_cnt == 1 || ref_cnt == 2);
 
         let original_capacity_repr =
-            (self.data as usize & ORIGINAL_CAPACITY_MASK) >> ORIGINAL_CAPACITY_OFFSET;
+            crate::capacity_ops::original_capacity_repr_from_data(self.data as usize);
 
         // The vec offset cannot be concurrently mutated, so there
         // should be no danger reading it.
-        let off = (self.data as usize) >> VEC_POS_OFFSET;
+        let off = crate::capacity_ops::vec_pos_from_data(self.data as usize);
 
         // First, allocate a new `Shared` instance containing the
         // `Vec` fields. It's important to note that `ptr`, `len`,
@@ -1072,7 +1052,7 @@ impl BytesMut {
     unsafe fn get_vec_pos(&self) -> usize {
         debug_assert_eq!(self.kind(), KIND_VEC);
 
-        self.data as usize >> VEC_POS_OFFSET
+        crate::capacity_ops::vec_pos_from_data(self.data as usize)
     }
 
     #[inline]
@@ -1080,7 +1060,7 @@ impl BytesMut {
         debug_assert_eq!(self.kind(), KIND_VEC);
         debug_assert!(pos <= MAX_VEC_POS);
 
-        self.data = invalid_ptr((pos << VEC_POS_OFFSET) | (self.data as usize & NOT_VEC_POS_MASK));
+        self.data = invalid_ptr(crate::capacity_ops::set_vec_pos_in_data(self.data as usize, pos));
     }
 
     /// Returns the remaining spare capacity of the buffer as a slice of `MaybeUninit<u8>`.
@@ -1298,7 +1278,7 @@ impl From<BytesMut> for Bytes {
 
 impl PartialEq for BytesMut {
     fn eq(&self, other: &BytesMut) -> bool {
-        self.as_slice() == other.as_slice()
+        crate::comparison_ops::equal(self.as_slice(), other.as_slice())
     }
 }
 
@@ -1310,7 +1290,7 @@ impl PartialOrd for BytesMut {
 
 impl Ord for BytesMut {
     fn cmp(&self, other: &BytesMut) -> cmp::Ordering {
-        self.as_slice().cmp(other.as_slice())
+        crate::comparison_ops::compare(self.as_slice(), other.as_slice())
     }
 }
 
@@ -1496,23 +1476,6 @@ impl Shared {
         // visible to the current thread.
         self.ref_count.load(Ordering::Acquire) == 1
     }
-}
-
-#[inline]
-fn original_capacity_to_repr(cap: usize) -> usize {
-    let width = PTR_WIDTH - ((cap >> MIN_ORIGINAL_CAPACITY_WIDTH).leading_zeros() as usize);
-    cmp::min(
-        width,
-        MAX_ORIGINAL_CAPACITY_WIDTH - MIN_ORIGINAL_CAPACITY_WIDTH,
-    )
-}
-
-fn original_capacity_from_repr(repr: usize) -> usize {
-    if repr == 0 {
-        return 0;
-    }
-
-    1 << (repr + (MIN_ORIGINAL_CAPACITY_WIDTH - 1))
 }
 
 #[cfg(test)]

@@ -780,7 +780,7 @@ impl FromIterator<u8> for Bytes {
 
 impl PartialEq for Bytes {
     fn eq(&self, other: &Bytes) -> bool {
-        self.as_slice() == other.as_slice()
+        crate::comparison_ops::equal(self.as_slice(), other.as_slice())
     }
 }
 
@@ -792,7 +792,7 @@ impl PartialOrd for Bytes {
 
 impl Ord for Bytes {
     fn cmp(&self, other: &Bytes) -> cmp::Ordering {
-        self.as_slice().cmp(other.as_slice())
+        crate::comparison_ops::compare(self.as_slice(), other.as_slice())
     }
 }
 

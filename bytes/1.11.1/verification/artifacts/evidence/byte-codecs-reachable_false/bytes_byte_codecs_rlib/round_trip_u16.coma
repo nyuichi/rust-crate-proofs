@@ -1,0 +1,62 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 12 0 12 40 *)
+
+let%span sbyte_codec_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/../../../../src/byte_codec_ops.rs" 21 43 21 50
+let%span sbyte_codec_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/../../../../src/byte_codec_ops.rs" 19 28 19 55
+let%span sbyte_codec_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/../../../../src/byte_codec_ops.rs" 20 28 20 55
+let%span sbyte_codec_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/../../../../src/byte_codec_ops.rs" 13 28 13 33
+let%span sbyte_codec_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/../../../../src/byte_codec_ops.rs" 12 28 12 68
+let%span sarray = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/array.rs" 9 20 9 51
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 13 18 13 38
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 13 4 13 39
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 11 10 11 27
+
+use creusot.int.UInt16
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use int.ComputerDivision
+use creusot.prelude.Any
+use int.Int
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_2 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (2: UInt64.t)
+
+predicate inv_array_u8_2 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_2 _1
+
+meta "rewrite_def" predicate inv_array_u8_2
+
+let encode_be_u16 (value: UInt16.t) (return (x: Slice64.array UInt8.t)) = any
+  [ return (result: Slice64.array UInt8.t) ->
+  {[@stop_split] [@expl:encode_be_u16 ensures] ([@stop_split] [@expl:encode_be_u16 result type invariant] [%#sbyte_codec_ops] inv_array_u8_2 result)
+    /\ ([@stop_split] [@expl:encode_be_u16 ensures #0] [%#sbyte_codec_ops'0] UInt8.t'int (Seq.get (Slice64.view result) 0)
+      = ComputerDivision.div (UInt16.t'int value) 256)
+    /\ ([@stop_split] [@expl:encode_be_u16 ensures #1] [%#sbyte_codec_ops'1] UInt8.t'int (Seq.get (Slice64.view result) 1)
+    = ComputerDivision.mod (UInt16.t'int value) 256)}
+    (! return {result}) ]
+
+let decode_be_u16 (bytes: Slice64.array UInt8.t) (return (x: UInt16.t)) =
+{[@stop_split] [@expl:decode_be_u16 'bytes' type invariant] [%#sbyte_codec_ops'2] inv_array_u8_2 bytes}
+  any
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:decode_be_u16 ensures] [%#sbyte_codec_ops'3] UInt16.t'int result
+    = UInt8.t'int (Seq.get (Slice64.view bytes) 0) * 256 + UInt8.t'int (Seq.get (Slice64.view bytes) 1)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let round_trip_u16 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/byte-codecs/src/lib.rs" 12 0 12 40]
+  (value: UInt16.t) (return (x: UInt16.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = encode_be_u16 [%#slib] {value} (fun (_x: Slice64.array UInt8.t) -> [ &_4 <- _x ] s1)
+    | s1 = decode_be_u16 [%#slib'0] {_4} (fun (_x: UInt16.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt16.t = Any.any_l () | & value: UInt16.t = value | & _4: Slice64.array UInt8.t = Any.any_l () ])
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:round_trip_u16 ensures] [%#slib'1] UInt16.t'int result
+    = UInt16.t'int value}
+    (! return {result}) ]

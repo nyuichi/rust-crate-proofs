@@ -1,0 +1,58 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/comparison-ops/src/lib.rs" 7 0 7 55 *)
+
+let%span scomparison_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/comparison-ops/src/../../../../src/comparison_ops.rs" 6 28 6 79
+let%span smodel = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/model.rs" 37 8 37 28
+let%span sslice = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 55 14 55 44
+let%span sslice'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 56 14 56 91
+let%span sslice'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 67 20 67 29
+let%span snum = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 27 28 27 33
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/comparison-ops/src/lib.rs" 8 4 8 38
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/comparison-ops/src/lib.rs" 6 10 6 61
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+function index_slice_u8 [@inline:trivial] (self: Slice64.slice UInt8.t) (ix: int) : UInt8.t =
+  [%#sslice'1] Seq.get (Slice64.view self) ix
+
+meta "rewrite_def" function index_slice_u8
+
+function deep_model_slice_u8 (self: Slice64.slice UInt8.t) : Seq.seq int
+
+axiom deep_model_slice_u8_spec:
+  forall self: Slice64.slice UInt8.t [deep_model_slice_u8 self]. [%#sslice] Seq.length (Slice64.view self)
+    = Seq.length (deep_model_slice_u8 self)
+
+axiom deep_model_slice_u8_spec'0:
+  forall self: Slice64.slice UInt8.t [deep_model_slice_u8 self]. [%#sslice'0] forall i: int. 0 <= i
+        /\ i < Seq.length (deep_model_slice_u8 self)
+      -> Seq.get (deep_model_slice_u8 self) i = deep_model_u8 (index_slice_u8 self i)
+
+function deep_model_ref_slice_u8 [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq int =
+  [%#smodel] deep_model_slice_u8 self
+
+meta "rewrite_def" function deep_model_ref_slice_u8
+
+let equal (left: Slice64.slice UInt8.t) (right: Slice64.slice UInt8.t) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:equal ensures] [%#scomparison_ops] result
+    = (deep_model_ref_slice_u8 left = deep_model_ref_slice_u8 right)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let compare_equal [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/comparison-ops/src/lib.rs" 7 0 7 55]
+  (left: Slice64.slice UInt8.t) (right: Slice64.slice UInt8.t) (return (x: bool)) = (! bb0
+  [ bb0 = s0 [ s0 = equal [%#slib] {left} {right} (fun (_x: bool) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & left: Slice64.slice UInt8.t = left | & right: Slice64.slice UInt8.t = right ])
+  [ return (result: bool) -> {[@stop_split] [@expl:compare_equal ensures] [%#slib'0] result
+    = (deep_model_ref_slice_u8 left = deep_model_ref_slice_u8 right)}
+    (! return {result}) ]

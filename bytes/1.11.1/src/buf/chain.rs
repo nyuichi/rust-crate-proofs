@@ -133,7 +133,7 @@ where
     U: Buf,
 {
     fn remaining(&self) -> usize {
-        self.a.remaining().saturating_add(self.b.remaining())
+        crate::chain_ops::saturating_sum(self.a.remaining(), self.b.remaining())
     }
 
     fn chunk(&self) -> &[u8] {
@@ -156,7 +156,7 @@ where
             // Consume what is left of a
             self.a.advance(a_rem);
 
-            cnt -= a_rem;
+            cnt = crate::chain_ops::split_count(a_rem, cnt).1;
         }
 
         self.b.advance(cnt);
@@ -194,9 +194,7 @@ where
     U: BufMut,
 {
     fn remaining_mut(&self) -> usize {
-        self.a
-            .remaining_mut()
-            .saturating_add(self.b.remaining_mut())
+        crate::chain_ops::saturating_sum(self.a.remaining_mut(), self.b.remaining_mut())
     }
 
     fn chunk_mut(&mut self) -> &mut UninitSlice {
@@ -219,7 +217,7 @@ where
             // Consume what is left of a
             self.a.advance_mut(a_rem);
 
-            cnt -= a_rem;
+            cnt = crate::chain_ops::split_count(a_rem, cnt).1;
         }
 
         self.b.advance_mut(cnt);

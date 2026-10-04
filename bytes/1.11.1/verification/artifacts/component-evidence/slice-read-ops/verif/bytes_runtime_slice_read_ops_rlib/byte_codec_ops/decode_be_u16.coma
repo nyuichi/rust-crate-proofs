@@ -1,0 +1,77 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 13 0 13 50 *)
+
+let%span sbyte_codec_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 14 20 14 21
+let%span sbyte_codec_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 14 14 14 22
+let%span sbyte_codec_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 14 4 14 23
+let%span sbyte_codec_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 14 26 14 29
+let%span sbyte_codec_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 14 4 14 29
+let%span sbyte_codec_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 14 48 14 49
+let%span sbyte_codec_ops'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 14 42 14 50
+let%span sbyte_codec_ops'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 14 32 14 51
+let%span sbyte_codec_ops'7 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 14 4 14 51
+let%span sbyte_codec_ops'8 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 13 28 13 33
+let%span sbyte_codec_ops'9 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 12 28 12 68
+let%span sconvert = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/convert.rs" 274 26 274 51
+let%span sarray = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/array.rs" 9 20 9 51
+
+use creusot.int.UInt64
+use creusot.int.UInt8
+use creusot.slice.Slice64
+use creusot.int.UInt16
+use creusot.prelude.Any
+use seq.Seq
+use int.Int
+
+let from_u16 (small: UInt8.t) (return (x: UInt16.t)) = any
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:from ensures] [%#sconvert] result
+    = UInt16.of_int (UInt8.t'int small)}
+    (! return {result}) ]
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_2 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (2: UInt64.t)
+
+predicate inv_array_u8_2 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_2 _1
+
+meta "rewrite_def" predicate inv_array_u8_2
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let decode_be_u16 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-read-ops/src/../../../../src/byte_codec_ops.rs" 13 0 13 50]
+  (bytes: Slice64.array UInt8.t) (return (x: UInt16.t)) =
+{[@stop_split] [@expl:decode_be_u16 'bytes' type invariant] [%#sbyte_codec_ops'8] inv_array_u8_2 bytes}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_7 <- [%#sbyte_codec_ops] (0: UInt64.t) ] s1
+    | s1 = [ &_8 <- UInt64.lt _7 ([%#sbyte_codec_ops'0] (2: UInt64.t)) ] s2
+    | s2 = {[@expl:index in bounds] [%#sbyte_codec_ops'0] _8} s3
+    | s3 = Slice64.get [%#sbyte_codec_ops'0] <UInt8.t> {bytes} {_7} (fun (r: UInt8.t) -> [ &_6 <- r ] s4)
+    | s4 = from_u16 [%#sbyte_codec_ops'1] {_6} (fun (_x: UInt16.t) -> [ &_5 <- _x ] s5)
+    | s5 = UInt16.mul [%#sbyte_codec_ops'3] {_5} {[%#sbyte_codec_ops'2] (256: UInt16.t)}
+        (fun (_x: UInt16.t) -> [ &_4 <- _x ] s6)
+    | s6 = [ &_11 <- [%#sbyte_codec_ops'4] (1: UInt64.t) ] s7
+    | s7 = [ &_12 <- UInt64.lt _11 ([%#sbyte_codec_ops'5] (2: UInt64.t)) ] s8
+    | s8 = {[@expl:index in bounds] [%#sbyte_codec_ops'5] _12} s9
+    | s9 = Slice64.get [%#sbyte_codec_ops'5] <UInt8.t> {bytes} {_11} (fun (r: UInt8.t) -> [ &_10 <- r ] s10)
+    | s10 = from_u16 [%#sbyte_codec_ops'6] {_10} (fun (_x: UInt16.t) -> [ &_9 <- _x ] s11)
+    | s11 = UInt16.add [%#sbyte_codec_ops'7] {_4} {_9} (fun (_x: UInt16.t) -> [ &_ret <- _x ] s12)
+    | s12 = return {_ret} ] ]
+  [ & _ret: UInt16.t = Any.any_l ()
+  | & bytes: Slice64.array UInt8.t = bytes
+  | & _4: UInt16.t = Any.any_l ()
+  | & _5: UInt16.t = Any.any_l ()
+  | & _6: UInt8.t = Any.any_l ()
+  | & _7: UInt64.t = Any.any_l ()
+  | & _8: bool = Any.any_l ()
+  | & _9: UInt16.t = Any.any_l ()
+  | & _10: UInt8.t = Any.any_l ()
+  | & _11: UInt64.t = Any.any_l ()
+  | & _12: bool = Any.any_l () ])
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:decode_be_u16 ensures] [%#sbyte_codec_ops'9] UInt16.t'int result
+    = UInt8.t'int (Seq.get (Slice64.view bytes) 0) * 256 + UInt8.t'int (Seq.get (Slice64.view bytes) 1)}
+    (! return {result}) ]

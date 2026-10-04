@@ -1,0 +1,28 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 12 0 12 61 *)
+
+let%span sarithmetic = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/arithmetic.rs" 5 10 5 55
+let%span scursor_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 13 4 13 38
+let%span scursor_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 11 10 11 63
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+let saturating_sub_usize_u64 (a: UInt64.t) (b: UInt64.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:saturating_sub_usize_u64 ensures] [%#sarithmetic] UInt64.t'int result
+    = (if UInt64.t'int b <= UInt64.t'int a then UInt64.t'int a - UInt64.t'int b else 0)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let cursor_remaining [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/cursor-ops/src/../../../../src/cursor_ops.rs" 12 0 12 61]
+  (len: UInt64.t) (pos: UInt64.t) (return (x: UInt64.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = saturating_sub_usize_u64 [%#scursor_ops] {len} {pos} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ] [ & _ret: UInt64.t = Any.any_l () | & len: UInt64.t = len | & pos: UInt64.t = pos ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:cursor_remaining ensures] [%#scursor_ops'0] UInt64.t'int result
+    = (if UInt64.t'int pos <= UInt64.t'int len then UInt64.t'int len - UInt64.t'int pos else 0)}
+    (! return {result}) ]

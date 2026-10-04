@@ -38,3 +38,14 @@ of the standard toolchain used by helper/storage/deallocation proof results.
 Astra reviewed its restrictions and identified the external-spec guard. Dedicated
 positive and negative regressions are recorded; broader verifier soundness and
 invariant/resolve/spec dependency cycles remain review concerns.
+
+## Additional component proofs
+
+The slice cursors, byte codecs, checked reads, initialized/uninitialized writes,
+comparison, chain arithmetic and capacity metadata helpers introduce no trusted
+contracts or assumed lemmas. Their isolated proofs use the unmodified compiler
+and existing standard sequence, integer, slice and `MaybeUninit` contracts.
+The Box write-back and borrowed region proofs additionally use standard `Perm`
+and pointer-liveness contracts. These results do not establish independently
+owned shared intervals or destructor/refcount correctness. Runtime source
+connections and ordinary tests do not discharge the callers' ownership premises.

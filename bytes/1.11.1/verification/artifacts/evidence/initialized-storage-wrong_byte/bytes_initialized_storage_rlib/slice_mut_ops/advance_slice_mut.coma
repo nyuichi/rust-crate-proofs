@@ -1,0 +1,224 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 15 0 15 92 *)
+
+let%span sslice_mut_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 16 27 16 49
+let%span sslice_mut_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 16 27 16 69
+let%span sslice_mut_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 15 39 15 44
+let%span sslice_mut_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 10 11 10 33
+let%span sslice_mut_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 15 81 15 92
+let%span sslice_mut_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 11 10 11 38
+let%span sslice_mut_ops'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 12 10 12 39
+let%span sslice_mut_ops'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 13 10 13 53
+let%span smem = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/mem.rs" 32 32 32 36
+let%span smem'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/mem.rs" 30 22 30 37
+let%span smem'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/mem.rs" 31 22 31 57
+let%span sslice = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 364 29 364 33
+let%span sslice'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 355 19 355 38
+let%span sslice'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 357 12 357 31
+let%span sslice'2 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 488 18 488 44
+let%span sslice'3 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 489 18 489 44
+let%span sslice'4 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 20 20 20 30
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 494 8 494 48
+let%span sseq'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+let%span sseq'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 993 20 993 91
+let%span sinvariant = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/invariant.rs" 85 8 85 18
+
+use creusot.prelude.MutBorrow
+use creusot.slice.Slice64
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_T
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant'0] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate invariant_Seq_T [@inline:trivial] (self: Seq.seq t_T) =
+  [%#sseq'1] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_T
+
+predicate inv_Seq_T [@inline:trivial] (_1: Seq.seq t_T) = invariant_Seq_T _1
+
+meta "rewrite_def" predicate inv_Seq_T
+
+predicate invariant_slice_T (self: Slice64.slice t_T) = [%#sslice'4] inv_Seq_T (Slice64.view self)
+
+predicate inv_slice_T [@inline:trivial] (_1: Slice64.slice t_T) = invariant_slice_T _1
+
+meta "rewrite_def" predicate inv_slice_T
+
+predicate invariant_refmut_slice_T [@inline:trivial] (self: MutBorrow.t (Slice64.slice t_T)) =
+  [%#sinvariant] inv_slice_T self.current /\ inv_slice_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_slice_T
+
+predicate inv_refmut_slice_T [@inline:trivial] (_1: MutBorrow.t (Slice64.slice t_T)) = invariant_refmut_slice_T _1
+
+meta "rewrite_def" predicate inv_refmut_slice_T
+
+predicate invariant_refmut_refmut_slice_T [@inline:trivial] (self: MutBorrow.t (MutBorrow.t (Slice64.slice t_T))) =
+  [%#sinvariant] inv_refmut_slice_T self.current /\ inv_refmut_slice_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_refmut_slice_T
+
+predicate inv_refmut_refmut_slice_T [@inline:trivial] (_1: MutBorrow.t (MutBorrow.t (Slice64.slice t_T))) =
+  invariant_refmut_refmut_slice_T _1
+
+meta "rewrite_def" predicate inv_refmut_refmut_slice_T
+
+predicate postcondition_default (self: ()) (args: ()) (result: MutBorrow.t (Slice64.slice t_T)) =
+  let () = args in inv_refmut_slice_T result
+  /\ ([%#sslice'2] Slice64.view result.current = (Seq.empty: Seq.seq t_T))
+  /\ ([%#sslice'3] Slice64.view result.final = (Seq.empty: Seq.seq t_T))
+
+meta "rewrite_def" predicate postcondition_default
+
+let default_refmut_slice_T (return (x: MutBorrow.t (Slice64.slice t_T))) = any
+  [ return (result: MutBorrow.t (Slice64.slice t_T)) ->
+  {[@stop_split] [@expl:default_refmut_slice_T ensures] ([@stop_split] [@expl:default result type invariant] inv_refmut_slice_T result)
+    /\ ([@stop_split] [@expl:default ensures #0] [%#sslice'2] Slice64.view result.current = (Seq.empty: Seq.seq t_T))
+    /\ ([@stop_split] [@expl:default ensures #1] [%#sslice'3] Slice64.view result.final = (Seq.empty: Seq.seq t_T))}
+    (! return {result}) ]
+
+let take_refmut_slice_T (dest: MutBorrow.t (MutBorrow.t (Slice64.slice t_T)))
+  (return (x: MutBorrow.t (Slice64.slice t_T))) =
+{[@stop_split] [@expl:take 'dest' type invariant] [%#smem] inv_refmut_refmut_slice_T dest}
+  any
+  [ return (result: MutBorrow.t (Slice64.slice t_T)) ->
+  {[@stop_split] [@expl:take_refmut_slice_T ensures] ([@stop_split] [@expl:take result type invariant] inv_refmut_slice_T result)
+    /\ ([@stop_split] [@expl:take ensures #0] [%#smem'0] result = dest.current)
+    /\ ([@stop_split] [@expl:take ensures #1] [%#smem'1] postcondition_default () () dest.final)}
+    (! return {result}) ]
+
+type tup2_refmut_slice_T_refmut_slice_T = { f0: MutBorrow.t (Slice64.slice t_T); f1: MutBorrow.t (Slice64.slice t_T) }
+
+predicate inv_tup2_refmut_slice_T_refmut_slice_T [@inline:trivial] (_1: tup2_refmut_slice_T_refmut_slice_T) =
+  inv_refmut_slice_T _1.f0 /\ inv_refmut_slice_T _1.f1
+
+meta "rewrite_def" predicate inv_tup2_refmut_slice_T_refmut_slice_T
+
+let split_at_mut_T (self_: MutBorrow.t (Slice64.slice t_T)) (mid: UInt64.t)
+  (return (x: tup2_refmut_slice_T_refmut_slice_T)) =
+{[@stop_split] [@expl:split_at_mut_T requires] ([@stop_split] [@expl:split_at_mut 'self_' type invariant] [%#sslice] inv_refmut_slice_T self_)
+  /\ ([@stop_split] [@expl:split_at_mut requires] [%#sslice'0] UInt64.t'int mid
+  <= Seq.length (Slice64.view self_.current))}
+  any
+  [ return (result: tup2_refmut_slice_T_refmut_slice_T) ->
+  {[@stop_split] [@expl:split_at_mut_T ensures] ([@stop_split] [@expl:split_at_mut result type invariant] inv_tup2_refmut_slice_T_refmut_slice_T result)
+    /\ ([@stop_split] [@expl:split_at_mut ensures] [%#sslice'1] let {f0 = l; f1 = r} = result in let sl = Seq.length (Slice64.view self_.current) in Seq.length (Slice64.view self_.final)
+      = sl
+    /\ Seq.([..]) (Slice64.view self_.current) 0 (UInt64.t'int mid) = Slice64.view l.current
+    /\ Seq.([..]) (Slice64.view self_.current) (UInt64.t'int mid) sl = Slice64.view r.current
+    /\ Seq.([..]) (Slice64.view self_.final) 0 (UInt64.t'int mid) = Slice64.view l.final
+    /\ Seq.([..]) (Slice64.view self_.final) (UInt64.t'int mid) sl = Slice64.view r.final)}
+    (! return {result}) ]
+
+predicate resolve_refmut_slice_T [@inline:trivial] (_1: MutBorrow.t (Slice64.slice t_T)) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_slice_T
+
+predicate resolve_refmut_refmut_slice_T [@inline:trivial] (_1: MutBorrow.t (MutBorrow.t (Slice64.slice t_T))) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_refmut_slice_T
+
+type t_Range_Int = { start: int; end': int }
+
+function index_Seq_T [@inline:trivial] (self: Seq.seq t_T) (range: t_Range_Int) : Seq.seq t_T =
+  [%#sseq] Seq.([..]) self range.start range.end'
+
+meta "rewrite_def" function index_Seq_T
+
+type t_RangeFrom_Int = { start'0: int }
+
+function index_Seq_T'0 [@inline:trivial] (self: Seq.seq t_T) (range: t_RangeFrom_Int) : Seq.seq t_T =
+  [%#sseq'0] Seq.([..]) self range.start'0 (Seq.length self)
+
+meta "rewrite_def" function index_Seq_T'0
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let advance_slice_mut_T [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/initialized-storage/src/../../../../src/slice_mut_ops.rs" 15 0 15 92]
+  (input: MutBorrow.t (MutBorrow.t (Slice64.slice t_T))) (count: UInt64.t)
+  (return (x: MutBorrow.t (Slice64.slice t_T))) =
+{[@stop_split] [@expl:advance_slice_mut_T requires] ([@stop_split] [@expl:advance_slice_mut 'input' type invariant] [%#sslice_mut_ops'1] inv_refmut_refmut_slice_T input)
+  /\ ([@stop_split] [@expl:advance_slice_mut requires] [%#sslice_mut_ops'2] UInt64.t'int count
+  <= Seq.length (Slice64.view input.current.current))}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_mut <MutBorrow.t (Slice64.slice t_T)> {input.current}
+        (fun (_bor: MutBorrow.t (MutBorrow.t (Slice64.slice t_T))) ->
+          [ &_20 <- _bor ] -{inv_refmut_slice_T _bor.final}-
+          [ &input <- { input with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_refmut_slice_T input.current} any) ]
+    | s1 = take_refmut_slice_T [%#sslice_mut_ops] {_20} (fun (_x: MutBorrow.t (Slice64.slice t_T)) -> [ &_19 <- _x ] s2)
+    | s2 = MutBorrow.borrow_final <Slice64.slice t_T> {_19.current} {MutBorrow.get_id _19}
+        (fun (_bor: MutBorrow.t (Slice64.slice t_T)) ->
+          [ &_18 <- _bor ] -{inv_slice_T _bor.final}-
+          [ &_19 <- { _19 with current = _bor.final } ] s3)
+      [ _ck -> (! {[@expl:type invariant] inv_slice_T _19.current} any) ]
+    | s3 = split_at_mut_T [%#sslice_mut_ops'0] {_18} {count}
+        (fun (_x: tup2_refmut_slice_T_refmut_slice_T) -> [ &_17 <- _x ] s4)
+    | s4 = [ &prefix <- _17.f0 ] s5
+    | s5 = [ &suffix <- _17.f1 ] s6
+    | s6 = s7 [ _ck -> (! {[@expl:type invariant] inv_refmut_slice_T _19} any) ]
+    | s7 = -{resolve_refmut_slice_T _19}- s8
+    | s8 = MutBorrow.borrow_final <Slice64.slice t_T> {suffix.current} {MutBorrow.get_id suffix}
+        (fun (_bor: MutBorrow.t (Slice64.slice t_T)) ->
+          [ &_22 <- _bor ] -{inv_slice_T _bor.final}-
+          [ &suffix <- { suffix with current = _bor.final } ] s9)
+      [ _ck -> (! {[@expl:type invariant] inv_slice_T suffix.current} any) ]
+    | s9 = s10 [ _ck -> (! {[@expl:type invariant] inv_refmut_slice_T input.current} any) ]
+    | s10 = -{resolve_refmut_slice_T input.current}- s11
+    | s11 = [ &input <- { input with current = _22 } ] s12
+    | s12 = s13 [ _ck -> (! {[@expl:type invariant] inv_refmut_refmut_slice_T input} any) ]
+    | s13 = -{resolve_refmut_refmut_slice_T input}- s14
+    | s14 = MutBorrow.borrow_final <Slice64.slice t_T> {prefix.current} {MutBorrow.get_id prefix}
+        (fun (_bor: MutBorrow.t (Slice64.slice t_T)) ->
+          [ &_3 <- _bor ] -{inv_slice_T _bor.final}-
+          [ &prefix <- { prefix with current = _bor.final } ] s15)
+      [ _ck -> (! {[@expl:type invariant] inv_slice_T prefix.current} any) ]
+    | s15 = s16 [ _ck -> (! {[@expl:type invariant] inv_refmut_slice_T suffix} any) ]
+    | s16 = -{resolve_refmut_slice_T suffix}- s17
+    | s17 = s18 [ _ck -> (! {[@expl:type invariant] inv_refmut_slice_T prefix} any) ]
+    | s18 = -{resolve_refmut_slice_T prefix}- s19
+    | s19 = MutBorrow.borrow_final <Slice64.slice t_T> {_3.current} {MutBorrow.get_id _3}
+        (fun (_bor: MutBorrow.t (Slice64.slice t_T)) ->
+          [ &_ret <- _bor ] -{inv_slice_T _bor.final}-
+          [ &_3 <- { _3 with current = _bor.final } ] s20)
+      [ _ck -> (! {[@expl:type invariant] inv_slice_T _3.current} any) ]
+    | s20 = s21 [ _ck -> (! {[@expl:type invariant] inv_refmut_slice_T _3} any) ]
+    | s21 = -{resolve_refmut_slice_T _3}- s22
+    | s22 = return {_ret} ] ]
+  [ & _ret: MutBorrow.t (Slice64.slice t_T) = Any.any_l ()
+  | & input: MutBorrow.t (MutBorrow.t (Slice64.slice t_T)) = input
+  | & count: UInt64.t = count
+  | & _3: MutBorrow.t (Slice64.slice t_T) = Any.any_l ()
+  | & prefix: MutBorrow.t (Slice64.slice t_T) = Any.any_l ()
+  | & suffix: MutBorrow.t (Slice64.slice t_T) = Any.any_l ()
+  | & _17: tup2_refmut_slice_T_refmut_slice_T = Any.any_l ()
+  | & _18: MutBorrow.t (Slice64.slice t_T) = Any.any_l ()
+  | & _19: MutBorrow.t (Slice64.slice t_T) = Any.any_l ()
+  | & _20: MutBorrow.t (MutBorrow.t (Slice64.slice t_T)) = Any.any_l ()
+  | & _22: MutBorrow.t (Slice64.slice t_T) = Any.any_l () ])
+  [ return (result: MutBorrow.t (Slice64.slice t_T)) ->
+  {[@stop_split] [@expl:advance_slice_mut_T ensures] ([@stop_split] [@expl:advance_slice_mut result type invariant] [%#sslice_mut_ops'3] inv_refmut_slice_T result)
+    /\ ([@stop_split] [@expl:advance_slice_mut ensures #0] [%#sslice_mut_ops'4] Slice64.view result.current
+      = index_Seq_T (Slice64.view input.current.current) { start = 0; end' = UInt64.t'int count })
+    /\ ([@stop_split] [@expl:advance_slice_mut ensures #1] [%#sslice_mut_ops'5] Slice64.view input.final.current
+      = index_Seq_T'0 (Slice64.view input.current.current) { start'0 = UInt64.t'int count })
+    /\ ([@stop_split] [@expl:advance_slice_mut ensures #2] [%#sslice_mut_ops'6] Slice64.view input.current.final
+    = Seq.(++) (Slice64.view result.final) (Slice64.view input.final.final))}
+    (! return {result}) ]
