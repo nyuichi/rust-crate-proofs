@@ -1,0 +1,146 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 56 0 56 66 *)
+
+let%span sraw_vec = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/ownership_proof/raw_vec.rs" 163 26 163 33
+let%span sraw_vec'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/ownership_proof/raw_vec.rs" 163 51 163 55
+let%span sraw_vec'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/ownership_proof/raw_vec.rs" 161 14 161 29
+let%span sraw_vec'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/ownership_proof/raw_vec.rs" 162 14 162 32
+let%span sraw_vec'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/ownership_proof/raw_vec.rs" 149 12 154 13
+let%span soption = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/option.rs" 129 18 129 22
+let%span soption'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/option.rs" 127 19 127 23
+let%span soption'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/option.rs" 128 34 128 38
+let%span snonnull = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr/nonnull.rs" 67 18 70 9
+let%span snonnull'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr/nonnull.rs" 63 19 63 39
+let%span snonnull'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr/nonnull.rs" 64 18 64 32
+let%span snonnull'2 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span snonnull'3 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span sptr = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 142 8 142 35
+let%span sactual_from_vec = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 57 21 57 43
+let%span sactual_from_vec'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 58 8 58 25
+let%span sactual_from_vec'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 58 33 58 65
+let%span sactual_from_vec'2 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 58 8 58 66
+let%span sactual_from_vec'3 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 60 17 60 44
+let%span sactual_from_vec'4 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 62 4 62 63
+let%span sactual_from_vec'5 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 55 11 55 31
+let%span sactual_from_vec'6 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 56 25 56 66
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use creusot.int.Int64
+use creusot.prelude.Any
+use int.Int
+
+type t_NonNull_u8
+
+type t_Option_NonNull_u8 = None | Some t_NonNull_u8
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull'3] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull'2] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+predicate inv_Option_NonNull_u8 (_1: t_Option_NonNull_u8)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Option_NonNull_u8 [inv_Option_NonNull_u8 x]. inv_Option_NonNull_u8 x
+    = match x with
+      | None -> true
+      | Some f0 -> inv_NonNull_u8 f0
+      end
+
+predicate is_null_ptr_u8 (self: Opaque.ptr) = [%#sptr] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+let new_u8 (ptr: Opaque.ptr) (return (x: t_Option_NonNull_u8)) = any
+  [ return (result: t_Option_NonNull_u8) ->
+  {[@stop_split] [@expl:new_u8 ensures] ([@stop_split] [@expl:new result type invariant] inv_Option_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:new ensures] [%#snonnull] match result with
+      | None -> is_null_ptr_u8 ptr
+      | Some res -> view_NonNull_u8 res = ptr
+      end)}
+    (! return {result}) ]
+
+let expect_NonNull_u8 (self_: t_Option_NonNull_u8) (msg: string) (return (x: t_NonNull_u8)) =
+{[@stop_split] [@expl:expect_NonNull_u8 requires] ([@stop_split] [@expl:expect 'self_' type invariant] [%#soption] inv_Option_NonNull_u8 self_)
+  /\ ([@stop_split] [@expl:expect requires] [%#soption'0] self_ <> None)}
+  any
+  [ return (result: t_NonNull_u8) ->
+  {[@stop_split] [@expl:expect_NonNull_u8 ensures] ([@stop_split] [@expl:expect result type invariant] inv_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:expect ensures] [%#soption'1] Some result = self_)}
+    (! return {result}) ]
+
+let new_unchecked_u8 (ptr: Opaque.ptr) (return (x: t_NonNull_u8)) =
+{[@stop_split] [@expl:new_unchecked requires] [%#snonnull'0] not is_null_ptr_u8 ptr}
+  any
+  [ return (result: t_NonNull_u8) ->
+  {[@stop_split] [@expl:new_unchecked_u8 ensures] ([@stop_split] [@expl:new_unchecked result type invariant] inv_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:new_unchecked ensures] [%#snonnull'1] view_NonNull_u8 result = ptr)}
+    (! return {result}) ]
+
+type t_BoundPtr
+
+type t_Id
+
+type tup3_Id_Int_Int = { f0: t_Id; f1: int; f2: int }
+
+type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/ownership_proof/raw_vec.rs" 130 4 130 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+predicate invariant_BoundPtr [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/ownership_proof/raw_vec.rs" 147 4 147 30] (self: t_BoundPtr) =
+  [%#sraw_vec'3] match view_BoundPtr self with
+    | None'0 -> true
+    | Some'0 {f1 = allocation_capacity; f2 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity /\ allocation_capacity <= Int64.to_int const_MAX
+    end
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom'1: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> invariant_BoundPtr x
+
+let unbound (pointer: t_NonNull_u8) (return (x: t_BoundPtr)) =
+{[@stop_split] [@expl:unbound 'pointer' type invariant] [%#sraw_vec] inv_NonNull_u8 pointer}
+  any
+  [ return (result: t_BoundPtr) ->
+  {[@stop_split] [@expl:unbound ensures] ([@stop_split] [@expl:unbound result type invariant] [%#sraw_vec'0] inv_BoundPtr result)
+    /\ ([@stop_split] [@expl:unbound ensures #0] [%#sraw_vec'1] view_BoundPtr result = None'0)
+    /\ ([@stop_split] [@expl:unbound ensures #1] [%#sraw_vec'2] invariant_BoundPtr result)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let vptr [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-bound-vec-constructor-b9b2c4f89f44b410/out/actual_from_vec.rs" 56 0 56 66]
+  (ptr: Opaque.ptr) (return (x: t_BoundPtr)) =
+{[@stop_split] [@expl:vptr requires] [%#sactual_from_vec'5] not is_null_ptr_u8 ptr}
+  (! bb0
+  [ bb0 = any [ br0 -> {false} (! bb4) | br1 -> (! bb1) ]
+  | bb1 = s0
+    [ s0 = new_u8 [%#sactual_from_vec'0] {ptr} (fun (_x: t_Option_NonNull_u8) -> [ &_6 <- _x ] s1)
+    | s1 = [ &_9 <- [%#sactual_from_vec'1] "Vec pointer should be non-null" ] s2
+    | s2 = expect_NonNull_u8 [%#sactual_from_vec'2] {_6} {_9} (fun (_x: t_NonNull_u8) -> [ &pointer <- _x ] s3)
+    | s3 = bb6 ]
+  | bb4 = s0
+    [ s0 = new_unchecked_u8 [%#sactual_from_vec'3] {ptr} (fun (_x: t_NonNull_u8) -> [ &pointer <- _x ] s1) | s1 = bb6 ]
+  | bb6 = s0
+    [ s0 = unbound [%#sactual_from_vec'4] {pointer} (fun (_x: t_BoundPtr) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ]
+  [ & _ret: t_BoundPtr = Any.any_l ()
+  | & ptr: Opaque.ptr = ptr
+  | & pointer: t_NonNull_u8 = Any.any_l ()
+  | & _6: t_Option_NonNull_u8 = Any.any_l ()
+  | & _9: string = Any.any_l () ])
+  [ return (result: t_BoundPtr) ->
+  {[@stop_split] [@expl:vptr result type invariant] [%#sactual_from_vec'6] inv_BoundPtr result}
+    (! return {result}) ]

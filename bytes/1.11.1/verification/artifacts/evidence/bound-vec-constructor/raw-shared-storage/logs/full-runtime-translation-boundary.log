@@ -1,0 +1,223 @@
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 1462 files, 276.0MiB total
+    Checking bytes v1.11.1 (/workspace/bytes-runtime-verification/bytes/1.11.1)
+warning: unused import: `string::String`
+ --> src/bytes_mut.rs:9:5
+  |
+9 |     string::String,
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: associated function `new` is never used
+  --> src/buf/chain.rs:42:19
+   |
+38 | impl<T, U> Chain<T, U> {
+   | ---------------------- associated function in this implementation
+...
+42 |     pub(crate) fn new(a: T, b: U) -> Chain<T, U> {
+   |                   ^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `chain` is never used
+  --> src/buf/proof_convenience.rs:22:15
+   |
+22 | pub(crate) fn chain<T: Buf, U: Buf>(first: T, second: U) -> Chain<T, U> {
+   |               ^^^^^
+
+warning: function `reader` is never used
+  --> src/buf/proof_convenience.rs:32:15
+   |
+32 | pub(crate) fn reader<T: Buf>(inner: T) -> super::Reader<T> {
+   |               ^^^^^^
+
+warning: function `writer` is never used
+  --> src/buf/proof_convenience.rs:42:15
+   |
+42 | pub(crate) fn writer<T: BufMut>(inner: T) -> super::Writer<T> {
+   |               ^^^^^^
+
+warning: function `chain_mut` is never used
+  --> src/buf/proof_convenience.rs:51:15
+   |
+51 | pub(crate) fn chain_mut<T: BufMut, U: BufMut>(first: T, second: U) -> Chain<T, U> {
+   |               ^^^^^^^^^
+
+warning: function `new` is never used
+  --> src/buf/reader.rs:19:8
+   |
+19 | pub fn new<B>(buf: B) -> Reader<B> {
+   |        ^^^
+
+warning: function `new` is never used
+  --> src/buf/writer.rs:19:8
+   |
+19 | pub fn new<B>(buf: B) -> Writer<B> {
+   |        ^^^
+
+warning: method `proof_release_unique_at_zero` is never used
+    --> src/bytes_mut.rs:1052:19
+     |
+ 172 | impl BytesMut {
+     | ------------- method in this implementation
+...
+1052 |     pub(crate) fn proof_release_unique_at_zero(mut self) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `map_op_get` is never used
+  --> src/ownership_proof/owned_region.rs:47:15
+   |
+47 | pub(crate) fn map_op_get(
+   |               ^^^^^^^^^^
+
+warning: associated items `into_parts`, `slots`, `slot`, `restrict`, `split_at`, and `join` are never used
+   --> src/ownership_proof/owned_region.rs:125:19
+    |
+ 95 | impl OwnedRegion {
+    | ---------------- associated items in this implementation
+...
+125 |     pub(crate) fn into_parts(self) -> (Int, Int, Resource<KernelRA>) {
+    |                   ^^^^^^^^^^
+...
+149 |     pub(crate) fn slots(self) -> FMap<Int, Excl<Option<u8>>> {
+    |                   ^^^^^
+...
+156 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+    |                   ^^^^
+...
+167 |     fn restrict(
+    |        ^^^^^^^^
+...
+192 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+    |                   ^^^^^^^^
+...
+243 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: method `as_non_null` is never used
+   --> src/ownership_proof/raw_vec.rs:184:19
+    |
+159 | impl BoundPtr {
+    | ------------- method in this implementation
+...
+184 |     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
+    |                   ^^^^^^^^^^^
+
+warning: methods `split_at` and `join` are never used
+   --> src/ownership_proof/raw_vec.rs:365:19
+    |
+309 | impl PhysicalRegion {
+    | ------------------- methods in this implementation
+...
+365 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+    |                   ^^^^^^^^
+...
+395 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: struct `PhysicalPool` is never constructed
+   --> src/ownership_proof/raw_vec.rs:409:19
+    |
+409 | pub(crate) struct PhysicalPool {
+    |                   ^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src/ownership_proof/raw_vec.rs:442:19
+    |
+440 | impl PhysicalPool {
+    | ----------------- associated items in this implementation
+441 |     #[logic(open)]
+442 |     pub(crate) fn capacity(self) -> Int {
+    |                   ^^^^^^^^
+...
+447 |     pub(crate) fn namespace(self) -> Id {
+    |                   ^^^^^^^^^
+...
+452 |     pub(crate) fn resource_id(self) -> Id {
+    |                   ^^^^^^^^^^^
+...
+457 |     pub(crate) fn contains(self, index: Int) -> bool {
+    |                   ^^^^^^^^
+...
+462 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+    |                   ^^^^
+...
+476 |     fn kernel_unit_is_empty() {
+    |        ^^^^^^^^^^^^^^^^^^^^
+...
+502 |     pub(crate) fn empty_from(region: &PhysicalRegion) -> Self {
+    |                   ^^^^^^^^^^
+...
+535 |     pub(crate) fn retire(self, region: PhysicalRegion) -> Self {
+    |                   ^^^^^^
+...
+571 |     pub(crate) fn finish(self, lo: Int) -> PhysicalRegion {
+    |                   ^^^^^^
+
+warning: function `resume_vec` is never used
+   --> src/ownership_proof/raw_vec.rs:692:22
+    |
+692 | pub(crate) unsafe fn resume_vec(
+    |                      ^^^^^^^^^^
+
+warning: function `deallocate_vec` is never used
+   --> src/ownership_proof/raw_vec.rs:728:22
+    |
+728 | pub(crate) unsafe fn deallocate_vec(
+    |                      ^^^^^^^^^^^^^^
+
+warning: function `deallocate_bound_vec` is never used
+   --> src/ownership_proof/raw_vec.rs:763:22
+    |
+763 | pub(crate) unsafe fn deallocate_bound_vec(
+    |                      ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_mut` is never used
+   --> src/ownership_proof/raw_vec.rs:812:22
+    |
+812 | pub(crate) unsafe fn borrow_mut<'a>(
+    |                      ^^^^^^^^^^
+
+error: Mutually recursive functions: when calling `bytes::static_clone`...
+    --> src/bytes.rs:1143:1
+     |
+1143 | unsafe fn static_clone(_: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: `bytes::static_clone` calls `bytes::Bytes::from_static`...
+    --> src/bytes.rs:1145:5
+     |
+1145 |     Bytes::from_static(slice)
+     |     ^^^^^^^^^^^^^^^^^^
+note: then `bytes::Bytes::from_static` calls `bytes::STATIC_VTABLE`...
+    --> src/bytes.rs:172:22
+     |
+ 172 |             vtable: &STATIC_VTABLE,
+     |                      ^^^^^^^^^^^^^
+note: finally `bytes::STATIC_VTABLE` uses `bytes::static_clone`.
+    --> src/bytes.rs:1136:12
+     |
+1136 |     clone: static_clone,
+     |            ^^^^^^^^^^^^
+
+error: Mutually recursive functions: when calling `bytes::owned_clone`...
+    --> src/bytes.rs:1184:1
+     |
+1184 | unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: `bytes::owned_clone` calls `bytes::Owned::<T>::VTABLE`...
+    --> src/bytes.rs:1195:18
+     |
+1195 |         vtable: &Owned::<T>::VTABLE,
+     |                  ^^^^^^^^^^^^^^^^^^
+note: finally `bytes::Owned::<T>::VTABLE` uses `bytes::owned_clone`.
+    --> src/bytes.rs:1176:16
+     |
+1176 |         clone: owned_clone::<T>,
+     |                ^^^^^^^^^^^^^^^^
+
+warning: `bytes` (lib) generated 19 warnings
+error: could not compile `bytes` (lib) due to 2 previous errors; 19 warnings emitted
+Error: Compilation failed

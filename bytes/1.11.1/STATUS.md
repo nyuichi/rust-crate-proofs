@@ -2,6 +2,14 @@
 
 ## Current working-tree status (2026-10-04)
 
+The sequential native-counter bridge now has two proved caller files and one
+native boundary-value test. Wrong-identity and underflow configurations each
+reject exactly one guard. Its four primitive methods are explicitly trusted:
+this is additional scalar-atomic TCB, not a proof of concurrent refcount or bytes
+ownership. See `sequential-native-counter-manifest.json` and TRUSTED_BASE.md.
+No compiler or standard-library change is used.
+
+
 The native BytesMut Shared now retains a single raw SharedBuffer (base/capacity),
 not an ordinary Vec. Promotion, unique reserve, both Vec conversion paths and
 shared-to-mutable conversion use that descriptor. Taking a Vec empties it before

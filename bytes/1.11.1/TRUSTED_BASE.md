@@ -37,7 +37,7 @@ bridge supplies the initial owned-region/recovery foundation, but the unresolved
 stop-condition-D integration remains outside the address pointer contract: actual
 `Vec<u8> -> BytesMut` split/mutation/drop needs independently transferable
 owned regions, exact initialization/allocation tracking, separate recovery
-authority, suspended `Vec` ownership in `Shared`, and view-indexed transfer
+authority, a raw allocation descriptor in `Shared`, and view-indexed transfer
 through the native Release/Acquire protocol. The available borrowed `Perm`
 interfaces do not supply those resources.
 
@@ -129,3 +129,25 @@ NonAtomicInvariant/resource framework is used under its generic contracts;
 ticket conservation, region retirement, mutable public progress and consuming
 finalization are body proved in the 27-file local gate. This does not add a
 contract for native AtomicUsize or prove native Shared/automatic Drop.
+
+## Sequential native atomic bridge C1-C4
+
+`src/ownership_proof/sequential_counter.rs` adds four explicit trusted primitive
+contracts: construction of a sealed atomic identity and exclusive CounterOwn,
+nonwrapping native Relaxed fetch_add, nonwrapping native Release fetch_sub, and
+native Acquire load under matching exclusive CounterOwn. These are additional
+TCB assumptions, not body-proved atomics. CounterOwn is affine, NotObjective,
+and cannot be sent or shared across threads. The cell is private; a token from
+another counter cannot authorize an operation. No operation returns byte
+permission, tickets, a finalizer, or control-block ownership.
+
+The two positive caller bodies prove exact scalar transitions. Wrong-identity
+and underflow configurations each reject one designated precondition. This
+bridge has no release-sequence or visibility model and does not verify concurrent
+refcount operations. It leaves the existing standard atomic and Vec models
+unchanged. The next Shared gate must prove ticket/region conservation separately
+and connect the actual native old-count branch to that conservation.
+
+The native SharedBuffer refactor is runtime preparation, not an additional
+proved physical bridge. Its promotion, reserve, take_vec and Drop bodies have
+native test coverage; they are not currently Creusot body proofs.

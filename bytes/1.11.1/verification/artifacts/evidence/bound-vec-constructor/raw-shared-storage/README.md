@@ -1,0 +1,9 @@
+# Actual `BytesMut::from_vec` with raw shared storage
+
+This archive pairs the final constructor translation and native check with the exact probe, generated source, runtime source, proof configuration, and proof artifacts. The isolated proof command was `./scripts/verify-bytes.sh bound-vec-constructor --features actual_from_vec`; it completed with 41/41 Coma files proved. The isolated native probe completed with 3 tests passed.
+
+The probe build extracts exact fragments from `src/bytes_mut.rs`; `source/generated/actual_from_vec.rs` and `source/generated/source-extraction-manifest.txt` are the generated inputs used by the recorded run. The extraction includes the real `BytesMut` and `Shared`/`SharedBuffer` declarations, constructor, logical validity/slot/release helpers, and pointer/kind helpers. The probe uses the actual ownership, capacity, and provenance modules by path.
+
+Scope: this proves the extracted `BytesMut::from_vec` constructor path and explicit `proof_release_unique_at_zero` cleanup with the bound allocation helpers. It does not prove the full runtime, `SharedBuffer` methods, `SharedBuffer::drop`, ordinary `BytesMut` drop, or automatic destructor behavior. The native probe manually rebuilds the Vec because the isolated extraction intentionally omits the destructor implementation. The 41 translated files include reused helper obligations and do not represent 41 unique runtime features.
+
+The repository-level native suite, its 118-test targeted regression run, and the no-default-features build are retained as separate supporting logs for the same raw-storage source snapshot. The full-runtime translation log is a boundary result: translation stops on mutually recursive `static_clone`/`STATIC_VTABLE` and `owned_clone`/`Owned::VTABLE` cycles; it is a compiler translation failure, not a failed verification condition. Those logs are separate from the isolated 41-file constructor proof.

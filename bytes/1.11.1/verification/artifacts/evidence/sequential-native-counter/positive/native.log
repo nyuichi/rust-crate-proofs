@@ -1,0 +1,29 @@
+   Compiling bytes-sequential-native-counter v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-native-counter)
+warning: unused variable: `own`
+  --> src/../../../../src/ownership_proof/sequential_counter.rs:89:39
+   |
+89 |     pub(crate) fn load_acquire(&self, own: Ghost<&CounterOwn>) -> usize {
+   |                                       ^^^ help: if this is intentional, prefix it with an underscore: `_own`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `before_add`
+  --> src/lib.rs:13:9
+   |
+13 |     let before_add = counter.fetch_add_relaxed(add, own.borrow_mut());
+   |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_before_add`
+
+warning: unused variable: `before_sub`
+  --> src/lib.rs:15:9
+   |
+15 |     let before_sub = counter.fetch_sub_release(sub, own.borrow_mut());
+   |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_before_sub`
+
+warning: `bytes-sequential-native-counter` (lib) generated 3 warnings (run `cargo fix --lib -p bytes-sequential-native-counter` to apply 3 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running tests/native.rs (/workspace/bytes-proof-tools/targets/bytes/debug/deps/native-d3473cf082b47d3b)
+
+running 1 test
+test native_atomic_values ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
