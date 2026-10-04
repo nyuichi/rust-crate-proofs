@@ -228,3 +228,8 @@ is not retroactively included in the frozen first-split proof snapshot.
 The readonly-access/lifetime-diagnostic archive records Rust E0505 rejecting
 release of a handle while a later read keeps its as_slice borrow live. This is
 translation/borrow-check evidence only, not a Why3 VC or automatic Drop proof.
+
+The storage-ops prefix fill/copy loops are body proved with standard
+MaybeUninit<u8> contracts (four proof files, nine goals, native four tests). They
+add no local trusted primitive. Their separate gate does not prove runtime
+resize/extend callers until those callers are connected and verified.

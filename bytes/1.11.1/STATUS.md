@@ -2,6 +2,14 @@
 
 ## Current working-tree status (2026-10-04)
 
+The storage-ops helper gate passes four proof files (nine discharged goals,
+no unproved leaves) and four native tests. The ordinary fill/copy loops operate
+on MaybeUninit<u8> prefixes, establish Known values, preserve destination length,
+and frame the untouched suffix. No trusted contract is added. Runtime resize /
+extend integration is subsequent work; these isolated helpers are not yet a
+proof of either public method. Canonical evidence is under storage-ops/positive.
+
+
 The read-only sequential gate passes 90 proof files and fourteen native tests.
 Actual as_slice and its packet wrapper support two simultaneous shared reads
 while a disjoint split packet is mutated. B4-read is an explicit physical slice
@@ -13,7 +21,7 @@ invariant covering unique as well as shared states. No whole-type invariant or
 trait-dispatch proof is claimed by this checkpoint.
 
 
-The bounded sequential lifecycle gate now passes 86 proof files and twelve
+The preceding bounded sequential lifecycle gate passes 86 proof files and twelve
 native tests. Actual spare_capacity_mut connects to standard MaybeUninit<u8>
 initialization through reviewed B4-uninit. Callers initialize Unknown spare
 slots on both sides, publish via actual Known-only set_len, access initialized
