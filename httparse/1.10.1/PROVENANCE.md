@@ -1,8 +1,8 @@
 # httparse 1.10.1 provenance and verification status
 
-**Status: partial; import, runtime-test baseline, and an isolated model proof
-checkpoint are recorded. No executable httparse parser body is yet claimed
-proved.**
+**Status: partial; import, runtime-test baseline, isolated model proof, and a
+shared-source `Status`/`ParserConfig` proof checkpoint are recorded. No
+executable httparse parser body is yet claimed proved.**
 
 This crate tree was copied from the published crates.io archive
 `httparse-1.10.1.crate`, whose SHA-256 is
@@ -22,10 +22,16 @@ source changes to executable code must be recorded here with their effect on
 the published behavior. `ParserConfig`'s derived `Default` was replaced by a
 manual implementation that initializes the same seven fields to `false`; this
 is behavior-preserving and lets the implementation carry an explicit contract.
-The `std` import under `cfg(test, not(feature = "std"))` enables the unchanged
-upstream test macro calls in no-default-features builds. `src/iter.rs` remains
-the published implementation; its pointer and slice operations have no
-mechanically checked runtime bridge yet.
+`ParserConfig` and `Status` were extracted to `src/config.rs` and
+`src/status.rs`; `lib.rs` keeps the original public re-exports and parser
+adapters. The seven configuration flags are crate-visible only so those
+adapters can continue reading them. The `std` import under
+`cfg(test, not(feature = "std"))` enables unchanged upstream test macro calls
+in no-default-features builds. Under `cfg(creusot)`, derived `Debug` is omitted
+and `Status<T>` also omits derived `Eq`/`PartialEq`, whose generic formatter and
+equality refinements are not yet modeled. Ordinary builds retain the upstream
+derives. `src/iter.rs` remains the published implementation; its pointer and
+slice operations have no mechanically checked runtime bridge yet.
 
 ## Runtime baseline
 
@@ -79,6 +85,41 @@ dispatch are all outstanding. Baseline tests are behavioral evidence, not a
 full runtime proof claim. The complete callable and unsafe boundary inventory is in
 [`API-INVENTORY.md`](API-INVENTORY.md); proof status and gaps are tracked in
 [`VERIFICATION_STATUS.md`](VERIFICATION_STATUS.md).
+
+## Shared-source `Status` and `ParserConfig` checkpoint
+
+`verification/probes/contracts-harness` imports the actual `src/status.rs` and
+`src/config.rs` files by path. Its caller invokes those actual builder methods
+in sequence, setting one flag to `true`, changing another flag, then changing
+the first to `false`; the caller's postcondition records the exact final
+seven-Boolean tuple. No replacement parser or `cfg(creusot)` parser body is
+used. Contracts state exact `Status` variant behavior, the `unwrap`
+precondition/payload result, all-false `ParserConfig::default`, each setter's
+single-field update and returned mutable-borrow state, and each of the four
+upstream getters.
+
+Reproduction from the harness directory:
+
+```sh
+source /workspace/proof-tools/activate.sh
+CARGO_NET_OFFLINE=true ./verify.sh translate
+/workspace/rust-crate-proofs/httparse/1.10.1/run-proof.bash \
+  cargo creusot --simple-triggers=false prove --why3session --no-cache
+```
+
+The uncached Why3 run used Z3 4.15.3 with the shared one-prover/1000 MiB
+profile and completed successfully. All 19 generated Coma files and their 19
+`proof.json` records are in the harness `verif/` tree; all 26 verification
+conditions passed: chained builder caller (4), seven setters (7), four
+getters (4), `Default` (1), `ParserConfig::clone` (2), three `Status` methods
+(4), and `Status::clone` body/refinement (4).
+
+This proves the extracted `Status` and seven-flag configuration surface and
+that small builder caller. The four parser adapters in `lib.rs`, `Error` and
+error formatting, `ParserConfig::Debug`, `Status::Debug`/`Eq`/`PartialEq`, and
+all parser bodies remain outside this harness or explicitly excluded under
+`cfg(creusot)`. These results do not establish request/response or chunk-parser
+behavior.
 
 Run `./test-baseline.bash` from this directory for the pinned default and
 no-default test commands. `verify-partial.bash` runs one selected proof
