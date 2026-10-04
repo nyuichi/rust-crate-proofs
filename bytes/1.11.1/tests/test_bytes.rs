@@ -1720,3 +1720,87 @@ fn bytes_mut_reserve_overflow() {
     // This call relies on the corrupted cap and may cause UB & HBO
     b.put_u8(b'h');
 }
+
+#[test]
+fn shared_buffer_empty_tail_reallocates_and_converts_to_vec() {
+    let mut source = BytesMut::with_capacity(16);
+    source.extend_from_slice(b"abc");
+
+    // split_off permits a zero-length tail at the end of spare capacity.
+    let end = source.capacity();
+    let mut tail = source.split_off(end);
+    assert!(tail.is_empty());
+    assert_eq!(tail.capacity(), 0);
+    drop(source);
+
+    // This cannot fit in the original allocation, so the unique shared buffer
+    // must be reallocated before the tail is written.
+    tail.reserve(end + 1);
+    tail.extend_from_slice(b"tail");
+    assert_eq!(tail.as_ref(), b"tail");
+
+    let recovered: Vec<u8> = tail.into();
+    assert_eq!(recovered, b"tail");
+}
+
+#[test]
+fn shared_buffer_nonempty_unique_reallocation_freezes_and_converts_to_vec() {
+    let mut source = BytesMut::with_capacity(64);
+    let capacity = source.capacity();
+    assert!(capacity > 8);
+
+    let contents: Vec<u8> = (0..capacity).map(|index| index as u8).collect();
+    source.extend_from_slice(&contents);
+    let mut tail = source.split_off(4);
+    drop(source);
+
+    let expected = contents[4..].to_vec();
+    assert_eq!(tail.as_ref(), expected);
+
+    // The required tail capacity plus its nonzero offset exceeds the old
+    // allocation. The buffer must move while preserving this mutable range.
+    tail.reserve(1);
+    assert!(tail.capacity() >= tail.len() + 1);
+    assert_eq!(tail.as_ref(), expected);
+
+    let frozen = tail.freeze();
+    let recovered: Vec<u8> = frozen.into();
+    assert_eq!(recovered, expected);
+}
+
+#[test]
+fn shared_buffer_reserve_overflow_unwind_preserves_unique_handle() {
+    {
+        let mut left = BytesMut::from(&b"abcdef"[..]);
+        let mut tail = left.split_off(2);
+        drop(left);
+
+        let before = tail.to_vec();
+        let additional = usize::MAX - tail.len();
+        let result = panic::catch_unwind(AssertUnwindSafe(|| tail.reserve(additional)));
+
+        assert!(result.is_err());
+        assert_eq!(tail.as_ref(), before);
+
+        // The handle remains usable after the checked offset overflow panics.
+        tail.extend_from_slice(b"!");
+        assert_eq!(tail.as_ref(), b"cdef!");
+    }
+
+    {
+        let mut left = BytesMut::from(&b"abcdef"[..]);
+        let mut tail = left.split_off(0);
+        drop(left);
+
+        let before = tail.to_vec();
+        let additional = (isize::MAX as usize + 1) - tail.len();
+        let result = panic::catch_unwind(AssertUnwindSafe(|| tail.reserve(additional)));
+
+        assert!(result.is_err());
+        assert_eq!(tail.as_ref(), before);
+
+        // The handle remains usable after Layout rejects the oversized allocation.
+        tail.extend_from_slice(b"!");
+        assert_eq!(tail.as_ref(), b"abcdef!");
+    }
+}

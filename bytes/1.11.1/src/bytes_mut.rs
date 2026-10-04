@@ -87,9 +87,65 @@ pub struct BytesMut {
 // is used. Using `Arc` ended up requiring a number of funky transmutes and
 // other shenanigans to make it work.
 struct Shared {
-    vec: Vec<u8>,
+    buffer: SharedBuffer,
     original_capacity_repr: usize,
     ref_count: AtomicUsize,
+}
+
+// The shared allocation has one raw descriptor, not a live ordinary Vec.
+// Handles determine initialized lengths; this owner only retains allocation metadata.
+struct SharedBuffer {
+    base: NonNull<u8>,
+    capacity: usize,
+}
+
+impl SharedBuffer {
+    // SAFETY: the caller transfers ownership of the entire allocation, including
+    // the prefix preceding this handle. No other owner may deallocate it.
+    unsafe fn from_handle(ptr: *mut u8, capacity: usize, offset: usize) -> Self {
+        Self { base: NonNull::new_unchecked(ptr.sub(offset)), capacity: capacity + offset }
+    }
+
+    fn capacity(&self) -> usize { self.capacity }
+    fn as_mut_ptr(&self) -> *mut u8 { self.base.as_ptr() }
+
+    // Transfer the allocation, leaving an empty descriptor safe to destroy.
+    // Length zero avoids claiming initialization of bytes changed by other handles.
+    unsafe fn take_vec(&mut self) -> Vec<u8> {
+        let empty = Self { base: NonNull::dangling(), capacity: 0 };
+        let old = ManuallyDrop::new(mem::replace(self, empty));
+        Vec::from_raw_parts(old.base.as_ptr(), 0, old.capacity)
+    }
+
+    // SAFETY: the caller has the only live handle. Reallocate the whole raw
+    // allocation, including potentially uninitialized gaps before that handle;
+    // constructing a Vec with offset + len initialized bytes would be invalid.
+    unsafe fn reserve(&mut self, capacity: usize) {
+        use alloc::alloc::{alloc, handle_alloc_error, realloc, Layout};
+        // Match Vec<u8>'s minimum growth capacity. Layout rejects capacities
+        // exceeding isize::MAX before changing the existing descriptor.
+        let capacity = cmp::max(capacity, 8);
+        let layout = Layout::array::<u8>(capacity).expect("capacity overflow");
+        let base = if self.capacity == 0 {
+            alloc(layout)
+        } else {
+            let old_layout = Layout::array::<u8>(self.capacity).unwrap();
+            realloc(self.base.as_ptr(), old_layout, capacity)
+        };
+        let base = match NonNull::new(base) {
+            Some(base) => base,
+            None => handle_alloc_error(layout),
+        };
+        self.base = base;
+        self.capacity = capacity;
+    }
+}
+
+impl Drop for SharedBuffer {
+    fn drop(&mut self) {
+        // u8 has no destructor; deallocation does not require initialized bytes.
+        unsafe { drop(Vec::from_raw_parts(self.base.as_ptr(), 0, self.capacity)); }
+    }
 }
 
 // Assert that the alignment of `Shared` is divisible by 2.
@@ -685,7 +741,7 @@ impl BytesMut {
                 // This is the only handle to the buffer. It can be reclaimed.
                 // However, before doing the work of copying data, check to make
                 // sure that the vector has enough capacity.
-                let v = &mut (*shared).vec;
+                let v = &mut (*shared).buffer;
 
                 let v_capacity = v.capacity();
                 let ptr = v.as_mut_ptr();
@@ -737,15 +793,11 @@ impl BytesMut {
 
                     // No space - allocate more
                     //
-                    // The length field of `Shared::vec` is not used by the `BytesMut`;
-                    // instead we use the `len` field in the `BytesMut` itself. However,
-                    // when calling `reserve`, it doesn't guarantee that data stored in
-                    // the unused capacity of the vector is copied over to the new
-                    // allocation, so we need to ensure that we don't have any data we
-                    // care about in the unused capacity before calling `reserve`.
+                    // Reallocate the raw allocation without asserting that the
+                    // discarded prefix or spare capacity is initialized. The
+                    // allocator preserves the current handle's bytes at offset.
                     debug_assert!(offset + len <= v.capacity());
-                    v.set_len(offset + len);
-                    v.reserve(new_cap - v.len());
+                    v.reserve(new_cap);
 
                     // Update the info
                     self.ptr = vptr(v.as_mut_ptr().add(offset));
@@ -1117,7 +1169,7 @@ impl BytesMut {
         // `Arc`, those three fields still are the components of the
         // vector.
         let shared = Box::new(Shared {
-            vec: rebuild_vec(self.ptr.as_ptr(), self.len, self.cap, off),
+            buffer: SharedBuffer::from_handle(self.ptr.as_ptr(), self.cap, off),
             original_capacity_repr,
             ref_count: AtomicUsize::new(ref_cnt),
         });
@@ -1899,7 +1951,7 @@ impl From<BytesMut> for Vec<u8> {
             let shared = bytes.data;
 
             if unsafe { (*shared).is_unique() } {
-                let vec = core::mem::take(unsafe { &mut (*shared).vec });
+                let vec = unsafe { (*shared).buffer.take_vec() };
 
                 unsafe { release_shared(shared) };
 
@@ -1992,7 +2044,7 @@ unsafe fn shared_v_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> V
         let shared = &mut *shared;
 
         // Drop shared
-        let mut vec = core::mem::take(&mut shared.vec);
+        let mut vec = shared.buffer.take_vec();
         release_shared(shared);
 
         // Copy back buffer
@@ -2015,7 +2067,7 @@ unsafe fn shared_v_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> B
 
         // The capacity is always the original capacity of the buffer
         // minus the offset from the start of the buffer
-        let v = &mut shared.vec;
+        let v = &mut shared.buffer;
         let v_capacity = v.capacity();
         let v_ptr = v.as_mut_ptr();
         let offset = ptr.offset_from(v_ptr) as usize;

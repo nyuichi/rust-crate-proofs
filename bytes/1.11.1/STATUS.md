@@ -2,6 +2,17 @@
 
 ## Current working-tree status (2026-10-04)
 
+The native BytesMut Shared now retains a single raw SharedBuffer (base/capacity),
+not an ordinary Vec. Promotion, unique reserve, both Vec conversion paths and
+shared-to-mutable conversion use that descriptor. Taking a Vec empties it before
+control-block destruction. Raw reallocation preserves spare bytes without
+asserting an initialized prefix across split_off gaps; allocation/layout failure
+leaves the descriptor unchanged. Three focused native regressions pass, including
+reuse after a caught overflow panic. This runtime preparation does not body-prove
+promotion, reserve, refcount or Shared destruction. The constructor extraction
+also includes the exact new SharedBuffer type; its body scope remains unchanged.
+
+
 The sequential retirement-registry gate now proves 27 files with real affine
 registration tickets, B1 physical regions, NonAtomicInvariant::open_mut, both
 retirement orders and explicit B3 cleanup. Two native tests pass. A missing

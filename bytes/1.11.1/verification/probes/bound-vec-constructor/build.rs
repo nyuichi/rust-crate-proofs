@@ -140,6 +140,7 @@ fn main() {
     let fragments = [
         extract_item(&source, "BytesMut", "pub struct BytesMut {", "pub struct BytesMut {"),
         extract_item(&source, "Shared", "struct Shared {", "struct Shared {"),
+        extract_item(&source, "SharedBuffer", "struct SharedBuffer {", "struct SharedBuffer {"),
         extract_line(&source, "KIND_VEC", "const KIND_VEC: usize = 0b1;"),
         extract_line(&source, "KIND_MASK", "const KIND_MASK: usize = 0b1;"),
         extract_item(
@@ -195,16 +196,14 @@ fn main() {
          use creusot_std::prelude::*;\n\
          use crate::capacity_ops::original_capacity_to_repr;\n\n",
     );
-    for fragment in &fragments[..4] {
-        generated.push_str(fragment.text);
-        generated.push_str("\n\n");
-    }
-    for fragment in &fragments[8..] {
+    let is_method = |name: &str| matches!(name,
+        "from_vec" | "proof_unique_at_zero_valid" | "proof_unique_slot" | "proof_release_unique_at_zero");
+    for fragment in fragments.iter().filter(|fragment| !is_method(fragment.name)) {
         generated.push_str(fragment.text);
         generated.push_str("\n\n");
     }
     generated.push_str("impl BytesMut {\n");
-    for fragment in &fragments[4..8] {
+    for fragment in fragments.iter().filter(|fragment| is_method(fragment.name)) {
         generated.push_str(fragment.text);
         generated.push_str("\n\n");
     }
