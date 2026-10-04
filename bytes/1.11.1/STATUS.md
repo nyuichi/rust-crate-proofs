@@ -189,3 +189,15 @@ connections are recorded above and in `SOURCE_CORRESPONDENCE.md`.
 All proof results use unmodified Creusot 0.13.0, x86_64, native atomic Ordering
 and no `sc-drf`. Default std tests and a no-default-features build were checked;
 32-bit, optional features, Miri/Loom/Verus and performance were not validated.
+
+## Local physical bridge: disjoint mutation checkpoint
+
+The isolated raw-vec bridge now passes eleven generated files, including a
+caller that detaches a Vec, splits exclusive regions, holds two disjoint mutable
+slices, changes bytes independently, rejoins and restores the current contents.
+Two native probe tests pass. B1 detach, B2 resume and B4 slice access are audited
+trusted physical boundaries; region split/join and the caller are body proved.
+The exact B4 contract was reviewed by Astra. Source/task snapshots and hashes
+are retained in `verification/artifacts/evidence/raw-vec-b1-b2-b4-manifest.json`.
+Explicit deallocation, actual BytesMut integration and automatic Drop remain
+open; this is not a full-crate proof.

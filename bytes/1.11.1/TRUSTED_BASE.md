@@ -82,3 +82,12 @@ The Box write-back and borrowed region proofs additionally use standard `Perm`
 and pointer-liveness contracts. These results do not establish independently
 owned shared intervals or destructor/refcount correctness. Runtime source
 connections and ordinary tests do not discharge the callers' ownership premises.
+
+## Local physical access bridge RVB-04
+
+`ownership_proof/raw_vec.rs::borrow_mut` is an additional audited trusted
+physical boundary. It derives pointers only from the sealed detached Vec
+descriptor and relates initialized slice writes to exclusive region slots,
+with full framing outside the borrowed interval. Its exact contract and caller
+were reviewed by Astra. The caller proof does not prove this native body.
+See `verification/RAW_VEC_TRUSTED_BOUNDARY.md` for bounds and lifetime limits.

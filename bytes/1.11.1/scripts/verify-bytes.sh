@@ -6,7 +6,7 @@ tool_root=${BYTES_TOOL_ROOT:-/workspace/bytes-proof-tools}
 source "$tool_root/activate.sh"
 export CARGO_NET_OFFLINE=true
 case "${1:-runtime}" in
-  helpers|storage|tool-blockers|trait-patch|deallocation|bounded-ops|slice-ops|cursor-ops|initialized-storage|byte-codecs|capacity-ops|comparison-ops|chain-ops|slice-read-ops|uninit-ops|wide-codecs|endian-ops|region-permissions|slice-wide-read-ops|variable-read-ops|signed-wide-ops|provenance-ops|comparison-runtime|ownership-frontier|runtime-convenience|vtable-feasibility|drop-feasibility|control-block-lifetime|owned-region-kernel|pointer-equality-feasibility|raw-vec-bridge|address-comparison) target=$crate_root/verification/probes/$1 ;;
+  helpers|storage|tool-blockers|trait-patch|deallocation|bounded-ops|slice-ops|cursor-ops|initialized-storage|byte-codecs|capacity-ops|comparison-ops|chain-ops|slice-read-ops|uninit-ops|wide-codecs|endian-ops|region-permissions|slice-wide-read-ops|variable-read-ops|signed-wide-ops|provenance-ops|comparison-runtime|ownership-frontier|runtime-convenience|vtable-feasibility|drop-feasibility|control-block-lifetime|owned-region-kernel|pointer-equality-feasibility|raw-vec-bridge|raw-vec-negative|address-comparison) target=$crate_root/verification/probes/$1 ;;
   runtime) target=$crate_root ;;
   *) printf 'Usage: verify-bytes.sh [runtime|known-probe] [cargo flags]\n' >&2; exit 2 ;;
 esac

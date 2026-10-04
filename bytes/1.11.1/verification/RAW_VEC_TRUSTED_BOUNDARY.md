@@ -49,12 +49,22 @@ Its exact source snapshot and generated tasks are retained under
 `artifacts/evidence/raw-vec-bridge/b1-b2-*`. This gate establishes no mutation,
 deallocation, automatic Drop effect, Shared protocol or BytesMut integration.
 
-## Access and cleanup gates
+## Reviewed B4 access gate
 
-B4 must derive its pointer from the sealed native descriptor, accept no arbitrary
-caller-supplied pointer, tie the returned reference to the raw and mutable ghost
-borrows, and preserve all identity/bounds metadata and all unborrowed slots.
-The first access target uses nonempty regions and initialized slices.
+**RVB-04 / B4, `borrow_mut`:** derives its pointer from the sealed native
+descriptor, accepts no caller-supplied pointer, and ties the returned reference
+to the raw and mutable ghost borrows. Its contract preserves identity/bounds
+metadata and every unborrowed slot. Astra reviewed the exact declaration and
+caller. B4 remains a trusted physical access primitive.
+
+The nonempty initialized-slice caller holds both disjoint mutable references,
+writes different bytes, joins the regions and resumes a Vec with the changed
+contents and unchanged remaining bytes. Eleven generated files pass; two native
+probe tests pass. Exact source and tasks are retained in `b1-b2-b4-source` and
+`b1-b2-b4-positive`, with a separate hash manifest. This is contract composition
+and caller body proof, not physical primitive body proof or BytesMut integration.
+
+## Pending explicit cleanup gate
 
 Explicit B3 cleanup must require full coverage plus Recovery and must not require
 an initialized prefix. Its native length-zero Vec destruction belongs to the
