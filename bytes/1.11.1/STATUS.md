@@ -2,6 +2,14 @@
 
 ## Current working-tree status (2026-10-04)
 
+The local B1/B2 Vec/raw bridge now passes its ten-file isolated round-trip
+gate: detach, return two owned fragments from a helper, join, and restore the
+same initialized contents. The two physical Vec representation bridges are
+trusted and reviewed; the split/join and caller bodies are proved. This uses
+unmodified Creusot/creusot-std 0.13 and does not change the ordinary Vec model.
+See the [physical trusted boundary](verification/RAW_VEC_TRUSTED_BOUNDARY.md).
+Mutation, explicit cleanup and actual BytesMut integration are separate gates.
+
 The actual `BytesMut::try_unsplit` now uses an address-only comparison helper
 for its buffer and Shared pointers. Normal builds retain native thin-pointer
 equality; proof builds use the `addr_eq` contract, which grants no logical

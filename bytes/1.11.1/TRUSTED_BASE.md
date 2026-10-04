@@ -10,6 +10,15 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-04)
 
+- `RVB-01` and `RVB-02`, in `src/ownership_proof/raw_vec.rs`, are reviewed local
+  physical Vec/raw detach and recovery primitives. Their sealed namespace
+  interpretation connects native allocation metadata to ghost Recovery and
+  PhysicalRegion tokens. B1/B2 bodies are trusted; split/join and the unchanged
+  content round-trip caller are proved in isolation. They do not trust a
+  BytesMut, Shared, refcount or drop protocol. Exact assumptions and the
+  native-pointer comparison restriction are recorded in
+  [`verification/RAW_VEC_TRUSTED_BOUNDARY.md`](verification/RAW_VEC_TRUSTED_BOUNDARY.md).
+
 - `STD-PTRWRAP-01`, in `src/provenance_specs.rs`, is an additional assumed
   `extern_spec` for raw-pointer `wrapping_add`, restricted by precondition to
   pointee types whose modeled size is one byte. It specifies only the
@@ -23,8 +32,9 @@ allocator semantics are foundational assumptions, not proved by these probes.
   is a new TCB assumption and is not part of the historical component replay
   below.
 
-No bytes-specific `#[trusted]` ownership theorem was added. The unresolved
-stop-condition-D requirement remains outside this pointer contract: actual
+No bytes-specific `#[trusted]` ownership theorem was added. The local B1/B2
+bridge supplies the initial owned-region/recovery foundation, but the unresolved
+stop-condition-D integration remains outside the address pointer contract: actual
 `Vec<u8> -> BytesMut` split/mutation/drop needs independently transferable
 owned regions, exact initialization/allocation tracking, separate recovery
 authority, suspended `Vec` ownership in `Shared`, and view-indexed transfer
