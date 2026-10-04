@@ -1,0 +1,38 @@
+http proof resources: jobs=1, memory=1024 MiB per prover; shared lock held
+    Checking http-proof-probes v0.1.0 (/workspace/rust-crate-proofs/http/1.5.0/verification/probes)
+warning: unused import: `creusot_std::prelude::*`
+ --> src/bin/dyn_error.rs:3:5
+  |
+3 | use creusot_std::prelude::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: support for trait objects (dyn) is limited and experimental
+ --> src/bin/dyn_error.rs:9:5
+  |
+9 |     value.source()
+  |     ^^^^^
+  |
+  = note: `#[warn(creusot::experimental)]` on by default
+
+warning: support for trait objects (dyn) is limited and experimental
+  --> src/bin/dyn_error.rs:15:5
+   |
+15 |     value.is::<E>()
+   |     ^^^^^
+
+warning: calling external function `source` with no contract will yield an impossible precondition
+ --> src/bin/dyn_error.rs:9:5
+  |
+9 |     value.source()
+  |     ^^^^^^^^^^^^^^ function called here
+  |
+  = note: `#[warn(creusot::contractless_external_function)]` on by default
+
+error: forbidden dyn type: dyn std::error::Error (dyn support is currently minimal, please open an issue to improve this feature)
+
+warning: `http-proof-probes` (bin "dyn-error") generated 4 warnings
+error: could not compile `http-proof-probes` (bin "dyn-error") due to 1 previous error; 4 warnings emitted
+command: cargo creusot prove --no-cache -- --locked --offline --manifest-path Cargo.toml --bin dyn-error
+exit_status: 101

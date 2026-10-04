@@ -126,6 +126,68 @@ mach_int!(isize, "creusot.int.Int32$BW$", 0isize, ".to_int");
 #[cfg(target_pointer_width = "16")]
 mach_int!(isize, "creusot.int.Int16$BW$", 0isize, ".to_int");
 
+// Rust exposes NonZero's methods through a generic `NonZero<T>` impl, while
+// this crate currently models only the u16 instantiation needed by http's
+// StatusCode. The following boundary contracts are the explicit stdlib TCB
+// for the stored value; they do not verify the implementation in libcore.
+#[cfg(creusot)]
+/// Primitive zero semantics needed to model selected `NonZero<T>` values.
+pub trait NonZeroPrimitiveModel:
+    core::num::ZeroablePrimitive + DeepModel<DeepModelTy = Int> + PartialEq
+{
+    /// Whether this primitive represents zero.
+    #[logic]
+    fn is_zero(self) -> bool;
+}
+
+#[cfg(creusot)]
+impl NonZeroPrimitiveModel for u16 {
+    #[logic(open)]
+    fn is_zero(self) -> bool {
+        pearlite! { self@ == 0 }
+    }
+}
+
+/// Logical value stored by a modeled standard-library `NonZero` value.
+#[cfg(creusot)]
+#[logic(opaque)]
+pub fn nonzero_value<T: NonZeroPrimitiveModel>(_value: core::num::NonZero<T>) -> T {
+    pearlite! { dead }
+}
+
+#[cfg(creusot)]
+extern_spec! {
+    impl<T: NonZeroPrimitiveModel> core::num::NonZero<T> {
+        #[ensures(match result {
+            Some(wrapped) => !value.is_zero() && nonzero_value(wrapped) == value,
+            None => value.is_zero(),
+        })]
+        #[ensures((match result {
+            Some(_) => true,
+            None => false,
+        }) == !value.is_zero())]
+        fn new(value: T) -> Option<core::num::NonZero<T>>;
+
+        #[ensures(result == nonzero_value(self))]
+        #[ensures(!result.is_zero())]
+        fn get(self) -> T;
+
+        #[requires(!value.is_zero())]
+        #[ensures(nonzero_value(result) == value)]
+        unsafe fn new_unchecked(value: T) -> core::num::NonZero<T>;
+    }
+}
+
+#[cfg(creusot)]
+impl DeepModel for core::num::NonZeroU16 {
+    type DeepModelTy = Int;
+
+    #[logic(open)]
+    fn deep_model(self) -> Self::DeepModelTy {
+        pearlite! { nonzero_value(self)@ }
+    }
+}
+
 /// Adds specifications for checked, wrapping, saturating, and overflowing operations on the given
 /// integer type
 macro_rules! spec_type {

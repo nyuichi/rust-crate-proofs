@@ -1,0 +1,48 @@
+http proof resources: jobs=1, memory=1024 MiB per prover; shared lock held
+    Checking http-proof-probes v0.1.0 (/workspace/rust-crate-proofs/http/1.5.0/verification/probes)
+warning: unused import: `creusot_std::prelude::*`
+ --> src/bin/dyn_any_views.rs:3:5
+  |
+3 | use creusot_std::prelude::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: support for trait objects (dyn) is limited and experimental
+ --> src/bin/dyn_any_views.rs:6:52
+  |
+6 |   pub fn erase_shared<T: Any>(value: &T) -> &dyn Any {
+  |  ____________________________________________________^
+7 | |     value
+8 | | }
+  | |_^
+  |
+  = note: `#[warn(creusot::experimental)]` on by default
+
+warning: support for trait objects (dyn) is limited and experimental
+  --> src/bin/dyn_any_views.rs:10:57
+   |
+10 |   pub fn erase_mut<T: Any>(value: &mut T) -> &mut dyn Any {
+   |  _________________________________________________________^
+11 | |     value
+12 | | }
+   | |_^
+
+warning: support for trait objects (dyn) is limited and experimental
+  --> src/bin/dyn_any_views.rs:15:5
+   |
+15 |     value.downcast_ref::<T>()
+   |     ^^^^^
+
+warning: support for trait objects (dyn) is limited and experimental
+  --> src/bin/dyn_any_views.rs:19:5
+   |
+19 |     value.downcast_mut::<T>()
+   |     ^^^^^
+
+error: forbidden dyn type: dyn std::any::Any (dyn support is currently minimal, please open an issue to improve this feature)
+
+warning: `http-proof-probes` (bin "dyn-any-views") generated 5 warnings
+error: could not compile `http-proof-probes` (bin "dyn-any-views") due to 1 previous error; 5 warnings emitted
+command: cargo creusot prove --no-cache -- --locked --offline --manifest-path Cargo.toml --bin dyn-any-views
+exit_status: 101
