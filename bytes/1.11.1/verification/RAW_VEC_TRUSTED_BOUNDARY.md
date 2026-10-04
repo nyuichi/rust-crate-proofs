@@ -188,3 +188,9 @@ feature emits 26 files: half-finish rejects one full-coverage leaf; the assumed
 sealed-input namespace API check rejects only the two identity-matching leaves.
 Neither negative executes invalid native operations. Per-configuration sources
 and full logs are archived separately from the core checkpoint.
+
+A final fresh constructor replay over the current pool and cap-class source
+passes 41 files and three native tests. Its one-source snapshot is archived as
+`bound-vec-constructor/current-pool-cap-class/`; it replaces the mixed-kernel
+limitation for this component gate. Pool helpers are included body proofs, but
+actual BytesMut split/Shared/refcount/Drop remain outside this extraction.

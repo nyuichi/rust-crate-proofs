@@ -15,8 +15,12 @@ A fresh full-runtime translation after this core change again stops on only
 the two known static/Owned vtable recursion cycles; no integrated runtime
 proof was produced (`runtime-retired-pool-translation.log`).
 
-The exact-source constructor/explicit unique-at-zero cleanup gate now passes
-35 generated proof files. This proves the extracted actual annotated from_vec
+A fresh exact-source constructor/explicit unique-at-zero cleanup gate now
+passes 41 proof files with the current physical-pool and cap-class source,
+and the native extracted-constructor tests pass 3/3. No mixed kernel snapshot
+is needed for this gate. See `bound-constructor-current-pool-manifest.json`.
+
+The earlier constructor gate passed 35 generated proof files. This proves the extracted actual annotated from_vec
 body, original byte prefix and dispatch metadata, plus the verification-only
 explicit cleanup body/caller. It does not prove normal Drop or full-crate
 integration. The descriptor conversion is now body proved, with nonnull construction
