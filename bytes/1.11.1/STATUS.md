@@ -2,6 +2,15 @@
 
 ## Current working-tree status (2026-10-04)
 
+The actual `BytesMut::try_unsplit` now uses an address-only comparison helper
+for its buffer and Shared pointers. Normal builds retain native thin-pointer
+equality; proof builds use the `addr_eq` contract, which grants no logical
+pointer/provenance identity. The [helper probe](verification/probes/address-comparison/README.md)
+proves six files and rejects the identity-forging negative VC. Fresh ordinary
+bytes tests (997), doctests (246), and the no-default-features build pass for
+this change. This does not establish a try_unsplit body proof or runtime
+ownership integration.
+
 Implementation of the approved ownership design has started. The new
 [feasibility results](verification/OWNERSHIP_FEASIBILITY_RESULTS.md) record
 vtable translation and automatic Drop as excluded integration paths under the

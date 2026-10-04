@@ -11,6 +11,22 @@ use creusot_std::prelude::*;
 #[cfg(creusot)]
 use creusot_std::std::mem::size_of_logic;
 
+/// Compare thin pointers by address without granting logical provenance
+/// identity. Normal builds retain native pointer equality and the crate's
+/// minimum supported Rust version; the proof build uses the address-only spec.
+#[inline]
+#[cfg_attr(creusot, ensures(result == (left.addr_logic() == right.addr_logic())))]
+pub(crate) fn pointer_addr_eq<T>(left: *const T, right: *const T) -> bool {
+    #[cfg(creusot)]
+    {
+        core::ptr::addr_eq(left, right)
+    }
+    #[cfg(not(creusot))]
+    {
+        left == right
+    }
+}
+
 // STD-PTRWRAP-01: Creusot 0.13 has no contract for raw-pointer wrapping_add.
 // This extern spec is usable only for one-byte pointees (the u8 operation used
 // by pointer tagging) and states only the numeric address calculation. It says

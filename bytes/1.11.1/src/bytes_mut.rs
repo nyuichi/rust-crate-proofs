@@ -979,10 +979,10 @@ impl BytesMut {
         }
 
         let ptr = unsafe { self.ptr.as_ptr().add(self.len) };
-        if ptr == other.ptr.as_ptr()
+        if crate::provenance_specs::pointer_addr_eq(ptr, other.ptr.as_ptr())
             && self.kind() == KIND_ARC
             && other.kind() == KIND_ARC
-            && self.data == other.data
+            && crate::provenance_specs::pointer_addr_eq(self.data, other.data)
         {
             // Contiguous blocks, just combine directly
             self.len += other.len;
