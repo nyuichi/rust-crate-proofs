@@ -153,3 +153,165 @@ No scalar/SIMD backend or runtime cache has been authorized for removal by this
 consultation. Root will decide further infrastructure work after the currently
 tractable pointer and instruction routes are checked. Full verification remains
 open until all runtime bridges and configuration obligations are discharged.
+
+## Returned mutable builder references: contract correction
+
+Inspection of the actual ParserConfig setter contracts and generated Coma found
+an invalid prophecy contract, rather than a difficult valid solver goal. A setter
+returning `&mut Self` originally claimed both:
+
+```
+(^self)@ == updated(self@, value)
+result@ == (^self)@
+```
+
+Here `self@` is the incoming value, `result@` is the returned reference's current
+value, and `^self`/`^result` describe values when their mutable borrows end. The
+caller can mutate the returned reference, so the receiver's eventual value is
+not fixed to the state immediately after the setter. Coma explicitly required
+`view(self.final) == updated(entry)` and
+`view(result.current) == view(self.final)`, which are false for legal callers.
+
+The sound minimal replacement is:
+
+```
+result@ == updated(self@, value)
+(^result)@ == (^self)@
+```
+
+The first clause describes the setter's immediate update and frames all six
+other flags; the second connects eventual changes through the returned reference
+to the eventual receiver value. Full value equality `^result == ^self` is also
+possible. No condition should freeze that eventual value while the returned
+mutable reference remains usable. The existing standard Vec DerefMut specification
+uses the same separation of current and eventual values.
+
+A small proof caller should set a flag, change it again through the returned
+reference, release the borrow, and verify the final flag and unrelated flags.
+Chaining a setter for a different flag checks composition as well. This directly
+tests the missing prophecy relationship. Increasing solver timeout cannot prove
+the original false contract. This consultation did not launch a solver; execution
+remains coordinated by root after the worker's contract changes.
+
+## Passing mathematical indices to ghost permission operations
+
+`Perm::index` and `Perm::split_at` take `Int`, while runtime cursor positions use
+`usize`. Direct Pearlite `@` syntax is not valid inside the Rust body of `ghost!`,
+and calling a logic-only method there is also invalid. This does not require a
+new trusted conversion or a verifier patch.
+
+Existing `Snapshot<T>::into_ghost` accepts `T: Plain`; `Int` already implements
+Plain. Obtain the mathematical value in Pearlite, then extract it in ghost code:
+
+```rust
+let index = snapshot!(position@);
+let element = ghost!(permission.index(index.into_ghost().into_inner()));
+```
+
+A pointer offset can likewise be computed inside the snapshot, for example
+`snapshot!(ptr.sub_logic(*self.origin))`, and passed through the same existing
+adapter. This transfers only a plain integer, not ownership or permission.
+The permission is still the original live allocation's witness, and all range
+and provenance obligations for indexing/splitting remain to be proved.
+
+Relevant existing definitions are `creusot-std/src/snapshot.rs`,
+`ghost.rs::Plain`, and `logic/int.rs::impl Plain for Int`. The recommendation adds
+no crate axiom or unconstrained Ghost::conjure. Translation/proof of the complete
+cursor remains a separate evidence milestone for the memory worker.
+
+## Follow-up: pointer-ordering ICE and fixed byte decomposition
+
+After applying the existing ghost integer adapter, the cursor translation reached
+an ICE at `backend/ty.rs::ty_to_prelude`: non-primitive type `*const u8`. The stack
+passes through executable `RValue::into_why`. Inspection of
+`backend/program.rs` shows that its BinOp path handles Eq/Ne specially and sends
+other operand types to a primitive-number prelude. Actual raw-pointer comparisons
+such as `cursor < end` are therefore the leading concrete cause; changing the
+logical pointer-distance expression is not the first repair to try.
+
+Recommended minimal diagnostic is a tiny raw-pointer `<` translation probe.
+For thin `*const u8`, ordinary address comparisons can be spelled as
+`left.addr() < right.addr()` (and corresponding <=, >, >=) without changing their
+address-order meaning or exposing provenance. Existing `addr()` contracts then
+allow integer translation. This is distinct from the earlier `as usize` casts,
+which expose provenance and must keep `expose_provenance()`. All memory access
+permissions and allocation relationships remain separate proof obligations.
+The proposal was sent to root for adoption; no solver was run by this consult.
+
+For the byte-conversion round-trip proof, avoid opaque `pow(index)` mixed with a
+symbolic array index. Use a fixed eight-byte little-endian Horner packing:
+
+```
+pack8(b) = b[0] + 256 * (b[1] + 256 * (... + 256 * b[7]))
+```
+
+Prove the base-256 step for `0 <= lo < 256` and `hi >= 0`:
+`(lo + 256*hi) % 256 == lo` and `(lo + 256*hi) / 256 == hi`.
+Eight fixed applications yield the lane identities and pack injectivity.
+An exact caller-friendly standard specification can use
+`from_ne_bytes(b)@ == pack8(b)` and `pack8(to_ne_bytes(n)) == n@`;
+byte ranges plus proved pack injectivity make this unique, not a weaker arbitrary
+encoding. The round-trip caller then consumes pack equality and the proved
+injectivity lemma. Never assume the round-trip law as a shortcut.
+
+Keep the first lemma and representative caller in the probe while diagnosing;
+promote only the needed general arithmetic lemmas and standard conversion
+specifications when connecting the actual runtime SWAR body. Big-endian ordering
+and 32-bit width require their corresponding packing functions/configurations.
+
+## SSE prefix proof: split after repeated failures
+
+After two attempts at the combined vector-to-prefix proof, keep three separately
+proved boundaries: (A) actual intrinsic sequence produces a u16 whose bit i is
+exactly the URI predicate on lane i; (B) complement/trailing-zeros maps that mask
+to the maximal initial run of one bits; (C) a thin caller composes A and B. The
+inspected split contracts in `verification/probes/backend-sse-prefix` are sound.
+Do not run a third monolithic attempt with additional assertions.
+
+Use small scalar lemmas before sequence/vector integration:
+
+1. Signed lane to byte: byte_value(x) is in 0..255; byte_value(x)==127 iff
+   x==127i8; unsigned max(x,33)==x iff byte_value(x)>=33.
+2. Compare masks: for a,b each in {-1i8,0i8}, the sign bit of `!a & b` is one iff
+   a==0 and b==-1. Prove the four cases in a small bitwise context.
+3. Narrowing a movemask: i32 to u16 preserves bits 0..15; the known 0..65535 range
+   additionally establishes numeric equality.
+4. u16 complement: for 0<=i<16, bit i of !mask is the negation of bit i of mask.
+
+Prove each body and a representative consumer. If vector quantifier application
+is unstable, give a pointwise lemma one arbitrary lane index and the explicit
+intrinsic facts at that index, then assemble the quantified mask result once.
+Keep lane arithmetic, mask narrowing, and first-set-bit reasoning out of the same
+large VC. The load-to-lanes and feature-support bridges remain separate gaps.
+
+The existing `trailing_zeros_logic` standard contract is stronger than its probe
+comment initially suggested: for r != BITS,
+
+```
+x << (BITS-r-1) == 1 << (BITS-1)
+```
+
+already entails that bits below r are zero and bit r is one. What is absent is a
+direct postcondition phrased in nth_bit. Thus the probe-local trusted
+`exact_u16_trailing_zeros` wrapper should ultimately be body-proved from the
+existing shift contract via a shift-to-bit lemma. If the symbolic shift is hard,
+use independent fixed-shift cases for r=0..16. Do not describe the existing
+standard contract as failing to specify the lower bits. No solver was launched
+by this consultation.
+
+## Raw-atomic erasure follow-up
+
+The static-bridge worker reported that scratch support adding raw AtomicU8
+Container/HasTimestamp and permission-aware load_with/store_with can coexist with
+an erasure audit using `--erasure-check=error -- -Z build-std=std`. Small untrusted
+helpers around actual std AtomicU8 new/load/store passed that audit. Contractless
+standard-call warnings remained, and trusted extension bodies were skipped by
+the erasure checker. Consequently this establishes a useful call-erasure route,
+not a proof of the extension history contracts or a complete static bridge.
+
+The generic static feature requires its own item kind (not Constant), stable
+identity/reference lowering, one-time initializer/resource obligations, persistent
+invariant access, and an actual primitive-call erasure link. Standard atomic
+history and static allocation semantics are the declared TCB; the cache invariant
+and every stored feature value remain crate proof obligations. The feasibility
+of that whole compiler/resource extension is still unestablished.
