@@ -1,0 +1,69 @@
+(* #"/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 143 0 143 67 *)
+
+let%span scapacity_ops = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 144 12 144 26
+let%span scapacity_ops'0 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 144 4 144 27
+let%span scapacity_ops'1 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 144 38 144 54
+let%span scapacity_ops'2 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 138 29 138 49
+let%span scapacity_ops'3 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 139 28 139 89
+let%span scapacity_ops'4 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 140 28 140 61
+let%span scapacity_ops'5 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 141 28 141 80
+let%span scapacity_ops'6 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 142 28 142 66
+let%span scapacity_ops'7 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 143 0 143 67
+let%span scapacity_ops'8 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 30 38 30 66
+let%span scapacity_ops'9 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 30 52 30 66
+let%span scapacity_ops'10 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 30 38 30 48
+
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+use int.Int
+
+constant const_VEC_POS_OFFSET: UInt64BW.t = [%#scapacity_ops'7] (5: UInt64BW.t)
+
+constant const_NOT_VEC_POS_MASK: UInt64BW.t = [%#scapacity_ops'7] (31: UInt64BW.t)
+
+constant const_MAX: UInt64BW.t = (18446744073709551615: UInt64BW.t)
+
+constant const_MAX_VEC_POS [#"/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 30 0 30 35] : UInt64BW.t
+
+let set_MAX_VEC_POS (return) = bb0
+  [ bb0 = s0
+    [ s0 = [ &_1 <- UInt64BW.lt ([%#scapacity_ops'9] const_VEC_POS_OFFSET) ([%#scapacity_ops'8] (64: UInt64BW.t)) ] s1
+    | s1 = {[@expl:Shr overflow] [%#scapacity_ops'8] _1} s2
+    | s2 = UInt64BW.shr [%#scapacity_ops'8] {[%#scapacity_ops'10] const_MAX}
+        {UInt64BW.to_BV256 ([%#scapacity_ops'9] const_VEC_POS_OFFSET)} (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ] [ & _ret: UInt64BW.t = Any.any_l () | & _1: bool = Any.any_l () ]
+  [ return (_const: UInt64BW.t) -> -{const_MAX_VEC_POS = _const}- return ]
+
+constant const_KIND_MASK: UInt64BW.t = [%#scapacity_ops'7] (1: UInt64BW.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let set_vec_pos_in_data [#"/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 143 0 143 67]
+  (data: UInt64BW.t) (pos: UInt64BW.t) (return (x: UInt64BW.t)) =
+{[@stop_split] [@expl:set_vec_pos_in_data requires] [%#scapacity_ops'2] UInt64BW.t'int pos
+  <= UInt64BW.t'int const_MAX_VEC_POS}
+  (! set_MAX_VEC_POS
+    (bb0
+    [ bb0 = s0
+      [ s0 = UInt64BW.shl [%#scapacity_ops'0] {pos} {UInt64BW.to_BV256 ([%#scapacity_ops] const_VEC_POS_OFFSET)}
+          (fun (_x: UInt64BW.t) -> [ &_14 <- _x ] s1)
+      | s1 = [ &_16 <- UInt64BW.bw_and data ([%#scapacity_ops'1] const_NOT_VEC_POS_MASK) ] s2
+      | s2 = [ &_ret <- UInt64BW.bw_or _14 _16 ] s3
+      | s3 = return {_ret} ] ]
+    [ & _ret: UInt64BW.t = Any.any_l ()
+    | & data: UInt64BW.t = data
+    | & pos: UInt64BW.t = pos
+    | & _14: UInt64BW.t = Any.any_l ()
+    | & _16: UInt64BW.t = Any.any_l () ]))
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:set_vec_pos_in_data ensures] ([@stop_split] [@expl:set_vec_pos_in_data ensures #0] [%#scapacity_ops'3] result
+      = UInt64BW.bw_or (UInt64BW.shl pos const_VEC_POS_OFFSET) (UInt64BW.bw_and data const_NOT_VEC_POS_MASK))
+    /\ ([@stop_split] [@expl:set_vec_pos_in_data ensures #1] [%#scapacity_ops'4] UInt64BW.shr result const_VEC_POS_OFFSET
+      = pos)
+    /\ ([@stop_split] [@expl:set_vec_pos_in_data ensures #2] [%#scapacity_ops'5] UInt64BW.bw_and result const_NOT_VEC_POS_MASK
+      = UInt64BW.bw_and data const_NOT_VEC_POS_MASK)
+    /\ ([@stop_split] [@expl:set_vec_pos_in_data ensures #3] [%#scapacity_ops'6] UInt64BW.bw_and result const_KIND_MASK
+    = UInt64BW.bw_and data const_KIND_MASK)}
+    (! return {result}) ]

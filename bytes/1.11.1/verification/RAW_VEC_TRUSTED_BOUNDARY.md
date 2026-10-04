@@ -129,3 +129,33 @@ B3-bound remains a physical deallocation variant, with no protocol trust.
 The initial thirty-four-file snapshot is retained separately as historical
 evidence; the current source/task hashes are in
 `artifacts/evidence/bound-constructor-body-manifest.json`.
+
+## Next integration gate and limits
+
+The next local gate collects genuine physical region resources into a sealed
+retired pool. An empty seed owns only the RA unit; it grants neither byte access
+nor allocation liveness. Retirement must consume the original affine resource.
+Finishing requires exact full-capacity coverage and preserves slot values.
+Allocation metadata or a zero reference count must never mint those resources.
+
+A bounded sequential registry gate may store Recovery and the pool in a
+NonAtomicInvariant, with explicit caller-supplied namespace Tokens. Both
+retirement orders must recover full resources before explicit B3 cleanup.
+Tokens must not be duplicated or recreated by a trusted helper. This gate
+cannot establish concurrent use or the native reference-count branch.
+
+Astra's source review found that AtomicInvariant's Objective bound applies to
+its Sync implementation, not to local construction/opening. Non-objective
+physical state is therefore usable locally. Vanilla 0.13 nevertheless has no
+modeled native core AtomicUsize::fetch_sub, and switching invariant kinds does
+not supply that missing scalar-value contract.
+
+Actual Shared integration will require replacing its ordinary Vec ownership
+with one sealed raw allocation descriptor and connecting every counter access.
+A possible local generic sequential atomic bridge would be additional trusted
+primitive code, requiring exclusive sealed counter authority and retaining the
+actual Relaxed/Release/Acquire operations. It must specify scalar changes only;
+tickets, last-owner uniqueness and physical resource recovery must be proved
+above it. No such bridge is implemented at this checkpoint. Cross-thread
+publication/view transfer and release-sequence reasoning remain separate open
+obligations, as do automatic Drop effects and the full-crate vtable cycles.

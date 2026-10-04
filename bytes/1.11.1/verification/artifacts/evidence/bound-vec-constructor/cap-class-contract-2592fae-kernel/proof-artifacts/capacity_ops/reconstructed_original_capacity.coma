@@ -1,0 +1,133 @@
+(* #"/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 104 0 104 66 *)
+
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span sord'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 22 8 22 20
+let%span scapacity_ops = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 105 32 105 62
+let%span scapacity_ops'0 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 105 4 105 63
+let%span scapacity_ops'1 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 99 28 99 41
+let%span scapacity_ops'2 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 100 28 100 74
+let%span scapacity_ops'3 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 101 28 101 88
+let%span scapacity_ops'4 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 102 28 102 57
+let%span scapacity_ops'5 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 61 28 61 98
+let%span scapacity_ops'6 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 63 4 69 5
+let%span scapacity_ops'7 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 71 28 71 73
+let%span scapacity_ops'8 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 84 29 84 97
+let%span scapacity_ops'9 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 85 28 85 63
+let%span scapacity_ops'10 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 86 28 86 83
+let%span scapacity_ops'11 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 87 28 87 75
+let%span scapacity_ops'12 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 88 28 88 57
+let%span scapacity_ops'13 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 104 0 104 66
+let%span scapacity_ops'14 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 43 8 51 9
+let%span snum = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 236 22 236 43
+let%span snum'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 237 22 237 96
+let%span snum'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 238 22 238 64
+
+use creusot.int.UInt64BW
+use creusot.int.UInt32BW
+use creusot.prelude.Any
+use int.Int
+
+constant const_MAX_ORIGINAL_CAPACITY_WIDTH: UInt64BW.t = [%#scapacity_ops'13] (17: UInt64BW.t)
+
+constant const_MIN_ORIGINAL_CAPACITY_WIDTH: UInt64BW.t = [%#scapacity_ops'13] (10: UInt64BW.t)
+
+constant const_BITS: UInt32BW.t = (64: UInt32BW.t)
+
+function leading_zeros_usize (self: UInt64BW.t) : UInt32BW.t
+
+axiom leading_zeros_usize_spec:
+  forall self: UInt64BW.t [leading_zeros_usize self]. [%#snum] UInt32BW.le (leading_zeros_usize self) const_BITS
+
+axiom leading_zeros_usize_spec'0:
+  forall self: UInt64BW.t [leading_zeros_usize self]. [%#snum'0] (leading_zeros_usize self <> const_BITS)
+    = (UInt64BW.shr self (UInt64BW.of_BV256 (UInt32BW.to_BV256 (UInt32BW.sub (UInt32BW.sub const_BITS (leading_zeros_usize self)) (1: UInt32BW.t))))
+    = (1: UInt64BW.t))
+
+axiom leading_zeros_usize_spec'1:
+  forall self: UInt64BW.t [leading_zeros_usize self]. [%#snum'1] (leading_zeros_usize self = const_BITS)
+    = (self = (0: UInt64BW.t))
+
+constant const_PTR_WIDTH: UInt64BW.t = [%#scapacity_ops'13] (64: UInt64BW.t)
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+function original_capacity_class [#"/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 41 0 41 62] (cap: UInt64BW.t) : int
+ = [%#scapacity_ops'14] if UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))
+  = UInt64BW.t'int const_PTR_WIDTH then
+    0
+  else
+    if gt_log_Int (UInt64BW.t'int const_PTR_WIDTH
+    - UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))) (UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH
+    - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH) then
+      UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH
+    else
+      UInt64BW.t'int const_PTR_WIDTH
+      - UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))
+  
+
+
+let original_capacity_to_repr (cap: UInt64BW.t) (return (x: UInt64BW.t)) = any
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:original_capacity_to_repr ensures] ([@stop_split] [@expl:original_capacity_to_repr ensures #0] [%#scapacity_ops'5] UInt64BW.t'int result
+      <= UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH)
+    /\ ([@stop_split] [@expl:original_capacity_to_repr ensures #1] [%#scapacity_ops'6] UInt64BW.t'int result
+      = (if UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))
+      = UInt64BW.t'int const_PTR_WIDTH then
+        0
+      else
+        if gt_log_Int (UInt64BW.t'int const_PTR_WIDTH
+        - UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))) (UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH
+        - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH) then
+          UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH
+        else
+          UInt64BW.t'int const_PTR_WIDTH
+          - UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))
+      
+      ))
+    /\ ([@stop_split] [@expl:original_capacity_to_repr ensures #2] [%#scapacity_ops'7] UInt64BW.t'int result
+    = original_capacity_class cap)}
+    (! return {result}) ]
+
+predicate gt_log_usize [@inline:trivial] (self: UInt64BW.t) (other: UInt64BW.t) = [%#sord'0] UInt64BW.lt other self
+
+meta "rewrite_def" predicate gt_log_usize
+
+predicate ge_log_usize [@inline:trivial] (self: UInt64BW.t) (other: UInt64BW.t) = [%#sord] UInt64BW.le other self
+
+meta "rewrite_def" predicate ge_log_usize
+
+let original_capacity_from_repr (repr: UInt64BW.t) (return (x: UInt64BW.t)) =
+{[@stop_split] [@expl:original_capacity_from_repr requires] [%#scapacity_ops'8] UInt64BW.t'int repr
+  <= UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH}
+  any
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:original_capacity_from_repr ensures] ([@stop_split] [@expl:original_capacity_from_repr ensures #0] [%#scapacity_ops'9] repr
+        = (0: UInt64BW.t) -> result = (0: UInt64BW.t))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #1] [%#scapacity_ops'10] gt_log_usize repr (0: UInt64BW.t)
+      -> result = UInt64BW.shl (1: UInt64BW.t) (UInt64BW.add repr (9: UInt64BW.t)))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #2] [%#scapacity_ops'11] gt_log_usize repr (0: UInt64BW.t)
+      -> ge_log_usize result (UInt64BW.shl (1: UInt64BW.t) (10: UInt64BW.t)))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #3] [%#scapacity_ops'12] UInt64BW.le result (UInt64BW.shl (1: UInt64BW.t) (16: UInt64BW.t)))}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let reconstructed_original_capacity [#"/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 104 0 104 66]
+  (cap: UInt64BW.t) (return (x: UInt64BW.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = original_capacity_to_repr [%#scapacity_ops] {cap} (fun (_x: UInt64BW.t) -> [ &_9 <- _x ] s1)
+    | s1 = original_capacity_from_repr [%#scapacity_ops'0] {_9} (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt64BW.t = Any.any_l () | & cap: UInt64BW.t = cap | & _9: UInt64BW.t = Any.any_l () ])
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:reconstructed_original_capacity ensures] ([@stop_split] [@expl:reconstructed_original_capacity ensures #0] [%#scapacity_ops'1] UInt64BW.le result cap)
+    /\ ([@stop_split] [@expl:reconstructed_original_capacity ensures #1] [%#scapacity_ops'2] UInt64BW.lt cap (UInt64BW.shl (1: UInt64BW.t) (10: UInt64BW.t))
+      -> result = (0: UInt64BW.t))
+    /\ ([@stop_split] [@expl:reconstructed_original_capacity ensures #2] [%#scapacity_ops'3] ge_log_usize cap (UInt64BW.shl (1: UInt64BW.t) (10: UInt64BW.t))
+      -> ge_log_usize result (UInt64BW.shl (1: UInt64BW.t) (10: UInt64BW.t)))
+    /\ ([@stop_split] [@expl:reconstructed_original_capacity ensures #3] [%#scapacity_ops'4] UInt64BW.le result (UInt64BW.shl (1: UInt64BW.t) (16: UInt64BW.t)))}
+    (! return {result}) ]

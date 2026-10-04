@@ -20,10 +20,16 @@ forgets the moved handle after deallocation. The result verifies that
 constructor path and explicit cleanup in the extracted context, not automatic
 drop behavior or the full runtime type.
 
+The `from_vec` postcondition also states that the packed original-capacity
+class bits encode the returned `cap` field. Its logical class function is
+defined from the same `leading_zeros_logic` expression used to specify the
+native capacity encoder; the runtime constructor body is unchanged.
+
 The native `actual_from_vec` tests check that construction preserves the
-allocation pointer, capacity, length, and bytes, and that `BytesMut` remains four
-machine words. The test manually rebuilds the Vec because the isolated
-extraction intentionally has no `BytesMut` destructor.
+allocation pointer, capacity, length, and bytes; encodes a nonzero
+original-capacity class in the metadata word; and keeps `BytesMut` at four
+machine words. They manually rebuild the Vec because the isolated extraction
+intentionally has no `BytesMut` destructor.
 
 Run the positive helper proof, its negative control, and the source-extracted
 constructor gate from the crate root with the pinned toolchain:

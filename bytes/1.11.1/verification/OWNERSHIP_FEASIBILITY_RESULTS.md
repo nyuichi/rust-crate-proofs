@@ -95,3 +95,25 @@ pointer comparisons. No such runtime substitution or physical contract has
 been added at this checkpoint.
 
 Actual BytesMut split, mutation and cleanup integration remain unproved.
+
+## Subsequent local bridge checkpoint (2026-10-04)
+
+The earlier "next gate" paragraphs above describe the initial feasibility
+snapshot. Commit `2592fae` now contains the sealed physical Vec/raw/access
+bridge and the exact-source from_vec/explicit unique cleanup gate. Actual
+try_unsplit uses address-only comparison helpers, but its body remains unproved.
+See STATUS.md and RAW_VEC_TRUSTED_BOUNDARY.md for the current evidence scope.
+
+Astra's follow-up review distinguishes local storage from concurrent sharing:
+NonAtomicInvariant can retain non-objective Recovery and PhysicalRegion state,
+using caller-supplied namespace Tokens. AtomicInvariant has an Objective bound
+on Sync, not on local construction/opening. Neither invariant supplies the
+missing contract for native core AtomicUsize::fetch_sub in vanilla 0.13.
+
+An explicit sequential Shared gate can use cfg-only token parameters without
+changing the normal public API. It must not duplicate Tokens between handles,
+and cannot connect unchanged automatic Drop to that protocol. A local generic
+native-counter bridge is possible but would add atomic primitive trust; it
+must preserve native orderings and require sealed exclusive counter authority.
+Reference tickets, last-owner uniqueness and resource recovery cannot be
+trusted. Cross-thread release-sequence/view-transfer reasoning remains open.

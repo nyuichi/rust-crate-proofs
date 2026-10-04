@@ -1,0 +1,25 @@
+(* #"/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 132 0 132 53 *)
+
+let%span scapacity_ops = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 133 12 133 26
+let%span scapacity_ops'0 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 133 4 133 26
+let%span scapacity_ops'1 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 131 28 131 60
+let%span scapacity_ops'2 = "/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 132 0 132 53
+
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+
+constant const_VEC_POS_OFFSET: UInt64BW.t = [%#scapacity_ops'2] (5: UInt64BW.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let vec_pos_from_data [#"/tmp/bytes-cap-class-gate.mL4SGh/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 132 0 132 53]
+  (data: UInt64BW.t) (return (x: UInt64BW.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = UInt64BW.shr [%#scapacity_ops'0] {data} {UInt64BW.to_BV256 ([%#scapacity_ops] const_VEC_POS_OFFSET)}
+        (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ] [ & _ret: UInt64BW.t = Any.any_l () | & data: UInt64BW.t = data ])
+  [ return (result: UInt64BW.t) -> {[@stop_split] [@expl:vec_pos_from_data ensures] [%#scapacity_ops'1] result
+    = UInt64BW.shr data const_VEC_POS_OFFSET}
+    (! return {result}) ]

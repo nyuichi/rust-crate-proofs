@@ -21,15 +21,21 @@ actual `BytesMut::from_vec` source body, after the explicit
 constructor and release method bodies. It predates the conversion helper's
 body proof and is retained as a checkpoint.
 
-`constructor-body-body-proved-conversion/` is the current source-extracted
-gate after changing `RawAllocation::into_bound_ptr_at_zero` from trusted to
-body-proved. All 35 files pass. Its archive has 35 Coma files and 35 proof JSON
-files, actual extracted Rust and source-range/hash manifest, plus SHA-256
-source digests. The native constructor test is also archived in this directory;
-it passed allocation identity, capacity, length, contents, and four-word
-layout checks.
+`constructor-body-body-proved-conversion/` records the source-extracted gate
+after changing `RawAllocation::into_bound_ptr_at_zero` from trusted to
+body-proved. All 35 files passed. Its archive has 35 Coma files and 35 proof
+JSON files, actual extracted Rust and source-range/hash manifest, plus SHA-256
+source digests. Its native constructor tests passed allocation identity,
+capacity, length, contents, and four-word layout checks.
 
-Both constructor gates verify the extracted `BytesMut::from_vec` body and its
+`cap-class-contract-2592fae-kernel/` adds the packed capacity-class
+postcondition tying `BytesMut::data` to the capacity field returned by
+`from_vec`. It proves 35 files and passes 3 native tests, including a nonzero
+capacity class. To avoid racing pool work, this checkpoint uses the committed
+2592fae `raw_vec.rs` and `owned_region.rs` snapshot; its exact mixed-source
+scope and hashes are recorded in that archive.
+
+These constructor gates verify the extracted `BytesMut::from_vec` body and its
 explicit `proof_release_unique_at_zero` cleanup. They do not establish
 full-runtime `BytesMut` integration, automatic `Drop`, promotion, split,
 reference count, or shared-storage behavior.

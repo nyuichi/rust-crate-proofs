@@ -13,8 +13,15 @@ VCs; two native affine fixtures reject moves with E0382. See the
 [bound constructor probe](verification/probes/bound-vec-constructor/README.md)
 and its exact source/evidence snapshots.
 
+A subsequent constructor gate strengthens the packed original-capacity class
+relation to the native capacity. Its 35-file proof and three native tests
+(including a nonzero 2 KiB class) use the archived `2592fae` physical modules
+plus the strengthened constructor/arithmetic source, in an isolated temporary
+crate. This is an exact recorded component snapshot, not a replay of in-flight
+physical-pool source or full-crate integration.
 
-The local B1/B2/B4 Vec/raw bridge passes its eleven-file isolated gate:
+
+The earlier local B1/B2/B4 Vec/raw bridge checkpoint passed its eleven-file isolated gate:
 detach, split, mutate independently through two live disjoint slices, join,
 and restore the changed contents while preserving all other bytes. The three
 physical Vec/access bridges are trusted and reviewed; split/join and caller
@@ -22,8 +29,9 @@ bodies are proved. Three B2 negative controls reject partial coverage, Unknown
 initialization and mismatched namespaces. This uses unmodified
 Creusot/creusot-std 0.13 and keeps the ordinary Vec model unchanged. See the
 [physical trusted boundary](verification/RAW_VEC_TRUSTED_BOUNDARY.md).
-Explicit cleanup now also passes the fourteen-file isolated gate described
-below; actual BytesMut integration remains open.
+Explicit raw cleanup also passed the fourteen-file checkpoint described
+below. The current constructor gate above connects actual from_vec source;
+Shared, split and normal Drop integration remain open.
 
 The actual `BytesMut::try_unsplit` now uses an address-only comparison helper
 for its buffer and Shared pointers. Normal builds retain native thin-pointer
@@ -42,9 +50,9 @@ be shared through existing lifetime fractions and recovered after joining all
 fractions; this is an isolated foundation, not a BytesMut/refcount proof.
 The new owned-region kernel proves seven isolated files, including split/join
 and exact slot preservation across a returned pair of regions. Its overlap
-negative rejects the intended join precondition. It remains a model-only
-ledger until a reviewed physical Vec/raw bridge connects it to native
-allocation ownership. Separate native RawBuffer bodies have five passing
+negative rejects the intended join precondition. That isolated kernel is a model-only ledger. The subsequent reviewed
+Vec/raw bridge binds a sealed PhysicalRegion wrapper to native allocation
+ownership; the model-only constructor itself grants no byte access. Separate native RawBuffer bodies have five passing
 isolated tests; no physical trusted contracts or BytesMut integration are
 established by those tests.
 
