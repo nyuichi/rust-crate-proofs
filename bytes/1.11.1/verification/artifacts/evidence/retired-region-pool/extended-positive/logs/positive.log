@@ -1,0 +1,42 @@
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/retired-region-pool; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 7 files, 261.5KiB total
+    Checking bytes-retired-region-pool v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/retired-region-pool)
+warning: methods `slots` and `join` are never used
+   --> src/../../../../src/ownership_proof/owned_region.rs:149:19
+    |
+ 95 | impl OwnedRegion {
+    | ---------------- methods in this implementation
+...
+149 |     pub(crate) fn slots(self) -> FMap<Int, Excl<Option<u8>>> {
+    |                   ^^^^^
+...
+243 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: associated items `unbound` and `as_non_null` are never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:163:19
+    |
+159 | impl BoundPtr {
+    | ------------- associated items in this implementation
+...
+163 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
+    |                   ^^^^^^^
+...
+184 |     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
+    |                   ^^^^^^^^^^^
+
+warning: method `join` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:395:19
+    |
+309 | impl PhysicalRegion {
+    | ------------------- method in this implementation
+...
+395 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: `bytes-retired-region-pool` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.79s
+No dangling files found
+Proved (25 files) ✔

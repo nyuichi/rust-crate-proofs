@@ -180,3 +180,11 @@ Both retirement orders invoke explicit deallocation. This core gate does not
 prove native Shared, mutable access followed by retirement, refcount, tickets,
 concurrency or automatic Drop. Capacity-zero completion may use the empty unit,
 which grants no byte access; unique Recovery remains necessary to deallocate.
+
+The final extension proves 25 files and passes two native tests. It adds split
+at capacity and independent disjoint mutation followed by retirement and B2
+recovery, preserving both changed bytes and all other contents. Each negative
+feature emits 26 files: half-finish rejects one full-coverage leaf; the assumed
+sealed-input namespace API check rejects only the two identity-matching leaves.
+Neither negative executes invalid native operations. Per-configuration sources
+and full logs are archived separately from the core checkpoint.

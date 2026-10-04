@@ -6,8 +6,14 @@ The sealed retired-region pool core gate proves 23 generated files, including
 empty seed, affine retirement, full-coverage extraction and both explicit
 retirement orders followed by B3 deallocation. These are genuine B1 physical
 resources; no new trusted function was added. The gate does not contain native
-Shared, reference counting, or automatic Drop. Mutation and incomplete-recovery
-controls are the next extension.
+Shared, reference counting, or automatic Drop. The extended gate now proves 25 files and passes two native tests, including
+independent B4 changes followed by pool recovery and B2 Vec restoration.
+The genuine half-region path rejects one coverage leaf; the sealed-input
+namespace API control rejects two matching leaves (not a two-allocation
+construction proof).
+A fresh full-runtime translation after this core change again stops on only
+the two known static/Owned vtable recursion cycles; no integrated runtime
+proof was produced (`runtime-retired-pool-translation.log`).
 
 The exact-source constructor/explicit unique-at-zero cleanup gate now passes
 35 generated proof files. This proves the extracted actual annotated from_vec
