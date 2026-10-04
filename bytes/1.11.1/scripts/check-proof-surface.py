@@ -26,7 +26,7 @@ for item in doc['index'].values():
     if not span or item['crate_id'] != 0 or kind not in ('function', 'trait', 'impl', 'static', 'constant', 'macro'):
         continue
     source = ROOT / span['filename']
-    if not source.is_file():
+    if not source.resolve().is_relative_to(ROOT / 'src') or not source.is_file():
         continue
     owner = parents.get(item['id'], '')
     name = item['name'] or kind
@@ -55,7 +55,7 @@ else:
                           'implementation_status', 'assumption_ids', 'proof_artifact', 'next_action'):
                 row[field] = previous[field]
     with path.open('w') as f:
-        writer = csv.DictWriter(f, fieldnames=list(rows[0])); writer.writeheader(); writer.writerows(rows)
+        writer = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n"); writer.writeheader(); writer.writerows(rows)
     # Bootstrap candidate list. Every unsafe token must be reviewed into semantic obligations.
     # It intentionally includes comment candidates rather than silently dropping obligations.
     unsafe = []
@@ -68,7 +68,7 @@ else:
                     operation=text.strip(), required_permission='review', initialization_condition='review',
                     layout_or_provenance_condition='review', ordering='review', discharging_lemma='', proof_artifact='', status='not_started'))
     with (ROOT/'UNSAFE_LEDGER.csv').open('w') as f:
-        writer=csv.DictWriter(f,fieldnames=list(unsafe[0]));writer.writeheader();writer.writerows(unsafe)
+        writer=csv.DictWriter(f,fieldnames=list(unsafe[0]),lineterminator="\n");writer.writeheader();writer.writerows(unsafe)
     manifest=dict(rustdoc_format=doc['format_version'],rustdoc_sha256=hashlib.sha256(args.rustdoc_json.read_bytes()).hexdigest(),
                   configuration='std;x86_64-unknown-linux-gnu',compiler_item_count=len(rows),
                   coverage_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
