@@ -79,9 +79,19 @@ has no Drop implementation, and adds no Creusot trusted contracts.
 The next gate is the reviewed Vec/raw/access bridge. Pointer comparisons need
 particular care: native raw-pointer equality is translated to logical pointer
 equality, while the address-only comparison specification grants no such
-identity. The paired feasibility probe is being checked before accepting any
-physical bridge contract. Physical identity must come from extraction or
+identity. The [paired feasibility probe](probes/pointer-equality-feasibility/README.md)
+proves both default files and rejects address-only equality implying logical
+pointer identity at the intended VC. This confirms the difference in the
+compiler model and specifications; it is not a concrete provenance counterexample.
+Before accepting any physical bridge contract, physical identity must come from extraction or
 provenance-preserving derivation, with allocation identity established by
 resource namespaces rather than address comparison.
+
+The proved access path must audit native raw-pointer `==`/`!=` out of the
+identity reasoning. Runtime thin-pointer comparisons can use `addr_eq`, with
+ticket/resource identity proved independently. In particular, future
+`try_unsplit` integration must examine both buffer-pointer and control-block
+pointer comparisons. No such runtime substitution or physical contract has
+been added at this checkpoint.
 
 Actual BytesMut split, mutation and cleanup integration remain unproved.

@@ -1,0 +1,26 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/pointer-equality-feasibility/src/lib.rs" 25 0 25 88 *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/pointer-equality-feasibility/src/lib.rs" 26 4 26 35
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/pointer-equality-feasibility/src/lib.rs" 24 10 24 34
+let%span sptr = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 475 22 475 66
+
+use creusot.prelude.Opaque
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+
+let addr_eq_u8 (p: Opaque.ptr) (q: Opaque.ptr) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:addr_eq ensures] [%#sptr] result
+    = (Ptr.addr_logic_u64 p = Ptr.addr_logic_u64 q)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let wrong_addr_eq_implies_logical_identity [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/pointer-equality-feasibility/src/lib.rs" 25 0 25 88]
+  (left: Opaque.ptr) (right: Opaque.ptr) (return (x: bool)) = (! bb0
+  [ bb0 = s0 [ s0 = addr_eq_u8 [%#slib] {left} {right} (fun (_x: bool) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & left: Opaque.ptr = left | & right: Opaque.ptr = right ])
+  [ return (result: bool) -> {[@stop_split] [@expl:wrong_addr_eq_implies_logical_identity ensures] [%#slib'0] result
+    -> left = right}
+    (! return {result}) ]
