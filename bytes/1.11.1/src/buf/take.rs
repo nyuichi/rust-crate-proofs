@@ -1,6 +1,5 @@
 use crate::Buf;
 
-use core::cmp;
 
 #[cfg(feature = "std")]
 use std::io::IoSlice;
@@ -134,25 +133,25 @@ impl<T> Take<T> {
 
 impl<T: Buf> Buf for Take<T> {
     fn remaining(&self) -> usize {
-        cmp::min(self.inner.remaining(), self.limit)
+        crate::bounded_ops::bounded_len(self.inner.remaining(), self.limit)
     }
 
     fn chunk(&self) -> &[u8] {
         let bytes = self.inner.chunk();
-        &bytes[..cmp::min(bytes.len(), self.limit)]
+        crate::bounded_ops::bounded_chunk(bytes, self.limit)
     }
 
     fn advance(&mut self, cnt: usize) {
         assert!(cnt <= self.limit);
         self.inner.advance(cnt);
-        self.limit -= cnt;
+        crate::bounded_ops::decrease_limit(&mut self.limit, cnt);
     }
 
     fn copy_to_bytes(&mut self, len: usize) -> crate::Bytes {
         assert!(len <= self.remaining(), "`len` greater than remaining");
 
         let r = self.inner.copy_to_bytes(len);
-        self.limit -= len;
+        crate::bounded_ops::decrease_limit(&mut self.limit, len);
         r
     }
 

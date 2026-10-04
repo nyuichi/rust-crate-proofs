@@ -84,6 +84,7 @@ extern crate std;
 pub mod buf;
 pub use crate::buf::{Buf, BufMut};
 
+mod bounded_ops;
 mod bytes;
 mod bytes_mut;
 mod fmt;

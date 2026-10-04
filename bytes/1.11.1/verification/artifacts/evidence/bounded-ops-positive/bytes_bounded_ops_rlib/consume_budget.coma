@@ -1,0 +1,50 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 22 0 22 62 *)
+
+let%span sbounded_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/../../../../src/bounded_ops.rs" 18 29 18 48
+let%span sbounded_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/../../../../src/bounded_ops.rs" 19 28 19 59
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 23 4 23 50
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 20 11 20 27
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 21 10 21 36
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+let decrease_limit (limit: MutBorrow.t UInt64.t) (count: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:decrease_limit requires] [%#sbounded_ops] UInt64.t'int count <= UInt64.t'int limit.current}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:decrease_limit ensures] [%#sbounded_ops'0] UInt64.t'int limit.final
+    = UInt64.t'int limit.current - UInt64.t'int count}
+    (! return {result}) ]
+
+predicate resolve_refmut_usize [@inline:trivial] (_1: MutBorrow.t UInt64.t) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_usize
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let consume_budget [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 22 0 22 62]
+  (limit: UInt64.t) (count: UInt64.t) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:consume_budget requires] [%#slib'0] UInt64.t'int count <= UInt64.t'int limit}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_mut <UInt64.t> {limit}
+        (fun (_bor: MutBorrow.t UInt64.t) -> [ &_11 <- _bor ] [ &limit <- _bor.final ] s1)
+    | s1 = MutBorrow.borrow_final <UInt64.t> {_11.current} {MutBorrow.get_id _11}
+        (fun (_bor: MutBorrow.t UInt64.t) -> [ &_10 <- _bor ] [ &_11 <- { _11 with current = _bor.final } ] s2)
+    | s2 = decrease_limit [%#slib] {_10} {count} (fun (_x: ()) -> [ &_9 <- _x ] s3)
+    | s3 = -{resolve_refmut_usize _11}- s4
+    | s4 = [ &_ret <- limit ] s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l ()
+  | & limit: UInt64.t = limit
+  | & count: UInt64.t = count
+  | & _9: () = Any.any_l ()
+  | & _10: MutBorrow.t UInt64.t = Any.any_l ()
+  | & _11: MutBorrow.t UInt64.t = Any.any_l () ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:consume_budget ensures] [%#slib'1] UInt64.t'int result
+    = UInt64.t'int limit - UInt64.t'int count}
+    (! return {result}) ]

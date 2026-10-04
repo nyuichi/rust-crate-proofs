@@ -33,3 +33,15 @@ Reproduction: `scripts/verify-bytes.sh helpers`, `storage`, `deallocation`, and
 Proof commands require elevated execution because Why3 uses Unix-domain sockets.
 Artifacts: `verification/artifacts/`; installation/full logs additionally under
 `/workspace/bytes-proof-artifacts/`.
+
+## Subsequent component progress
+
+- Bounded adapter helpers: five Coma files prove on vanilla 0.13 (minimum,
+  arbitrary-byte prefix, budget decrement and representative callers).
+  The wrong-prefix postcondition translates and fails its intended VC.
+- Take, Limit, Reader and Writer now call those shared helpers in their ordinary
+  runtime. Their generic trait-level composition is not yet proved.
+- Default-std ordinary tests and doctests pass after these refactorings; see
+  `verification/artifacts/logs/component-runtime-tests.log`.
+- API inventory is a compiler snapshot from before these new extractions; it
+  must be regenerated before the final component audit.

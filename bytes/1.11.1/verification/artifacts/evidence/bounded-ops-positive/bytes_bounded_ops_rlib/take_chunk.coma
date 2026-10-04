@@ -1,0 +1,47 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 9 0 9 54 *)
+
+let%span sbounded_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/../../../../src/bounded_ops.rs" 12 28 12 119
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 10 4 10 44
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 6 10 6 33
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 7 10 7 39
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 8 10 8 80
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+let bounded_chunk (bytes: Slice64.slice UInt8.t) (limit: UInt64.t) (return (x: Slice64.slice UInt8.t)) = any
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:bounded_chunk ensures] [%#sbounded_ops] Slice64.view result
+    = Seq.([..]) (Slice64.view bytes) 0 (if Seq.length (Slice64.view bytes) < UInt64.t'int limit then
+      Seq.length (Slice64.view bytes)
+    else
+      UInt64.t'int limit
+    )}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let take_chunk [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bounded-ops/src/lib.rs" 9 0 9 54]
+  (bytes: Slice64.slice UInt8.t) (limit: UInt64.t) (return (x: Slice64.slice UInt8.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = bounded_chunk [%#slib] {bytes} {limit} (fun (_x: Slice64.slice UInt8.t) -> [ &_9 <- _x ] s1)
+    | s1 = [ &_ret <- _9 ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: Slice64.slice UInt8.t = Any.any_l ()
+  | & bytes: Slice64.slice UInt8.t = bytes
+  | & limit: UInt64.t = limit
+  | & _9: Slice64.slice UInt8.t = Any.any_l () ])
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:take_chunk ensures] ([@stop_split] [@expl:take_chunk ensures #0] [%#slib'0] Seq.length (Slice64.view result)
+      <= UInt64.t'int limit)
+    /\ ([@stop_split] [@expl:take_chunk ensures #1] [%#slib'1] Seq.length (Slice64.view result)
+      <= Seq.length (Slice64.view bytes))
+    /\ ([@stop_split] [@expl:take_chunk ensures #2] [%#slib'2] forall i: int. 0 <= i
+        /\ i < Seq.length (Slice64.view result) -> Seq.get (Slice64.view result) i = Seq.get (Slice64.view bytes) i)}
+    (! return {result}) ]

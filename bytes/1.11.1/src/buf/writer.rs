@@ -1,6 +1,6 @@
 use crate::BufMut;
 
-use std::{cmp, io};
+use std::io;
 
 /// A `BufMut` adapter which implements `io::Write` for the inner value.
 ///
@@ -76,7 +76,7 @@ impl<B: BufMut> Writer<B> {
 
 impl<B: BufMut + Sized> io::Write for Writer<B> {
     fn write(&mut self, src: &[u8]) -> io::Result<usize> {
-        let n = cmp::min(self.buf.remaining_mut(), src.len());
+        let n = crate::bounded_ops::bounded_len(self.buf.remaining_mut(), src.len());
 
         self.buf.put_slice(&src[..n]);
         Ok(n)

@@ -1,6 +1,6 @@
 use crate::Buf;
 
-use std::{cmp, io};
+use std::io;
 
 /// A `Buf` adapter which implements `io::Read` for the inner value.
 ///
@@ -64,7 +64,7 @@ impl<B: Buf> Reader<B> {
 
 impl<B: Buf + Sized> io::Read for Reader<B> {
     fn read(&mut self, dst: &mut [u8]) -> io::Result<usize> {
-        let len = cmp::min(self.buf.remaining(), dst.len());
+        let len = crate::bounded_ops::bounded_len(self.buf.remaining(), dst.len());
 
         Buf::copy_to_slice(&mut self.buf, &mut dst[0..len]);
         Ok(len)
