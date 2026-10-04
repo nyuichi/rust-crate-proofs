@@ -14,14 +14,17 @@ mod owned_region;
 mod raw_vec;
 
 #[cfg(feature = "actual_from_vec")]
+#[path = "../../../../src/ownership_proof/sequential_counter.rs"]
+mod sequential_counter;
+
+#[cfg(feature = "actual_from_vec")]
 mod ownership_proof {
-    pub(crate) use crate::{bound_ptr, owned_region, raw_vec};
+    pub(crate) use crate::{bound_ptr, owned_region, raw_vec, sequential_counter};
 }
 
 #[cfg(feature = "actual_from_vec")]
 #[path = "../../../../src/capacity_ops.rs"]
 mod capacity_ops;
-#[cfg(feature = "actual_from_vec")]
 #[path = "../../../../src/provenance_specs.rs"]
 mod provenance_specs;
 

@@ -117,3 +117,33 @@ native-counter bridge is possible but would add atomic primitive trust; it
 must preserve native orderings and require sealed exclusive counter authority.
 Reference tickets, last-owner uniqueness and resource recovery cannot be
 trusted. Cross-thread release-sequence/view-transfer reasoning remains open.
+
+## Actual Shared control checkpoint (2026-10-04)
+
+The exact Shared/SharedBuffer types and restricted source helper block pass 45
+proof files, using real B1 physical regions, affine registration tickets,
+NonAtomicInvariant and the four documented sequential native-counter primitives.
+The native old-count branch selects finalization. Recovery of full capacity and
+B3 cleanup are body proved at the physical bridge; full typed S permission is
+consumed by standard Perm::drop after the buffer descriptor is disarmed.
+
+The missing empty-region registration fails one finish guard in a 46-file
+negative configuration despite complete byte coverage. Native smoke and
+allocation-event tests pass in both release orders, including zero capacity.
+Nonzero buffer capacity observes the one S allocation and both A/S frees.
+Perm::drop's contract does not expose a formal physical-deallocation event or
+repair the known missing automatic-Drop effects.
+
+The body-proved BoundPtr advance preserves namespace/capacity, updates only the
+absolute offset, and maintains a numeric nonwrapping extent. This strengthens
+B1's existing trusted allocation-range assumption; it does not add a physical
+trusted function or prove native pointer provenance from numeric equality.
+Fresh constructor and retired-pool regression gates pass 42 and 31 files.
+
+These are the restricted source control helpers, not yet the existing
+promote_to_shared/shallow_clone/split_to/release_shared path. The next connection
+uses a private PendingControl to retain actual from_vec's unique capabilities
+through promotion and metadata copy. Registry activation is postponed until
+split_to knows the final boundary; no second B1, permission duplication or
+mutable registration geometry is needed. Concurrent refcount, normal automatic
+Drop and full-crate vtable recursion remain outside this milestone.

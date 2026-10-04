@@ -151,3 +151,24 @@ and connect the actual native old-count branch to that conservation.
 The native SharedBuffer refactor is runtime preparation, not an additional
 proved physical bridge. Its promotion, reserve, take_vec and Drop bodies have
 native test coverage; they are not currently Creusot body proofs.
+
+## Sealed pointer advance and explicit Shared control gate
+
+The existing B1 trusted invariant additionally guarantees that the allocation's
+numeric base address plus capacity fits in usize. A bound descriptor preserves
+that fact for its remaining extent. The body-proved advance_within uses the
+original pointer's wrapping_add and updates only its sealed offset. Numeric
+addresses never create access or recovery permission. The native transformation
+is audited as provenance-preserving Rust pointer arithmetic; the numerical
+extern spec does not itself prove a provenance relation.
+
+The restricted source control helper joins the physical pool, affine tickets,
+exclusive sequential counter ownership and a real typed Shared allocation.
+Construction/release/callers are body proved; no protocol theorem is trusted.
+Standard Perm::from_box/as_ref/as_mut/drop are the S ownership boundary. Before
+B3 frees A, the native SharedBuffer descriptor is disarmed. Perm::drop then
+consumes full S permission in ordinary code; its standard contract does not
+expose a formal deallocation event or prove automatic Drop effects. The native
+allocation-event test separately observes both frees. No new local S-free axiom
+is introduced. Existing promote/split/release_shared remain outside this gate;
+unsupported atomic proof adapters have false preconditions and supply no facts.

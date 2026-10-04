@@ -2,6 +2,27 @@
 
 ## Current working-tree status (2026-10-04)
 
+The restricted actual-Shared control gate passes 45 files. Exact source helper
+bodies allocate a real Shared box, join physical retirement/tickets to the
+native sequential counter, branch on the native final decrement, recover all
+buffer regions, disarm SharedBuffer, B3-free the buffer and call standard
+Perm::drop on Shared. No bytes ownership protocol is trusted. Two native tests
+pass, including allocation events for both release orders; nonzero capacity
+observes one S allocation and two A/S frees. A missing empty-region ticket
+rejects exactly one finish guard (46-file negative configuration).
+This is the source's restricted helper block, not the existing from_vec,
+promote_to_shared, split_to or release_shared path. Automatic Drop and
+concurrency remain unproved. See the sequential-shared-control probe scope.
+
+BoundPtr now preserves sealed allocation binding through a body-proved bounded
+advance. B1's existing trusted allocation invariant is strengthened with the
+numeric nonwrapping address extent; no new physical trusted function is added.
+Only numeric metadata and offsets are proved here, not a native provenance
+theorem. The fresh constructor gate passes 42 files and the physical pool gate
+passes 31 files against this core (extra offset/provenance helper files account
+for the increases from 41/25).
+
+
 The sequential native-counter bridge now has two proved caller files and one
 native boundary-value test. Wrong-identity and underflow configurations each
 reject exactly one guard. Its four primitive methods are explicitly trusted:

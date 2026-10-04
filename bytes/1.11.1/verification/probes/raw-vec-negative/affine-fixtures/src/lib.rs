@@ -6,6 +6,8 @@ extern crate alloc;
 mod owned_region;
 #[path = "../../../../../src/ownership_proof/raw_vec.rs"]
 mod raw_vec;
+#[path = "../../../../../src/provenance_specs.rs"]
+mod provenance_specs;
 
 #[cfg(feature = "duplicate_descriptor")]
 mod duplicate_descriptor;

@@ -10,6 +10,8 @@ use creusot_std::prelude::*;
 mod owned_region;
 #[path = "../../../../src/ownership_proof/raw_vec.rs"]
 mod raw_vec;
+#[path = "../../../../src/provenance_specs.rs"]
+mod provenance_specs;
 
 use raw_vec::{
     PhysicalRegion, RawAllocation, Recovery, borrow_mut, deallocate_vec, detach_vec, resume_vec,

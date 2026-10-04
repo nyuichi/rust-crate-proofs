@@ -12,6 +12,8 @@ use creusot_std::{
 mod owned_region;
 #[path = "../../../../src/ownership_proof/raw_vec.rs"]
 mod raw_vec;
+#[path = "../../../../src/provenance_specs.rs"]
+mod provenance_specs;
 use raw_vec::{BoundPtr, Recovery, PhysicalRegion, PhysicalPool, detach_vec, deallocate_bound_vec};
 
 declare_namespace! { RETIREMENT }
