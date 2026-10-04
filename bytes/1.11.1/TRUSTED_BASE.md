@@ -10,6 +10,16 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-04)
 
+- `B4-bound`, `raw_vec::borrow_bound_mut`, adds a trusted physical mutable-slice
+  bridge for a sealed bound descriptor and matching affine initialized region.
+  The pointer is derived directly, with no arbitrary pointer/address match.
+  Region lifetime covers the slice borrow; final values are written into the
+  ledger and every other slot is framed. Empty slices assert no liveness. This
+  is additional explicit physical TCB, not a trusted bytes ownership theorem.
+  The packet borrow helper, as_slice_mut body and simultaneous disjoint mutation
+  callers are body proved in the 68-file sequential gate.
+
+
 - `BOX-ALIGN-01`, `src/ownership_proof/boxed_alignment.rs::into_raw_aligned`,
   consumes an ordinary Box and returns the existing typed Perm ward/value plus
   native pointee alignment. This generic physical bridge fills the missing
@@ -158,8 +168,9 @@ unchanged. The next Shared gate must prove ticket/region conservation separately
 and connect the actual native old-count branch to that conservation.
 
 The native SharedBuffer refactor is runtime preparation, not an additional
-proved physical bridge. Its promotion, reserve, take_vec and Drop bodies have
-native test coverage; they are not currently Creusot body proofs.
+proved physical bridge. Its reserve, take_vec and automatic Drop bodies have native test coverage
+and remain outside the proof gates. The restricted first promotion path is
+now body proved in the actual split gate.
 
 ## Sealed pointer advance and explicit Shared control gate
 
@@ -179,5 +190,15 @@ B3 frees A, the native SharedBuffer descriptor is disarmed. Perm::drop then
 consumes full S permission in ordinary code; its standard contract does not
 expose a formal deallocation event or prove automatic Drop effects. The native
 allocation-event test separately observes both frees. No new local S-free axiom
-is introduced. Existing promote/split/release_shared remain outside this gate;
-unsupported atomic proof adapters have false preconditions and supply no facts.
+is introduced. The earlier control-only gate excludes existing promote/split/release_shared;
+the subsequent 61-file actual split gate connects the first promotion and
+split_to, with explicit consuming release. Existing release_shared and automatic
+Drop remain outside both gates. Unsupported atomic proof adapters have false
+preconditions and supply no facts.
+
+
+The archived 61/62-file first-split gate omits the original whole-type unsafe
+Send/Sync impls from extraction and does not establish concurrency safeguards.
+The subsequent mutation work gates those impls out of the restricted proof
+representation; ordinary native BytesMut remains Send/Sync. This adapter change
+is not retroactively included in the frozen first-split proof snapshot.

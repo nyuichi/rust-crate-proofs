@@ -1,0 +1,182 @@
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 195 files, 48.5MiB total
+   Compiling bytes-sequential-bytesmut-split v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split)
+warning: unused import: `owned_region`
+  --> src/lib.rs:23:28
+   |
+23 |     pub(crate) use crate::{owned_region, raw_vec, sequential_counter, shared_protocol, bound_ptr, boxed_alignment};
+   |                            ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ManuallyDrop`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:3:23
+  |
+3 | use core::mem::{self, ManuallyDrop};
+  |                       ^^^^^^^^^^^^
+
+warning: unused import: `self`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:4:17
+  |
+4 | use core::ptr::{self,NonNull};
+  |                 ^^^^
+
+warning: unused imports: `AtomicUsize` and `Ordering`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:5:26
+  |
+5 | use core::sync::atomic::{AtomicUsize,Ordering};
+  |                          ^^^^^^^^^^^ ^^^^^^^^
+
+warning: unreachable expression
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:609:13
+    |
+605 |             panic!("ARC clone is outside the first sequential split gate");
+    |             -------------------------------------------------------------- any code following this expression is unreachable
+...
+609 |             { self.pending_descriptor_copy() }
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable expression
+    |
+    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `prelude`
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:63:53
+   |
+63 |     use creusot_std::{ghost::perm::Perm, logic::Id, prelude::*};
+   |                                                     ^^^^^^^
+
+warning: unused variable: `off`
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:539:13
+    |
+539 |         let off = crate::capacity_ops::vec_pos_from_data(
+    |             ^^^ help: if this is intentional, prefix it with an underscore: `_off`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `NOT_VEC_POS_MASK` is never used
+  --> src/../../../../src/capacity_ops.rs:29:18
+   |
+29 | pub(crate) const NOT_VEC_POS_MASK: usize = 0b11111;
+   |                  ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `MAX_VEC_POS` is never used
+  --> src/../../../../src/capacity_ops.rs:30:18
+   |
+30 | pub(crate) const MAX_VEC_POS: usize = usize::MAX >> VEC_POS_OFFSET;
+   |                  ^^^^^^^^^^^
+
+warning: function `set_vec_pos_in_data` is never used
+   --> src/../../../../src/capacity_ops.rs:143:15
+    |
+143 | pub(crate) fn set_vec_pos_in_data(data: usize, pos: usize) -> usize {
+    |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `pointer_addr_eq` is never used
+  --> src/../../../../src/provenance_specs.rs:19:15
+   |
+19 | pub(crate) fn pointer_addr_eq<T>(left: *const T, right: *const T) -> bool {
+   |               ^^^^^^^^^^^^^^^
+
+warning: function `pointer_with_address` is never used
+  --> src/../../../../src/provenance_specs.rs:86:15
+   |
+86 | pub(crate) fn pointer_with_address(ptr: *mut u8, new_addr: usize) -> *mut u8 {
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `slots` and `join` are never used
+   --> src/../../../../src/ownership_proof/owned_region.rs:149:19
+    |
+ 95 | impl OwnedRegion {
+    | ---------------- methods in this implementation
+...
+149 |     pub(crate) fn slots(self) -> FMap<Int, Excl<Option<u8>>> {
+    |                   ^^^^^
+...
+243 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: method `as_non_null` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:202:19
+    |
+170 | impl BoundPtr {
+    | ------------- method in this implementation
+...
+202 |     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
+    |                   ^^^^^^^^^^^
+
+warning: method `join` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:463:19
+    |
+377 | impl PhysicalRegion {
+    | ------------------- method in this implementation
+...
+463 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: function `resume_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:763:22
+    |
+763 | pub(crate) unsafe fn resume_vec(
+    |                      ^^^^^^^^^^
+
+warning: function `deallocate_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:799:22
+    |
+799 | pub(crate) unsafe fn deallocate_vec(
+    |                      ^^^^^^^^^^^^^^
+
+warning: function `borrow_mut` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:883:22
+    |
+883 | pub(crate) unsafe fn borrow_mut<'a>(
+    |                      ^^^^^^^^^^
+
+warning: function `slot_known_equivalence` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:905:15
+    |
+905 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `fetch_add_relaxed` is never used
+  --> src/../../../../src/ownership_proof/sequential_counter.rs:66:19
+   |
+43 | impl SequentialCounter {
+   | ---------------------- method in this implementation
+...
+66 |     pub(crate) fn fetch_add_relaxed(&self, amount: usize, own: Ghost<&mut CounterOwn>) -> usize {
+   |                   ^^^^^^^^^^^^^^^^^
+
+warning: field `original_capacity_repr` is never read
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:32:5
+   |
+30 | struct Shared {
+   |        ------ field in this struct
+31 |     buffer: SharedBuffer,
+32 |     original_capacity_repr: usize,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `new` is never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:207:8
+    |
+207 |     fn new(input: Vec<u8>, split: usize) -> (ControlPtr, Ghost<ControlContext>, Ghost<Packet>, Ghost<Packet>) {
+    |        ^^^
+
+warning: function `release_left_then_right` is never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:288:19
+    |
+288 |     pub(crate) fn release_left_then_right(input: Vec<u8>, split: usize) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `release_right_then_left` is never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-7d3c307ded76ab80/out/actual_split.rs:297:19
+    |
+297 |     pub(crate) fn release_right_then_left(input: Vec<u8>, split: usize) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `bytes-sequential-bytesmut-split` (lib) generated 24 warnings (run `cargo fix --lib -p bytes-sequential-bytesmut-split` to apply 5 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.15s
+No dangling files found
+Goal Coma.vc_reject_unknown_bound_access: ✘ (18/19)
+Error: 1 unproved file
+Error: 'why3find prove' failed

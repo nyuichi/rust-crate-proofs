@@ -2,6 +2,20 @@
 
 ## Current working-tree status (2026-10-04)
 
+The actual split/mutable-view gate now passes 68 proof files. Exact as_slice_mut
+uses the matching affine packet through a body-proved borrow helper and the
+explicit B4-bound physical access bridge. Callers hold both disjoint slices
+live, write distinct values, prove both ledgers updated, and explicitly release
+in either order. Native tests (4) cover simultaneous mutation, empty views and
+A/S allocation events. Known slot structure has a body-proved equivalence to
+the existential initialized-value definition; no initialization condition is
+weakened. Proof-mode Send/Sync impls are disabled; concurrency and automatic
+Drop remain outside this sequential gate. Each of four negative configurations rejects exactly one intended guard
+(69 proof files): Unknown access, Pending access, stale contents and missing
+empty ticket. Fresh actual constructor passes 54 files, pool passes 32 files,
+and ordinary native test_bytes passes 118 tests.
+
+
 The first actual BytesMut split gate passes 61 proof files: exact from_vec,
 promote_to_shared(2), shallow_clone, split_to and explicit consuming release
 execute with affine buffer regions and registration tickets. Both release

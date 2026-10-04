@@ -1,57 +1,77 @@
-# Actual first BytesMut split and explicit release
+# Actual BytesMut split, mutable access, and explicit release
 
 This probe extracts the exact `BytesMut`, `Shared`, and `SharedBuffer` declarations
-and the actual `from_vec`, `promote_to_shared`, `shallow_clone`, `split_to`, and
-`advance_unchecked` bodies from `src/bytes_mut.rs`. Source offsets and hashes are
-recorded at build time. The gate starts with a freshly detached Vec at offset
-zero and performs one `split_to`, followed by explicit release in either order.
+and actual `from_vec`, `promote_to_shared`, `shallow_clone`, `split_to`,
+`advance_unchecked`, and `as_slice_mut` bodies from `src/bytes_mut.rs`. Source
+offsets and hashes are recorded at build time. The gate starts with a freshly
+detached Vec at offset zero, performs one `split_to`, borrows both resulting
+mutable slices, and explicitly releases the handles in either order.
 
-Promotion transfers the constructor's existing Recovery and full PhysicalRegion
-into a private pending owner, alongside the typed Shared permission and exclusive
+Promotion moves the constructor's existing Recovery and full PhysicalRegion
+into a private pending owner with the typed Shared permission and exclusive
 counter authority. It does not detach a second Vec. The shallow copy duplicates
-metadata only. Once `split_to` knows the boundary, the existing registry issues
-two affine tickets and distributes disjoint byte regions. One handle retains the
-coordinator until the caller explicitly takes it; the handles never share two
-mutable coordinators.
+metadata only. `split_to` initializes the existing two-ticket registry at the
+actual boundary and assigns disjoint byte regions. One handle retains the
+coordinator until the caller takes it; there are never two mutable coordinators.
+Exact slot values are preserved through promotion and partitioning.
 
-Release consumes each handle and packet. The native Release decrement decides
-whether this is the final handle; the final path executes the Acquire load,
-recovers full byte capabilities, disarms the Shared buffer descriptor, calls B3
-for the byte allocation, and consumes the typed Shared permission through native
-`Perm::drop`. `mem::forget(self)` suppresses a second handle destructor call.
-Automatic BytesMut Drop, concurrent access, repeated splitting, reserve, and
-byte mutation are outside this gate.
+The actual mutable view uses a body-proved packet-borrow component and the
+B4-bound physical access contract. B4 derives its pointer directly from the
+sealed BoundPtr; it takes no arbitrary pointer argument. Nonempty access requires
+a matching exclusive initialized region. Empty access performs no pointer
+arithmetic and requires no allocation-liveness claim. Prophetic writeback records
+the final slice values and preserves every slot outside the borrowed interval,
+including Unknown spare capacity. The canonical `slot_known` predicate is
+body-proved equivalent to an existing initialized byte value.
 
-Results at the frozen checkpoint:
+The positive caller holds both disjoint slices simultaneously, writes different
+bytes, checks the resulting values, and releases both handles. The native Release
+decrement chooses the final-release branch. That branch performs the Acquire
+load, recovers full byte capabilities, disarms SharedBuffer, frees A through B3,
+and consumes typed S permission through native `Perm::drop`. Explicit handle
+cleanup ends with `mem::forget(self)` to suppress a second destructor call.
 
-- Positive: all 61 proof files pass.
-- `negative_missing_split_ticket`: 62 files, exactly one failed leaf (18/19 in
-  `proof_reject_missing_empty_ticket`). It splits at zero, abandons the empty
-  left handle, returns every byte through the right handle, then attempts full
-  recovery while the left registration remains outstanding.
-- Native: both integration tests pass, including every split position and both
-  release orders. Allocator counts observe one Shared allocation and two frees
-  for nonzero byte capacity, or one Shared free when byte capacity is zero.
+Current mutable-access checkpoint:
 
-The one added trusted fact is generic boxed-allocation alignment in
-`ownership_proof/boxed_alignment.rs`: standard Creusot 0.13 typed `Perm::from_box`
-preserves ward/value but omits pointer alignment. The separate alignment-bit
-lemma and all pending/registration/handle protocol bodies are proved. Existing
-Vec/raw-allocation and sequential atomic bridges remain explicit dependencies.
-No formal physical-deallocation event is inferred from standard `Perm::drop`;
-allocator-count tests separately check the native effects.
+- Positive: all 68 proof files pass.
+- Native: four integration tests pass, covering simultaneous writes, empty
+  views, all split positions and both release orders, and A/S allocation counts.
+- Unknown-access rejection: one intended failed leaf, 18/19 in the caller.
+  This diagnostic directly exercises B4-bound on a proved Unknown B1 spare slot.
+- Pending-access rejection: one intended failed leaf, 6/7 in the caller, after
+  the actual shallow clone has produced metadata without registered authority.
+- Stale-content rejection: one intended failed leaf, 8/9 in the caller, after
+  writing through the actual mutable-view method.
+- Missing-empty-ticket rejection: one intended failed leaf, 18/19 in the
+  caller; full byte coverage cannot replace an outstanding registration when
+  attempting final recovery. Each negative configuration contains 69 proof files.
 
-`cfg(bytes_proof_probe)` selects the same restricted representation branches for
-native execution of the exact extracted source. Ordinary crate builds retain
-the original handle layout and operations. Unsupported ARC cloning and unique
-advance branches are explicitly excluded by the restricted preconditions.
+The initial descriptor/release-only checkpoint remains archived separately:
+61 positive proof files and one missing-ticket rejection among 62 files.
+
+The local trusted dependencies are the documented Vec/raw-allocation bridge,
+sequential native atomic operations, generic boxed-allocation alignment, and
+B4-bound initialized mutable access. The alignment-bit lemma, pending transfer,
+ticket registry, packet borrowing, and actual handle protocol bodies are proved.
+No trusted BytesMut ownership or reference-count protocol is introduced. Standard
+`Perm::drop` is not treated as a formal physical-deallocation event; native
+allocator-count tests separately check the frees.
+
+`cfg(bytes_proof_probe)` selects the restricted representation branches for native
+execution of the exact extracted source. Normal crate builds retain their handle
+layout and operations. The proof representation excludes the native unsafe
+Send/Sync impls, preserving its exclusive sequential counter authority. Concurrent
+sharing, repeated ARC splitting, reserve, and automatic BytesMut Drop remain
+outside this gate.
 
 ```
 ./scripts/verify-bytes.sh sequential-bytesmut-split
+./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_unknown_access
+./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_pending_access
+./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_stale_contents
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_missing_split_ticket
 cargo test --offline --locked --manifest-path verification/probes/sequential-bytesmut-split/Cargo.toml --tests
 ```
 
-Canonical source, configuration, logs, extraction records, generated proof code,
-and proof JSON are under
-`verification/artifacts/evidence/sequential-bytesmut-split/`.
+Canonical evidence is under
+`verification/artifacts/evidence/sequential-bytesmut-split/mutable-access/`.

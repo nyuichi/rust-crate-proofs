@@ -210,3 +210,29 @@ The standard NAI/resource framework remains part of the existing proof TCB.
 This gate is neither native Shared nor an atomic counter or cross-thread proof.
 Actual Shared raw-storage wiring and native atomic contracts remain integration
 work; vtable translation and automatic Drop effects remain upstream blockers.
+
+
+## Bound-descriptor mutable access
+
+`B4-bound`, `raw_vec::borrow_bound_mut`, is an additional explicitly trusted
+physical access primitive. It derives the native pointer directly from sealed
+BoundPtr, whose namespace/capacity/absolute offset originate at B1 and are
+preserved by bounded pointer advancement. It accepts no caller-supplied pointer
+or address-equality substitute. The matching affine PhysicalRegion must cover
+the requested interval and every accessed slot must be Known. A nonempty
+interval supplies allocation liveness through that owned region. A zero-length
+slice requires only the already nonnull u8-aligned pointer; it asserts no
+allocation-liveness fact and performs no pointer arithmetic.
+
+The mutable region borrow lasts as long as the returned slice. Its prophetic
+postcondition writes back the final slice values, preserves region geometry,
+namespace and resource identity, and frames all other slots including Unknown
+spare capacity. Split, join, retirement and recovery must wait until this borrow
+ends. The bridge relies on the audited provenance-preserving construction and
+advance discipline, not the numeric wrapping-add spec alone.
+
+This contract is reviewed. The actual mutable-view, packet-borrow helper and
+simultaneous disjoint-write callers pass in the 68-file gate; native execution
+passes four tests. The earlier frozen 61-file split checkpoint excludes mutation.
+The canonical slot_known structure is body-proved equivalent to existence of
+a Known byte; this normalization preserves the physical access requirement.
