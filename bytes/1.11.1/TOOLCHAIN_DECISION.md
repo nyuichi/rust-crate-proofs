@@ -67,3 +67,29 @@ splitting and initialized capacity, followed by the RMW release-sequence probe.
 A Verus migration has not been demonstrated. Its use requires the same actual
 implementation paths, original weak Ordering and comparable resource transfer.
 SeqCst wrappers or finite Loom exploration alone do not satisfy this gate.
+
+## Revised work policy (user direction)
+
+Large Creusot extensions are deferred. Continue component proofs that do not
+require indirect-call, automatic-Drop or exposed-provenance support. Begin with
+safe slice/cursor operations and bounded buffer adapters, then initialized-byte
+writes where the existing permission library suffices. Any dependency on
+unverified allocation/refcount/vtable contracts stays explicit and is not counted
+as an integrated runtime proof.
+
+Small target-source changes are allowed: extract shared runtime helpers, add
+contracts/ghost instrumentation, and investigate finite direct dispatch replacing
+an internal vtable call where representation mapping can be justified. Finite
+dispatch is a candidate, not an established equivalence. Preserve public API,
+byte results, ownership/drop behavior, panic behavior and native atomic Ordering.
+Record original/changed source correspondence, the proof configuration, and
+whether the normal runtime includes the change. Do not replace storage with a
+length-only model or use stronger atomic ordering as a verification workaround.
+
+The next concrete component gate is slice/cursor advance: prove remaining length,
+returned bytes, boundary checks and recovery using actual slice storage. Reuse or
+extract the runtime body so its callers and the proof share code. Subsequently
+cover Take/Limit accounting and initialized writes. Large compiler patches stay
+experimental and outside the adopted proof toolchain.
+
+Push each committed checkpoint to origin/bytes-runtime-verification without force.
