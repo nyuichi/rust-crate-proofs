@@ -1,11 +1,19 @@
-$ scripts/verify-bytes.sh raw-vec-negative --no-default-features --features wrong_namespace
+$ /workspace/bytes-runtime-verification/bytes/1.11.1/scripts/verify-bytes.sh raw-vec-negative --no-default-features --features wrong_namespace
 bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/raw-vec-negative; one prover; 1024 MiB; native Ordering; sc-drf disabled
-     Removed 7 files, 181.0KiB total
+     Removed 7 files, 234.3KiB total
     Checking bytes-raw-vec-negative v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/raw-vec-negative)
-warning: function `wrong_namespace_resume` is never used
-  --> src/lib.rs:80:22
+warning: unused imports: `borrow_mut` and `deallocate_vec`
+  --> src/lib.rs:15:46
    |
-80 | pub(crate) unsafe fn wrong_namespace_resume(
+15 |     PhysicalRegion, RawAllocation, Recovery, borrow_mut, deallocate_vec, resume_vec,
+   |                                              ^^^^^^^^^^  ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `wrong_namespace_resume` is never used
+  --> src/lib.rs:82:22
+   |
+82 | pub(crate) unsafe fn wrong_namespace_resume(
    |                      ^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
@@ -97,83 +105,131 @@ warning: methods `capacity` and `namespace` are never used
 98 |     pub(crate) fn namespace(self) -> Id {
    |                   ^^^^^^^^^
 
-warning: struct `Recovery` is never constructed
-   --> src/../../../../src/ownership_proof/raw_vec.rs:106:19
+warning: struct `BoundPtrBinding` is never constructed
+   --> src/../../../../src/ownership_proof/raw_vec.rs:107:8
     |
-106 | pub(crate) struct Recovery {
+107 | struct BoundPtrBinding {
+    |        ^^^^^^^^^^^^^^^
+
+warning: struct `BoundPtr` is never constructed
+   --> src/../../../../src/ownership_proof/raw_vec.rs:119:19
+    |
+119 | pub(crate) struct BoundPtr {
+    |                   ^^^^^^^^
+
+warning: associated items `unbound`, `as_ptr`, and `as_non_null` are never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:163:19
+    |
+159 | impl BoundPtr {
+    | ------------- associated items in this implementation
+...
+163 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
+    |                   ^^^^^^^
+...
+177 |     pub(crate) fn as_ptr(&self) -> *mut u8 {
+    |                   ^^^^^^
+...
+184 |     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
+    |                   ^^^^^^^^^^^
+
+warning: method `into_bound_ptr_at_zero` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:209:19
+    |
+199 | impl RawAllocation {
+    | ------------------ method in this implementation
+...
+209 |     pub(crate) fn into_bound_ptr_at_zero(self) -> (BoundPtr, usize) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `Recovery` is never constructed
+   --> src/../../../../src/ownership_proof/raw_vec.rs:237:19
+    |
+237 | pub(crate) struct Recovery {
     |                   ^^^^^^^^
 
 warning: methods `namespace`, `capacity`, and `invariant` are never used
-   --> src/../../../../src/ownership_proof/raw_vec.rs:126:19
+   --> src/../../../../src/ownership_proof/raw_vec.rs:257:19
     |
-124 | impl Recovery {
+255 | impl Recovery {
     | ------------- methods in this implementation
-125 |     #[logic(open)]
-126 |     pub(crate) fn namespace(self) -> Id {
+256 |     #[logic(open)]
+257 |     pub(crate) fn namespace(self) -> Id {
     |                   ^^^^^^^^^
 ...
-131 |     pub(crate) fn capacity(self) -> Int {
+262 |     pub(crate) fn capacity(self) -> Int {
     |                   ^^^^^^^^
 ...
-136 |     pub(crate) fn invariant(self) -> bool {
+267 |     pub(crate) fn invariant(self) -> bool {
     |                   ^^^^^^^^^
 
 warning: struct `PhysicalRegion` is never constructed
-   --> src/../../../../src/ownership_proof/raw_vec.rs:148:19
+   --> src/../../../../src/ownership_proof/raw_vec.rs:279:19
     |
-148 | pub(crate) struct PhysicalRegion {
+279 | pub(crate) struct PhysicalRegion {
     |                   ^^^^^^^^^^^^^^
 
 warning: multiple methods are never used
-   --> src/../../../../src/ownership_proof/raw_vec.rs:180:19
+   --> src/../../../../src/ownership_proof/raw_vec.rs:311:19
     |
-178 | impl PhysicalRegion {
+309 | impl PhysicalRegion {
     | ------------------- methods in this implementation
-179 |     #[logic(open)]
-180 |     pub(crate) fn lo(self) -> Int {
+310 |     #[logic(open)]
+311 |     pub(crate) fn lo(self) -> Int {
     |                   ^^
 ...
-185 |     pub(crate) fn hi(self) -> Int {
+316 |     pub(crate) fn hi(self) -> Int {
     |                   ^^
 ...
-190 |     pub(crate) fn namespace(self) -> Id {
+321 |     pub(crate) fn namespace(self) -> Id {
     |                   ^^^^^^^^^
 ...
-195 |     pub(crate) fn capacity(self) -> Int {
+326 |     pub(crate) fn capacity(self) -> Int {
     |                   ^^^^^^^^
 ...
-200 |     pub(crate) fn resource_id(self) -> Id {
+331 |     pub(crate) fn resource_id(self) -> Id {
     |                   ^^^^^^^^^^^
 ...
-205 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+336 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
     |                   ^^^^
 ...
-234 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+365 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
     |                   ^^^^^^^^
 ...
-264 |     pub(crate) fn join(self, other: Self) -> Self {
+395 |     pub(crate) fn join(self, other: Self) -> Self {
     |                   ^^^^
 
 warning: function `detach_vec` is never used
-   --> src/../../../../src/ownership_proof/raw_vec.rs:299:15
+   --> src/../../../../src/ownership_proof/raw_vec.rs:430:15
     |
-299 | pub(crate) fn detach_vec(
+430 | pub(crate) fn detach_vec(
     |               ^^^^^^^^^^
 
 warning: function `resume_vec` is never used
-   --> src/../../../../src/ownership_proof/raw_vec.rs:379:22
+   --> src/../../../../src/ownership_proof/raw_vec.rs:513:22
     |
-379 | pub(crate) unsafe fn resume_vec(
+513 | pub(crate) unsafe fn resume_vec(
     |                      ^^^^^^^^^^
+
+warning: function `deallocate_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:549:22
+    |
+549 | pub(crate) unsafe fn deallocate_vec(
+    |                      ^^^^^^^^^^^^^^
+
+warning: function `deallocate_bound_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:584:22
+    |
+584 | pub(crate) unsafe fn deallocate_bound_vec(
+    |                      ^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_mut` is never used
-   --> src/../../../../src/ownership_proof/raw_vec.rs:427:22
+   --> src/../../../../src/ownership_proof/raw_vec.rs:633:22
     |
-427 | pub(crate) unsafe fn borrow_mut<'a>(
+633 | pub(crate) unsafe fn borrow_mut<'a>(
     |                      ^^^^^^^^^^
 
-warning: `bytes-raw-vec-negative` (lib) generated 17 warnings
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.59s
+warning: `bytes-raw-vec-negative` (lib) generated 24 warnings (run `cargo fix --lib -p bytes-raw-vec-negative` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.67s
 No dangling files found
 Goal Coma.vc_wrong_namespace_resume: ✘ (12/14)
 Error: 1 unproved file

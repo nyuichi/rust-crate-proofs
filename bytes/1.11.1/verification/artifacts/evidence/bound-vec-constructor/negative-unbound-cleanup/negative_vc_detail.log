@@ -1,0 +1,307 @@
+Theory verif.bytes_bound_vec_constructor_rlib.bound_ptr.detach_bound_vec.Coma: ✔ (3)
+Theory verif.bytes_bound_vec_constructor_rlib.detach_then_explicitly_deallocate.Coma: ✔ (3)
+Theory verif.bytes_bound_vec_constructor_rlib.owned_region.impl_OwnedRegion.from_model_ledger.Coma: ✔ (1)
+Theory verif.bytes_bound_vec_constructor_rlib.owned_region.impl_OwnedRegion.join.Coma: ✔ (2)
+Theory verif.bytes_bound_vec_constructor_rlib.owned_region.map_compose_eq.Coma: ✔ (1)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_BoundPtr.as_non_null.Coma: ✔ (1)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_BoundPtr.as_ptr.Coma: ✔ (2)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_BoundPtr.unbound.Coma: ✔ (2)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_Clone_for_AllocationDesc.clone.Coma: ✔ (1)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_Clone_for_BoundPtr.clone.Coma: ✔ (1)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_Clone_for_BoundPtr.clone__refines.Coma: ✔ (1)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_Clone_for_BoundPtrBinding.clone.Coma: ✔ (1)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_PhysicalRegion.join.Coma: ✔ (2)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_PhysicalRegion.split_at.Coma: ✔ (2)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.impl_RawAllocation_0.into_bound_ptr_at_zero.Coma: ✔ (5)
+Theory verif.bytes_bound_vec_constructor_rlib.raw_vec.slots_from_vec.Coma: ✔ (1)
+Goal Coma.vc_negative_unbound_cleanup: ✘ (13/14)
+--------------------------- Local Context ---------------------------
+
+type t_Vec_u8_Global
+
+type t_BoundPtr
+
+type t_Recovery
+
+type t_PhysicalRegion
+
+type tup2_Recovery_PhysicalRegion =
+  | Tup2_Recovery_PhysicalRegion'mk (f0:t_Recovery) (f1:t_PhysicalRegion)
+
+type tup4_BoundPtr_usize_usize_Ghost_tup2_Recovery_PhysicalRegion =
+  | Tup4_BoundPtr_usize_usize_Ghost_tup2_Recovery_PhysicalRegion'mk (f0'0:
+      t_BoundPtr) (f1'0:t) (f2'0:t) (f3'0:tup2_Recovery_PhysicalRegion)
+
+type t_Id
+
+type tup3_Id_Int_Int =
+  | Tup3_Id_Int_Int'mk (f0'1:t_Id) (f1'1:int) (f2'1:int)
+
+type t_Option_tup3_Id_Int_Int =
+  | None
+  | Some tup3_Id_Int_Int
+
+function view_BoundPtr t_BoundPtr : t_Option_tup3_Id_Int_Int
+
+constant const_MAX : t1 = (9223372036854775807:t1)
+
+predicate invariant_BoundPtr (self:t_BoundPtr) =
+  match view_BoundPtr self with
+  | None -> true
+  | Some (Tup3_Id_Int_Int'mk _ allocation_capacity absolute_offset) ->
+      0 <= absolute_offset /\
+      absolute_offset <= allocation_capacity /\
+      allocation_capacity <= to_int const_MAX
+  end
+
+predicate inv_BoundPtr t_BoundPtr
+
+axiom inv_axiom :
+  forall x:t_BoundPtr [inv_BoundPtr x].
+   inv_BoundPtr x -> invariant_BoundPtr x
+
+predicate inv_Recovery t_Recovery
+
+predicate invariant_PhysicalRegion t_PhysicalRegion
+
+predicate inv_PhysicalRegion t_PhysicalRegion
+
+axiom inv_axiom'0 :
+  forall x:t_PhysicalRegion [inv_PhysicalRegion x].
+   inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate inv_tup2_Recovery_PhysicalRegion (_1:
+  tup2_Recovery_PhysicalRegion) =
+  inv_Recovery (_1.f0) /\ inv_PhysicalRegion (_1.f1)
+
+predicate invariant_Ghost_tup2_Recovery_PhysicalRegion (self:
+  tup2_Recovery_PhysicalRegion) = inv_tup2_Recovery_PhysicalRegion self
+
+predicate inv_Ghost_tup2_Recovery_PhysicalRegion (_1:
+  tup2_Recovery_PhysicalRegion) =
+  invariant_Ghost_tup2_Recovery_PhysicalRegion _1
+
+predicate inv_tup4_BoundPtr_usize_usize_Ghost_tup2_Recovery_PhysicalRegion
+  (_1:tup4_BoundPtr_usize_usize_Ghost_tup2_Recovery_PhysicalRegion) =
+  inv_BoundPtr (_1.f0'0) /\ inv_Ghost_tup2_Recovery_PhysicalRegion (_1.f3'0)
+
+type t_Excl_unit =
+  | T_Excl_unit'mk (f0'2:unit)
+
+type t_Option_Excl_unit =
+  | None'0
+  | Some'0 t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 =
+  | Tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8'mk (f0'3:
+      t_Option_Excl_unit) (f1'3:t_FMap_Int_Excl_Option_u8)
+
+type tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id =
+  | Tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id'mk (f0'4:
+      tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8) (f1'4:int) (f2'4:t_Id)
+      (f3'4:t_Id)
+
+function view_Recovery t_Recovery :
+  tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id
+
+function namespace (self:t_Recovery) : t_Id = (view_Recovery self).f2'4
+
+constant const_MAX'0 : t = (18446744073709551615:t)
+
+function view_Vec_u8_Global t_Vec_u8_Global : seq t2
+
+axiom view_Vec_u8_Global_spec :
+  forall self:t_Vec_u8_Global [view_Vec_u8_Global self].
+   length (view_Vec_u8_Global self) <= t'int const_MAX'0
+
+function capacity (self:t_Recovery) : int = (view_Recovery self).f1'4
+
+type t_OwnedRegion
+
+type tup3_OwnedRegion_Int_Id =
+  | Tup3_OwnedRegion_Int_Id'mk (f0'5:t_OwnedRegion) (f1'5:int) (f2'5:t_Id)
+
+function view_PhysicalRegion t_PhysicalRegion : tup3_OwnedRegion_Int_Id
+
+function capacity'0 (self:t_PhysicalRegion) : int =
+  (view_PhysicalRegion self).f1'5
+
+predicate ge_log_Int (self:int) (other:int) = other <= self
+
+type t_Option_u8 =
+  | None'1
+  | Some'1 t2
+
+type t_Excl_Option_u8 =
+  | T_Excl_Option_u8'mk (f0'6:t_Option_u8)
+
+type t_Option_Excl_Option_u8 =
+  | None'2
+  | Some'2 t_Excl_Option_u8
+
+function to_mapping_Int t_FMap_Int_Excl_Option_u8 : int ->
+  t_Option_Excl_Option_u8
+
+function get_Int (self:t_FMap_Int_Excl_Option_u8) (k:int) :
+  t_Option_Excl_Option_u8 = get (to_mapping_Int self) k
+
+predicate ext_eq_Int (self:t_FMap_Int_Excl_Option_u8) (other:
+  t_FMap_Int_Excl_Option_u8) = forall k:int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec :
+  forall self:t_FMap_Int_Excl_Option_u8, other:t_FMap_Int_Excl_Option_u8
+   [self = other]. ext_eq_Int self other <-> self = other
+
+function len_Int t_FMap_Int_Excl_Option_u8 : int
+
+axiom len_Int_spec :
+  forall self:t_FMap_Int_Excl_Option_u8 [len_Int self].
+   ge_log_Int (len_Int self) 0
+
+constant empty_Int : t_FMap_Int_Excl_Option_u8
+
+axiom empty_Int_spec : len_Int empty_Int = 0
+
+axiom empty_Int_spec'0 :
+  to_mapping_Int empty_Int = (const None'2: int -> t_Option_Excl_Option_u8)
+
+predicate is_empty_Int (self:t_FMap_Int_Excl_Option_u8) =
+  ext_eq_Int self empty_Int
+
+predicate invariant' (self:t_Recovery) =
+  ((view_Recovery self).f0'4).f0'3 = Some'0 (T_Excl_unit'mk ()) /\
+  is_empty_Int (((view_Recovery self).f0'4).f1'3) /\
+  (view_Recovery self).f2'4 = (view_Recovery self).f3'4
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 =
+  | Tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8'mk (f0'7:
+      int) (f1'7:int) (f2'7:t_Id) (f3'7:
+      tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8)
+
+function view_OwnedRegion t_OwnedRegion :
+  tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function lo (self:t_PhysicalRegion) : int =
+  (view_OwnedRegion ((view_PhysicalRegion self).f0'5)).f0'7
+
+function hi (self:t_PhysicalRegion) : int =
+  (view_OwnedRegion ((view_PhysicalRegion self).f0'5)).f1'7
+
+function namespace'0 (self:t_PhysicalRegion) : t_Id =
+  (view_PhysicalRegion self).f2'5
+
+function resource_id (self:t_PhysicalRegion) : t_Id =
+  (view_OwnedRegion ((view_PhysicalRegion self).f0'5)).f2'7
+
+type t_Option_Option_u8 =
+  | None'3
+  | Some'3 t_Option_u8
+
+function slot (self:t_PhysicalRegion) (index:int) : t_Option_Option_u8 =
+  match get_Int
+        (((view_OwnedRegion ((view_PhysicalRegion self).f0'5)).f3'7).f1'3)
+        index with
+  | None'2 -> None'3
+  | Some'2 (T_Excl_Option_u8'mk value) -> Some'3 value
+  end
+
+type t_NonNull_u8
+
+predicate invariant_ref_BoundPtr (self:t_BoundPtr) = inv_BoundPtr self
+
+predicate inv_ref_BoundPtr (_1:t_BoundPtr) = invariant_ref_BoundPtr _1
+
+function view_NonNull_u8 t_NonNull_u8 : ptr
+
+function addr_NonNull_u8 (self:t_NonNull_u8) : t =
+  addr_logic_u64 (view_NonNull_u8 self)
+
+predicate is_null_NonNull_u8 (self:t_NonNull_u8) =
+  addr_NonNull_u8 self = (0:t)
+
+predicate invariant_NonNull_u8 (self:t_NonNull_u8) =
+  not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 t_NonNull_u8
+
+axiom inv_axiom'1 :
+  forall x:t_NonNull_u8 [inv_NonNull_u8 x].
+   inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+constant input : t_Vec_u8_Global
+
+constant result :
+  tup4_BoundPtr_usize_usize_Ghost_tup2_Recovery_PhysicalRegion
+
+axiom H : inv_BoundPtr (result.f0'0)
+
+axiom H1 : inv_Recovery ((result.f3'0).f0)
+
+axiom H2 : inv_PhysicalRegion ((result.f3'0).f1)
+
+axiom H3 :
+  view_BoundPtr (result.f0'0) =
+  Some
+  (Tup3_Id_Int_Int'mk (namespace ((result.f3'0).f0)) (t'int (result.f2'0)) 0)
+
+axiom H4 : invariant_BoundPtr (result.f0'0)
+
+axiom H5 : t'int (result.f1'0) = length (view_Vec_u8_Global input)
+
+axiom H6 : t'int (result.f2'0) = capacity ((result.f3'0).f0)
+
+axiom H7 : t'int (result.f2'0) = capacity'0 ((result.f3'0).f1)
+
+axiom H8 : t'int (result.f1'0) <= t'int (result.f2'0)
+
+axiom H9 : invariant' ((result.f3'0).f0)
+
+axiom H10 : invariant_PhysicalRegion ((result.f3'0).f1)
+
+axiom H11 : lo ((result.f3'0).f1) = 0
+
+axiom H12 : hi ((result.f3'0).f1) = t'int (result.f2'0)
+
+axiom H13 : namespace ((result.f3'0).f0) = namespace'0 ((result.f3'0).f1)
+
+axiom H14 : namespace ((result.f3'0).f0) = resource_id ((result.f3'0).f1)
+
+axiom H15 :
+  forall index:int.
+   0 <= index /\ index < t'int (result.f1'0) ->
+   slot ((result.f3'0).f1) index =
+   Some'3 (Some'1 (get1 (view_Vec_u8_Global input) index))
+
+axiom H16 :
+  forall index:int.
+   t'int (result.f1'0) <= index /\ index < t'int (result.f2'0) ->
+   slot ((result.f3'0).f1) index = Some'3 None'1
+
+constant result1 : t_NonNull_u8
+
+axiom H17 : inv_NonNull_u8 result1
+
+axiom H18 : invariant_NonNull_u8 result1
+
+constant result2 : t_BoundPtr
+
+axiom H19 : inv_BoundPtr result2
+
+axiom H20 : view_BoundPtr result2 = None
+
+axiom H21 : invariant_BoundPtr result2
+
+------------------------------- Goal --------------------------------
+
+goal vc_negative_unbound_cleanup :
+  view_BoundPtr result2 =
+  Some
+  (Tup3_Id_Int_Int'mk (namespace ((result.f3'0).f0)) (t'int (result.f2'0)) 0)
+
+---------------------------------------------------------------------
+Theory verif.bytes_bound_vec_constructor_rlib.negative_unbound_cleanup.Coma: ✘ (17/18)
+Theory verif.bytes_bound_vec_constructor_rlib.owned_region.impl_OwnedRegion.split_at.Coma: ✔ (16)
+Error: 1 unproved file
+Error: 'why3find prove' failed

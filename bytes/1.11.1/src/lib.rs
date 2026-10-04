@@ -6,6 +6,7 @@
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![allow(unexpected_cfgs)]
+#![cfg_attr(creusot, recursion_limit = "512")]
 
 //! Provides abstractions for working with bytes.
 //!
@@ -93,6 +94,8 @@ mod capacity_ops;
 mod chain_ops;
 mod comparison_ops;
 mod provenance_specs;
+#[cfg(creusot)]
+mod ownership_proof;
 mod endian_ops;
 mod fmt;
 mod loom;

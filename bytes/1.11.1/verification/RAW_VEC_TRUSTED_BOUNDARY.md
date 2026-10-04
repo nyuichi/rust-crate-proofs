@@ -91,3 +91,41 @@ Sealing the native descriptor removes direct pointer substitution at this bridge
 It does not repair the upstream translation for arbitrary caller control flow.
 Logical allocation identity must come from the sealed namespace and resource
 ownership, independently of runtime address comparisons.
+
+## Bound-pointer constructor body gate
+
+`BoundPtr` preserves a single native NonNull word; its private proof binding
+records namespace, allocation capacity and absolute offset. Arbitrary pointer
+metadata can create only an unbound descriptor. Copying the descriptor grants
+no memory authority. The native wrapper has transparent representation and
+compile-time size/alignment checks; the instrumented proof layout is different.
+
+The initial consuming `RawAllocation::into_bound_ptr_at_zero` adapter is trusted
+and reviewed. `deallocate_bound_vec` is the reviewed B3 offset-zero variant:
+its sealed binding must match native capacity and full affine capabilities.
+Erasing the binding while retaining pointer bits rejects its intended VC.
+The initial constructor-helper gate proves sixteen generated files.
+
+A build-time extraction includes the exact BytesMut and Shared declarations,
+actual annotated from_vec, ownership predicate, slot projection, explicit
+proof-only release, vptr/invalid_ptr and metadata constants. It imports the
+actual arithmetic/provenance/resource modules and adds no trusted stubs.
+Thirty-four generated files pass, including the source constructor body, its
+KIND_VEC/offset-zero and byte-prefix contracts, explicit release and caller.
+Release moves out the witness, frees through B3 and forgets the handle,
+preventing a second native destructor on this terminal path. Native extraction
+tests preserve the allocation/content and the four-word normal BytesMut layout.
+
+This extraction omits other impls and automatic Drop. Actual mutation, reserve
+and promotion paths conservatively discard the temporary ghost witness;
+unadapted pointer changes become unbound. The predicate is not an invariant
+for arbitrary BytesMut handles. Full-runtime translation still fails on the
+two vtable cycles; Shared promotion/split/refcount and normal Drop remain open.
+
+The current gate reduces that initial trust: B1 stores NonNull directly and
+`into_bound_ptr_at_zero` is now body proved. The helper gate proves seventeen
+files and the exact constructor/explicit-release gate proves thirty-five.
+B3-bound remains a physical deallocation variant, with no protocol trust.
+The initial thirty-four-file snapshot is retained separately as historical
+evidence; the current source/task hashes are in
+`artifacts/evidence/bound-constructor-body-manifest.json`.

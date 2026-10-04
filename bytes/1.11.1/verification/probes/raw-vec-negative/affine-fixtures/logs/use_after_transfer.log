@@ -1,0 +1,74 @@
+$ bash -c set -euo pipefail; source "$1/activate.sh"; export CARGO_NET_OFFLINE=true; rustc --version; cargo check --offline --locked --manifest-path "$2" --no-default-features --features "$3" affine-check /workspace/bytes-proof-tools /workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/raw-vec-negative/affine-fixtures/Cargo.toml use_after_transfer
+rustc 1.98.0-nightly (91fe22da8 2026-06-21)
+    Checking bytes-raw-vec-affine-fixtures v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/raw-vec-negative/affine-fixtures)
+warning: unused import: `RA`
+  --> src/../../../../../src/ownership_proof/owned_region.rs:11:33
+   |
+11 |     logic::{FMap, Id, Int, ra::{RA, excl::Excl}},
+   |                                 ^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `FMap`, `RA`, and `excl::Excl`
+  --> src/../../../../../src/ownership_proof/raw_vec.rs:21:13
+   |
+21 |     logic::{FMap, Id, Int, ra::{RA, excl::Excl}},
+   |             ^^^^                ^^  ^^^^^^^^^^
+
+warning: unused variable: `left`
+  --> src/../../../../../src/ownership_proof/owned_region.rs:33:5
+   |
+33 |     left: Snapshot<SlotMap>,
+   |     ^^^^ help: if this is intentional, prefix it with an underscore: `_left`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `right`
+  --> src/../../../../../src/ownership_proof/owned_region.rs:34:5
+   |
+34 |     right: Snapshot<SlotMap>,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_right`
+
+warning: unused variable: `whole`
+  --> src/../../../../../src/ownership_proof/owned_region.rs:35:5
+   |
+35 |     whole: Snapshot<SlotMap>,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_whole`
+
+warning: unused variable: `merged`
+  --> src/../../../../../src/ownership_proof/owned_region.rs:38:9
+   |
+38 |     let merged: Snapshot<SlotMap> = snapshot! { (*left).total_op(*right) };
+   |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_merged`
+
+warning: unused variable: `input_model`
+   --> src/../../../../../src/ownership_proof/raw_vec.rs:433:9
+    |
+433 |     let input_model = snapshot!(input@);
+    |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_input_model`
+
+error[E0382]: use of moved value: `capabilities`
+   --> src/use_after_transfer.rs:8:21
+    |
+  6 | pub(crate) fn reuse_after_split(capabilities: Ghost<(Recovery, PhysicalRegion)>) {
+    |                                 ------------ move occurs because `capabilities` has type `creusot_std::ghost::Ghost<(Recovery, PhysicalRegion)>`, which does not implement the `Copy` trait
+  7 |     let (recovery, region) = capabilities.split();
+    |                                           ------- `capabilities` moved due to this method call
+  8 |     let duplicate = capabilities;
+    |                     ^^^^^^^^^^^^ value used here after move
+    |
+note: `creusot_std::ghost::Ghost::<(T, U)>::split` takes ownership of the receiver `self`, which moves `capabilities`
+   --> /workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/ghost.rs:228:18
+    |
+228 |     pub fn split(self) -> (Ghost<T>, Ghost<U>) {
+    |                  ^^^^
+help: you could `clone` the value and consume it, if the following trait bounds could be satisfied: `Recovery: Clone`, `PhysicalRegion: Clone`, `Recovery: Copy` and `PhysicalRegion: Copy`
+    |
+  7 |     let (recovery, region) = capabilities.clone().split();
+    |                                          ++++++++
+
+For more information about this error, try `rustc --explain E0382`.
+warning: `bytes-raw-vec-affine-fixtures` (lib) generated 7 warnings
+error: could not compile `bytes-raw-vec-affine-fixtures` (lib) due to 1 previous error; 7 warnings emitted
+
+exit status: 101

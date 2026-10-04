@@ -1,0 +1,69 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 70 0 70 63 *)
+
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 22 8 22 20
+let%span sord'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span scapacity_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 71 15 71 16
+let%span scapacity_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 72 15 72 16
+let%span scapacity_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 75 48 75 49
+let%span scapacity_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 75 18 75 45
+let%span scapacity_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 75 17 75 50
+let%span scapacity_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 75 9 75 51
+let%span scapacity_ops'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 75 4 75 5
+let%span scapacity_ops'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 75 4 75 51
+let%span scapacity_ops'7 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 65 29 65 97
+let%span scapacity_ops'8 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 66 28 66 63
+let%span scapacity_ops'9 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 67 28 67 83
+let%span scapacity_ops'10 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 68 28 68 75
+let%span scapacity_ops'11 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 69 28 69 57
+let%span scapacity_ops'12 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 70 0 70 63
+
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+use int.Int
+
+constant const_MIN_ORIGINAL_CAPACITY_WIDTH: UInt64BW.t = [%#scapacity_ops'12] (10: UInt64BW.t)
+
+constant const_MAX_ORIGINAL_CAPACITY_WIDTH: UInt64BW.t = [%#scapacity_ops'12] (17: UInt64BW.t)
+
+predicate gt_log_usize [@inline:trivial] (self: UInt64BW.t) (other: UInt64BW.t) = [%#sord] UInt64BW.lt other self
+
+meta "rewrite_def" predicate gt_log_usize
+
+predicate ge_log_usize [@inline:trivial] (self: UInt64BW.t) (other: UInt64BW.t) = [%#sord'0] UInt64BW.le other self
+
+meta "rewrite_def" predicate ge_log_usize
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let original_capacity_from_repr [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/bound-vec-constructor/src/../../../../src/capacity_ops.rs" 70 0 70 63]
+  (repr: UInt64BW.t) (return (x: UInt64BW.t)) =
+{[@stop_split] [@expl:original_capacity_from_repr requires] [%#scapacity_ops'7] UInt64BW.t'int repr
+  <= UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_12 <- repr = ([%#scapacity_ops] (0: UInt64BW.t)) ] s1
+    | s1 = any [ br0 -> {_12 = false} (! bb2) | br1 -> {_12} (! bb1) ] ]
+  | bb1 = s0 [ s0 = [ &_ret <- [%#scapacity_ops'0] (0: UInt64BW.t) ] s1 | s1 = return {_ret} ]
+  | bb2 = s0
+    [ s0 = UInt64BW.sub [%#scapacity_ops'3] {[%#scapacity_ops'2] const_MIN_ORIGINAL_CAPACITY_WIDTH}
+        {[%#scapacity_ops'1] (1: UInt64BW.t)} (fun (_x: UInt64BW.t) -> [ &_17 <- _x ] s1)
+    | s1 = UInt64BW.add [%#scapacity_ops'4] {repr} {_17} (fun (_x: UInt64BW.t) -> [ &_15 <- _x ] s2)
+    | s2 = UInt64BW.shl [%#scapacity_ops'6] {[%#scapacity_ops'5] (1: UInt64BW.t)} {UInt64BW.to_BV256 _15}
+        (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ]
+  [ & _ret: UInt64BW.t = Any.any_l ()
+  | & repr: UInt64BW.t = repr
+  | & _12: bool = Any.any_l ()
+  | & _15: UInt64BW.t = Any.any_l ()
+  | & _17: UInt64BW.t = Any.any_l () ])
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:original_capacity_from_repr ensures] ([@stop_split] [@expl:original_capacity_from_repr ensures #0] [%#scapacity_ops'8] repr
+        = (0: UInt64BW.t) -> result = (0: UInt64BW.t))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #1] [%#scapacity_ops'9] gt_log_usize repr (0: UInt64BW.t)
+      -> result = UInt64BW.shl (1: UInt64BW.t) (UInt64BW.add repr (9: UInt64BW.t)))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #2] [%#scapacity_ops'10] gt_log_usize repr (0: UInt64BW.t)
+      -> ge_log_usize result (UInt64BW.shl (1: UInt64BW.t) (10: UInt64BW.t)))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #3] [%#scapacity_ops'11] UInt64BW.le result (UInt64BW.shl (1: UInt64BW.t) (16: UInt64BW.t)))}
+    (! return {result}) ]

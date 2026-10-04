@@ -2,6 +2,18 @@
 
 ## Current working-tree status (2026-10-04)
 
+The exact-source constructor/explicit unique-at-zero cleanup gate now passes
+35 generated proof files. This proves the extracted actual annotated from_vec
+body, original byte prefix and dispatch metadata, plus the verification-only
+explicit cleanup body/caller. It does not prove normal Drop or full-crate
+integration. The descriptor conversion is now body proved, with nonnull construction
+confined to B1. Native extraction tests pass twice, including the unchanged
+four-word normal layout. Eight B2/B3/B4 negative features reject their intended
+VCs; two native affine fixtures reject moves with E0382. See the
+[bound constructor probe](verification/probes/bound-vec-constructor/README.md)
+and its exact source/evidence snapshots.
+
+
 The local B1/B2/B4 Vec/raw bridge passes its eleven-file isolated gate:
 detach, split, mutate independently through two live disjoint slices, join,
 and restore the changed contents while preserving all other bytes. The three
@@ -219,3 +231,25 @@ in `verification/artifacts/evidence/raw-vec-b1-b2-b4-b3-manifest.json`.
 The latest full-runtime translation still stops on the two vtable cycles, before
 VC generation; the retained log is
 `verification/artifacts/logs/runtime-raw-vec-checkpoint-translation.log`.
+
+## Constructor source connection and remaining ownership frontier
+
+The proof configuration of the actual BytesMut constructor now stores a sealed
+bound pointer and affine ghost Recovery/full-region capabilities. The normal
+representation retains its existing NonNull field. Proof metadata copying no
+longer uses ptr::read on the ghost ownership state. Unadapted mutable access,
+spare-capacity access, reserve and promotion discard that witness; pointer
+updates become unbound. No persistent all-method ownership invariant is claimed.
+
+The exact source-body gate imports real helpers and declarations without
+trusted bytes protocols. The normal native test run passes 997 tests and 246
+doctests; the no-default-features check passes. The full proof translation still
+reports the same two vtable cycles, with no whole-crate VC proof; see
+`verification/artifacts/logs/runtime-bound-constructor-translation.log`.
+
+Shared integration must replace the ordinary Vec owner with one raw descriptor,
+keep actual affine retired regions and Recovery, track ticket registrations,
+and link their retirement to native atomic decrements. Ordinary Vec ownership
+may not coexist with PhysicalRegions. Native fetch_sub needs a generic modeled
+primitive; concurrent release-sequence synchronization and automatic Drop
+remain separate tool/model limits.

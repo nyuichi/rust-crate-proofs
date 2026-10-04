@@ -99,3 +99,20 @@ boundary: exact sealed base/capacity, full region and unique Recovery are
 consumed, then a zero-length Vec is actually destroyed. No byte initialization
 is required. Native destruction is assumed by this boundary; caller proofs do
 not derive it from standard `mem::drop` or establish automatic Drop effects.
+
+## Initial bound-pointer adapter checkpoint
+
+The constructor checkpoint additionally trusts the consuming
+`RawAllocation::into_bound_ptr_at_zero` descriptor adapter and B3 variant
+`deallocate_bound_vec`. Astra reviewed both exact contracts/native bodies.
+Only the converter mints Some binding; unbound construction and nonnull
+metadata getters are body proved. B3 still requires full matching affine
+authority. The actual extracted constructor and proof-only explicit cleanup
+are body proved and introduce no trusted bytes protocol. Removing converter
+trust by storing NonNull inside the existing B1 boundary is the next gate.
+
+The later NonNull checkpoint removes converter trust: B1 creates NonNull
+inside its existing Vec/raw boundary; conversion merely moves that field and
+ghost metadata and is body proved. Current physical trusted functions are
+detach_vec, resume_vec, deallocate_vec, borrow_mut, and the deallocate_bound_vec
+variant. The exact constructor/explicit-release source gate passes 35 files.

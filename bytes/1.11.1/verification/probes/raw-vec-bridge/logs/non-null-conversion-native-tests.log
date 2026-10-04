@@ -1,0 +1,263 @@
+warning: unused import: `RA`
+  --> src/../../../../src/ownership_proof/owned_region.rs:11:33
+   |
+11 |     logic::{FMap, Id, Int, ra::{RA, excl::Excl}},
+   |                                 ^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `FMap`, `RA`, and `excl::Excl`
+  --> src/../../../../src/ownership_proof/raw_vec.rs:21:13
+   |
+21 |     logic::{FMap, Id, Int, ra::{RA, excl::Excl}},
+   |             ^^^^                ^^  ^^^^^^^^^^
+
+warning: unused variable: `left`
+  --> src/../../../../src/ownership_proof/owned_region.rs:33:5
+   |
+33 |     left: Snapshot<SlotMap>,
+   |     ^^^^ help: if this is intentional, prefix it with an underscore: `_left`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `right`
+  --> src/../../../../src/ownership_proof/owned_region.rs:34:5
+   |
+34 |     right: Snapshot<SlotMap>,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_right`
+
+warning: unused variable: `whole`
+  --> src/../../../../src/ownership_proof/owned_region.rs:35:5
+   |
+35 |     whole: Snapshot<SlotMap>,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_whole`
+
+warning: unused variable: `merged`
+  --> src/../../../../src/ownership_proof/owned_region.rs:38:9
+   |
+38 |     let merged: Snapshot<SlotMap> = snapshot! { (*left).total_op(*right) };
+   |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_merged`
+
+warning: unused variable: `input_model`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:433:9
+    |
+433 |     let input_model = snapshot!(input@);
+    |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_input_model`
+
+warning: function `split_in_helper` is never used
+  --> src/lib.rs:46:4
+   |
+46 | fn split_in_helper(
+   |    ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `detach_split_join_resume` is never used
+  --> src/lib.rs:67:4
+   |
+67 | fn detach_split_join_resume(input: Vec<u8>, split: usize) -> Vec<u8> {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `detach_mutate_disjoint_fragments` is never used
+  --> src/lib.rs:87:4
+   |
+87 | fn detach_mutate_disjoint_fragments(input: Vec<u8>) -> Vec<u8> {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `split_in_reverse_helper` is never used
+   --> src/lib.rs:129:4
+    |
+129 | fn split_in_reverse_helper(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `deallocate_split_normal_tuple` is never used
+   --> src/lib.rs:147:4
+    |
+147 | fn deallocate_split_normal_tuple(input: Vec<u8>, split: usize) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `deallocate_split_reversed_tuple` is never used
+   --> src/lib.rs:159:4
+    |
+159 | fn deallocate_split_reversed_tuple(input: Vec<u8>, split: usize) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type alias `KernelRA` is never used
+  --> src/../../../../src/ownership_proof/owned_region.rs:20:17
+   |
+20 | pub(crate) type KernelRA = (Option<Excl<()>>, FMap<Int, Excl<Option<u8>>>);
+   |                 ^^^^^^^^
+
+warning: type alias `SlotMap` is never used
+  --> src/../../../../src/ownership_proof/owned_region.rs:23:17
+   |
+23 | pub(crate) type SlotMap = FMap<Int, Excl<Option<u8>>>;
+   |                 ^^^^^^^
+
+warning: function `map_compose_eq` is never used
+  --> src/../../../../src/ownership_proof/owned_region.rs:32:15
+   |
+32 | pub(crate) fn map_compose_eq(
+   |               ^^^^^^^^^^^^^^
+
+warning: struct `OwnedRegion` is never constructed
+  --> src/../../../../src/ownership_proof/owned_region.rs:47:19
+   |
+47 | pub(crate) struct OwnedRegion {
+   |                   ^^^^^^^^^^^
+
+warning: associated items `from_model_ledger`, `split_at`, and `join` are never used
+   --> src/../../../../src/ownership_proof/owned_region.rs:89:19
+    |
+ 76 | impl OwnedRegion {
+    | ---------------- associated items in this implementation
+...
+ 89 |     pub(crate) fn from_model_ledger(lo: Int, hi: Int, resource: Resource<KernelRA>) -> Self {
+    |                   ^^^^^^^^^^^^^^^^^
+...
+156 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+    |                   ^^^^^^^^
+...
+207 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: struct `AllocationDesc` is never constructed
+  --> src/../../../../src/ownership_proof/raw_vec.rs:30:8
+   |
+30 | struct AllocationDesc {
+   |        ^^^^^^^^^^^^^^
+
+warning: struct `RawAllocation` is never constructed
+  --> src/../../../../src/ownership_proof/raw_vec.rs:66:19
+   |
+66 | pub(crate) struct RawAllocation {
+   |                   ^^^^^^^^^^^^^
+
+warning: associated items `unbound`, `as_ptr`, and `as_non_null` are never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:163:19
+    |
+159 | impl BoundPtr {
+    | ------------- associated items in this implementation
+...
+163 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
+    |                   ^^^^^^^
+...
+177 |     pub(crate) fn as_ptr(&self) -> *mut u8 {
+    |                   ^^^^^^
+...
+184 |     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
+    |                   ^^^^^^^^^^^
+
+warning: method `into_bound_ptr_at_zero` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:209:19
+    |
+199 | impl RawAllocation {
+    | ------------------ method in this implementation
+...
+209 |     pub(crate) fn into_bound_ptr_at_zero(self) -> (BoundPtr, usize) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `Recovery` is never constructed
+   --> src/../../../../src/ownership_proof/raw_vec.rs:237:19
+    |
+237 | pub(crate) struct Recovery {
+    |                   ^^^^^^^^
+
+warning: struct `PhysicalRegion` is never constructed
+   --> src/../../../../src/ownership_proof/raw_vec.rs:279:19
+    |
+279 | pub(crate) struct PhysicalRegion {
+    |                   ^^^^^^^^^^^^^^
+
+warning: methods `split_at` and `join` are never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:365:19
+    |
+309 | impl PhysicalRegion {
+    | ------------------- methods in this implementation
+...
+365 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+    |                   ^^^^^^^^
+...
+395 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: function `detach_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:430:15
+    |
+430 | pub(crate) fn detach_vec(
+    |               ^^^^^^^^^^
+
+warning: function `resume_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:513:22
+    |
+513 | pub(crate) unsafe fn resume_vec(
+    |                      ^^^^^^^^^^
+
+warning: function `deallocate_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:549:22
+    |
+549 | pub(crate) unsafe fn deallocate_vec(
+    |                      ^^^^^^^^^^^^^^
+
+warning: function `deallocate_bound_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:584:22
+    |
+584 | pub(crate) unsafe fn deallocate_bound_vec(
+    |                      ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_mut` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:633:22
+    |
+633 | pub(crate) unsafe fn borrow_mut<'a>(
+    |                      ^^^^^^^^^^
+
+warning: fields `capacity` and `namespace` are never read
+  --> src/../../../../src/ownership_proof/raw_vec.rs:31:5
+   |
+30 | struct AllocationDesc {
+   |        -------------- fields in this struct
+31 |     capacity: Int,
+   |     ^^^^^^^^
+32 |     namespace: Id,
+   |     ^^^^^^^^^
+   |
+   = note: `AllocationDesc` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `namespace` is never read
+  --> src/../../../../src/ownership_proof/raw_vec.rs:69:5
+   |
+66 | pub(crate) struct RawAllocation {
+   |                   ------------- field in this struct
+...
+69 |     namespace: Ghost<Id>,
+   |     ^^^^^^^^^
+
+warning: fields `resource` and `descriptor` are never read
+   --> src/../../../../src/ownership_proof/raw_vec.rs:238:5
+    |
+237 | pub(crate) struct Recovery {
+    |                   -------- fields in this struct
+238 |     resource: Resource<KernelRA>,
+    |     ^^^^^^^^
+239 |     descriptor: AllocationDesc,
+    |     ^^^^^^^^^^
+
+warning: `bytes-raw-vec-bridge` (lib) generated 30 warnings (run `cargo fix --lib -p bytes-raw-vec-bridge` to apply 7 suggestions)
+warning: `bytes-raw-vec-bridge` (lib test) generated 13 warnings (10 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running unittests src/lib.rs (/workspace/bytes-proof-tools/targets/bytes/debug/deps/bytes_raw_vec_bridge-402def605bffd6b4)
+
+running 4 tests
+test tests::explicitly_frees_vec_with_reversed_fragment_tuple ... ok
+test tests::explicitly_frees_vec_with_normal_fragment_tuple ... ok
+test tests::resumes_vec_after_helper_split_and_join ... ok
+test tests::mutates_disjoint_fragments_then_resumes_vec ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests bytes_raw_vec_bridge
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
