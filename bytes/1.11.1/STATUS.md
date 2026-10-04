@@ -2,6 +2,14 @@
 
 ## Current working-tree status (2026-10-04)
 
+The sequential retirement-registry gate now proves 27 files with real affine
+registration tickets, B1 physical regions, NonAtomicInvariant::open_mut, both
+retirement orders and explicit B3 cleanup. Two native tests pass. A missing
+empty-region ticket rejects exactly one finalize guard despite full byte
+coverage. No new trusted declaration or Creusot/creusot-std edit was added.
+This is a unique mutable coordinator, not native Shared/refcount/Drop. See the
+[registry scope](verification/probes/sequential-retirement-registry/README.md).
+
 The sealed retired-region pool core gate proves 23 generated files, including
 empty seed, affine retirement, full-coverage extraction and both explicit
 retirement orders followed by B3 deallocation. These are genuine B1 physical
@@ -278,3 +286,19 @@ and link their retirement to native atomic decrements. Ordinary Vec ownership
 may not coexist with PhysicalRegions. Native fetch_sub needs a generic modeled
 primitive; concurrent release-sequence synchronization and automatic Drop
 remain separate tool/model limits.
+
+
+## Current practical boundary
+
+No further abstract ownership layer is needed. The remaining actual Shared
+integration must replace its ordinary Vec owner with one sealed raw descriptor
+and adapt promotion, release, reserve/recovery and conversion paths. Native
+AtomicUsize::fetch_sub has no vanilla modeled contract: connecting it requires
+a reviewed generic primitive bridge, which would add atomic trust. These are
+deferred difficult integration work, not already proved or impossible locally.
+
+Full-crate vtable translation and automatic Drop effects remain compiler-model
+blockers under the no-large-Creusot-change constraint. Concurrent release
+sequences/view transfer, control-block destruction, Bytes/freeze read-sharing
+and the remaining allocation paths are also unproved. The explicit local gates
+above do not establish complete bytes verification.

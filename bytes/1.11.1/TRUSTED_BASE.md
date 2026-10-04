@@ -122,3 +122,10 @@ The sealed physical retired-pool core adds no trusted functions. Its seed,
 retirement, full-coverage extraction and supporting RA/extractor lemmas are
 body proved in the 23-file local gate, over the existing physical primitives.
 This does not establish native Shared/refcount or automatic Drop integration.
+
+
+The sequential registry adds no custom trusted declarations. The vanilla
+NonAtomicInvariant/resource framework is used under its generic contracts;
+ticket conservation, region retirement, mutable public progress and consuming
+finalization are body proved in the 27-file local gate. This does not add a
+contract for native AtomicUsize or prove native Shared/automatic Drop.

@@ -1,0 +1,19 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-retirement-registry/src/../../../../src/ownership_proof/raw_vec.rs" 106 9 106 27 *)
+
+(* <raw_vec::BoundPtrBinding as std::clone::Clone> *)
+
+use creusot.prelude.Any
+
+type t_Id
+
+type t_BoundPtrBinding = { namespace: t_Id; allocation_capacity: int; absolute_offset: int }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let clone_BoundPtrBinding [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-retirement-registry/src/../../../../src/ownership_proof/raw_vec.rs" 106 9 106 27]
+  (self: t_BoundPtrBinding) (return (x: t_BoundPtrBinding)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_BoundPtrBinding = Any.any_l () | & self: t_BoundPtrBinding = self ])
+  [ return (result: t_BoundPtrBinding) -> (! return {result}) ]

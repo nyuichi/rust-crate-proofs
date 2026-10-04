@@ -194,3 +194,19 @@ passes 41 files and three native tests. Its one-source snapshot is archived as
 `bound-vec-constructor/current-pool-cap-class/`; it replaces the mixed-kernel
 limitation for this component gate. Pool helpers are included body proofs, but
 actual BytesMut split/Shared/refcount/Drop remain outside this extraction.
+
+
+## Sequential registry gate
+
+The 27-file gate uses real exclusive registration RA fragments and physical
+regions. It returns both kinds of resource before consuming the unique NAI
+coordinator and invoking B3. open_mut exposes progress; each operation proves
+allocation/registration identity remains fixed. A split-at-zero missing ticket
+rejects the finalize guard even though the right region covers all capacity.
+Two native tests check erasure and explicit cleanup. No protocol theorem or
+new primitive is trusted.
+
+The standard NAI/resource framework remains part of the existing proof TCB.
+This gate is neither native Shared nor an atomic counter or cross-thread proof.
+Actual Shared raw-storage wiring and native atomic contracts remain integration
+work; vtable translation and automatic Drop effects remain upstream blockers.
