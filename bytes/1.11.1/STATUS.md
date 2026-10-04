@@ -2,6 +2,17 @@
 
 ## Current working-tree status (2026-10-04)
 
+The first actual BytesMut split gate passes 61 proof files: exact from_vec,
+promote_to_shared(2), shallow_clone, split_to and explicit consuming release
+execute with affine buffer regions and registration tickets. Both release
+orders are proved. Native tests (2) observe the matching A/S frees. The
+62-file missing-empty-ticket negative rejects exactly one finish guard.
+This covers one split from unique offset zero; independent mutable access,
+automatic Drop and concurrency remain outside this checkpoint. The generic
+Box alignment bridge adds one explicit physical TCB fact; no Creusot compiler
+or std modification is used. Canonical evidence is sequential-bytesmut-split.
+
+
 The restricted actual-Shared control gate passes 45 files. Exact source helper
 bodies allocate a real Shared box, join physical retirement/tickets to the
 native sequential counter, branch on the native final decrement, recover all
@@ -10,7 +21,7 @@ Perm::drop on Shared. No bytes ownership protocol is trusted. Two native tests
 pass, including allocation events for both release orders; nonzero capacity
 observes one S allocation and two A/S frees. A missing empty-region ticket
 rejects exactly one finish guard (46-file negative configuration).
-This is the source's restricted helper block, not the existing from_vec,
+That earlier control-only gate is the source's restricted helper block, not the existing from_vec,
 promote_to_shared, split_to or release_shared path. Automatic Drop and
 concurrency remain unproved. See the sequential-shared-control probe scope.
 

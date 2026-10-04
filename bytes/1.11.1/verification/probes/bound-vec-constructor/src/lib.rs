@@ -16,10 +16,13 @@ mod raw_vec;
 #[cfg(feature = "actual_from_vec")]
 #[path = "../../../../src/ownership_proof/sequential_counter.rs"]
 mod sequential_counter;
+#[cfg(feature = "actual_from_vec")]
+#[path = "../../../../src/ownership_proof/shared_protocol.rs"]
+mod shared_protocol;
 
 #[cfg(feature = "actual_from_vec")]
 mod ownership_proof {
-    pub(crate) use crate::{bound_ptr, owned_region, raw_vec, sequential_counter};
+    pub(crate) use crate::{bound_ptr, owned_region, raw_vec, sequential_counter, shared_protocol};
 }
 
 #[cfg(feature = "actual_from_vec")]

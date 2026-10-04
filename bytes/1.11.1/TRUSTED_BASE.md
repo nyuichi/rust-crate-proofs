@@ -10,6 +10,15 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-04)
 
+- `BOX-ALIGN-01`, `src/ownership_proof/boxed_alignment.rs::into_raw_aligned`,
+  consumes an ordinary Box and returns the existing typed Perm ward/value plus
+  native pointee alignment. This generic physical bridge fills the missing
+  alignment postcondition of standard Perm::from_box. It does not grant bytes
+  regions, tickets, refcount, tagging, promotion or finalization facts. The
+  address-bit lemma is body-proved. The actual first split gate depends on this
+  additional trusted fact (61 positive files, 62-file one-guard negative).
+
+
 - `RVB-01` and `RVB-02`, in `src/ownership_proof/raw_vec.rs`, are reviewed local
   physical Vec/raw detach and recovery primitives. Their sealed namespace
   interpretation connects native allocation metadata to ghost Recovery and

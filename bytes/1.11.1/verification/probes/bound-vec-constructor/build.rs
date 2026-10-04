@@ -137,7 +137,10 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
     let source = fs::read_to_string(&bytes_mut_path).expect("read actual bytes_mut.rs");
+    let control_start = unique_index(&source, "// BEGIN EXACT SEQUENTIAL SHARED CONTROL GATE");
+    let control_end = unique_index(&source, "// END EXACT SEQUENTIAL SHARED CONTROL GATE");
     let fragments = [
+        Fragment { name: "sequential_shared_control", text: &source[control_start..control_end], start: control_start, end: control_end },
         extract_item(&source, "BytesMut", "pub struct BytesMut {", "pub struct BytesMut {"),
         extract_item(&source, "Shared", "struct Shared {", "struct Shared {"),
         extract_item(&source, "SharedBuffer", "struct SharedBuffer {", "struct SharedBuffer {"),
@@ -189,7 +192,7 @@ fn main() {
 
     let mut generated = String::from(
         "// Generated from exact source fragments by build.rs; do not edit.\n\
-         use alloc::vec::Vec;\n\
+         use alloc::{vec::Vec, boxed::Box};\n\
          use core::mem::{self, ManuallyDrop};\n\
          use core::ptr::NonNull;\n\
          use core::sync::atomic::AtomicUsize;\n\
