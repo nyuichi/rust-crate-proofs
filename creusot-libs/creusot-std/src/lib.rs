@@ -80,6 +80,7 @@
     feature(print_internals, libstd_sys_internals, rt,)
 )]
 #![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(creusot, feature(nonzero_internals))]
 
 extern crate alloc;
 
