@@ -147,3 +147,16 @@ through promotion and metadata copy. Registry activation is postponed until
 split_to knows the final boundary; no second B1, permission duplication or
 mutable registration geometry is needed. Concurrent refcount, normal automatic
 Drop and full-crate vtable recursion remain outside this milestone.
+
+
+## Bounded actual split and mutation checkpoints
+
+The subsequent exact-source sequential gates connect actual from_vec, first
+promotion, split_to, split_off, mutable access and explicit consuming release.
+The 77-file gate additionally proves truncate/clear and capacity-bounded
+set_len for a Known visible prefix, including restoration of retained bytes.
+Physical access and scalar counter contracts remain explicit TCB dependencies;
+bytes ownership/ticket/pending protocol bodies are proved. No Creusot compiler
+or std change is used. The gate excludes automatic Drop, concurrent release,
+repeated ARC splitting, reserve and Bytes vtables. See STATUS.md and the
+sequential-bytesmut-split probe README for exact evidence and negative scopes.

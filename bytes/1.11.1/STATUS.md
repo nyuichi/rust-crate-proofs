@@ -2,6 +2,20 @@
 
 ## Current working-tree status (2026-10-04)
 
+The bounded actual split_off / length gate passes 77 proof files and seven
+native tests. Actual split_off preserves all slots, including Unknown spare
+capacity, and proves pointer/length/capacity partition for at<=capacity. The
+probe harness clamps requests to constructed capacity because Vec->Seq does
+not model reserved capacity; native tests supply valid points so no clamp
+occurs. Actual set_len allows only a capacity-bounded Known new prefix.
+Truncate/clear preserve full packet resources and all slot values; restoring
+retained Known bytes is proved. A 78-file negative rejects exactly one actual
+set_len guard when growing into Unknown. Allocator tests observe zero reallocs
+and exact A/S frees in both orders. No new TCB is added. Actual constructor
+with its strengthened spare-Unknown postcondition freshly passes 54 files.
+Automatic Drop, concurrent release and repeated ARC splitting remain excluded.
+
+
 The actual split/mutable-view gate now passes 68 proof files. Exact as_slice_mut
 uses the matching affine packet through a body-proved borrow helper and the
 explicit B4-bound physical access bridge. Callers hold both disjoint slices

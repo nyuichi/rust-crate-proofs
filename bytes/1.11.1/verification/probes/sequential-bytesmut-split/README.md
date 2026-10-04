@@ -2,15 +2,15 @@
 
 This probe extracts the exact `BytesMut`, `Shared`, and `SharedBuffer` declarations
 and actual `from_vec`, `promote_to_shared`, `shallow_clone`, `split_to`,
-`advance_unchecked`, and `as_slice_mut` bodies from `src/bytes_mut.rs`. Source
+`split_off`, `advance_unchecked`, `as_slice_mut`, `set_len`, `truncate`, and `clear` bodies from `src/bytes_mut.rs`. Source
 offsets and hashes are recorded at build time. The gate starts with a freshly
-detached Vec at offset zero, performs one `split_to`, borrows both resulting
+detached Vec at offset zero, performs one `split_to` or `split_off`, borrows both resulting
 mutable slices, and explicitly releases the handles in either order.
 
 Promotion moves the constructor's existing Recovery and full PhysicalRegion
 into a private pending owner with the typed Shared permission and exclusive
 counter authority. It does not detach a second Vec. The shallow copy duplicates
-metadata only. `split_to` initializes the existing two-ticket registry at the
+metadata only. The first split initializes the existing two-ticket registry at the
 actual boundary and assigns disjoint byte regions. One handle retains the
 coordinator until the caller takes it; there are never two mutable coordinators.
 Exact slot values are preserved through promotion and partitioning.
@@ -31,7 +31,7 @@ load, recovers full byte capabilities, disarms SharedBuffer, frees A through B3,
 and consumes typed S permission through native `Perm::drop`. Explicit handle
 cleanup ends with `mem::forget(self)` to suppress a second destructor call.
 
-Current mutable-access checkpoint:
+Archived mutable-access checkpoint:
 
 - Positive: all 68 proof files pass.
 - Native: four integration tests pass, covering simultaneous writes, empty
@@ -45,6 +45,31 @@ Current mutable-access checkpoint:
 - Missing-empty-ticket rejection: one intended failed leaf, 18/19 in the
   caller; full byte coverage cannot replace an outstanding registration when
   attempting final recovery. Each negative configuration contains 69 proof files.
+
+Current split-off and length-change extension:
+
+- All 77 positive proof files pass, including the previous mutable-access bodies.
+- `split_off` accepts every position up to capacity, including beyond length.
+  Lengths are min/saturating differences, capacities partition exactly, and every
+  Known or Unknown slot is preserved on its side. A returned empty view over
+  spare capacity does not turn its Unknown slots into readable bytes.
+- `truncate` and `clear` retain all owned slots. `set_len` requires registered
+  ownership, an in-capacity length, and Known slots throughout the new visible
+  prefix. The caller shrinks and then restores the old Known prefixes.
+- Seven native tests cover empty/full/spare buffers, all capacity positions,
+  both release orders, simultaneous writes, and retained-Known regrowth. Native
+  allocator instrumentation records one S allocation, two A/S frees for nonzero
+  capacity (one S free at capacity zero), and zero realloc calls.
+- The new negative uses actual `split_off` over spare capacity, proves a valid
+  registered region and an Unknown first slot, and attempts actual `set_len(1)`.
+  Its initialized-prefix precondition rejects this growth: one intended failed
+  leaf (15/16 in the caller), among 78 proof files.
+
+The `split_off_both` and `shrink_split_off` harnesses clamp their requested index
+to the capacity returned by the actual constructor, because the unchanged Vec
+sequence model has no capacity field. Native edge tests supply valid indices.
+The actual `split_off` implementation does not clamp: its proved precondition
+and native assertion require `at <= capacity`.
 
 The initial descriptor/release-only checkpoint remains archived separately:
 61 positive proof files and one missing-ticket rejection among 62 files.
@@ -66,6 +91,7 @@ outside this gate.
 
 ```
 ./scripts/verify-bytes.sh sequential-bytesmut-split
+./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_split_off_unknown
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_unknown_access
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_pending_access
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_stale_contents
@@ -74,4 +100,5 @@ cargo test --offline --locked --manifest-path verification/probes/sequential-byt
 ```
 
 Canonical evidence is under
-`verification/artifacts/evidence/sequential-bytesmut-split/mutable-access/`.
+`verification/artifacts/evidence/sequential-bytesmut-split/split-off-shrink/`;
+the earlier mutable-access checkpoint remains under the sibling `mutable-access/`.
