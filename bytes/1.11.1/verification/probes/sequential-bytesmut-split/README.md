@@ -46,7 +46,7 @@ Archived mutable-access checkpoint:
   caller; full byte coverage cannot replace an outstanding registration when
   attempting final recovery. Each negative configuration contains 69 proof files.
 
-Current split-off and length-change extension:
+Archived split-off and length-change extension:
 
 - All 77 positive proof files pass, including the previous mutable-access bodies.
 - `split_off` accepts every position up to capacity, including beyond length.
@@ -71,6 +71,32 @@ sequence model has no capacity field. Native edge tests supply valid indices.
 The actual `split_off` implementation does not clamp: its proved precondition
 and native assertion require `at <= capacity`.
 
+Current retained-prefix advance extension:
+
+- All 79 positive proof files pass. The actual internal `advance_unchecked`
+  method supports registered interior views up to capacity, using saturating
+  visible length and exact capacity reduction. The separate `Buf::advance`
+  trait implementation is not extracted or claimed here.
+- Each handle retains its entire original affine packet, including discarded
+  prefixes. Its pointer-relative visible window is a suffix of that region.
+  Advance preserves every absolute packet slot, and subsequent mutable access
+  frames the discarded prefixes. Explicit retirement returns the entire packet,
+  so full allocation recovery needs no prefix stash or additional resources.
+- First-split contracts preserve exact original allocation bindings at offsets
+  zero and `at`; generalized interior validity does not replace those facts.
+- Nine native tests cover counts zero, visible length and capacity, including
+  advances beyond length into spare capacity, both release orders, and exact
+  allocation/free/realloc events.
+- A guarded negative advances into Unknown spare capacity and attempts actual
+  `set_len(1)` after proving valid interior geometry and an Unknown first slot.
+  Exactly the initialized-prefix precondition fails (19/20 in the caller),
+  among 80 proof files.
+
+The `advance_split_off` harness clamps each requested count to that side's
+capacity. The actual internal method requires `count <= cap`; its native pointer,
+length and capacity operations are unchanged. This extension adds no trusted
+boundary: only body-proved ownership-view and frame contracts changed.
+
 The initial descriptor/release-only checkpoint remains archived separately:
 61 positive proof files and one missing-ticket rejection among 62 files.
 
@@ -91,6 +117,7 @@ outside this gate.
 
 ```
 ./scripts/verify-bytes.sh sequential-bytesmut-split
+./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_advanced_unknown
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_split_off_unknown
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_unknown_access
 ./scripts/verify-bytes.sh sequential-bytesmut-split --features negative_pending_access
@@ -100,5 +127,6 @@ cargo test --offline --locked --manifest-path verification/probes/sequential-byt
 ```
 
 Canonical evidence is under
-`verification/artifacts/evidence/sequential-bytesmut-split/split-off-shrink/`;
+`verification/artifacts/evidence/sequential-bytesmut-split/retained-prefix-advance/`;
+the previous split-off/length checkpoint is under `split-off-shrink/`, and
 the earlier mutable-access checkpoint remains under the sibling `mutable-access/`.

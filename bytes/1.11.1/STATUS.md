@@ -2,6 +2,18 @@
 
 ## Current working-tree status (2026-10-04)
 
+The retained-prefix actual advance_unchecked gate passes 79 proof files and
+nine native tests. Handles keep the full original affine packet while their
+live view becomes an interior suffix. The body-proved packet-borrow adapter
+accepts that interior view, without changing B4 or the physical TCB. First split
+contracts still expose exact initial pointer bindings at offsets 0/at. The
+caller mutates remaining Known bytes, proves discarded prefixes unchanged,
+and explicitly releases both orders to recover all original capacity. The
+claim covers the actual internal method, not the Buf trait entrypoint, whole
+crate or automatic Drop. An 80-file negative rejects exactly one Known-prefix guard (19/20)
+when actual set_len grows after advancing into Unknown spare capacity.
+
+
 The bounded actual split_off / length gate passes 77 proof files and seven
 native tests. Actual split_off preserves all slots, including Unknown spare
 capacity, and proves pointer/length/capacity partition for at<=capacity. The
