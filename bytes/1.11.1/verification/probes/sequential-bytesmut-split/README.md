@@ -154,3 +154,16 @@ Canonical evidence is under
 the previous retained-prefix checkpoint is under `retained-prefix-advance/`,
 the previous split-off/length checkpoint is under `split-off-shrink/`, and
 the earlier mutable-access checkpoint remains under the sibling `mutable-access/`.
+
+## Read-only access checkpoint
+
+The readonly-access archive contains 90 positive proof files and fourteen native
+tests. Actual as_slice supports two shared reads of the left packet while the
+right packet is mutated; contents and release in both orders are checked.
+B4-read is an explicit physical-access boundary. The Unknown-read configuration
+rejects one Known-slot guard among 91 files (caller 17/18). Safe trait dispatch,
+unique-state access and a global valid-handle invariant remain subsequent work.
+
+The readonly-access/lifetime-diagnostic archive records Rust E0505 rejecting
+release of a handle while a later read keeps its as_slice borrow live. This is
+translation/borrow-check evidence only, not a Why3 VC or automatic Drop proof.

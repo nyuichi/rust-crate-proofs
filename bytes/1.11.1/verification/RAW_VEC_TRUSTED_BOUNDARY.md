@@ -259,3 +259,16 @@ trusted. The actual spare_capacity_mut, packet adapter and initialization/
 publication callers pass the 86-file gate. Native twelve tests pass; the
 87-file re-uninitialized-growth negative rejects exactly one Known-prefix
 guard. The earlier 79-file advance checkpoint excludes this additional bridge.
+
+## Read-only bound access checkpoint
+
+`B4-read`, `borrow_bound`, requires sealed allocation identity, capacity and
+range correspondence, a shared PhysicalRegion borrow, and Known visible slots.
+The returned shared slice has exact recorded contents and cannot outlive its
+shared descriptor/region borrows. Overlapping shared reads are permitted;
+mutation, retirement and recovery of that same resource wait for the borrow to
+end. The primitive uses the bound native pointer directly and creates no
+permission from integer metadata. Empty access grants no allocation liveness.
+The body-proved packet wrapper and actual as_slice callers pass 90 files;
+Unknown reading is rejected by one obligation among 91 files. This is local
+physical-access trust, not a trusted handle protocol.

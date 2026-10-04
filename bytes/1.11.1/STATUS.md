@@ -2,6 +2,17 @@
 
 ## Current working-tree status (2026-10-04)
 
+The read-only sequential gate passes 90 proof files and fourteen native tests.
+Actual as_slice and its packet wrapper support two simultaneous shared reads
+while a disjoint split packet is mutated. B4-read is an explicit physical slice
+bridge; the read wrapper and callers are body proved. The Unknown-read negative
+has exactly one rejected obligation among 91 files (17/18 in its caller).
+Canonical evidence is in readonly-access. Actual AsRef/Deref/Buf/BufMut trait
+integration is still pending: safe trait preconditions require a valid-handle
+invariant covering unique as well as shared states. No whole-type invariant or
+trait-dispatch proof is claimed by this checkpoint.
+
+
 The bounded sequential lifecycle gate now passes 86 proof files and twelve
 native tests. Actual spare_capacity_mut connects to standard MaybeUninit<u8>
 initialization through reviewed B4-uninit. Callers initialize Unknown spare
@@ -413,3 +424,7 @@ blockers under the no-large-Creusot-change constraint. Concurrent release
 sequences/view transfer, control-block destruction, Bytes/freeze read-sharing
 and the remaining allocation paths are also unproved. The explicit local gates
 above do not establish complete bytes verification.
+
+The readonly-access/lifetime-diagnostic archive records Rust E0505 rejecting
+release of a handle while a later read keeps its as_slice borrow live. This is
+translation/borrow-check evidence only, not a Why3 VC or automatic Drop proof.

@@ -10,6 +10,16 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-04)
 
+- `B4-read`, `raw_vec::borrow_bound`, is an additional reviewed initialized
+  read-only slice bridge. Shared borrows of the sealed descriptor and matching
+  PhysicalRegion bound the returned lifetime; all visible slots must be Known.
+  It provides exact length/content, creates no permission, and grants no
+  liveness for an empty region. Actual as_slice and the packet read wrapper are
+  body proved in the 90-file gate; fourteen native tests pass. The Unknown-read
+  negative rejects one intended obligation among 91 files. This bridge does
+  not establish a global BytesMut invariant or safe trait integration.
+
+
 - `B4-uninit`, `raw_vec::borrow_bound_uninit_mut`, is an additional reviewed
   u8-only physical access bridge. Sealed BoundPtr metadata is passed by value;
   the mutable affine region borrow controls the returned MaybeUninit slice
@@ -214,3 +224,7 @@ Send/Sync impls from extraction and does not establish concurrency safeguards.
 The subsequent mutation work gates those impls out of the restricted proof
 representation; ordinary native BytesMut remains Send/Sync. This adapter change
 is not retroactively included in the frozen first-split proof snapshot.
+
+The readonly-access/lifetime-diagnostic archive records Rust E0505 rejecting
+release of a handle while a later read keeps its as_slice borrow live. This is
+translation/borrow-check evidence only, not a Why3 VC or automatic Drop proof.
