@@ -91,3 +91,11 @@ descriptor and relates initialized slice writes to exclusive region slots,
 with full framing outside the borrowed interval. Its exact contract and caller
 were reviewed by Astra. The caller proof does not prove this native body.
 See `verification/RAW_VEC_TRUSTED_BOUNDARY.md` for bounds and lifetime limits.
+
+## Local physical deallocation bridge RVB-03
+
+`ownership_proof/raw_vec.rs::deallocate_vec` is an audited trusted physical
+boundary: exact sealed base/capacity, full region and unique Recovery are
+consumed, then a zero-length Vec is actually destroyed. No byte initialization
+is required. Native destruction is assumed by this boundary; caller proofs do
+not derive it from standard `mem::drop` or establish automatic Drop effects.

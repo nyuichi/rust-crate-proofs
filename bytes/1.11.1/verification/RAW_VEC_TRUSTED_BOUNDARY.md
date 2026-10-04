@@ -64,12 +64,20 @@ probe tests pass. Exact source and tasks are retained in `b1-b2-b4-source` and
 `b1-b2-b4-positive`, with a separate hash manifest. This is contract composition
 and caller body proof, not physical primitive body proof or BytesMut integration.
 
-## Pending explicit cleanup gate
+## Reviewed B3 explicit cleanup gate
 
-Explicit B3 cleanup must require full coverage plus Recovery and must not require
-an initialized prefix. Its native length-zero Vec destruction belongs to the
-audited physical TCB; it cannot be inferred from the weak `mem::drop` contract.
-These gates need separate contract review and caller evidence.
+**RVB-03 / B3, `deallocate_vec`:** consumes the sealed descriptor, matching
+Recovery and exact full-region coverage. It requires no initialized prefix.
+Its native length-zero Vec destruction is part of the audited physical TCB,
+not a consequence of the weak `mem::drop` contract. Astra reviewed the exact
+declaration and body.
+
+Fourteen generated files pass with the cleanup callers. Four native probe
+tests cover identity recovery, disjoint mutation, and explicit cleanup in normal
+and reversed fragment tuple return order. Cleanup includes empty Vecs with zero
+or reserved capacity and nonempty split Vecs. Reordering returned fragments is
+not a proof of either automatic Drop order or refcount retirement. Exact source
+and tasks are retained under `b1-b2-b4-b3-*` with a separate manifest.
 
 ## Compiler-model restriction
 

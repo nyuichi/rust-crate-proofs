@@ -2,13 +2,16 @@
 
 ## Current working-tree status (2026-10-04)
 
-The local B1/B2 Vec/raw bridge now passes its ten-file isolated round-trip
-gate: detach, return two owned fragments from a helper, join, and restore the
-same initialized contents. The two physical Vec representation bridges are
-trusted and reviewed; the split/join and caller bodies are proved. This uses
-unmodified Creusot/creusot-std 0.13 and does not change the ordinary Vec model.
-See the [physical trusted boundary](verification/RAW_VEC_TRUSTED_BOUNDARY.md).
-Mutation, explicit cleanup and actual BytesMut integration are separate gates.
+The local B1/B2/B4 Vec/raw bridge passes its eleven-file isolated gate:
+detach, split, mutate independently through two live disjoint slices, join,
+and restore the changed contents while preserving all other bytes. The three
+physical Vec/access bridges are trusted and reviewed; split/join and caller
+bodies are proved. Three B2 negative controls reject partial coverage, Unknown
+initialization and mismatched namespaces. This uses unmodified
+Creusot/creusot-std 0.13 and keeps the ordinary Vec model unchanged. See the
+[physical trusted boundary](verification/RAW_VEC_TRUSTED_BOUNDARY.md).
+Explicit cleanup now also passes the fourteen-file isolated gate described
+below; actual BytesMut integration remains open.
 
 The actual `BytesMut::try_unsplit` now uses an address-only comparison helper
 for its buffer and Shared pointers. Normal builds retain native thin-pointer
@@ -47,9 +50,9 @@ tree. The cfg-only Buf/BufMut convenience and comparison changes have passed
 the final native-source checks summarized here. No integrated crate proof of
 the current runtime is established.
 
-The adopted runtime ownership effort has reached stop condition **D**. The
-remaining blocker is a sound memory-resource interface, not another arithmetic
-or helper lemma. The concrete target is
+The earlier runtime ownership checkpoint reached stop condition **D**. The
+local sealed Vec/raw bridge now supplies an initial memory-resource interface;
+connecting that interface to the actual handles remains open. The concrete target is
 `Vec<u8> -> BytesMut::from_vec -> split_to/split_off -> mutate both handles ->
 drop both`: the split path promotes the shared backing allocation, gives each
 handle a distinct writable interval, and the last drop must recover and destroy
@@ -201,3 +204,18 @@ The exact B4 contract was reviewed by Astra. Source/task snapshots and hashes
 are retained in `verification/artifacts/evidence/raw-vec-b1-b2-b4-manifest.json`.
 Explicit deallocation, actual BytesMut integration and automatic Drop remain
 open; this is not a full-crate proof.
+
+## Explicit physical cleanup checkpoint
+
+RVB-03 `deallocate_vec` requires full coverage plus Recovery with matching sealed
+identity/capacity and consumes all three. It requires no Known prefix and
+performs trusted native zero-length Vec destruction. Astra reviewed the exact
+declaration/body. The positive probe passes fourteen generated files and four
+native tests, including zero capacity, all-Unknown spare capacity and nonempty
+fragment joins in both tuple return orders. This is explicit caller proof, not
+automatic Drop or Shared last-owner proof. Evidence/source hashes are retained
+in `verification/artifacts/evidence/raw-vec-b1-b2-b4-b3-manifest.json`.
+
+The latest full-runtime translation still stops on the two vtable cycles, before
+VC generation; the retained log is
+`verification/artifacts/logs/runtime-raw-vec-checkpoint-translation.log`.
