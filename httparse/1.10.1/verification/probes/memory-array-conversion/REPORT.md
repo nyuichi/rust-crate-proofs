@@ -8,8 +8,9 @@ requested length.
 
 ## Translation status
 
-On 2026-10-05, from this directory and after sourcing
-`/workspace/proof-tools/activate.sh`,
+On 2026-10-05, this probe was freshly translated with the active byte compiler
+(SHA-256 `1ee46c7a5e05f3dbbdbd03804dff6468338c36134711840372e606bfae0d4b7e`).
+From this directory and after sourcing `/workspace/proof-tools/activate.sh`,
 
 ```sh
 CARGO_NET_OFFLINE=true cargo creusot
@@ -23,8 +24,10 @@ translated both actual caller bodies with no warnings. The fresh CoMa target is
 Both caller targets passed through `../../../run-proof.bash why3find prove
 --no-cache -s -j 1` with the checked profile (`z3@4.15.3`, one prover,
 1000 MiB): `array8_prefix` 9/9 VCs and `array4_prefix` 9/9 VCs. These 18 caller
-VCs are included in the adjacent `Bytes` manifest with 141 unique VCs across
-31 target files in `memory-pointer/REPORT.md`. They prove the actual
+VCs are included in the adjacent fresh `Bytes` manifest with 139 unique proof
+leaves across 31 targets in `memory-pointer/REPORT.md`. Their CoMa, proof JSON,
+and Why3 session hashes are archived in
+`memory-pointer/evidence/active-byte-refresh-2026-10-05/`. They prove the actual
 `.get(..N)?.try_into().ok()`
 caller shapes against the standard conversion contract; they do not prove the
 standard library implementation itself or arbitrary generic `TryFrom` values.

@@ -1418,3 +1418,467 @@ then use the existing body-checked `Seq::flat_map_singleton` and
 arithmetic from sequence extensionality/concatenation and preserves exact expected
 bytes. It is a proposed proof decomposition, not a new assumed encoding fact.
 This consultation edits documentation only and runs no solver.
+
+## 2026-10-05: concrete checked UTF-8 lemma staging
+
+The current positive Unicode goals combine three independent steps: Unicode
+scalar encoding, flattening a character sequence, and equality with a finite
+byte sequence. Keep the expected byte equations unchanged and separate these
+steps before another solver attempt. The copied `CharExt::to_utf8` has its exact
+branch formula open, `utf8_byte` exposes its exact numeric postcondition, and
+`Seq<char>::to_bytes` is the open `flat_map` definition. No additional encoding
+axiom is needed.
+
+### First prove the five scalar encodings without string flattening
+
+A representative ordinary ghost helper is:
+
+```rust
+#[check(ghost)]
+#[ensures('\u{20AC}'.to_utf8() == seq![0xE2u8, 0x82u8, 0xACu8])]
+fn euro_encoding() {
+    let encoded = snapshot!('\u{20AC}'.to_utf8());
+    proof_assert!('\u{20AC}'@ == 8364);
+    proof_assert!(encoded.len() == 3);
+    proof_assert!(encoded[0]@ == 226);
+    proof_assert!(encoded[1]@ == 130);
+    proof_assert!(encoded[2]@ == 172);
+    proof_assert!(encoded.ext_eq(seq![0xE2u8, 0x82u8, 0xACu8]));
+}
+```
+
+These are checked assertions, not assumptions. The three byte facts follow from
+the open encoding formula and `utf8_byte`'s postcondition; if a trigger is absent,
+explicitly assert the needed `utf8_byte(226)@ == 226` (and the other actual byte
+values) as a separate checked goal. Do not reveal the recursive byte-construction
+implementation or perform hundreds of successor unfoldings.
+
+Use the same short proof structure for:
+
+| Scalar | Integer value | Exact bytes |
+|---|---:|---|
+| U+00E9 | 233 | 195, 169 |
+| U+20AC | 8364 | 226, 130, 172 |
+| U+D7FF | 55295 | 237, 159, 191 |
+| U+E000 | 57344 | 238, 128, 128 |
+| U+10FFFF | 1114111 | 244, 143, 191, 191 |
+
+The helpers may initially live in the isolated proof harness: they establish
+specific positive boundary tests from the generic standard encoding body and
+are not trusted parser facts. Prove one helper first, then the others. A failure
+of the final ext_eq clause after all length/index clauses pass is a sequence
+extensionality interface issue; a failure of an index clause instead isolates
+character arithmetic/byte-construction facts.
+
+### Then expose two existing generic flat-map laws
+
+The copied `Seq` implementation already has body-checked logical methods
+`flat_map_singleton` and `flat_map_push_back`. Use thin logical wrappers:
+
+```rust
+#[logic]
+#[ensures(Seq::singleton(c).to_bytes() == c.to_utf8())]
+fn utf8_singleton(c: char) {
+    Seq::flat_map_singleton(c, |x: char| x.to_utf8());
+}
+
+#[logic]
+#[ensures(s.push_back(c).to_bytes() == s.to_bytes().concat(c.to_utf8()))]
+fn utf8_push_back(s: Seq<char>, c: char) {
+    s.flat_map_push_back(c, |x: char| x.to_utf8());
+}
+```
+
+The logic macro performs the usual mapping conversion for the closures, as in
+`to_bytes` itself. Check translation/type inference before a proof run. Require
+body-proof evidence for the underlying helper instantiations as well as the
+wrapper VCs; importing their postconditions alone is conditional evidence.
+The existing `flat_map_push_back` proof decreases `s.len()`, recursively calls
+itself on `s.tail()`, then proves
+`tail(s).push_back(c) == tail(s.push_back(c))`. This is a generic sequence
+induction, independent of Unicode.
+
+If the stock push-back lemma needs more guidance, add checked extensional facts
+inside its isolated proof: the tail equality above, equality of both heads for
+nonempty s, empty-sequence/concatenation identities in the base case, and
+concatenation associativity for the induction step. Each extensional fact can
+be proved from equal lengths and pointwise indices. Do not add a trusted
+associativity or tail axiom.
+
+A generic concat wrapper is optional; it is not necessary for the present
+three-character boundary string. If needed, its precise contract is
+`left.concat(right).to_bytes() == left.to_bytes().concat(right.to_bytes())`,
+with induction on `left.len()`. Base: left is empty. Step: recurse on
+`left.tail()`, prove `head(left++right)=head(left)` and
+`tail(left++right)=left.tail()++right` by ext_eq, then use one-step flat_map
+recurrence and concatenation associativity. Keep this separate from individual
+scalar arithmetic.
+
+### Compose the existing literal goals
+
+For é/€, prove the literal's `Seq.create 1` character model extensionally equal
+to `Seq::singleton(c)`, then combine utf8_singleton with the corresponding
+scalar encoding helper. This leaves no recursive suffix flattening in the
+literal caller's final obligation.
+
+For the boundary string, first prove its model extensionally equal to
+`Seq::singleton('\u{D7FF}').push_back('\u{E000}').push_back('\u{10FFFF}')`.
+Use utf8_singleton once and utf8_push_back twice, followed by the three proven
+scalar byte equations. Finally prove the concatenation of the resulting
+3-, 3- and 4-byte sequences extensionally equals the ten-byte expected sequence:
+length 10; indices 0..2 in the first segment, 3..5 in the second, 6..9 in the
+third. This is finite linear index reasoning, not Unicode decoding induction.
+
+Ordinary ghost scalar helpers can be invoked directly with ghost!. For logical
+wrappers, use a snapshot/logic invocation as supported by the harness and inspect
+that the generated caller actually imports their proved postconditions. Their
+source existence alone does not make them available to a caller. Keep all helper
+VCs in the proof target/coverage index, with no trusted markers. Root schedules
+all solver runs; this consultation changes only this document.
+
+Correction to the preceding discriminant implementation note: the message worker
+has now inspected the pinned MIR and reports that `discriminant_value` has
+already become `Rvalue::Discriminant` before Creusot translation. The concrete
+lowering therefore belongs in `translation/function/statement.rs`, whose current
+handler discards that rvalue, while preserving `discriminator_for_switch`'s
+existing enum-switch optimization. The generic semantic discriminant rules and
+actual-derived-body requirements stated above are unchanged.
+
+## Actual parse_code: export next's concrete state transition
+
+Read-only inspection of `code-harness/string/verif/.../parse_code.coma`
+finds a missing premise, not merely a difficult quantified sequence goal.
+`next_Bytes` exports only `None => completed(self)` and
+`Some(byte) => produces(entry, singleton(byte), final)`. The latter expands to
+equal input, equal end, and suffix concatenation; it deliberately omits mark.
+The actual parser requires mark preservation. Its Some branches cannot establish
+that property from the imported interface, even if suffix arithmetic succeeds.
+The None branch does have full resolution through `completed`, but that does
+not repair any preceding Some call. The model's exact decision ladder is already
+visible in this generated caller; no opaque-model unfolding repair is needed.
+
+Keep the existing Iterator contract and the generic produces relation unchanged.
+Add and prove the following concrete postconditions on the actual `Bytes::next`
+body, using its already proved peek and bump contracts:
+
+```rust
+#[ensures((^self)@.input == self@.input
+    && (^self)@.mark == self@.mark
+    && (^self)@.end == self@.end)]
+#[ensures(match result {
+    Some(byte) => self@.cursor < self@.end
+        && byte@ == self@.input[self@.cursor]@
+        && (^self)@.cursor == self@.cursor + 1,
+    None => self@.cursor == self@.end
+        && (^self)@.cursor == self@.cursor,
+})]
+```
+
+These are concrete method guarantees, not stronger caller preconditions or a
+trusted lemma. Existing type invariants bound the indexed byte. Preserve and
+recheck the actual next body and Iterator refinement goals after this contract
+change. Then regenerate the parser caller with the matching isolated compiler.
+The explicit byte/cursor facts also remove its need to infer an index and a
+one-byte advance through quantified subsequence/concatenation semantics.
+
+Only if the repaired interface remains expensive, add erased checked cutpoints
+after the existing successful `expect!` expressions. Snapshot the entry model;
+after the first successful expression record cursor = entry.cursor + 1,
+hundreds = entry.input[entry.cursor], its ASCII bounds, and the unchanged frame.
+After the second and third, record the corresponding offsets and byte facts.
+The arithmetic then has three values in 0..9 and a result in 0..999. These
+cutpoints cannot by themselves fix early returns, which must continue to use
+the exact next transition and the model's already visible decision ladder.
+Do not refactor the runtime macro, weaken the exact result/cursor postcondition,
+or add an axiom for this parser. Root owns the running proof and solver queue;
+this consultation starts no solver and changes no implementation.
+
+## MaybeUninit slices: initialization and loan restoration are separate gates
+
+The memory-initialization proposal correctly identifies the missing wide-pointer
+permission conversion. Inspection adds a necessary condition: for a slice that
+started as `[T]`, preserve initialization of the **entire original backing
+slice**, including elements outside the subsequently returned prefix. Its
+owner can later drop the original array or Vec. In contrast, a slice that
+started as `[MaybeUninit<T>]` needs only its returned prefix initialized.
+The current parser writes only `MaybeUninit::new(Header { ... })` and does not
+deinitialize other slots, so it can prove the stronger conditional frame.
+
+### First gate: standard assume_init_mut
+
+The pinned core method `[MaybeUninit<T>]::assume_init_mut` is stable since
+1.93.0 and its implementation is exactly the wide-pointer cast used by the
+crate helper. Add its generic extern specification to the isolated, matching
+`creusot-std/src/std/mem.rs`, adjacent to scalar MaybeUninit specifications:
+
+```text
+requires forall i in [0, self.len): self[i].view != None
+ensures result.len == entry(self).len
+ensures forall i in that range: entry(self)[i].view == Some(result[i])
+ensures forall i in that range: final(self)[i].view == Some(final(result)[i])
+```
+
+These are equations on T values, not copies or runtime moves; no T: Copy bound
+is needed. The precondition requires a valid T, not merely nonzero bytes.
+The final equation is sound because the returned borrow has type `[T]` and
+cannot safely leave invalid T values behind. Audit the standard method's source
+and record same-allocation, metadata, alignment, exclusivity and lifetime facts
+as the standard memory primitive's semantic justification. A sequence equation
+alone does not prove those pointer facts. If later callers need a logical
+pointer identity, expose it through a permission-aware adapter with the same
+allocation/provenance and length; do not equate bare integer addresses with
+permission ownership.
+
+The actual `assume_init_slice` can then call `s.assume_init_mut()` and have its
+own checked body/contract. This changes the helper's spelling, preserves its
+signature and layout, and requires no parser trust. Confirm the project's
+supported minimum Rust version before adopting the newly stable method in
+normal builds; the pinned verification compiler supports it. An older-compiler
+compatibility adapter must preserve the same audited cast and semantic contract,
+not silently select a different unverified branch.
+
+### Second gate: do not trust an unrestricted deinitializing loan
+
+`Perm::from_mut` borrows a typed permission whose final value restores the
+original reference; `Perm::as_mut` requires that same typed permission.
+`split_at_mut` preserves element type and rejoins final values. There is no
+existing cross-type loan conversion in those APIs. Layout equality and
+`Perm::cast`-style pointer spelling do not supply one.
+
+In particular, a trusted operation returning an unrestricted
+`&mut [MaybeUninit<T>]` from `&mut [T]` cannot merely promise initial Some
+values and final restoration in ensures. Its caller could write uninit, end
+the loan, and use/drop the original T. Placing final Some in a trusted ensures
+would assume precisely the obligation the caller should prove. The same problem
+exists for the crate's outer `&mut &mut` binding cast. A generic permission
+conversion must not duplicate a live T permission and an independently mutable
+MaybeUninit permission to the same storage.
+
+The smallest scoped alternative is a generic support operation of this shape:
+
+```text
+with_uninit_view<T, R, F>(s: &mut [T], f: F) -> R
+where F: for<'loan> FnOnce(&'loan mut [MaybeUninit<T>]) -> R
+```
+
+It retains the full original capacity for the whole call and returns no loan.
+Its requirements, checked at the caller, are:
+
+1. For every borrowed slice b whose initial elements are Some(entry(s)[i]),
+   the callback precondition holds.
+2. For every such b and callback result r, the callback's postcondition implies
+   that every element of final(b), over the full original length, is Some.
+3. The callback cannot unwind while the original T loan is suspended. Require
+   checked panic freedom of the concrete callback/callees, or supply an explicit
+   restoration guard valid on unwind. A normal-return postcondition alone is
+   insufficient. Do not accept an arbitrary external callback on that basis.
+
+The bridge post relates its result to the callback's postcondition and maps
+final(b)[i] = Some(final(s)[i]). Existing `FnOnceExt::precondition` and
+`postcondition_once` in `std/ops.rs` provide the logical vocabulary. First make
+a translation-only HRTB/closure probe to establish concrete supported syntax.
+Its body is the generic scoped reborrow/cast followed by exactly one callback;
+the only new trusted support boundary is that representation-and-loan operation,
+with its caller obligations. No parser result, prefix predicate, callback
+contract, or callback body belongs in the TCB. This new support primitive needs
+its own audit; it is not an existing std method and must not be labelled as one.
+
+Inside the actual initialized parser wrapper, the callback can reborrow the
+full slice into a local mutable slice binding, run the existing uninitialized
+parser, and return `(result, final_prefix_length)`. Its proof retains the full
+slice's final contents after that local reborrow ends. Only after the scoped
+bridge returns should the original initialized binding be shortened to the
+returned count. Account for the original ShrinkOnDrop behavior on every result;
+prove no panic through this path or preserve the binding-shortening guard on
+unwind as well. This is an actual runtime refactor and needs root approval of
+the concrete diff, normal-build tests, and an erasure/behavior correspondence
+check. Do not pretend it verifies the old unrestricted converter body.
+
+If a scoped cross-type TCB is undesirable, a larger, safe runtime alternative
+is one parser over two storage adapters: initialized `[T]` and uninitialized
+`[MaybeUninit<T>]`, exposing capacity/write/shrink. This avoids the binding cast.
+For arbitrary non-Copy T, the initialized write can use `mem::replace` followed
+by `mem::forget(old)` to match the original MaybeUninit overwrite's no-drop
+behavior; ordinary assignment would drop old T and is not generally equivalent.
+For actual Header, old values have no Drop, but that does not justify claiming
+a generic arbitrary-T equivalence. This alternative is larger than the scoped
+bridge and should be a deliberate reviewed choice.
+
+### Required staged evidence
+
+Start with standard assume_init_mut and generic one-slot/slice probes: empty,
+mixed initialized/uninitialized input, initialized non-Copy T, and zero-sized T.
+An uninitialized element within the converted prefix must fail its precondition;
+an uninitialized tail outside that prefix must remain permitted for the uninit
+API. Next probe the scoped bridge with a callback that replaces values by Some
+and one that writes None: only the first may establish restoration. Also reject
+a callback that initializes the returned prefix but deinitializes the original
+tail, a callback with no proved restoration post, an escaping borrowed slice,
+and an unproved panic path. These are semantic proof tests, not trusted facts.
+
+Then prove the actual parser's storage invariant: n is in bounds, [0,n) is
+initialized, unvisited slots retain their entry states, and writes occur only
+at the next slot with Some(header). For initialized input this yields all-Some
+over the entire original region; for uninitialized input the tail stays
+unconstrained. ShrinkOnDrop changes only the exposed length and never proves
+initialization by itself. Only after these checked boundaries pass should the
+request/response header paths consume the conversion contract. No solver or
+implementation was changed by this consultation.
+
+## Preferred header storage implementation: safe typed adapter
+
+Following root's review, prefer a private typed adapter over the new scoped
+cross-type TCB described above. It is a somewhat larger runtime refactor but a
+smaller proof/support change: two ordinary safe branches per storage operation,
+no higher-order restoration contract, and no new representation/loan primitive.
+Keep only the standard uninitialized-to-initialized slice contract as TCB.
+
+Use an adapter borrowing the caller's slice **binding**, so the current
+ShrinkOnDrop mechanism can remain responsible for early-return shortening:
+
+```rust
+enum HeaderStorage<'s, 'h, 'b> {
+    Initialized(&'s mut &'h mut [Header<'b>]),
+    Uninitialized(&'s mut &'h mut [MaybeUninit<Header<'b>>]),
+}
+```
+
+The three lifetimes distinguish the short binding borrow, the storage borrow,
+and the input bytes referenced by Header. Keep them independent except for
+outlives bounds actually required by Rust; do not tie the storage borrow to the
+whole Request/Response mutable borrow. Private helper shape:
+
+```text
+len(&self) -> usize
+write(&mut self, index: usize, header: Header<'b>) -> ()
+shrink(&mut self, n: usize) -> ()
+```
+
+`write` requires index < len, preserves the variant and capacity, sets exactly
+that logical slot to Some(header), and frames all other slots. Its initialized
+branch performs ordinary Header assignment; its uninitialized branch assigns
+MaybeUninit::new(header). Actual Header consists of borrowed name/value slices
+and has no Drop implementation, so dropping its replaced value has no runtime
+effect. This argument is Header-specific. Delete the unused private generic
+deinit converter; do not claim a verified arbitrary-T initialized-to-uninitialized
+conversion. The standard assume_init_slice helper can remain generic over T.
+
+`shrink` requires n <= len and uses, in each typed branch,
+`let full = mem::take(binding); *binding = full.split_at_mut(n).0;`.
+It preserves the prefix values, variant, and allocation while changing exposed
+length to n. The initialized branch cannot deinitialize the underlying tail;
+the uninitialized branch makes no tail-initialization claim. Only a standard
+safe slice operation is needed. There is no pointer cast or unchecked index.
+
+Lift the existing guard to hold HeaderStorage plus num_headers, with invariant
+num_headers <= storage.len and all logical slots below num_headers initialized.
+Its Drop calls shrink(num_headers). Verify the actual destructor and its
+invariant on each early-return/drop edge; source-level existence of a guard is
+not proof that the verification pipeline checks its cleanup. Preserve the
+existing guard's effect on all checked normal return paths and any supported
+unwind semantics. Its operations have explicit in-bounds conditions, so the
+guard itself must not panic.
+
+The shared header parser accepts HeaderStorage by value and creates that guard.
+The initialized/uninitialized entry helpers only construct the corresponding
+variant and call this single parser body. Replace iter_mut and iter.next with
+the guard's count and capacity: n is both the next storage index and the number
+of fully written headers. At the old iter.next location, check n == capacity
+and break with the existing TooManyHeaders result; otherwise perform the
+existing trim, write(n, header), then increment n. **Do not move the capacity
+check earlier.** The old parser consumes the complete name and value before
+discovering capacity exhaustion; checking at loop entry would change consumed
+bytes, partial/error precedence, and zero-capacity blank-line behavior.
+
+For the proof model, map initialized slots to Some(Header) and uninitialized
+slots through their existing MaybeUninit View. The parser needs only capacity,
+exact indexed update, unchanged other slots, and initialized prefix. Rust's
+typed initialized branch supplies validity of the full original capacity.
+This also removes the IterMut consumed-reference/remaining-sequence algebra
+from the storage proof. Keep syntax/byte-cursor/result refinement independent
+from these three small storage methods.
+
+### Complete the Request/Response wiring too
+
+Removing deinit_slice_mut alone does not remove every initialized-to-uninitialized
+cast. Both Request::parse_with_config and Response::parse_with_config currently
+perform their own raw cast and restore the original full Header slice after a
+non-complete result. Refactor their existing shared parsing work into a private
+method accepting typed storage and updating method/path/version/code/reason at
+the same points as today. It must not assign self.headers internally. The
+public-facing wrappers decide which typed storage to supply and when to publish
+the resulting header slice.
+
+For an initialized wrapper, move out self.headers with the existing mem::take,
+retain that full initialized slice, and pass a shorter-lived reborrow through
+a local slice binding and Initialized storage. Once that reborrow and guard
+end, read the local prefix length. On Complete, publish the corresponding
+prefix of the retained full slice; on Partial/Error, restore the full original
+slice, preserving any prefix writes already performed. This recovers capacity
+without raw pointers because shortening affects only the local reborrow.
+On a panic path the original code leaves self.headers empty after mem::take;
+do not accidentally introduce a different restoration guarantee without review.
+
+For an uninitialized wrapper, borrow its existing input binding through the
+Uninitialized variant. On Complete only, convert its shortened initialized
+prefix with the standard assume_init_mut contract and assign self.headers.
+On Partial/Error, leave the prior self.headers untouched, as the current code
+does. Keep all other partial field updates in their original order. This is
+one shared parser/state algorithm, not duplicated initialized/uninitialized
+implementations.
+
+Public type layouts, method signatures and lifetimes remain unchanged; the new
+enum is private and stack-local. A runtime enum branch on writes may have a
+performance cost, so avoid claiming zero overhead without measurement. A later
+generic storage trait could permit static dispatch, but adds trait-refinement
+proof work and is unnecessary for the first safe implementation.
+
+Validate the adapter methods first, then the storage loop invariant and guard,
+then both wrapper families against the exact model. Regression cases must
+include capacity zero with an immediate blank line, capacity exhausted after
+consuming a valid header, partial name/value, invalid headers skipped by config,
+and non-complete initialized-wrapper restoration of full capacity. Include a
+mixed-uninitialized tail test proving only the completed prefix is converted.
+The use of the Rust 1.93 standard method is a documented verification-fork
+toolchain requirement, not a claim that original upstream MSRV support remains
+unchanged. Root approves implementation scope; this entry is design only.
+
+### Derived Error equality: opaque model diagnosis (2026-10-05)
+
+Read-only consultation inspected the isolated `derived-traits` generated COMA;
+no solver was run for this diagnosis. `impl_PartialEq_for_Error/eq.coma`
+contains exact seven-constructor discriminant matches, but declares
+`deep_model_Error` without its body. Thus its inherited postcondition is not
+provable from that context: two different Error constructors can have different
+discriminants while an uninterpreted model function maps them to the same model
+constructor. The positive result log records `vc_eq_Error` Timeout at about
+26 seconds. The caller `error_equal_different_variants.coma` does contain the
+full model definition; caller success cannot establish the derived body.
+
+The likely cause is the new local derived-contract inheritance interacting
+with `ctx.rs::param_env`: it adds concrete external-spec predicates such as
+`Error: DeepModel`. Trait resolution can select this parameter assumption,
+returning `TraitResolved::UnknownFound`, so `clone_map/elaborator.rs` emits an
+opaque declaration despite the actual derived model being `logic(open)`.
+This causal path remains to be confirmed by the implementation change.
+
+Recommended narrow fix: for a local inherited derived contract, instantiate
+all inherited predicates and prove them in `tcx.param_env(def_id)`, using a
+fresh `infer_ctxt().ignoring_regions().build(TypingMode::non_body_analysis())`
+and the existing `translation::traits::evaluate_additional_predicates` query.
+That query treats ambiguous obligations as errors. Only `Ok(())` permits
+using the native environment unchanged: the added assumptions have then all
+been proved redundant. Use the native `tcx` environment, not recursive
+`ctx.param_env`, and never prove a predicate in an environment already assuming
+that predicate. Failure or ambiguity must fail closed for this narrow local
+inheritance extension; do not drop generic bounds or assume concrete ones.
+Generic inheritance with genuinely additional bounds needs a separate audit
+of propagation to callers, whose current terminator check consults direct
+external specs. This recommendation adds no trusted equality/model axiom.
+
+Before spending solver time, confirm the derived Error and signed-enum body
+COMA now contains each actual model match definition. Then prove the exact
+derived body and refinement, retain the false-equality and false-discriminant
+negative controls, and refresh evidence hashes. This entry records diagnosis
+and a proposed compiler fix, not a completed fix or proof. Exact formatting
+text and full Unicode support are separate open obligations.

@@ -13,27 +13,31 @@ restored, and a weak bounds-only contract was added to generic `peek_n`. The
 previous complete 141-VC snapshot used `src/iter.rs` hash
 `2492453eeb1ec520192e3ff8c93f7bd4941ac7439dab0e7b34fc796a43f9a1a0`.
 Pointer-identity postconditions have since been added to `as_ptr`, `start`, and
-`end`. The latest source hash is
-`c5c8da21125db4b75107a974af9941aa2ba3908f1714ca74487663b6182f52e8`; the
+`end`. The preceding 141-VC snapshot used source hash
+`c5c8da21125db4b75107a974af9941aa2ba3908f1714ca74487663b6182f52e8`. The
+current source hash is
+`369662bbf36c68ba814750ce3a91c4aa78ab40e9453af0f7e07f30d869103625`; the
 standard conversion contract hash is
 `5a4346a05298dbf71fe16b35718ac57552105426a4e4cc9161176b4bf3ae5348`.
 
-On 2026-10-05, both probes were translated again from the current sources with
-`CARGO_NET_OFFLINE=true cargo creusot` and no warnings. The full selected batch
-was rerun with the checked Why3 profile (`z3@4.15.3`, one prover, 1000 MiB),
-through `run-proof.bash` and `why3find prove --no-cache -s -j 1`. All 31 unique
-targets passed: 123 VCs in memory-pointer and 18 VCs in
-memory-array-conversion, for 141 VCs total. The getters each remain one VC and
-now prove their functional contracts as well as their bodies. Proof JSON is
-fresh for the source hashes listed in the current manifest below.
+On 2026-10-05, both probes were freshly translated with the active byte
+compiler, SHA-256
+`1ee46c7a5e05f3dbbdbd03804dff6468338c36134711840372e606bfae0d4b7e`, and no
+warnings. The full selected batch was rerun with the checked Why3 profile
+(`z3@4.15.3`, one prover, 1000 MiB), through `run-proof.bash` and
+`why3find prove --no-cache -s -j 1`. All 31 unique targets passed: 121
+recursive proof leaves in memory-pointer and 18 in memory-array-conversion,
+for 139 distinct `(target, leaf)` pairs. Fresh CoMa, proof JSON, and Why3
+sessions with SHA-256 hashes are archived in
+[`evidence/active-byte-refresh-2026-10-05`](evidence/active-byte-refresh-2026-10-05/).
 
-## Memory-checkpoint body proofs
+## Previous memory-checkpoint body proofs
 
-On 2026-10-05, for the source hash above, `cargo creusot` translated the actual
-imported module with no warnings. The selected CoMa targets were then proved
+At the preceding `c5c8da...` source snapshot, `cargo creusot` translated the
+actual imported module with no warnings. The selected CoMa targets were proved
 with the pinned Why3 profile (`z3@4.15.3`, one prover, 1000 MiB), through the
 shared lock wrapper, using `why3find prove --no-cache -s -j 1`. The 40 VCs in
-the seven listed targets were valid for that exact snapshot:
+the seven listed targets were valid for that historical snapshot:
 
 | CoMa target | VCs | Result |
 | --- | ---: | --- |
@@ -81,7 +85,7 @@ hashes:
 
 | Source | SHA-256 |
 | --- | --- |
-| `src/iter.rs` | `c5c8da21125db4b75107a974af9941aa2ba3908f1714ca74487663b6182f52e8` |
+| `src/iter.rs` | `369662bbf36c68ba814750ce3a91c4aa78ab40e9453af0f7e07f30d869103625` |
 | `src/verification/model.rs` | `cf3a6f426eb55e28f61a2f5b46277639db9ff86ec0b584bf026735c59aa25cb1` |
 | `creusot-libs/creusot-std/src/std/ptr.rs` | `e7aaf642680aaed7229cb185aedd8cea81a2624fd8c48774f3203edc1a134829` |
 | `creusot-libs/creusot-std/src/std/convert.rs` | `5a4346a05298dbf71fe16b35718ac57552105426a4e4cc9161176b4bf3ae5348` |
@@ -99,7 +103,7 @@ by the Iterator batch; its two VCs are counted once in the total.
 | memory-pointer | `iter/bytes_subsequence_head.coma` | 1 |
 | memory-pointer | `iter/impl_Bytes/new.coma` | 9 |
 | memory-pointer | `iter/impl_Bytes/byte_permission.coma` | 7 |
-| memory-pointer | `iter/slice_from_ptr_range.coma` | 1 |
+| memory-pointer | `iter/slice_from_ptr_range.coma` | 12 |
 | memory-pointer | `iter/impl_AsRef_for_Bytes/as_ref.coma` | 2 |
 | memory-pointer | `iter/impl_Bytes/pos.coma` | 2 |
 | memory-pointer | `iter/impl_Bytes/len.coma` | 2 |
@@ -114,12 +118,12 @@ by the Iterator batch; its two VCs are counted once in the total.
 | memory-pointer | `iter/impl_Bytes/as_ptr.coma` | 1 |
 | memory-pointer | `iter/impl_Bytes/start.coma` | 1 |
 | memory-pointer | `iter/impl_Bytes/end.coma` | 1 |
-| memory-pointer | `iter/impl_Bytes/peek.coma` | 9 |
+| memory-pointer | `iter/impl_Bytes/peek.coma` | 4 |
 | memory-pointer | `iter/impl_Bytes/peek_ahead.coma` | 9 |
 | memory-pointer | `iter/impl_Bytes/peek_n.coma` | 10 |
 | memory-pointer | `iter/impl_Bytes/peek_array8.coma` | 10 |
 | memory-pointer | `iter/impl_Bytes/peek_array4.coma` | 10 |
-| memory-pointer | `iter/impl_Iterator_for_Bytes/next.coma` | 14 |
+| memory-pointer | `iter/impl_Iterator_for_Bytes/next.coma` | 6 |
 | memory-pointer | `iter/impl_Iterator_for_Bytes/next__refines.coma` | 1 |
 | memory-pointer | `iter/impl_IteratorSpec_for_Bytes/produces_refl.coma` | 2 |
 | memory-pointer | `iter/impl_IteratorSpec_for_Bytes/produces_trans.coma` | 2 |
@@ -127,15 +131,14 @@ by the Iterator batch; its two VCs are counted once in the total.
 | memory-pointer | `iter/impl_IteratorSpec_for_Bytes/produces_trans__refines.coma` | 1 |
 | memory-array-conversion | `array8_prefix.coma` | 9 |
 | memory-array-conversion | `array4_prefix.coma` | 9 |
-| **Unique current-snapshot total** | **31 target files; bump counted once** | **141** |
+| **Unique current-snapshot total** | **31 target files; bump counted once** | **139** |
 
-The total is 77 VCs for memory-pointer constructor, permission, read, lookahead,
-and array-helper dependencies; 18 VCs for the two actual standard-conversion
-callers; 24 VCs for `pos`, `slice`, `slice_skip`, `commit`,
+The total is 83 VCs for memory-pointer construction, permission, reads,
+lookahead, and array-helper dependencies; 18 VCs for the two actual
+standard-conversion callers; 24 VCs for `pos`, `slice`, `slice_skip`, `commit`,
 `advance_and_commit`, `set_cursor`, `is_empty`, and the pointer getters; plus
-the Iterator-specific helper, laws, refinement checks, and `next` (24 VCs),
-with the shared `bump` target's two VCs removed once from the sum:
-`77 + 18 + 24 + 24 - 2 = 141`.
+14 Iterator-specific VCs after excluding the shared `bump` target, counted
+once in the dependency set: `83 + 18 + 24 + 14 = 139`.
 
 The pointer getters now have functional postconditions: `as_ptr` returns the
 origin pointer offset by the model cursor, `start` by the model mark, and `end`
@@ -168,12 +171,15 @@ already established by `advance(1)` and added a body-checked
 that hash, the helper passed 1/1, `bump` passed 2/2, the actual `next` body
 passed 14/14, `next__refines` passed 1/1, both IteratorSpec refinement checks
 passed 1/1 each, and the reflexive and transitive IteratorSpec laws passed 2/2
-each. The latest `c5c8da...` refresh reran the same iterator targets as part
-of the 141-VC batch recorded above.
+each. The fresh active-byte refresh at `369662...` reran all selected iterator
+targets. It proved `next` 6/6 and the production laws 2/2 each. The generated
+VC split differs from the preceding checkpoint: `slice_from_ptr_range` has 12
+leaves, `peek` has 4, and `next` has 6. The archived proof JSON and Why3
+sessions record the exact successful leaves.
 
 ## Current proof boundary
 
-At the current source hashes, the 141-VC manifest above covers all selected
+At the current source hashes, the 139-VC manifest above covers all selected
 actual `Bytes` method bodies, the permission and pointer-range helpers, the
 fixed-array methods and standard-array callers, and the `IteratorSpec`/`next`
 contract. The returned-byte and state contracts connect reads, slices,

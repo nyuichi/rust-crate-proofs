@@ -56,6 +56,9 @@ pub use chunk::parse_chunk_size;
 #[path = "verification/model.rs"]
 mod verification_model;
 #[cfg(creusot)]
+#[path = "verification/code.rs"]
+mod verification_code;
+#[cfg(creusot)]
 #[path = "verification/chunk.rs"]
 pub mod verification_chunk;
 
@@ -505,16 +508,7 @@ pub fn parse_uri<'a>(bytes: &mut Bytes<'a>) -> Result<&'a str> {
     }
 }
 
-#[inline]
-fn parse_code(bytes: &mut Bytes<'_>) -> Result<u16> {
-    let hundreds = expect!(bytes.next() == b'0'..=b'9' => Err(Error::Status));
-    let tens = expect!(bytes.next() == b'0'..=b'9' => Err(Error::Status));
-    let ones = expect!(bytes.next() == b'0'..=b'9' => Err(Error::Status));
-
-    Ok(Status::Complete((hundreds - b'0') as u16 * 100 +
-        (tens - b'0') as u16 * 10 +
-        (ones - b'0') as u16))
-}
+include!("parse_code.rs");
 
 /// Parse a buffer of bytes as headers.
 ///

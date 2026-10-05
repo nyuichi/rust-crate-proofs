@@ -1,0 +1,227 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 102 0 107 15 *)
+
+let%span snum = "/workspace/scratch/httparse-string-model/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+let%span scode = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 86 11 86 37
+let%span scode'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 87 11 87 45
+let%span scode'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 88 10 88 29
+let%span scode'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 89 10 89 56
+let%span scode'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 90 10 90 36
+let%span scode'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 91 10 94 1
+let%span scode'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 95 10 101 37
+let%span scode'6 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 36 11 36 44
+let%span scode'7 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 44 11 44 44
+let%span scode'8 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 45 11 45 39
+let%span scode'9 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 46 10 46 50
+let%span scode'10 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 108 4 153 5
+let%span scode'11 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 38 4 38 41
+let%span scode'12 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 54 4 57 5
+let%span scode'13 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 48 4 48 34
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_CodeOutcome = Complete int | Partial | Error
+
+type t_CodeResult = { outcome: t_CodeOutcome; mark: int; cursor: int }
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+predicate is_ascii_digit [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 37 0 37 57] (input: Seq.seq UInt8.t) (index: int) =
+  [%#scode'11] let byte = deep_model_u8 (Seq.get input index) in byte >= 48 /\ byte <= 57
+
+predicate code_result_is_complete [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 53 0 53 70] (parsed: t_CodeResult) (value: int) =
+  [%#scode'12] match parsed.outcome with
+    | Complete actual -> actual = value
+    | _ -> false
+    end
+
+function decimal_digit_value [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 47 0 47 61] (input: Seq.seq UInt8.t) (index: int) : int
+ = [%#scode'13] deep_model_u8 (Seq.get input index) - 48
+
+axiom decimal_digit_value_spec: forall input: Seq.seq UInt8.t, index: int. ([%#scode'7] 0 <= index
+      /\ index < Seq.length input)
+    -> ([%#scode'8] is_ascii_digit input index)
+    -> ([%#scode'9] decimal_digit_value input index = deep_model_u8 (Seq.get input index) - 48)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant mark'0 : int
+
+constant start : int
+
+constant end' : int
+
+function parse_code_model [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 102 0 107 15] (input: Seq.seq UInt8.t) (mark'0: int) (start: int) (end': int) : t_CodeResult
+
+goal vc_parse_code_model: ([%#scode] 0 <= mark'0 /\ mark'0 <= start)
+  -> ([%#scode'0] start <= end' /\ end' <= Seq.length input)
+  -> (if start = end' then
+    let result = { outcome = Partial;
+                   mark = mark'0;
+                   cursor = end' } in [@stop_split] [@expl:parse_code_model ensures] ([@stop_split] [@expl:parse_code_model ensures #0] [%#scode'1] result.mark
+      = mark'0)
+    /\ ([@stop_split] [@expl:parse_code_model ensures #1] [%#scode'2] start <= result.cursor /\ result.cursor <= end')
+    /\ ([@stop_split] [@expl:parse_code_model ensures #2] [%#scode'3] result.cursor <= start + 3)
+    /\ ([@stop_split] [@expl:parse_code_model ensures #3] [%#scode'4] match result.outcome with
+        | Complete value -> 0 <= value /\ value <= 999
+        | _ -> true
+        end)
+    /\ ([@stop_split] [@expl:parse_code_model ensures #4] [%#scode'5] start + 2 < end'
+      /\ is_ascii_digit input start /\ is_ascii_digit input (start + 1) /\ is_ascii_digit input (start + 2)
+    -> code_result_is_complete result (decimal_digit_value input start * 100
+        + decimal_digit_value input (start + 1) * 10
+      + decimal_digit_value input (start + 2))
+    /\ result.cursor = start + 3)
+  else
+    ([@stop_split] [@expl:is_ascii_digit requires] [%#scode'6] 0 <= start /\ start < Seq.length input)
+    /\ (if not is_ascii_digit input start then
+      let result = { outcome = Error;
+                     mark = mark'0;
+                     cursor = start
+                     + 1 } in [@stop_split] [@expl:parse_code_model ensures] ([@stop_split] [@expl:parse_code_model ensures #0] [%#scode'1] result.mark
+        = mark'0)
+      /\ ([@stop_split] [@expl:parse_code_model ensures #1] [%#scode'2] start <= result.cursor /\ result.cursor <= end')
+      /\ ([@stop_split] [@expl:parse_code_model ensures #2] [%#scode'3] result.cursor <= start + 3)
+      /\ ([@stop_split] [@expl:parse_code_model ensures #3] [%#scode'4] match result.outcome with
+          | Complete value -> 0 <= value /\ value <= 999
+          | _ -> true
+          end)
+      /\ ([@stop_split] [@expl:parse_code_model ensures #4] [%#scode'5] start + 2 < end'
+        /\ is_ascii_digit input start /\ is_ascii_digit input (start + 1) /\ is_ascii_digit input (start + 2)
+      -> code_result_is_complete result (decimal_digit_value input start * 100
+          + decimal_digit_value input (start + 1) * 10
+        + decimal_digit_value input (start + 2))
+      /\ result.cursor = start + 3)
+    else
+      if start + 1 = end' then
+        let result = { outcome = Partial;
+                       mark = mark'0;
+                       cursor = end' } in [@stop_split] [@expl:parse_code_model ensures] ([@stop_split] [@expl:parse_code_model ensures #0] [%#scode'1] result.mark
+          = mark'0)
+        /\ ([@stop_split] [@expl:parse_code_model ensures #1] [%#scode'2] start <= result.cursor
+          /\ result.cursor <= end')
+        /\ ([@stop_split] [@expl:parse_code_model ensures #2] [%#scode'3] result.cursor <= start + 3)
+        /\ ([@stop_split] [@expl:parse_code_model ensures #3] [%#scode'4] match result.outcome with
+            | Complete value -> 0 <= value /\ value <= 999
+            | _ -> true
+            end)
+        /\ ([@stop_split] [@expl:parse_code_model ensures #4] [%#scode'5] start + 2 < end'
+          /\ is_ascii_digit input start /\ is_ascii_digit input (start + 1) /\ is_ascii_digit input (start + 2)
+        -> code_result_is_complete result (decimal_digit_value input start * 100
+            + decimal_digit_value input (start + 1) * 10
+          + decimal_digit_value input (start + 2))
+        /\ result.cursor = start + 3)
+      else
+        ([@stop_split] [@expl:is_ascii_digit requires] [%#scode'6] 0 <= start + 1 /\ start + 1 < Seq.length input)
+        /\ (if not is_ascii_digit input (start + 1) then
+          let result = { outcome = Error;
+                         mark = mark'0;
+                         cursor = start
+                         + 2 } in [@stop_split] [@expl:parse_code_model ensures] ([@stop_split] [@expl:parse_code_model ensures #0] [%#scode'1] result.mark
+            = mark'0)
+          /\ ([@stop_split] [@expl:parse_code_model ensures #1] [%#scode'2] start <= result.cursor
+            /\ result.cursor <= end')
+          /\ ([@stop_split] [@expl:parse_code_model ensures #2] [%#scode'3] result.cursor <= start + 3)
+          /\ ([@stop_split] [@expl:parse_code_model ensures #3] [%#scode'4] match result.outcome with
+              | Complete value -> 0 <= value /\ value <= 999
+              | _ -> true
+              end)
+          /\ ([@stop_split] [@expl:parse_code_model ensures #4] [%#scode'5] start + 2 < end'
+            /\ is_ascii_digit input start /\ is_ascii_digit input (start + 1) /\ is_ascii_digit input (start + 2)
+          -> code_result_is_complete result (decimal_digit_value input start * 100
+              + decimal_digit_value input (start + 1) * 10
+            + decimal_digit_value input (start + 2))
+          /\ result.cursor = start + 3)
+        else
+          if start + 2 = end' then
+            let result = { outcome = Partial;
+                           mark = mark'0;
+                           cursor = end' } in [@stop_split] [@expl:parse_code_model ensures] ([@stop_split] [@expl:parse_code_model ensures #0] [%#scode'1] result.mark
+              = mark'0)
+            /\ ([@stop_split] [@expl:parse_code_model ensures #1] [%#scode'2] start <= result.cursor
+              /\ result.cursor <= end')
+            /\ ([@stop_split] [@expl:parse_code_model ensures #2] [%#scode'3] result.cursor <= start + 3)
+            /\ ([@stop_split] [@expl:parse_code_model ensures #3] [%#scode'4] match result.outcome with
+                | Complete value -> 0 <= value /\ value <= 999
+                | _ -> true
+                end)
+            /\ ([@stop_split] [@expl:parse_code_model ensures #4] [%#scode'5] start + 2 < end'
+              /\ is_ascii_digit input start /\ is_ascii_digit input (start + 1) /\ is_ascii_digit input (start + 2)
+            -> code_result_is_complete result (decimal_digit_value input start * 100
+                + decimal_digit_value input (start + 1) * 10
+              + decimal_digit_value input (start + 2))
+            /\ result.cursor = start + 3)
+          else
+            ([@stop_split] [@expl:is_ascii_digit requires] [%#scode'6] 0 <= start + 2 /\ start + 2 < Seq.length input)
+            /\ (if not is_ascii_digit input (start + 2) then
+              let result = { outcome = Error;
+                             mark = mark'0;
+                             cursor = start
+                             + 3 } in [@stop_split] [@expl:parse_code_model ensures] ([@stop_split] [@expl:parse_code_model ensures #0] [%#scode'1] result.mark
+                = mark'0)
+              /\ ([@stop_split] [@expl:parse_code_model ensures #1] [%#scode'2] start <= result.cursor
+                /\ result.cursor <= end')
+              /\ ([@stop_split] [@expl:parse_code_model ensures #2] [%#scode'3] result.cursor <= start + 3)
+              /\ ([@stop_split] [@expl:parse_code_model ensures #3] [%#scode'4] match result.outcome with
+                  | Complete value -> 0 <= value /\ value <= 999
+                  | _ -> true
+                  end)
+              /\ ([@stop_split] [@expl:parse_code_model ensures #4] [%#scode'5] start + 2 < end'
+                /\ is_ascii_digit input start /\ is_ascii_digit input (start + 1) /\ is_ascii_digit input (start + 2)
+              -> code_result_is_complete result (decimal_digit_value input start * 100
+                  + decimal_digit_value input (start + 1) * 10
+                + decimal_digit_value input (start + 2))
+              /\ result.cursor = start + 3)
+            else
+              ([@stop_split] [@expl:decimal_digit_value requires] ([@stop_split] [@expl:decimal_digit_value requires #0] [%#scode'7] 0
+                    <= start
+                  /\ start < Seq.length input)
+                /\ ([@stop_split] [@expl:decimal_digit_value requires #1] [%#scode'8] is_ascii_digit input start))
+              /\ (([@stop_split] [@expl:decimal_digit_value ensures] [%#scode'9] decimal_digit_value input start
+                = deep_model_u8 (Seq.get input start) - 48)
+              -> (let hundreds = decimal_digit_value input start in ([@stop_split] [@expl:decimal_digit_value requires] ([@stop_split] [@expl:decimal_digit_value requires #0] [%#scode'7] 0
+                    <= start + 1
+                  /\ start + 1 < Seq.length input)
+                /\ ([@stop_split] [@expl:decimal_digit_value requires #1] [%#scode'8] is_ascii_digit input (start + 1)))
+              /\ (([@stop_split] [@expl:decimal_digit_value ensures] [%#scode'9] decimal_digit_value input (start + 1)
+                = deep_model_u8 (Seq.get input (start + 1)) - 48)
+              -> (let tens = decimal_digit_value input (start
+              + 1) in ([@stop_split] [@expl:decimal_digit_value requires] ([@stop_split] [@expl:decimal_digit_value requires #0] [%#scode'7] 0
+                    <= start + 2
+                  /\ start + 2 < Seq.length input)
+                /\ ([@stop_split] [@expl:decimal_digit_value requires #1] [%#scode'8] is_ascii_digit input (start + 2)))
+              /\ (([@stop_split] [@expl:decimal_digit_value ensures] [%#scode'9] decimal_digit_value input (start + 2)
+                = deep_model_u8 (Seq.get input (start + 2)) - 48)
+              -> (let ones = decimal_digit_value input (start + 2) in let result = { outcome = Complete (hundreds * 100
+                                                                                       + tens * 10
+                                                                                     + ones);
+                                                                                     mark = mark'0;
+                                                                                     cursor = start
+                                                                                     + 3 } in [@stop_split] [@expl:parse_code_model ensures] ([@stop_split] [@expl:parse_code_model ensures #0] [%#scode'1] result.mark
+                = mark'0)
+              /\ ([@stop_split] [@expl:parse_code_model ensures #1] [%#scode'2] start <= result.cursor
+                /\ result.cursor <= end')
+              /\ ([@stop_split] [@expl:parse_code_model ensures #2] [%#scode'3] result.cursor <= start + 3)
+              /\ ([@stop_split] [@expl:parse_code_model ensures #3] [%#scode'4] match result.outcome with
+                  | Complete value -> 0 <= value /\ value <= 999
+                  | _ -> true
+                  end)
+              /\ ([@stop_split] [@expl:parse_code_model ensures #4] [%#scode'5] start + 2 < end'
+                /\ is_ascii_digit input start /\ is_ascii_digit input (start + 1) /\ is_ascii_digit input (start + 2)
+              -> code_result_is_complete result (decimal_digit_value input start * 100
+                  + decimal_digit_value input (start + 1) * 10
+                + decimal_digit_value input (start + 2))
+              /\ result.cursor = start + 3)))))))
+            )
+        
+        )
+    
+    )
+  )

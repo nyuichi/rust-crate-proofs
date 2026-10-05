@@ -1,0 +1,35 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 47 0 47 61 *)
+
+let%span snum = "/workspace/scratch/httparse-string-model/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+let%span scode = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 44 11 44 44
+let%span scode'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 45 11 45 39
+let%span scode'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 46 10 46 50
+let%span scode'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 48 4 48 34
+let%span scode'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 36 11 36 44
+let%span scode'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 38 4 38 41
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+predicate is_ascii_digit [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 37 0 37 57] (input: Seq.seq UInt8.t) (index: int) =
+  [%#scode'4] let byte = deep_model_u8 (Seq.get input index) in byte >= 48 /\ byte <= 57
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant index : int
+
+function decimal_digit_value [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/code-harness/string/../src/../../../../src/verification/code.rs" 47 0 47 61] (input: Seq.seq UInt8.t) (index: int) : int
+
+goal vc_decimal_digit_value: ([%#scode] 0 <= index /\ index < Seq.length input)
+  -> ([%#scode'0] is_ascii_digit input index)
+  -> ([@stop_split] [@expl:decimal_digit_value ensures] [%#scode'1] deep_model_u8 (Seq.get input index) - 48
+  = deep_model_u8 (Seq.get input index) - 48)

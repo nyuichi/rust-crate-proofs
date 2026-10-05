@@ -1,12 +1,14 @@
 # Completed `Bytes` proof manifest
 
-This manifest records the refreshed selected `Bytes` proof batch. Its unique
-current-snapshot total is 141 VCs across 31 CoMa targets; see `REPORT.md` for
-the per-target count table, source boundary, and trusted boundary. Both probes
-were translated again on 2026-10-05, and all targets were reproved at this
-source snapshot.
+This manifest records the fresh active-byte-compiler `Bytes` proof batch. Its
+current-snapshot total is 139 valid leaves across 31 CoMa targets; see
+`REPORT.md` and
+[`evidence/active-byte-refresh-2026-10-05`](evidence/active-byte-refresh-2026-10-05/)
+for the per-target counts, artifact hashes, source boundary, and trusted
+boundary. Both probes were freshly translated on 2026-10-05, and all targets
+were reproved at this source snapshot.
 The current `src/iter.rs` is SHA-256
-`c5c8da21125db4b75107a974af9941aa2ba3908f1714ca74487663b6182f52e8` and
+`369662bbf36c68ba814750ce3a91c4aa78ab40e9453af0f7e07f30d869103625` and
 `src/verification/model.rs` is
 `cf3a6f426eb55e28f61a2f5b46277639db9ff86ec0b584bf026735c59aa25cb1`;
 `creusot-libs/creusot-std/src/std/ptr.rs` is
@@ -15,8 +17,11 @@ The current `src/iter.rs` is SHA-256
 `5a4346a05298dbf71fe16b35718ac57552105426a4e4cc9161176b4bf3ae5348`.
 Both probes translated with no warnings. All commands below passed with the
 checked Why3 profile, one prover, a 1000 MiB limit, and `z3@4.15.3`, using
-`--no-cache -s -j 1`. `iter/impl_Bytes/bump.coma` appears in more than one
-phase; its two VCs are counted once in the unique total.
+`--no-cache -s -j 1`. Translation used the active byte compiler at SHA-256
+`1ee46c7a5e05f3dbbdbd03804dff6468338c36134711840372e606bfae0d4b7e`.
+`iter/impl_Bytes/bump.coma` appears in more than one phase; its two VCs are
+counted once in the unique total. The exact CoMa, proof JSON, and Why3 session
+hashes are in the evidence bundle above.
 
 All commands should use the existing `run-proof.bash`, checked Why3 profile,
 one prover and 1000 MiB limit. The probe directory is the working directory so
@@ -37,7 +42,8 @@ Run from `verification/probes/memory-pointer`:
 
 The constructor establishes the `Bytes` invariant. The helper derives pointer
 range permissions; `AsRef::as_ref` is a real body dependency of both typed
-array helpers. These current-hash targets passed 19/19 VCs.
+array helpers. These current-hash targets passed 30/30 VCs. The active byte
+compiler emitted 12 leaves for `slice_from_ptr_range` in this snapshot.
 
 ## Phase B: advancement and length dependencies
 
@@ -55,8 +61,10 @@ Run from the same directory:
 
 `next` calls `peek` and then `bump`; `bump` calls `advance`. This phase proves
 the actual dependency chain and exact byte read before proving `next`. The
-selected current-hash targets passed 35/35 VCs, including the duplicate
-`byte_permission` target (count it once in the manifest total).
+current-hash batch passed 30/30 leaves, including the duplicate
+`byte_permission` target. Count that target once; this phase contributes 23
+new unique leaves to the manifest total. The fresh compiler emitted four
+leaves for `peek`.
 
 ## Phase C: generic and fixed-array lookahead
 
@@ -74,7 +82,7 @@ so it does not make claims about arbitrary user-defined `TryFrom` values. The
 two typed methods use the same `.get(..N)?.try_into().ok()` runtime steps but
 have exact byte-sequence postconditions backed by the audited standard array
 contract.
-The current-hash pointer targets in this phase passed 30/30 VCs; the two
+The current-hash pointer targets in this phase passed 30/30 leaves; the two
 separate caller targets passed 18/18.
 
 Run from `verification/probes/memory-array-conversion`:
@@ -106,8 +114,9 @@ Run from `verification/probes/memory-pointer`:
   verif/httparse_memory_pointer_probe_rlib/iter/impl_Iterator_for_Bytes/next.coma
 ```
 
-These current-hash targets passed under the wrapper (see `REPORT.md` for exact
-counts and generated proof artifacts). The head lemma proves sequence
+These current-hash targets passed under the wrapper: 16 leaves including the
+repeated `bump` target (14 new unique iterator leaves). The actual `next` body
+passed 6/6. The head lemma proves sequence
 decomposition by length/index extensionality; the `bump` frame preserves the
 cursor model's input and end fields. The `next` contract explicitly states
 `None => completed` and `Some(byte) => produces(singleton(byte), final_state)`.
@@ -133,7 +142,7 @@ Run from `verification/probes/memory-pointer`:
   verif/httparse_memory_pointer_probe_rlib/iter/impl_Bytes/end.coma
 ```
 
-All current-hash targets passed (24/24 VCs). The `as_ptr`, `start`, and `end`
+All current-hash targets passed (24/24 leaves). The `as_ptr`, `start`, and `end`
 getters each have one VC, and their functional postconditions bind the result
 to the origin pointer offset by the model cursor, mark, and end positions,
 respectively. Their caller-facing pointer contracts and bodies are proved.

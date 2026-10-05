@@ -464,6 +464,15 @@ impl Iterator for Bytes<'_> {
         None => self.completed(),
         Some(byte) => (*self).produces(Seq::singleton(byte), ^self),
     })]
+    #[ensures((^self)@.input == self@.input
+        && (^self)@.mark == self@.mark
+        && (^self)@.end == self@.end)]
+    #[ensures(match result {
+        None => (^self)@.cursor == self@.cursor,
+        Some(byte) => self@.cursor < self@.end
+            && (^self)@.cursor == self@.cursor + 1
+            && byte@ == self@.input[self@.cursor]@,
+    })]
     fn next(&mut self) -> Option<u8> {
         match self.peek() {
             Some(byte) => {
