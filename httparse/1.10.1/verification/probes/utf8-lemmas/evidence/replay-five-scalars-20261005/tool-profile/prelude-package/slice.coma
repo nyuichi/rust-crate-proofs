@@ -1,0 +1,123 @@
+module Slice16
+  use seq.Seq
+  use creusot.int.UInt16
+  use int.Int
+  use creusot.prelude.Opaque
+
+  type slice 'a =
+    { elts : seq 'a }
+    invariant { UInt16.in_bounds (Seq.length elts) }
+  axiom slice_ext :
+    forall x y: slice 'a. x.elts = y.elts -> x = y
+
+  type array 'a = slice 'a
+
+  function length (s : slice 'a) : UInt16.t
+  axiom spec : forall s : slice 'a . (UInt16.t'int (length s)) = Seq.length s.elts
+
+  let get < 'a > (s : slice 'a) (ix : UInt16.t) (ret (res : 'a)) =
+    { UInt16.t'int ix < Seq.length s.elts }
+    ret {Seq.get s.elts (UInt16.t'int ix)}
+
+  let set < 'a > (s : slice 'a) (ix : UInt16.t) (v : 'a)
+    { UInt16.t'int ix < Seq.length s.elts }
+    (ret (result : slice 'a)
+      { Seq.length result.elts = Seq.length s.elts }
+      { result.elts[UInt16.t'int ix] = v }
+      { forall j. 0 <= j < Seq.length s.elts /\ j <> UInt16.t'int ix -> result.elts[j] = s.elts[j] }
+    ) = any
+
+
+  let create < 'a > (len : UInt16.t) (f : int -> 'a)
+    (ret (result : slice 'a )
+      { Seq.length result.elts = UInt16.t'int len }
+      { forall i . 0 <= i < UInt16.t'int len -> result.elts[i] = f i }
+    ) = any
+
+  function view (s : slice 'a) : seq 'a = s.elts
+
+  function slice_ptr_len (p: Opaque.ptr) : UInt16.t
+end
+
+module Slice32
+  use seq.Seq
+  use creusot.int.UInt32
+  use int.Int
+  use creusot.prelude.Opaque
+
+  type slice 'a =
+    { elts : seq 'a }
+    invariant { UInt32.in_bounds (Seq.length elts) }
+  axiom slice_ext :
+    forall x y: slice 'a. x.elts = y.elts -> x = y
+
+  type array 'a = slice 'a
+
+  function length (s : slice 'a) : UInt32.t
+  axiom spec : forall s : slice 'a . (UInt32.t'int (length s)) = Seq.length s.elts
+
+  let get < 'a > (s : slice 'a) (ix : UInt32.t) (ret (res : 'a)) =
+    { UInt32.t'int ix < Seq.length s.elts }
+    ret {Seq.get s.elts (UInt32.t'int ix)}
+
+  let set < 'a > (s : slice 'a) (ix : UInt32.t) (v : 'a)
+    { UInt32.t'int ix < Seq.length s.elts }
+    (ret (result : slice 'a)
+      { Seq.length result.elts = Seq.length s.elts }
+      { result.elts[UInt32.t'int ix] = v }
+      { forall j. 0 <= j < Seq.length s.elts /\ j <> UInt32.t'int ix -> result.elts[j] = s.elts[j] }
+    ) = any
+
+
+  let create < 'a > (len : UInt32.t) (f : int -> 'a)
+    (ret (result : slice 'a )
+      { Seq.length result.elts = UInt32.t'int len }
+      { forall i . 0 <= i < UInt32.t'int len -> result.elts[i] = f i }
+    ) = any
+
+  function view (s : slice 'a) : seq 'a = s.elts
+
+  function slice_ptr_len (p: Opaque.ptr) : UInt32.t
+end
+
+module Slice64
+  use seq.Seq
+  use creusot.int.UInt64
+  use int.Int
+  use creusot.prelude.Opaque
+
+  type slice 'a =
+    { elts : seq 'a }
+    invariant { UInt64.in_bounds (Seq.length elts) }
+  axiom slice_ext :
+    forall x y: slice 'a. x.elts = y.elts -> x = y
+
+  type array 'a = slice 'a
+
+  function length (s : slice 'a) : UInt64.t
+  axiom spec : forall s : slice 'a . (UInt64.t'int (length s)) = Seq.length s.elts
+
+  let get < 'a > (s : slice 'a) (ix : UInt64.t) (ret (res : 'a)) =
+    { UInt64.t'int ix < Seq.length s.elts }
+    ret {Seq.get s.elts (UInt64.t'int ix)}
+
+  let set < 'a > (s : slice 'a) (ix : UInt64.t) (v : 'a)
+    { UInt64.t'int ix < Seq.length s.elts }
+    (ret (result : slice 'a)
+      { Seq.length result.elts = Seq.length s.elts }
+      { result.elts[UInt64.t'int ix] = v }
+      { forall j. 0 <= j < Seq.length s.elts /\ j <> UInt64.t'int ix -> result.elts[j] = s.elts[j] }
+    ) = any
+
+
+  let create < 'a > (len : UInt64.t) (f : int -> 'a)
+    (ret (result : slice 'a )
+      { Seq.length result.elts = UInt64.t'int len }
+      { forall i . 0 <= i < UInt64.t'int len -> result.elts[i] = f i }
+    ) = any
+
+  function view (s : slice 'a) : seq 'a = s.elts
+
+  function slice_ptr_len (p: Opaque.ptr) : UInt64.t
+end
+
