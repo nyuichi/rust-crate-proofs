@@ -2,24 +2,26 @@
 
 ## Current working-tree status (2026-10-05)
 
-The coordinator-carrier gate now passes 111 proof files with zero unproved
+The coordinator-carrier gate now passes 114 proof files with zero unproved
 leaves. Exact extracted from_vec, promotion, ARC shallow_clone/native increment,
 repeated split_to and split_off (including at > len), mutable/read access and
 explicit three-handle release compose through the scalable registry. The
 returned right split_off handle retains the sole coordinator; left/right
 capacities preserve all original Known/Unknown slots. All six retirement orders
 lead to full original B3 buffer recovery and typed Perm control-block destruction.
-Six native tests cover split/storage/capacity boundaries and exact original A/S allocation/free
-counts. Separate 113-file negatives reject exactly missing-empty-ticket final
+Seven native tests cover split/storage/capacity boundaries and exact original A/S allocation/free
+counts. Separate 116-file negatives reject exactly missing-empty-ticket final
 release (17/18) and Unknown-byte publication through actual set_len (16/17).
 No new trusted protocol or core/std change is introduced. This restricted cfg
-adapter supports splitting only the coordinator carrier; sibling-only splitting,
-concurrency, original release_shared and automatic Drop are excluded.
-Evidence: coordinator-carrier-split/convenience-positive,
-convenience-ticket-negative and convenience-unknown-negative; earlier variants
+adapter requires the sole coordinator on the handle being split and now
+supports explicit coordinator transfer to a matching initialized sibling.
+Unmediated sibling calls, concurrency, original release_shared and automatic
+Drop are excluded.
+Evidence: coordinator-carrier-split/relocation-positive,
+relocation-ticket-negative and relocation-unknown-negative; earlier variants
 are retained. Final legacy split/storage regression passes 110 files; previous
 safe-trait72/public-constructor61 regressions are unaffected by the split_off-only
-extension. Native carrier6, legacy21, traits1, constructors3, ordinary
+extension. Native carrier7, legacy21, traits1, constructors3, ordinary
 test_bytes118 and no_std pass at their recorded source checkpoints.
 Spare access uses a body-proved prefix-preserving B4 adapter in both ownership
 modes, with equivalent ownership/known-byte initialization postconditions.
@@ -42,6 +44,27 @@ its storage-moving/growing path is not modeled. The convenience harness checks
 these calls between ARC splitting and explicit three-handle release. Native6,
 ordinary118 and no_std pass at the final source. Both 113-file negatives have
 exactly one intended leaf; legacy110 passes in regressions/convenience-final.
+
+The final 114-file gate also proves explicit affine coordinator relocation and
+re-split after a nonlast release. The lifecycle creates three handles, explicitly
+retires the middle one (native count 3 -> 2), consumes the coordinator into the
+oldest sibling, splits that sibling (2 -> 3), mutates the three survivors and
+releases them in all six orders. The previously retired interval stays in the
+pool, surviving tickets match the evolving context despite older creation
+snapshots, and fresh IDs are not recycled when the native count grows again.
+Native7 observes one original A/S free and no reallocations. The two 116-file
+negatives each reject exactly one intended guard; legacy110 passes under
+regressions/relocation-final. Earlier checkpoints and hashes remain frozen.
+
+Remaining boundaries after this continuation: ordinary Shared/Vec representation
+equivalence and original release_shared; automatic scope-exit Drop effects;
+concurrent RMW/release-sequence/view synchronization; Bytes/freeze read-sharing
+and vtable dispatch; and storage-moving/growing reserve/reclaim/unsplit paths.
+These require separate ownership/tool designs, rather than additional tests of
+the current sequential adapter. No full-crate proof is claimed. Core/std have
+not been modified and no trusted protocol/physical-access contract was added.
+Luna xhigh prepared native cases and audited protocol scope; Astra reviewed the
+prefix interface, split_off, bounded capacity paths and coordinator relocation.
 
 The complete concrete slice Buf body gate passes 82 files with zero unproved
 leaves and three native matrices: 19 checked integer readers, 19 normal-return

@@ -26,8 +26,8 @@ No new trusted ownership or refcount protocol is introduced. The existing Vec,
 physical byte access, boxed alignment, and exclusive scalar atomic bridges and
 standard permission operations remain the trusted boundary.
 
-Status: the integrated gate passes 111 proof files with zero unproved leaves.
-Six native tests cover boundary positions/all six release orders and exact
+Status: the integrated gate passes 114 proof files with zero unproved leaves.
+Seven native tests cover boundary positions/all six release orders and exact
 original-buffer/control-block allocation/free counts. Native execution does not
 by itself establish the ghost protocol or a whole-crate proof.
 
@@ -82,3 +82,14 @@ and no_std pass. Growing/moving try_reclaim is explicitly excluded in its proof
 adapter. Latest evidence is convenience-positive, convenience-unknown-negative,
 convenience-ticket-negative, and regressions/convenience-final. Both negative
 gates contain 113 files and exactly one intended failed guard.
+
+Final checkpoint: explicit coordinator relocation consumes the existing context
+into a matching initialized sibling. After a middle handle is explicitly
+retired, that oldest sibling is split again; count 3 -> 2 -> 3 exercises the
+returned pool, evolving pending map, old creation snapshots and fresh IDs.
+The three survivors are mutated and released in each of six orders. The gate
+passes 114 files with zero unproved leaves and seven native tests. Unmediated
+sibling splitting and concurrency remain excluded. Evidence: relocation-positive,
+relocation-unknown-negative, relocation-ticket-negative, and
+regressions/relocation-final (legacy110). Both negative runs have 116 files and
+exactly one intended failed guard. Intermediate counts above are historical.

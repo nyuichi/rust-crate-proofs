@@ -1,0 +1,88 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/scalable_tickets.rs" 61 9 61 36 *)
+
+(* <scalable_tickets::Status as std::clone::Clone> *)
+
+let%span sint = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/int.rs" 35 14 35 29
+let%span sint'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/int.rs" 36 4 36 27
+let%span sscalable_tickets = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/scalable_tickets.rs" 63 4 63 28
+let%span sscalable_tickets'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/scalable_tickets.rs" 64 4 64 29
+let%span sscalable_tickets'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/scalable_tickets.rs" 65 4 65 31
+let%span sscalable_tickets'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/scalable_tickets.rs" 66 4 66 27
+let%span sscalable_tickets'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/scalable_tickets.rs" 67 4 67 55
+let%span sscalable_tickets'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/scalable_tickets.rs" 61 9 61 36
+let%span sid = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/id.rs" 18 14 18 29
+let%span sid'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/id.rs" 19 4 19 27
+let%span ssnapshot = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/snapshot.rs" 65 14 65 29
+let%span ssnapshot'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/snapshot.rs" 66 4 66 27
+
+use creusot.prelude.Any
+
+type t_Id
+
+type t_FMap_Int_tup2_Int_Int
+
+type t_Status = { capacity: int; allocation: t_Id; registration: t_Id; next_id: int; pending: t_FMap_Int_tup2_Int_Int }
+
+let clone_Int (self: int) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:clone ensures] [%#sint] result = self} (! return {result}) ]
+
+let clone_Id (self: t_Id) (return (x: t_Id)) = any
+  [ return (result: t_Id) -> {[@stop_split] [@expl:clone ensures] [%#sid] result = self} (! return {result}) ]
+
+let clone_Snapshot_FMap_Int_tup2_Int_Int (self: t_FMap_Int_tup2_Int_Int) (return (x: t_FMap_Int_tup2_Int_Int)) = any
+  [ return (result: t_FMap_Int_tup2_Int_Int) -> {[@stop_split] [@expl:clone ensures] [%#ssnapshot] result = self}
+    (! return {result}) ]
+
+predicate postcondition_clone (self: ()) (args: int) (result: int) =
+  [%#sint'0] let self'0 = args in [%#sint] result = self'0
+
+meta "rewrite_def" predicate postcondition_clone
+
+predicate postcondition_clone'0 (self: ()) (args: t_Id) (result: t_Id) =
+  [%#sid'0] let self'0 = args in [%#sid] result = self'0
+
+meta "rewrite_def" predicate postcondition_clone'0
+
+predicate postcondition_clone'1 (self: ()) (args: t_FMap_Int_tup2_Int_Int) (result: t_FMap_Int_tup2_Int_Int) =
+  [%#ssnapshot'0] let self'0 = args in [%#ssnapshot] result = self'0
+
+meta "rewrite_def" predicate postcondition_clone'1
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let clone_Status [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/scalable_tickets.rs" 61 9 61 36]
+  (self: t_Status) (return (x: t_Status)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_6 <- self.capacity ] s1
+    | s1 = clone_Int [%#sscalable_tickets] {_6} (fun (_x: int) -> [ &_4 <- _x ] s2)
+    | s2 = [ &_9 <- self.allocation ] s3
+    | s3 = clone_Id [%#sscalable_tickets'0] {_9} (fun (_x: t_Id) -> [ &_7 <- _x ] s4)
+    | s4 = [ &_12 <- self.registration ] s5
+    | s5 = clone_Id [%#sscalable_tickets'1] {_12} (fun (_x: t_Id) -> [ &_10 <- _x ] s6)
+    | s6 = [ &_15 <- self.next_id ] s7
+    | s7 = clone_Int [%#sscalable_tickets'2] {_15} (fun (_x: int) -> [ &_13 <- _x ] s8)
+    | s8 = [ &_18 <- self.pending ] s9
+    | s9 = clone_Snapshot_FMap_Int_tup2_Int_Int [%#sscalable_tickets'3] {_18}
+        (fun (_x: t_FMap_Int_tup2_Int_Int) -> [ &_16 <- _x ] s10)
+    | s10 = [ &_ret <- { capacity = _4; allocation = _7; registration = _10; next_id = _13; pending = _16 } ] s11
+    | s11 = return {_ret} ] ]
+  [ & _ret: t_Status = Any.any_l ()
+  | & self: t_Status = self
+  | & _4: int = Any.any_l ()
+  | & _6: int = Any.any_l ()
+  | & _7: t_Id = Any.any_l ()
+  | & _9: t_Id = Any.any_l ()
+  | & _10: t_Id = Any.any_l ()
+  | & _12: t_Id = Any.any_l ()
+  | & _13: int = Any.any_l ()
+  | & _15: int = Any.any_l ()
+  | & _16: t_FMap_Int_tup2_Int_Int = Any.any_l ()
+  | & _18: t_FMap_Int_tup2_Int_Int = Any.any_l () ])
+  [ return (result: t_Status) ->
+  {[@stop_split] [@expl:clone ensures] [%#sscalable_tickets'4] postcondition_clone () self.capacity result.capacity
+    /\ postcondition_clone'0 () self.allocation result.allocation
+    /\ postcondition_clone'0 () self.registration result.registration
+    /\ postcondition_clone () self.next_id result.next_id /\ postcondition_clone'1 () self.pending result.pending}
+    (! return {result}) ]
