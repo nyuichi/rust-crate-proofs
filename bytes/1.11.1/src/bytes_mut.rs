@@ -375,6 +375,7 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.frozen.unwrap_logic().shared == (^coordinator).unwrap_logic().shared))]
     #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.frozen.unwrap_logic().ticket.frac() == creusot_std::logic::real::PositiveReal::from_int(1)))]
     #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.len == self.len))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.ptr == self.ptr))]
     #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(forall<i:Int> 0 <= i && i < self.len@ ==> result.frozen.unwrap_logic().shared.val().cur().slot(i) == self.proof_unique_slot(i)))]
     pub fn freeze(self,
         #[cfg(bytes_proof_frozen)] coordinator: &mut Option<crate::ownership_proof::frozen_region::FrozenOwner>,
