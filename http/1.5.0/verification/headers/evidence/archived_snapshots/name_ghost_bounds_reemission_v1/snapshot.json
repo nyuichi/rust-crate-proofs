@@ -1,7 +1,8 @@
 {
   "snapshot_version": 1,
   "captured_at_utc": "2026-10-05T09:46:43.029128+00:00",
-  "status": "Fresh current Name-profile emission; not yet proved. Source SHA 4c04c3c2… includes post-checkpoint ghost-bound visibility fixes. No proof results are recorded yet.",
+  "status": "Fresh Name-profile emission at source SHA 4c04c3c2… with an accepted bounded proof batch: 23 targets, 209 successful terminal leaves, zero null leaves. This is a frontier subset, not full 195-target closure.",
+  "initial_emission_snapshot_sha256": "1c3696924c9e8121e4efaa999626a1105c4857c5ff35790317e40fb01eb03532",
   "profile": "RUSTFLAGS='--cfg http_header_name_leaf'; HTTP wrapper; Cargo locked/offline; Creusot bytes-model; `--simple-triggers=false`.",
   "emission": {
     "command": "RUSTFLAGS='--cfg http_header_name_leaf' ../../scripts/run-proof.sh bash -c 'cargo clean -p http-headers-proof && cargo creusot --simple-triggers=false -- --locked --offline'",
@@ -496,15 +497,26 @@
     "http/1.5.0/verification/headers/why3find.json": "2026-10-05T02:51:09.307656+00:00"
   },
   "proof_results": {},
-  "proof_runs": [],
+  "proof_runs": [
+    {
+      "accepted_targets": 23,
+      "command": "DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find' ../../scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always [23 exact archived targets]",
+      "exit_code": 0,
+      "successful_own_leaves": 209,
+      "first_level_tasks": 208,
+      "null_or_missing_own_leaves": 0,
+      "batch_path": "proof_batches/name_frontier_run_v1.json",
+      "batch_sha256": "1600c088e99297f7651d28651a9f1a6b33ccbd3c1c727b0e789107a4103f6175"
+    }
+  ],
   "proof_leaf_totals": {
-    "accepted_target_count": 0,
-    "accepted_own_leaves": 0,
+    "accepted_target_count": 23,
+    "accepted_own_leaves": 209,
     "null_or_missing_own_leaves": 0
   },
-  "proof_status": "Emission only; proof lease has not started.",
+  "proof_status": "The accepted proof batch at proof_batches/name_frontier_run_v1.json exited 0 and proves 23 targets / 209 terminal leaves with zero nulls. Its initial emission snapshot hash is preserved above and is recorded in the batch. This does not claim full-profile closure.",
   "source_file_copy": "source/name.rs",
   "source_file_copy_sha256": "4c04c3c2b857b798d1511e64154a2b66bbc542bd9a669d91c90a01c91ad728f0",
-  "dependencies_note": "Source SHA map was refreshed from the preceding 195-target Name snapshot; exact manifests and proof results will be added only after source-task comparison and bounded proof batches.",
+  "dependencies_note": "Source and COMA hashes below describe the original 4c04 emission. Per-target proof JSON hashes and nested split details are recorded in proof_batches/name_frontier_run_v1.json; the source-650 exact-task reuse summary is in name_source_650_full_translation_v1/proof_batches/name_4c04_to_650_proof_reuse.json.",
   "snapshot_sha256_excludes_self": true
 }
