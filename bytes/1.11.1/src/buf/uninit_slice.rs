@@ -287,7 +287,6 @@ impl<'a> From<&'a mut [MaybeUninit<u8>]> for &'a mut UninitSlice {
 mod uninit_index_model {
     use core::ops::{Range, RangeFrom, RangeInclusive, RangeTo, RangeToInclusive};
     use creusot_std::prelude::*;
-    use creusot_std::std::slice::SliceIndexSpec;
 
     pub(super) trait UninitSliceIndexModel {
         #[logic]
@@ -403,7 +402,10 @@ mod uninit_index_model {
     impl UninitSliceIndexModel for RangeInclusive<usize> {
         #[logic(open)]
         fn uninit_in_bounds(self, source: Seq<Option<u8>>) -> bool {
-            <Self as SliceIndexSpec<[Option<u8>]>>::in_bounds(self, source)
+            pearlite! {
+                self.end_log()@ < source.len()
+                    && self.start_log()@ <= self.end_log()@ + 1
+            }
         }
 
         #[logic(open)]

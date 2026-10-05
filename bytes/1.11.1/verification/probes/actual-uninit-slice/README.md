@@ -69,6 +69,23 @@ The `RangeFrom<usize>` gate is:
 Its 12-file proof and 3-test native replay are archived in
 `evidence/range-from-positive.tar.gz`.
 
+The remaining separate range gates are:
+
+```sh
+./verify.bash --features remaining_apis,range_to_index
+./verify.bash --features remaining_apis,range_to_inclusive_index
+./verify.bash --features remaining_apis,range_inclusive_index
+```
+
+Each gate proves only its selected `Index` and `IndexMut` form, along with the
+12-file `UninitSlice` core/accessor probe and 3 native tests. Their exact source,
+generated extraction, proof tasks, and logs are archived respectively in
+`evidence/range-to-positive.tar.gz`,
+`evidence/range-to-inclusive-positive.tar.gz`, and
+`evidence/range-inclusive-positive.tar.gz`. The inclusive-range model uses the
+stock in-bounds arithmetic over the public view length and models the empty
+range case separately.
+
 Translation only, without starting Why3:
 
 ```sh
