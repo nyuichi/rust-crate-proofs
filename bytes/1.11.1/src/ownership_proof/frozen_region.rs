@@ -24,6 +24,7 @@ pub(crate) type FrozenRegion = GhostShared<FullBorrow<PhysicalRegion>>;
 #[ensures(result@.len() == len@)]
 #[ensures(forall<offset: Int> 0 <= offset && offset < len@ ==>
     shared.val().cur().slot(bound@.unwrap_logic().2 + offset) == Some(Some(result@[offset])))]
+#[cfg_attr(creusot, check(ghost))]
 pub(crate) fn borrow_frozen<'a>(
     bound: &'a BoundPtr,
     len: usize,

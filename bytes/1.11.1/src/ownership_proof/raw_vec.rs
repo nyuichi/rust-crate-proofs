@@ -1135,6 +1135,9 @@ pub(crate) unsafe fn borrow_spare_preserving_prefix<'a>(
 /// region. The region cannot be mutated, retired or recovered until all such
 /// borrows end. Sealed namespace/range matching is the same as B4-bound; empty
 /// reads establish no allocation liveness and perform no pointer arithmetic.
+/// Ghost classification permits observation only: this shared slice cannot
+/// write slots or initialize storage. Mutable B4 bridges remain ordinary
+/// program operations, so erased ghost writes cannot update their slot ledger.
 #[trusted]
 #[requires(bound.invariant() && bound@ != None)]
 #[requires(region.inner_logic().invariant())]
@@ -1147,6 +1150,7 @@ pub(crate) unsafe fn borrow_spare_preserving_prefix<'a>(
 #[ensures(result@.len() == len@)]
 #[ensures(forall<offset: Int> 0 <= offset && offset < len@ ==>
     region.inner_logic().slot(bound@.unwrap_logic().2 + offset) == Some(Some(result@[offset])))]
+#[cfg_attr(creusot, check(ghost))]
 pub(crate) unsafe fn borrow_bound<'a>(
     bound: &'a BoundPtr,
     len: usize,
@@ -1157,10 +1161,12 @@ pub(crate) unsafe fn borrow_bound<'a>(
 }
 
 /// Fixed-zero shared slice access. Non-null u8 metadata needs no allocation
-/// liveness or initialized slot when the extent is exactly zero.
+/// liveness or initialized slot when the extent is exactly zero. Its ghost
+/// classification is observation-only: the returned slice contains no bytes.
 #[trusted]
 #[requires(bound.invariant())]
 #[ensures(result@.len() == 0)]
+#[cfg_attr(creusot, check(ghost))]
 pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
     unsafe { core::slice::from_raw_parts(bound.as_ptr(), 0) }
 }

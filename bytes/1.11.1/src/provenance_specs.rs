@@ -48,6 +48,7 @@ extern_spec! {
 #[cfg(any(miri, creusot))]
 #[cfg_attr(creusot, ensures(result == ptr.addr_logic()))]
 #[inline]
+#[cfg_attr(creusot, check(ghost))]
 pub(crate) fn pointer_addr<T>(ptr: *const T) -> usize {
     ptr.addr()
 }
@@ -56,6 +57,7 @@ pub(crate) fn pointer_addr<T>(ptr: *const T) -> usize {
 /// implementation and its minimum supported Rust version.
 #[cfg(not(any(miri, creusot)))]
 #[inline]
+#[cfg_attr(creusot, check(ghost))]
 pub(crate) fn pointer_addr<T>(ptr: *const T) -> usize {
     ptr as usize
 }

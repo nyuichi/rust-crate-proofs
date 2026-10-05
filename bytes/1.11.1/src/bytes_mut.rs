@@ -2795,6 +2795,7 @@ impl BytesMut {
     #[cfg_attr(creusot, ensures(result@.len() == self.len@))]
     #[cfg_attr(creusot, ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
         self.proof_view_slot(index) == Some(Some(result@[index]))))]
+    #[cfg_attr(creusot, check(ghost))]
     fn as_slice(&self) -> &[u8] {
         #[cfg(not(any(creusot, bytes_proof_probe)))]
         { unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) } }
@@ -2953,6 +2954,7 @@ impl BytesMut {
 
     #[inline]
     #[cfg_attr(creusot, ensures(result == (self.data.addr_logic() & KIND_MASK)))]
+    #[cfg_attr(creusot, check(ghost))]
     fn kind(&self) -> usize {
         crate::provenance_specs::pointer_addr(self.data) & KIND_MASK
     }
@@ -3381,6 +3383,7 @@ impl AsRef<[u8]> for BytesMut {
     #[cfg_attr(all(creusot, bytes_proof_valid_handle), ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
         self.proof_view_slot(index) == Some(Some(result@[index]))))]
     #[inline]
+    #[cfg_attr(creusot, check(ghost))]
     fn as_ref(&self) -> &[u8] {
         self.as_slice()
     }
@@ -3390,6 +3393,7 @@ impl Deref for BytesMut {
     type Target = [u8];
 
     #[inline]
+    #[cfg_attr(creusot, check(ghost))]
     fn deref(&self) -> &[u8] {
         self.as_ref()
     }

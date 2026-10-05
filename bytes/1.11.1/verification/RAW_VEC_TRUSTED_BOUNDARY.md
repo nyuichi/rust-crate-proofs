@@ -307,3 +307,17 @@ or recovery authority. These remain explicitly trusted ordinary program
 bridges. A nonzero full buffer must use its shifted spare endpoint; the empty
 shortcut applies only when capacity is zero. Actual trait bodies and refinement
 are proved in a separate unique-only invariant context, not the split context.
+
+## Immutable B4 ghost classification
+
+Only `borrow_bound` and literal-zero immutable `borrow_empty_bound` are now
+classified as ghost-observable physical reads. Shared borrows retain existing
+affine authority until the returned references end; they cannot initialize or
+write bytes. The exact source gate checks ghost and native reads before and
+after real ordinary writes (34 files, zero unproved). Erased ghost mutation is
+rejected by the non-ghost mutable bridge, and a stale-read claim rejects1/2.
+All mutable and uninitialized B4 access remains ordinary program operations.
+The read bridge itself remains trusted physical TCB, not a body-proved
+raw-slice construction and not a trusted bytes ownership law. The earlier
+mutable-B4 ghost diagnostic remains a counterexample and is not repaired by
+this immutable-only classification. See `probes/readonly-b4-purity/evidence`.

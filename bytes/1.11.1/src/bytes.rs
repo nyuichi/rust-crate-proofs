@@ -687,6 +687,7 @@ impl Bytes {
     #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result@.len() == self.len@))]
     #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(forall<i: Int> 0 <= i && i < self.len@ ==>
         self.frozen.unwrap_logic().shared.val().cur().slot(self.ptr@.unwrap_logic().2 + i) == Some(Some(result@[i]))))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), check(ghost))]
     fn as_slice(&self) -> &[u8] {
         #[cfg(not(bytes_proof_frozen))]
         { unsafe { slice::from_raw_parts(self.ptr, self.len) } }

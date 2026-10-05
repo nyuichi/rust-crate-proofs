@@ -245,6 +245,7 @@ pub(crate) unsafe fn borrow_packet_mut<'a>(
 #[ensures(result@.len() == len@)]
 #[ensures(forall<offset: Int> 0 <= offset && offset < len@ ==>
     packet.inner_logic().1.slot(bound@.unwrap_logic().2 + offset) == Some(Some(result@[offset])))]
+#[cfg_attr(creusot, check(ghost))]
 pub(crate) unsafe fn borrow_packet<'a>(
     bound: &'a raw_vec::BoundPtr,
     len: usize,
