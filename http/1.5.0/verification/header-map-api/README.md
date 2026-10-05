@@ -2,9 +2,9 @@
 
 > **Checkpoint note (2026-10-05):** This page records the earlier
 > seven-method/Vec-bound run, plus later Entry accessor and conditional
-> `IterMut::next_unsafe` results. The IterMut nested split arity has been
-> independently checked. The public Iterator graph proof and two generic
-> `len` layout obligations remain open. See
+> `IterMut::next_unsafe` results and the actual `try_insert_entry` helper.
+> The IterMut nested split arity has been independently checked. The public
+> Iterator graph proof and two generic `len` layout obligations remain open. See
 > [the HTTP checkpoint](../CHECKPOINT_2026-10-05.md) and the run manifests.
 
 This harness includes the production `src/header/map.rs`,
@@ -72,6 +72,22 @@ selected slot is occupied, that it matches a lookup key, or that a valid
 `OccupiedEntry` was produced by the map's public lookup/entry path. The
 `http_map_entry_api_leaf` feature is enabled only in the verification harness
 alongside `http_map_api_leaf`; the normal crate configuration is unchanged.
+
+## Insertion helper checkpoint
+
+The actual private `HeaderMap::try_insert_entry` body is recorded in
+[`evidence/run-2026-10-05-try-insert-entry/manifest.json`](evidence/run-2026-10-05-try-insert-entry/manifest.json).
+Its exact Coma task has one own body root and three Vec/error-constructor
+support roots; all four pass, and the no-preprocess Why3 printer emitted those
+same four roots. The postcondition specifies the bounded append/error result
+and frames `mask`, `indices`, `extra_values`, and `danger`.
+
+This helper result does not establish that its callers update the index table
+correctly, nor does it prove lookup, insertion reachability, or the global
+Robin Hood table invariant. The archive uses the named actual-source
+`http_map_api_leaf` + `http_map_entry_api_leaf` profile. The earlier commands
+below reproduce the seven-method run; use the exact commands in the manifest
+for this separate helper snapshot.
 
 ## Reproduce
 

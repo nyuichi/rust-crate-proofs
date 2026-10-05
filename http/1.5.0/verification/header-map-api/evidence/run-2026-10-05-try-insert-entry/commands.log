@@ -1,0 +1,14 @@
+Emission/check command:
+source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_map_api_leaf' && export CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http && cargo clean -p http-header-map-api-proof && cargo creusot --simple-triggers=false -- --features http_map_api_leaf,http_map_entry_api_leaf --locked --offline
+
+Named profile cargo creusot --check passed before this emission.
+
+Proof command (elevated through the repository wrapper):
+source /workspace/proof-tools/activate.sh && export CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http && ../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/try_insert_entry.coma -- --features http_map_api_leaf,http_map_entry_api_leaf --locked --offline
+
+Result: exit 0; Theory verif.http_header_map_api_proof_rlib.header.map.impl_HeaderMap_T.try_insert_entry.Coma: success (4 direct roots). No preprocess split_vc was selected.
+
+Independent solver-free direct-task extraction:
+why3 prove -C /workspace/proof-tools/config/creusot/why3.conf -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot -D why3 -o <outdir> verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/try_insert_entry.coma
+
+Printer result: 4 direct task files, exact names match the four proof JSON roots. No `-a split_vc` analysis transform was used for the acceptance-arities comparison.
