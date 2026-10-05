@@ -18,8 +18,9 @@ pub fn two_retirements<T>(atomic:&NativeAtomic,mut own:Ghost<Perm<ModelAtomic>>,
     let old=atomic.decrement(ghost! {|c:&mut Committer<ModelAtomic,usize,Relaxed,Release>| {
         let publication=primitive::release_rmw(c,&mut own,&mut first_view);
         proof_assert!(c.timestamp() == *latest);
-        *latest=*snapshot!(c.timestamp()+1);
-        proof_assert!(first.view() <= publication);
+        let next:Snapshot<Int> = snapshot!(c.timestamp()+1);
+        *latest=next.into_ghost().into_inner();
+        proof_assert!(first.view() <= *publication);
     }});
     proof_assert!(old == 2usize);
     let second=AtView::new(second);
@@ -27,8 +28,9 @@ pub fn two_retirements<T>(atomic:&NativeAtomic,mut own:Ghost<Perm<ModelAtomic>>,
     let old=atomic.decrement(ghost! {|c:&mut Committer<ModelAtomic,usize,Relaxed,Release>| {
         let publication=primitive::release_rmw(c,&mut own,&mut second_view);
         proof_assert!(c.timestamp() == *latest);
-        *latest=*snapshot!(c.timestamp()+1);
-        proof_assert!(first.view() <= publication && second.view() <= publication);
+        let next:Snapshot<Int> = snapshot!(c.timestamp()+1);
+        *latest=next.into_ghost().into_inner();
+        proof_assert!(first.view() <= *publication && second.view() <= *publication);
     }});
     proof_assert!(old == 1usize);
     #[cfg(not(feature="negative_no_acquire"))]
@@ -39,3 +41,11 @@ pub fn two_retirements<T>(atomic:&NativeAtomic,mut own:Ghost<Perm<ModelAtomic>>,
     ghost! { (first.into_inner().sync(*second_view),second.into_inner().sync(*second_view)) }
 }
 mod concurrent;
+
+// Publication history is objective metadata. It must not be convertible into a
+// current-thread witness, even when that metadata bounds a sealed resource.
+#[cfg(feature="negative_publication_witness")]
+#[check(ghost)]
+fn rejected_publication_witness(publication: Snapshot<SyncView>) -> Ghost<SyncView> {
+    publication.into_ghost()
+}

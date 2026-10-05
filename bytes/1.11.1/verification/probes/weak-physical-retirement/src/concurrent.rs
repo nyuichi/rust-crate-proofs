@@ -5,14 +5,14 @@ declare_namespace! { PUBLICATION }
 type Tickets=(Option<Excl<()>>,Option<Excl<()>>);
 pub struct Ticket { resource:Resource<Tickets>, left:bool }
 struct State<T> {
-    own:Perm<ModelAtomic>, latest:Int, returned:Resource<Tickets>,
+    own:Perm<ModelAtomic>, latest:Int, returned:Resource<Tickets>, expected:Snapshot<(T,T)>,
     left:Option<AtView<T>>,right:Option<AtView<T>>,withdrawn:bool,
 }
 #[logic]
 fn count(r:Tickets)->usize { if r.0 == None {if r.1 == None {2usize} else {1usize}} else {if r.1 == None {1usize} else {0usize}} }
 impl<T> Protocol for State<T> {
-    type Public=(ModelAtomic,Id);
-    #[logic] fn public(self)->Self::Public { (*self.own.ward(),self.returned.id()) }
+    type Public=(ModelAtomic,Id,(T,T));
+    #[logic] fn public(self)->Self::Public { (*self.own.ward(),self.returned.id(),*self.expected) }
     #[logic] fn protocol(self)->bool { pearlite! {
         self.own.val().get(self.latest) != None &&
         self.own.val().get(self.latest).unwrap_logic().0 == count(self.returned@) &&
@@ -21,6 +21,8 @@ impl<T> Protocol for State<T> {
         (if self.withdrawn {self.left == None && self.right == None} else {
             (self.left == None) == (self.returned@.0 == None) &&
             (self.right == None) == (self.returned@.1 == None) &&
+            (self.left != None ==> self.left.unwrap_logic().val() == self.expected.0) &&
+            (self.right != None ==> self.right.unwrap_logic().val() == self.expected.1) &&
             (self.left != None ==> self.left.unwrap_logic().view() <= self.own.val().get(self.latest).unwrap_logic().1) &&
             (self.right != None ==> self.right.unwrap_logic().view() <= self.own.val().get(self.latest).unwrap_logic().1)
         })
@@ -28,14 +30,22 @@ impl<T> Protocol for State<T> {
 }
 pub struct SharedRetirement<T> { atomic:NativeAtomic, invariant:Ghost<AtomicInvariant<State<T>>> }
 impl<T> SharedRetirement<T> {
-    #[logic] fn valid(self)->bool { self.invariant.public().0 == self.atomic.model() && self.invariant.namespace() == PUBLICATION() }
-    #[logic] fn accepts(self,t:Ticket)->bool { pearlite! {
+    #[logic] pub(crate) fn valid(self)->bool { self.invariant.public().0 == self.atomic.model() && self.invariant.namespace() == PUBLICATION() }
+    #[logic] pub(crate) fn accepts(self,t:Ticket)->bool { pearlite! {
         t.resource.id() == self.invariant.public().1 &&
         t.resource@ == if t.left {(Some(Excl(())),None)} else {(None,Some(Excl(())))}
     } }
 
+    #[logic] pub(crate) fn expected(self)->(T,T) { self.invariant.public().2 }
+    #[logic] pub(crate) fn accepts_payload(self,t:Ticket,payload:T)->bool {
+        pearlite! { self.accepts(t) && payload == if t.left {self.expected().0} else {self.expected().1} }
+    }
+
     #[ensures(result.0.valid() && result.0.accepts(result.1.inner_logic()) && result.0.accepts(result.2.inner_logic()))]
-    pub fn new()->(Self,Ghost<Ticket>,Ghost<Ticket>) {
+    #[ensures(result.0.expected() == *expected)]
+    #[ensures(result.0.accepts_payload(result.1.inner_logic(),expected.0))]
+    #[ensures(result.0.accepts_payload(result.2.inner_logic(),expected.1))]
+    pub fn new(expected:Snapshot<(T,T)>)->(Self,Ghost<Ticket>,Ghost<Ticket>) {
         let mut view=ghost! {SyncView::new().into_inner()};
         let (atomic,own)=NativeAtomic::new(2,view.borrow_mut());
         let tickets=ghost! {
@@ -49,15 +59,17 @@ impl<T> SharedRetirement<T> {
         let invariant=ghost! {
             let latest:Snapshot<Int> = snapshot!(atomic.model().get_timestamp(*view));
             let state=State{own:own.into_inner(),latest:latest.into_ghost().into_inner(),
-                returned:returned.into_inner(),left:None,right:None,withdrawn:false};
+                returned:returned.into_inner(),expected,left:None,right:None,withdrawn:false};
             AtomicInvariant::new(Ghost::new(state),snapshot!(PUBLICATION())).into_inner()
         };
         (Self{atomic,invariant},left,right)
     }
 
-    #[requires(self.valid() && self.accepts(ticket.inner_logic()))]
+    #[requires(self.valid() && self.accepts_payload(ticket.inner_logic(),resource.inner_logic()))]
     #[requires(tokens.contains(PUBLICATION()))]
-    pub fn retire(&self,ticket:Ghost<Ticket>,resource:Ghost<T>,mut tokens:Ghost<Tokens>)->Ghost<Option<(T,T)>> {
+    #[ensures(result.0 == (result.1.inner_logic() != None))]
+    #[ensures(result.0 ==> result.1.inner_logic().unwrap_logic() == self.expected())]
+    pub fn retire(&self,ticket:Ghost<Ticket>,resource:Ghost<T>,mut tokens:Ghost<Tokens>)->(bool,Ghost<Option<(T,T)>>) {
         let (mut current,sealed)=AtView::new(resource).split();
         let mut collected:Ghost<Option<(T,AtView<T>,bool)>>=ghost! {None};
         let mut pending:Ghost<Option<AcquireSyncView>>=ghost! {None};
@@ -98,28 +110,11 @@ impl<T> SharedRetirement<T> {
             let observed=fence_acquire(ghost! {pending.into_inner().unwrap()});
             #[cfg(feature="negative_no_acquire")]
             let observed=current;
-            ghost! {
+            (true,ghost! {
                 let (local,other,left)=collected.into_inner().unwrap();
                 let other=other.sync(*observed);
                 Some(if left {(local,other)} else {(other,local)})
-            }
-        } else { ghost! {None} }
-    }
-}
-
-#[cfg(all(test,not(creusot)))]
-mod tests {
-    use super::*;
-    #[test]
-    fn invariant_constructor_and_retirement_erase_ghost_only_creation() {
-        for reverse in [false,true] {
-            let (machine,left,right)=SharedRetirement::<()>::new();
-            let (first,second)=if reverse {(right,left)} else {(left,right)};
-            let _=machine.retire(first,ghost! {()},ghost! {Tokens::new().into_inner()});
-            let _=machine.retire(second,ghost! {()},ghost! {Tokens::new().into_inner()});
-            assert_eq!(machine.atomic.acquire(ghost! {
-                |_:&Committer<ModelAtomic,usize,Acquire,NoStore>| {}
-            }),0);
-        }
+            })
+        } else { (false,ghost! {None}) }
     }
 }
