@@ -1,0 +1,1 @@
+source /workspace/proof-tools/activate.sh && CARGO_NET_OFFLINE=true CARGO_TARGET_DIR=/tmp/http-map-phase-two-check-target RUSTFLAGS='--cfg http_map_api_leaf --cfg http_map_find_api_leaf' cargo creusot --check --simple-triggers=false -- --features http_map_api_leaf,http_map_find_api_leaf --locked --offline

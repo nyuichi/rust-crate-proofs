@@ -1,0 +1,53 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_capacity.rs" 17 0 17 69 *)
+
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 551 20 552 89
+let%span snum'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 555 26 555 87
+let%span smap_capacity = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_capacity.rs" 18 38 18 39
+let%span smap_capacity'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_capacity.rs" 18 26 18 39
+let%span smap_capacity'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_capacity.rs" 18 4 18 40
+let%span smap_capacity'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_capacity.rs" 13 10 16 1
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.ComputerDivision
+use int.Int
+
+type t_Option_usize = None | Some UInt64.t
+
+constant const_MIN: UInt64.t = (0: UInt64.t)
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+let rec checked_add (self_: UInt64.t) (rhs: UInt64.t) (return (x: t_Option_usize)) = any
+  [ return (result: t_Option_usize) ->
+  {[@stop_split] [@expl:checked_add ensures] ([@stop_split] [@expl:checked_add ensures #0] [%#snum] (result = None)
+      = (UInt64.t'int self_ + UInt64.t'int rhs < UInt64.t'int const_MIN
+      \/ UInt64.t'int self_ + UInt64.t'int rhs > UInt64.t'int const_MAX))
+    /\ ([@stop_split] [@expl:checked_add ensures #1] [%#snum'0] forall r: UInt64.t. result = Some r
+      -> UInt64.t'int r = UInt64.t'int self_ + UInt64.t'int rhs)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec checked_raw_capacity
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_capacity.rs" 17 0 17 69]
+  (requested: UInt64.t) (return (x: t_Option_usize)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_7 <- ([%#smap_capacity] (3: UInt64.t)) = ([%#smap_capacity'0] (0: UInt64.t)) ] s1
+    | s1 = {[@expl:division by zero] [%#smap_capacity'0] not _7} s2
+    | s2 = UInt64.div [%#smap_capacity'0] {requested} {[%#smap_capacity] (3: UInt64.t)}
+        (fun (_x: UInt64.t) -> [ &_5 <- _x ] s3)
+    | s3 = checked_add [%#smap_capacity'1] {requested} {_5} (fun (_x: t_Option_usize) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Option_usize = Any.any_l ()
+  | & requested: UInt64.t = requested
+  | & _5: UInt64.t = Any.any_l ()
+  | & _7: bool = Any.any_l () ])
+  [ return (result: t_Option_usize) ->
+  {[@stop_split] [@expl:checked_raw_capacity ensures] [%#smap_capacity'2] match result with
+      | Some raw -> UInt64.t'int raw = UInt64.t'int requested + ComputerDivision.div (UInt64.t'int requested) 3
+      | None -> UInt64.t'int requested + ComputerDivision.div (UInt64.t'int requested) 3 > UInt64.t'int const_MAX
+      end}
+    (! return {result}) ]

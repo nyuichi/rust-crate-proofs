@@ -1,0 +1,36 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 5065 8 5065 51 *)
+
+(* <header::map::as_header_name::TryEntryError as std::convert::From<header::map::MaxSizeReached>> *)
+
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 5065 38 5065 51
+
+use creusot.prelude.Any
+
+type t_InvalidHeaderName
+
+type t_MaxSizeReached = { _priv: () }
+
+type t_TryEntryError = InvalidHeaderName t_InvalidHeaderName | MaxSizeReached t_MaxSizeReached
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+predicate inv_TryEntryError (_1: t_TryEntryError)
+
+axiom inv_axiom [@rewrite]: forall x: t_TryEntryError [inv_TryEntryError x]. inv_TryEntryError x
+    = match x with
+      | InvalidHeaderName f0 -> inv_InvalidHeaderName f0
+      | MaxSizeReached f0 -> true
+      end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_TryEntryError
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 5065 8 5065 51]
+  (e: t_MaxSizeReached) (return (x: t_TryEntryError)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- MaxSizeReached e ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_TryEntryError = Any.any_l () | & e: t_MaxSizeReached = e ])
+  [ return (result: t_TryEntryError) ->
+  {[@stop_split] [@expl:from result type invariant] [%#smap] inv_TryEntryError result}
+    (! return {result}) ]

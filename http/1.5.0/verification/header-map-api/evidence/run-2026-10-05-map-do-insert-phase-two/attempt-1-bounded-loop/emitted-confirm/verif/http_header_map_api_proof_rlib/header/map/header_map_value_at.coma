@@ -1,0 +1,63 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 144 0 144 65 *)
+
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 143 11 143 57
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 145 4 145 35
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 126 4 126 28
+
+use creusot.int.UInt16
+use creusot.slice.Slice64
+use seq.Seq
+use creusot.int.UInt64
+use int.Int
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+type t_Vec_Bucket_T_Global
+
+type t_Vec_ExtraValue_T_Global
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+type t_HeaderMap_T = {
+  mask: UInt16.t;
+  indices: Slice64.slice t_Pos;
+  entries: t_Vec_Bucket_T_Global;
+  extra_values: t_Vec_ExtraValue_T_Global;
+  danger: t_Danger }
+
+type t_T
+
+type t_HeaderName
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None | Some t_Links
+
+type t_Bucket_T = { hash'0: t_HashValue; key'0: t_HeaderName; value'0: t_T; links'0: t_Option_Links }
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) : Seq.seq t_Bucket_T
+
+axiom view_Vec_Bucket_T_Global_spec:
+  forall self: t_Vec_Bucket_T_Global. [%#svec] Seq.length (view_Vec_Bucket_T_Global self) <= UInt64.t'int const_MAX
+
+function header_map_keys_len_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 125 0 125 55] (map: t_HeaderMap_T) : int
+ = [%#smap'1] Seq.length (view_Vec_Bucket_T_Global map.entries)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant map : t_HeaderMap_T
+
+constant index'0 : int
+
+function header_map_value_at_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 144 0 144 65] (map: t_HeaderMap_T) (index'0: int) : t_T
+
+goal vc_header_map_value_at_T: true

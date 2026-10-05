@@ -1,0 +1,1 @@
+source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/tmp/http-map-phase-two-native RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo check --manifest-path /workspace/rust-crate-proofs/http/1.5.0/Cargo.toml --locked --offline

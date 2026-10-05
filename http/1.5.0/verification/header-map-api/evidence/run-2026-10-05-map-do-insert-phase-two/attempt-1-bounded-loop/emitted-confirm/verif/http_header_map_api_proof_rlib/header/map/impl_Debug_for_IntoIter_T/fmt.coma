@@ -1,0 +1,186 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 484 9 484 14 *)
+
+(* <header::map::IntoIter<T> as std::fmt::Debug> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 145 20 145 24
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 143 18 143 76
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 89 20 89 30
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 484 9 484 14
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 487 4 487 23
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 488 4 488 37
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 489 4 489 36
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 484 9 484 14
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_Option_usize = None | Some UInt64.t
+
+type t_IntoIter_Bucket_T_Global
+
+type t_Vec_ExtraValue_T_Global
+
+type t_IntoIter_T = {
+  next: t_Option_usize;
+  entries: t_IntoIter_Bucket_T_Global;
+  extra_values: t_Vec_ExtraValue_T_Global }
+
+type dyn_Debug
+
+function dyn_Debug_of_Option_usize (x: t_Option_usize) : dyn_Debug
+
+function dyn_Debug_of_IntoIter_Bucket_T_Global (x: t_IntoIter_Bucket_T_Global) : dyn_Debug
+
+function dyn_Debug_of_ref_Vec_ExtraValue_T_Global (x: t_Vec_ExtraValue_T_Global) : dyn_Debug
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+type t_Result_unit_Error = Ok () | Err ()
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'1] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+let rec debug_struct_field3_finish (self_: MutBorrow.t t_Formatter) (name: string) (name1: string) (value1: dyn_Debug)
+  (name2: string) (value2: dyn_Debug) (name3: string) (value3: dyn_Debug) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:debug_struct_field3_finish 'self_' type invariant] [%#sfmt] inv_refmut_Formatter self_}
+  any
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:debug_struct_field3_finish ensures] [%#sfmt'0] formatter_extends (deep_model_refmut_Formatter self_) (deep_model_Formatter self_.final)}
+    (! return {result}) ]
+
+predicate resolve_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Formatter
+
+predicate inv_IntoIter_Bucket_T_Global (_1: t_IntoIter_Bucket_T_Global)
+
+type t_T
+
+type t_Link = Entry UInt64.t | Extra UInt64.t
+
+type t_ExtraValue_T = { value'0: t_T; prev'0: t_Link; next'0: t_Link }
+
+predicate inv_T (_1: t_T)
+
+predicate inv_ExtraValue_T (_1: t_ExtraValue_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_ExtraValue_T [inv_ExtraValue_T x]. inv_ExtraValue_T x = inv_T x.value'0
+
+predicate invariant_ref_ExtraValue_T [@inline:trivial] (self: t_ExtraValue_T) = [%#sinvariant'0] inv_ExtraValue_T self
+
+meta "rewrite_def" predicate invariant_ref_ExtraValue_T
+
+predicate inv_ref_ExtraValue_T [@inline:trivial] (_1: t_ExtraValue_T) = invariant_ref_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_ref_ExtraValue_T
+
+predicate invariant_Seq_ExtraValue_T [@inline:trivial] (self: Seq.seq t_ExtraValue_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_ExtraValue_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_ExtraValue_T
+
+predicate inv_Seq_ExtraValue_T [@inline:trivial] (_1: Seq.seq t_ExtraValue_T) = invariant_Seq_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_Seq_ExtraValue_T
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) : Seq.seq t_ExtraValue_T
+
+axiom view_Vec_ExtraValue_T_Global_spec:
+  forall self: t_Vec_ExtraValue_T_Global. [%#svec'0] Seq.length (view_Vec_ExtraValue_T_Global self)
+    <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) =
+  [%#svec] inv_Seq_ExtraValue_T (view_Vec_ExtraValue_T_Global self)
+
+predicate inv_Vec_ExtraValue_T_Global (_1: t_Vec_ExtraValue_T_Global)
+
+axiom inv_axiom'0: forall x: t_Vec_ExtraValue_T_Global [inv_Vec_ExtraValue_T_Global x]. inv_Vec_ExtraValue_T_Global x
+    -> invariant_Vec_ExtraValue_T_Global x
+
+predicate inv_IntoIter_T (_1: t_IntoIter_T)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_IntoIter_T [inv_IntoIter_T x]. inv_IntoIter_T x
+    = (inv_IntoIter_Bucket_T_Global x.entries /\ inv_Vec_ExtraValue_T_Global x.extra_values)
+
+predicate invariant_ref_IntoIter_T [@inline:trivial] (self: t_IntoIter_T) = [%#sinvariant'0] inv_IntoIter_T self
+
+meta "rewrite_def" predicate invariant_ref_IntoIter_T
+
+predicate inv_ref_IntoIter_T [@inline:trivial] (_1: t_IntoIter_T) = invariant_ref_IntoIter_T _1
+
+meta "rewrite_def" predicate inv_ref_IntoIter_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec fmt_IntoIter_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 484 9 484 14]
+  (self: t_IntoIter_T) (f: MutBorrow.t t_Formatter) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:fmt_IntoIter_T requires] ([@stop_split] [@expl:fmt 'self' type invariant] [%#smap'3] inv_ref_IntoIter_T self)
+  /\ ([@stop_split] [@expl:fmt 'f' type invariant] [%#smap] inv_refmut_Formatter f)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_5 <- [%#smap] "IntoIter" ] s1
+    | s1 = [ &_7 <- [%#smap'0] "next" ] s2
+    | s2 = [ &_10 <- self.next ] s3
+    | s3 = [ &_8 <- dyn_Debug_of_Option_usize _10 ] s4
+    | s4 = [ &_12 <- [%#smap'1] "entries" ] s5
+    | s5 = [ &_15 <- self.entries ] s6
+    | s6 = [ &_13 <- dyn_Debug_of_IntoIter_Bucket_T_Global _15 ] s7
+    | s7 = [ &_17 <- [%#smap'2] "extra_values" ] s8
+    | s8 = [ &_20 <- self.extra_values ] s9
+    | s9 = [ &_18 <- dyn_Debug_of_ref_Vec_ExtraValue_T_Global _20 ] s10
+    | s10 = MutBorrow.borrow_final <t_Formatter> {f.current} {MutBorrow.get_id f}
+        (fun (_bor: MutBorrow.t t_Formatter) ->
+          [ &_3 <- _bor ] -{inv_Formatter _bor.final}-
+          [ &f <- { f with current = _bor.final } ] s11)
+      [ _ck -> (! {[@expl:type invariant] inv_Formatter f.current} any) ]
+    | s11 = debug_struct_field3_finish [%#smap] {_3} {_5} {_7} {_8} {_12} {_13} {_17} {_18}
+        (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s12)
+    | s12 = s13 [ _ck -> (! {[@expl:type invariant] inv_refmut_Formatter f} any) ]
+    | s13 = -{resolve_refmut_Formatter f}- s14
+    | s14 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & self: t_IntoIter_T = self
+  | & f: MutBorrow.t t_Formatter = f
+  | & _3: MutBorrow.t t_Formatter = Any.any_l ()
+  | & _5: string = Any.any_l ()
+  | & _7: string = Any.any_l ()
+  | & _8: dyn_Debug = Any.any_l ()
+  | & _10: t_Option_usize = Any.any_l ()
+  | & _12: string = Any.any_l ()
+  | & _13: dyn_Debug = Any.any_l ()
+  | & _15: t_IntoIter_Bucket_T_Global = Any.any_l ()
+  | & _17: string = Any.any_l ()
+  | & _18: dyn_Debug = Any.any_l ()
+  | & _20: t_Vec_ExtraValue_T_Global = Any.any_l () ]) [ return (result: t_Result_unit_Error) -> (! return {result}) ]

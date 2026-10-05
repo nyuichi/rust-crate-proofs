@@ -1,0 +1,23 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 29 4 29 27 *)
+
+(* <header::map::map_index::HashValue as std::clone::Clone> *)
+
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 28 14 28 34
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+
+type t_HashValue = { f0: UInt16.t }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_HashValue
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 29 4 29 27]
+  (self: t_HashValue) (return (x: t_HashValue)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- { f0 = self.f0 } ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_HashValue = Any.any_l () | & self: t_HashValue = self ])
+  [ return (result: t_HashValue) -> {[@stop_split] [@expl:clone ensures] [%#smap_index] UInt16.t'int result.f0
+    = UInt16.t'int self.f0}
+    (! return {result}) ]
