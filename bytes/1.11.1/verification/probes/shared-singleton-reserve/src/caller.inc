@@ -6,8 +6,7 @@ pub(crate) fn reserve_caller(input: Vec<u8>, cut: usize, additional: usize, valu
     let original = snapshot!(right);
     let mut context = right.proof_take_coordinator();
     assert!(!left.proof_carrier_release(context.borrow_mut()));
-    let total_capacity = right.cap + offset;
-    if total_capacity > (isize::MAX as usize) / 2 || additional > (isize::MAX as usize) - offset - right.len {
+    if additional > (isize::MAX as usize) - offset - right.len {
         assert!(right.proof_carrier_release(context.borrow_mut()));
         return 0;
     }

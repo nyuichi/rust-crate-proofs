@@ -14,8 +14,21 @@ counter stays one throughout. This is ghost inventory reshaping, with no native
 increment, decrement, or Release publication.
 
 Six native allocator scenarios pass, checking copy, realloc, initial allocation,
-no-copy spare capacity, and empty cases. The complete proof gate is being checked.
+no-copy spare capacity, and empty cases. The archived complete gate has 100 proof files with no unproved leaves.
 No new trusted helper is introduced here. The growth branch uses the separately
 recorded physical B5 boundary; the ownership transitions and copy are body-proved.
 This gate is sequential and explicit-release; automatic Drop/concurrency and
 public reserve integration are separate gates.
+
+The archive audit was performed on 2026-10-05 against
+`verification/cloud-handoff/session-evidence.tar.gz`; the checked manifest pins
+all archived files. Counts concern `live-verif/shared-singleton-reserve/` and are historical
+checkpoint evidence, not a fresh replay or whole-crate integrated proof. Current
+source must still be replayed after shared contract changes. No negative-control
+proof result for this gate was present in that archived directory.
+
+Fresh resumption: the bounded doubling branch now falls back to the requested
+capacity when doubling would exceed `isize::MAX`; the old `2 * capacity <= MAX`
+precondition and caller bailout are removed. The modified complete gate passed
+100 files with zero unproved leaves (`evidence/cloud-resume/manifest.json`), and the native
+allocation matrix passed again. Public Shared reserve is a separate gate.

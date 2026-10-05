@@ -10,7 +10,6 @@ use super::sequential_shared_control::{ControlContext, ControlPtr, HandleRegistr
 #[requires(view@ == Some((lease.inner_logic().caps.0.namespace(), lease.inner_logic().caps.0.capacity(), offset@)))]
 #[requires(offset@ + len@ <= lease.inner_logic().caps.0.capacity())]
 #[requires(offset@ + len@ + additional@ <= isize::MAX@)]
-#[requires(2 * lease.inner_logic().caps.0.capacity() <= isize::MAX@)]
 #[requires(forall<i: Int> 0 <= i && i < len@ ==>
     raw_vec::slot_known(lease.inner_logic().caps.1.slot(offset@ + i)))]
 #[ensures(result.2.inner_logic().valid(control))]
@@ -46,7 +45,12 @@ pub(crate) fn reserve_lease(
             (new_base, new_base, old_capacity, old_capacity,
                 ghost! { (recovery.into_inner(), region.into_inner()) })
         } else {
-            let capacity = cmp::max(cmp::max(old_capacity * 2, required_with_offset), 8);
+            // Match unique growth's bounded policy: doubling is an optimization,
+            // while the requested allocation may still fit above half MAX.
+            let double = if old_capacity > isize::MAX as usize / 2 {
+                required_with_offset
+            } else { old_capacity * 2 };
+            let capacity = cmp::max(cmp::max(double, required_with_offset), 8);
             let (new_base, caps) = unsafe { raw_vec::reallocate_bound(base, old_capacity, capacity, caps) };
             (new_base, new_base.advance_within(offset), capacity, capacity - offset, caps)
         };
