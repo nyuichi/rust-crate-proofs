@@ -1,0 +1,38 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/status.rs" 14 33 14 38 *)
+
+(* <Status<T> as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/scratch/httparse-string-model/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sstatus = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/status.rs" 14 33 14 38
+let%span sstatus'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/status.rs" 14 33 14 38
+let%span sclone = "/workspace/scratch/httparse-string-model/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+
+type t_T
+
+type t_Status_T = Complete t_T | Partial
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Status_T (_1: t_Status_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Status_T [inv_Status_T x]. inv_Status_T x
+    = match x with
+      | Complete f0 -> inv_T f0
+      | Partial -> true
+      end
+
+predicate invariant_ref_Status_T [@inline:trivial] (self: t_Status_T) = [%#sinvariant] inv_Status_T self
+
+meta "rewrite_def" predicate invariant_ref_Status_T
+
+predicate inv_ref_Status_T [@inline:trivial] (_1: t_Status_T) = invariant_ref_Status_T _1
+
+meta "rewrite_def" predicate inv_ref_Status_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Status_T. ([%#sclone] inv_ref_Status_T self_)
+    -> ([%#sstatus] inv_ref_Status_T self_)
+    /\ (forall result: t_Status_T. ([%#sstatus'0] inv_Status_T result) -> inv_Status_T result)
