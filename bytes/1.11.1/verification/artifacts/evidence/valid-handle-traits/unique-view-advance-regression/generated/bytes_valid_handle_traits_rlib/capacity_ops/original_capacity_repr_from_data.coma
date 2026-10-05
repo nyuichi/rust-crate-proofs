@@ -1,0 +1,40 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 125 0 125 68 *)
+
+let%span scapacity_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 126 12 126 34
+let%span scapacity_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 126 39 126 63
+let%span scapacity_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 126 4 126 63
+let%span scapacity_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 123 28 123 97
+let%span scapacity_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 124 28 124 98
+let%span scapacity_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 125 0 125 68
+
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+use int.Int
+
+constant const_ORIGINAL_CAPACITY_MASK: UInt64BW.t = [%#scapacity_ops'4] (28: UInt64BW.t)
+
+constant const_ORIGINAL_CAPACITY_OFFSET: UInt64BW.t = [%#scapacity_ops'4] (2: UInt64BW.t)
+
+constant const_MAX_ORIGINAL_CAPACITY_WIDTH: UInt64BW.t = [%#scapacity_ops'4] (17: UInt64BW.t)
+
+constant const_MIN_ORIGINAL_CAPACITY_WIDTH: UInt64BW.t = [%#scapacity_ops'4] (10: UInt64BW.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let original_capacity_repr_from_data [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 125 0 125 68]
+  (data: UInt64BW.t) (return (x: UInt64BW.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_5 <- UInt64BW.bw_and data ([%#scapacity_ops] const_ORIGINAL_CAPACITY_MASK) ] s1
+    | s1 = UInt64BW.shr [%#scapacity_ops'1] {_5}
+        {UInt64BW.to_BV256 ([%#scapacity_ops'0] const_ORIGINAL_CAPACITY_OFFSET)}
+        (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt64BW.t = Any.any_l () | & data: UInt64BW.t = data | & _5: UInt64BW.t = Any.any_l () ])
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:original_capacity_repr_from_data ensures] ([@stop_split] [@expl:original_capacity_repr_from_data ensures #0] [%#scapacity_ops'2] result
+      = UInt64BW.shr (UInt64BW.bw_and data const_ORIGINAL_CAPACITY_MASK) const_ORIGINAL_CAPACITY_OFFSET)
+    /\ ([@stop_split] [@expl:original_capacity_repr_from_data ensures #1] [%#scapacity_ops'3] UInt64BW.t'int result
+    <= UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH)}
+    (! return {result}) ]

@@ -223,3 +223,30 @@ is unchanged, and explicitly releases in either order. Native fixtures pass
 already-valid requests. The allocator-event test checks zero operation-time
 allocations/reallocations for unique storage, and only the expected Shared
 control allocation for split storage.
+
+Unique view advancement follows the actual `advance_unchecked` Vec branch while
+the packed offset fits `MAX_VEC_POS`. The handle retains the original Recovery
+and full physical region; its current pointer offset plus remaining capacity
+still equals the original allocation capacity. The method preserves every owned
+slot and the low packed metadata bits, while visible slots become the old suffix.
+`unique_advance` exercises two bounded advances, access and spare publication,
+then explicit unique cleanup. That cleanup uses body-proved sealed pointer
+retreat to recover the original base and passes the original full capacity to B3.
+It does not free an interior pointer or discard the retired prefix. Native
+allocator checks verify no Shared control allocation is needed. Offset-overflow
+promotion, automatic Drop, and the full Buf trait implementation remain outside
+this gate.
+
+`negative_advanced_uninitialized_growth` checks that advancing an empty spare
+allocation retains Unknown slots: actual `set_len(1)` still must reject the new
+visible Unknown byte despite ownership of the entire original allocation.
+
+The ARC branch of internal advancement also requires a valid affine registration
+whose allocation namespace/capacity and control pointer match the descriptor.
+This allocation guard permits the temporary geometry between registration and
+pointer adjustment during a split, but excludes registration-free metadata. It
+is needed for correspondence with the normal native `ptr.add` operation, whose
+allocation must remain live; numeric wrapping arithmetic alone is insufficient.
+`negative_unregistered_arc_advance` recovers/frees a unique allocation, retains
+only copied bound metadata, and checks that manufacturing an ARC tag cannot
+satisfy this guard.

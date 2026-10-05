@@ -10,6 +10,18 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-05)
 
+The 109-file unique-view advancement gate adds no trust. It preserves full
+Recovery/Region ownership while actual packed metadata and pointer offset change,
+and explicitly recovers the sealed base before B3. The strengthened BoundPtr
+lower-address invariant and retreat body derive from existing NonNull and
+numeric wrapping specifications. Native21 and the 110-file one-leaf advanced
+Unknown-publication negative pass their intended checks. The ARC branch also
+requires a matching affine registration for native pointer-add liveness;
+metadata copied before B3 recovery is rejected afterward (110-file negative,
+one intended ownership guard). Automatic Drop effects,
+offset-overflow promotion, public Buf integration, and advanced traits are excluded.
+
+
 The 103-file in-capacity reserve/resize/extend_from_slice gate adds no TCB.
 It calls the body-proved ordinary MaybeUninit fill/copy helpers and publishes
 only Known slots through actual set_len. spare_capacity_mut exports its existing

@@ -2,6 +2,26 @@
 
 ## Current working-tree status (2026-10-05)
 
+The actual private advance_unchecked Vec branch is now body proved under the
+packed-offset bound, in the 109-file lifecycle gate with zero unproved leaves
+and twenty-one native tests. Two advances preserve owned slots and low metadata
+bits, shift the visible suffix, support mutation/spare initialization, and retain
+the complete original allocation. Explicit unique cleanup derives the original
+base with retreat and consumes original full-capacity resources through B3.
+The ARC branch additionally requires a matching affine registration, not just
+range metadata; this supports its native live-allocation pointer arithmetic.
+No Shared control allocation is needed. Promotion when the offset exceeds
+MAX_VEC_POS, public Buf trait integration, automatic Drop, and advanced safe
+trait dispatch remain excluded. The advanced Unknown-publication negative
+rejects exactly one Known-prefix guard among 110 files (14/15), after establishing
+full unique ownership and the new visible Unknown byte. Evidence:
+sequential-bytesmut-split/unique-view-advance, with registered-positive as the
+final stronger gate. A second 110-file negative rejects exactly the allocation
+registration/ownership guard (10/11) when a metadata-only ARC descriptor copied
+before B3 recovery is reused afterward. Descriptor geometry does not grant
+allocation liveness.
+
+
 The derived pointer-base recovery primitive gate proves 32 files with zero
 unproved leaves and one native roundtrip fixture. BoundPtr's lower-address
 invariant follows from the existing NonNull base; advance and retreat preserve

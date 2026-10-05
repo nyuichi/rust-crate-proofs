@@ -1,0 +1,48 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 34 0 34 52 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_RETIREMENT int | Other namespace_other
+
+let%span svec = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/vec.rs" 18 14 18 41
+let%span sactual_split = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-sequential-bytesmut-split-5a33929c98f26243/out/actual_split.rs" 1134 33 1134 52
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 35 61 35 65
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 35 4 35 66
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 33 11 33 33
+
+use creusot.int.UInt64
+use seq.Seq
+use creusot.int.UInt8
+use creusot.prelude.Any
+use int.Int
+
+type t_Vec_u8_Global
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_u8_Global (self: t_Vec_u8_Global) : Seq.seq UInt8.t
+
+axiom view_Vec_u8_Global_spec:
+  forall self: t_Vec_u8_Global [view_Vec_u8_Global self]. [%#svec] Seq.length (view_Vec_u8_Global self)
+    <= UInt64.t'int const_MAX
+
+let proof_split_then_release (input: t_Vec_u8_Global) (at': UInt64.t) (right_first: bool) (return (x: ())) =
+{[@stop_split] [@expl:proof_split_then_release requires] [%#sactual_split] UInt64.t'int at'
+  <= Seq.length (view_Vec_u8_Global input)}
+  any [ return (result: ()) -> (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let right_then_left [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 34 0 34 52]
+  (input: t_Vec_u8_Global) (split: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:right_then_left requires] [%#slib'1] UInt64.t'int split <= Seq.length (view_Vec_u8_Global input)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = proof_split_then_release [%#slib'0] {input} {split} {[%#slib] true} (fun (_x: ()) -> [ &_6 <- _x ] s1)
+    | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & input: t_Vec_u8_Global = input
+  | & split: UInt64.t = split
+  | & _6: () = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]
