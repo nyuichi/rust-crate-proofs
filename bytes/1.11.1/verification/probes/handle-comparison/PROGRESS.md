@@ -21,6 +21,8 @@ generated Creusot proof models remain confined to this probe.
   trait-refinement proof. The production crate regression at
   `../../tests/test_comparison.rs` also passes in
   `logs/native-vec-order-fixed.log`.
+- The production library also passes `cargo check --no-default-features --lib`
+  in `logs/no-std-library-check.log` after the comparison fix.
 - The suspected defect was confirmed by the baseline
   `logs/native-vec-order-counterexample.log`: `[0] < BytesMut([1])` returned
   `Greater`. The production `Vec<u8>` implementation now compares the left
@@ -67,13 +69,13 @@ laws or iterator specification laws are trusted.
 ## Running follow-ups
 
 The strengthened `next` postcondition states both exact suffix advancement
-and singleton-prefix concatenation. `logs/semantic-next-contract.log` reports
-**22 proof files passed**, but its source/result pair has no matching checked-in
-digest manifest; the older positive logs still show the prior refinement
-failure. A fresh replay compiled and translated the current source, then
-stopped before proving because the installed `why3find` rejects the wrapper's
-`--summary` argument. Rerun with the pinned compatible `why3find` before
-treating the 22-file result as verified against this checkpoint.
+and singleton-prefix concatenation. The pinned current-source replay passed
+**22 proof files**; `iterator/evidence/semantic-next-positive/manifest.json`
+hashes the exact generated source, Why3 tasks, proof JSON, and external bytes
+source fragments. The earlier failed decomposition attempts remain preserved
+under `iterator/evidence/`. A first replay in the reconstructed environment
+stopped before proving because that environment had an incompatible
+`why3find`; the pinned toolchain was then repaired and the final replay passed.
 
 `logs/readonly-str-traits.log` records a completed **100-file** proof run for
 the readonly comparison and string adapter configuration. The independent
