@@ -159,3 +159,13 @@ pub fn reject_partial_growth(input: Vec<u8>) {
 pub fn actual_all_unique_reserve(input: Vec<u8>, offset: usize, additional: usize, value: u8) {
     actual::BytesMut::proof_all_unique_reserve(input, offset, additional, value);
 }
+
+#[cfg(creusot)]
+pub fn actual_unique_resize_growth(input: Vec<u8>, value: u8) {
+    actual::BytesMut::proof_unique_resize_growth(input, value);
+}
+
+#[cfg(creusot)]
+pub fn actual_unique_extend_growth(input: Vec<u8>, value: u8) {
+    actual::BytesMut::proof_unique_extend_growth(input, value);
+}

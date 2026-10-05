@@ -756,12 +756,21 @@ impl BytesMut {
     // BEGIN EXACT RESIZE
     #[cfg_attr(creusot, requires(self.proof_initialized()))]
     #[cfg_attr(creusot, ensures((^self).proof_initialized()))]
-    #[cfg_attr(creusot, ensures(self.proof_same_storage(^self)))]
-    #[cfg_attr(creusot, requires(new_len <= self.cap))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(self.proof_unique_owned() ==> (^self).proof_unique_owned()))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(self.proof_same_storage(^self)))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(new_len@ <= self.cap@ ==> self.proof_same_storage(^self)))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), requires(new_len <= self.cap))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), requires(new_len@ <= self.cap@ ||
+        (self.proof_unique_owned() && new_len@ <= isize::MAX@ - self.ptr@.unwrap_logic().2)))]
     #[cfg_attr(creusot, ensures((^self).len == new_len))]
     #[cfg_attr(creusot, ensures(forall<index: Int> self.len@ <= index && index < new_len@ ==>
         (^self).proof_view_slot(index) == Some(Some(value))))]
-    #[cfg_attr(creusot, ensures(forall<index: Int> !(self.len@ <= index && index < new_len@) ==>
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(forall<index: Int> !(self.len@ <= index && index < new_len@) ==>
+        (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(new_len@ <= self.cap@ ==>
+        forall<index: Int> !(self.len@ <= index && index < new_len@) ==>
+            (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(forall<index: Int> 0 <= index && index < self.len@ && index < new_len@ ==>
         (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
     #[cfg_attr(all(creusot, bytes_proof_repeated_split), ensures(self.shared_registration.inner_logic() != None ==>
         (^self).shared_registration.inner_logic().unwrap_logic().packet.0 == self.shared_registration.inner_logic().unwrap_logic().packet.0 &&
@@ -1282,12 +1291,21 @@ impl BytesMut {
     // BEGIN EXACT EXTEND_FROM_SLICE
     #[cfg_attr(creusot, requires(self.proof_initialized()))]
     #[cfg_attr(creusot, ensures((^self).proof_initialized()))]
-    #[cfg_attr(creusot, ensures(self.proof_same_storage(^self)))]
-    #[cfg_attr(creusot, requires(extend@.len() <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(self.proof_unique_owned() ==> (^self).proof_unique_owned()))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(self.proof_same_storage(^self)))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(extend@.len() <= self.cap@ - self.len@ ==> self.proof_same_storage(^self)))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), requires(extend@.len() <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), requires(extend@.len() <= self.cap@ - self.len@ ||
+        (self.proof_unique_owned() && extend@.len() <= isize::MAX@ - self.ptr@.unwrap_logic().2 - self.len@)))]
     #[cfg_attr(creusot, ensures((^self).len@ == self.len@ + extend@.len()))]
     #[cfg_attr(creusot, ensures(forall<index: Int> 0 <= index && index < extend@.len() ==>
         (^self).proof_view_slot(self.len@ + index) == Some(Some(extend@[index]))))]
-    #[cfg_attr(creusot, ensures(forall<index: Int> !(self.len@ <= index && index < self.len@ + extend@.len()) ==>
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(forall<index: Int> !(self.len@ <= index && index < self.len@ + extend@.len()) ==>
+        (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(extend@.len() <= self.cap@ - self.len@ ==>
+        forall<index: Int> !(self.len@ <= index && index < self.len@ + extend@.len()) ==>
+            (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
         (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
     #[cfg_attr(all(creusot, bytes_proof_repeated_split), ensures(self.shared_registration.inner_logic() != None ==>
         (^self).shared_registration.inner_logic().unwrap_logic().packet.0 == self.shared_registration.inner_logic().unwrap_logic().packet.0 &&
@@ -2656,6 +2674,41 @@ impl BytesMut {
         if owner.len > 0 {
             owner.as_slice_mut()[0] = value;
             assert!(owner.as_slice()[0] == value);
+        }
+        owner.proof_release_unique();
+    }
+    #[cfg(all(creusot, bytes_proof_unique_reserve))]
+    pub(crate) fn proof_unique_resize_growth(input: Vec<u8>, value: u8) {
+        let mut owner = Self::from_vec(input);
+        let old = snapshot!(owner);
+        let old_len = owner.len;
+        if owner.cap < isize::MAX as usize {
+            let new_len = owner.cap + 1;
+            owner.resize(new_len, value);
+            proof_assert!(owner.proof_unique_owned() && owner.proof_initialized());
+            proof_assert!(owner.len == new_len);
+            proof_assert!(forall<index: Int> 0 <= index && index < old.len@ ==>
+                owner.proof_view_slot(index) == old.proof_view_slot(index));
+            proof_assert!(forall<index: Int> old_len@ <= index && index < new_len@ ==>
+                owner.proof_view_slot(index) == Some(Some(value)));
+        }
+        owner.proof_release_unique();
+    }
+    #[cfg(all(creusot, bytes_proof_unique_reserve))]
+    pub(crate) fn proof_unique_extend_growth(input: Vec<u8>, value: u8) {
+        let mut owner = Self::from_vec(input);
+        let old_capacity = owner.cap;
+        owner.resize(old_capacity, value);
+        proof_assert!(owner.len == old_capacity && owner.proof_unique_owned());
+        let old = snapshot!(owner);
+        if old_capacity < isize::MAX as usize {
+            let extension = [value];
+            owner.extend_from_slice(&extension);
+            proof_assert!(owner.proof_unique_owned() && owner.proof_initialized());
+            proof_assert!(owner.len@ == old_capacity@ + 1);
+            proof_assert!(forall<index: Int> 0 <= index && index < old.len@ ==>
+                owner.proof_view_slot(index) == old.proof_view_slot(index));
+            proof_assert!(owner.proof_view_slot(old_capacity@) == Some(Some(value)));
         }
         owner.proof_release_unique();
     }
