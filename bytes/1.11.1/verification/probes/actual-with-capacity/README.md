@@ -20,3 +20,8 @@ Run the native exact-source constructor check with:
 ```sh
 cargo test --locked --offline --manifest-path verification/probes/actual-with-capacity/Cargo.toml
 ```
+
+Fresh Cloud replay on the current source passes101 files, zero unproved.
+`evidence/cloud-replay` preserves exact source, generated extraction, Coma/proof
+JSON and the complete log. The existing Vec allocation+B1 bridge remains
+physical TCB; requested capacity is not inferred from the ordinary Seq model.
