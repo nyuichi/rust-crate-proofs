@@ -1,5 +1,23 @@
 # httparse verification thread handoff — 2026-10-05
 
+## Codex Cloud: start here in a new task
+
+The next thread may have a fresh container. Do not assume that this thread's
+`/workspace`, `/tmp`, tools, caches, environment variables, agent threads, or
+uncommitted files survive. GitHub is the durable handoff location:
+`https://github.com/nyuichi/rust-crate-proofs`, branch `main`.
+
+Read `httparse/1.10.1/cloud-handoff/README.md` first. Its committed archive
+preserves 1,593 work-in-progress source/evidence files from this task, with
+per-file and archive SHA-256 checksums. Restore to a separate worktree at the
+recorded source base; do not overlay an advancing main branch blindly. These
+are preservation artifacts, not newly reviewed or accepted proofs.
+
+Absolute paths below describe the old container and historical provenance.
+Discover the new checkout path and rebuild the pinned proof environment.
+Do not rely on the old local-file link or on ongoing agents. All old agents
+were stopped/completed. Resume orchestration with newly created agents.
+
 ## User instructions and resume procedure
 
 Continue complete formal verification of httparse 1.10.1, not merely tests.
