@@ -1,0 +1,304 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 682 4 682 55 *)
+
+(* <method::Inner as std::hash::Hash> *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 695 37 695 44
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 694 34 694 41
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 693 21 693 27
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 692 21 692 27
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 691 23 691 29
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 690 21 690 27
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 689 20 689 26
+let%span smethod'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 688 22 688 28
+let%span smethod'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 687 19 687 25
+let%span smethod'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 686 20 686 26
+let%span smethod'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 685 19 685 25
+let%span smethod'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 684 23 684 29
+let%span smethod'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 697 8 697 51
+let%span smethod'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 701 41 701 76
+let%span smethod'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 700 38 700 73
+let%span smethod'14 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 682 35 682 39
+let%span smethod'15 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 682 41 682 46
+let%span smethod'16 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1188 17 1188 21
+let%span smethod'17 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1188 17 1188 21
+let%span smethod'18 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1162 24 1162 28
+let%span smethod'19 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1162 24 1162 28
+let%span smethod'20 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1206 24 1206 55
+let%span smethod'21 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1197 16 1198 78
+let%span smethod'22 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'23 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1232 8 1232 28
+let%span smethod'24 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 24 8 24 22
+let%span sarray = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 115 34 115 39
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 114 18 114 29
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.Int64
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_InlineExtension = { f0: Slice64.array UInt8.t; f1: UInt8.t }
+
+type t_AllocatedExtension = { f0'0: Slice64.slice UInt8.t }
+
+type t_Inner =
+  | Options
+  | Get
+  | Post
+  | Put
+  | Delete
+  | Head
+  | Trace
+  | Connect
+  | Patch
+  | Query
+  | ExtensionInline t_InlineExtension
+  | ExtensionAllocated t_AllocatedExtension
+
+type t_H
+
+predicate inv_H (_1: t_H)
+
+predicate invariant_refmut_H [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+let rec hash_isize (self_: Int64.t) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash 'state' type invariant] [%#shash] inv_refmut_H state}
+  any [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] [%#shash'0] inv_H state.final} (! return {result}) ]
+
+predicate resolve_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_H
+
+let rec elim_ExtensionAllocated (_x: t_Inner) (return (f0'1: t_AllocatedExtension)) = any
+  [ _k (f0'1: t_AllocatedExtension) -> {ExtensionAllocated f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim ExtensionAllocated] match _x with
+      | ExtensionAllocated _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'24] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'22] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+function view_Box_slice_u8_Global [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq UInt8.t =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_u8_Global
+
+predicate invariant_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1205 8 1205 34] (self: t_AllocatedExtension) =
+  [%#smethod'20] all_method_chars_valid (view_Box_slice_u8_Global self.f0'0)
+
+predicate inv_AllocatedExtension (_1: t_AllocatedExtension)
+
+axiom inv_axiom [@rewrite]: forall x: t_AllocatedExtension [inv_AllocatedExtension x]. inv_AllocatedExtension x
+    = invariant_AllocatedExtension x
+
+predicate invariant_ref_AllocatedExtension [@inline:trivial] (self: t_AllocatedExtension) =
+  [%#sinvariant'0] inv_AllocatedExtension self
+
+meta "rewrite_def" predicate invariant_ref_AllocatedExtension
+
+predicate inv_ref_AllocatedExtension [@inline:trivial] (_1: t_AllocatedExtension) = invariant_ref_AllocatedExtension _1
+
+meta "rewrite_def" predicate inv_ref_AllocatedExtension
+
+let rec hash_AllocatedExtension (self: t_AllocatedExtension) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_AllocatedExtension requires] ([@stop_split] [@expl:hash 'self' type invariant] [%#smethod'16] inv_ref_AllocatedExtension self)
+  /\ ([@stop_split] [@expl:hash 'state' type invariant] [%#smethod'17] inv_refmut_H state)}
+  any [ return (result: ()) -> (! return {result}) ]
+
+let rec elim_ExtensionInline (_x: t_Inner) (return (f0'1: t_InlineExtension)) = any
+  [ _k (f0'1: t_InlineExtension) -> {ExtensionInline f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim ExtensionInline] match _x with
+      | ExtensionInline _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+constant const_MAX: UInt64.t = [%#smethod'23] (15: UInt64.t)
+
+predicate invariant_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1195 8 1195 34] (self: t_InlineExtension) =
+  [%#smethod'21] UInt8.t'int self.f1 <= UInt64.t'int const_MAX
+  /\ all_method_chars_valid (Seq.([..]) (Slice64.view self.f0) 0 (UInt8.t'int self.f1))
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_15 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (15: UInt64.t)
+
+predicate inv_array_u8_15 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_15 _1
+
+meta "rewrite_def" predicate inv_array_u8_15
+
+predicate inv_InlineExtension (_1: t_InlineExtension)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_InlineExtension [inv_InlineExtension x]. inv_InlineExtension x
+    = (invariant_InlineExtension x /\ inv_array_u8_15 x.f0)
+
+predicate invariant_ref_InlineExtension [@inline:trivial] (self: t_InlineExtension) =
+  [%#sinvariant'0] inv_InlineExtension self
+
+meta "rewrite_def" predicate invariant_ref_InlineExtension
+
+predicate inv_ref_InlineExtension [@inline:trivial] (_1: t_InlineExtension) = invariant_ref_InlineExtension _1
+
+meta "rewrite_def" predicate inv_ref_InlineExtension
+
+let rec hash_InlineExtension (self: t_InlineExtension) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_InlineExtension requires] ([@stop_split] [@expl:hash 'self' type invariant] [%#smethod'18] inv_ref_InlineExtension self)
+  /\ ([@stop_split] [@expl:hash 'state' type invariant] [%#smethod'19] inv_refmut_H state)}
+  any [ return (result: ()) -> (! return {result}) ]
+
+predicate inv_Inner (_1: t_Inner)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Inner [inv_Inner x]. inv_Inner x
+    = match x with
+      | Options -> true
+      | Get -> true
+      | Post -> true
+      | Put -> true
+      | Delete -> true
+      | Head -> true
+      | Trace -> true
+      | Connect -> true
+      | Patch -> true
+      | Query -> true
+      | ExtensionInline f0'1 -> inv_InlineExtension f0'1
+      | ExtensionAllocated f0'1 -> inv_AllocatedExtension f0'1
+      end
+
+predicate invariant_ref_Inner [@inline:trivial] (self: t_Inner) = [%#sinvariant'0] inv_Inner self
+
+meta "rewrite_def" predicate invariant_ref_Inner
+
+predicate inv_ref_Inner [@inline:trivial] (_1: t_Inner) = invariant_ref_Inner _1
+
+meta "rewrite_def" predicate inv_ref_Inner
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec hash_Inner
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 682 4 682 55]
+  (self: t_Inner) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_Inner requires] ([@stop_split] [@expl:hash 'self' type invariant] [%#smethod'14] inv_ref_Inner self)
+  /\ ([@stop_split] [@expl:hash 'state' type invariant] [%#smethod'15] inv_refmut_H state)}
+  (! bb0
+  [ bb0 = any
+    [ br0 -> {self = Options} (! bb24)
+    | br1 -> {self = Get} (! bb23)
+    | br2 -> {self = Post} (! bb22)
+    | br3 -> {self = Put} (! bb21)
+    | br4 -> {self = Delete} (! bb20)
+    | br5 -> {self = Head} (! bb19)
+    | br6 -> {self = Trace} (! bb18)
+    | br7 -> {self = Connect} (! bb17)
+    | br8 -> {self = Patch} (! bb16)
+    | br9 -> {self = Query} (! bb15)
+    | br10 (x0: t_InlineExtension) -> {self = ExtensionInline x0} (! bb14)
+    | br11 (x0: t_AllocatedExtension) -> {self = ExtensionAllocated x0} (! bb13) ]
+  | bb13 = s0 [ s0 = [ &discriminant <- [%#smethod] (11: Int64.t) ] s1 | s1 = bb25 ]
+  | bb14 = s0 [ s0 = [ &discriminant <- [%#smethod'0] (10: Int64.t) ] s1 | s1 = bb25 ]
+  | bb15 = s0 [ s0 = [ &discriminant <- [%#smethod'1] (9: Int64.t) ] s1 | s1 = bb25 ]
+  | bb16 = s0 [ s0 = [ &discriminant <- [%#smethod'2] (8: Int64.t) ] s1 | s1 = bb25 ]
+  | bb17 = s0 [ s0 = [ &discriminant <- [%#smethod'3] (7: Int64.t) ] s1 | s1 = bb25 ]
+  | bb18 = s0 [ s0 = [ &discriminant <- [%#smethod'4] (6: Int64.t) ] s1 | s1 = bb25 ]
+  | bb19 = s0 [ s0 = [ &discriminant <- [%#smethod'5] (5: Int64.t) ] s1 | s1 = bb25 ]
+  | bb20 = s0 [ s0 = [ &discriminant <- [%#smethod'6] (4: Int64.t) ] s1 | s1 = bb25 ]
+  | bb21 = s0 [ s0 = [ &discriminant <- [%#smethod'7] (3: Int64.t) ] s1 | s1 = bb25 ]
+  | bb22 = s0 [ s0 = [ &discriminant <- [%#smethod'8] (2: Int64.t) ] s1 | s1 = bb25 ]
+  | bb23 = s0 [ s0 = [ &discriminant <- [%#smethod'9] (1: Int64.t) ] s1 | s1 = bb25 ]
+  | bb24 = s0 [ s0 = [ &discriminant <- [%#smethod'10] (0: Int64.t) ] s1 | s1 = bb25 ]
+  | bb25 = s0
+    [ s0 = [ &_7 <- discriminant ] s1
+    | s1 = MutBorrow.borrow_mut <t_H> {state.current}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_8 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s2 = hash_isize [%#smethod'11] {_7} {_8} (fun (_x: ()) -> [ &_5 <- _x ] s3)
+    | s3 = any
+      [ br0 -> {self = Options} (! bb27)
+      | br1 -> {self = Get} (! bb27)
+      | br2 -> {self = Post} (! bb27)
+      | br3 -> {self = Put} (! bb27)
+      | br4 -> {self = Delete} (! bb27)
+      | br5 -> {self = Head} (! bb27)
+      | br6 -> {self = Trace} (! bb27)
+      | br7 -> {self = Connect} (! bb27)
+      | br8 -> {self = Patch} (! bb27)
+      | br9 -> {self = Query} (! bb27)
+      | br10 (x0: t_InlineExtension) -> {self = ExtensionInline x0} (! bb31)
+      | br11 (x0: t_AllocatedExtension) -> {self = ExtensionAllocated x0} (! bb30) ] ]
+  | bb27 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s1 = -{resolve_refmut_H state}- s2
+    | s2 = return {_ret} ]
+  | bb30 = s0
+    [ s0 = elim_ExtensionAllocated {self} (fun (r0: t_AllocatedExtension) -> [ &value'0 <- r0 ] s1)
+    | s1 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_15 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s2 = hash_AllocatedExtension [%#smethod'12] {value'0} {_15} (fun (_x: ()) -> [ &_ret <- _x ] s3)
+    | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s4 = -{resolve_refmut_H state}- s5
+    | s5 = return {_ret} ]
+  | bb31 = s0
+    [ s0 = elim_ExtensionInline {self} (fun (r0: t_InlineExtension) -> [ &value <- r0 ] s1)
+    | s1 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_12 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s2 = hash_InlineExtension [%#smethod'13] {value} {_12} (fun (_x: ()) -> [ &_ret <- _x ] s3)
+    | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s4 = -{resolve_refmut_H state}- s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: t_Inner = self
+  | & state: MutBorrow.t t_H = state
+  | & discriminant: Int64.t = Any.any_l ()
+  | & _5: () = Any.any_l ()
+  | & _7: Int64.t = Any.any_l ()
+  | & _8: MutBorrow.t t_H = Any.any_l ()
+  | & value: t_InlineExtension = Any.any_l ()
+  | & _12: MutBorrow.t t_H = Any.any_l ()
+  | & value'0: t_AllocatedExtension = Any.any_l ()
+  | & _15: MutBorrow.t t_H = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

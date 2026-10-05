@@ -56,10 +56,16 @@ use std::any::Any;
 use std::convert::TryInto;
 use std::fmt;
 
+#[allow(unused_imports)]
+use creusot_std::prelude::{ensures, logic, pearlite, requires, DeepModel, Invariant, View};
+
 use crate::header::{HeaderMap, HeaderName, HeaderValue};
 use crate::method::Method;
 use crate::version::Version;
 use crate::{Extensions, Result, Uri};
+
+#[cfg(creusot)]
+use creusot_std::std::ops::{FnExt as _, FnOnceExt as _};
 
 /// Represents an HTTP request.
 ///
@@ -148,7 +154,8 @@ use crate::{Extensions, Result, Uri};
 /// #
 /// # fn main() {}
 /// ```
-#[derive(Clone)]
+#[allow(unexpected_cfgs)]
+#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Clone))]
 pub struct Request<T> {
     head: Parts,
     body: T,
@@ -158,7 +165,8 @@ pub struct Request<T> {
 ///
 /// The HTTP request head consists of a method, uri, version, and a set of
 /// header fields.
-#[derive(Clone)]
+#[allow(unexpected_cfgs)]
+#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Clone))]
 pub struct Parts {
     /// The request's method
     pub method: Method,
@@ -182,11 +190,269 @@ pub struct Parts {
 ///
 /// This type can be used to construct an instance of `Request`
 /// through a builder-like pattern.
-#[derive(Debug)]
+#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Debug))]
 pub struct Builder {
     inner: Result<Parts>,
 }
 
+/// A specification-only projection of a request's head.
+#[cfg(creusot)]
+#[logic]
+pub fn request_head<T>(request: Request<T>) -> Parts {
+    request.head
+}
+
+/// A specification-only projection of a request's body.
+#[cfg(creusot)]
+#[logic]
+pub fn request_body<T>(request: Request<T>) -> T {
+    request.body
+}
+
+/// Whether a request builder currently contains a valid head.
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_is_valid(builder: &Builder) -> bool {
+    match &builder.inner {
+        Ok(_) => true,
+        Err(_) => false,
+    }
+}
+
+/// The method, URI, and version fields initialized by the default builder.
+#[cfg(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)))]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_has_default_core_fields(builder: &Builder) -> bool {
+    pearlite! {
+        match request_builder_parts(builder) {
+            Some(parts) => {
+                parts.method.deep_model()
+                    == crate::method::method_model_text(crate::method::MethodModel::Get)
+                    && crate::uri::uri_is_default(parts.uri@)
+                    && parts.version.deep_model() == 11
+            }
+            None => false,
+        }
+    }
+}
+
+/// The exact stored error, including its concrete payload, when a builder is
+/// in the error state.
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_error<'a>(builder: &'a Builder) -> Option<crate::ErrorModelRef<'a>> {
+    match &builder.inner {
+        Ok(_) => None,
+        Err(error) => Some(crate::error_model_ref(error)),
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_error_is_from<E>(builder: &Builder, source: E) -> bool
+where
+    E: Into<crate::Error>,
+{
+    match &builder.inner {
+        Ok(_) => false,
+        Err(error) => <E as Into<crate::Error>>::into.postcondition((source,), *error),
+    }
+}
+
+/// Exact fixed-method/URI outcome relation for the request shortcuts. The
+/// URI conversion's original error payload is retained in the builder.
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_fixed_method_post<T>(builder: &Builder, method: &Method, uri: &T) -> bool
+where
+    T: TryInto<Uri>,
+    <T as TryInto<Uri>>::Error: Into<crate::Error>,
+{
+    pearlite! {
+        exists<method_result: std::result::Result<Method, <Method as TryInto<Method>>::Error>> (
+            <Method as TryInto<Method>>::try_into.postcondition((*method,), method_result)
+                && match method_result {
+                    Ok(converted_method) => converted_method == *method
+                        && exists<uri_result: std::result::Result<Uri, <T as TryInto<Uri>>::Error>> (
+                            <T as TryInto<Uri>>::try_into.postcondition((*uri,), uri_result)
+                                && match uri_result {
+                                    Ok(converted_uri) => request_builder_is_valid(builder)
+                                        && request_builder_method(builder) == Some(method)
+                                        && request_builder_uri(builder) == Some(&converted_uri)
+                                        && request_builder_error(builder) == None,
+                                    Err(conversion_error) => !request_builder_is_valid(builder)
+                                        && request_builder_error_is_from(builder, conversion_error)
+                                        && request_builder_method(builder) == None
+                                        && request_builder_uri(builder) == None
+                                        && request_builder_version(builder) == None
+                                        && request_builder_headers(builder) == None
+                                        && request_builder_extensions(builder) == None,
+                                }
+                        ),
+                    Err(conversion_error) => !request_builder_is_valid(builder)
+                        && request_builder_error_is_from(builder, conversion_error)
+                        && request_builder_method(builder) == None
+                        && request_builder_uri(builder) == None
+                        && request_builder_version(builder) == None
+                        && request_builder_headers(builder) == None
+                        && request_builder_extensions(builder) == None,
+                }
+        )
+    }
+}
+
+/// The fixed-method shortcut result when the built-in value is identified by
+/// its exact method text. This lets callers state the method without
+/// translating an associated constant across the Method module boundary.
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_fixed_method_model_post<T>(
+    builder: &Builder,
+    method_text: creusot_std::logic::Seq<u8>,
+    uri: &T,
+) -> bool
+where
+    T: TryInto<Uri>,
+    <T as TryInto<Uri>>::Error: Into<crate::Error>,
+{
+    pearlite! {
+        exists<source_method: Method> (
+            source_method.invariant()
+                && source_method.deep_model() == method_text
+                && exists<method_result: std::result::Result<Method, <Method as TryInto<Method>>::Error>> (
+                    <Method as TryInto<Method>>::try_into.postcondition((source_method,), method_result)
+                        && match method_result {
+                            Ok(converted_method) => converted_method.deep_model() == method_text
+                                && exists<uri_result: std::result::Result<Uri, <T as TryInto<Uri>>::Error>> (
+                                    <T as TryInto<Uri>>::try_into.postcondition((*uri,), uri_result)
+                                        && match uri_result {
+                                            Ok(converted_uri) => request_builder_is_valid(builder)
+                                                && match request_builder_method(builder) {
+                                                    Some(stored) => stored.deep_model() == method_text,
+                                                    None => false,
+                                                }
+                                                && request_builder_uri(builder) == Some(&converted_uri)
+                                                && request_builder_error(builder) == None,
+                                            Err(conversion_error) => !request_builder_is_valid(builder)
+                                                && request_builder_error_is_from(builder, conversion_error)
+                                                && request_builder_method(builder) == None
+                                                && request_builder_uri(builder) == None
+                                                && request_builder_version(builder) == None
+                                                && request_builder_headers(builder) == None
+                                                && request_builder_extensions(builder) == None,
+                                        }
+                                ),
+                            Err(conversion_error) => !request_builder_is_valid(builder)
+                                && request_builder_error_is_from(builder, conversion_error)
+                                && request_builder_method(builder) == None
+                                && request_builder_uri(builder) == None
+                                && request_builder_version(builder) == None
+                                && request_builder_headers(builder) == None
+                                && request_builder_extensions(builder) == None,
+                        }
+                )
+        )
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_method<'a>(builder: &'a Builder) -> Option<&'a Method> {
+    match &builder.inner {
+        Ok(head) => Some(&head.method),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_uri<'a>(builder: &'a Builder) -> Option<&'a Uri> {
+    match &builder.inner {
+        Ok(head) => Some(&head.uri),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_version<'a>(builder: &'a Builder) -> Option<&'a Version> {
+    match &builder.inner {
+        Ok(head) => Some(&head.version),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_headers<'a>(builder: &'a Builder) -> Option<&'a HeaderMap<HeaderValue>> {
+    match &builder.inner {
+        Ok(head) => Some(&head.headers),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_extensions<'a>(builder: &'a Builder) -> Option<&'a Extensions> {
+    match &builder.inner {
+        Ok(head) => Some(&head.extensions),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_builder_parts<'a>(builder: &'a Builder) -> Option<&'a Parts> {
+    match &builder.inner {
+        Ok(head) => Some(head),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_result_head<'a, T>(outcome: &'a Result<Request<T>>) -> Option<&'a Parts> {
+    match outcome {
+        Ok(request) => Some(&request.head),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_result_body<'a, T>(outcome: &'a Result<Request<T>>) -> Option<&'a T> {
+    match outcome {
+        Ok(request) => Some(&request.body),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn request_result_error<'a, T>(outcome: &'a Result<Request<T>>) -> Option<crate::ErrorModelRef<'a>> {
+    match outcome {
+        Ok(_) => None,
+        Err(error) => Some(crate::error_model_ref(error)),
+    }
+}
+
+#[allow(unexpected_cfgs)]
+#[cfg(any(not(http_composition_leaf), http_builder_entrypoints_leaf))]
 impl Request<()> {
     /// Creates a new builder-style object to manufacture a `Request`
     ///
@@ -205,6 +471,10 @@ impl Request<()> {
     ///     .unwrap();
     /// ```
     #[inline]
+    #[cfg_attr(creusot, ensures(request_builder_is_valid(&result)))]
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        request_builder_has_default_core_fields(&result)
+    ))]
     pub fn builder() -> Builder {
         Builder::new()
     }
@@ -223,12 +493,24 @@ impl Request<()> {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+                <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
+                    ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
+            )
+    ))]
+    #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
+        &result,
+        crate::method::method_model_text(crate::method::MethodModel::Get),
+        &uri,
+    )))]
     pub fn get<T>(uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
-        Builder::new().method(Method::GET).uri(uri)
+        Builder::new().method(Method::builder_get()).uri(uri)
     }
 
     /// Creates a new `Builder` initialized with a PUT method and the given URI.
@@ -245,12 +527,24 @@ impl Request<()> {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+                <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
+                    ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
+            )
+    ))]
+    #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
+        &result,
+        crate::method::method_model_text(crate::method::MethodModel::Put),
+        &uri,
+    )))]
     pub fn put<T>(uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
-        Builder::new().method(Method::PUT).uri(uri)
+        Builder::new().method(Method::builder_put()).uri(uri)
     }
 
     /// Creates a new `Builder` initialized with a POST method and the given URI.
@@ -267,12 +561,24 @@ impl Request<()> {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+                <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
+                    ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
+            )
+    ))]
+    #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
+        &result,
+        crate::method::method_model_text(crate::method::MethodModel::Post),
+        &uri,
+    )))]
     pub fn post<T>(uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
-        Builder::new().method(Method::POST).uri(uri)
+        Builder::new().method(Method::builder_post()).uri(uri)
     }
 
     /// Creates a new `Builder` initialized with a DELETE method and the given URI.
@@ -289,12 +595,24 @@ impl Request<()> {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+                <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
+                    ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
+            )
+    ))]
+    #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
+        &result,
+        crate::method::method_model_text(crate::method::MethodModel::Delete),
+        &uri,
+    )))]
     pub fn delete<T>(uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
-        Builder::new().method(Method::DELETE).uri(uri)
+        Builder::new().method(Method::builder_delete()).uri(uri)
     }
 
     /// Creates a new `Builder` initialized with an OPTIONS method and the given URI.
@@ -312,12 +630,24 @@ impl Request<()> {
     ///     .unwrap();
     /// # assert_eq!(*request.method(), Method::OPTIONS);
     /// ```
+    #[cfg_attr(creusot, requires(
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+                <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
+                    ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
+            )
+    ))]
+    #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
+        &result,
+        crate::method::method_model_text(crate::method::MethodModel::Options),
+        &uri,
+    )))]
     pub fn options<T>(uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
-        Builder::new().method(Method::OPTIONS).uri(uri)
+        Builder::new().method(Method::builder_options()).uri(uri)
     }
 
     /// Creates a new `Builder` initialized with a HEAD method and the given URI.
@@ -334,12 +664,24 @@ impl Request<()> {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+                <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
+                    ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
+            )
+    ))]
+    #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
+        &result,
+        crate::method::method_model_text(crate::method::MethodModel::Head),
+        &uri,
+    )))]
     pub fn head<T>(uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
-        Builder::new().method(Method::HEAD).uri(uri)
+        Builder::new().method(Method::builder_head()).uri(uri)
     }
 
     /// Creates a new `Builder` initialized with a CONNECT method and the given URI.
@@ -356,12 +698,24 @@ impl Request<()> {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+                <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
+                    ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
+            )
+    ))]
+    #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
+        &result,
+        crate::method::method_model_text(crate::method::MethodModel::Connect),
+        &uri,
+    )))]
     pub fn connect<T>(uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
-        Builder::new().method(Method::CONNECT).uri(uri)
+        Builder::new().method(Method::builder_connect()).uri(uri)
     }
 
     /// Creates a new `Builder` initialized with a PATCH method and the given URI.
@@ -378,12 +732,24 @@ impl Request<()> {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+                <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
+                    ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
+            )
+    ))]
+    #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
+        &result,
+        crate::method::method_model_text(crate::method::MethodModel::Patch),
+        &uri,
+    )))]
     pub fn patch<T>(uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
-        Builder::new().method(Method::PATCH).uri(uri)
+        Builder::new().method(Method::builder_patch()).uri(uri)
     }
 
     /// Creates a new `Builder` initialized with a TRACE method and the given URI.
@@ -400,12 +766,24 @@ impl Request<()> {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+                <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
+                    ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
+            )
+    ))]
+    #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
+        &result,
+        crate::method::method_model_text(crate::method::MethodModel::Trace),
+        &uri,
+    )))]
     pub fn trace<T>(uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
-        Builder::new().method(Method::TRACE).uri(uri)
+        Builder::new().method(Method::builder_trace()).uri(uri)
     }
 
     // This is purposefully excluded because of potential conflict with the
@@ -449,6 +827,7 @@ impl<T> Request<T> {
     /// let request = Request::from_parts(parts, body);
     /// ```
     #[inline]
+    #[ensures(request_head(result) == parts && request_body(result) == body)]
     pub fn from_parts(parts: Parts, body: T) -> Request<T> {
         Request { head: parts, body }
     }
@@ -463,6 +842,7 @@ impl<T> Request<T> {
     /// assert_eq!(*request.method(), Method::GET);
     /// ```
     #[inline]
+    #[ensures(*result == request_head(*self).method)]
     pub fn method(&self) -> &Method {
         &self.head.method
     }
@@ -478,6 +858,13 @@ impl<T> Request<T> {
     /// assert_eq!(*request.method(), Method::PUT);
     /// ```
     #[inline]
+    #[ensures(*result == request_head(*self).method)]
+    #[ensures(^result == request_head(^self).method)]
+    #[ensures(request_head(^self).uri == request_head(*self).uri)]
+    #[ensures(request_head(^self).version == request_head(*self).version)]
+    #[ensures(request_head(^self).headers == request_head(*self).headers)]
+    #[ensures(request_head(^self).extensions == request_head(*self).extensions)]
+    #[ensures(request_body(^self) == request_body(*self))]
     pub fn method_mut(&mut self) -> &mut Method {
         &mut self.head.method
     }
@@ -492,6 +879,7 @@ impl<T> Request<T> {
     /// assert_eq!(*request.uri(), *"/");
     /// ```
     #[inline]
+    #[ensures(*result == request_head(*self).uri)]
     pub fn uri(&self) -> &Uri {
         &self.head.uri
     }
@@ -507,6 +895,13 @@ impl<T> Request<T> {
     /// assert_eq!(*request.uri(), *"/hello");
     /// ```
     #[inline]
+    #[ensures(*result == request_head(*self).uri)]
+    #[ensures(^result == request_head(^self).uri)]
+    #[ensures(request_head(^self).method == request_head(*self).method)]
+    #[ensures(request_head(^self).version == request_head(*self).version)]
+    #[ensures(request_head(^self).headers == request_head(*self).headers)]
+    #[ensures(request_head(^self).extensions == request_head(*self).extensions)]
+    #[ensures(request_body(^self) == request_body(*self))]
     pub fn uri_mut(&mut self) -> &mut Uri {
         &mut self.head.uri
     }
@@ -521,6 +916,7 @@ impl<T> Request<T> {
     /// assert_eq!(request.version(), Version::HTTP_11);
     /// ```
     #[inline]
+    #[ensures(result == request_head(*self).version)]
     pub fn version(&self) -> Version {
         self.head.version
     }
@@ -536,6 +932,13 @@ impl<T> Request<T> {
     /// assert_eq!(request.version(), Version::HTTP_2);
     /// ```
     #[inline]
+    #[ensures(*result == request_head(*self).version)]
+    #[ensures(^result == request_head(^self).version)]
+    #[ensures(request_head(^self).method == request_head(*self).method)]
+    #[ensures(request_head(^self).uri == request_head(*self).uri)]
+    #[ensures(request_head(^self).headers == request_head(*self).headers)]
+    #[ensures(request_head(^self).extensions == request_head(*self).extensions)]
+    #[ensures(request_body(^self) == request_body(*self))]
     pub fn version_mut(&mut self) -> &mut Version {
         &mut self.head.version
     }
@@ -550,6 +953,7 @@ impl<T> Request<T> {
     /// assert!(request.headers().is_empty());
     /// ```
     #[inline]
+    #[ensures(*result == request_head(*self).headers)]
     pub fn headers(&self) -> &HeaderMap<HeaderValue> {
         &self.head.headers
     }
@@ -566,6 +970,13 @@ impl<T> Request<T> {
     /// assert!(!request.headers().is_empty());
     /// ```
     #[inline]
+    #[ensures(*result == request_head(*self).headers)]
+    #[ensures(^result == request_head(^self).headers)]
+    #[ensures(request_head(^self).method == request_head(*self).method)]
+    #[ensures(request_head(^self).uri == request_head(*self).uri)]
+    #[ensures(request_head(^self).version == request_head(*self).version)]
+    #[ensures(request_head(^self).extensions == request_head(*self).extensions)]
+    #[ensures(request_body(^self) == request_body(*self))]
     pub fn headers_mut(&mut self) -> &mut HeaderMap<HeaderValue> {
         &mut self.head.headers
     }
@@ -580,6 +991,7 @@ impl<T> Request<T> {
     /// assert!(request.extensions().get::<i32>().is_none());
     /// ```
     #[inline]
+    #[ensures(*result == request_head(*self).extensions)]
     pub fn extensions(&self) -> &Extensions {
         &self.head.extensions
     }
@@ -596,6 +1008,13 @@ impl<T> Request<T> {
     /// assert_eq!(request.extensions().get(), Some(&"hello"));
     /// ```
     #[inline]
+    #[ensures(*result == request_head(*self).extensions)]
+    #[ensures(^result == request_head(^self).extensions)]
+    #[ensures(request_head(^self).method == request_head(*self).method)]
+    #[ensures(request_head(^self).uri == request_head(*self).uri)]
+    #[ensures(request_head(^self).version == request_head(*self).version)]
+    #[ensures(request_head(^self).headers == request_head(*self).headers)]
+    #[ensures(request_body(^self) == request_body(*self))]
     pub fn extensions_mut(&mut self) -> &mut Extensions {
         &mut self.head.extensions
     }
@@ -610,6 +1029,7 @@ impl<T> Request<T> {
     /// assert!(request.body().is_empty());
     /// ```
     #[inline]
+    #[ensures(*result == request_body(*self))]
     pub fn body(&self) -> &T {
         &self.body
     }
@@ -625,6 +1045,9 @@ impl<T> Request<T> {
     /// assert!(!request.body().is_empty());
     /// ```
     #[inline]
+    #[ensures(*result == request_body(*self))]
+    #[ensures(^result == request_body(^self))]
+    #[ensures(request_head(^self) == request_head(*self))]
     pub fn body_mut(&mut self) -> &mut T {
         &mut self.body
     }
@@ -640,6 +1063,7 @@ impl<T> Request<T> {
     /// assert_eq!(body, 10);
     /// ```
     #[inline]
+    #[ensures(result == request_body(self))]
     pub fn into_body(self) -> T {
         self.body
     }
@@ -655,6 +1079,7 @@ impl<T> Request<T> {
     /// assert_eq!(parts.method, Method::GET);
     /// ```
     #[inline]
+    #[ensures(result.0 == request_head(self) && result.1 == request_body(self))]
     pub fn into_parts(self) -> (Parts, T) {
         (self.head, self.body)
     }
@@ -674,6 +1099,9 @@ impl<T> Request<T> {
     /// assert_eq!(mapped_request.body(), &"some string".as_bytes());
     /// ```
     #[inline]
+    #[requires(f.precondition((request_body(self),)))]
+    #[ensures(request_head(result) == request_head(self))]
+    #[ensures(f.postcondition_once((request_body(self),), request_body(result)))]
     pub fn map<F, U>(self, f: F) -> Request<U>
     where
         F: FnOnce(T) -> U,
@@ -706,6 +1134,16 @@ impl<T: fmt::Debug> fmt::Debug for Request<T> {
 
 impl Parts {
     /// Creates a new default instance of `Parts`
+    #[cfg_attr(creusot, ensures(
+        result.method.deep_model()
+            == crate::method::method_model_text(crate::method::MethodModel::Get)
+    ))]
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        crate::uri::uri_is_default(result.uri@)
+    ))]
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        result.version.deep_model() == 11
+    ))]
     fn new() -> Parts {
         Parts {
             method: Method::default(),
@@ -745,6 +1183,10 @@ impl Builder {
     ///     .unwrap();
     /// ```
     #[inline]
+    #[cfg_attr(creusot, ensures(request_builder_is_valid(&result)))]
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        request_builder_has_default_core_fields(&result)
+    ))]
     pub fn new() -> Builder {
         Builder::default()
     }
@@ -763,13 +1205,42 @@ impl Builder {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(!request_builder_is_valid(&self) || (
+        <T as TryInto<Method>>::try_into.precondition((method,))
+        && forall<e: <T as TryInto<Method>>::Error>
+            <T as TryInto<Method>>::try_into.postcondition((method,), Err(e))
+                ==> <<T as TryInto<Method>>::Error as Into<crate::Error>>::into.precondition((e,))
+    )))]
+    #[cfg_attr(creusot, ensures(!request_builder_is_valid(&self) ==> request_builder_error(&result) == request_builder_error(&self)))]
+    #[cfg_attr(creusot, ensures(request_builder_is_valid(&self) ==> exists<converted: std::result::Result<Method, <T as TryInto<Method>>::Error>> (
+        <T as TryInto<Method>>::try_into.postcondition((method,), converted)
+        && match converted {
+            Ok(new_method) => request_builder_is_valid(&result)
+                && request_builder_method(&result) == Some(&new_method)
+                && request_builder_error(&result) == None
+                && request_builder_uri(&result) == request_builder_uri(&self)
+                && request_builder_version(&result) == request_builder_version(&self)
+                && request_builder_headers(&result) == request_builder_headers(&self)
+                && request_builder_extensions(&result) == request_builder_extensions(&self),
+            Err(conversion_error) => !request_builder_is_valid(&result)
+                && request_builder_error_is_from(&result, conversion_error)
+                && request_builder_method(&result) == None
+                && request_builder_uri(&result) == None
+                && request_builder_version(&result) == None
+                && request_builder_headers(&result) == None
+                && request_builder_extensions(&result) == None,
+        }
+    )))]
     pub fn method<T>(self, method: T) -> Builder
     where
         T: TryInto<Method>,
         <T as TryInto<Method>>::Error: Into<crate::Error>,
     {
         self.and_then(move |mut head| {
-            let method = method.try_into().map_err(Into::into)?;
+            let method = match method.try_into() {
+                Ok(method) => method,
+                Err(error) => return Err(error.into()),
+            };
             head.method = method;
             Ok(head)
         })
@@ -790,6 +1261,7 @@ impl Builder {
     /// req = req.method("POST");
     /// assert_eq!(req.method_ref(),Some(&Method::POST));
     /// ```
+    #[cfg_attr(creusot, ensures(result == request_builder_method(self)))]
     pub fn method_ref(&self) -> Option<&Method> {
         self.inner.as_ref().ok().map(|h| &h.method)
     }
@@ -808,13 +1280,42 @@ impl Builder {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(!request_builder_is_valid(&self) || (
+        <T as TryInto<Uri>>::try_into.precondition((uri,))
+        && forall<e: <T as TryInto<Uri>>::Error>
+            <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(e))
+                ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((e,))
+    )))]
+    #[cfg_attr(creusot, ensures(!request_builder_is_valid(&self) ==> request_builder_error(&result) == request_builder_error(&self)))]
+    #[cfg_attr(creusot, ensures(request_builder_is_valid(&self) ==> exists<converted: std::result::Result<Uri, <T as TryInto<Uri>>::Error>> (
+        <T as TryInto<Uri>>::try_into.postcondition((uri,), converted)
+        && match converted {
+            Ok(new_uri) => request_builder_is_valid(&result)
+                && request_builder_uri(&result) == Some(&new_uri)
+                && request_builder_error(&result) == None
+                && request_builder_method(&result) == request_builder_method(&self)
+                && request_builder_version(&result) == request_builder_version(&self)
+                && request_builder_headers(&result) == request_builder_headers(&self)
+                && request_builder_extensions(&result) == request_builder_extensions(&self),
+            Err(conversion_error) => !request_builder_is_valid(&result)
+                && request_builder_error_is_from(&result, conversion_error)
+                && request_builder_method(&result) == None
+                && request_builder_uri(&result) == None
+                && request_builder_version(&result) == None
+                && request_builder_headers(&result) == None
+                && request_builder_extensions(&result) == None,
+        }
+    )))]
     pub fn uri<T>(self, uri: T) -> Builder
     where
         T: TryInto<Uri>,
         <T as TryInto<Uri>>::Error: Into<crate::Error>,
     {
         self.and_then(move |mut head| {
-            head.uri = uri.try_into().map_err(Into::into)?;
+            head.uri = match uri.try_into() {
+                Ok(uri) => uri,
+                Err(error) => return Err(error.into()),
+            };
             Ok(head)
         })
     }
@@ -834,6 +1335,7 @@ impl Builder {
     /// req = req.uri("https://www.rust-lang.org/");
     /// assert_eq!(req.uri_ref().unwrap(), "https://www.rust-lang.org/" );
     /// ```
+    #[cfg_attr(creusot, ensures(result == request_builder_uri(self)))]
     pub fn uri_ref(&self) -> Option<&Uri> {
         self.inner.as_ref().ok().map(|h| &h.uri)
     }
@@ -852,11 +1354,21 @@ impl Builder {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, ensures(request_builder_error(&result) == request_builder_error(&self)))]
+    #[cfg_attr(creusot, ensures(request_builder_version(&result) == if request_builder_is_valid(&self) { Some(&version) } else { None }))]
+    #[cfg_attr(creusot, ensures(request_builder_method(&result) == request_builder_method(&self)))]
+    #[cfg_attr(creusot, ensures(request_builder_uri(&result) == request_builder_uri(&self)))]
+    #[cfg_attr(creusot, ensures(request_builder_headers(&result) == request_builder_headers(&self)))]
+    #[cfg_attr(creusot, ensures(request_builder_extensions(&result) == request_builder_extensions(&self)))]
     pub fn version(self, version: Version) -> Builder {
-        self.and_then(move |mut head| {
-            head.version = version;
-            Ok(head)
-        })
+        let inner = match self.inner {
+            Ok(mut head) => {
+                head.version = version;
+                Ok(head)
+            }
+            Err(error) => Err(error),
+        };
+        Builder { inner }
     }
 
     /// Get the HTTP version for this request
@@ -874,6 +1386,7 @@ impl Builder {
     /// req = req.version(Version::HTTP_2);
     /// assert_eq!(req.version_ref().unwrap(), &Version::HTTP_2 );
     /// ```
+    #[cfg_attr(creusot, ensures(result == request_builder_version(self)))]
     pub fn version_ref(&self) -> Option<&Version> {
         self.inner.as_ref().ok().map(|h| &h.version)
     }
@@ -904,8 +1417,14 @@ impl Builder {
         <V as TryInto<HeaderValue>>::Error: Into<crate::Error>,
     {
         self.and_then(move |mut head| {
-            let name = key.try_into().map_err(Into::into)?;
-            let value = value.try_into().map_err(Into::into)?;
+            let name = match key.try_into() {
+                Ok(name) => name,
+                Err(error) => return Err(error.into()),
+            };
+            let value = match value.try_into() {
+                Ok(value) => value,
+                Err(error) => return Err(error.into()),
+            };
             head.headers.try_append(name, value)?;
             Ok(head)
         })
@@ -925,6 +1444,7 @@ impl Builder {
     /// assert_eq!( headers["Accept"], "text/html" );
     /// assert_eq!( headers["X-Custom-Foo"], "bar" );
     /// ```
+    #[cfg_attr(creusot, ensures(result == request_builder_headers(self)))]
     pub fn headers_ref(&self) -> Option<&HeaderMap<HeaderValue>> {
         self.inner.as_ref().ok().map(|h| &h.headers)
     }
@@ -947,8 +1467,24 @@ impl Builder {
     /// assert_eq!( headers["Accept"], "text/html" );
     /// assert_eq!( headers["X-Custom-Foo"], "bar" );
     /// ```
+    #[cfg_attr(creusot, ensures(match result {
+        Some(reference) => Some(&*reference) == request_builder_headers(&*self),
+        None => request_builder_headers(&*self) == None,
+    }))]
+    #[cfg_attr(creusot, ensures(match result {
+        Some(reference) => Some(&^reference) == request_builder_headers(&^self),
+        None => request_builder_headers(&^self) == None,
+    }))]
+    #[cfg_attr(creusot, ensures(request_builder_error(&^self) == request_builder_error(&*self)))]
+    #[cfg_attr(creusot, ensures(request_builder_method(&^self) == request_builder_method(&*self)))]
+    #[cfg_attr(creusot, ensures(request_builder_uri(&^self) == request_builder_uri(&*self)))]
+    #[cfg_attr(creusot, ensures(request_builder_version(&^self) == request_builder_version(&*self)))]
+    #[cfg_attr(creusot, ensures(request_builder_extensions(&^self) == request_builder_extensions(&*self)))]
     pub fn headers_mut(&mut self) -> Option<&mut HeaderMap<HeaderValue>> {
-        self.inner.as_mut().ok().map(|h| &mut h.headers)
+        match &mut self.inner {
+            Ok(head) => Some(&mut head.headers),
+            Err(_) => None,
+        }
     }
 
     /// Adds an extension to this builder
@@ -989,6 +1525,7 @@ impl Builder {
     /// assert_eq!(extensions.get::<&'static str>(), Some(&"My Extension"));
     /// assert_eq!(extensions.get::<u32>(), Some(&5u32));
     /// ```
+    #[cfg_attr(creusot, ensures(result == request_builder_extensions(self)))]
     pub fn extensions_ref(&self) -> Option<&Extensions> {
         self.inner.as_ref().ok().map(|h| &h.extensions)
     }
@@ -1007,8 +1544,24 @@ impl Builder {
     /// extensions.insert(5u32);
     /// assert_eq!(extensions.get::<u32>(), Some(&5u32));
     /// ```
+    #[cfg_attr(creusot, ensures(match result {
+        Some(reference) => Some(&*reference) == request_builder_extensions(&*self),
+        None => request_builder_extensions(&*self) == None,
+    }))]
+    #[cfg_attr(creusot, ensures(match result {
+        Some(reference) => Some(&^reference) == request_builder_extensions(&^self),
+        None => request_builder_extensions(&^self) == None,
+    }))]
+    #[cfg_attr(creusot, ensures(request_builder_error(&^self) == request_builder_error(&*self)))]
+    #[cfg_attr(creusot, ensures(request_builder_method(&^self) == request_builder_method(&*self)))]
+    #[cfg_attr(creusot, ensures(request_builder_uri(&^self) == request_builder_uri(&*self)))]
+    #[cfg_attr(creusot, ensures(request_builder_version(&^self) == request_builder_version(&*self)))]
+    #[cfg_attr(creusot, ensures(request_builder_headers(&^self) == request_builder_headers(&*self)))]
     pub fn extensions_mut(&mut self) -> Option<&mut Extensions> {
-        self.inner.as_mut().ok().map(|h| &mut h.extensions)
+        match &mut self.inner {
+            Ok(head) => Some(&mut head.extensions),
+            Err(_) => None,
+        }
     }
 
     /// "Consumes" this builder, using the provided `body` to return a
@@ -1031,24 +1584,46 @@ impl Builder {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, ensures(request_result_head(&result) == request_builder_parts(&self)))]
+    #[cfg_attr(creusot, ensures(request_result_body(&result) == if request_builder_is_valid(&self) { Some(&body) } else { None }))]
+    #[cfg_attr(creusot, ensures(request_result_error(&result) == request_builder_error(&self)))]
     pub fn body<T>(self, body: T) -> Result<Request<T>> {
-        self.inner.map(move |head| Request { head, body })
+        match self.inner {
+            Ok(head) => Ok(Request { head, body }),
+            Err(error) => Err(error),
+        }
     }
 
     // private
 
+    #[requires(match self.inner {
+        Ok(head) => func.precondition((head,)),
+        Err(_) => true,
+    })]
+    #[ensures(match self.inner {
+        Ok(head) => func.postcondition_once((head,), result.inner),
+        Err(_) => request_builder_error(&result) == request_builder_error(&self),
+    })]
     fn and_then<F>(self, func: F) -> Self
     where
         F: FnOnce(Parts) -> Result<Parts>,
     {
+        let inner = match self.inner {
+            Ok(head) => func(head),
+            Err(error) => Err(error),
+        };
         Builder {
-            inner: self.inner.and_then(func),
+            inner,
         }
     }
 }
 
 impl Default for Builder {
     #[inline]
+    #[cfg_attr(creusot, ensures(request_builder_is_valid(&result)))]
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        request_builder_has_default_core_fields(&result)
+    ))]
     fn default() -> Builder {
         Builder {
             inner: Ok(Parts::new()),

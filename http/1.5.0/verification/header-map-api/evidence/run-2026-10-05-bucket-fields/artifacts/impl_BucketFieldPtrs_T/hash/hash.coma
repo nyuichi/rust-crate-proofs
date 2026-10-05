@@ -1,0 +1,308 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 467 4 467 35 *)
+
+(* header::map::BucketFieldPtrs<'a, T> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 468 17 468 66
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 467 13 467 17
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 465 33 465 49
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 466 32 466 73
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 377 12 383 13
+let%span sghost = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/ghost.rs" 104 8 104 18
+let%span sptr = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 643 40 643 43
+let%span sptr'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 639 15 639 33
+let%span sptr'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 640 14 640 35
+let%span sptr'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 550 12 552 34
+let%span sptr'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 142 8 142 35
+
+use creusot.prelude.Opaque
+use creusot.prelude.MutBorrow
+use creusot.int.UInt16
+use creusot.prelude.Ptr
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_Perm_ptr_HashValue
+
+type t_Perm_ptr_HeaderName
+
+type t_Perm_ptr_T
+
+type t_Option_refmut_Perm_ptr_T = None | Some (MutBorrow.t t_Perm_ptr_T)
+
+type t_Perm_ptr_Option_Links
+
+type t_BucketFieldPtrs_T = {
+  hash_ptr: Opaque.ptr;
+  hash_permission: t_Perm_ptr_HashValue;
+  key_ptr: Opaque.ptr;
+  key_permission: t_Perm_ptr_HeaderName;
+  value_ptr: Opaque.ptr;
+  value_permission: t_Option_refmut_Perm_ptr_T;
+  links_ptr: Opaque.ptr;
+  links_permission: t_Perm_ptr_Option_Links }
+
+type t_HashValue = { f0: UInt16.t }
+
+predicate is_null_ptr_HashValue (self: Opaque.ptr) = [%#sptr'3] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+function ward_ptr_HashValue (self: t_Perm_ptr_HashValue) : Opaque.ptr
+
+predicate metadata_matches_HashValue [@inline:trivial] (_value: t_HashValue) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_HashValue
+
+function val_ptr_HashValue (self: t_Perm_ptr_HashValue) : t_HashValue
+
+function metadata_HashValue (_1: Opaque.ptr) : ()
+
+predicate inv_ref_HashValue [@inline:trivial] (_1: t_HashValue) = true
+
+meta "rewrite_def" predicate inv_ref_HashValue
+
+predicate invariant_Perm_ptr_HashValue (self: t_Perm_ptr_HashValue) =
+  [%#sptr'2] not is_null_ptr_HashValue (ward_ptr_HashValue self)
+  /\ metadata_matches_HashValue (val_ptr_HashValue self) (metadata_HashValue (ward_ptr_HashValue self))
+  /\ inv_ref_HashValue (val_ptr_HashValue self)
+
+predicate inv_Perm_ptr_HashValue (_1: t_Perm_ptr_HashValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_Perm_ptr_HashValue [inv_Perm_ptr_HashValue x]. inv_Perm_ptr_HashValue x
+    = invariant_Perm_ptr_HashValue x
+
+predicate invariant_ref_Perm_ptr_HashValue [@inline:trivial] (self: t_Perm_ptr_HashValue) =
+  [%#sinvariant] inv_Perm_ptr_HashValue self
+
+meta "rewrite_def" predicate invariant_ref_Perm_ptr_HashValue
+
+predicate inv_ref_Perm_ptr_HashValue [@inline:trivial] (_1: t_Perm_ptr_HashValue) = invariant_ref_Perm_ptr_HashValue _1
+
+meta "rewrite_def" predicate inv_ref_Perm_ptr_HashValue
+
+predicate invariant_Ghost_ref_Perm_ptr_HashValue [@inline:trivial] (self: t_Perm_ptr_HashValue) =
+  [%#sghost] inv_ref_Perm_ptr_HashValue self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_Perm_ptr_HashValue
+
+predicate inv_Ghost_ref_Perm_ptr_HashValue [@inline:trivial] (_1: t_Perm_ptr_HashValue) =
+  invariant_Ghost_ref_Perm_ptr_HashValue _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_Perm_ptr_HashValue
+
+let rec as_ref_HashValue (ptr: Opaque.ptr) (own: t_Perm_ptr_HashValue) (return (x: t_HashValue)) =
+  {[@stop_split] [@expl:as_ref_HashValue requires] ([@stop_split] [@expl:as_ref 'own' type invariant] [%#sptr] inv_Ghost_ref_Perm_ptr_HashValue own)
+  /\ ([@stop_split] [@expl:as_ref requires] [%#sptr'0] ptr = ward_ptr_HashValue own)}
+  any
+  [ return (result: t_HashValue) -> {[@stop_split] [@expl:as_ref ensures] [%#sptr'1] result = val_ptr_HashValue own}
+    (! return {result}) ]
+
+function ward_ptr_HeaderName (self: t_Perm_ptr_HeaderName) : Opaque.ptr
+
+function ward_ptr_Option_Links (self: t_Perm_ptr_Option_Links) : Opaque.ptr
+
+function ward_ptr_T (self: t_Perm_ptr_T) : Opaque.ptr
+
+predicate invariant_BucketFieldPtrs_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 375 4 375 30] (self: t_BucketFieldPtrs_T) =
+  [%#smap'3] self.hash_ptr = ward_ptr_HashValue self.hash_permission
+  /\ self.key_ptr = ward_ptr_HeaderName self.key_permission
+  /\ self.links_ptr = ward_ptr_Option_Links self.links_permission
+  /\ match self.value_permission with
+    | Some permission -> self.value_ptr = ward_ptr_T permission.current
+    | None -> true
+    end
+
+predicate is_null_ptr_HeaderName (self: Opaque.ptr) = [%#sptr'3] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+type t_HeaderName
+
+predicate metadata_matches_HeaderName [@inline:trivial] (_value: t_HeaderName) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_HeaderName
+
+function val_ptr_HeaderName (self: t_Perm_ptr_HeaderName) : t_HeaderName
+
+function metadata_HeaderName (_1: Opaque.ptr) : ()
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate invariant_ref_HeaderName [@inline:trivial] (self: t_HeaderName) = [%#sinvariant] inv_HeaderName self
+
+meta "rewrite_def" predicate invariant_ref_HeaderName
+
+predicate inv_ref_HeaderName [@inline:trivial] (_1: t_HeaderName) = invariant_ref_HeaderName _1
+
+meta "rewrite_def" predicate inv_ref_HeaderName
+
+predicate invariant_Perm_ptr_HeaderName (self: t_Perm_ptr_HeaderName) =
+  [%#sptr'2] not is_null_ptr_HeaderName (ward_ptr_HeaderName self)
+  /\ metadata_matches_HeaderName (val_ptr_HeaderName self) (metadata_HeaderName (ward_ptr_HeaderName self))
+  /\ inv_ref_HeaderName (val_ptr_HeaderName self)
+
+predicate inv_Perm_ptr_HeaderName (_1: t_Perm_ptr_HeaderName)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Perm_ptr_HeaderName [inv_Perm_ptr_HeaderName x]. inv_Perm_ptr_HeaderName x
+    = invariant_Perm_ptr_HeaderName x
+
+predicate invariant_ref_Perm_ptr_HeaderName [@inline:trivial] (self: t_Perm_ptr_HeaderName) =
+  [%#sinvariant] inv_Perm_ptr_HeaderName self
+
+meta "rewrite_def" predicate invariant_ref_Perm_ptr_HeaderName
+
+predicate inv_ref_Perm_ptr_HeaderName [@inline:trivial] (_1: t_Perm_ptr_HeaderName) =
+  invariant_ref_Perm_ptr_HeaderName _1
+
+meta "rewrite_def" predicate inv_ref_Perm_ptr_HeaderName
+
+predicate invariant_Ghost_ref_Perm_ptr_HeaderName [@inline:trivial] (self: t_Perm_ptr_HeaderName) =
+  [%#sghost] inv_ref_Perm_ptr_HeaderName self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_Perm_ptr_HeaderName
+
+predicate inv_Ghost_ref_Perm_ptr_HeaderName [@inline:trivial] (_1: t_Perm_ptr_HeaderName) =
+  invariant_Ghost_ref_Perm_ptr_HeaderName _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_Perm_ptr_HeaderName
+
+predicate is_null_ptr_T (self: Opaque.ptr) = [%#sptr'3] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+type t_T
+
+predicate metadata_matches_T [@inline:trivial] (_value: t_T) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_T
+
+function val_ptr_T (self: t_Perm_ptr_T) : t_T
+
+function metadata_T (_1: Opaque.ptr) : ()
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate invariant_Perm_ptr_T (self: t_Perm_ptr_T) =
+  [%#sptr'2] not is_null_ptr_T (ward_ptr_T self)
+  /\ metadata_matches_T (val_ptr_T self) (metadata_T (ward_ptr_T self)) /\ inv_ref_T (val_ptr_T self)
+
+predicate inv_Perm_ptr_T (_1: t_Perm_ptr_T)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Perm_ptr_T [inv_Perm_ptr_T x]. inv_Perm_ptr_T x = invariant_Perm_ptr_T x
+
+predicate invariant_refmut_Perm_ptr_T [@inline:trivial] (self: MutBorrow.t t_Perm_ptr_T) =
+  [%#sinvariant'0] inv_Perm_ptr_T self.current /\ inv_Perm_ptr_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_Perm_ptr_T
+
+predicate inv_refmut_Perm_ptr_T [@inline:trivial] (_1: MutBorrow.t t_Perm_ptr_T) = invariant_refmut_Perm_ptr_T _1
+
+meta "rewrite_def" predicate inv_refmut_Perm_ptr_T
+
+predicate inv_Option_refmut_Perm_ptr_T (_1: t_Option_refmut_Perm_ptr_T)
+
+axiom inv_axiom'2 [@rewrite]:
+  forall x: t_Option_refmut_Perm_ptr_T [inv_Option_refmut_Perm_ptr_T x]. inv_Option_refmut_Perm_ptr_T x
+    = match x with
+      | None -> true
+      | Some f0'0 -> inv_refmut_Perm_ptr_T f0'0
+      end
+
+predicate invariant_Ghost_Option_refmut_Perm_ptr_T [@inline:trivial] (self: t_Option_refmut_Perm_ptr_T) =
+  [%#sghost] inv_Option_refmut_Perm_ptr_T self
+
+meta "rewrite_def" predicate invariant_Ghost_Option_refmut_Perm_ptr_T
+
+predicate inv_Ghost_Option_refmut_Perm_ptr_T [@inline:trivial] (_1: t_Option_refmut_Perm_ptr_T) =
+  invariant_Ghost_Option_refmut_Perm_ptr_T _1
+
+meta "rewrite_def" predicate inv_Ghost_Option_refmut_Perm_ptr_T
+
+predicate is_null_ptr_Option_Links (self: Opaque.ptr) = [%#sptr'3] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None'0 | Some'0 t_Links
+
+predicate metadata_matches_Option_Links [@inline:trivial] (_value: t_Option_Links) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_Option_Links
+
+function val_ptr_Option_Links (self: t_Perm_ptr_Option_Links) : t_Option_Links
+
+function metadata_Option_Links (_1: Opaque.ptr) : ()
+
+predicate inv_ref_Option_Links [@inline:trivial] (_1: t_Option_Links) = true
+
+meta "rewrite_def" predicate inv_ref_Option_Links
+
+predicate invariant_Perm_ptr_Option_Links (self: t_Perm_ptr_Option_Links) =
+  [%#sptr'2] not is_null_ptr_Option_Links (ward_ptr_Option_Links self)
+  /\ metadata_matches_Option_Links (val_ptr_Option_Links self) (metadata_Option_Links (ward_ptr_Option_Links self))
+  /\ inv_ref_Option_Links (val_ptr_Option_Links self)
+
+predicate inv_Perm_ptr_Option_Links (_1: t_Perm_ptr_Option_Links)
+
+axiom inv_axiom'3 [@rewrite]:
+  forall x: t_Perm_ptr_Option_Links [inv_Perm_ptr_Option_Links x]. inv_Perm_ptr_Option_Links x
+    = invariant_Perm_ptr_Option_Links x
+
+predicate invariant_ref_Perm_ptr_Option_Links [@inline:trivial] (self: t_Perm_ptr_Option_Links) =
+  [%#sinvariant] inv_Perm_ptr_Option_Links self
+
+meta "rewrite_def" predicate invariant_ref_Perm_ptr_Option_Links
+
+predicate inv_ref_Perm_ptr_Option_Links [@inline:trivial] (_1: t_Perm_ptr_Option_Links) =
+  invariant_ref_Perm_ptr_Option_Links _1
+
+meta "rewrite_def" predicate inv_ref_Perm_ptr_Option_Links
+
+predicate invariant_Ghost_ref_Perm_ptr_Option_Links [@inline:trivial] (self: t_Perm_ptr_Option_Links) =
+  [%#sghost] inv_ref_Perm_ptr_Option_Links self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_Perm_ptr_Option_Links
+
+predicate inv_Ghost_ref_Perm_ptr_Option_Links [@inline:trivial] (_1: t_Perm_ptr_Option_Links) =
+  invariant_Ghost_ref_Perm_ptr_Option_Links _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_Perm_ptr_Option_Links
+
+predicate inv_BucketFieldPtrs_T (_1: t_BucketFieldPtrs_T)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_BucketFieldPtrs_T [inv_BucketFieldPtrs_T x]. inv_BucketFieldPtrs_T x
+    = (invariant_BucketFieldPtrs_T x
+    /\ inv_Ghost_ref_Perm_ptr_HashValue x.hash_permission
+    /\ inv_Ghost_ref_Perm_ptr_HeaderName x.key_permission
+    /\ inv_Ghost_Option_refmut_Perm_ptr_T x.value_permission /\ inv_Ghost_ref_Perm_ptr_Option_Links x.links_permission)
+
+predicate invariant_ref_BucketFieldPtrs_T [@inline:trivial] (self: t_BucketFieldPtrs_T) =
+  [%#sinvariant] inv_BucketFieldPtrs_T self
+
+meta "rewrite_def" predicate invariant_ref_BucketFieldPtrs_T
+
+predicate inv_ref_BucketFieldPtrs_T [@inline:trivial] (_1: t_BucketFieldPtrs_T) = invariant_ref_BucketFieldPtrs_T _1
+
+meta "rewrite_def" predicate inv_ref_BucketFieldPtrs_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec hash_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 467 4 467 35]
+  (self: t_BucketFieldPtrs_T) (return (x: t_HashValue)) =
+  {[@stop_split] [@expl:hash_T requires] ([@stop_split] [@expl:hash 'self' type invariant] [%#smap'0] inv_ref_BucketFieldPtrs_T self)
+  /\ ([@stop_split] [@expl:hash requires] [%#smap'1] invariant_ref_BucketFieldPtrs_T self)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = as_ref_HashValue [%#smap] {self.hash_ptr} {self.hash_permission} (fun (_x: t_HashValue) -> [ &_6 <- _x ] s1)
+    | s1 = [ &_ret <- _6 ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: t_HashValue = Any.any_l () | & self: t_BucketFieldPtrs_T = self | & _6: t_HashValue = Any.any_l () ])
+  [ return (result: t_HashValue) -> {[@stop_split] [@expl:hash ensures] [%#smap'2] result
+    = val_ptr_HashValue self.hash_permission}
+    (! return {result}) ]

@@ -1,0 +1,53 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 100 0 100 43 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 101 4 101 24
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 100 19 100 25
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 99 10 99 39
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 95 18 95 22
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 94 18 94 45
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec deref_Bytes (self_: t_Bytes) (return (x: Slice64.slice UInt8.t)) =
+  {[@stop_split] [@expl:deref 'self_' type invariant] [%#sbytes] inv_ref_Bytes self_}
+  any
+  [ return (result: Slice64.slice UInt8.t) -> {[@stop_split] [@expl:deref ensures] [%#sbytes'0] Slice64.view result
+    = bytes_seq self_}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec deref_bytes [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 100 0 100 43]
+  (source: t_Bytes) (return (x: Slice64.slice UInt8.t)) =
+  {[@stop_split] [@expl:deref_bytes 'source' type invariant] [%#slib'0] inv_ref_Bytes source}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = deref_Bytes [%#slib] {source} (fun (_x: Slice64.slice UInt8.t) -> [ &_4 <- _x ] s1)
+    | s1 = [ &_ret <- _4 ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: Slice64.slice UInt8.t = Any.any_l ()
+  | & source: t_Bytes = source
+  | & _4: Slice64.slice UInt8.t = Any.any_l () ])
+  [ return (result: Slice64.slice UInt8.t) -> {[@stop_split] [@expl:deref_bytes ensures] [%#slib'1] Slice64.view result
+    = bytes_seq source}
+    (! return {result}) ]

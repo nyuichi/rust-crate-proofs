@@ -1,0 +1,119 @@
+(* #"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 84 0 141 1 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 48 8 48 18
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 138 12 138 32
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 137 28 137 32
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 137 34 137 39
+let%span shash'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 136 18 136 29
+let%span shash'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 36 65 40
+let%span shash'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 42 65 47
+let%span shash'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 64 26 64 37
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_H
+
+predicate inv_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_H)
+
+type t_T
+
+type tup2_ref_T_refmut_H = { f0: t_T; f1: MutBorrow.t t_H }
+
+predicate inv_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_T)
+
+predicate invariant_ref_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: t_T) =
+  [%#sinvariant'0] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: t_T) =
+  invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate invariant_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 92 4 92 30] [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: MutBorrow.t t_H) =
+  invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+predicate precondition_hash [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 96 4 96 45] (self: ()) (args: tup2_ref_T_refmut_H)
+
+axiom precondition_fndef:
+  forall args: tup2_ref_T_refmut_H [precondition_hash () args]. (let {f0 = self_; f1 = state} = args in ([%#shash'3] inv_ref_T self_)
+      /\ ([%#shash'4] inv_refmut_H state)) -> precondition_hash () args
+
+predicate postcondition_once_hash [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 103 4 103 73] (self: ()) (args: tup2_ref_T_refmut_H) (result: ())
+
+axiom postcondition_fndef:
+  forall args: tup2_ref_T_refmut_H, res: () [postcondition_once_hash () args res]. postcondition_once_hash () args res
+    -> (let {f0 = self_; f1 = state} = args in [%#shash'5] inv_H state.final)
+
+let rec hash_T (self_: t_T) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash requires] precondition_hash () { f0 = self_; f1 = state }}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] postcondition_once_hash () { f0 = self_;
+                                                                                            f1 = state } result}
+    (! return {result}) ]
+
+predicate resolve_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/resolve.rs" 11 0 11 39] [@inline:trivial] (_1: MutBorrow.t t_H) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_H
+
+predicate invariant_Box_T_A [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 47 4 47 30] (self: t_T) =
+  [%#sboxed] inv_T self
+
+predicate inv_Box_T_A [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: t_T) =
+  invariant_Box_T_A _1
+
+meta "rewrite_def" predicate inv_Box_T_A
+
+predicate invariant_ref_Box_T_A [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: t_T) =
+  [%#sinvariant'0] inv_Box_T_A self
+
+meta "rewrite_def" predicate invariant_ref_Box_T_A
+
+predicate inv_ref_Box_T_A [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: t_T) =
+  invariant_ref_Box_T_A _1
+
+meta "rewrite_def" predicate inv_ref_Box_T_A
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec extern_spec_T_A_Hash_alloc_boxed_Box_T_A_hash_body_T
+  [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 84 0 141 1] (self_: t_T)
+  (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:extern_spec_T_A_Hash_alloc_boxed_Box_T_A_hash_body_T requires] ([@stop_split] [@expl:extern_spec_T_A_Hash_alloc_boxed_Box_T_A_hash_body 'self_' type invariant] [%#shash'0] inv_ref_Box_T_A self_)
+  /\ ([@stop_split] [@expl:extern_spec_T_A_Hash_alloc_boxed_Box_T_A_hash_body 'state' type invariant] [%#shash'1] inv_refmut_H state)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_6 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s1 = hash_T [%#shash] {self_} {_6} (fun (_x: ()) -> [ &_ret <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s3 = -{resolve_refmut_H state}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self_: t_T = self_
+  | & state: MutBorrow.t t_H = state
+  | & _6: MutBorrow.t t_H = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:extern_spec_T_A_Hash_alloc_boxed_Box_T_A_hash_body ensures] [%#shash'2] inv_H state.final}
+    (! return {result}) ]

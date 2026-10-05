@@ -1,59 +1,78 @@
+#[cfg(not(http_error_fmt_leaf))]
 use std::error;
 use std::fmt;
-use std::result;
 
-use crate::header;
-use crate::header::MaxSizeReached;
-use crate::method;
-use crate::status;
-use crate::uri;
+#[allow(unused_imports)]
+use creusot_std::prelude::{ensures, DeepModel};
 
-/// A generic "error" for HTTP connections
-///
-/// This error type is less specific than the error returned from other
-/// functions in this crate, but all other errors can be converted to this
-/// error. Consumers of this crate can typically consume and work with this form
-/// of error for conversions with the `?` operator.
-pub struct Error {
-    inner: ErrorKind,
-}
+#[cfg(test)]
+use crate::{header, status};
 
-/// A `Result` typedef to use with the `http::Error` type
-pub type Result<T> = result::Result<T, Error>;
-
-enum ErrorKind {
-    StatusCode(status::InvalidStatusCode),
-    Method(method::InvalidMethod),
-    Uri(uri::InvalidUri),
-    UriParts(uri::InvalidUriParts),
-    HeaderName(header::InvalidHeaderName),
-    HeaderValue(header::InvalidHeaderValue),
-    MaxSizeReached(MaxSizeReached),
-}
+#[path = "error/core.rs"]
+mod core;
+pub use self::core::{Error, Result};
+use self::core::ErrorKind;
 
 impl fmt::Debug for Error {
+    #[cfg_attr(
+        creusot,
+        ensures(creusot_std::std::fmt::formatter_extends(
+            f.deep_model(),
+            (^f).deep_model()
+        ))
+    )]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_tuple("http::Error")
-            // Skip the noise of the ErrorKind enum
-            .field(&self.get_ref())
-            .finish()
+        let mut tuple = f.debug_tuple("http::Error");
+        match self.inner {
+            ErrorKind::StatusCode(ref e) => {
+                tuple.field(e);
+            }
+            ErrorKind::Method(ref e) => {
+                tuple.field(e);
+            }
+            ErrorKind::Uri(ref e) => {
+                tuple.field(e);
+            }
+            ErrorKind::UriParts(ref e) => {
+                tuple.field(e);
+            }
+            ErrorKind::HeaderName(ref e) => {
+                tuple.field(e);
+            }
+            ErrorKind::HeaderValue(ref e) => {
+                tuple.field(e);
+            }
+            ErrorKind::MaxSizeReached(ref e) => {
+                tuple.field(e);
+            }
+        }
+        tuple.finish()
     }
 }
 
 impl fmt::Display for Error {
+    #[cfg_attr(
+        creusot,
+        ensures(creusot_std::std::fmt::formatter_extends(
+            f.deep_model(),
+            (^f).deep_model()
+        ))
+    )]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self.get_ref(), f)
+        match self.inner {
+            ErrorKind::StatusCode(ref e) => fmt::Display::fmt(e, f),
+            ErrorKind::Method(ref e) => fmt::Display::fmt(e, f),
+            ErrorKind::Uri(ref e) => fmt::Display::fmt(e, f),
+            ErrorKind::UriParts(ref e) => fmt::Display::fmt(e, f),
+            ErrorKind::HeaderName(ref e) => fmt::Display::fmt(e, f),
+            ErrorKind::HeaderValue(ref e) => fmt::Display::fmt(e, f),
+            ErrorKind::MaxSizeReached(ref e) => fmt::Display::fmt(e, f),
+        }
     }
 }
 
+#[cfg(not(http_error_fmt_leaf))]
 impl Error {
-    pub(crate) fn is_empty_uri(&self) -> bool {
-        match self.inner {
-            ErrorKind::Uri(ref err) => err.is_empty(),
-            _ => false,
-        }
-    }
-
     /// Return true if the underlying error has the same type as T.
     pub fn is<T: error::Error + 'static>(&self) -> bool {
         self.get_ref().is::<T>()
@@ -75,73 +94,12 @@ impl Error {
     }
 }
 
+#[cfg(not(http_error_fmt_leaf))]
 impl error::Error for Error {
     // Return any available cause from the inner error. Note the inner error is
     // not itself the cause.
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         self.get_ref().source()
-    }
-}
-
-impl From<MaxSizeReached> for Error {
-    fn from(err: MaxSizeReached) -> Error {
-        Error {
-            inner: ErrorKind::MaxSizeReached(err),
-        }
-    }
-}
-
-impl From<status::InvalidStatusCode> for Error {
-    fn from(err: status::InvalidStatusCode) -> Error {
-        Error {
-            inner: ErrorKind::StatusCode(err),
-        }
-    }
-}
-
-impl From<method::InvalidMethod> for Error {
-    fn from(err: method::InvalidMethod) -> Error {
-        Error {
-            inner: ErrorKind::Method(err),
-        }
-    }
-}
-
-impl From<uri::InvalidUri> for Error {
-    fn from(err: uri::InvalidUri) -> Error {
-        Error {
-            inner: ErrorKind::Uri(err),
-        }
-    }
-}
-
-impl From<uri::InvalidUriParts> for Error {
-    fn from(err: uri::InvalidUriParts) -> Error {
-        Error {
-            inner: ErrorKind::UriParts(err),
-        }
-    }
-}
-
-impl From<header::InvalidHeaderName> for Error {
-    fn from(err: header::InvalidHeaderName) -> Error {
-        Error {
-            inner: ErrorKind::HeaderName(err),
-        }
-    }
-}
-
-impl From<header::InvalidHeaderValue> for Error {
-    fn from(err: header::InvalidHeaderValue) -> Error {
-        Error {
-            inner: ErrorKind::HeaderValue(err),
-        }
-    }
-}
-
-impl From<std::convert::Infallible> for Error {
-    fn from(err: std::convert::Infallible) -> Error {
-        match err {}
     }
 }
 

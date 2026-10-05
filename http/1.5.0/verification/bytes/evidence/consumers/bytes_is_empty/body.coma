@@ -1,0 +1,47 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 80 0 80 44 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 81 4 81 20
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 80 22 80 27
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 79 10 79 50
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 67 21 67 25
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 66 18 66 57
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+
+use seq.Seq
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec is_empty (self_: t_Bytes) (return (x: bool)) =
+  {[@stop_split] [@expl:is_empty 'self_' type invariant] [%#sbytes] inv_ref_Bytes self_}
+  any
+  [ return (result: bool) -> {[@stop_split] [@expl:is_empty ensures] [%#sbytes'0] result
+    = (Seq.length (bytes_seq self_) = 0)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec bytes_is_empty [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 80 0 80 44]
+  (value: t_Bytes) (return (x: bool)) =
+  {[@stop_split] [@expl:bytes_is_empty 'value' type invariant] [%#slib'0] inv_ref_Bytes value}
+  (! bb0
+  [ bb0 = s0 [ s0 = is_empty [%#slib] {value} (fun (_x: bool) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & value: t_Bytes = value ])
+  [ return (result: bool) -> {[@stop_split] [@expl:bytes_is_empty ensures] [%#slib'1] result
+    = (Seq.length (bytes_seq value) = 0)}
+    (! return {result}) ]

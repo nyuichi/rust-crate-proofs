@@ -1,0 +1,147 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 682 4 682 55 *)
+
+(* <method::Inner as std::hash::Hash> *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 682 35 682 39
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 682 41 682 46
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1197 16 1198 78
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1206 24 1206 55
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1232 8 1232 28
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 24 8 24 22
+let%span sarray = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 36 65 40
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 42 65 47
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 64 26 64 37
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.MutBorrow
+use int.Int
+
+type t_InlineExtension = { f0: Slice64.array UInt8.t; f1: UInt8.t }
+
+type t_AllocatedExtension = { f0'0: Slice64.slice UInt8.t }
+
+type t_Inner =
+  | Options
+  | Get
+  | Post
+  | Put
+  | Delete
+  | Head
+  | Trace
+  | Connect
+  | Patch
+  | Query
+  | ExtensionInline t_InlineExtension
+  | ExtensionAllocated t_AllocatedExtension
+
+constant const_MAX: UInt64.t = [%#smethod'3] (15: UInt64.t)
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'5] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'4] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+predicate invariant_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1195 8 1195 34] (self: t_InlineExtension) =
+  [%#smethod'1] UInt8.t'int self.f1 <= UInt64.t'int const_MAX
+  /\ all_method_chars_valid (Seq.([..]) (Slice64.view self.f0) 0 (UInt8.t'int self.f1))
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_15 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (15: UInt64.t)
+
+predicate inv_array_u8_15 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_15 _1
+
+meta "rewrite_def" predicate inv_array_u8_15
+
+predicate inv_InlineExtension (_1: t_InlineExtension)
+
+axiom inv_axiom [@rewrite]: forall x: t_InlineExtension [inv_InlineExtension x]. inv_InlineExtension x
+    = (invariant_InlineExtension x /\ inv_array_u8_15 x.f0)
+
+function view_Box_slice_u8_Global [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq UInt8.t =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_u8_Global
+
+predicate invariant_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1205 8 1205 34] (self: t_AllocatedExtension) =
+  [%#smethod'2] all_method_chars_valid (view_Box_slice_u8_Global self.f0'0)
+
+predicate inv_AllocatedExtension (_1: t_AllocatedExtension)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_AllocatedExtension [inv_AllocatedExtension x]. inv_AllocatedExtension x
+    = invariant_AllocatedExtension x
+
+predicate inv_Inner (_1: t_Inner)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Inner [inv_Inner x]. inv_Inner x
+    = match x with
+      | Options -> true
+      | Get -> true
+      | Post -> true
+      | Put -> true
+      | Delete -> true
+      | Head -> true
+      | Trace -> true
+      | Connect -> true
+      | Patch -> true
+      | Query -> true
+      | ExtensionInline f0'1 -> inv_InlineExtension f0'1
+      | ExtensionAllocated f0'1 -> inv_AllocatedExtension f0'1
+      end
+
+predicate invariant_ref_Inner [@inline:trivial] (self: t_Inner) = [%#sinvariant] inv_Inner self
+
+meta "rewrite_def" predicate invariant_ref_Inner
+
+predicate inv_ref_Inner [@inline:trivial] (_1: t_Inner) = invariant_ref_Inner _1
+
+meta "rewrite_def" predicate inv_ref_Inner
+
+type t_H
+
+predicate inv_H (_1: t_H)
+
+predicate invariant_refmut_H [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant'0] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Inner. forall state: MutBorrow.t t_H. ([%#shash] inv_ref_Inner self_)
+        /\ ([%#shash'0] inv_refmut_H state)
+      -> ([%#smethod] inv_ref_Inner self_)
+      /\ ([%#smethod'0] inv_refmut_H state) /\ (forall result: (). [%#shash'1] inv_H state.final)

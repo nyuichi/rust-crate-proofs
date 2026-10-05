@@ -1,0 +1,76 @@
+(* #"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 236 8 236 32 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 17 20 17 30
+let%span sconvert = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 236 19 236 23
+let%span sconvert'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 236 28 236 32
+let%span sconvert'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 235 18 235 34
+
+use creusot.slice.Slice64
+use creusot.prelude.Any
+use seq.Seq
+use int.Int
+
+type t_T
+
+predicate inv_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_T)
+
+predicate invariant_ref_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: t_T) =
+  [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: t_T) =
+  invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate invariant_Seq_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 928 4 928 30] [@inline:trivial] (self: Seq.seq t_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_T
+
+predicate inv_Seq_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: Seq.seq t_T) =
+  invariant_Seq_T _1
+
+meta "rewrite_def" predicate inv_Seq_T
+
+predicate invariant_slice_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 16 4 16 30] (self: Slice64.slice t_T) =
+  [%#sslice] inv_Seq_T (Slice64.view self)
+
+predicate inv_slice_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: Slice64.slice t_T) =
+  invariant_slice_T _1
+
+meta "rewrite_def" predicate inv_slice_T
+
+predicate invariant_ref_slice_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: Slice64.slice t_T) =
+  [%#sinvariant] inv_slice_T self
+
+meta "rewrite_def" predicate invariant_ref_slice_T
+
+predicate inv_ref_slice_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: Slice64.slice t_T) =
+  invariant_ref_slice_T _1
+
+meta "rewrite_def" predicate inv_ref_slice_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec extern_spec_T_AsRef__slice_T__slice_T_as_ref_body_T
+  [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 236 8 236 32] (self_: Slice64.slice t_T)
+  (return (x: Slice64.slice t_T)) =
+  {[@stop_split] [@expl:extern_spec_T_AsRef__slice_T__slice_T_as_ref_body 'self_' type invariant] [%#sconvert] inv_ref_slice_T self_}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self_ ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: Slice64.slice t_T = Any.any_l () | & self_: Slice64.slice t_T = self_ ])
+  [ return (result: Slice64.slice t_T) ->
+  {[@stop_split] [@expl:extern_spec_T_AsRef__slice_T__slice_T_as_ref_body_T ensures] ([@stop_split] [@expl:extern_spec_T_AsRef__slice_T__slice_T_as_ref_body result type invariant] [%#sconvert'0] inv_ref_slice_T result)
+    /\ ([@stop_split] [@expl:extern_spec_T_AsRef__slice_T__slice_T_as_ref_body ensures] [%#sconvert'1] Slice64.view result
+    = Slice64.view self_)}
+    (! return {result}) ]

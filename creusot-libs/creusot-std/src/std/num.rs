@@ -490,6 +490,18 @@ macro_rules! spec_unsized {
                     #[ensures(result == (self != $zero && self & (self - $one) == $zero))]
                     fn is_power_of_two(self) -> bool;
 
+                    // `checked_next_power_of_two` returns the least representable
+                    // power of two greater than or equal to `self`. If that value
+                    // is not representable, it returns `None`.
+                    #[check(ghost)]
+                    #[ensures(match result {
+                        Some(next) => next.is_power_of_two()
+                            && self@ <= next@
+                            && (next == $one || next@ / 2 < self@),
+                        None => self@ > ($type::MAX@ + 1) / 2,
+                    })]
+                    fn checked_next_power_of_two(self) -> Option<$type>;
+
                     #[check(ghost)]
                     #[ensures(result == self.leading_zeros_logic())]
                     fn leading_zeros(self) -> u32;

@@ -1,0 +1,75 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 85 0 85 55 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 86 4 86 17
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 85 19 85 23
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 85 33 85 38
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 84 10 84 59
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 48 8 48 23
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 17 23 17 27
+let%span scmp'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 17 29 17 32
+let%span scmp'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 16 26 16 80
+let%span spartial_eq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 21 20 21 31
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+predicate invariant_ref_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_ref_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_ref_Bytes
+
+predicate inv_ref_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_ref_Bytes
+
+predicate eq_model_Seq_u8 (self: Seq.seq UInt8.t) (rhs: Seq.seq UInt8.t) = [%#spartial_eq] self = rhs
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function deep_model_Bytes (self: t_Bytes) : Seq.seq UInt8.t = [%#sbytes] bytes_seq self
+
+function deep_model_ref_Bytes [@inline:trivial] (self: t_Bytes) : Seq.seq UInt8.t = [%#smodel] deep_model_Bytes self
+
+meta "rewrite_def" function deep_model_ref_Bytes
+
+function deep_model_ref_ref_Bytes [@inline:trivial] (self: t_Bytes) : Seq.seq UInt8.t =
+  [%#smodel] deep_model_ref_Bytes self
+
+meta "rewrite_def" function deep_model_ref_ref_Bytes
+
+let rec eq_ref_Bytes (self_: t_Bytes) (rhs: t_Bytes) (return (x: bool)) =
+  {[@stop_split] [@expl:eq_ref_Bytes requires] ([@stop_split] [@expl:eq 'self_' type invariant] [%#scmp] inv_ref_ref_Bytes self_)
+  /\ ([@stop_split] [@expl:eq 'rhs' type invariant] [%#scmp'0] inv_ref_ref_Bytes rhs)}
+  any
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#scmp'1] result
+    = eq_model_Seq_u8 (deep_model_ref_ref_Bytes self_) (deep_model_ref_ref_Bytes rhs)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec bytes_equal [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 85 0 85 55]
+  (left: t_Bytes) (right: t_Bytes) (return (x: bool)) =
+  {[@stop_split] [@expl:bytes_equal requires] ([@stop_split] [@expl:bytes_equal 'left' type invariant] [%#slib'0] inv_ref_Bytes left)
+  /\ ([@stop_split] [@expl:bytes_equal 'right' type invariant] [%#slib'1] inv_ref_Bytes right)}
+  (! bb0
+  [ bb0 = s0 [ s0 = eq_ref_Bytes [%#slib] {left} {right} (fun (_x: bool) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & left: t_Bytes = left | & right: t_Bytes = right ])
+  [ return (result: bool) -> {[@stop_split] [@expl:bytes_equal ensures] [%#slib'2] result
+    = (bytes_seq left = bytes_seq right)}
+    (! return {result}) ]

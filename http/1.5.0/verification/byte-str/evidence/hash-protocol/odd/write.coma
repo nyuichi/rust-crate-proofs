@@ -1,0 +1,55 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 47 4 47 38 *)
+
+(* <hash_protocol_probe::OddMakingHasher as std::hash::Hasher> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span shash_protocol_probe = "/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 48 17 48 18
+let%span shash_protocol_probe'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 47 18 47 22
+let%span shash_protocol_probe'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 37 20 37 36
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use int.ComputerDivision
+use creusot.prelude.Any
+use creusot.slice.Slice64
+use creusot.int.UInt8
+
+type t_OddMakingHasher = { f0: UInt64.t }
+
+predicate invariant_OddMakingHasher [#"/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 36 4 36 30] (self: t_OddMakingHasher) =
+  [%#shash_protocol_probe'1] ComputerDivision.mod (UInt64.t'int self.f0) 2 = 0
+
+predicate inv_OddMakingHasher (_1: t_OddMakingHasher)
+
+axiom inv_axiom [@rewrite]: forall x: t_OddMakingHasher [inv_OddMakingHasher x]. inv_OddMakingHasher x
+    = invariant_OddMakingHasher x
+
+predicate invariant_refmut_OddMakingHasher [@inline:trivial] (self: MutBorrow.t t_OddMakingHasher) =
+  [%#sinvariant] inv_OddMakingHasher self.current /\ inv_OddMakingHasher self.final
+
+meta "rewrite_def" predicate invariant_refmut_OddMakingHasher
+
+predicate inv_refmut_OddMakingHasher [@inline:trivial] (_1: MutBorrow.t t_OddMakingHasher) =
+  invariant_refmut_OddMakingHasher _1
+
+meta "rewrite_def" predicate inv_refmut_OddMakingHasher
+
+predicate resolve_refmut_OddMakingHasher [@inline:trivial] (_1: MutBorrow.t t_OddMakingHasher) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_OddMakingHasher
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec write_OddMakingHasher
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 47 4 47 38]
+  (self: MutBorrow.t t_OddMakingHasher) (_bytes: Slice64.slice UInt8.t) (return (x: ())) =
+  {[@stop_split] [@expl:write 'self' type invariant] [%#shash_protocol_probe'0] inv_refmut_OddMakingHasher self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &self <- { self with current = { f0 = ([%#shash_protocol_probe] (1: UInt64.t)) } } ] s1
+    | s1 = s2 [ _ck -> (! {[@expl:type invariant] inv_refmut_OddMakingHasher self} any) ]
+    | s2 = -{resolve_refmut_OddMakingHasher self}- s3
+    | s3 = return {_ret} ] ] [ & _ret: () = Any.any_l () | & self: MutBorrow.t t_OddMakingHasher = self ])
+  [ return (result: ()) -> (! return {result}) ]

@@ -1,0 +1,17 @@
+Working directory for std commands: creusot-libs
+
+CHECK (compile only, no proof):
+RUSTFLAGS='--cfg http_header_value_complete' ../../scripts/run-proof.sh cargo creusot --check --simple-triggers=false -- --locked --offline (from http/1.5.0/verification/headers)
+Exit 0.
+
+CLEAN:
+../http/1.5.0/scripts/run-proof.sh cargo clean -p creusot-std (from creusot-libs)
+Exit 0.
+
+EMIT (actual Creusot output, no --check):
+../http/1.5.0/scripts/run-proof.sh cargo creusot -p creusot-std -- --features bytes-model --locked --offline (from creusot-libs)
+Exit 0.
+
+PROVE (require_escalated; wrapper lock; one solver, 1024 MiB):
+../http/1.5.0/scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache verif/creusot_std_rlib/std/partial_eq/seq_eq_u8_int_view_transport.coma -- --features bytes-model --locked --offline (from creusot-libs)
+Exit 0; own VC passed one Z3 leaf.

@@ -1,0 +1,90 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 358 4 358 36 *)
+
+(* status::StatusCode *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 359 15 359 27
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 359 8 359 11
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 359 31 359 43
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 359 46 359 49
+let%span sstatus'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 359 8 359 49
+let%span sstatus'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 358 23 358 27
+let%span sstatus'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 356 32 356 71
+let%span sstatus'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 141 20 141 39
+let%span sstatus'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 167 20 167 48
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 173 15 173 19
+let%span snum'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 171 18 171 47
+let%span snum'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 172 18 172 35
+let%span snum'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 147 20 147 30
+let%span snum'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 187 20 187 40
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+use int.Int
+
+type t_NonZero_u16
+
+type t_StatusCode = { f0: t_NonZero_u16 }
+
+predicate inv_NonZero_u16 (_1: t_NonZero_u16)
+
+function nonzero_value_u16 (_value: t_NonZero_u16) : UInt16.t
+
+predicate is_zero_u16 (self: UInt16.t) = [%#snum'2] UInt16.t'int self = 0
+
+let rec get_u16 (self_: t_NonZero_u16) (return (x: UInt16.t)) =
+  {[@stop_split] [@expl:get 'self_' type invariant] [%#snum] inv_NonZero_u16 self_}
+  any
+  [ return (result: UInt16.t) ->
+  {[@stop_split] [@expl:get_u16 ensures] ([@stop_split] [@expl:get ensures #0] [%#snum'0] result
+      = nonzero_value_u16 self_)
+    /\ ([@stop_split] [@expl:get ensures #1] [%#snum'1] not is_zero_u16 result)}
+    (! return {result}) ]
+
+function deep_model_NonZero_u16 (self: t_NonZero_u16) : int = [%#snum'3] UInt16.t'int (nonzero_value_u16 self)
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+ = [%#sstatus'6] deep_model_NonZero_u16 self.f0
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'7] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom [@rewrite]: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x
+    = (invariant_StatusCode x /\ inv_NonZero_u16 x.f0)
+
+predicate invariant_ref_StatusCode [@inline:trivial] (self: t_StatusCode) = [%#sinvariant] inv_StatusCode self
+
+meta "rewrite_def" predicate invariant_ref_StatusCode
+
+predicate inv_ref_StatusCode [@inline:trivial] (_1: t_StatusCode) = invariant_ref_StatusCode _1
+
+meta "rewrite_def" predicate inv_ref_StatusCode
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec is_success
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 358 4 358 36]
+  (self: t_StatusCode) (return (x: bool)) =
+  {[@stop_split] [@expl:is_success 'self' type invariant] [%#sstatus'4] inv_ref_StatusCode self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = get_u16 [%#sstatus] {self.f0} (fun (_x: UInt16.t) -> [ &_5 <- _x ] s1)
+    | s1 = [ &_4 <- UInt16.le ([%#sstatus'0] (200: UInt16.t)) _5 ] s2
+    | s2 = any [ br0 -> {_4 = false} (! bb3) | br1 -> {_4} (! bb2) ] ]
+  | bb2 = s0
+    [ s0 = get_u16 [%#sstatus'1] {self.f0} (fun (_x: UInt16.t) -> [ &_7 <- _x ] s1)
+    | s1 = [ &_ret <- UInt16.lt _7 ([%#sstatus'2] (300: UInt16.t)) ] s2
+    | s2 = return {_ret} ]
+  | bb3 = s0 [ s0 = [ &_ret <- [%#sstatus'3] false ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & self: t_StatusCode = self
+  | & _4: bool = Any.any_l ()
+  | & _5: UInt16.t = Any.any_l ()
+  | & _7: UInt16.t = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:is_success ensures] [%#sstatus'5] result
+    = (200 <= view_StatusCode self /\ view_StatusCode self < 300)}
+    (! return {result}) ]

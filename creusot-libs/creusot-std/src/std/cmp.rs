@@ -1,3 +1,7 @@
+#[cfg(creusot)]
+use crate::std::partial_eq::PartialEqModel;
+#[cfg(creusot)]
+use crate::std::partial_ord::PartialOrdModel;
 use crate::{logic::OrdLogic, prelude::*};
 use core::cmp::*;
 
@@ -10,32 +14,39 @@ pub use core::cmp::PartialEq;
 extern_spec! {
     mod core {
         mod cmp {
-            trait PartialEq<Rhs> {
-                #[ensures(result == (self.deep_model() == rhs.deep_model()))]
+            trait PartialEq<Rhs> where Rhs: ?Sized {
+                #[ensures(result == self.deep_model().eq_model(rhs.deep_model()))]
                 fn eq(&self, rhs: &Rhs) -> bool
                 where
                     Self: DeepModel,
-                    Rhs: DeepModel<DeepModelTy = Self::DeepModelTy>;
+                    Rhs: DeepModel,
+                    Self::DeepModelTy: PartialEqModel<Rhs::DeepModelTy>;
 
-                #[ensures(result == (self.deep_model() != rhs.deep_model()))]
+                #[ensures(result == !self.deep_model().eq_model(rhs.deep_model()))]
                 fn ne(&self, rhs: &Rhs) -> bool
                 where
                     Self: DeepModel,
-                    Rhs: DeepModel<DeepModelTy = Self::DeepModelTy> {
+                    Rhs: DeepModel,
+                    Self::DeepModelTy: PartialEqModel<Rhs::DeepModelTy> {
                     !(self == rhs)
                 }
             }
 
             // TODO: for now, we only support total orders
             trait PartialOrd<Rhs>
-                where Self: DeepModel,
-                      Rhs: DeepModel<DeepModelTy = Self::DeepModelTy>,
-                      Self::DeepModelTy: OrdLogic
+                where Rhs: ?Sized,
+                      Self: DeepModel,
+                      Rhs: DeepModel,
+                      Self::DeepModelTy: PartialOrdModel<Rhs::DeepModelTy>
             {
-                #[ensures(result == Some((*self).deep_model().cmp_log((*rhs).deep_model())))]
+                #[ensures(result == Some(
+                    (*self).deep_model().partial_cmp_model((*rhs).deep_model())
+                ))]
                 fn partial_cmp(&self, rhs: &Rhs) -> Option<Ordering>;
 
-                #[ensures(result == (self.deep_model() < other.deep_model()))]
+                #[ensures(result == (
+                    self.deep_model().partial_cmp_model(other.deep_model()) == Ordering::Less
+                ))]
                 fn lt(&self, other: &Rhs) -> bool {
                     match self.partial_cmp(other) {
                         Some(Ordering::Less) => true,
@@ -43,7 +54,10 @@ extern_spec! {
                     }
                 }
 
-                #[ensures(result == (self.deep_model() <= other.deep_model()))]
+                #[ensures(result == (
+                    self.deep_model().partial_cmp_model(other.deep_model()) == Ordering::Less
+                        || self.deep_model().partial_cmp_model(other.deep_model()) == Ordering::Equal
+                ))]
                 fn le(&self, other: &Rhs) -> bool {
                     match self.partial_cmp(other) {
                         Some(Ordering::Less | Ordering::Equal) => true,
@@ -51,7 +65,9 @@ extern_spec! {
                     }
                 }
 
-                #[ensures(result == (self.deep_model() > other.deep_model()))]
+                #[ensures(result == (
+                    self.deep_model().partial_cmp_model(other.deep_model()) == Ordering::Greater
+                ))]
                 fn gt(&self, other: &Rhs) -> bool {
                     match self.partial_cmp(other) {
                         Some(Ordering::Greater) => true,
@@ -59,7 +75,10 @@ extern_spec! {
                     }
                 }
 
-                #[ensures(result == (self.deep_model() >= other.deep_model()))]
+                #[ensures(result == (
+                    self.deep_model().partial_cmp_model(other.deep_model()) == Ordering::Greater
+                        || self.deep_model().partial_cmp_model(other.deep_model()) == Ordering::Equal
+                ))]
                 fn ge(&self, other: &Rhs) -> bool {
                     match self.partial_cmp(other) {
                         Some(Ordering::Greater | Ordering::Equal) => true,

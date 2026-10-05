@@ -1,0 +1,452 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 657 27 657 59 *)
+
+(* <method::Inner as std::cmp::PartialEq> *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 657 27 657 59
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1189 31 1189 63
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1170 15 1170 19
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1170 21 1170 26
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1169 36 1169 87
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 621 8 637 9
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1226 24 1226 31
+let%span smethod'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1216 24 1216 42
+let%span smethod'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1206 24 1206 55
+let%span smethod'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1197 16 1198 78
+let%span smethod'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1232 8 1232 28
+let%span smethod'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 24 8 24 22
+let%span sarray = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_InlineExtension = { f0: Slice64.array UInt8.t; f1: UInt8.t }
+
+type t_AllocatedExtension = { f0'0: Slice64.slice UInt8.t }
+
+type t_Inner =
+  | Options
+  | Get
+  | Post
+  | Put
+  | Delete
+  | Head
+  | Trace
+  | Connect
+  | Patch
+  | Query
+  | ExtensionInline t_InlineExtension
+  | ExtensionAllocated t_AllocatedExtension
+
+type tup2_ref_Inner_ref_Inner = { f0'1: t_Inner; f1'1: t_Inner }
+
+let rec elim_ExtensionAllocated (_x: t_Inner) (return (f0'2: t_AllocatedExtension)) = any
+  [ _k (f0'2: t_AllocatedExtension) -> {ExtensionAllocated f0'2 = _x} (! return {f0'2})
+  | _chk -> (! {[@expl:elim ExtensionAllocated] match _x with
+      | ExtensionAllocated _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'11] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'9] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+function view_Box_slice_u8_Global [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq UInt8.t =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_u8_Global
+
+predicate invariant_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1205 8 1205 34] (self: t_AllocatedExtension) =
+  [%#smethod'7] all_method_chars_valid (view_Box_slice_u8_Global self.f0'0)
+
+predicate inv_AllocatedExtension (_1: t_AllocatedExtension)
+
+axiom inv_axiom [@rewrite]: forall x: t_AllocatedExtension [inv_AllocatedExtension x]. inv_AllocatedExtension x
+    = invariant_AllocatedExtension x
+
+predicate invariant_ref_AllocatedExtension [@inline:trivial] (self: t_AllocatedExtension) =
+  [%#sinvariant] inv_AllocatedExtension self
+
+meta "rewrite_def" predicate invariant_ref_AllocatedExtension
+
+predicate inv_ref_AllocatedExtension [@inline:trivial] (_1: t_AllocatedExtension) = invariant_ref_AllocatedExtension _1
+
+meta "rewrite_def" predicate inv_ref_AllocatedExtension
+
+function deep_model_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1225 8 1225 48] (self: t_AllocatedExtension) : Seq.seq UInt8.t
+ = [%#smethod'5] view_Box_slice_u8_Global self.f0'0
+
+function deep_model_ref_AllocatedExtension [@inline:trivial] (self: t_AllocatedExtension) : Seq.seq UInt8.t =
+  [%#smodel] deep_model_AllocatedExtension self
+
+meta "rewrite_def" function deep_model_ref_AllocatedExtension
+
+let rec eq_AllocatedExtension (self: t_AllocatedExtension) (rhs: t_AllocatedExtension) (return (x: bool)) =
+  {[@stop_split] [@expl:eq_AllocatedExtension requires] ([@stop_split] [@expl:eq 'self' type invariant] [%#smethod'0] inv_ref_AllocatedExtension self)
+  /\ ([@stop_split] [@expl:eq 'rhs' type invariant] [%#smethod'0] inv_ref_AllocatedExtension rhs)}
+  any
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#smethod'0] result
+    = (deep_model_ref_AllocatedExtension self = deep_model_ref_AllocatedExtension rhs)}
+    (! return {result}) ]
+
+let rec elim_ExtensionInline (_x: t_Inner) (return (f0'2: t_InlineExtension)) = any
+  [ _k (f0'2: t_InlineExtension) -> {ExtensionInline f0'2 = _x} (! return {f0'2})
+  | _chk -> (! {[@expl:elim ExtensionInline] match _x with
+      | ExtensionInline _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+constant const_MAX: UInt64.t = [%#smethod'10] (15: UInt64.t)
+
+predicate invariant_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1195 8 1195 34] (self: t_InlineExtension) =
+  [%#smethod'8] UInt8.t'int self.f1 <= UInt64.t'int const_MAX
+  /\ all_method_chars_valid (Seq.([..]) (Slice64.view self.f0) 0 (UInt8.t'int self.f1))
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_15 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (15: UInt64.t)
+
+predicate inv_array_u8_15 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_15 _1
+
+meta "rewrite_def" predicate inv_array_u8_15
+
+predicate inv_InlineExtension (_1: t_InlineExtension)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_InlineExtension [inv_InlineExtension x]. inv_InlineExtension x
+    = (invariant_InlineExtension x /\ inv_array_u8_15 x.f0)
+
+predicate invariant_ref_InlineExtension [@inline:trivial] (self: t_InlineExtension) =
+  [%#sinvariant] inv_InlineExtension self
+
+meta "rewrite_def" predicate invariant_ref_InlineExtension
+
+predicate inv_ref_InlineExtension [@inline:trivial] (_1: t_InlineExtension) = invariant_ref_InlineExtension _1
+
+meta "rewrite_def" predicate inv_ref_InlineExtension
+
+type tup2_Seq_u8_Int = { f0'2: Seq.seq UInt8.t; f1'2: int }
+
+function deep_model_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1215 8 1215 48] (self: t_InlineExtension) : tup2_Seq_u8_Int
+ = [%#smethod'6] { f0'2 = Slice64.view self.f0; f1'2 = UInt8.t'int self.f1 }
+
+function deep_model_ref_InlineExtension [@inline:trivial] (self: t_InlineExtension) : tup2_Seq_u8_Int =
+  [%#smodel] deep_model_InlineExtension self
+
+meta "rewrite_def" function deep_model_ref_InlineExtension
+
+let rec eq_InlineExtension (self: t_InlineExtension) (other: t_InlineExtension) (return (x: bool)) =
+  {[@stop_split] [@expl:eq_InlineExtension requires] ([@stop_split] [@expl:eq 'self' type invariant] [%#smethod'1] inv_ref_InlineExtension self)
+  /\ ([@stop_split] [@expl:eq 'other' type invariant] [%#smethod'2] inv_ref_InlineExtension other)}
+  any
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#smethod'3] result
+    = (deep_model_ref_InlineExtension self = deep_model_ref_InlineExtension other)}
+    (! return {result}) ]
+
+predicate inv_Inner (_1: t_Inner)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Inner [inv_Inner x]. inv_Inner x
+    = match x with
+      | Options -> true
+      | Get -> true
+      | Post -> true
+      | Put -> true
+      | Delete -> true
+      | Head -> true
+      | Trace -> true
+      | Connect -> true
+      | Patch -> true
+      | Query -> true
+      | ExtensionInline f0'3 -> inv_InlineExtension f0'3
+      | ExtensionAllocated f0'3 -> inv_AllocatedExtension f0'3
+      end
+
+predicate invariant_ref_Inner [@inline:trivial] (self: t_Inner) = [%#sinvariant] inv_Inner self
+
+meta "rewrite_def" predicate invariant_ref_Inner
+
+predicate inv_ref_Inner [@inline:trivial] (_1: t_Inner) = invariant_ref_Inner _1
+
+meta "rewrite_def" predicate inv_ref_Inner
+
+type t_MethodModel =
+  | Options'0
+  | Get'0
+  | Post'0
+  | Put'0
+  | Delete'0
+  | Head'0
+  | Trace'0
+  | Connect'0
+  | Patch'0
+  | Query'0
+  | ExtensionInline'0 (Seq.seq UInt8.t) int
+  | ExtensionAllocated'0 (Seq.seq UInt8.t)
+
+function deep_model_Inner [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 620 4 620 44] (self: t_Inner) : t_MethodModel
+ = [%#smethod'4] match self with
+    | Options -> Options'0
+    | Get -> Get'0
+    | Post -> Post'0
+    | Put -> Put'0
+    | Delete -> Delete'0
+    | Head -> Head'0
+    | Trace -> Trace'0
+    | Connect -> Connect'0
+    | Patch -> Patch'0
+    | Query -> Query'0
+    | ExtensionInline value -> let model = deep_model_InlineExtension value in ExtensionInline'0 (model.f0'2) (model.f1'2)
+    | ExtensionAllocated value -> ExtensionAllocated'0 (deep_model_AllocatedExtension value)
+    end
+
+function deep_model_ref_Inner [@inline:trivial] (self: t_Inner) : t_MethodModel = [%#smodel] deep_model_Inner self
+
+meta "rewrite_def" function deep_model_ref_Inner
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec eq_Inner
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 657 27 657 59]
+  (self: t_Inner) (rhs: t_Inner) (return (x: bool)) =
+  {[@stop_split] [@expl:eq_Inner requires] ([@stop_split] [@expl:eq 'self' type invariant] [%#smethod] inv_ref_Inner self)
+  /\ ([@stop_split] [@expl:eq 'rhs' type invariant] [%#smethod] inv_ref_Inner rhs)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_6 <- { f0'1 = self; f1'1 = rhs } ] s1
+    | s1 = any
+      [ br0 -> {_6.f0'1 = Options} (! bb2)
+      | br1 -> {_6.f0'1 = Get} (! bb4)
+      | br2 -> {_6.f0'1 = Post} (! bb6)
+      | br3 -> {_6.f0'1 = Put} (! bb8)
+      | br4 -> {_6.f0'1 = Delete} (! bb10)
+      | br5 -> {_6.f0'1 = Head} (! bb12)
+      | br6 -> {_6.f0'1 = Trace} (! bb14)
+      | br7 -> {_6.f0'1 = Connect} (! bb16)
+      | br8 -> {_6.f0'1 = Patch} (! bb18)
+      | br9 -> {_6.f0'1 = Query} (! bb20)
+      | br10 (x0: t_InlineExtension) -> {_6.f0'1 = ExtensionInline x0} (! bb22)
+      | br11 (x0: t_AllocatedExtension) -> {_6.f0'1 = ExtensionAllocated x0} (! bb24) ] ]
+  | bb24 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb26) ]
+  | bb26 = s0
+    [ s0 = elim_ExtensionAllocated {_6.f0'1} (fun (r0: t_AllocatedExtension) -> [ &v0_1'0 <- r0 ] s1)
+    | s1 = elim_ExtensionAllocated {_6.f1'1} (fun (r0: t_AllocatedExtension) -> [ &v0_2'0 <- r0 ] s2)
+    | s2 = eq_AllocatedExtension [%#smethod] {v0_1'0} {v0_2'0} (fun (_x: bool) -> [ &_29 <- _x ] s3)
+    | s3 = any [ br0 -> {_29 = false} (! bb44) | br1 -> {_29} (! bb43) ] ]
+  | bb43 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb44 = s0 [ s0 = [ &_ret <- [%#smethod] false ] s1 | s1 = return {_ret} ]
+  | bb22 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb27)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb27 = s0
+    [ s0 = elim_ExtensionInline {_6.f0'1} (fun (r0: t_InlineExtension) -> [ &v0_1 <- r0 ] s1)
+    | s1 = elim_ExtensionInline {_6.f1'1} (fun (r0: t_InlineExtension) -> [ &v0_2 <- r0 ] s2)
+    | s2 = eq_InlineExtension [%#smethod] {v0_1} {v0_2} (fun (_x: bool) -> [ &_24 <- _x ] s3)
+    | s3 = any [ br0 -> {_24 = false} (! bb40) | br1 -> {_24} (! bb39) ] ]
+  | bb39 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb40 = s0 [ s0 = [ &_ret <- [%#smethod] false ] s1 | s1 = return {_ret} ]
+  | bb20 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb28)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb28 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb18 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb29)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb29 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb16 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb30)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb30 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb14 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb31)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb31 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb12 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb32)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb32 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb10 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb33)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb33 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb8 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb34)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb34 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb6 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb35)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb35 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb4 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb1)
+    | br1 -> {_6.f1'1 = Get} (! bb36)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb36 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ]
+  | bb2 = any
+    [ br0 -> {_6.f1'1 = Options} (! bb37)
+    | br1 -> {_6.f1'1 = Get} (! bb1)
+    | br2 -> {_6.f1'1 = Post} (! bb1)
+    | br3 -> {_6.f1'1 = Put} (! bb1)
+    | br4 -> {_6.f1'1 = Delete} (! bb1)
+    | br5 -> {_6.f1'1 = Head} (! bb1)
+    | br6 -> {_6.f1'1 = Trace} (! bb1)
+    | br7 -> {_6.f1'1 = Connect} (! bb1)
+    | br8 -> {_6.f1'1 = Patch} (! bb1)
+    | br9 -> {_6.f1'1 = Query} (! bb1)
+    | br10 (x0: t_InlineExtension) -> {_6.f1'1 = ExtensionInline x0} (! bb1)
+    | br11 (x0: t_AllocatedExtension) -> {_6.f1'1 = ExtensionAllocated x0} (! bb1) ]
+  | bb1 = s0 [ s0 = [ &_ret <- [%#smethod] false ] s1 | s1 = return {_ret} ]
+  | bb37 = s0 [ s0 = [ &_ret <- [%#smethod] true ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & self: t_Inner = self
+  | & rhs: t_Inner = rhs
+  | & _6: tup2_ref_Inner_ref_Inner = Any.any_l ()
+  | & v0_1: t_InlineExtension = Any.any_l ()
+  | & v0_2: t_InlineExtension = Any.any_l ()
+  | & _24: bool = Any.any_l ()
+  | & v0_1'0: t_AllocatedExtension = Any.any_l ()
+  | & v0_2'0: t_AllocatedExtension = Any.any_l ()
+  | & _29: bool = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#smethod] result
+    = (deep_model_ref_Inner self = deep_model_ref_Inner rhs)}
+    (! return {result}) ]

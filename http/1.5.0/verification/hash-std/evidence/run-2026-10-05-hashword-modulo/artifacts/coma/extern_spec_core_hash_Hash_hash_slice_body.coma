@@ -1,0 +1,281 @@
+(* #"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 63 18 70 18 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 432 21 432 25
+let%span sslice'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 431 18 431 33
+let%span sslice'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 511 20 511 62
+let%span sslice'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 517 12 517 66
+let%span sslice'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 522 14 522 47
+let%span sslice'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 523 27 523 29
+let%span sslice'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 526 15 526 32
+let%span sslice'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 527 15 527 32
+let%span sslice'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 528 14 528 42
+let%span sslice'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 529 91 529 93
+let%span sslice'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 103 14 103 41
+let%span sslice'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 104 14 104 76
+let%span sslice'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 64 20 64 29
+let%span sslice'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 17 20 17 30
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 74 35 74 39
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 75 24 75 43
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 70 41 70 45
+let%span shash'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 70 56 70 61
+let%span shash'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 69 26 69 37
+let%span shash'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 36 65 40
+let%span shash'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 42 65 47
+let%span shash'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 64 26 64 37
+let%span siter = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 107 29 107 33
+let%span siter'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 103 26 106 17
+
+use creusot.slice.Slice64
+use seq.Seq
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+use int.Int
+
+type t_Self_
+
+type t_Iter_Self_
+
+predicate inv_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_Self_)
+
+predicate invariant_ref_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: t_Self_) =
+  [%#sinvariant'0] inv_Self_ self
+
+meta "rewrite_def" predicate invariant_ref_Self_
+
+predicate inv_ref_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: t_Self_) =
+  invariant_ref_Self_ _1
+
+meta "rewrite_def" predicate inv_ref_Self_
+
+predicate invariant_Seq_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 928 4 928 30] [@inline:trivial] (self: Seq.seq t_Self_) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_Self_ (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_Self_
+
+predicate inv_Seq_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: Seq.seq t_Self_) =
+  invariant_Seq_Self_ _1
+
+meta "rewrite_def" predicate inv_Seq_Self_
+
+predicate invariant_slice_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 16 4 16 30] (self: Slice64.slice t_Self_) =
+  [%#sslice'12] inv_Seq_Self_ (Slice64.view self)
+
+predicate inv_slice_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: Slice64.slice t_Self_) =
+  invariant_slice_Self_ _1
+
+meta "rewrite_def" predicate inv_slice_Self_
+
+predicate invariant_ref_slice_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: Slice64.slice t_Self_) =
+  [%#sinvariant'0] inv_slice_Self_ self
+
+meta "rewrite_def" predicate invariant_ref_slice_Self_
+
+predicate inv_ref_slice_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: Slice64.slice t_Self_) =
+  invariant_ref_slice_Self_ _1
+
+meta "rewrite_def" predicate inv_ref_slice_Self_
+
+predicate inv_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_Iter_Self_)
+
+function view_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 503 4 503 33] (self: t_Iter_Self_) : Slice64.slice t_Self_
+
+let rec into_iter_ref_slice_Self_ (self_: Slice64.slice t_Self_) (return (x: t_Iter_Self_)) =
+  {[@stop_split] [@expl:into_iter 'self_' type invariant] [%#sslice] inv_ref_slice_Self_ self_}
+  any
+  [ return (result: t_Iter_Self_) ->
+  {[@stop_split] [@expl:into_iter_ref_slice_Self_ ensures] ([@stop_split] [@expl:into_iter result type invariant] inv_Iter_Self_ result)
+    /\ ([@stop_split] [@expl:into_iter ensures] [%#sslice'0] self_ = view_Iter_Self_ result)}
+    (! return {result}) ]
+
+type t_Option_ref_Self_ = None | Some t_Self_
+
+predicate invariant_refmut_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 92 4 92 30] [@inline:trivial] (self: MutBorrow.t t_Iter_Self_) =
+  [%#sinvariant] inv_Iter_Self_ self.current /\ inv_Iter_Self_ self.final
+
+meta "rewrite_def" predicate invariant_refmut_Iter_Self_
+
+predicate inv_refmut_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: MutBorrow.t t_Iter_Self_) =
+  invariant_refmut_Iter_Self_ _1
+
+meta "rewrite_def" predicate inv_refmut_Iter_Self_
+
+predicate inv_Option_ref_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_Option_ref_Self_)
+
+axiom inv_axiom [@rewrite]: forall x: t_Option_ref_Self_ [inv_Option_ref_Self_ x]. inv_Option_ref_Self_ x
+    = match x with
+      | None -> true
+      | Some f0 -> inv_ref_Self_ f0
+      end
+
+function index_slice_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 63 4 63 47] [@inline:trivial] (self: Slice64.slice t_Self_) (ix: int) : t_Self_
+ = [%#sslice'11] Seq.get (Slice64.view self) ix
+
+meta "rewrite_def" function index_slice_Self_
+
+function to_ref_seq_slice_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 105 4 105 35] (self: Slice64.slice t_Self_) : Seq.seq t_Self_
+
+axiom to_ref_seq_slice_Self__spec:
+  forall self: Slice64.slice t_Self_. [%#sslice'9] Seq.length (to_ref_seq_slice_Self_ self)
+    = Seq.length (Slice64.view self)
+
+axiom to_ref_seq_slice_Self__spec'0: forall self: Slice64.slice t_Self_. [%#sslice'10] forall i: int. 0 <= i
+        /\ i < Seq.length (to_ref_seq_slice_Self_ self)
+      -> Seq.get (to_ref_seq_slice_Self_ self) i = index_slice_Self_ self i
+
+predicate produces_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 515 4 515 65] (self: t_Iter_Self_) (visited: Seq.seq t_Self_) (tl: t_Iter_Self_) =
+  [%#sslice'2] to_ref_seq_slice_Self_ (view_Iter_Self_ self)
+  = Seq.(++) visited (to_ref_seq_slice_Self_ (view_Iter_Self_ tl))
+
+function produces_trans_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 529 4 529 90] (a: t_Iter_Self_) (ab: Seq.seq t_Self_) (b: t_Iter_Self_) (bc: Seq.seq t_Self_) (c: t_Iter_Self_) : ()
+ = [%#sslice'8] ()
+
+axiom produces_trans_Iter_Self__spec:
+  forall a: t_Iter_Self_, ab: Seq.seq t_Self_, b: t_Iter_Self_, bc: Seq.seq t_Self_, c: t_Iter_Self_. ([%#sslice'5] produces_Iter_Self_ a ab b)
+    -> ([%#sslice'6] produces_Iter_Self_ b bc c) -> ([%#sslice'7] produces_Iter_Self_ a (Seq.(++) ab bc) c)
+
+function produces_refl_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 523 4 523 26] (self: t_Iter_Self_) : ()
+ = [%#sslice'4] ()
+
+axiom produces_refl_Iter_Self__spec:
+  forall self: t_Iter_Self_. [%#sslice'3] produces_Iter_Self_ self (Seq.empty: Seq.seq t_Self_) self
+
+predicate resolve_refmut_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/resolve.rs" 11 0 11 39] [@inline:trivial] (_1: MutBorrow.t t_Iter_Self_) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Iter_Self_
+
+predicate completed_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 510 4 510 35] (self: MutBorrow.t t_Iter_Self_) =
+  [%#sslice'1] resolve_refmut_Iter_Self_ self
+  /\ Slice64.view (view_Iter_Self_ self.current) = (Seq.empty: Seq.seq t_Self_)
+
+let rec next_Iter_Self_ (self_: MutBorrow.t t_Iter_Self_) (return (x: t_Option_ref_Self_)) =
+  {[@stop_split] [@expl:next 'self_' type invariant] [%#siter] inv_refmut_Iter_Self_ self_}
+  any
+  [ return (result: t_Option_ref_Self_) ->
+  {[@stop_split] [@expl:next_Iter_Self_ ensures] ([@stop_split] [@expl:next result type invariant] inv_Option_ref_Self_ result)
+    /\ ([@stop_split] [@expl:next ensures] [%#siter'0] match result with
+      | None -> completed_Iter_Self_ self_
+      | Some v -> produces_Iter_Self_ self_.current (Seq.singleton v) self_.final
+      end)}
+    (! return {result}) ]
+
+type t_H
+
+predicate inv_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_H)
+
+predicate invariant_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 92 4 92 30] [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: MutBorrow.t t_H) =
+  invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+let rec elim_Some (_x: t_Option_ref_Self_) (return (f0: t_Self_)) = any
+  [ _k (f0: t_Self_) -> {Some f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type tup2_ref_Self__refmut_H = { f0: t_Self_; f1: MutBorrow.t t_H }
+
+predicate precondition_hash [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 96 4 96 45] (self: ()) (args: tup2_ref_Self__refmut_H)
+
+axiom precondition_fndef:
+  forall args: tup2_ref_Self__refmut_H [precondition_hash () args]. (let {f0 = self_; f1 = state} = args in ([%#shash'4] inv_ref_Self_ self_)
+      /\ ([%#shash'5] inv_refmut_H state)) -> precondition_hash () args
+
+predicate postcondition_once_hash [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 103 4 103 73] (self: ()) (args: tup2_ref_Self__refmut_H) (result: ())
+
+axiom postcondition_fndef:
+  forall args: tup2_ref_Self__refmut_H, res: () [postcondition_once_hash () args res]. postcondition_once_hash () args res
+    -> (let {f0 = self_; f1 = state} = args in [%#shash'6] inv_H state.final)
+
+let rec hash_Self_ (self_: t_Self_) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash requires] precondition_hash () { f0 = self_; f1 = state }}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] postcondition_once_hash () { f0 = self_;
+                                                                                            f1 = state } result}
+    (! return {result}) ]
+
+predicate resolve_Iter_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/resolve.rs" 11 0 11 39] (_1: t_Iter_Self_)
+
+predicate resolve_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/resolve.rs" 11 0 11 39] [@inline:trivial] (_1: MutBorrow.t t_H) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_H
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec extern_spec_core_hash_Hash_hash_slice_body_Self_
+  [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 63 18 70 18] (data: Slice64.slice t_Self_)
+  (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:extern_spec_core_hash_Hash_hash_slice_body_Self_ requires] ([@stop_split] [@expl:extern_spec_core_hash_Hash_hash_slice_body 'data' type invariant] [%#shash'1] inv_ref_slice_Self_ data)
+  /\ ([@stop_split] [@expl:extern_spec_core_hash_Hash_hash_slice_body 'state' type invariant] [%#shash'2] inv_refmut_H state)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = into_iter_ref_slice_Self_ [%#shash] {data} (fun (_x: t_Iter_Self_) -> [ &_5 <- _x ] s1)
+    | s1 = [ &iter <- _5 ] s2
+    | s2 = [ &_old <- state.final ] s3
+    | s3 = bb2 ]
+  | bb2 = bb2
+    [ bb2 = {[@expl:inferred invariant: type invariant] inv_Iter_Self_ iter}
+      {[@expl:inferred invariant: type invariant] inv_refmut_H state}
+      {[@expl:inferred invariant: unchanged value] _old = state.final}
+      (! s0)
+      [ s0 = MutBorrow.borrow_mut <t_Iter_Self_> {iter}
+          (fun (_bor: MutBorrow.t t_Iter_Self_) ->
+            [ &_12 <- _bor ] -{inv_Iter_Self_ _bor.final}-
+            [ &iter <- _bor.final ] s1) [ _ck -> (! {[@expl:type invariant] inv_Iter_Self_ iter} any) ]
+      | s1 = MutBorrow.borrow_final <t_Iter_Self_> {_12.current} {MutBorrow.get_id _12}
+          (fun (_bor: MutBorrow.t t_Iter_Self_) ->
+            [ &_11 <- _bor ] -{inv_Iter_Self_ _bor.final}-
+            [ &_12 <- { _12 with current = _bor.final } ] s2)
+        [ _ck -> (! {[@expl:type invariant] inv_Iter_Self_ _12.current} any) ]
+      | s2 = next_Iter_Self_ [%#shash] {_11} (fun (_x: t_Option_ref_Self_) -> [ &_10 <- _x ] s3)
+      | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut_Iter_Self_ _12} any) ]
+      | s4 = -{resolve_refmut_Iter_Self_ _12}- s5
+      | s5 = any [ br0 -> {_10 = None} (! bb6) | br1 (x0: t_Self_) -> {_10 = Some x0} (! bb7) ] ]
+      [ bb7 = s0
+        [ s0 = elim_Some {_10} (fun (r0: t_Self_) -> [ &element <- r0 ] s1)
+        | s1 = MutBorrow.borrow_mut <t_H> {state.current}
+            (fun (_bor: MutBorrow.t t_H) ->
+              [ &_18 <- _bor ] -{inv_H _bor.final}-
+              [ &state <- { state with current = _bor.final } ] s2)
+          [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+        | s2 = hash_Self_ [%#shash'0] {element} {_18} (fun (_x: ()) -> [ &_16 <- _x ] s3)
+        | s3 = bb2 ] ] ]
+  | bb6 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_Iter_Self_ iter} any) ]
+    | s1 = -{resolve_Iter_Self_ iter}- s2
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s3 = -{resolve_refmut_H state}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & data: Slice64.slice t_Self_ = data
+  | & state: MutBorrow.t t_H = state
+  | & _5: t_Iter_Self_ = Any.any_l ()
+  | & iter: t_Iter_Self_ = Any.any_l ()
+  | & _10: t_Option_ref_Self_ = Any.any_l ()
+  | & _11: MutBorrow.t t_Iter_Self_ = Any.any_l ()
+  | & _12: MutBorrow.t t_Iter_Self_ = Any.any_l ()
+  | & element: t_Self_ = Any.any_l ()
+  | & _16: () = Any.any_l ()
+  | & _18: MutBorrow.t t_H = Any.any_l ()
+  | & _old: t_H = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:extern_spec_core_hash_Hash_hash_slice_body ensures] [%#shash'3] inv_H state.final}
+    (! return {result}) ]

@@ -81,6 +81,7 @@
 )]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(creusot, feature(nonzero_internals))]
+#![cfg_attr(all(creusot, feature = "bytes-model"), feature(hasher_prefixfree_extras))]
 
 extern crate alloc;
 

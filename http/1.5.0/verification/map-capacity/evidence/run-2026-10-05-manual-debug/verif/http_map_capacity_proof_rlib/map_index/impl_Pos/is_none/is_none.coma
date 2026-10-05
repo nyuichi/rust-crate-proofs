@@ -1,0 +1,27 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 100 4 100 40 *)
+
+(* map_index::Pos *)
+
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 101 22 101 30
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 99 14 99 48
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+constant const_MAX: UInt16.t = (65535: UInt16.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec is_none
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 100 4 100 40]
+  (self: t_Pos) (return (x: bool)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self.index = ([%#smap_index] const_MAX) ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & self: t_Pos = self ])
+  [ return (result: bool) -> {[@stop_split] [@expl:is_none ensures] [%#smap_index'0] result = (self.index = const_MAX)}
+    (! return {result}) ]

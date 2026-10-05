@@ -1,0 +1,13 @@
+Working directory: creusot-libs
+
+CLEAN
+../http/1.5.0/scripts/run-proof.sh cargo clean -p creusot-std
+Exit 0.
+
+EMIT
+../http/1.5.0/scripts/run-proof.sh cargo creusot -p creusot-std -- --features bytes-model --locked --offline
+Exit 0; current pair-helper source fingerprint is recorded in manifest.json.
+
+PROVE (require_escalated; one solver, 1024 MiB)
+../http/1.5.0/scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache verif/creusot_std_rlib/std/partial_ord/seq_cmp_u8_int_pair_transport.coma verif/creusot_std_rlib/std/partial_ord/seq_cmp_u8_int_pair_transport_preserved.coma -- --features bytes-model --locked --offline
+Exit 0; both new own targets passed one leaf each.

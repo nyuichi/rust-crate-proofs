@@ -1,0 +1,179 @@
+(* #"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 84 0 141 1 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 289 16 289 20
+let%span sslice'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+let%span sslice'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 17 20 17 30
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 123 38 123 48
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 123 12 123 49
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 124 12 124 38
+let%span shash'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 122 28 122 32
+let%span shash'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 122 34 122 39
+let%span shash'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 121 18 121 29
+let%span shash'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 58 44 58 48
+let%span shash'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 57 26 57 36
+let%span shash'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 70 41 70 45
+let%span shash'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 70 56 70 61
+let%span shash'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 69 26 69 37
+
+use creusot.slice.Slice64
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+use int.Int
+
+type t_T
+
+predicate inv_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_T)
+
+predicate invariant_ref_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: t_T) =
+  [%#sinvariant'0] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: t_T) =
+  invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate invariant_Seq_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 928 4 928 30] [@inline:trivial] (self: Seq.seq t_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_T
+
+predicate inv_Seq_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: Seq.seq t_T) =
+  invariant_Seq_T _1
+
+meta "rewrite_def" predicate inv_Seq_T
+
+predicate invariant_slice_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 16 4 16 30] (self: Slice64.slice t_T) =
+  [%#sslice'1] inv_Seq_T (Slice64.view self)
+
+predicate inv_slice_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: Slice64.slice t_T) =
+  invariant_slice_T _1
+
+meta "rewrite_def" predicate inv_slice_T
+
+predicate invariant_ref_slice_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: Slice64.slice t_T) =
+  [%#sinvariant'0] inv_slice_T self
+
+meta "rewrite_def" predicate invariant_ref_slice_T
+
+predicate inv_ref_slice_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: Slice64.slice t_T) =
+  invariant_ref_slice_T _1
+
+meta "rewrite_def" predicate inv_ref_slice_T
+
+let rec len_T (self_: Slice64.slice t_T) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:len 'self_' type invariant] [%#sslice] inv_ref_slice_T self_}
+  any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice'0] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+type t_H
+
+predicate inv_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_H)
+
+type tup2_refmut_H_usize = { f0: MutBorrow.t t_H; f1: UInt64.t }
+
+predicate invariant_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 92 4 92 30] [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: MutBorrow.t t_H) =
+  invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+predicate precondition_write_length_prefix [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 96 4 96 45] (self: ()) (args: tup2_refmut_H_usize)
+
+axiom precondition_fndef:
+  forall args: tup2_refmut_H_usize [precondition_write_length_prefix () args]. (let {f0 = self_; f1 = len} = args in [%#shash'5] inv_refmut_H self_)
+    -> precondition_write_length_prefix () args
+
+predicate postcondition_once_write_length_prefix [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 103 4 103 73] (self: ()) (args: tup2_refmut_H_usize) (result: ())
+
+axiom postcondition_fndef:
+  forall args: tup2_refmut_H_usize, res: () [postcondition_once_write_length_prefix () args res]. postcondition_once_write_length_prefix () args res
+    -> (let {f0 = self_; f1 = len} = args in [%#shash'6] inv_H self_.final)
+
+let rec write_length_prefix_H (self_: MutBorrow.t t_H) (len: UInt64.t) (return (x: ())) =
+  {[@stop_split] [@expl:write_length_prefix requires] precondition_write_length_prefix () { f0 = self_; f1 = len }}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:write_length_prefix ensures] postcondition_once_write_length_prefix () { f0 = self_;
+                                                                                                 f1 = len } result}
+    (! return {result}) ]
+
+type tup2_ref_slice_T_refmut_H = { f0'0: Slice64.slice t_T; f1'0: MutBorrow.t t_H }
+
+predicate precondition_hash_slice [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 96 4 96 45] (self: ()) (args: tup2_ref_slice_T_refmut_H)
+
+axiom precondition_fndef'0:
+  forall args: tup2_ref_slice_T_refmut_H [precondition_hash_slice () args]. (let {f0'0 = data; f1'0 = state} = args in ([%#shash'7] inv_ref_slice_T data)
+      /\ ([%#shash'8] inv_refmut_H state)) -> precondition_hash_slice () args
+
+predicate postcondition_once_hash_slice [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 103 4 103 73] (self: ()) (args: tup2_ref_slice_T_refmut_H) (result: ())
+
+axiom postcondition_fndef'0:
+  forall args: tup2_ref_slice_T_refmut_H, res: () [postcondition_once_hash_slice () args res]. postcondition_once_hash_slice () args res
+    -> (let {f0'0 = data; f1'0 = state} = args in [%#shash'9] inv_H state.final)
+
+let rec hash_slice_T (data: Slice64.slice t_T) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_slice requires] precondition_hash_slice () { f0'0 = data; f1'0 = state }}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:hash_slice ensures] postcondition_once_hash_slice () { f0'0 = data;
+                                                                                                        f1'0 = state } result}
+    (! return {result}) ]
+
+predicate resolve_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/resolve.rs" 11 0 11 39] [@inline:trivial] (_1: MutBorrow.t t_H) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_H
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec extern_spec_T_Hash__slice_T_hash_body_T
+  [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 84 0 141 1] (self_: Slice64.slice t_T)
+  (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:extern_spec_T_Hash__slice_T_hash_body_T requires] ([@stop_split] [@expl:extern_spec_T_Hash__slice_T_hash_body 'self_' type invariant] [%#shash'2] inv_ref_slice_T self_)
+  /\ ([@stop_split] [@expl:extern_spec_T_Hash__slice_T_hash_body 'state' type invariant] [%#shash'3] inv_refmut_H state)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = len_T [%#shash] {self_} (fun (_x: UInt64.t) -> [ &_7 <- _x ] s1)
+    | s1 = MutBorrow.borrow_mut <t_H> {state.current}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_6 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s2 = write_length_prefix_H [%#shash'0] {_6} {_7} (fun (_x: ()) -> [ &_5 <- _x ] s3)
+    | s3 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_10 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s4)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s4 = hash_slice_T [%#shash'1] {self_} {_10} (fun (_x: ()) -> [ &_ret <- _x ] s5)
+    | s5 = s6 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s6 = -{resolve_refmut_H state}- s7
+    | s7 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self_: Slice64.slice t_T = self_
+  | & state: MutBorrow.t t_H = state
+  | & _5: () = Any.any_l ()
+  | & _6: MutBorrow.t t_H = Any.any_l ()
+  | & _7: UInt64.t = Any.any_l ()
+  | & _10: MutBorrow.t t_H = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:extern_spec_T_Hash__slice_T_hash_body ensures] [%#shash'4] inv_H state.final}
+    (! return {result}) ]

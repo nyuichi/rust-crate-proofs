@@ -1,113 +1,59 @@
-# Scalar actual-source verification
+# HTTP scalar verification
 
-This harness includes the published `src/version.rs` and `src/status.rs`
-directly with `#[path]`. It proves source bodies from those files; it does not
-copy or replace their runtime implementations.
+This leaf harness includes the published `src/status.rs`, `src/version.rs`, and `src/ascii.rs` directly. It proves those production bodies under the `status` feature and `http_status_leaf` translation configuration.
 
-## Verified targets
+## Current proof result
 
-The following results were obtained with `scripts/run-proof.sh`, the pinned
-Why3 setup, one prover, and a 1024 MiB memory limit:
+At the source snapshot recorded in the evidence file, a clean translation emitted the scalar targets. A fresh bounded `--no-cache` run passed all 80 supported targets and 381 leaves: 133 own-goal leaves and 248 callee-contract leaves. It excluded the two named status-array capability probes. Target-by-target COMA and proof JSON hashes, source hashes, solver versions, and run details are in [final-2026-10-05.json](evidence/final-2026-10-05.json).
 
-| Actual source target | Result |
-|---|---:|
-| `Version::default` body and refinement | 2 VCs proved |
-| `StatusCode::from_u16` | 8 VCs proved |
-| `StatusCode::from_bytes` | 6 VCs proved |
-| `StatusCode::as_u16` | 2 VCs proved |
-| `StatusCode::is_informational`, `is_success`, `is_redirection`, `is_client_error`, and `is_server_error` | 10 VCs proved |
-| Shared `NonZeroU16` consumer: construction plus `get` round trip | 4 VCs proved |
-| Shared `NonZeroU16` consumer: equality and order refinements | 6 VCs proved |
+The standard-library `convert.rs` and `partial_ord.rs` sources were updated after the proof batch. A clean scalar translation against the updated sources produced byte-identical COMA files for all 80 accepted targets, so the recorded proof JSON still corresponds to the exact same task bytes. The final evidence file records both source snapshots and the comparison.
 
-The HTTP scalar targets total 26 VCs; adding the two `Version::default` VCs
-gives 28. The separate standard-boundary consumer adds 10 VCs. Those consumer
-proofs show how callers use the standard-library contracts; they do not verify
-the bodies of `core::num::NonZero`.
+## Covered behavior
 
-## Standard-library boundary
+For `StatusCode`, the current proof set covers numeric and byte construction, `as_u16`, all five status-class predicates, exact `canonical_reason` results, all 900 decimal `as_str` results, `Default`, `Clone`, `PartialEq`, `PartialOrd`, `Ord`, `Hash`, `Debug`, and `Display` bodies and refinements. It also covers `FromStr`, the three `TryFrom` conversions, conversions to and from `u16`, and both directions of equality against `u16`.
 
-`creusot-std/src/std/num.rs` defines an opaque `nonzero_value` observer and
-exact external contracts for `NonZero<T>::new`, `get`, and `new_unchecked`.
-The local primitive model has an implementation only for `u16`. `DeepModel`
-for `NonZeroU16` unfolds to that same observer, so `StatusCode` has one
-consistent scalar model. The contracts state that `new` returns `Some` exactly
-for nonzero inputs and preserves the payload, `get` returns the payload, and
-`new_unchecked` requires and preserves a nonzero payload.
+`InvalidStatusCode` construction and its `Debug`/`Display` formatter append-preservation contracts are covered. For `Version` and its private `Http` representation, the proof set covers the exact `Http::numeric_value` helper, `Clone`, `Eq`, `PartialOrd`, `Ord`, `Default`, `Hash`, and `Version` `Debug` bodies/refinements. `Version::Default` proves the exact numeric value 11.
 
-These are explicit trusted contracts about the Rust standard library. Creusot
-does not prove the `NonZero` implementation in `libcore`. The `StatusCode`
-constructor/accessor bodies are proved against that boundary.
+`StatusCode`, `InvalidStatusCode`, and `Version` formatting proofs establish formatter append preservation. `StatusCode` Display output, formatting flags, and partial-write behavior are checked separately by a runtime comparison with the former `write!` implementation. Hash proofs establish valid hasher-invariant preservation only; they do not claim a digest value.
 
-## Harness-only exclusions
+The status digit table is generated as a by-value `[u8; 2700]` constant and returns the same static decimal text for every supported code. The tests cover codes 100 through 999.
 
-Status proofs run with `RUSTFLAGS='--cfg http_status_leaf'`. This custom cfg is
-not set by normal `http` builds or the crate's full Creusot configuration. It
-omits only these items from this scalar harness because the translator cannot
-currently handle their source expressions:
+## Exclusions and translator boundary
 
-- `StatusCode`'s `Display` implementation, whose `write!` invocation uses the
-  formatting literal `"{} {}"`;
-- the generated public status constants, whose const initializers call
-  `NonZeroU16::new_unchecked` with the registry literals;
-- `StatusCode::default`, which refers to the excluded `StatusCode::OK` constant.
+The 62 associated numeric `StatusCode` constants are not included in the leaf proof. A bounded six-caller attempt failed during constant translation with `unsupported constant expression pattern_type!(u16 is 1..)`, at the `NonZeroU16` niche field of the macro initializer. Changing the initializer to checked `NonZero::new` cannot avoid the same evaluated field type. The exact attempt and diagnostic are recorded in [status-constants-pilot-2026-10-05.txt](evidence/status-constants-pilot-2026-10-05.txt); no numeric-constant proof claim is made.
 
-The actual `http` source retains all three in normal builds and in full-crate
-Creusot builds without this harness-only cfg. They remain unproved. In
-particular, the exclusions do not establish the constants or formatting
-behavior through substitute models.
+The capability probes `status_array_model_probe` and `status_array_model_borrowed` are excluded from the accepted proof batch. A leftover proof JSON without a current COMA target is also not counted; it is identified in the final evidence file.
 
-The harness can translate the remaining `StatusCode` source, but only the
-targets listed above were proved. Other generated/derived traits, conversions,
-`as_str`, `canonical_reason`, `Default`, formatting/debugging, and constants
-remain unproved. The `as_str` translation also warns that its slice indexing
-has no external contract.
+## Runtime regression
 
-For `Version`, only `Default` and its refinement are proved here. Its constants,
-derived comparison/hash/clone traits, and `Debug` body remain unproved.
+From this directory, the final runtime suite passed 3 integration tests:
+
+```sh
+RUSTFLAGS='-Zcrate-attr=feature(hasher_prefixfree_extras,stmt_expr_attributes,proc_macro_hygiene)' \
+  cargo test --tests --features status --locked --offline
+```
+
+These tests cover the Version Hash callback trace, decimal text for all 900 codes, and StatusCode Display flags/chunks/errors.
 
 ## Reproduction
 
-Run from `http/1.5.0/verification/scalars`:
+With the repository tool environment activated, emit the current scalar targets with:
 
 ```sh
-../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove \
-  'verif/http_scalar_proofs_rlib/version/impl_Default_for_Version/default.coma' \
-  'verif/http_scalar_proofs_rlib/version/impl_Default_for_Version/default__refines.coma' \
-  -- --locked --offline
+CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http cargo clean -p http-scalar-proofs --offline
+RUSTFLAGS='--cfg http_status_leaf' CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http \
+  cargo creusot --simple-triggers=false -- --features status --locked --offline
+```
 
+Run the 80 accepted proof targets through the shared wrapper, leaving out the two named capability probes:
+
+```sh
+mapfile -d '' targets < <(find verif/http_scalar_proofs_rlib -name '*.coma' \
+  ! -name 'status_array_model_probe.coma' \
+  ! -name 'status_array_model_borrowed.coma' -print0)
 RUSTFLAGS='--cfg http_status_leaf' ../../scripts/run-proof.sh cargo creusot \
-  --simple-triggers=false prove from_u16 -- \
+  --simple-triggers=false prove --no-cache "${targets[@]}" -- \
   --features status --locked --offline
-
-RUSTFLAGS='--cfg http_status_leaf' ../../scripts/run-proof.sh cargo creusot \
-  --simple-triggers=false prove \
-  'verif/http_scalar_proofs_rlib/status/impl_StatusCode/from_bytes.coma' \
-  -- --features status --locked --offline
-
-RUSTFLAGS='--cfg http_status_leaf' ../../scripts/run-proof.sh cargo creusot \
-  --simple-triggers=false prove \
-  'verif/http_scalar_proofs_rlib/status/impl_StatusCode/as_u16.coma' \
-  'verif/http_scalar_proofs_rlib/status/impl_StatusCode/is_informational.coma' \
-  'verif/http_scalar_proofs_rlib/status/impl_StatusCode/is_success.coma' \
-  'verif/http_scalar_proofs_rlib/status/impl_StatusCode/is_redirection.coma' \
-  'verif/http_scalar_proofs_rlib/status/impl_StatusCode/is_client_error.coma' \
-  'verif/http_scalar_proofs_rlib/status/impl_StatusCode/is_server_error.coma' \
-  -- --features status --locked --offline
 ```
 
-Run the standard-boundary consumer proofs from `http/1.5.0/verification/nonzero`:
-
-```sh
-../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove \
-  checked_nonzero_round_trip nonzero_equality_matches_u16 \
-  nonzero_order_matches_u16 -- --locked --offline
-```
-
-An unfiltered normal check also passed from `http/1.5.0`:
-
-```sh
-scripts/run-proof.sh cargo check --locked --offline
-```
-
-This leaf evidence does not establish a successful integrated Creusot run for
-the full HTTP crate.
+These are isolated source-body proofs, not integrated verification of the complete HTTP crate or dependencies such as `bytes`. NonZero implementation bodies and standard formatting/hasher callbacks remain library contract boundaries, with claims limited to their recorded specifications.

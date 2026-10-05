@@ -1,0 +1,44 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 47 4 47 38 *)
+
+(* <hash_protocol_probe::OddMakingHasher as std::hash::Hasher> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span shash_protocol_probe = "/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 47 18 47 22
+let%span shash_protocol_probe'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 37 20 37 36
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 19 30 19 34
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 18 26 18 36
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use int.ComputerDivision
+use creusot.slice.Slice64
+use creusot.int.UInt8
+
+type t_OddMakingHasher = { f0: UInt64.t }
+
+predicate invariant_OddMakingHasher [#"/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 36 4 36 30] (self: t_OddMakingHasher) =
+  [%#shash_protocol_probe'0] ComputerDivision.mod (UInt64.t'int self.f0) 2 = 0
+
+predicate inv_OddMakingHasher (_1: t_OddMakingHasher)
+
+axiom inv_axiom [@rewrite]: forall x: t_OddMakingHasher [inv_OddMakingHasher x]. inv_OddMakingHasher x
+    = invariant_OddMakingHasher x
+
+predicate invariant_refmut_OddMakingHasher [@inline:trivial] (self: MutBorrow.t t_OddMakingHasher) =
+  [%#sinvariant] inv_OddMakingHasher self.current /\ inv_OddMakingHasher self.final
+
+meta "rewrite_def" predicate invariant_refmut_OddMakingHasher
+
+predicate inv_refmut_OddMakingHasher [@inline:trivial] (_1: MutBorrow.t t_OddMakingHasher) =
+  invariant_refmut_OddMakingHasher _1
+
+meta "rewrite_def" predicate inv_refmut_OddMakingHasher
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall self_: MutBorrow.t t_OddMakingHasher. forall bytes: Slice64.slice UInt8.t. ([%#shash] inv_refmut_OddMakingHasher self_)
+      -> ([%#shash_protocol_probe] inv_refmut_OddMakingHasher self_)
+      /\ (forall result: (). [%#shash'0] inv_OddMakingHasher self_.final)

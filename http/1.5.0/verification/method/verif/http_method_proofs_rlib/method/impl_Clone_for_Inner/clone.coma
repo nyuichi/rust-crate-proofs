@@ -1,0 +1,233 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 656 9 656 14 *)
+
+(* <method::Inner as std::clone::Clone> *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 673 23 673 41
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 671 20 671 35
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 656 9 656 14
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 656 9 656 14
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1290 18 1290 22
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1287 19 1287 35
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1290 27 1290 31
+let%span smethod'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1288 18 1288 38
+let%span smethod'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1289 18 1289 36
+let%span smethod'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1162 13 1162 18
+let%span smethod'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1162 13 1162 18
+let%span smethod'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1206 24 1206 55
+let%span smethod'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span smethod'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1197 16 1198 78
+let%span smethod'14 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1232 8 1232 28
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 24 8 24 22
+let%span sarray = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_InlineExtension = { f0: Slice64.array UInt8.t; f1: UInt8.t }
+
+type t_AllocatedExtension = { f0'0: Slice64.slice UInt8.t }
+
+type t_Inner =
+  | Options
+  | Get
+  | Post
+  | Put
+  | Delete
+  | Head
+  | Trace
+  | Connect
+  | Patch
+  | Query
+  | ExtensionInline t_InlineExtension
+  | ExtensionAllocated t_AllocatedExtension
+
+let rec elim_ExtensionAllocated (_x: t_Inner) (return (f0'1: t_AllocatedExtension)) = any
+  [ _k (f0'1: t_AllocatedExtension) -> {ExtensionAllocated f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim ExtensionAllocated] match _x with
+      | ExtensionAllocated _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'12] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'11] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+function view_Box_slice_u8_Global [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq UInt8.t =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_u8_Global
+
+predicate invariant_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1205 8 1205 34] (self: t_AllocatedExtension) =
+  [%#smethod'10] all_method_chars_valid (view_Box_slice_u8_Global self.f0'0)
+
+predicate inv_AllocatedExtension (_1: t_AllocatedExtension)
+
+axiom inv_axiom [@rewrite]: forall x: t_AllocatedExtension [inv_AllocatedExtension x]. inv_AllocatedExtension x
+    = invariant_AllocatedExtension x
+
+predicate invariant_ref_AllocatedExtension [@inline:trivial] (self: t_AllocatedExtension) =
+  [%#sinvariant] inv_AllocatedExtension self
+
+meta "rewrite_def" predicate invariant_ref_AllocatedExtension
+
+predicate inv_ref_AllocatedExtension [@inline:trivial] (_1: t_AllocatedExtension) = invariant_ref_AllocatedExtension _1
+
+meta "rewrite_def" predicate inv_ref_AllocatedExtension
+
+let rec clone_AllocatedExtension (self: t_AllocatedExtension) (return (x: t_AllocatedExtension)) =
+  {[@stop_split] [@expl:clone_AllocatedExtension requires] ([@stop_split] [@expl:clone 'self' type invariant] [%#smethod'3] inv_ref_AllocatedExtension self)
+  /\ ([@stop_split] [@expl:clone requires] [%#smethod'4] invariant_ref_AllocatedExtension self)}
+  any
+  [ return (result: t_AllocatedExtension) ->
+  {[@stop_split] [@expl:clone_AllocatedExtension ensures] ([@stop_split] [@expl:clone result type invariant] [%#smethod'5] inv_AllocatedExtension result)
+    /\ ([@stop_split] [@expl:clone ensures #0] [%#smethod'6] view_Box_slice_u8_Global result.f0'0
+      = view_Box_slice_u8_Global self.f0'0)
+    /\ ([@stop_split] [@expl:clone ensures #1] [%#smethod'7] invariant_AllocatedExtension result)}
+    (! return {result}) ]
+
+let rec elim_ExtensionInline (_x: t_Inner) (return (f0'1: t_InlineExtension)) = any
+  [ _k (f0'1: t_InlineExtension) -> {ExtensionInline f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim ExtensionInline] match _x with
+      | ExtensionInline _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+constant const_MAX: UInt64.t = [%#smethod'14] (15: UInt64.t)
+
+predicate invariant_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1195 8 1195 34] (self: t_InlineExtension) =
+  [%#smethod'13] UInt8.t'int self.f1 <= UInt64.t'int const_MAX
+  /\ all_method_chars_valid (Seq.([..]) (Slice64.view self.f0) 0 (UInt8.t'int self.f1))
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_15 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (15: UInt64.t)
+
+predicate inv_array_u8_15 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_15 _1
+
+meta "rewrite_def" predicate inv_array_u8_15
+
+predicate inv_InlineExtension (_1: t_InlineExtension)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_InlineExtension [inv_InlineExtension x]. inv_InlineExtension x
+    = (invariant_InlineExtension x /\ inv_array_u8_15 x.f0)
+
+predicate invariant_ref_InlineExtension [@inline:trivial] (self: t_InlineExtension) =
+  [%#sinvariant] inv_InlineExtension self
+
+meta "rewrite_def" predicate invariant_ref_InlineExtension
+
+predicate inv_ref_InlineExtension [@inline:trivial] (_1: t_InlineExtension) = invariant_ref_InlineExtension _1
+
+meta "rewrite_def" predicate inv_ref_InlineExtension
+
+let rec clone_InlineExtension (self: t_InlineExtension) (return (x: t_InlineExtension)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smethod'8] inv_ref_InlineExtension self}
+  any
+  [ return (result: t_InlineExtension) ->
+  {[@stop_split] [@expl:clone result type invariant] [%#smethod'9] inv_InlineExtension result}
+    (! return {result}) ]
+
+predicate inv_Inner (_1: t_Inner)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Inner [inv_Inner x]. inv_Inner x
+    = match x with
+      | Options -> true
+      | Get -> true
+      | Post -> true
+      | Put -> true
+      | Delete -> true
+      | Head -> true
+      | Trace -> true
+      | Connect -> true
+      | Patch -> true
+      | Query -> true
+      | ExtensionInline f0'1 -> inv_InlineExtension f0'1
+      | ExtensionAllocated f0'1 -> inv_AllocatedExtension f0'1
+      end
+
+predicate invariant_ref_Inner [@inline:trivial] (self: t_Inner) = [%#sinvariant] inv_Inner self
+
+meta "rewrite_def" predicate invariant_ref_Inner
+
+predicate inv_ref_Inner [@inline:trivial] (_1: t_Inner) = invariant_ref_Inner _1
+
+meta "rewrite_def" predicate inv_ref_Inner
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_Inner
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 656 9 656 14]
+  (self: t_Inner) (return (x: t_Inner)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smethod'1] inv_ref_Inner self}
+  (! bb0
+  [ bb0 = any
+    [ br0 -> {self = Options} (! bb24)
+    | br1 -> {self = Get} (! bb23)
+    | br2 -> {self = Post} (! bb22)
+    | br3 -> {self = Put} (! bb21)
+    | br4 -> {self = Delete} (! bb20)
+    | br5 -> {self = Head} (! bb19)
+    | br6 -> {self = Trace} (! bb18)
+    | br7 -> {self = Connect} (! bb17)
+    | br8 -> {self = Patch} (! bb16)
+    | br9 -> {self = Query} (! bb15)
+    | br10 (x0: t_InlineExtension) -> {self = ExtensionInline x0} (! bb14)
+    | br11 (x0: t_AllocatedExtension) -> {self = ExtensionAllocated x0} (! bb13) ]
+  | bb13 = s0
+    [ s0 = elim_ExtensionAllocated {self} (fun (r0: t_AllocatedExtension) -> [ &__self_0'0 <- r0 ] s1)
+    | s1 = clone_AllocatedExtension [%#smethod] {__self_0'0} (fun (_x: t_AllocatedExtension) -> [ &_7 <- _x ] s2)
+    | s2 = [ &_ret <- ExtensionAllocated _7 ] s3
+    | s3 = return {_ret} ]
+  | bb14 = s0
+    [ s0 = elim_ExtensionInline {self} (fun (r0: t_InlineExtension) -> [ &__self_0 <- r0 ] s1)
+    | s1 = clone_InlineExtension [%#smethod'0] {__self_0} (fun (_x: t_InlineExtension) -> [ &_4 <- _x ] s2)
+    | s2 = [ &_ret <- ExtensionInline _4 ] s3
+    | s3 = return {_ret} ]
+  | bb15 = s0 [ s0 = [ &_ret <- Query ] s1 | s1 = return {_ret} ]
+  | bb16 = s0 [ s0 = [ &_ret <- Patch ] s1 | s1 = return {_ret} ]
+  | bb17 = s0 [ s0 = [ &_ret <- Connect ] s1 | s1 = return {_ret} ]
+  | bb18 = s0 [ s0 = [ &_ret <- Trace ] s1 | s1 = return {_ret} ]
+  | bb19 = s0 [ s0 = [ &_ret <- Head ] s1 | s1 = return {_ret} ]
+  | bb20 = s0 [ s0 = [ &_ret <- Delete ] s1 | s1 = return {_ret} ]
+  | bb21 = s0 [ s0 = [ &_ret <- Put ] s1 | s1 = return {_ret} ]
+  | bb22 = s0 [ s0 = [ &_ret <- Post ] s1 | s1 = return {_ret} ]
+  | bb23 = s0 [ s0 = [ &_ret <- Get ] s1 | s1 = return {_ret} ]
+  | bb24 = s0 [ s0 = [ &_ret <- Options ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Inner = Any.any_l ()
+  | & self: t_Inner = self
+  | & __self_0: t_InlineExtension = Any.any_l ()
+  | & _4: t_InlineExtension = Any.any_l ()
+  | & __self_0'0: t_AllocatedExtension = Any.any_l ()
+  | & _7: t_AllocatedExtension = Any.any_l () ])
+  [ return (result: t_Inner) -> {[@stop_split] [@expl:clone result type invariant] [%#smethod'2] inv_Inner result}
+    (! return {result}) ]

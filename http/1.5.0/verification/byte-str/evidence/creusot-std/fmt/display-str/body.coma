@@ -1,0 +1,107 @@
+(* #"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 66 8 66 84 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span smapping = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/mapping.rs" 65 8 65 19
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 305 14 305 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 303 14 303 40
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 304 14 304 76
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 67 12 67 31
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 66 22 66 31
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 65 18 65 86
+let%span sfmt'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 59 20 59 24
+let%span sfmt'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 58 18 58 76
+let%span sfmt'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span sfmt'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 21 20 21 47
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.int.UInt8
+use map.Map
+use creusot.prelude.Any
+use int.Int
+
+type t_Formatter
+
+predicate inv_Formatter [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_Formatter)
+
+type t_Result_unit_Error = Ok () | Err ()
+
+predicate invariant_refmut_Formatter [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 92 4 92 30] [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: MutBorrow.t t_Formatter) =
+  invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate formatter_extends [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 27 0 27 67] (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'4] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function index_Mapping_u8_Int [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/mapping.rs" 64 4 64 35] [@inline:trivial] (self: Map.map UInt8.t int) (a: UInt8.t) : int
+ = [%#smapping] Map.get self a
+
+meta "rewrite_def" function index_Mapping_u8_Int
+
+function map_u8 [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 306 4 306 51] (self: Seq.seq UInt8.t) (m: Map.map UInt8.t int) : Seq.seq int
+
+axiom map_u8_spec: forall self: Seq.seq UInt8.t, m: Map.map UInt8.t int. [%#sseq'0] Seq.length (map_u8 self m)
+    = Seq.length self
+
+axiom map_u8_spec'0: forall self: Seq.seq UInt8.t, m: Map.map UInt8.t int. [%#sseq'1] forall i: int. 0 <= i
+        /\ i < Seq.length self -> Seq.get (map_u8 self m) i = index_Mapping_u8_Int m (Seq.get self i)
+
+function view_Formatter [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 11 4 11 33] (self: t_Formatter) : Seq.seq UInt8.t
+
+function deep_model_Formatter [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 20 4 20 44] (self: t_Formatter) : Seq.seq int
+ = [%#sfmt'5] map_u8 (view_Formatter self) (fun (byte: UInt8.t) -> UInt8.t'int byte)
+
+function deep_model_refmut_Formatter [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 43 4 43 44] [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int
+ = [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+let rec pad (self_: MutBorrow.t t_Formatter) (data: string) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:pad 'self_' type invariant] [%#sfmt'2] inv_refmut_Formatter self_}
+  any
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:pad ensures] [%#sfmt'3] formatter_extends (deep_model_refmut_Formatter self_) (deep_model_Formatter self_.final)}
+    (! return {result}) ]
+
+predicate resolve_refmut_Formatter [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/resolve.rs" 11 0 11 39] [@inline:trivial] (_1: MutBorrow.t t_Formatter) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Formatter
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec extern_spec_core_fmt_Display_str_fmt_body
+  [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 66 8 66 84] (self_: string)
+  (formatter: MutBorrow.t t_Formatter) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:extern_spec_core_fmt_Display_str_fmt_body 'formatter' type invariant] [%#sfmt'0] inv_refmut_Formatter formatter}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_Formatter> {formatter.current} {MutBorrow.get_id formatter}
+        (fun (_bor: MutBorrow.t t_Formatter) ->
+          [ &_5 <- _bor ] -{inv_Formatter _bor.final}-
+          [ &formatter <- { formatter with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_Formatter formatter.current} any) ]
+    | s1 = pad [%#sfmt] {_5} {self_} (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_Formatter formatter} any) ]
+    | s3 = -{resolve_refmut_Formatter formatter}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & self_: string = self_
+  | & formatter: MutBorrow.t t_Formatter = formatter
+  | & _5: MutBorrow.t t_Formatter = Any.any_l () ])
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:extern_spec_core_fmt_Display_str_fmt_body ensures] [%#sfmt'1] formatter_extends (deep_model_refmut_Formatter formatter) (deep_model_Formatter formatter.final)}
+    (! return {result}) ]

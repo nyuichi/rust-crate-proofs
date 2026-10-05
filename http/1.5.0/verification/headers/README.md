@@ -1,5 +1,12 @@
 # Header validation proof checkpoint
 
+> **Checkpoint note (2026-10-05):** This page is an earlier proof plan and
+> does not reflect later HeaderName/HeaderValue evidence. The current status,
+> including the historical/current distinction for HeaderName and the v7
+> HeaderValue snapshot, is in
+> [the HTTP checkpoint](../CHECKPOINT_2026-10-05.md). Use the archived
+> manifests for exact target/source status.
+
 ## API and representation map
 
 This is the checkpoint for the assigned `method.rs`, `header/name.rs`,

@@ -1,0 +1,298 @@
+{
+  "manifest_version": 1,
+  "scope": "Actual-source initialized HeaderMap Bucket field-token component in the http_map_api_leaf harness; component only, no integrated iterator/map proof.",
+  "source_fingerprints": [
+    {
+      "path": "http/1.5.0/src/header/map.rs",
+      "sha256": "858dfaad58fbb95b0c28c3744c672e319a0f1608f5051d0227643dd0b6f78a0d"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/src/header.rs",
+      "sha256": "7736a09379eecf2f8a8126cd65d15cef707f9d4b2551f85375b9a24d5ca2e7a7"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/src/lib.rs",
+      "sha256": "b3a41c0c243aaa33c2d85ebc7a092bc4f2f3170049fcc50f67d133c787e36f1d"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/Cargo.toml",
+      "sha256": "373290058054353c15bbf6857b012da1dc876cfbf21bee620f430ba6d6d16aa1"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/Cargo.lock",
+      "sha256": "f3656ba9be1ca4501916286a20c7ad252892d4ac963100f903abe1267b3590d6"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/why3find.json",
+      "sha256": "c7014603e8a4f00384e112d1c626b3c0ed1a6fdf54425d25ee2d6e3bfcdd685d"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std/ptr.rs",
+      "sha256": "808bebfeeec5df7ccae4b0b0e178a4e36ab2684bb5038b43068fc6424bacaa1d"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/ghost/perm.rs",
+      "sha256": "836c48244bde74c6538d0caebf6f58f006169b9a611c1ac7a48147b25cfa60a8"
+    }
+  ],
+  "proof_run": {
+    "clean_command": "cargo clean --target-dir /workspace/rust-crate-proofs/target/http -p http-header-map-api-proof",
+    "translation_command": "RUSTFLAGS='--cfg http_map_api_leaf' cargo creusot --simple-triggers=false -- --features http_map_api_leaf --locked --offline",
+    "proof_command": "RUSTFLAGS='--cfg http_map_api_leaf' ../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache <5 exact generated .coma paths> -- --features http_map_api_leaf --locked --offline",
+    "target": "http-header-map-api-proof",
+    "feature_configuration": {
+      "crate_cfg": [
+        "http_map_api_leaf"
+      ],
+      "crate_features": [
+        "http_map_api_leaf"
+      ]
+    },
+    "status": "passed",
+    "target_methods": 5,
+    "total_leaf_vcs": 19,
+    "proved_leaf_vcs": 19,
+    "open_leaf_vcs": 0,
+    "own_leaf_vcs": 5,
+    "supporting_or_elimination_leaf_vcs": 14,
+    "environment": "Why3 split_vc; Z3 4.15.3; one prover / 1024 MiB via shared HTTP lock"
+  },
+  "notes": [
+    "This component is the real private Bucket<T> source type and real Links/HashValue/HeaderName field types.",
+    "Bucket::field_ptrs borrows an initialized &mut Bucket before a value can escape; its permission tokens remain split by field. take_value consumes the value permission; hash/key/links remain available through disjoint field permissions.",
+    "It does not yet replace raw field access in IterMut::next_unsafe, and it cannot be called for Drain entries after fields have been moved out.",
+    "The 14 non-own leaves are calls to existing Perm::from_ref/from_mut/as_ref/as_mut, Ghost, and conversion helper specs; no new trusted permission contract was introduced."
+  ],
+  "targets": [
+    {
+      "method": "Bucket::field_ptrs",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_Bucket_T.field_ptrs",
+      "source_file": "http/1.5.0/src/header/map.rs",
+      "goal_names": {
+        "vc_field_ptrs_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_from_mut_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_from_ref_HashValue": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_from_ref_HeaderName": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_from_ref_Option_Links": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_into_inner_refmut_Perm_ptr_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_new_Option_refmut_Perm_ptr_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 7,
+      "proved_leaf_count": 7,
+      "open_leaf_count": 0,
+      "own_leaf_count": 1,
+      "supporting_or_elimination_leaf_count": 6,
+      "own_goal_names": [
+        "vc_field_ptrs_T"
+      ],
+      "status": "proved",
+      "strength": "Actual Bucket<T> initialized-field permission component; preserves hash/key/links and consumes the mutable value permission once. It is not wired into IterMut or Drain.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_Bucket_T/field_ptrs/field_ptrs.coma",
+          "sha256": "688fd8fc2f35126d97bbd9c8eae006b71ca0756c346b41f33cc4043bc8eaaabd"
+        },
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_Bucket_T/field_ptrs/proof.json",
+          "sha256": "5a1c9ae37ee398a5cd69752ae4d2778dad32d70ad6e995a34cb63928d8b01c63"
+        }
+      ]
+    },
+    {
+      "method": "BucketFieldPtrs::take_value",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_BucketFieldPtrs_T.take_value",
+      "source_file": "http/1.5.0/src/header/map.rs",
+      "goal_names": {
+        "vc_as_mut_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_deref_mut_Ghost_Option_refmut_Perm_ptr_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_new_refmut_Perm_ptr_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_take_refmut_Perm_ptr_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_take_value_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_unwrap_refmut_Perm_ptr_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 6,
+      "proved_leaf_count": 6,
+      "open_leaf_count": 0,
+      "own_leaf_count": 1,
+      "supporting_or_elimination_leaf_count": 5,
+      "own_goal_names": [
+        "vc_take_value_T"
+      ],
+      "status": "proved",
+      "strength": "Actual Bucket<T> initialized-field permission component; preserves hash/key/links and consumes the mutable value permission once. It is not wired into IterMut or Drain.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_BucketFieldPtrs_T/take_value/take_value.coma",
+          "sha256": "d69a22700de0f1227613c4ed947faa8eaa2ec58259ccb4df9e175e629bc79aa4"
+        },
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_BucketFieldPtrs_T/take_value/proof.json",
+          "sha256": "5aab00df949207bf5a9e85e5d90bfdd923f78c6d08b384da7a3ca419aec8479e"
+        }
+      ]
+    },
+    {
+      "method": "BucketFieldPtrs::hash",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_BucketFieldPtrs_T.hash",
+      "source_file": "http/1.5.0/src/header/map.rs",
+      "goal_names": {
+        "vc_as_ref_HashValue": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_hash_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 2,
+      "proved_leaf_count": 2,
+      "open_leaf_count": 0,
+      "own_leaf_count": 1,
+      "supporting_or_elimination_leaf_count": 1,
+      "own_goal_names": [
+        "vc_hash_T"
+      ],
+      "status": "proved",
+      "strength": "Actual Bucket<T> initialized-field permission component; preserves hash/key/links and consumes the mutable value permission once. It is not wired into IterMut or Drain.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_BucketFieldPtrs_T/hash/hash.coma",
+          "sha256": "0c9d0c1a134ad43a2ea9f15542154fd51e516eecb97b3ca541c8bf8088a8059b"
+        },
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_BucketFieldPtrs_T/hash/proof.json",
+          "sha256": "891190dda1c472f36cafd6510e91e2655c713bf3548b2106991b09e50a97db1c"
+        }
+      ]
+    },
+    {
+      "method": "BucketFieldPtrs::key",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_BucketFieldPtrs_T.key",
+      "source_file": "http/1.5.0/src/header/map.rs",
+      "goal_names": {
+        "vc_as_ref_HeaderName": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_key_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 2,
+      "proved_leaf_count": 2,
+      "open_leaf_count": 0,
+      "own_leaf_count": 1,
+      "supporting_or_elimination_leaf_count": 1,
+      "own_goal_names": [
+        "vc_key_T"
+      ],
+      "status": "proved",
+      "strength": "Actual Bucket<T> initialized-field permission component; preserves hash/key/links and consumes the mutable value permission once. It is not wired into IterMut or Drain.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_BucketFieldPtrs_T/key/key.coma",
+          "sha256": "c538b59ac0a918a0f61b566f9beb0b5fc3ba0aaffcec4d4f56e8b93551f821c3"
+        },
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_BucketFieldPtrs_T/key/proof.json",
+          "sha256": "3738918f34d89da0116b86baa983ec6ccbf3077f8b0b16177a2a621c5d73bdda"
+        }
+      ]
+    },
+    {
+      "method": "BucketFieldPtrs::links",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_BucketFieldPtrs_T.links",
+      "source_file": "http/1.5.0/src/header/map.rs",
+      "goal_names": {
+        "vc_as_ref_Option_Links": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_links_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 2,
+      "proved_leaf_count": 2,
+      "open_leaf_count": 0,
+      "own_leaf_count": 1,
+      "supporting_or_elimination_leaf_count": 1,
+      "own_goal_names": [
+        "vc_links_T"
+      ],
+      "status": "proved",
+      "strength": "Actual Bucket<T> initialized-field permission component; preserves hash/key/links and consumes the mutable value permission once. It is not wired into IterMut or Drain.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_BucketFieldPtrs_T/links/links.coma",
+          "sha256": "c9983d7c657be1c839c5a2ec908cdc137e4047e860a7a0b9aec47048fc8f3825"
+        },
+        {
+          "path": "evidence/run-2026-10-05-bucket-fields/artifacts/impl_BucketFieldPtrs_T/links/proof.json",
+          "sha256": "278bc249abf3f09856c9f7d549299c1fd28827fa04b19899f6b922be26fb873d"
+        }
+      ]
+    }
+  ]
+}

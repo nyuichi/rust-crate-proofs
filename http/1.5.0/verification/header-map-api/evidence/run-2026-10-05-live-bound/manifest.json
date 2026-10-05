@@ -1,0 +1,609 @@
+{
+  "manifest_version": 2,
+  "scope": "Fresh source-scoped proof run of selected actual HTTP 1.5.0 HeaderMap APIs and a generic Vec allocation-bound helper used directly by HeaderMap::len; not a full integrated HeaderMap proof.",
+  "proof_support": {
+    "helper": "http/1.5.0/src/header/map.rs::allocation_len_bound<T>",
+    "implementation": "Borrow the actual Vec as a slice; obtain its allocation permission with SliceExt::as_ptr_perm; extract PtrLive through the existing Perm::live contract; use the existing PtrLive allocation-byte invariant and a nonzero-size precondition to prove the sequence length is at most isize::MAX.",
+    "trusted_contracts_added": false,
+    "new_Vec_len_postcondition": false,
+    "helper_body_proved": true,
+    "runtime_effect": "Helper and calls are cfg(creusot)-only; the normal HeaderMap::len expression remains unchanged."
+  },
+  "proof_run": {
+    "translation_command": "cargo clean -p http-header-map-api-proof; RUSTFLAGS=\"--cfg http_map_api_leaf\" cargo creusot --simple-triggers=false -- --features http_map_api_leaf --locked --offline",
+    "proof_command": "RUSTFLAGS=\"--cfg http_map_api_leaf\" ../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache <12 exact emitted .coma targets> -- --features http_map_api_leaf --locked --offline",
+    "target": "http-header-map-api-proof",
+    "feature_configuration": {
+      "crate_features": [
+        "http_map_api_leaf"
+      ],
+      "creusot_std_features": [
+        "bytes-model"
+      ]
+    },
+    "status": "partial: 47/49 leaves proved; only two generic element positive-size preconditions in actual HeaderMap::len remain open.",
+    "total_leaves": 49,
+    "proved_leaves": 47,
+    "open_leaves": 2,
+    "own_body_total_leaves": 19,
+    "own_body_proved_leaves": 17,
+    "own_body_open_leaves": 2,
+    "supporting_or_callee_or_elimination_leaves": 30,
+    "supporting_or_callee_or_elimination_open_leaves": 0,
+    "environment": "Why3 split_vc; Z3 4.15.3; one prover / 1024 MiB via HTTP shared-lock wrapper."
+  },
+  "len_frontier": {
+    "actual_method": "http/1.5.0/src/header/map.rs::HeaderMap<T>::len",
+    "body_goals": "6/8 leaves of vc_len_T pass, including both machine-integer overflow obligations for entries.len() + extra_values.len().",
+    "call_support": "The generic permission-based helper body is independently proved; four Vec call/type support leaves pass.",
+    "open_goals": [
+      "allocation_len_bound_Bucket_T requires size_of_logic::<Bucket<T>>() > 0",
+      "allocation_len_bound_ExtraValue_T requires size_of_logic::<ExtraValue<T>>() > 0"
+    ],
+    "reason": "The existing allocation permission gives length-in-bytes <= isize::MAX. To turn that into an element-count bound, each generic stored element must be shown to have positive size. Current Creusot std ADT size inference does not establish that for Bucket<T> or ExtraValue<T> for arbitrary T because T may be uninhabited and the model does not bridge a live stored value / positive Vec length to the required generic layout fact. No map invariant or blanket nonzero axiom was introduced.",
+    "next_sound_bridge": "Establish the two actual generic stored-element layout facts from the source fields or from positive live Vec storage, without assuming T is inhabited."
+  },
+  "targets": [
+    {
+      "label": "allocation_len_bound",
+      "description": "proved generic permission-based Vec allocation bound",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.allocation_len_bound",
+      "goal_names": {
+        "vc_allocation_len_bound_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_as_ptr_perm_slice_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_deref_Ghost_ref_Perm_ptr_slice_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_deref_Vec_T_Global": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_live_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_new_PtrLive_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 6,
+      "proved_leaf_count": 6,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 5,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/allocation_len_bound.coma",
+          "sha256": "363f477ae1c2f04faa0a9222debe75280a840654537500365d71fd6997bfa4eb"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/allocation_len_bound/proof.json",
+          "sha256": "a4455b7c053bbb7e75715290808cae853648edc9da6a6b6e4ec7d7562b660ba7"
+        }
+      ]
+    },
+    {
+      "label": "new",
+      "description": "actual HeaderMap::new",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_HeaderMap_HeaderValue.new",
+      "goal_names": {
+        "vc_default_HeaderMap_HeaderValue": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_new": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 2,
+      "proved_leaf_count": 2,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 1,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_HeaderValue/new.coma",
+          "sha256": "63c5b5973b7849f201e9e91e4bc090364a25390a46e69cfe84e04721f6e8455b"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_HeaderValue/new/proof.json",
+          "sha256": "2d734f0d8ea41a5fcf76d47de2155f86e7d13220df95472a4f506d0cc4b28ca8"
+        }
+      ]
+    },
+    {
+      "label": "default",
+      "description": "actual HeaderMap::default",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_Default_for_HeaderMap_T.default",
+      "goal_names": {
+        "vc_default_HeaderMap_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_new_Bucket_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_new_ExtraValue_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 3,
+      "proved_leaf_count": 3,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 2,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_Default_for_HeaderMap_T/default.coma",
+          "sha256": "68c5a280266f8ab3514a6084c1060466ae6aab5af594063aa6f586867621a9cd"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_Default_for_HeaderMap_T/default/proof.json",
+          "sha256": "63b3c70c9d9947ce4131e24f2692ee9469fcfa33cb75b96e35e616b67705389b"
+        }
+      ]
+    },
+    {
+      "label": "len",
+      "description": "actual HeaderMap::len",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_HeaderMap_T.len",
+      "goal_names": {
+        "vc_allocation_len_bound_Bucket_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_allocation_len_bound_ExtraValue_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_len_Bucket_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_len_ExtraValue_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_len_T": {
+          "leaves": 8,
+          "proved": 6,
+          "open": 2
+        }
+      },
+      "leaf_vc_count": 12,
+      "proved_leaf_count": 10,
+      "open_leaf_count": 2,
+      "own_body_proved_leaf_count": 6,
+      "own_body_open_leaf_count": 2,
+      "supporting_or_callee_leaf_count": 4,
+      "status": "partial",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/len.coma",
+          "sha256": "e02fd37d53503853506fbf176452565df21fd9350c631e05dbcbe14c42037e8d"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/len/proof.json",
+          "sha256": "edadd4e28b9044f0699215d300dce24d71922b714d55af1ca9f953742865cf99"
+        }
+      ]
+    },
+    {
+      "label": "keys_len",
+      "description": "actual HeaderMap::keys_len",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_HeaderMap_T.keys_len",
+      "goal_names": {
+        "vc_keys_len_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_len_Bucket_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 2,
+      "proved_leaf_count": 2,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 1,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/keys_len.coma",
+          "sha256": "7647e6b70156b1dbaa39438ed83ea58ca36567b6fe37375b36eaba2e707abde8"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/keys_len/proof.json",
+          "sha256": "ab0c35eac90484a874d133c6318fe427434f5af58ac95d619b31c5dafa1c18ed"
+        }
+      ]
+    },
+    {
+      "label": "is_empty",
+      "description": "actual HeaderMap::is_empty",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_HeaderMap_T.is_empty",
+      "goal_names": {
+        "vc_is_empty_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_len_Bucket_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 2,
+      "proved_leaf_count": 2,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 1,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/is_empty.coma",
+          "sha256": "996820860c7d075e47fbeb1c512944a6a37511a73705b77092a5ae22a6b6c16a"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/is_empty/proof.json",
+          "sha256": "5dfa0e3bb102ae649952d08d803c9723bc3d6e0898744bfdd0a75d77a47c370f"
+        }
+      ]
+    },
+    {
+      "label": "clear",
+      "description": "actual HeaderMap::clear",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_HeaderMap_T.clear",
+      "goal_names": {
+        "vc_clear_Bucket_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_clear_ExtraValue_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_clear_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Some": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_into_iter_IterMut_Pos": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_iter_mut_Pos": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_next_IterMut_Pos": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_none": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 8,
+      "proved_leaf_count": 8,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_or_elimination_leaf_count": 7,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/clear.coma",
+          "sha256": "cf1eec4764456c763c58b45291cb61c5dd1a7c9de988cbc8e5827ddaadf5fbfb"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/clear/proof.json",
+          "sha256": "f626c22910bd23d5bd1daebd86dbbade41289a57668e2af981211710a20b02c2"
+        }
+      ]
+    },
+    {
+      "label": "capacity",
+      "description": "actual HeaderMap::capacity",
+      "why3find_target": "http_header_map_api_proof_rlib.header.map.impl_HeaderMap_T.capacity",
+      "goal_names": {
+        "vc_capacity_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_len_Pos": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_usable_capacity": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 3,
+      "proved_leaf_count": 3,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 2,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/capacity.coma",
+          "sha256": "aa144341f9b02350d469cff3375764c45f8082e5209790e8b7dcc05f933c4f9c"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/capacity/proof.json",
+          "sha256": "af267da037093643ec754a93844089bb1bb154b13b58df47f2acb332e4d6849b"
+        }
+      ]
+    },
+    {
+      "label": "generic_vec_len",
+      "description": "generic helper consumer",
+      "why3find_target": "http_header_map_api_proof_rlib.vec_bounds.generic_vec_len",
+      "goal_names": {
+        "vc_allocation_len_bound_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_generic_vec_len_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_len_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 3,
+      "proved_leaf_count": 3,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 2,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/vec_bounds/generic_vec_len.coma",
+          "sha256": "0e2ee6d0bc76c03016c52aef3c3c136ff2bfebecafc6323f7f1f254cfe2a08d7"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/vec_bounds/generic_vec_len/proof.json",
+          "sha256": "4e1f60586a22c23a1b3256f97201c013edbc4308bfba9949d35a0099a1c3636c"
+        }
+      ]
+    },
+    {
+      "label": "sum_nonzero_vec_lengths",
+      "description": "generic two-Vec consumer",
+      "why3find_target": "http_header_map_api_proof_rlib.vec_bounds.sum_nonzero_vec_lengths",
+      "goal_names": {
+        "vc_allocation_len_bound_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_len_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_sum_nonzero_vec_lengths_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 3,
+      "proved_leaf_count": 3,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 2,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/vec_bounds/sum_nonzero_vec_lengths.coma",
+          "sha256": "b02d7bf67a464b5bb4e048d70c78484ebb7568162ddd4457ef9638fb1389b5a5"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/vec_bounds/sum_nonzero_vec_lengths/proof.json",
+          "sha256": "b38c41a8f268b437e0957cc46be5d4cefdf86071afcbf3fa2d7e2ff9cf0b6f06"
+        }
+      ]
+    },
+    {
+      "label": "u8_vec_len",
+      "description": "concrete non-ZST Vec consumer",
+      "why3find_target": "http_header_map_api_proof_rlib.vec_bounds.u8_vec_len",
+      "goal_names": {
+        "vc_allocation_len_bound_u8": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_len_u8": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_u8_vec_len": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 3,
+      "proved_leaf_count": 3,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 2,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/vec_bounds/u8_vec_len.coma",
+          "sha256": "7b1d3c60524d35420da9ea4b551dec6cea1c5ce664a18734d628b65e5a4ed750"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/vec_bounds/u8_vec_len/proof.json",
+          "sha256": "11109cf32a00bfb01ae0df105c5bed13b359f84b046116e1d4c64a4e7d75e08b"
+        }
+      ]
+    },
+    {
+      "label": "unit_vec_len",
+      "description": "ZST Vec consumer",
+      "why3find_target": "http_header_map_api_proof_rlib.vec_bounds.unit_vec_len",
+      "goal_names": {
+        "vc_len_unit": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_unit_vec_len": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 2,
+      "proved_leaf_count": 2,
+      "open_leaf_count": 0,
+      "own_body_leaf_count": 1,
+      "supporting_or_callee_leaf_count": 1,
+      "status": "proved",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/vec_bounds/unit_vec_len.coma",
+          "sha256": "8a2aa32ecf8d89e857b29edb988fad8299639b39d1eb4e8685aef5a28b1e3b29"
+        },
+        {
+          "path": "evidence/run-2026-10-05-live-bound/verif/http_header_map_api_proof_rlib/vec_bounds/unit_vec_len/proof.json",
+          "sha256": "613e3862f98aa7343a2bcdedf9bade477c787cef55a16b2ab034b8e4f103ba81"
+        }
+      ]
+    }
+  ],
+  "source_fingerprints": [
+    {
+      "path": "http/1.5.0/src/header/map.rs",
+      "sha256": "7b5af097a416142904240cc5ee7d562f5e70690cbaa9c7d8dc9c309bc9694c1c"
+    },
+    {
+      "path": "http/1.5.0/src/header/map_capacity.rs",
+      "sha256": "5ac573862258a4493a50052708f50961cf2509793b774c6ae60141e7cfabb3f1"
+    },
+    {
+      "path": "http/1.5.0/src/header/name.rs",
+      "sha256": "7f98700e6e6a36009cc383d1216f83b692c16b718dadcc30d44a3ead0d5c1643"
+    },
+    {
+      "path": "http/1.5.0/src/byte_str.rs",
+      "sha256": "ccffe62cc16a3789160cfadad831d03b9ada717c7acc5062fafec6a35cea9245"
+    },
+    {
+      "path": "http/1.5.0/src/bytes_model.rs",
+      "sha256": "130965c4ee8e269e76b8a5a7462aa95877daba56583ecffca2c137453ff0e145"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/src/lib.rs",
+      "sha256": "b3a41c0c243aaa33c2d85ebc7a092bc4f2f3170049fcc50f67d133c787e36f1d"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/src/header.rs",
+      "sha256": "7736a09379eecf2f8a8126cd65d15cef707f9d4b2551f85375b9a24d5ca2e7a7"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/src/vec_bounds.rs",
+      "sha256": "21ba41a2ee019e1a4ef7b6449b8b87d33dbefdc9de577f67cd041233748ad056"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/Cargo.toml",
+      "sha256": "373290058054353c15bbf6857b012da1dc876cfbf21bee620f430ba6d6d16aa1"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/Cargo.lock",
+      "sha256": "f3656ba9be1ca4501916286a20c7ad252892d4ac963100f903abe1267b3590d6"
+    },
+    {
+      "path": "http/1.5.0/verification/header-map-api/why3find.json",
+      "sha256": "c7014603e8a4f00384e112d1c626b3c0ed1a6fdf54425d25ee2d6e3bfcdd685d"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std/vec.rs",
+      "sha256": "597db7fb360b320e0809843a73ac9f6208e6acae61d578d9c3ef0d421069e2ed"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std/mem.rs",
+      "sha256": "f1d90dce02e7ef410da7c226c06c9c4be34795263c7a1fe21c35366cc34d8786"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std/ptr.rs",
+      "sha256": "808bebfeeec5df7ccae4b0b0e178a4e36ab2684bb5038b43068fc6424bacaa1d"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std/slice.rs",
+      "sha256": "07ffe0cc8dfabab4b26da57d28aec80007a4b09491563f4f53bbeeb69756b7cc"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/ghost.rs",
+      "sha256": "85f276ce0e0fcb71387ac3bd129739324ffc456a5cfddca0bca8ff0e633fc6d6"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/invariant.rs",
+      "sha256": "70eb036a7ab0c43d3af877f7ffcf8346148edc1e64224b296ab5de93ef7e990f"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/logic/seq.rs",
+      "sha256": "7eb7c51ac84cc7be2ab87a384979dd7aa50063d47fecc5b5cfcc5b434a11c70f"
+    }
+  ]
+}

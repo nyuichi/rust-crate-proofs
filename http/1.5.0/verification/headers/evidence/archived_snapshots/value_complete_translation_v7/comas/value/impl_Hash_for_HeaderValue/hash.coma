@@ -1,0 +1,91 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 816 4 816 44 *)
+
+(* <header::value::HeaderValue as std::hash::Hash> *)
+
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 270 40 270 44
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 270 46 270 51
+let%span sbytes'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 268 19 268 30
+let%span sbytes'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 269 18 269 29
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 817 8 817 30
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 816 24 816 28
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 816 30 816 35
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_H
+
+predicate inv_H (_1: t_H)
+
+type t_Bytes
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant'0] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+predicate invariant_refmut_H [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+let rec hash_Bytes (self_: t_Bytes) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_Bytes requires] ([@stop_split] [@expl:hash 'self_' type invariant] [%#sbytes] inv_ref_Bytes self_)
+  /\ ([@stop_split] [@expl:hash 'state' type invariant] [%#sbytes'0] inv_refmut_H state)
+  /\ ([@stop_split] [@expl:hash requires] [%#sbytes'1] inv_H state.current)}
+  any [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] [%#sbytes'2] inv_H state.final} (! return {result}) ]
+
+predicate resolve_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_H
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+predicate invariant_ref_HeaderValue [@inline:trivial] (self: t_HeaderValue) = [%#sinvariant'0] inv_HeaderValue self
+
+meta "rewrite_def" predicate invariant_ref_HeaderValue
+
+predicate inv_ref_HeaderValue [@inline:trivial] (_1: t_HeaderValue) = invariant_ref_HeaderValue _1
+
+meta "rewrite_def" predicate inv_ref_HeaderValue
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec hash_HeaderValue
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 816 4 816 44]
+  (self: t_HeaderValue) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_HeaderValue requires] ([@stop_split] [@expl:hash 'self' type invariant] [%#svalue'0] inv_ref_HeaderValue self)
+  /\ ([@stop_split] [@expl:hash 'state' type invariant] [%#svalue'1] inv_refmut_H state)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_5 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s1 = hash_Bytes [%#svalue] {self.inner} {_5} (fun (_x: ()) -> [ &_3 <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s3 = -{resolve_refmut_H state}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: t_HeaderValue = self
+  | & state: MutBorrow.t t_H = state
+  | & _3: () = Any.any_l ()
+  | & _5: MutBorrow.t t_H = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

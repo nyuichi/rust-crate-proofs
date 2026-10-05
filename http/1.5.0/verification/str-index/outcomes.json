@@ -1,0 +1,42 @@
+{
+  "crate": "http",
+  "crate_version": "1.5.0",
+  "target": "http-str-index-proofs",
+  "status": "passed",
+  "command": "../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache -- --locked --offline",
+  "feature_configuration": {
+    "creusot_std": [
+      "default"
+    ]
+  },
+  "proved_std_helpers": {
+    "seq_concat_assoc": 1,
+    "seq_head_tail": 1,
+    "seq_concat_head_tail": 11,
+    "seq_concat_halves": 1,
+    "concat": 10,
+    "character_layout": 1,
+    "prefix_at_ascii_byte": 34,
+    "prefix_through_ascii_byte": 11
+  },
+  "proved_std_helper_vcs_total": 70,
+  "proved_callers": {
+    "select_full_range": 2,
+    "select_multibyte_character": 14,
+    "split_utf8_query_delimiter": 7
+  },
+  "proved_caller_vcs_total": 23,
+  "total_proved_vcs": 93,
+  "dependency_premises": [
+    "The std helper bodies use the open CharExt::to_utf8 model and the recursive Seq<char>::to_bytes model; no UTF-8 boundary lemma is trusted.",
+    "The actual Seq<char>::to_bytes body has a separate one-VC std proof, recorded in the ByteStr evidence manifest.",
+    "Range<usize> str indexing and str::split_at are external std contracts. Their callers here prove the required byte-prefix boundary witnesses before invoking them.",
+    "The bundled Creusot char model constrains values to < 0x10FFFF, excluding valid U+10FFFF; claims inherit that model limitation."
+  ],
+  "limitations": [
+    "The range-index contract applies only when both byte endpoints equal UTF-8 byte lengths of ordered character prefixes.",
+    "The ASCII delimiter helpers support arbitrary modeled Unicode around a selected ASCII byte; they do not assume all input characters are ASCII.",
+    "No core-library implementation is included or proved by this target."
+  ],
+  "evidence_manifest": "evidence/manifest.json"
+}

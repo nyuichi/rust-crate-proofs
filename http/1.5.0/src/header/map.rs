@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -5,11 +7,27 @@ use std::hash::{BuildHasher, Hash, Hasher};
 use std::iter::{FromIterator, FusedIterator};
 use std::marker::PhantomData;
 use std::{fmt, mem, ops, ptr, vec};
+use creusot_std::ghost::{perm::Perm, Ghost};
+use creusot_std::logic::Seq;
+use creusot_std::std::ptr::{PtrAddExt, PtrLive};
+use creusot_std::std::slice::SliceExt;
 
+#[cfg(creusot)]
+#[allow(unused_imports)]
+use creusot_std::prelude::{check, ensures, ghost, pearlite, proof_assert, requires, snapshot, variant, Int, logic, View};
+#[cfg(creusot)]
+use creusot_std::std::ptr::SizedPointerExt;
+#[cfg(creusot)]
+use creusot_std::prelude::Invariant;
+#[cfg(creusot)]
+use creusot_std::std::mem::size_of_logic;
 use crate::Error;
 
 use super::name::{HdrName, HeaderName, InvalidHeaderName};
 use super::map_capacity::{checked_raw_capacity, usable_capacity};
+#[path = "map_index.rs"]
+mod map_index;
+use self::map_index::{desired_pos, probe_distance, HashValue, Pos, Size, MAX_SIZE};
 use super::HeaderValue;
 
 pub use self::as_header_name::AsHeaderName;
@@ -88,6 +106,50 @@ pub struct HeaderMap<T = HeaderValue> {
     danger: Danger,
 }
 
+// Opaque public logic projections keep method contracts useful to clients
+// without exposing HeaderMap's private storage layout.
+#[cfg(creusot)]
+#[logic]
+#[doc(hidden)]
+pub fn header_map_keys_len<T>(map: HeaderMap<T>) -> Int {
+    map.entries.view().len()
+}
+
+#[cfg(creusot)]
+#[logic]
+#[doc(hidden)]
+pub fn header_map_extra_values_len<T>(map: HeaderMap<T>) -> Int {
+    map.extra_values.view().len()
+}
+
+#[cfg(creusot)]
+#[logic]
+#[doc(hidden)]
+pub fn header_map_total_len<T>(map: HeaderMap<T>) -> Int {
+    header_map_keys_len(map) + header_map_extra_values_len(map)
+}
+
+#[cfg(creusot)]
+#[logic]
+#[doc(hidden)]
+pub fn header_map_capacity<T>(map: HeaderMap<T>) -> Int {
+    map.indices.view().len() - map.indices.view().len() / 4
+}
+
+// A Vec's allocation is bounded by isize::MAX bytes. Derive the corresponding
+// element-count bound from the actual borrowed slice permission rather than
+// adding a separate postcondition to the external Vec::len specification.
+#[cfg(creusot)]
+#[check(terminates)]
+#[requires(size_of_logic::<T>() > 0)]
+#[ensures(values@.len() <= isize::MAX@)]
+pub(crate) fn allocation_len_bound<T>(values: &Vec<T>) {
+    let slice: &[T] = values;
+    let (_base, permission) = slice.as_ptr_perm();
+    let live = ghost! { permission.live() };
+    proof_assert! { live.inner_logic().len()@ == values@.len() };
+}
+
 // # Implementation notes
 //
 // Below, you will find a fairly large amount of code. Most of this is to
@@ -117,7 +179,7 @@ pub struct HeaderMap<T = HeaderValue> {
 ///
 /// Yields `(&HeaderName, &value)` tuples. The same header name may be yielded
 /// more than once if it has more than one associated value.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
 pub struct Iter<'a, T> {
     map: &'a HeaderMap<T>,
     entry: usize,
@@ -128,18 +190,161 @@ pub struct Iter<'a, T> {
 ///
 /// Yields `(&HeaderName, &mut value)` tuples. The same header name may be
 /// yielded more than once if it has more than one associated value.
-#[derive(Debug)]
 pub struct IterMut<'a, T> {
     // Raw access avoids reborrowing the whole `HeaderMap` on every `next()`,
     // which would invalidate previously yielded `&mut T`s.
     entries: *mut Bucket<T>,
     entries_len: usize,
+    #[allow(dead_code)]
+    entries_live: Ghost<PtrLive<'a, Bucket<T>>>,
+    #[allow(dead_code)]
+    entry_permissions: Ghost<Seq<Option<&'a mut Perm<*const Bucket<T>>>>>,
     // This points at the original `HeaderMap::extra_values` allocation for the
     // lifetime of the iterator.
     extra_values: *mut ExtraValue<T>,
+    #[allow(dead_code)]
+    extra_values_live: Ghost<PtrLive<'a, ExtraValue<T>>>,
+    #[allow(dead_code)]
+    extra_permissions: Ghost<Seq<Option<&'a mut Perm<*const ExtraValue<T>>>>>,
     entry: usize,
     cursor: Option<Cursor>,
+    // The current bucket key is retained after its first value is yielded, so
+    // later values in the same chain do not reborrow the whole bucket.
+    current_key: Option<&'a HeaderName>,
     lt: PhantomData<&'a mut HeaderMap<T>>,
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn iter_mut_storage_invariant<T>(iter: &IterMut<'_, T>) -> bool {
+    pearlite! {
+        (*iter.entries_live).ward() == iter.entries as *const Bucket<T>
+        && (*iter.entries_live).len()@ == iter.entries_len@
+        && (*iter.entry_permissions).len() == iter.entries_len@
+        && forall<i: Int> 0 <= i && i < iter.entries_len@ ==> match (*iter.entry_permissions)[i] {
+            Some(token) => *token.ward() == (iter.entries as *const Bucket<T>).offset_logic(i),
+            None => true,
+        }
+        && (*iter.extra_values_live).ward() == iter.extra_values as *const ExtraValue<T>
+        && (*iter.extra_permissions).len() == (*iter.extra_values_live).len()@
+        && forall<i: Int> 0 <= i && i < (*iter.extra_values_live).len()@ ==> match (*iter.extra_permissions)[i] {
+            Some(token) => *token.ward() == (iter.extra_values as *const ExtraValue<T>).offset_logic(i),
+            None => true,
+        }
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn iter_mut_cursor_ready<T>(iter: &IterMut<'_, T>) -> bool {
+    pearlite! {
+        (iter.entries_len@ == 0 ==> iter.entry@ == 0 && iter.cursor == None)
+        && (iter.entries_len@ != 0 ==> iter.entry@ < iter.entries_len@)
+        && match iter.cursor {
+            None =>
+                if iter.entries_len@ == 0 || iter.entry@ + 1 >= iter.entries_len@ {
+                    true
+                } else {
+                    match (*iter.entry_permissions)[iter.entry@ + 1] {
+                        Some(_) => true,
+                        None => false,
+                    }
+                },
+            Some(Cursor::Head) =>
+                iter.entry@ < iter.entries_len@
+                && match (*iter.entry_permissions)[iter.entry@] {
+                    Some(_) => true,
+                    None => false,
+            },
+            Some(Cursor::Values(index)) =>
+                (match iter.current_key {
+                    Some(_) => true,
+                    None => false,
+                })
+                && index@ < (*iter.extra_values_live).len()@
+                && match (*iter.extra_permissions)[index@] {
+                    Some(_) => true,
+                    None => false,
+                },
+        }
+    }
+}
+
+impl<T> fmt::Debug for IterMut<'_, T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("IterMut")
+            .field("entries", &self.entries)
+            .field("entries_len", &self.entries_len)
+            .field("extra_values", &self.extra_values)
+            .field("entry", &self.entry)
+            .field("cursor", &self.cursor)
+            .field("lt", &self.lt)
+            .finish()
+    }
+}
+
+/// Capture the allocation lifetime and split a slice permission into one-shot
+/// element tokens. The runtime pointer is the same pointer returned by
+/// `Vec::as_mut_ptr`; all ownership state is ghost-only.
+#[cfg_attr(creusot, ensures((*result.1).len() == slice@.len()))]
+#[cfg_attr(creusot, ensures((*result.2).ward() == result.0 as *const T))]
+#[cfg_attr(creusot, ensures((*result.2).len()@ == slice@.len()))]
+#[cfg_attr(creusot, ensures(forall<i: Int> 0 <= i && i < slice@.len() ==> match (*result.1)[i] {
+    Some(token) => *token.ward() == (result.0 as *const T).offset_logic(i) && *token.val() == slice@[i],
+    None => false,
+}))]
+fn slice_element_permissions<'a, T>(
+    slice: &'a mut [T],
+) -> (
+    *mut T,
+    Ghost<Seq<Option<&'a mut Perm<*const T>>>>,
+    Ghost<PtrLive<'a, T>>,
+) {
+    #[cfg(creusot)]
+    let original = snapshot!(slice@);
+    let (ptr, permission) = slice.as_mut_ptr_perm();
+    #[cfg(not(creusot))]
+    let _ = permission;
+    let live = {
+        #[cfg(creusot)]
+        {
+            ghost! { permission.live_mut() }
+        }
+        #[cfg(not(creusot))]
+        {
+            Ghost::from_fn(|| unreachable!())
+        }
+    };
+    let tokens = {
+        #[cfg(creusot)]
+        {
+            ghost! {
+                let mut elements = permission.into_inner().elements_mut();
+                let mut tokens: Seq<Option<&'a mut Perm<*const T>>> = Seq::new().into_inner();
+                #[variant(elements.len())]
+                #[invariant(tokens.len() + elements.len() == (*original).len())]
+                #[invariant(forall<i: Int> 0 <= i && i < tokens.len() ==> match tokens[i] {
+                    Some(token) => *token.ward() == (ptr as *const T).offset_logic(i) && *token.val() == (*original)[i],
+                    None => false,
+                })]
+                #[invariant(forall<i: Int> 0 <= i && i < elements.len() ==>
+                    *elements[i].ward() == (ptr as *const T).offset_logic(tokens.len() + i)
+                    && *elements[i].val() == (*original)[tokens.len() + i]
+                )]
+                while !elements.is_empty_ghost() {
+                    tokens.push_back_ghost(Some(elements.pop_front_ghost().unwrap()));
+                }
+                tokens
+            }
+        }
+        #[cfg(not(creusot))]
+        {
+            Ghost::from_fn(|| unreachable!())
+        }
+    };
+    (ptr, tokens, live)
 }
 
 /// An owning iterator over the entries of a `HeaderMap`.
@@ -165,7 +370,7 @@ pub struct Keys<'a, T> {
 /// `HeaderMap` value iterator.
 ///
 /// Each value contained in the `HeaderMap` will be yielded.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
 pub struct Values<'a, T> {
     inner: Iter<'a, T>,
 }
@@ -191,14 +396,14 @@ pub struct Drain<'a, T> {
 /// A view to all values stored in a single entry.
 ///
 /// This struct is returned by `HeaderMap::get_all`.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
 pub struct GetAll<'a, T> {
     map: &'a HeaderMap<T>,
     index: Option<usize>,
 }
 
 /// A view into a single location in a `HeaderMap`, which may be vacant or occupied.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
 pub enum Entry<'a, T: 'a> {
     /// An occupied entry
     Occupied(OccupiedEntry<'a, T>),
@@ -210,7 +415,7 @@ pub enum Entry<'a, T: 'a> {
 /// A view into a single empty location in a `HeaderMap`.
 ///
 /// This struct is returned as part of the `Entry` enum.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
 pub struct VacantEntry<'a, T> {
     map: &'a mut HeaderMap<T>,
     key: HeaderName,
@@ -222,7 +427,7 @@ pub struct VacantEntry<'a, T> {
 /// A view into a single occupied location in a `HeaderMap`.
 ///
 /// This struct is returned as part of the `Entry` enum.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
 pub struct OccupiedEntry<'a, T> {
     map: &'a mut HeaderMap<T>,
     probe: usize,
@@ -230,7 +435,7 @@ pub struct OccupiedEntry<'a, T> {
 }
 
 /// An iterator of all values associated with a single header name.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
 pub struct ValueIter<'a, T> {
     map: &'a HeaderMap<T>,
     index: usize,
@@ -266,45 +471,12 @@ pub struct MaxSizeReached {
 }
 
 /// Tracks the value iterator state
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone)]
+#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Eq, PartialEq))]
 enum Cursor {
     Head,
     Values(usize),
 }
-
-/// Type used for representing the size of a HeaderMap value.
-///
-/// 32,768 is more than enough entries for a single header map. Setting this
-/// limit enables using `u16` to represent all offsets, which takes 2 bytes
-/// instead of 8 on 64 bit processors.
-///
-/// Setting this limit is especially beneficial for `indices`, making it more
-/// cache friendly. More hash codes can fit in a cache line.
-///
-/// You may notice that `u16` may represent more than 32,768 values. This is
-/// true, but 32,768 should be plenty and it allows us to reserve the top bit
-/// for future usage.
-type Size = u16;
-
-/// This limit falls out from above.
-const MAX_SIZE: usize = 1 << 15;
-
-/// An entry in the hash table. This represents the full hash code for an entry
-/// as well as the position of the entry in the `entries` vector.
-#[derive(Copy, Clone)]
-struct Pos {
-    // Index in the `entries` vec
-    index: Size,
-    // Full hash value for the entry.
-    hash: HashValue,
-}
-
-/// Hash values are limited to u16 as well. While `fast_hash` and `Hasher`
-/// return `usize` hash codes, limiting the effective hash code to the lower 16
-/// bits is fine since we know that the `indices` vector will never grow beyond
-/// that size.
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-struct HashValue(u16);
 
 /// Stores the data associated with a `HeaderMap` entry. Only the first value is
 /// included in this struct. If a header name has more than one associated
@@ -327,6 +499,169 @@ struct Links {
     tail: usize,
 }
 
+/// Split field permissions for a live bucket. Each token is created before a
+/// mutable value is yielded, so later key and links reads never reborrow the
+/// whole bucket.
+struct BucketFieldPtrs<'a, T> {
+    hash_ptr: *const HashValue,
+    hash_permission: Ghost<&'a Perm<*const HashValue>>,
+    key_ptr: *const HeaderName,
+    key_permission: Ghost<&'a Perm<*const HeaderName>>,
+    value_ptr: *mut T,
+    #[allow(dead_code)]
+    value_permission: Ghost<Option<&'a mut Perm<*const T>>>,
+    links_ptr: *const Option<Links>,
+    links_permission: Ghost<&'a Perm<*const Option<Links>>>,
+}
+
+#[cfg(creusot)]
+impl<'a, T> Invariant for BucketFieldPtrs<'a, T> {
+    #[logic]
+    fn invariant(self) -> bool {
+        pearlite! {
+            self.hash_ptr == *(*self.hash_permission).ward() &&
+            self.key_ptr == *(*self.key_permission).ward() &&
+            self.links_ptr == *(*self.links_permission).ward() &&
+            match *self.value_permission {
+                Some(permission) => self.value_ptr as *const T == *permission.ward(),
+                None => true,
+            }
+        }
+    }
+}
+
+impl<T> Bucket<T> {
+    #[allow(dead_code)]
+    #[cfg_attr(creusot, ensures(result.invariant()))]
+    #[cfg_attr(creusot, ensures(*(*result.hash_permission).val() == self.hash))]
+    #[cfg_attr(creusot, ensures(*(*result.key_permission).val() == self.key))]
+    #[cfg_attr(creusot, ensures(*(*result.links_permission).val() == self.links))]
+    #[cfg_attr(creusot, ensures((^self).hash == self.hash))]
+    #[cfg_attr(creusot, ensures((^self).key == self.key))]
+    #[cfg_attr(creusot, ensures((^self).links == self.links))]
+    #[cfg_attr(creusot, ensures(match *result.value_permission {
+        Some(permission) => *permission.val() == self.value && *(^permission).val() == (^self).value,
+        None => false,
+    }))]
+    fn field_ptrs(&mut self) -> BucketFieldPtrs<'_, T> {
+        let (hash_ptr, hash_permission) = Perm::from_ref(&self.hash);
+        let (key_ptr, key_permission) = Perm::from_ref(&self.key);
+        let (value_ptr, value_permission) = Perm::from_mut(&mut self.value);
+        let (links_ptr, links_permission) = Perm::from_ref(&self.links);
+
+        let value_permission = {
+            #[cfg(creusot)]
+            {
+                ghost! { Some(value_permission.into_inner()) }
+            }
+            #[cfg(not(creusot))]
+            {
+                Ghost::from_fn(|| Some(value_permission.into_inner()))
+            }
+        };
+
+        BucketFieldPtrs {
+            hash_ptr,
+            hash_permission,
+            key_ptr,
+            key_permission,
+            value_ptr,
+            value_permission,
+            links_ptr,
+            links_permission,
+        }
+    }
+}
+
+impl<'a, T> BucketFieldPtrs<'a, T> {
+    #[allow(dead_code)]
+    #[cfg_attr(creusot, requires(self.invariant()))]
+    #[cfg_attr(creusot, requires(match *self.value_permission {
+        Some(_) => true,
+        None => false,
+    }))]
+    #[cfg_attr(creusot, ensures((^self).invariant()))]
+    #[cfg_attr(creusot, ensures(match *((^self).value_permission) {
+        Some(_) => false,
+        None => true,
+    }))]
+    #[cfg_attr(creusot, ensures(*(^self).hash_permission == *self.hash_permission))]
+    #[cfg_attr(creusot, ensures(*(^self).key_permission == *self.key_permission))]
+    #[cfg_attr(creusot, ensures(*(^self).links_permission == *self.links_permission))]
+    #[cfg_attr(creusot, ensures(match *self.value_permission {
+        Some(permission) => *result == *permission.val() && ^result == *(^permission).val(),
+        None => false,
+    }))]
+    fn take_value(&mut self) -> &'a mut T {
+        let permission = {
+            #[cfg(creusot)]
+            {
+                ghost! { self.value_permission.take().unwrap() }
+            }
+            #[cfg(not(creusot))]
+            {
+                Ghost::from_fn(|| unreachable!())
+            }
+        };
+        unsafe { Perm::as_mut(self.value_ptr, permission) }
+    }
+
+    #[allow(dead_code)]
+    #[cfg_attr(creusot, requires(self.invariant()))]
+    #[cfg_attr(creusot, ensures(*result == *(*self.hash_permission).val()))]
+    fn hash(&self) -> &'a HashValue {
+        unsafe { Perm::as_ref(self.hash_ptr, self.hash_permission) }
+    }
+
+    #[allow(dead_code)]
+    #[cfg_attr(creusot, requires(self.invariant()))]
+    #[cfg_attr(creusot, ensures(*result == *(*self.key_permission).val()))]
+    fn key(&self) -> &'a HeaderName {
+        unsafe { Perm::as_ref(self.key_ptr, self.key_permission) }
+    }
+
+    #[allow(dead_code)]
+    #[cfg_attr(creusot, requires(self.invariant()))]
+    #[cfg_attr(creusot, ensures(*result == *(*self.links_permission).val()))]
+    fn links(&self) -> &'a Option<Links> {
+        unsafe { Perm::as_ref(self.links_ptr, self.links_permission) }
+    }
+}
+
+/// Yield the first value of a bucket while retaining separate field borrows.
+/// The iterator keeps the key reference for the remainder of this bucket's
+/// linked value chain.
+#[cfg_attr(creusot, ensures(*result.0 == bucket.key))]
+#[cfg_attr(creusot, ensures(*result.1 == bucket.value))]
+#[cfg_attr(creusot, ensures(result.2 == bucket.links))]
+#[cfg_attr(creusot, ensures((^bucket).hash == bucket.hash))]
+#[cfg_attr(creusot, ensures((^bucket).key == bucket.key))]
+#[cfg_attr(creusot, ensures((^bucket).links == bucket.links))]
+#[cfg_attr(creusot, ensures((^bucket).value == ^result.1))]
+fn yield_bucket_head<'a, T>(
+    bucket: &'a mut Bucket<T>,
+) -> (&'a HeaderName, &'a mut T, Option<Links>) {
+    let mut fields = bucket.field_ptrs();
+    let links = *fields.links();
+    let key = fields.key();
+    let value = fields.take_value();
+    (key, value, links)
+}
+
+/// Yield an extra value while preserving its link fields for the next step.
+#[cfg_attr(creusot, ensures(*result.0 == extra.value))]
+#[cfg_attr(creusot, ensures(result.1 == extra.next))]
+#[cfg_attr(creusot, ensures((^extra).prev == extra.prev))]
+#[cfg_attr(creusot, ensures((^extra).next == extra.next))]
+#[cfg_attr(creusot, ensures((^extra).value == ^result.0))]
+fn yield_extra_value<'a, T>(extra: &'a mut ExtraValue<T>) -> (&'a mut T, Link) {
+    let (value_ptr, value_permission) = Perm::from_mut(&mut extra.value);
+    let (next_ptr, next_permission) = Perm::from_ref(&extra.next);
+    let next = *unsafe { Perm::as_ref(next_ptr, next_permission) };
+    let value = unsafe { Perm::as_mut(value_ptr, value_permission) };
+    (value, next)
+}
+
 /// Access to the `links` value in a slice of buckets.
 ///
 /// It's important that no other field is accessed, since it may have been
@@ -345,7 +680,8 @@ struct ExtraValue<T> {
 /// A header value node is either linked to another node in the `extra_values`
 /// list or it points to an entry in `entries`. The entry in `entries` is the
 /// start of the list and holds the associated header name.
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone)]
+#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Eq, PartialEq))]
 enum Link {
     Entry(usize),
     Extra(usize),
@@ -493,12 +829,17 @@ impl HeaderMap {
     /// assert_eq!(0, map.capacity());
     /// ```
     #[inline]
+    #[cfg_attr(creusot, ensures(header_map_total_len(result) == 0))]
+    #[cfg_attr(creusot, ensures(header_map_capacity(result) == 0))]
     pub fn new() -> Self {
         Self::default()
     }
 }
 
 impl<T> Default for HeaderMap<T> {
+    #[cfg_attr(creusot, ensures(header_map_keys_len(result) == 0))]
+    #[cfg_attr(creusot, ensures(header_map_extra_values_len(result) == 0))]
+    #[cfg_attr(creusot, ensures(header_map_capacity(result) == 0))]
     fn default() -> Self {
         HeaderMap {
             mask: 0,
@@ -533,6 +874,9 @@ impl<T> HeaderMap<T> {
     /// assert!(map.is_empty());
     /// assert_eq!(12, map.capacity());
     /// ```
+    #[cfg_attr(creusot, requires(capacity@ <= MAX_SIZE@ - MAX_SIZE@ / 4))]
+    #[cfg_attr(creusot, ensures(header_map_total_len(result) == 0))]
+    #[cfg_attr(creusot, ensures(header_map_capacity(result) >= capacity@))]
     pub fn with_capacity(capacity: usize) -> HeaderMap<T> {
         Self::try_with_capacity(capacity).expect("size overflows MAX_SIZE")
     }
@@ -559,6 +903,12 @@ impl<T> HeaderMap<T> {
     /// assert!(map.is_empty());
     /// assert_eq!(12, map.capacity());
     /// ```
+    #[cfg_attr(creusot, ensures(match result {
+        Ok(map) => header_map_total_len(map) == 0
+            && header_map_capacity(map) >= capacity@
+            && capacity@ <= MAX_SIZE@ - MAX_SIZE@ / 4,
+        Err(_) => capacity@ > MAX_SIZE@ - MAX_SIZE@ / 4,
+    }))]
     pub fn try_with_capacity(capacity: usize) -> Result<HeaderMap<T>, MaxSizeReached> {
         if capacity == 0 {
             Ok(Self::default())
@@ -607,7 +957,13 @@ impl<T> HeaderMap<T> {
     ///
     /// assert_eq!(3, map.len());
     /// ```
+    #[cfg_attr(creusot, ensures(result@ == header_map_total_len(*self)))]
     pub fn len(&self) -> usize {
+        #[cfg(creusot)]
+        {
+            allocation_len_bound(&self.entries);
+            allocation_len_bound(&self.extra_values);
+        }
         self.entries.len() + self.extra_values.len()
     }
 
@@ -634,6 +990,7 @@ impl<T> HeaderMap<T> {
     ///
     /// assert_eq!(2, map.keys_len());
     /// ```
+    #[cfg_attr(creusot, ensures(result@ == header_map_keys_len(*self)))]
     pub fn keys_len(&self) -> usize {
         self.entries.len()
     }
@@ -653,6 +1010,7 @@ impl<T> HeaderMap<T> {
     ///
     /// assert!(!map.is_empty());
     /// ```
+    #[cfg_attr(creusot, ensures(result == (header_map_keys_len(*self) == 0)))]
     pub fn is_empty(&self) -> bool {
         self.entries.len() == 0
     }
@@ -672,6 +1030,9 @@ impl<T> HeaderMap<T> {
     /// assert!(map.is_empty());
     /// assert!(map.capacity() > 0);
     /// ```
+    #[cfg_attr(creusot, ensures(header_map_keys_len(^self) == 0))]
+    #[cfg_attr(creusot, ensures(header_map_extra_values_len(^self) == 0))]
+    #[cfg_attr(creusot, ensures(header_map_capacity(^self) == header_map_capacity(*self)))]
     pub fn clear(&mut self) {
         self.entries.clear();
         self.extra_values.clear();
@@ -699,6 +1060,7 @@ impl<T> HeaderMap<T> {
     /// map.insert(HOST, "hello.world".parse().unwrap());
     /// assert_eq!(6, map.capacity());
     /// ```
+    #[cfg_attr(creusot, ensures(result@ == header_map_capacity(*self)))]
     pub fn capacity(&self) -> usize {
         usable_capacity(self.indices.len())
     }
@@ -805,6 +1167,7 @@ impl<T> HeaderMap<T> {
     /// map.append(HOST, "world".parse().unwrap());
     /// assert_eq!(map.get("host").unwrap(), &"hello");
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn get<K>(&self, key: K) -> Option<&T>
     where
         K: AsHeaderName,
@@ -842,6 +1205,7 @@ impl<T> HeaderMap<T> {
     ///
     /// assert_eq!(map.get(HOST).unwrap(), &"hello-world");
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn get_mut<K>(&mut self, key: K) -> Option<&mut T>
     where
         K: AsHeaderName,
@@ -880,6 +1244,7 @@ impl<T> HeaderMap<T> {
     /// assert_eq!(&"goodbye", iter.next().unwrap());
     /// assert!(iter.next().is_none());
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn get_all<K>(&self, key: K) -> GetAll<'_, T>
     where
         K: AsHeaderName,
@@ -903,6 +1268,7 @@ impl<T> HeaderMap<T> {
     /// map.insert(HOST, "world".parse().unwrap());
     /// assert!(map.contains_key("host"));
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn contains_key<K>(&self, key: K) -> bool
     where
         K: AsHeaderName,
@@ -931,6 +1297,7 @@ impl<T> HeaderMap<T> {
     ///     println!("{:?}: {:?}", key, value);
     /// }
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn iter(&self) -> Iter<'_, T> {
         Iter {
             map: self,
@@ -960,13 +1327,32 @@ impl<T> HeaderMap<T> {
     ///     value.push_str("-boop");
     /// }
     /// ```
-    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+    #[cfg(any(not(feature = "http_map_api_leaf"), http_bucket_iter_mut_leaf))]
+    #[cfg_attr(creusot, ensures(iter_mut_storage_invariant(&result)))]
+    #[cfg_attr(creusot, ensures(iter_mut_cursor_ready(&result)))]
+    pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a, T> {
+        let entries_len = self.entries.len();
+        let cursor = if entries_len == 0 {
+            None
+        } else {
+            Some(Cursor::Head)
+        };
+        let entries_slice: &mut [Bucket<T>] = &mut self.entries;
+        let extra_values_slice: &mut [ExtraValue<T>] = &mut self.extra_values;
+        let (entries, entry_permissions, entries_live) = slice_element_permissions(entries_slice);
+        let (extra_values, extra_permissions, extra_values_live) =
+            slice_element_permissions(extra_values_slice);
         IterMut {
-            entries: self.entries.as_mut_ptr(),
-            entries_len: self.entries.len(),
-            extra_values: self.extra_values.as_mut_ptr(),
+            entries,
+            entries_len,
+            entries_live,
+            entry_permissions,
+            extra_values,
+            extra_values_live,
+            extra_permissions,
             entry: 0,
-            cursor: self.entries.first().map(|_| Cursor::Head),
+            cursor,
+            current_key: None,
             lt: PhantomData,
         }
     }
@@ -992,6 +1378,7 @@ impl<T> HeaderMap<T> {
     ///     println!("{:?}", key);
     /// }
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn keys(&self) -> Keys<'_, T> {
         Keys {
             inner: self.entries.iter(),
@@ -1018,6 +1405,7 @@ impl<T> HeaderMap<T> {
     ///     println!("{:?}", value);
     /// }
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn values(&self) -> Values<'_, T> {
         Values { inner: self.iter() }
     }
@@ -1042,6 +1430,7 @@ impl<T> HeaderMap<T> {
     ///     value.push_str("-boop");
     /// }
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn values_mut(&mut self) -> ValuesMut<'_, T> {
         ValuesMut {
             inner: self.iter_mut(),
@@ -1077,6 +1466,7 @@ impl<T> HeaderMap<T> {
     ///
     /// assert_eq!(drain.next(), None);
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn drain(&mut self) -> Drain<'_, T> {
         for i in self.indices.iter_mut() {
             *i = Pos::none();
@@ -1106,6 +1496,7 @@ impl<T> HeaderMap<T> {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn value_iter(&self, idx: Option<usize>) -> ValueIter<'_, T> {
         use self::Cursor::*;
 
@@ -1132,6 +1523,7 @@ impl<T> HeaderMap<T> {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn value_iter_mut(&mut self, idx: usize) -> ValueIterMut<'_, T> {
         use self::Cursor::*;
 
@@ -1179,6 +1571,7 @@ impl<T> HeaderMap<T> {
     /// assert_eq!(map["content-length"], 2);
     /// assert_eq!(map["x-hello"], 1);
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn entry<K>(&mut self, key: K) -> Entry<'_, T>
     where
         K: IntoHeaderName,
@@ -1200,6 +1593,7 @@ impl<T> HeaderMap<T> {
     /// error. However, to prevent breaking changes to the return type, the
     /// error will still say `InvalidHeaderName`, unlike other `try_*` methods
     /// which return a `MaxSizeReached` error.
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn try_entry<K>(&mut self, key: K) -> Result<Entry<'_, T>, InvalidHeaderName>
     where
         K: AsHeaderName,
@@ -1215,6 +1609,7 @@ impl<T> HeaderMap<T> {
         })
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn try_entry2<K>(&mut self, key: K) -> Result<Entry<'_, T>, MaxSizeReached>
     where
         K: Hash + Into<HeaderName>,
@@ -1283,6 +1678,7 @@ impl<T> HeaderMap<T> {
     /// let mut prev = map.insert(HOST, "earth".parse().unwrap()).unwrap();
     /// assert_eq!("world", prev);
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn insert<K>(&mut self, key: K, val: T) -> Option<T>
     where
         K: IntoHeaderName,
@@ -1321,6 +1717,7 @@ impl<T> HeaderMap<T> {
     /// let mut prev = map.try_insert(HOST, "earth".parse().unwrap()).unwrap().unwrap();
     /// assert_eq!("world", prev);
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn try_insert<K>(&mut self, key: K, val: T) -> Result<Option<T>, MaxSizeReached>
     where
         K: IntoHeaderName,
@@ -1329,6 +1726,7 @@ impl<T> HeaderMap<T> {
     }
 
     #[inline]
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn try_insert2<K>(&mut self, key: K, value: T) -> Result<Option<T>, MaxSizeReached>
     where
         K: Hash + Into<HeaderName>,
@@ -1363,6 +1761,7 @@ impl<T> HeaderMap<T> {
 
     /// Set an occupied bucket to the given value
     #[inline]
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn insert_occupied(&mut self, index: usize, value: T) -> T {
         if let Some(links) = self.entries[index].links {
             self.remove_all_extra_values(links.next);
@@ -1372,6 +1771,7 @@ impl<T> HeaderMap<T> {
         mem::replace(&mut entry.value, value)
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn insert_occupied_mult(&mut self, index: usize, value: T) -> ValueDrain<'_, T> {
         let old;
         let links;
@@ -1426,6 +1826,7 @@ impl<T> HeaderMap<T> {
     /// assert_eq!("world", *i.next().unwrap());
     /// assert_eq!("earth", *i.next().unwrap());
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn append<K>(&mut self, key: K, value: T) -> bool
     where
         K: IntoHeaderName,
@@ -1464,6 +1865,7 @@ impl<T> HeaderMap<T> {
     /// assert_eq!("world", *i.next().unwrap());
     /// assert_eq!("earth", *i.next().unwrap());
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn try_append<K>(&mut self, key: K, value: T) -> Result<bool, MaxSizeReached>
     where
         K: IntoHeaderName,
@@ -1472,6 +1874,7 @@ impl<T> HeaderMap<T> {
     }
 
     #[inline]
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn try_append2<K>(&mut self, key: K, value: T) -> Result<bool, MaxSizeReached>
     where
         K: Hash + Into<HeaderName>,
@@ -1509,6 +1912,7 @@ impl<T> HeaderMap<T> {
     }
 
     #[inline]
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn find<K>(&self, key: &K) -> Option<(usize, usize)>
     where
         K: Hash + Into<HeaderName> + ?Sized,
@@ -1583,6 +1987,7 @@ impl<T> HeaderMap<T> {
     ///
     /// assert!(map.remove(HOST).is_none());
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn remove<K>(&mut self, key: K) -> Option<T>
     where
         K: AsHeaderName,
@@ -1607,6 +2012,7 @@ impl<T> HeaderMap<T> {
     /// for the `found` index (via `remove_all_extra_values` or similar)
     /// _before_ this method is called.
     #[inline]
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn remove_found(&mut self, probe: usize, found: usize) -> Bucket<T> {
         // index `probe` and entry `found` is to be removed
         // use swap_remove, but then we need to update the index that points
@@ -1664,11 +2070,13 @@ impl<T> HeaderMap<T> {
 
     /// Removes the `ExtraValue` at the given index.
     #[inline]
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn remove_extra_value(&mut self, idx: usize) -> ExtraValue<T> {
         let raw_links = self.raw_links();
         remove_extra_value(raw_links, &mut self.extra_values, idx)
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     fn remove_all_extra_values(&mut self, mut head: usize) {
         loop {
             let extra = self.remove_extra_value(head);
@@ -1838,6 +2246,7 @@ impl<T> HeaderMap<T> {
 
 /// Removes the `ExtraValue` at the given index.
 #[inline]
+#[cfg(not(feature = "http_map_api_leaf"))]
 fn remove_extra_value<T>(
     mut raw_links: RawLinks<T>,
     extra_values: &mut Vec<ExtraValue<T>>,
@@ -1956,6 +2365,7 @@ fn remove_extra_value<T>(
     extra
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 fn drain_all_extra_values<T>(
     raw_links: RawLinks<T>,
     extra_values: &mut Vec<ExtraValue<T>>,
@@ -1975,6 +2385,7 @@ fn drain_all_extra_values<T>(
     vec
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> IntoIterator for &'a HeaderMap<T> {
     type Item = (&'a HeaderName, &'a T);
     type IntoIter = Iter<'a, T>;
@@ -1984,6 +2395,7 @@ impl<'a, T> IntoIterator for &'a HeaderMap<T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> IntoIterator for &'a mut HeaderMap<T> {
     type Item = (&'a HeaderName, &'a mut T);
     type IntoIter = IterMut<'a, T>;
@@ -1993,6 +2405,7 @@ impl<'a, T> IntoIterator for &'a mut HeaderMap<T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> IntoIterator for HeaderMap<T> {
     type Item = (Option<HeaderName>, T);
     type IntoIter = IntoIter<T>;
@@ -2055,6 +2468,7 @@ impl<T> IntoIterator for HeaderMap<T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> FromIterator<(HeaderName, T)> for HeaderMap<T> {
     fn from_iter<I>(iter: I) -> Self
     where
@@ -2081,6 +2495,7 @@ impl<T> FromIterator<(HeaderName, T)> for HeaderMap<T> {
 /// let headers: HeaderMap = (&map).try_into().expect("valid headers");
 /// assert_eq!(headers["X-Custom-Header"], "my value");
 /// ```
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, K, V, S, T> TryFrom<&'a HashMap<K, V, S>> for HeaderMap<T>
 where
     K: Eq + Hash,
@@ -2102,6 +2517,7 @@ where
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> Extend<(Option<HeaderName>, T)> for HeaderMap<T> {
     /// Extend a `HeaderMap` with the contents of another `HeaderMap`.
     ///
@@ -2199,6 +2615,7 @@ impl<T> Extend<(Option<HeaderName>, T)> for HeaderMap<T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> Extend<(HeaderName, T)> for HeaderMap<T> {
     fn extend<I: IntoIterator<Item = (HeaderName, T)>>(&mut self, iter: I) {
         // Keys may be already present or show multiple times in the iterator.
@@ -2225,6 +2642,7 @@ impl<T> Extend<(HeaderName, T)> for HeaderMap<T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T: PartialEq> PartialEq for HeaderMap<T> {
     fn eq(&self, other: &HeaderMap<T>) -> bool {
         if self.len() != other.len() {
@@ -2236,14 +2654,17 @@ impl<T: PartialEq> PartialEq for HeaderMap<T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T: Eq> Eq for HeaderMap<T> {}
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T: fmt::Debug> fmt::Debug for HeaderMap<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map().entries(self.iter()).finish()
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<K, T> ops::Index<K> for HeaderMap<T>
 where
     K: AsHeaderName,
@@ -2321,6 +2742,7 @@ fn append_value<T>(
 
 // ===== impl Iter =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for Iter<'a, T> {
     type Item = (&'a HeaderName, &'a T);
 
@@ -2369,6 +2791,7 @@ impl<'a, T> Iterator for Iter<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for Iter<'a, T> {}
 
 unsafe impl<'a, T: Sync> Sync for Iter<'a, T> {}
@@ -2376,8 +2799,19 @@ unsafe impl<'a, T: Sync> Send for Iter<'a, T> {}
 
 // ===== impl IterMut =====
 
+#[cfg(any(not(feature = "http_map_api_leaf"), http_bucket_iter_mut_leaf))]
 impl<'a, T> IterMut<'a, T> {
-    fn next_unsafe(&mut self) -> Option<(*const HeaderName, *mut T)> {
+    #[cfg_attr(creusot, requires(iter_mut_storage_invariant(self)))]
+    #[cfg_attr(creusot, requires(iter_mut_cursor_ready(self)))]
+    #[cfg_attr(creusot, ensures((^self).entries_len == self.entries_len))]
+    #[cfg_attr(creusot, ensures((^self).entries == self.entries))]
+    #[cfg_attr(creusot, ensures((^self).extra_values == self.extra_values))]
+    #[cfg_attr(creusot, ensures(iter_mut_storage_invariant(&^self)))]
+    #[cfg_attr(creusot, ensures(match result {
+        Some(_) => match self.cursor { Some(_) => true, None => self.entry < self.entries_len },
+        None => match (^self).cursor { Some(_) => false, None => true },
+    }))]
+    fn next_unsafe(&mut self) -> Option<(&'a HeaderName, &'a mut T)> {
         use self::Cursor::*;
 
         if self.cursor.is_none() {
@@ -2392,54 +2826,97 @@ impl<'a, T> IterMut<'a, T> {
         // SAFETY: `self.entry < self.entries_len`, and the iterator has
         // exclusive access to the underlying map for `'a`, so the `entries`
         // allocation remains valid for the lifetime of the iterator.
-        let entry = unsafe { self.entries.add(self.entry) };
+        let entries_live = {
+            #[cfg(creusot)]
+            {
+                ghost! { (*self.entries_live).clone() }
+            }
+            #[cfg(not(creusot))]
+            {
+                Ghost::from_fn(|| unreachable!())
+            }
+        };
+        let entry = unsafe { self.entries.add_live(self.entry, entries_live) };
 
         match self.cursor.unwrap() {
             Head => {
-                // SAFETY: `entry` points at a live bucket in `entries`.
-                self.cursor = unsafe { (*entry).links }.map(|l| Values(l.next));
-                // SAFETY: `entry` points at a live bucket, and the iterator only
-                // yields each slot at most once, so materializing these field
-                // pointers does not alias another yielded `&mut T`.
-                Some(unsafe {
-                    (
-                        ptr::addr_of!((*entry).key),
-                        ptr::addr_of_mut!((*entry).value),
-                    )
-                })
+                // SAFETY: this is the first visit to this entry, the vector
+                // allocation remains borrowed for `'a`, and entries are
+                // visited in increasing order. The helper splits the key,
+                // value, and links borrows before the value escapes.
+                let permission = {
+                    #[cfg(creusot)]
+                    {
+                        ghost! {
+                            self.entry_permissions
+                                .get_mut_ghost(Int::new(self.entry as i128).into_inner())
+                                .unwrap()
+                                .take()
+                                .unwrap()
+                        }
+                    }
+                    #[cfg(not(creusot))]
+                    {
+                        Ghost::from_fn(|| unreachable!())
+                    }
+                };
+                let bucket = unsafe { Perm::as_mut(entry, permission) };
+                let (key, value, links) = yield_bucket_head(bucket);
+                self.current_key = Some(key);
+                self.cursor = links.map(|l| Values(l.next));
+                Some((key, value))
             }
             Values(idx) => {
+                let key = self.current_key.unwrap();
                 // SAFETY: `idx` comes from the `links` chain stored in a live
                 // bucket / extra value, so it points at a live `extra_values`
                 // slot for the duration of iteration.
-                let extra = unsafe { self.extra_values.add(idx) };
-
-                // SAFETY: `extra` points at a live extra value.
-                match unsafe { (*extra).next } {
+                let extra_live = {
+                    #[cfg(creusot)]
+                    {
+                        ghost! { (*self.extra_values_live).clone() }
+                    }
+                    #[cfg(not(creusot))]
+                    {
+                        Ghost::from_fn(|| unreachable!())
+                    }
+                };
+                let extra = unsafe { self.extra_values.add_live(idx, extra_live) };
+                let permission = {
+                    #[cfg(creusot)]
+                    {
+                        ghost! {
+                            self.extra_permissions
+                                .get_mut_ghost(Int::new(idx as i128).into_inner())
+                                .unwrap()
+                                .take()
+                                .unwrap()
+                        }
+                    }
+                    #[cfg(not(creusot))]
+                    {
+                        Ghost::from_fn(|| unreachable!())
+                    }
+                };
+                let extra = unsafe { Perm::as_mut(extra, permission) };
+                let (value, next) = yield_extra_value(extra);
+                match next {
                     Link::Entry(_) => self.cursor = None,
                     Link::Extra(i) => self.cursor = Some(Values(i)),
                 }
 
-                // SAFETY: `entry` and `extra` both point at live elements in the
-                // map backing storage, and the iterator only yields each value
-                // slot at most once.
-                Some(unsafe {
-                    (
-                        ptr::addr_of!((*entry).key),
-                        ptr::addr_of_mut!((*extra).value),
-                    )
-                })
+                Some((key, value))
             }
         }
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for IterMut<'a, T> {
     type Item = (&'a HeaderName, &'a mut T);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next_unsafe()
-            .map(|(key, ptr)| (unsafe { &*key }, unsafe { &mut *ptr }))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -2454,6 +2931,7 @@ impl<'a, T> Iterator for IterMut<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for IterMut<'a, T> {}
 
 unsafe impl<'a, T: Sync> Sync for IterMut<'a, T> {}
@@ -2461,6 +2939,7 @@ unsafe impl<'a, T: Send> Send for IterMut<'a, T> {}
 
 // ===== impl Keys =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for Keys<'a, T> {
     type Item = &'a HeaderName;
 
@@ -2485,11 +2964,14 @@ impl<'a, T> Iterator for Keys<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> ExactSizeIterator for Keys<'a, T> {}
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for Keys<'a, T> {}
 
 // ===== impl Values ====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for Values<'a, T> {
     type Item = &'a T;
 
@@ -2502,10 +2984,12 @@ impl<'a, T> Iterator for Values<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for Values<'a, T> {}
 
 // ===== impl ValuesMut ====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for ValuesMut<'a, T> {
     type Item = &'a mut T;
 
@@ -2518,10 +3002,12 @@ impl<'a, T> Iterator for ValuesMut<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for ValuesMut<'a, T> {}
 
 // ===== impl Drain =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for Drain<'a, T> {
     type Item = (Option<HeaderName>, T);
 
@@ -2572,8 +3058,10 @@ impl<'a, T> Iterator for Drain<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for Drain<'a, T> {}
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Drop for Drain<'a, T> {
     fn drop(&mut self) {
         for _ in self {}
@@ -2585,6 +3073,7 @@ unsafe impl<'a, T: Send> Send for Drain<'a, T> {}
 
 // ===== impl Entry =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Entry<'a, T> {
     /// Ensures a value is in the entry by inserting the default if empty.
     ///
@@ -2772,6 +3261,7 @@ impl<'a, T> Entry<'a, T> {
 
 // ===== impl VacantEntry =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> VacantEntry<'a, T> {
     /// Returns a reference to the entry's key
     ///
@@ -2907,6 +3397,7 @@ impl<'a, T> VacantEntry<'a, T> {
 
 // ===== impl GetAll =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T: 'a> GetAll<'a, T> {
     /// Returns an iterator visiting all values associated with the entry.
     ///
@@ -2938,12 +3429,14 @@ impl<'a, T: 'a> GetAll<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T: PartialEq> PartialEq for GetAll<'a, T> {
     fn eq(&self, other: &Self) -> bool {
         self.iter().eq(other.iter())
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> IntoIterator for GetAll<'a, T> {
     type Item = &'a T;
     type IntoIter = ValueIter<'a, T>;
@@ -2953,6 +3446,7 @@ impl<'a, T> IntoIterator for GetAll<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, 'b: 'a, T> IntoIterator for &'b GetAll<'a, T> {
     type Item = &'a T;
     type IntoIter = ValueIter<'a, T>;
@@ -2964,6 +3458,7 @@ impl<'a, 'b: 'a, T> IntoIterator for &'b GetAll<'a, T> {
 
 // ===== impl ValueIter =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T: 'a> Iterator for ValueIter<'a, T> {
     type Item = &'a T;
 
@@ -3020,6 +3515,7 @@ impl<'a, T: 'a> Iterator for ValueIter<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T: 'a> DoubleEndedIterator for ValueIter<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         use self::Cursor::*;
@@ -3050,10 +3546,12 @@ impl<'a, T: 'a> DoubleEndedIterator for ValueIter<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for ValueIter<'a, T> {}
 
 // ===== impl ValueIterMut =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T: 'a> Iterator for ValueIterMut<'a, T> {
     type Item = &'a mut T;
 
@@ -3109,6 +3607,7 @@ impl<'a, T: 'a> Iterator for ValueIterMut<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T: 'a> DoubleEndedIterator for ValueIterMut<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         use self::Cursor::*;
@@ -3150,6 +3649,7 @@ impl<'a, T: 'a> DoubleEndedIterator for ValueIterMut<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for ValueIterMut<'a, T> {}
 
 unsafe impl<'a, T: Sync> Sync for ValueIterMut<'a, T> {}
@@ -3157,6 +3657,7 @@ unsafe impl<'a, T: Send> Send for ValueIterMut<'a, T> {}
 
 // ===== impl IntoIter =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> Iterator for IntoIter<T> {
     type Item = (Option<HeaderName>, T);
 
@@ -3192,8 +3693,10 @@ impl<T> Iterator for IntoIter<T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> FusedIterator for IntoIter<T> {}
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> Drop for IntoIter<T> {
     fn drop(&mut self) {
         struct Guard<'a, T>(&'a mut IntoIter<T>);
@@ -3215,6 +3718,7 @@ impl<T> Drop for IntoIter<T> {
 
 // ===== impl OccupiedEntry =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> OccupiedEntry<'a, T> {
     /// Returns a reference to the entry's key.
     ///
@@ -3330,6 +3834,7 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// assert_eq!("earth", map["host"]);
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn insert(&mut self, value: T) -> T {
         self.map.insert_occupied(self.index, value)
     }
@@ -3356,6 +3861,7 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// assert_eq!("earth", map["host"]);
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn insert_mult(&mut self, value: T) -> ValueDrain<'_, T> {
         self.map.insert_occupied_mult(self.index, value)
     }
@@ -3406,6 +3912,7 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// assert!(!map.contains_key("host"));
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn remove(self) -> T {
         self.remove_entry().1
     }
@@ -3431,6 +3938,7 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// assert!(!map.contains_key("host"));
     /// ```
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn remove_entry(self) -> (HeaderName, T) {
         if let Some(links) = self.map.entries[self.index].links {
             self.map.remove_all_extra_values(links.next);
@@ -3445,6 +3953,7 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// The key and all values associated with the entry are removed and
     /// returned.
+    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn remove_entry_mult(self) -> (HeaderName, ValueDrain<'a, T>) {
         let raw_links = self.map.raw_links();
         let extra_values = &mut self.map.extra_values;
@@ -3515,6 +4024,7 @@ impl<'a, T> OccupiedEntry<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> IntoIterator for OccupiedEntry<'a, T> {
     type Item = &'a mut T;
     type IntoIter = ValueIterMut<'a, T>;
@@ -3524,6 +4034,7 @@ impl<'a, T> IntoIterator for OccupiedEntry<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, 'b: 'a, T> IntoIterator for &'b OccupiedEntry<'a, T> {
     type Item = &'a T;
     type IntoIter = ValueIter<'a, T>;
@@ -3533,6 +4044,7 @@ impl<'a, 'b: 'a, T> IntoIterator for &'b OccupiedEntry<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, 'b: 'a, T> IntoIterator for &'b mut OccupiedEntry<'a, T> {
     type Item = &'a mut T;
     type IntoIter = ValueIterMut<'a, T>;
@@ -3544,6 +4056,7 @@ impl<'a, 'b: 'a, T> IntoIterator for &'b mut OccupiedEntry<'a, T> {
 
 // ===== impl ValueDrain =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for ValueDrain<'a, T> {
     type Item = T;
 
@@ -3574,8 +4087,10 @@ impl<'a, T> Iterator for ValueDrain<'a, T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for ValueDrain<'a, T> {}
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Drop for ValueDrain<'a, T> {
     fn drop(&mut self) {
         for _ in self.by_ref() {}
@@ -3587,14 +4102,17 @@ unsafe impl<'a, T: Send> Send for ValueDrain<'a, T> {}
 
 // ===== impl RawLinks =====
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> Clone for RawLinks<T> {
     fn clone(&self) -> RawLinks<T> {
         *self
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> Copy for RawLinks<T> {}
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> ops::Index<usize> for RawLinks<T> {
     type Output = Option<Links>;
 
@@ -3603,49 +4121,10 @@ impl<T> ops::Index<usize> for RawLinks<T> {
     }
 }
 
+#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> ops::IndexMut<usize> for RawLinks<T> {
     fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
         unsafe { &mut (*self.0)[idx].links }
-    }
-}
-
-// ===== impl Pos =====
-
-impl Pos {
-    #[inline]
-    fn new(index: usize, hash: HashValue) -> Self {
-        debug_assert!(index < MAX_SIZE);
-        Pos {
-            index: index as Size,
-            hash,
-        }
-    }
-
-    #[inline]
-    fn none() -> Self {
-        Pos {
-            index: !0,
-            hash: HashValue(0),
-        }
-    }
-
-    #[inline]
-    fn is_some(&self) -> bool {
-        !self.is_none()
-    }
-
-    #[inline]
-    fn is_none(&self) -> bool {
-        self.index == !0
-    }
-
-    #[inline]
-    fn resolve(&self) -> Option<(usize, HashValue)> {
-        if self.is_some() {
-            Some((self.index as usize, self.hash))
-        } else {
-            None
-        }
     }
 }
 
@@ -3702,19 +4181,12 @@ impl std::error::Error for MaxSizeReached {}
 // ===== impl Utils =====
 
 #[inline]
+#[cfg_attr(creusot, ensures(match result {
+    Ok(raw) => raw@ == n@ + n@ / 3,
+    Err(_) => n@ + n@ / 3 > usize::MAX@,
+}))]
 fn to_raw_capacity(n: usize) -> Result<usize, MaxSizeReached> {
     checked_raw_capacity(n).ok_or_else(MaxSizeReached::new)
-}
-
-#[inline]
-fn desired_pos(mask: Size, hash: HashValue) -> usize {
-    (hash.0 & mask) as usize
-}
-
-/// The number of steps that `current` is forward of the desired position for hash
-#[inline]
-fn probe_distance(mask: Size, hash: HashValue, current: usize) -> usize {
-    current.wrapping_sub(desired_pos(mask, hash)) & mask as usize
 }
 
 #[inline]
@@ -3803,6 +4275,7 @@ mod into_header_name {
 
     // ==== impls ====
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for HeaderName {
         #[inline]
         fn try_insert<T>(
@@ -3824,8 +4297,10 @@ mod into_header_name {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl IntoHeaderName for HeaderName {}
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for &HeaderName {
         #[inline]
         fn try_insert<T>(
@@ -3846,8 +4321,10 @@ mod into_header_name {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl IntoHeaderName for &HeaderName {}
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for &'static str {
         #[inline]
         fn try_insert<T>(
@@ -3868,6 +4345,7 @@ mod into_header_name {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl IntoHeaderName for &'static str {}
 }
 
@@ -3918,6 +4396,7 @@ mod as_header_name {
 
     // ==== impls ====
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for HeaderName {
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
@@ -3934,8 +4413,10 @@ mod as_header_name {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl AsHeaderName for HeaderName {}
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for &HeaderName {
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
@@ -3952,8 +4433,10 @@ mod as_header_name {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl AsHeaderName for &HeaderName {}
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for &str {
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
@@ -3972,8 +4455,10 @@ mod as_header_name {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl AsHeaderName for &str {}
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for String {
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
@@ -3990,8 +4475,10 @@ mod as_header_name {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl AsHeaderName for String {}
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for &String {
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
@@ -4008,6 +4495,7 @@ mod as_header_name {
         }
     }
 
+    #[cfg(not(feature = "http_map_api_leaf"))]
     impl AsHeaderName for &String {}
 }
 

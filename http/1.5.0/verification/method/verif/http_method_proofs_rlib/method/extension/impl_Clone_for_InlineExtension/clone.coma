@@ -1,0 +1,196 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1162 13 1162 18 *)
+
+(* <method::extension::InlineExtension as std::clone::Clone> *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1163 31 1163 61
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1163 63 1163 69
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1162 13 1162 18
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1162 13 1162 18
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1197 16 1198 78
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1232 8 1232 28
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sarray = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 110 18 110 22
+let%span sarray'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 108 18 109 60
+let%span sarray'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 160 14 160 114
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 165 14 165 100
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 170 14 170 61
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 126 15 126 59
+let%span sops'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 127 14 127 38
+let%span sops'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 132 14 132 33
+let%span sops'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 137 15 137 31
+let%span sops'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 138 15 138 28
+let%span sops'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 139 14 139 30
+let%span sops'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 144 14 145 104
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 48 26 48 41
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_InlineExtension = { f0: Slice64.array UInt8.t; f1: UInt8.t }
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_15 (self: Slice64.array UInt8.t) =
+  [%#sarray'1] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (15: UInt64.t)
+
+predicate inv_array_u8_15 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_15 _1
+
+meta "rewrite_def" predicate inv_array_u8_15
+
+predicate invariant_ref_array_u8_15 [@inline:trivial] (self: Slice64.array UInt8.t) =
+  [%#sinvariant] inv_array_u8_15 self
+
+meta "rewrite_def" predicate invariant_ref_array_u8_15
+
+predicate inv_ref_array_u8_15 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_ref_array_u8_15 _1
+
+meta "rewrite_def" predicate inv_ref_array_u8_15
+
+predicate postcondition_once_clone [@inline:trivial] (self: ()) (args: UInt8.t) (result: UInt8.t) =
+  let self_ = args in [%#snum] result = self_
+
+meta "rewrite_def" predicate postcondition_once_clone
+
+predicate resolve_clone [@inline:trivial] (_1: ()) = true
+
+meta "rewrite_def" predicate resolve_clone
+
+predicate postcondition_mut_clone [@inline:trivial] (self: ()) (args: UInt8.t) (result_state: ()) (result: UInt8.t) =
+  let self_ = args in [%#snum] result = self_
+
+meta "rewrite_def" predicate postcondition_mut_clone
+
+function fn_mut_once_clone (self: ()) (args: UInt8.t) (res: UInt8.t) : ()
+
+axiom fn_mut_once_clone_spec:
+  forall self: (), args: UInt8.t, res: UInt8.t. [%#sops'8] postcondition_once_clone self args res
+    = (exists res_state: (). postcondition_mut_clone self args res_state res /\ resolve_clone res_state)
+
+predicate hist_inv_clone [@inline:trivial] (self: ()) (result_state: ()) = true
+
+meta "rewrite_def" predicate hist_inv_clone
+
+function hist_inv_trans_clone (self: ()) (b: ()) (c: ()) : ()
+
+axiom hist_inv_trans_clone_spec: forall self: (), b: (), c: (). ([%#sops'5] hist_inv_clone self b)
+    -> ([%#sops'6] hist_inv_clone b c) -> ([%#sops'7] hist_inv_clone self c)
+
+function hist_inv_refl_clone (self: ()) : ()
+
+axiom hist_inv_refl_clone_spec: forall self: (). [%#sops'4] hist_inv_clone self self
+
+function postcondition_mut_hist_inv_clone (self: ()) (args: UInt8.t) (res_state: ()) (res: UInt8.t) : ()
+
+axiom postcondition_mut_hist_inv_clone_spec:
+  forall self: (), args: UInt8.t, res_state: (), res: UInt8.t. ([%#sops'2] postcondition_mut_clone self args res_state res)
+    -> ([%#sops'3] hist_inv_clone self res_state)
+
+function fn_hist_inv_clone (self: ()) (res_state: ()) : ()
+
+axiom fn_hist_inv_clone_spec: forall self: (), res_state: (). [%#sops'1] hist_inv_clone self res_state
+    = (self = res_state)
+
+predicate postcondition_clone [@inline:trivial] (self: ()) (args: UInt8.t) (result: UInt8.t) =
+  let self_ = args in [%#snum] result = self_
+
+meta "rewrite_def" predicate postcondition_clone
+
+function fn_once_clone (self: ()) (args: UInt8.t) (res: UInt8.t) : ()
+
+axiom fn_once_clone_spec:
+  forall self: (), args: UInt8.t, res: UInt8.t. [%#sops'0] postcondition_once_clone self args res
+    = (postcondition_clone self args res /\ resolve_clone self)
+
+function fn_mut_clone (self: ()) (args: UInt8.t) (res_state: ()) (res: UInt8.t) : ()
+
+axiom fn_mut_clone_spec:
+  forall self: (), args: UInt8.t, res_state: (), res: UInt8.t. [%#sops] postcondition_mut_clone self args res_state res
+    = (postcondition_clone self args res /\ self = res_state)
+
+let rec clone_u8 (self_: UInt8.t) (return (x: UInt8.t)) = any
+  [ return (result: UInt8.t) -> {[@stop_split] [@expl:clone ensures] [%#snum] result = self_} (! return {result}) ]
+
+let rec clone_array_u8_15 (self_: Slice64.array UInt8.t) (return (x: Slice64.array UInt8.t)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#sarray] inv_ref_array_u8_15 self_}
+  any
+  [ return (result: Slice64.array UInt8.t) ->
+  {[@stop_split] [@expl:clone_array_u8_15 ensures] ([@stop_split] [@expl:clone result type invariant] inv_array_u8_15 result)
+    /\ ([@stop_split] [@expl:clone ensures] [%#sarray'0] forall i: int. 0 <= i /\ i < Seq.length (Slice64.view self_)
+      -> postcondition_clone () (Seq.get (Slice64.view self_) i) (Seq.get (Slice64.view result) i))}
+    (! return {result}) ]
+
+constant const_MAX: UInt64.t = [%#smethod'4] (15: UInt64.t)
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'6] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'5] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+predicate invariant_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1195 8 1195 34] (self: t_InlineExtension) =
+  [%#smethod'3] UInt8.t'int self.f1 <= UInt64.t'int const_MAX
+  /\ all_method_chars_valid (Seq.([..]) (Slice64.view self.f0) 0 (UInt8.t'int self.f1))
+
+predicate inv_InlineExtension (_1: t_InlineExtension)
+
+axiom inv_axiom [@rewrite]: forall x: t_InlineExtension [inv_InlineExtension x]. inv_InlineExtension x
+    = (invariant_InlineExtension x /\ inv_array_u8_15 x.f0)
+
+predicate invariant_ref_InlineExtension [@inline:trivial] (self: t_InlineExtension) =
+  [%#sinvariant] inv_InlineExtension self
+
+meta "rewrite_def" predicate invariant_ref_InlineExtension
+
+predicate inv_ref_InlineExtension [@inline:trivial] (_1: t_InlineExtension) = invariant_ref_InlineExtension _1
+
+meta "rewrite_def" predicate inv_ref_InlineExtension
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_InlineExtension
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1162 13 1162 18]
+  (self: t_InlineExtension) (return (x: t_InlineExtension)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smethod'1] inv_ref_InlineExtension self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- self.f0 ] s1
+    | s1 = clone_array_u8_15 [%#smethod] {_4} (fun (_x: Slice64.array UInt8.t) -> [ &_2 <- _x ] s2)
+    | s2 = [ &_7 <- self.f1 ] s3
+    | s3 = clone_u8 [%#smethod'0] {_7} (fun (_x: UInt8.t) -> [ &_5 <- _x ] s4)
+    | s4 = [ &_ret <- { f0 = _2; f1 = _5 } ] s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: t_InlineExtension = Any.any_l ()
+  | & self: t_InlineExtension = self
+  | & _2: Slice64.array UInt8.t = Any.any_l ()
+  | & _4: Slice64.array UInt8.t = Any.any_l ()
+  | & _5: UInt8.t = Any.any_l ()
+  | & _7: UInt8.t = Any.any_l () ])
+  [ return (result: t_InlineExtension) ->
+  {[@stop_split] [@expl:clone result type invariant] [%#smethod'2] inv_InlineExtension result}
+    (! return {result}) ]

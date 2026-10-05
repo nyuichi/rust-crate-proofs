@@ -1,0 +1,56 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 193 4 193 27 *)
+
+(* <version::Version as std::default::Default> *)
+
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 194 8 194 24
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 193 20 193 27
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 192 32 192 67
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 94 4 94 30
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 36 20 36 39
+let%span sversion'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 53 12 54 45
+let%span sversion'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 178 12 185 13
+
+use creusot.prelude.Any
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+type t_Version = { f0: t_Http }
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'5] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+function view_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 35 4 35 33] (self: t_Version) : int
+ = [%#sversion'3] deep_model_Http self.f0
+
+predicate invariant_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 51 4 51 30] (self: t_Version) =
+  [%#sversion'4] view_Version self = 9
+  \/ view_Version self = 10 \/ view_Version self = 11 \/ view_Version self = 20 \/ view_Version self = 30
+
+predicate inv_Version (_1: t_Version)
+
+axiom inv_axiom [@rewrite]: forall x: t_Version [inv_Version x]. inv_Version x = invariant_Version x
+
+constant const_HTTP_11: t_Version = [%#sversion'2] { f0 = Http11 }
+
+axiom const_HTTP_11_spec: [%#sversion'2] inv_Version const_HTTP_11
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec default_Version
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 193 4 193 27]
+  (return (x: t_Version)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- [%#sversion] const_HTTP_11 ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Version = Any.any_l () ])
+  [ return (result: t_Version) ->
+  {[@stop_split] [@expl:default_Version ensures] ([@stop_split] [@expl:default result type invariant] [%#sversion'0] inv_Version result)
+    /\ ([@stop_split] [@expl:default ensures] [%#sversion'1] view_Version result = 11 /\ invariant_Version result)}
+    (! return {result}) ]

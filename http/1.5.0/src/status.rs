@@ -22,7 +22,8 @@ use std::str::FromStr;
 
 #[allow(unused_imports)]
 use creusot_std::prelude::{
-    ensures, extern_spec, logic, pearlite, requires, DeepModel, Int, Invariant, View,
+    ensures, extern_spec, invariant, logic, pearlite, proof_assert, requires, DeepModel, Int,
+    Invariant, OrdLogic, Seq, snapshot, variant, View,
 };
 
 /// Whether `bytes` is a three-byte decimal status code in the HTTP range.
@@ -48,6 +49,65 @@ pub fn status_bytes_value(bytes: creusot_std::prelude::Seq<u8>) -> Int {
     }
 }
 
+/// ASCII byte for one decimal digit of a status code.
+#[logic(open)]
+pub fn status_digit_byte(code: Int, column: Int) -> Int {
+    pearlite! {
+        if column == 0 {
+            48 + code / 100
+        } else if column == 1 {
+            48 + (code / 10) % 10
+        } else {
+            48 + code % 10
+        }
+    }
+}
+
+/// Generate the packed static digit table from its decimal values.
+#[cfg_attr(creusot, ensures(forall<i: Int> 0 <= i && i < result@.len() ==>
+    result@[i]@ == status_digit_byte(100 + i / 3, i % 3)
+))]
+const fn build_code_digits() -> [u8; 2700] {
+    let mut digits = [0u8; 2700];
+    let mut code = 100u16;
+
+    #[cfg_attr(creusot, invariant(100 <= code@ && code@ <= 1000))]
+    #[cfg_attr(creusot, invariant(forall<i: Int> 0 <= i && i < (code@ - 100) * 3 ==>
+        digits@[i]@ == status_digit_byte(100 + i / 3, i % 3)
+    ))]
+    #[cfg_attr(creusot, variant(1000 - code@))]
+    while code < 1000 {
+        let row = ((code - 100) * 3) as usize;
+        digits[row] = 48 + (code / 100) as u8;
+        digits[row + 1] = 48 + ((code / 10) % 10) as u8;
+        digits[row + 2] = 48 + (code % 10) as u8;
+        code += 1;
+    }
+
+    digits
+}
+
+/// Borrow the by-value constant as a promoted static so `as_str` keeps its
+/// static backing storage.
+#[cfg_attr(creusot, ensures(forall<i: Int> 0 <= i && i < result@.len() ==>
+    result@[i]@ == status_digit_byte(100 + i / 3, i % 3)
+))]
+fn code_digits() -> &'static [u8; 2700] {
+    &CODE_DIGITS
+}
+
+#[requires(forall<i: Int> 0 <= i && i < bytes@.len() ==> bytes@[i]@ < 128)]
+#[cfg_attr(creusot, ensures(result@.to_bytes() == bytes@))]
+fn status_bytes_as_str(bytes: &[u8]) -> &str {
+    #[cfg(creusot)]
+    proof_assert! {
+        crate::ascii::ascii_bytes_are_valid_utf8(bytes@);
+        creusot_std::std::string::valid_utf8(bytes@)
+    };
+    // Safety: the ASCII witness proves this exact byte slice is valid UTF-8.
+    unsafe { std::str::from_utf8_unchecked(bytes) }
+}
+
 /// An HTTP status code (`status-code` in RFC 9110 et al.).
 ///
 /// Constants are provided for known status codes, including those in the IANA
@@ -69,7 +129,7 @@ pub fn status_bytes_value(bytes: creusot_std::prelude::Seq<u8>) -> Int {
 /// assert_eq!(StatusCode::NOT_FOUND.as_u16(), 404);
 /// assert!(StatusCode::OK.is_success());
 /// ```
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Copy, Hash)]
 pub struct StatusCode(NonZeroU16);
 
 #[cfg(creusot)]
@@ -105,6 +165,38 @@ impl Invariant for StatusCode {
     #[logic(open)]
     fn invariant(self) -> bool {
         pearlite! { 100 <= self@ && self@ <= 999 }
+    }
+}
+
+impl Clone for StatusCode {
+    #[cfg_attr(creusot, ensures(result@ == self@ && result.invariant()))]
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl PartialEq for StatusCode {
+    #[cfg_attr(creusot, ensures(result == (self@ == other@)))]
+    fn eq(&self, other: &Self) -> bool {
+        self.as_u16() == other.as_u16()
+    }
+}
+
+impl Eq for StatusCode {}
+
+impl PartialOrd for StatusCode {
+    #[cfg_attr(creusot, ensures(
+        result == Some(self@.cmp_log(other@))
+    ))]
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for StatusCode {
+    #[cfg_attr(creusot, ensures(result == self@.cmp_log(other@)))]
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.as_u16().cmp(&other.as_u16())
     }
 }
 
@@ -206,23 +298,25 @@ impl StatusCode {
     /// let status = http::StatusCode::OK;
     /// assert_eq!(status.as_str(), "200");
     /// ```
+    #[cfg_attr(creusot, ensures(
+        valid_status_bytes(result@.to_bytes())
+            && status_bytes_value(result@.to_bytes()) == self@
+    ))]
     #[inline]
     pub fn as_str(&self) -> &str {
-        let offset = (self.0.get() - 100) as usize;
-        let offset = offset * 3;
-
-        // Invariant: self has checked range [100, 999] and CODE_DIGITS is
-        // ASCII-only, of length 900 * 3 = 2700 bytes
-
-        #[cfg(debug_assertions)]
-        {
-            &CODE_DIGITS[offset..offset + 3]
-        }
-
-        #[cfg(not(debug_assertions))]
-        unsafe {
-            CODE_DIGITS.get_unchecked(offset..offset + 3)
-        }
+        let offset = ((self.0.get() - 100) * 3) as usize;
+        let table = code_digits();
+        let bytes = &table.as_slice()[offset..offset + 3];
+        #[cfg(creusot)]
+        proof_assert! {
+            forall<i: Int> 0 <= i && i < 3 ==>
+                bytes@[i]@ == status_digit_byte(self@, i)
+        };
+        #[cfg(creusot)]
+        proof_assert! { valid_status_bytes(bytes@) };
+        #[cfg(creusot)]
+        proof_assert! { status_bytes_value(bytes@) == self@ };
+        status_bytes_as_str(bytes)
     }
 
     /// Get the standardised `reason-phrase` for this status code.
@@ -243,6 +337,10 @@ impl StatusCode {
     /// let status = http::StatusCode::OK;
     /// assert_eq!(status.canonical_reason(), Some("OK"));
     /// ```
+    #[cfg_attr(creusot, ensures(match result {
+        Some(reason) => canonical_reason_model(self@) == Some(reason@),
+        None => canonical_reason_model(self@) == None,
+    }))]
     pub fn canonical_reason(&self) -> Option<&'static str> {
         canonical_reason(self.0.get())
     }
@@ -284,9 +382,38 @@ impl StatusCode {
 }
 
 impl fmt::Debug for StatusCode {
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::fmt::formatter_extends(f.deep_model(), (^f).deep_model())
+    ))]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.0, f)
     }
+}
+
+#[cfg(creusot)]
+#[logic(opaque)]
+#[requires(
+    creusot_std::std::fmt::formatter_extends(before, middle)
+        && creusot_std::std::fmt::formatter_extends(middle, after)
+)]
+#[ensures(result)]
+#[ensures(
+    result == creusot_std::std::fmt::formatter_extends(before, after)
+)]
+fn status_formatter_extends_transitive(
+    before: Seq<Int>,
+    middle: Seq<Int>,
+    after: Seq<Int>,
+) -> bool {
+    proof_assert! {
+        forall<x: Seq<Int>, y: Seq<Int>>
+            middle == before.concat(x) && after == middle.concat(y) ==> {
+                creusot_std::std::str_index::utf8::seq_concat_assoc(before, x, y);
+                proof_assert! { after == before.concat(x.concat(y)) };
+                creusot_std::std::fmt::formatter_extends(before, after)
+            }
+    };
+    true
 }
 
 /// Formats the status code, *including* the canonical reason.
@@ -297,28 +424,52 @@ impl fmt::Debug for StatusCode {
 /// # use http::StatusCode;
 /// assert_eq!(format!("{}", StatusCode::OK), "200 OK");
 /// ```
-#[cfg(not(all(creusot, http_status_leaf)))]
 impl fmt::Display for StatusCode {
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::fmt::formatter_extends(f.deep_model(), (^f).deep_model())
+    ))]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{} {}",
-            u16::from(*self),
-            self.canonical_reason().unwrap_or("<unknown status code>")
-        )
+        let reason = self.canonical_reason().unwrap_or("<unknown status code>");
+        #[cfg(creusot)]
+        let before = snapshot!(f.deep_model());
+
+        let first = f.write_str(self.as_str());
+        #[cfg(creusot)]
+        let after_first = snapshot!(f.deep_model());
+        first?;
+
+        let second = f.write_str(" ");
+        #[cfg(creusot)]
+        let after_second = snapshot!(f.deep_model());
+        #[cfg(creusot)]
+        proof_assert! {
+            status_formatter_extends_transitive(*before, *after_first, *after_second)
+        };
+        second?;
+
+        let third = f.write_str(reason);
+        #[cfg(creusot)]
+        proof_assert! {
+            status_formatter_extends_transitive(*before, *after_second, f.deep_model())
+        };
+        third
     }
 }
 
-#[cfg(not(all(creusot, http_status_leaf)))]
 impl Default for StatusCode {
     #[inline]
+    #[cfg_attr(creusot, ensures(result@ == 200 && result.invariant()))]
     fn default() -> StatusCode {
-        StatusCode::OK
+        match StatusCode::from_u16(200) {
+            Ok(status) => status,
+            Err(_) => unreachable!(),
+        }
     }
 }
 
 impl PartialEq<u16> for StatusCode {
     #[inline]
+    #[cfg_attr(creusot, ensures(result == (self@ == other@)))]
     fn eq(&self, other: &u16) -> bool {
         self.as_u16() == *other
     }
@@ -326,6 +477,7 @@ impl PartialEq<u16> for StatusCode {
 
 impl PartialEq<StatusCode> for u16 {
     #[inline]
+    #[cfg_attr(creusot, ensures(result == (self@ == other@)))]
     fn eq(&self, other: &StatusCode) -> bool {
         *self == other.as_u16()
     }
@@ -333,6 +485,7 @@ impl PartialEq<StatusCode> for u16 {
 
 impl From<StatusCode> for u16 {
     #[inline]
+    #[cfg_attr(creusot, ensures(result@ == status@))]
     fn from(status: StatusCode) -> u16 {
         status.0.get()
     }
@@ -341,15 +494,22 @@ impl From<StatusCode> for u16 {
 impl FromStr for StatusCode {
     type Err = InvalidStatusCode;
 
+    #[cfg_attr(creusot, ensures(match result {
+        Ok(code) => valid_status_bytes(s@.to_bytes())
+            && code@ == status_bytes_value(s@.to_bytes())
+            && code.invariant(),
+        Err(_) => !valid_status_bytes(s@.to_bytes()),
+    }))]
     fn from_str(s: &str) -> Result<StatusCode, InvalidStatusCode> {
-        StatusCode::from_bytes(s.as_ref())
+        StatusCode::from_bytes(s.as_bytes())
     }
 }
 
 impl From<&StatusCode> for StatusCode {
     #[inline]
+    #[cfg_attr(creusot, ensures(result@ == t@ && result.invariant()))]
     fn from(t: &StatusCode) -> Self {
-        t.to_owned()
+        *t
     }
 }
 
@@ -357,6 +517,12 @@ impl TryFrom<&[u8]> for StatusCode {
     type Error = InvalidStatusCode;
 
     #[inline]
+    #[cfg_attr(creusot, ensures(match result {
+        Ok(code) => valid_status_bytes(t@)
+            && code@ == status_bytes_value(t@)
+            && code.invariant(),
+        Err(_) => !valid_status_bytes(t@),
+    }))]
     fn try_from(t: &[u8]) -> Result<Self, Self::Error> {
         StatusCode::from_bytes(t)
     }
@@ -366,8 +532,14 @@ impl TryFrom<&str> for StatusCode {
     type Error = InvalidStatusCode;
 
     #[inline]
+    #[cfg_attr(creusot, ensures(match result {
+        Ok(code) => valid_status_bytes(t@.to_bytes())
+            && code@ == status_bytes_value(t@.to_bytes())
+            && code.invariant(),
+        Err(_) => !valid_status_bytes(t@.to_bytes()),
+    }))]
     fn try_from(t: &str) -> Result<Self, Self::Error> {
-        t.parse()
+        StatusCode::from_bytes(t.as_bytes())
     }
 }
 
@@ -375,6 +547,10 @@ impl TryFrom<u16> for StatusCode {
     type Error = InvalidStatusCode;
 
     #[inline]
+    #[cfg_attr(creusot, ensures(match result {
+        Ok(code) => code@ == t@ && code.invariant(),
+        Err(_) => t@ < 100 || t@ > 999,
+    }))]
     fn try_from(t: u16) -> Result<Self, Self::Error> {
         StatusCode::from_u16(t)
     }
@@ -387,6 +563,11 @@ macro_rules! status_codes {
             ($num:expr, $konst:ident, $phrase:expr);
         )+
     ) => {
+        $(
+            #[cfg(creusot)]
+            pub const $konst: &str = $phrase;
+        )+
+
         impl StatusCode {
         $(
             #[cfg(not(all(creusot, http_status_leaf)))]
@@ -396,6 +577,21 @@ macro_rules! status_codes {
 
         }
 
+        #[cfg(creusot)]
+        #[logic(open)]
+        pub fn canonical_reason_model(num: Int) -> Option<Seq<char>> {
+            pearlite! {
+                $( if num == $num {
+                    Some($konst@)
+                } else )+
+                { None }
+            }
+        }
+
+        #[cfg_attr(creusot, ensures(match result {
+            Some(reason) => canonical_reason_model(num@) == Some(reason@),
+            None => canonical_reason_model(num@) == None,
+        }))]
         fn canonical_reason(num: u16) -> Option<&'static str> {
             match num {
                 $(
@@ -615,6 +811,9 @@ impl InvalidStatusCode {
 }
 
 impl fmt::Debug for InvalidStatusCode {
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::fmt::formatter_extends(f.deep_model(), (^f).deep_model())
+    ))]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("InvalidStatusCode")
             // skip _priv noise
@@ -623,6 +822,9 @@ impl fmt::Debug for InvalidStatusCode {
 }
 
 impl fmt::Display for InvalidStatusCode {
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::fmt::formatter_extends(f.deep_model(), (^f).deep_model())
+    ))]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("invalid status code")
     }
@@ -630,51 +832,4 @@ impl fmt::Display for InvalidStatusCode {
 
 impl Error for InvalidStatusCode {}
 
-// A string of packed 3-ASCII-digit status code values for the supported range
-// of [100, 999] (900 codes, 2700 bytes).
-const CODE_DIGITS: &str = "\
-100101102103104105106107108109110111112113114115116117118119\
-120121122123124125126127128129130131132133134135136137138139\
-140141142143144145146147148149150151152153154155156157158159\
-160161162163164165166167168169170171172173174175176177178179\
-180181182183184185186187188189190191192193194195196197198199\
-200201202203204205206207208209210211212213214215216217218219\
-220221222223224225226227228229230231232233234235236237238239\
-240241242243244245246247248249250251252253254255256257258259\
-260261262263264265266267268269270271272273274275276277278279\
-280281282283284285286287288289290291292293294295296297298299\
-300301302303304305306307308309310311312313314315316317318319\
-320321322323324325326327328329330331332333334335336337338339\
-340341342343344345346347348349350351352353354355356357358359\
-360361362363364365366367368369370371372373374375376377378379\
-380381382383384385386387388389390391392393394395396397398399\
-400401402403404405406407408409410411412413414415416417418419\
-420421422423424425426427428429430431432433434435436437438439\
-440441442443444445446447448449450451452453454455456457458459\
-460461462463464465466467468469470471472473474475476477478479\
-480481482483484485486487488489490491492493494495496497498499\
-500501502503504505506507508509510511512513514515516517518519\
-520521522523524525526527528529530531532533534535536537538539\
-540541542543544545546547548549550551552553554555556557558559\
-560561562563564565566567568569570571572573574575576577578579\
-580581582583584585586587588589590591592593594595596597598599\
-600601602603604605606607608609610611612613614615616617618619\
-620621622623624625626627628629630631632633634635636637638639\
-640641642643644645646647648649650651652653654655656657658659\
-660661662663664665666667668669670671672673674675676677678679\
-680681682683684685686687688689690691692693694695696697698699\
-700701702703704705706707708709710711712713714715716717718719\
-720721722723724725726727728729730731732733734735736737738739\
-740741742743744745746747748749750751752753754755756757758759\
-760761762763764765766767768769770771772773774775776777778779\
-780781782783784785786787788789790791792793794795796797798799\
-800801802803804805806807808809810811812813814815816817818819\
-820821822823824825826827828829830831832833834835836837838839\
-840841842843844845846847848849850851852853854855856857858859\
-860861862863864865866867868869870871872873874875876877878879\
-880881882883884885886887888889890891892893894895896897898899\
-900901902903904905906907908909910911912913914915916917918919\
-920921922923924925926927928929930931932933934935936937938939\
-940941942943944945946947948949950951952953954955956957958959\
-960961962963964965966967968969970971972973974975976977978979\
-980981982983984985986987988989990991992993994995996997998999";
+const CODE_DIGITS: [u8; 2700] = build_code_digits();

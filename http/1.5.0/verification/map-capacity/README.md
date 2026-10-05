@@ -1,36 +1,53 @@
-# HeaderMap capacity leaves
+# HeaderMap capacity and index leaves
 
-`src/header/map_capacity.rs` contains two private helpers used directly by the
-production `HeaderMap` implementation. `usable_capacity` computes the primary
-entry count for the load factor, and `checked_raw_capacity` computes
-`requested + requested / 3` with checked overflow. The proof harness includes
-that source file by path, so it verifies the same bodies the runtime calls.
+> **Checkpoint note (2026-10-05):** The helper results below remain useful,
+> but the final paragraph predates the selected actual-source HeaderMap and
+> conditional `IterMut::next_unsafe` runs. Current scope and open obligations
+> are summarized in [the HTTP checkpoint](../CHECKPOINT_2026-10-05.md).
 
-From this directory, run:
+This target includes the actual private implementations from
+`src/header/map_capacity.rs` and `src/header/map_index.rs`. The helpers prove
+independently of the full `HeaderMap` table and iterator bodies.
 
-```sh
-../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove \
-  --no-cache -- --locked --offline
-```
-
-On the x86_64 target with Creusot `0.11.0-dev` and
-`creusot-std 0.11.0-dev`, the proof passed:
-
-```text
-Library verif.http_map_capacity_proof_rlib.map_capacity.checked_raw_capacity: ✔ (2)
-Library verif.http_map_capacity_proof_rlib.map_capacity.usable_capacity: ✔ (1)
-```
-
-All three generated VCs passed with Z3 `4.15.3`; no local trusted contract was
-added. This is an isolated helper proof. The `HeaderMap::to_raw_capacity`
-wrapper that maps `None` to `MaxSizeReached`, all callers, and the hash table,
-multimap, iterator, unsafe-pointer, and drop behavior remain unproved. The
-crate's ordinary source check was also run from the crate root:
+Run the fresh proof from this directory with the shared HTTP proof runner:
 
 ```sh
-./scripts/run-proof.sh cargo check --locked --offline
+../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache -- --locked --offline
 ```
 
-It exited successfully after this extraction. Neither check is a successful
-crate-level Creusot proof. The full-runtime translation blockers and their
-current diagnostics are in [`TOOL_BLOCKERS.md`](../../TOOL_BLOCKERS.md).
+The 2026-10-05 replay proved 15 source targets across 30 solver leaves:
+
+- `usable_capacity` and `checked_raw_capacity` (3 leaves total);
+- `HashValue::clone`, `Pos::clone`, and `Pos::{new,is_some,is_none,resolve}`;
+- `HashValue` equality body and refinement, plus its derived `Eq` helper body;
+- the manual `HashValue` `DebugTuple` body and its refinement to the standard
+  append-preservation contract;
+- `desired_pos` exact bit-mask result and upper bound, using Creusot's existing
+  `bitwise_proof` encoding;
+- `probe_distance` exact cyclic-distance arithmetic (8 leaves).
+
+`Pos::none` translates with zero solver obligations, so it is not counted as a
+proved body. The `Debug` contract proves preservation of existing formatter
+output as a prefix; it does not specify exact debug text. The earlier derived
+Debug refinement left one leaf open; after replacing it with the runtime-
+equivalent manual `DebugTuple` body and an append-preservation postcondition,
+the fresh body proof (4 VCs) and refinement (2 VCs) both pass. Exact source
+fingerprints, goal names, and hashed `.coma`/`proof.json` files are recorded in
+[`evidence/manifest.json`](evidence/manifest.json). The rejected derived-body
+attempt is retained under `evidence/attempts/`.
+
+`probe_distance` assumes a power-of-two mask, `mask < MAX_SIZE`, an in-range
+current slot, and an arithmetic bound. These are private caller invariants and
+have not been proved at every `HeaderMap` call site. The helper evidence does
+not verify insertion/removal, capacity growth, iterators, ownership of buckets,
+or the integrated map implementation. The selected actual-source map API
+leaves have a separate target in `verification/header-map-api`; its current
+translation run stops in the generic insertion macro on `HeaderName`/`K`
+`DeepModel` and `PartialEqModel` bounds, before reaching those leaf proofs.
+
+The production `RawLinks` permission experiment was reverted; it was not
+verified and is not counted as proof evidence. A crate-root normal check passed
+after that rollback, but a later shared URI edit currently makes it stop on the
+test-only `URI_CHARS` table being unused outside tests. A whole-source Creusot
+translation also reports in-flight `Method`, `Status`, and URI model
+diagnostics; those failures are not counted as map helper counterexamples.

@@ -1,0 +1,62 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 124 0 124 37 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 125 4 125 17
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 124 19 124 24
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 123 10 123 43
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 83 22 83 26
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 82 18 82 50
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_refmut_Bytes [@inline:trivial] (self: MutBorrow.t t_Bytes) =
+  [%#sinvariant] inv_Bytes self.current /\ inv_Bytes self.final
+
+meta "rewrite_def" predicate invariant_refmut_Bytes
+
+predicate inv_refmut_Bytes [@inline:trivial] (_1: MutBorrow.t t_Bytes) = invariant_refmut_Bytes _1
+
+meta "rewrite_def" predicate inv_refmut_Bytes
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec clear (self_: MutBorrow.t t_Bytes) (return (x: ())) =
+  {[@stop_split] [@expl:clear 'self_' type invariant] [%#sbytes] inv_refmut_Bytes self_}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:clear ensures] [%#sbytes'0] bytes_seq self_.final
+    = (Seq.empty: Seq.seq UInt8.t)}
+    (! return {result}) ]
+
+predicate resolve_refmut_Bytes [@inline:trivial] (_1: MutBorrow.t t_Bytes) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Bytes
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clear_bytes [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 124 0 124 37]
+  (value: MutBorrow.t t_Bytes) (return (x: ())) =
+  {[@stop_split] [@expl:clear_bytes 'value' type invariant] [%#slib'0] inv_refmut_Bytes value}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_Bytes> {value.current} {MutBorrow.get_id value}
+        (fun (_bor: MutBorrow.t t_Bytes) ->
+          [ &_4 <- _bor ] -{inv_Bytes _bor.final}-
+          [ &value <- { value with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_Bytes value.current} any) ]
+    | s1 = clear [%#slib] {_4} (fun (_x: ()) -> [ &_ret <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_Bytes value} any) ]
+    | s3 = -{resolve_refmut_Bytes value}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l () | & value: MutBorrow.t t_Bytes = value | & _4: MutBorrow.t t_Bytes = Any.any_l () ])
+  [ return (result: ()) -> {[@stop_split] [@expl:clear_bytes ensures] [%#slib'1] bytes_seq value.final
+    = (Seq.empty: Seq.seq UInt8.t)}
+    (! return {result}) ]

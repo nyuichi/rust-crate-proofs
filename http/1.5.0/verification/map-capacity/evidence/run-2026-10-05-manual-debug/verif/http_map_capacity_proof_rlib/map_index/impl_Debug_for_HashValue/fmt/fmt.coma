@@ -1,0 +1,151 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 22 4 22 63 *)
+
+(* <map_index::HashValue as std::fmt::Debug> *)
+
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 23 30 23 41
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 23 8 23 42
+let%span smap_index'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 23 8 23 57
+let%span smap_index'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 23 8 23 66
+let%span smap_index'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 22 18 22 27
+let%span smap_index'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 19 32 21 5
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 100 20 100 24
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 98 18 98 76
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 108 20 108 24
+let%span sfmt'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 106 18 106 28
+let%span sfmt'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 113 23 113 27
+let%span sfmt'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 112 18 112 28
+let%span sfmt'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.int.UInt16
+use creusot.prelude.Any
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+type t_DebugTuple
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate inv_DebugTuple (_1: t_DebugTuple)
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'5] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+let rec debug_tuple (self_: MutBorrow.t t_Formatter) (name: string) (return (x: t_DebugTuple)) =
+  {[@stop_split] [@expl:debug_tuple 'self_' type invariant] [%#sfmt] inv_refmut_Formatter self_}
+  any
+  [ return (result: t_DebugTuple) ->
+  {[@stop_split] [@expl:debug_tuple ensures] ([@stop_split] [@expl:debug_tuple result type invariant] inv_DebugTuple result)
+    /\ ([@stop_split] [@expl:debug_tuple ensures] [%#sfmt'0] formatter_extends (deep_model_refmut_Formatter self_) (deep_model_Formatter self_.final))}
+    (! return {result}) ]
+
+type t_HashValue = { f0: UInt16.t }
+
+type dyn_Debug
+
+function dyn_Debug_of_u16 (x: UInt16.t) : dyn_Debug
+
+predicate invariant_refmut_DebugTuple [@inline:trivial] (self: MutBorrow.t t_DebugTuple) =
+  [%#sinvariant] inv_DebugTuple self.current /\ inv_DebugTuple self.final
+
+meta "rewrite_def" predicate invariant_refmut_DebugTuple
+
+predicate inv_refmut_DebugTuple [@inline:trivial] (_1: MutBorrow.t t_DebugTuple) = invariant_refmut_DebugTuple _1
+
+meta "rewrite_def" predicate inv_refmut_DebugTuple
+
+let rec field (self_: MutBorrow.t t_DebugTuple) (value: dyn_Debug) (return (x: MutBorrow.t t_DebugTuple)) =
+  {[@stop_split] [@expl:field 'self_' type invariant] [%#sfmt'1] inv_refmut_DebugTuple self_}
+  any
+  [ return (result: MutBorrow.t t_DebugTuple) ->
+  {[@stop_split] [@expl:field ensures] ([@stop_split] [@expl:field result type invariant] inv_refmut_DebugTuple result)
+    /\ ([@stop_split] [@expl:field ensures] [%#sfmt'2] inv_DebugTuple self_.final)}
+    (! return {result}) ]
+
+type t_Result_unit_Error = Ok () | Err ()
+
+let rec finish (self_: MutBorrow.t t_DebugTuple) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:finish 'self_' type invariant] [%#sfmt'3] inv_refmut_DebugTuple self_}
+  any
+  [ return (result: t_Result_unit_Error) -> {[@stop_split] [@expl:finish ensures] [%#sfmt'4] inv_DebugTuple self_.final}
+    (! return {result}) ]
+
+predicate resolve_DebugTuple (_1: t_DebugTuple)
+
+predicate resolve_refmut_DebugTuple [@inline:trivial] (_1: MutBorrow.t t_DebugTuple) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_DebugTuple
+
+predicate resolve_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Formatter
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec fmt_HashValue
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 22 4 22 63]
+  (self: t_HashValue) (formatter: MutBorrow.t t_Formatter) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:fmt 'formatter' type invariant] [%#smap_index'3] inv_refmut_Formatter formatter}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_11 <- [%#smap_index] "HashValue" ] s1
+    | s1 = MutBorrow.borrow_final <t_Formatter> {formatter.current} {MutBorrow.get_id formatter}
+        (fun (_bor: MutBorrow.t t_Formatter) ->
+          [ &_9 <- _bor ] -{inv_Formatter _bor.final}-
+          [ &formatter <- { formatter with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_Formatter formatter.current} any) ]
+    | s2 = debug_tuple [%#smap_index'0] {_9} {_11} (fun (_x: t_DebugTuple) -> [ &_8 <- _x ] s3)
+    | s3 = [ &_14 <- self.f0 ] s4
+    | s4 = [ &_12 <- dyn_Debug_of_u16 _14 ] s5
+    | s5 = MutBorrow.borrow_mut <t_DebugTuple> {_8}
+        (fun (_bor: MutBorrow.t t_DebugTuple) -> [ &_7 <- _bor ] -{inv_DebugTuple _bor.final}- [ &_8 <- _bor.final ] s6)
+      [ _ck -> (! {[@expl:type invariant] inv_DebugTuple _8} any) ]
+    | s6 = field [%#smap_index'1] {_7} {_12} (fun (_x: MutBorrow.t t_DebugTuple) -> [ &_6 <- _x ] s7)
+    | s7 = MutBorrow.borrow_final <t_DebugTuple> {_6.current} {MutBorrow.get_id _6}
+        (fun (_bor: MutBorrow.t t_DebugTuple) ->
+          [ &_5 <- _bor ] -{inv_DebugTuple _bor.final}-
+          [ &_6 <- { _6 with current = _bor.final } ] s8)
+      [ _ck -> (! {[@expl:type invariant] inv_DebugTuple _6.current} any) ]
+    | s8 = finish [%#smap_index'2] {_5} (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s9)
+    | s9 = s10 [ _ck -> (! {[@expl:type invariant] inv_DebugTuple _8} any) ]
+    | s10 = -{resolve_DebugTuple _8}- s11
+    | s11 = s12 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugTuple _6} any) ]
+    | s12 = -{resolve_refmut_DebugTuple _6}- s13
+    | s13 = s14 [ _ck -> (! {[@expl:type invariant] inv_refmut_Formatter formatter} any) ]
+    | s14 = -{resolve_refmut_Formatter formatter}- s15
+    | s15 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & self: t_HashValue = self
+  | & formatter: MutBorrow.t t_Formatter = formatter
+  | & _5: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _6: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _7: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _8: t_DebugTuple = Any.any_l ()
+  | & _9: MutBorrow.t t_Formatter = Any.any_l ()
+  | & _11: string = Any.any_l ()
+  | & _12: dyn_Debug = Any.any_l ()
+  | & _14: UInt16.t = Any.any_l () ])
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:fmt ensures] [%#smap_index'4] formatter_extends (deep_model_refmut_Formatter formatter) (deep_model_Formatter formatter.final)}
+    (! return {result}) ]

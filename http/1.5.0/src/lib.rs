@@ -183,6 +183,9 @@ pub mod uri;
 pub mod version;
 
 mod byte_str;
+mod bytes_model;
+#[cfg(creusot)]
+mod ascii;
 mod error;
 mod extensions;
 

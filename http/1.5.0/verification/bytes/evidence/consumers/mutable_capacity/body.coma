@@ -1,0 +1,46 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 146 0 146 50 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 147 4 147 20
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 146 24 146 29
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 145 10 145 47
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 154 21 154 25
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 153 18 153 54
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_BytesMut
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+predicate invariant_ref_BytesMut [@inline:trivial] (self: t_BytesMut) = [%#sinvariant] inv_BytesMut self
+
+meta "rewrite_def" predicate invariant_ref_BytesMut
+
+predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_BytesMut _1
+
+meta "rewrite_def" predicate inv_ref_BytesMut
+
+function bytes_mut_capacity (_value: t_BytesMut) : int
+
+let rec capacity (self_: t_BytesMut) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:capacity 'self_' type invariant] [%#sbytes] inv_ref_BytesMut self_}
+  any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:capacity ensures] [%#sbytes'0] UInt64.t'int result
+    = bytes_mut_capacity self_}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec mutable_capacity [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 146 0 146 50]
+  (value: t_BytesMut) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:mutable_capacity 'value' type invariant] [%#slib'0] inv_ref_BytesMut value}
+  (! bb0
+  [ bb0 = s0 [ s0 = capacity [%#slib] {value} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & value: t_BytesMut = value ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:mutable_capacity ensures] [%#slib'1] UInt64.t'int result
+    = bytes_mut_capacity value}
+    (! return {result}) ]

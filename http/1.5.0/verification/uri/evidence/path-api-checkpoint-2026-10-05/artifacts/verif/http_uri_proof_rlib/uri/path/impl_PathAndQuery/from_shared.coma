@@ -1,0 +1,843 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 299 4 299 73 *)
+
+(* uri::path::PathAndQuery *)
+
+let%span sascii = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 202 10 202 21
+let%span sascii'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 199 11 199 66
+let%span sascii'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 200 10 200 48
+let%span sascii'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 201 10 201 53
+let%span sascii'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 204 4 222 5
+let%span sascii'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 155 10 155 21
+let%span sascii'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 156 10 156 37
+let%span sascii'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 157 10 157 53
+let%span sascii'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 158 10 158 98
+let%span sascii'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 161 8 165 9
+let%span sascii'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 172 10 173 51
+let%span sascii'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 175 4 175 45
+let%span sascii'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 18 10 18 42
+let%span sascii'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 193 10 193 63
+let%span sascii'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 194 27 194 29
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 260 8 260 27
+let%span sstring = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 67 10 67 67
+let%span sstring'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 68 10 68 66
+let%span sstring'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 69 10 69 39
+let%span sstring'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 70 10 73 1
+let%span sstring'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 290 14 290 24
+let%span sstring'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 291 14 291 60
+let%span sstring'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 294 12 298 13
+let%span sstring'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 14 16 14 76
+let%span schar = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span sbyte_str = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 145 28 145 33
+let%span sbyte_str'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 145 45 145 81
+let%span sbyte_str'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 137 14 144 5
+let%span sbyte_str'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 126 38 126 43
+let%span sbyte_str'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 124 15 124 63
+let%span sbyte_str'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 126 55 126 62
+let%span sbyte_str'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 125 14 125 61
+let%span sbyte_str'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 49 20 49 37
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 99 18 99 22
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 98 18 98 45
+let%span sbytes'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 43 8 43 23
+let%span sbytes'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 84 25 84 29
+let%span sbytes'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 83 18 83 144
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span serror = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/error.rs" 72 8 85 9
+let%span serror'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/error.rs" 99 14 99 53
+let%span serror'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/error.rs" 100 4 100 41
+let%span serror'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/error.rs" 94 8 94 27
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 658 18 661 9
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 675 25 675 33
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 671 18 674 9
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 160 14 160 114
+let%span sops'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 165 14 165 100
+let%span sops'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 170 14 170 61
+let%span sops'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 126 15 126 59
+let%span sops'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 127 14 127 38
+let%span sops'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 132 14 132 33
+let%span sops'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 137 15 137 31
+let%span sops'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 138 15 138 28
+let%span sops'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 139 14 139 30
+let%span sops'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 144 14 145 104
+let%span sconvert = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 65 19 65 61
+let%span sconvert'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 66 18 66 69
+let%span spath_class = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 58 8 61 10
+let%span spath_class'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 115 8 126 50
+let%span spath_class'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 92 8 95 10
+let%span spath_class'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 38 4 38 44
+let%span spath_class'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 44 4 44 45
+let%span spath_class'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 14 8 21 18
+let%span spath_class'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 28 8 32 18
+let%span spath_scan = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_scan.rs" 57 10 79 1
+let%span spath_scan'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_scan.rs" 24 11 32 1
+let%span spath_scan'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_scan.rs" 33 10 40 1
+let%span spath_scan'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_scan.rs" 13 0 13 26
+let%span slimits = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/limits.rs" 2 0 2 31
+let%span spath = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 304 32 304 36
+let%span spath'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 304 12 304 37
+let%span spath'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 304 12 304 38
+let%span spath'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 307 33 307 37
+let%span spath'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 309 37 312 9
+let%span spath'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 315 8 320 9
+let%span spath'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 323 12 323 36
+let%span spath'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 328 26 328 53
+let%span spath'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 329 26 329 75
+let%span spath'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 333 18 333 41
+let%span spath'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 335 37 335 69
+let%span spath'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 341 20 341 78
+let%span spath'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 344 20 344 66
+let%span spath'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 348 21 348 54
+let%span spath'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 299 34 299 37
+let%span spath'14 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 299 49 299 73
+let%span spath'15 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 294 32 298 5
+let%span spath'16 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 242 8 242 36
+let%span spath'17 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 44 12 47 13
+let%span spath'18 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 216 8 220 9
+let%span spath'19 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 290 0 290 15
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt16
+use creusot.int.UInt64
+use creusot.prelude.Char
+use map.Map
+use int.ComputerDivision
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+use int.Int
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec deref_Bytes (self_: t_Bytes) (return (x: Slice64.slice UInt8.t)) =
+  {[@stop_split] [@expl:deref 'self_' type invariant] [%#sbytes] inv_ref_Bytes self_}
+  any
+  [ return (result: Slice64.slice UInt8.t) -> {[@stop_split] [@expl:deref ensures] [%#sbytes'0] Slice64.view result
+    = bytes_seq self_}
+    (! return {result}) ]
+
+type t_Option_u16 = None | Some UInt16.t
+
+type t_Scanned = { query: UInt16.t; fragment: t_Option_u16; is_maybe_not_utf8: bool }
+
+type t_ErrorKind =
+  | InvalidUriChar
+  | InvalidScheme
+  | InvalidAuthority
+  | InvalidPort
+  | InvalidFormat
+  | SchemeMissing
+  | AuthorityMissing
+  | PathAndQueryMissing
+  | PathDoesNotStartWithSlash
+  | TooLong
+  | Empty
+  | SchemeTooLong
+
+type t_Result_Scanned_ErrorKind = Ok t_Scanned | Err t_ErrorKind
+
+constant const_MAX_LEN: UInt64.t = [%#slimits] (65534: UInt64.t)
+
+type t_Option_Int = None'0 | Some'0 int
+
+function path_byte_class_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 12 0 12 53] (byte: int) : int
+ = [%#spath_class'4] if byte = 63 then
+    1
+  else
+    if byte = 35 then
+      2
+    else
+      if byte = 33
+      \/ 36 <= byte /\ byte <= 59
+      \/ byte = 61
+      \/ 64 <= byte /\ byte <= 95
+      \/ 97 <= byte /\ byte <= 122 \/ byte = 124 \/ byte = 126 \/ byte = 34 \/ byte = 123 \/ byte = 125 then
+        0
+      else
+        if 128 <= byte /\ byte <= 255 then 3 else 4
+    
+  
+
+
+predicate path_or_high [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 37 0 37 45] (byte: int) =
+  [%#spath_class'2] let class = path_byte_class_model byte in class = 0 \/ class = 3
+
+function query_byte_class_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 26 0 26 54] (byte: int) : int
+ = [%#spath_class'5] if byte = 35 then
+    2
+  else
+    if byte = 33 \/ 36 <= byte /\ byte <= 59 \/ byte = 61 \/ 63 <= byte /\ byte <= 126 then
+      0
+    else
+      if 128 <= byte /\ byte <= 255 then 3 else 4
+  
+
+
+predicate query_or_high [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 43 0 43 46] (byte: int) =
+  [%#spath_class'3] let class = query_byte_class_model byte in class = 0 \/ class = 3
+
+predicate path_scan_ok [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 51 0 56 9] (bytes: Seq.seq UInt8.t) (query'0: t_Option_Int) (fragment'0: t_Option_Int) (high: bool) =
+  [%#spath_class] let end' = match fragment'0 with
+    | None'0 -> Seq.length bytes
+    | Some'0 index -> index
+    end in let query_prefix = match query'0 with
+    | None'0 -> forall i: int. 0 <= i /\ i < end' -> path_or_high (UInt8.t'int (Seq.get bytes i))
+    | Some'0 index -> 0 <= index
+    /\ index < end'
+    /\ UInt8.t'int (Seq.get bytes index) = 63
+    /\ (forall i: int. 0 <= i /\ i < index -> path_or_high (UInt8.t'int (Seq.get bytes i)))
+    /\ (forall i: int. index < i /\ i < end' -> query_or_high (UInt8.t'int (Seq.get bytes i)))
+    end in let fragment_matches = match fragment'0 with
+    | None'0 -> true
+    | Some'0 index -> 0 <= index /\ index < Seq.length bytes /\ UInt8.t'int (Seq.get bytes index) = 35
+    end in let has_high = exists i: int. 0 <= i /\ i < end' /\ UInt8.t'int (Seq.get bytes i) >= 128 in query_prefix
+  /\ fragment_matches /\ high = has_high
+
+constant const_NONE: UInt16.t = [%#spath_scan'2] (65535: UInt16.t)
+
+function deep_model_ErrorKind [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/error.rs" 71 4 71 44] (self: t_ErrorKind) : int
+ = [%#serror] match self with
+    | InvalidUriChar -> 0
+    | InvalidScheme -> 1
+    | InvalidAuthority -> 2
+    | InvalidPort -> 3
+    | InvalidFormat -> 4
+    | SchemeMissing -> 5
+    | AuthorityMissing -> 6
+    | PathAndQueryMissing -> 7
+    | PathDoesNotStartWithSlash -> 8
+    | TooLong -> 9
+    | Empty -> 10
+    | SchemeTooLong -> 11
+    end
+
+predicate path_scan_has_invalid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 113 0 113 84] (bytes: Seq.seq UInt8.t) =
+  [%#spath_class'0] (exists i: int. 0 <= i
+      /\ i < Seq.length bytes
+      /\ path_byte_class_model (UInt8.t'int (Seq.get bytes i)) = 4
+      /\ (forall j: int. 0 <= j /\ j < i -> path_or_high (UInt8.t'int (Seq.get bytes j))))
+  \/ (exists q: int. 0 <= q
+    /\ q < Seq.length bytes
+    /\ UInt8.t'int (Seq.get bytes q) = 63
+    /\ (forall j: int. 0 <= j /\ j < q -> path_or_high (UInt8.t'int (Seq.get bytes j)))
+    /\ (exists i: int. q < i
+      /\ i < Seq.length bytes
+      /\ query_byte_class_model (UInt8.t'int (Seq.get bytes i)) = 4
+      /\ (forall j: int. q < j /\ j < i -> query_or_high (UInt8.t'int (Seq.get bytes j)))))
+
+let rec scan_path_and_query (bytes: Slice64.slice UInt8.t) (return (x: t_Result_Scanned_ErrorKind)) = any
+  [ return (result: t_Result_Scanned_ErrorKind) ->
+  {[@stop_split] [@expl:scan_path_and_query ensures] [%#spath_scan] match result with
+      | Ok scanned -> Seq.length (Slice64.view bytes) > 0
+      /\ Seq.length (Slice64.view bytes) <= UInt64.t'int const_MAX_LEN
+      /\ (Seq.length (Slice64.view bytes) = 1 /\ UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 42
+        \/ UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 47
+        \/ UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 63 \/ UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 35)
+      /\ path_scan_ok (Slice64.view bytes) (if scanned.query = const_NONE then
+        None'0
+      else
+        Some'0 (UInt16.t'int scanned.query)
+      ) (match scanned.fragment with
+        | None -> None'0
+        | Some index -> Some'0 (UInt16.t'int index)
+        end) scanned.is_maybe_not_utf8
+      | Err error -> deep_model_ErrorKind error = 10 /\ Seq.length (Slice64.view bytes) = 0
+      \/ deep_model_ErrorKind error = 9 /\ Seq.length (Slice64.view bytes) > UInt64.t'int const_MAX_LEN
+      \/ deep_model_ErrorKind error = 8
+        /\ Seq.length (Slice64.view bytes) > 0
+        /\ Seq.length (Slice64.view bytes) <= UInt64.t'int const_MAX_LEN
+        /\ not (Seq.length (Slice64.view bytes) = 1 /\ UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 42)
+        /\ UInt8.t'int (Seq.get (Slice64.view bytes) 0) <> 47
+        /\ UInt8.t'int (Seq.get (Slice64.view bytes) 0) <> 63 /\ UInt8.t'int (Seq.get (Slice64.view bytes) 0) <> 35
+      \/ deep_model_ErrorKind error = 0
+      /\ Seq.length (Slice64.view bytes) > 0
+      /\ Seq.length (Slice64.view bytes) <= UInt64.t'int const_MAX_LEN
+      /\ (Seq.length (Slice64.view bytes) = 1 /\ UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 42
+        \/ UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 47
+        \/ UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 63 \/ UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 35)
+      /\ path_scan_has_invalid (Slice64.view bytes)
+      end}
+    (! return {result}) ]
+
+type t_Result_Infallible_ErrorKind = Ok'0 () | Err'0 t_ErrorKind
+
+type t_ControlFlow_Result_Infallible_ErrorKind_Scanned = Continue t_Scanned | Break t_Result_Infallible_ErrorKind
+
+predicate inv_Infallible [@inline:trivial] (_1: ()) = false
+
+meta "rewrite_def" predicate inv_Infallible
+
+predicate inv_Result_Infallible_ErrorKind (_1: t_Result_Infallible_ErrorKind)
+
+axiom inv_axiom [@rewrite]:
+  forall x: t_Result_Infallible_ErrorKind [inv_Result_Infallible_ErrorKind x]. inv_Result_Infallible_ErrorKind x
+    = match x with
+      | Ok'0 f0 -> inv_Infallible f0
+      | Err'0 f0 -> true
+      end
+
+predicate inv_ControlFlow_Result_Infallible_ErrorKind_Scanned (_1: t_ControlFlow_Result_Infallible_ErrorKind_Scanned)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_ControlFlow_Result_Infallible_ErrorKind_Scanned [inv_ControlFlow_Result_Infallible_ErrorKind_Scanned x]. inv_ControlFlow_Result_Infallible_ErrorKind_Scanned x
+    = match x with
+      | Continue f0 -> true
+      | Break f0 -> inv_Result_Infallible_ErrorKind f0
+      end
+
+let rec branch_Result_Scanned_ErrorKind (self_: t_Result_Scanned_ErrorKind)
+  (return (x: t_ControlFlow_Result_Infallible_ErrorKind_Scanned)) = any
+  [ return (result: t_ControlFlow_Result_Infallible_ErrorKind_Scanned) ->
+  {[@stop_split] [@expl:branch_Result_Scanned_ErrorKind ensures] ([@stop_split] [@expl:branch result type invariant] inv_ControlFlow_Result_Infallible_ErrorKind_Scanned result)
+    /\ ([@stop_split] [@expl:branch ensures] [%#sops] match self_ with
+      | Ok v -> result = Continue v
+      | Err e -> result = Break (Err'0 e)
+      end)}
+    (! return {result}) ]
+
+predicate resolve_Bytes (_1: t_Bytes)
+
+let rec elim_Break (_x: t_ControlFlow_Result_Infallible_ErrorKind_Scanned)
+  (return (f0: t_Result_Infallible_ErrorKind)) = any
+  [ _k (f0: t_Result_Infallible_ErrorKind) -> {Break f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Break] match _x with
+      | Break _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_ByteStr
+
+type t_PathAndQuery = { data'0: t_ByteStr; query'0: UInt16.t }
+
+type t_InvalidUri = { f0: t_ErrorKind }
+
+type t_Result_PathAndQuery_InvalidUri = Ok'1 t_PathAndQuery | Err'1 t_InvalidUri
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'1] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t
+
+axiom to_bytes_def: forall self: Seq.seq Char.t. to_bytes self
+    = ([%#sstring'5] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (to_utf8_char (Seq.get self 0)) (to_bytes (tail_char self))
+    )
+
+axiom to_bytes_spec: forall self: Seq.seq Char.t. [%#sstring'4] to_bytes self
+    = flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+predicate valid_utf8 (bytes: Seq.seq UInt8.t) =
+  [%#sstring'6] exists characters: Seq.seq Char.t. to_bytes characters = bytes
+
+function view_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 41 4 41 33] (self: t_ByteStr) : Seq.seq UInt8.t
+
+predicate invariant_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 48 4 48 30] (self: t_ByteStr) =
+  [%#sbyte_str'6] valid_utf8 (view_ByteStr self)
+
+predicate inv_ByteStr (_1: t_ByteStr)
+
+axiom inv_axiom'1: forall x: t_ByteStr [inv_ByteStr x]. inv_ByteStr x -> invariant_ByteStr x
+
+predicate inv_PathAndQuery (_1: t_PathAndQuery)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_PathAndQuery [inv_PathAndQuery x]. inv_PathAndQuery x = inv_ByteStr x.data'0
+
+predicate inv_Result_PathAndQuery_InvalidUri (_1: t_Result_PathAndQuery_InvalidUri)
+
+axiom inv_axiom'3 [@rewrite]:
+  forall x: t_Result_PathAndQuery_InvalidUri [inv_Result_PathAndQuery_InvalidUri x]. inv_Result_PathAndQuery_InvalidUri x
+    = match x with
+      | Ok'1 f0'0 -> inv_PathAndQuery f0'0
+      | Err'1 f0'0 -> true
+      end
+
+type tup2_Result_PathAndQuery_InvalidUri_Result_Infallible_ErrorKind = {
+  f0'0: t_Result_PathAndQuery_InvalidUri;
+  f1'0: t_Result_Infallible_ErrorKind }
+
+function deep_model_InvalidUri [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/error.rs" 93 4 93 44] (self: t_InvalidUri) : int
+ = [%#serror'2] deep_model_ErrorKind self.f0
+
+predicate postcondition_once_from [@inline:trivial] (self: ()) (args: t_ErrorKind) (result: t_InvalidUri) =
+  [%#serror'1] let src = args in [%#serror'0] deep_model_InvalidUri result = deep_model_ErrorKind src
+
+meta "rewrite_def" predicate postcondition_once_from
+
+predicate resolve_from [@inline:trivial] (_1: ()) = true
+
+meta "rewrite_def" predicate resolve_from
+
+predicate postcondition_mut_from [@inline:trivial] (self: ()) (args: t_ErrorKind) (result_state: ()) (result: t_InvalidUri) =
+  [%#serror'1] let src = args in [%#serror'0] deep_model_InvalidUri result = deep_model_ErrorKind src
+
+meta "rewrite_def" predicate postcondition_mut_from
+
+function fn_mut_once_from (self: ()) (args: t_ErrorKind) (res: t_InvalidUri) : ()
+
+axiom fn_mut_once_from_spec:
+  forall self: (), args: t_ErrorKind, res: t_InvalidUri. [%#sops'11] postcondition_once_from self args res
+    = (exists res_state: (). postcondition_mut_from self args res_state res /\ resolve_from res_state)
+
+predicate hist_inv_from [@inline:trivial] (self: ()) (result_state: ()) = true
+
+meta "rewrite_def" predicate hist_inv_from
+
+function hist_inv_trans_from (self: ()) (b: ()) (c: ()) : ()
+
+axiom hist_inv_trans_from_spec: forall self: (), b: (), c: (). ([%#sops'8] hist_inv_from self b)
+    -> ([%#sops'9] hist_inv_from b c) -> ([%#sops'10] hist_inv_from self c)
+
+function hist_inv_refl_from (self: ()) : ()
+
+axiom hist_inv_refl_from_spec: forall self: (). [%#sops'7] hist_inv_from self self
+
+function postcondition_mut_hist_inv_from (self: ()) (args: t_ErrorKind) (res_state: ()) (res: t_InvalidUri) : ()
+
+axiom postcondition_mut_hist_inv_from_spec:
+  forall self: (), args: t_ErrorKind, res_state: (), res: t_InvalidUri. ([%#sops'5] postcondition_mut_from self args res_state res)
+    -> ([%#sops'6] hist_inv_from self res_state)
+
+function fn_hist_inv_from (self: ()) (res_state: ()) : ()
+
+axiom fn_hist_inv_from_spec: forall self: (), res_state: (). [%#sops'4] hist_inv_from self res_state
+    = (self = res_state)
+
+predicate postcondition_from [@inline:trivial] (self: ()) (args: t_ErrorKind) (result: t_InvalidUri) =
+  [%#serror'1] let src = args in [%#serror'0] deep_model_InvalidUri result = deep_model_ErrorKind src
+
+meta "rewrite_def" predicate postcondition_from
+
+function fn_once_from (self: ()) (args: t_ErrorKind) (res: t_InvalidUri) : ()
+
+axiom fn_once_from_spec:
+  forall self: (), args: t_ErrorKind, res: t_InvalidUri. [%#sops'3] postcondition_once_from self args res
+    = (postcondition_from self args res /\ resolve_from self)
+
+function fn_mut_from (self: ()) (args: t_ErrorKind) (res_state: ()) (res: t_InvalidUri) : ()
+
+axiom fn_mut_from_spec:
+  forall self: (), args: t_ErrorKind, res_state: (), res: t_InvalidUri. [%#sops'2] postcondition_mut_from self args res_state res
+    = (postcondition_from self args res /\ self = res_state)
+
+let rec from_InvalidUri (src: t_ErrorKind) (return (x: t_InvalidUri)) = any
+  [ return (result: t_InvalidUri) -> {[@stop_split] [@expl:from ensures] [%#serror'0] deep_model_InvalidUri result
+    = deep_model_ErrorKind src}
+    (! return {result}) ]
+
+let rec from_residual_Result_PathAndQuery_InvalidUri (residual: t_Result_Infallible_ErrorKind)
+  (return (x: t_Result_PathAndQuery_InvalidUri)) =
+  {[@stop_split] [@expl:from_residual 'residual' type invariant] [%#sops'0] inv_Result_Infallible_ErrorKind residual}
+  any
+  [ return (result: t_Result_PathAndQuery_InvalidUri) ->
+  {[@stop_split] [@expl:from_residual_Result_PathAndQuery_InvalidUri ensures] ([@stop_split] [@expl:from_residual result type invariant] inv_Result_PathAndQuery_InvalidUri result)
+    /\ ([@stop_split] [@expl:from_residual ensures] [%#sops'1] match { f0'0 = result; f1'0 = residual } with
+      | {f0'0 = Err'1 result'0; f1'0 = Err'0 residual'0} -> postcondition_from () residual'0 result'0
+      | _ -> false
+      end)}
+    (! return {result}) ]
+
+let rec elim_Continue (_x: t_ControlFlow_Result_Infallible_ErrorKind_Scanned) (return (f0'1: t_Scanned)) = any
+  [ _k (f0'1: t_Scanned) -> {Continue f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Continue] match _x with
+      | Continue _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function view_Bytes (self: t_Bytes) : Seq.seq UInt8.t = [%#sbytes'1] bytes_seq self
+
+predicate path_scan_delimiters [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path_class.rs" 86 0 90 9] (bytes: Seq.seq UInt8.t) (query'1: t_Option_Int) (fragment'0: t_Option_Int) =
+  [%#spath_class'1] let end' = match fragment'0 with
+    | None'0 -> Seq.length bytes
+    | Some'0 index -> index
+    end in (forall i: int. 0 <= i /\ i < end' -> UInt8.t'int (Seq.get bytes i) <> 35)
+  /\ match query'1 with
+      | None'0 -> forall i: int. 0 <= i /\ i < end' -> UInt8.t'int (Seq.get bytes i) <> 63
+      | Some'0 index -> 0 <= index
+      /\ index < end'
+      /\ UInt8.t'int (Seq.get bytes index) = 63
+      /\ (forall i: int. 0 <= i /\ i < index -> UInt8.t'int (Seq.get bytes i) <> 63)
+      end
+  /\ match fragment'0 with
+    | None'0 -> true
+    | Some'0 index -> 0 <= index /\ index < Seq.length bytes /\ UInt8.t'int (Seq.get bytes index) = 35
+    end
+
+let rec successful_scan_has_delimiters (bytes: Seq.seq UInt8.t) (query'1: UInt16.t) (fragment'0: t_Option_u16)
+  (high: bool) (return (x: ())) =
+  {[@stop_split] [@expl:successful_scan_has_delimiters requires] [%#spath_scan'0] path_scan_ok bytes (if query'1
+  = const_NONE then
+    None'0
+  else
+    Some'0 (UInt16.t'int query'1)
+  ) (match fragment'0 with
+    | None -> None'0
+    | Some index -> Some'0 (UInt16.t'int index)
+    end) high}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:successful_scan_has_delimiters ensures] [%#spath_scan'1] path_scan_delimiters bytes (if query'1
+    = const_NONE then
+      None'0
+    else
+      Some'0 (UInt16.t'int query'1)
+    ) (match fragment'0 with
+      | None -> None'0
+      | Some index -> Some'0 (UInt16.t'int index)
+      end)}
+    (! return {result}) ]
+
+let rec elim_Some (_x: t_Option_u16) (return (f0'1: UInt16.t)) = any
+  [ _k (f0'1: UInt16.t) -> {Some f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate invariant_refmut_Bytes [@inline:trivial] (self: MutBorrow.t t_Bytes) =
+  [%#sinvariant'0] inv_Bytes self.current /\ inv_Bytes self.final
+
+meta "rewrite_def" predicate invariant_refmut_Bytes
+
+predicate inv_refmut_Bytes [@inline:trivial] (_1: MutBorrow.t t_Bytes) = invariant_refmut_Bytes _1
+
+meta "rewrite_def" predicate inv_refmut_Bytes
+
+let rec truncate (self_: MutBorrow.t t_Bytes) (len: UInt64.t) (return (x: ())) =
+  {[@stop_split] [@expl:truncate 'self_' type invariant] [%#sbytes'2] inv_refmut_Bytes self_}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:truncate ensures] [%#sbytes'3] bytes_seq self_.final
+    = Seq.([..]) (bytes_seq self_.current) 0 (if UInt64.t'int len < Seq.length (bytes_seq self_.current) then
+      UInt64.t'int len
+    else
+      Seq.length (bytes_seq self_.current)
+    )}
+    (! return {result}) ]
+
+type t_Utf8Error
+
+type t_Result_ByteStr_Utf8Error = Ok'2 t_ByteStr | Err'2 t_Utf8Error
+
+predicate inv_Utf8Error (_1: t_Utf8Error)
+
+predicate inv_Result_ByteStr_Utf8Error (_1: t_Result_ByteStr_Utf8Error)
+
+axiom inv_axiom'4 [@rewrite]:
+  forall x: t_Result_ByteStr_Utf8Error [inv_Result_ByteStr_Utf8Error x]. inv_Result_ByteStr_Utf8Error x
+    = match x with
+      | Ok'2 f0'1 -> inv_ByteStr f0'1
+      | Err'2 f0'1 -> inv_Utf8Error f0'1
+      end
+
+predicate utf8_error_matches (bytes: Seq.seq UInt8.t) (valid_up_to: int) (error_len: t_Option_Int)
+
+axiom utf8_error_matches_spec:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring] utf8_error_matches bytes valid_up_to error_len
+    -> 0 <= valid_up_to /\ valid_up_to <= Seq.length bytes
+
+axiom utf8_error_matches_spec'0:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'0] utf8_error_matches bytes valid_up_to error_len
+    -> valid_utf8 (Seq.([..]) bytes 0 valid_up_to)
+
+axiom utf8_error_matches_spec'1:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'1] utf8_error_matches bytes valid_up_to error_len
+    -> not valid_utf8 bytes
+
+axiom utf8_error_matches_spec'2:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'2] utf8_error_matches bytes valid_up_to error_len
+    -> match error_len with
+      | Some'0 length -> 1 <= length /\ length <= 3 /\ valid_up_to + length <= Seq.length bytes
+      | None'0 -> valid_up_to < Seq.length bytes /\ Seq.length bytes - valid_up_to < 4
+      end
+
+function valid_up_to_Utf8Error (self: t_Utf8Error) : int
+
+function error_len_Utf8Error (self: t_Utf8Error) : t_Option_Int
+
+let rec from_utf8 (bytes: t_Bytes) (return (x: t_Result_ByteStr_Utf8Error)) =
+  {[@stop_split] [@expl:from_utf8 'bytes' type invariant] [%#sbyte_str] inv_Bytes bytes}
+  any
+  [ return (result: t_Result_ByteStr_Utf8Error) ->
+  {[@stop_split] [@expl:from_utf8 ensures] ([@stop_split] [@expl:from_utf8 result type invariant] [%#sbyte_str'0] inv_Result_ByteStr_Utf8Error result)
+    /\ ([@stop_split] [@expl:from_utf8 ensures] [%#sbyte_str'1] match result with
+      | Ok'2 value -> invariant_ByteStr value /\ view_ByteStr value = bytes_seq bytes
+      | Err'2 error -> utf8_error_matches (bytes_seq bytes) (valid_up_to_Utf8Error error) (error_len_Utf8Error error)
+      end)}
+    (! return {result}) ]
+
+predicate precondition_from [@inline:trivial] (self: ()) (args: t_ErrorKind) = [%#serror'1] let src = args in true
+
+meta "rewrite_def" predicate precondition_from
+
+let rec into_ErrorKind (self_: t_ErrorKind) (return (x: t_InvalidUri)) =
+  {[@stop_split] [@expl:into requires] [%#sconvert] precondition_from () self_}
+  any
+  [ return (result: t_InvalidUri) ->
+  {[@stop_split] [@expl:into ensures] [%#sconvert'0] postcondition_from () self_ result}
+    (! return {result}) ]
+
+let rec elim_Ok (_x: t_Result_ByteStr_Utf8Error) (return (f0'1: t_ByteStr)) = any
+  [ _k (f0'1: t_ByteStr) -> {Ok'2 f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Ok] match _x with
+      | Ok'2 _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function push_front_char [@inline:trivial] (self: Seq.seq Char.t) (x: Char.t) : Seq.seq Char.t =
+  [%#sseq'2] Seq.cons x self
+
+meta "rewrite_def" function push_front_char
+
+function tail_u8 (self: Seq.seq UInt8.t) : Seq.seq UInt8.t = [%#sseq] Seq.([..]) self 1 (Seq.length self)
+
+function ascii_char [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 19 0 19 42] (byte: UInt8.t) : Char.t
+
+axiom ascii_char_spec: forall byte: UInt8.t. [%#sascii'11] UInt8.t'int byte < 128
+    -> Char.to_int (ascii_char byte) = UInt8.t'int byte
+
+function ascii_chars [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 159 0 159 54] (bytes: Seq.seq UInt8.t) : Seq.seq Char.t
+
+axiom ascii_chars_def: forall bytes: Seq.seq UInt8.t. ascii_chars bytes
+    = ([%#sascii'8] if Seq.length bytes = 0 then
+      Seq.empty: Seq.seq Char.t
+    else
+      push_front_char (ascii_chars (tail_u8 bytes)) (ascii_char (Seq.get bytes 0))
+    )
+
+axiom ascii_chars_spec: forall bytes: Seq.seq UInt8.t. [%#sascii'5] Seq.length (ascii_chars bytes) = Seq.length bytes
+
+axiom ascii_chars_spec'0: forall bytes: Seq.seq UInt8.t. [%#sascii'6] Seq.length bytes = 0
+    -> ascii_chars bytes = (Seq.empty: Seq.seq Char.t)
+
+axiom ascii_chars_spec'1: forall bytes: Seq.seq UInt8.t. [%#sascii'7] Seq.length bytes > 0
+    -> ascii_chars bytes = push_front_char (ascii_chars (tail_u8 bytes)) (ascii_char (Seq.get bytes 0))
+
+function utf8_cons [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 174 0 174 58] (chars: Seq.seq Char.t) (character: Char.t) : ()
+ = [%#sascii'10] let pushed = push_front_char chars character in ()
+
+axiom utf8_cons_spec:
+  forall chars: Seq.seq Char.t, character: Char.t. [%#sascii'9] to_bytes (push_front_char chars character)
+    = Seq.(++) (to_utf8_char character) (to_bytes chars)
+
+constant utf8_empty: () = [%#sascii'13] ()
+
+axiom utf8_empty_spec: [%#sascii'12] to_bytes (Seq.empty: Seq.seq Char.t) = (Seq.empty: Seq.seq UInt8.t)
+
+function ascii_bytes_are_valid_utf8 [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/ascii.rs" 203 0 203 56] (bytes: Seq.seq UInt8.t) : ()
+
+axiom ascii_bytes_are_valid_utf8_def: forall bytes: Seq.seq UInt8.t. ([%#sascii'0] forall i: int. 0 <= i
+          /\ i < Seq.length bytes -> UInt8.t'int (Seq.get bytes i) < 128)
+    -> ascii_bytes_are_valid_utf8 bytes
+    = ([%#sascii'3] let _ = if Seq.length bytes > 0 then
+      let _ = ascii_bytes_are_valid_utf8 (tail_u8 bytes) in let _ = utf8_cons (ascii_chars (tail_u8 bytes)) (ascii_char (Seq.get bytes 0)) in let reassembled = Seq.(++) (Seq.singleton (Seq.get bytes 0)) (tail_u8 bytes) in ()
+    else
+      let _ = utf8_empty in ()
+     in ())
+
+axiom ascii_bytes_are_valid_utf8_spec: forall bytes: Seq.seq UInt8.t. ([%#sascii'0] forall i: int. 0 <= i
+          /\ i < Seq.length bytes -> UInt8.t'int (Seq.get bytes i) < 128)
+    -> ([%#sascii'1] to_bytes (ascii_chars bytes) = bytes)
+
+axiom ascii_bytes_are_valid_utf8_spec'0: forall bytes: Seq.seq UInt8.t. ([%#sascii'0] forall i: int. 0 <= i
+          /\ i < Seq.length bytes -> UInt8.t'int (Seq.get bytes i) < 128) -> ([%#sascii'2] valid_utf8 bytes)
+
+let rec from_utf8_unchecked (bytes: t_Bytes) (return (x: t_ByteStr)) =
+  {[@stop_split] [@expl:from_utf8_unchecked requires] ([@stop_split] [@expl:from_utf8_unchecked 'bytes' type invariant] [%#sbyte_str'2] inv_Bytes bytes)
+  /\ ([@stop_split] [@expl:from_utf8_unchecked requires] [%#sbyte_str'3] valid_utf8 (bytes_seq bytes))}
+  any
+  [ return (result: t_ByteStr) ->
+  {[@stop_split] [@expl:from_utf8_unchecked ensures] ([@stop_split] [@expl:from_utf8_unchecked result type invariant] [%#sbyte_str'4] inv_ByteStr result)
+    /\ ([@stop_split] [@expl:from_utf8_unchecked ensures] [%#sbyte_str'5] view_ByteStr result = bytes_seq bytes)}
+    (! return {result}) ]
+
+type t_PathAndQueryModel = { bytes'1: Seq.seq UInt8.t; query'1: t_Option_Int }
+
+predicate path_projection_matches_input [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 240 0 240 86] (input: Seq.seq UInt8.t) (model: t_PathAndQueryModel) =
+  [%#spath'16] let end' = Seq.length model.bytes'1 in end' <= Seq.length input
+  /\ (end' = Seq.length input \/ UInt8.t'int (Seq.get input end') = 35)
+  /\ (forall i: int. 0 <= i /\ i < end' -> UInt8.t'int (Seq.get input i) <> 35)
+  /\ model.bytes'1 = Seq.([..]) input 0 end'
+  /\ match model.query'1 with
+    | None'0 -> forall i: int. 0 <= i /\ i < end' -> UInt8.t'int (Seq.get input i) <> 63
+    | Some'0 query'2 -> 0 <= query'2
+    /\ query'2 < end'
+    /\ UInt8.t'int (Seq.get input query'2) = 63
+    /\ (forall i: int. 0 <= i /\ i < query'2 -> UInt8.t'int (Seq.get input i) <> 63)
+    end
+
+constant const_NONE'0: UInt16.t = [%#spath'19] (65535: UInt16.t)
+
+function view_PathAndQuery [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 42 4 42 33] (self: t_PathAndQuery) : t_PathAndQueryModel
+ = [%#spath'17] { bytes'1 = view_ByteStr self.data'0;
+                  query'1 = (if self.query'0 = const_NONE'0 then None'0 else Some'0 (UInt16.t'int self.query'0)) }
+
+predicate path_query_boundaries [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 214 0 214 62] (model: t_PathAndQueryModel) =
+  [%#spath'18] match model.query'1 with
+    | None'0 -> true
+    | Some'0 query'2 -> 0 <= query'2
+    /\ query'2 < Seq.length model.bytes'1 /\ UInt8.t'int (Seq.get model.bytes'1 query'2) = 63
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_shared
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 299 4 299 73] (src: t_Bytes)
+  (return (x: t_Result_PathAndQuery_InvalidUri)) =
+  {[@stop_split] [@expl:from_shared 'src' type invariant] [%#spath'13] inv_Bytes src}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_13 <- src ] s1
+    | s1 = deref_Bytes [%#spath] {_13} (fun (_x: Slice64.slice UInt8.t) -> [ &_11 <- _x ] s2)
+    | s2 = scan_path_and_query [%#spath'0] {_11} (fun (_x: t_Result_Scanned_ErrorKind) -> [ &_9 <- _x ] s3)
+    | s3 = branch_Result_Scanned_ErrorKind [%#spath'1] {_9}
+        (fun (_x: t_ControlFlow_Result_Infallible_ErrorKind_Scanned) -> [ &_8 <- _x ] s4)
+    | s4 = any
+      [ br0 (x0: t_Scanned) -> {_8 = Continue x0} (! bb6)
+      | br1 (x0: t_Result_Infallible_ErrorKind) -> {_8 = Break x0} (! bb5) ] ]
+  | bb5 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_Bytes src} any) ]
+    | s1 = -{resolve_Bytes src}- s2
+    | s2 = elim_Break {_8} (fun (r0: t_Result_Infallible_ErrorKind) -> [ &residual <- r0 ] s3)
+    | s3 = from_residual_Result_PathAndQuery_InvalidUri [%#spath'1] {residual}
+        (fun (_x: t_Result_PathAndQuery_InvalidUri) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ]
+  | bb6 = s0
+    [ s0 = elim_Continue {_8} (fun (r0: t_Scanned) -> [ &val' <- r0 ] s1)
+    | s1 = [ &_7 <- val' ] s2
+    | s2 = [ &query'2 <- _7.query ] s3
+    | s3 = [ &fragment'0 <- _7.fragment ] s4
+    | s4 = [ &is_maybe_not_utf8'0 <- _7.is_maybe_not_utf8 ] s5
+    | s5 = [ &original <- [%#spath'2] view_Bytes src ] s6
+    | s6 = [ &retained_end <- [%#spath'3] match fragment'0 with
+        | None -> Seq.length (view_Bytes src)
+        | Some index -> UInt16.t'int index
+        end ] s7
+    | s7 = successful_scan_has_delimiters [%#spath'4] {original} {query'2} {fragment'0} {is_maybe_not_utf8'0}
+        (fun (_x: ()) -> [ &_26 <- _x ] s8)
+    | s8 = any [ br0 -> {fragment'0 = None} (! bb16) | br1 (x0: UInt16.t) -> {fragment'0 = Some x0} (! bb13) ] ]
+  | bb13 = s0
+    [ s0 = elim_Some {fragment'0} (fun (r0: UInt16.t) -> [ &i <- r0 ] s1)
+    | s1 = UInt64.of_int {UInt16.t'int i} (fun (_x: UInt64.t) -> [ &_36 <- _x ] s2)
+    | s2 = MutBorrow.borrow_mut <t_Bytes> {src}
+        (fun (_bor: MutBorrow.t t_Bytes) -> [ &_35 <- _bor ] -{inv_Bytes _bor.final}- [ &src <- _bor.final ] s3)
+      [ _ck -> (! {[@expl:type invariant] inv_Bytes src} any) ]
+    | s3 = truncate [%#spath'5] {_35} {_36} (fun (_x: ()) -> [ &_34 <- _x ] s4)
+    | s4 = bb16 ]
+  | bb16 = s0
+    [ s0 = {[@expl:assertion] [%#spath'6] Seq.length (view_Bytes src) = retained_end} s1
+    | s1 = {[@expl:assertion] [%#spath'7] view_Bytes src = Seq.([..]) original 0 retained_end} s2
+    | s2 = any [ br0 -> {is_maybe_not_utf8'0 = false} (! bb26) | br1 -> {is_maybe_not_utf8'0} (! bb17) ] ]
+  | bb17 = s0
+    [ s0 = from_utf8 [%#spath'8] {src} (fun (_x: t_Result_ByteStr_Utf8Error) -> [ &_50 <- _x ] s1)
+    | s1 = any
+      [ br0 (x0: t_ByteStr) -> {_50 = Ok'2 x0} (! bb22) | br1 (x0: t_Utf8Error) -> {_50 = Err'2 x0} (! bb21) ] ]
+  | bb21 = s0
+    [ s0 = [ &_56 <- InvalidUriChar ] s1
+    | s1 = into_ErrorKind [%#spath'9] {_56} (fun (_x: t_InvalidUri) -> [ &_55 <- _x ] s2)
+    | s2 = [ &_ret <- Err'1 _55 ] s3
+    | s3 = return {_ret} ]
+  | bb22 = s0
+    [ s0 = elim_Ok {_50} (fun (r0: t_ByteStr) -> [ &value <- r0 ] s1) | s1 = [ &data <- value ] s2 | s2 = bb28 ]
+  | bb26 = s0
+    [ s0 = {[@expl:assertion] [%#spath'10] forall i'0: int. 0 <= i'0 /\ i'0 < Seq.length (view_Bytes src)
+        -> UInt8.t'int (Seq.get (view_Bytes src) i'0) < 128}
+      s1
+    | s1 = {[@expl:assertion] [%#spath'11] let _ = ascii_bytes_are_valid_utf8 (view_Bytes src) in true} s2
+    | s2 = from_utf8_unchecked [%#spath'12] {src} (fun (_x: t_ByteStr) -> [ &data <- _x ] s3)
+    | s3 = bb28 ]
+  | bb28 = s0
+    [ s0 = [ &_65 <- { data'0 = data; query'0 = query'2 } ] s1 | s1 = [ &_ret <- Ok'1 _65 ] s2 | s2 = return {_ret} ] ]
+  [ & _ret: t_Result_PathAndQuery_InvalidUri = Any.any_l ()
+  | & src: t_Bytes = src
+  | & query'2: UInt16.t = Any.any_l ()
+  | & fragment'0: t_Option_u16 = Any.any_l ()
+  | & is_maybe_not_utf8'0: bool = Any.any_l ()
+  | & _7: t_Scanned = Any.any_l ()
+  | & _8: t_ControlFlow_Result_Infallible_ErrorKind_Scanned = Any.any_l ()
+  | & _9: t_Result_Scanned_ErrorKind = Any.any_l ()
+  | & _11: Slice64.slice UInt8.t = Any.any_l ()
+  | & _13: t_Bytes = Any.any_l ()
+  | & residual: t_Result_Infallible_ErrorKind = Any.any_l ()
+  | & val': t_Scanned = Any.any_l ()
+  | & original: Seq.seq UInt8.t = Any.any_l ()
+  | & retained_end: int = Any.any_l ()
+  | & _26: () = Any.any_l ()
+  | & i: UInt16.t = Any.any_l ()
+  | & _34: () = Any.any_l ()
+  | & _35: MutBorrow.t t_Bytes = Any.any_l ()
+  | & _36: UInt64.t = Any.any_l ()
+  | & data: t_ByteStr = Any.any_l ()
+  | & _50: t_Result_ByteStr_Utf8Error = Any.any_l ()
+  | & value: t_ByteStr = Any.any_l ()
+  | & _55: t_InvalidUri = Any.any_l ()
+  | & _56: t_ErrorKind = Any.any_l ()
+  | & _65: t_PathAndQuery = Any.any_l () ])
+  [ return (result: t_Result_PathAndQuery_InvalidUri) ->
+  {[@stop_split] [@expl:from_shared ensures] ([@stop_split] [@expl:from_shared result type invariant] [%#spath'14] inv_Result_PathAndQuery_InvalidUri result)
+    /\ ([@stop_split] [@expl:from_shared ensures] [%#spath'15] match result with
+      | Ok'1 value -> path_projection_matches_input (view_Bytes src) (view_PathAndQuery value)
+      /\ path_query_boundaries (view_PathAndQuery value)
+      | Err'1 _ -> true
+      end)}
+    (! return {result}) ]

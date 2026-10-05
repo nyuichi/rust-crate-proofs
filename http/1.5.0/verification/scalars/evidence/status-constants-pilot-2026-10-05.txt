@@ -1,0 +1,35 @@
+StatusCode numeric constant translation pilot
+Date: 2026-10-05 UTC
+
+Attempted command (from verification/scalars):
+  RUSTFLAGS='--cfg http_status_leaf' cargo creusot --simple-triggers=false -- \
+    --features status --locked --offline
+
+Result: failed before caller translation, exit status 101.
+
+Exact diagnostic:
+  error: unsupported constant expression pattern_type!(u16 is 1..)
+     --> src/../../../src/status.rs:574:13
+      |
+  574 |             pub const $konst: StatusCode = StatusCode(unsafe { NonZeroU16::new_unchecked($num) });
+      |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  ...
+  605 | status_codes! {
+  ...
+  803 | }
+      |_- in this macro invocation
+      |
+      = note: this error originates in the macro `status_codes`
+  error: could not compile `http-scalar-proofs` (lib) due to 1 previous error
+
+At the time of this attempt, src/status.rs SHA-256 was:
+  86b90c0110ebf5a5d2814ef28ffdd4fa1cc73ac0b9c99e12251c6b28a75d03fc
+
+The pilot referenced all 62 associated StatusCode constants in six bounded
+program callers. Each caller compared the actual constant's `as_u16()` result
+with its declared numeric value and had an `ensures(result)` postcondition.
+Creusot stopped while translating the constant initializer, before emitting
+any caller COMA or Why3 goal. The leaf-only cfg guard was restored afterward.
+
+This records a translator limitation for constant initialization; it is not
+evidence that the 62 constants' numeric values were proved.

@@ -1,0 +1,84 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 65 0 65 69 *)
+
+let%span sascii = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/ascii.rs" 18 10 18 42
+let%span sascii'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/ascii.rs" 156 10 156 37
+let%span sascii'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/ascii.rs" 157 10 157 53
+let%span sascii'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/ascii.rs" 158 10 158 98
+let%span sascii'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/ascii.rs" 155 10 155 21
+let%span sascii'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/ascii.rs" 161 8 165 9
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 260 8 260 27
+let%span swell_founded = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/well_founded.rs" 43 8 43 33
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 64 10 64 21
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 61 11 61 71
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 62 10 63 57
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 66 4 75 5
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Char
+use int.Int
+
+function push_front_char [@inline:trivial] (self: Seq.seq Char.t) (x: Char.t) : Seq.seq Char.t =
+  [%#sseq'0] Seq.cons x self
+
+meta "rewrite_def" function push_front_char
+
+function tail_u8 (self: Seq.seq UInt8.t) : Seq.seq UInt8.t = [%#sseq] Seq.([..]) self 1 (Seq.length self)
+
+function ascii_char [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/ascii.rs" 19 0 19 42] (byte: UInt8.t) : Char.t
+
+axiom ascii_char_spec: forall byte: UInt8.t. [%#sascii] UInt8.t'int byte < 128
+    -> Char.to_int (ascii_char byte) = UInt8.t'int byte
+
+function ascii_chars [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/ascii.rs" 159 0 159 54] (bytes: Seq.seq UInt8.t) : Seq.seq Char.t
+
+axiom ascii_chars_def: forall bytes: Seq.seq UInt8.t. ascii_chars bytes
+    = ([%#sascii'4] if Seq.length bytes = 0 then
+      Seq.empty: Seq.seq Char.t
+    else
+      push_front_char (ascii_chars (tail_u8 bytes)) (ascii_char (Seq.get bytes 0))
+    )
+
+axiom ascii_chars_spec: forall bytes: Seq.seq UInt8.t. [%#sascii'0] Seq.length (ascii_chars bytes) = Seq.length bytes
+
+axiom ascii_chars_spec'0: forall bytes: Seq.seq UInt8.t. [%#sascii'1] Seq.length bytes = 0
+    -> ascii_chars bytes = (Seq.empty: Seq.seq Char.t)
+
+axiom ascii_chars_spec'1: forall bytes: Seq.seq UInt8.t. [%#sascii'2] Seq.length bytes > 0
+    -> ascii_chars bytes = push_front_char (ascii_chars (tail_u8 bytes)) (ascii_char (Seq.get bytes 0))
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] self >= 0 /\ self > other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant bytes : Seq.seq UInt8.t
+
+function method_ascii_chars_preserve_byte_values [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 65 0 65 69] (bytes: Seq.seq UInt8.t) : ()
+
+goal vc_method_ascii_chars_preserve_byte_values: ([%#smethod'0] forall i: int. 0 <= i /\ i < Seq.length bytes
+      -> UInt8.t'int (Seq.get bytes i) < 128)
+  -> (if Seq.length bytes > 0 then
+    ([@stop_split] [@expl:ascii_char ensures] [%#sascii] UInt8.t'int (Seq.get bytes 0) < 128
+      -> Char.to_int (ascii_char (Seq.get bytes 0)) = UInt8.t'int (Seq.get bytes 0))
+    -> (let head = ascii_char (Seq.get bytes 0) in UInt8.t'int (Seq.get bytes 0) < 128
+    && Char.to_int head = UInt8.t'int (Seq.get bytes 0)
+    && (([@stop_split] [@expl:method_ascii_chars_preserve_byte_values requires] [%#smethod'0] forall i: int. 0 <= i
+            /\ i < Seq.length (tail_u8 bytes) -> UInt8.t'int (Seq.get (tail_u8 bytes) i) < 128)
+      /\ ([@expl:variant decreases] well_founded_relation_Int ([%#smethod] Seq.length bytes) ([%#smethod] Seq.length (tail_u8 bytes))))
+    /\ (([@stop_split] [@expl:method_ascii_chars_preserve_byte_values ensures] [%#smethod'1] forall i: int. 0 <= i
+          /\ i < Seq.length (tail_u8 bytes)
+        -> Char.to_int (Seq.get (ascii_chars (tail_u8 bytes)) i) = UInt8.t'int (Seq.get (tail_u8 bytes) i))
+    -> (let _ = method_ascii_chars_preserve_byte_values (tail_u8 bytes) in (forall i: int. 0 <= i
+          /\ i < Seq.length bytes -> Char.to_int (Seq.get (ascii_chars bytes) i) = UInt8.t'int (Seq.get bytes i))
+    && ([@stop_split] [@expl:method_ascii_chars_preserve_byte_values ensures] [%#smethod'1] forall i: int. 0 <= i
+        /\ i < Seq.length bytes -> Char.to_int (Seq.get (ascii_chars bytes) i) = UInt8.t'int (Seq.get bytes i)))))
+  else
+    [@stop_split] [@expl:method_ascii_chars_preserve_byte_values ensures] [%#smethod'1] forall i: int. 0 <= i
+        /\ i < Seq.length bytes -> Char.to_int (Seq.get (ascii_chars bytes) i) = UInt8.t'int (Seq.get bytes i)
+  )

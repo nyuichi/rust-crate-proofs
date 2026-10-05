@@ -65,10 +65,16 @@ use std::any::Any;
 use std::convert::TryInto;
 use std::fmt;
 
+#[allow(unused_imports)]
+use creusot_std::prelude::{ensures, logic, pearlite, requires, DeepModel};
+
 use crate::header::{HeaderMap, HeaderName, HeaderValue};
 use crate::status::StatusCode;
 use crate::version::Version;
 use crate::{Extensions, Result};
+
+#[cfg(creusot)]
+use creusot_std::std::ops::{FnExt as _, FnOnceExt as _};
 
 /// Represents an HTTP response
 ///
@@ -170,7 +176,8 @@ use crate::{Extensions, Result};
 /// #
 /// # fn main() {}
 /// ```
-#[derive(Clone)]
+#[allow(unexpected_cfgs)]
+#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Clone))]
 pub struct Response<T> {
     head: Parts,
     body: T,
@@ -180,7 +187,8 @@ pub struct Response<T> {
 ///
 /// The HTTP response head consists of a status, version, and a set of
 /// header fields.
-#[derive(Clone)]
+#[allow(unexpected_cfgs)]
+#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Clone))]
 pub struct Parts {
     /// The response's status
     pub status: StatusCode,
@@ -201,11 +209,156 @@ pub struct Parts {
 ///
 /// This type can be used to construct an instance of `Response` through a
 /// builder-like pattern.
-#[derive(Debug)]
+#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Debug))]
 pub struct Builder {
     inner: Result<Parts>,
 }
 
+/// A specification-only projection of a response's head.
+#[cfg(creusot)]
+#[logic]
+pub fn response_head<T>(response: Response<T>) -> Parts {
+    response.head
+}
+
+/// A specification-only projection of a response's body.
+#[cfg(creusot)]
+#[logic]
+pub fn response_body<T>(response: Response<T>) -> T {
+    response.body
+}
+
+/// Whether a response builder currently contains a valid head.
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_builder_is_valid(builder: &Builder) -> bool {
+    match &builder.inner {
+        Ok(_) => true,
+        Err(_) => false,
+    }
+}
+
+/// The status and version fields initialized by the default builder.
+#[cfg(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)))]
+#[doc(hidden)]
+#[logic]
+pub fn response_builder_has_default_core_fields(builder: &Builder) -> bool {
+    pearlite! {
+        match response_builder_parts(builder) {
+            Some(parts) => parts.status.deep_model() == 200 && parts.version.deep_model() == 11,
+            None => false,
+        }
+    }
+}
+
+/// The exact stored error, including its concrete payload, when a builder is
+/// in the error state.
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_builder_error<'a>(builder: &'a Builder) -> Option<crate::ErrorModelRef<'a>> {
+    match &builder.inner {
+        Ok(_) => None,
+        Err(error) => Some(crate::error_model_ref(error)),
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_builder_error_is_from<E>(builder: &Builder, source: E) -> bool
+where
+    E: Into<crate::Error>,
+{
+    match &builder.inner {
+        Ok(_) => false,
+        Err(error) => <E as Into<crate::Error>>::into.postcondition((source,), *error),
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_builder_status<'a>(builder: &'a Builder) -> Option<&'a StatusCode> {
+    match &builder.inner {
+        Ok(head) => Some(&head.status),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_builder_version<'a>(builder: &'a Builder) -> Option<&'a Version> {
+    match &builder.inner {
+        Ok(head) => Some(&head.version),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_builder_headers<'a>(builder: &'a Builder) -> Option<&'a HeaderMap<HeaderValue>> {
+    match &builder.inner {
+        Ok(head) => Some(&head.headers),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_builder_extensions<'a>(builder: &'a Builder) -> Option<&'a Extensions> {
+    match &builder.inner {
+        Ok(head) => Some(&head.extensions),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_builder_parts<'a>(builder: &'a Builder) -> Option<&'a Parts> {
+    match &builder.inner {
+        Ok(head) => Some(head),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_result_head<'a, T>(outcome: &'a Result<Response<T>>) -> Option<&'a Parts> {
+    match outcome {
+        Ok(response) => Some(&response.head),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_result_body<'a, T>(outcome: &'a Result<Response<T>>) -> Option<&'a T> {
+    match outcome {
+        Ok(response) => Some(&response.body),
+        Err(_) => None,
+    }
+}
+
+#[cfg(creusot)]
+#[doc(hidden)]
+#[logic]
+pub fn response_result_error<'a, T>(outcome: &'a Result<Response<T>>) -> Option<crate::ErrorModelRef<'a>> {
+    match outcome {
+        Ok(_) => None,
+        Err(error) => Some(crate::error_model_ref(error)),
+    }
+}
+
+#[allow(unexpected_cfgs)]
+#[cfg(any(not(http_composition_leaf), http_builder_entrypoints_leaf))]
 impl Response<()> {
     /// Creates a new builder-style object to manufacture a `Response`
     ///
@@ -223,6 +376,10 @@ impl Response<()> {
     ///     .unwrap();
     /// ```
     #[inline]
+    #[cfg_attr(creusot, ensures(response_builder_is_valid(&result)))]
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        response_builder_has_default_core_fields(&result)
+    ))]
     pub fn builder() -> Builder {
         Builder::new()
     }
@@ -267,6 +424,7 @@ impl<T> Response<T> {
     /// assert_eq!(*response.body(), "hello world");
     /// ```
     #[inline]
+    #[ensures(response_head(result) == parts && response_body(result) == body)]
     pub fn from_parts(parts: Parts, body: T) -> Response<T> {
         Response { head: parts, body }
     }
@@ -281,6 +439,7 @@ impl<T> Response<T> {
     /// assert_eq!(response.status(), StatusCode::OK);
     /// ```
     #[inline]
+    #[ensures(result == response_head(*self).status)]
     pub fn status(&self) -> StatusCode {
         self.head.status
     }
@@ -296,6 +455,12 @@ impl<T> Response<T> {
     /// assert_eq!(response.status(), StatusCode::CREATED);
     /// ```
     #[inline]
+    #[ensures(*result == response_head(*self).status)]
+    #[ensures(^result == response_head(^self).status)]
+    #[ensures(response_head(^self).version == response_head(*self).version)]
+    #[ensures(response_head(^self).headers == response_head(*self).headers)]
+    #[ensures(response_head(^self).extensions == response_head(*self).extensions)]
+    #[ensures(response_body(^self) == response_body(*self))]
     pub fn status_mut(&mut self) -> &mut StatusCode {
         &mut self.head.status
     }
@@ -310,6 +475,7 @@ impl<T> Response<T> {
     /// assert_eq!(response.version(), Version::HTTP_11);
     /// ```
     #[inline]
+    #[ensures(result == response_head(*self).version)]
     pub fn version(&self) -> Version {
         self.head.version
     }
@@ -325,6 +491,12 @@ impl<T> Response<T> {
     /// assert_eq!(response.version(), Version::HTTP_2);
     /// ```
     #[inline]
+    #[ensures(*result == response_head(*self).version)]
+    #[ensures(^result == response_head(^self).version)]
+    #[ensures(response_head(^self).status == response_head(*self).status)]
+    #[ensures(response_head(^self).headers == response_head(*self).headers)]
+    #[ensures(response_head(^self).extensions == response_head(*self).extensions)]
+    #[ensures(response_body(^self) == response_body(*self))]
     pub fn version_mut(&mut self) -> &mut Version {
         &mut self.head.version
     }
@@ -339,6 +511,7 @@ impl<T> Response<T> {
     /// assert!(response.headers().is_empty());
     /// ```
     #[inline]
+    #[ensures(*result == response_head(*self).headers)]
     pub fn headers(&self) -> &HeaderMap<HeaderValue> {
         &self.head.headers
     }
@@ -355,6 +528,12 @@ impl<T> Response<T> {
     /// assert!(!response.headers().is_empty());
     /// ```
     #[inline]
+    #[ensures(*result == response_head(*self).headers)]
+    #[ensures(^result == response_head(^self).headers)]
+    #[ensures(response_head(^self).status == response_head(*self).status)]
+    #[ensures(response_head(^self).version == response_head(*self).version)]
+    #[ensures(response_head(^self).extensions == response_head(*self).extensions)]
+    #[ensures(response_body(^self) == response_body(*self))]
     pub fn headers_mut(&mut self) -> &mut HeaderMap<HeaderValue> {
         &mut self.head.headers
     }
@@ -369,6 +548,7 @@ impl<T> Response<T> {
     /// assert!(response.extensions().get::<i32>().is_none());
     /// ```
     #[inline]
+    #[ensures(*result == response_head(*self).extensions)]
     pub fn extensions(&self) -> &Extensions {
         &self.head.extensions
     }
@@ -385,6 +565,12 @@ impl<T> Response<T> {
     /// assert_eq!(response.extensions().get(), Some(&"hello"));
     /// ```
     #[inline]
+    #[ensures(*result == response_head(*self).extensions)]
+    #[ensures(^result == response_head(^self).extensions)]
+    #[ensures(response_head(^self).status == response_head(*self).status)]
+    #[ensures(response_head(^self).version == response_head(*self).version)]
+    #[ensures(response_head(^self).headers == response_head(*self).headers)]
+    #[ensures(response_body(^self) == response_body(*self))]
     pub fn extensions_mut(&mut self) -> &mut Extensions {
         &mut self.head.extensions
     }
@@ -399,6 +585,7 @@ impl<T> Response<T> {
     /// assert!(response.body().is_empty());
     /// ```
     #[inline]
+    #[ensures(*result == response_body(*self))]
     pub fn body(&self) -> &T {
         &self.body
     }
@@ -414,6 +601,9 @@ impl<T> Response<T> {
     /// assert!(!response.body().is_empty());
     /// ```
     #[inline]
+    #[ensures(*result == response_body(*self))]
+    #[ensures(^result == response_body(^self))]
+    #[ensures(response_head(^self) == response_head(*self))]
     pub fn body_mut(&mut self) -> &mut T {
         &mut self.body
     }
@@ -429,6 +619,7 @@ impl<T> Response<T> {
     /// assert_eq!(body, 10);
     /// ```
     #[inline]
+    #[ensures(result == response_body(self))]
     pub fn into_body(self) -> T {
         self.body
     }
@@ -444,6 +635,7 @@ impl<T> Response<T> {
     /// assert_eq!(parts.status, StatusCode::OK);
     /// ```
     #[inline]
+    #[ensures(result.0 == response_head(self) && result.1 == response_body(self))]
     pub fn into_parts(self) -> (Parts, T) {
         (self.head, self.body)
     }
@@ -463,6 +655,9 @@ impl<T> Response<T> {
     /// assert_eq!(mapped_response.body(), &"some string".as_bytes());
     /// ```
     #[inline]
+    #[requires(f.precondition((response_body(self),)))]
+    #[ensures(response_head(result) == response_head(self))]
+    #[ensures(f.postcondition_once((response_body(self),), response_body(result)))]
     pub fn map<F, U>(self, f: F) -> Response<U>
     where
         F: FnOnce(T) -> U,
@@ -495,6 +690,12 @@ impl<T: fmt::Debug> fmt::Debug for Response<T> {
 
 impl Parts {
     /// Creates a new default instance of `Parts`
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        result.status.deep_model() == 200
+    ))]
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        result.version.deep_model() == 11
+    ))]
     fn new() -> Parts {
         Parts {
             status: StatusCode::default(),
@@ -533,6 +734,10 @@ impl Builder {
     ///     .unwrap();
     /// ```
     #[inline]
+    #[cfg_attr(creusot, ensures(response_builder_is_valid(&result)))]
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        response_builder_has_default_core_fields(&result)
+    ))]
     pub fn new() -> Builder {
         Builder::default()
     }
@@ -551,13 +756,40 @@ impl Builder {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, requires(!response_builder_is_valid(&self) || (
+        <T as TryInto<StatusCode>>::try_into.precondition((status,))
+        && forall<e: <T as TryInto<StatusCode>>::Error>
+            <T as TryInto<StatusCode>>::try_into.postcondition((status,), Err(e))
+                ==> <<T as TryInto<StatusCode>>::Error as Into<crate::Error>>::into.precondition((e,))
+    )))]
+    #[cfg_attr(creusot, ensures(!response_builder_is_valid(&self) ==> response_builder_error(&result) == response_builder_error(&self)))]
+    #[cfg_attr(creusot, ensures(response_builder_is_valid(&self) ==> exists<converted: std::result::Result<StatusCode, <T as TryInto<StatusCode>>::Error>> (
+        <T as TryInto<StatusCode>>::try_into.postcondition((status,), converted)
+        && match converted {
+            Ok(new_status) => response_builder_is_valid(&result)
+                && response_builder_status(&result) == Some(&new_status)
+                && response_builder_error(&result) == None
+                && response_builder_version(&result) == response_builder_version(&self)
+                && response_builder_headers(&result) == response_builder_headers(&self)
+                && response_builder_extensions(&result) == response_builder_extensions(&self),
+            Err(conversion_error) => !response_builder_is_valid(&result)
+                && response_builder_error_is_from(&result, conversion_error)
+                && response_builder_status(&result) == None
+                && response_builder_version(&result) == None
+                && response_builder_headers(&result) == None
+                && response_builder_extensions(&result) == None,
+        }
+    )))]
     pub fn status<T>(self, status: T) -> Builder
     where
         T: TryInto<StatusCode>,
         <T as TryInto<StatusCode>>::Error: Into<crate::Error>,
     {
         self.and_then(move |mut head| {
-            head.status = status.try_into().map_err(Into::into)?;
+            head.status = match status.try_into() {
+                Ok(status) => status,
+                Err(error) => return Err(error.into()),
+            };
             Ok(head)
         })
     }
@@ -576,11 +808,20 @@ impl Builder {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, ensures(response_builder_error(&result) == response_builder_error(&self)))]
+    #[cfg_attr(creusot, ensures(response_builder_version(&result) == if response_builder_is_valid(&self) { Some(&version) } else { None }))]
+    #[cfg_attr(creusot, ensures(response_builder_status(&result) == response_builder_status(&self)))]
+    #[cfg_attr(creusot, ensures(response_builder_headers(&result) == response_builder_headers(&self)))]
+    #[cfg_attr(creusot, ensures(response_builder_extensions(&result) == response_builder_extensions(&self)))]
     pub fn version(self, version: Version) -> Builder {
-        self.and_then(move |mut head| {
-            head.version = version;
-            Ok(head)
-        })
+        let inner = match self.inner {
+            Ok(mut head) => {
+                head.version = version;
+                Ok(head)
+            }
+            Err(error) => Err(error),
+        };
+        Builder { inner }
     }
 
     /// Appends a header to this response builder.
@@ -610,8 +851,14 @@ impl Builder {
         <V as TryInto<HeaderValue>>::Error: Into<crate::Error>,
     {
         self.and_then(move |mut head| {
-            let name = key.try_into().map_err(Into::into)?;
-            let value = value.try_into().map_err(Into::into)?;
+            let name = match key.try_into() {
+                Ok(name) => name,
+                Err(error) => return Err(error.into()),
+            };
+            let value = match value.try_into() {
+                Ok(value) => value,
+                Err(error) => return Err(error.into()),
+            };
             head.headers.try_append(name, value)?;
             Ok(head)
         })
@@ -633,6 +880,7 @@ impl Builder {
     /// assert_eq!( headers["Accept"], "text/html" );
     /// assert_eq!( headers["X-Custom-Foo"], "bar" );
     /// ```
+    #[cfg_attr(creusot, ensures(result == response_builder_headers(self)))]
     pub fn headers_ref(&self) -> Option<&HeaderMap<HeaderValue>> {
         self.inner.as_ref().ok().map(|h| &h.headers)
     }
@@ -656,8 +904,23 @@ impl Builder {
     /// assert_eq!( headers["Accept"], "text/html" );
     /// assert_eq!( headers["X-Custom-Foo"], "bar" );
     /// ```
+    #[cfg_attr(creusot, ensures(match result {
+        Some(reference) => Some(&*reference) == response_builder_headers(&*self),
+        None => response_builder_headers(&*self) == None,
+    }))]
+    #[cfg_attr(creusot, ensures(match result {
+        Some(reference) => Some(&^reference) == response_builder_headers(&^self),
+        None => response_builder_headers(&^self) == None,
+    }))]
+    #[cfg_attr(creusot, ensures(response_builder_error(&^self) == response_builder_error(&*self)))]
+    #[cfg_attr(creusot, ensures(response_builder_status(&^self) == response_builder_status(&*self)))]
+    #[cfg_attr(creusot, ensures(response_builder_version(&^self) == response_builder_version(&*self)))]
+    #[cfg_attr(creusot, ensures(response_builder_extensions(&^self) == response_builder_extensions(&*self)))]
     pub fn headers_mut(&mut self) -> Option<&mut HeaderMap<HeaderValue>> {
-        self.inner.as_mut().ok().map(|h| &mut h.headers)
+        match &mut self.inner {
+            Ok(head) => Some(&mut head.headers),
+            Err(_) => None,
+        }
     }
 
     /// Adds an extension to this builder
@@ -698,6 +961,7 @@ impl Builder {
     /// assert_eq!(extensions.get::<&'static str>(), Some(&"My Extension"));
     /// assert_eq!(extensions.get::<u32>(), Some(&5u32));
     /// ```
+    #[cfg_attr(creusot, ensures(result == response_builder_extensions(self)))]
     pub fn extensions_ref(&self) -> Option<&Extensions> {
         self.inner.as_ref().ok().map(|h| &h.extensions)
     }
@@ -716,8 +980,23 @@ impl Builder {
     /// extensions.insert(5u32);
     /// assert_eq!(extensions.get::<u32>(), Some(&5u32));
     /// ```
+    #[cfg_attr(creusot, ensures(match result {
+        Some(reference) => Some(&*reference) == response_builder_extensions(&*self),
+        None => response_builder_extensions(&*self) == None,
+    }))]
+    #[cfg_attr(creusot, ensures(match result {
+        Some(reference) => Some(&^reference) == response_builder_extensions(&^self),
+        None => response_builder_extensions(&^self) == None,
+    }))]
+    #[cfg_attr(creusot, ensures(response_builder_error(&^self) == response_builder_error(&*self)))]
+    #[cfg_attr(creusot, ensures(response_builder_status(&^self) == response_builder_status(&*self)))]
+    #[cfg_attr(creusot, ensures(response_builder_version(&^self) == response_builder_version(&*self)))]
+    #[cfg_attr(creusot, ensures(response_builder_headers(&^self) == response_builder_headers(&*self)))]
     pub fn extensions_mut(&mut self) -> Option<&mut Extensions> {
-        self.inner.as_mut().ok().map(|h| &mut h.extensions)
+        match &mut self.inner {
+            Ok(head) => Some(&mut head.extensions),
+            Err(_) => None,
+        }
     }
 
     /// "Consumes" this builder, using the provided `body` to return a
@@ -740,24 +1019,46 @@ impl Builder {
     ///     .body(())
     ///     .unwrap();
     /// ```
+    #[cfg_attr(creusot, ensures(response_result_head(&result) == response_builder_parts(&self)))]
+    #[cfg_attr(creusot, ensures(response_result_body(&result) == if response_builder_is_valid(&self) { Some(&body) } else { None }))]
+    #[cfg_attr(creusot, ensures(response_result_error(&result) == response_builder_error(&self)))]
     pub fn body<T>(self, body: T) -> Result<Response<T>> {
-        self.inner.map(move |head| Response { head, body })
+        match self.inner {
+            Ok(head) => Ok(Response { head, body }),
+            Err(error) => Err(error),
+        }
     }
 
     // private
 
+    #[requires(match self.inner {
+        Ok(head) => func.precondition((head,)),
+        Err(_) => true,
+    })]
+    #[ensures(match self.inner {
+        Ok(head) => func.postcondition_once((head,), result.inner),
+        Err(_) => response_builder_error(&result) == response_builder_error(&self),
+    })]
     fn and_then<F>(self, func: F) -> Self
     where
         F: FnOnce(Parts) -> Result<Parts>,
     {
+        let inner = match self.inner {
+            Ok(head) => func(head),
+            Err(error) => Err(error),
+        };
         Builder {
-            inner: self.inner.and_then(func),
+            inner,
         }
     }
 }
 
 impl Default for Builder {
     #[inline]
+    #[cfg_attr(creusot, ensures(response_builder_is_valid(&result)))]
+    #[cfg_attr(all(creusot, any(not(http_composition_leaf), http_composition_uri_defaults_leaf)), ensures(
+        response_builder_has_default_core_fields(&result)
+    ))]
     fn default() -> Builder {
         Builder {
             inner: Ok(Parts::new()),

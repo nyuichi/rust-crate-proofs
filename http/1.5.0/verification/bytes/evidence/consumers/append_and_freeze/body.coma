@@ -1,0 +1,116 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 33 0 33 46 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 34 45 34 55
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 34 21 34 56
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 35 4 35 34
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 36 4 36 19
+let%span slib'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 31 11 31 37
+let%span slib'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 33 41 33 46
+let%span slib'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 32 10 32 36
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 142 19 142 43
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 143 18 143 55
+let%span sbytes'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 144 18 144 57
+let%span sbytes'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 163 34 163 38
+let%span sbytes'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 161 19 161 73
+let%span sbytes'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 162 18 162 75
+let%span sbytes'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 172 18 172 22
+let%span sbytes'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 171 18 171 58
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+let%span sbytes_mut = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes_mut.rs" 147 4 147 53
+let%span sbytes_mut'0 = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes_mut.rs" 245 4 245 32
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.int.Int64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+use int.Int
+
+let rec len_u8 (self_: Slice64.slice UInt8.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+type t_BytesMut
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+function bytes_mut_capacity (_value: t_BytesMut) : int
+
+let rec with_capacity (capacity: UInt64.t) (return (x: t_BytesMut)) =
+  {[@stop_split] [@expl:with_capacity requires] [%#sbytes] UInt64.t'int capacity <= Int64.to_int const_MAX}
+  any
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:with_capacity ensures] ([@stop_split] [@expl:with_capacity result type invariant] [%#sbytes_mut] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:with_capacity ensures #0] [%#sbytes'0] bytes_mut_seq result = (Seq.empty: Seq.seq UInt8.t))
+    /\ ([@stop_split] [@expl:with_capacity ensures #1] [%#sbytes'1] bytes_mut_capacity result >= UInt64.t'int capacity)}
+    (! return {result}) ]
+
+predicate invariant_refmut_BytesMut [@inline:trivial] (self: MutBorrow.t t_BytesMut) =
+  [%#sinvariant] inv_BytesMut self.current /\ inv_BytesMut self.final
+
+meta "rewrite_def" predicate invariant_refmut_BytesMut
+
+predicate inv_refmut_BytesMut [@inline:trivial] (_1: MutBorrow.t t_BytesMut) = invariant_refmut_BytesMut _1
+
+meta "rewrite_def" predicate inv_refmut_BytesMut
+
+let rec extend_from_slice (self_: MutBorrow.t t_BytesMut) (src: Slice64.slice UInt8.t) (return (x: ())) =
+  {[@stop_split] [@expl:extend_from_slice requires] ([@stop_split] [@expl:extend_from_slice 'self_' type invariant] [%#sbytes'2] inv_refmut_BytesMut self_)
+  /\ ([@stop_split] [@expl:extend_from_slice requires] [%#sbytes'3] Seq.length (bytes_mut_seq self_.current)
+    + Seq.length (Slice64.view src)
+  <= Int64.to_int const_MAX)}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:extend_from_slice ensures] [%#sbytes'4] bytes_mut_seq self_.final
+    = Seq.(++) (bytes_mut_seq self_.current) (Slice64.view src)}
+    (! return {result}) ]
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec freeze (self_: t_BytesMut) (return (x: t_Bytes)) =
+  {[@stop_split] [@expl:freeze 'self_' type invariant] [%#sbytes'5] inv_BytesMut self_}
+  any
+  [ return (result: t_Bytes) ->
+  {[@stop_split] [@expl:freeze ensures] ([@stop_split] [@expl:freeze result type invariant] [%#sbytes_mut'0] inv_Bytes result)
+    /\ ([@stop_split] [@expl:freeze ensures] [%#sbytes'6] bytes_seq result = bytes_mut_seq self_)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec append_and_freeze [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 33 0 33 46]
+  (data: Slice64.slice UInt8.t) (return (x: t_Bytes)) =
+  {[@stop_split] [@expl:append_and_freeze requires] [%#slib'3] Seq.length (Slice64.view data) <= Int64.to_int const_MAX}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = len_u8 [%#slib] {data} (fun (_x: UInt64.t) -> [ &_7 <- _x ] s1)
+    | s1 = with_capacity [%#slib'0] {_7} (fun (_x: t_BytesMut) -> [ &output <- _x ] s2)
+    | s2 = MutBorrow.borrow_mut <t_BytesMut> {output}
+        (fun (_bor: MutBorrow.t t_BytesMut) ->
+          [ &_10 <- _bor ] -{inv_BytesMut _bor.final}-
+          [ &output <- _bor.final ] s3) [ _ck -> (! {[@expl:type invariant] inv_BytesMut output} any) ]
+    | s3 = extend_from_slice [%#slib'1] {_10} {data} (fun (_x: ()) -> [ &_9 <- _x ] s4)
+    | s4 = freeze [%#slib'2] {output} (fun (_x: t_Bytes) -> [ &_ret <- _x ] s5)
+    | s5 = return {_ret} ] ]
+  [ & _ret: t_Bytes = Any.any_l ()
+  | & data: Slice64.slice UInt8.t = data
+  | & output: t_BytesMut = Any.any_l ()
+  | & _7: UInt64.t = Any.any_l ()
+  | & _9: () = Any.any_l ()
+  | & _10: MutBorrow.t t_BytesMut = Any.any_l () ])
+  [ return (result: t_Bytes) ->
+  {[@stop_split] [@expl:append_and_freeze ensures] ([@stop_split] [@expl:append_and_freeze result type invariant] [%#slib'4] inv_Bytes result)
+    /\ ([@stop_split] [@expl:append_and_freeze ensures] [%#slib'5] bytes_seq result = Slice64.view data)}
+    (! return {result}) ]

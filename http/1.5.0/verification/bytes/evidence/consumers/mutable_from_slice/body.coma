@@ -1,0 +1,37 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 55 0 55 50 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 56 4 56 24
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 55 42 55 50
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 54 10 54 40
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 231 18 231 49
+let%span sbytes_mut = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes_mut.rs" 1282 4 1282 38
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_BytesMut
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+let rec from_BytesMut (bytes: Slice64.slice UInt8.t) (return (x: t_BytesMut)) = any
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:from_BytesMut ensures] ([@stop_split] [@expl:from result type invariant] [%#sbytes_mut] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:from ensures] [%#sbytes] bytes_mut_seq result = Slice64.view bytes)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec mutable_from_slice [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 55 0 55 50]
+  (data: Slice64.slice UInt8.t) (return (x: t_BytesMut)) = (! bb0
+  [ bb0 = s0 [ s0 = from_BytesMut [%#slib] {data} (fun (_x: t_BytesMut) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_BytesMut = Any.any_l () | & data: Slice64.slice UInt8.t = data ])
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:mutable_from_slice ensures] ([@stop_split] [@expl:mutable_from_slice result type invariant] [%#slib'0] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:mutable_from_slice ensures] [%#slib'1] bytes_mut_seq result = Slice64.view data)}
+    (! return {result}) ]

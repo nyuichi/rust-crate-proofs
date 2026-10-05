@@ -1,0 +1,254 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1466 4 1466 47 *)
+
+(* method::Method *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1466 41 1466 47
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1463 8 1464 33
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 647 8 647 46
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 277 8 290 9
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 750 8 750 53
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 621 8 637 9
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 379 8 392 9
+let%span smethod'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 612 8 612 51
+let%span smethod'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1216 24 1216 42
+let%span smethod'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1226 24 1226 31
+let%span smethod'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1232 8 1232 28
+let%span smethod'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 328 8 345 9
+let%span smethod'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span smethod'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 299 8 300 78
+let%span smethod'14 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1197 16 1198 78
+let%span smethod'15 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1206 24 1206 55
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 24 8 24 22
+let%span sarray = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.prelude.Any
+use seq.Seq
+use creusot.int.UInt64
+use int.Int
+
+type t_InlineExtension = { f0: Slice64.array UInt8.t; f1: UInt8.t }
+
+type t_AllocatedExtension = { f0'0: Slice64.slice UInt8.t }
+
+type t_Inner =
+  | Options
+  | Get
+  | Post
+  | Put
+  | Delete
+  | Head
+  | Trace
+  | Connect
+  | Patch
+  | Query
+  | ExtensionInline t_InlineExtension
+  | ExtensionAllocated t_AllocatedExtension
+
+type t_Method = { f0'1: t_Inner }
+
+type t_MethodModel =
+  | Options'0
+  | Get'0
+  | Post'0
+  | Put'0
+  | Delete'0
+  | Head'0
+  | Trace'0
+  | Connect'0
+  | Patch'0
+  | Query'0
+  | ExtensionInline'0 (Seq.seq UInt8.t) int
+  | ExtensionAllocated'0 (Seq.seq UInt8.t)
+
+constant const_MAX: UInt64.t = [%#smethod'9] (15: UInt64.t)
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'12] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'10] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+predicate method_text_matches [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 297 0 297 65] (left: Seq.seq UInt8.t) (right: Seq.seq UInt8.t) =
+  [%#smethod'13] Seq.length left = Seq.length right
+  /\ (forall i: int. 0 <= i /\ i < Seq.length left -> Seq.get left i = Seq.get right i)
+
+function method_model_text [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 275 0 275 56] (method: t_MethodModel) : Seq.seq UInt8.t
+ = [%#smethod'2] match method with
+    | Options'0 -> Seq.create 7 [|(79: UInt8.t);(80: UInt8.t);(84: UInt8.t);(73: UInt8.t);(79: UInt8.t);(78: UInt8.t);(83: UInt8.t)|]
+    | Get'0 -> Seq.create 3 [|(71: UInt8.t);(69: UInt8.t);(84: UInt8.t)|]
+    | Post'0 -> Seq.create 4 [|(80: UInt8.t);(79: UInt8.t);(83: UInt8.t);(84: UInt8.t)|]
+    | Put'0 -> Seq.create 3 [|(80: UInt8.t);(85: UInt8.t);(84: UInt8.t)|]
+    | Delete'0 -> Seq.create 6 [|(68: UInt8.t);(69: UInt8.t);(76: UInt8.t);(69: UInt8.t);(84: UInt8.t);(69: UInt8.t)|]
+    | Head'0 -> Seq.create 4 [|(72: UInt8.t);(69: UInt8.t);(65: UInt8.t);(68: UInt8.t)|]
+    | Trace'0 -> Seq.create 5 [|(84: UInt8.t);(82: UInt8.t);(65: UInt8.t);(67: UInt8.t);(69: UInt8.t)|]
+    | Connect'0 -> Seq.create 7 [|(67: UInt8.t);(79: UInt8.t);(78: UInt8.t);(78: UInt8.t);(69: UInt8.t);(67: UInt8.t);(84: UInt8.t)|]
+    | Patch'0 -> Seq.create 5 [|(80: UInt8.t);(65: UInt8.t);(84: UInt8.t);(67: UInt8.t);(72: UInt8.t)|]
+    | Query'0 -> Seq.create 5 [|(81: UInt8.t);(85: UInt8.t);(69: UInt8.t);(82: UInt8.t);(89: UInt8.t)|]
+    | ExtensionInline'0 data len -> Seq.([..]) data 0 len
+    | ExtensionAllocated'0 data -> data
+    end
+
+predicate is_known_method_text [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 326 0 326 51] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'11] if Seq.length bytes = 3 then
+    method_text_matches bytes (method_model_text (Get'0)) \/ method_text_matches bytes (method_model_text (Put'0))
+  else
+    if Seq.length bytes = 4 then
+      method_text_matches bytes (method_model_text (Post'0)) \/ method_text_matches bytes (method_model_text (Head'0))
+    else
+      if Seq.length bytes = 5 then
+        method_text_matches bytes (method_model_text (Patch'0))
+        \/ method_text_matches bytes (method_model_text (Trace'0))
+        \/ method_text_matches bytes (method_model_text (Query'0))
+      else
+        if Seq.length bytes = 6 then
+          method_text_matches bytes (method_model_text (Delete'0))
+        else
+          if Seq.length bytes = 7 then
+            method_text_matches bytes (method_model_text (Options'0))
+            \/ method_text_matches bytes (method_model_text (Connect'0))
+          else
+            false
+        
+      
+    
+  
+
+
+predicate method_model_is_canonical [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 377 0 377 61] (method: t_MethodModel) =
+  [%#smethod'5] match method with
+    | ExtensionInline'0 data len -> Seq.length data = UInt64.t'int const_MAX
+    /\ 0 < len
+    /\ len <= UInt64.t'int const_MAX
+    /\ all_method_chars_valid (Seq.([..]) data 0 len)
+    /\ (forall i: int. len <= i /\ i < Seq.length data -> Seq.get data i = (0: UInt8.t))
+    /\ not is_known_method_text (Seq.([..]) data 0 len)
+    | ExtensionAllocated'0 data -> Seq.length data > UInt64.t'int const_MAX
+    /\ all_method_chars_valid data /\ not is_known_method_text data
+    | _ -> true
+    end
+
+type tup2_Seq_u8_Int = { f0'2: Seq.seq UInt8.t; f1'2: int }
+
+function deep_model_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1215 8 1215 48] (self: t_InlineExtension) : tup2_Seq_u8_Int
+ = [%#smethod'7] { f0'2 = Slice64.view self.f0; f1'2 = UInt8.t'int self.f1 }
+
+function view_Box_slice_u8_Global [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq UInt8.t =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_u8_Global
+
+function deep_model_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1225 8 1225 48] (self: t_AllocatedExtension) : Seq.seq UInt8.t
+ = [%#smethod'8] view_Box_slice_u8_Global self.f0'0
+
+function deep_model_Inner [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 620 4 620 44] (self: t_Inner) : t_MethodModel
+ = [%#smethod'4] match self with
+    | Options -> Options'0
+    | Get -> Get'0
+    | Post -> Post'0
+    | Put -> Put'0
+    | Delete -> Delete'0
+    | Head -> Head'0
+    | Trace -> Trace'0
+    | Connect -> Connect'0
+    | Patch -> Patch'0
+    | Query -> Query'0
+    | ExtensionInline value -> let model = deep_model_InlineExtension value in ExtensionInline'0 (model.f0'2) (model.f1'2)
+    | ExtensionAllocated value -> ExtensionAllocated'0 (deep_model_AllocatedExtension value)
+    end
+
+function deep_model_ref_Inner [@inline:trivial] (self: t_Inner) : t_MethodModel = [%#smodel] deep_model_Inner self
+
+meta "rewrite_def" function deep_model_ref_Inner
+
+function method_repr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 611 0 611 49] (value: t_Method) : t_MethodModel
+ = [%#smethod'6] deep_model_ref_Inner value.f0'1
+
+predicate invariant_Method [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 749 4 749 30] (self: t_Method) =
+  [%#smethod'3] method_model_is_canonical (method_repr self)
+
+predicate invariant_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1195 8 1195 34] (self: t_InlineExtension) =
+  [%#smethod'14] UInt8.t'int self.f1 <= UInt64.t'int const_MAX
+  /\ all_method_chars_valid (Seq.([..]) (Slice64.view self.f0) 0 (UInt8.t'int self.f1))
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_15 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (15: UInt64.t)
+
+predicate inv_array_u8_15 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_15 _1
+
+meta "rewrite_def" predicate inv_array_u8_15
+
+predicate inv_InlineExtension (_1: t_InlineExtension)
+
+axiom inv_axiom [@rewrite]: forall x: t_InlineExtension [inv_InlineExtension x]. inv_InlineExtension x
+    = (invariant_InlineExtension x /\ inv_array_u8_15 x.f0)
+
+predicate invariant_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1205 8 1205 34] (self: t_AllocatedExtension) =
+  [%#smethod'15] all_method_chars_valid (view_Box_slice_u8_Global self.f0'0)
+
+predicate inv_AllocatedExtension (_1: t_AllocatedExtension)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_AllocatedExtension [inv_AllocatedExtension x]. inv_AllocatedExtension x
+    = invariant_AllocatedExtension x
+
+predicate inv_Inner (_1: t_Inner)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Inner [inv_Inner x]. inv_Inner x
+    = match x with
+      | Options -> true
+      | Get -> true
+      | Post -> true
+      | Put -> true
+      | Delete -> true
+      | Head -> true
+      | Trace -> true
+      | Connect -> true
+      | Patch -> true
+      | Query -> true
+      | ExtensionInline f0'3 -> inv_InlineExtension f0'3
+      | ExtensionAllocated f0'3 -> inv_AllocatedExtension f0'3
+      end
+
+predicate inv_Method (_1: t_Method)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_Method [inv_Method x]. inv_Method x = (invariant_Method x /\ inv_Inner x.f0'1)
+
+function deep_model_Method [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 646 4 646 44] (self: t_Method) : Seq.seq UInt8.t
+ = [%#smethod'1] method_model_text (deep_model_Inner self.f0'1)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec builder_put
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1466 4 1466 47]
+  (return (x: t_Method)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_2 <- Put ] s1 | s1 = [ &_ret <- { f0'1 = _2 } ] s2 | s2 = return {_ret} ] ]
+  [ & _ret: t_Method = Any.any_l () | & _2: t_Inner = Any.any_l () ])
+  [ return (result: t_Method) ->
+  {[@stop_split] [@expl:builder_put ensures] ([@stop_split] [@expl:builder_put result type invariant] [%#smethod] inv_Method result)
+    /\ ([@stop_split] [@expl:builder_put ensures] [%#smethod'0] deep_model_Method result = method_model_text (Put'0)
+    /\ invariant_Method result)}
+    (! return {result}) ]

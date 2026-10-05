@@ -1,0 +1,90 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 113 0 113 57 *)
+
+let%span swell_founded = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/well_founded.rs" 43 8 43 33
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+let%span svalue_validation = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value_validation.rs" 5 28 5 71
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 114 16 114 17
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 115 22 115 26
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 119 32 119 47
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 120 14 120 23
+let%span svalue'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 118 34 118 89
+let%span svalue'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 117 34 117 50
+let%span svalue'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 121 36 121 42
+let%span svalue'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 121 19 121 43
+let%span svalue'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 122 13 122 14
+let%span svalue'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 122 8 122 14
+let%span svalue'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 112 28 112 63
+let%span svalue'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 89 8 90 68
+
+use creusot.int.UInt64
+use seq.Seq
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.prelude.Bool
+use creusot.prelude.Any
+use int.Int
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] self >= 0 /\ self > other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+let rec len_u8 (self_: Slice64.slice UInt8.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+predicate visible_value_bytes [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 87 0 87 50] (bytes: Seq.seq UInt8.t) =
+  [%#svalue'10] forall i: int. 0 <= i /\ i < Seq.length bytes
+    -> UInt8.t'int (Seq.get bytes i) >= 32 /\ UInt8.t'int (Seq.get bytes i) < 127 \/ UInt8.t'int (Seq.get bytes i) = 9
+
+let rec is_visible_ascii (b: UInt8.t) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:is_visible_ascii ensures] [%#svalue_validation] result
+    = (UInt8.t'int b >= 32 /\ UInt8.t'int b < 127 \/ UInt8.t'int b = 9)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec are_visible_value_bytes
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 113 0 113 57]
+  (src: Slice64.slice UInt8.t) (return (x: bool)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &i <- [%#svalue] (0: UInt64.t) ] s1 | s1 = [ &visible <- [%#svalue'0] true ] s2 | s2 = bb1 ]
+  | bb1 = bb1invariant
+    [ bb1 = {[@expl:loop variant] well_founded_relation_Int variant_old_bb1 ([%#svalue'1] Seq.length (Slice64.view src)
+      - UInt64.t'int i)}
+      bb1invariant
+    | bb1invariant = {[@expl:loop invariant #0] [%#svalue'4] UInt64.t'int i <= Seq.length (Slice64.view src)}
+      {[@expl:loop invariant #1] [%#svalue'3] visible
+      = visible_value_bytes (Seq.([..]) (Slice64.view src) 0 (UInt64.t'int i))}
+      (! [ &variant_old_bb1 <- [%#svalue'1] Seq.length (Slice64.view src) - UInt64.t'int i ] s0)
+      [ s0 = len_u8 [%#svalue'2] {src} (fun (_x: UInt64.t) -> [ &_21 <- _x ] s1)
+      | s1 = [ &_19 <- UInt64.lt i _21 ] s2
+      | s2 = any [ br0 -> {_19 = false} (! bb7) | br1 -> {_19} (! bb4) ] ]
+      [ bb4 = s0
+        [ s0 = [ &_25 <- i ] s1
+        | s1 = [ &_26 <- Slice64.length src ] s2
+        | s2 = [ &_27 <- UInt64.lt _25 _26 ] s3
+        | s3 = {[@expl:index in bounds] [%#svalue'5] _27} s4
+        | s4 = Slice64.get <UInt8.t> {src} {_25} (fun (r: UInt8.t) -> [ &_24 <- r ] s5)
+        | s5 = is_visible_ascii [%#svalue'6] {_24} (fun (_x: bool) -> [ &_23 <- _x ] s6)
+        | s6 = [ &visible <- Bool.bw_and visible _23 ] s7
+        | s7 = UInt64.add [%#svalue'8] {i} {[%#svalue'7] (1: UInt64.t)} (fun (_x: UInt64.t) -> [ &i <- _x ] s8)
+        | s8 = bb1 ] ] ]
+  | bb7 = s0 [ s0 = [ &_ret <- visible ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & src: Slice64.slice UInt8.t = src
+  | & i: UInt64.t = Any.any_l ()
+  | & visible: bool = Any.any_l ()
+  | & _19: bool = Any.any_l ()
+  | & _21: UInt64.t = Any.any_l ()
+  | & _23: bool = Any.any_l ()
+  | & _24: UInt8.t = Any.any_l ()
+  | & _25: UInt64.t = Any.any_l ()
+  | & _26: UInt64.t = Any.any_l ()
+  | & _27: bool = Any.any_l ()
+  | & variant_old_bb1: int = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:are_visible_value_bytes ensures] [%#svalue'9] result
+    = visible_value_bytes (Slice64.view src)}
+    (! return {result}) ]
