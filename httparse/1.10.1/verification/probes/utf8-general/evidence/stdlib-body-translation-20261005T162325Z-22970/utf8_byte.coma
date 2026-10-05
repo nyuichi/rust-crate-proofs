@@ -1,0 +1,50 @@
+(* #"/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 78 0 78 34 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span swell_founded = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/logic/well_founded.rs" 43 8 43 33
+let%span schar = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'0 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'1 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span schar'2 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 79 4 87 5
+
+use creusot.int.UInt8
+use int.Int
+
+predicate well_founded_relation_Int [#"/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/logic/well_founded.rs" 42 4 42 55] [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] self >= 0 /\ self > other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant value : int
+
+function utf8_byte [#"/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 78 0 78 34] (value: int) : UInt8.t
+
+goal vc_utf8_byte: ([%#schar'0] 0 <= value /\ value <= 255)
+  -> (if value = 0 then
+    [@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (0: UInt8.t) = value
+  else
+    if 0 <= value - 1 then
+      value - 1 <= 255
+      && (([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0 <= value - 1 /\ value - 1 <= 255)
+        /\ ([@expl:variant decreases] well_founded_relation_Int ([%#schar] value) ([%#schar] value - 1)))
+      /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (value - 1)) = value - 1)
+      -> (let previous = utf8_byte (value - 1) in UInt8.t'int previous = value - 1
+      && UInt8.t'int previous < 255
+      && ([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (UInt8.add previous (1: UInt8.t)) = value)))
+    else
+      false
+      && (([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0 <= value - 1 /\ value - 1 <= 255)
+        /\ ([@expl:variant decreases] well_founded_relation_Int ([%#schar] value) ([%#schar] value - 1)))
+      /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (value - 1)) = value - 1)
+      -> (let previous = utf8_byte (value - 1) in UInt8.t'int previous = value - 1
+      && UInt8.t'int previous < 255
+      && ([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (UInt8.add previous (1: UInt8.t)) = value)))
+  
+  )

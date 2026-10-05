@@ -1,0 +1,118 @@
+(* #"/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 47 4 47 31 *)
+
+(* <char as std::char::CharExt> *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span schar = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'1 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span schar'2 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'3 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'4 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 79 4 87 5
+
+use creusot.prelude.Char
+use creusot.int.UInt8
+use seq.Seq
+use int.ComputerDivision
+use int.Int
+
+function utf8_byte [#"/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 78 0 78 34] (value: int) : UInt8.t
+
+axiom utf8_byte_def: forall value: int. ([%#schar'0] 0 <= value /\ value <= 255)
+    -> utf8_byte value
+    = ([%#schar'4] if value = 0 then
+      (0: UInt8.t)
+    else
+      let previous = utf8_byte (value - 1) in UInt8.add previous (1: UInt8.t)
+    )
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'0] 0 <= value /\ value <= 255)
+    -> ([%#schar'1] UInt8.t'int (utf8_byte value) = value)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : Char.t
+
+function to_utf8_char [#"/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 47 4 47 31] (self: Char.t) : Seq.seq UInt8.t
+
+goal vc_to_utf8_char: let code = Char.to_int self in if code < 128 then
+    ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0 <= code /\ code <= 255)
+    /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte code) = code)
+    -> (let result = Seq.singleton (utf8_byte code) in [@stop_split] [@expl:to_utf8 ensures] [%#schar] 1
+      <= Seq.length result
+    /\ Seq.length result <= 4))
+  else
+    if code < 2048 then
+      ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0 <= 192 + ComputerDivision.div code 64
+        /\ 192 + ComputerDivision.div code 64 <= 255)
+      /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (192
+          + ComputerDivision.div code 64))
+        = 192 + ComputerDivision.div code 64)
+      -> ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0 <= 128 + ComputerDivision.mod code 64
+        /\ 128 + ComputerDivision.mod code 64 <= 255)
+      /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (128
+          + ComputerDivision.mod code 64))
+        = 128 + ComputerDivision.mod code 64)
+      -> (let result = Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64)) in [@stop_split] [@expl:to_utf8 ensures] [%#schar] 1 <= Seq.length result
+      /\ Seq.length result <= 4)))
+    else
+      if code < 65536 then
+        ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0 <= 224 + ComputerDivision.div code 4096
+          /\ 224 + ComputerDivision.div code 4096 <= 255)
+        /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (224
+            + ComputerDivision.div code 4096))
+          = 224 + ComputerDivision.div code 4096)
+        -> ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0
+            <= 128 + ComputerDivision.mod (ComputerDivision.div code 64) 64
+          /\ 128 + ComputerDivision.mod (ComputerDivision.div code 64) 64 <= 255)
+        /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (128
+            + ComputerDivision.mod (ComputerDivision.div code 64) 64))
+          = 128 + ComputerDivision.mod (ComputerDivision.div code 64) 64)
+        -> ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0 <= 128 + ComputerDivision.mod code 64
+          /\ 128 + ComputerDivision.mod code 64 <= 255)
+        /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (128
+            + ComputerDivision.mod code 64))
+          = 128 + ComputerDivision.mod code 64)
+        -> (let result = Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224
+        + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128
+        + ComputerDivision.mod code 64)) in [@stop_split] [@expl:to_utf8 ensures] [%#schar] 1 <= Seq.length result
+        /\ Seq.length result <= 4))))
+      else
+        ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0 <= 240 + ComputerDivision.div code 262144
+          /\ 240 + ComputerDivision.div code 262144 <= 255)
+        /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (240
+            + ComputerDivision.div code 262144))
+          = 240 + ComputerDivision.div code 262144)
+        -> ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0
+            <= 128 + ComputerDivision.mod (ComputerDivision.div code 4096) 64
+          /\ 128 + ComputerDivision.mod (ComputerDivision.div code 4096) 64 <= 255)
+        /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (128
+            + ComputerDivision.mod (ComputerDivision.div code 4096) 64))
+          = 128 + ComputerDivision.mod (ComputerDivision.div code 4096) 64)
+        -> ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0
+            <= 128 + ComputerDivision.mod (ComputerDivision.div code 64) 64
+          /\ 128 + ComputerDivision.mod (ComputerDivision.div code 64) 64 <= 255)
+        /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (128
+            + ComputerDivision.mod (ComputerDivision.div code 64) 64))
+          = 128 + ComputerDivision.mod (ComputerDivision.div code 64) 64)
+        -> ([@stop_split] [@expl:utf8_byte requires] [%#schar'0] 0 <= 128 + ComputerDivision.mod code 64
+          /\ 128 + ComputerDivision.mod code 64 <= 255)
+        /\ (([@stop_split] [@expl:utf8_byte ensures] [%#schar'1] UInt8.t'int (utf8_byte (128
+            + ComputerDivision.mod code 64))
+          = 128 + ComputerDivision.mod code 64)
+        -> (let result = Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128
+        + ComputerDivision.mod code 64)) in [@stop_split] [@expl:to_utf8 ensures] [%#schar] 1 <= Seq.length result
+        /\ Seq.length result <= 4)))))
+    
+  
+  
