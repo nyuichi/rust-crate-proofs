@@ -2,6 +2,14 @@
 
 ## Current checkpoint (2026-10-05)
 
+Vtable source refactor: private clone callbacks now receive their actual current
+vtable. Static/Owned clones preserve that table instead of referencing its
+initializer, removing both previous translator cycles without trusted dispatch.
+Native118/no_std pass. Full translation now reports unsafe Send/Sync marker
+requirements and Deref ghost-purity errors (5 errors), not a whole-crate proof.
+See verification/probes/vtable-leaf-integration/logs/runtime-passed-vtable.log.
+The earlier vtable-cycle checkpoints below are historical.
+
 Unique cleanup connection: ordinary BytesMut Drop's KIND_VEC branch and
 explicit consuming fresh/advanced unique cleanup now share exact extracted
 `release_unique_storage`. It recovers original base and capacity from the

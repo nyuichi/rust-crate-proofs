@@ -107,8 +107,11 @@ pub struct Bytes {
 }
 
 pub(crate) struct Vtable {
-    /// fn(data, ptr, len)
-    pub clone: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> Bytes,
+    /// fn(data, ptr, len, current_vtable)
+    ///
+    /// Pass the current table so callbacks that preserve the storage kind do
+    /// not have to refer back to the table that contains the callback.
+    pub clone: unsafe fn(&AtomicPtr<()>, *const u8, usize, &'static Vtable) -> Bytes,
     /// fn(data, ptr, len)
     ///
     /// `into_*` consumes the `Bytes`, returning the respective value.
@@ -687,7 +690,7 @@ impl Drop for Bytes {
 impl Clone for Bytes {
     #[inline]
     fn clone(&self) -> Bytes {
-        unsafe { (self.vtable.clone)(&self.data, self.ptr, self.len) }
+        unsafe { (self.vtable.clone)(&self.data, self.ptr, self.len, self.vtable) }
     }
 }
 
@@ -1140,9 +1143,18 @@ const STATIC_VTABLE: Vtable = Vtable {
     drop: static_drop,
 };
 
-unsafe fn static_clone(_: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
-    let slice = slice::from_raw_parts(ptr, len);
-    Bytes::from_static(slice)
+unsafe fn static_clone(
+    _: &AtomicPtr<()>,
+    ptr: *const u8,
+    len: usize,
+    vtable: &'static Vtable,
+) -> Bytes {
+    Bytes {
+        ptr,
+        len,
+        data: AtomicPtr::new(ptr::null_mut()),
+        vtable,
+    }
 }
 
 unsafe fn static_to_vec(_: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {
@@ -1181,7 +1193,12 @@ impl<T> Owned<T> {
     };
 }
 
-unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
+unsafe fn owned_clone<T>(
+    data: &AtomicPtr<()>,
+    ptr: *const u8,
+    len: usize,
+    vtable: &'static Vtable,
+) -> Bytes {
     let owned = data.load(Ordering::Relaxed);
     let old_cnt = (*owned.cast::<AtomicUsize>()).fetch_add(1, Ordering::Relaxed);
     if old_cnt > usize::MAX >> 1 {
@@ -1192,7 +1209,7 @@ unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> By
         ptr,
         len,
         data: AtomicPtr::new(owned as _),
-        vtable: &Owned::<T>::VTABLE,
+        vtable,
     }
 }
 
@@ -1252,7 +1269,12 @@ static PROMOTABLE_ODD_VTABLE: Vtable = Vtable {
     drop: promotable_odd_drop,
 };
 
-unsafe fn promotable_even_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
+unsafe fn promotable_even_clone(
+    data: &AtomicPtr<()>,
+    ptr: *const u8,
+    len: usize,
+    _: &'static Vtable,
+) -> Bytes {
     let shared = data.load(Ordering::Acquire);
     let kind = crate::provenance_specs::pointer_addr(shared) & KIND_MASK;
 
@@ -1347,7 +1369,12 @@ unsafe fn promotable_even_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: us
     });
 }
 
-unsafe fn promotable_odd_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
+unsafe fn promotable_odd_clone(
+    data: &AtomicPtr<()>,
+    ptr: *const u8,
+    len: usize,
+    _: &'static Vtable,
+) -> Bytes {
     let shared = data.load(Ordering::Acquire);
     let kind = crate::provenance_specs::pointer_addr(shared) & KIND_MASK;
 
@@ -1432,7 +1459,12 @@ const KIND_ARC: usize = 0b0;
 const KIND_VEC: usize = 0b1;
 const KIND_MASK: usize = 0b1;
 
-unsafe fn shared_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
+unsafe fn shared_clone(
+    data: &AtomicPtr<()>,
+    ptr: *const u8,
+    len: usize,
+    _: &'static Vtable,
+) -> Bytes {
     let shared = data.load(Ordering::Relaxed);
     shallow_clone_arc(shared as _, ptr, len)
 }
