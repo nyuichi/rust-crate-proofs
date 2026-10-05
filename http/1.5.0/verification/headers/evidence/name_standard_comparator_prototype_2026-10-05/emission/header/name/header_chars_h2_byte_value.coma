@@ -1,0 +1,98 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1790 0 1790 51 *)
+
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1803 10 1803 17
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1804 10 1804 17
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1805 10 1805 18
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1808 13 1808 14
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1788 28 1788 65
+let%span sname'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1789 28 1789 41
+let%span sname'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1660 8 1661 18
+let%span sname'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1638 8 1642 43
+
+use creusot.int.UInt8
+use creusot.prelude.Any
+use int.Int
+
+predicate header_chars_lower_tchar [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1636 0 1636 45] (byte: UInt8.t) =
+  [%#sname'6] UInt8.t'int byte = 33
+  \/ UInt8.t'int byte = 35
+  \/ UInt8.t'int byte = 36
+  \/ UInt8.t'int byte = 37
+  \/ UInt8.t'int byte = 38
+  \/ UInt8.t'int byte = 39
+  \/ UInt8.t'int byte = 42
+  \/ UInt8.t'int byte = 43
+  \/ UInt8.t'int byte = 45
+  \/ UInt8.t'int byte = 46
+  \/ 48 <= UInt8.t'int byte /\ UInt8.t'int byte <= 57
+  \/ 94 <= UInt8.t'int byte /\ UInt8.t'int byte <= 96
+  \/ 97 <= UInt8.t'int byte /\ UInt8.t'int byte <= 122 \/ UInt8.t'int byte = 124 \/ UInt8.t'int byte = 126
+
+function header_chars_h2_byte [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1658 0 1658 44] (byte: UInt8.t) : int
+ = [%#sname'5] if UInt8.t'int byte = 34 \/ header_chars_lower_tchar byte then UInt8.t'int byte else 0
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec header_chars_h2_byte_value
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1790 0 1790 51]
+  (byte: UInt8.t) (return (x: UInt8.t)) = (! bb0
+  [ bb0 = any
+    [ br0 -> {byte = (34: UInt8.t)} (! bb9)
+    | br1 -> {byte = (33: UInt8.t)} (! bb9)
+    | br2 -> {byte = (35: UInt8.t)} (! bb9)
+    | br3 -> {byte = (36: UInt8.t)} (! bb9)
+    | br4 -> {byte = (37: UInt8.t)} (! bb9)
+    | br5 -> {byte = (38: UInt8.t)} (! bb9)
+    | br6 -> {byte = (39: UInt8.t)} (! bb9)
+    | br7 -> {byte = (42: UInt8.t)} (! bb9)
+    | br8 -> {byte = (43: UInt8.t)} (! bb9)
+    | br9 -> {byte = (45: UInt8.t)} (! bb9)
+    | br10 -> {byte = (46: UInt8.t)} (! bb9)
+    | br11 -> {byte = (124: UInt8.t)} (! bb9)
+    | br12 -> {byte = (126: UInt8.t)} (! bb9)
+    | default -> -{byte <> (34: UInt8.t)
+      /\ byte <> (33: UInt8.t)
+      /\ byte <> (35: UInt8.t)
+      /\ byte <> (36: UInt8.t)
+      /\ byte <> (37: UInt8.t)
+      /\ byte <> (38: UInt8.t)
+      /\ byte <> (39: UInt8.t)
+      /\ byte <> (42: UInt8.t)
+      /\ byte <> (43: UInt8.t)
+      /\ byte <> (45: UInt8.t) /\ byte <> (46: UInt8.t) /\ byte <> (124: UInt8.t) /\ byte <> (126: UInt8.t)}-
+      (! bb2) ]
+  | bb2 = s0
+    [ s0 = [ &_9 <- UInt8.le ([%#sname] (48: UInt8.t)) byte ] s1
+    | s1 = any [ br0 -> {_9 = false} (! bb3) | br1 -> {_9} (! bb7) ] ]
+  | bb7 = s0
+    [ s0 = [ &_10 <- UInt8.le byte ([%#sname] (57: UInt8.t)) ] s1
+    | s1 = any [ br0 -> {_10 = false} (! bb3) | br1 -> {_10} (! bb9) ] ]
+  | bb3 = s0
+    [ s0 = [ &_7 <- UInt8.le ([%#sname'0] (94: UInt8.t)) byte ] s1
+    | s1 = any [ br0 -> {_7 = false} (! bb4) | br1 -> {_7} (! bb6) ] ]
+  | bb6 = s0
+    [ s0 = [ &_8 <- UInt8.le byte ([%#sname'0] (96: UInt8.t)) ] s1
+    | s1 = any [ br0 -> {_8 = false} (! bb4) | br1 -> {_8} (! bb9) ] ]
+  | bb4 = s0
+    [ s0 = [ &_5 <- UInt8.le ([%#sname'1] (97: UInt8.t)) byte ] s1
+    | s1 = any [ br0 -> {_5 = false} (! bb1) | br1 -> {_5} (! bb5) ] ]
+  | bb5 = s0
+    [ s0 = [ &_6 <- UInt8.le byte ([%#sname'1] (122: UInt8.t)) ] s1
+    | s1 = any [ br0 -> {_6 = false} (! bb1) | br1 -> {_6} (! bb9) ] ]
+  | bb1 = s0 [ s0 = [ &_ret <- [%#sname'2] (0: UInt8.t) ] s1 | s1 = return {_ret} ]
+  | bb9 = s0 [ s0 = [ &_ret <- byte ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: UInt8.t = Any.any_l ()
+  | & byte: UInt8.t = byte
+  | & _5: bool = Any.any_l ()
+  | & _6: bool = Any.any_l ()
+  | & _7: bool = Any.any_l ()
+  | & _8: bool = Any.any_l ()
+  | & _9: bool = Any.any_l ()
+  | & _10: bool = Any.any_l () ])
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:header_chars_h2_byte_value ensures] ([@stop_split] [@expl:header_chars_h2_byte_value ensures #0] [%#sname'3] UInt8.t'int result
+      = header_chars_h2_byte byte)
+    /\ ([@stop_split] [@expl:header_chars_h2_byte_value ensures #1] [%#sname'4] UInt8.t'int result < 128)}
+    (! return {result}) ]

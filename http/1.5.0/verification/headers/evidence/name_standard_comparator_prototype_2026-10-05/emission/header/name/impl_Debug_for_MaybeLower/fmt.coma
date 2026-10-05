@@ -1,0 +1,178 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 159 4 159 68 *)
+
+(* <header::name::MaybeLower<'_> as std::fmt::Debug> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 80 20 80 24
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 78 18 78 76
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 88 20 88 24
+let%span sfmt'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 86 18 86 28
+let%span sfmt'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 94 23 94 27
+let%span sfmt'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 93 18 93 28
+let%span sfmt'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 161 26 161 38
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 160 8 161 39
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 162 19 162 24
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 160 8 162 36
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 163 19 163 26
+let%span sname'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 160 8 163 40
+let%span sname'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 160 8 164 21
+let%span sname'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 159 18 159 27
+let%span sname'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 154 16 157 9
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+type t_DebugStruct
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate inv_DebugStruct (_1: t_DebugStruct)
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'5] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+let rec debug_struct (self_: MutBorrow.t t_Formatter) (name: string) (return (x: t_DebugStruct)) =
+  {[@stop_split] [@expl:debug_struct 'self_' type invariant] [%#sfmt] inv_refmut_Formatter self_}
+  any
+  [ return (result: t_DebugStruct) ->
+  {[@stop_split] [@expl:debug_struct ensures] ([@stop_split] [@expl:debug_struct result type invariant] inv_DebugStruct result)
+    /\ ([@stop_split] [@expl:debug_struct ensures] [%#sfmt'0] formatter_extends (deep_model_refmut_Formatter self_) (deep_model_Formatter self_.final))}
+    (! return {result}) ]
+
+type t_MaybeLower = { buf: Slice64.slice UInt8.t; lower: bool }
+
+type dyn_Debug
+
+function dyn_Debug_of_ref_slice_u8 (x: Slice64.slice UInt8.t) : dyn_Debug
+
+predicate invariant_refmut_DebugStruct [@inline:trivial] (self: MutBorrow.t t_DebugStruct) =
+  [%#sinvariant] inv_DebugStruct self.current /\ inv_DebugStruct self.final
+
+meta "rewrite_def" predicate invariant_refmut_DebugStruct
+
+predicate inv_refmut_DebugStruct [@inline:trivial] (_1: MutBorrow.t t_DebugStruct) = invariant_refmut_DebugStruct _1
+
+meta "rewrite_def" predicate inv_refmut_DebugStruct
+
+let rec field (self_: MutBorrow.t t_DebugStruct) (name: string) (value: dyn_Debug)
+  (return (x: MutBorrow.t t_DebugStruct)) =
+  {[@stop_split] [@expl:field 'self_' type invariant] [%#sfmt'1] inv_refmut_DebugStruct self_}
+  any
+  [ return (result: MutBorrow.t t_DebugStruct) ->
+  {[@stop_split] [@expl:field ensures] ([@stop_split] [@expl:field result type invariant] inv_refmut_DebugStruct result)
+    /\ ([@stop_split] [@expl:field ensures] [%#sfmt'2] inv_DebugStruct self_.final)}
+    (! return {result}) ]
+
+function dyn_Debug_of_bool (x: bool) : dyn_Debug
+
+type t_Result_unit_Error = Ok () | Err ()
+
+let rec finish (self_: MutBorrow.t t_DebugStruct) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:finish 'self_' type invariant] [%#sfmt'3] inv_refmut_DebugStruct self_}
+  any
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:finish ensures] [%#sfmt'4] inv_DebugStruct self_.final}
+    (! return {result}) ]
+
+predicate resolve_DebugStruct (_1: t_DebugStruct)
+
+predicate resolve_refmut_DebugStruct [@inline:trivial] (_1: MutBorrow.t t_DebugStruct) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_DebugStruct
+
+predicate resolve_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Formatter
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec fmt_MaybeLower
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 159 4 159 68]
+  (self: t_MaybeLower) (formatter: MutBorrow.t t_Formatter) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:fmt 'formatter' type invariant] [%#sname'6] inv_refmut_Formatter formatter}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_13 <- [%#sname] "MaybeLower" ] s1
+    | s1 = MutBorrow.borrow_final <t_Formatter> {formatter.current} {MutBorrow.get_id formatter}
+        (fun (_bor: MutBorrow.t t_Formatter) ->
+          [ &_11 <- _bor ] -{inv_Formatter _bor.final}-
+          [ &formatter <- { formatter with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_Formatter formatter.current} any) ]
+    | s2 = debug_struct [%#sname'0] {_11} {_13} (fun (_x: t_DebugStruct) -> [ &_10 <- _x ] s3)
+    | s3 = [ &_15 <- [%#sname'1] "buf" ] s4
+    | s4 = [ &_18 <- self.buf ] s5
+    | s5 = [ &_16 <- dyn_Debug_of_ref_slice_u8 _18 ] s6
+    | s6 = MutBorrow.borrow_mut <t_DebugStruct> {_10}
+        (fun (_bor: MutBorrow.t t_DebugStruct) ->
+          [ &_9 <- _bor ] -{inv_DebugStruct _bor.final}-
+          [ &_10 <- _bor.final ] s7) [ _ck -> (! {[@expl:type invariant] inv_DebugStruct _10} any) ]
+    | s7 = field [%#sname'2] {_9} {_15} {_16} (fun (_x: MutBorrow.t t_DebugStruct) -> [ &_8 <- _x ] s8)
+    | s8 = [ &_20 <- [%#sname'3] "lower" ] s9
+    | s9 = [ &_23 <- self.lower ] s10
+    | s10 = [ &_21 <- dyn_Debug_of_bool _23 ] s11
+    | s11 = MutBorrow.borrow_final <t_DebugStruct> {_8.current} {MutBorrow.get_id _8}
+        (fun (_bor: MutBorrow.t t_DebugStruct) ->
+          [ &_7 <- _bor ] -{inv_DebugStruct _bor.final}-
+          [ &_8 <- { _8 with current = _bor.final } ] s12)
+      [ _ck -> (! {[@expl:type invariant] inv_DebugStruct _8.current} any) ]
+    | s12 = field [%#sname'4] {_7} {_20} {_21} (fun (_x: MutBorrow.t t_DebugStruct) -> [ &_6 <- _x ] s13)
+    | s13 = MutBorrow.borrow_final <t_DebugStruct> {_6.current} {MutBorrow.get_id _6}
+        (fun (_bor: MutBorrow.t t_DebugStruct) ->
+          [ &_5 <- _bor ] -{inv_DebugStruct _bor.final}-
+          [ &_6 <- { _6 with current = _bor.final } ] s14)
+      [ _ck -> (! {[@expl:type invariant] inv_DebugStruct _6.current} any) ]
+    | s14 = finish [%#sname'5] {_5} (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s15)
+    | s15 = s16 [ _ck -> (! {[@expl:type invariant] inv_DebugStruct _10} any) ]
+    | s16 = -{resolve_DebugStruct _10}- s17
+    | s17 = s18 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugStruct _8} any) ]
+    | s18 = -{resolve_refmut_DebugStruct _8}- s19
+    | s19 = s20 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugStruct _6} any) ]
+    | s20 = -{resolve_refmut_DebugStruct _6}- s21
+    | s21 = s22 [ _ck -> (! {[@expl:type invariant] inv_refmut_Formatter formatter} any) ]
+    | s22 = -{resolve_refmut_Formatter formatter}- s23
+    | s23 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & self: t_MaybeLower = self
+  | & formatter: MutBorrow.t t_Formatter = formatter
+  | & _5: MutBorrow.t t_DebugStruct = Any.any_l ()
+  | & _6: MutBorrow.t t_DebugStruct = Any.any_l ()
+  | & _7: MutBorrow.t t_DebugStruct = Any.any_l ()
+  | & _8: MutBorrow.t t_DebugStruct = Any.any_l ()
+  | & _9: MutBorrow.t t_DebugStruct = Any.any_l ()
+  | & _10: t_DebugStruct = Any.any_l ()
+  | & _11: MutBorrow.t t_Formatter = Any.any_l ()
+  | & _13: string = Any.any_l ()
+  | & _15: string = Any.any_l ()
+  | & _16: dyn_Debug = Any.any_l ()
+  | & _18: Slice64.slice UInt8.t = Any.any_l ()
+  | & _20: string = Any.any_l ()
+  | & _21: dyn_Debug = Any.any_l ()
+  | & _23: bool = Any.any_l () ])
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:fmt ensures] [%#sname'7] formatter_extends (deep_model_refmut_Formatter formatter) (deep_model_Formatter formatter.final)}
+    (! return {result}) ]

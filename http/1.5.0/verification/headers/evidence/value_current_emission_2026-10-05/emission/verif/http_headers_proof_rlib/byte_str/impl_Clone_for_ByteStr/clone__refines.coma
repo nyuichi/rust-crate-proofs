@@ -1,0 +1,119 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 64 4 64 27 *)
+
+(* <byte_str::ByteStr as std::clone::Clone> *)
+
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span sstring = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 14 16 14 76
+let%span sstring'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 290 14 290 24
+let%span sstring'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 291 14 291 60
+let%span sstring'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 294 12 298 13
+let%span schar = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span sbyte_str = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 64 14 64 18
+let%span sbyte_str'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 64 23 64 27
+let%span sbyte_str'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 63 14 63 30
+let%span sbyte_str'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 42 8 42 49
+let%span sbyte_str'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 49 20 49 37
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Char
+use map.Map
+use int.ComputerDivision
+use int.Int
+
+type t_Bytes
+
+type t_ByteStr = { bytes: t_Bytes }
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'1] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'0] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t
+
+axiom to_bytes_def: forall self: Seq.seq Char.t. to_bytes self
+    = ([%#sstring'2] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (to_utf8_char (Seq.get self 0)) (to_bytes (tail_char self))
+    )
+
+axiom to_bytes_spec: forall self: Seq.seq Char.t. [%#sstring'1] to_bytes self
+    = flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+predicate valid_utf8 (bytes'0: Seq.seq UInt8.t) =
+  [%#sstring] exists characters: Seq.seq Char.t. to_bytes characters = bytes'0
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function view_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 41 4 41 33] (self: t_ByteStr) : Seq.seq UInt8.t
+ = [%#sbyte_str'2] bytes_seq self.bytes
+
+predicate invariant_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 48 4 48 30] (self: t_ByteStr) =
+  [%#sbyte_str'3] valid_utf8 (view_ByteStr self)
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate inv_ByteStr (_1: t_ByteStr)
+
+axiom inv_axiom [@rewrite]: forall x: t_ByteStr [inv_ByteStr x]. inv_ByteStr x
+    = (invariant_ByteStr x /\ inv_Bytes x.bytes)
+
+predicate invariant_ref_ByteStr [@inline:trivial] (self: t_ByteStr) = [%#sinvariant] inv_ByteStr self
+
+meta "rewrite_def" predicate invariant_ref_ByteStr
+
+predicate inv_ref_ByteStr [@inline:trivial] (_1: t_ByteStr) = invariant_ref_ByteStr _1
+
+meta "rewrite_def" predicate inv_ref_ByteStr
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_ByteStr. ([%#sclone] inv_ref_ByteStr self_)
+    -> ([%#sbyte_str] inv_ref_ByteStr self_)
+    /\ (forall result: t_ByteStr. ([%#sbyte_str'0] inv_ByteStr result)
+        /\ ([%#sbyte_str'1] view_ByteStr result = view_ByteStr self_) -> inv_ByteStr result)

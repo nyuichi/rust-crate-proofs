@@ -1,0 +1,8 @@
+set -o pipefail
+source /workspace/proof-tools/activate.sh
+cd /workspace/rust-crate-proofs/http/1.5.0/verification/headers
+DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find' ../../scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always \
+  /workspace/rust-crate-proofs/http/1.5.0/verification/headers/evidence/value_current_emission_2026-10-05/comas/value/value_formatter_extends_transitive.coma \
+  /workspace/rust-crate-proofs/http/1.5.0/verification/headers/evidence/value_current_emission_2026-10-05/comas/value/write_ascii_run.coma \
+  /workspace/rust-crate-proofs/http/1.5.0/verification/headers/evidence/value_current_emission_2026-10-05/comas/value/write_escaped_byte.coma \
+  2>&1 | tee /workspace/rust-crate-proofs/http/1.5.0/verification/headers/evidence/value_current_emission_2026-10-05/proof_value_formatter_helpers.log

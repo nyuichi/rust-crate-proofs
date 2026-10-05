@@ -1,0 +1,52 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 661 0 661 98 *)
+
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 656 4 657 66
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 659 10 659 16
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 660 10 660 75
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 662 4 669 5
+let%span sstr_index = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/str_index.rs" 23 14 24 45
+let%span sstr_index'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/str_index.rs" 26 8 26 54
+
+use seq.Seq
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function seq_concat_assoc_Int (first: Seq.seq int) (second: Seq.seq int) (third: Seq.seq int) : () =
+  [%#sstr_index'0] let left = Seq.(++) (Seq.(++) first second) third in let right = Seq.(++) first (Seq.(++) second third) in ()
+
+axiom seq_concat_assoc_Int_spec:
+  forall first: Seq.seq int, second: Seq.seq int, third: Seq.seq int. [%#sstr_index] Seq.(++) (Seq.(++) first second) third
+    = Seq.(++) first (Seq.(++) second third)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant before : Seq.seq int
+
+constant middle : Seq.seq int
+
+constant after : Seq.seq int
+
+predicate value_formatter_extends_transitive [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 661 0 661 98] (before: Seq.seq int) (middle: Seq.seq int) (after: Seq.seq int)
+
+goal vc_value_formatter_extends_transitive: ([%#svalue] formatter_extends before middle
+    /\ formatter_extends middle after)
+  -> (forall x: Seq.seq int, y: Seq.seq int. if middle = Seq.(++) before x then
+        if after = Seq.(++) middle y then
+          ([@stop_split] [@expl:seq_concat_assoc ensures] [%#sstr_index] Seq.(++) (Seq.(++) before x) y
+            = Seq.(++) before (Seq.(++) x y))
+          -> (let _ = seq_concat_assoc_Int before x y in after = Seq.(++) before (Seq.(++) x y))
+        else
+          true
+      
+      else
+        true
+    )
+  /\ (forall x: Seq.seq int, y: Seq.seq int. middle = Seq.(++) before x /\ after = Seq.(++) middle y
+      -> (let _ = seq_concat_assoc_Int before x y in formatter_extends before after))
+  && (let result = true in [@stop_split] [@expl:value_formatter_extends_transitive ensures] ([@stop_split] [@expl:value_formatter_extends_transitive ensures #0] [%#svalue'0] result)
+  /\ ([@stop_split] [@expl:value_formatter_extends_transitive ensures #1] [%#svalue'1] result
+  = formatter_extends before after))

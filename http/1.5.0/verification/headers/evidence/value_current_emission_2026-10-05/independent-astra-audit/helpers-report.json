@@ -1,0 +1,122 @@
+{
+  "auditor": "Astra",
+  "audit_mode": "read_only",
+  "solver_invoked": false,
+  "status": "pass",
+  "source_sha256": "197fe1071f054c5f018fe1a8cc21266d679164a77088b9459eeb2ee3dd34330e",
+  "scope": {
+    "targets": 3,
+    "own_leaves": 39,
+    "direct_arities": [
+      3,
+      7,
+      29
+    ],
+    "null_children": 0,
+    "nested_children": 0,
+    "all_contexts_byte_identical": true,
+    "normalization_used": false
+  },
+  "task_reconstruction": {
+    "method": "independent Why3 split_vc -D why3 extraction; unsuffixed .why is child zero",
+    "independently_regenerated_task_contexts": 39,
+    "byte_identical_saved_contexts": 39,
+    "full_stdout_command": "Same full Why3 split_vc printer command without -o; exact stdout retained as byte length and SHA-256 below."
+  },
+  "targets": [
+    {
+      "name": "value_formatter_extends_transitive",
+      "own_leaves": 3,
+      "full_stdout_bytes": 53481,
+      "full_stdout_sha256": "b3305ef5a4aeccef218f7f481d0e7a0179f107132de135b3a0612748b0c49dcf"
+    },
+    {
+      "name": "write_ascii_run",
+      "own_leaves": 7,
+      "full_stdout_bytes": 487298,
+      "full_stdout_sha256": "f2421def1c9532e5285c3f63922638a37cfad02946b74f786bafc7783b57f7a6"
+    },
+    {
+      "name": "write_escaped_byte",
+      "own_leaves": 29,
+      "full_stdout_bytes": 2000042,
+      "full_stdout_sha256": "3ba38f7d4d5289133c98abec7bb67ca2ac9d6e2650d2c89918175d87e751de7f"
+    }
+  ],
+  "proof_tree": {
+    "all_three_comas_match_batch": true,
+    "all_three_proof_json_hashes_match_batch": true,
+    "all_three_comas_match_full_emission": true,
+    "successful_own_leaves": 39,
+    "null_children": 0,
+    "nested_children": 0,
+    "solver_leaf_counts": {
+      "z3@4.15.3": 37,
+      "cvc5@1.3.1": 2
+    },
+    "maximum_solver_time_seconds": 0.142
+  },
+  "integrity": {
+    "source_manifest_sha256": "882b7b8c6ff383b8ade7f8761af8f40940c977029a6e1da5ef64b2ad803593ba",
+    "emission_manifest_sha256": "be019a7ec301cb7119cc9f6b66764cdfa0d9c29c8024de80be9551082ec4ae9c",
+    "focused_coma_manifest_sha256": "13084df7fc718fdae171652c51c11581691baf9c76c80c31427d0cf2f85acabe",
+    "arity_audit_sha256": "7ee39f3cf3bb3ebd9a0f2cc3a0597f07797e993cffeb6a907cf8760410d45c6f",
+    "proof_log_sha256": "9b79689cf0a40c5780b61b5bc3729aa4c996b4bf41e28cb76988e4a5f6eb8da7",
+    "proof_command_sha256": "65c3ca407d39a25dfa547643dfd6b2a5876e620793e6b42b550be0337fcb667f",
+    "all_six_referenced_hashes_match": true
+  },
+  "zero_child_markers": [
+    {
+      "target": "write_ascii_run",
+      "goal": "vc_from_utf8_unchecked",
+      "classification": "external UTF-8 conversion contract"
+    },
+    {
+      "target": "write_ascii_run",
+      "goal": "vc_index_slice_u8",
+      "classification": "external slice-index contract"
+    },
+    {
+      "target": "write_ascii_run",
+      "goal": "vc_write_str",
+      "classification": "external Formatter::write_str contract"
+    },
+    {
+      "target": "write_escaped_byte",
+      "goal": "vc_branch_Result_unit_Error",
+      "classification": "Rust/Creusot Result branch-flow marker"
+    },
+    {
+      "target": "write_escaped_byte",
+      "goal": "vc_elim_Break",
+      "classification": "Rust/Creusot control-flow elimination marker"
+    },
+    {
+      "target": "write_escaped_byte",
+      "goal": "vc_from_Error",
+      "classification": "Result error-conversion contract marker"
+    },
+    {
+      "target": "write_escaped_byte",
+      "goal": "vc_from_residual_Result_unit_Error",
+      "classification": "FromResidual/try-flow contract marker"
+    },
+    {
+      "target": "write_escaped_byte",
+      "goal": "vc_hex_digit",
+      "classification": "HTTP-local callee contract; hex_digit body is separately proved with 4 own leaves in the numeric/hex archive"
+    },
+    {
+      "target": "write_escaped_byte",
+      "goal": "vc_write_str",
+      "classification": "external Formatter::write_str contract"
+    }
+  ],
+  "callee_boundary": {
+    "ascii_writer_requires": "from <= end <= bytes length and every byte in the selected run is ASCII; body uses the local ascii_bytes_are_valid_utf8 lemma and the standard UTF-8/index/Formatter contracts.",
+    "escaped_writer_requires": "byte is non-visible or quote; body uses the local hex_digit contract and formatter transitivity contract.",
+    "transitivity_uses": "numeric Seq concatenation associativity.",
+    "hex_digit_independent_body": "The fresh full task stream has 4 tasks, 344131 bytes, SHA-256 374a579eb7fb6bc063947b359e3fd91eca900c0b02febea4c2bdf5f3786b265e; its separate proof JSON has 4 successful own leaves and no nulls."
+  },
+  "qualification": "The 39 leaves close the helper body postconditions under their explicit contracts. Standard UTF-8 conversion, slice indexing, and Formatter write behavior remain external contract boundaries. This does not prove HeaderValue Debug or exact rendered output text."
+}
