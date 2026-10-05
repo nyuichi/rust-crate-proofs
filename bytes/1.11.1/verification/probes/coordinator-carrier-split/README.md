@@ -26,8 +26,8 @@ No new trusted ownership or refcount protocol is introduced. The existing Vec,
 physical byte access, boxed alignment, and exclusive scalar atomic bridges and
 standard permission operations remain the trusted boundary.
 
-Status: the integrated gate passes 106 proof files with zero unproved leaves.
-Five native tests cover boundary positions/all six release orders and exact
+Status: the integrated gate passes 111 proof files with zero unproved leaves.
+Six native tests cover boundary positions/all six release orders and exact
 original-buffer/control-block allocation/free counts. Native execution does not
 by itself establish the ghost protocol or a whole-crate proof.
 
@@ -75,3 +75,10 @@ capacity-ticket-negative (108 files, one intended leaf each), with the legacy
 110-file regression under regressions/capacity-final. Historical split-only
 counts above refer to their archived checkpoints. No growth or general reclaim
 claim is made.
+
+Latest checkpoint: 111 files includes actual split(), is_empty() and unchanged
+try_reclaim (additional <= remaining capacity); six native tests, ordinary118
+and no_std pass. Growing/moving try_reclaim is explicitly excluded in its proof
+adapter. Latest evidence is convenience-positive, convenience-unknown-negative,
+convenience-ticket-negative, and regressions/convenience-final. Both negative
+gates contain 113 files and exactly one intended failed guard.

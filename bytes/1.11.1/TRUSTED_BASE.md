@@ -10,7 +10,7 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-05)
 
-The 106-file coordinator-carrier gate adds no trusted primitive. Its dynamic
+The 111-file coordinator-carrier gate adds no trusted primitive. Its dynamic
 registration/cardinality/coordinate lemmas, pending descriptor completion,
 native-count conservation and explicit finalization all have proved bodies.
 It reuses existing B1/B3/B4 Vec/raw/physical-access, boxed-alignment, vanilla typed
@@ -40,6 +40,14 @@ slices; exact ticket/endpoints are framed across byte changes. Native5 checks
 allocation events separately. Growth, overlapping source copies, reclamation
 and ordinary Drop are not inferred from these bounded paths. Separate 108-file
 negatives each contain exactly one intended rejection. No new trust is added.
+
+Actual split()/is_empty() and try_reclaim's unchanged early return add no trust.
+The final 111-file gate and legacy110 regression have zero unproved leaves;
+113-file negatives each reject one intended guard. Native6/ordinary118/no_std
+pass. The proof try_reclaim adapter excludes growth/reclamation just as reserve
+does; ordinary Rust still executes its original reserve_inner call outside the
+proved fast path. Constructor requested-capacity guarantees are not derived
+from the unchanged pure-Seq Vec model by these lifecycle gates.
 
 The complete 82-file concrete slice Buf body gate adds no TCB or std contract.
 The actual getter source uses match to avoid a missing unwrap_or_else spec.

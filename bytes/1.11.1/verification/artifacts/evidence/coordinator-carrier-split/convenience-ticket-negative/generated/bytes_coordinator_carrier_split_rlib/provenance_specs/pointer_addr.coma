@@ -1,0 +1,27 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/provenance_specs.rs" 51 0 51 53 *)
+
+let%span sprovenance_specs = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/provenance_specs.rs" 52 4 52 14
+let%span sprovenance_specs'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/provenance_specs.rs" 49 28 49 54
+let%span sptr = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 364 18 364 45
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+
+let addr_T (self_: Opaque.ptr) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:addr ensures] [%#sptr] result = Ptr.addr_logic_u64 self_}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let pointer_addr_T [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/provenance_specs.rs" 51 0 51 53]
+  (ptr: Opaque.ptr) (return (x: UInt64.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = addr_T [%#sprovenance_specs] {ptr} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & ptr: Opaque.ptr = ptr ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:pointer_addr ensures] [%#sprovenance_specs'0] result
+    = Ptr.addr_logic_u64 ptr}
+    (! return {result}) ]
