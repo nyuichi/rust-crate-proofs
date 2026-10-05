@@ -1,0 +1,16 @@
+(* #"/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 42 0 42 22 *)
+
+let%span slib = "/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 36 16 36 42
+
+use creusot.int.UInt8
+
+predicate value_invariant [#"/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 35 0 35 41] [@inline:trivial] (value: UInt8.t) =
+  [%#slib] UInt8.t'int value = 0 \/ UInt8.t'int value = 1
+
+meta "rewrite_def" predicate value_invariant
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal vc_static_atomic_init: value_invariant (0: UInt8.t)

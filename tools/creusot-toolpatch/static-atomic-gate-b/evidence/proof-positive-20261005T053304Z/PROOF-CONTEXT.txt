@@ -1,0 +1,16 @@
+Gate B minimal positive proof run, 2026-10-05.
+
+Scope: exactly the four positive COMA files and the mandatory coverage index from the frozen Gate B translation run 9b120a5fa27a20f0b78ea63db3d7ad46942d5e85acdc6c8ca936d38f43843403. No negative scenario was submitted to a solver.
+
+Type-only preflight passed for CACHE.coma, store_one.coma, read_cache.coma, and read_twice.coma.
+
+Proof command for each COMA:
+  why3 -C /workspace/proof-tools/config/creusot/why3.conf prove \
+    -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot \
+    -L <frozen-positive-modules> -a split_vc -P Z3,4.15.3 -t 30 -m 1000 -F coma <file>
+
+The proof child rechecked hashes for all four COMAs, mandatory coverage, config, Why3 and Z3 binaries, compiler binary, Gate B patch, runner, required-target manifest, and the Creusot package tree before each prover invocation. Each invocation held /tmp/itoa-creusot-proof.lock. Effective config specifies one running prover and 1000 MiB; each CLI call specifies a 30-second prover limit and a 1000 MiB limit.
+
+Results are in results.tsv; raw stdout/stderr and exact command lines are in proof.log. Three generated VCs were Valid: typed initializer I(0), the store_one I(1) assertion, and read_cache's body VC. read_twice contains two independent fresh-I observations but emits no VC; it is translation/type-check evidence only and does not prove read-to-read equality or any postcondition.
+
+The predicate value_invariant is a pure local logical definition in the modules. Its accepted closed total syntax has no separate executable/body VC; predicate use is present in the init, store, and read_cache proof tasks. The coverage index records its body/dependency lowering for the initializer and each accessor. The proof does not validate Rust's full atomic memory model or the compiler's translation rule independently of the explicitly documented Gate B support assumptions.

@@ -1976,3 +1976,77 @@ used length, not old capacity. Preserve the outer future projection exactly,
 rather than truncating it: the outer borrowed binding destination is retained.
 These corrections were sent to the implementation worker; no solver was run
 and no implementation was changed by this consultation.
+
+### Gate C: actual CPU-dependent runtime cache (2026-10-05)
+
+Read-only design consultation inspected Gate B's closed invariant grammar,
+actual `src/simd/runtime.rs`, `build.rs`, `src/simd/mod.rs`, and
+`backend-sse-prefix/backend-runtime-plan.md`. Gate B's u8-only invariant does
+not yet express CPU capability dependence; the parameterized history probe
+does not close the actual static/cache/CPU path. No solver ran here.
+
+The smallest extension keeps the closed total grammar and registers a checked
+predicate `I(value: u8, avx2: bool, sse42: bool)`. At every initializer, load,
+and store, the compiler supplies the same two immutable capability symbols
+`A` and `S`, with exact registered identities. They are not arbitrary runtime
+caller parameters, independently fresh booleans, or unrestricted calls to
+global logic. The checked predicate is:
+`value == 0 || (value == 1 && A) || (value == 2 && S) || value == 3`.
+Gate B's existing nondeterministic invariant-constrained load rule remains
+unchanged in meaning. Every possible initial/store value must satisfy this
+same predicate; a load need not observe the most recent write.
+
+The minimum new external TCB is a narrow bridge from the exact resolved
+sysroot AVX2/SSE4.2 detector observations to stable, usable capabilities,
+including required OS state and availability throughout the admitted
+execution environment. Neither capability is assumed true. For feature
+safety, `detector_result ==> capability` suffices; equality to an immutable
+detector-result symbol is a stronger, separately audited claim if desired.
+The cache invariant needs stability of capability truth after a successful
+observation, not equality of successive detector results. Existing atomic
+value-history/audit semantics remain TCB. Neither CPUID/std detection internals
+nor the Rust memory model is thereby bodychecked. Match exact sysroot DefIds,
+feature identity, signature, target, and source provenance; reject spoofed
+local names or copied builtin annotations.
+
+The pinned `library/std_detect/src/detect/macros.rs:9–10` expands each macro to
+`cfg!(target_feature = ...) || detect::__is_feature_detected::<feature>()`.
+The two relevant resolved feature names are `avx2` and `sse4_2`. Start Gate C
+with x86/x86_64, std and runtime SIMD selected, and both target-feature cfgs
+absent. A forced-runtime build with globally enabled target features can
+short-circuit the actual detector; supporting it requires an explicit audited
+compiler-target/deployment capability premise. Do not silently treat that
+shortcut as a checked runtime observation. Retain target triple, target
+features, build-script cfg output, feature/env inputs, and resolved expanded
+detector calls in Gate B's normal/proof MIR and access-inventory comparison.
+Other architectures, feature names, unresolved calls, and mismatched cfgs fail
+closed for this scoped extension.
+
+Concrete next source/VC inventory, to be implemented by the assigned worker:
+
+- Isolated Gate C compiler delta: exact invariant argument/signature validation,
+  immutable capability registration/dependencies, and identical capability
+  substitution in initializer/load/store translation. Preserve Gate B's
+  trusted/excluded-writer rejection and normal/proof audits.
+- Audited detector boundary for the two actual sysroot observations; annotate
+  the actual shared runtime source without replacing its cache algorithm.
+- `RUNTIME_FEATURE` initializer: prove `I(0,A,S)` for arbitrary capabilities.
+- Actual `detect_runtime_feature` body: prove nonzero supported result from
+  its AVX2, then SSE4.2, then NOP branches.
+- Actual `get_runtime_feature` body: check its one store preserves I; prove
+  result is 1/2/3, with 1 implying A and 2 implying S, for both zero-load and
+  nonzero-load paths.
+- Both URI and header-value runtime dispatchers: discharge four unsafe SIMD
+  entry feature preconditions from that result contract; keep the SWAR
+  fallback and header-name delegation explicit. No feature assertion is an
+  assumed fact. Backend byte/cursor contracts and intrinsic/load semantics
+  remain the separately owned obligations in the backend runtime plan.
+- Negative coverage: unsupported feature-tag store, tag 4, spoofed detector,
+  capability-identity/cfg mismatch, skipped writer, equal-load and latest-read
+  claims. Record failure/unknown outcomes accurately without calling them
+  counterexamples unless one is actually obtained.
+
+This I intentionally proves supported dispatch, not the globally strongest
+AVX2-selection priority property: its permitted NOP/SSE states are broader
+than the detector's exact branch preference. No such priority or atomic
+freshness claim follows from it. All Gate C work above remains proposed.

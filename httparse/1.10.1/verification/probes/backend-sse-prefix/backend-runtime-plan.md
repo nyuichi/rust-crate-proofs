@@ -1,0 +1,61 @@
+# Actual SSE URI scanner integration plan
+
+Read-only plan prepared 2026-10-05. No source, standard-library, driver, or proof run was changed for this plan. The production path was inspected at the current hashes: `src/simd/sse42.rs` `04c1c6f29375eb87d0e7712deadd9ba3c94d20525b67ff869a266cc6b75cedf6`, `src/iter.rs` `369662bbf36c68ba814750ce3a91c4aa78ab40e9453af0f7e07f30d869103625`, and the isolated copied proof source `verification/probes/backend-sse-prefix/src/lib.rs` `a126cf9dcadcdd7e5e96ee3e4f0ebc1a8e78f6150ab59a18afd77d06e2bad90c`.
+
+The existing direct Why3 checkpoint proves nine selected standalone targets across 18 VCs. It does not verify a production source body or connect a loaded vector to input bytes. The next source change should eliminate the duplicated pure expressions first, then take the actual load and cursor loop through explicit contracts.
+
+## Runtime dependency path
+
+| Stage | Current path | Required fact for an actual-source proof |
+| --- | --- | --- |
+| Parser entry | `src/lib.rs:457-460` calls `simd::match_uri_vectored` and observes `Bytes::pos()` before and after. | Relate scanner cursor movement to the parser's consumed offset; this selected plan stops at the scanner boundary. |
+| Backend selection | `src/simd/mod.rs:16-63,65-103` chooses either runtime dispatch or the compile-time SSE wrapper. `build.rs:54-93` emits cfgs from Cargo's target features and environment. | Show that the chosen wrapper can call the unsafe SSE4.2 function only on a compatible target. These build/cfg facts are not established by the selected SSE body proofs. |
+| Runtime selection | `src/simd/runtime.rs:10-30,37-45` checks AVX2, then SSE4.2, stores a `u8` discriminator in `AtomicU8`, and calls the selected unsafe backend. | Prove or explicitly trust the feature-detector result and cached discriminator invariant. This is a separate dispatch obligation, owned elsewhere. |
+| SSE block loop | `src/simd/sse42.rs:3-15` loops while `bytes.as_ref().len() >= 16`, calls the block helper, advances by its returned prefix, returns at the first partial block, and otherwise continues. | Preserve the `Bytes` cursor invariant; prove the returned advance is at most 16 and at most the remaining length; prove each full-block iteration advances the cursor by 16; show a rejected byte remains unconsumed. The post-loop call to the SWAR tail is a separate open dependency. |
+| Current 16-byte block | `src/simd/sse42.rs:19-41` takes `buf.as_ptr()`, executes `_mm_lddqu_si128`, builds URI masks, narrows the movemask, and returns `(!res).trailing_zeros()`. | Relate the loaded 16 lanes to the first 16 bytes of `buf`, then reuse the proved lane predicate, mask composition, and prefix contracts. The actual production helper has no such postcondition today. |
+| Cursor window and advance | `src/iter.rs:381-428` gives `Bytes::as_ref` an exact remaining-suffix postcondition and builds its slice using the retained permission. `Bytes::advance` at `src/iter.rs:178-190` requires an in-bounds amount and preserves the input, mark, and end while increasing the cursor. | Derive a 16-byte window from the loop guard, pass its exact sequence to the load boundary, and prove `advance(result)` safe and cursor-preserving. The existing `Bytes` snapshot has current selected proof evidence; no `iter.rs` edit is needed for this plan. |
+
+The 16-byte URI predicate is `byte >= 0x21 && byte != 0x7f` over unsigned byte values (`src/simd/sse42.rs:29-38`). The vector body realizes this with unsigned max against `0x21`, equality against the input, equality against DEL, ANDNOT, movemask, and a low-one-prefix count. Thus the required block postcondition is: result is in `0..=16`; all input bytes before the result satisfy the predicate; if result is below 16, the byte at the result is rejected. A result of 16 means all 16 lanes are accepted.
+
+## Existing memory and pointer contracts
+
+`Bytes::new` obtains a `Perm<*const [u8]>` from `SliceExt::as_ptr_perm`, retains the immutable input snapshot, and derives its end pointer using `PtrAddExt::add_live` (`src/iter.rs:52-74`). Its invariant ties that permission's sequence and origin pointer to the `CursorModel` (`src/iter.rs:355-379`). `Bytes::as_ref` promises the exact current suffix (`src/iter.rs:381-388`); `slice_from_ptr_range` promises the permission subsequence and uses `Perm::split_at` to select it (`src/iter.rs:391-428`). `Bytes::advance` requires `n <= cursor_len` and preserves the original input, mark, and end while setting cursor to cursor plus `n` (`src/iter.rs:178-190`). These obligations are already represented in the selected `memory-pointer` proof snapshot; the current `iter.rs` hash is recorded above.
+
+The existing Creusot pointer layer supplies useful, bounded facts:
+
+- `SliceExt::as_ptr_perm` returns a pointer paired with a permission whose ward is that pointer and whose value is the source slice (`creusot-libs/creusot-std/src/std/slice.rs:84-116`).
+- `Perm::split_at` and `Perm::index` split a slice permission into exact subsequences/elements (`creusot-libs/creusot-std/src/std/ptr.rs:730-797`). `Perm::as_ref` requires the pointer to equal the permission ward and specifies the referenced value (`ptr.rs:632-657`).
+- `PtrLive::contains_range` and `PtrAddExt::add_live` express same-allocation bounds and pointer arithmetic (`ptr.rs:890-949`). They establish pointer range/arithmetic facts; they do not specify the value of a vector load.
+
+There is no `read_unaligned` contract in the active `creusot-libs/creusot-std/src/std/ptr.rs`. The Rust `core::ptr::read_unaligned` implementation in the pinned toolchain copies bytes into `MaybeUninit` and assumes initialization, but that body is not a Creusot permission-aware load specification. `Perm::as_ref` is not a substitute for this path: it creates a Rust reference, while a `u8` slice pointer need not satisfy `__m128i` alignment. The production code uses `_mm_lddqu_si128`, whose pinned `core_arch` definition is `#[target_feature(enable = "sse3")]` and lowers through `transmute(lddqu(mem_addr as *const _))` (`library/stdarch/crates/core_arch/src/x86/sse3.rs:117-125,180-183`). No stock `creusot-std` contract was found for this intrinsic or for `read_unaligned`.
+
+Therefore a checked memory-to-lane connection needs one clearly identified load boundary. The narrowest proof-facing wrapper can accept the already-bounded `&[u8]` window and specify that its first 16 initialized bytes become the 16 result lanes in order, with the appropriate signed-`i8` view. Its body may remain the existing `_mm_lddqu_si128` operation and be explicitly marked trusted while the standard intrinsic has no model. This wrapper is a TCB assumption, not a proof of the Rust/stdarch or LLVM load implementation. Keep it local and named; do not add a global axiom or weaken the byte permission contract. Prove the caller's `window.len() == 16` from the loop guard and `Bytes::as_ref` postcondition. A later standard-library load contract could replace this TCB only after its exact bounds, initialization, lane-order, and target-feature semantics are reviewed.
+
+## Minimal source-sharing delta
+
+The standalone probe currently has three copied bodies in `verification/probes/backend-sse-prefix/src/lib.rs`: `uri_allowed_mask_16_sse`, `prefix_len_from_mask`, and `match_uri_char_16_sse_pure`. They match the actual mask/prefix expression after the load, but the proof crate does not import `src/simd/sse42.rs`; the result cannot currently be reported as an actual source proof.
+
+Smallest source-level bridge for the next Luna task:
+
+1. Add one child module under `src/simd/sse42/` (for example `uri_block.rs`) containing the exact shared vector-mask expression, prefix calculation, and their composition. Move the current three expressions into that file without changing operations, order, or return semantics. Keep the lane model and the five explicit intrinsic contracts in a visible `#[cfg(creusot)]` proof section associated with this module; do not install them into `creusot-std`.
+2. In `src/simd/sse42.rs`, replace only the duplicated mask/prefix lines after `_mm_lddqu_si128` with a call to that shared composition. Preserve the current load and SSE4.2 wrapper. No edit to `src/lib.rs`, `src/iter.rs`, numeric standard contracts, dispatch, build/static patch, SWAR, AVX2, or NEON is needed for this extraction.
+3. In the standalone proof crate, import that same child file with `#[path]`, delete the three copied function bodies, and keep the current selected target names/contracts only as harness clients of the shared module. Make the five local intrinsic TCB specs resolve to the shared module's lane model so the proven VC hashes identify the shared source rather than a duplicate.
+4. Regenerate only the standalone Coma inputs and run the same selected positive target set under a new bounded grant. Check the new source and Coma hashes first. Do not count old VCs against the new source; they are a checkpoint for the copied model only.
+
+This delta proves the shared pure expression bodies under the same five intrinsic assumptions. It still does not prove that `_mm_lddqu_si128` loads the actual `buf` bytes or that `Bytes` advances correctly. If the next target is the loop, add an exact contract to the actual block helper (requiring at least 16 bytes), then prove its call from `match_uri_vectored` using `as_ref` and `advance`. Keep the remaining-short-tail/SWAR call explicit as a separate open boundary; do not give it a trusted “scanner correct” postcondition merely to close the SSE caller.
+
+## Target-feature and remaining proof obligations
+
+`match_uri_vectored` and its block helper carry `#[target_feature(enable = "sse4.2")]` (`sse42.rs:3,19`). The load intrinsic itself declares SSE3; the comparison/mask instructions have their own x86 feature requirements. The unsafe entry point therefore depends on the caller running on a CPU that supports the required instructions and on the compiler's x86 feature implication rules. The compile-time wrapper is selected from Cargo's target-feature cfgs; the runtime wrapper selects from `is_x86_feature_detected!`. Neither selection proof is supplied by the nine pure target results. The runtime detector/atomic cache and the `build.rs` cfg generation stay in separate ownership and must remain open here.
+
+Concrete open obligations before claiming actual-runtime SSE integration:
+
+- **Load safety and refinement:** the 16-byte window is initialized/readable, unaligned access is allowed, the returned lanes equal those 16 bytes in order, and no read escapes the window. This is the explicit standard-load TCB described above unless a stock, reviewed contract becomes available.
+- **Intrinsic semantics:** the five current local contracts (`_mm_set1_epi8`, `_mm_max_epu8`, `_mm_cmpeq_epi8`, `_mm_andnot_si128`, `_mm_movemask_epi8`) remain probe TCB assumptions; their actual standard-library implementations are not checked by the selected proof.
+- **Block caller:** the actual `match_url_char_16_sse` output satisfies the maximal URI-prefix contract from its input slice, including the load-to-lane relation.
+- **Loop and mutation:** establish the `Bytes` loop invariant and a decreasing remaining-length variant; show `advance <= remaining_len`; show a rejected byte remains at the cursor and full blocks make 16-byte progress.
+- **Tail path:** the loop delegates a remaining suffix shorter than 16 to SWAR. SWAR's byte-to-word conversion, conservative-prefix result, and caller composition are still open; full scanner closure depends on that separate proof.
+- **Caller feature safety:** show SSE4.2 (and the lower instruction features used by the body) at every unsafe call site for both compile-time and runtime configurations. Runtime CPU detection, cached atomic state, build cfgs, AVX2 preference, and other backends are outside this task.
+- **End-to-end parser refinement:** after scanner proof, connect cursor movement to `parse_uri`'s returned slice/error behavior and all reachable configurations. The selected probe and this plan do not close that obligation.
+
+This plan makes no solver or test claim. It proposes the smallest step that removes copied proof code while keeping every memory, intrinsic, fallback, and target-feature assumption visible for the subsequent actual-source proof.

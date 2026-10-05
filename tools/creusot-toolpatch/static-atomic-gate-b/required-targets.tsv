@@ -1,0 +1,15 @@
+scenario	mandatory target	generated artifact	expected translation outcome
+positive	I(0) initializer for CACHE	CACHE.coma:vc_static_atomic_init	initializer emitted with a typed UInt8 literal (0: UInt8.t); solver status unclaimed
+positive	store_one preserves value_invariant	store_one.coma:store assertion	I(1) assertion emitted; solver status unclaimed
+positive	read_cache load observation	read_cache.coma:fresh UInt8 Any then I assumption	translated; source assertion emitted
+positive	read_twice independent observations	read_twice.coma:two fresh UInt8 Any binders	translated; no equality claim
+positive	all audited bodies and sites	static-atomic-coverage.tsv	predicate/init/accessors/sites/dependencies enumerated
+wrong-init	I(2) initializer for CACHE	CACHE.coma:vc_static_atomic_init	goal emitted with a typed UInt8 literal (2: UInt8.t); not solver classified
+wrong-store	store_invalid preserves value_invariant	store_invalid.coma:store assertion	I(2) assertion emitted; not solver classified
+latest-read	store_one then a load equals 1	latest_read_is_one.coma	assertion emitted; expected unprovable under fresh-I abstraction, not a Rust counterexample
+equal-loads	two loads return equal values	loads_are_equal.coma	two independent fresh-I observations; expected unprovable under abstraction
+skipped-writer	all writes covered by translated accessors	normal.audit and proof.log	normal MIR records store; proof MIR audit rejects untranslated writer; no Gate B module/index
+partial-predicate	invariant total for every UInt8 value	proof.log	closed total-expression subset rejection; no load assumption
+prophetic-predicate	invariant is non-prophetic	proof.log	nonprophetic rejection; no load assumption
+spoof-predicate	primitive u8 View has registered compiler identity	proof.log and normal/proof audit reports	fake builtin rejected; no load assumption
+span-literal-mismatch	MIR string constants containing (#N) remain semantic data	proof.log and normal/proof audit reports	spans-only normalization preserves literal differences and rejects cfg-dependent bodies

@@ -1,0 +1,9 @@
+Gate B bounded negative proof attempts, 2026-10-05.
+
+Scope is limited to the frozen wrong-init CACHE.coma and wrong-store store_invalid.coma artifacts from translation run 9b120a5fa27a20f0b78ea63db3d7ad46942d5e85acdc6c8ca936d38f43843403. Both passed Why3 type-only preflight with the active config and Creusot package. Input hashes are in input-hashes.tsv; the raw commands and stdout/stderr are in separate wrong-init.log and wrong-store.log files.
+
+Each run held /tmp/itoa-creusot-proof.lock and used exactly one Z3 4.15.3 prover, a 10-second timeout, and 1000 MiB. The child rechecked the two exact COMAs, their coverage indexes, config, Why3/Z3/compiler binaries, patch, runner, target manifest, and Creusot package tree against the recorded hashes before starting Why3.
+
+Both VCs timed out at the authorized budget. No Invalid status, solver model, or counterexample appeared in either raw log. These outcomes are unclassified: they establish neither that I(2) is satisfiable nor that the generated obligation is valid. No budgets were increased and no other negative was submitted.
+
+One initial type-only command used an incorrect fixture-relative path and failed before opening a COMA or launching a prover; it is preserved in preflight-path-typo.log. The corrected type-only runs passed and are recorded in typecheck.log.

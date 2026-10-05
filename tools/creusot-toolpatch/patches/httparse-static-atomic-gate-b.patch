@@ -1,0 +1,2084 @@
+diff --git a/creusot/src/backend.rs b/creusot/src/backend.rs
+index cc67a34..e6ebe36 100644
+--- a/creusot/src/backend.rs
++++ b/creusot/src/backend.rs
+@@ -25,6 +25,7 @@ pub(crate) mod program;
+ pub(crate) mod projections;
+ pub(crate) mod resolve;
+ pub(crate) mod signature;
++pub(crate) mod static_atomic;
+ pub(crate) mod term;
+ pub(crate) mod traits;
+ pub(crate) mod ty;
+@@ -82,8 +83,52 @@ impl<'tcx> Why3Generator<'tcx> {
+             }
+             ItemType::Program => {
+                 let modl = program::translate_function(self, def_id);
++                let expected = self
++                    .static_atomics
++                    .as_ref()
++                    .is_some_and(|registry| registry.accessors.contains_key(&def_id));
++                if expected && modl.is_none() {
++                    self.crash_and_error(
++                        self.tcx.def_span(def_id),
++                        "Gate B accessor did not produce a translated program module",
++                    );
++                }
++                if expected {
++                    let inserted = self
++                        .static_atomics
++                        .as_mut()
++                        .expect("Gate B registry disappeared")
++                        .record_accessor(def_id);
++                    if !inserted {
++                        self.crash_and_error(
++                            self.tcx.def_span(def_id),
++                            "Gate B accessor was translated more than once",
++                        );
++                    }
++                }
+                 TranslatedItem::Program { modl }
+             }
++            ItemType::StaticAtomic => {
++                let modl =
++                    static_atomic::translate_initializer(self, def_id).unwrap_or_else(|| {
++                        self.crash_and_error(
++                            self.tcx.def_span(def_id),
++                            "Gate B static initializer has no invariant goal",
++                        )
++                    });
++                let inserted = self
++                    .static_atomics
++                    .as_mut()
++                    .expect("registered static has no Gate B registry")
++                    .record_initializer(def_id);
++                if !inserted {
++                    self.crash_and_error(
++                        self.tcx.def_span(def_id),
++                        "Gate B static initializer goal was emitted more than once",
++                    );
++                }
++                TranslatedItem::StaticAtomic { modl }
++            }
+             ItemType::Field | ItemType::Variant => unreachable!(),
+             ItemType::Unsupported(dk) => self.crash_and_error(
+                 self.tcx.def_span(def_id),
+diff --git a/creusot/src/backend/optimization/invariants.rs b/creusot/src/backend/optimization/invariants.rs
+index 78eb78f..f64854a 100644
+--- a/creusot/src/backend/optimization/invariants.rs
++++ b/creusot/src/backend/optimization/invariants.rs
+@@ -319,6 +319,8 @@ impl ChangedPlaces {
+                     self.record_write_to(ctx, r);
+                 }
+                 StatementKind::Call(r, _, _, _, _) => self.record_write_to(ctx, r),
++                StatementKind::StaticAtomicLoad(r, ..)
++                | StatementKind::StaticAtomicStore(r, ..) => self.record_write_to(ctx, r),
+                 _ => (),
+             }
+         }
+@@ -753,6 +755,8 @@ fn ty_inv_analysis_bb<'tcx>(
+             StatementKind::Call(lhs, did, ..) => {
+                 state.write_place(ctx, lhs, !is_open_inv_result(ctx.tcx, *did))
+             }
++            StatementKind::StaticAtomicLoad(lhs, ..)
++            | StatementKind::StaticAtomicStore(lhs, ..) => state.write_place(ctx, lhs, true),
+         }
+     }
+ 
+diff --git a/creusot/src/backend/optimization/remove_dead_locals.rs b/creusot/src/backend/optimization/remove_dead_locals.rs
+index 10262a9..355aa35 100644
+--- a/creusot/src/backend/optimization/remove_dead_locals.rs
++++ b/creusot/src/backend/optimization/remove_dead_locals.rs
+@@ -74,7 +74,9 @@ impl<'tcx> FmirVisitor<'tcx> for LocalReads<'_, 'tcx> {
+                 self.live.insert(r.local);
+                 l
+             }
+-            StatementKind::Call(l, _, _, _, _) => l,
++            StatementKind::Call(l, _, _, _, _)
++            | StatementKind::StaticAtomicLoad(l, ..)
++            | StatementKind::StaticAtomicStore(l, ..) => l,
+             _ => return,
+         };
+         // This assignment is not pure, so the local must stay
+diff --git a/creusot/src/backend/optimization/simplify_temps.rs b/creusot/src/backend/optimization/simplify_temps.rs
+index 314b055..8bfd0f3 100644
+--- a/creusot/src/backend/optimization/simplify_temps.rs
++++ b/creusot/src/backend/optimization/simplify_temps.rs
+@@ -294,7 +294,10 @@ impl<'tcx> FmirVisitorMut<'tcx> for BlockPropagator<'_, 'tcx> {
+                 }
+                 lhs
+             }
+-            StatementKind::Assignment(lhs, _) | StatementKind::Call(lhs, ..) => {
++            StatementKind::Assignment(lhs, _)
++            | StatementKind::Call(lhs, ..)
++            | StatementKind::StaticAtomicLoad(lhs, ..)
++            | StatementKind::StaticAtomicStore(lhs, ..) => {
+                 if let Some(r) = self.state.0.get_mut(&lhs.local) {
+                     *r = LocalState::Top
+                 }
+diff --git a/creusot/src/backend/program.rs b/creusot/src/backend/program.rs
+index e394fe8..6f8e4a5 100644
+--- a/creusot/src/backend/program.rs
++++ b/creusot/src/backend/program.rs
+@@ -1419,6 +1419,65 @@ impl<'tcx> Statement<'tcx> {
+                 istmts.push(IntermediateStmt::call_span(ret_ident, ty, fun_qname, args, span));
+                 lower.assignment(&dest, Exp::var(ret_ident), &mut istmts, self.span);
+             }
++            StatementKind::StaticAtomicLoad(dest, static_id, predicate_id) => {
++                let spec = lower
++                    .ctx
++                    .static_atomics
++                    .as_ref()
++                    .and_then(|registry| registry.spec(static_id))
++                    .unwrap_or_else(|| {
++                        lower
++                            .ctx
++                            .dcx()
++                            .span_bug(self.span, "Gate B load lost its registered static invariant")
++                    });
++                if spec.predicate_id != predicate_id {
++                    lower.ctx.dcx().span_bug(
++                        self.span,
++                        "Gate B load predicate does not match its static identity",
++                    );
++                }
++                let observed = Ident::fresh_local("static_atomic_observation");
++                istmts.push(IntermediateStmt::Any(observed, lower.ty(lower.ctx.types.u8)));
++                let predicate = lower.names.item(
++                    predicate_id,
++                    GenericArgs::identity_for_item(lower.ctx.tcx, predicate_id),
++                );
++                let invariant = Exp::Var(predicate).app([Exp::var(observed)]);
++                istmts.push(IntermediateStmt::Assume(invariant));
++                lower.assignment(&dest, Exp::var(observed), &mut istmts, self.span);
++            }
++            StatementKind::StaticAtomicStore(dest, value, static_id, predicate_id) => {
++                let spec = lower
++                    .ctx
++                    .static_atomics
++                    .as_ref()
++                    .and_then(|registry| registry.spec(static_id))
++                    .unwrap_or_else(|| {
++                        lower.ctx.dcx().span_bug(
++                            self.span,
++                            "Gate B store lost its registered static invariant",
++                        )
++                    });
++                if spec.predicate_id != predicate_id {
++                    lower.ctx.dcx().span_bug(
++                        self.span,
++                        "Gate B store predicate does not match its static identity",
++                    );
++                }
++                let stored = value.into_why(lower, &mut istmts);
++                let predicate = lower.names.item(
++                    predicate_id,
++                    GenericArgs::identity_for_item(lower.ctx.tcx, predicate_id),
++                );
++                let invariant =
++                    Exp::Var(predicate).app([stored]).with_attr(Attribute::Attr(format!(
++                        "expl:static AtomicU8 store preserves {}",
++                        lower.ctx.def_path_str(static_id)
++                    )));
++                istmts.push(IntermediateStmt::Assert(invariant));
++                lower.assignment(&dest, Exp::unit(), &mut istmts, self.span);
++            }
+             StatementKind::Assertion { cond, msg, check, assume } => {
+                 let mut e = lower_pure(lower.ctx, lower.names, &cond.spanned());
+                 if let Some(msg) = msg {
+diff --git a/creusot/src/backend/static_atomic.rs b/creusot/src/backend/static_atomic.rs
+new file mode 100644
+index 0000000..b963a89
+--- /dev/null
++++ b/creusot/src/backend/static_atomic.rs
+@@ -0,0 +1,43 @@
++use crate::{
++    backend::{Why3Generator, clone_map::Dependencies, common_meta_decls, term::lower_pure},
++    translated_item::FileModule,
++    translation::{constant::u8_to_term, pearlite::Term},
++};
++use rustc_hir::def_id::DefId;
++use rustc_middle::ty::GenericArgs;
++use why3::{Ident, declaration::Module};
++
++/// Emit the checked initializer obligation for one registered static. The
++/// static value is never translated as a constant or dependency; only its
++/// checked initial byte and the registered predicate appear in this goal.
++pub(crate) fn translate_initializer(
++    ctx: &Why3Generator<'_>,
++    static_id: DefId,
++) -> Option<FileModule> {
++    let spec = ctx.static_atomics.as_ref()?.spec(static_id)?;
++    let names = Dependencies::new(ctx, static_id);
++    let predicate_args = GenericArgs::identity_for_item(ctx.tcx, spec.predicate_id);
++    let initial = u8_to_term(
++        spec.initial,
++        ctx,
++        ctx.typing_env(static_id),
++        ctx.tcx.def_span(static_id),
++    );
++    let invariant = Term::call(
++        ctx.tcx,
++        ctx.typing_env(static_id),
++        spec.predicate_id,
++        predicate_args,
++        [initial],
++    );
++    let goal = lower_pure(ctx, &names, &invariant.spanned());
++    let (mut decls, setters) = names.provide_deps(ctx);
++    decls.extend(common_meta_decls());
++    decls.push(setters.mk_goal(Ident::fresh_local("vc_static_atomic_init"), goal));
++
++    let path = ctx.module_path(static_id);
++    let name = path.why3_ident();
++    let attrs = ctx.span_attr(ctx.def_span(static_id)).into_iter().collect();
++    let meta = ctx.display_impl_of(static_id);
++    Some(FileModule { path, modl: Module { name, decls: decls.into(), attrs, meta } })
++}
+diff --git a/creusot/src/callbacks.rs b/creusot/src/callbacks.rs
+index 0d79154..0df8b9d 100644
+--- a/creusot/src/callbacks.rs
++++ b/creusot/src/callbacks.rs
+@@ -120,6 +120,9 @@ impl Callbacks for ToWhy {
+     }
+ 
+     fn after_expansion<'tcx>(&mut self, c: &Compiler, tcx: TyCtxt<'tcx>) -> Compilation {
++        // This AST query must read the lowering resolver before MIR queries
++        // steal it. Capturing Gate A bodies first can trigger that steal.
++        let params_open_inv = crate::translation::before_analysis(tcx);
+         let static_audit = match crate::static_atomic::capture_proof_if_requested(tcx) {
+             Ok(audit) => audit,
+             Err(message) => {
+@@ -127,14 +130,31 @@ impl Callbacks for ToWhy {
+                 return Compilation::Stop;
+             }
+         };
+-        let params_open_inv = crate::translation::before_analysis(tcx);
+         let _ = tcx.analysis(());
+-        if let Some((config, bodies)) = static_audit
+-            && let Err(message) = crate::static_atomic::run_captured_audit(&config, tcx, &bodies)
++        let gate_b_enabled =
++            std::env::var("CREUSOT_STATIC_ATOMIC_GATE_B").is_ok_and(|value| value == "1");
++        let mut gate_b = None;
++        if let Some((config, bodies)) = static_audit {
++            match crate::static_atomic::run_captured_audit(&config, tcx, &bodies) {
++                Ok(()) if gate_b_enabled => {
++                    match crate::static_atomic::build_gate_b_registry(&config, tcx) {
++                        Ok(registry) => gate_b = Some(registry),
++                        Err(message) => {
++                            c.sess.dcx().err(message);
++                        }
++                    }
++                }
++                Ok(()) => {}
++                Err(message) => {
++                    c.sess.dcx().err(message);
++                }
++            }
++        }
++        if let Err(error) =
++            crate::translation::after_analysis(tcx, self.opts.clone(), params_open_inv, gate_b)
+         {
+-            c.sess.dcx().err(message);
++            c.sess.dcx().err(error.to_string());
+         }
+-        let _ = crate::translation::after_analysis(tcx, self.opts.clone(), params_open_inv);
+ 
+         c.sess.dcx().abort_if_errors();
+ 
+diff --git a/creusot/src/ctx.rs b/creusot/src/ctx.rs
+index 7ac81e1..f74cbd5 100644
+--- a/creusot/src/ctx.rs
++++ b/creusot/src/ctx.rs
+@@ -7,6 +7,7 @@ use crate::{
+     },
+     metadata::{BinaryMetadata, Metadata, encode_def_ids, get_erasure_required},
+     naming::{ComaNames, ModulePath, lowercase_prefix},
++    static_atomic::GateBRegistry,
+     translation::{
+         self,
+         external::{
+@@ -91,6 +92,7 @@ pub enum ItemType {
+     Type,
+     AssocTy,
+     Constant,
++    StaticAtomic,
+     Variant,
+     Unsupported(DefKind),
+     Field,
+@@ -108,6 +110,7 @@ impl ItemType {
+             ItemType::Type => "type declaration",
+             ItemType::AssocTy => "associated type",
+             ItemType::Constant => "constant",
++            ItemType::StaticAtomic => "registered static AtomicU8",
+             ItemType::Field => "field",
+             ItemType::Unsupported(_) => "[OTHER]",
+             ItemType::Variant => "constructor",
+@@ -168,6 +171,7 @@ pub struct TranslationCtx<'tcx> {
+     did2intrinsic: HashMap<DefId, Intrinsic>,
+     pub externs: Metadata<'tcx>,
+     pub(crate) opts: Options,
++    pub(crate) static_atomics: Option<GateBRegistry>,
+     creusot_items: HashMap<Symbol, DefId>,
+     /// This field tracks recursive calls, where we should check that a variant
+     /// decreases.
+@@ -236,6 +240,7 @@ impl<'tcx> TranslationCtx<'tcx> {
+         tcx: TyCtxt<'tcx>,
+         opts: Options,
+         params_open_inv: HashMap<DefId, DenseBitSet<usize>>,
++        static_atomics: Option<GateBRegistry>,
+     ) -> Self {
+         let creusot_items = tcx
+             .hir_body_owners()
+@@ -261,6 +266,7 @@ impl<'tcx> TranslationCtx<'tcx> {
+             creusot_items,
+             variant_calls: RefCell::new(IndexMap::new()),
+             opts,
++            static_atomics,
+             erasure_required: Default::default(),
+             extern_specs: Default::default(),
+             extern_spec_items: Default::default(),
+@@ -284,6 +290,90 @@ impl<'tcx> TranslationCtx<'tcx> {
+         self.did2intrinsic.get(&did).copied().unwrap_or(Intrinsic::None)
+     }
+ 
++    pub(crate) fn prepare_static_atomic_bodies(&mut self) -> Result<(), String> {
++        let Some(registry) = self.static_atomics.clone() else { return Ok(()) };
++
++        for spec in registry.statics.values() {
++            let predicate = spec.predicate_id;
++            let local = predicate.as_local().ok_or_else(|| {
++                format!("Gate B predicate {} is not local", self.def_path_str(predicate))
++            })?;
++            if self.tcx.hir_maybe_body_owned_by(local).is_none()
++                || crate::contracts_items::is_no_translate(self.tcx, predicate)
++                || crate::backend::is_trusted_item(self.tcx, predicate)
++                || is_prophetic(self.tcx, predicate)
++                || crate::contracts_items::get_builtin(self.tcx, predicate).is_some()
++            {
++                return Err(format!(
++                    "Gate B predicate {} is excluded, trusted, builtin, or has no body",
++                    self.def_path_str(predicate)
++                ));
++            }
++            if self.sig(predicate).contract.requires.len() != 0 {
++                return Err(format!(
++                    "Gate B predicate {} has a nontrivial precondition",
++                    self.def_path_str(predicate)
++                ));
++            }
++            let scoped = self.term(predicate).ok_or_else(|| {
++                format!("Gate B predicate {} has no translated body", self.def_path_str(predicate))
++            })?;
++            if scoped.0.len() != 1 || !static_atomic_predicate_is_total(self, &scoped.1, &scoped.0)
++            {
++                return Err(format!(
++                    "Gate B predicate {} is outside the closed total-expression subset; only its argument, literals, total boolean comparisons/connectives, and the registered primitive u8 View are accepted",
++                    self.def_path_str(predicate)
++                ));
++            }
++            self.static_atomics
++                .as_mut()
++                .expect("Gate B registry disappeared")
++                .validated_predicates
++                .insert(predicate);
++        }
++
++        let body_ids = registry.accessors.keys().copied().collect::<Vec<_>>();
++        for body_id in body_ids {
++            let local = body_id.as_local().ok_or_else(|| {
++                format!("Gate B accessor {} is not local", self.def_path_str(body_id))
++            })?;
++            if crate::contracts_items::is_no_translate(self.tcx, body_id)
++                || crate::backend::is_trusted_item(self.tcx, body_id)
++                || self.tcx.hir_maybe_body_owned_by(local).is_none()
++            {
++                return Err(format!(
++                    "Gate B accessor {} is excluded, trusted, or has no body",
++                    self.def_path_str(body_id)
++                ));
++            }
++            let body = self.body_with_facts(local).body.clone();
++            let audited = crate::static_atomic::analyze_translation_body(
++                self.tcx, body_id, &body, &registry,
++            )?;
++            self.static_atomics
++                .as_mut()
++                .expect("Gate B registry disappeared")
++                .bodies
++                .insert(body_id, audited);
++        }
++        Ok(())
++    }
++
++    pub(crate) fn verify_static_atomic_coverage(&self) -> Result<(), String> {
++        if let Some(registry) = &self.static_atomics {
++            registry.verify_complete()?;
++            for (&body_id, audited) in &registry.bodies {
++                if audited.operations.is_empty() {
++                    return Err(format!(
++                        "Gate B accessor {} has no lowered atomic operations",
++                        self.def_path_str(body_id)
++                    ));
++                }
++            }
++        }
++        Ok(())
++    }
++
+     pub(crate) fn int_ty(&self) -> Ty<'tcx> {
+         self.type_of(Intrinsic::Int.get(self)).no_bound_vars().unwrap()
+     }
+@@ -608,6 +698,14 @@ impl<'tcx> TranslationCtx<'tcx> {
+             DefKind::AssocConst | DefKind::Const | DefKind::InlineConst | DefKind::ConstParam => {
+                 ItemType::Constant
+             }
++            DefKind::Static { .. }
++                if self
++                    .static_atomics
++                    .as_ref()
++                    .is_some_and(|registry| registry.statics.contains_key(&def_id)) =>
++            {
++                ItemType::StaticAtomic
++            }
+             DefKind::Closure => ItemType::Closure,
+             DefKind::Struct | DefKind::Enum | DefKind::Union => ItemType::Type,
+             DefKind::AssocTy => ItemType::AssocTy,
+@@ -659,6 +757,84 @@ impl<'tcx> HasTyCtxt<'tcx> for TranslationCtx<'tcx> {
+     }
+ }
+ 
++/// Gate B permits only a syntactically total invariant language. Calls are
++/// rejected except the primitive `View(u8) -> Int` model; this keeps a fresh
++/// load assumption from invoking an unproved or partial user function.
++fn static_atomic_predicate_is_total<'tcx>(
++    ctx: &TranslationCtx<'tcx>,
++    term: &Term<'tcx>,
++    bound: &[pearlite::PIdent],
++) -> bool {
++    use pearlite::{BinOp, Literal, TermKind, UnOp};
++
++    match &term.kind {
++        TermKind::Var(variable) => bound.contains(variable),
++        TermKind::Lit(
++            Literal::Bool(_)
++            | Literal::Integer(_)
++            | Literal::UInteger(_)
++            | Literal::MachSigned(..)
++            | Literal::MachUnsigned(..),
++        ) => true,
++        TermKind::Spanned(inner) => static_atomic_predicate_is_total(ctx, inner, bound),
++        TermKind::Binary { op, lhs, rhs }
++            if matches!(
++                op,
++                BinOp::Eq
++                    | BinOp::Ne
++                    | BinOp::Lt
++                    | BinOp::Le
++                    | BinOp::Gt
++                    | BinOp::Ge
++                    | BinOp::And
++                    | BinOp::Or
++            ) =>
++        {
++            static_atomic_predicate_is_total(ctx, lhs, bound)
++                && static_atomic_predicate_is_total(ctx, rhs, bound)
++        }
++        TermKind::Unary { op: UnOp::Not, arg } => static_atomic_predicate_is_total(ctx, arg, bound),
++        TermKind::Call { id, args, .. } if static_atomic_u8_view_call(ctx, *id, term, args) => {
++            static_atomic_predicate_is_total(ctx, &args[0], bound)
++        }
++        _ => false,
++    }
++}
++
++fn static_atomic_u8_view_call<'tcx>(
++    ctx: &TranslationCtx<'tcx>,
++    id: DefId,
++    term: &Term<'tcx>,
++    args: &[Term<'tcx>],
++) -> bool {
++    let view_method = Intrinsic::View.get(ctx);
++    let view_trait = ctx.tcx.parent(view_method);
++    let impl_id = ctx.tcx.parent(id);
++    if !matches!(ctx.tcx.def_kind(impl_id), DefKind::Impl { .. }) {
++        return false;
++    }
++    let Some(trait_ref) = ctx.tcx.impl_opt_trait_ref(impl_id) else { return false };
++    let trait_ref = trait_ref.skip_binder();
++    let sig = ctx.tcx.fn_sig(id).instantiate_identity().skip_binder();
++    let output = ctx.tcx.normalize_erasing_regions(ctx.typing_env(id), sig.output());
++    let checks = [
++        trait_ref.def_id == view_trait,
++        trait_ref.self_ty() == ctx.tcx.types.u8,
++        ctx.tcx.item_name(id) == ctx.tcx.item_name(view_method),
++        ctx.tcx.generics_of(id).count() == 0,
++        crate::contracts_items::get_builtin(ctx.tcx, id)
++            .is_some_and(|builtin| builtin.as_str() == "creusot.int.UInt8$BW$.t'int"),
++        ctx.sig(id).contract.requires.is_empty(),
++        sig.inputs().len() == 1
++            && sig.inputs().first().is_some_and(|input| *input == ctx.tcx.types.u8),
++        output == ctx.int_ty(),
++        args.len() == 1,
++        args.first().is_some_and(|arg| arg.ty == ctx.tcx.types.u8),
++        term.ty == ctx.int_ty(),
++    ];
++    checks.into_iter().all(|ok| ok)
++}
++
+ pub fn crate_name(tcx: TyCtxt) -> why3::Symbol {
+     tcx.crate_name(LOCAL_CRATE).as_str().into()
+ }
+diff --git a/creusot/src/static_atomic.rs b/creusot/src/static_atomic.rs
+index e747a6e..0638c07 100644
+--- a/creusot/src/static_atomic.rs
++++ b/creusot/src/static_atomic.rs
+@@ -4,23 +4,29 @@
+ //! It does not change how an atomic load or store is translated and does not
+ //! grant a proof rule to the registered static.
+ 
+-use std::{collections::{HashMap, HashSet}, env, fs, path::PathBuf};
++use std::{
++    collections::{HashMap, HashSet},
++    env, fs,
++    path::PathBuf,
++};
+ 
++use rustc_abi::Size;
+ use rustc_hir::def::DefKind;
+ use rustc_middle::{
+     mir::{
+-        self, interpret::alloc_range, visit::{PlaceContext, Visitor}, LocalInfo, Place,
+-        Rvalue, StatementKind, TerminatorKind,
++        self, LocalInfo, Place, Rvalue, StatementKind, TerminatorKind,
++        interpret::alloc_range,
++        visit::{PlaceContext, Visitor},
+     },
+     ty::{self, TyCtxt},
+ };
+ use rustc_span::Symbol;
+-use rustc_abi::Size;
+ 
+ const MODE_ENV: &str = "CREUSOT_STATIC_ATOMIC_MODE";
+ const MANIFEST_ENV: &str = "CREUSOT_STATIC_ATOMIC_MANIFEST";
+ const OUTPUT_ENV: &str = "CREUSOT_STATIC_ATOMIC_OUTPUT";
+ const SOURCE_HASH_ENV: &str = "CREUSOT_STATIC_ATOMIC_SOURCE_SHA256";
++const GATE_B_NORMAL_AUDIT_ENV: &str = "CREUSOT_STATIC_ATOMIC_GATE_B_NORMAL_AUDIT";
+ 
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+ pub enum AuditMode {
+@@ -57,14 +63,103 @@ pub struct AuditConfig {
+     pub statics: Vec<StaticRegistration>,
+ }
+ 
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum AtomicMethod {
++    Load,
++    Store,
++}
++
++impl AtomicMethod {
++    fn as_str(self) -> &'static str {
++        match self {
++            Self::Load => "load",
++            Self::Store => "store",
++        }
++    }
++}
++
++#[derive(Clone, Copy, Debug)]
++pub struct StaticAtomicSpec {
++    pub static_id: rustc_hir::def_id::DefId,
++    pub predicate_id: rustc_hir::def_id::DefId,
++    pub initial: u8,
++}
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub struct StaticAtomicOperation {
++    pub static_id: rustc_hir::def_id::DefId,
++    pub method: AtomicMethod,
++}
++
++#[derive(Clone, Debug, Default)]
++pub struct AuditedBody {
++    pub operations: HashMap<mir::Location, StaticAtomicOperation>,
++    pub alias_assignments: HashSet<mir::Location>,
++}
++
++#[derive(Clone, Debug)]
++pub struct GateBRegistry {
++    pub crate_name: String,
++    pub target: String,
++    pub provenance: AuditProvenance,
++    pub statics: HashMap<rustc_hir::def_id::DefId, StaticAtomicSpec>,
++    pub validated_predicates: HashSet<rustc_hir::def_id::DefId>,
++    pub accessors: HashMap<rustc_hir::def_id::DefId, Vec<(rustc_hir::def_id::DefId, AtomicMethod)>>,
++    pub bodies: HashMap<rustc_hir::def_id::DefId, AuditedBody>,
++    pub translated_accessors: HashSet<rustc_hir::def_id::DefId>,
++    pub emitted_initializers: HashSet<rustc_hir::def_id::DefId>,
++}
++
++impl GateBRegistry {
++    pub fn spec(&self, static_id: rustc_hir::def_id::DefId) -> Option<StaticAtomicSpec> {
++        self.statics.get(&static_id).copied()
++    }
++
++    pub fn accessor(&self, body_id: rustc_hir::def_id::DefId) -> Option<&AuditedBody> {
++        self.bodies.get(&body_id)
++    }
++
++    pub fn record_accessor(&mut self, body_id: rustc_hir::def_id::DefId) -> bool {
++        self.translated_accessors.insert(body_id)
++    }
++
++    pub fn record_initializer(&mut self, static_id: rustc_hir::def_id::DefId) -> bool {
++        self.emitted_initializers.insert(static_id)
++    }
++
++    pub fn verify_complete(&self) -> Result<(), String> {
++        let expected_predicates =
++            self.statics.values().map(|spec| spec.predicate_id).collect::<HashSet<_>>();
++        if self.validated_predicates != expected_predicates {
++            return Err(format!(
++                "Gate B predicate totality validation mismatch: validated {:?}, expected {:?}",
++                self.validated_predicates, expected_predicates
++            ));
++        }
++        let expected_initializers = self.statics.keys().copied().collect::<HashSet<_>>();
++        if self.emitted_initializers != expected_initializers {
++            return Err(format!(
++                "Gate B initializer VC coverage mismatch: emitted {:?}, expected {:?}",
++                self.emitted_initializers, expected_initializers
++            ));
++        }
++        let expected_accessors = self.accessors.keys().copied().collect::<HashSet<_>>();
++        if self.translated_accessors != expected_accessors {
++            return Err(format!(
++                "Gate B accessor translation coverage mismatch: translated {:?}, expected {:?}",
++                self.translated_accessors, expected_accessors
++            ));
++        }
++        Ok(())
++    }
++}
++
+ impl AuditConfig {
+     /// Parse the opt-in environment settings. The versioned manifest is plain
+     /// UTF-8 so this compiler patch does not add a serialization dependency.
+     pub fn from_env() -> Result<Option<Self>, String> {
+         let Some(mode) = env::var_os(MODE_ENV) else { return Ok(None) };
+-        let mode = mode
+-            .into_string()
+-            .map_err(|_| format!("{MODE_ENV} must be Unicode"))?;
++        let mode = mode.into_string().map_err(|_| format!("{MODE_ENV} must be Unicode"))?;
+         let mode = match mode.as_str() {
+             "normal-audit" => AuditMode::Normal,
+             "proof-audit" => AuditMode::Proof,
+@@ -72,8 +167,8 @@ impl AuditConfig {
+         };
+         let manifest_path = required_path(MANIFEST_ENV)?;
+         let output = required_path(OUTPUT_ENV)?;
+-        let source_sha256 = env::var(SOURCE_HASH_ENV)
+-            .map_err(|_| format!("missing {SOURCE_HASH_ENV}"))?;
++        let source_sha256 =
++            env::var(SOURCE_HASH_ENV).map_err(|_| format!("missing {SOURCE_HASH_ENV}"))?;
+         if !is_sha256(&source_sha256) {
+             return Err(format!("{SOURCE_HASH_ENV} must be 64 lowercase hexadecimal characters"));
+         }
+@@ -238,6 +333,469 @@ pub fn run_captured_audit<'tcx>(
+     run_audit(config, tcx, bodies)
+ }
+ 
++/// Build the proof-only static invariant registry after matching the normal
++/// and proof executable MIR reports. Missing or non-identical reports never
++/// enable the load/store translation rules.
++pub fn build_gate_b_registry<'tcx>(
++    config: &AuditConfig,
++    tcx: TyCtxt<'tcx>,
++) -> Result<GateBRegistry, String> {
++    if config.mode != AuditMode::Proof {
++        return Err("Gate B requires the proof audit mode".into());
++    }
++    let normal_path = env::var_os(GATE_B_NORMAL_AUDIT_ENV)
++        .map(PathBuf::from)
++        .ok_or_else(|| format!("Gate B requires {GATE_B_NORMAL_AUDIT_ENV}"))?;
++    let normal = fs::read_to_string(&normal_path)
++        .map_err(|err| format!("cannot read {}: {err}", normal_path.display()))?;
++    let proof = fs::read_to_string(&config.output)
++        .map_err(|err| format!("cannot read proof audit {}: {err}", config.output.display()))?;
++    compare_audits(config, &normal, &proof)?;
++
++    let atomic_u8 = tcx
++        .get_diagnostic_item(Symbol::intern("AtomicU8"))
++        .ok_or_else(|| "sysroot AtomicU8 diagnostic item was not found".to_string())?;
++    let mut statics = HashMap::new();
++    for registration in &config.statics {
++        let static_id = resolve_local(tcx, &registration.static_path)?;
++        let predicate_id = resolve_local(tcx, &registration.predicate_path)?;
++        validate_static(tcx, static_id, atomic_u8)?;
++        validate_predicate(tcx, predicate_id)?;
++        let initial = read_initial_byte(tcx, static_id)?;
++        if statics
++            .insert(static_id, StaticAtomicSpec { static_id, predicate_id, initial })
++            .is_some()
++        {
++            return Err(format!(
++                "duplicate Gate B registration for {}",
++                tcx.def_path_str(static_id)
++            ));
++        }
++    }
++
++    let local_ids = tcx
++        .iter_local_def_id()
++        .map(|local| (tcx.def_path_str(local.to_def_id()), local.to_def_id()))
++        .collect::<HashMap<_, _>>();
++    let mut accessors: HashMap<_, Vec<_>> = HashMap::new();
++    for line in proof.lines().filter(|line| line.starts_with("access\t")) {
++        let fields = line.split('\t').collect::<Vec<_>>();
++        if fields.len() != 5 || fields[4] != "Ordering::Relaxed" {
++            return Err(format!("malformed Gate B access record: {line}"));
++        }
++        let body_id = *local_ids
++            .get(fields[1])
++            .ok_or_else(|| format!("Gate B access has unknown body `{}`", fields[1]))?;
++        let static_id = *local_ids
++            .get(fields[2])
++            .ok_or_else(|| format!("Gate B access has unknown static `{}`", fields[2]))?;
++        if !statics.contains_key(&static_id) {
++            return Err(format!("Gate B access names unregistered static `{}`", fields[2]));
++        }
++        let method = match fields[3] {
++            "load" => AtomicMethod::Load,
++            "store" => AtomicMethod::Store,
++            other => return Err(format!("unsupported Gate B access method `{other}`")),
++        };
++        if !matches!(tcx.def_kind(body_id), DefKind::Fn | DefKind::AssocFn | DefKind::Closure)
++            || !body_id.is_local()
++            || tcx.hir_maybe_body_owned_by(body_id.expect_local()).is_none()
++            || crate::contracts_items::is_no_translate(tcx, body_id)
++            || crate::backend::is_trusted_item(tcx, body_id)
++        {
++            return Err(format!(
++                "Gate B accessor {} is excluded, trusted, or has no body",
++                tcx.def_path_str(body_id)
++            ));
++        }
++        accessors.entry(body_id).or_default().push((static_id, method));
++    }
++    if accessors.is_empty() {
++        return Err("Gate B registration has no translated load/store accessors".into());
++    }
++    Ok(GateBRegistry {
++        crate_name: config.crate_name.clone(),
++        target: config.target.clone(),
++        provenance: config.provenance.clone(),
++        statics,
++        validated_predicates: HashSet::new(),
++        accessors,
++        bodies: HashMap::new(),
++        translated_accessors: HashSet::new(),
++        emitted_initializers: HashSet::new(),
++    })
++}
++
++/// Serialize the exact obligations and accessor sites that completed Gate B
++/// translation. This is a translation coverage index, not evidence that a
++/// Why3 solver discharged any of the generated goals.
++pub fn coverage_report(
++    ctx: &crate::backend::Why3Generator<'_>,
++    registry: &GateBRegistry,
++) -> Result<String, String> {
++    let tcx = ctx.tcx;
++    registry.verify_complete()?;
++    let mut output = String::from("creusot-static-atomic-coverage-v1\n");
++    output.push_str(&format!("crate\t{}\n", registry.crate_name));
++    output.push_str(&format!("target\t{}\n", registry.target));
++    output.push_str(&format!("run_id\t{}\n", registry.provenance.run_id));
++    output.push_str(&format!(
++        "normal_input_sha256\t{}\nproof_input_sha256\t{}\n",
++        registry.provenance.normal_input_sha256, registry.provenance.proof_input_sha256
++    ));
++    output.push_str(&format!(
++        "compiler_sha256\t{}\npatch_sha256\t{}\nfixture_sha256\t{}\nrunner_sha256\t{}\n",
++        registry.provenance.compiler_sha256,
++        registry.provenance.patch_sha256,
++        registry.provenance.fixture_sha256,
++        registry.provenance.runner_sha256
++    ));
++
++    let mut statics = registry.statics.values().copied().collect::<Vec<_>>();
++    statics.sort_by_key(|spec| tcx.def_path_str(spec.static_id));
++    let mut predicate_modules = HashSet::new();
++    let mut predicates = statics
++        .iter()
++        .map(|spec| spec.predicate_id)
++        .collect::<HashSet<_>>()
++        .into_iter()
++        .collect::<Vec<_>>();
++    predicates.sort_by_key(|predicate| tcx.def_path_str(*predicate));
++    for predicate in predicates {
++        if !registry.validated_predicates.contains(&predicate) {
++            return Err(format!(
++                "Gate B predicate {} was not checked for structural totality",
++                tcx.def_path_str(predicate)
++            ));
++        }
++        output.push_str(&format!(
++            "predicate\t{}\tstructurally-total\tclosed-syntax; allowed-std-tcb=creusot.int.UInt8$BW$.t'int\n",
++            tcx.def_path_str(predicate)
++        ));
++    }
++    for spec in statics {
++        let static_path = tcx.def_path_str(spec.static_id);
++        let predicate_path = tcx.def_path_str(spec.predicate_id);
++        let module_name = ctx.module_path(spec.static_id).why3_ident();
++        predicate_modules.insert((spec.predicate_id, module_name.to_string()));
++        output.push_str(&format!(
++            "init\t{static_path}\t{predicate_path}\t{}\t{}\tvc-emitted\n",
++            spec.initial,
++            module_name.to_string()
++        ));
++    }
++
++    let mut bodies = registry.bodies.iter().collect::<Vec<_>>();
++    bodies.sort_by_key(|(body_id, _)| tcx.def_path_str(**body_id));
++    for (&body_id, audited) in bodies {
++        let body_path = tcx.def_path_str(body_id);
++        let module_name = ctx.module_path(body_id).why3_ident();
++        output.push_str(&format!(
++            "accessor\t{body_path}\t{}\tprogram-goals-emitted\n",
++            module_name.to_string()
++        ));
++        let mut operations = audited.operations.iter().collect::<Vec<_>>();
++        operations.sort_by_key(|(location, operation)| {
++            (
++                location.block.as_usize(),
++                location.statement_index,
++                tcx.def_path_str(operation.static_id),
++                operation.method as u8,
++            )
++        });
++        for (location, operation) in operations {
++            let predicate_id = registry
++                .statics
++                .get(&operation.static_id)
++                .ok_or_else(|| {
++                    format!(
++                        "Gate B coverage references unregistered static {}",
++                        tcx.def_path_str(operation.static_id)
++                    )
++                })?
++                .predicate_id;
++            let predicate_path = tcx.def_path_str(predicate_id);
++            predicate_modules.insert((predicate_id, module_name.to_string()));
++            output.push_str(&format!(
++                "access\t{body_path}\t{}\t{}\t{}\t{}\t{}\t{}\ttranslated\n",
++                module_name.to_string(),
++                tcx.def_path_str(operation.static_id),
++                predicate_path,
++                operation.method.as_str(),
++                location.block.as_usize(),
++                location.statement_index,
++            ));
++        }
++    }
++    let mut predicate_modules = predicate_modules.into_iter().collect::<Vec<_>>();
++    predicate_modules
++        .sort_by_key(|(predicate_id, module)| (tcx.def_path_str(*predicate_id), module.clone()));
++    for (predicate_id, module) in predicate_modules {
++        output.push_str(&format!(
++            "predicate-body\t{}\t{}\tdependency-lowered\n",
++            tcx.def_path_str(predicate_id),
++            module,
++        ));
++    }
++    Ok(output)
++}
++
++pub fn analyze_translation_body<'tcx>(
++    tcx: TyCtxt<'tcx>,
++    body_id: rustc_hir::def_id::DefId,
++    body: &mir::Body<'tcx>,
++    registry: &GateBRegistry,
++) -> Result<AuditedBody, String> {
++    let static_ids = registry.statics.keys().copied().collect::<HashSet<_>>();
++    let contains_registered_static = body.local_decls.iter().any(|decl| {
++        matches!(local_info(decl), Some(LocalInfo::StaticRef { def_id, is_thread_local: false }) if static_ids.contains(def_id))
++    });
++    if !contains_registered_static {
++        return Err(format!(
++            "Gate B accessor {} has no registered static reference in its translated MIR",
++            tcx.def_path_str(body_id)
++        ));
++    }
++    let atomic_u8 = tcx
++        .get_diagnostic_item(Symbol::intern("AtomicU8"))
++        .ok_or_else(|| "sysroot AtomicU8 diagnostic item was not found".to_string())?;
++    let methods = atomic_method_ids(tcx, atomic_u8);
++    let audited = audit_body(tcx, body, body_id, &static_ids, atomic_u8, &methods)?;
++    let mut expected = registry.accessors.get(&body_id).cloned().ok_or_else(|| {
++        format!("Gate B has no built-MIR inventory for {}", tcx.def_path_str(body_id))
++    })?;
++    let mut actual = audited
++        .operations
++        .values()
++        .map(|operation| (operation.static_id, operation.method))
++        .collect::<Vec<_>>();
++    expected.sort_by_key(|(static_id, method)| (tcx.def_path_str(*static_id), *method as u8));
++    actual.sort_by_key(|(static_id, method)| (tcx.def_path_str(*static_id), *method as u8));
++    if actual != expected {
++        return Err(format!(
++            "Gate B translated MIR operation inventory differs for {}: actual {:?}, audited {:?}",
++            tcx.def_path_str(body_id),
++            actual,
++            expected
++        ));
++    }
++    Ok(audited)
++}
++
++fn compare_audits(config: &AuditConfig, normal: &str, proof: &str) -> Result<(), String> {
++    fn common_header<'a>(text: &'a str) -> Result<HashMap<&'a str, &'a str>, String> {
++        let mut fields = HashMap::new();
++        for line in text.lines().skip(1) {
++            if line.starts_with("registration\t")
++                || line.starts_with("access\t")
++                || line.starts_with("begin_mir\t")
++            {
++                break;
++            }
++            if let Some((key, value)) = line.split_once('\t') {
++                if key != "mode" {
++                    fields.insert(key, value);
++                }
++            }
++        }
++        if fields.is_empty() {
++            return Err("Gate B audit report has no provenance header".into());
++        }
++        Ok(fields)
++    }
++
++    fn normalize_body(body: &str) -> String {
++        fn normalize_local_defids(text: &str) -> String {
++            let mut out = String::with_capacity(text.len());
++            let mut rest = text;
++            while let Some(start) = rest.find("DefId(0:") {
++                out.push_str(&rest[..start]);
++                let candidate = &rest[start..];
++                let Some(path_start) = candidate.find(" ~ ").map(|ix| ix + 3) else {
++                    out.push_str(candidate);
++                    return out;
++                };
++                let Some(path_end) = candidate[path_start..].find(')').map(|ix| path_start + ix)
++                else {
++                    out.push_str(candidate);
++                    return out;
++                };
++                let path = &candidate[path_start..path_end];
++                out.push_str("DefId(");
++                let mut path_rest = path;
++                while let Some(open) = path_rest.find('[') {
++                    out.push_str(&path_rest[..open]);
++                    let after_open = &path_rest[open + 1..];
++                    let Some(close) = after_open.find(']') else {
++                        out.push_str(&path_rest[open..]);
++                        path_rest = "";
++                        break;
++                    };
++                    let hash = &after_open[..close];
++                    if (4..=16).contains(&hash.len()) && hash.bytes().all(|b| b.is_ascii_hexdigit())
++                    {
++                        path_rest = &after_open[close + 1..];
++                    } else {
++                        out.push_str(&path_rest[open..open + close + 2]);
++                        path_rest = &after_open[close + 1..];
++                    }
++                }
++                out.push_str(path_rest);
++                out.push(')');
++                rest = &candidate[path_end + 1..];
++            }
++            out.push_str(rest);
++            out
++        }
++
++        // MIR Debug prints each Span's hygiene syntax-context table index as
++        // `(#N)`. Adding logic-only items can renumber that session-local
++        // index without changing the executable MIR. Restrict normalization to
++        // syntactically printed Span fields, never arbitrary MIR text or string
++        // constants; unknown Span formats therefore fail closed.
++        fn normalize_span_contexts(text: &str) -> String {
++            fn is_number_pair(text: &str) -> bool {
++                let mut parts = text.split(':');
++                matches!((parts.next(), parts.next(), parts.next()), (Some(a), Some(b), None)
++                    if !a.is_empty() && !b.is_empty()
++                        && a.bytes().all(|byte| byte.is_ascii_digit())
++                        && b.bytes().all(|byte| byte.is_ascii_digit()))
++            }
++
++            fn looks_like_span_field(prefix: &str) -> bool {
++                let marker = ["span: ", "pat_span: ", "opt_match_place:"]
++                    .into_iter()
++                    .filter_map(|needle| prefix.rfind(needle).map(|position| (position, needle)))
++                    .max_by_key(|(position, _)| *position);
++                let Some((position, needle)) = marker else { return false };
++                let field = prefix[position + needle.len()..].trim_end();
++                let mut locations = field.split_whitespace().rev();
++                let Some(end) = locations.next() else { return false };
++                let Some(start) = locations.next().and_then(|token| token.strip_suffix(':')) else {
++                    return false;
++                };
++                if !is_number_pair(end) {
++                    return false;
++                }
++                let mut start_parts = start.rsplit(':');
++                matches!((start_parts.next(), start_parts.next(), start_parts.next()),
++                    (Some(column), Some(line), Some(path))
++                    if !path.is_empty()
++                        && !line.is_empty()
++                        && !column.is_empty()
++                        && line.bytes().all(|byte| byte.is_ascii_digit())
++                        && column.bytes().all(|byte| byte.is_ascii_digit()))
++            }
++
++            fn inside_debug_string(prefix: &str) -> bool {
++                let mut quoted = false;
++                let mut escaped = false;
++                for byte in prefix.bytes() {
++                    if escaped {
++                        escaped = false;
++                    } else if byte == b'\\' && quoted {
++                        escaped = true;
++                    } else if byte == b'"' {
++                        quoted = !quoted;
++                    }
++                }
++                quoted
++            }
++
++            let mut out = String::with_capacity(text.len());
++            let mut rest = text;
++            while let Some(start) = rest.find("(#") {
++                let candidate = &rest[start + 2..];
++                let digit_count = candidate.bytes().take_while(u8::is_ascii_digit).count();
++                if digit_count == 0 || candidate.as_bytes().get(digit_count) != Some(&b')') {
++                    out.push_str(&rest[..start + 2]);
++                    rest = candidate;
++                    continue;
++                }
++                let prefix = &rest[..start];
++                if looks_like_span_field(prefix) && !inside_debug_string(prefix) {
++                    out.push_str(prefix);
++                    out.push_str("(#SPAN_CTXT)");
++                } else {
++                    out.push_str(&rest[..start + digit_count + 3]);
++                }
++                rest = &candidate[digit_count + 1..];
++            }
++            out.push_str(rest);
++            out
++        }
++
++        let normalized = normalize_span_contexts(&normalize_local_defids(body));
++        let mut out = String::with_capacity(normalized.len());
++        let mut rest = normalized.as_str();
++        while let Some(start) = rest.find(", cache: Cache {") {
++            out.push_str(&rest[..start]);
++            let after_start = &rest[start..];
++            let Some(end) = after_start.find(" }, phase:") else {
++                out.push_str(after_start);
++                return out;
++            };
++            rest = &after_start[end + 2..];
++        }
++        out.push_str(rest);
++        out
++    }
++
++    fn payload(text: &str) -> Vec<String> {
++        let mut entries = Vec::new();
++        let mut in_mir = false;
++        for line in text.lines() {
++            if line.starts_with("registration\t") {
++                entries.push(line.split('\t').take(4).collect::<Vec<_>>().join("\t"));
++                continue;
++            }
++            if line.starts_with("begin_mir\t") {
++                in_mir = true;
++            }
++            if line.starts_with("access\t") {
++                entries.push(line.to_string());
++            } else if in_mir {
++                entries.push(normalize_body(line));
++            }
++            if line.starts_with("end_mir\t") {
++                in_mir = false;
++            }
++        }
++        entries
++    }
++
++    if !normal.starts_with("creusot-static-atomic-audit-v2\nmode\tNormal\n")
++        || !proof.starts_with("creusot-static-atomic-audit-v2\nmode\tProof\n")
++    {
++        return Err("Gate B requires fresh normal and proof v2 audit reports".into());
++    }
++    if common_header(normal)? != common_header(proof)? {
++        return Err("Gate B normal/proof audit provenance headers differ".into());
++    }
++    let header = common_header(proof)?;
++    let expected = [
++        ("crate", config.crate_name.as_str()),
++        ("target", config.target.as_str()),
++        ("source_sha256", config.source_sha256.as_str()),
++        ("run_id", config.provenance.run_id.as_str()),
++        ("normal_input_sha256", config.provenance.normal_input_sha256.as_str()),
++        ("proof_input_sha256", config.provenance.proof_input_sha256.as_str()),
++        ("compiler_sha256", config.provenance.compiler_sha256.as_str()),
++        ("patch_sha256", config.provenance.patch_sha256.as_str()),
++        ("fixture_sha256", config.provenance.fixture_sha256.as_str()),
++        ("runner_sha256", config.provenance.runner_sha256.as_str()),
++    ];
++    for (key, value) in expected {
++        if header.get(key).copied() != Some(value) {
++            return Err(format!("Gate B report has stale or mismatched provenance for {key}"));
++        }
++    }
++    if payload(normal) != payload(proof) {
++        return Err("Gate B normal/proof executable MIR and access inventories differ".into());
++    }
++    Ok(())
++}
++
+ fn run_audit<'tcx>(
+     config: &AuditConfig,
+     tcx: TyCtxt<'tcx>,
+@@ -289,7 +847,9 @@ fn run_audit<'tcx>(
+             .iter()
+             .find(|(body_id, _)| *body_id == static_id)
+             .map(|(_, body)| body)
+-            .ok_or_else(|| format!("{} has no captured initializer MIR", tcx.def_path_str(static_id)))?;
++            .ok_or_else(|| {
++                format!("{} has no captured initializer MIR", tcx.def_path_str(static_id))
++            })?;
+         validate_initializer(tcx, static_id, initializer_body, atomic_new, initial)?;
+         output.push_str(&format!(
+             "registration\t{}\t{}\tinitial={initial}\tpredicate_checked={}\n",
+@@ -321,19 +881,16 @@ fn run_audit<'tcx>(
+             }
+         }
+         if !static_ids.is_empty() {
+-            let operations = audit_body(
+-                tcx,
+-                body,
+-                *body_id,
+-                &static_ids,
+-                atomic_u8,
+-                &atomic_methods,
+-            )?;
++            let audited = audit_body(tcx, body, *body_id, &static_ids, atomic_u8, &atomic_methods)?;
+             let path = tcx.def_path_str(*body_id);
+-            for (static_id, method) in operations {
++            let mut ordered_operations = audited.operations.iter().collect::<Vec<_>>();
++            ordered_operations
++                .sort_by_key(|(location, _)| (location.block.as_u32(), location.statement_index));
++            for (_, operation) in ordered_operations {
+                 output.push_str(&format!(
+                     "access\t{path}\t{}\t{}\tOrdering::Relaxed\n",
+-                    tcx.def_path_str(static_id), method.as_str()
++                    tcx.def_path_str(operation.static_id),
++                    operation.method.as_str()
+                 ));
+             }
+             output.push_str(&format!("begin_mir\t{path}\n{body:?}\nend_mir\t{path}\n"));
+@@ -348,21 +905,6 @@ fn run_audit<'tcx>(
+     Ok(())
+ }
+ 
+-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+-enum AtomicMethod {
+-    Load,
+-    Store,
+-}
+-
+-impl AtomicMethod {
+-    fn as_str(self) -> &'static str {
+-        match self {
+-            Self::Load => "load",
+-            Self::Store => "store",
+-        }
+-    }
+-}
+-
+ fn atomic_method_ids(
+     tcx: TyCtxt<'_>,
+     atomic_u8: rustc_hir::def_id::DefId,
+@@ -393,7 +935,8 @@ fn atomic_constructor_id(
+ ) -> Option<rustc_hir::def_id::DefId> {
+     for impl_id in tcx.inherent_impls(atomic_u8) {
+         for item in tcx.associated_items(*impl_id).in_definition_order() {
+-            if matches!(item.kind, ty::AssocKind::Fn { name, .. } if name == Symbol::intern("new")) {
++            if matches!(item.kind, ty::AssocKind::Fn { name, .. } if name == Symbol::intern("new"))
++            {
+                 return Some(item.def_id);
+             }
+         }
+@@ -442,9 +985,8 @@ fn validate_initializer<'tcx>(
+     let returns_atomic = destination.local == mir::RETURN_PLACE
+         && destination.projection.is_empty()
+         && body.local_decls[mir::RETURN_PLACE].ty == tcx.type_of(static_id).instantiate_identity();
+-    let returns_after_call = target.is_some_and(|block| {
+-        matches!(body[block].terminator().kind, TerminatorKind::Return)
+-    });
++    let returns_after_call =
++        target.is_some_and(|block| matches!(body[block].terminator().kind, TerminatorKind::Return));
+     if called != Some(atomic_new) || !correct_arg || !returns_atomic || !returns_after_call {
+         return Err(format!(
+             "{} initializer is not the recognized AtomicU8::new(const_u8) form",
+@@ -460,7 +1002,12 @@ struct PlaceCollector<'tcx> {
+ }
+ 
+ impl<'tcx> Visitor<'tcx> for PlaceCollector<'tcx> {
+-    fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: mir::Location) {
++    fn visit_place(
++        &mut self,
++        place: &Place<'tcx>,
++        _context: PlaceContext,
++        _location: mir::Location,
++    ) {
+         self.places.push(*place);
+     }
+ }
+@@ -472,7 +1019,7 @@ fn audit_body<'tcx>(
+     static_ids: &HashSet<rustc_hir::def_id::DefId>,
+     atomic_u8: rustc_hir::def_id::DefId,
+     methods: &HashMap<rustc_hir::def_id::DefId, AtomicMethod>,
+-) -> Result<Vec<(rustc_hir::def_id::DefId, AtomicMethod)>, String> {
++) -> Result<AuditedBody, String> {
+     let mut aliases = vec![HashSet::new(); body.local_decls.len()];
+     for (local, decl) in body.local_decls.iter_enumerated() {
+         if let Some(LocalInfo::StaticRef { def_id, .. }) = local_info(decl)
+@@ -490,13 +1037,23 @@ fn audit_body<'tcx>(
+         let mut changed = false;
+         for block in body.basic_blocks.iter() {
+             for statement in &block.statements {
+-                let StatementKind::Assign(box (destination, rvalue)) = &statement.kind else { continue };
+-                if !destination.projection.is_empty() { continue; }
++                let StatementKind::Assign(box (destination, rvalue)) = &statement.kind else {
++                    continue;
++                };
++                if !destination.projection.is_empty() {
++                    continue;
++                }
+                 let source = match rvalue {
+                     Rvalue::Use(mir::Operand::Copy(place) | mir::Operand::Move(place))
+-                        if place.projection.is_empty() => Some(place.local),
++                        if place.projection.is_empty() =>
++                    {
++                        Some(place.local)
++                    }
+                     Rvalue::Ref(_, mir::BorrowKind::Shared, place)
+-                        if matches!(place.projection.as_ref(), [mir::ProjectionElem::Deref]) => Some(place.local),
++                        if matches!(place.projection.as_ref(), [mir::ProjectionElem::Deref]) =>
++                    {
++                        Some(place.local)
++                    }
+                     _ => None,
+                 };
+                 let Some(source) = source else { continue };
+@@ -509,19 +1066,21 @@ fn audit_body<'tcx>(
+                 }
+             }
+         }
+-        if !changed { break; }
++        if !changed {
++            break;
++        }
+     }
+ 
+-    let mut operations = Vec::new();
++    let mut audited = AuditedBody::default();
+     for (block_index, block) in body.basic_blocks.iter_enumerated() {
+         for (statement_index, statement) in block.statements.iter().enumerate() {
+             match &statement.kind {
+                 StatementKind::Assign(box (destination, rvalue)) => {
+                     let mut collector = PlaceCollector::default();
+-                    collector.visit_rvalue(rvalue, mir::Location {
+-                        block: block_index,
+-                        statement_index,
+-                    });
++                    collector.visit_rvalue(
++                        rvalue,
++                        mir::Location { block: block_index, statement_index },
++                    );
+                     let used = ids_in_places(&collector.places, &aliases);
+                     let destination_ids = place_ids(*destination, &aliases);
+                     if !used.is_empty() {
+@@ -537,14 +1096,22 @@ fn audit_body<'tcx>(
+                         );
+                         if (!alias_copy && !alias_reborrow)
+                             || !destination.projection.is_empty()
+-                            || !is_shared_atomic_ref(body.local_decls[destination.local].ty, atomic_u8)
++                            || !is_shared_atomic_ref(
++                                body.local_decls[destination.local].ty,
++                                atomic_u8,
++                            )
+                             || used.len() > 1
+                         {
+                             return Err(format!(
+                                 "registered static reference escapes through an unsupported assignment in {} at bb{}[{}]",
+-                                tcx.def_path_str(body_id), block_index.as_u32(), statement_index
++                                tcx.def_path_str(body_id),
++                                block_index.as_u32(),
++                                statement_index
+                             ));
+                         }
++                        audited
++                            .alias_assignments
++                            .insert(mir::Location { block: block_index, statement_index });
+                     } else if !destination_ids.is_empty()
+                         && !is_registered_static_reference_initializer(
+                             body,
+@@ -555,21 +1122,29 @@ fn audit_body<'tcx>(
+                     {
+                         return Err(format!(
+                             "registered static alias is overwritten in {} at bb{}[{}]",
+-                            tcx.def_path_str(body_id), block_index.as_u32(), statement_index
++                            tcx.def_path_str(body_id),
++                            block_index.as_u32(),
++                            statement_index
+                         ));
++                    } else if !destination_ids.is_empty() {
++                        audited
++                            .alias_assignments
++                            .insert(mir::Location { block: block_index, statement_index });
+                     }
+                 }
+                 StatementKind::FakeRead(..) => {}
+                 _ => {
+                     let mut collector = PlaceCollector::default();
+-                    collector.visit_statement(statement, mir::Location {
+-                        block: block_index,
+-                        statement_index,
+-                    });
++                    collector.visit_statement(
++                        statement,
++                        mir::Location { block: block_index, statement_index },
++                    );
+                     if !ids_in_places(&collector.places, &aliases).is_empty() {
+                         return Err(format!(
+                             "registered static reference is used by unsupported MIR statement in {} at bb{}[{}]",
+-                            tcx.def_path_str(body_id), block_index.as_u32(), statement_index
++                            tcx.def_path_str(body_id),
++                            block_index.as_u32(),
++                            statement_index
+                         ));
+                     }
+                 }
+@@ -578,12 +1153,10 @@ fn audit_body<'tcx>(
+ 
+         let terminator = block.terminator();
+         match &terminator.kind {
+-            TerminatorKind::Call { func, args, destination, .. } => {
++            TerminatorKind::Call { func, args, destination, target, .. } => {
+                 let mut collector = PlaceCollector::default();
+-                let call_location = mir::Location {
+-                    block: block_index,
+-                    statement_index: block.statements.len(),
+-                };
++                let call_location =
++                    mir::Location { block: block_index, statement_index: block.statements.len() };
+                 collector.visit_operand(func, call_location);
+                 for arg in args.iter() {
+                     collector.visit_operand(&arg.node, call_location);
+@@ -609,10 +1182,12 @@ fn audit_body<'tcx>(
+                         AtomicMethod::Load => 2,
+                         AtomicMethod::Store => 3,
+                     };
+-                    if args.len() != expected_args || used.len() != 1 || !destination_ids.is_empty() {
++                    if args.len() != expected_args || used.len() != 1 || !destination_ids.is_empty()
++                    {
+                         return Err(format!(
+                             "registered static reference reaches malformed AtomicU8::{} call in {}",
+-                            method.as_str(), tcx.def_path_str(body_id)
++                            method.as_str(),
++                            tcx.def_path_str(body_id)
+                         ));
+                     }
+                     let receiver = &args[0].node;
+@@ -627,7 +1202,8 @@ fn audit_body<'tcx>(
+                     if receiver_ids.len() != 1 || receiver_ids != used || nonreceiver_used {
+                         return Err(format!(
+                             "registered static reference is not the sole receiver of AtomicU8::{} in {}",
+-                            method.as_str(), tcx.def_path_str(body_id)
++                            method.as_str(),
++                            tcx.def_path_str(body_id)
+                         ));
+                     }
+                     let ordering_index = expected_args - 1;
+@@ -639,11 +1215,34 @@ fn audit_body<'tcx>(
+                     ) {
+                         return Err(format!(
+                             "registered static AtomicU8::{} uses a non-Relaxed or unresolved ordering in {}",
+-                            method.as_str(), tcx.def_path_str(body_id)
++                            method.as_str(),
++                            tcx.def_path_str(body_id)
++                        ));
++                    }
++                    let result_ty = destination.ty(body, tcx).ty;
++                    let values_well_typed = match method {
++                        AtomicMethod::Load => result_ty == tcx.types.u8,
++                        AtomicMethod::Store => {
++                            args[1].node.ty(body, tcx) == tcx.types.u8
++                                && result_ty == tcx.types.unit
++                        }
++                    };
++                    if destination.projection.len() != 0 || target.is_none() || !values_well_typed {
++                        return Err(format!(
++                            "registered AtomicU8::{} has an unsupported destination or call edge in {}",
++                            method.as_str(),
++                            tcx.def_path_str(body_id)
+                         ));
+                     }
+                     let static_id = *used.iter().next().expect("one static id");
+-                    operations.push((static_id, method));
++                    let operation = StaticAtomicOperation { static_id, method };
++                    let previous = audited.operations.insert(call_location, operation);
++                    if previous.is_some() {
++                        return Err(format!(
++                            "duplicate registered AtomicU8 operation location in {}",
++                            tcx.def_path_str(body_id)
++                        ));
++                    }
+                 }
+             }
+             TerminatorKind::Return => {
+@@ -656,26 +1255,27 @@ fn audit_body<'tcx>(
+             }
+             _ => {
+                 let mut collector = PlaceCollector::default();
+-                collector.visit_terminator(terminator, mir::Location {
+-                    block: block_index,
+-                    statement_index: block.statements.len(),
+-                });
++                collector.visit_terminator(
++                    terminator,
++                    mir::Location { block: block_index, statement_index: block.statements.len() },
++                );
+                 if !ids_in_places(&collector.places, &aliases).is_empty() {
+                     return Err(format!(
+                         "registered static reference is used by unsupported MIR terminator in {} at bb{}",
+-                        tcx.def_path_str(body_id), block_index.as_u32()
++                        tcx.def_path_str(body_id),
++                        block_index.as_u32()
+                     ));
+                 }
+             }
+         }
+     }
+-    if operations.is_empty() {
++    if audited.operations.is_empty() {
+         return Err(format!(
+             "registered static reference has no recognized direct load/store use in {}",
+             tcx.def_path_str(body_id)
+         ));
+     }
+-    Ok(operations)
++    Ok(audited)
+ }
+ 
+ fn local_info<'a, 'tcx>(decl: &'a mir::LocalDecl<'tcx>) -> Option<&'a LocalInfo<'tcx>> {
+@@ -714,16 +1314,10 @@ fn ids_in_places(
+     places: &[Place<'_>],
+     aliases: &[HashSet<rustc_hir::def_id::DefId>],
+ ) -> HashSet<rustc_hir::def_id::DefId> {
+-    places
+-        .iter()
+-        .flat_map(|place| aliases[place.local.as_usize()].iter().copied())
+-        .collect()
++    places.iter().flat_map(|place| aliases[place.local.as_usize()].iter().copied()).collect()
+ }
+ 
+-fn is_shared_atomic_ref(
+-    ref_ty: ty::Ty<'_>,
+-    atomic_u8: rustc_hir::def_id::DefId,
+-) -> bool {
++fn is_shared_atomic_ref(ref_ty: ty::Ty<'_>, atomic_u8: rustc_hir::def_id::DefId) -> bool {
+     matches!(ref_ty.kind(), ty::Ref(_, referent, ty::Mutability::Not)
+         if matches!(referent.kind(), ty::Adt(adt, _) if adt.did() == atomic_u8))
+ }
+@@ -744,14 +1338,24 @@ fn relaxed_ordering_locals<'tcx>(
+     let mut sources = vec![None; body.local_decls.len()];
+     for block in body.basic_blocks.iter() {
+         for statement in &block.statements {
+-            let StatementKind::Assign(box (destination, rvalue)) = &statement.kind else { continue };
+-            if !destination.projection.is_empty() { continue; }
++            let StatementKind::Assign(box (destination, rvalue)) = &statement.kind else {
++                continue;
++            };
++            if !destination.projection.is_empty() {
++                continue;
++            }
+             let source = match rvalue {
+                 rvalue if is_relaxed_ordering_rvalue(tcx, rvalue) => OrderingSource::Relaxed,
+                 Rvalue::Use(mir::Operand::Constant(constant))
+-                    if is_relaxed_constant(tcx, body_id, &constant.const_) => OrderingSource::Relaxed,
++                    if is_relaxed_constant(tcx, body_id, &constant.const_) =>
++                {
++                    OrderingSource::Relaxed
++                }
+                 Rvalue::Use(mir::Operand::Copy(place) | mir::Operand::Move(place))
+-                    if place.projection.is_empty() => OrderingSource::Copy(place.local),
++                    if place.projection.is_empty() =>
++                {
++                    OrderingSource::Copy(place.local)
++                }
+                 _ => OrderingSource::Other,
+             };
+             let index = destination.local.as_usize();
+@@ -775,7 +1379,9 @@ fn relaxed_ordering_locals<'tcx>(
+                 changed = true;
+             }
+         }
+-        if !changed { break; }
++        if !changed {
++            break;
++        }
+     }
+     known
+ }
+@@ -788,8 +1394,9 @@ fn operand_is_relaxed_ordering<'tcx>(
+ ) -> bool {
+     match operand {
+         mir::Operand::Constant(constant) => is_relaxed_constant(tcx, body_id, &constant.const_),
+-        mir::Operand::Copy(place) | mir::Operand::Move(place)
+-            if place.projection.is_empty() => known[place.local.as_usize()],
++        mir::Operand::Copy(place) | mir::Operand::Move(place) if place.projection.is_empty() => {
++            known[place.local.as_usize()]
++        }
+         _ => false,
+     }
+ }
+@@ -802,7 +1409,9 @@ fn is_relaxed_constant<'tcx>(
+     let Some(ordering) = tcx.get_diagnostic_item(Symbol::intern("Ordering")) else { return false };
+     let ty = constant.ty();
+     let ty::Adt(adt, _) = ty.kind() else { return false };
+-    if adt.did() != ordering { return false }
++    if adt.did() != ordering {
++        return false;
++    }
+     let Some((relaxed_index, _)) = adt
+         .variants()
+         .iter_enumerated()
+@@ -817,7 +1426,9 @@ fn is_relaxed_constant<'tcx>(
+ 
+ fn is_relaxed_ordering_rvalue(tcx: TyCtxt<'_>, rvalue: &Rvalue<'_>) -> bool {
+     let Some(ordering) = tcx.get_diagnostic_item(Symbol::intern("Ordering")) else { return false };
+-    let Rvalue::Aggregate(box mir::AggregateKind::Adt(def_id, variant_index, _, _, _), operands) = rvalue else {
++    let Rvalue::Aggregate(box mir::AggregateKind::Adt(def_id, variant_index, _, _, _), operands) =
++        rvalue
++    else {
+         return false;
+     };
+     if *def_id != ordering || !operands.is_empty() {
+@@ -826,7 +1437,11 @@ fn is_relaxed_ordering_rvalue(tcx: TyCtxt<'_>, rvalue: &Rvalue<'_>) -> bool {
+     tcx.adt_def(*def_id).variants()[*variant_index].name == Symbol::intern("Relaxed")
+ }
+ 
+-fn validate_static(tcx: TyCtxt<'_>, def_id: rustc_hir::def_id::DefId, atomic_u8: rustc_hir::def_id::DefId) -> Result<(), String> {
++fn validate_static(
++    tcx: TyCtxt<'_>,
++    def_id: rustc_hir::def_id::DefId,
++    atomic_u8: rustc_hir::def_id::DefId,
++) -> Result<(), String> {
+     match tcx.def_kind(def_id) {
+         DefKind::Static { mutability: rustc_ast::Mutability::Not, .. } => {}
+         _ => return Err(format!("{} is not an immutable static", tcx.def_path_str(def_id))),
+@@ -841,18 +1456,9 @@ fn validate_static(tcx: TyCtxt<'_>, def_id: rustc_hir::def_id::DefId, atomic_u8:
+     if tcx.visibility(def_id).is_public() {
+         return Err(format!("{} is externally visible", tcx.def_path_str(def_id)));
+     }
+-    const FORBIDDEN: &[&str] = &[
+-        "no_mangle",
+-        "export_name",
+-        "linkage",
+-        "link_section",
+-        "used",
+-        "thread_local",
+-    ];
+-    if FORBIDDEN
+-        .iter()
+-        .any(|name| tcx.get_attrs(def_id, Symbol::intern(name)).next().is_some())
+-    {
++    const FORBIDDEN: &[&str] =
++        &["no_mangle", "export_name", "linkage", "link_section", "used", "thread_local"];
++    if FORBIDDEN.iter().any(|name| tcx.get_attrs(def_id, Symbol::intern(name)).next().is_some()) {
+         return Err(format!(
+             "{} has an export, linkage, or thread-local attribute",
+             tcx.def_path_str(def_id)
+@@ -868,9 +1474,10 @@ fn validate_predicate(tcx: TyCtxt<'_>, def_id: rustc_hir::def_id::DefId) -> Resu
+     if !crate::contracts_items::is_logic(tcx, def_id)
+         || crate::contracts_items::is_prophetic(tcx, def_id)
+         || crate::contracts_items::is_trusted(tcx, def_id)
++        || crate::contracts_items::is_opaque(tcx, def_id)
+     {
+         return Err(format!(
+-            "{} must be a checked, nonprophetic logical function",
++            "{} must be a checked, nonprophetic, nonopaque logical function",
+             tcx.def_path_str(def_id)
+         ));
+     }
+@@ -902,7 +1509,9 @@ fn read_initial_byte(tcx: TyCtxt<'_>, def_id: rustc_hir::def_id::DefId) -> Resul
+     }
+     let bytes = allocation
+         .get_bytes_strip_provenance(&tcx, alloc_range(Size::ZERO, Size::from_bytes(1)))
+-        .map_err(|err| format!("{} initializer is not one initialized byte: {err:?}", tcx.def_path_str(def_id)))?;
++        .map_err(|err| {
++            format!("{} initializer is not one initialized byte: {err:?}", tcx.def_path_str(def_id))
++        })?;
+     Ok(bytes[0])
+ }
+ 
+@@ -914,10 +1523,14 @@ fn resolve_local(tcx: TyCtxt<'_>, path: &str) -> Result<rustc_hir::def_id::DefId
+     let Some(def_id) = found.next() else {
+         let candidates = tcx
+             .iter_local_def_id()
+-            .filter(|id| matches!(tcx.def_kind(id.to_def_id()), DefKind::Static { .. } | DefKind::Fn))
++            .filter(|id| {
++                matches!(tcx.def_kind(id.to_def_id()), DefKind::Static { .. } | DefKind::Fn)
++            })
+             .map(|id| tcx.def_path_str(id.to_def_id()))
+             .collect::<Vec<_>>();
+-        return Err(format!("no local definition resolves `{path}`; local static/function paths: {candidates:?}"));
++        return Err(format!(
++            "no local definition resolves `{path}`; local static/function paths: {candidates:?}"
++        ));
+     };
+     if found.next().is_some() {
+         return Err(format!("multiple local definitions resolve `{path}`"));
+@@ -948,7 +1561,9 @@ fn parse_manifest(
+     let mut runner_hash = None;
+     let mut statics = Vec::new();
+     for (line_no, line) in lines.enumerate() {
+-        if line.is_empty() || line.starts_with('#') { continue }
++        if line.is_empty() || line.starts_with('#') {
++            continue;
++        }
+         let fields: Vec<_> = line.split('\t').collect();
+         match fields.as_slice() {
+             ["crate", value] if crate_name.is_none() => crate_name = Some((*value).to_string()),
+@@ -956,29 +1571,52 @@ fn parse_manifest(
+                 manifest_dir = Some(PathBuf::from(value));
+             }
+             ["target", value] if target.is_none() => target = Some((*value).to_string()),
+-            ["source_sha256", value] if manifest_hash.is_none() => manifest_hash = Some((*value).to_string()),
++            ["source_sha256", value] if manifest_hash.is_none() => {
++                manifest_hash = Some((*value).to_string())
++            }
+             ["run_id", value] if run_id.is_none() => run_id = Some((*value).to_string()),
+-            ["normal_input_sha256", value] if normal_input_hash.is_none() => normal_input_hash = Some((*value).to_string()),
+-            ["proof_input_sha256", value] if proof_input_hash.is_none() => proof_input_hash = Some((*value).to_string()),
+-            ["compiler_sha256", value] if compiler_hash.is_none() => compiler_hash = Some((*value).to_string()),
+-            ["patch_sha256", value] if patch_hash.is_none() => patch_hash = Some((*value).to_string()),
+-            ["fixture_sha256", value] if fixture_hash.is_none() => fixture_hash = Some((*value).to_string()),
+-            ["runner_sha256", value] if runner_hash.is_none() => runner_hash = Some((*value).to_string()),
++            ["normal_input_sha256", value] if normal_input_hash.is_none() => {
++                normal_input_hash = Some((*value).to_string())
++            }
++            ["proof_input_sha256", value] if proof_input_hash.is_none() => {
++                proof_input_hash = Some((*value).to_string())
++            }
++            ["compiler_sha256", value] if compiler_hash.is_none() => {
++                compiler_hash = Some((*value).to_string())
++            }
++            ["patch_sha256", value] if patch_hash.is_none() => {
++                patch_hash = Some((*value).to_string())
++            }
++            ["fixture_sha256", value] if fixture_hash.is_none() => {
++                fixture_hash = Some((*value).to_string())
++            }
++            ["runner_sha256", value] if runner_hash.is_none() => {
++                runner_hash = Some((*value).to_string())
++            }
+             ["static", static_path, predicate_path] => statics.push(StaticRegistration {
+                 static_path: (*static_path).to_string(),
+                 predicate_path: (*predicate_path).to_string(),
+             }),
+-            _ => return Err(format!("invalid or duplicate static audit manifest entry on line {}", line_no + 2)),
++            _ => {
++                return Err(format!(
++                    "invalid or duplicate static audit manifest entry on line {}",
++                    line_no + 2
++                ));
++            }
+         }
+     }
+     let crate_name = crate_name.ok_or("manifest is missing crate")?;
+     let manifest_dir = manifest_dir.ok_or("manifest is missing manifest_dir")?;
+-    let manifest_dir = fs::canonicalize(&manifest_dir)
+-        .map_err(|err| format!("cannot canonicalize manifest_dir {}: {err}", manifest_dir.display()))?;
++    let manifest_dir = fs::canonicalize(&manifest_dir).map_err(|err| {
++        format!("cannot canonicalize manifest_dir {}: {err}", manifest_dir.display())
++    })?;
+     let target = target.ok_or("manifest is missing target")?;
+     let manifest_hash = manifest_hash.ok_or("manifest is missing source_sha256")?;
+     if manifest_hash != source_sha256 {
+-        return Err("source hash in manifest does not match the source hash supplied by the audit driver".into());
++        return Err(
++            "source hash in manifest does not match the source hash supplied by the audit driver"
++                .into(),
++        );
+     }
+     let provenance = AuditProvenance {
+         run_id: run_id.ok_or("manifest is missing run_id")?,
+@@ -1034,7 +1672,8 @@ fn required_path(var: &str) -> Result<PathBuf, String> {
+ }
+ 
+ fn is_sha256(value: &str) -> bool {
+-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
++    value.len() == 64
++        && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+ }
+ 
+ fn arg_value<'a>(args: &'a [String], key: &str) -> Option<&'a str> {
+diff --git a/creusot/src/translated_item.rs b/creusot/src/translated_item.rs
+index c52fdb5..517498f 100644
+--- a/creusot/src/translated_item.rs
++++ b/creusot/src/translated_item.rs
+@@ -22,6 +22,10 @@ pub enum TranslatedItem {
+         /// Trait refinement obligations
+         modls: Vec<FileModule>,
+     },
++    StaticAtomic {
++        /// The registered static's independently checked initializer invariant.
++        modl: FileModule,
++    },
+ }
+ 
+ impl<'a> TranslatedItem {
+@@ -31,6 +35,7 @@ impl<'a> TranslatedItem {
+             Logic { proof_modl } => Box::new(proof_modl.into_iter()),
+             Program { modl } => Box::new(modl.into_iter()),
+             Impl { modls } => Box::new(modls.into_iter()),
++            StaticAtomic { modl } => Box::new(std::iter::once(modl)),
+         }
+     }
+ }
+diff --git a/creusot/src/translation.rs b/creusot/src/translation.rs
+index 06f1987..cf8ece9 100644
+--- a/creusot/src/translation.rs
++++ b/creusot/src/translation.rs
+@@ -52,9 +52,11 @@ pub(crate) fn after_analysis<'tcx>(
+     tcx: TyCtxt<'tcx>,
+     opts: Options,
+     params_open_inv: HashMap<DefId, DenseBitSet<usize>>,
++    static_atomics: Option<crate::static_atomic::GateBRegistry>,
+ ) -> Result<(), Box<dyn std::error::Error>> {
+     let start = Instant::now();
+-    let mut ctx = TranslationCtx::new(tcx, opts.clone(), params_open_inv);
++    let mut ctx = TranslationCtx::new(tcx, opts.clone(), params_open_inv, static_atomics);
++    ctx.prepare_static_atomic_bodies().map_err(std::io::Error::other)?;
+     ctx.load_extern_specs();
+     ctx.load_erasures();
+     validate(&ctx);
+@@ -86,11 +88,27 @@ pub(crate) fn after_analysis<'tcx>(
+             why3.translate(impl_id.to_def_id());
+         }
+     }
++    why3.verify_static_atomic_coverage().map_err(std::io::Error::other)?;
+     why3.dcx().abort_if_errors();
+ 
+     debug!("after_analysis_translate: {:?}", start.elapsed());
+     let start = Instant::now();
+ 
++    let static_coverage = if let Some(registry) = why3.ctx.static_atomics.as_ref() {
++        if !opts.should_output {
++            return Err(std::io::Error::other(
++                "Gate B requires a persistent output path for its coverage index",
++            )
++            .into());
++        }
++        Some(
++            crate::static_atomic::coverage_report(&why3, registry)
++                .map_err(std::io::Error::other)?,
++        )
++    } else {
++        None
++    };
++
+     if opts.export_metadata {
+         let metadata = why3.ctx.metadata();
+         metadata::dump_exports(tcx, &opts.extern_paths, metadata);
+@@ -102,11 +120,42 @@ pub(crate) fn after_analysis<'tcx>(
+         let modules = why3.functions.into_iter().flat_map(|item| item.modules());
+         print_crate(output_target, prefix, modules)?;
+     }
++    if let Some(index) = static_coverage {
++        let path = static_atomic_coverage_path(&opts.output, &opts.prefix)?;
++        if let Some(parent) = path.parent() {
++            std::fs::create_dir_all(parent)?;
++        }
++        std::fs::write(path, index)?;
++    }
+     debug!("after_analysis_dump: {:?}", start.elapsed());
+ 
+     Ok(())
+ }
+ 
++fn static_atomic_coverage_path(output: &Output, prefix: &[String]) -> std::io::Result<PathBuf> {
++    match output {
++        Output::Directory(dir) => {
++            let mut path = dir.clone();
++            for segment in prefix {
++                path.push(segment);
++            }
++            path.push("static-atomic-coverage.tsv");
++            Ok(path)
++        }
++        Output::File(file) => {
++            let mut path = file.clone();
++            path.set_file_name(format!(
++                "{}.static-atomic-coverage.tsv",
++                file.file_name().unwrap_or_default().to_string_lossy()
++            ));
++            Ok(path)
++        }
++        Output::Stdout | Output::None => Err(std::io::Error::other(
++            "Gate B requires a file or directory output to write its coverage index",
++        )),
++    }
++}
++
+ pub enum OutputHandle {
+     Directory(PathBuf, Vec<Symbol>), // One file per Coma module, second component is a prefix for all files
+     File(Box<dyn Write>),            // Monolithic output
+diff --git a/creusot/src/translation/constant.rs b/creusot/src/translation/constant.rs
+index 1cc0553..b6749d5 100644
+--- a/creusot/src/translation/constant.rs
++++ b/creusot/src/translation/constant.rs
+@@ -62,6 +62,24 @@ fn value_to_term<'tcx>(
+     Term { kind, ty, span }
+ }
+ 
++/// Translate a checked `u8` value through the same MIR constant path used by
++/// ordinary executable bodies. Static initializer goals need a Rust `u8`
++/// literal, not an untyped Pearlite integer carrying a `u8` Rust type.
++pub(crate) fn u8_to_term<'tcx>(
++    value: u8,
++    ctx: &TranslationCtx<'tcx>,
++    env: TypingEnv<'tcx>,
++    span: Span,
++) -> Term<'tcx> {
++    value_to_term(
++        ConstValue::Scalar(mir::interpret::Scalar::from_u8(value)),
++        ctx.tcx.types.u8,
++        ctx,
++        env,
++        span,
++    )
++}
++
+ fn scalar_to_literal<'tcx>(
+     scalar: ty::ScalarInt,
+     ty: Ty<'tcx>,
+diff --git a/creusot/src/translation/fmir.rs b/creusot/src/translation/fmir.rs
+index 509d4dc..74e1b47 100644
+--- a/creusot/src/translation/fmir.rs
++++ b/creusot/src/translation/fmir.rs
+@@ -99,6 +99,8 @@ pub enum StatementKind<'tcx> {
+         assume: bool, // Whether this assertion stays in context
+     },
+     Call(Place<'tcx>, DefId, GenericArgsRef<'tcx>, Box<[Operand<'tcx>]>, Span),
++    StaticAtomicLoad(Place<'tcx>, DefId, DefId),
++    StaticAtomicStore(Place<'tcx>, Operand<'tcx>, DefId, DefId),
+ }
+ 
+ #[derive(Clone, Debug, TypeFoldable, TypeVisitable)]
+@@ -532,6 +534,11 @@ pub(crate) fn super_visit_stmt<'tcx, V: FmirVisitor<'tcx>>(
+                 visitor.visit_operand(operand);
+             }
+         }
++        StatementKind::StaticAtomicLoad(place, _, _) => visitor.visit_place(place),
++        StatementKind::StaticAtomicStore(place, value, _, _) => {
++            visitor.visit_place(place);
++            visitor.visit_operand(value);
++        }
+     }
+ }
+ 
+@@ -665,6 +672,11 @@ pub(crate) fn super_visit_mut_stmt<'tcx, V: FmirVisitorMut<'tcx>>(
+                 visitor.visit_mut_operand(operand);
+             }
+         }
++        StatementKind::StaticAtomicLoad(place, _, _) => visitor.visit_mut_place(place),
++        StatementKind::StaticAtomicStore(place, value, _, _) => {
++            visitor.visit_mut_place(place);
++            visitor.visit_mut_operand(value);
++        }
+     }
+ }
+ 
+diff --git a/creusot/src/translation/function.rs b/creusot/src/translation/function.rs
+index 1eb2236..722d025 100644
+--- a/creusot/src/translation/function.rs
++++ b/creusot/src/translation/function.rs
+@@ -9,6 +9,7 @@ use crate::{
+     },
+     contracts_items::Intrinsic,
+     ctx::*,
++    static_atomic::StaticAtomicOperation,
+     translation::{
+         constant::mirconst_to_operand,
+         fmir::{self, LocalDecls, RValue, Variant},
+@@ -23,7 +24,11 @@ use rustc_middle::{
+     ty::{Ty, TyCtxt, TyKind, TypingEnv},
+ };
+ use rustc_span::{DUMMY_SP, Span};
+-use std::{assert_matches, collections::HashMap, ops::FnOnce};
++use std::{
++    assert_matches,
++    collections::{HashMap, HashSet},
++    ops::FnOnce,
++};
+ 
+ pub(crate) use self::terminator::discriminator_for_switch;
+ 
+@@ -80,6 +85,11 @@ struct BodyTranslator<'a, 'tcx> {
+     erased_locals: MixedBitSet<Local>,
+ 
+     vars: LocalDecls<'tcx>,
++
++    /// Only assignments approved by the Gate B alias audit are erased.
++    static_alias_assignments: HashSet<mir::Location>,
++    /// Audited AtomicU8 operations in this exact borrow-checked body.
++    static_operations: HashMap<mir::Location, StaticAtomicOperation>,
+ }
+ 
+ pub struct Assertion<'tcx> {
+@@ -153,6 +163,12 @@ impl<'body, 'tcx> BodyTranslator<'body, 'tcx> {
+             erased_locals,
+         } = body_specs;
+         let BodyLocals { locals, vars } = body_locals;
++        let (static_alias_assignments, static_operations) = ctx
++            .static_atomics
++            .as_ref()
++            .and_then(|registry| registry.accessor(body_id.def_id))
++            .map(|audited| (audited.alias_assignments.clone(), audited.operations.clone()))
++            .unwrap_or_default();
+         let mut loop_variants = HashMap::new();
+         for (loop_head, term) in variants {
+             let variant_old_name =
+@@ -167,6 +183,8 @@ impl<'body, 'tcx> BodyTranslator<'body, 'tcx> {
+             locals,
+             vars,
+             erased_locals,
++            static_alias_assignments,
++            static_operations,
+             current_block: (Vec::new(), None),
+             past_blocks: Default::default(),
+             retarget_blocks: vec![],
+@@ -218,6 +236,15 @@ impl<'body, 'tcx> BodyTranslator<'body, 'tcx> {
+             self.past_blocks.insert(bb, block);
+         }
+ 
++        if !self.static_alias_assignments.is_empty() || !self.static_operations.is_empty() {
++            self.tcx().dcx().err(format!(
++                "Gate B MIR coverage mismatch in {}: {} alias statements and {} atomic calls were not translated",
++                self.tcx().def_path_str(self.body_id.def_id),
++                self.static_alias_assignments.len(),
++                self.static_operations.len()
++            ));
++        }
++
+         for (bb, block) in self.retarget_blocks {
+             self.past_blocks.insert(bb, block);
+         }
+diff --git a/creusot/src/translation/function/statement.rs b/creusot/src/translation/function/statement.rs
+index 9feb044..9c98a43 100644
+--- a/creusot/src/translation/function/statement.rs
++++ b/creusot/src/translation/function/statement.rs
+@@ -22,6 +22,9 @@ use rustc_span::Span;
+ 
+ impl<'tcx> BodyTranslator<'_, 'tcx> {
+     pub(super) fn translate_statement(&mut self, statement: &'_ Statement<'tcx>, loc: Location) {
++        if self.static_alias_assignments.remove(&loc) {
++            return;
++        }
+         let si = statement.source_info;
+         self.resolve_at(loc, si.span);
+         self.activate_two_phases(loc, si.span);
+diff --git a/creusot/src/translation/function/terminator.rs b/creusot/src/translation/function/terminator.rs
+index 6f0854d..e4a9cbf 100644
+--- a/creusot/src/translation/function/terminator.rs
++++ b/creusot/src/translation/function/terminator.rs
+@@ -4,6 +4,7 @@ use crate::{
+     contracts_items::Intrinsic,
+     ctx::{HasTyCtxt as _, TranslationCtx},
+     lints::{CONTRACTLESS_EXTERNAL_FUNCTION, Diagnostics},
++    static_atomic::AtomicMethod,
+     translation::{
+         fmir::{self, *},
+         pearlite::{Term, TermKind, UnOp},
+@@ -33,7 +34,10 @@ use std::collections::{HashMap, HashSet};
+ impl<'tcx> BodyTranslator<'_, 'tcx> {
+     pub fn translate_terminator(&mut self, terminator: &mir::Terminator<'tcx>, loc: Location) {
+         let span = terminator.source_info.span;
+-        self.resolve_at(loc, span);
++        let is_static_atomic_access = self.static_operations.contains_key(&loc);
++        if !is_static_atomic_access {
++            self.resolve_at(loc, span);
++        }
+         self.activate_two_phases(loc, span);
+         let mut term = match &terminator.kind {
+             Goto { target } => Terminator::Goto(*target),
+@@ -53,7 +57,47 @@ impl<'tcx> BodyTranslator<'_, 'tcx> {
+                 else {
+                     self.fatal_error(fn_span, "unsupported function call type").emit()
+                 };
+-                if Intrinsic::SnapshotFromFn.is(self.ctx, fun_def_id) {
++                if let Some(operation) = self.static_operations.remove(&loc) {
++                    let Some(spec) = self
++                        .ctx
++                        .static_atomics
++                        .as_ref()
++                        .and_then(|registry| registry.spec(operation.static_id))
++                    else {
++                        self.ctx.crash_and_error(
++                            span,
++                            "Gate B operation has no registered static invariant",
++                        );
++                    };
++                    match operation.method {
++                        AtomicMethod::Load if args.len() == 2 => {
++                            self.emit_statement(fmir::Statement {
++                                kind: fmir::StatementKind::StaticAtomicLoad(
++                                    self.translate_place(destination, span),
++                                    operation.static_id,
++                                    spec.predicate_id,
++                                ),
++                                span: span.source_callsite(),
++                            });
++                        }
++                        AtomicMethod::Store if args.len() == 3 => {
++                            let value = self.translate_operand(&args[1].node, args[1].span);
++                            self.emit_statement(fmir::Statement {
++                                kind: fmir::StatementKind::StaticAtomicStore(
++                                    self.translate_place(destination, span),
++                                    value,
++                                    operation.static_id,
++                                    spec.predicate_id,
++                                ),
++                                span: span.source_callsite(),
++                            });
++                        }
++                        _ => self.ctx.crash_and_error(
++                            span,
++                            "Gate B AtomicU8 operation arguments changed after MIR audit",
++                        ),
++                    }
++                } else if Intrinsic::SnapshotFromFn.is(self.ctx, fun_def_id) {
+                     let GenericArgKind::Type(ty) = subst.get(1).unwrap().kind() else {
+                         unreachable!()
+                     };
