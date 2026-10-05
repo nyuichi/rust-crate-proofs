@@ -1645,8 +1645,36 @@ impl BytesMut {
         remaining.packet.0.logical_id() != self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() ==> remaining.matches(^context.inner_logic())))]
     #[cfg_attr(all(creusot, bytes_proof_unsplit_independent), ensures(forall<remaining: sequential_shared_control::HandleRegistration> remaining.matches(*other_context.inner_logic()) &&
         remaining.packet.0.logical_id() != other.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() ==> remaining.matches(^other_context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), requires((self.proof_initialized() || self.proof_empty_valid()) && (other.proof_initialized() || other.proof_empty_valid())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), requires(((self.proof_unique_owned() || self.proof_empty_valid()) && other.proof_registered_valid()) || (self.proof_registered_valid() && (other.proof_unique_owned() || other.proof_empty_valid()))))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), requires(self.shared_context.inner_logic()==None && other.shared_context.inner_logic()==None))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), requires(self.shared_registration.inner_logic()!=None ==> self.shared_registration.inner_logic().unwrap_logic().matches(*context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), requires(other.shared_registration.inner_logic()!=None ==> other.shared_registration.inner_logic().unwrap_logic().matches(*context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), requires((*context.inner_logic().status.pending).len()>=1))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), requires(self.len@+other.len@<=isize::MAX@))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures((^self).proof_initialized() || (^self).proof_empty_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures((^self).shared_registration.inner_logic()!=None ==> (^self).shared_registration.inner_logic().unwrap_logic().matches(^context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures((^self).shared_context.inner_logic()==None))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures(self.len==0usize ==> ^self==other))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures(self.len!=0usize && other.cap==0usize ==> ^self==*self))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures(self.len!=0usize && other.cap!=0usize ==> (^self).proof_unique_at_zero_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures((^self).len@==self.len@+other.len@))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures(forall<i:Int> 0<=i && i<(^self).len@ ==> (^self).proof_view_slot(i)==if i<self.len@{self.proof_view_slot(i)}else{other.proof_view_slot(i-self.len@)}))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures((^context.inner_logic()).valid(if self.shared_registration.inner_logic()!=None{self.shared_registration.inner_logic().unwrap_logic().control}else{other.shared_registration.inner_logic().unwrap_logic().control})))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures((* (^context.inner_logic()).status.pending).len()+(if ((self.len==0usize && self.shared_registration.inner_logic()!=None) || (self.len!=0usize && (other.cap!=0usize || other.shared_registration.inner_logic()!=None))){1}else{0})==(*context.inner_logic().status.pending).len()))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures((^context.inner_logic()).active()==if ((self.len==0usize && self.shared_registration.inner_logic()!=None) || (self.len!=0usize && (other.cap!=0usize || other.shared_registration.inner_logic()!=None))){(*context.inner_logic().status.pending).len()>=2}else{context.inner_logic().active()}))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_mixed), ensures(forall<remaining:sequential_shared_control::HandleRegistration> remaining.matches(*context.inner_logic()) &&
+        remaining.packet.0.logical_id()!=(if self.shared_registration.inner_logic()!=None{self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id()}else{other.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id()}) ==> remaining.matches(^context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_unique), requires(((self.proof_unique_owned() && self.proof_initialized()) || self.proof_empty_valid()) && ((other.proof_unique_owned() && other.proof_initialized()) || other.proof_empty_valid())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_unique), requires(self.len@+other.len@<=isize::MAX@))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_unique), ensures(((^self).proof_unique_owned() && (^self).proof_initialized()) || (^self).proof_empty_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_unique), ensures(self.len==0usize ==> ^self==other))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_unique), ensures(self.len!=0usize && other.cap==0usize ==> ^self==*self))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_unique), ensures(self.len!=0usize && other.cap!=0usize ==> (^self).proof_unique_at_zero_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_unique), ensures((^self).len@==self.len@+other.len@))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_unique), ensures(forall<i:Int> 0<=i && i<(^self).len@ ==> (^self).proof_view_slot(i)==if i<self.len@{self.proof_view_slot(i)}else{other.proof_view_slot(i-self.len@)}))]
     pub fn unsplit(&mut self, other: BytesMut,
-        #[cfg(any(bytes_proof_adjacent_unsplit, bytes_proof_unsplit_fallbacks, bytes_proof_unsplit_independent))] context: Ghost<&mut sequential_shared_control::ControlContext>,
+        #[cfg(any(bytes_proof_adjacent_unsplit, bytes_proof_unsplit_fallbacks, bytes_proof_unsplit_independent, bytes_proof_unsplit_mixed))] context: Ghost<&mut sequential_shared_control::ControlContext>,
         #[cfg(bytes_proof_unsplit_independent)] other_context: Ghost<&mut sequential_shared_control::ControlContext>,
     ) {
         #[cfg(bytes_proof_adjacent_unsplit)]
@@ -1691,7 +1719,35 @@ impl BytesMut {
                 mem::forget(mem::replace(self, output));
             }
         }
-        #[cfg(not(any(bytes_proof_adjacent_unsplit, bytes_proof_unsplit_fallbacks, bytes_proof_unsplit_independent)))]
+        #[cfg(bytes_proof_unsplit_mixed)]
+        {
+            ghost!{shared_unsplit_mixed::empty_metadata_bits();};
+            if self.len == 0 {
+                let previous = mem::replace(self, other);
+                if previous.kind() == KIND_VEC { shared_unsplit_mixed::retire_unique(previous); }
+                else { let _ = previous.proof_carrier_release(context); }
+            } else if other.cap == 0 {
+                if other.kind() == KIND_VEC { shared_unsplit_mixed::retire_unique(other); }
+                else { let _ = other.proof_carrier_release(context); }
+            } else {
+                let output = shared_unsplit_mixed::copy_pair(self, &other);
+                let previous = mem::replace(self, output);
+                shared_unsplit_mixed::retire_pair(previous, other, context);
+            }
+        }
+        #[cfg(bytes_proof_unsplit_unique)]
+        {
+            if self.len == 0 {
+                shared_unsplit_mixed::retire_unique(mem::replace(self, other));
+            } else if other.cap == 0 {
+                shared_unsplit_mixed::retire_unique(other);
+            } else {
+                let output = shared_unsplit_mixed::copy_pair(self, &other);
+                shared_unsplit_mixed::retire_unique(mem::replace(self, output));
+                shared_unsplit_mixed::retire_unique(other);
+            }
+        }
+        #[cfg(not(any(bytes_proof_adjacent_unsplit, bytes_proof_unsplit_fallbacks, bytes_proof_unsplit_independent, bytes_proof_unsplit_mixed, bytes_proof_unsplit_unique)))]
         {
         if self.is_empty() {
             *self = other;
@@ -4898,3 +4954,7 @@ pub(crate) mod shared_unsplit_fallbacks;
 #[cfg(bytes_proof_unsplit_independent)]
 #[path = "ownership_proof/shared_unsplit_independent.rs"]
 pub(crate) mod shared_unsplit_independent;
+
+#[cfg(any(bytes_proof_unsplit_mixed, bytes_proof_unsplit_unique))]
+#[path = "ownership_proof/shared_unsplit_mixed.rs"]
+pub(crate) mod shared_unsplit_mixed;
