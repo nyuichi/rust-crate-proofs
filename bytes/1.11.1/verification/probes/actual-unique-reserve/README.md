@@ -29,5 +29,12 @@ bash verify.bash
 ```
 
 Why3 execution requires elevated execution and uses the shared proof lock.
-Additional resize/append growth callers are under development on top of this
-baseline; a 120-file replay does not prove those new callers.
+The separate growing resize/append replay passes124 files with zero unproved
+leaves, with four native tests, under the unique-only cfg. It proves exact
+resize/extend bodies, retained contents, newly initialized slots and explicit
+cleanup. `evidence/cloud-growth/cloud-growth.tar.gz` contains the proof-time
+snapshot and correspondence notes. The archived124 proof reports and preserved observed-result receipt are the
+evidence.
+Its terminal proof stdout was not captured, and a later source-only replay
+confirmed exact generated source after removing two later Shared assertions.
+The 120-file baseline alone does not establish this later caller increment.

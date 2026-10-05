@@ -26,3 +26,8 @@ join. Its fresh replay rejects the final reclamation caller at 13/14 goals;
 source, Coma, proof JSON and log. Run `bash run-proof.sh --features
 negative_missing_fraction` to repeat it. Current native Clone diagnostics live
 in the separate `native-integration-frontier` diagnostic archive.
+
+The production immutable B4/frozen-reader classification was replayed separately:
+all 64 files pass again. `evidence/readonly-positive.{tar.gz,json}` records that
+exact source/proof snapshot. The classification changes no native reads or
+writes and adds no protocol trust.
