@@ -1,0 +1,218 @@
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 54 files, 10.7MiB total
+    Checking bytes-scalable-tickets v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets)
+warning: unnecessary parentheses around match arm expression
+   --> src/../../../../src/ownership_proof/scalable_tickets.rs:364:27
+    |
+364 |             Some(pool) => (forall<id: Int> match (*state.status.pending).get(id) {
+    |                           ^
+...
+368 |             }),
+    |              ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+364 ~             Some(pool) => forall<id: Int> match (*state.status.pending).get(id) {
+365 |                 None => true,
+366 |                 Some((lo, hi)) =>
+367 |                     (forall<index: Int> lo <= index && index < hi ==> !pool.contains(index)),
+368 ~             },
+    |
+
+warning: unnecessary parentheses around match arm expression
+   --> src/../../../../src/ownership_proof/scalable_tickets.rs:367:21
+    |
+367 |                     (forall<index: Int> lo <= index && index < hi ==> !pool.contains(index)),
+    |                     ^                                                                      ^
+    |
+help: remove these parentheses
+    |
+367 -                     (forall<index: Int> lo <= index && index < hi ==> !pool.contains(index)),
+367 +                     forall<index: Int> lo <= index && index < hi ==> !pool.contains(index),
+    |
+
+warning: unnecessary parentheses around block return value
+   --> src/../../../../src/ownership_proof/scalable_tickets.rs:378:9
+    |
+378 |         (forall<left: Int, right: Int> match
+    |         ^
+...
+383 |         })
+    |          ^
+    |
+help: remove these parentheses
+    |
+378 ~         forall<left: Int, right: Int> match
+379 |             ((*state.status.pending).get(left), (*state.status.pending).get(right)) {
+...
+382 |             _ => true,
+383 ~         }
+    |
+
+warning: unnecessary parentheses around match arm expression
+   --> src/../../../../src/ownership_proof/scalable_tickets.rs:392:27
+    |
+392 |             Some(pool) => (forall<index: Int> pool.contains(index) == (
+    |                           ^
+...
+395 |             )),
+    |              ^
+    |
+help: remove these parentheses
+    |
+392 ~             Some(pool) => forall<index: Int> pool.contains(index) == (
+393 |                 0 <= index && index < state.status.capacity &&
+394 |                 pending_outside(*state.status.pending, index)
+395 ~             ),
+    |
+
+warning: unused import: `owned_region`
+  --> src/lib.rs:20:28
+   |
+20 |     pub(crate) use crate::{owned_region, raw_vec};
+   |                            ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `pointer_addr_eq` is never used
+  --> src/../../../../src/provenance_specs.rs:19:15
+   |
+19 | pub(crate) fn pointer_addr_eq<T>(left: *const T, right: *const T) -> bool {
+   |               ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `pointer_addr` is never used
+  --> src/../../../../src/provenance_specs.rs:51:15
+   |
+51 | pub(crate) fn pointer_addr<T>(ptr: *const T) -> usize {
+   |               ^^^^^^^^^^^^
+
+warning: function `wrapping_offset` is never used
+  --> src/../../../../src/provenance_specs.rs:75:15
+   |
+75 | pub(crate) fn wrapping_offset(ptr: *mut u8, offset: usize) -> *mut u8 {
+   |               ^^^^^^^^^^^^^^^
+
+warning: function `pointer_with_address` is never used
+  --> src/../../../../src/provenance_specs.rs:86:15
+   |
+86 | pub(crate) fn pointer_with_address(ptr: *mut u8, new_addr: usize) -> *mut u8 {
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `metadata_pointer` is never used
+  --> src/../../../../src/provenance_specs.rs:96:15
+   |
+96 | pub(crate) fn metadata_pointer(addr: usize) -> *mut u8 {
+   |               ^^^^^^^^^^^^^^^^
+
+warning: methods `slots` and `join` are never used
+   --> src/../../../../src/ownership_proof/owned_region.rs:149:19
+    |
+ 95 | impl OwnedRegion {
+    | ---------------- methods in this implementation
+...
+149 |     pub(crate) fn slots(self) -> FMap<Int, Excl<Option<u8>>> {
+    |                   ^^^^^
+...
+243 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: associated items `unbound`, `as_non_null`, `retreat_within`, and `advance_within` are never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:182:19
+    |
+171 | impl BoundPtr {
+    | ------------- associated items in this implementation
+...
+182 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
+    |                   ^^^^^^^
+...
+203 |     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
+    |                   ^^^^^^^^^^^
+...
+215 |     pub(crate) fn retreat_within(&self, count: usize) -> Self {
+    |                   ^^^^^^^^^^^^^^
+...
+261 |     pub(crate) fn advance_within(&self, count: usize) -> Self {
+    |                   ^^^^^^^^^^^^^^
+
+warning: method `join` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:495:19
+    |
+409 | impl PhysicalRegion {
+    | ------------------- method in this implementation
+...
+495 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: function `resume_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:795:22
+    |
+795 | pub(crate) unsafe fn resume_vec(
+    |                      ^^^^^^^^^^
+
+warning: function `deallocate_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:831:22
+    |
+831 | pub(crate) unsafe fn deallocate_vec(
+    |                      ^^^^^^^^^^^^^^
+
+warning: function `borrow_mut` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:915:22
+    |
+915 | pub(crate) unsafe fn borrow_mut<'a>(
+    |                      ^^^^^^^^^^
+
+warning: function `slot_known` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:931:15
+    |
+931 | pub(crate) fn slot_known(slot: Option<Option<u8>>) -> bool {
+    |               ^^^^^^^^^^
+
+warning: function `slot_known_equivalence` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:937:15
+    |
+937 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_bound_mut` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:976:22
+    |
+976 | pub(crate) unsafe fn borrow_bound_mut<'a>(
+    |                      ^^^^^^^^^^^^^^^^
+
+warning: function `borrow_bound_uninit_mut` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1016:22
+     |
+1016 | pub(crate) unsafe fn borrow_bound_uninit_mut<'a>(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_bound` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1043:22
+     |
+1043 | pub(crate) unsafe fn borrow_bound<'a>(
+     |                      ^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1057:22
+     |
+1057 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
+     |                      ^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound_mut` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1066:22
+     |
+1066 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound_uninit_mut` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1074:22
+     |
+1074 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `bytes-scalable-tickets` (lib) generated 24 warnings (run `cargo fix --lib -p bytes-scalable-tickets` to apply 5 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.74s
+No dangling files found
+Proved (45 files) ✔

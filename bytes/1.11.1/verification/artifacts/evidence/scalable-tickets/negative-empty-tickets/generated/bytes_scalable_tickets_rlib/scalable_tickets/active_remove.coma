@@ -1,0 +1,140 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/scalable_tickets.rs" 159 0 159 77 *)
+
+let%span sfmap = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 77 14 77 67
+let%span sfmap'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 78 14 78 84
+let%span sfmap'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 168 40 168 65
+let%span sfmap'2 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 171 12 171 41
+let%span sfmap'3 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 196 14 199 5
+let%span sfmap'4 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 200 14 200 40
+let%span sfmap'5 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'6 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'7 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 88 8 88 32
+let%span smapping = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/mapping.rs" 66 8 66 19
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span sscalable_tickets = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/scalable_tickets.rs" 160 52 160 96
+let%span sscalable_tickets'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/scalable_tickets.rs" 161 53 161 95
+let%span sscalable_tickets'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/scalable_tickets.rs" 162 18 162 40
+let%span sscalable_tickets'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/scalable_tickets.rs" 157 10 158 46
+let%span sscalable_tickets'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/scalable_tickets.rs" 87 16 87 54
+
+use map.Map
+use creusot.prelude.Any
+use int.Int
+
+type t_FMap_Int_tup2_Int_Int
+
+type t_FMap_Int_Excl_unit
+
+type tup2_Int_Int = { f0: int; f1: int }
+
+type tup2_Int_tup2_Int_Int = { f0'0: int; f1'0: tup2_Int_Int }
+
+type t_Excl_unit = { f0'1: () }
+
+type t_Option_Excl_unit = None | Some t_Excl_unit
+
+function to_mapping_Int (self: t_FMap_Int_Excl_unit) : Map.map int t_Option_Excl_unit
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_unit) (k: int) : t_Option_Excl_unit =
+  [%#sfmap'7] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+type t_Option_tup2_Int_Int = None'0 | Some'0 tup2_Int_Int
+
+function to_mapping_Int'0 (self: t_FMap_Int_tup2_Int_Int) : Map.map int t_Option_tup2_Int_Int
+
+function get_Int'0 [@inline:trivial] (self: t_FMap_Int_tup2_Int_Int) (k: int) : t_Option_tup2_Int_Int =
+  [%#sfmap'7] Map.get (to_mapping_Int'0 self) k
+
+meta "rewrite_def" function get_Int'0
+
+function index_Mapping_tup2_Int_tup2_Int_Int_Excl_unit [@inline:trivial] (self: Map.map tup2_Int_tup2_Int_Int t_Excl_unit) (a: tup2_Int_tup2_Int_Int) : t_Excl_unit
+ = [%#smapping] Map.get self a
+
+meta "rewrite_def" function index_Mapping_tup2_Int_tup2_Int_Int_Excl_unit
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_unit) : int
+
+axiom len_Int_spec: forall self: t_FMap_Int_Excl_unit [len_Int self]. [%#sfmap'5] ge_log_Int (len_Int self) 0
+
+function len_Int'0 (self: t_FMap_Int_tup2_Int_Int) : int
+
+axiom len_Int_spec'0: forall self: t_FMap_Int_tup2_Int_Int [len_Int'0 self]. [%#sfmap'5] ge_log_Int (len_Int'0 self) 0
+
+function map_Int (self: t_FMap_Int_tup2_Int_Int) (f: Map.map tup2_Int_tup2_Int_Int t_Excl_unit) : t_FMap_Int_Excl_unit
+
+axiom map_Int_spec:
+  forall self: t_FMap_Int_tup2_Int_Int, f: Map.map tup2_Int_tup2_Int_Int t_Excl_unit [map_Int self f]. [%#sfmap'3] forall k: int [get_Int (map_Int self f) k]. get_Int (map_Int self f) k
+      = match get_Int'0 self k with
+        | None'0 -> None
+        | Some'0 v -> Some (index_Mapping_tup2_Int_tup2_Int_Int_Excl_unit f { f0'0 = k; f1'0 = v })
+        end
+
+axiom map_Int_spec'0:
+  forall self: t_FMap_Int_tup2_Int_Int, f: Map.map tup2_Int_tup2_Int_Int t_Excl_unit [map_Int self f]. [%#sfmap'4] len_Int (map_Int self f)
+    = len_Int'0 self
+
+function active_registrations [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/scalable_tickets.rs" 86 0 86 74] (pending: t_FMap_Int_tup2_Int_Int) : t_FMap_Int_Excl_unit
+ =
+  [%#sscalable_tickets'3] map_Int pending (fun (__0: tup2_Int_tup2_Int_Int) -> let {f0'0 = _id; f1'0 = _bounds} = __0 in { f0'1 = () })
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_tup2_Int_Int) (k: int) =
+  [%#sfmap'6] get_Int'0 self k <> None'0
+
+meta "rewrite_def" predicate contains_Int
+
+function remove_Int (self: t_FMap_Int_tup2_Int_Int) (k: int) : t_FMap_Int_tup2_Int_Int
+
+axiom remove_Int_spec:
+  forall self: t_FMap_Int_tup2_Int_Int, k: int [remove_Int self k]. [%#sfmap] to_mapping_Int'0 (remove_Int self k)
+    = Map.set (to_mapping_Int'0 self) k (None'0)
+
+axiom remove_Int_spec'0:
+  forall self: t_FMap_Int_tup2_Int_Int, k: int [remove_Int self k]. [%#sfmap'0] len_Int'0 (remove_Int self k)
+    = (if contains_Int self k then len_Int'0 self - 1 else len_Int'0 self)
+
+predicate contains_Int'0 [@inline:trivial] (self: t_FMap_Int_Excl_unit) (k: int) = [%#sfmap'6] get_Int self k <> None
+
+meta "rewrite_def" predicate contains_Int'0
+
+function remove_Int'0 (self: t_FMap_Int_Excl_unit) (k: int) : t_FMap_Int_Excl_unit
+
+axiom remove_Int_spec'1:
+  forall self: t_FMap_Int_Excl_unit, k: int [remove_Int'0 self k]. [%#sfmap] to_mapping_Int (remove_Int'0 self k)
+    = Map.set (to_mapping_Int self) k (None)
+
+axiom remove_Int_spec'2:
+  forall self: t_FMap_Int_Excl_unit, k: int [remove_Int'0 self k]. [%#sfmap'0] len_Int (remove_Int'0 self k)
+    = (if contains_Int'0 self k then len_Int self - 1 else len_Int self)
+
+predicate ext_eq_Int (self: t_FMap_Int_Excl_unit) (other: t_FMap_Int_Excl_unit) =
+  [%#sfmap'2] forall k: int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec: forall self: t_FMap_Int_Excl_unit, other: t_FMap_Int_Excl_unit [self
+    = other]. [%#sfmap'1] ext_eq_Int self other = (self = other)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let active_remove [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/scalable_tickets.rs" 159 0 159 77]
+  (pending: t_FMap_Int_tup2_Int_Int) (id: int) (return (x: ())) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &left <- [%#sscalable_tickets] active_registrations (remove_Int pending id) ] s1
+    | s1 = [ &right <- [%#sscalable_tickets'0] remove_Int'0 (active_registrations pending) id ] s2
+    | s2 = {[@expl:assertion] [%#sscalable_tickets'1] ext_eq_Int left right} s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & pending: t_FMap_Int_tup2_Int_Int = pending
+  | & id: int = id
+  | & left: t_FMap_Int_Excl_unit = Any.any_l ()
+  | & right: t_FMap_Int_Excl_unit = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:active_remove ensures] [%#sscalable_tickets'2] active_registrations (remove_Int pending id)
+    = remove_Int'0 (active_registrations pending) id}
+    (! return {result}) ]

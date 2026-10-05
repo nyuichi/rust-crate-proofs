@@ -10,6 +10,12 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-05)
 
+The scalable ticket inventory introduces no trusted primitive or theorem.
+Existing Authority/Fragment, PhysicalRegion/Pool and B1/B3 foundations are
+composed by body-proved registry replacement/retirement, map conservation and
+full recovery. 45 files pass; the empty-ticket negative has one intended guard
+among 46 files. Native refcount and actual BytesMut integration remain separate.
+
 The concrete slice Buf fixed-width override gate adds no TCB: 17 exact method
 bodies compose the existing proved readers and standard Option::ok_or. 55 files
 pass; the wrong-available negative has exactly one rejected leaf among 56 files.

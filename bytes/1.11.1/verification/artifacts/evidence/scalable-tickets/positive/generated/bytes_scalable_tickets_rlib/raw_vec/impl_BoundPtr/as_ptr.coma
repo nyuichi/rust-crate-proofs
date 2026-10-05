@@ -1,0 +1,112 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 196 4 196 42 *)
+
+(* raw_vec::BoundPtr *)
+
+let%span sptr = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 142 8 142 35
+let%span sraw_vec = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 197 8 197 29
+let%span sraw_vec'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 196 26 196 30
+let%span sraw_vec'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 195 14 195 37
+let%span sraw_vec'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 158 12 166 13
+let%span sraw_vec'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 141 12 148 13
+let%span sraw_vec'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 176 20 176 46
+let%span sinvariant = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/invariant.rs" 85 8 85 18
+let%span snonnull = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr/nonnull.rs" 80 24 80 28
+let%span snonnull'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr/nonnull.rs" 79 18 79 33
+let%span snonnull'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span snonnull'2 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr/nonnull.rs" 38 8 38 32
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+use creusot.int.Int64
+use int.Int
+
+type t_NonNull_u8
+
+type t_Id
+
+type t_BoundPtrBinding = { namespace: t_Id; allocation_capacity: int; absolute_offset: int }
+
+type t_Option_BoundPtrBinding = None | Some t_BoundPtrBinding
+
+type t_BoundPtr = { pointer: t_NonNull_u8; binding: t_Option_BoundPtrBinding }
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull'2] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull'1] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+let as_ptr_u8 (self_: t_NonNull_u8) (return (x: Opaque.ptr)) =
+{[@stop_split] [@expl:as_ptr 'self_' type invariant] [%#snonnull] inv_NonNull_u8 self_}
+  any
+  [ return (result: Opaque.ptr) -> {[@stop_split] [@expl:as_ptr ensures] [%#snonnull'0] result = view_NonNull_u8 self_}
+    (! return {result}) ]
+
+type tup3_Id_Int_Int = { f0: t_Id; f1: int; f2: int }
+
+type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 139 4 139 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+ = [%#sraw_vec'3] match self.binding with
+    | None -> None'0
+    | Some binding'0 -> Some'0 { f0 = binding'0.namespace;
+                                 f1 = binding'0.allocation_capacity;
+                                 f2 = binding'0.absolute_offset }
+    end
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function current_address [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 175 4 175 39] (self: t_BoundPtr) : int
+ = [%#sraw_vec'4] UInt64.t'int (addr_NonNull_u8 self.pointer)
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 156 4 156 30] (self: t_BoundPtr) =
+  [%#sraw_vec'2] match view_BoundPtr self with
+    | None'0 -> true
+    | Some'0 {f1 = allocation_capacity'0; f2 = absolute_offset'0} -> 0 <= absolute_offset'0
+    /\ absolute_offset'0 <= allocation_capacity'0
+    /\ allocation_capacity'0 <= Int64.to_int const_MAX
+    /\ absolute_offset'0 < current_address self
+    /\ current_address self + allocation_capacity'0 - absolute_offset'0 <= UInt64.t'int const_MAX'0
+    end
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x
+    = (invariant_BoundPtr x /\ inv_NonNull_u8 x.pointer)
+
+predicate invariant_ref_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sinvariant] inv_BoundPtr self
+
+meta "rewrite_def" predicate invariant_ref_BoundPtr
+
+predicate inv_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_ref_BoundPtr _1
+
+meta "rewrite_def" predicate inv_ref_BoundPtr
+
+predicate is_null_ptr_u8 (self: Opaque.ptr) = [%#sptr] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let as_ptr [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/scalable-tickets/src/../../../../src/ownership_proof/raw_vec.rs" 196 4 196 42]
+  (self: t_BoundPtr) (return (x: Opaque.ptr)) =
+{[@stop_split] [@expl:as_ptr 'self' type invariant] [%#sraw_vec'0] inv_ref_BoundPtr self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = as_ptr_u8 [%#sraw_vec] {self.pointer} (fun (_x: Opaque.ptr) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: Opaque.ptr = Any.any_l () | & self: t_BoundPtr = self ])
+  [ return (result: Opaque.ptr) -> {[@stop_split] [@expl:as_ptr ensures] [%#sraw_vec'1] not is_null_ptr_u8 result}
+    (! return {result}) ]

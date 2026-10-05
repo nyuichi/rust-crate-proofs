@@ -2,6 +2,16 @@
 
 ## Current working-tree status (2026-10-05)
 
+The scalable sequential ticket/physical-region protocol passes 45 proof files
+with zero unproved leaves and one native matrix. It supports repeated affine
+replacement, exact dynamic pending entries, fresh monotonic IDs, disjoint
+regions, returned/active fragment conservation, and full original B3 recovery.
+The 46-file negative rejects exactly finish's pending-empty guard (10/11) when
+all bytes have returned but two empty-region tickets remain. All protocol and
+map-conservation helper bodies are proved; no TCB is added. This prototype does
+not yet connect actual BytesMut split, native refcount or automatic Drop.
+Canonical evidence is under scalable-tickets.
+
 Concrete slice Buf checked-read bodies now pass a 55-file gate with zero
 unproved leaves and two native matrices: try_get_u8 plus signed/unsigned
 16/32/64/128-bit readers in both endian orders (17 methods). The exact source
