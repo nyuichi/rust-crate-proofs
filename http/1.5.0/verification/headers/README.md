@@ -35,24 +35,40 @@ The current focused HeaderValue source SHA
 `197fe1071f054c5f018fe1a8cc21266d679164a77088b9459eeb2ee3dd34330e` has a
 fresh 333-COMA Creusot emission. Four error-formatter bodies and their four
 trait refinements are proved: 25 body children plus 8 refinement children,
-33/33 total, with no null children. These results establish the recorded
-`formatter_extends` postconditions and refinements using the imported
-formatter contracts; they do not prove the standard library formatter
-implementations or every concrete output string. The proof inputs freeze Name
-SHA `966107ba…`, not the later live Name source. The focused manifest, commands,
+33/33 total. The indexed `HeaderValue` Debug body/refinement contributes 57/57
+more, and its transitivity/writer helpers contribute 39/39, for all 129 own
+tasks across the 13 focused targets. The batches are recorded in
+[`value_error_formatters_current_2026-10-05.json`](evidence/value_current_emission_2026-10-05/proof_batches/value_error_formatters_current_2026-10-05.json),
+[`value_formatter_helpers_current_2026-10-05.json`](evidence/value_current_emission_2026-10-05/proof_batches/value_formatter_helpers_current_2026-10-05.json),
+and
+[`value_debug_current_2026-10-05.json`](evidence/value_current_emission_2026-10-05/proof_batches/value_debug_current_2026-10-05.json).
+
+All verified formatter postconditions establish `formatter_extends`: the
+output preserves the previous formatter contents as a prefix. They do not
+specify exact rendered text or suffix length. Writer lemmas also have explicit
+ASCII or byte-classification preconditions. Imported Formatter, slice, and
+standard UTF-8 contracts remain assumptions. The current local
+`is_visible_ascii` callee proof has not been reconciled to this emission and is
+not included in the 129-task count. The proof inputs freeze Name SHA
+`966107ba…`, not the later live Name source. The focused manifest, commands,
 proof trees, and hashes are in
 [`value_current_emission_2026-10-05`](evidence/value_current_emission_2026-10-05/manifest.json).
 The independent Why3 task extraction matched all 33 archived task contexts
 byte-for-byte and reconciled the proof JSON tree; see its arity audit and task
 hash ledger in that directory. Astra's read-only independent audit, including
-the reviewed formatter boundary, is recorded in
-[`independent_audit.md`](evidence/value_current_emission_2026-10-05/independent_audit.md).
+the reviewed formatter boundary for all three batches, is recorded in
+[`independent-astra-audit`](evidence/value_current_emission_2026-10-05/independent-astra-audit/report.json),
+[`helpers-report.json`](evidence/value_current_emission_2026-10-05/independent-astra-audit/helpers-report.json),
+and
+[`debug-report.json`](evidence/value_current_emission_2026-10-05/independent-astra-audit/debug-report.json).
 
-The same emission includes the indexed `HeaderValue` Debug body/refinement and
-writer/transitivity helpers. Their exact direct arities are 54, 3, 7, 29, and
-3 respectively (96 tasks total), and none is proved in the 33-child batch.
-They remain open work. No claim is made that HeaderValue Debug or the full
-formatter path is proved.
+The same emission includes the indexed `HeaderValue` Debug body/refinement
+(54+3 direct tasks), plus its append-transitivity and writer helpers. A later
+bounded batch proves all 39 helper tasks: transitivity 3, ASCII writer 7, and
+escaped-byte writer 29, with no nulls. Its command, log, and proof trees are in
+[`value_formatter_helpers_current_2026-10-05.json`](evidence/value_current_emission_2026-10-05/proof_batches/value_formatter_helpers_current_2026-10-05.json).
+The indexed HeaderValue Debug body and refinement remain open; no full
+formatter-path claim is made.
 
 ## Earlier API and representation plan
 
