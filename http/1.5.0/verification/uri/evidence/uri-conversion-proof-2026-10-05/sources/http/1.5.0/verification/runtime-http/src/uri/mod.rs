@@ -22,623 +22,31 @@
 //! assert_eq!(uri.path(), "/install.html");
 //! ```
 
-#[cfg(not(http_uri_parts_leaf))]
 use crate::byte_str::ByteStr;
 use std::convert::TryFrom;
 
-#[cfg(not(http_uri_parts_leaf))]
 use bytes::Bytes;
 
 use std::error::Error;
 use std::fmt;
-#[cfg(not(http_uri_parts_leaf))]
 use std::hash::{Hash, Hasher};
-#[cfg(not(http_uri_parts_leaf))]
 use std::str::{self, FromStr};
 
 use self::scheme::Scheme2;
-use self::error::ErrorKind;
-use self::limits::MAX_LEN;
-
-#[cfg(creusot)]
-use self::path::PathAndQueryModel;
-#[cfg(creusot)]
-use self::scheme::SchemeModel;
-
-#[allow(unused_imports)]
-use creusot_std::prelude::{ensures, logic, pearlite, requires, DeepModel, Int, Seq, View};
-#[cfg(all(creusot, not(http_uri_parts_leaf)))]
-use creusot_std::prelude::inv;
 
 pub use self::authority::Authority;
-#[cfg(any(http_uri_builder_leaf, not(any(http_uri_parts_leaf, http_uri_default_leaf))))]
 pub use self::builder::Builder;
-pub use self::error::InvalidUri;
 pub use self::path::PathAndQuery;
 pub use self::port::Port;
 pub use self::scheme::Scheme;
 
-#[cfg(creusot)]
-#[doc(hidden)]
-pub use self::path::path_query_boundaries;
-
-/// Proof-visible model of the stored URI fields.
-#[cfg(creusot)]
-#[doc(hidden)]
-#[allow(missing_debug_implementations)]
-pub struct UriModel {
-    pub scheme: SchemeModel,
-    pub authority: Seq<u8>,
-    pub path_and_query: PathAndQueryModel,
-}
-
-/// Canonical model used by `Uri`'s same-type equality. The public `View` stays
-/// raw; these fields reflect the equality relation exposed by the runtime.
-#[cfg(creusot)]
-#[doc(hidden)]
-#[allow(missing_debug_implementations)]
-pub struct UriCompareModel {
-    pub scheme: UriSchemeCompareModel,
-    pub authority: Seq<Int>,
-    pub path: Seq<u8>,
-    pub query: Option<Seq<u8>>,
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[allow(missing_debug_implementations)]
-pub enum UriSchemeCompareModel {
-    None,
-    Http,
-    Https,
-    Other(Seq<Int>),
-}
-
-/// Proof-visible optional field model of `Parts`.
-#[cfg(creusot)]
-#[doc(hidden)]
-#[allow(missing_debug_implementations)]
-pub struct PartsModel {
-    pub scheme: Option<SchemeModel>,
-    pub authority: Option<Seq<u8>>,
-    pub path_and_query: Option<PathAndQueryModel>,
-}
-
-#[cfg(creusot)]
-impl View for Uri {
-    type ViewTy = UriModel;
-
-    #[logic]
-    fn view(self) -> Self::ViewTy {
-        pearlite! {
-            UriModel {
-                scheme: self.scheme@,
-                authority: self.authority@,
-                path_and_query: self.path_and_query@,
-            }
-        }
-    }
-}
-
-#[cfg(creusot)]
-impl DeepModel for Uri {
-    type DeepModelTy = UriCompareModel;
-
-    #[logic]
-    fn deep_model(self) -> Self::DeepModelTy {
-        pearlite! { uri_comparison_model(self@) }
-    }
-}
-
-impl Clone for Uri {
-    #[cfg_attr(creusot, ensures(result@ == self@))]
-    fn clone(&self) -> Self {
-        Uri {
-            scheme: self.scheme.clone(),
-            authority: self.authority.clone(),
-            path_and_query: self.path_and_query.clone(),
-        }
-    }
-}
-
-#[cfg(creusot)]
-impl View for Parts {
-    type ViewTy = PartsModel;
-
-    #[logic]
-    fn view(self) -> Self::ViewTy {
-        pearlite! {
-            PartsModel {
-                scheme: match self.scheme {
-                    Some(value) => Some(value@),
-                    None => None,
-                },
-                authority: match self.authority {
-                    Some(value) => Some(value@),
-                    None => None,
-                },
-                path_and_query: match self.path_and_query {
-                    Some(value) => Some(value@),
-                    None => None,
-                },
-            }
-        }
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_scheme_is_none(scheme: SchemeModel) -> bool {
-    pearlite! { match scheme {
-        SchemeModel::None => true,
-        _ => false,
-    } }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_model_has_path(model: UriModel) -> bool {
-    pearlite! {
-        model.path_and_query.bytes.len() > 0 || !uri_scheme_is_none(model.scheme)
-    }
-}
-
-/// Whether a stored URI has the exact component model produced by `Default`.
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_is_default(model: UriModel) -> bool {
-    pearlite! {
-        model.scheme == SchemeModel::None
-            && model.authority.len() == 0
-            && model.path_and_query.bytes == Seq::singleton(47u8)
-            && model.path_and_query.query == None
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_ascii_fold_bytes(bytes: Seq<u8>) -> Seq<Int> {
-    pearlite! { authority::authority_folded_bytes(bytes) }
-}
-
-/// Model `Scheme::eq`: standard variants stay distinct from custom spellings,
-/// while two custom spellings compare with ASCII case folding.
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_scheme_models_equal(left: SchemeModel, right: SchemeModel) -> bool {
-    pearlite! { match (left, right) {
-        (SchemeModel::None, SchemeModel::None) => true,
-        (SchemeModel::Http, SchemeModel::Http) => true,
-        (SchemeModel::Https, SchemeModel::Https) => true,
-        (SchemeModel::Other(left), SchemeModel::Other(right)) =>
-            uri_ascii_fold_bytes(left) == uri_ascii_fold_bytes(right),
-        _ => false,
-    } }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_scheme_comparison_model(scheme: SchemeModel) -> UriSchemeCompareModel {
-    pearlite! { match scheme {
-        SchemeModel::None => UriSchemeCompareModel::None,
-        SchemeModel::Http => UriSchemeCompareModel::Http,
-        SchemeModel::Https => UriSchemeCompareModel::Https,
-        SchemeModel::Other(bytes) =>
-            UriSchemeCompareModel::Other(uri_ascii_fold_bytes(bytes)),
-    } }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_comparison_model(model: UriModel) -> UriCompareModel {
-    pearlite! {
-        UriCompareModel {
-            scheme: uri_scheme_comparison_model(model.scheme),
-            authority: uri_ascii_fold_bytes(model.authority),
-            path: if uri_model_has_path(model) {
-                path::path_component_bytes(model.path_and_query)
-            } else {
-                Seq::<u8>::empty()
-            },
-            query: match model.path_and_query.query {
-                None => None,
-                Some(offset) => Some(model.path_and_query.bytes.subsequence(
-                    offset + 1, model.path_and_query.bytes.len(),
-                )),
-            },
-        }
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_scheme_comparison_text(scheme: UriSchemeCompareModel) -> Option<Seq<Int>> {
-    pearlite! { match scheme {
-        UriSchemeCompareModel::None => None,
-        UriSchemeCompareModel::Http => Some(
-            seq![104u8, 116u8, 116u8, 112u8].map(|byte: u8| byte@)
-        ),
-        UriSchemeCompareModel::Https => Some(
-            seq![104u8, 116u8, 116u8, 112u8, 115u8].map(|byte: u8| byte@)
-        ),
-        UriSchemeCompareModel::Other(bytes) => Some(bytes),
-    } }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_scheme_comparison_matches_text(
-    scheme: UriSchemeCompareModel,
-    text: Seq<char>,
-) -> bool {
-    pearlite! { match uri_scheme_comparison_text(scheme) {
-        None => false,
-        Some(expected) =>
-            uri_ascii_fold_bytes(text.to_bytes()) == expected,
-    } }
-}
-
-#[cfg(creusot)]
-impl creusot_std::std::partial_eq::PartialEqModel<Seq<char>>
-    for UriSchemeCompareModel
-{
-    #[logic(open)]
-    fn eq_model(self, rhs: Seq<char>) -> bool {
-        pearlite! { uri_scheme_comparison_matches_text(self, rhs) }
-    }
-}
-
-#[cfg(creusot)]
-impl creusot_std::std::partial_eq::PartialEqModel<UriSchemeCompareModel>
-    for Seq<char>
-{
-    #[logic(open)]
-    fn eq_model(self, rhs: UriSchemeCompareModel) -> bool {
-        pearlite! { uri_scheme_comparison_matches_text(rhs, self) }
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_folded_bytes_match_at(
-    bytes: Seq<u8>,
-    start: Int,
-    expected: Seq<Int>,
-) -> bool {
-    pearlite! {
-        0 <= start && start + expected.len() <= bytes.len()
-            && uri_ascii_fold_bytes(
-                bytes.subsequence(start, start + expected.len())
-            ) == expected
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_exact_bytes_match_at(
-    bytes: Seq<u8>,
-    start: Int,
-    expected: Seq<u8>,
-) -> bool {
-    pearlite! {
-        0 <= start && start + expected.len() <= bytes.len()
-            && bytes.subsequence(start, start + expected.len()) == expected
-    }
-}
-
-/// Compare a canonical URI model with UTF-8 text using the byte-prefix rules
-/// in `Uri::eq(str)`, including an omitted absolute `/` and ignored fragments.
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_compare_model_matches_text(
-    model: UriCompareModel,
-    text: Seq<char>,
-) -> bool {
-    pearlite! {
-        let bytes = text.to_bytes();
-        let scheme_text = uri_scheme_comparison_text(model.scheme);
-        let scheme_present = match scheme_text {
-            None => false,
-            Some(_) => true,
-        };
-        let scheme_ok = match scheme_text {
-            None => true,
-            Some(scheme_bytes) =>
-                0 <= scheme_bytes.len() + 3
-                    && scheme_bytes.len() + 3 <= bytes.len()
-                    && uri_folded_bytes_match_at(bytes, 0, scheme_bytes)
-                    && bytes.subsequence(
-                        scheme_bytes.len(), scheme_bytes.len() + 3,
-                    ) == seq![58u8, 47u8, 47u8],
-        };
-        let after_scheme = match scheme_text {
-            None => 0,
-            Some(scheme_bytes) => scheme_bytes.len() + 3,
-        };
-        let authority_present = model.authority.len() > 0;
-        let authority_ok = !authority_present
-            || uri_folded_bytes_match_at(bytes, after_scheme, model.authority);
-        let after_authority = after_scheme + model.authority.len();
-        let absolute = scheme_present || authority_present;
-        let path_start = if scheme_ok && authority_ok { after_authority } else { 0 };
-        let path_matches = uri_exact_bytes_match_at(bytes, path_start, model.path);
-        let omitted_absolute_slash = absolute && model.path == seq![47u8];
-        let path_ok = path_matches || omitted_absolute_slash;
-        let after_path = if path_matches {
-            path_start + model.path.len()
-        } else {
-            path_start
-        };
-        let query_ok = match model.query {
-            None => true,
-            Some(query_bytes) => {
-                if after_path == bytes.len() {
-                    query_bytes.len() == 0
-                } else {
-                    after_path < bytes.len()
-                        && bytes[after_path]@ == 63
-                        && uri_exact_bytes_match_at(
-                            bytes, after_path + 1, query_bytes,
-                        )
-                }
-            }
-        };
-        let after_query = match model.query {
-            None => after_path,
-            Some(query_bytes) => {
-                if after_path == bytes.len() {
-                    after_path
-                } else {
-                    after_path + 1 + query_bytes.len()
-                }
-            }
-        };
-        scheme_ok && authority_ok && path_ok && query_ok
-            && (after_query == bytes.len()
-                || (0 <= after_query && after_query < bytes.len()
-                    && bytes[after_query]@ == 35))
-    }
-}
-
-#[cfg(creusot)]
-impl creusot_std::std::partial_eq::PartialEqModel<Seq<char>> for UriCompareModel {
-    #[logic(open)]
-    fn eq_model(self, rhs: Seq<char>) -> bool {
-        pearlite! { uri_compare_model_matches_text(self, rhs) }
-    }
-}
-
-#[cfg(creusot)]
-impl creusot_std::std::partial_eq::PartialEqModel<UriCompareModel> for Seq<char> {
-    #[logic(open)]
-    fn eq_model(self, rhs: UriCompareModel) -> bool {
-        pearlite! { uri_compare_model_matches_text(rhs, self) }
-    }
-}
-
-/// Exact component equality used by `Uri::eq`. This follows the public
-/// accessors: an empty relative path stays empty, an empty absolute path is
-/// exposed as `/`, and a present empty query differs from no query.
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_models_equal(left: UriModel, right: UriModel) -> bool {
-    pearlite! {
-        uri_comparison_model(left) == uri_comparison_model(right)
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_scheme_display_bytes(scheme: SchemeModel) -> Seq<u8> {
-    pearlite! { match scheme {
-        SchemeModel::None => Seq::<u8>::empty(),
-        SchemeModel::Http => seq![104u8, 116u8, 116u8, 112u8],
-        SchemeModel::Https => seq![104u8, 116u8, 116u8, 112u8, 115u8],
-        SchemeModel::Other(bytes) => bytes,
-    } }
-}
-
-/// The exact byte text produced by `Uri`'s Display implementation, converted
-/// to the formatter's integer-byte model.
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-#[requires(path_query_boundaries(model.path_and_query))]
-pub fn uri_display_text(model: UriModel) -> Seq<Int> {
-    pearlite! {
-        let has_path = uri_model_has_path(model);
-        let scheme_text = if uri_scheme_is_none(model.scheme) {
-            Seq::<u8>::empty()
-        } else {
-            uri_scheme_display_bytes(model.scheme).concat(seq![58u8, 47u8, 47u8])
-        };
-        let authority_text = model.authority;
-        let path_text = if has_path {
-            path::path_component_bytes(model.path_and_query)
-        } else {
-            Seq::<u8>::empty()
-        };
-        let query_text = match model.path_and_query.query {
-            None => Seq::<u8>::empty(),
-            Some(offset) => seq![63u8].concat(
-                model.path_and_query.bytes.subsequence(
-                    offset + 1, model.path_and_query.bytes.len(),
-                )
-            ),
-        };
-        scheme_text.concat(authority_text).concat(path_text)
-            .concat(query_text).map(|byte: u8| byte@)
-    }
-}
-
-/// Whether the formatter has written a prefix of the complete URI display
-/// text. `Formatter::write_str` may fail after writing a prefix of its input.
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_formatter_output_is_prefix(
-    before: Seq<Int>,
-    after: Seq<Int>,
-    text: Seq<Int>,
-) -> bool {
-    pearlite! {
-        exists<end: Int> 0 <= end && end <= text.len()
-            && after == before.concat(text.subsequence(0, end))
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_parts_model(model: UriModel) -> PartsModel {
-    pearlite! {
-        PartsModel {
-            scheme: if uri_scheme_is_none(model.scheme) {
-                None
-            } else {
-                Some(model.scheme)
-            },
-            authority: if model.authority.len() == 0 {
-                None
-            } else {
-                Some(model.authority)
-            },
-            path_and_query: if uri_model_has_path(model) {
-                Some(model.path_and_query)
-            } else {
-                None
-            },
-        }
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_parts_model_is_valid(model: PartsModel) -> bool {
-    pearlite! {
-        match model.scheme {
-            Some(_) => uri_option_is_some(model.authority)
-                && uri_option_is_some(model.path_and_query),
-            None => !(uri_option_is_some(model.authority)
-                && uri_option_is_some(model.path_and_query)),
-        }
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_option_is_some<T>(value: Option<T>) -> bool {
-    pearlite! { match value {
-        Some(_) => true,
-        None => false,
-    } }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_option_is_none<T>(value: Option<T>) -> bool {
-    pearlite! { match value {
-        Some(_) => false,
-        None => true,
-    } }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_model_from_parts(model: PartsModel) -> UriModel {
-    pearlite! {
-        UriModel {
-            scheme: match model.scheme {
-                Some(scheme) => scheme,
-                None => SchemeModel::None,
-            },
-            authority: match model.authority {
-                Some(authority) => authority,
-                None => Seq::<u8>::empty(),
-            },
-            path_and_query: match model.path_and_query {
-                Some(path_and_query) => path_and_query,
-                None => PathAndQueryModel {
-                    bytes: Seq::<u8>::empty(),
-                    query: None,
-                },
-            },
-        }
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic(open)]
-pub fn uri_parts_error_matches(model: PartsModel, error: Int) -> bool {
-    pearlite! {
-        (uri_option_is_some(model.scheme)
-            && uri_option_is_none(model.authority) && error == 6)
-            || (uri_option_is_some(model.scheme)
-                && uri_option_is_some(model.authority)
-                && uri_option_is_none(model.path_and_query) && error == 7)
-            || (uri_option_is_none(model.scheme)
-                && uri_option_is_some(model.authority)
-                && uri_option_is_some(model.path_and_query) && error == 5)
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-pub use self::authority::{
-    authority_error_matches_rejection, authority_first_byte_from,
-    authority_host_end, authority_host_input_is_safe, authority_host_start,
-    authority_input_is_fully_valid, authority_port_number, authority_port_start,
-    authority_static_input_is_valid,
-};
-
-pub(crate) mod authority;
-pub(crate) mod authority_chars;
-#[cfg(any(http_uri_builder_leaf, not(any(http_uri_parts_leaf, http_uri_default_leaf))))]
+mod authority;
 mod builder;
-mod error;
-mod limits;
 mod path;
-#[cfg(creusot)]
-#[path = "path_static_domain.rs"]
-mod path_static_domain;
-pub(crate) mod port;
+mod port;
 mod scheme;
 #[cfg(test)]
 mod tests;
-
-#[cfg(creusot)]
-#[doc(hidden)]
-pub use self::path_static_domain::{
-    path_static_input_is_valid, path_static_path_byte_valid, path_static_query_byte_valid,
-};
-
-#[cfg(all(creusot, http_uri_builder_leaf))]
-#[doc(hidden)]
-pub use self::builder::{
-    uri_builder_authority, uri_builder_error, uri_builder_error_is_from,
-    uri_builder_build_post, uri_builder_has_default_parts,
-    uri_builder_has_empty_path_and_query, uri_builder_is_valid, uri_builder_parts,
-    uri_builder_path_and_query, uri_builder_scheme,
-};
 
 /// The URI component of a request.
 ///
@@ -684,6 +92,7 @@ pub use self::builder::{
 /// assert_eq!(uri.host(), Some("www.rust-lang.org"));
 /// assert_eq!(uri.path(), "/install.html");
 /// ```
+#[derive(Clone)]
 pub struct Uri {
     scheme: Scheme,
     authority: Authority,
@@ -693,7 +102,7 @@ pub struct Uri {
 /// The various parts of a URI.
 ///
 /// This struct is used to provide to and retrieve from a URI.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Parts {
     /// The scheme component of a URI
     pub scheme: Option<Scheme>,
@@ -708,35 +117,32 @@ pub struct Parts {
     _priv: (),
 }
 
-impl Default for Parts {
-    #[cfg_attr(creusot, ensures(
-        result@.scheme == None
-            && result@.authority == None
-            && result@.path_and_query == None
-    ))]
-    fn default() -> Self {
-        Parts {
-            scheme: None,
-            authority: None,
-            path_and_query: None,
-            _priv: (),
-        }
-    }
-}
+/// An error resulting from a failed attempt to construct a URI.
+#[derive(Debug)]
+pub struct InvalidUri(ErrorKind);
 
 /// An error resulting from a failed attempt to construct a URI.
 #[derive(Debug)]
-pub struct InvalidUriParts(pub(super) InvalidUri);
+pub struct InvalidUriParts(InvalidUri);
 
-#[cfg(creusot)]
-impl DeepModel for InvalidUriParts {
-    type DeepModelTy = Int;
-
-    #[logic(open(super))]
-    fn deep_model(self) -> Self::DeepModelTy {
-        self.0.deep_model()
-    }
+#[derive(Debug, Eq, PartialEq)]
+enum ErrorKind {
+    InvalidUriChar,
+    InvalidScheme,
+    InvalidAuthority,
+    InvalidPort,
+    InvalidFormat,
+    SchemeMissing,
+    AuthorityMissing,
+    PathAndQueryMissing,
+    PathDoesNotStartWithSlash,
+    TooLong,
+    Empty,
+    SchemeTooLong,
 }
+
+// u16::MAX is reserved for None
+const MAX_LEN: usize = (u16::MAX - 1) as usize;
 
 // URI_CHARS is a table of valid characters in a URI. An entry in the table is
 // 0 for invalid characters. For valid characters the entry is itself (i.e.
@@ -745,7 +151,6 @@ impl DeepModel for InvalidUriParts {
 // valid entries a valid single-byte UTF-8 code point. This means that a slice
 // of such valid entries is valid UTF-8.
 #[rustfmt::skip]
-#[cfg_attr(not(test), allow(dead_code))]
 const URI_CHARS: [u8; 256] = [
     //  0      1      2      3      4      5      6      7      8      9
         0,     0,     0,     0,     0,     0,     0,     0,     0,     0, //   x
@@ -794,9 +199,6 @@ impl Uri {
     ///     .build()
     ///     .unwrap();
     /// ```
-    #[cfg(any(http_uri_builder_leaf, not(any(http_uri_parts_leaf, http_uri_default_leaf))))]
-    #[cfg_attr(creusot, ensures(builder::uri_builder_is_valid(&result)))]
-    #[cfg_attr(creusot, ensures(builder::uri_builder_has_default_parts(&result)))]
     pub fn builder() -> Builder {
         Builder::new()
     }
@@ -835,13 +237,6 @@ impl Uri {
     /// assert_eq!(uri.authority().unwrap(), "foo.com");
     /// assert_eq!(uri.path(), "/foo");
     /// ```
-    #[cfg_attr(creusot, ensures(match result {
-        Ok(uri) => uri_parts_model_is_valid(src@)
-            && uri@.scheme == uri_model_from_parts(src@).scheme
-            && uri@.authority == uri_model_from_parts(src@).authority
-            && uri@.path_and_query == uri_model_from_parts(src@).path_and_query,
-        Err(error) => uri_parts_error_matches(src@, error.deep_model()),
-    }))]
     pub fn from_parts(src: Parts) -> Result<Uri, InvalidUriParts> {
         if src.scheme.is_some() {
             if src.authority.is_none() {
@@ -857,7 +252,9 @@ impl Uri {
 
         let scheme = match src.scheme {
             Some(scheme) => scheme,
-            None => Scheme::empty(),
+            None => Scheme {
+                inner: Scheme2::None,
+            },
         };
 
         let authority = match src.authority {
@@ -881,7 +278,6 @@ impl Uri {
     ///
     /// This will try to prevent a copy if the type passed is the type used
     /// internally, and will copy the data if it is not.
-    #[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf, http_uri_leaf)))]
     pub fn from_maybe_shared<T>(src: T) -> Result<Self, InvalidUri>
     where
         T: AsRef<[u8]> + 'static,
@@ -894,7 +290,6 @@ impl Uri {
     }
 
     // Not public while `bytes` is unstable.
-    #[cfg(not(http_uri_parts_leaf))]
     fn from_shared(s: Bytes) -> Result<Uri, InvalidUri> {
         use self::ErrorKind::*;
 
@@ -963,7 +358,6 @@ impl Uri {
     /// assert_eq!(uri.host().unwrap(), "example.com");
     /// assert_eq!(uri.path(), "/foo");
     /// ```
-    #[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf, http_uri_compare_leaf)))]
     pub fn from_static(src: &'static str) -> Self {
         let s = Bytes::from_static(src.as_bytes());
         match Uri::from_shared(s) {
@@ -993,21 +387,14 @@ impl Uri {
     /// assert!(parts.authority.is_none());
     /// ```
     #[inline]
-    #[cfg_attr(creusot, ensures(result@.scheme == uri_parts_model(self@).scheme
-        && result@.authority == uri_parts_model(self@).authority
-        && result@.path_and_query == uri_parts_model(self@).path_and_query))]
     pub fn into_parts(self) -> Parts {
         self.into()
     }
 
     /// Returns the path & query components of the Uri
     #[inline]
-    #[cfg_attr(creusot, ensures(match result {
-        Some(path) => path@ == self@.path_and_query,
-        None => uri_scheme_is_none(self@.scheme) && self@.authority.len() > 0,
-    }))]
     pub fn path_and_query(&self) -> Option<&PathAndQuery> {
-        if !self.scheme.inner.is_none() || self.authority.data.len() == 0 {
+        if !self.scheme.inner.is_none() || self.authority.data.is_empty() {
             Some(&self.path_and_query)
         } else {
             None
@@ -1049,12 +436,6 @@ impl Uri {
     /// assert_eq!(uri.path(), "/hello/world");
     /// ```
     #[inline]
-    #[cfg_attr(creusot, requires(path_query_boundaries(self@.path_and_query)))]
-    #[cfg_attr(creusot, ensures(result@.to_bytes() == if uri_model_has_path(self@) {
-        crate::uri::path::path_component_bytes(self@.path_and_query)
-    } else {
-        Seq::<u8>::empty()
-    }))]
     pub fn path(&self) -> &str {
         if self.has_path() {
             self.path_and_query.path()
@@ -1099,11 +480,6 @@ impl Uri {
     /// assert!(uri.scheme().is_none());
     /// ```
     #[inline]
-    #[cfg_attr(creusot, ensures(match result {
-        Some(scheme) => scheme@ == self@.scheme
-            && !uri_scheme_is_none(self@.scheme),
-        None => uri_scheme_is_none(self@.scheme),
-    }))]
     pub fn scheme(&self) -> Option<&Scheme> {
         if self.scheme.inner.is_none() {
             None
@@ -1123,11 +499,6 @@ impl Uri {
     /// assert_eq!(uri.scheme_str(), Some("http"));
     /// ```
     #[inline]
-    #[cfg_attr(creusot, ensures(match result {
-        Some(text) => !uri_scheme_is_none(self@.scheme)
-            && scheme::scheme_text_matches(self@.scheme, text@),
-        None => uri_scheme_is_none(self@.scheme),
-    }))]
     pub fn scheme_str(&self) -> Option<&str> {
         if self.scheme.inner.is_none() {
             None
@@ -1174,13 +545,8 @@ impl Uri {
     /// assert!(uri.authority().is_none());
     /// ```
     #[inline]
-    #[cfg_attr(creusot, ensures(match result {
-        Some(authority) => authority@ == self@.authority
-            && self@.authority.len() > 0,
-        None => self@.authority.len() == 0,
-    }))]
     pub fn authority(&self) -> Option<&Authority> {
-        if self.authority.data.len() == 0 {
+        if self.authority.data.is_empty() {
             None
         } else {
             Some(&self.authority)
@@ -1221,16 +587,6 @@ impl Uri {
     /// assert!(uri.host().is_none());
     /// ```
     #[inline]
-    #[cfg_attr(creusot, requires(self@.authority.len() == 0
-        || authority_host_input_is_safe(self@.authority)))]
-    #[cfg_attr(creusot, ensures(match result {
-        Some(host) => authority_host_input_is_safe(self@.authority)
-            && host@.to_bytes() == self@.authority.subsequence(
-                authority_host_start(self@.authority),
-                authority_host_end(self@.authority),
-            ),
-        None => self@.authority.len() == 0,
-    }))]
     pub fn host(&self) -> Option<&str> {
         self.authority().map(|a| a.host())
     }
@@ -1278,10 +634,6 @@ impl Uri {
     ///
     /// assert!(uri.port().is_none());
     /// ```
-    #[cfg_attr(creusot, ensures(match result {
-        Some(port) => authority_port_number(self@.authority) == Some(port@@),
-        None => authority_port_number(self@.authority) == None,
-    }))]
     pub fn port(&self) -> Option<Port<&str>> {
         self.authority().and_then(|a| a.port())
     }
@@ -1297,10 +649,6 @@ impl Uri {
     ///
     /// assert_eq!(uri.port_u16(), Some(80));
     /// ```
-    #[cfg_attr(creusot, ensures(match result {
-        Some(port) => authority_port_number(self@.authority) == Some(port@),
-        None => authority_port_number(self@.authority) == None,
-    }))]
     pub fn port_u16(&self) -> Option<u16> {
         self.port().map(|p| p.as_u16())
     }
@@ -1349,26 +697,15 @@ impl Uri {
     /// assert!(uri.query().is_none());
     /// ```
     #[inline]
-    #[cfg_attr(creusot, requires(path_query_boundaries(self@.path_and_query)))]
-    #[cfg_attr(creusot, ensures(match (self@.path_and_query.query, result) {
-        (None, None) => true,
-        (Some(offset), Some(value)) => value@.to_bytes()
-            == self@.path_and_query.bytes.subsequence(
-                offset + 1, self@.path_and_query.bytes.len(),
-            ),
-        _ => false,
-    }))]
     pub fn query(&self) -> Option<&str> {
         self.path_and_query.query()
     }
 
-    #[cfg_attr(creusot, ensures(result == uri_model_has_path(self@)))]
     fn has_path(&self) -> bool {
-        self.path_and_query.data.len() > 0 || !self.scheme.inner.is_none()
+        !self.path_and_query.data.is_empty() || !self.scheme.inner.is_none()
     }
 }
 
-#[cfg(not(http_uri_parts_leaf))]
 impl TryFrom<&[u8]> for Uri {
     type Error = InvalidUri;
 
@@ -1378,7 +715,6 @@ impl TryFrom<&[u8]> for Uri {
     }
 }
 
-#[cfg(not(http_uri_parts_leaf))]
 impl TryFrom<&str> for Uri {
     type Error = InvalidUri;
 
@@ -1388,7 +724,6 @@ impl TryFrom<&str> for Uri {
     }
 }
 
-#[cfg(not(http_uri_parts_leaf))]
 impl TryFrom<&String> for Uri {
     type Error = InvalidUri;
 
@@ -1398,7 +733,6 @@ impl TryFrom<&String> for Uri {
     }
 }
 
-#[cfg(not(http_uri_parts_leaf))]
 impl TryFrom<String> for Uri {
     type Error = InvalidUri;
 
@@ -1408,7 +742,6 @@ impl TryFrom<String> for Uri {
     }
 }
 
-#[cfg(not(http_uri_parts_leaf))]
 impl TryFrom<Vec<u8>> for Uri {
     type Error = InvalidUri;
 
@@ -1422,27 +755,15 @@ impl TryFrom<Parts> for Uri {
     type Error = InvalidUriParts;
 
     #[inline]
-    #[cfg_attr(creusot, ensures(match result {
-        Ok(uri) => uri_parts_model_is_valid(src@)
-            && uri@.scheme == uri_model_from_parts(src@).scheme
-            && uri@.authority == uri_model_from_parts(src@).authority
-            && uri@.path_and_query == uri_model_from_parts(src@).path_and_query,
-        Err(error) => uri_parts_error_matches(src@, error.deep_model()),
-    }))]
     fn try_from(src: Parts) -> Result<Self, Self::Error> {
         Uri::from_parts(src)
     }
 }
 
-#[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
 impl TryFrom<&Uri> for Uri {
     type Error = crate::Error;
 
     #[inline]
-    #[cfg_attr(creusot, ensures(match result {
-        Ok(uri) => uri@ == src@,
-        Err(_) => false,
-    }))]
     fn try_from(src: &Uri) -> Result<Self, Self::Error> {
         Ok(src.clone())
     }
@@ -1450,10 +771,6 @@ impl TryFrom<&Uri> for Uri {
 
 /// Convert an `Authority` into a `Uri`.
 impl From<Authority> for Uri {
-    #[cfg_attr(creusot, ensures(result@.scheme == SchemeModel::None
-        && result@.authority == authority@
-        && result@.path_and_query.bytes == Seq::<u8>::empty()
-        && result@.path_and_query.query == None))]
     fn from(authority: Authority) -> Self {
         Self {
             scheme: Scheme::empty(),
@@ -1465,9 +782,6 @@ impl From<Authority> for Uri {
 
 /// Convert a `PathAndQuery` into a `Uri`.
 impl From<PathAndQuery> for Uri {
-    #[cfg_attr(creusot, ensures(result@.scheme == SchemeModel::None
-        && result@.authority == Seq::<u8>::empty()
-        && result@.path_and_query == path_and_query@))]
     fn from(path_and_query: PathAndQuery) -> Self {
         Self {
             scheme: Scheme::empty(),
@@ -1479,9 +793,6 @@ impl From<PathAndQuery> for Uri {
 
 /// Convert a `Uri` into `Parts`
 impl From<Uri> for Parts {
-    #[cfg_attr(creusot, ensures(result@.scheme == uri_parts_model(src@).scheme
-        && result@.authority == uri_parts_model(src@).authority
-        && result@.path_and_query == uri_parts_model(src@).path_and_query))]
     fn from(src: Uri) -> Self {
         let path_and_query = if src.has_path() {
             Some(src.path_and_query)
@@ -1494,7 +805,7 @@ impl From<Uri> for Parts {
             _ => Some(src.scheme),
         };
 
-        let authority = if src.authority.data.len() == 0 {
+        let authority = if src.authority.data.is_empty() {
             None
         } else {
             Some(src.authority)
@@ -1509,7 +820,6 @@ impl From<Uri> for Parts {
     }
 }
 
-#[cfg(not(http_uri_parts_leaf))]
 fn parse_full(mut s: Bytes) -> Result<Uri, InvalidUri> {
     // Parse the scheme
     let scheme = match Scheme2::parse(&s[..])? {
@@ -1577,7 +887,6 @@ fn parse_full(mut s: Bytes) -> Result<Uri, InvalidUri> {
     })
 }
 
-#[cfg(not(http_uri_parts_leaf))]
 impl FromStr for Uri {
     type Err = InvalidUri;
 
@@ -1587,9 +896,7 @@ impl FromStr for Uri {
     }
 }
 
-#[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
 impl PartialEq for Uri {
-    #[cfg_attr(creusot, ensures(result == uri_models_equal(self@, other@)))]
     fn eq(&self, other: &Uri) -> bool {
         if self.scheme() != other.scheme() {
             return false;
@@ -1599,16 +906,11 @@ impl PartialEq for Uri {
             return false;
         }
 
-        if self.path().as_bytes() != other.path().as_bytes() {
+        if self.path() != other.path() {
             return false;
         }
 
-        let query_matches = match (self.query(), other.query()) {
-            (None, None) => true,
-            (Some(left), Some(right)) => left.as_bytes() == right.as_bytes(),
-            _ => false,
-        };
-        if !query_matches {
+        if self.query() != other.query() {
             return false;
         }
 
@@ -1616,11 +918,7 @@ impl PartialEq for Uri {
     }
 }
 
-#[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
 impl PartialEq<str> for Uri {
-    #[cfg_attr(creusot, ensures(result ==
-        uri_compare_model_matches_text(self.deep_model(), other@)
-    ))]
     fn eq(&self, other: &str) -> bool {
         let mut other = other.as_bytes();
         let mut absolute = false;
@@ -1633,16 +931,13 @@ impl PartialEq<str> for Uri {
                 return false;
             }
 
-            if !authority::authority_ascii_case_eq(
-                scheme,
-                &other[..scheme.len()],
-            ) {
+            if !scheme.eq_ignore_ascii_case(&other[..scheme.len()]) {
                 return false;
             }
 
             other = &other[scheme.len()..];
 
-            if other[0] != 58 || other[1] != 47 || other[2] != 47 {
+            if &other[..3] != b"://" {
                 return false;
             }
 
@@ -1657,10 +952,7 @@ impl PartialEq<str> for Uri {
                 return false;
             }
 
-            if !authority::authority_ascii_case_eq(
-                auth.data.as_bytes(),
-                &other[..len],
-            ) {
+            if !auth.data.as_bytes().eq_ignore_ascii_case(&other[..len]) {
                 return false;
             }
 
@@ -1670,7 +962,7 @@ impl PartialEq<str> for Uri {
         let path = self.path();
 
         if other.len() < path.len() || path.as_bytes() != &other[..path.len()] {
-            if absolute && path.len() == 1 && path.as_bytes()[0] == 47 {
+            if absolute && path == "/" {
                 // PathAndQuery can be omitted, fall through
             } else {
                 return false;
@@ -1681,7 +973,7 @@ impl PartialEq<str> for Uri {
 
         if let Some(query) = self.query() {
             if other.is_empty() {
-                return query.len() == 0;
+                return query.is_empty();
             }
 
             if other[0] != b'?' {
@@ -1701,47 +993,33 @@ impl PartialEq<str> for Uri {
             other = &other[query.len()..];
         }
 
-        other.len() == 0 || other[0] == b'#'
+        other.is_empty() || other[0] == b'#'
     }
 }
 
-#[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
 impl PartialEq<Uri> for str {
-    #[cfg_attr(creusot, ensures(result ==
-        uri_compare_model_matches_text(uri.deep_model(), self@)
-    ))]
     fn eq(&self, uri: &Uri) -> bool {
         uri == self
     }
 }
 
-#[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
 impl PartialEq<&str> for Uri {
-    #[cfg_attr(creusot, ensures(result ==
-        uri_compare_model_matches_text(self.deep_model(), (*other)@)
-    ))]
     fn eq(&self, other: &&str) -> bool {
         self == *other
     }
 }
 
-#[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
 impl PartialEq<Uri> for &str {
-    #[cfg_attr(creusot, ensures(result ==
-        uri_compare_model_matches_text(uri.deep_model(), (*self)@)
-    ))]
     fn eq(&self, uri: &Uri) -> bool {
         uri == *self
     }
 }
 
-#[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
 impl Eq for Uri {}
 
 /// Returns a `Uri` representing `/`
 impl Default for Uri {
     #[inline]
-    #[cfg_attr(creusot, ensures(uri_is_default(result@)))]
     fn default() -> Uri {
         Uri {
             scheme: Scheme::empty(),
@@ -1751,21 +1029,7 @@ impl Default for Uri {
     }
 }
 
-#[cfg(not(http_uri_parts_leaf))]
 impl fmt::Display for Uri {
-    #[cfg_attr(creusot, ensures(match result {
-        Ok(_) => (^f).deep_model() == f.deep_model().concat(uri_display_text(self@)),
-        Err(_) => uri_formatter_output_is_prefix(
-            f.deep_model(), (^f).deep_model(), uri_display_text(self@),
-        ),
-    }))]
-    #[cfg_attr(
-        creusot,
-        ensures(creusot_std::std::fmt::formatter_extends(
-            f.deep_model(),
-            (^f).deep_model()
-        ))
-    )]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(scheme) = self.scheme() {
             f.write_str(scheme.as_str())?;
@@ -1787,32 +1051,54 @@ impl fmt::Display for Uri {
     }
 }
 
-#[cfg(not(http_uri_parts_leaf))]
 impl fmt::Debug for Uri {
-    #[cfg_attr(creusot, ensures(match result {
-        Ok(_) => (^f).deep_model() == f.deep_model().concat(uri_display_text(self@)),
-        Err(_) => uri_formatter_output_is_prefix(
-            f.deep_model(), (^f).deep_model(), uri_display_text(self@),
-        ),
-    }))]
-    #[cfg_attr(
-        creusot,
-        ensures(creusot_std::std::fmt::formatter_extends(
-            f.deep_model(),
-            (^f).deep_model()
-        ))
-    )]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)
     }
 }
 
+impl From<ErrorKind> for InvalidUri {
+    fn from(src: ErrorKind) -> InvalidUri {
+        InvalidUri(src)
+    }
+}
+
 impl From<ErrorKind> for InvalidUriParts {
-    #[cfg_attr(creusot, ensures(result.deep_model() == src.deep_model()))]
     fn from(src: ErrorKind) -> InvalidUriParts {
         InvalidUriParts(src.into())
     }
 }
+
+impl InvalidUri {
+    pub(crate) fn is_empty(&self) -> bool {
+        self.0 == ErrorKind::Empty
+    }
+
+    fn s(&self) -> &str {
+        match self.0 {
+            ErrorKind::InvalidUriChar => "invalid uri character",
+            ErrorKind::InvalidScheme => "invalid scheme",
+            ErrorKind::InvalidAuthority => "invalid authority",
+            ErrorKind::InvalidPort => "invalid port",
+            ErrorKind::InvalidFormat => "invalid format",
+            ErrorKind::SchemeMissing => "scheme missing",
+            ErrorKind::AuthorityMissing => "authority missing",
+            ErrorKind::PathAndQueryMissing => "path missing",
+            ErrorKind::PathDoesNotStartWithSlash => "path does not start with slash",
+            ErrorKind::TooLong => "uri too long",
+            ErrorKind::Empty => "empty string",
+            ErrorKind::SchemeTooLong => "scheme too long",
+        }
+    }
+}
+
+impl fmt::Display for InvalidUri {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.s().fmt(f)
+    }
+}
+
+impl Error for InvalidUri {}
 
 impl fmt::Display for InvalidUriParts {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -1822,9 +1108,7 @@ impl fmt::Display for InvalidUriParts {
 
 impl Error for InvalidUriParts {}
 
-#[cfg(not(http_uri_parts_leaf))]
 impl Hash for Uri {
-    #[cfg_attr(creusot, ensures(inv(^state)))]
     fn hash<H>(&self, state: &mut H)
     where
         H: Hasher,
