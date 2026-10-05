@@ -1,0 +1,19 @@
+# Fresh Value-profile translation and bounded proof record
+# Profile: RUSTFLAGS=--cfg http_header_value_complete; locked/offline; bytes-model.
+# Source fingerprint for http/1.5.0/src/header/value.rs: 5420fc7682706cb56adc2516a94cd29182ffad5997186cf59593742549c9f8f6
+# Source mtime: 2026-10-05T09:09:33.247539+00:00
+
+RUSTFLAGS='--cfg http_header_value_complete' ../../scripts/run-proof.sh bash -c 'cargo clean -p http-headers-proof && cargo creusot --simple-triggers=false -- --locked --offline'
+exit_code=0
+mode=actual Creusot emission; no --check; shared target=/workspace/rust-crate-proofs/target/http
+COMA mtime range=2026-10-05T09:18:10.296828+00:00 .. 2026-10-05T09:18:10.476832+00:00
+
+DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find' ../../scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always verif/http_headers_proof_rlib/header/value/impl_From_for_HeaderValue_0/from.coma verif/http_headers_proof_rlib/header/value/impl_From_for_HeaderValue_0/from__refines.coma verif/http_headers_proof_rlib/header/value/hex_digit.coma
+exit_code=0
+limits=1 prover, 1024 MiB per prover
+own leaves: From<u16> body 7/7; refinement 1/1; hex_digit 4/4; total 12/12; nulls=0
+proof JSON mtime range=2026-10-05T09:19:28.086245+00:00 .. 2026-10-05T09:19:35.214366+00:00
+
+# Independent solver-free task extraction (no -P, no prover)
+why3 prove -C /workspace/proof-tools/config/creusot/why3.conf -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot -a split_vc -D why3 <each archived COMA>
+expected own task counts: From<u16> body 7; refinement 1; hex_digit 4. All match direct proof leaf counts.

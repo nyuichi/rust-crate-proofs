@@ -2,9 +2,9 @@
   "schema_version": 1,
   "task": "URI Parts defaults/conversions and Uri parts projections (selected partial proof batch)",
   "captured_at_utc": "2026-10-05",
-  "status": "Fresh named URI leaf-harness emission. In the archived proof JSON trees, 48 of 55 recorded terminal leaves passed and seven are null. Independent expected split_vc child arity from the COMA is pending, so these counts are qualified as recorded-tree results rather than a completeness claim.",
+  "status": "Fresh named URI leaf-harness emission; independent arity audit found no omitted children for this selected batch. The 55 expected terminal VCs are complete for these 12 archived targets: 48 proved and 7 remain open.",
   "semantic_scope": {
-    "covered": "All recorded JSON leaves for Parts::default, Uri::default, TryFrom<Parts> for Uri, Uri::into_parts, and both direct harness relay calls passed. From<Uri> for Parts recorded leaves: two refinement successes and 7/9 body terminals passed. Uri::from_parts recorded 25/30 terminal leaves passed. Independent COMA-to-tree arity validation remains pending.",
+    "covered": "Independent first-level and bounded nested-child arity checks found no omitted child for the 12 archived targets. Parts::default, Uri::default, TryFrom<Parts> for Uri, Uri::into_parts, and both harness relay calls passed all their expected VCs. From<Uri> for Parts passed its two refinement VCs and 7/9 body VCs. Uri::from_parts passed 25/30 VCs.",
     "open": "Two From<Uri> for Parts body leaves and five Uri::from_parts body leaves are null. Exact recursive null paths: From<Uri> for Parts `vc_from_Parts` children [4,1] and [5,1]; Uri::from_parts `vc_from_parts` children [4,1], [11,1], [16,1], [22,1], [23,1]. Astra read-only diagnosis: the From<Uri> nulls need the Scheme and Authority view bodies visible to the parent URI module so the source projections connect to their models. In Uri::from_parts, three error branches need the ErrorKind\u2192InvalidUriParts deep-model relay, and two successful None-scheme branches need the Scheme::None view exposed (or the contracted Scheme::empty constructor). These were source gaps, not solver counterexamples.",
     "not_verified": "This named URI harness is not the full production Creusot profile; no parser-wide or full constructor correctness claim is made."
   },
@@ -203,13 +203,19 @@
     "recursive_arity_audit": {
       "file": "recursive-vc-arity-audit.json",
       "script": "audit_recursive_vc_tree.py",
-      "sha256": "ec63434d8c05d7c831bc3650e3cfa4f75d65023bad31997f9b8208042b2b15a8",
-      "script_sha256": "c4027b807dd41a086c1d80ec462018113f7a59142c3667a182249b3deb1ed6f6",
-      "result": "Solver-free recursive extraction from the archived JSON child arrays reproduces the 12-root totals of 55 recorded terminal nodes (48 prover results, 7 nulls). This checks JSON tree accounting only.",
-      "completeness_limit": "Does not independently prove the JSON contains every split_vc child expected from the corresponding COMA. A solver-free COMA-to-task arity extraction is still needed before treating these counts as complete.",
-      "transform_note": "No solver-free Why3 split transform was available through the tested CLI interface: direct split_vc output without a prover/driver was rejected. No prover was launched for this audit."
+      "sha256": "73c31f70f650bdc136ddf5e174eb82a7b1115a1f73e45b2f792315e1e9f79f5e",
+      "script_sha256": "99e73f231e8ff5fd6c2e3fc8c2935bd3b4a63bea377892ac4343c098b8a389b0",
+      "recorded_json_tree": "Solver-free recursive extraction from archived JSON reproduces 12 roots / 55 terminal records / 48 prover records / 7 null records.",
+      "independent_first_level_check": "Direct Why3 split_vc transform with the printer driver and no prover matches JSON root child counts for all 12 own roots: 48 first-level tasks emitted, 48 expected from JSON root arrays.",
+      "nested_arity_limit": "Resolved by the bounded independent review in nested-vc-arity-audit.json for the exact archived COMA hashes. This remains a snapshot-specific review, not a generic replay validator.",
+      "why3": "Why3 1.8.2+git; no prover/server/cache was used."
     },
-    "completeness": "Qualified: recorded-tree counts only; independent expected child arity from archived COMA is pending."
+    "completeness": "Independent first-level COMA split counts match all 12 JSON roots. The seven nested parents were individually inspected and each has two children. The resulting 55 expected terminals match the JSON exactly; 48 are proved and 7 are null.",
+    "nested_arity_review": {
+      "file": "nested-vc-arity-audit.json",
+      "sha256": "4c47888c856a0923de686a14f2fca0cafd4e6d64b74e09521fa6e53905fa50dd",
+      "method": "Bounded read-only task inspection by Astra, no solver. Exact archived COMA and proof JSON hashes are recorded in the review."
+    }
   },
   "artifacts": {
     "comas/actual_uri_from_parts.coma": "46b7365678c1b3eae5fedf4d148a8a218dcdb0e3bf7262f4af6dd95b7e2a0c8e",
@@ -255,15 +261,17 @@
     "sources-at-emission/verification/uri/Cargo.lock": "92e620abcf12279a7d3d4359a320d5a569b70906204fb8e0cc1e71b5e61aa7fc",
     "sources-at-emission/verification/uri/Cargo.toml": "f3be031015fb1f12f41be00ad1b1baabf15c407fee16f8108ceb489e2152899a",
     "sources-at-emission/verification/uri/src/lib.rs": "150ccbe27f993f9d7e45ebfa7f91244c19b848ec8eef333d8aa218c80afb4cd0",
-    "audit_recursive_vc_tree.py": "c4027b807dd41a086c1d80ec462018113f7a59142c3667a182249b3deb1ed6f6",
-    "recursive-vc-arity-audit.json": "ec63434d8c05d7c831bc3650e3cfa4f75d65023bad31997f9b8208042b2b15a8"
+    "audit_recursive_vc_tree.py": "99e73f231e8ff5fd6c2e3fc8c2935bd3b4a63bea377892ac4343c098b8a389b0",
+    "recursive-vc-arity-audit.json": "73c31f70f650bdc136ddf5e174eb82a7b1115a1f73e45b2f792315e1e9f79f5e",
+    "nested-vc-arity-audit.json": "4c47888c856a0923de686a14f2fca0cafd4e6d64b74e09521fa6e53905fa50dd"
   },
   "post_emission_source_changes": {
     "status": "The following URI source changes were made after this archived emission and are not covered by this batch:",
     "files": {
-      "src/uri/authority.rs": "Changed Authority View opacity to open(super) to expose its exact raw-byte projection to the parent URI module. This is a proof-visibility change.",
-      "src/uri/scheme.rs": "Changed Scheme2 and Scheme View opacity to open(super) to expose existing SchemeModel projections to the parent URI module. Proof-visibility change.",
-      "src/uri/mod.rs": "Changed from_parts None-scheme construction to the already-contracted Scheme::empty() body (same runtime representation); added the deep-model-preserving ensures to From<ErrorKind> for InvalidUriParts."
+      "src/uri/authority.rs": "Changed Authority View opacity to open(super) to expose its exact raw-byte projection to the parent URI module. Locally allowed missing_debug_implementations on AuthorityCompareModel and dead_code on the two cfg(creusot) logic-only neutral-prefix lemmas; locally allowed the PartialOrdModel import used by ghost contracts.",
+      "src/uri/scheme.rs": "Changed Scheme2 and Scheme View opacity to open(super) to expose existing SchemeModel projections to the parent URI module. Locally allowed missing_debug_implementations on proof-only SchemeModel.",
+      "src/uri/mod.rs": "Changed from_parts None-scheme construction to the already-contracted Scheme::empty() body (same runtime representation); added the deep-model-preserving ensures to From<ErrorKind> for InvalidUriParts; locally allowed missing_debug_implementations on proof-only UriModel and PartsModel.",
+      "src/uri/path.rs": "Locally allowed missing_debug_implementations on proof-only PathAndQueryModel and PathAndQueryCompareModel because creusot Seq/Int have no Debug impl."
     }
   },
   "post_emission_native_check": {
@@ -271,12 +279,13 @@
     "scope": "ordinary production http crate, default configuration; not the URI Creusot harness",
     "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo check --locked --offline",
     "source_hashes_at_check": {
-      "src/uri/mod.rs": "b6a022bed7d283cb02a9c61b09d6de3d8962e9e03f0311039967db025ec92feb",
-      "src/uri/authority.rs": "0715dbf8f053242271bc0a6c6136ddcf2c2731986c197d3bf81232246345994b",
-      "src/uri/scheme.rs": "2ae5146ff221f23b6e628831e1d160f49ebcfcf27b227da408eef5c002a258ce",
+      "src/uri/mod.rs": "a81495fb59144bd536bde363a1db298bd2d790bd0827f09c340e7556d2945989",
+      "src/uri/authority.rs": "b738ed6dcdafddb21b0b48aead3e7d43a5ee1b62108221dfbe8e59134d350a2d",
+      "src/uri/path.rs": "3c44dc3c3184e5217861155abb758730c5209ff63dc3fa9f6b4ead1a3b2b3869",
+      "src/uri/scheme.rs": "b1b106164483fc9205194030d5a821d28c92041200d30c133661c886afaf6fe7",
       "src/uri/scheme/types.rs": "ed66d9067b739ae4ea0dd3e2ea39b2024c0c96738774d2a9a503beb992aa3991",
       "verification/uri/src/lib.rs": "150ccbe27f993f9d7e45ebfa7f91244c19b848ec8eef333d8aa218c80afb4cd0"
     },
-    "note": "An initial check without the required nightly crate attributes failed on expected stmt-expression feature gates; the recorded command is the successful check with the repo profile."
+    "note": "Successful ordinary cargo check after all listed post-emission source edits, using the repo-required nightly crate attrs; exact hashes above."
   }
 }
