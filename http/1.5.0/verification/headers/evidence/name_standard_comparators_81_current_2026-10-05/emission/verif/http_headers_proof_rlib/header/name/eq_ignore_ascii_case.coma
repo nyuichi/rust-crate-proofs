@@ -1,0 +1,142 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2768 0 2768 55 *)
+
+let%span swell_founded = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/well_founded.rs" 43 8 43 33
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2769 7 2769 18
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2769 22 2769 29
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2770 15 2770 20
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2773 16 2773 17
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2774 22 2774 26
+let%span sname'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2779 32 2779 49
+let%span sname'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2780 14 2780 25
+let%span sname'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2777 34 2778 68
+let%span sname'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2776 34 2776 58
+let%span sname'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2775 34 2775 52
+let%span sname'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2781 19 2781 27
+let%span sname'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2781 55 2781 59
+let%span sname'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2781 31 2781 60
+let%span sname'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2782 13 2782 14
+let%span sname'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2782 8 2782 14
+let%span sname'14 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2765 28 2767 51
+let%span sname'15 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1626 8 1628 18
+let%span sname'16 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1739 28 1739 62
+let%span sname'17 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1740 28 1740 41
+let%span sname'18 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1614 8 1618 43
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.Bool
+use creusot.prelude.Any
+use int.Int
+
+let rec len_u8 (self_: Slice64.slice UInt8.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] self >= 0 /\ self > other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+predicate header_chars_lower_tchar [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1612 0 1612 45] (byte: UInt8.t) =
+  [%#sname'18] UInt8.t'int byte = 33
+  \/ UInt8.t'int byte = 35
+  \/ UInt8.t'int byte = 36
+  \/ UInt8.t'int byte = 37
+  \/ UInt8.t'int byte = 38
+  \/ UInt8.t'int byte = 39
+  \/ UInt8.t'int byte = 42
+  \/ UInt8.t'int byte = 43
+  \/ UInt8.t'int byte = 45
+  \/ UInt8.t'int byte = 46
+  \/ 48 <= UInt8.t'int byte /\ UInt8.t'int byte <= 57
+  \/ 94 <= UInt8.t'int byte /\ UInt8.t'int byte <= 96
+  \/ 97 <= UInt8.t'int byte /\ UInt8.t'int byte <= 122 \/ UInt8.t'int byte = 124 \/ UInt8.t'int byte = 126
+
+function header_chars_byte [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1624 0 1624 41] (byte: UInt8.t) : int
+ = [%#sname'15] if 65 <= UInt8.t'int byte /\ UInt8.t'int byte <= 90 then
+    UInt8.t'int byte + 32
+  else
+    if header_chars_lower_tchar byte then UInt8.t'int byte else 0
+
+
+let rec header_chars_byte_value (byte: UInt8.t) (return (x: UInt8.t)) = any
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:header_chars_byte_value ensures] ([@stop_split] [@expl:header_chars_byte_value ensures #0] [%#sname'16] UInt8.t'int result
+      = header_chars_byte byte)
+    /\ ([@stop_split] [@expl:header_chars_byte_value ensures #1] [%#sname'17] UInt8.t'int result < 128)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec eq_ignore_ascii_case
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2768 0 2768 55]
+  (lower: Slice64.slice UInt8.t) (s: Slice64.slice UInt8.t) (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = len_u8 [%#sname] {lower} (fun (_x: UInt64.t) -> [ &_8 <- _x ] s1)
+    | s1 = len_u8 [%#sname'0] {s} (fun (_x: UInt64.t) -> [ &_10 <- _x ] s2)
+    | s2 = [ &_7 <- _8 <> _10 ] s3
+    | s3 = any [ br0 -> {_7 = false} (! bb4) | br1 -> {_7} (! bb3) ] ]
+  | bb3 = s0 [ s0 = [ &_ret <- [%#sname'1] false ] s1 | s1 = return {_ret} ]
+  | bb4 = s0 [ s0 = [ &i <- [%#sname'2] (0: UInt64.t) ] s1 | s1 = [ &matches <- [%#sname'3] true ] s2 | s2 = bb5 ]
+  | bb5 = bb5invariant
+    [ bb5 = {[@expl:loop variant] well_founded_relation_Int variant_old_bb5 ([%#sname'4] Seq.length (Slice64.view lower)
+      - UInt64.t'int i)}
+      bb5invariant
+    | bb5invariant = {[@expl:loop invariant #0] [%#sname'8] UInt64.t'int i <= Seq.length (Slice64.view lower)}
+      {[@expl:loop invariant #1] [%#sname'7] Seq.length (Slice64.view lower) = Seq.length (Slice64.view s)}
+      {[@expl:loop invariant #2] [%#sname'6] matches
+      = (forall j: int. 0 <= j /\ j < UInt64.t'int i
+        -> UInt8.t'int (Seq.get (Slice64.view lower) j) = header_chars_byte (Seq.get (Slice64.view s) j))}
+      (! [ &variant_old_bb5 <- [%#sname'4] Seq.length (Slice64.view lower) - UInt64.t'int i ] s0)
+      [ s0 = len_u8 [%#sname'5] {lower} (fun (_x: UInt64.t) -> [ &_34 <- _x ] s1)
+      | s1 = [ &_32 <- UInt64.lt i _34 ] s2
+      | s2 = any [ br0 -> {_32 = false} (! bb12) | br1 -> {_32} (! bb8) ] ]
+      [ bb8 = s0
+        [ s0 = [ &_38 <- i ] s1
+        | s1 = [ &_39 <- Slice64.length lower ] s2
+        | s2 = [ &_40 <- UInt64.lt _38 _39 ] s3
+        | s3 = {[@expl:index in bounds] [%#sname'9] _40} s4
+        | s4 = Slice64.get <UInt8.t> {lower} {_38} (fun (r: UInt8.t) -> [ &_37 <- r ] s5)
+        | s5 = [ &_43 <- i ] s6
+        | s6 = [ &_44 <- Slice64.length s ] s7
+        | s7 = [ &_45 <- UInt64.lt _43 _44 ] s8
+        | s8 = {[@expl:index in bounds] [%#sname'10] _45} s9
+        | s9 = Slice64.get <UInt8.t> {s} {_43} (fun (r: UInt8.t) -> [ &_42 <- r ] s10)
+        | s10 = header_chars_byte_value [%#sname'11] {_42} (fun (_x: UInt8.t) -> [ &_41 <- _x ] s11)
+        | s11 = [ &_36 <- _37 = _41 ] s12
+        | s12 = [ &matches <- Bool.bw_and matches _36 ] s13
+        | s13 = UInt64.add [%#sname'13] {i} {[%#sname'12] (1: UInt64.t)} (fun (_x: UInt64.t) -> [ &i <- _x ] s14)
+        | s14 = bb5 ] ] ]
+  | bb12 = s0 [ s0 = [ &_ret <- matches ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & lower: Slice64.slice UInt8.t = lower
+  | & s: Slice64.slice UInt8.t = s
+  | & _7: bool = Any.any_l ()
+  | & _8: UInt64.t = Any.any_l ()
+  | & _10: UInt64.t = Any.any_l ()
+  | & i: UInt64.t = Any.any_l ()
+  | & matches: bool = Any.any_l ()
+  | & _32: bool = Any.any_l ()
+  | & _34: UInt64.t = Any.any_l ()
+  | & _36: bool = Any.any_l ()
+  | & _37: UInt8.t = Any.any_l ()
+  | & _38: UInt64.t = Any.any_l ()
+  | & _39: UInt64.t = Any.any_l ()
+  | & _40: bool = Any.any_l ()
+  | & _41: UInt8.t = Any.any_l ()
+  | & _42: UInt8.t = Any.any_l ()
+  | & _43: UInt64.t = Any.any_l ()
+  | & _44: UInt64.t = Any.any_l ()
+  | & _45: bool = Any.any_l ()
+  | & variant_old_bb5: int = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:eq_ignore_ascii_case ensures] [%#sname'14] result
+    = (Seq.length (Slice64.view lower) = Seq.length (Slice64.view s)
+    /\ (forall i: int. 0 <= i /\ i < Seq.length (Slice64.view lower)
+      -> UInt8.t'int (Seq.get (Slice64.view lower) i) = header_chars_byte (Seq.get (Slice64.view s) i)))}
+    (! return {result}) ]
