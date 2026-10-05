@@ -1,8 +1,4 @@
-//! Runtime parser configuration and its exact builder API model.
-
-extern crate creusot_std;
-#[allow(unused_imports)]
-use creusot_std::prelude::{ensures, logic, pearlite, View};
+// Runtime parser configuration and its exact builder API model.
 
 /// Parser configuration.
 // The runtime Debug implementation is unchanged; its trait refinement is not

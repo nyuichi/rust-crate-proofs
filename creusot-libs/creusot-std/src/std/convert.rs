@@ -124,6 +124,27 @@ extern_spec! {
     }
 }
 
+// Rust's `[T; N]: TryFrom<&[T]>` implementation requires only `T: Copy`.
+// Its body delegates to `TryFrom<&[T; N]>::copied()`, after the shared-slice
+// conversion rejects every length other than `N`. Source audit: rustc
+// 1.95.0-nightly (6a979b3e32522049d0acb4a47f7ae44b7c8abfd5),
+// `library/core/src/array/mod.rs:249-260` and `302-310`; source SHA-256
+// `67c051d28fd7a68b7ea49088918a5076329483a95c6d27200078963fcb1c374b`.
+// This is an explicit standard-library semantic contract, not a proof of the
+// compiler's core implementation.
+extern_spec! {
+    impl<'a, T: Copy, const N: usize> TryFrom<&'a [T]> for [T; N] {
+        #[ensures(match result {
+            Ok(array) => value@.len() == N@
+                && forall<i: Int> 0 <= i && i < N@ ==> array[i] == value[i],
+            Err(_) => value@.len() != N@,
+        })]
+        fn try_from(
+            value: &'a [T],
+        ) -> Result<[T; N], <[T; N] as TryFrom<&'a [T]>>::Error>;
+    }
+}
+
 #[cfg(feature = "std")]
 extern_spec! {
     impl<T: Clone> From<&[T]> for Vec<T>

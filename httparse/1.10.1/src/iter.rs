@@ -3,6 +3,35 @@ use core::convert::TryInto;
 use creusot_std::ghost::perm::Perm;
 use creusot_std::prelude::*;
 
+#[cfg(creusot)]
+#[check(ghost)]
+#[requires(0 <= *start && *start < *end && *end <= input.len())]
+#[ensures(input.subsequence(*start, *end)
+    == Seq::singleton(input[*start]).concat(input.subsequence(*start + 1, *end)))]
+fn bytes_subsequence_head(
+    input: Snapshot<Seq<u8>>,
+    start: Snapshot<Int>,
+    end: Snapshot<Int>,
+) {
+    proof_assert!(input.subsequence(*start, *end).len() == *end - *start);
+    proof_assert!(Seq::singleton(input[*start]).len() == 1);
+    proof_assert!(input.subsequence(*start + 1, *end).len() == *end - *start - 1);
+    proof_assert!(Seq::singleton(input[*start])
+        .concat(input.subsequence(*start + 1, *end)).len() == *end - *start);
+    proof_assert!(input.subsequence(*start, *end)[0] == input[*start]);
+    proof_assert!(Seq::singleton(input[*start])
+        .concat(input.subsequence(*start + 1, *end))[0] == input[*start]);
+    proof_assert!(forall<i: Int> 1 <= i && i < *end - *start ==>
+        input.subsequence(*start, *end)[i]
+            == input.subsequence(*start + 1, *end)[i - 1]);
+    proof_assert!(forall<i: Int> 1 <= i && i < *end - *start ==>
+        input.subsequence(*start, *end)[i]
+            == Seq::singleton(input[*start])
+                .concat(input.subsequence(*start + 1, *end))[i]);
+    proof_assert!(input.subsequence(*start, *end).ext_eq(
+        Seq::singleton(input[*start]).concat(input.subsequence(*start + 1, *end))));
+}
+
 #[allow(missing_docs)]
 pub struct Bytes<'a> {
     start: *const u8,
@@ -96,11 +125,39 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
+    #[ensures(match result {
+        Some(_) => n@ <= crate::verification_model::cursor_len(self@),
+        None => true,
+    })]
     pub fn peek_n<'b: 'a, U: TryFrom<&'a [u8]>>(&'b self, n: usize) -> Option<U> {
         // TODO: once we bump MSRC, use const generics to allow only [u8; N] reads
         // TODO: drop `n` arg in favour of const
         // let n = core::mem::size_of::<U>();
         self.as_ref().get(..n)?.try_into().ok()
+    }
+
+    /// Peek at the next eight bytes as a fixed array.
+    #[inline]
+    #[ensures(match result {
+        Some(array) => self@.cursor + 8 <= self@.end
+            && array@ == self@.input.subsequence(self@.cursor, self@.cursor + 8),
+        None => self@.cursor + 8 > self@.end,
+    })]
+    pub(crate) fn peek_array8(&self) -> Option<[u8; 8]> {
+        let prefix = self.as_ref().get(..8)?;
+        prefix.try_into().ok()
+    }
+
+    /// Peek at the next four bytes as a fixed array.
+    #[inline]
+    #[ensures(match result {
+        Some(array) => self@.cursor + 4 <= self@.end
+            && array@ == self@.input.subsequence(self@.cursor, self@.cursor + 4),
+        None => self@.cursor + 4 > self@.end,
+    })]
+    pub(crate) fn peek_array4(&self) -> Option<[u8; 4]> {
+        let prefix = self.as_ref().get(..4)?;
+        prefix.try_into().ok()
     }
 
     /// Advance by 1, equivalent to calling `advance(1)`.
@@ -110,7 +167,10 @@ impl<'a> Bytes<'a> {
     /// Caller must ensure that Bytes hasn't been advanced/bumped by more than [`Bytes::len()`].
     #[inline]
     #[requires(self@.cursor < self@.end)]
-    #[ensures((^self)@.cursor == self@.cursor + 1)]
+    #[ensures((^self)@.input == self@.input
+        && (^self)@.mark == self@.mark
+        && (^self)@.cursor == self@.cursor + 1
+        && (^self)@.end == self@.end)]
     pub unsafe fn bump(&mut self) {
         self.advance(1)
     }
@@ -365,24 +425,59 @@ unsafe fn slice_from_ptr_range<'a>(
     unsafe { Perm::as_ref(slice_ptr, range_permission) }
 }
 
-// TEMPORARY verification slice: the actual Iterator implementation remains
-// present in normal builds, but is excluded from this Creusot translation
-// until Bytes has an IteratorSpec model. Track this as an open public body.
-#[cfg(not(creusot))]
+#[cfg(creusot)]
+impl IteratorSpec for Bytes<'_> {
+    #[logic(open, prophetic)]
+    fn completed(&mut self) -> bool {
+        pearlite! { resolve(self) && crate::verification_model::cursor_completed(self@) }
+    }
+
+    #[logic(open, prophetic)]
+    fn produces(self, visited: Seq<u8>, after: Self) -> bool {
+        pearlite! { crate::verification_model::cursor_produces(self@, visited, after@) }
+    }
+
+    #[logic(open, law)]
+    #[ensures(self.produces(Seq::empty(), self))]
+    fn produces_refl(self) {
+        proof_assert!(forall<s: Seq<u8>> Seq::empty().concat(s) == s);
+    }
+
+    #[logic(open, law)]
+    #[requires(a.produces(ab, b))]
+    #[requires(b.produces(bc, c))]
+    #[ensures(a.produces(ab.concat(bc), c))]
+    fn produces_trans(a: Self, ab: Seq<u8>, b: Self, bc: Seq<u8>, c: Self) {
+        proof_assert!(forall<s1: Seq<u8>, s2: Seq<u8>, s3: Seq<u8>>
+            s1.concat(s2.concat(s3)) == s1.concat(s2).concat(s3));
+    }
+}
+
 impl Iterator for Bytes<'_> {
     type Item = u8;
 
     #[inline]
+    #[ensures(match result {
+        None => self.completed(),
+        Some(byte) => (*self).produces(Seq::singleton(byte), ^self),
+    })]
     fn next(&mut self) -> Option<u8> {
-        if self.cursor.addr() < self.end.addr() {
-            // SAFETY: bounds checked dereference
-            unsafe {
-                let b = *Perm::as_ref(self.cursor, self.byte_permission(self.cursor));
-                self.bump();
-                Some(b)
+        match self.peek() {
+            Some(byte) => {
+                #[cfg(creusot)]
+                ghost! {
+                    bytes_subsequence_head(
+                        snapshot!(self@.input),
+                        snapshot!(self@.cursor),
+                        snapshot!(self@.end),
+                    );
+                };
+                // SAFETY: `peek` establishes that the current cursor is before
+                // the end, so advancing one byte stays in bounds.
+                unsafe { self.bump() };
+                Some(byte)
             }
-        } else {
-            None
+            None => None,
         }
     }
 }

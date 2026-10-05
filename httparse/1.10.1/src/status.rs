@@ -1,8 +1,4 @@
-//! Runtime parse status and its exact variant behavior.
-
-extern crate creusot_std;
-#[allow(unused_imports)]
-use creusot_std::prelude::{ensures, requires};
+// Runtime parse status and its exact variant behavior.
 
 /// The result of a successful parse pass.
 ///

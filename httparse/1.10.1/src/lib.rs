@@ -25,7 +25,7 @@
 //! `-C target_cpu=native` allows the detection to become compile time checks,
 //! making it *even* faster.
 
-use core::{fmt, mem, result, str};
+use core::{mem, result, str};
 use core::mem::MaybeUninit;
 
 #[cfg(all(test, not(feature = "std")))]
@@ -33,25 +33,31 @@ extern crate std;
 
 extern crate creusot_std;
 #[allow(unused_imports)]
-use creusot_std::prelude::{ensures, logic, pearlite, requires};
+use creusot_std::prelude::{ensures, logic, pearlite, requires, View};
 
 use crate::iter::Bytes;
 
 mod iter;
 #[macro_use] mod macros;
 mod simd;
-mod config;
-mod error;
-mod status;
-pub use config::ParserConfig;
-pub use error::{Error, InvalidChunkSize};
-pub use status::Status;
+mod chunk;
+mod byteclass;
+include!("config.rs");
+include!("status.rs");
+include!("invalid_chunk_size.rs");
+include!("error.rs");
+#[allow(unused_imports)]
+pub(crate) use byteclass::{
+    is_header_name_token, is_header_value_token, is_method_token, is_uri_token,
+    HEADER_VALUE_MAP, TOKEN_MAP, URI_MAP,
+};
+pub use chunk::parse_chunk_size;
 #[cfg(creusot)]
 #[path = "verification/model.rs"]
 mod verification_model;
 #[cfg(creusot)]
 #[path = "verification/chunk.rs"]
-mod verification_chunk;
+pub mod verification_chunk;
 
 #[doc(hidden)]
 // Expose some internal functions so we can bench them individually
@@ -61,59 +67,6 @@ pub mod _benchable {
     pub use super::parse_version;
     pub use super::parse_method;
     pub use super::iter::Bytes;
-}
-
-/// Determines if byte is a method token char.
-///
-/// > ```notrust
-/// > token          = 1*tchar
-/// >
-/// > tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
-/// >                / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
-/// >                / DIGIT / ALPHA
-/// >                ; any VCHAR, except delimiters
-/// > ```
-#[inline]
-fn is_method_token(b: u8) -> bool {
-    match b {
-        // For the majority case, this can be faster than the table lookup.
-        b'A'..=b'Z' => true,
-        _ => TOKEN_MAP[b as usize],
-    }
-}
-
-// char codes to accept URI string.
-// i.e. b'!' <= char and char != 127
-// TODO: Make a stricter checking for URI string?
-static URI_MAP: [bool; 256] = byte_map!(
-    b'!'..=0x7e | 0x80..=0xFF
-);
-
-#[inline]
-pub(crate) fn is_uri_token(b: u8) -> bool {
-    URI_MAP[b as usize]
-}
-
-static TOKEN_MAP: [bool; 256] = byte_map!(
-    b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' |
-    b'!' | b'#' | b'$' | b'%' | b'&' | b'\'' |  b'*' | b'+' |
-    b'-' | b'.' | b'^' | b'_' | b'`' | b'|' | b'~'
-);
-
-#[inline]
-pub(crate) fn is_header_name_token(b: u8) -> bool {
-    TOKEN_MAP[b as usize]
-}
-
-
-static HEADER_VALUE_MAP: [bool; 256] = byte_map!(
-    b'\t' | b' '..=0x7e | 0x80..=0xFF
-);
-
-
-#[inline]
-pub(crate) fn is_header_value_token(b: u8) -> bool {
-    HEADER_VALUE_MAP[b as usize]
 }
 
 /// A Result of any parsing action.
@@ -163,55 +116,9 @@ impl ParserConfig {
     }
 }
 
-/// A parsed Request.
-///
-/// The optional values will be `None` if a parse was not complete, and did not
-/// parse the associated property. This allows you to inspect the parts that
-/// could be parsed, before reading more, in case you wish to exit early.
-///
-/// # Example
-///
-/// ```no_run
-/// let buf = b"GET /404 HTTP/1.1\r\nHost:";
-/// let mut headers = [httparse::EMPTY_HEADER; 16];
-/// let mut req = httparse::Request::new(&mut headers);
-/// let res = req.parse(buf).unwrap();
-/// if res.is_partial() {
-///     match req.path {
-///         Some(ref path) => {
-///             // check router for path.
-///             // /404 doesn't exist? we could stop parsing
-///         },
-///         None => {
-///             // must read more and parse again
-///         }
-///     }
-/// }
-/// ```
-#[derive(Debug, Eq, PartialEq)]
-pub struct Request<'headers, 'buf> {
-    /// The request method, such as `GET`.
-    pub method: Option<&'buf str>,
-    /// The request path, such as `/about-us`.
-    pub path: Option<&'buf str>,
-    /// The request minor version, such as `1` for `HTTP/1.1`.
-    pub version: Option<u8>,
-    /// The request headers.
-    pub headers: &'headers mut [Header<'buf>]
-}
+include!("message.rs");
 
 impl<'h, 'b> Request<'h, 'b> {
-    /// Creates a new Request, using a slice of headers you allocate.
-    #[inline]
-    pub fn new(headers: &'h mut [Header<'b>]) -> Request<'h, 'b> {
-        Request {
-            method: None,
-            path: None,
-            version: None,
-            headers,
-        }
-    }
-
     fn parse_with_config_and_uninit_headers(
         &mut self,
         buf: &'b [u8],
@@ -331,35 +238,7 @@ fn skip_spaces(bytes: &mut Bytes<'_>) -> Result<()> {
     }
 }
 
-/// A parsed Response.
-///
-/// See `Request` docs for explanation of optional values.
-#[derive(Debug, Eq, PartialEq)]
-pub struct Response<'headers, 'buf> {
-    /// The response minor version, such as `1` for `HTTP/1.1`.
-    pub version: Option<u8>,
-    /// The response code, such as `200`.
-    pub code: Option<u16>,
-    /// The response reason-phrase, such as `OK`.
-    ///
-    /// Contains an empty string if the reason-phrase was missing or contained invalid characters.
-    pub reason: Option<&'buf str>,
-    /// The response headers.
-    pub headers: &'headers mut [Header<'buf>]
-}
-
 impl<'h, 'b> Response<'h, 'b> {
-    /// Creates a new `Response` using a slice of `Header`s you have allocated.
-    #[inline]
-    pub fn new(headers: &'h mut [Header<'b>]) -> Response<'h, 'b> {
-        Response {
-            version: None,
-            code: None,
-            reason: None,
-            headers,
-        }
-    }
-
     /// Try to parse a buffer of bytes into this `Response`.
     pub fn parse(&mut self, buf: &'b [u8]) -> Result<usize> {
         self.parse_with_config(buf, &ParserConfig::default())
@@ -448,53 +327,16 @@ impl<'h, 'b> Response<'h, 'b> {
     }
 }
 
-/// Represents a parsed header.
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Header<'a> {
-    /// The name portion of a header.
-    ///
-    /// A header name must be valid ASCII-US, so it's safe to store as a `&str`.
-    pub name: &'a str,
-    /// The value portion of a header.
-    ///
-    /// While headers **should** be ASCII-US, the specification allows for
-    /// values that may not be, and so the value is stored as bytes.
-    pub value: &'a [u8],
-}
-
-impl fmt::Debug for Header<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut f = f.debug_struct("Header");
-        f.field("name", &self.name);
-        if let Ok(value) = str::from_utf8(self.value) {
-            f.field("value", &value);
-        } else {
-            f.field("value", &self.value);
-        }
-        f.finish()
-    }
-}
-
-/// An empty header, useful for constructing a `Header` array to pass in for
-/// parsing.
-///
-/// # Example
-///
-/// ```
-/// let headers = [httparse::EMPTY_HEADER; 64];
-/// ```
-pub const EMPTY_HEADER: Header<'static> = Header { name: "", value: b"" };
-
 #[inline]
 #[doc(hidden)]
 #[allow(missing_docs)]
 // WARNING: Exported for internal benchmarks, not fit for public consumption
 pub fn parse_version(bytes: &mut Bytes) -> Result<u8> {
-    if let Some(eight) = bytes.peek_n::<[u8; 8]>(8) {
+    if let Some(eight) = bytes.peek_array8() {
         // NOTE: should be const once MSRV >= 1.44
         let h10: u64 = u64::from_ne_bytes(*b"HTTP/1.0");
         let h11: u64 = u64::from_ne_bytes(*b"HTTP/1.1");
-        // SAFETY: peek_n(8) before ensure within bounds
+        // SAFETY: peek_array8 returned Some, so at least 8 bytes are available.
         unsafe {
             bytes.advance(8);
         }
@@ -530,7 +372,7 @@ pub fn parse_version(bytes: &mut Bytes) -> Result<u8> {
 pub fn parse_method<'a>(bytes: &mut Bytes<'a>) -> Result<&'a str> {
     const GET: [u8; 4] = *b"GET ";
     const POST: [u8; 4] = *b"POST";
-    match bytes.peek_n::<[u8; 4]>(4) {
+    match bytes.peek_array4() {
         Some(GET) => {
             // SAFETY: we matched "GET " which has 4 bytes and is ASCII
             let method = unsafe {
@@ -540,7 +382,7 @@ pub fn parse_method<'a>(bytes: &mut Bytes<'a>) -> Result<&'a str> {
             Ok(Status::Complete(method))
         }
         // SAFETY:
-        // If `bytes.peek_n...` returns a Some([u8; 4]),
+        // If `bytes.peek_array4()` returns a Some([u8; 4]),
         // then we are assured that `bytes` contains at least 4 bytes.
         // Thus `bytes.len() >= 4`,
         // and it is safe to peek at byte 4 with `bytes.peek_ahead(4)`.
@@ -982,102 +824,35 @@ fn parse_headers_iter_uninit<'a>(
     result
 }
 
-/// Parse a buffer of bytes as a chunk size.
-///
-/// The return value, if complete and successful, includes the index of the
-/// buffer that parsing stopped at, and the size of the following chunk.
-///
-/// # Example
-///
-/// ```
-/// let buf = b"4\r\nRust\r\n0\r\n\r\n";
-/// assert_eq!(httparse::parse_chunk_size(buf),
-///            Ok(httparse::Status::Complete((3, 4))));
-/// ```
-pub fn parse_chunk_size(buf: &[u8])
-    -> result::Result<Status<(usize, u64)>, InvalidChunkSize> {
-    const RADIX: u64 = 16;
-    let mut bytes = Bytes::new(buf);
-    let mut size = 0;
-    let mut in_chunk_size = true;
-    let mut in_ext = false;
-    let mut count = 0;
-    loop {
-        let b = next!(bytes);
-        match b {
-            b'0' ..= b'9' if in_chunk_size => {
-                if count > 15 {
-                    return Err(InvalidChunkSize);
-                }
-                count += 1;
-                if cfg!(debug_assertions) && size > (u64::MAX / RADIX) {
-                    // actually unreachable!(), because count stops the loop at 15 digits before
-                    // we can reach u64::MAX / RADIX == 0xfffffffffffffff, which requires 15 hex
-                    // digits. This stops mirai reporting a false alarm regarding the `size *=
-                    // RADIX` multiplication below.
-                    return Err(InvalidChunkSize);
-                }
-                size *= RADIX;
-                size += (b - b'0') as u64;
-            },
-            b'a' ..= b'f' if in_chunk_size => {
-                if count > 15 {
-                    return Err(InvalidChunkSize);
-                }
-                count += 1;
-                if cfg!(debug_assertions) && size > (u64::MAX / RADIX) {
-                    return Err(InvalidChunkSize);
-                }
-                size *= RADIX;
-                size += (b + 10 - b'a') as u64;
-            }
-            b'A' ..= b'F' if in_chunk_size => {
-                if count > 15 {
-                    return Err(InvalidChunkSize);
-                }
-                count += 1;
-                if cfg!(debug_assertions) && size > (u64::MAX / RADIX) {
-                    return Err(InvalidChunkSize);
-                }
-                size *= RADIX;
-                size += (b + 10 - b'A') as u64;
-            }
-            b'\r' => {
-                match next!(bytes) {
-                    b'\n' => break,
-                    _ => return Err(InvalidChunkSize),
-                }
-            }
-            // If we weren't in the extension yet, the ";" signals its start
-            b';' if !in_ext => {
-                in_ext = true;
-                in_chunk_size = false;
-            }
-            // "Linear white space" is ignored between the chunk size and the
-            // extension separator token (";") due to the "implied *LWS rule".
-            b'\t' | b' ' if !in_ext && !in_chunk_size => {}
-            // LWS can follow the chunk size, but no more digits can come
-            b'\t' | b' ' if in_chunk_size => in_chunk_size = false,
-            // We allow any arbitrary octet once we are in the extension, since
-            // they all get ignored anyway. According to the HTTP spec, valid
-            // extensions would have a more strict syntax:
-            //     (token ["=" (token | quoted-string)])
-            // but we gain nothing by rejecting an otherwise valid chunk size.
-            _ if in_ext => {}
-            // Finally, if we aren't in the extension and we're reading any
-            // other octet, the chunk size line is invalid!
-            _ => return Err(InvalidChunkSize),
-        }
-    }
-    Ok(Status::Complete((bytes.pos(), size)))
-}
-
 #[cfg(test)]
 mod tests {
     use super::{Error, Request, Response, Status, EMPTY_HEADER, parse_chunk_size};
     use std::format;
 
     const NUM_OF_HEADERS: usize = 4;
+
+    #[test]
+    fn public_type_names_keep_the_crate_root_path() {
+        assert_eq!(std::any::type_name::<super::ParserConfig>(), "httparse::ParserConfig");
+        assert_eq!(std::any::type_name::<Status<()>>(), "httparse::Status<()>");
+        assert_eq!(std::any::type_name::<Error>(), "httparse::Error");
+        assert_eq!(
+            std::any::type_name::<super::InvalidChunkSize>(),
+            "httparse::InvalidChunkSize"
+        );
+        assert_eq!(
+            std::any::type_name::<Request<'static, 'static>>(),
+            "httparse::Request<'_, '_>"
+        );
+        assert_eq!(
+            std::any::type_name::<Response<'static, 'static>>(),
+            "httparse::Response<'_, '_>"
+        );
+        assert_eq!(
+            std::any::type_name::<super::Header<'static>>(),
+            "httparse::Header<'_>"
+        );
+    }
 
     macro_rules! req {
         ($name:ident, $buf:expr, |$arg:ident| $body:expr) => (

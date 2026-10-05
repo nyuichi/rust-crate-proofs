@@ -2,20 +2,29 @@
 
 This probe imports the published `src/iter.rs` with `#[path]`; the pointer
 proofs below are for the actual `Bytes` implementation, not a separate parser.
-All counts below come from fresh Why3 sessions and `proof.json` files generated
-for the same `src/iter.rs` source hash:
+The completed memory-proof checkpoint used this exact `src/iter.rs` hash:
 
 ```text
 fcb623725d458ad86a60c3934a2095d1f030ad36d6da3a54076c37502026d87f
 ```
 
-## Fresh body proofs
+After that checkpoint, the actual `Iterator` body and its `IteratorSpec` were
+restored, and a weak bounds-only contract was added to generic `peek_n`. The
+current `src/iter.rs` hash is
+`2492453eeb1ec520192e3ff8c93f7bd4941ac7439dab0e7b34fc796a43f9a1a0`; the
+standard conversion contract hash is
+`5a4346a05298dbf71fe16b35718ac57552105426a4e4cc9161176b4bf3ae5348`. The
+current sources translate from the memory-pointer and memory-array-conversion
+probes with no warnings. Proof JSON is only fresh for the exact source hashes
+listed with each result below.
 
-On 2026-10-05, from this probe directory, `cargo creusot` translated the
-actual imported module with no warnings. The selected CoMa targets were then
-proved with the pinned Why3 profile (`z3@4.15.3`, one prover, 1000 MiB), through
-the shared lock wrapper, using `why3find prove --no-cache -s -j 1`. All 40 VCs
-in the seven listed targets are valid:
+## Memory-checkpoint body proofs
+
+On 2026-10-05, for the source hash above, `cargo creusot` translated the actual
+imported module with no warnings. The selected CoMa targets were then proved
+with the pinned Why3 profile (`z3@4.15.3`, one prover, 1000 MiB), through the
+shared lock wrapper, using `why3find prove --no-cache -s -j 1`. The 40 VCs in
+the seven listed targets were valid for that exact snapshot:
 
 | CoMa target | VCs | Result |
 | --- | ---: | --- |
@@ -56,28 +65,130 @@ invariant and proves the exact returned logical byte subsequence. This is
 evidence that the permission bridge is usable by representative runtime
 callers; it does not discharge every `Bytes` method.
 
+## Comprehensive `Bytes` proof manifest
+
+The final selected `Bytes` proof snapshot is identified by these source hashes:
+
+| Source | SHA-256 |
+| --- | --- |
+| `src/iter.rs` | `2492453eeb1ec520192e3ff8c93f7bd4941ac7439dab0e7b34fc796a43f9a1a0` |
+| `src/verification/model.rs` | `cf3a6f426eb55e28f61a2f5b46277639db9ff86ec0b584bf026735c59aa25cb1` |
+| `creusot-libs/creusot-std/src/std/ptr.rs` | `e7aaf642680aaed7229cb185aedd8cea81a2624fd8c48774f3203edc1a134829` |
+| `creusot-libs/creusot-std/src/std/convert.rs` | `5a4346a05298dbf71fe16b35718ac57552105426a4e4cc9161176b4bf3ae5348` |
+
+Every listed target passed through `run-proof.bash` with `--no-cache -s -j 1`,
+the checked Why3 profile, one prover, a 1000 MiB limit, and `z3@4.15.3`. The
+memory-pointer targets below import the actual `src/iter.rs`; array conversion
+caller targets run in the separate `memory-array-conversion` probe against the
+standard contract hash above. Each CoMa target is counted once. In particular,
+`iter/impl_Bytes/bump.coma` was refreshed in the dependency batch and also used
+by the Iterator batch; its two VCs are counted once in the total.
+
+| Probe | Exact CoMa target (relative to its `verif` root) | VCs |
+| --- | --- | ---: |
+| memory-pointer | `iter/bytes_subsequence_head.coma` | 1 |
+| memory-pointer | `iter/impl_Bytes/new.coma` | 9 |
+| memory-pointer | `iter/impl_Bytes/byte_permission.coma` | 7 |
+| memory-pointer | `iter/slice_from_ptr_range.coma` | 1 |
+| memory-pointer | `iter/impl_AsRef_for_Bytes/as_ref.coma` | 2 |
+| memory-pointer | `iter/impl_Bytes/pos.coma` | 2 |
+| memory-pointer | `iter/impl_Bytes/len.coma` | 2 |
+| memory-pointer | `iter/impl_Bytes/is_empty.coma` | 2 |
+| memory-pointer | `iter/impl_Bytes/advance.coma` | 6 |
+| memory-pointer | `iter/impl_Bytes/bump.coma` | 2 |
+| memory-pointer | `iter/impl_Bytes/advance_and_commit.coma` | 3 |
+| memory-pointer | `iter/impl_Bytes/commit.coma` | 1 |
+| memory-pointer | `iter/impl_Bytes/slice.coma` | 3 |
+| memory-pointer | `iter/impl_Bytes/slice_skip.coma` | 8 |
+| memory-pointer | `iter/impl_Bytes/set_cursor.coma` | 2 |
+| memory-pointer | `iter/impl_Bytes/as_ptr.coma` | 1 |
+| memory-pointer | `iter/impl_Bytes/start.coma` | 1 |
+| memory-pointer | `iter/impl_Bytes/end.coma` | 1 |
+| memory-pointer | `iter/impl_Bytes/peek.coma` | 9 |
+| memory-pointer | `iter/impl_Bytes/peek_ahead.coma` | 9 |
+| memory-pointer | `iter/impl_Bytes/peek_n.coma` | 10 |
+| memory-pointer | `iter/impl_Bytes/peek_array8.coma` | 10 |
+| memory-pointer | `iter/impl_Bytes/peek_array4.coma` | 10 |
+| memory-pointer | `iter/impl_Iterator_for_Bytes/next.coma` | 14 |
+| memory-pointer | `iter/impl_Iterator_for_Bytes/next__refines.coma` | 1 |
+| memory-pointer | `iter/impl_IteratorSpec_for_Bytes/produces_refl.coma` | 2 |
+| memory-pointer | `iter/impl_IteratorSpec_for_Bytes/produces_trans.coma` | 2 |
+| memory-pointer | `iter/impl_IteratorSpec_for_Bytes/produces_refl__refines.coma` | 1 |
+| memory-pointer | `iter/impl_IteratorSpec_for_Bytes/produces_trans__refines.coma` | 1 |
+| memory-array-conversion | `array8_prefix.coma` | 9 |
+| memory-array-conversion | `array4_prefix.coma` | 9 |
+| **Unique current-snapshot total** | **31 target files; bump counted once** | **141** |
+
+The total is 77 VCs for memory-pointer constructor, permission, read, lookahead,
+and array-helper dependencies; 18 VCs for the two actual standard-conversion
+callers; 24 VCs for `pos`, `slice`, `slice_skip`, `commit`,
+`advance_and_commit`, `set_cursor`, `is_empty`, and the pointer getters; plus
+the Iterator-specific helper, laws, refinement checks, and `next` (24 VCs),
+with the shared `bump` target's two VCs removed once from the sum:
+`77 + 18 + 24 + 24 - 2 = 141`.
+
+The three pointer getters (`as_ptr`, `start`, `end`) have no functional
+`ensures` clauses. Their generated one-VC body targets passed, but those
+targets establish only the obligations present in their current contracts;
+they do not provide caller-facing postconditions that the returned pointer is
+the corresponding field. This is an explicit API-specification gap, not a
+failed proof. The safe `Bytes` methods have no added preconditions. Unsafe
+`peek_ahead`, `slice_skip`, and `set_cursor` retain requirements derived from
+their documented same-buffer/bounds safety obligations.
+
+## Iterator proof slice
+
+At source hash
+`40cb9e7dae081f7b480ca75ed44d40d209db76de4d2d66e511a414cbd43a9b3b`, a
+separate batch proved 95 selected VCs: `new` (9), `byte_permission` (7), the
+pointer-range helper (1), `AsRef::as_ref` (2), `len` (2), `advance` (6),
+`bump` (2), `peek` (9), `peek_ahead` (9), generic `peek_n` (10), the private
+array helpers (10 each), and the standard conversion callers for arrays of 8
+and 4 bytes (9 each). Those results predate the current `bump` frame contract
+and are not fresh for the current hash.
+
+At source hash
+`0c2a77e281438ae4f67bf4efe7bd9a50c8ec0b1c06df6e0ee2d4e97a3bd9b454`, the two
+`IteratorSpec` refinement checks and the reflexive/transitive production laws
+passed (6 VCs), as did `next__refines` (1 VC). The actual `next` body passed
+7/8 split obligations; its remaining `next ensures` obligation timed out
+(Z3 unknown, 5.14 s, 0 steps). Inspection showed that `bump` exposed only the
+cursor update, while `cursor_produces` also requires unchanged input and end.
+The current snapshot strengthens `bump` with the frame already established
+by `advance(1)` and adds a body-checked `bytes_subsequence_head` helper for the
+remaining sequence decomposition. At the current hash, the helper passed 1/1,
+`bump` passed 2/2, the actual `next` body passed 14/14, `next__refines` passed
+1/1, both IteratorSpec refinement checks passed 1/1 each, and the reflexive
+and transitive IteratorSpec laws passed 2/2 each. This is 24/24 fresh VCs for
+the current snapshot, using the shared one-prover/1000 MiB wrapper and
+`z3@4.15.3`.
+
 ## Current proof boundary
 
-The fresh body proofs cover exactly `byte_permission`, `peek`, `peek_ahead`,
-`new`, `pos`, `slice`, and `slice_from_ptr_range`. `new` establishes the model
-state for an input slice; `pos` returns the model-relative offset; and the
-read/slice proofs connect returned bytes to the immutable input snapshot.
+At the current source hashes, the 141-VC manifest above covers all selected
+actual `Bytes` method bodies, the permission and pointer-range helpers, the
+fixed-array methods and standard-array callers, and the `IteratorSpec`/`next`
+contract. The returned-byte and state contracts connect reads, slices,
+advances, commits, and iteration to the immutable `CursorModel` input. Unsafe
+`peek_ahead`, `slice_skip`, and `set_cursor` obligations are proved from their
+documented same-buffer and bounds requirements. Safe methods have no added
+preconditions.
 
-Other actual method bodies remain open pending their own proof targets,
-including `advance`, `bump`, `len`, `is_empty`, `slice_skip`, `commit`,
-`advance_and_commit`, `set_cursor`, and `AsRef`. The generic `peek_n` has no
-model contract and its `TryFrom<&[u8]>` conversion semantics are not specified
-for this generic target. The actual `Iterator for Bytes` implementation is
-temporarily excluded only under `cfg(creusot)`; it remains in ordinary Rust
-builds. Thus the parser callers requiring `Iterator::next` are not included in
-this probe, and neither the `Bytes` API nor the crate is fully verified.
+`peek_n<U>` is proved with its deliberately weak generic postcondition: a
+`Some(_)` result implies `n <= remaining_len`; the proof makes no claim about
+the value produced by arbitrary downstream `TryFrom<&[u8]>` implementations.
+For the parser's fixed widths, `peek_array8` and `peek_array4` state exact
+subsequence results and are proved against the audited standard array
+conversion contract. The three public pointer getters have body targets but
+no functional `ensures`, so their returned pointer identity is still missing
+from the caller-facing specification. Complete parser-result refinement and
+whole-crate integration are outside this `Bytes` manifest.
 
-The native httparse tests passed before the final ghost-only
-`byte_permission` contract edit: default 100/100 and `--no-default-features`
-96/96, including doc tests. The final edit changes only proof annotations and
-the ghost-returning helper contract; it does not alter ordinary runtime code.
-Treat the native tests as evidence for the runtime version immediately before
-that annotation-only edit, not as a rerun of this exact source hash.
+The chunk owner reported both default and `--no-default-features` native
+suites passing after the parser call sites switched to `peek_array8` and
+`peek_array4`, including doc tests. Later `iter.rs` changes add only
+Creusot-only contracts and ghost proof code; the ordinary runtime path is
+unchanged from that native-tested snapshot.
 
 ## Model and trusted boundary
 
@@ -97,6 +208,16 @@ model does not track Rust's exposed-provenance set, and the contract does not
 create `Perm`/`PtrLive` or justify integer-to-pointer conversion. Raw thin
 pointer ordering is observed through `.addr()`; this preserves address
 ordering without exposing provenance or producing memory permission.
+
+The standard array conversion extern spec is in
+`creusot-libs/creusot-std/src/std/convert.rs`. It states exact length success
+and failure and same-index copying for the standard `T: Copy` implementation.
+Its source basis is rustc `1.95.0-nightly`
+(`6a979b3e32522049d0acb4a47f7ae44b7c8abfd5`),
+`library/core/src/array/mod.rs` SHA-256
+`67c051d28fd7a68b7ea49088918a5076329483a95c6d27200078963fcb1c374b`, lines
+249-260 and 302-310. This trusted std contract does not constrain arbitrary
+user-defined `TryFrom` implementations.
 
 ## Historical diagnostics
 
@@ -125,12 +246,12 @@ supplies memory permissions. Logical pointer offsets are reified in ghost code
 through `snapshot!(ptr.sub_logic(origin)).into_ghost().into_inner()` using the
 existing `Snapshot<Int>`/`Plain` conversion.
 
-## Remaining work
+## Remaining scope
 
-Restore and verify the actual `Iterator` body with an `IteratorSpec` based on
-`CursorModel::cursor_produces` and `cursor_completed`; prove the public next
-postcondition and trait laws before removing the temporary `cfg(creusot)`
-exclusion. Separately specify the generic `peek_n` conversion, or a precise
-supported array fast path, using a body-checked standard-library conversion
-contract. Prove the remaining mutation, slicing, and view methods and run the
-native suites again after any runtime-code change.
+The selected `Bytes` body and iterator goals in the manifest pass at the
+recorded hashes. Add caller-facing pointer-identity postconditions for
+`as_ptr`, `start`, and `end` in a later source checkpoint and refresh those
+three targets. Parser result/state refinement, `Error` formatting, header
+initialization, SIMD/runtime dispatch, and the complete crate configuration
+matrix remain separate open work; this manifest does not close the
+crate-level verification gate.

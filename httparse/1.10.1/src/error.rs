@@ -1,12 +1,8 @@
-//! Runtime error types and their exact descriptions.
-
-use core::fmt;
-extern crate creusot_std;
-#[allow(unused_imports)]
-use creusot_std::prelude::ensures;
+// Runtime error types and their exact descriptions.
 
 /// An error in parsing.
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[cfg_attr(creusot, derive(creusot_std::prelude::DeepModel))]
 pub enum Error {
     /// Invalid byte in header name.
     HeaderName,
@@ -48,8 +44,8 @@ impl Error {
     }
 }
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl core::fmt::Display for Error {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str(self.description_str())
     }
 }
@@ -58,16 +54,5 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn description(&self) -> &str {
         self.description_str()
-    }
-}
-
-/// An error in parsing a chunk size.
-// Note: Move this into the error enum once v2.0 is released.
-#[derive(Debug, PartialEq, Eq)]
-pub struct InvalidChunkSize;
-
-impl fmt::Display for InvalidChunkSize {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid chunk size")
     }
 }
