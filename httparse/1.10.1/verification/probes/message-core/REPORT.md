@@ -46,6 +46,17 @@ bash verify.sh translate
 bash verify.sh prove
 ```
 
+`verify.sh prove` runs a fresh `cargo creusot` translation only, checks that
+each expected Coma target is nonempty, queries the selected `creusot` Why3
+package, and then invokes `why3find prove --no-cache -s -j 1` through the
+target-local shared proof runner. The runner validates the explicit Why3
+profile before starting the solver. Before translation the script cleans only
+this harness package in its explicit local `target/` directory and removes
+prior Coma outputs recursively from this harness's verification target;
+afterward it requires the Request and Response constructor bodies, Header clone
+body, and all three callers in its mandatory manifest to be nonempty. Additional
+Coma outputs are allowed.
+
 Proof result: passed, 9 VCs, `bash verification/probes/message-core/verify.sh prove`
 from the `httparse/1.10.1` directory.
 
@@ -54,4 +65,6 @@ that attribute in both native and Creusot builds. Native offline checks passed
 for default features and `--no-default-features`; both emitted only the existing
 `creusot-std` unstable-auto-trait warning. This import-only correction leaves the
 Creusot cfg, specifications, and function bodies unchanged. The proof was not
-rerun, so the existing 9-VC artifacts were left untouched.
+rerun, so the existing 9-VC artifacts were left untouched. The revised
+split-phase runner has only passed shell syntax and diff checks; it has not yet
+been run to create fresh proof evidence.

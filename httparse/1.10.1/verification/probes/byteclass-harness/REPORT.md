@@ -58,11 +58,23 @@ CARGO_NET_OFFLINE=true ./verify.sh translate
 ./verify.sh prove
 ```
 
-`verify.sh prove` calls `../../../run-proof.bash`, which acquired the shared
-proof lock and checked the one-prover, 1000 MiB Why3 profile. The final run had
-29/29 successful VCs and no failures. The generated Why3 session is under
+`verify.sh prove` retranslates the explicit harness manifest, checks that its
+expected Coma target is nonempty, queries the selected `creusot` Why3 package,
+then calls `why3find prove --no-cache -s -j 1` through
+`../../../run-proof.bash`. The runner checks the selected one-prover, 1000 MiB
+Why3 profile before starting proof. Before translation the script cleans only
+this harness package in its explicit local `target/` directory and removes
+prior Coma outputs recursively from this harness's verification target;
+afterward it requires every caller, imported runtime helper, table constructor,
+and model-body target in its mandatory manifest to be nonempty. Additional
+Coma outputs are allowed. The recorded run had 29/29
+successful VCs and no failures. The generated Why3 session is under
 `verif/httparse_byteclass_harness_rlib`; translation and proof configuration
 is in this target directory.
+
+The 29/29 result above is from the previously recorded proof run. This revised
+split-phase runner has only passed shell syntax and diff checks so far; it has
+not yet been run to create fresh proof evidence.
 
 The generated `.coma` files show the concrete table-content bridge. For each
 table, `const_*_spec` contributes only the array invariant; there is no assumed

@@ -23,8 +23,9 @@ translated both actual caller bodies with no warnings. The fresh CoMa target is
 Both caller targets passed through `../../../run-proof.bash why3find prove
 --no-cache -s -j 1` with the checked profile (`z3@4.15.3`, one prover,
 1000 MiB): `array8_prefix` 9/9 VCs and `array4_prefix` 9/9 VCs. These 18 caller
-VCs are included in the 141-target-unique `Bytes` manifest in the adjacent
-`memory-pointer/REPORT.md`. They prove the actual `.get(..N)?.try_into().ok()`
+VCs are included in the adjacent `Bytes` manifest with 141 unique VCs across
+31 target files in `memory-pointer/REPORT.md`. They prove the actual
+`.get(..N)?.try_into().ok()`
 caller shapes against the standard conversion contract; they do not prove the
 standard library implementation itself or arbitrary generic `TryFrom` values.
 
