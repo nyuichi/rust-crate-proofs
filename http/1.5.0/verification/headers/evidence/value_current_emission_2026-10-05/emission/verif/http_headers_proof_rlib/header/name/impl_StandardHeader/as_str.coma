@@ -1,0 +1,1023 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 314 12 314 44 *)
+
+(* header::name::StandardHeader *)
+
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span sstring = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 290 14 290 24
+let%span sstring'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 291 14 291 60
+let%span sstring'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 294 12 298 13
+let%span schar = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 194 16 316 76
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 313 40 313 78
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 376 44 376 83
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 301 16 301 40
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 245 20 247 21
+let%span sname'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 307 16 309 17
+
+use creusot.prelude.Char
+use seq.Seq
+use creusot.int.UInt8
+use map.Map
+use int.ComputerDivision
+use creusot.prelude.Any
+use int.Int
+
+type t_StandardHeader =
+  | Accept
+  | AcceptCharset
+  | AcceptEncoding
+  | AcceptLanguage
+  | AcceptRanges
+  | AccessControlAllowCredentials
+  | AccessControlAllowHeaders
+  | AccessControlAllowMethods
+  | AccessControlAllowOrigin
+  | AccessControlExposeHeaders
+  | AccessControlMaxAge
+  | AccessControlRequestHeaders
+  | AccessControlRequestMethod
+  | Age
+  | Allow
+  | AltSvc
+  | Authorization
+  | CacheControl
+  | CacheStatus
+  | CdnCacheControl
+  | Connection
+  | ContentDisposition
+  | ContentEncoding
+  | ContentLanguage
+  | ContentLength
+  | ContentLocation
+  | ContentRange
+  | ContentSecurityPolicy
+  | ContentSecurityPolicyReportOnly
+  | ContentType
+  | Cookie
+  | Dnt
+  | Date
+  | Etag
+  | Expect
+  | Expires
+  | Forwarded
+  | From
+  | Host
+  | IfMatch
+  | IfModifiedSince
+  | IfNoneMatch
+  | IfRange
+  | IfUnmodifiedSince
+  | LastModified
+  | Link
+  | Location
+  | MaxForwards
+  | Origin
+  | Pragma
+  | ProxyAuthenticate
+  | ProxyAuthorization
+  | PublicKeyPins
+  | PublicKeyPinsReportOnly
+  | Range
+  | Referer
+  | ReferrerPolicy
+  | Refresh
+  | RetryAfter
+  | SecWebSocketAccept
+  | SecWebSocketExtensions
+  | SecWebSocketKey
+  | SecWebSocketProtocol
+  | SecWebSocketVersion
+  | Server
+  | SetCookie
+  | StrictTransportSecurity
+  | Te
+  | Trailer
+  | TransferEncoding
+  | UserAgent
+  | Upgrade
+  | UpgradeInsecureRequests
+  | Vary
+  | Via
+  | Warning
+  | WwwAuthenticate
+  | XContentTypeOptions
+  | XDnsPrefetchControl
+  | XFrameOptions
+  | XXssProtection
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'1] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'0] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t
+
+axiom to_bytes_def: forall self: Seq.seq Char.t. to_bytes self
+    = ([%#sstring'1] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (to_utf8_char (Seq.get self 0)) (to_bytes (tail_char self))
+    )
+
+axiom to_bytes_spec: forall self: Seq.seq Char.t. [%#sstring'0] to_bytes self
+    = flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+function view_str (self: string) : Seq.seq Char.t
+
+let rec f_XXssProtection (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:XXssProtection ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 16 [|(120: UInt8.t);(45: UInt8.t);(120: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(116: UInt8.t);(101: UInt8.t);(99: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_XFrameOptions (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:XFrameOptions ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 15 [|(120: UInt8.t);(45: UInt8.t);(102: UInt8.t);(114: UInt8.t);(97: UInt8.t);(109: UInt8.t);(101: UInt8.t);(45: UInt8.t);(111: UInt8.t);(112: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_XDnsPrefetchControl (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:XDnsPrefetchControl ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 22 [|(120: UInt8.t);(45: UInt8.t);(100: UInt8.t);(110: UInt8.t);(115: UInt8.t);(45: UInt8.t);(112: UInt8.t);(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(101: UInt8.t);(116: UInt8.t);(99: UInt8.t);(104: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_XContentTypeOptions (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:XContentTypeOptions ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 22 [|(120: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(116: UInt8.t);(121: UInt8.t);(112: UInt8.t);(101: UInt8.t);(45: UInt8.t);(111: UInt8.t);(112: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_WwwAuthenticate (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:WwwAuthenticate ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 16 [|(119: UInt8.t);(119: UInt8.t);(119: UInt8.t);(45: UInt8.t);(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Warning (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Warning ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 7 [|(119: UInt8.t);(97: UInt8.t);(114: UInt8.t);(110: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Via (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Via ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 3 [|(118: UInt8.t);(105: UInt8.t);(97: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Vary (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Vary ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 4 [|(118: UInt8.t);(97: UInt8.t);(114: UInt8.t);(121: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_UpgradeInsecureRequests (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:UpgradeInsecureRequests ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 25 [|(117: UInt8.t);(112: UInt8.t);(103: UInt8.t);(114: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(45: UInt8.t);(105: UInt8.t);(110: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(101: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(113: UInt8.t);(117: UInt8.t);(101: UInt8.t);(115: UInt8.t);(116: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Upgrade (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Upgrade ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 7 [|(117: UInt8.t);(112: UInt8.t);(103: UInt8.t);(114: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_UserAgent (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:UserAgent ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 10 [|(117: UInt8.t);(115: UInt8.t);(101: UInt8.t);(114: UInt8.t);(45: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_TransferEncoding (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:TransferEncoding ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 17 [|(116: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(115: UInt8.t);(102: UInt8.t);(101: UInt8.t);(114: UInt8.t);(45: UInt8.t);(101: UInt8.t);(110: UInt8.t);(99: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Trailer (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Trailer ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 7 [|(116: UInt8.t);(114: UInt8.t);(97: UInt8.t);(105: UInt8.t);(108: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Te (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Te ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 2 [|(116: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_StrictTransportSecurity (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:StrictTransportSecurity ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 25 [|(115: UInt8.t);(116: UInt8.t);(114: UInt8.t);(105: UInt8.t);(99: UInt8.t);(116: UInt8.t);(45: UInt8.t);(116: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(115: UInt8.t);(112: UInt8.t);(111: UInt8.t);(114: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(105: UInt8.t);(116: UInt8.t);(121: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_SetCookie (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:SetCookie ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 10 [|(115: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(111: UInt8.t);(107: UInt8.t);(105: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Server (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Server ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 6 [|(115: UInt8.t);(101: UInt8.t);(114: UInt8.t);(118: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_SecWebSocketVersion (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:SecWebSocketVersion ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 21 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(118: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_SecWebSocketProtocol (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:SecWebSocketProtocol ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 22 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(116: UInt8.t);(111: UInt8.t);(99: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_SecWebSocketKey (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:SecWebSocketKey ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 17 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(107: UInt8.t);(101: UInt8.t);(121: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_SecWebSocketExtensions (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:SecWebSocketExtensions ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 24 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(101: UInt8.t);(120: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(115: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_SecWebSocketAccept (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:SecWebSocketAccept ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 20 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_RetryAfter (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:RetryAfter ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 11 [|(114: UInt8.t);(101: UInt8.t);(116: UInt8.t);(114: UInt8.t);(121: UInt8.t);(45: UInt8.t);(97: UInt8.t);(102: UInt8.t);(116: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Refresh (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Refresh ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 7 [|(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(114: UInt8.t);(101: UInt8.t);(115: UInt8.t);(104: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ReferrerPolicy (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ReferrerPolicy ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 15 [|(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(101: UInt8.t);(114: UInt8.t);(114: UInt8.t);(101: UInt8.t);(114: UInt8.t);(45: UInt8.t);(112: UInt8.t);(111: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(121: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Referer (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Referer ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 7 [|(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(101: UInt8.t);(114: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Range (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Range ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 5 [|(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_PublicKeyPinsReportOnly (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:PublicKeyPinsReportOnly ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 27 [|(112: UInt8.t);(117: UInt8.t);(98: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(45: UInt8.t);(107: UInt8.t);(101: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(105: UInt8.t);(110: UInt8.t);(115: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(112: UInt8.t);(111: UInt8.t);(114: UInt8.t);(116: UInt8.t);(45: UInt8.t);(111: UInt8.t);(110: UInt8.t);(108: UInt8.t);(121: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_PublicKeyPins (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:PublicKeyPins ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 15 [|(112: UInt8.t);(117: UInt8.t);(98: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(45: UInt8.t);(107: UInt8.t);(101: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(105: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ProxyAuthorization (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ProxyAuthorization ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 19 [|(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(120: UInt8.t);(121: UInt8.t);(45: UInt8.t);(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(122: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ProxyAuthenticate (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ProxyAuthenticate ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 18 [|(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(120: UInt8.t);(121: UInt8.t);(45: UInt8.t);(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Pragma (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Pragma ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 6 [|(112: UInt8.t);(114: UInt8.t);(97: UInt8.t);(103: UInt8.t);(109: UInt8.t);(97: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Origin (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Origin ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 6 [|(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(103: UInt8.t);(105: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_MaxForwards (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:MaxForwards ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 12 [|(109: UInt8.t);(97: UInt8.t);(120: UInt8.t);(45: UInt8.t);(102: UInt8.t);(111: UInt8.t);(114: UInt8.t);(119: UInt8.t);(97: UInt8.t);(114: UInt8.t);(100: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Location (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Location ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 8 [|(108: UInt8.t);(111: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Link (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Link ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 4 [|(108: UInt8.t);(105: UInt8.t);(110: UInt8.t);(107: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_LastModified (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:LastModified ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 13 [|(108: UInt8.t);(97: UInt8.t);(115: UInt8.t);(116: UInt8.t);(45: UInt8.t);(109: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(102: UInt8.t);(105: UInt8.t);(101: UInt8.t);(100: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_IfUnmodifiedSince (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:IfUnmodifiedSince ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 19 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(117: UInt8.t);(110: UInt8.t);(109: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(102: UInt8.t);(105: UInt8.t);(101: UInt8.t);(100: UInt8.t);(45: UInt8.t);(115: UInt8.t);(105: UInt8.t);(110: UInt8.t);(99: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_IfRange (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:IfRange ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 8 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_IfNoneMatch (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:IfNoneMatch ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 13 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(110: UInt8.t);(111: UInt8.t);(110: UInt8.t);(101: UInt8.t);(45: UInt8.t);(109: UInt8.t);(97: UInt8.t);(116: UInt8.t);(99: UInt8.t);(104: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_IfModifiedSince (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:IfModifiedSince ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 17 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(109: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(102: UInt8.t);(105: UInt8.t);(101: UInt8.t);(100: UInt8.t);(45: UInt8.t);(115: UInt8.t);(105: UInt8.t);(110: UInt8.t);(99: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_IfMatch (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:IfMatch ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 8 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(109: UInt8.t);(97: UInt8.t);(116: UInt8.t);(99: UInt8.t);(104: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Host (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Host ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 4 [|(104: UInt8.t);(111: UInt8.t);(115: UInt8.t);(116: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_From (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:From ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 4 [|(102: UInt8.t);(114: UInt8.t);(111: UInt8.t);(109: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Forwarded (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Forwarded ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 9 [|(102: UInt8.t);(111: UInt8.t);(114: UInt8.t);(119: UInt8.t);(97: UInt8.t);(114: UInt8.t);(100: UInt8.t);(101: UInt8.t);(100: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Expires (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Expires ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 7 [|(101: UInt8.t);(120: UInt8.t);(112: UInt8.t);(105: UInt8.t);(114: UInt8.t);(101: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Expect (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Expect ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 6 [|(101: UInt8.t);(120: UInt8.t);(112: UInt8.t);(101: UInt8.t);(99: UInt8.t);(116: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Etag (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Etag ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 4 [|(101: UInt8.t);(116: UInt8.t);(97: UInt8.t);(103: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Date (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Date ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 4 [|(100: UInt8.t);(97: UInt8.t);(116: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Dnt (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Dnt ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 3 [|(100: UInt8.t);(110: UInt8.t);(116: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Cookie (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Cookie ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 6 [|(99: UInt8.t);(111: UInt8.t);(111: UInt8.t);(107: UInt8.t);(105: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ContentType (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ContentType ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 12 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(116: UInt8.t);(121: UInt8.t);(112: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ContentSecurityPolicyReportOnly (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:ContentSecurityPolicyReportOnly ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 35 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(105: UInt8.t);(116: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(111: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(121: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(112: UInt8.t);(111: UInt8.t);(114: UInt8.t);(116: UInt8.t);(45: UInt8.t);(111: UInt8.t);(110: UInt8.t);(108: UInt8.t);(121: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ContentSecurityPolicy (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:ContentSecurityPolicy ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 23 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(105: UInt8.t);(116: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(111: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(121: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ContentRange (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ContentRange ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 13 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ContentLocation (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ContentLocation ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 16 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(111: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ContentLength (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ContentLength ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 14 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(101: UInt8.t);(110: UInt8.t);(103: UInt8.t);(116: UInt8.t);(104: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ContentLanguage (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ContentLanguage ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 16 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(117: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ContentEncoding (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ContentEncoding ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 16 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(101: UInt8.t);(110: UInt8.t);(99: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_ContentDisposition (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:ContentDisposition ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 19 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(100: UInt8.t);(105: UInt8.t);(115: UInt8.t);(112: UInt8.t);(111: UInt8.t);(115: UInt8.t);(105: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Connection (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Connection ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 10 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(110: UInt8.t);(101: UInt8.t);(99: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_CdnCacheControl (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:CdnCacheControl ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 17 [|(99: UInt8.t);(100: UInt8.t);(110: UInt8.t);(45: UInt8.t);(99: UInt8.t);(97: UInt8.t);(99: UInt8.t);(104: UInt8.t);(101: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_CacheStatus (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:CacheStatus ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 12 [|(99: UInt8.t);(97: UInt8.t);(99: UInt8.t);(104: UInt8.t);(101: UInt8.t);(45: UInt8.t);(115: UInt8.t);(116: UInt8.t);(97: UInt8.t);(116: UInt8.t);(117: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_CacheControl (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:CacheControl ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 13 [|(99: UInt8.t);(97: UInt8.t);(99: UInt8.t);(104: UInt8.t);(101: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Authorization (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Authorization ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 13 [|(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(122: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AltSvc (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:AltSvc ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 7 [|(97: UInt8.t);(108: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(118: UInt8.t);(99: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Allow (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Allow ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 5 [|(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Age (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Age ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 3 [|(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AccessControlRequestMethod (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:AccessControlRequestMethod ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 29 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(113: UInt8.t);(117: UInt8.t);(101: UInt8.t);(115: UInt8.t);(116: UInt8.t);(45: UInt8.t);(109: UInt8.t);(101: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(100: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AccessControlRequestHeaders (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:AccessControlRequestHeaders ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 30 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(113: UInt8.t);(117: UInt8.t);(101: UInt8.t);(115: UInt8.t);(116: UInt8.t);(45: UInt8.t);(104: UInt8.t);(101: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AccessControlMaxAge (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:AccessControlMaxAge ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 22 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(109: UInt8.t);(97: UInt8.t);(120: UInt8.t);(45: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AccessControlExposeHeaders (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:AccessControlExposeHeaders ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 29 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(101: UInt8.t);(120: UInt8.t);(112: UInt8.t);(111: UInt8.t);(115: UInt8.t);(101: UInt8.t);(45: UInt8.t);(104: UInt8.t);(101: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AccessControlAllowOrigin (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:AccessControlAllowOrigin ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 27 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(103: UInt8.t);(105: UInt8.t);(110: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AccessControlAllowMethods (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:AccessControlAllowMethods ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 28 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(109: UInt8.t);(101: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(100: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AccessControlAllowHeaders (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:AccessControlAllowHeaders ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 28 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(104: UInt8.t);(101: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AccessControlAllowCredentials (return (x: string)) = any
+  [ return (result: string) ->
+  {[@stop_split] [@expl:AccessControlAllowCredentials ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 32 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(99: UInt8.t);(114: UInt8.t);(101: UInt8.t);(100: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(97: UInt8.t);(108: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AcceptRanges (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:AcceptRanges ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 13 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t);(115: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AcceptLanguage (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:AcceptLanguage ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 15 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(117: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AcceptEncoding (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:AcceptEncoding ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 15 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(101: UInt8.t);(110: UInt8.t);(99: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_AcceptCharset (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:AcceptCharset ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 14 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(99: UInt8.t);(104: UInt8.t);(97: UInt8.t);(114: UInt8.t);(115: UInt8.t);(101: UInt8.t);(116: UInt8.t)|]}
+    (! return {result}) ]
+
+let rec f_Accept (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:Accept ensures] [%#sname'1] to_bytes (view_str result)
+    = Seq.create 6 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t)|]}
+    (! return {result}) ]
+
+type t_StandardHeaderModel =
+  | Accept'0
+  | AcceptCharset'0
+  | AcceptEncoding'0
+  | AcceptLanguage'0
+  | AcceptRanges'0
+  | AccessControlAllowCredentials'0
+  | AccessControlAllowHeaders'0
+  | AccessControlAllowMethods'0
+  | AccessControlAllowOrigin'0
+  | AccessControlExposeHeaders'0
+  | AccessControlMaxAge'0
+  | AccessControlRequestHeaders'0
+  | AccessControlRequestMethod'0
+  | Age'0
+  | Allow'0
+  | AltSvc'0
+  | Authorization'0
+  | CacheControl'0
+  | CacheStatus'0
+  | CdnCacheControl'0
+  | Connection'0
+  | ContentDisposition'0
+  | ContentEncoding'0
+  | ContentLanguage'0
+  | ContentLength'0
+  | ContentLocation'0
+  | ContentRange'0
+  | ContentSecurityPolicy'0
+  | ContentSecurityPolicyReportOnly'0
+  | ContentType'0
+  | Cookie'0
+  | Dnt'0
+  | Date'0
+  | Etag'0
+  | Expect'0
+  | Expires'0
+  | Forwarded'0
+  | From'0
+  | Host'0
+  | IfMatch'0
+  | IfModifiedSince'0
+  | IfNoneMatch'0
+  | IfRange'0
+  | IfUnmodifiedSince'0
+  | LastModified'0
+  | Link'0
+  | Location'0
+  | MaxForwards'0
+  | Origin'0
+  | Pragma'0
+  | ProxyAuthenticate'0
+  | ProxyAuthorization'0
+  | PublicKeyPins'0
+  | PublicKeyPinsReportOnly'0
+  | Range'0
+  | Referer'0
+  | ReferrerPolicy'0
+  | Refresh'0
+  | RetryAfter'0
+  | SecWebSocketAccept'0
+  | SecWebSocketExtensions'0
+  | SecWebSocketKey'0
+  | SecWebSocketProtocol'0
+  | SecWebSocketVersion'0
+  | Server'0
+  | SetCookie'0
+  | StrictTransportSecurity'0
+  | Te'0
+  | Trailer'0
+  | TransferEncoding'0
+  | UserAgent'0
+  | Upgrade'0
+  | UpgradeInsecureRequests'0
+  | Vary'0
+  | Via'0
+  | Warning'0
+  | WwwAuthenticate'0
+  | XContentTypeOptions'0
+  | XDnsPrefetchControl'0
+  | XFrameOptions'0
+  | XXssProtection'0
+
+function byte_view [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 243 12 243 45] (self: t_StandardHeaderModel) : Seq.seq UInt8.t
+ = [%#sname'3] match self with
+    | Accept'0 -> Seq.create 6 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t)|]
+    | AcceptCharset'0 -> Seq.create 14 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(99: UInt8.t);(104: UInt8.t);(97: UInt8.t);(114: UInt8.t);(115: UInt8.t);(101: UInt8.t);(116: UInt8.t)|]
+    | AcceptEncoding'0 -> Seq.create 15 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(101: UInt8.t);(110: UInt8.t);(99: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]
+    | AcceptLanguage'0 -> Seq.create 15 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(117: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | AcceptRanges'0 -> Seq.create 13 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t);(115: UInt8.t)|]
+    | AccessControlAllowCredentials'0 -> Seq.create 32 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(99: UInt8.t);(114: UInt8.t);(101: UInt8.t);(100: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(97: UInt8.t);(108: UInt8.t);(115: UInt8.t)|]
+    | AccessControlAllowHeaders'0 -> Seq.create 28 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(104: UInt8.t);(101: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t)|]
+    | AccessControlAllowMethods'0 -> Seq.create 28 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(109: UInt8.t);(101: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(100: UInt8.t);(115: UInt8.t)|]
+    | AccessControlAllowOrigin'0 -> Seq.create 27 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(103: UInt8.t);(105: UInt8.t);(110: UInt8.t)|]
+    | AccessControlExposeHeaders'0 -> Seq.create 29 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(101: UInt8.t);(120: UInt8.t);(112: UInt8.t);(111: UInt8.t);(115: UInt8.t);(101: UInt8.t);(45: UInt8.t);(104: UInt8.t);(101: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t)|]
+    | AccessControlMaxAge'0 -> Seq.create 22 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(109: UInt8.t);(97: UInt8.t);(120: UInt8.t);(45: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | AccessControlRequestHeaders'0 -> Seq.create 30 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(113: UInt8.t);(117: UInt8.t);(101: UInt8.t);(115: UInt8.t);(116: UInt8.t);(45: UInt8.t);(104: UInt8.t);(101: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t)|]
+    | AccessControlRequestMethod'0 -> Seq.create 29 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(113: UInt8.t);(117: UInt8.t);(101: UInt8.t);(115: UInt8.t);(116: UInt8.t);(45: UInt8.t);(109: UInt8.t);(101: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(100: UInt8.t)|]
+    | Age'0 -> Seq.create 3 [|(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | Allow'0 -> Seq.create 5 [|(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t)|]
+    | AltSvc'0 -> Seq.create 7 [|(97: UInt8.t);(108: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(118: UInt8.t);(99: UInt8.t)|]
+    | Authorization'0 -> Seq.create 13 [|(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(122: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | CacheControl'0 -> Seq.create 13 [|(99: UInt8.t);(97: UInt8.t);(99: UInt8.t);(104: UInt8.t);(101: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]
+    | CacheStatus'0 -> Seq.create 12 [|(99: UInt8.t);(97: UInt8.t);(99: UInt8.t);(104: UInt8.t);(101: UInt8.t);(45: UInt8.t);(115: UInt8.t);(116: UInt8.t);(97: UInt8.t);(116: UInt8.t);(117: UInt8.t);(115: UInt8.t)|]
+    | CdnCacheControl'0 -> Seq.create 17 [|(99: UInt8.t);(100: UInt8.t);(110: UInt8.t);(45: UInt8.t);(99: UInt8.t);(97: UInt8.t);(99: UInt8.t);(104: UInt8.t);(101: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]
+    | Connection'0 -> Seq.create 10 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(110: UInt8.t);(101: UInt8.t);(99: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | ContentDisposition'0 -> Seq.create 19 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(100: UInt8.t);(105: UInt8.t);(115: UInt8.t);(112: UInt8.t);(111: UInt8.t);(115: UInt8.t);(105: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | ContentEncoding'0 -> Seq.create 16 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(101: UInt8.t);(110: UInt8.t);(99: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]
+    | ContentLanguage'0 -> Seq.create 16 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(117: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | ContentLength'0 -> Seq.create 14 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(101: UInt8.t);(110: UInt8.t);(103: UInt8.t);(116: UInt8.t);(104: UInt8.t)|]
+    | ContentLocation'0 -> Seq.create 16 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(111: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | ContentRange'0 -> Seq.create 13 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | ContentSecurityPolicy'0 -> Seq.create 23 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(105: UInt8.t);(116: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(111: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(121: UInt8.t)|]
+    | ContentSecurityPolicyReportOnly'0 -> Seq.create 35 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(105: UInt8.t);(116: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(111: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(121: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(112: UInt8.t);(111: UInt8.t);(114: UInt8.t);(116: UInt8.t);(45: UInt8.t);(111: UInt8.t);(110: UInt8.t);(108: UInt8.t);(121: UInt8.t)|]
+    | ContentType'0 -> Seq.create 12 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(116: UInt8.t);(121: UInt8.t);(112: UInt8.t);(101: UInt8.t)|]
+    | Cookie'0 -> Seq.create 6 [|(99: UInt8.t);(111: UInt8.t);(111: UInt8.t);(107: UInt8.t);(105: UInt8.t);(101: UInt8.t)|]
+    | Dnt'0 -> Seq.create 3 [|(100: UInt8.t);(110: UInt8.t);(116: UInt8.t)|]
+    | Date'0 -> Seq.create 4 [|(100: UInt8.t);(97: UInt8.t);(116: UInt8.t);(101: UInt8.t)|]
+    | Etag'0 -> Seq.create 4 [|(101: UInt8.t);(116: UInt8.t);(97: UInt8.t);(103: UInt8.t)|]
+    | Expect'0 -> Seq.create 6 [|(101: UInt8.t);(120: UInt8.t);(112: UInt8.t);(101: UInt8.t);(99: UInt8.t);(116: UInt8.t)|]
+    | Expires'0 -> Seq.create 7 [|(101: UInt8.t);(120: UInt8.t);(112: UInt8.t);(105: UInt8.t);(114: UInt8.t);(101: UInt8.t);(115: UInt8.t)|]
+    | Forwarded'0 -> Seq.create 9 [|(102: UInt8.t);(111: UInt8.t);(114: UInt8.t);(119: UInt8.t);(97: UInt8.t);(114: UInt8.t);(100: UInt8.t);(101: UInt8.t);(100: UInt8.t)|]
+    | From'0 -> Seq.create 4 [|(102: UInt8.t);(114: UInt8.t);(111: UInt8.t);(109: UInt8.t)|]
+    | Host'0 -> Seq.create 4 [|(104: UInt8.t);(111: UInt8.t);(115: UInt8.t);(116: UInt8.t)|]
+    | IfMatch'0 -> Seq.create 8 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(109: UInt8.t);(97: UInt8.t);(116: UInt8.t);(99: UInt8.t);(104: UInt8.t)|]
+    | IfModifiedSince'0 -> Seq.create 17 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(109: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(102: UInt8.t);(105: UInt8.t);(101: UInt8.t);(100: UInt8.t);(45: UInt8.t);(115: UInt8.t);(105: UInt8.t);(110: UInt8.t);(99: UInt8.t);(101: UInt8.t)|]
+    | IfNoneMatch'0 -> Seq.create 13 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(110: UInt8.t);(111: UInt8.t);(110: UInt8.t);(101: UInt8.t);(45: UInt8.t);(109: UInt8.t);(97: UInt8.t);(116: UInt8.t);(99: UInt8.t);(104: UInt8.t)|]
+    | IfRange'0 -> Seq.create 8 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | IfUnmodifiedSince'0 -> Seq.create 19 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(117: UInt8.t);(110: UInt8.t);(109: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(102: UInt8.t);(105: UInt8.t);(101: UInt8.t);(100: UInt8.t);(45: UInt8.t);(115: UInt8.t);(105: UInt8.t);(110: UInt8.t);(99: UInt8.t);(101: UInt8.t)|]
+    | LastModified'0 -> Seq.create 13 [|(108: UInt8.t);(97: UInt8.t);(115: UInt8.t);(116: UInt8.t);(45: UInt8.t);(109: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(102: UInt8.t);(105: UInt8.t);(101: UInt8.t);(100: UInt8.t)|]
+    | Link'0 -> Seq.create 4 [|(108: UInt8.t);(105: UInt8.t);(110: UInt8.t);(107: UInt8.t)|]
+    | Location'0 -> Seq.create 8 [|(108: UInt8.t);(111: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | MaxForwards'0 -> Seq.create 12 [|(109: UInt8.t);(97: UInt8.t);(120: UInt8.t);(45: UInt8.t);(102: UInt8.t);(111: UInt8.t);(114: UInt8.t);(119: UInt8.t);(97: UInt8.t);(114: UInt8.t);(100: UInt8.t);(115: UInt8.t)|]
+    | Origin'0 -> Seq.create 6 [|(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(103: UInt8.t);(105: UInt8.t);(110: UInt8.t)|]
+    | Pragma'0 -> Seq.create 6 [|(112: UInt8.t);(114: UInt8.t);(97: UInt8.t);(103: UInt8.t);(109: UInt8.t);(97: UInt8.t)|]
+    | ProxyAuthenticate'0 -> Seq.create 18 [|(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(120: UInt8.t);(121: UInt8.t);(45: UInt8.t);(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(101: UInt8.t)|]
+    | ProxyAuthorization'0 -> Seq.create 19 [|(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(120: UInt8.t);(121: UInt8.t);(45: UInt8.t);(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(122: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | PublicKeyPins'0 -> Seq.create 15 [|(112: UInt8.t);(117: UInt8.t);(98: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(45: UInt8.t);(107: UInt8.t);(101: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(105: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]
+    | PublicKeyPinsReportOnly'0 -> Seq.create 27 [|(112: UInt8.t);(117: UInt8.t);(98: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(45: UInt8.t);(107: UInt8.t);(101: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(105: UInt8.t);(110: UInt8.t);(115: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(112: UInt8.t);(111: UInt8.t);(114: UInt8.t);(116: UInt8.t);(45: UInt8.t);(111: UInt8.t);(110: UInt8.t);(108: UInt8.t);(121: UInt8.t)|]
+    | Range'0 -> Seq.create 5 [|(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | Referer'0 -> Seq.create 7 [|(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(101: UInt8.t);(114: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]
+    | ReferrerPolicy'0 -> Seq.create 15 [|(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(101: UInt8.t);(114: UInt8.t);(114: UInt8.t);(101: UInt8.t);(114: UInt8.t);(45: UInt8.t);(112: UInt8.t);(111: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(121: UInt8.t)|]
+    | Refresh'0 -> Seq.create 7 [|(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(114: UInt8.t);(101: UInt8.t);(115: UInt8.t);(104: UInt8.t)|]
+    | RetryAfter'0 -> Seq.create 11 [|(114: UInt8.t);(101: UInt8.t);(116: UInt8.t);(114: UInt8.t);(121: UInt8.t);(45: UInt8.t);(97: UInt8.t);(102: UInt8.t);(116: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]
+    | SecWebSocketAccept'0 -> Seq.create 20 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t)|]
+    | SecWebSocketExtensions'0 -> Seq.create 24 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(101: UInt8.t);(120: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(115: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]
+    | SecWebSocketKey'0 -> Seq.create 17 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(107: UInt8.t);(101: UInt8.t);(121: UInt8.t)|]
+    | SecWebSocketProtocol'0 -> Seq.create 22 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(116: UInt8.t);(111: UInt8.t);(99: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]
+    | SecWebSocketVersion'0 -> Seq.create 21 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(118: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | Server'0 -> Seq.create 6 [|(115: UInt8.t);(101: UInt8.t);(114: UInt8.t);(118: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]
+    | SetCookie'0 -> Seq.create 10 [|(115: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(111: UInt8.t);(107: UInt8.t);(105: UInt8.t);(101: UInt8.t)|]
+    | StrictTransportSecurity'0 -> Seq.create 25 [|(115: UInt8.t);(116: UInt8.t);(114: UInt8.t);(105: UInt8.t);(99: UInt8.t);(116: UInt8.t);(45: UInt8.t);(116: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(115: UInt8.t);(112: UInt8.t);(111: UInt8.t);(114: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(105: UInt8.t);(116: UInt8.t);(121: UInt8.t)|]
+    | Te'0 -> Seq.create 2 [|(116: UInt8.t);(101: UInt8.t)|]
+    | Trailer'0 -> Seq.create 7 [|(116: UInt8.t);(114: UInt8.t);(97: UInt8.t);(105: UInt8.t);(108: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]
+    | TransferEncoding'0 -> Seq.create 17 [|(116: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(115: UInt8.t);(102: UInt8.t);(101: UInt8.t);(114: UInt8.t);(45: UInt8.t);(101: UInt8.t);(110: UInt8.t);(99: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]
+    | UserAgent'0 -> Seq.create 10 [|(117: UInt8.t);(115: UInt8.t);(101: UInt8.t);(114: UInt8.t);(45: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t)|]
+    | Upgrade'0 -> Seq.create 7 [|(117: UInt8.t);(112: UInt8.t);(103: UInt8.t);(114: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t)|]
+    | UpgradeInsecureRequests'0 -> Seq.create 25 [|(117: UInt8.t);(112: UInt8.t);(103: UInt8.t);(114: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(45: UInt8.t);(105: UInt8.t);(110: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(101: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(113: UInt8.t);(117: UInt8.t);(101: UInt8.t);(115: UInt8.t);(116: UInt8.t);(115: UInt8.t)|]
+    | Vary'0 -> Seq.create 4 [|(118: UInt8.t);(97: UInt8.t);(114: UInt8.t);(121: UInt8.t)|]
+    | Via'0 -> Seq.create 3 [|(118: UInt8.t);(105: UInt8.t);(97: UInt8.t)|]
+    | Warning'0 -> Seq.create 7 [|(119: UInt8.t);(97: UInt8.t);(114: UInt8.t);(110: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]
+    | WwwAuthenticate'0 -> Seq.create 16 [|(119: UInt8.t);(119: UInt8.t);(119: UInt8.t);(45: UInt8.t);(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(101: UInt8.t)|]
+    | XContentTypeOptions'0 -> Seq.create 22 [|(120: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(116: UInt8.t);(121: UInt8.t);(112: UInt8.t);(101: UInt8.t);(45: UInt8.t);(111: UInt8.t);(112: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]
+    | XDnsPrefetchControl'0 -> Seq.create 22 [|(120: UInt8.t);(45: UInt8.t);(100: UInt8.t);(110: UInt8.t);(115: UInt8.t);(45: UInt8.t);(112: UInt8.t);(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(101: UInt8.t);(116: UInt8.t);(99: UInt8.t);(104: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]
+    | XFrameOptions'0 -> Seq.create 15 [|(120: UInt8.t);(45: UInt8.t);(102: UInt8.t);(114: UInt8.t);(97: UInt8.t);(109: UInt8.t);(101: UInt8.t);(45: UInt8.t);(111: UInt8.t);(112: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]
+    | XXssProtection'0 -> Seq.create 16 [|(120: UInt8.t);(45: UInt8.t);(120: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(116: UInt8.t);(101: UInt8.t);(99: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    end
+
+function model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 306 12 306 49] (self: t_StandardHeader) : t_StandardHeaderModel
+ = [%#sname'4] match self with
+    | Accept -> Accept'0
+    | AcceptCharset -> AcceptCharset'0
+    | AcceptEncoding -> AcceptEncoding'0
+    | AcceptLanguage -> AcceptLanguage'0
+    | AcceptRanges -> AcceptRanges'0
+    | AccessControlAllowCredentials -> AccessControlAllowCredentials'0
+    | AccessControlAllowHeaders -> AccessControlAllowHeaders'0
+    | AccessControlAllowMethods -> AccessControlAllowMethods'0
+    | AccessControlAllowOrigin -> AccessControlAllowOrigin'0
+    | AccessControlExposeHeaders -> AccessControlExposeHeaders'0
+    | AccessControlMaxAge -> AccessControlMaxAge'0
+    | AccessControlRequestHeaders -> AccessControlRequestHeaders'0
+    | AccessControlRequestMethod -> AccessControlRequestMethod'0
+    | Age -> Age'0
+    | Allow -> Allow'0
+    | AltSvc -> AltSvc'0
+    | Authorization -> Authorization'0
+    | CacheControl -> CacheControl'0
+    | CacheStatus -> CacheStatus'0
+    | CdnCacheControl -> CdnCacheControl'0
+    | Connection -> Connection'0
+    | ContentDisposition -> ContentDisposition'0
+    | ContentEncoding -> ContentEncoding'0
+    | ContentLanguage -> ContentLanguage'0
+    | ContentLength -> ContentLength'0
+    | ContentLocation -> ContentLocation'0
+    | ContentRange -> ContentRange'0
+    | ContentSecurityPolicy -> ContentSecurityPolicy'0
+    | ContentSecurityPolicyReportOnly -> ContentSecurityPolicyReportOnly'0
+    | ContentType -> ContentType'0
+    | Cookie -> Cookie'0
+    | Dnt -> Dnt'0
+    | Date -> Date'0
+    | Etag -> Etag'0
+    | Expect -> Expect'0
+    | Expires -> Expires'0
+    | Forwarded -> Forwarded'0
+    | From -> From'0
+    | Host -> Host'0
+    | IfMatch -> IfMatch'0
+    | IfModifiedSince -> IfModifiedSince'0
+    | IfNoneMatch -> IfNoneMatch'0
+    | IfRange -> IfRange'0
+    | IfUnmodifiedSince -> IfUnmodifiedSince'0
+    | LastModified -> LastModified'0
+    | Link -> Link'0
+    | Location -> Location'0
+    | MaxForwards -> MaxForwards'0
+    | Origin -> Origin'0
+    | Pragma -> Pragma'0
+    | ProxyAuthenticate -> ProxyAuthenticate'0
+    | ProxyAuthorization -> ProxyAuthorization'0
+    | PublicKeyPins -> PublicKeyPins'0
+    | PublicKeyPinsReportOnly -> PublicKeyPinsReportOnly'0
+    | Range -> Range'0
+    | Referer -> Referer'0
+    | ReferrerPolicy -> ReferrerPolicy'0
+    | Refresh -> Refresh'0
+    | RetryAfter -> RetryAfter'0
+    | SecWebSocketAccept -> SecWebSocketAccept'0
+    | SecWebSocketExtensions -> SecWebSocketExtensions'0
+    | SecWebSocketKey -> SecWebSocketKey'0
+    | SecWebSocketProtocol -> SecWebSocketProtocol'0
+    | SecWebSocketVersion -> SecWebSocketVersion'0
+    | Server -> Server'0
+    | SetCookie -> SetCookie'0
+    | StrictTransportSecurity -> StrictTransportSecurity'0
+    | Te -> Te'0
+    | Trailer -> Trailer'0
+    | TransferEncoding -> TransferEncoding'0
+    | UserAgent -> UserAgent'0
+    | Upgrade -> Upgrade'0
+    | UpgradeInsecureRequests -> UpgradeInsecureRequests'0
+    | Vary -> Vary'0
+    | Via -> Via'0
+    | Warning -> Warning'0
+    | WwwAuthenticate -> WwwAuthenticate'0
+    | XContentTypeOptions -> XContentTypeOptions'0
+    | XDnsPrefetchControl -> XDnsPrefetchControl'0
+    | XFrameOptions -> XFrameOptions'0
+    | XXssProtection -> XXssProtection'0
+    end
+
+function byte_view'0 [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 300 12 300 41] (self: t_StandardHeader) : Seq.seq UInt8.t
+ = [%#sname'2] byte_view (model self)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec as_str
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 314 12 314 44]
+  (self: t_StandardHeader) (return (x: string)) = (! bb0
+  [ bb0 = any
+    [ br0 -> {self = Accept} (! bb162)
+    | br1 -> {self = AcceptCharset} (! bb161)
+    | br2 -> {self = AcceptEncoding} (! bb160)
+    | br3 -> {self = AcceptLanguage} (! bb159)
+    | br4 -> {self = AcceptRanges} (! bb158)
+    | br5 -> {self = AccessControlAllowCredentials} (! bb157)
+    | br6 -> {self = AccessControlAllowHeaders} (! bb156)
+    | br7 -> {self = AccessControlAllowMethods} (! bb155)
+    | br8 -> {self = AccessControlAllowOrigin} (! bb154)
+    | br9 -> {self = AccessControlExposeHeaders} (! bb153)
+    | br10 -> {self = AccessControlMaxAge} (! bb152)
+    | br11 -> {self = AccessControlRequestHeaders} (! bb151)
+    | br12 -> {self = AccessControlRequestMethod} (! bb150)
+    | br13 -> {self = Age} (! bb149)
+    | br14 -> {self = Allow} (! bb148)
+    | br15 -> {self = AltSvc} (! bb147)
+    | br16 -> {self = Authorization} (! bb146)
+    | br17 -> {self = CacheControl} (! bb145)
+    | br18 -> {self = CacheStatus} (! bb144)
+    | br19 -> {self = CdnCacheControl} (! bb143)
+    | br20 -> {self = Connection} (! bb142)
+    | br21 -> {self = ContentDisposition} (! bb141)
+    | br22 -> {self = ContentEncoding} (! bb140)
+    | br23 -> {self = ContentLanguage} (! bb139)
+    | br24 -> {self = ContentLength} (! bb138)
+    | br25 -> {self = ContentLocation} (! bb137)
+    | br26 -> {self = ContentRange} (! bb136)
+    | br27 -> {self = ContentSecurityPolicy} (! bb135)
+    | br28 -> {self = ContentSecurityPolicyReportOnly} (! bb134)
+    | br29 -> {self = ContentType} (! bb133)
+    | br30 -> {self = Cookie} (! bb132)
+    | br31 -> {self = Dnt} (! bb131)
+    | br32 -> {self = Date} (! bb130)
+    | br33 -> {self = Etag} (! bb129)
+    | br34 -> {self = Expect} (! bb128)
+    | br35 -> {self = Expires} (! bb127)
+    | br36 -> {self = Forwarded} (! bb126)
+    | br37 -> {self = From} (! bb125)
+    | br38 -> {self = Host} (! bb124)
+    | br39 -> {self = IfMatch} (! bb123)
+    | br40 -> {self = IfModifiedSince} (! bb122)
+    | br41 -> {self = IfNoneMatch} (! bb121)
+    | br42 -> {self = IfRange} (! bb120)
+    | br43 -> {self = IfUnmodifiedSince} (! bb119)
+    | br44 -> {self = LastModified} (! bb118)
+    | br45 -> {self = Link} (! bb117)
+    | br46 -> {self = Location} (! bb116)
+    | br47 -> {self = MaxForwards} (! bb115)
+    | br48 -> {self = Origin} (! bb114)
+    | br49 -> {self = Pragma} (! bb113)
+    | br50 -> {self = ProxyAuthenticate} (! bb112)
+    | br51 -> {self = ProxyAuthorization} (! bb111)
+    | br52 -> {self = PublicKeyPins} (! bb110)
+    | br53 -> {self = PublicKeyPinsReportOnly} (! bb109)
+    | br54 -> {self = Range} (! bb108)
+    | br55 -> {self = Referer} (! bb107)
+    | br56 -> {self = ReferrerPolicy} (! bb106)
+    | br57 -> {self = Refresh} (! bb105)
+    | br58 -> {self = RetryAfter} (! bb104)
+    | br59 -> {self = SecWebSocketAccept} (! bb103)
+    | br60 -> {self = SecWebSocketExtensions} (! bb102)
+    | br61 -> {self = SecWebSocketKey} (! bb101)
+    | br62 -> {self = SecWebSocketProtocol} (! bb100)
+    | br63 -> {self = SecWebSocketVersion} (! bb99)
+    | br64 -> {self = Server} (! bb98)
+    | br65 -> {self = SetCookie} (! bb97)
+    | br66 -> {self = StrictTransportSecurity} (! bb96)
+    | br67 -> {self = Te} (! bb95)
+    | br68 -> {self = Trailer} (! bb94)
+    | br69 -> {self = TransferEncoding} (! bb93)
+    | br70 -> {self = UserAgent} (! bb92)
+    | br71 -> {self = Upgrade} (! bb91)
+    | br72 -> {self = UpgradeInsecureRequests} (! bb90)
+    | br73 -> {self = Vary} (! bb89)
+    | br74 -> {self = Via} (! bb88)
+    | br75 -> {self = Warning} (! bb87)
+    | br76 -> {self = WwwAuthenticate} (! bb86)
+    | br77 -> {self = XContentTypeOptions} (! bb85)
+    | br78 -> {self = XDnsPrefetchControl} (! bb84)
+    | br79 -> {self = XFrameOptions} (! bb83)
+    | br80 -> {self = XXssProtection} (! bb82) ]
+  | bb82 = s0 [ s0 = f_XXssProtection [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb83 = s0 [ s0 = f_XFrameOptions [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb84 = s0 [ s0 = f_XDnsPrefetchControl [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb85 = s0 [ s0 = f_XContentTypeOptions [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb86 = s0 [ s0 = f_WwwAuthenticate [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb87 = s0 [ s0 = f_Warning [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb88 = s0 [ s0 = f_Via [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb89 = s0 [ s0 = f_Vary [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb90 = s0 [ s0 = f_UpgradeInsecureRequests [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb91 = s0 [ s0 = f_Upgrade [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb92 = s0 [ s0 = f_UserAgent [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb93 = s0 [ s0 = f_TransferEncoding [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb94 = s0 [ s0 = f_Trailer [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb95 = s0 [ s0 = f_Te [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb96 = s0 [ s0 = f_StrictTransportSecurity [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb97 = s0 [ s0 = f_SetCookie [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb98 = s0 [ s0 = f_Server [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb99 = s0 [ s0 = f_SecWebSocketVersion [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb100 = s0 [ s0 = f_SecWebSocketProtocol [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb101 = s0 [ s0 = f_SecWebSocketKey [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb102 = s0 [ s0 = f_SecWebSocketExtensions [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb103 = s0 [ s0 = f_SecWebSocketAccept [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb104 = s0 [ s0 = f_RetryAfter [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb105 = s0 [ s0 = f_Refresh [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb106 = s0 [ s0 = f_ReferrerPolicy [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb107 = s0 [ s0 = f_Referer [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb108 = s0 [ s0 = f_Range [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb109 = s0
+    [ s0 = f_PublicKeyPinsReportOnly [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb110 = s0 [ s0 = f_PublicKeyPins [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb111 = s0 [ s0 = f_ProxyAuthorization [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb112 = s0 [ s0 = f_ProxyAuthenticate [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb113 = s0 [ s0 = f_Pragma [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb114 = s0 [ s0 = f_Origin [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb115 = s0 [ s0 = f_MaxForwards [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb116 = s0 [ s0 = f_Location [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb117 = s0 [ s0 = f_Link [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb118 = s0 [ s0 = f_LastModified [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb119 = s0 [ s0 = f_IfUnmodifiedSince [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb120 = s0 [ s0 = f_IfRange [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb121 = s0 [ s0 = f_IfNoneMatch [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb122 = s0 [ s0 = f_IfModifiedSince [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb123 = s0 [ s0 = f_IfMatch [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb124 = s0 [ s0 = f_Host [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb125 = s0 [ s0 = f_From [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb126 = s0 [ s0 = f_Forwarded [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb127 = s0 [ s0 = f_Expires [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb128 = s0 [ s0 = f_Expect [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb129 = s0 [ s0 = f_Etag [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb130 = s0 [ s0 = f_Date [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb131 = s0 [ s0 = f_Dnt [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb132 = s0 [ s0 = f_Cookie [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb133 = s0 [ s0 = f_ContentType [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb134 = s0
+    [ s0 = f_ContentSecurityPolicyReportOnly [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb135 = s0 [ s0 = f_ContentSecurityPolicy [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb136 = s0 [ s0 = f_ContentRange [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb137 = s0 [ s0 = f_ContentLocation [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb138 = s0 [ s0 = f_ContentLength [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb139 = s0 [ s0 = f_ContentLanguage [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb140 = s0 [ s0 = f_ContentEncoding [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb141 = s0 [ s0 = f_ContentDisposition [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb142 = s0 [ s0 = f_Connection [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb143 = s0 [ s0 = f_CdnCacheControl [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb144 = s0 [ s0 = f_CacheStatus [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb145 = s0 [ s0 = f_CacheControl [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb146 = s0 [ s0 = f_Authorization [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb147 = s0 [ s0 = f_AltSvc [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb148 = s0 [ s0 = f_Allow [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb149 = s0 [ s0 = f_Age [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb150 = s0
+    [ s0 = f_AccessControlRequestMethod [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb151 = s0
+    [ s0 = f_AccessControlRequestHeaders [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb152 = s0 [ s0 = f_AccessControlMaxAge [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb153 = s0
+    [ s0 = f_AccessControlExposeHeaders [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb154 = s0
+    [ s0 = f_AccessControlAllowOrigin [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb155 = s0
+    [ s0 = f_AccessControlAllowMethods [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb156 = s0
+    [ s0 = f_AccessControlAllowHeaders [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb157 = s0
+    [ s0 = f_AccessControlAllowCredentials [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb158 = s0 [ s0 = f_AcceptRanges [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb159 = s0 [ s0 = f_AcceptLanguage [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb160 = s0 [ s0 = f_AcceptEncoding [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb161 = s0 [ s0 = f_AcceptCharset [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb162 = s0 [ s0 = f_Accept [%#sname] (fun (_x: string) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: string = Any.any_l () | & self: t_StandardHeader = self ])
+  [ return (result: string) -> {[@stop_split] [@expl:as_str ensures] [%#sname'0] to_bytes (view_str result)
+    = byte_view'0 self}
+    (! return {result}) ]

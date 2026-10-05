@@ -1,0 +1,267 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 105 4 105 44 *)
+
+(* <header::name::Repr<T> as std::hash::Hash> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 112 16 112 22
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 112 16 112 34
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 113 16 113 33
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 108 16 108 22
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 108 16 108 34
+let%span sname'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 109 16 109 34
+let%span sname'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 105 24 105 28
+let%span sname'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 105 30 105 35
+let%span sname'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 418 38 418 43
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 115 34 115 39
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 114 18 114 29
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 36 65 40
+let%span shash'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 42 65 47
+let%span shash'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 64 26 64 37
+
+use creusot.int.Int64
+use creusot.prelude.Any
+use creusot.prelude.MutBorrow
+
+type t_StandardHeader =
+  | Accept
+  | AcceptCharset
+  | AcceptEncoding
+  | AcceptLanguage
+  | AcceptRanges
+  | AccessControlAllowCredentials
+  | AccessControlAllowHeaders
+  | AccessControlAllowMethods
+  | AccessControlAllowOrigin
+  | AccessControlExposeHeaders
+  | AccessControlMaxAge
+  | AccessControlRequestHeaders
+  | AccessControlRequestMethod
+  | Age
+  | Allow
+  | AltSvc
+  | Authorization
+  | CacheControl
+  | CacheStatus
+  | CdnCacheControl
+  | Connection
+  | ContentDisposition
+  | ContentEncoding
+  | ContentLanguage
+  | ContentLength
+  | ContentLocation
+  | ContentRange
+  | ContentSecurityPolicy
+  | ContentSecurityPolicyReportOnly
+  | ContentType
+  | Cookie
+  | Dnt
+  | Date
+  | Etag
+  | Expect
+  | Expires
+  | Forwarded
+  | From
+  | Host
+  | IfMatch
+  | IfModifiedSince
+  | IfNoneMatch
+  | IfRange
+  | IfUnmodifiedSince
+  | LastModified
+  | Link
+  | Location
+  | MaxForwards
+  | Origin
+  | Pragma
+  | ProxyAuthenticate
+  | ProxyAuthorization
+  | PublicKeyPins
+  | PublicKeyPinsReportOnly
+  | Range
+  | Referer
+  | ReferrerPolicy
+  | Refresh
+  | RetryAfter
+  | SecWebSocketAccept
+  | SecWebSocketExtensions
+  | SecWebSocketKey
+  | SecWebSocketProtocol
+  | SecWebSocketVersion
+  | Server
+  | SetCookie
+  | StrictTransportSecurity
+  | Te
+  | Trailer
+  | TransferEncoding
+  | UserAgent
+  | Upgrade
+  | UpgradeInsecureRequests
+  | Vary
+  | Via
+  | Warning
+  | WwwAuthenticate
+  | XContentTypeOptions
+  | XDnsPrefetchControl
+  | XFrameOptions
+  | XXssProtection
+
+type t_T
+
+type t_Repr_T = Standard t_StandardHeader | Custom t_T
+
+let rec elim_Custom (_x: t_Repr_T) (return (f0: t_T)) = any
+  [ _k (f0: t_T) -> {Custom f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Custom] match _x with
+      | Custom _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_H
+
+predicate inv_H (_1: t_H)
+
+predicate invariant_refmut_H [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+let rec hash_isize (self_: Int64.t) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash 'state' type invariant] [%#shash] inv_refmut_H state}
+  any [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] [%#shash'0] inv_H state.final} (! return {result}) ]
+
+type tup2_ref_T_refmut_H = { f0: t_T; f1: MutBorrow.t t_H }
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant'0] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate precondition_hash (self: ()) (args: tup2_ref_T_refmut_H)
+
+axiom precondition_fndef:
+  forall args: tup2_ref_T_refmut_H [precondition_hash () args]. (let {f0 = self_; f1 = state} = args in ([%#shash'1] inv_ref_T self_)
+      /\ ([%#shash'2] inv_refmut_H state)) -> precondition_hash () args
+
+predicate postcondition_once_hash (self: ()) (args: tup2_ref_T_refmut_H) (result: ())
+
+axiom postcondition_fndef:
+  forall args: tup2_ref_T_refmut_H, res: () [postcondition_once_hash () args res]. postcondition_once_hash () args res
+    -> (let {f0 = self_; f1 = state} = args in [%#shash'3] inv_H state.final)
+
+let rec hash_T (self_: t_T) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash requires] precondition_hash () { f0 = self_; f1 = state }}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] postcondition_once_hash () { f0 = self_;
+                                                                                            f1 = state } result}
+    (! return {result}) ]
+
+predicate resolve_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_H
+
+let rec elim_Standard (_x: t_Repr_T) (return (f0'0: t_StandardHeader)) = any
+  [ _k (f0'0: t_StandardHeader) -> {Standard f0'0 = _x} (! return {f0'0})
+  | _chk -> (! {[@expl:elim Standard] match _x with
+      | Standard _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+let rec hash_StandardHeader (self: t_StandardHeader) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash 'state' type invariant] [%#sname'7] inv_refmut_H state}
+  any [ return (result: ()) -> (! return {result}) ]
+
+predicate inv_Repr_T (_1: t_Repr_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Repr_T [inv_Repr_T x]. inv_Repr_T x
+    = match x with
+      | Standard f0'0 -> true
+      | Custom f0'0 -> inv_T f0'0
+      end
+
+predicate invariant_ref_Repr_T [@inline:trivial] (self: t_Repr_T) = [%#sinvariant'0] inv_Repr_T self
+
+meta "rewrite_def" predicate invariant_ref_Repr_T
+
+predicate inv_ref_Repr_T [@inline:trivial] (_1: t_Repr_T) = invariant_ref_Repr_T _1
+
+meta "rewrite_def" predicate inv_ref_Repr_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec hash_Repr_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 105 4 105 44]
+  (self: t_Repr_T) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_Repr_T requires] ([@stop_split] [@expl:hash 'self' type invariant] [%#sname'5] inv_ref_Repr_T self)
+  /\ ([@stop_split] [@expl:hash 'state' type invariant] [%#sname'6] inv_refmut_H state)}
+  (! bb0
+  [ bb0 = any
+    [ br0 (x0: t_StandardHeader) -> {self = Standard x0} (! bb4) | br1 (x0: t_T) -> {self = Custom x0} (! bb3) ]
+  | bb3 = s0
+    [ s0 = elim_Custom {self} (fun (r0: t_T) -> [ &value <- r0 ] s1)
+    | s1 = bb0'0
+      [ bb0'0 = s0'0 [ s0'0 = [ &_ret'0 <- [%#sname] (1: Int64.t) ] s1'0 | s1'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: Int64.t = Any.any_l () ] [ _const_ret (_const: Int64.t) -> [ &_20 <- _const ] s2 ]
+    | s2 = MutBorrow.borrow_mut <t_H> {state.current}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_16 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s3)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s3 = hash_isize [%#sname'0] {_20} {_16} (fun (_x: ()) -> [ &_13 <- _x ] s4)
+    | s4 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_19 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s5)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s5 = hash_T [%#sname'1] {value} {_19} (fun (_x: ()) -> [ &_17 <- _x ] s6)
+    | s6 = s7 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s7 = -{resolve_refmut_H state}- s8
+    | s8 = return {_ret} ]
+  | bb4 = s0
+    [ s0 = elim_Standard {self} (fun (r0: t_StandardHeader) -> [ &header <- r0 ] s1)
+    | s1 = bb0'0
+      [ bb0'0 = s0'0 [ s0'0 = [ &_ret'0 <- [%#sname'2] (0: Int64.t) ] s1'0 | s1'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: Int64.t = Any.any_l () ] [ _const_ret (_const: Int64.t) -> [ &_21 <- _const ] s2 ]
+    | s2 = MutBorrow.borrow_mut <t_H> {state.current}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_8 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s3)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s3 = hash_isize [%#sname'3] {_21} {_8} (fun (_x: ()) -> [ &_5 <- _x ] s4)
+    | s4 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_11 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s5)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s5 = hash_StandardHeader [%#sname'4] {header} {_11} (fun (_x: ()) -> [ &_9 <- _x ] s6)
+    | s6 = s7 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s7 = -{resolve_refmut_H state}- s8
+    | s8 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: t_Repr_T = self
+  | & state: MutBorrow.t t_H = state
+  | & header: t_StandardHeader = Any.any_l ()
+  | & _5: () = Any.any_l ()
+  | & _8: MutBorrow.t t_H = Any.any_l ()
+  | & _9: () = Any.any_l ()
+  | & _11: MutBorrow.t t_H = Any.any_l ()
+  | & value: t_T = Any.any_l ()
+  | & _13: () = Any.any_l ()
+  | & _16: MutBorrow.t t_H = Any.any_l ()
+  | & _17: () = Any.any_l ()
+  | & _19: MutBorrow.t t_H = Any.any_l ()
+  | & _20: Int64.t = Any.any_l ()
+  | & _21: Int64.t = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]
