@@ -47,6 +47,7 @@ include!("status.rs");
 include!("invalid_chunk_size.rs");
 include!("skip_spaces.rs");
 include!("parse_newline.rs");
+include!("parse_method_utf8.rs");
 include!("error.rs");
 #[allow(unused_imports)]
 pub(crate) use byteclass::{
@@ -334,12 +335,13 @@ pub fn parse_method<'a>(bytes: &mut Bytes<'a>) -> Result<&'a str> {
     const POST: [u8; 4] = *b"POST";
     match bytes.peek_array4() {
         Some(GET) => {
-            // SAFETY: we matched "GET " which has 4 bytes and is ASCII
-            let method = unsafe {
-                bytes.advance(4); // advance cursor past "GET "
-                str::from_utf8_unchecked(bytes.slice_skip(1)) // "GET" without space
-            };
-            Ok(Status::Complete(method))
+            // SAFETY: we matched "GET " which has 4 bytes, so advancing is in bounds.
+            unsafe { bytes.advance(4) }; // advance cursor past "GET "
+            // SAFETY: the matched four-byte branch advanced at least one byte since the mark.
+            match method_from_bytes(unsafe { bytes.slice_skip(1) }) {
+                Some(method) => Ok(Status::Complete(method)),
+                None => Err(Error::Token),
+            }
         }
         // SAFETY:
         // If `bytes.peek_array4()` returns a Some([u8; 4]),
@@ -347,12 +349,13 @@ pub fn parse_method<'a>(bytes: &mut Bytes<'a>) -> Result<&'a str> {
         // Thus `bytes.len() >= 4`,
         // and it is safe to peek at byte 4 with `bytes.peek_ahead(4)`.
         Some(POST) if unsafe { bytes.peek_ahead(4) } == Some(b' ') => {
-            // SAFETY: we matched "POST " which has 5 bytes
-            let method = unsafe {
-                bytes.advance(5); // advance cursor past "POST "
-                str::from_utf8_unchecked(bytes.slice_skip(1)) // "POST" without space
-            };
-            Ok(Status::Complete(method))
+            // SAFETY: we matched "POST " which has 5 bytes, so advancing is in bounds.
+            unsafe { bytes.advance(5) }; // advance cursor past "POST "
+            // SAFETY: the matched five-byte branch advanced at least one byte since the mark.
+            match method_from_bytes(unsafe { bytes.slice_skip(1) }) {
+                Some(method) => Ok(Status::Complete(method)),
+                None => Err(Error::Token),
+            }
         }
         _ => parse_token(bytes),
     }
@@ -430,10 +433,11 @@ fn parse_token<'a>(bytes: &mut Bytes<'a>) -> Result<&'a str> {
     loop {
         let b = next!(bytes);
         if b == b' ' {
-            return Ok(Status::Complete(
-                // SAFETY: all bytes up till `i` must have been `is_method_token` and therefore also utf-8.
-                unsafe { str::from_utf8_unchecked(bytes.slice_skip(1)) },
-            ));
+            // SAFETY: the first token byte and this delimiter advanced at least two bytes since the mark.
+            return match method_from_bytes(unsafe { bytes.slice_skip(1) }) {
+                Some(method) => Ok(Status::Complete(method)),
+                None => Err(Error::Token),
+            };
         } else if !is_method_token(b) {
             return Err(Error::Token);
         }
@@ -779,6 +783,66 @@ fn parse_headers_iter_uninit<'a>(
 mod tests {
     use super::{Error, Request, Response, Status, EMPTY_HEADER, parse_chunk_size};
     use std::format;
+
+    #[test]
+    fn safe_method_entry_rejects_invalid_retained_prefix() {
+        for input in [
+            b"\xffGET ".as_slice(),
+            b"\xffPOST ".as_slice(),
+            b"\xffPATCH ".as_slice(),
+        ] {
+            let mut bytes = super::_benchable::Bytes::new(input);
+            assert_eq!(bytes.next(), Some(0xff));
+            assert_eq!(super::parse_method(&mut bytes), Err(Error::Token));
+            assert_eq!(bytes.pos(), 0);
+            assert!(bytes.is_empty());
+        }
+    }
+
+    #[test]
+    fn safe_method_entry_preserves_valid_retained_prefix() {
+        let mut bytes = super::_benchable::Bytes::new(b"XGET ");
+        assert_eq!(bytes.next(), Some(b'X'));
+        assert_eq!(super::parse_method(&mut bytes), Ok(Status::Complete("XGET")));
+        assert_eq!(bytes.pos(), 0);
+        assert!(bytes.is_empty());
+
+        let mut bytes = super::_benchable::Bytes::new("éGET ".as_bytes());
+        assert_eq!(bytes.next(), Some(0xc3));
+        assert_eq!(bytes.next(), Some(0xa9));
+        assert_eq!(super::parse_method(&mut bytes), Ok(Status::Complete("éGET")));
+        assert_eq!(bytes.pos(), 0);
+        assert!(bytes.is_empty());
+    }
+
+    #[test]
+    fn safe_method_entry_keeps_partial_and_token_errors() {
+        let mut partial = super::_benchable::Bytes::new(b"XGET");
+        assert_eq!(partial.next(), Some(b'X'));
+        assert_eq!(super::parse_method(&mut partial), Ok(Status::Partial));
+        assert_eq!(partial.pos(), 4);
+
+        let mut invalid = super::_benchable::Bytes::new(b"XGET/");
+        assert_eq!(invalid.next(), Some(b'X'));
+        assert_eq!(super::parse_method(&mut invalid), Err(Error::Token));
+        assert_eq!(invalid.pos(), 5);
+    }
+
+    #[test]
+    fn uri_parser_checks_the_retained_utf8_span() {
+        let mut invalid = super::_benchable::Bytes::new(b"\xff/path ");
+        assert_eq!(invalid.next(), Some(0xff));
+        assert_eq!(super::parse_uri(&mut invalid), Err(Error::Token));
+        assert_eq!(invalid.pos(), 0);
+        assert!(invalid.is_empty());
+
+        let mut valid = super::_benchable::Bytes::new("é/path ".as_bytes());
+        assert_eq!(valid.next(), Some(0xc3));
+        assert_eq!(valid.next(), Some(0xa9));
+        assert_eq!(super::parse_uri(&mut valid), Ok(Status::Complete("é/path")));
+        assert_eq!(valid.pos(), 0);
+        assert!(valid.is_empty());
+    }
 
     const NUM_OF_HEADERS: usize = 4;
 
