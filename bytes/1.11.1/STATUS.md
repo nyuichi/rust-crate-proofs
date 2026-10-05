@@ -2,6 +2,31 @@
 
 ## Current checkpoint (2026-10-05)
 
+Unique cleanup connection: ordinary BytesMut Drop's KIND_VEC branch and
+explicit consuming fresh/advanced unique cleanup now share exact extracted
+`release_unique_storage`. It recovers original base and capacity from the
+packed offset and consumes full affine authority before B3; no initialized
+prefix is fabricated by rebuilding Vec. Consuming unique and legacy shared
+entries forget the handle before cleanup, retaining descriptors separately.
+Current gates: carrier116, legacy split/storage111, safe traits73, public
+constructors62, zero unproved in each. Both current carrier negatives118 reject
+exactly one intended leaf. Ordinary118/no_std and native carrier7, legacy21,
+traits1, constructors3 pass at recorded checkpoints. Evidence is
+`unique-cleanup-carrier-positive`, `unique-cleanup-ticket-negative`,
+`unique-cleanup-unknown-negative`, and `explicit-cleanup-regressions/*`.
+Both ordinary destructor branches now use cleanup routines checked through
+explicit consuming proof paths. Automatic Drop dispatch is still unverified.
+The carrier extraction omits BytesMut Drop: its additional proof arguments
+do not establish whole-crate compilation under bytes_proof_repeated_split.
+Astra reviewed original-base cleanup, zero capacity and forget-before-release.
+Luna xhigh added four native ordinary-public-API allocator tests: advanced
+unique cleanup after spare writes, endpoint splits in all six three-handle
+drop orders, and unique/shared capacity zero. Pointer/size/alignment logs
+check exactly one original buffer free when allocated and one Shared control
+free when promoted; no reallocations. The test is registered in Cargo.toml and
+passes through the actual crate manifest. These observations do not prove
+automatic destructor effects. Bound-constructor regression32 also passes.
+
 Actual shared-release connection: carrier explicit cleanup now calls the exact
 cfg-adapted `release_shared` body extracted from bytes_mut.rs. The existing
 affine retirement/full recovery proof moved into that body; native and proof

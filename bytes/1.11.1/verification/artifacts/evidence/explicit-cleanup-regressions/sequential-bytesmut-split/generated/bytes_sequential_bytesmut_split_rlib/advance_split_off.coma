@@ -1,0 +1,34 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 74 0 74 109 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_RETIREMENT int | Other namespace_other
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 75 4 75 107
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_Vec_u8_Global
+
+let proof_advance_split_off_then_release (input: t_Vec_u8_Global) (requested: UInt64.t) (left_count: UInt64.t)
+  (right_count: UInt64.t) (right_first: bool) (return (x: ())) = any [ return (result: ()) -> (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let advance_split_off [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 74 0 74 109]
+  (input: t_Vec_u8_Global) (at': UInt64.t) (left_count: UInt64.t) (right_count: UInt64.t) (right_first: bool)
+  (return (x: ())) = (! bb0
+  [ bb0 = s0
+    [ s0 = proof_advance_split_off_then_release [%#slib] {input} {at'} {left_count} {right_count} {right_first}
+        (fun (_x: ()) -> [ &_6 <- _x ] s1)
+    | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & input: t_Vec_u8_Global = input
+  | & at': UInt64.t = at'
+  | & left_count: UInt64.t = left_count
+  | & right_count: UInt64.t = right_count
+  | & right_first: bool = right_first
+  | & _6: () = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

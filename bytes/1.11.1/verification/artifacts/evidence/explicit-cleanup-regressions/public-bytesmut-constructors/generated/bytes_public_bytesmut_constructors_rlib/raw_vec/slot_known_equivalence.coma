@@ -1,0 +1,28 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/public-bytesmut-constructors/src/../../../../src/ownership_proof/raw_vec.rs" 941 0 941 62 *)
+
+let%span sraw_vec = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/public-bytesmut-constructors/src/../../../../src/ownership_proof/raw_vec.rs" 940 10 940 75
+let%span sraw_vec'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/public-bytesmut-constructors/src/../../../../src/ownership_proof/raw_vec.rs" 936 4 936 52
+
+use creusot.prelude.Any
+use creusot.int.UInt8
+
+type t_Option_u8 = None | Some UInt8.t
+
+type t_Option_Option_u8 = None'0 | Some'0 t_Option_u8
+
+predicate slot_known [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/public-bytesmut-constructors/src/../../../../src/ownership_proof/raw_vec.rs" 935 0 935 58] (slot: t_Option_Option_u8) =
+  [%#sraw_vec'0] match slot with
+    | Some'0 (Some _) -> true
+    | _ -> false
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let slot_known_equivalence [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/public-bytesmut-constructors/src/../../../../src/ownership_proof/raw_vec.rs" 941 0 941 62]
+  (slot: t_Option_Option_u8) (return (x: ())) = (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) -> {[@stop_split] [@expl:slot_known_equivalence ensures] [%#sraw_vec] slot_known slot
+    = (exists value: UInt8.t. slot = Some'0 (Some value))}
+    (! return {result}) ]

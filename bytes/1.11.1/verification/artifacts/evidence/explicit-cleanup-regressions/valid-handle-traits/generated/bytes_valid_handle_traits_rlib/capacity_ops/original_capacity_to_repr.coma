@@ -1,0 +1,138 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 72 0 72 60 *)
+
+let%span scapacity_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 73 37 73 64
+let%span scapacity_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 73 29 73 65
+let%span scapacity_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 73 29 73 81
+let%span scapacity_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 73 16 73 25
+let%span scapacity_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 73 16 73 91
+let%span scapacity_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 76 38 76 65
+let%span scapacity_ops'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 76 8 76 35
+let%span scapacity_ops'6 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 76 8 76 65
+let%span scapacity_ops'7 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 74 4 77 5
+let%span scapacity_ops'8 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 61 28 61 98
+let%span scapacity_ops'9 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 63 4 69 5
+let%span scapacity_ops'10 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 71 28 71 73
+let%span scapacity_ops'11 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 72 0 72 60
+let%span scapacity_ops'12 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 43 8 51 9
+let%span snum = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 282 30 282 66
+let%span snum'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 236 22 236 43
+let%span snum'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 237 22 237 96
+let%span snum'2 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 238 22 238 64
+let%span snum'3 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 27 28 27 33
+let%span scmp = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/cmp.rs" 110 22 110 60
+let%span scmp'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/cmp.rs" 111 22 111 60
+let%span scmp'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/cmp.rs" 112 22 112 50
+let%span scmp'2 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/cmp.rs" 113 22 113 72
+let%span scmp'3 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/cmp.rs" 114 22 114 73
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 22 8 22 20
+
+use creusot.int.UInt64BW
+use creusot.int.UInt32BW
+use creusot.prelude.Any
+use int.Int
+
+constant const_MIN_ORIGINAL_CAPACITY_WIDTH: UInt64BW.t = [%#scapacity_ops'11] (10: UInt64BW.t)
+
+constant const_BITS: UInt32BW.t = (64: UInt32BW.t)
+
+function leading_zeros_usize (self: UInt64BW.t) : UInt32BW.t
+
+axiom leading_zeros_usize_spec:
+  forall self: UInt64BW.t [leading_zeros_usize self]. [%#snum'0] UInt32BW.le (leading_zeros_usize self) const_BITS
+
+axiom leading_zeros_usize_spec'0:
+  forall self: UInt64BW.t [leading_zeros_usize self]. [%#snum'1] (leading_zeros_usize self <> const_BITS)
+    = (UInt64BW.shr self (UInt64BW.of_BV256 (UInt32BW.to_BV256 (UInt32BW.sub (UInt32BW.sub const_BITS (leading_zeros_usize self)) (1: UInt32BW.t))))
+    = (1: UInt64BW.t))
+
+axiom leading_zeros_usize_spec'1:
+  forall self: UInt64BW.t [leading_zeros_usize self]. [%#snum'2] (leading_zeros_usize self = const_BITS)
+    = (self = (0: UInt64BW.t))
+
+let leading_zeros (self_: UInt64BW.t) (return (x: UInt32BW.t)) = any
+  [ return (result: UInt32BW.t) -> {[@stop_split] [@expl:leading_zeros ensures] [%#snum] result
+    = leading_zeros_usize self_}
+    (! return {result}) ]
+
+constant const_PTR_WIDTH: UInt64BW.t = [%#scapacity_ops'11] (64: UInt64BW.t)
+
+constant const_MAX_ORIGINAL_CAPACITY_WIDTH: UInt64BW.t = [%#scapacity_ops'11] (17: UInt64BW.t)
+
+function deep_model_usize [@inline:trivial] (self: UInt64BW.t) : int = [%#snum'3] UInt64BW.t'int self
+
+meta "rewrite_def" function deep_model_usize
+
+let min_usize (v1: UInt64BW.t) (v2: UInt64BW.t) (return (x: UInt64BW.t)) = any
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:min_usize ensures] ([@stop_split] [@expl:min ensures #0] [%#scmp] deep_model_usize result
+      <= deep_model_usize v1)
+    /\ ([@stop_split] [@expl:min ensures #1] [%#scmp'0] deep_model_usize result <= deep_model_usize v2)
+    /\ ([@stop_split] [@expl:min ensures #2] [%#scmp'1] result = v1 \/ result = v2)
+    /\ ([@stop_split] [@expl:min ensures #3] [%#scmp'2] deep_model_usize v1 < deep_model_usize v2 -> result = v1)
+    /\ ([@stop_split] [@expl:min ensures #4] [%#scmp'3] deep_model_usize v2 <= deep_model_usize v1 -> result = v2)}
+    (! return {result}) ]
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+function original_capacity_class [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 41 0 41 62] (cap: UInt64BW.t) : int
+ = [%#scapacity_ops'12] if UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))
+  = UInt64BW.t'int const_PTR_WIDTH then
+    0
+  else
+    if gt_log_Int (UInt64BW.t'int const_PTR_WIDTH
+    - UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))) (UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH
+    - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH) then
+      UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH
+    else
+      UInt64BW.t'int const_PTR_WIDTH
+      - UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))
+  
+
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let original_capacity_to_repr [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/valid-handle-traits/src/../../../../src/capacity_ops.rs" 72 0 72 60]
+  (cap: UInt64BW.t) (return (x: UInt64BW.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = UInt64BW.shr [%#scapacity_ops'0] {cap}
+        {UInt64BW.to_BV256 ([%#scapacity_ops] const_MIN_ORIGINAL_CAPACITY_WIDTH)}
+        (fun (_x: UInt64BW.t) -> [ &_10 <- _x ] s1)
+    | s1 = leading_zeros [%#scapacity_ops'1] {_10} (fun (_x: UInt32BW.t) -> [ &_9 <- _x ] s2)
+    | s2 = [ &_8 <- UInt64BW.of_BV256 (UInt32BW.to_BV256 _9) ] s3
+    | s3 = UInt64BW.sub [%#scapacity_ops'3] {[%#scapacity_ops'2] const_PTR_WIDTH} {_8}
+        (fun (_x: UInt64BW.t) -> [ &width <- _x ] s4)
+    | s4 = UInt64BW.sub [%#scapacity_ops'6] {[%#scapacity_ops'5] const_MAX_ORIGINAL_CAPACITY_WIDTH}
+        {[%#scapacity_ops'4] const_MIN_ORIGINAL_CAPACITY_WIDTH} (fun (_x: UInt64BW.t) -> [ &_13 <- _x ] s5)
+    | s5 = min_usize [%#scapacity_ops'7] {width} {_13} (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s6)
+    | s6 = return {_ret} ] ]
+  [ & _ret: UInt64BW.t = Any.any_l ()
+  | & cap: UInt64BW.t = cap
+  | & width: UInt64BW.t = Any.any_l ()
+  | & _8: UInt64BW.t = Any.any_l ()
+  | & _9: UInt32BW.t = Any.any_l ()
+  | & _10: UInt64BW.t = Any.any_l ()
+  | & _13: UInt64BW.t = Any.any_l () ])
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:original_capacity_to_repr ensures] ([@stop_split] [@expl:original_capacity_to_repr ensures #0] [%#scapacity_ops'8] UInt64BW.t'int result
+      <= UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH)
+    /\ ([@stop_split] [@expl:original_capacity_to_repr ensures #1] [%#scapacity_ops'9] UInt64BW.t'int result
+      = (if UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))
+      = UInt64BW.t'int const_PTR_WIDTH then
+        0
+      else
+        if gt_log_Int (UInt64BW.t'int const_PTR_WIDTH
+        - UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))) (UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH
+        - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH) then
+          UInt64BW.t'int const_MAX_ORIGINAL_CAPACITY_WIDTH - UInt64BW.t'int const_MIN_ORIGINAL_CAPACITY_WIDTH
+        else
+          UInt64BW.t'int const_PTR_WIDTH
+          - UInt32BW.t'int (leading_zeros_usize (UInt64BW.shr cap const_MIN_ORIGINAL_CAPACITY_WIDTH))
+      
+      ))
+    /\ ([@stop_split] [@expl:original_capacity_to_repr ensures #2] [%#scapacity_ops'10] UInt64BW.t'int result
+    = original_capacity_class cap)}
+    (! return {result}) ]

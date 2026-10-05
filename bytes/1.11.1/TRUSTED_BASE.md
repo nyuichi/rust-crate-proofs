@@ -358,3 +358,26 @@ existing exclusive sequential ones, not a concurrent refinement theorem.
 The positive integrated gate has 115 files and zero unproved leaves. Both
 existing negatives have 117 files and exactly one intended failed leaf. Native
 7, ordinary118 and no_std pass. Automatic Drop effects remain unproved.
+
+## Shared unique cleanup leaf (2026-10-05)
+
+release_unique_storage has a proved body, not a trusted ownership contract.
+Its preconditions require the original binding (namespace, original capacity,
+exact handle offset), unique Recovery and complete matching physical region.
+It proves retreat-to-base and capacity arithmetic before invoking existing B3.
+Ordinary KIND_VEC Drop calls the same cfg-adapted helper; consuming proof
+entries snapshot metadata, suppress automatic cleanup, and call it explicitly.
+No access depends on discarded-prefix initialization. Carrier116, legacy111,
+safe-traits73 and constructors62 gates pass, with zero unproved leaves.
+
+This establishes explicit cleanup bodies/callers under restricted states, not
+compiler-generated destructor invocation. Whole-crate carrier-cfg compilation
+is not established: the extraction deliberately omits BytesMut Drop and its
+coordinator-supply obligation. Standard Perm control destruction still does
+not provide a separate formal allocator-event theorem.
+
+Four registered native allocator tests exercise ordinary public API states and
+Drop directly, distinct from extracted proof adapters. They check original
+base/layout, buffer/control frees, empty endpoints and zero capacity, without
+reallocation. Their success is concrete runtime evidence, not a formal
+automatic Drop or concurrency theorem.
