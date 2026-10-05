@@ -162,8 +162,8 @@ fn main() {
         extract_item(&source,"split","    // BEGIN EXACT SPLIT\n","    pub fn split(&mut self) -> BytesMut {"),
         extract_item(&source,"is_empty","    // BEGIN EXACT IS_EMPTY","    pub fn is_empty(&self) -> bool {"),
         extract_item(&source,"try_reclaim","    // BEGIN EXACT TRY_RECLAIM","    pub fn try_reclaim(&mut self, additional: usize) -> bool {"),
-        extract_item(&source,"resize","    // BEGIN EXACT RESIZE","    pub fn resize(&mut self, new_len: usize, value: u8) {"),
-        extract_item(&source,"extend_from_slice","    // BEGIN EXACT EXTEND_FROM_SLICE","    pub fn extend_from_slice(&mut self, extend: &[u8]) {"),
+        extract_item(&source,"resize","    // BEGIN EXACT RESIZE","    pub fn resize("),
+        extract_item(&source,"extend_from_slice","    // BEGIN EXACT EXTEND_FROM_SLICE","    pub fn extend_from_slice("),
         extract_item(&source,"reserve","    // BEGIN EXACT RESERVE","    pub fn reserve("),
         extract_item(&source,"proof_same_storage","    // This relation frames the native descriptor and authority identities while","    fn proof_same_storage(self, other: Self) -> bool {"),
         extract_item(&source,"spare_capacity_mut","    // BEGIN EXACT SPARE_CAPACITY_MUT","    pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<u8>] {"),
@@ -187,8 +187,8 @@ fn main() {
         extract_item(&source,"proof_take_coordinator","    #[cfg(any(creusot, bytes_proof_probe))]\n    #[cfg_attr(creusot, requires(self.shared_context.inner_logic() != None))]","    fn proof_take_coordinator(&mut self) -> Ghost<sequential_shared_control::ControlContext> {"),
     ];
     let methods: Vec<_> = methods.into_iter().filter(|item| ![
-        "split", "is_empty", "try_reclaim", "resize", "extend_from_slice",
-        "proof_same_storage", "spare_capacity_mut", "truncate", "clear", "set_len", "split_off",
+        "split", "is_empty", "try_reclaim",
+        "proof_same_storage", "clear", "split_off",
     ].contains(&item.name)).collect();
     let start=unique_index(&source,"    // BEGIN EXACT CARRIER SPLIT METHODS");
     let end=unique_index(&source,"    // END EXACT CARRIER SPLIT METHODS");

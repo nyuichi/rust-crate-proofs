@@ -36,6 +36,11 @@ mod actual { include!(concat!(env!("OUT_DIR"), "/actual_carrier.rs")); }
 fn abort() -> ! { std::process::abort() }
 pub fn reserve_shared(input: Vec<u8>, cut: usize, additional: usize, value: u8) -> usize { actual::reserve_caller(input, cut, additional, value) }
 pub fn reserve_shared_with_sibling(input: Vec<u8>, additional: usize) -> usize { actual::reserve_with_sibling(input, additional) }
+pub fn resize_shared_growth(value: u8) -> u8 { actual::resize_growth(value) }
+pub fn extend_shared_growth(value: u8) -> u8 { actual::extend_growth(value) }
+
+#[cfg(feature = "negative_carrier_unknown_publication")]
+pub fn reject_unknown_growth_publication() { actual::reject_unknown_growth_publication() }
 
 #[cfg(feature = "negative_wrong_offset_namespace")]
 pub fn reject_unrelated_offset(a: Vec<u8>, b: Vec<u8>) {

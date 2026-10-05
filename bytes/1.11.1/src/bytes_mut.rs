@@ -919,26 +919,46 @@ impl BytesMut {
     #[cfg_attr(creusot, requires(self.proof_initialized()))]
     #[cfg_attr(creusot, ensures((^self).proof_initialized()))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(self.proof_unique_owned() ==> (^self).proof_unique_owned()))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(self.proof_same_storage(^self)))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve), not(bytes_proof_shared_reserve)), ensures(self.proof_same_storage(^self)))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(new_len@ <= self.cap@ ==> self.proof_same_storage(^self)))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), requires(new_len <= self.cap))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve), not(bytes_proof_shared_reserve)), requires(new_len <= self.cap))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), requires(new_len@ <= self.cap@ ||
         (self.proof_unique_owned() && new_len@ <= isize::MAX@ - self.ptr@.unwrap_logic().2)))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(self.proof_registered_valid() && self.shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(*coordinator.inner_logic() != None && self.shared_registration.inner_logic().unwrap_logic().matches(coordinator.inner_logic().unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(self.ptr@.unwrap_logic().2 + new_len@ <= isize::MAX@))]
     #[cfg_attr(creusot, ensures((^self).len == new_len))]
     #[cfg_attr(creusot, ensures(forall<index: Int> self.len@ <= index && index < new_len@ ==>
         (^self).proof_view_slot(index) == Some(Some(value))))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(forall<index: Int> !(self.len@ <= index && index < new_len@) ==>
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve), not(bytes_proof_shared_reserve)), ensures(forall<index: Int> !(self.len@ <= index && index < new_len@) ==>
         (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(new_len@ <= self.cap@ ==>
         forall<index: Int> !(self.len@ <= index && index < new_len@) ==>
             (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(forall<index: Int> 0 <= index && index < self.len@ && index < new_len@ ==>
         (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
-    #[cfg_attr(all(creusot, bytes_proof_repeated_split), ensures(self.shared_registration.inner_logic() != None ==>
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(forall<index: Int> 0 <= index && index < self.len@ && index < new_len@ ==>
+        (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(forall<index: Int> self.len@ <= index && index < new_len@ ==>
+        (^self).proof_view_slot(index) == Some(Some(value))))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^coordinator.inner_logic()) != None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^coordinator.inner_logic()).unwrap_logic().valid(self.shared_registration.inner_logic().unwrap_logic().control) && (^coordinator.inner_logic()).unwrap_logic().active()))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^self).shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^self).shared_registration.inner_logic() != None ==> (^self).shared_registration.inner_logic().unwrap_logic().matches((^coordinator.inner_logic()).unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((*coordinator.inner_logic().unwrap_logic().status.pending).len() == 1 ==> (^self).proof_registered_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((*coordinator.inner_logic().unwrap_logic().status.pending).len() == 1 ==>
+        (* (^coordinator.inner_logic()).unwrap_logic().status.pending).len() == 1))]
+    #[cfg_attr(all(creusot, bytes_proof_repeated_split, not(bytes_proof_shared_reserve)), ensures(self.shared_registration.inner_logic() != None ==>
         (^self).shared_registration.inner_logic().unwrap_logic().packet.0 == self.shared_registration.inner_logic().unwrap_logic().packet.0 &&
         (^self).shared_registration.inner_logic().unwrap_logic().packet.1.lo() == self.shared_registration.inner_logic().unwrap_logic().packet.1.lo() &&
         (^self).shared_registration.inner_logic().unwrap_logic().packet.1.hi() == self.shared_registration.inner_logic().unwrap_logic().packet.1.hi()))]
-    pub fn resize(&mut self, new_len: usize, value: u8) {
+    #[cfg_attr(all(creusot, bytes_proof_repeated_split, bytes_proof_shared_reserve), ensures(new_len@ <= self.cap@ && self.shared_registration.inner_logic() != None ==>
+        (^self).shared_registration.inner_logic().unwrap_logic().packet.0 == self.shared_registration.inner_logic().unwrap_logic().packet.0 &&
+        (^self).shared_registration.inner_logic().unwrap_logic().packet.1.lo() == self.shared_registration.inner_logic().unwrap_logic().packet.1.lo() &&
+        (^self).shared_registration.inner_logic().unwrap_logic().packet.1.hi() == self.shared_registration.inner_logic().unwrap_logic().packet.1.hi()))]
+    pub fn resize(&mut self, new_len: usize, value: u8,
+        #[cfg(bytes_proof_shared_reserve)] mut coordinator: Ghost<&mut Option<sequential_shared_control::ControlContext>>,
+    ) {
         let additional = if let Some(additional) = new_len.checked_sub(self.len()) {
             additional
         } else {
@@ -950,7 +970,10 @@ impl BytesMut {
             return;
         }
 
+        #[cfg(not(bytes_proof_shared_reserve))]
         self.reserve(additional);
+        #[cfg(bytes_proof_shared_reserve)]
+        self.reserve(additional, ghost! { &mut **coordinator });
         crate::storage_ops::fill_uninit_prefix(self.spare_capacity_mut(), additional, value);
 
         // SAFETY: There are at least `new_len` initialized bytes in the buffer so no
@@ -1076,6 +1099,7 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(*coordinator.inner_logic() != None && self.shared_registration.inner_logic().unwrap_logic().matches(coordinator.inner_logic().unwrap_logic())))]
     #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(self.ptr@.unwrap_logic().2 + self.len@ + additional@ <= isize::MAX@))]
     #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^self).proof_initialized() && (^self).len == self.len && (^self).cap@ >= self.len@ + additional@))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(additional@ <= self.cap@ - self.len@ ==> ^self == *self))]
     #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(forall<i: Int> 0 <= i && i < self.len@ ==> (^self).proof_view_slot(i) == self.proof_view_slot(i)))]
     #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^coordinator.inner_logic()) != None))]
     #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^coordinator.inner_logic()).unwrap_logic().valid(self.shared_registration.inner_logic().unwrap_logic().control) && (^coordinator.inner_logic()).unwrap_logic().active()))]
@@ -1521,28 +1545,51 @@ impl BytesMut {
     #[cfg_attr(creusot, requires(self.proof_initialized()))]
     #[cfg_attr(creusot, ensures((^self).proof_initialized()))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(self.proof_unique_owned() ==> (^self).proof_unique_owned()))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(self.proof_same_storage(^self)))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve), not(bytes_proof_shared_reserve)), ensures(self.proof_same_storage(^self)))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(extend@.len() <= self.cap@ - self.len@ ==> self.proof_same_storage(^self)))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), requires(extend@.len() <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve), not(bytes_proof_shared_reserve)), requires(extend@.len() <= self.cap@ - self.len@))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), requires(extend@.len() <= self.cap@ - self.len@ ||
         (self.proof_unique_owned() && extend@.len() <= isize::MAX@ - self.ptr@.unwrap_logic().2 - self.len@)))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(self.proof_registered_valid() && self.shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(*coordinator.inner_logic() != None && self.shared_registration.inner_logic().unwrap_logic().matches(coordinator.inner_logic().unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(self.ptr@.unwrap_logic().2 + self.len@ + extend@.len() <= isize::MAX@))]
     #[cfg_attr(creusot, ensures((^self).len@ == self.len@ + extend@.len()))]
     #[cfg_attr(creusot, ensures(forall<index: Int> 0 <= index && index < extend@.len() ==>
         (^self).proof_view_slot(self.len@ + index) == Some(Some(extend@[index]))))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(forall<index: Int> !(self.len@ <= index && index < self.len@ + extend@.len()) ==>
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve), not(bytes_proof_shared_reserve)), ensures(forall<index: Int> !(self.len@ <= index && index < self.len@ + extend@.len()) ==>
         (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(extend@.len() <= self.cap@ - self.len@ ==>
         forall<index: Int> !(self.len@ <= index && index < self.len@ + extend@.len()) ==>
             (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
         (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
-    #[cfg_attr(all(creusot, bytes_proof_repeated_split), ensures(self.shared_registration.inner_logic() != None ==>
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
+        (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(forall<index: Int> 0 <= index && index < extend@.len() ==>
+        (^self).proof_view_slot(self.len@ + index) == Some(Some(extend@[index]))))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^coordinator.inner_logic()) != None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^coordinator.inner_logic()).unwrap_logic().valid(self.shared_registration.inner_logic().unwrap_logic().control) && (^coordinator.inner_logic()).unwrap_logic().active()))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^self).shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^self).shared_registration.inner_logic() != None ==> (^self).shared_registration.inner_logic().unwrap_logic().matches((^coordinator.inner_logic()).unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((*coordinator.inner_logic().unwrap_logic().status.pending).len() == 1 ==> (^self).proof_registered_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((*coordinator.inner_logic().unwrap_logic().status.pending).len() == 1 ==>
+        (* (^coordinator.inner_logic()).unwrap_logic().status.pending).len() == 1))]
+    #[cfg_attr(all(creusot, bytes_proof_repeated_split, not(bytes_proof_shared_reserve)), ensures(self.shared_registration.inner_logic() != None ==>
         (^self).shared_registration.inner_logic().unwrap_logic().packet.0 == self.shared_registration.inner_logic().unwrap_logic().packet.0 &&
         (^self).shared_registration.inner_logic().unwrap_logic().packet.1.lo() == self.shared_registration.inner_logic().unwrap_logic().packet.1.lo() &&
         (^self).shared_registration.inner_logic().unwrap_logic().packet.1.hi() == self.shared_registration.inner_logic().unwrap_logic().packet.1.hi()))]
-    pub fn extend_from_slice(&mut self, extend: &[u8]) {
+    #[cfg_attr(all(creusot, bytes_proof_repeated_split, bytes_proof_shared_reserve), ensures(extend@.len() <= self.cap@ - self.len@ && self.shared_registration.inner_logic() != None ==>
+        (^self).shared_registration.inner_logic().unwrap_logic().packet.0 == self.shared_registration.inner_logic().unwrap_logic().packet.0 &&
+        (^self).shared_registration.inner_logic().unwrap_logic().packet.1.lo() == self.shared_registration.inner_logic().unwrap_logic().packet.1.lo() &&
+        (^self).shared_registration.inner_logic().unwrap_logic().packet.1.hi() == self.shared_registration.inner_logic().unwrap_logic().packet.1.hi()))]
+    pub fn extend_from_slice(&mut self, extend: &[u8],
+        #[cfg(bytes_proof_shared_reserve)] mut coordinator: Ghost<&mut Option<sequential_shared_control::ControlContext>>,
+    ) {
         let cnt = extend.len();
+        #[cfg(not(bytes_proof_shared_reserve))]
         self.reserve(cnt);
+        #[cfg(bytes_proof_shared_reserve)]
+        self.reserve(cnt, ghost! { &mut **coordinator });
         let new_len = self.len() + cnt;
         crate::storage_ops::copy_to_uninit_prefix(self.spare_capacity_mut(), extend);
         // SAFETY: the reserved prefix was initialized by the shared native helper.
