@@ -10,13 +10,22 @@ fcb623725d458ad86a60c3934a2095d1f030ad36d6da3a54076c37502026d87f
 
 After that checkpoint, the actual `Iterator` body and its `IteratorSpec` were
 restored, and a weak bounds-only contract was added to generic `peek_n`. The
-current `src/iter.rs` hash is
-`2492453eeb1ec520192e3ff8c93f7bd4941ac7439dab0e7b34fc796a43f9a1a0`; the
+previous complete 141-VC snapshot used `src/iter.rs` hash
+`2492453eeb1ec520192e3ff8c93f7bd4941ac7439dab0e7b34fc796a43f9a1a0`.
+Pointer-identity postconditions have since been added to `as_ptr`, `start`, and
+`end`. The latest source hash is
+`c5c8da21125db4b75107a974af9941aa2ba3908f1714ca74487663b6182f52e8`; the
 standard conversion contract hash is
-`5a4346a05298dbf71fe16b35718ac57552105426a4e4cc9161176b4bf3ae5348`. The
-current sources translate from the memory-pointer and memory-array-conversion
-probes with no warnings. Proof JSON is only fresh for the exact source hashes
-listed with each result below.
+`5a4346a05298dbf71fe16b35718ac57552105426a4e4cc9161176b4bf3ae5348`.
+
+On 2026-10-05, both probes were translated again from the current sources with
+`CARGO_NET_OFFLINE=true cargo creusot` and no warnings. The full selected batch
+was rerun with the checked Why3 profile (`z3@4.15.3`, one prover, 1000 MiB),
+through `run-proof.bash` and `why3find prove --no-cache -s -j 1`. All 31 unique
+targets passed: 123 VCs in memory-pointer and 18 VCs in
+memory-array-conversion, for 141 VCs total. The getters each remain one VC and
+now prove their functional contracts as well as their bodies. Proof JSON is
+fresh for the source hashes listed in the current manifest below.
 
 ## Memory-checkpoint body proofs
 
@@ -67,11 +76,12 @@ callers; it does not discharge every `Bytes` method.
 
 ## Comprehensive `Bytes` proof manifest
 
-The final selected `Bytes` proof snapshot is identified by these source hashes:
+The refreshed selected `Bytes` proof snapshot is identified by these source
+hashes:
 
 | Source | SHA-256 |
 | --- | --- |
-| `src/iter.rs` | `2492453eeb1ec520192e3ff8c93f7bd4941ac7439dab0e7b34fc796a43f9a1a0` |
+| `src/iter.rs` | `c5c8da21125db4b75107a974af9941aa2ba3908f1714ca74487663b6182f52e8` |
 | `src/verification/model.rs` | `cf3a6f426eb55e28f61a2f5b46277639db9ff86ec0b584bf026735c59aa25cb1` |
 | `creusot-libs/creusot-std/src/std/ptr.rs` | `e7aaf642680aaed7229cb185aedd8cea81a2624fd8c48774f3203edc1a134829` |
 | `creusot-libs/creusot-std/src/std/convert.rs` | `5a4346a05298dbf71fe16b35718ac57552105426a4e4cc9161176b4bf3ae5348` |
@@ -127,12 +137,10 @@ the Iterator-specific helper, laws, refinement checks, and `next` (24 VCs),
 with the shared `bump` target's two VCs removed once from the sum:
 `77 + 18 + 24 + 24 - 2 = 141`.
 
-The three pointer getters (`as_ptr`, `start`, `end`) have no functional
-`ensures` clauses. Their generated one-VC body targets passed, but those
-targets establish only the obligations present in their current contracts;
-they do not provide caller-facing postconditions that the returned pointer is
-the corresponding field. This is an explicit API-specification gap, not a
-failed proof. The safe `Bytes` methods have no added preconditions. Unsafe
+The pointer getters now have functional postconditions: `as_ptr` returns the
+origin pointer offset by the model cursor, `start` by the model mark, and `end`
+by the model end index. Each getter's one-VC body target passed for this exact
+source snapshot. The safe `Bytes` methods have no added preconditions. Unsafe
 `peek_ahead`, `slice_skip`, and `set_cursor` retain requirements derived from
 their documented same-buffer/bounds safety obligations.
 
@@ -154,14 +162,14 @@ passed (6 VCs), as did `next__refines` (1 VC). The actual `next` body passed
 7/8 split obligations; its remaining `next ensures` obligation timed out
 (Z3 unknown, 5.14 s, 0 steps). Inspection showed that `bump` exposed only the
 cursor update, while `cursor_produces` also requires unchanged input and end.
-The current snapshot strengthens `bump` with the frame already established
-by `advance(1)` and adds a body-checked `bytes_subsequence_head` helper for the
-remaining sequence decomposition. At the current hash, the helper passed 1/1,
-`bump` passed 2/2, the actual `next` body passed 14/14, `next__refines` passed
-1/1, both IteratorSpec refinement checks passed 1/1 each, and the reflexive
-and transitive IteratorSpec laws passed 2/2 each. This is 24/24 fresh VCs for
-the current snapshot, using the shared one-prover/1000 MiB wrapper and
-`z3@4.15.3`.
+The subsequent `2492453e...` snapshot strengthened `bump` with the frame
+already established by `advance(1)` and added a body-checked
+`bytes_subsequence_head` helper for the remaining sequence decomposition. At
+that hash, the helper passed 1/1, `bump` passed 2/2, the actual `next` body
+passed 14/14, `next__refines` passed 1/1, both IteratorSpec refinement checks
+passed 1/1 each, and the reflexive and transitive IteratorSpec laws passed 2/2
+each. The latest `c5c8da...` refresh reran the same iterator targets as part
+of the 141-VC batch recorded above.
 
 ## Current proof boundary
 
@@ -179,10 +187,10 @@ preconditions.
 the value produced by arbitrary downstream `TryFrom<&[u8]>` implementations.
 For the parser's fixed widths, `peek_array8` and `peek_array4` state exact
 subsequence results and are proved against the audited standard array
-conversion contract. The three public pointer getters have body targets but
-no functional `ensures`, so their returned pointer identity is still missing
-from the caller-facing specification. Complete parser-result refinement and
-whole-crate integration are outside this `Bytes` manifest.
+conversion contract. The three public pointer getters specify their returned
+pointer in the immutable cursor model and their bodies are proved against
+those postconditions. Complete parser-result refinement and whole-crate
+integration are outside this `Bytes` manifest.
 
 The chunk owner reported both default and `--no-default-features` native
 suites passing after the parser call sites switched to `peek_array8` and
@@ -249,9 +257,8 @@ existing `Snapshot<Int>`/`Plain` conversion.
 ## Remaining scope
 
 The selected `Bytes` body and iterator goals in the manifest pass at the
-recorded hashes. Add caller-facing pointer-identity postconditions for
-`as_ptr`, `start`, and `end` in a later source checkpoint and refresh those
-three targets. Parser result/state refinement, `Error` formatting, header
-initialization, SIMD/runtime dispatch, and the complete crate configuration
-matrix remain separate open work; this manifest does not close the
-crate-level verification gate.
+recorded hashes, including the caller-facing pointer postconditions for
+`as_ptr`, `start`, and `end`. Parser result/state refinement, `Error` formatting,
+header initialization, SIMD/runtime dispatch, and the complete crate
+configuration matrix remain separate open work; this manifest does not close
+the crate-level verification gate.

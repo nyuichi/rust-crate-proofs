@@ -1,10 +1,12 @@
 # Completed `Bytes` proof manifest
 
-This manifest records the completed selected `Bytes` proof batch. Its unique
+This manifest records the refreshed selected `Bytes` proof batch. Its unique
 current-snapshot total is 141 VCs across 31 CoMa targets; see `REPORT.md` for
-the per-target count table, source boundary, and trusted boundary.
+the per-target count table, source boundary, and trusted boundary. Both probes
+were translated again on 2026-10-05, and all targets were reproved at this
+source snapshot.
 The current `src/iter.rs` is SHA-256
-`2492453eeb1ec520192e3ff8c93f7bd4941ac7439dab0e7b34fc796a43f9a1a0` and
+`c5c8da21125db4b75107a974af9941aa2ba3908f1714ca74487663b6182f52e8` and
 `src/verification/model.rs` is
 `cf3a6f426eb55e28f61a2f5b46277639db9ff86ec0b584bf026735c59aa25cb1`;
 `creusot-libs/creusot-std/src/std/ptr.rs` is
@@ -113,7 +115,7 @@ At prior source hash `0c2a77e281438ae4f67bf4efe7bd9a50c8ec0b1c06df6e0ee2d4e97a3b
 the body timed out on one postcondition because `bump` did not expose the full
 frame; the current frame and lemma resolved it.
 
-## Phase E: remaining state methods and getters
+## Phase E: state methods and pointer getters
 
 Run from `verification/probes/memory-pointer`:
 
@@ -131,9 +133,10 @@ Run from `verification/probes/memory-pointer`:
   verif/httparse_memory_pointer_probe_rlib/iter/impl_Bytes/end.coma
 ```
 
-All current-hash targets passed (24/24 VCs). The three pointer getter bodies
-have no caller-facing functional postconditions; see `REPORT.md` for this
-remaining specification gap.
+All current-hash targets passed (24/24 VCs). The `as_ptr`, `start`, and `end`
+getters each have one VC, and their functional postconditions bind the result
+to the origin pointer offset by the model cursor, mark, and end positions,
+respectively. Their caller-facing pointer contracts and bodies are proved.
 
 ## Native evidence
 

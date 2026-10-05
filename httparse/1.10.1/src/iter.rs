@@ -259,16 +259,19 @@ impl<'a> Bytes<'a> {
     }
 
     #[inline]
+    #[ensures(result == self.verification_origin().offset_logic(self@.cursor))]
     pub fn as_ptr(&self) -> *const u8 {
         self.cursor
     }
 
     #[inline]
+    #[ensures(result == self.verification_origin().offset_logic(self@.mark))]
     pub fn start(&self) -> *const u8 {
         self.start
     }
 
     #[inline]
+    #[ensures(result == self.verification_origin().offset_logic(self@.end))]
     pub fn end(&self) -> *const u8 {
         self.end
     }

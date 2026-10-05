@@ -4,7 +4,7 @@ This design note was written before the source freeze was released. The
 `IteratorSpec`, explicit `Iterator::next` contract, weak generic `peek_n`
 bounds contract, and private `peek_array8`/`peek_array4` adapters are now in
 `src/iter.rs` and translate successfully. At current source hash
-`2492453eeb1ec520192e3ff8c93f7bd4941ac7439dab0e7b34fc796a43f9a1a0`, the
+`c5c8da21125db4b75107a974af9941aa2ba3908f1714ca74487663b6182f52e8`, the
 iterator body, both laws, and their refinement checks pass (24/24 VCs).
 
 ## `IteratorSpec` implementation
@@ -78,12 +78,11 @@ implementation and its supported toolchain. It cannot be used to infer byte
 identity for an arbitrary `U`. The fixed-width runtime paths use the private
 array helpers while preserving the public generic `peek_n` behavior.
 
-## Required next evidence
+## Follow-up evidence
 
-1. Add caller-facing identity postconditions for `Bytes::as_ptr`, `start`, and
-   `end`, then refresh those three targets in a later coordinated checkpoint.
-   Their current bodies pass one VC each, but currently expose no functional
-   getter contract.
+1. Completed: `as_ptr`, `start`, and `end` now specify the origin pointer
+   offset by the cursor, mark, and end positions. Their body targets passed at
+   the source hash above, as part of the refreshed 141-VC manifest.
 2. Keep public generic `peek_n` bounds-only unless a sound generic conversion
    postcondition can be expressed without restricting downstream `TryFrom`
    implementations.
