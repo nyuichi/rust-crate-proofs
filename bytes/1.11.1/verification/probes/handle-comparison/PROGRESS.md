@@ -12,8 +12,8 @@ generated Creusot proof models remain confined to this probe.
   view. Four unchanged self/slice adapter bodies prove exact equality and
   lexicographic order. Constructor/comparison/explicit-cleanup caller proved.
   This is the archived earlier proof snapshot: its manifest's `build.rs` hash
-  predates the later native-only vector test extraction, so the current probe
-  has not yet been replayed into a matching manifest.
+  predates the later native-only vector test extraction. The pinned combined
+  replay below now has a matching snapshot for the current probe builder.
 - Native all-features: `logs/native-final-vector-regression.log`, **4 tests
   passed**. Covers 36 byte-pair comparisons, UTF-8 strings, concrete slice
   iteration, and the exact extracted heterogeneous `Vec<u8>` to `BytesMut`
@@ -66,6 +66,18 @@ The concrete iterator specializes `IntoIter<T>` to `T = &[u8]`. Rebinding Buf
 calls to exact concrete slice methods is inverse-checked. No generic Buf
 laws or iterator specification laws are trusted.
 
+The pinned combined readonly/string/iterator replay reported **122 proof files
+passed**. Its exact generated source, proof JSON, and log are in
+`evidence/readonly-str-traits-source-corrected/`; the manifest hashes the full
+snapshot. The probe proves exact extracted `BytesMut` self/slice comparison
+bodies and the concrete slice iterator under generated contracts. Its
+`check(ghost)` attributes and semantic contracts are not integrated into
+production. The captured `BytesMut` source differs from later working-tree
+edits only in private `reserve` proof assertions and one `proof_traits_unique`
+assertion; the target `AsRef`, `Deref`, `as_slice`, and comparison blocks match.
+The current whole-crate trait-purity errors remain, and this gate proves no
+`Bytes` Deref or `DerefMut` behavior.
+
 ## Running follow-ups
 
 The strengthened `next` postcondition states both exact suffix advancement
@@ -77,7 +89,10 @@ under `iterator/evidence/`. A first replay in the reconstructed environment
 stopped before proving because that environment had an incompatible
 `why3find`; the pinned toolchain was then repaired and the final replay passed.
 
-`logs/readonly-str-traits.log` records a completed **100-file** proof run for
-the readonly comparison and string adapter configuration. The independent
+`logs/readonly-str-traits.log` records the earlier **100-file** readonly/string
+run. The later combined replay proves the extracted actual `BytesMut`
+self/slice comparison traits, readonly Deref path, strings, and concrete
+iterator in 122 files; see the exact snapshot above. The standalone
 `actual-traits` run remains incomplete: `logs/traits-positive.log` has four
-failed refinement obligations in the self equality/order methods and caller.
+failed refinement obligations without the generated model/readonly annotations
+used by the combined gate. Neither probe is whole-crate trait integration.
