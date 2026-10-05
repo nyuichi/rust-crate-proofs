@@ -1,11 +1,24 @@
     // BEGIN EXACT ADVANCE_UNCHECKED
-    #[cfg_attr(creusot, requires(self.ptr.invariant() && self.ptr@ != None))]
-    #[cfg_attr(creusot, requires(self.ptr@.unwrap_logic().2 + self.cap@ <= self.ptr@.unwrap_logic().1))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), requires(self.proof_empty_valid() || (self.ptr.invariant() && self.ptr@ != None)))]
+    #[cfg_attr(all(creusot, not(bytes_proof_valid_handle)), requires(self.ptr.invariant() && self.ptr@ != None))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), requires(self.proof_empty_valid() ||
+        self.ptr@.unwrap_logic().2 + self.cap@ <= self.ptr@.unwrap_logic().1))]
+    #[cfg_attr(all(creusot, not(bytes_proof_valid_handle)), requires(
+        self.ptr@.unwrap_logic().2 + self.cap@ <= self.ptr@.unwrap_logic().1))]
     #[cfg_attr(creusot, requires(count <= self.cap && self.len <= self.cap))]
-    #[cfg_attr(creusot, requires((self.data.addr_logic() & KIND_MASK == KIND_ARC && self.proof_shared_allocation_registered()) ||
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), requires(self.proof_empty_valid() ==> count@ == 0int))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), requires(self.proof_empty_valid() ||
+        (self.data.addr_logic() & KIND_MASK == KIND_ARC && self.proof_shared_allocation_registered()) ||
+        (self.proof_unique_owned() && self.ptr@.unwrap_logic().2 + count@ <= crate::capacity_ops::MAX_VEC_POS@)))]
+    #[cfg_attr(all(creusot, not(bytes_proof_valid_handle)), requires(
+        (self.data.addr_logic() & KIND_MASK == KIND_ARC && self.proof_shared_allocation_registered()) ||
         (self.proof_unique_owned() && self.ptr@.unwrap_logic().2 + count@ <= crate::capacity_ops::MAX_VEC_POS@)))]
     #[cfg_attr(creusot, ensures((^self).ptr.invariant()))]
-    #[cfg_attr(creusot, ensures((^self).ptr@ == Some((self.ptr@.unwrap_logic().0, self.ptr@.unwrap_logic().1, self.ptr@.unwrap_logic().2 + count@))))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), ensures(self.proof_empty_valid() ||
+        (^self).ptr@ == Some((self.ptr@.unwrap_logic().0, self.ptr@.unwrap_logic().1, self.ptr@.unwrap_logic().2 + count@))))]
+    #[cfg_attr(all(creusot, not(bytes_proof_valid_handle)), ensures(
+        (^self).ptr@ == Some((self.ptr@.unwrap_logic().0, self.ptr@.unwrap_logic().1, self.ptr@.unwrap_logic().2 + count@))))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), ensures(self.proof_empty_valid() ==> (^self).proof_empty_valid()))]
     #[cfg_attr(creusot, ensures((^self).len@ == (if count <= self.len { self.len@ - count@ } else { 0int }) && (^self).cap@ == self.cap@ - count@))]
     #[cfg_attr(creusot, ensures(self.data.addr_logic() & KIND_MASK == KIND_ARC ==> (^self).data == self.data))]
     #[cfg_attr(creusot, ensures(self.proof_unique_owned() ==> (^self).proof_unique_owned()))]
@@ -27,6 +40,29 @@
 
         let kind = self.kind();
 
+        #[cfg(all(creusot, bytes_proof_valid_handle))]
+        if kind == KIND_VEC {
+            let empty = BytesMut {
+                ptr: crate::ownership_proof::raw_vec::BoundPtr::unbound(NonNull::dangling()),
+                len: 0,
+                cap: 0,
+                data: invalid_ptr(KIND_VEC),
+                unique_at_zero: ghost! { None },
+                pending_control: ghost! { None },
+                shared_registration: ghost! { None },
+                shared_context: ghost! { None },
+            };
+            let old = mem::replace(self, empty);
+            let raw = RawTransition::from_valid(old);
+            let updated = raw.advance_to_valid(count);
+            // The result is already valid. Do not let BytesMut::drop inspect
+            // the resource-free placeholder returned by this replacement.
+            let placeholder = mem::replace(self, updated);
+            mem::forget(placeholder);
+            return;
+        }
+
+        #[cfg(not(all(creusot, bytes_proof_valid_handle)))]
         if kind == KIND_VEC {
             // Setting the start when in vec representation is a little more
             // complicated. First, we have to track how far ahead the

@@ -53,15 +53,14 @@ fn invalid_ptr<T>(addr: usize) -> *mut T {
     debug_assert_eq!(crate::provenance_specs::pointer_addr(ptr), addr);
     ptr.cast::<T>()
 }
-
+// BEGIN EXACT BYTESMUT INVARIANT
 #[cfg(all(creusot, bytes_proof_valid_handle))]
 impl creusot_std::invariant::Invariant for BytesMut {
     #[logic(open(self), prophetic)]
     fn invariant(self) -> bool {
         pearlite! { self.proof_empty_valid() || (self.proof_unique_owned() && self.proof_initialized()) }
     }
-}
-impl BytesMut {
+}impl BytesMut {
     #[cfg(creusot)]
     #[logic]
     pub(crate) fn proof_view_slot(self, index: Int) -> Option<Option<u8>> {
@@ -126,6 +125,20 @@ impl BytesMut {
     }
     #[cfg(creusot)]
     #[logic(prophetic)]
+    fn proof_shared_allocation_registered(self) -> bool {
+        pearlite! {
+            self.data.addr_logic() & KIND_MASK == KIND_ARC && self.ptr@ != None &&
+            match self.shared_registration.inner_logic() {
+                None => false,
+                Some(registration) => registration.valid() &&
+                    registration.control.pointer == self.data &&
+                    self.ptr@.unwrap_logic().0 == registration.status.allocation &&
+                    self.ptr@.unwrap_logic().1 == registration.status.capacity,
+            }
+        }
+    }
+    #[cfg(creusot)]
+    #[logic(prophetic)]
     fn proof_registered_valid(self) -> bool {
         pearlite! {
             self.unique_at_zero.inner_logic() == None && self.pending_control.inner_logic() == None &&
@@ -169,52 +182,160 @@ impl BytesMut {
             }
         }
     }
+    #[inline]
+    #[cfg_attr(creusot, ensures(result == (self.data.addr_logic() & KIND_MASK)))]
+    #[cfg_attr(creusot, check(ghost))]
+    fn kind(&self) -> usize {
+        crate::provenance_specs::pointer_addr(self.data) & KIND_MASK
+    }
+    // BEGIN EXACT GET_VEC_POS
+    #[inline]
+    #[cfg_attr(creusot, requires(self.data.addr_logic() & KIND_MASK == KIND_VEC))]
+    #[cfg_attr(creusot, ensures(result == self.data.addr_logic() >> crate::capacity_ops::VEC_POS_OFFSET))]
+    unsafe fn get_vec_pos(&self) -> usize {
+        debug_assert_eq!(self.kind(), KIND_VEC);
 
-    #[cfg_attr(creusot, requires(self.proof_unique_owned()))]
-    #[cfg_attr(creusot, requires(count <= self.cap))]
-    #[cfg_attr(creusot, requires(self.ptr@.unwrap_logic().2 + count@ <= MAX_VEC_POS@))]
-    #[cfg_attr(creusot, ensures((^self).proof_unique_owned() && (^self).proof_initialized()))]
-    #[cfg_attr(creusot, ensures((^self).len@ == (if count <= self.len { self.len@ - count@ } else { 0int })))]
-    #[cfg_attr(creusot, ensures((^self).cap@ == self.cap@ - count@))]
-    #[cfg_attr(creusot, ensures((^self).ptr@ == Some((self.ptr@.unwrap_logic().0, self.ptr@.unwrap_logic().1, self.ptr@.unwrap_logic().2 + count@))))]
-    #[cfg_attr(creusot, ensures((^self).unique_at_zero == self.unique_at_zero))]
+        crate::capacity_ops::vec_pos_from_data(
+            crate::provenance_specs::pointer_addr(self.data),
+        )
+    }
+    // BEGIN EXACT SET_VEC_POS
+    #[inline]
+    #[cfg_attr(creusot, requires(self.data.addr_logic() & KIND_MASK == KIND_VEC))]
+    #[cfg_attr(creusot, requires(pos <= crate::capacity_ops::MAX_VEC_POS))]
+    #[cfg_attr(creusot, ensures((^self).data.addr_logic() >> crate::capacity_ops::VEC_POS_OFFSET == pos))]
+    #[cfg_attr(creusot, ensures((^self).data.addr_logic() & KIND_MASK == KIND_VEC))]
     #[cfg_attr(creusot, ensures((^self).data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK == self.data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK))]
-    #[cfg_attr(creusot, ensures(forall<index: Int> (^self).proof_view_slot(index) == self.proof_view_slot(index + count@)))]
+    #[cfg_attr(creusot, ensures((^self).ptr == self.ptr && (^self).len == self.len && (^self).cap == self.cap))]
+    #[cfg_attr(creusot, ensures((^self).unique_at_zero == self.unique_at_zero && (^self).pending_control == self.pending_control && (^self).shared_registration == self.shared_registration && (^self).shared_context == self.shared_context))]
+    unsafe fn set_vec_pos(&mut self, pos: usize) {
+        debug_assert_eq!(self.kind(), KIND_VEC);
+        debug_assert!(pos <= MAX_VEC_POS);
+
+        self.data = invalid_ptr(crate::capacity_ops::set_vec_pos_in_data(
+            crate::provenance_specs::pointer_addr(self.data),
+            pos,
+        ));
+    }
+    // BEGIN EXACT ADVANCE_UNCHECKED
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), requires(self.proof_empty_valid() || (self.ptr.invariant() && self.ptr@ != None)))]
+    #[cfg_attr(all(creusot, not(bytes_proof_valid_handle)), requires(self.ptr.invariant() && self.ptr@ != None))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), requires(self.proof_empty_valid() ||
+        self.ptr@.unwrap_logic().2 + self.cap@ <= self.ptr@.unwrap_logic().1))]
+    #[cfg_attr(all(creusot, not(bytes_proof_valid_handle)), requires(
+        self.ptr@.unwrap_logic().2 + self.cap@ <= self.ptr@.unwrap_logic().1))]
+    #[cfg_attr(creusot, requires(count <= self.cap && self.len <= self.cap))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), requires(self.proof_empty_valid() ==> count@ == 0int))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), requires(self.proof_empty_valid() ||
+        (self.data.addr_logic() & KIND_MASK == KIND_ARC && self.proof_shared_allocation_registered()) ||
+        (self.proof_unique_owned() && self.ptr@.unwrap_logic().2 + count@ <= crate::capacity_ops::MAX_VEC_POS@)))]
+    #[cfg_attr(all(creusot, not(bytes_proof_valid_handle)), requires(
+        (self.data.addr_logic() & KIND_MASK == KIND_ARC && self.proof_shared_allocation_registered()) ||
+        (self.proof_unique_owned() && self.ptr@.unwrap_logic().2 + count@ <= crate::capacity_ops::MAX_VEC_POS@)))]
+    #[cfg_attr(creusot, ensures((^self).ptr.invariant()))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), ensures(self.proof_empty_valid() ||
+        (^self).ptr@ == Some((self.ptr@.unwrap_logic().0, self.ptr@.unwrap_logic().1, self.ptr@.unwrap_logic().2 + count@))))]
+    #[cfg_attr(all(creusot, not(bytes_proof_valid_handle)), ensures(
+        (^self).ptr@ == Some((self.ptr@.unwrap_logic().0, self.ptr@.unwrap_logic().1, self.ptr@.unwrap_logic().2 + count@))))]
+    #[cfg_attr(all(creusot, bytes_proof_valid_handle), ensures(self.proof_empty_valid() ==> (^self).proof_empty_valid()))]
+    #[cfg_attr(creusot, ensures((^self).len@ == (if count <= self.len { self.len@ - count@ } else { 0int }) && (^self).cap@ == self.cap@ - count@))]
+    #[cfg_attr(creusot, ensures(self.data.addr_logic() & KIND_MASK == KIND_ARC ==> (^self).data == self.data))]
+    #[cfg_attr(creusot, ensures(self.proof_unique_owned() ==> (^self).proof_unique_owned()))]
+    #[cfg_attr(creusot, ensures((^self).data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK == self.data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK))]
+    #[cfg_attr(creusot, ensures((^self).unique_at_zero == self.unique_at_zero && (^self).pending_control == self.pending_control && (^self).shared_registration == self.shared_registration && (^self).shared_context == self.shared_context))]
     #[cfg_attr(creusot, ensures(forall<index: Int> (^self).proof_owned_slot(index) == self.proof_owned_slot(index)))]
-    pub(crate) fn advance_transactionally(&mut self, count: usize) {
-        let empty = BytesMut {
-            ptr: crate::ownership_proof::raw_vec::BoundPtr::unbound(NonNull::dangling()),
-            len: 0, cap: 0, data: invalid_ptr(crate::capacity_ops::KIND_VEC),
-            unique_at_zero: ghost! { None }, pending_control: ghost! { None },
-            shared_registration: ghost! { None }, shared_context: ghost! { None },
-        };
-        let old = mem::replace(self, empty);
-        let raw = RawTransition::from_valid(old);
-        let updated = raw.advance_to_valid(count);
-        // `self` still holds the canonical empty descriptor. Replace it with
-        // the fully armed result, then forget the resource-free placeholder
-        // returned by mem::replace so BytesMut::drop cannot run on that shell.
-        let placeholder = mem::replace(self, updated);
-        mem::forget(placeholder);
+    #[cfg_attr(creusot, ensures(self.proof_registered_valid() ==> (^self).proof_registered_valid()))]
+    #[cfg_attr(creusot, ensures(self.proof_initialized() ==> (^self).proof_initialized()))]
+    #[cfg_attr(creusot, ensures(forall<index: Int>
+        (^self).proof_view_slot(index) == self.proof_view_slot(index + count@)))]
+    pub(crate) unsafe fn advance_unchecked(&mut self, count: usize) {
+        // Setting the start to 0 is a no-op, so return early if this is the
+        // case.
+        if count == 0 {
+            return;
+        }
+
+        debug_assert!(count <= self.cap, "internal: set_start out of bounds");
+
+        let kind = self.kind();
+
+        #[cfg(all(creusot, bytes_proof_valid_handle))]
+        if kind == KIND_VEC {
+            let empty = BytesMut {
+                ptr: crate::ownership_proof::raw_vec::BoundPtr::unbound(NonNull::dangling()),
+                len: 0,
+                cap: 0,
+                data: invalid_ptr(KIND_VEC),
+                unique_at_zero: ghost! { None },
+                pending_control: ghost! { None },
+                shared_registration: ghost! { None },
+                shared_context: ghost! { None },
+            };
+            let old = mem::replace(self, empty);
+            let raw = RawTransition::from_valid(old);
+            let updated = raw.advance_to_valid(count);
+            // The result is already valid. Do not let BytesMut::drop inspect
+            // the resource-free placeholder returned by this replacement.
+            let placeholder = mem::replace(self, updated);
+            mem::forget(placeholder);
+            return;
+        }
+
+        #[cfg(not(all(creusot, bytes_proof_valid_handle)))]
+        if kind == KIND_VEC {
+            // Setting the start when in vec representation is a little more
+            // complicated. First, we have to track how far ahead the
+            // "start" of the byte buffer from the beginning of the vec. We
+            // also have to ensure that we don't exceed the maximum shift.
+            let pos = self.get_vec_pos() + count;
+
+            if pos <= MAX_VEC_POS {
+                self.set_vec_pos(pos);
+            } else {
+                // The repr must be upgraded to ARC. This will never happen
+                // on 64 bit systems and will only happen on 32 bit systems
+                // when shifting past 134,217,727 bytes. As such, we don't
+                // worry too much about performance here.
+                #[cfg(not(any(creusot, bytes_proof_probe)))]
+                self.promote_to_shared(/*ref_count = */ 1);
+                #[cfg(any(creusot, bytes_proof_probe))]
+                panic!("unique offset overflow promotion is outside this proof gate");
+            }
+        }
+
+        // Updating the start of the view is setting `ptr` to point to the
+        // new start and updating the `len` field to reflect the new length
+        // of the view.
+        #[cfg(not(any(creusot, bytes_proof_probe)))]
+        { self.ptr = vptr(self.ptr.as_ptr().add(count)); }
+        #[cfg(any(creusot, bytes_proof_probe))]
+        { self.ptr = self.ptr.advance_within(count); }
+        self.len = self.len.saturating_sub(count);
+        self.cap -= count;
     }
 }
-
-/// A private field carrier. It deliberately has no `Invariant` implementation.
+// BEGIN EXACT UNIQUE ADVANCE RAW TRANSITION
+// The checked unique-offset transition carries affine ownership through a
+// private descriptor that has no BytesMut invariant or destructor.
+#[cfg(all(creusot, bytes_proof_valid_handle))]
 struct RawTransition {
     ptr: crate::ownership_proof::raw_vec::BoundPtr,
     len: usize,
     cap: usize,
     data: *mut Shared,
-    unique_at_zero: Ghost<Option<(crate::ownership_proof::raw_vec::Recovery, crate::ownership_proof::raw_vec::PhysicalRegion)>>,
+    unique_at_zero: Ghost<Option<(
+        crate::ownership_proof::raw_vec::Recovery,
+        crate::ownership_proof::raw_vec::PhysicalRegion,
+    )>>,
     pending_control: Ghost<Option<sequential_shared_control::PendingControl>>,
     shared_registration: Ghost<Option<sequential_shared_control::HandleRegistration>>,
     shared_context: Ghost<Option<sequential_shared_control::ControlContext>>,
 }
 
+#[cfg(all(creusot, bytes_proof_valid_handle))]
 impl RawTransition {
-    #[cfg(creusot)]
     #[logic]
-    fn proof_view_slot(self, index: Int) -> Option<Option<u8>> {
+    fn view_slot(self, index: Int) -> Option<Option<u8>> {
         pearlite! {
             match self.unique_at_zero.inner_logic() {
                 Some((_, region)) => region.slot(self.ptr@.unwrap_logic().2 + index),
@@ -226,9 +347,8 @@ impl RawTransition {
         }
     }
 
-    #[cfg(creusot)]
     #[logic]
-    fn proof_owned_slot(self, index: Int) -> Option<Option<u8>> {
+    fn owned_slot(self, index: Int) -> Option<Option<u8>> {
         pearlite! {
             match self.unique_at_zero.inner_logic() {
                 Some((_, region)) => region.slot(index),
@@ -240,11 +360,10 @@ impl RawTransition {
         }
     }
 
-    #[cfg(creusot)]
     #[logic(prophetic)]
-    fn proof_unique_owned(self) -> bool {
+    fn unique_owned(self) -> bool {
         pearlite! {
-            self.data.addr_logic() & crate::capacity_ops::KIND_MASK == crate::capacity_ops::KIND_VEC &&
+            self.data.addr_logic() & KIND_MASK == KIND_VEC &&
             self.pending_control.inner_logic() == None &&
             self.shared_registration.inner_logic() == None &&
             self.shared_context.inner_logic() == None &&
@@ -254,7 +373,8 @@ impl RawTransition {
                     self.ptr.invariant() && self.ptr@ != None &&
                     self.ptr@.unwrap_logic().0 == recovery.namespace() &&
                     self.ptr@.unwrap_logic().1 == recovery.capacity() &&
-                    self.ptr@.unwrap_logic().2 == (self.data.addr_logic() >> crate::capacity_ops::VEC_POS_OFFSET)@ &&
+                    self.ptr@.unwrap_logic().2 ==
+                        (self.data.addr_logic() >> crate::capacity_ops::VEC_POS_OFFSET)@ &&
                     self.ptr@.unwrap_logic().2 + self.cap@ == recovery.capacity() &&
                     recovery.invariant() && region.invariant() &&
                     region.capacity() == recovery.capacity() &&
@@ -266,55 +386,82 @@ impl RawTransition {
         }
     }
 
-    #[cfg(creusot)]
     #[logic(prophetic)]
-    fn proof_initialized(self) -> bool {
+    fn initialized(self) -> bool {
         pearlite! {
-            self.proof_unique_owned() &&
+            self.unique_owned() &&
             forall<index: Int> 0 <= index && index < self.len@ ==>
-                crate::ownership_proof::raw_vec::slot_known(self.proof_view_slot(index))
+                crate::ownership_proof::raw_vec::slot_known(self.view_slot(index))
         }
     }
 
     #[cfg_attr(creusot, requires(value.proof_unique_owned() && value.proof_initialized()))]
-    #[cfg_attr(creusot, ensures(result.proof_unique_owned() && result.proof_initialized()))]
-    #[cfg_attr(creusot, ensures(result.ptr == value.ptr && result.len == value.len && result.cap == value.cap && result.data == value.data))]
-    #[cfg_attr(creusot, ensures(result.unique_at_zero == value.unique_at_zero && result.pending_control == value.pending_control && result.shared_registration == value.shared_registration && result.shared_context == value.shared_context))]
-    #[cfg_attr(creusot, ensures(forall<index: Int> result.proof_view_slot(index) == value.proof_view_slot(index)))]
-    #[cfg_attr(creusot, ensures(forall<index: Int> result.proof_owned_slot(index) == value.proof_owned_slot(index)))]
+    #[cfg_attr(creusot, ensures(result.unique_owned() && result.initialized()))]
+    #[cfg_attr(creusot, ensures(
+        result.ptr == value.ptr && result.len == value.len &&
+        result.cap == value.cap && result.data == value.data
+    ))]
+    #[cfg_attr(creusot, ensures(
+        result.unique_at_zero == value.unique_at_zero &&
+        result.pending_control == value.pending_control &&
+        result.shared_registration == value.shared_registration &&
+        result.shared_context == value.shared_context
+    ))]
+    #[cfg_attr(creusot, ensures(forall<index: Int>
+        result.view_slot(index) == value.proof_view_slot(index)))]
+    #[cfg_attr(creusot, ensures(forall<index: Int>
+        result.owned_slot(index) == value.proof_owned_slot(index)))]
     fn from_valid(value: BytesMut) -> Self {
         let mut value = value;
         let raw = Self {
-            ptr: mem::replace(&mut value.ptr, crate::ownership_proof::raw_vec::BoundPtr::unbound(NonNull::dangling())),
+            ptr: mem::replace(
+                &mut value.ptr,
+                crate::ownership_proof::raw_vec::BoundPtr::unbound(NonNull::dangling()),
+            ),
             len: mem::replace(&mut value.len, 0),
             cap: mem::replace(&mut value.cap, 0),
-            data: mem::replace(&mut value.data, invalid_ptr(crate::capacity_ops::KIND_VEC)),
+            data: mem::replace(&mut value.data, invalid_ptr(KIND_VEC)),
             unique_at_zero: mem::replace(&mut value.unique_at_zero, ghost! { None }),
             pending_control: mem::replace(&mut value.pending_control, ghost! { None }),
             shared_registration: mem::replace(&mut value.shared_registration, ghost! { None }),
             shared_context: mem::replace(&mut value.shared_context, ghost! { None }),
         };
-        // Every field has been transferred into the raw carrier. Suppress the
-        // emptied BytesMut shell's production Drop path, which assumes an
-        // armed allocation capability even for a canonical empty descriptor.
+        // Keep the BytesMut destructor from interpreting the emptied shell as
+        // a live Vec owner. Every field and its affine proof capabilities now
+        // reside in `raw`.
         mem::forget(value);
         raw
     }
 
-    #[cfg_attr(creusot, requires(self.proof_unique_owned() && self.proof_initialized()))]
+    #[cfg_attr(creusot, requires(self.unique_owned() && self.initialized()))]
     #[cfg_attr(creusot, requires(count <= self.cap))]
-    #[cfg_attr(creusot, requires(self.ptr@.unwrap_logic().2 + count@ <= MAX_VEC_POS@))]
+    #[cfg_attr(creusot, requires(
+        self.ptr@.unwrap_logic().2 + count@ <= crate::capacity_ops::MAX_VEC_POS@
+    ))]
     #[cfg_attr(creusot, ensures(result.proof_unique_owned() && result.proof_initialized()))]
-    #[cfg_attr(creusot, ensures(result.len@ == (if count <= self.len { self.len@ - count@ } else { 0int })))]
+    #[cfg_attr(creusot, ensures(result.len@ ==
+        (if count <= self.len { self.len@ - count@ } else { 0int })))]
     #[cfg_attr(creusot, ensures(result.cap@ == self.cap@ - count@))]
-    #[cfg_attr(creusot, ensures(result.ptr@ == Some((self.ptr@.unwrap_logic().0, self.ptr@.unwrap_logic().1, self.ptr@.unwrap_logic().2 + count@))))]
+    #[cfg_attr(creusot, ensures(result.ptr@ == Some((
+        self.ptr@.unwrap_logic().0,
+        self.ptr@.unwrap_logic().1,
+        self.ptr@.unwrap_logic().2 + count@
+    ))))]
     #[cfg_attr(creusot, ensures(result.unique_at_zero == self.unique_at_zero))]
-    #[cfg_attr(creusot, ensures(result.data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK == self.data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK))]
-    #[cfg_attr(creusot, ensures(result.pending_control == self.pending_control && result.shared_registration == self.shared_registration && result.shared_context == self.shared_context))]
-    #[cfg_attr(creusot, ensures(forall<index: Int> result.proof_view_slot(index) == self.proof_view_slot(index + count@)))]
-    #[cfg_attr(creusot, ensures(forall<index: Int> result.proof_owned_slot(index) == self.proof_owned_slot(index)))]
+    #[cfg_attr(creusot, ensures(result.data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK ==
+        self.data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK))]
+    #[cfg_attr(creusot, ensures(
+        result.pending_control == self.pending_control &&
+        result.shared_registration == self.shared_registration &&
+        result.shared_context == self.shared_context
+    ))]
+    #[cfg_attr(creusot, ensures(forall<index: Int>
+        result.proof_view_slot(index) == self.view_slot(index + count@)))]
+    #[cfg_attr(creusot, ensures(forall<index: Int>
+        result.proof_owned_slot(index) == self.owned_slot(index)))]
     fn advance_to_valid(self, count: usize) -> BytesMut {
-        let Self { ptr, len, cap, data, unique_at_zero, pending_control, shared_registration, shared_context } = self;
+        let Self { ptr, len, cap, data, unique_at_zero, pending_control,
+            shared_registration, shared_context } = self;
         let old_addr = crate::provenance_specs::pointer_addr(data);
         let pos = crate::capacity_ops::vec_pos_from_data(old_addr) + count;
         let packed = crate::capacity_ops::set_vec_pos_in_data(old_addr, pos);
@@ -327,6 +474,7 @@ impl RawTransition {
         }
     }
 }
+// END EXACT UNIQUE ADVANCE RAW TRANSITION
 // BEGIN EXACT SEQUENTIAL SHARED CONTROL GATE
 // Restricted helper over the actual Shared layout. Automatic Drop and concurrent
 // access remain outside this gate; native Release/Acquire calls execute normally.
