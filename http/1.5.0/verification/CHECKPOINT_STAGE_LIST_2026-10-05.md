@@ -20,6 +20,10 @@ Stage these documentation and harness files/directories:
 - `http/1.5.0/verification/runtime-check/evidence/http-native-allfeatures-summary-2026-10-05.txt`
 - `http/1.5.0/verification/runtime-check/evidence/http-native-checkpoint-source-2026-10-05T08-03-09Z.json`
 - `http/1.5.0/verification/runtime-check/evidence/http-native-checkpoint-source-2026-10-05T08-03-09Z.tar.gz`
+- `http/1.5.0/verification/evidence/http-integrated-proof-frontier-2026-10-05.json`
+- `http/1.5.0/verification/evidence/http-default_verify_all_log-2026-10-05.log`
+- `http/1.5.0/verification/evidence/http-all_features_followup_log-2026-10-05.log`
+- `http/1.5.0/verification/evidence/http-proof-frontier-source-after-runs-2026-10-05.json`
 - `http/1.5.0/verification/runtime-check/HEADER_NAME.md` and
   `tests/header_name_boundaries.rs`.
 

@@ -27,7 +27,7 @@ stand-ins.
 |---|---|---|
 | `Method` | The final Method snapshot records 103 targets and 877 successful leaves (737 own, 140 supporting), including all nine exact fixed-method constructors. The HTTP Request shortcut batch separately proves 9 own bodies, one per shortcut, with 108 supporting goals. | The Method harness is a leaf source proof. Request/Response default constructors and the full builder chain still depend on opaque published component contracts. |
 | `StatusCode` / `Version` | The scalar snapshot records 80 supported targets and 381 successful leaves (133 own, 248 supporting). | The 62 numeric associated constants remain excluded after a recorded constant-translation failure. |
-| `HeaderValue` | The durable v7 snapshot records 54 targets and 156 own leaves: 42 comparison targets (40 `PartialEq`/`PartialOrd`, 2 `Ord::cmp`) / 116 leaves, 9 getter/sensitivity/`AsRef`/`Clone` targets / 16 leaves, 2 byte-validation targets / 19 leaves, and `from_static` / 5 leaves. | This is a selected comparison/accessor/validation slice. Other constructors, conversions, formatting, and the full value API are not included in that count. The `HeaderValue` source fingerprint matches the current source; read the manifest for supporting premises. |
+| `HeaderValue` | The latest durable v7 snapshot records 60 targets and 169 own leaves: 42 comparison targets (40 `PartialEq`/`PartialOrd`, 2 `Ord::cmp`) / 116 leaves, 9 getter/sensitivity/`AsRef`/`Clone` targets / 16 leaves, 2 byte-validation targets / 19 leaves, `from_static` / 5 leaves, and 6 conversion targets / 13 leaves. | This is a selected comparison/accessor/validation/conversion slice. Other constructors, formatting, and the full value API are not included in that count. The `HeaderValue` source fingerprint matches the current source; read the manifest for supporting premises. |
 | `ByteStr` / bytes consumers | The ByteStr and bytes manifests record the actual included HTTP `ByteStr` bodies and 36 actual bytes consumers (79 consumer VCs), with exact byte-sequence contracts. | The pinned `bytes` implementation and the documented Creusot UTF-8 boundary remain premises/limitations; these are not proofs of the dependency crate. `ByteStr`'s unsafe-constructor panic text differs from the published implementation. |
 | HeaderMap capacity/index helpers | The map-capacity manifest records 15 source targets and 30 successful leaves, including `desired_pos` and `probe_distance`. | The private callers' power-of-two, mask, and range invariants are not proved at all HeaderMap call sites. This does not prove insertion, lookup, growth, removal, or the map as a whole. |
 | HeaderMap actual-source leaves | The named `http_map_api_leaf` snapshot records `new`, `default`, `len`, `keys_len`, `is_empty`, `clear`, and `capacity`, plus the allocation-bound/Vec probes: 47/49 total leaves pass. In `len`, 6 own leaves pass and 2 remain open; its supporting calls pass. The conditional `IterMut::next_unsafe` run reports 79 own prover leaves and 33 supporting leaves (112 total); every recorded leaf is non-null. | `next_unsafe` has nine nested `split_vc` nodes. Their recorded children are successful, but the current checker does not independently replay nested task arity, so the own-goal set remains arity-unchecked in this checkpoint. The method assumes storage/cursor-ready preconditions; map graph validity, cross-entry non-revisiting, and public Iterator refinement are not established. Drain and raw removal remain open. The current source also contains an unverified capacity-contract pilot. |
@@ -86,11 +86,14 @@ stand-ins.
 - `verify-all.bash` is a crate-level pipeline check and may stop at the first
   frontend/proof failure. Its outcome is recorded separately from the accepted
   leaf results above; it is not a substitute for the exact target manifests.
-- The current default integrated source check is still open: the first
-  frontend attempt reports unresolved `ErrorModelRef`/`error_model_ref`
-  imports and deny-level unused parentheses/Pearlite imports. These are source
-  integration errors, not an accepted external limitation; all-features native
-  regressions passed in the separate runtime snapshot.
+- The required `verify-all.bash` default stage and a separate all-features
+  follow-up both stop during frontend compilation, before Why3 generates VCs.
+  Each reports the same 27 errors: 8 missing root exports for
+  `ErrorModelRef`/`error_model_ref`, 17 deny-level unused-parentheses
+  diagnostics, and 2 unused Pearlite imports. These are source integration
+  errors, not accepted external limitations. The captured 172-file source hash
+  was unchanged during both runs. Full logs and the exact failure frontier are
+  in `verification/evidence/http-integrated-proof-frontier-2026-10-05.json`.
 
 ## Native regression snapshot
 
