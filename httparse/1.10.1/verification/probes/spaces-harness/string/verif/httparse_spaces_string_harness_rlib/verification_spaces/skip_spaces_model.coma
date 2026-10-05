@@ -1,0 +1,96 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 99 0 99 90 *)
+
+let%span snum = "/workspace/scratch/httparse-string-model/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+let%span sspaces = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 92 11 92 38
+let%span sspaces'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 93 11 93 46
+let%span sspaces'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 94 10 94 63
+let%span sspaces'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 95 10 98 1
+let%span sspaces'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 11 11 11 59
+let%span sspaces'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 12 10 12 42
+let%span sspaces'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 13 10 14 35
+let%span sspaces'6 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 15 10 15 59
+let%span sspaces'7 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 100 4 100 60
+let%span sspaces'8 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 10 10 10 21
+let%span sspaces'9 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 17 4 21 5
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_SpacesOutcome = Complete | Partial
+
+type t_SpacesResult = { outcome: t_SpacesOutcome; mark: int; cursor: int }
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+function space_prefix_end [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 16 0 16 68] (input: Seq.seq UInt8.t) (start: int) (end': int) : int
+
+axiom space_prefix_end_def: forall input: Seq.seq UInt8.t, start: int, end': int. ([%#sspaces'3] 0 <= start
+      /\ start <= end' /\ end' <= Seq.length input)
+    -> space_prefix_end input start end'
+    = ([%#sspaces'9] if start = end' \/ deep_model_u8 (Seq.get input start) <> 32 then
+      start
+    else
+      space_prefix_end input (start + 1) end'
+    )
+
+axiom space_prefix_end_spec: forall input: Seq.seq UInt8.t, start: int, end': int. ([%#sspaces'3] 0 <= start
+      /\ start <= end' /\ end' <= Seq.length input)
+    -> ([%#sspaces'4] start <= space_prefix_end input start end' /\ space_prefix_end input start end' <= end')
+
+axiom space_prefix_end_spec'0: forall input: Seq.seq UInt8.t, start: int, end': int. ([%#sspaces'3] 0 <= start
+      /\ start <= end' /\ end' <= Seq.length input)
+    -> ([%#sspaces'5] forall i: int. start <= i /\ i < space_prefix_end input start end'
+      -> deep_model_u8 (Seq.get input i) = 32)
+
+axiom space_prefix_end_spec'1: forall input: Seq.seq UInt8.t, start: int, end': int. ([%#sspaces'3] 0 <= start
+      /\ start <= end' /\ end' <= Seq.length input)
+    -> ([%#sspaces'6] space_prefix_end input start end' < end'
+    -> deep_model_u8 (Seq.get input (space_prefix_end input start end')) <> 32)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant mark'0 : int
+
+constant cursor'0 : int
+
+constant end' : int
+
+function skip_spaces_model [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 99 0 99 90] (input: Seq.seq UInt8.t) (mark'0: int) (cursor'0: int) (end': int) : t_SpacesResult
+
+goal vc_skip_spaces_model: ([%#sspaces] 0 <= mark'0 /\ mark'0 <= cursor'0)
+  -> ([%#sspaces'0] cursor'0 <= end' /\ end' <= Seq.length input)
+  -> ([@stop_split] [@expl:space_prefix_end requires] [%#sspaces'3] 0 <= cursor'0
+    /\ cursor'0 <= end' /\ end' <= Seq.length input)
+  /\ (([@stop_split] [@expl:space_prefix_end ensures] ([@stop_split] [@expl:space_prefix_end ensures #0] [%#sspaces'4] cursor'0
+        <= space_prefix_end input cursor'0 end'
+      /\ space_prefix_end input cursor'0 end' <= end')
+    /\ ([@stop_split] [@expl:space_prefix_end ensures #1] [%#sspaces'5] forall i: int. cursor'0 <= i
+          /\ i < space_prefix_end input cursor'0 end' -> deep_model_u8 (Seq.get input i) = 32)
+    /\ ([@stop_split] [@expl:space_prefix_end ensures #2] [%#sspaces'6] space_prefix_end input cursor'0 end' < end'
+    -> deep_model_u8 (Seq.get input (space_prefix_end input cursor'0 end')) <> 32))
+  -> (let after_spaces = space_prefix_end input cursor'0 end' in if after_spaces < end' then
+    let result = { outcome = Complete;
+                   mark = after_spaces;
+                   cursor = after_spaces } in [@stop_split] [@expl:skip_spaces_model ensures] ([@stop_split] [@expl:skip_spaces_model ensures #0] [%#sspaces'1] result.cursor
+      = space_prefix_end input cursor'0 end')
+    /\ ([@stop_split] [@expl:skip_spaces_model ensures #1] [%#sspaces'2] match result.outcome with
+      | Complete -> result.cursor < end' /\ result.mark = result.cursor
+      | Partial -> result.cursor = end' /\ result.mark = mark'0
+      end)
+  else
+    let result = { outcome = Partial;
+                   mark = mark'0;
+                   cursor = end' } in [@stop_split] [@expl:skip_spaces_model ensures] ([@stop_split] [@expl:skip_spaces_model ensures #0] [%#sspaces'1] result.cursor
+      = space_prefix_end input cursor'0 end')
+    /\ ([@stop_split] [@expl:skip_spaces_model ensures #1] [%#sspaces'2] match result.outcome with
+      | Complete -> result.cursor < end' /\ result.mark = result.cursor
+      | Partial -> result.cursor = end' /\ result.mark = mark'0
+      end)
+  ))

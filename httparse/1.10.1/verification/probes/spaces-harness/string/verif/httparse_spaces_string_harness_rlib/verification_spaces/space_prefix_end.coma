@@ -1,0 +1,77 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 16 0 16 68 *)
+
+let%span swell_founded = "/workspace/scratch/httparse-string-model/creusot-libs/creusot-std/src/logic/well_founded.rs" 43 8 43 33
+let%span snum = "/workspace/scratch/httparse-string-model/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+let%span sspaces = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 10 10 10 21
+let%span sspaces'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 11 11 11 59
+let%span sspaces'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 12 10 12 42
+let%span sspaces'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 13 10 14 35
+let%span sspaces'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 15 10 15 59
+let%span sspaces'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 17 4 21 5
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] self >= 0 /\ self > other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant start : int
+
+constant end' : int
+
+function space_prefix_end [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/spaces.rs" 16 0 16 68] (input: Seq.seq UInt8.t) (start: int) (end': int) : int
+
+goal vc_space_prefix_end: ([%#sspaces'0] 0 <= start /\ start <= end' /\ end' <= Seq.length input)
+  -> (if start = end' then
+    let result = start in [@stop_split] [@expl:space_prefix_end ensures] ([@stop_split] [@expl:space_prefix_end ensures #0] [%#sspaces'1] start
+        <= result
+      /\ result <= end')
+    /\ ([@stop_split] [@expl:space_prefix_end ensures #1] [%#sspaces'2] forall i: int. start <= i /\ i < result
+        -> deep_model_u8 (Seq.get input i) = 32)
+    /\ ([@stop_split] [@expl:space_prefix_end ensures #2] [%#sspaces'3] result < end'
+    -> deep_model_u8 (Seq.get input result) <> 32)
+  else
+    if deep_model_u8 (Seq.get input start) <> 32 then
+      let result = start in [@stop_split] [@expl:space_prefix_end ensures] ([@stop_split] [@expl:space_prefix_end ensures #0] [%#sspaces'1] start
+          <= result
+        /\ result <= end')
+      /\ ([@stop_split] [@expl:space_prefix_end ensures #1] [%#sspaces'2] forall i: int. start <= i /\ i < result
+          -> deep_model_u8 (Seq.get input i) = 32)
+      /\ ([@stop_split] [@expl:space_prefix_end ensures #2] [%#sspaces'3] result < end'
+      -> deep_model_u8 (Seq.get input result) <> 32)
+    else
+      (([@stop_split] [@expl:space_prefix_end requires] [%#sspaces'0] 0 <= start + 1
+          /\ start + 1 <= end' /\ end' <= Seq.length input)
+        /\ ([@expl:variant decreases] well_founded_relation_Int ([%#sspaces] end' - start) ([%#sspaces] end'
+        - (start + 1))))
+      /\ (([@stop_split] [@expl:space_prefix_end ensures] ([@stop_split] [@expl:space_prefix_end ensures #0] [%#sspaces'1] start
+              + 1
+            <= space_prefix_end input (start + 1) end'
+          /\ space_prefix_end input (start + 1) end' <= end')
+        /\ ([@stop_split] [@expl:space_prefix_end ensures #1] [%#sspaces'2] forall i: int. start + 1 <= i
+              /\ i < space_prefix_end input (start + 1) end' -> deep_model_u8 (Seq.get input i) = 32)
+        /\ ([@stop_split] [@expl:space_prefix_end ensures #2] [%#sspaces'3] space_prefix_end input (start + 1) end'
+          < end' -> deep_model_u8 (Seq.get input (space_prefix_end input (start + 1) end')) <> 32))
+      -> (let result = space_prefix_end input (start
+      + 1) end' in [@stop_split] [@expl:space_prefix_end ensures] ([@stop_split] [@expl:space_prefix_end ensures #0] [%#sspaces'1] start
+          <= result
+        /\ result <= end')
+      /\ ([@stop_split] [@expl:space_prefix_end ensures #1] [%#sspaces'2] forall i: int. start <= i /\ i < result
+          -> deep_model_u8 (Seq.get input i) = 32)
+      /\ ([@stop_split] [@expl:space_prefix_end ensures #2] [%#sspaces'3] result < end'
+      -> deep_model_u8 (Seq.get input result) <> 32)))
+  
+  )
