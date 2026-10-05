@@ -1,0 +1,128 @@
+--- archived name
++++ invocation name
+@@ -185,7 +185,7 @@
+         $(
+             $(#[$docs:meta])*
+             ($konst:ident, $upcase:ident, $rank:literal, $name_bytes:literal, $name_str:literal,
+-                [$($name_byte:literal),*]);
++                [$($name_byte:literal),*] $(, $matcher:ident)?);
+         )+
+     ) => {
+         #[derive(Clone, Copy)]
+@@ -286,9 +286,9 @@
+         )+
+ 
+         impl StandardHeader {
+-            #[inline]
+-            #[cfg_attr(creusot, ensures(result@ == self.deep_model().rank()))]
+-            #[cfg_attr(creusot, ensures(result@ < 81))]
++                #[inline]
++                #[cfg_attr(creusot, ensures(result@ == self.deep_model().rank()))]
++                #[cfg_attr(creusot, ensures(result@ < 81))]
+             fn rank(&self) -> u8 {
+                 match *self {
+                     $(StandardHeader::$konst => $rank,)+
+@@ -324,7 +324,11 @@
+             }))]
+             const fn from_bytes(name_bytes: &[u8]) -> Option<StandardHeader> {
+                 $(
+-                    if bytes_equal(name_bytes, &[$($name_byte),*]) {
++                    if standard_header_byte_match!(
++                        name_bytes,
++                        &[$($name_byte),*]
++                        $(, $matcher)?
++                    ) {
+                         return Some(StandardHeader::$konst);
+                     }
+                 )+
+@@ -518,6 +522,39 @@
+     true
+ }
+ 
++macro_rules! standard_header_byte_match {
++    ($bytes:expr, $expected:expr) => {
++        bytes_equal($bytes, $expected)
++    };
++    ($bytes:expr, $expected:expr, $matcher:ident) => {
++        $matcher($bytes)
++    };
++}
++
++#[cfg_attr(creusot, ensures(result == (name_bytes@ == seq![97u8, 99u8, 99u8, 101u8, 112u8, 116u8])))]
++const fn bytes_equal_accept(name_bytes: &[u8]) -> bool {
++    bytes_equal(name_bytes, &[97u8, 99u8, 99u8, 101u8, 112u8, 116u8])
++}
++
++#[cfg_attr(
++    creusot,
++    ensures(result == (name_bytes@ == seq![
++        97u8, 99u8, 99u8, 101u8, 115u8, 115u8, 45u8, 99u8, 111u8, 110u8, 116u8,
++        114u8, 111u8, 108u8, 45u8, 97u8, 108u8, 108u8, 111u8, 119u8, 45u8, 99u8,
++        114u8, 101u8, 100u8, 101u8, 110u8, 116u8, 105u8, 97u8, 108u8, 115u8,
++    ]))
++)]
++const fn bytes_equal_access_control_allow_credentials(name_bytes: &[u8]) -> bool {
++    bytes_equal(
++        name_bytes,
++        &[
++            97u8, 99u8, 99u8, 101u8, 115u8, 115u8, 45u8, 99u8, 111u8, 110u8, 116u8,
++            114u8, 111u8, 108u8, 45u8, 97u8, 108u8, 108u8, 111u8, 119u8, 45u8, 99u8,
++            114u8, 101u8, 100u8, 101u8, 110u8, 116u8, 105u8, 97u8, 108u8, 115u8,
++        ],
++    )
++}
++
+ // Generate constants for all standard HTTP headers. This includes a static hash
+ // code for the "fast hash" path. The hash code for static headers *do not* have
+ // to match the text representation of those headers. This is because header
+@@ -535,7 +572,7 @@
+     /// where the request is done: when fetching a CSS stylesheet a different
+     /// value is set for the request than when fetching an image, video or a
+     /// script.
+-    (Accept, ACCEPT, 0, b"accept", "accept", [97u8, 99u8, 99u8, 101u8, 112u8, 116u8]);
++    (Accept, ACCEPT, 0, b"accept", "accept", [97u8, 99u8, 99u8, 101u8, 112u8, 116u8], bytes_equal_accept);
+ 
+     /// Advertises which character set the client is able to understand.
+     ///
+@@ -638,7 +675,7 @@
+     /// be set on both sides (the Access-Control-Allow-Credentials header and in
+     /// the XHR or Fetch request) in order for the CORS request with credentials
+     /// to succeed.
+-    (AccessControlAllowCredentials, ACCESS_CONTROL_ALLOW_CREDENTIALS, 5, b"access-control-allow-credentials", "access-control-allow-credentials", [97u8, 99u8, 99u8, 101u8, 115u8, 115u8, 45u8, 99u8, 111u8, 110u8, 116u8, 114u8, 111u8, 108u8, 45u8, 97u8, 108u8, 108u8, 111u8, 119u8, 45u8, 99u8, 114u8, 101u8, 100u8, 101u8, 110u8, 116u8, 105u8, 97u8, 108u8, 115u8]);
++    (AccessControlAllowCredentials, ACCESS_CONTROL_ALLOW_CREDENTIALS, 5, b"access-control-allow-credentials", "access-control-allow-credentials", [97u8, 99u8, 99u8, 101u8, 115u8, 115u8, 45u8, 99u8, 111u8, 110u8, 116u8, 114u8, 111u8, 108u8, 45u8, 97u8, 108u8, 108u8, 111u8, 119u8, 45u8, 99u8, 114u8, 101u8, 100u8, 101u8, 110u8, 116u8, 105u8, 97u8, 108u8, 115u8], bytes_equal_access_control_allow_credentials);
+ 
+     /// Preflight response indicating permitted HTTP headers.
+     ///
+@@ -1358,6 +1395,32 @@
+     /// inline JavaScript ('unsafe-inline'), they can still provide protections
+     /// for users of older web browsers that don't yet support CSP.
+     (XXssProtection, X_XSS_PROTECTION, 80, b"x-xss-protection", "x-xss-protection", [120u8, 45u8, 120u8, 115u8, 115u8, 45u8, 112u8, 114u8, 111u8, 116u8, 101u8, 99u8, 116u8, 105u8, 111u8, 110u8]);
++}
++
++#[cfg(all(creusot, http_header_name_leaf))]
++#[ensures(result)]
++fn selected_standard_header_comparator_consumer(name_bytes: &[u8]) -> bool {
++    let matches_accept = bytes_equal_accept(name_bytes);
++    if !matches_accept {
++        proof_assert! {
++            name_bytes@ != seq![97u8, 99u8, 99u8, 101u8, 112u8, 116u8]
++        };
++    }
++
++    let matches_access_control_allow_credentials =
++        bytes_equal_access_control_allow_credentials(name_bytes);
++    if !matches_access_control_allow_credentials {
++        proof_assert! {
++            name_bytes@ != seq![
++                97u8, 99u8, 99u8, 101u8, 115u8, 115u8, 45u8, 99u8, 111u8, 110u8,
++                116u8, 114u8, 111u8, 108u8, 45u8, 97u8, 108u8, 108u8, 111u8, 119u8,
++                45u8, 99u8, 114u8, 101u8, 100u8, 101u8, 110u8, 116u8, 105u8, 97u8,
++                108u8, 115u8,
++            ]
++        };
++    }
++
++    true
+ }
+ 
+ #[cfg(creusot)]
