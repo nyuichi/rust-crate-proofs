@@ -1598,14 +1598,55 @@ impl BytesMut {
         remaining.packet.0.logical_id() != self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() &&
         remaining.packet.0.logical_id() != other.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() ==>
             remaining.matches(^context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), requires(self.proof_initialized() && other.proof_initialized()))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), requires(self.shared_context.inner_logic() == None && other.shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), requires(self.shared_registration.inner_logic() != None && other.shared_registration.inner_logic() != None))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), requires(self.shared_registration.inner_logic().unwrap_logic().matches(*context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), requires(other.shared_registration.inner_logic().unwrap_logic().matches(*context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), requires(self.shared_registration.inner_logic().unwrap_logic().control == other.shared_registration.inner_logic().unwrap_logic().control))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), requires(self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() != other.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id()))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), requires(self.len == 0usize || other.cap == 0usize || self.ptr@.unwrap_logic().2 + self.len@ != other.ptr@.unwrap_logic().2))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), requires(self.len@ + other.len@ <= isize::MAX@))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), ensures((^self).proof_initialized() && (^self).shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), ensures(self.len == 0usize ==> ^self == other))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), ensures(self.len != 0usize && other.cap == 0usize ==> ^self == *self))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), ensures(self.len == 0usize || other.cap == 0usize ==> (^self).shared_registration.inner_logic().unwrap_logic().matches(^context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), ensures(self.len != 0usize && other.cap != 0usize ==> (^self).proof_unique_at_zero_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), ensures((^self).len@ == self.len@ + other.len@))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), ensures((* (^context.inner_logic()).status.pending).len() + if self.len == 0usize || other.cap == 0usize { 1 } else { 2 } == (*context.inner_logic().status.pending).len()))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), ensures(forall<index: Int> 0 <= index && index < (^self).len@ ==>
+        (^self).proof_view_slot(index) == if index < self.len@ { self.proof_view_slot(index) } else { other.proof_view_slot(index - self.len@) }))]
+    #[cfg_attr(all(creusot, bytes_proof_unsplit_fallbacks), ensures(forall<remaining: sequential_shared_control::HandleRegistration> remaining.matches(*context.inner_logic()) &&
+        remaining.packet.0.logical_id() != self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() &&
+        remaining.packet.0.logical_id() != other.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() ==>
+            remaining.matches(^context.inner_logic())))]
     pub fn unsplit(&mut self, other: BytesMut,
-        #[cfg(bytes_proof_adjacent_unsplit)] context: Ghost<&mut sequential_shared_control::ControlContext>,
+        #[cfg(any(bytes_proof_adjacent_unsplit, bytes_proof_unsplit_fallbacks))] context: Ghost<&mut sequential_shared_control::ControlContext>,
     ) {
         #[cfg(bytes_proof_adjacent_unsplit)]
         {
             shared_unsplit::merge_into(self, other, context);
         }
-        #[cfg(not(bytes_proof_adjacent_unsplit))]
+        #[cfg(bytes_proof_unsplit_fallbacks)]
+        {
+            if self.len == 0 {
+                shared_unsplit_fallbacks::empty_adopt(self, other, context);
+            } else if other.cap == 0 {
+                shared_unsplit_fallbacks::empty_other(self, other, context);
+            } else {
+                // Move the old owner out without running Drop on an unarmed placeholder.
+                let empty = BytesMut {
+                    ptr: crate::ownership_proof::raw_vec::BoundPtr::unbound(NonNull::dangling()),
+                    len: 0, cap: 0, data: invalid_ptr(KIND_VEC),
+                    unique_at_zero: ghost! { None }, pending_control: ghost! { None },
+                    shared_registration: ghost! { None }, shared_context: ghost! { None },
+                };
+                let old = mem::replace(self, empty);
+                let output = shared_unsplit_fallbacks::copy_concat(old, other, context);
+                mem::forget(mem::replace(self, output));
+            }
+        }
+        #[cfg(not(any(bytes_proof_adjacent_unsplit, bytes_proof_unsplit_fallbacks)))]
         {
         if self.is_empty() {
             *self = other;
@@ -4804,3 +4845,7 @@ pub(crate) mod shared_reserve;
 #[cfg(bytes_proof_shared_reserve)]
 #[path = "ownership_proof/shared_copy.rs"]
 pub(crate) mod shared_copy;
+
+#[cfg(bytes_proof_unsplit_fallbacks)]
+#[path = "ownership_proof/shared_unsplit_fallbacks.rs"]
+pub(crate) mod shared_unsplit_fallbacks;
