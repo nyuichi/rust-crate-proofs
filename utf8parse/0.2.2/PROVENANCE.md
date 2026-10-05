@@ -57,3 +57,25 @@ would change the public API.
 Run `./verify-all.bash` in this directory to reproduce the no-feature proof.
 The latest integrated run proves 14 files. Generated Cargo and Why3 artifacts
 are intentionally not tracked.
+
+## Creusot 0.13.0 migration (2026-09-25)
+
+The crate now pins crates.io `creusot-std =0.13.0` and Rust
+`nightly-2026-06-22` in a crate-local toolchain file. No Rust source or contracts
+were changed for this migration. `verify-all.bash` uses the 0.13 CLI syntax
+and disables the proof cache. Native Why3/why3find sessions prove 14 files
+per checked feature configuration.
+
+Environment: macOS aarch64, Why3 `54c92f96`, why3find `eab37557`,
+Z3 4.16.0 and CVC5 1.3.1. For publication, run from this crate directory:
+
+```sh
+cargo proofs run -- cargo creusot --no-cache -- --no-default-features
+cargo proofs publish --dry-run
+```
+
+The source and lockfile must first be committed and pushed. Recording requires
+cargo-proofs 0.3.2 or later for Creusot 0.13 method sessions and proof trees.
+Published claims are `panic_contract` only; see `proofs.toml` for the exact
+assumptions and limits. Functional specifications do not become separate
+functional-correctness claims.
