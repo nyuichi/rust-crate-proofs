@@ -206,20 +206,42 @@ both failed translation and were explicitly withdrawn. Historical OOM/Unknown/
 Timeout and failed-translation archives must remain immutable. Full standard
 MaybeUninit permission boundary and actual callers are OPEN.
 
-### skip_empty_lines
+### skip_empty_lines — integrated helper checkpoint
 
-Uncommitted extracted `src/skip_empty_lines.rs`, model
-`src/verification/empty_lines.rs`, `verification/probes/empty-lines-harness/`.
-Not included in main library. Runtime equivalence:104 tokens, normalized SHA
-`cc731c7e0eeb496982e24cd47b3e563091f7a49afbbf00ed0c7b07947bdc8296`.
-Initial CRLF extension proof Timeout30s; Astra required structural induction.
-19-target concat induction candidate translated/typechecked. Latest
-`evidence/cursor-induction-prep-20261005T071604Z/` adds endpoint recurrence
-postcondition plus explicit cursor-prefix induction:64COMAs, selected20,
-**all20 type-only passed**, no solver. Root has not reviewed latest candidate.
-Next: inspect exact checked endpoint/induction VCs, then bounded dependency-
-ordered solver run. Boolean logic body goals do exist: an earlier diagnosis
-of a missing bool VC was corrected with a false-bool diagnostic. No TCB bug.
+The extracted helper now replaces the previous body in `src/lib.rs` by
+`include!("skip_empty_lines.rs")`; `Request` still calls that function at the
+start of request parsing. `verification_empty_lines` is wired under
+`cfg(creusot)`. The runtime body is token-equivalent to the prior implementation
+(104 tokens, normalized SHA-256
+`cc731c7e0eeb496982e24cd47b3e563091f7a49afbbf00ed0c7b07947bdc8296`).
+
+Fresh translation under the rebuilt string-model profile emitted 64 CoMas; the
+final source passed type-only for all 20 selected targets. Bounded proof run
+`verification/probes/empty-lines-harness/evidence/proof-replay-20261005T162057Z/`
+processed 20 target files sequentially. There are **171 Valid JSON solver
+results**, zero non-Valid results, and one literal-true `complete_line_ending_at`
+target with no computation body (`TrivialTrueNoTask`, zero solver tasks). Counts:
+56 `Bytes`/`Iterator` dependency goals, 66 model goals, and 49 goals for the
+actual extracted helper body. Raw per-target logs, exact CoMas, tool identity,
+target order, and source snapshots are in that run directory. Root independently
+audited the count. The shared solver lock was released after the run.
+
+After wiring the source, the only helper edit was removing a duplicate prelude
+import (those names already come from `skip_spaces.rs` in the crate; the
+standalone harness now imports them in its own scope). The fresh post-edit
+translation again typechecked all 20 targets. Nineteen CoMas are byte-identical;
+the helper CoMa has only source-coordinate shifts, with identical normalized
+content to the proved input. Default tests passed (105 unit, 263 URI, 6 docs),
+and no-default tests passed (101 unit, 263 URI, 6 docs).
+
+The older CRLF extension timeout belongs to the pre-induction model and remains
+immutable under `evidence/direct-why3-20261005T062922467607808Z/`. The later
+concat and cursor inductions supersede that candidate. The current proof closes
+the extracted helper and its selected iterator dependencies; the enclosing
+Request/Response bodies, full crate proof, and remaining feature/target matrix
+are still OPEN. Standard-library pointer/slice contracts remain in the TCB.
+See `verification/probes/empty-lines-harness/REPORT.md` for the concise
+checkpoint and native commands.
 
 ### Gate D detector linkage
 

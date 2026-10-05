@@ -59,9 +59,6 @@ pub use chunk::parse_chunk_size;
 #[path = "verification/model.rs"]
 mod verification_model;
 #[cfg(creusot)]
-#[path = "verification/empty_lines.rs"]
-mod verification_empty_lines;
-#[cfg(creusot)]
 #[path = "verification/spaces.rs"]
 mod verification_spaces;
 #[cfg(creusot)]
@@ -213,7 +210,30 @@ impl<'h, 'b> Request<'h, 'b> {
     }
 }
 
-include!("skip_empty_lines.rs");
+#[inline]
+fn skip_empty_lines(bytes: &mut Bytes<'_>) -> Result<()> {
+    loop {
+        let b = bytes.peek();
+        match b {
+            Some(b'\r') => {
+                // SAFETY: peeked and found `\r`, so it's safe to bump 1 pos
+                unsafe { bytes.bump() };
+                expect!(bytes.next() == b'\n' => Err(Error::NewLine));
+            }
+            Some(b'\n') => {
+                // SAFETY: peeked and found `\n`, so it's safe to bump 1 pos
+                unsafe {
+                    bytes.bump();
+                }
+            }
+            Some(..) => {
+                bytes.slice();
+                return Ok(Status::Complete(()));
+            }
+            None => return Ok(Status::Partial),
+        }
+    }
+}
 
 impl<'h, 'b> Response<'h, 'b> {
     /// Try to parse a buffer of bytes into this `Response`.
