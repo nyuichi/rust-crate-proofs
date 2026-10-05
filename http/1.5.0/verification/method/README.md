@@ -4,9 +4,9 @@ This leaf harness includes the production `src/method.rs` and `src/ascii.rs` dir
 
 ## Current proof result
 
-At the source snapshot recorded in the evidence file, a clean translation emitted 103 targets. The fresh `--no-cache` proof run passed all 103 targets and 877 leaves: 737 own-goal leaves and 140 callee-contract leaves. The target-by-target COMA and proof JSON hashes, exact source hashes, solver versions, and run details are in [final-2026-10-05.json](evidence/final-2026-10-05.json).
+At the proved source snapshot, a clean translation emitted 103 targets and a fresh bounded `--no-cache` run passed all 103 targets and 877 leaves: 737 own-goal leaves and 140 callee-contract leaves. The target-by-target COMA and proof JSON hashes, source hashes, solver versions, and run details are in [final-2026-10-05.json](evidence/final-2026-10-05.json).
 
-After the proof batch, the standard-library `convert.rs` and `partial_ord.rs` sources changed. A package-scoped clean translation against those current sources produced byte-identical COMA files for all 103 targets, matching the proven COMA hashes. The existing proof JSON therefore applies to the same task bytes; the exact source and re-emission comparison is recorded in the evidence file.
+A later clean emission from the current `method.rs` and `ascii.rs` produced full, untransformed Why3 task streams byte-identical to the proved streams for all 103 targets. The complete recorded proof trees and all 877 successful leaves therefore remain applicable without another solver run. Independent solver-free `split_vc` checks matched all 28 root tactic nodes (682 child tasks); a Why3 OCaml API replay matched all seven nested tactic nodes (15 child tasks), selecting only each recorded nested child. The exact emitted streams, proof-tree reuse checks, arities, and report hashes are recorded under [current-source-reconciliation-20261005](evidence/current-source-reconciliation-20261005/).
 
 The 515-leaf `canonical_method_text_is_injective` proof is a finite case split over the 12 `MethodModel` variants on both sides. It completed in the bounded run. The ASCII comparison bridge and all nine fixed-method builder constructors were also freshly proved.
 
@@ -29,6 +29,8 @@ RUSTFLAGS='-Zcrate-attr=feature(hasher_prefixfree_extras)' cargo test --locked -
 ```
 
 The tests cover all 256 byte values against an independent RFC token allowlist, the inline/allocated boundary and `From<&Method>`, and the derived Hash callback trace.
+
+The suite was rerun against the reconciled current source and passed all 10 tests; the command and output are preserved under [current-source evidence](evidence/current-source-reconciliation-20261005/runtime-test.command).
 
 ## Reproduction
 

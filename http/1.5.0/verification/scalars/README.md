@@ -4,9 +4,9 @@ This leaf harness includes the published `src/status.rs`, `src/version.rs`, and 
 
 ## Current proof result
 
-At the source snapshot recorded in the evidence file, a clean translation emitted the scalar targets. A fresh bounded `--no-cache` run passed all 80 supported targets and 381 leaves: 133 own-goal leaves and 248 callee-contract leaves. It excluded the two named status-array capability probes. Target-by-target COMA and proof JSON hashes, source hashes, solver versions, and run details are in [final-2026-10-05.json](evidence/final-2026-10-05.json).
+At the proved source snapshot, a clean translation emitted the scalar targets. A fresh bounded `--no-cache` run passed all 80 supported targets and 381 leaves: 133 own-goal leaves and 248 callee-contract leaves. It excluded the two named status-array capability probes. Target-by-target COMA and proof JSON hashes, source hashes, solver versions, and run details are in [final-2026-10-05.json](evidence/final-2026-10-05.json).
 
-The standard-library `convert.rs` and `partial_ord.rs` sources were updated after the proof batch. A clean scalar translation against the updated sources produced byte-identical COMA files for all 80 accepted targets, so the recorded proof JSON still corresponds to the exact same task bytes. The final evidence file records both source snapshots and the comparison.
+A later clean emission from the current `status.rs`, `version.rs`, and `ascii.rs` produced full, untransformed Why3 task streams byte-identical to the proved streams for all 80 accepted targets. The complete recorded proof trees and all 381 successful leaves therefore remain applicable without another solver run. Independent solver-free `split_vc` checks matched all seven root tactic nodes (60 child tasks); there were no nested tactic nodes. Exact emitted streams, proof-tree reuse checks, arities, and report hashes are recorded under [current-source-reconciliation-20261005](evidence/current-source-reconciliation-20261005/).
 
 ## Covered behavior
 
@@ -34,6 +34,8 @@ RUSTFLAGS='-Zcrate-attr=feature(hasher_prefixfree_extras,stmt_expr_attributes,pr
 ```
 
 These tests cover the Version Hash callback trace, decimal text for all 900 codes, and StatusCode Display flags/chunks/errors.
+
+The suite was rerun against the reconciled current source and passed all 3 integration tests; the command and output are preserved under [current-source evidence](evidence/current-source-reconciliation-20261005/runtime-test.command).
 
 ## Reproduction
 
