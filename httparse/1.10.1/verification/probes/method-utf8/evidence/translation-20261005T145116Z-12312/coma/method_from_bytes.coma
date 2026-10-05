@@ -1,0 +1,159 @@
+(* #"/workspace/httparse-cloud-resume/httparse/1.10.1/verification/probes/method-utf8/src/../../../../src/parse_method_utf8.rs" 13 0 13 69 *)
+
+let%span sparse_method_utf8 = "/workspace/httparse-cloud-resume/httparse/1.10.1/verification/probes/method-utf8/src/../../../../src/parse_method_utf8.rs" 14 10 14 35
+let%span sparse_method_utf8'0 = "/workspace/httparse-cloud-resume/httparse/1.10.1/verification/probes/method-utf8/src/../../../../src/parse_method_utf8.rs" 9 10 12 1
+let%span sstring = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/string.rs" 188 22 195 13
+let%span sstring'0 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/string.rs" 234 20 234 56
+let%span sstring'1 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/string.rs" 14 16 14 76
+let%span sstring'2 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/string.rs" 29 10 29 67
+let%span sstring'3 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/string.rs" 30 10 30 66
+let%span sstring'4 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/string.rs" 31 10 31 39
+let%span sstring'5 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/string.rs" 32 10 35 1
+let%span sseq = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'0 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'1 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span schar = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Char
+use map.Map
+use int.ComputerDivision
+use creusot.prelude.Any
+use int.Int
+
+type t_Utf8Error
+
+type t_Result_ref_str_Utf8Error = Ok (Seq.seq Char.t) | Err t_Utf8Error
+
+predicate inv_Utf8Error (_1: t_Utf8Error)
+
+predicate inv_Result_ref_str_Utf8Error (_1: t_Result_ref_str_Utf8Error)
+
+axiom inv_axiom [@rewrite]:
+  forall x: t_Result_ref_str_Utf8Error [inv_Result_ref_str_Utf8Error x]. inv_Result_ref_str_Utf8Error x
+    = match x with
+      | Ok f0 -> true
+      | Err f0 -> inv_Utf8Error f0
+      end
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'1] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'0] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t =
+  [%#sstring'0] flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+type t_Option_Int = None | Some int
+
+predicate valid_utf8 (bytes: Seq.seq UInt8.t) =
+  [%#sstring'1] exists characters: Seq.seq Char.t. to_bytes characters = bytes
+
+predicate utf8_error_matches (bytes: Seq.seq UInt8.t) (valid_up_to: int) (error_len: t_Option_Int)
+
+axiom utf8_error_matches_spec:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'2] utf8_error_matches bytes valid_up_to error_len
+    -> 0 <= valid_up_to /\ valid_up_to <= Seq.length bytes
+
+axiom utf8_error_matches_spec'0:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'3] utf8_error_matches bytes valid_up_to error_len
+    -> valid_utf8 (Seq.([..]) bytes 0 valid_up_to)
+
+axiom utf8_error_matches_spec'1:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'4] utf8_error_matches bytes valid_up_to error_len
+    -> not valid_utf8 bytes
+
+axiom utf8_error_matches_spec'2:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'5] utf8_error_matches bytes valid_up_to error_len
+    -> match error_len with
+      | Some length -> 1 <= length /\ length <= 3 /\ valid_up_to + length <= Seq.length bytes
+      | None -> valid_up_to < Seq.length bytes /\ Seq.length bytes - valid_up_to < 4
+      end
+
+function valid_up_to_Utf8Error (self: t_Utf8Error) : int
+
+function error_len_Utf8Error (self: t_Utf8Error) : t_Option_Int
+
+let rec from_utf8 (bytes: Slice64.slice UInt8.t) (return (x: t_Result_ref_str_Utf8Error)) = any
+  [ return (result: t_Result_ref_str_Utf8Error) ->
+  {[@stop_split] [@expl:from_utf8 ensures] ([@stop_split] [@expl:from_utf8 result type invariant] inv_Result_ref_str_Utf8Error result)
+    /\ ([@stop_split] [@expl:from_utf8 ensures] [%#sstring] match result with
+      | Ok value -> to_bytes value = Slice64.view bytes
+      | Err error -> utf8_error_matches (Slice64.view bytes) (valid_up_to_Utf8Error error) (error_len_Utf8Error error)
+      end)}
+    (! return {result}) ]
+
+type t_Option_ref_str = None'0 | Some'0 (Seq.seq Char.t)
+
+let rec elim_Ok (_x: t_Result_ref_str_Utf8Error) (return (f0: Seq.seq Char.t)) = any
+  [ _k (f0: Seq.seq Char.t) -> {Ok f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Ok] match _x with
+      | Ok _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec method_from_bytes
+  [#"/workspace/httparse-cloud-resume/httparse/1.10.1/verification/probes/method-utf8/src/../../../../src/parse_method_utf8.rs" 13 0 13 69]
+  (raw: Slice64.slice UInt8.t) (return (x: t_Option_ref_str)) = (! bb0
+  [ bb0 = s0
+    [ s0 = from_utf8 [%#sparse_method_utf8] {raw} (fun (_x: t_Result_ref_str_Utf8Error) -> [ &_4 <- _x ] s1)
+    | s1 = any [ br0 (x0: Seq.seq Char.t) -> {_4 = Ok x0} (! bb5) | br1 (x0: t_Utf8Error) -> {_4 = Err x0} (! bb4) ] ]
+  | bb4 = s0 [ s0 = [ &_ret <- None'0 ] s1 | s1 = return {_ret} ]
+  | bb5 = s0
+    [ s0 = elim_Ok {_4} (fun (r0: Seq.seq Char.t) -> [ &value <- r0 ] s1)
+    | s1 = [ &_ret <- Some'0 value ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: t_Option_ref_str = Any.any_l ()
+  | & raw: Slice64.slice UInt8.t = raw
+  | & _4: t_Result_ref_str_Utf8Error = Any.any_l ()
+  | & value: Seq.seq Char.t = Any.any_l () ])
+  [ return (result: t_Option_ref_str) ->
+  {[@stop_split] [@expl:method_from_bytes ensures] [%#sparse_method_utf8'0] match result with
+      | Some'0 value -> to_bytes value = Slice64.view raw
+      | None'0 -> not valid_utf8 (Slice64.view raw)
+      end}
+    (! return {result}) ]
