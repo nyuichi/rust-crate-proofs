@@ -1,0 +1,126 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/owned_region.rs" 32 0 36 1 *)
+
+let%span sowned_region = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/owned_region.rs" 37 18 37 87
+let%span sowned_region'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/owned_region.rs" 38 48 38 72
+let%span sowned_region'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/owned_region.rs" 39 18 39 42
+let%span sowned_region'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/owned_region.rs" 30 11 30 101
+let%span sowned_region'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/owned_region.rs" 31 10 31 44
+let%span soption = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ra/option.rs" 14 8 18 9
+let%span soption'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ra/option.rs" 42 14 42 32
+let%span soption'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/option.rs" 870 8 873 9
+let%span sfmap = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ra/fmap.rs" 162 15 162 64
+let%span sfmap'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ra/fmap.rs" 163 14 163 78
+let%span sfmap'2 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 168 40 168 65
+let%span sfmap'3 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/fmap.rs" 171 12 171 41
+let%span sfmap'4 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ra/fmap.rs" 15 12 19 13
+let%span sfmap'5 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ra/fmap.rs" 56 14 56 32
+let%span sexcl = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ra/excl.rs" 16 8 16 12
+let%span sexcl'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ra/excl.rs" 26 14 26 32
+
+use creusot.int.UInt8
+use map.Map
+use creusot.prelude.Any
+
+type t_Option_u8 = None | Some UInt8.t
+
+type t_Excl_Option_u8 = { f0: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'0 | Some'0 t_Excl_Option_u8
+
+type t_Option_Option_Excl_Option_u8 = None'1 | Some'1 t_Option_Excl_Option_u8
+
+type tup2_Option_Excl_Option_u8_Option_Excl_Option_u8 = { f0'0: t_Option_Excl_Option_u8; f1'0: t_Option_Excl_Option_u8 }
+
+function map_Option_Excl_Option_u8 (self: t_Option_Excl_Option_u8) (f: Map.map t_Excl_Option_u8 t_Option_Excl_Option_u8) : t_Option_Option_Excl_Option_u8
+ = [%#soption'1] match self with
+    | None'0 -> None'1
+    | Some'0 x -> Some'1 (Map.get f x)
+    end
+
+function op_Excl_Option_u8 (self: t_Excl_Option_u8) (_other: t_Excl_Option_u8) : t_Option_Excl_Option_u8 =
+  [%#sexcl] None'0
+
+function commutative_Excl_Option_u8 (a: t_Excl_Option_u8) (b: t_Excl_Option_u8) : ()
+
+axiom commutative_Excl_Option_u8_spec:
+  forall a: t_Excl_Option_u8, b: t_Excl_Option_u8. [%#sexcl'0] op_Excl_Option_u8 a b = op_Excl_Option_u8 b a
+
+function op_Option_Excl_Option_u8 (self: t_Option_Excl_Option_u8) (other: t_Option_Excl_Option_u8) : t_Option_Option_Excl_Option_u8
+ = [%#soption] match { f0'0 = self; f1'0 = other } with
+    | {f0'0 = None'0} -> Some'1 other
+    | {f1'0 = None'0} -> Some'1 self
+    | {f0'0 = Some'0 x; f1'0 = Some'0 y} -> map_Option_Excl_Option_u8 (op_Excl_Option_u8 x y) (fun (z: t_Excl_Option_u8) -> Some'0 z)
+    end
+
+function commutative_Option_Excl_Option_u8 (a: t_Option_Excl_Option_u8) (b: t_Option_Excl_Option_u8) : ()
+
+axiom commutative_Option_Excl_Option_u8_spec:
+  forall a: t_Option_Excl_Option_u8, b: t_Option_Excl_Option_u8. [%#soption'0] op_Option_Excl_Option_u8 a b
+    = op_Option_Excl_Option_u8 b a
+
+type t_FMap_Int_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+function total_op_Int (self: t_FMap_Int_Excl_Option_u8) (other: t_FMap_Int_Excl_Option_u8) : t_FMap_Int_Excl_Option_u8
+
+axiom total_op_Int_spec:
+  forall self: t_FMap_Int_Excl_Option_u8, other: t_FMap_Int_Excl_Option_u8 [total_op_Int self other]. ([%#sfmap'0] forall k: int. op_Option_Excl_Option_u8 (get_Int self k) (get_Int other k)
+        <> None'1)
+    -> ([%#sfmap'1] forall k: int. Some'1 (get_Int (total_op_Int self other) k)
+      = op_Option_Excl_Option_u8 (get_Int self k) (get_Int other k))
+
+predicate ext_eq_Int (self: t_FMap_Int_Excl_Option_u8) (other: t_FMap_Int_Excl_Option_u8) =
+  [%#sfmap'3] forall k: int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec: forall self: t_FMap_Int_Excl_Option_u8, other: t_FMap_Int_Excl_Option_u8 [self
+    = other]. [%#sfmap'2] ext_eq_Int self other = (self = other)
+
+type t_Option_FMap_Int_Excl_Option_u8 = None'2 | Some'2 t_FMap_Int_Excl_Option_u8
+
+function op_FMap_Int_Excl_Option_u8 (self: t_FMap_Int_Excl_Option_u8) (other: t_FMap_Int_Excl_Option_u8) : t_Option_FMap_Int_Excl_Option_u8
+ = [%#sfmap'4] if forall k: int. op_Option_Excl_Option_u8 (get_Int self k) (get_Int other k) <> None'1 then
+    Some'2 (total_op_Int self other)
+  else
+    None'2
+
+
+function commutative_FMap_Int_Excl_Option_u8 (a: t_FMap_Int_Excl_Option_u8) (b: t_FMap_Int_Excl_Option_u8) : ()
+
+axiom commutative_FMap_Int_Excl_Option_u8_spec:
+  forall a: t_FMap_Int_Excl_Option_u8, b: t_FMap_Int_Excl_Option_u8. [%#sfmap'5] op_FMap_Int_Excl_Option_u8 a b
+    = op_FMap_Int_Excl_Option_u8 b a
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let map_compose_eq [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/ownership_proof/owned_region.rs" 32 0 36 1]
+  (left: t_FMap_Int_Excl_Option_u8) (right: t_FMap_Int_Excl_Option_u8) (whole: t_FMap_Int_Excl_Option_u8)
+  (return (x: ())) =
+{[@stop_split] [@expl:map_compose_eq requires] [%#sowned_region'2] forall index: int. op_Option_Excl_Option_u8 (get_Int left index) (get_Int right index)
+    = Some'1 (get_Int whole index)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 =
+      {[@expl:assertion] [%#sowned_region] forall index: int. op_Option_Excl_Option_u8 (get_Int left index) (get_Int right index)
+        <> None'1}
+      s1
+    | s1 = [ &merged <- [%#sowned_region'0] total_op_Int left right ] s2
+    | s2 = {[@expl:assertion] [%#sowned_region'1] ext_eq_Int merged whole} s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & left: t_FMap_Int_Excl_Option_u8 = left
+  | & right: t_FMap_Int_Excl_Option_u8 = right
+  | & whole: t_FMap_Int_Excl_Option_u8 = whole
+  | & merged: t_FMap_Int_Excl_Option_u8 = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:map_compose_eq ensures] [%#sowned_region'3] op_FMap_Int_Excl_Option_u8 left right
+    = Some'2 whole}
+    (! return {result}) ]

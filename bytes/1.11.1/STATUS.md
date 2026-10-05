@@ -2,6 +2,22 @@
 
 ## Current checkpoint (2026-10-05)
 
+Actual shared-release connection: carrier explicit cleanup now calls the exact
+cfg-adapted `release_shared` body extracted from bytes_mut.rs. The existing
+affine retirement/full recovery proof moved into that body; native and proof
+configurations share the nonfinal test, final acquire position and descriptor
+disarming flow. Ordinary final release directly frees the buffer before
+Box control destruction; its SharedBuffer destructor sees capacity zero.
+Positive gate: 115 proof files, zero unproved. Native matrix: 7; ordinary
+test_bytes: 118; no_std: pass. Existing missing-empty-ticket and Unknown-byte
+negatives each retain one intended failure (117 files). Evidence prefixes:
+`connected-release-positive`, `connected-release-ticket-negative`,
+`connected-release-unknown-negative`. Astra reviewed cleanup ordering and scope.
+This is a verified sequential adaptation of actual release_shared, not
+cross-thread synchronization or automatic destructor invocation. Existing
+trusted ownership contracts are unchanged; B3's reviewed native implementation
+now includes the common allocator leaf.
+
 Explicit-cleanup continuation: ordinary SharedBuffer cleanup and both existing
 B3 deallocation variants now use one native `allocation_ops::deallocate_u8`
 leaf: direct global deallocation with byte layout, with no allocation at capacity
@@ -53,7 +69,7 @@ no new trusted protocol/physical-access clause or core/std change is introduced.
 Luna xhigh prepared native cases and audited scope; Astra reviewed proof
 interfaces, split_off, capacity paths and coordinator relocation.
 
-Remaining boundaries: original release_shared control-flow integration and
+Remaining boundaries: whole-crate release/Drop caller integration and
 ordinary/proof ownership interpretation (ordinary Shared already uses raw
 SharedBuffer, not a live Vec); automatic scope-exit Drop effects; concurrent RMW/release-sequence/
 view synchronization; Bytes/freeze read-sharing and vtable dispatch; and

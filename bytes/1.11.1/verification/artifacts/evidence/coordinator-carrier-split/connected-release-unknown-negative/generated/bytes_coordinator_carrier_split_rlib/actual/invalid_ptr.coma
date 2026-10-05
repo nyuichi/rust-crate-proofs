@@ -1,0 +1,70 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-coordinator-carrier-split-f9f2a3e7ac30305b/out/actual_carrier.rs" 130 0 130 40 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_SCALABLE_TICKETS int | Other namespace_other
+
+let%span sprovenance_specs = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/provenance_specs.rs" 94 28 94 55
+let%span sprovenance_specs'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/coordinator-carrier-split/src/../../../../src/provenance_specs.rs" 49 28 49 54
+let%span sptr = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/ptr.rs" 419 18 419 37
+let%span sactual_carrier = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-coordinator-carrier-split-f9f2a3e7ac30305b/out/actual_carrier.rs" 133 14 133 61
+let%span sactual_carrier'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-coordinator-carrier-split-f9f2a3e7ac30305b/out/actual_carrier.rs" 134 21 134 63
+let%span sactual_carrier'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-coordinator-carrier-split-f9f2a3e7ac30305b/out/actual_carrier.rs" 135 4 135 19
+let%span sactual_carrier'2 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-coordinator-carrier-split-f9f2a3e7ac30305b/out/actual_carrier.rs" 129 28 129 55
+
+use creusot.int.UInt64
+use creusot.prelude.Opaque
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+
+let metadata_pointer (addr: UInt64.t) (return (x: Opaque.ptr)) = any
+  [ return (result: Opaque.ptr) ->
+  {[@stop_split] [@expl:metadata_pointer ensures] [%#sprovenance_specs] Ptr.addr_logic_u64 result = addr}
+    (! return {result}) ]
+
+let pointer_addr_u8 (ptr: Opaque.ptr) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:pointer_addr ensures] [%#sprovenance_specs'0] result
+    = Ptr.addr_logic_u64 ptr}
+    (! return {result}) ]
+
+type tup2_ref_usize_ref_usize = { f0: UInt64.t; f1: UInt64.t }
+
+type t_AssertKind = Eq | Ne | Match
+
+let cast_u8 (self_: Opaque.ptr) (return (x: Opaque.ptr)) = any
+  [ return (result: Opaque.ptr) -> {[@stop_split] [@expl:cast ensures] [%#sptr] result = self_} (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let invalid_ptr_T [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-coordinator-carrier-split-f9f2a3e7ac30305b/out/actual_carrier.rs" 130 0 130 40]
+  (addr: UInt64.t) (return (x: Opaque.ptr)) = (! bb0
+  [ bb0 = s0
+    [ s0 = metadata_pointer [%#sactual_carrier] {addr} (fun (_x: Opaque.ptr) -> [ &ptr <- _x ] s1)
+    | s1 = any [ br0 -> {false} (! bb7) | br1 -> (! bb2) ] ]
+  | bb2 = s0
+    [ s0 = pointer_addr_u8 [%#sactual_carrier'0] {ptr} (fun (_x: UInt64.t) -> [ &_11 <- _x ] s1)
+    | s1 = [ &_9 <- { f0 = _11; f1 = addr } ] s2
+    | s2 = [ &left_val <- _9.f0 ] s3
+    | s3 = [ &right_val <- _9.f1 ] s4
+    | s4 = [ &_17 <- left_val = right_val ] s5
+    | s5 = any [ br0 -> {_17 = false} (! bb5) | br1 -> {_17} (! bb7) ] ]
+  | bb5 = s0
+    [ s0 = [ &kind <- Eq ] s1 | s1 = [ &_25 <- left_val ] s2 | s2 = [ &_27 <- right_val ] s3 | s3 = {false} any ]
+  | bb7 = s0
+    [ s0 = cast_u8 [%#sactual_carrier'1] {ptr} (fun (_x: Opaque.ptr) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: Opaque.ptr = Any.any_l ()
+  | & addr: UInt64.t = addr
+  | & ptr: Opaque.ptr = Any.any_l ()
+  | & _9: tup2_ref_usize_ref_usize = Any.any_l ()
+  | & _11: UInt64.t = Any.any_l ()
+  | & left_val: UInt64.t = Any.any_l ()
+  | & right_val: UInt64.t = Any.any_l ()
+  | & _17: bool = Any.any_l ()
+  | & kind: t_AssertKind = Any.any_l ()
+  | & _25: UInt64.t = Any.any_l ()
+  | & _27: UInt64.t = Any.any_l () ])
+  [ return (result: Opaque.ptr) ->
+  {[@stop_split] [@expl:invalid_ptr ensures] [%#sactual_carrier'2] Ptr.addr_logic_u64 result = addr}
+    (! return {result}) ]

@@ -342,3 +342,19 @@ lifecycle-invariant attempt is not claimed proved; valid-handle-only trait
 verification is being separated from the explicit-predicate lifecycle gate.
 Canonical reduced source/configuration and failed proof leaves are archived
 in open-invariant-borrow/rejected, without weakened invariants or new trust.
+
+## Actual release_shared sequential connection (2026-10-05)
+
+The coordinator carrier adapter now extracts the exact cfg-adapted runtime
+release_shared entry. Existing carrier release contracts and retirement body
+are attached to this entry, with no new trusted ownership contracts. The
+nonfinal branch returns without recovery; the final path acquires, proves
+pending-empty, recovers all original buffer authority, disarms its descriptor,
+B3-deallocates A and consumes the typed Perm for control S. Ordinary code uses
+the same branch/disarming structure and the shared native deallocation leaf
+before Box destruction. Proof/native counter and access adapters remain the
+existing exclusive sequential ones, not a concurrent refinement theorem.
+
+The positive integrated gate has 115 files and zero unproved leaves. Both
+existing negatives have 117 files and exactly one intended failed leaf. Native
+7, ordinary118 and no_std pass. Automatic Drop effects remain unproved.

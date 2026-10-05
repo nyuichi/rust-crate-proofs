@@ -93,3 +93,12 @@ sibling splitting and concurrency remain excluded. Evidence: relocation-positive
 relocation-unknown-negative, relocation-ticket-negative, and
 regressions/relocation-final (legacy110). Both negative runs have 116 files and
 exactly one intended failed guard. Intermediate counts above are historical.
+
+The current explicit-cleanup gate extracts release_shared itself: existing
+carrier release delegates to that exact cfg-adapted body. Positive: 115 files;
+negatives: 117 files with one intended failure each. Ordinary final release
+disarms and directly frees the buffer before control Box destruction. The
+physical leaf is common with existing B3. This is sequential adapter evidence,
+not automatic Drop or weak-memory verification. Frozen snapshots are
+connected-release-positive, connected-release-ticket-negative and
+connected-release-unknown-negative.
