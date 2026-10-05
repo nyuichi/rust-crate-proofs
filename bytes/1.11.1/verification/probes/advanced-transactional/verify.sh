@@ -22,7 +22,16 @@ cargo clean --package "$package_name"
 rm -rf -- verif
 cargo creusot --only=coma -- --locked
 cargo creusot clean --force
-cargo creusot --only=prove --why3find-arg=-j --why3find-arg=1
+if [[ "${BYTES_TRANSLATE_ONLY:-0}" == 1 ]]; then
+    echo "translation only: no proof phase requested"
+    exit 0
+fi
+
+proof_patterns=()
+if [[ -n "${BYTES_PROVE_PATTERN:-}" ]]; then
+    read -r -a proof_patterns <<< "$BYTES_PROVE_PATTERN"
+fi
+cargo creusot --only=prove "${proof_patterns[@]}" --why3find-arg=-j --why3find-arg=1
 
 mkdir -p evidence/positive
 rm -rf evidence/positive/verif

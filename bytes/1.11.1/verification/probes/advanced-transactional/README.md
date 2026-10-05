@@ -17,20 +17,28 @@ runtime crate's current broader invariant or its Shared states.
 
 The candidate transition replaces `self` with the exact canonical empty
 descriptor (zero length/capacity, Vec-kind invalid pointer metadata, unbound
-dangling `BoundPtr`, and all proof caps absent). It consumes the old handle
-into `RawTransition`, a private field carrier with no `Invariant` impl, using
-`ManuallyDrop` and field reads so the old value's `Drop` cannot release the
-allocation during the transition. The carrier moves `unique_at_zero`
-unchanged, preserving the full Recovery and PhysicalRegion; it also carries
-the pending/shared affine fields. It advances the actual `BoundPtr` with
+dangling `BoundPtr`, and all proof caps absent). It transfers the old handle's
+fields into `RawTransition`, a private field carrier with no `Invariant` impl,
+using fieldwise `mem::replace` calls. Each source field is replaced with its
+canonical empty value, then `mem::forget` suppresses the emptied shell's
+destructor. This avoids `ptr::read` and keeps the allocation capability out of
+any temporary `BytesMut`. The carrier moves `unique_at_zero` unchanged,
+preserving the full Recovery and PhysicalRegion; it also carries the
+pending/shared affine fields. It advances the actual `BoundPtr` with
 `advance_within(count)`, updates the packed metadata through the actual
 `capacity_ops::set_vec_pos_in_data`, applies the source `saturating_sub` and
 capacity subtraction, and constructs a fresh `BytesMut` in one struct
-expression. No intermediate `BytesMut` has weakened or missing capabilities.
+expression. The consumed local shell is temporarily normalized field by
+field, stays private to the transition, and is forgotten after it reaches the
+canonical empty descriptor. The caller-visible handle remains empty while the
+raw carrier is prepared. A final `mem::replace` installs the fully constructed
+result and returns the empty placeholder; that resource-free placeholder is
+immediately forgotten so its destructor cannot dispatch on an unarmed handle.
 
 The isolated extraction does not include the production `Drop for BytesMut`
-implementation; `ManuallyDrop` is present to exercise the required integration
-boundary, but this probe does not verify destructor dispatch or cleanup.
+implementation. The explicit `mem::forget` models the requirement to suppress
+the emptied shell's destructor, but this probe does not verify production
+destructor dispatch or cleanup.
 
 The experiment is intentionally only about this normal-return field
 transition. It does not prove automatic Drop, promotion on offset overflow,
@@ -43,6 +51,17 @@ not the unchanged production method.
 Run `cargo check --offline` after activating the bytes proof toolchain. The
 Creusot proof wrapper must run outside the sandbox and serialize on
 `/tmp/itoa-creusot-proof.lock`; logs and proof files are saved below this
-directory after that run. At the current checkpoint, the normal Cargo check
-passes; the serialized Creusot run has not yet reached the prover, so there is
-no proof result to count either way.
+directory after that run. `BYTES_PROVE_PATTERN` accepts whitespace-separated
+Why3find file patterns, and `BYTES_TRANSLATE_ONLY=1` stops after translation.
+The focused body proof uses these three translated files:
+
+```sh
+BYTES_PROVE_PATTERN='verif/bytes_advanced_transactional_rlib/actual/impl_RawTransition/* verif/bytes_advanced_transactional_rlib/actual/impl_BytesMut/advance_transactionally.coma' bash verify.sh
+```
+
+The focused pinned Creusot 0.13 run passed all three files. The bodies of
+`RawTransition::from_valid`, `RawTransition::advance_to_valid`, and
+`BytesMut::advance_transactionally` are proved against their reviewed
+contracts. This is a focused body proof, not a full integrated proof of the
+probe crate or production `Drop` behavior. The run log and retained Why3 proof
+artifacts are in `logs/proof-focused.log` and `evidence/positive/verif/`.

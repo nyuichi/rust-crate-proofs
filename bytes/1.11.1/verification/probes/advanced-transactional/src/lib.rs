@@ -26,7 +26,3 @@ pub(crate) mod ownership_proof {
 mod actual {
     include!(concat!(env!("OUT_DIR"), "/actual_advanced.rs"));
 }
-
-pub fn advance_transactionally(owner: &mut actual::BytesMut, count: usize) {
-    actual::BytesMut::advance_transactionally(owner, count)
-}
