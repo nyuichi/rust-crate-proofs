@@ -26,7 +26,11 @@ macro_rules! buf_try_get_impl {
         let ret = $this
             .chunk()
             .get(..SIZE)
-            .map(|src| unsafe { $typ::$conv(*(src as *const _ as *const [_; SIZE])) });
+            .map(|src| {
+                let mut bytes = [0; SIZE];
+                bytes.copy_from_slice(src);
+                $typ::$conv(bytes)
+            });
 
         if let Some(ret) = ret {
             // if the direct conversion was possible, advance and return
@@ -3277,4 +3281,7 @@ impl<T: AsRef<[u8]>> Buf for std::io::Cursor<T> {
 
 // The existence of this function makes the compiler catch if the Buf
 // trait is "object-safe" or not.
+// This is a native compile-time object-safety check. Creusot does not model
+// dynamic Buf dispatch; there is no runtime body to verify here.
+#[cfg(not(creusot))]
 fn _assert_trait_object(_b: &dyn Buf) {}

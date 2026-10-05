@@ -1653,4 +1653,7 @@ unsafe impl BufMut for Vec<u8> {
 
 // The existence of this function makes the compiler catch if the BufMut
 // trait is "object-safe" or not.
+// This native compile-time check has no runtime body. Dynamic BufMut
+// dispatch remains outside Creusot's current type model.
+#[cfg(not(creusot))]
 fn _assert_trait_object(_b: &dyn BufMut) {}
