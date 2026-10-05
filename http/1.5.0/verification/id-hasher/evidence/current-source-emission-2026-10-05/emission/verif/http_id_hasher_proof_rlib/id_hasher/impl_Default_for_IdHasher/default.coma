@@ -1,0 +1,23 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/id-hasher/src/../../../src/extensions/id_hasher.rs" 12 4 12 24 *)
+
+(* <id_hasher::IdHasher as std::default::Default> *)
+
+let%span sid_hasher = "/workspace/rust-crate-proofs/http/1.5.0/verification/id-hasher/src/../../../src/extensions/id_hasher.rs" 13 13 13 14
+let%span sid_hasher'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/id-hasher/src/../../../src/extensions/id_hasher.rs" 11 14 11 28
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_IdHasher = { f0: UInt64.t }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec default_IdHasher
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/id-hasher/src/../../../src/extensions/id_hasher.rs" 12 4 12 24]
+  (return (x: t_IdHasher)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- { f0 = ([%#sid_hasher] (0: UInt64.t)) } ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_IdHasher = Any.any_l () ])
+  [ return (result: t_IdHasher) -> {[@stop_split] [@expl:default ensures] [%#sid_hasher'0] UInt64.t'int result.f0 = 0}
+    (! return {result}) ]
