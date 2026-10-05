@@ -50,6 +50,14 @@ authorize staging unrelated in-progress source changes.
   records the exact `value.rs` source SHA `5420fc7682706cb56adc2516a94cd29182ffad5997186cf59593742549c9f8f6`,
   the `From<u16>` body/refinement, and `hex_digit` (3 targets / 12 own leaves).
   Other integer `From` implementations remain open.
+- HeaderValue numeric conversion increment: the complete
+  `verification/headers/evidence/archived_snapshots/value_numeric_conversions_v1/`
+  archive. Snapshot SHA-256 is
+  `3429df1e71d3065eccdf007b43a9bdd1594fcf7f222fb6055d1d6fc0fb88212f`. It
+  records six targets / 20 own leaves for the `u32`, `i32`, and borrowed
+  `HeaderValue` conversion bodies and refinements, reusing the immutable
+  `value.rs` SHA from the numeric/hex checkpoint. Do not stage a later mutable
+  `value.rs` source as if it were this proof-time source.
 - HeaderValue historical group: the complete
   `verification/headers/evidence/archived_snapshots/value_complete_translation_v7/`
   archive. Keep it labeled historical; it records the older `value.rs` source
@@ -62,6 +70,17 @@ authorize staging unrelated in-progress source changes.
   proof-tree/run-log arities, and source-map SHA
   `54d174cd6a830a50e101d376ab95209a2aad258d1b7f19d78d2e26a8e5bb1efd`. The
   older 45-target archive is superseded; its old COMA hashes were not reused.
+- Selected Request/Response defaults and constructors: the complete
+  `verification/composition/evidence/run-2026-10-05-current-default-constructors-fixed-models/`
+  archive. Manifest SHA-256 is
+  `ad3186a7825a83b2c40166b0f107d386e382da9684ac067c1d74343ecdb6cde2`; its
+  stable 180-path source map SHA-256 is
+  `9291932624e16e6a3a4c2a938c26c1e5b7c157fb47d60fd23c2b5f59675454ee`. It
+  proves 15 selected targets / 41 leaves (15 own / 26 support), with direct
+  Why3 arity verification. This is a distinct source snapshot from the 49-target
+  composition run; do not sum overlapping targets. Imported
+  `HeaderMap`/`Extensions` defaults remain support contracts, not proven
+  dependency bodies.
 - URI PathAndQuery Display:
   `verification/uri/evidence/path-display-2026-10-05/` (manifest, three COMAs,
   and their three proof JSON files).
@@ -87,6 +106,17 @@ authorize staging unrelated in-progress source changes.
   source-emission snapshot is the proved comparison source; the later Hash
   body proof is pending. Its focused runtime regression passes 1/1, as does
   the comparison behavior regression.
+- URI Parts/Authority/comparison closure:
+  `verification/uri/evidence/parts-authority-comparison-2026-10-05/` (manifest,
+  selected 45 COMAs and proof JSONs, proof log, and independent first/nested
+  arity audits). Manifest SHA-256 is
+  `6480ba3fab0381d3409357a9848d508ae231699ea775cab1b735d0a1ec7e1c1a`; the
+  nested-aware COMA printer audit SHA-256 is
+  `a1982869849c809538c27d246c7da71532804967646cba17e1bc02e00ebc021d`. All
+  194 selected own terminal leaves pass: Parts/default/conversions 55,
+  Authority fold/case helpers 42, Hash 22, PartialEq 41, PartialOrd 34. This
+  new source snapshot supersedes overlapping earlier 119-leaf Authority and
+  48/55 Parts records; do not add those historical counts to 194.
 - HeaderMap conditional `IterMut::next_unsafe`:
   `verification/header-map-api/evidence/run-2026-10-05-iter-mut-next-conditional/`
   (manifest, one COMA, and matching proof JSON). Preserve its nested split
@@ -106,10 +136,27 @@ authorize staging unrelated in-progress source changes.
   Six source bodies pass (6 own leaves) with four `Vec<Bucket<T>>` index
   support leaves. Occupied accessor postconditions are conditional on an
   in-range index and do not prove occupancy or lookup reachability.
+- HeaderMap `try_insert_entry`:
+  `verification/header-map-api/evidence/run-2026-10-05-try-insert-entry/`
+  (manifest, `commands.log`, `proof-results.txt`, exact COMA/proof JSON, source
+  copies, and four solver-free no-preprocess Why3 task files). Manifest SHA-256
+  is `eb332050abeb117ed8b37d05b9d11eeaec0f2e8451a198d624cacca15a541642`;
+  emitted `src/header/map.rs` SHA-256 is
+  `44b55c1d50f44ebd6f1728cd7b711ee7c51b53ae3b063aab9646725788a1b126`. One
+  own body root and three Vec/error-constructor support roots pass. Its local
+  append/error result does not prove caller table-index updates or lookup.
 - Native regression evidence for the current post-rebase checkpoint:
   `verification/runtime-check/evidence/http-native-checkpoint-results-2026-10-05.json`,
   the matching all-features summary, and the source snapshot referenced by that
   result file.
+- Whole-production Creusot frontend attempts:
+  `verification/composition/evidence/current-production-check-2026-10-05/attempt-12-default-final/`
+  and `attempt-13-all-features-final/`, including each manifest, log, and
+  stable before/after source map. Both are check-only snapshots on the same
+  159-path map SHA `cc2009b2192b237b893e0ecae63eed6395e89aba13ab28321e002cfbaefce433`;
+  each reports 19 dyn/experimental errors and zero other errors. These are
+  failed frontend gates, not integrated proof passes, and do not include later
+  Map lookup source edits.
 
 ## Exclude
 

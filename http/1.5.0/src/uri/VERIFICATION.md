@@ -2,6 +2,16 @@
 
 This file records the URI proof boundary and status for `http` 1.5.0.
 
+> **Checkpoint note (2026-10-05):** The latest bounded URI snapshot is
+> [`verification/uri/evidence/parts-authority-comparison-2026-10-05/manifest.json`](../../verification/uri/evidence/parts-authority-comparison-2026-10-05/manifest.json):
+> 45 selected targets and 194/194 independently arity-audited own leaves pass
+> (Parts/default/conversions 55; Authority fold/case helpers 42; Hash 22;
+> PartialEq 41; PartialOrd 34). This is a named source-inclusion harness, not
+> a full parser or integrated-crate proof. It supersedes the overlapping older
+> 119-leaf Authority and 48/55 Parts snapshots; counts must not be added.
+> Earlier rows below describe their individual archived targets and do not
+> imply full component closure where they say “pending”.
+
 ## Runtime API and representation
 
 | API | Runtime representation / behavior |
