@@ -114,12 +114,25 @@ failure was observed before interruption. Duplicate Eq and Debug refinement
 targets were not rerun after that failure. These partial results do not close
 the Error harness.
 
-The deliberately false string and UTF-8 claims have been translated and
-typechecked. No negative solver run has been made yet. The current
-`prove-negative` mode selects only the two contradictory claim COMA files and
-logs prover results to `evidence/negative-prover-results.jsonl`; it is ready
-for a later authorized run. Therefore there is no negative counterexample or
-rejection result to report at this checkpoint.
+The deliberately false string and UTF-8 claims were run once with the isolated
+package/config and elevated Why3 access. The prover log records
+`vc_as_bytes: Valid`, `vc_deliberately_false_string_claim: Timeout` (including
+its split goal), and `vc_deliberately_false_utf8_claim: Timeout`. No
+`Invalid`/SAT result was returned, so these false claims remain unproved; do
+not report them as counterexamples or as a negative rejection check. The exact
+prover JSONL is `evidence/negative-prover-results.jsonl` (SHA-256
+`d04829fafe853cb25c59c6f2469ee91a92bbe3cebac5023671dc39e0dcda48bd`).
+
+An earlier sandboxed attempt failed to connect to Why3's local socket and hit
+an OCaml timer assertion. Its `✘` labels are recorded separately in
+`evidence/negative-infrastructure-attempt.log` (SHA-256
+`420781cc212213d305b72dd5c32d43769f974c4023784fc87d4cd20feb93b6e3`) and are
+excluded from solver-result classification.
+
+The frozen negative checkpoint bundle at `evidence/negative-checkpoint/`
+contains copies of both COMA targets and both Why3 session XML files, their
+original negative root paths, source/model/tool hashes, and a checksummed
+stage list. Its `SHA256SUMS` manifest verifies successfully; the manifest hash is included in the commit summary.
 
 No new httparse-specific string axiom was added; UTF-8 calls still refer to the
 copied standard library's existing `CharExt::to_utf8` encoding model. The
