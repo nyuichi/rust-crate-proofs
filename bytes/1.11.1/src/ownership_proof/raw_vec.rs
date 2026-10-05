@@ -246,6 +246,16 @@ impl BoundPtr {
         pearlite! { self.pointer.addr_logic()@ }
     }
 
+    /// Recover the raw pointer carried by this sealed descriptor.
+    ///
+    /// This relates descriptor metadata to its native pointer word but grants
+    /// no permission to dereference it.
+    #[cfg(creusot)]
+    #[logic(open(self))]
+    pub(crate) fn raw_pointer(self) -> *mut u8 {
+        pearlite! { self.pointer@ }
+    }
+
     /// Wrap pointer metadata without a B1 allocation binding or access token.
     #[ensures(result@ == None)]
     #[ensures(result.invariant())]
@@ -263,6 +273,7 @@ impl BoundPtr {
     /// Return pointer metadata only. Dereferencing the result still requires
     /// an independent unsafe permission; this method grants none.
     #[ensures(!result.is_null_logic())]
+    #[cfg_attr(creusot, ensures(result == self.raw_pointer()))]
     pub(crate) fn as_ptr(&self) -> *mut u8 {
         self.pointer.as_ptr()
     }

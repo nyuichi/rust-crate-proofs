@@ -98,10 +98,33 @@ Run the native tests from the crate root:
 cargo test --locked --offline --manifest-path verification/probes/actual-uninit-slice/Cargo.toml --features remaining_apis,range_full_index
 ```
 
-The unsafe `from_raw_parts_mut` conversion remains outside the probe. A raw
-pointer and length alone do not establish the exclusive borrowed slice
-authority required to justify that conversion. The raw-pointer accessor gate
-does not supply that authority.
+The default public `from_raw_parts_mut(ptr, len)` signature remains outside the
+proof because a bare raw pointer and length do not establish exclusive slice
+authority. The separate `bound_raw` probe selects the same method's
+`bytes_proof_bound_uninit_raw` variant, which additionally requires a sealed
+`BoundPtr` and `Ghost<&mut PhysicalRegion>`, requires the actual pointer to
+match `BoundPtr::raw_pointer()`, and composes only the existing B4
+`borrow_bound_uninit_mut` bridge with `UninitSlice::uninit`. The probe imports
+the source `raw_vec`, `owned_region`, and pointer-spec modules. Its 42-file
+proof establishes the method body, body-defined imported helpers, and the
+`BoundPtr::as_ptr` relation. B4 raw-slice access remains the existing trusted
+physical boundary; this gate does not prove that primitive body or the
+bare-pointer signature.
+
+```sh
+./verify.bash --features remaining_apis,bound_raw
+```
+
+The raw constructor's wrong-pointer control is:
+
+```sh
+./verify.bash --features remaining_apis,bad_bound_raw_pointer
+```
+
+Its exact diagnostic task rejects only
+`from_raw_parts_mut requires ptr == bound.raw_pointer()`; all 42 imported
+positive files still pass. The exported failed task and final negative replay
+are archived in `evidence/bound-raw-wrong-pointer-negative.tar.gz`.
 
 The `bad_deinitialize` feature is an intentionally invalid call to the unsafe
 mutable-slice projection:

@@ -136,6 +136,8 @@ fn main() {
     println!("cargo:rerun-if-env-changed=CARGO_FEATURE_RANGE_TO_INDEX");
     println!("cargo:rerun-if-env-changed=CARGO_FEATURE_RANGE_TO_INCLUSIVE_INDEX");
     println!("cargo:rerun-if-env-changed=CARGO_FEATURE_RANGE_INCLUSIVE_INDEX");
+    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_BOUND_RAW");
+    println!("cargo:rustc-check-cfg=cfg(bytes_proof_bound_uninit_raw)");
     let source = fs::read_to_string(&source_path).unwrap();
     let remaining_apis = env::var_os("CARGO_FEATURE_REMAINING_APIS").is_some();
     let range_full_index = env::var_os("CARGO_FEATURE_RANGE_FULL_INDEX").is_some();
@@ -145,6 +147,10 @@ fn main() {
     let range_to_inclusive_index =
         env::var_os("CARGO_FEATURE_RANGE_TO_INCLUSIVE_INDEX").is_some();
     let range_inclusive_index = env::var_os("CARGO_FEATURE_RANGE_INCLUSIVE_INDEX").is_some();
+    let bound_raw = env::var_os("CARGO_FEATURE_BOUND_RAW").is_some();
+    if bound_raw {
+        println!("cargo:rustc-cfg=bytes_proof_bound_uninit_raw");
+    }
     let range_family_count = [
         range_from_index,
         range_to_index,
@@ -205,6 +211,13 @@ fn main() {
             &source,
             "    /// Return a `&mut [MaybeUninit<u8>]` to this slice's buffer.",
             "    pub unsafe fn as_uninit_slice_mut(&mut self) -> &mut [MaybeUninit<u8>] {",
+        ));
+    }
+    if bound_raw {
+        methods.push(extract_item(
+            &source,
+            "    #[cfg(bytes_proof_bound_uninit_raw)]\n    #[inline]\n    #[requires(ptr == bound.raw_pointer())]",
+            "    pub unsafe fn from_raw_parts_mut<'a>(\n        ptr: *mut u8,\n",
         ));
     }
     let from_initialized = extract_impl_method(

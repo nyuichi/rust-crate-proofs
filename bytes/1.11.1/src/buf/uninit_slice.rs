@@ -109,10 +109,51 @@ impl UninitSlice {
     ///
     /// let slice = unsafe { UninitSlice::from_raw_parts_mut(ptr, len) };
     /// ```
+    #[cfg(not(bytes_proof_bound_uninit_raw))]
     #[inline]
     pub unsafe fn from_raw_parts_mut<'a>(ptr: *mut u8, len: usize) -> &'a mut UninitSlice {
         let maybe_init: &mut [MaybeUninit<u8>] =
             core::slice::from_raw_parts_mut(ptr as *mut _, len);
+        Self::uninit(maybe_init)
+    }
+
+    /// Proof-only form of `from_raw_parts_mut` that requires the sealed
+    /// allocation and exclusive interval capability used by the ownership
+    /// model. The ordinary public signature remains active outside this probe
+    /// cfg; this variant is not a capability-free raw-pointer conversion.
+    #[cfg(bytes_proof_bound_uninit_raw)]
+    #[inline]
+    #[requires(ptr == bound.raw_pointer())]
+    #[requires(bound.invariant() && bound@ != None)]
+    #[requires(region.inner_logic().invariant())]
+    #[requires(bound@.unwrap_logic().0 == region.inner_logic().namespace())]
+    #[requires(bound@.unwrap_logic().1 == region.inner_logic().capacity())]
+    #[requires(region.inner_logic().lo() <= bound@.unwrap_logic().2)]
+    #[requires(bound@.unwrap_logic().2 + len@ <= region.inner_logic().hi())]
+    #[ensures(result@.len() == len@ && (^result)@.len() == len@)]
+    #[ensures(forall<offset: Int> 0 <= offset && offset < len@ ==>
+        region.inner_logic().slot(bound@.unwrap_logic().2 + offset) == Some(result@[offset]))]
+    #[ensures((^region.inner_logic()).invariant())]
+    #[ensures((^region.inner_logic()).namespace() == region.inner_logic().namespace())]
+    #[ensures((^region.inner_logic()).capacity() == region.inner_logic().capacity())]
+    #[ensures((^region.inner_logic()).lo() == region.inner_logic().lo())]
+    #[ensures((^region.inner_logic()).hi() == region.inner_logic().hi())]
+    #[ensures((^region.inner_logic()).resource_id() == region.inner_logic().resource_id())]
+    #[ensures(forall<offset: Int> 0 <= offset && offset < len@ ==>
+        (^region.inner_logic()).slot(bound@.unwrap_logic().2 + offset) == Some((^result)@[offset]))]
+    #[ensures(forall<index: Int>
+        !(bound@.unwrap_logic().2 <= index && index < bound@.unwrap_logic().2 + len@) ==>
+            (^region.inner_logic()).slot(index) == region.inner_logic().slot(index))]
+    pub unsafe fn from_raw_parts_mut<'a>(
+        ptr: *mut u8,
+        len: usize,
+        bound: crate::ownership_proof::raw_vec::BoundPtr,
+        region: Ghost<&'a mut crate::ownership_proof::raw_vec::PhysicalRegion>,
+    ) -> &'a mut UninitSlice {
+        assert!(ptr == bound.as_ptr());
+        let maybe_init = unsafe {
+            crate::ownership_proof::raw_vec::borrow_bound_uninit_mut(bound, len, region)
+        };
         Self::uninit(maybe_init)
     }
 
