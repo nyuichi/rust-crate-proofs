@@ -7,6 +7,34 @@
 > [the HTTP checkpoint](../CHECKPOINT_2026-10-05.md). Use the archived
 > manifests for exact target/source status.
 
+## Resumed verification snapshot (2026-10-05)
+
+The current focused HeaderName emission uses `src/header/name.rs` SHA
+`8c4633906a8ecd6e30e7eb75f8ace00c9b9f89d5e5f4c325f7e6b10a4eee94d6`.
+Seventeen scoped Name targets are proved with 58/58 terminal leaves and exact
+direct-arity matches. `StandardHeader::from_bytes` is still partial: 81/82
+children passed, while the universal `None` child remains open. The archived
+proof reports the exact failed task and excludes any claim that the parser is
+proved. See
+[`name_remaining17_current_wip_20261005.json`](evidence/name_value_wip_current_2026-10-05/proof_batches/name_remaining17_current_wip_20261005.json),
+[`name_from_bytes_current_wip_20261005.json`](evidence/name_value_wip_current_2026-10-05/proof_batches/name_from_bytes_current_wip_20261005.json),
+and the fresh emission manifest in that evidence directory.
+
+Native parity checks pass 27 Name tests and 38 tests in the focused profile
+that includes the current HeaderValue formatter; raw logs, exact commands, and
+source hashes are in
+[`native_checks_2026-10-05.json`](evidence/name_value_wip_current_2026-10-05/native_checks_2026-10-05.json).
+These tests validate runtime behavior, not proof obligations.
+
+The live `src/header/value.rs` has since changed to add an opaque formatter
+append-transitivity lemma and chain formatter writes across loop iterations
+and early returns. It currently has SHA
+`197fe1071f054c5f018fe1a8cc21266d679164a77088b9459eeb2ee3dd34330e` and has
+only passed the focused native tests. This later Value source was not part of
+the archived Name emission and has no fresh Creusot emission or proof yet.
+The exact unproved WIP source is preserved in
+[`value_formatter_wip_current_2026-10-05/manifest.json`](evidence/value_formatter_wip_current_2026-10-05/manifest.json).
+
 ## API and representation map
 
 This is the checkpoint for the assigned `method.rs`, `header/name.rs`,

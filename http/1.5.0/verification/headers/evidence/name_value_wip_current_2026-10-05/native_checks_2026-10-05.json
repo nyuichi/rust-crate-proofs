@@ -1,0 +1,38 @@
+{
+  "captured_at_utc": "2026-10-05T15:06:30Z",
+  "scope": "native tests in the focused HTTP headers harness; these are runtime parity checks, not Creusot proofs",
+  "sources": {
+    "http/1.5.0/src/header/name.rs": "8c4633906a8ecd6e30e7eb75f8ace00c9b9f89d5e5f4c325f7e6b10a4eee94d6",
+    "http/1.5.0/src/header/value.rs": "197fe1071f054c5f018fe1a8cc21266d679164a77088b9459eeb2ee3dd34330e"
+  },
+  "tests": [
+    {
+      "profile": "http_header_name_leaf",
+      "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/tmp/http-headers-native-luna-name RUSTFLAGS='--cfg http_header_name_leaf -Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='--cfg http_header_name_leaf -Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --manifest-path http/1.5.0/verification/headers/Cargo.toml --lib --locked --offline",
+      "exit_code": 0,
+      "result": "27 passed, 0 failed",
+      "log_path": "native_name_leaf_tests.log",
+      "log_sha256": "2b2d669e50104ee70f2bd98a680ac0f67b9dcf6a29112a82788b54b6cc5f70eb",
+      "coverage_note": "The focused name leaf includes standard token parsing, bounds, equality/hash, bytes conversion, and manual Debug parity tests."
+    },
+    {
+      "profile": "http_header_value_complete",
+      "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/tmp/http-headers-native-luna-value-profile RUSTFLAGS='--cfg http_header_value_complete -Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='--cfg http_header_value_complete -Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --manifest-path http/1.5.0/verification/headers/Cargo.toml --lib --locked --offline",
+      "exit_code": 0,
+      "result": "38 passed, 0 failed",
+      "log_path": "native_value_complete_native_tests.log",
+      "log_sha256": "0990066240d3a10a0b7ec0b1712035b7bfb7a8050b073a1e4c3d21a52c900649",
+      "coverage_note": "Includes HeaderValue::test_debug and conversion tests against the current formatter source. This focused profile disables the map integration test because the harness omits HeaderMap."
+    }
+  ],
+  "diagnostics": [
+    {
+      "profile": "unfiltered focused harness",
+      "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/tmp/http-headers-native-luna-value-full RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --manifest-path http/1.5.0/verification/headers/Cargo.toml --lib --locked --offline",
+      "exit_code": 101,
+      "log_path": "native_full_http_headers_tests.log",
+      "log_sha256": "645028cfc8eb1f824fa11dd738b6383301899adb322b6a2829aa699811378c24",
+      "reason": "The harness omits HeaderMap, while a production integration test in value.rs refers to it unless http_header_value_complete is set. The corrected profile above passes."
+    }
+  ]
+}
