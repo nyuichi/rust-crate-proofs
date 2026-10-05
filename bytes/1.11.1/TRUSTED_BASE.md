@@ -246,3 +246,10 @@ The unique-access/negative-unknown-publication archive records exactly one
 failed Known-prefix guard in actual set_len after unique spare storage is
 re-uninitialized (94 proof files; caller 13/14). Full allocation ownership and
 Some(None) are established before that attempted publication.
+
+The deref-purity-feasibility diagnostic confirms two existing vanilla 0.13
+translation restrictions: ordinary Deref must be ghost, and a ghost Deref
+cannot call program(terminates) access operations. Native Rust checks the
+reduced example. These are compiler diagnostics, not rejected Why3 VCs or
+proof of actual BytesMut Deref. Current physical B4 operations remain ordinary
+program operations; no ghost writeback or trait-body axiom is introduced.

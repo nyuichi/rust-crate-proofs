@@ -459,3 +459,10 @@ Fresh actual_from_vec constructor regression after unique access passes 56
 proof files, with zero unproved leaves. Frozen source/configuration and exact
 extraction are in bound-vec-constructor/unique-access/positive. Automatic Drop
 is excluded; cleanup is explicit.
+
+The deref-purity-feasibility diagnostic confirms two existing vanilla 0.13
+translation restrictions: ordinary Deref must be ghost, and a ghost Deref
+cannot call program(terminates) access operations. Native Rust checks the
+reduced example. These are compiler diagnostics, not rejected Why3 VCs or
+proof of actual BytesMut Deref. Current physical B4 operations remain ordinary
+program operations; no ghost writeback or trait-body axiom is introduced.
