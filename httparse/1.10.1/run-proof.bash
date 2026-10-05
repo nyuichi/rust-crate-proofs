@@ -18,6 +18,7 @@ if ! grep -Eq '^running_provers_max = 1$' "$why3_config" ||
     exit 2
 fi
 
+export WHY3CONFIG="$why3_config"
 export CARGO_NET_OFFLINE=true
 printf 'Shared proof queue held; Why3 running_provers_max=1, memlimit=1000 MiB\n'
 exec "$@"
