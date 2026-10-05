@@ -24,6 +24,17 @@ and is not counted as a closed parser proof. Name source SHA `966107ba…` used
 by the fresh Value snapshot below is an archived input; the live Name file has
 since changed and must be checked against its own source-bound evidence.
 
+The later standard-header comparator prototype is separately bound to Name SHA
+`ed50c0e4bf945279fe497399e86ebbdbcf7f2a9a8aa58f7a1aab01ba5a6511ed`: the
+`bytes_equal` body (15 leaves), two real const byte-comparison wrappers
+(one leaf each), and the selected two-wrapper consumer (2 leaves) close
+19/19 own tasks. It exercises only two standard variants and does not
+close the 81-case parser absence obligation. See the
+[prototype manifest](evidence/name_standard_comparator_prototype_2026-10-05/manifest.json)
+for the frozen 227-COMA emission, exact task contexts, proof record, and
+27-test native run. Astra’s read-only audit is at
+[independent-astra-audit/report.json](evidence/name_standard_comparator_prototype_2026-10-05/independent-astra-audit/report.json).
+
 Native parity checks pass 27 Name tests and 38 HeaderValue tests for the
 recorded source snapshots; raw logs, exact commands, and source hashes are in
 [`native_checks_2026-10-05.json`](evidence/name_value_wip_current_2026-10-05/native_checks_2026-10-05.json).
@@ -48,8 +59,13 @@ output preserves the previous formatter contents as a prefix. They do not
 specify exact rendered text or suffix length. Writer lemmas also have explicit
 ASCII or byte-classification preconditions. Imported Formatter, slice, and
 standard UTF-8 contracts remain assumptions. The current local
-`is_visible_ascii` callee proof has not been reconciled to this emission and is
-not included in the 129-task count. The proof inputs freeze Name SHA
+`is_visible_ascii` body is proved separately against the same current Value
+emission: its source-bound batch closes 3/3 split tasks and remains outside the
+formatter batch's 129-task count. See
+[`value_is_visible_ascii_current_2026-10-05/manifest.json`](evidence/value_is_visible_ascii_current_2026-10-05/manifest.json).
+The separate `is_visible_ascii` batch has an Astra read-only audit at
+[independent-astra-audit/report.json](evidence/value_is_visible_ascii_current_2026-10-05/independent-astra-audit/report.json).
+The proof inputs freeze Name SHA
 `966107ba…`, not the later live Name source. The focused manifest, commands,
 proof trees, and hashes are in
 [`value_current_emission_2026-10-05`](evidence/value_current_emission_2026-10-05/manifest.json).

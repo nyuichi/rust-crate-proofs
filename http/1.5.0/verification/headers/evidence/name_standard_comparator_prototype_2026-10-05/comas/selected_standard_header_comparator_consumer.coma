@@ -1,0 +1,62 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1402 0 1402 74 *)
+
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1403 25 1403 55
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1406 12 1406 69
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1411 8 1411 64
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1414 12 1418 29
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1423 4 1423 8
+let%span sname'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1401 10 1401 16
+let%span sname'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 534 28 534 98
+let%span sname'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 541 12 545 6
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+let rec bytes_equal_accept (name_bytes: Slice64.slice UInt8.t) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:bytes_equal_accept ensures] [%#sname'5] result
+    = (Slice64.view name_bytes
+    = Seq.create 6 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t)|])}
+    (! return {result}) ]
+
+let rec bytes_equal_access_control_allow_credentials (name_bytes: Slice64.slice UInt8.t) (return (x: bool)) = any
+  [ return (result: bool) ->
+  {[@stop_split] [@expl:bytes_equal_access_control_allow_credentials ensures] [%#sname'6] result
+    = (Slice64.view name_bytes
+    = Seq.create 32 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(99: UInt8.t);(114: UInt8.t);(101: UInt8.t);(100: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(97: UInt8.t);(108: UInt8.t);(115: UInt8.t)|])}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec selected_standard_header_comparator_consumer
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1402 0 1402 74]
+  (name_bytes: Slice64.slice UInt8.t) (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = bytes_equal_accept [%#sname] {name_bytes} (fun (_x: bool) -> [ &matches_accept <- _x ] s1)
+    | s1 = any [ br0 -> {matches_accept = false} (! bb2) | br1 -> {matches_accept} (! bb4) ] ]
+  | bb2 = s0
+    [ s0 = {[@expl:assertion] [%#sname'0] Slice64.view name_bytes
+      <> Seq.create 6 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t)|]}
+      s1
+    | s1 = bb4 ]
+  | bb4 = s0
+    [ s0 = bytes_equal_access_control_allow_credentials [%#sname'1] {name_bytes}
+        (fun (_x: bool) -> [ &matches_access_control_allow_credentials <- _x ] s1)
+    | s1 = any
+      [ br0 -> {matches_access_control_allow_credentials = false} (! bb6)
+      | br1 -> {matches_access_control_allow_credentials} (! bb8) ] ]
+  | bb6 = s0
+    [ s0 = {[@expl:assertion] [%#sname'2] Slice64.view name_bytes
+      <> Seq.create 32 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(99: UInt8.t);(114: UInt8.t);(101: UInt8.t);(100: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(97: UInt8.t);(108: UInt8.t);(115: UInt8.t)|]}
+      s1
+    | s1 = bb8 ]
+  | bb8 = s0 [ s0 = [ &_ret <- [%#sname'3] true ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & name_bytes: Slice64.slice UInt8.t = name_bytes
+  | & matches_accept: bool = Any.any_l ()
+  | & matches_access_control_allow_credentials: bool = Any.any_l () ])
+  [ return (result: bool) ->
+  {[@stop_split] [@expl:selected_standard_header_comparator_consumer ensures] [%#sname'4] result}
+    (! return {result}) ]
