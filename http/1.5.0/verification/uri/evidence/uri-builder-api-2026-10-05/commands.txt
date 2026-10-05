@@ -1,0 +1,28 @@
+Clean + emission (working directory: verification/uri; no Why3 prover):
+source /workspace/proof-tools/activate.sh
+DUNE_DIR_LOCATIONS=why3find:lib:/workspace/proof-tools/creusot-data/share/why3find
+CARGO_NET_OFFLINE=true
+RUSTFLAGS='--cfg http_uri_parts_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_host_leaf --cfg http_uri_builder_leaf'
+CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri-builder
+/workspace/rust-crate-proofs/http/1.5.0/scripts/run-proof.sh bash -c 'cargo clean -p http-uri-proof --offline && cargo creusot --simple-triggers=false -- --locked --offline'
+
+Prior proof command (working directory: verification/uri; first Why3 attempt used require_escalated):
+RUSTFLAGS='--cfg http_uri_parts_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_host_leaf --cfg http_uri_builder_leaf' CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri-builder ../../scripts/run-proof.sh bash -c 'cargo creusot --simple-triggers=false prove --no-cache \
+verif/http_uri_proof_rlib/uri/builder/impl_Builder/new.coma \
+verif/http_uri_proof_rlib/uri/builder/impl_Builder/scheme.coma \
+verif/http_uri_proof_rlib/uri/builder/impl_Builder/authority.coma \
+verif/http_uri_proof_rlib/uri/builder/impl_Builder/path_and_query.coma \
+verif/http_uri_proof_rlib/uri/builder/impl_Builder/build.coma \
+verif/http_uri_proof_rlib/uri/builder/impl_Builder/map.coma \
+verif/http_uri_proof_rlib/uri/builder/impl_Default_for_Builder/default.coma \
+verif/http_uri_proof_rlib/uri/builder/impl_Default_for_Builder/default__refines.coma \
+verif/http_uri_proof_rlib/uri/builder/impl_From_for_Builder/from.coma \
+verif/http_uri_proof_rlib/uri/builder/impl_From_for_Builder/from__refines.coma \
+verif/http_uri_proof_rlib/uri/impl_Uri/builder.coma \
+verif/http_uri_proof_rlib/error_core/impl_Error/is_empty_uri.coma \
+verif/http_uri_proof_rlib/uri/impl_Uri/from_parts.coma \
+verif/http_uri_proof_rlib/uri/impl_TryFrom_for_Uri/try_from.coma \
+verif/http_uri_proof_rlib/uri/impl_TryFrom_for_Uri/try_from__refines.coma -- --locked --offline'
+
+Fresh/old task printer, no prover selected (-P omitted):
+/workspace/proof-tools/creusot-data/bin/why3 prove -C /workspace/proof-tools/config/creusot/why3.conf -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot -a split_vc -D why3 <COMA>

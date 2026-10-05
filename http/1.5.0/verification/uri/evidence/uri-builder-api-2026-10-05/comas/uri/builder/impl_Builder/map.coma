@@ -1,0 +1,363 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 421 4 423 56 *)
+
+(* uri::builder::Builder *)
+
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span sstring = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 14 16 14 76
+let%span sstring'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 290 14 290 24
+let%span sstring'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 291 14 291 60
+let%span sstring'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 294 12 298 13
+let%span schar = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span sbyte_str = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 49 20 49 37
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 180 29 180 33
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 180 35 180 38
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 178 27 178 49
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 179 26 179 62
+let%span sbuilder = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 426 25 426 36
+let%span sbuilder'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 421 14 421 18
+let%span sbuilder'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 421 20 421 24
+let%span sbuilder'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 413 33 416 5
+let%span sbuilder'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 421 32 421 36
+let%span sbuilder'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 417 32 420 5
+let%span sbuilder'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 42 4 45 5
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 48 8 48 18
+
+use creusot.int.UInt16
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Char
+use map.Map
+use int.ComputerDivision
+use creusot.prelude.Any
+use int.Int
+
+type t_Protocol = Http | Https
+
+type t_ByteStr
+
+type t_Scheme2_Box_ByteStr_Global = None | Standard t_Protocol | Other t_ByteStr
+
+type t_Scheme = { inner: t_Scheme2_Box_ByteStr_Global }
+
+type t_Option_Scheme = None'0 | Some'0 t_Scheme
+
+type t_Authority = { data: t_ByteStr }
+
+type t_Option_Authority = None'1 | Some'1 t_Authority
+
+type t_PathAndQuery = { data'0: t_ByteStr; query'0: UInt16.t }
+
+type t_Option_PathAndQuery = None'2 | Some'2 t_PathAndQuery
+
+type t_Parts = {
+  scheme: t_Option_Scheme;
+  authority: t_Option_Authority;
+  path_and_query: t_Option_PathAndQuery;
+  _priv: () }
+
+type t_InvalidStatusCode
+
+type t_InvalidMethod
+
+type t_ErrorKind =
+  | InvalidUriChar
+  | InvalidScheme
+  | InvalidAuthority
+  | InvalidPort
+  | InvalidFormat
+  | SchemeMissing
+  | AuthorityMissing
+  | PathAndQueryMissing
+  | PathDoesNotStartWithSlash
+  | TooLong
+  | Empty
+  | SchemeTooLong
+
+type t_InvalidUri = { f0: t_ErrorKind }
+
+type t_InvalidUriParts = { f0'0: t_InvalidUri }
+
+type t_InvalidHeaderName
+
+type t_InvalidHeaderValue
+
+type t_MaxSizeReached
+
+type t_ErrorKind'0 =
+  | StatusCode t_InvalidStatusCode
+  | Method t_InvalidMethod
+  | Uri t_InvalidUri
+  | UriParts t_InvalidUriParts
+  | HeaderName t_InvalidHeaderName
+  | HeaderValue t_InvalidHeaderValue
+  | MaxSizeReached t_MaxSizeReached
+
+type t_Error = { inner'0: t_ErrorKind'0 }
+
+type t_Result_Parts_Error = Ok t_Parts | Err t_Error
+
+type t_Builder = { parts: t_Result_Parts_Error }
+
+type t_F
+
+predicate inv_F (_1: t_F)
+
+predicate resolve_F (_1: t_F)
+
+let rec elim_Err (_x: t_Result_Parts_Error) (return (f0'1: t_Error)) = any
+  [ _k (f0'1: t_Error) -> {Err f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Err] match _x with
+      | Err _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+let rec elim_Ok (_x: t_Result_Parts_Error) (return (f0'1: t_Parts)) = any
+  [ _k (f0'1: t_Parts) -> {Ok f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Ok] match _x with
+      | Ok _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'1] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'0] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t
+
+axiom to_bytes_def: forall self: Seq.seq Char.t. to_bytes self
+    = ([%#sstring'2] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (to_utf8_char (Seq.get self 0)) (to_bytes (tail_char self))
+    )
+
+axiom to_bytes_spec: forall self: Seq.seq Char.t. [%#sstring'1] to_bytes self
+    = flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+predicate valid_utf8 (bytes: Seq.seq UInt8.t) =
+  [%#sstring] exists characters: Seq.seq Char.t. to_bytes characters = bytes
+
+function view_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 41 4 41 33] (self: t_ByteStr) : Seq.seq UInt8.t
+
+predicate invariant_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 48 4 48 30] (self: t_ByteStr) =
+  [%#sbyte_str] valid_utf8 (view_ByteStr self)
+
+predicate inv_ByteStr (_1: t_ByteStr)
+
+axiom inv_axiom: forall x: t_ByteStr [inv_ByteStr x]. inv_ByteStr x -> invariant_ByteStr x
+
+predicate invariant_Box_ByteStr_Global (self: t_ByteStr) = [%#sboxed] inv_ByteStr self
+
+predicate inv_Box_ByteStr_Global [@inline:trivial] (_1: t_ByteStr) = invariant_Box_ByteStr_Global _1
+
+meta "rewrite_def" predicate inv_Box_ByteStr_Global
+
+predicate inv_Scheme2_Box_ByteStr_Global (_1: t_Scheme2_Box_ByteStr_Global)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_Scheme2_Box_ByteStr_Global [inv_Scheme2_Box_ByteStr_Global x]. inv_Scheme2_Box_ByteStr_Global x
+    = match x with
+      | None -> true
+      | Standard f0'1 -> true
+      | Other f0'1 -> inv_Box_ByteStr_Global f0'1
+      end
+
+predicate inv_Scheme (_1: t_Scheme)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Scheme [inv_Scheme x]. inv_Scheme x = inv_Scheme2_Box_ByteStr_Global x.inner
+
+predicate inv_Option_Scheme (_1: t_Option_Scheme)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_Option_Scheme [inv_Option_Scheme x]. inv_Option_Scheme x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0'1 -> inv_Scheme f0'1
+      end
+
+predicate inv_Authority (_1: t_Authority)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_Authority [inv_Authority x]. inv_Authority x = inv_ByteStr x.data
+
+predicate inv_Option_Authority (_1: t_Option_Authority)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_Option_Authority [inv_Option_Authority x]. inv_Option_Authority x
+    = match x with
+      | None'1 -> true
+      | Some'1 f0'1 -> inv_Authority f0'1
+      end
+
+predicate inv_PathAndQuery (_1: t_PathAndQuery)
+
+axiom inv_axiom'5 [@rewrite]: forall x: t_PathAndQuery [inv_PathAndQuery x]. inv_PathAndQuery x = inv_ByteStr x.data'0
+
+predicate inv_Option_PathAndQuery (_1: t_Option_PathAndQuery)
+
+axiom inv_axiom'6 [@rewrite]: forall x: t_Option_PathAndQuery [inv_Option_PathAndQuery x]. inv_Option_PathAndQuery x
+    = match x with
+      | None'2 -> true
+      | Some'2 f0'1 -> inv_PathAndQuery f0'1
+      end
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom'7 [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_Option_Scheme x.scheme /\ inv_Option_Authority x.authority /\ inv_Option_PathAndQuery x.path_and_query)
+
+predicate inv_tup1_Parts [@inline:trivial] (_1: t_Parts) = inv_Parts _1
+
+meta "rewrite_def" predicate inv_tup1_Parts
+
+predicate precondition_F (self: t_F) (args: t_Parts)
+
+predicate inv_InvalidStatusCode (_1: t_InvalidStatusCode)
+
+predicate inv_InvalidMethod (_1: t_InvalidMethod)
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+predicate inv_InvalidHeaderValue (_1: t_InvalidHeaderValue)
+
+predicate inv_MaxSizeReached (_1: t_MaxSizeReached)
+
+predicate inv_ErrorKind (_1: t_ErrorKind'0)
+
+axiom inv_axiom'8 [@rewrite]: forall x: t_ErrorKind'0 [inv_ErrorKind x]. inv_ErrorKind x
+    = match x with
+      | StatusCode f0'1 -> inv_InvalidStatusCode f0'1
+      | Method f0'1 -> inv_InvalidMethod f0'1
+      | Uri f0'1 -> true
+      | UriParts f0'1 -> true
+      | HeaderName f0'1 -> inv_InvalidHeaderName f0'1
+      | HeaderValue f0'1 -> inv_InvalidHeaderValue f0'1
+      | MaxSizeReached f0'1 -> inv_MaxSizeReached f0'1
+      end
+
+predicate inv_Error (_1: t_Error)
+
+axiom inv_axiom'9 [@rewrite]: forall x: t_Error [inv_Error x]. inv_Error x = inv_ErrorKind x.inner'0
+
+predicate inv_Result_Parts_Error (_1: t_Result_Parts_Error)
+
+axiom inv_axiom'10 [@rewrite]: forall x: t_Result_Parts_Error [inv_Result_Parts_Error x]. inv_Result_Parts_Error x
+    = match x with
+      | Ok f0'1 -> inv_Parts f0'1
+      | Err f0'1 -> inv_Error f0'1
+      end
+
+predicate postcondition_once_F (self: t_F) (args: t_Parts) (result: t_Result_Parts_Error)
+
+let rec call_once_F (self_: t_F) (arg: t_Parts) (return (x: t_Result_Parts_Error)) =
+  {[@stop_split] [@expl:call_once_F requires] ([@stop_split] [@expl:call_once 'self_' type invariant] [%#sops] inv_F self_)
+  /\ ([@stop_split] [@expl:call_once 'arg' type invariant] [%#sops'0] inv_tup1_Parts arg)
+  /\ ([@stop_split] [@expl:call_once requires] [%#sops'1] precondition_F self_ arg)}
+  any
+  [ return (result: t_Result_Parts_Error) ->
+  {[@stop_split] [@expl:call_once_F ensures] ([@stop_split] [@expl:call_once result type invariant] inv_Result_Parts_Error result)
+    /\ ([@stop_split] [@expl:call_once ensures] [%#sops'2] postcondition_once_F self_ arg result)}
+    (! return {result}) ]
+
+predicate inv_Builder (_1: t_Builder)
+
+axiom inv_axiom'11 [@rewrite]: forall x: t_Builder [inv_Builder x]. inv_Builder x = inv_Result_Parts_Error x.parts
+
+type t_ErrorModelRef =
+  | StatusCode'0 t_InvalidStatusCode
+  | Method'0 t_InvalidMethod
+  | Uri'0 t_InvalidUri
+  | UriParts'0 t_InvalidUriParts
+  | HeaderName'0 t_InvalidHeaderName
+  | HeaderValue'0 t_InvalidHeaderValue
+  | MaxSizeReached'0 t_MaxSizeReached
+
+type t_Option_ErrorModelRef = None'3 | Some'3 t_ErrorModelRef
+
+function error_model_ref [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 90 0 90 65] (error: t_Error) : t_ErrorModelRef
+
+function uri_builder_error [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 41 0 41 86] (builder: t_Builder) : t_Option_ErrorModelRef
+ = [%#sbuilder'5] match builder.parts with
+    | Ok _ -> None'3
+    | Err error -> Some'3 (error_model_ref error)
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec map_F [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 421 4 423 56]
+  (self: t_Builder) (func: t_F) (return (x: t_Builder)) =
+  {[@stop_split] [@expl:map_F requires] ([@stop_split] [@expl:map 'self' type invariant] [%#sbuilder'0] inv_Builder self)
+  /\ ([@stop_split] [@expl:map 'func' type invariant] [%#sbuilder'1] inv_F func)
+  /\ ([@stop_split] [@expl:map requires] [%#sbuilder'2] match self.parts with
+    | Ok parts'0 -> precondition_F func parts'0
+    | Err _ -> true
+    end)}
+  (! bb0
+  [ bb0 = any [ br0 (x0: t_Parts) -> {self.parts = Ok x0} (! bb4) | br1 (x0: t_Error) -> {self.parts = Err x0} (! bb3) ]
+  | bb3 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_F func} any) ]
+    | s1 = -{resolve_F func}- s2
+    | s2 = elim_Err {self.parts} (fun (r0: t_Error) -> [ &error <- r0 ] s3)
+    | s3 = [ &parts'0 <- Err error ] s4
+    | s4 = bb8 ]
+  | bb4 = s0
+    [ s0 = elim_Ok {self.parts} (fun (r0: t_Parts) -> [ &parts'1 <- r0 ] s1)
+    | s1 = [ &_13 <- parts'1 ] s2
+    | s2 = call_once_F [%#sbuilder] {func} {_13} (fun (_x: t_Result_Parts_Error) -> [ &parts'0 <- _x ] s3)
+    | s3 = bb8 ]
+  | bb8 = s0 [ s0 = [ &_ret <- { parts = parts'0 } ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Builder = Any.any_l ()
+  | & self: t_Builder = self
+  | & func: t_F = func
+  | & parts'0: t_Result_Parts_Error = Any.any_l ()
+  | & parts'1: t_Parts = Any.any_l ()
+  | & _13: t_Parts = Any.any_l ()
+  | & error: t_Error = Any.any_l () ])
+  [ return (result: t_Builder) ->
+  {[@stop_split] [@expl:map_F ensures] ([@stop_split] [@expl:map result type invariant] [%#sbuilder'3] inv_Builder result)
+    /\ ([@stop_split] [@expl:map ensures] [%#sbuilder'4] match self.parts with
+      | Ok parts'0 -> postcondition_once_F func parts'0 result.parts
+      | Err _ -> uri_builder_error result = uri_builder_error self
+      end)}
+    (! return {result}) ]
