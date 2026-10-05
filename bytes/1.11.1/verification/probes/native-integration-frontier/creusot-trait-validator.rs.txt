@@ -1,0 +1,165 @@
+use crate::{
+    backend::is_trusted_item,
+    contracts_items::{Intrinsic, is_law, is_open_inv_result, is_trusted},
+    ctx::{HasTyCtxt as _, TranslationCtx},
+};
+use rustc_hir::def::DefKind;
+use rustc_span::sym;
+
+/// Validate that laws have no additional generic parameters.
+///
+/// This is because laws are auto-loaded, and we do not want to generate polymorphic WhyML code.
+pub(crate) fn validate_traits(ctx: &TranslationCtx) {
+    let mut law_violations = Vec::new();
+
+    for trait_item_id in ctx.hir_crate_items(()).trait_items() {
+        let trait_item = ctx.hir_trait_item(trait_item_id);
+
+        if is_law(ctx.tcx, trait_item.owner_id.def_id.to_def_id())
+            && !(ctx.predicates_of(trait_item.owner_id.def_id).predicates.is_empty()
+                && ctx.generics_of(trait_item.owner_id.def_id).own_params.is_empty())
+        {
+            law_violations.push((trait_item.owner_id.def_id, trait_item.span))
+        }
+    }
+
+    for (_, sp) in law_violations {
+        ctx.error(sp, "Laws cannot have additional generic parameters or trait constraints").emit();
+    }
+}
+
+/// Validates that trait implementations have some of the same attributes as the trait item.
+///
+/// # Example
+///
+/// ```creusot
+/// trait Tr {
+///     #[logic]
+///     fn foo();
+///     #[check(terminates)]
+///     fn bar();
+/// }
+///
+/// impl Tr for MyType {
+///     fn foo() {} // ! ERROR ! foo should be marked `#[logic]`
+///     fn bar() {} // ! ERROR ! bar should be marked `#[check(terminates)]`
+/// }
+/// ```
+pub(crate) fn validate_impls<'tcx>(ctx: &TranslationCtx<'tcx>) {
+    for impl_id in ctx.all_local_trait_impls(()).values().flat_map(|i| i.iter()) {
+        if !matches!(ctx.def_kind(*impl_id), DefKind::Impl { .. }) {
+            continue;
+        }
+        use rustc_middle::ty::print::PrintTraitRefExt;
+        let trait_ref = ctx.impl_trait_ref(*impl_id).skip_binder();
+
+        let trusted_trait = is_trusted(ctx.tcx, trait_ref.def_id)
+            || ctx.is_diagnostic_item(sym::Send, trait_ref.def_id)
+            || ctx.is_diagnostic_item(sym::Sync, trait_ref.def_id);
+        if trusted_trait && !is_trusted_item(ctx.tcx, impl_id.to_def_id()) {
+            let msg = format!(
+                "Expected implementation of trait `{}` for `{}` to be marked as `#[trusted]`",
+                trait_ref.print_only_trait_path(),
+                trait_ref.self_ty()
+            );
+            ctx.error(ctx.def_span(impl_id.to_def_id()), msg).emit();
+        }
+        if !trusted_trait && is_trusted(ctx.tcx, impl_id.to_def_id()) {
+            let msg = format!(
+                "Cannot have trusted implementation of untrusted trait `{}`",
+                trait_ref.print_only_trait_path()
+            );
+            ctx.error(ctx.def_span(impl_id.to_def_id()), msg).emit();
+        }
+
+        let implementors = ctx.impl_item_implementor_ids(impl_id.to_def_id());
+
+        let implementors =
+            ctx.with_stable_hashing_context(|mut hcx| implementors.to_sorted(&mut hcx, true));
+        for (&trait_item, &impl_item) in implementors {
+            if !ctx.def_kind(trait_item).is_fn_like() {
+                continue;
+            }
+
+            if let Some(open_inv_trait) = ctx.params_open_inv(trait_item) {
+                let open_inv_impl = ctx.params_open_inv(impl_item).unwrap();
+                for i in open_inv_trait.iter() {
+                    if !open_inv_impl.contains(i) {
+                        let name_param = match ctx.fn_arg_idents(impl_item)[i] {
+                            Some(ident) => ident.to_string(),
+                            None => "_".into(),
+                        };
+                        ctx.error(
+                            ctx.def_span(impl_item),
+                            format!(
+                                "Parameter `{name_param}` has the `#[creusot::open_inv]` attribute in the trait declaration, but not in the implementation."
+                            ),
+                        ).emit();
+                    }
+                }
+            }
+
+            if is_open_inv_result(ctx.tcx, impl_item) && !is_open_inv_result(ctx.tcx, trait_item) {
+                ctx.error(
+                    ctx.def_span(impl_item),
+                    format!(
+                        "Function `{}` should not have the `#[open_inv_result]` attribute, as specified by the trait declaration",
+                        ctx.item_name(impl_item),
+                    ),
+                ).emit();
+            }
+
+            if let Intrinsic::SnapshotDeref | Intrinsic::SnapshotDerefMut = ctx.intrinsic(impl_item)
+            {
+                continue;
+            };
+
+            let item_type = ctx.item_type(impl_item);
+            let trait_type = ctx.item_type(trait_item);
+            if !item_type.can_implement(trait_type) {
+                ctx.error(
+                    ctx.def_span(impl_item),
+                    format!(
+                        "Expected `{}` to be a {} as specified by the trait declaration",
+                        ctx.item_name(impl_item),
+                        trait_type.to_str()
+                    ),
+                )
+                .emit();
+            } else {
+                let item_contract = &ctx.sig(impl_item).contract;
+                let trait_contract = &ctx.sig(trait_item).contract;
+                if trait_contract.purity.is_ghost() && !item_contract.purity.is_ghost() {
+                    ctx.error(
+                        ctx.def_span(impl_item),
+                        format!(
+                            "Expected `{}` to be `#[check(ghost)]` as specified by the trait declaration",
+                            ctx.item_name(impl_item),
+                        ),
+                    )
+                    .emit();
+                } else if trait_contract.purity.is_terminates()
+                    && !item_contract.purity.is_terminates()
+                {
+                    ctx.error(
+                        ctx.def_span(impl_item),
+                        format!(
+                            "Expected `{}` to be `#[check(terminates)]` as specified by the trait declaration",
+                            ctx.item_name(impl_item),
+                        ),
+                    )
+                    .emit();
+                } else if is_law(ctx.tcx, impl_item) && !is_law(ctx.tcx, trait_item) {
+                    ctx.error(
+                        ctx.def_span(impl_item),
+                        format!(
+                            "Method `{}` should not be a `#[logic(law)]`, as specified by the trait declaration",
+                            ctx.item_name(impl_item),
+                        ),
+                    )
+                    .emit();
+                }
+            }
+        }
+    }
+}

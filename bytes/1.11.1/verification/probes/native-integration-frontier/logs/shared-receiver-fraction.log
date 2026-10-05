@@ -1,0 +1,51 @@
+   Compiling bytes-actual-frozen v0.1.0 (/tmp/astra-clone-diagnostic/verification/probes/actual-frozen-bytes)
+warning: unused import: `ManuallyDrop`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-76dfcd046f3940f5/out/actual_frozen.rs:5:22
+  |
+5 | use core::mem::{self,ManuallyDrop};
+  |                      ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `core::sync::atomic::AtomicUsize`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-76dfcd046f3940f5/out/actual_frozen.rs:7:5
+  |
+7 | use core::sync::atomic::AtomicUsize;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `prelude`
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-76dfcd046f3940f5/out/actual_frozen.rs:15:53
+   |
+15 |     use creusot_std::{ghost::perm::Perm, logic::Id, prelude::*};
+   |                                                     ^^^^^^^
+
+warning: unused variable: `base`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:928:25
+    |
+928 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                         ^^^^ help: try ignoring the field: `base: _`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `capacity`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:928:31
+    |
+928 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
+
+warning: unused variable: `base`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:964:9
+    |
+964 |     let base = bound.as_ptr();
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
+
+error[E0596]: cannot borrow data in a `&` reference as mutable
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-76dfcd046f3940f5/out/actual_frozen.rs:609:9
+    |
+609 |         self.frozen.as_ref().unwrap().ticket.split_off()
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot borrow as mutable
+
+For more information about this error, try `rustc --explain E0596`.
+warning: `bytes-actual-frozen` (lib) generated 6 warnings
+error: could not compile `bytes-actual-frozen` (lib) due to 1 previous error; 6 warnings emitted
+Error: Compilation failed
