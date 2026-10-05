@@ -1,0 +1,57 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 31 0 31 41 *)
+
+let%span scmp = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/cmp.rs" 14 26 14 75
+let%span smodel = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span serror = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 5 27 5 58
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 32 4 32 42
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 30 10 30 16
+
+use creusot.prelude.Any
+
+type t_Error = HeaderName | HeaderValue | NewLine | Status | Token | TooManyHeaders | Version
+
+type t_ErrorDeepModel = HeaderName'0 | HeaderValue'0 | NewLine'0 | Status'0 | Token'0 | TooManyHeaders'0 | Version'0
+
+function deep_model_Error [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 5 27 5 58] (self: t_Error) : t_ErrorDeepModel
+ = [%#serror] match self with
+    | HeaderName -> HeaderName'0
+    | HeaderValue -> HeaderValue'0
+    | NewLine -> NewLine'0
+    | Status -> Status'0
+    | Token -> Token'0
+    | TooManyHeaders -> TooManyHeaders'0
+    | Version -> Version'0
+    end
+
+function deep_model_ref_Error [@inline:trivial] (self: t_Error) : t_ErrorDeepModel = [%#smodel] deep_model_Error self
+
+meta "rewrite_def" function deep_model_ref_Error
+
+let rec eq_Error (self_: t_Error) (rhs: t_Error) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#scmp] result
+    = (deep_model_ref_Error self_ = deep_model_ref_Error rhs)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec error_equal_same_variant
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 31 0 31 41]
+  (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = bb0'0
+      [ bb0'0 = s0'0
+        [ s0'0 = [ &_1 <- HeaderName ] s1'0 | s1'0 = [ &_ret'0 <- _1 ] s2'0 | s2'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: t_Error = Any.any_l () | & _1: t_Error = Any.any_l () ]
+      [ _const_ret (_const: t_Error) -> [ &_7 <- _const ] s1 ]
+    | s1 = bb0'0
+      [ bb0'0 = s0'0
+        [ s0'0 = [ &_1 <- HeaderName ] s1'0 | s1'0 = [ &_ret'0 <- _1 ] s2'0 | s2'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: t_Error = Any.any_l () | & _1: t_Error = Any.any_l () ]
+      [ _const_ret (_const: t_Error) -> [ &_6 <- _const ] s2 ]
+    | s2 = eq_Error [%#slib] {_7} {_6} (fun (_x: bool) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & _6: t_Error = Any.any_l () | & _7: t_Error = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:error_equal_same_variant ensures] [%#slib'0] result}
+    (! return {result}) ]

@@ -1,0 +1,19 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 4 15 4 20 *)
+
+(* <Error as std::clone::Clone> *)
+
+let%span sclone = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/clone.rs" 13 27 13 31
+
+use creusot.prelude.Any
+
+type t_Error = HeaderName | HeaderValue | NewLine | Status | Token | TooManyHeaders | Version
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_Error
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 4 15 4 20]
+  (self_: t_Error) (return (x: t_Error)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self_ ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Error = Any.any_l () | & self_: t_Error = self_ ]) [ return (result: t_Error) -> (! return {result}) ]

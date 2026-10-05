@@ -1,0 +1,56 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 4 22 4 31 *)
+
+(* <Error as std::cmp::PartialEq> *)
+
+let%span scmp = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/cmp.rs" 14 26 14 75
+let%span smodel = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+
+use creusot.int.Int64
+use creusot.prelude.Any
+
+type t_Error = HeaderName | HeaderValue | NewLine | Status | Token | TooManyHeaders | Version
+
+type t_ErrorDeepModel = HeaderName'0 | HeaderValue'0 | NewLine'0 | Status'0 | Token'0 | TooManyHeaders'0 | Version'0
+
+function deep_model_Error (self: t_Error) : t_ErrorDeepModel
+
+function deep_model_ref_Error [@inline:trivial] (self: t_Error) : t_ErrorDeepModel = [%#smodel] deep_model_Error self
+
+meta "rewrite_def" function deep_model_ref_Error
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec eq_Error
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 4 22 4 31]
+  (self_: t_Error) (rhs: t_Error) (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &__self_discr <- match self_ with
+        | HeaderName -> (0: Int64.t)
+        | HeaderValue -> (1: Int64.t)
+        | NewLine -> (2: Int64.t)
+        | Status -> (3: Int64.t)
+        | Token -> (4: Int64.t)
+        | TooManyHeaders -> (5: Int64.t)
+        | Version -> (6: Int64.t)
+        end ] s1
+    | s1 = [ &__arg1_discr <- match rhs with
+        | HeaderName -> (0: Int64.t)
+        | HeaderValue -> (1: Int64.t)
+        | NewLine -> (2: Int64.t)
+        | Status -> (3: Int64.t)
+        | Token -> (4: Int64.t)
+        | TooManyHeaders -> (5: Int64.t)
+        | Version -> (6: Int64.t)
+        end ] s2
+    | s2 = [ &_ret <- __self_discr = __arg1_discr ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & self_: t_Error = self_
+  | & rhs: t_Error = rhs
+  | & __self_discr: Int64.t = Any.any_l ()
+  | & __arg1_discr: Int64.t = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#scmp] result
+    = (deep_model_ref_Error self_ = deep_model_ref_Error rhs)}
+    (! return {result}) ]

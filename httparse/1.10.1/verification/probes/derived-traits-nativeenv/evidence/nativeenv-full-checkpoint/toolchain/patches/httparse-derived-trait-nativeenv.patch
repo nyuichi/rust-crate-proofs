@@ -1,0 +1,84 @@
+diff --git a/creusot/src/ctx.rs b/creusot/src/ctx.rs
+index 7ac81e1..4291eee 100644
+--- a/creusot/src/ctx.rs
++++ b/creusot/src/ctx.rs
+@@ -16,7 +16,7 @@ use crate::{
+         fmir,
+         pearlite::{self, ScopedTerm, Term},
+         specification::{ContractClauses, PreSignature, inherited_extern_spec, pre_sig_of},
+-        traits::Refinement,
++        traits::{Refinement, evaluate_additional_predicates},
+     },
+     util::{erased_identity_for_item, parent_module},
+     validate::AnfBlock,
+@@ -37,7 +37,7 @@ use rustc_hir::{
+     def_id::{DefId, LOCAL_CRATE, LocalDefId},
+ };
+ use rustc_index::bit_set::DenseBitSet;
+-use rustc_infer::traits::ObligationCause;
++use rustc_infer::{infer::TyCtxtInferExt, traits::ObligationCause};
+ use rustc_macros::{TyDecodable, TyEncodable, TypeFoldable, TypeVisitable};
+ use rustc_middle::{
+     mir::Promoted,
+@@ -460,18 +460,58 @@ impl<'tcx> TranslationCtx<'tcx> {
+     }
+ 
+     pub(crate) fn param_env(&self, def_id: DefId) -> ParamEnv<'tcx> {
+-        let (id, subst) = inherited_extern_spec(self, def_id)
++        let native_env = self.tcx.param_env(def_id);
++        let inherited = inherited_extern_spec(self, def_id);
++
++        // The inherited trait specification is useful for an automatically-derived body only
++        // after its predicates have been shown redundant in rustc's native environment. Keeping
++        // those predicates in the body environment can make rustc resolve a concrete derived
++        // implementation through a `Param` assumption instead, hiding its open logic definition.
++        // Check all predicates together in the unextended environment; on ambiguity or failure,
++        // reject this local inheritance instead of silently dropping a required generic bound.
++        let local_derived = def_id.is_local()
++            && self.opt_associated_item(def_id).is_some_and(|assoc| {
++                assoc.impl_container(self.tcx).is_some_and(|impl_id| {
++                    rustc_hir::find_attr!(self.tcx, impl_id, AutomaticallyDerived(..))
++                })
++            });
++        if local_derived && let Some((id, subst)) = inherited {
++            let Some(es) = self.extern_spec(id) else {
++                self.crash_and_error(
++                    self.def_span(def_id),
++                    "cannot safely inherit the trait specification for this automatically-derived method: its external specification is unavailable",
++                );
++            };
++            let predicates = es.predicates_for(self.tcx, subst);
++            let infcx = self.infer_ctxt().ignoring_regions().build(TypingMode::non_body_analysis());
++            if evaluate_additional_predicates(
++                &infcx,
++                predicates,
++                native_env,
++                self.def_span(def_id),
++            )
++            .is_ok()
++            {
++                return native_env;
++            }
++            self.crash_and_error(
++                self.def_span(def_id),
++                "cannot safely inherit the trait specification for this automatically-derived method: inherited predicates are not proven by its native parameter environment",
++            );
++        }
++
++        let (id, subst) = inherited
+             .unwrap_or_else(|| (def_id, erased_identity_for_item(self.tcx, def_id)));
+         if let Some(es) = self.extern_spec(id) {
+             let base_predicates =
+-                self.tcx.param_env(def_id).caller_bounds().into_iter().map(Clause::as_predicate);
++                native_env.caller_bounds().into_iter().map(Clause::as_predicate);
+             let additional_predicates = es.predicates_for(self.tcx, subst).into_iter();
+             let clauses =
+                 base_predicates.chain(additional_predicates).map(Predicate::expect_clause);
+             let res = ParamEnv::new(self.mk_clauses_from_iter(clauses));
+             normalize_param_env_or_error(self.tcx, res, ObligationCause::dummy())
+         } else {
+-            self.tcx.param_env(def_id)
++            native_env
+         }
+     }
+ 

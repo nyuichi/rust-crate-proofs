@@ -1,0 +1,49 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 25 0 25 49 *)
+
+let%span serror = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 25 14 33 5
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 26 4 26 39
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 24 10 24 43
+
+use creusot.prelude.Any
+use seq.Seq
+use creusot.prelude.Char
+
+type t_Error = HeaderName | HeaderValue | NewLine | Status | Token | TooManyHeaders | Version
+
+let rec description_str (self: t_Error) (return (x: Seq.seq Char.t)) = any
+  [ return (result: Seq.seq Char.t) -> {[@stop_split] [@expl:description_str ensures] [%#serror] match self with
+      | HeaderName -> result
+      = (Seq.create 19 [|Char.of_int 105;Char.of_int 110;Char.of_int 118;Char.of_int 97;Char.of_int 108;Char.of_int 105;Char.of_int 100;Char.of_int 32;Char.of_int 104;Char.of_int 101;Char.of_int 97;Char.of_int 100;Char.of_int 101;Char.of_int 114;Char.of_int 32;Char.of_int 110;Char.of_int 97;Char.of_int 109;Char.of_int 101|]: Seq.seq Char.t)
+      | HeaderValue -> result
+      = (Seq.create 20 [|Char.of_int 105;Char.of_int 110;Char.of_int 118;Char.of_int 97;Char.of_int 108;Char.of_int 105;Char.of_int 100;Char.of_int 32;Char.of_int 104;Char.of_int 101;Char.of_int 97;Char.of_int 100;Char.of_int 101;Char.of_int 114;Char.of_int 32;Char.of_int 118;Char.of_int 97;Char.of_int 108;Char.of_int 117;Char.of_int 101|]: Seq.seq Char.t)
+      | NewLine -> result
+      = (Seq.create 16 [|Char.of_int 105;Char.of_int 110;Char.of_int 118;Char.of_int 97;Char.of_int 108;Char.of_int 105;Char.of_int 100;Char.of_int 32;Char.of_int 110;Char.of_int 101;Char.of_int 119;Char.of_int 32;Char.of_int 108;Char.of_int 105;Char.of_int 110;Char.of_int 101|]: Seq.seq Char.t)
+      | Status -> result
+      = (Seq.create 23 [|Char.of_int 105;Char.of_int 110;Char.of_int 118;Char.of_int 97;Char.of_int 108;Char.of_int 105;Char.of_int 100;Char.of_int 32;Char.of_int 114;Char.of_int 101;Char.of_int 115;Char.of_int 112;Char.of_int 111;Char.of_int 110;Char.of_int 115;Char.of_int 101;Char.of_int 32;Char.of_int 115;Char.of_int 116;Char.of_int 97;Char.of_int 116;Char.of_int 117;Char.of_int 115|]: Seq.seq Char.t)
+      | Token -> result
+      = (Seq.create 13 [|Char.of_int 105;Char.of_int 110;Char.of_int 118;Char.of_int 97;Char.of_int 108;Char.of_int 105;Char.of_int 100;Char.of_int 32;Char.of_int 116;Char.of_int 111;Char.of_int 107;Char.of_int 101;Char.of_int 110|]: Seq.seq Char.t)
+      | TooManyHeaders -> result
+      = (Seq.create 16 [|Char.of_int 116;Char.of_int 111;Char.of_int 111;Char.of_int 32;Char.of_int 109;Char.of_int 97;Char.of_int 110;Char.of_int 121;Char.of_int 32;Char.of_int 104;Char.of_int 101;Char.of_int 97;Char.of_int 100;Char.of_int 101;Char.of_int 114;Char.of_int 115|]: Seq.seq Char.t)
+      | Version -> result
+      = (Seq.create 20 [|Char.of_int 105;Char.of_int 110;Char.of_int 118;Char.of_int 97;Char.of_int 108;Char.of_int 105;Char.of_int 100;Char.of_int 32;Char.of_int 72;Char.of_int 84;Char.of_int 84;Char.of_int 80;Char.of_int 32;Char.of_int 118;Char.of_int 101;Char.of_int 114;Char.of_int 115;Char.of_int 105;Char.of_int 111;Char.of_int 110|]: Seq.seq Char.t)
+      end}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec actual_error_description
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 25 0 25 49]
+  (return (x: Seq.seq Char.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = bb0'0
+      [ bb0'0 = s0'0
+        [ s0'0 = [ &_1 <- HeaderName ] s1'0 | s1'0 = [ &_ret'0 <- _1 ] s2'0 | s2'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: t_Error = Any.any_l () | & _1: t_Error = Any.any_l () ]
+      [ _const_ret (_const: t_Error) -> [ &_4 <- _const ] s1 ]
+    | s1 = description_str [%#slib] {_4} (fun (_x: Seq.seq Char.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ] [ & _ret: Seq.seq Char.t = Any.any_l () | & _4: t_Error = Any.any_l () ])
+  [ return (result: Seq.seq Char.t) -> {[@stop_split] [@expl:actual_error_description ensures] [%#slib'0] result
+    = (Seq.create 19 [|Char.of_int 105;Char.of_int 110;Char.of_int 118;Char.of_int 97;Char.of_int 108;Char.of_int 105;Char.of_int 100;Char.of_int 32;Char.of_int 104;Char.of_int 101;Char.of_int 97;Char.of_int 100;Char.of_int 101;Char.of_int 114;Char.of_int 32;Char.of_int 110;Char.of_int 97;Char.of_int 109;Char.of_int 101|]: Seq.seq Char.t)}
+    (! return {result}) ]

@@ -1882,3 +1882,97 @@ derived body and refinement, retain the false-equality and false-discriminant
 negative controls, and refresh evidence hashes. This entry records diagnosis
 and a proposed compiler fix, not a completed fix or proof. Exact formatting
 text and full Unicode support are separate open obligations.
+
+### Native-endian u64 conversion boundary (2026-10-05)
+
+Read-only consultation confirmed the pinned Rust core `num/uint_macros.rs`
+`from_ne_bytes` body (lines 4028–4030) is `unsafe { mem::transmute(bytes) }`.
+The current compiler rejects MIR `CastKind::Transmute`; existing array and
+integer models do not prove this representation bridge. Proving a scalar
+packing surrogate would not prove this standard-library body.
+
+Root accepted the minimal runtime-preserving option: add an exact audited
+standard-library external contract for `u64::from_ne_bytes([u8; 8])`. This is
+a **new explicit standard-library TCB boundary**, not a bodychecked standard
+function or a proof of generic transmute. Its justification is the pinned
+Rust source and documented layout: eight padding-free u8 elements, the same
+eight-byte unsigned integer representation, and validity of every u64 bit
+pattern. The contract must state the exact weighted-byte integer value for
+the compilation target's little/big endianness and fail closed for unsupported
+endianness. It must not depend on the build host's endianness. No parser
+literal, equality, or crate-specific endian axiom is needed; the three actual
+runtime standard-library calls remain intact.
+
+Prove equality preservation separately from that contract. A small,
+quantifier-free integer lemma can peel one base-256 digit:
+`0 <= a,b < 256` and `a + 256*A == b + 256*B` imply
+`a == b && A == B`. Express the eight-byte packing polynomial in nested
+Horner form and apply this proved linear-arithmetic lemma seven times; the
+last tail equality supplies the eighth byte. Reverse digit order for the
+big-endian case. The representative caller compares two actual converted
+values and obtains eight explicit byte equalities, then specializes that
+result to each HTTP version literal. The reverse implication is congruence.
+Avoid a quantified index property or recursive packing proof in the parser.
+This consultation ran no solver: the new contract audit, arithmetic body
+proofs, negative controls, and parser integration still require validation.
+
+### Typed header storage: caller prophecy interface (2026-10-05)
+
+Read-only inspection of the `memory-initialization` probe and its generated
+`non_complete_initialized_client.coma` found missing semantic links before
+any trigger tuning is warranted. The retained run
+`selected-solver-run-20261005T044741856965836Z` proves the write precondition,
+but its combined caller postcondition times out at 30 seconds. No additional
+solver was run for this consultation.
+
+First, the caller sees `view_HeaderStorage` as an uninterpreted function:
+the View implementation uses module-local `logic`, while the caller is outside
+that module. The structural resolve fact therefore cannot connect final model
+slots to the nested reference fields. Open the actual View definition, or
+prove and expose an equivalent structural bridge; do not add an axiom.
+
+Second, the write contract updates View values but does not preserve the
+nested reference's future projections. The constructor links the old storage
+to the caller, whereas only the storage returned from write is resolved.
+Bodycheck stability of the existing `future_slots` projection across write
+and commit. Its COMA meaning is `map(headers.final.current)`: the current
+contents of the binding once the outer borrow ends.
+
+The original full backing's prophecy is a different projection,
+`map(headers.current.final)`, expressible structurally through `(^*headers)`.
+Expose that inner-future projection too, link it in the constructor, and
+preserve it across write. Commit replaces the inner full-slice reference with
+a prefix reference, so its contract instead needs the existing split-at-mut
+lens facts: the old inner future has original length; its used prefix equals
+the new inner future; its unused tail equals the old current tail. Preserve
+the outer future projection as well. These facts keep the full parent backing
+and tail available while permitting subsequent writes through the published
+prefix. Equating the entire old future to the old current contents would
+incorrectly forbid those subsequent prefix writes.
+
+Only after these links are present, isolate any remaining sequence issue in
+one bodychecked lemma cancelling `map(Some)` through an indexed update, using
+map length/index laws and constructor injectivity. Header value equality
+already implies DeepModel equality by congruence; opening string/Unicode
+models is unnecessary for that step. Prove each strengthened adapter body,
+then the one representative non-complete caller, before the complete caller.
+This is a proposed interface repair, not a completed proof. Implicit Drop
+translation remains a separate open issue; this design uses explicit commit.
+
+Follow-up inspection of source hash `43e3da589746e1d11ebe0f4f9ab799f9c40ec815855449bfd9c21c6e5ee53081`
+and constructor COMA hash `73693299530cda2a79d824967eaf06cfd16b22b220ccb1380edd12b615fe9a9c`
+identified a new, premature length claim. The added constructor ensures #6
+equates the inner future length with current length, but `MutBorrow`'s model
+permits arbitrary current/final values and this constructor introduces no
+length relation. A current slice of length one with inner future length two
+satisfies the projection links but falsifies that clause. The recorded result
+is `Unknown (unknown)` in 0.19 seconds; no more detailed Z3 reason is logged.
+The countermodel to the abstract obligation is visible independently of that
+solver result. Retain both constructor projection links and remove the
+premature future-length promise. At commit, derive **old** inner future length
+equal to old capacity from the actual `split_at_mut` contract, as an output
+fact rather than an entry requirement. **New** inner future length equals
+used length, not old capacity. Preserve the outer future projection exactly,
+rather than truncating it: the outer borrowed binding destination is retained.
+These corrections were sent to the implementation worker; no solver was run
+and no implementation was changed by this consultation.

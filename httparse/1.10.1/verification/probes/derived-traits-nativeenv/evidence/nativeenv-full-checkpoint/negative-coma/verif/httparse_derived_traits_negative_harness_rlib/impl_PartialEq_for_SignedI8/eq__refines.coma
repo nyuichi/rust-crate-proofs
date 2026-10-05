@@ -1,0 +1,30 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits-nativeenv/negative/src/lib.rs" 7 9 7 18 *)
+
+(* <SignedI8 as std::cmp::PartialEq> *)
+
+let%span scmp = "/workspace/scratch/httparse-derived-traits-nativeenv/creusot-libs/creusot-std/src/std/cmp.rs" 14 26 14 75
+let%span smodel = "/workspace/scratch/httparse-derived-traits-nativeenv/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits-nativeenv/negative/src/lib.rs" 8 27 8 58
+
+type t_SignedI8 = Negative | Positive
+
+type t_SignedI8DeepModel = Negative'0 | Positive'0
+
+function deep_model_SignedI8 [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits-nativeenv/negative/src/lib.rs" 8 27 8 58] (self: t_SignedI8) : t_SignedI8DeepModel
+ = [%#slib] match self with
+    | Negative -> Negative'0
+    | Positive -> Positive'0
+    end
+
+function deep_model_ref_SignedI8 [@inline:trivial] (self: t_SignedI8) : t_SignedI8DeepModel =
+  [%#smodel] deep_model_SignedI8 self
+
+meta "rewrite_def" function deep_model_ref_SignedI8
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_SignedI8. forall rhs: t_SignedI8. forall result: bool. ([%#scmp] result
+          = (deep_model_ref_SignedI8 self_ = deep_model_ref_SignedI8 rhs))
+        -> ([%#scmp] result = (deep_model_ref_SignedI8 self_ = deep_model_ref_SignedI8 rhs))
