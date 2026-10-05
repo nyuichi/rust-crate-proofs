@@ -1,0 +1,57 @@
+   Compiling bytes-observer-subset v0.1.0 (/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytes-observer-subset)
+warning: fields `ptr`, `data`, and `vtable` are never read
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-observer-subset-39d134e4b8bcd92c/out/actual_bytes_observers.rs:9:5
+   |
+ 7 | pub struct Bytes {
+   |            ----- fields in this struct
+ 8 |     #[cfg(not(bytes_proof_frozen))]
+ 9 |     ptr: *const u8,
+   |     ^^^
+...
+19 |     data: AtomicPtr<()>,
+   |     ^^^^
+20 |     vtable: &'static Vtable,
+   |     ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: fields `promotable`, `clone`, `into_vec`, `into_mut`, `is_unique`, and `drop` are never read
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-observer-subset-39d134e4b8bcd92c/out/actual_bytes_observers.rs:25:9
+   |
+23 | pub(crate) struct Vtable {
+   |                   ------ fields in this struct
+24 |     /// Marks the two Vec-backed tables whose storage must be promoted before truncation.
+25 |     pub promotable: bool,
+   |         ^^^^^^^^^^
+...
+30 |     pub clone: unsafe fn(&AtomicPtr<()>, *const u8, usize, &'static Vtable) -> Bytes,
+   |         ^^^^^
+...
+34 |     pub into_vec: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> Vec<u8>,
+   |         ^^^^^^^^
+35 |     pub into_mut: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> BytesMut,
+   |         ^^^^^^^^
+36 |     /// fn(data)
+37 |     pub is_unique: unsafe fn(&AtomicPtr<()>) -> bool,
+   |         ^^^^^^^^^
+38 |     /// fn(data, ptr, len)
+39 |     pub drop: unsafe fn(&mut AtomicPtr<()>, *const u8, usize),
+   |         ^^^^
+
+warning: `bytes-observer-subset` (lib) generated 2 warnings
+warning: `bytes-observer-subset` (lib test) generated 2 warnings (2 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.35s
+     Running unittests src/lib.rs (/workspace/bytes-proof-tools/targets/bytes/debug/deps/bytes_observer_subset-3b61fea0bab21e76)
+
+running 2 tests
+test tests::from_static_preserves_empty_and_nonempty_lengths ... ok
+test tests::new_is_empty_without_reading_the_raw_view ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests bytes_observer_subset
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

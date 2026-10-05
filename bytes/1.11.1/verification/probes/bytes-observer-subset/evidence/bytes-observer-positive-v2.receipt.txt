@@ -1,0 +1,7 @@
+Bytes 1.11.1 source-sliced metadata observer verification
+
+This is the corrected immutable v2 positive snapshot; v1 has the same proof artifact bytes but overbroad README wording. The only Creusot-positive scope is exact `Bytes::len` and `Bytes::is_empty` bodies with field-metadata postconditions: `Proved (2 files)`. Native full-scope tests passed 2/2. `new` and `from_static` remain unproved here. No View/DeepModel, raw-byte read, pointer authority, callback behavior, Drop, clone, refcount, or ownership claim is included.
+
+Proof command: `BYTES_OBSERVER_SCOPE=observers bash run.sh` using the pinned toolchain; the wrapper held `/tmp/itoa-creusot-proof.lock`, ran one why3find job, and used no sc-drf. Native command: `cargo test --manifest-path verification/probes/bytes-observer-subset/Cargo.toml --locked --offline`.
+
+The archived `src/bytes.rs` snapshot SHA-256 matches the source at archive time. Archive file checksums are inside `FILES.sha256`; the member manifest is `bytes-observer-positive-v2.members`; the archive SHA-256 is in `bytes-observer-positive-v2.sha256`.

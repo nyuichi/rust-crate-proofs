@@ -1,0 +1,56 @@
+Bytes observer subset: one prover; 1024 MiB; no sc-drf
+     Removed 105 files, 25.9MiB total
+   Compiling bytes-observer-subset v0.1.0 (/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytes-observer-subset)
+warning: unused import: `slice`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-observer-subset-0f2b277585a4237a/out/actual_bytes_observers.rs:3:17
+  |
+3 | use core::{ptr, slice};
+  |                 ^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: fields `ptr`, `data`, and `vtable` are never read
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-observer-subset-0f2b277585a4237a/out/actual_bytes_observers.rs:9:5
+   |
+ 7 | pub struct Bytes {
+   |            ----- fields in this struct
+ 8 |     #[cfg(not(bytes_proof_frozen))]
+ 9 |     ptr: *const u8,
+   |     ^^^
+...
+19 |     data: AtomicPtr<()>,
+   |     ^^^^
+20 |     vtable: &'static Vtable,
+   |     ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: fields `clone`, `into_vec`, `into_mut`, `is_unique`, and `drop` are never read
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-observer-subset-0f2b277585a4237a/out/actual_bytes_observers.rs:28:9
+   |
+23 | pub(crate) struct Vtable {
+   |                   ------ fields in this struct
+...
+28 |     pub clone: unsafe fn(&AtomicPtr<()>, *const u8, usize, &'static Vtable) -> Bytes,
+   |         ^^^^^
+...
+32 |     pub into_vec: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> Vec<u8>,
+   |         ^^^^^^^^
+33 |     pub into_mut: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> BytesMut,
+   |         ^^^^^^^^
+34 |     /// fn(data)
+35 |     pub is_unique: unsafe fn(&AtomicPtr<()>) -> bool,
+   |         ^^^^^^^^^
+36 |     /// fn(data, ptr, len)
+37 |     pub drop: unsafe fn(&mut AtomicPtr<()>, *const u8, usize),
+   |         ^^^^
+
+error: Unsupported pointer cast: actual::static_clone as for<'a> unsafe fn(&'a std::sync::atomic::Atomic<*mut ()>, *const u8, usize, &actual::Vtable) -> actual::Bytes (PointerCoercion(ReifyFnPointer(Unsafe), Implicit))
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-observer-subset-0f2b277585a4237a/out/actual_bytes_observers.rs:65:12
+   |
+65 |     clone: static_clone,
+   |            ^^^^^^^^^^^^
+
+warning: `bytes-observer-subset` (lib) generated 3 warnings
+error: could not compile `bytes-observer-subset` (lib) due to 1 previous error; 3 warnings emitted
+Error: Compilation failed

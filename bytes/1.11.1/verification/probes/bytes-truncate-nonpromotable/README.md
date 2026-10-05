@@ -34,5 +34,5 @@ failed pointer-expression attempts remain in `truncate-frontier.tar.gz`.
 
 Run native tests with `cargo test --locked --offline`. Run the serialized pinned
 Creusot gate with `bash run.sh`. Any success is bounded to the exact
-`truncate`/`clear` bodies and the explicit pointer inequality precondition; it
+`truncate`/`clear` bodies and the explicit nonpromotable tag precondition; it
 does not establish that arbitrary real handles satisfy that precondition.

@@ -82,3 +82,11 @@ records current source and log hashes. No bytes-specific protocol was added to
 the trusted boundary to claim completion. The remaining interface limitations
 were concretely attempted and reviewed with Astra; whole-crate verification
 remains incomplete.
+
+Final Astra review confirms no further small standalone change closes Clone,
+default initialized reads/mutable purity, generic implementer laws, native
+concurrency/Drop, or the attempted constructor frontend limits using the current
+proved interfaces. These are limits of this representation and pinned toolchain,
+not mathematical impossibility claims. The fresh-layout observer replay proves
+two files with zero unproved leaves; both archived source snapshots match the
+final native regression code.
