@@ -1,0 +1,250 @@
+{
+  "crate": "http 1.5.0",
+  "created_utc": "2026-10-05T10:06:16Z",
+  "profile": "verification/composition; RUSTFLAGS=--cfg http_composition_leaf --cfg http_builder_entrypoints_leaf; runtime URI/Status/Version values; http_composition_uri_defaults_leaf unset",
+  "scope": "Selected actual Request/Response Builder relays, nine fixed-method Request shortcut bodies, and nine actual Method::builder_* constructors. This is a leaf composition proof batch, not an integrated crate proof.",
+  "commands": {
+    "clean": "cargo clean -p http-composition-proof",
+    "translation": "RUSTFLAGS=\"--cfg http_composition_leaf --cfg http_builder_entrypoints_leaf\" cargo creusot --simple-triggers=false -- --locked --offline",
+    "proof": "RUSTFLAGS=\"--cfg http_composition_leaf --cfg http_builder_entrypoints_leaf\" ../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache <35 exact COMA paths> -- --locked --offline; require_escalated",
+    "independent_arity_audit": "why3 prove -C /workspace/proof-tools/config/creusot/why3.conf -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot -D why3 <archived COMA>; no -P, no -a"
+  },
+  "exits": {
+    "clean": 0,
+    "translation": 0,
+    "proof": 0
+  },
+  "counts": {
+    "target_coma_files": 35,
+    "passing_targets": 35,
+    "failed_targets": 0,
+    "direct_goal_roots": 199,
+    "own_direct_roots": 35,
+    "support_direct_roots": 164,
+    "own_successful_terminal_leaves": 116,
+    "support_successful_terminal_leaves": 164,
+    "successful_terminal_leaves": 280,
+    "proof_json_files": 35,
+    "direct_root_names_match_json": true,
+    "terminal_counts_match_proof_log": true,
+    "all_arity_rows_pass": true
+  },
+  "source_during_clean_emit": {
+    "source_hash_file_count": 175,
+    "source_before_sha256": "d90a89ed7ff23763c730bcf4cd987af2be673dc63a69714687a7e6254eee4b19",
+    "source_after_sha256": "3904a2499c31895794dd6f7d61d36dd43ec3a961c46f8e8abeb26e2f41304b6b",
+    "changed_paths": [
+      "../../src/uri/builder.rs"
+    ],
+    "active_profile_changed_paths": [],
+    "compiled_profile_stable": true,
+    "source_map": "source-before.sha256 and source-after.sha256"
+  },
+  "source_after_proof": {
+    "sha256_file": "source-after-proof.sha256",
+    "changed_since_emission": [
+      "../../src/error.rs",
+      "../../src/error/core.rs",
+      "../../src/header/map.rs",
+      "../../src/header/name.rs",
+      "../../src/lib.rs",
+      "../../src/uri/builder.rs"
+    ],
+    "active_harness_source_changed": "../../src/error/core.rs",
+    "details": "During Why3, src/error/core.rs gained cfg(creusot) error_is_empty_uri logic and changed the cfg-excluded is_empty_uri contract to relay through it. Request/Response/Method and harness sources were unchanged. The prover consumed archived COMAs emitted from the exact source-snapshot copies; treat claims as source-snapshot evidence until a fresh translation/task-hash comparison reconciles the later Error core edit.",
+    "reconciliation_attempt": "current-source-reemit-after-error-core-v2/manifest.json",
+    "reconciliation_status": "Fresh current-profile emission succeeded after the helper cfg fix. For all 35 targets, the proof-snapshot and current-v2 COMAs compare equal after removing only generated let%span source-location bindings; the 26 unchanged COMAs are byte-identical. For the remaining nine Request shortcut targets, Astra independently compared the complete printed Why3 task/context streams without normalization and reported byte identity. All 199 current direct task names match the archived proof JSON roots. Existing passing proof results are reusable for the current emitted task formulas.",
+    "current_source_sha256": "3ea66eb8889dcf1b8dc5845cc1a39744ee53e29f0788f8b42403a9dbaa4fcc42",
+    "active_harness_task_equivalence": "All 35 target formulas current-vs-proof source match after span-only normalization; no new Why3 proof was needed."
+  },
+  "source_fingerprints_at_emission": {
+    "files": [
+      {
+        "path": "../../src/request.rs",
+        "snapshot_path": "source-snapshot/request.rs",
+        "sha256": "9551a86888511f4dc6ab890d57091fcd228040cc2570383779babe0f22134534"
+      },
+      {
+        "path": "../../src/response.rs",
+        "snapshot_path": "source-snapshot/response.rs",
+        "sha256": "5b7c3ab63505acdce001d1ec005755e7898049fb221a500dbf050a3e4ef4d1b5"
+      },
+      {
+        "path": "../../src/method.rs",
+        "snapshot_path": "source-snapshot/method.rs",
+        "sha256": "683c060abd32c86bcee7c4b453ec3539bbb0411a2552a3a316aaf325149c7495"
+      },
+      {
+        "path": "../../src/error/core.rs",
+        "snapshot_path": "source-snapshot/core.rs",
+        "sha256": "152b47066c960d29b399d0947b58ff9aaccb62a95a1fd640730dc9db680c0723"
+      },
+      {
+        "path": "../../src/ascii.rs",
+        "snapshot_path": "source-snapshot/ascii.rs",
+        "sha256": "6620f3a38389cb067789f025507f5743ebfa9a8b56cd186dd07f1502e4bf4e47"
+      },
+      {
+        "path": "src/lib.rs",
+        "snapshot_path": "source-snapshot/lib.rs",
+        "sha256": "45ca0c947b1e142892e291478f0862579c7b4c12829e0e99dcf97cc84fc5c78d"
+      },
+      {
+        "path": "Cargo.toml",
+        "snapshot_path": "source-snapshot/Cargo.toml",
+        "sha256": "b29303ab4978c999dd369b20866e5149ed10da70df888e12e1d8542e6112dffb"
+      },
+      {
+        "path": "Cargo.lock",
+        "snapshot_path": "source-snapshot/Cargo.lock",
+        "sha256": "3df7d7a99139e88dc221dcd85f7fe42b51762d9a5dec338f1373fdd6ed0ad819"
+      },
+      {
+        "path": "why3find.json",
+        "snapshot_path": "source-snapshot/why3find.json",
+        "sha256": "c7014603e8a4f00384e112d1c626b3c0ed1a6fdf54425d25ee2d6e3bfcdd685d"
+      }
+    ],
+    "source_snapshot_dir": "source-snapshot/",
+    "current_after_proof_files": [
+      {
+        "path": "src/request.rs",
+        "sha256": "9551a86888511f4dc6ab890d57091fcd228040cc2570383779babe0f22134534"
+      },
+      {
+        "path": "src/response.rs",
+        "sha256": "5b7c3ab63505acdce001d1ec005755e7898049fb221a500dbf050a3e4ef4d1b5"
+      },
+      {
+        "path": "src/method.rs",
+        "sha256": "683c060abd32c86bcee7c4b453ec3539bbb0411a2552a3a316aaf325149c7495"
+      },
+      {
+        "path": "src/error/core.rs",
+        "sha256": "ddc66249eaf964c6f0ccbaae108569ea06bf4f4e1659e67672993ddbdbfddf65"
+      },
+      {
+        "path": "verification/composition/src/lib.rs",
+        "sha256": "45ca0c947b1e142892e291478f0862579c7b4c12829e0e99dcf97cc84fc5c78d"
+      },
+      {
+        "path": "verification/composition/Cargo.toml",
+        "sha256": "b29303ab4978c999dd369b20866e5149ed10da70df888e12e1d8542e6112dffb"
+      },
+      {
+        "path": "verification/composition/Cargo.lock",
+        "sha256": "3df7d7a99139e88dc221dcd85f7fe42b51762d9a5dec338f1373fdd6ed0ad819"
+      }
+    ]
+  },
+  "artifacts": {
+    "targets": "targets.txt",
+    "comas": "artifacts/coma/",
+    "proof_json": "artifacts/proof-json/",
+    "proof_log": "proof.log",
+    "proof_log_sha256": "70821e7fa8fec6574d891466e24cf2c253cbe5c79d6b9762c1e37a19e97a95d6",
+    "arity_audit": "why3-arity-audit/report.json",
+    "arity_report_sha256": "5051e9833b64a5ededba363d4b2a0434f6dd991859271c7b1299c82bd1029abd",
+    "emit_log_sha256": "ca46337469d4b46e605864596f3b8842a080956af08506808b62ec94a9183274",
+    "nested_tactic_audit": "nested-tactic-audit.json",
+    "nested_tactic_audit_sha256": "94d536131396c36e1cf3d0182158b9ff9162db9efe2f9c8ca3d9494dafbcc858",
+    "independent_full_task_stream_report": "current-source-reemit-after-error-core-v2/independent-astra-task-streams/report.json",
+    "independent_full_task_stream_report_sha256": "9d6f872143ce85bf80e6bd590c8136dcc2173bc5cb601596d4b5907580a7fcf3"
+  },
+  "limitations": [
+    "Imported TryInto/Into and runtime URI/status/version calls are represented by their contracts; this does not prove the dependency bodies.",
+    "Header and extension mutation setters are outside this target list; translation warns their runtime try_append/insert external calls have no contract.",
+    "A later independent task-stream audit found that vc_call_once_F for the two and_then targets is an abstract std::ops::FnOnce support obligation, not an HTTP source-body goal. Corrected classification: 35 own roots / 116 own leaves and 164 support roots / leaves, 280 total. All nested tactic nodes were independently checked against the archived proof JSON and current emitted tasks; see nested-tactic-audit.json."
+  ],
+  "targets": [
+    "verif/http_composition_proof_rlib/request/impl_Builder/and_then.coma",
+    "verif/http_composition_proof_rlib/request/impl_Builder/body.coma",
+    "verif/http_composition_proof_rlib/request/impl_Builder/method.coma",
+    "verif/http_composition_proof_rlib/request/impl_Builder/method_ref.coma",
+    "verif/http_composition_proof_rlib/request/impl_Builder/uri.coma",
+    "verif/http_composition_proof_rlib/request/impl_Builder/uri_ref.coma",
+    "verif/http_composition_proof_rlib/request/impl_Builder/headers_ref.coma",
+    "verif/http_composition_proof_rlib/request/impl_Builder/headers_mut.coma",
+    "verif/http_composition_proof_rlib/request/impl_Builder/extensions_ref.coma",
+    "verif/http_composition_proof_rlib/request/impl_Builder/extensions_mut.coma",
+    "verif/http_composition_proof_rlib/response/impl_Builder/and_then.coma",
+    "verif/http_composition_proof_rlib/response/impl_Builder/body.coma",
+    "verif/http_composition_proof_rlib/response/impl_Builder/status.coma",
+    "verif/http_composition_proof_rlib/response/impl_Builder/headers_ref.coma",
+    "verif/http_composition_proof_rlib/response/impl_Builder/headers_mut.coma",
+    "verif/http_composition_proof_rlib/response/impl_Builder/extensions_ref.coma",
+    "verif/http_composition_proof_rlib/response/impl_Builder/extensions_mut.coma",
+    "verif/http_composition_proof_rlib/request/impl_Request_unit/get.coma",
+    "verif/http_composition_proof_rlib/request/impl_Request_unit/put.coma",
+    "verif/http_composition_proof_rlib/request/impl_Request_unit/post.coma",
+    "verif/http_composition_proof_rlib/request/impl_Request_unit/delete.coma",
+    "verif/http_composition_proof_rlib/request/impl_Request_unit/options.coma",
+    "verif/http_composition_proof_rlib/request/impl_Request_unit/head.coma",
+    "verif/http_composition_proof_rlib/request/impl_Request_unit/connect.coma",
+    "verif/http_composition_proof_rlib/request/impl_Request_unit/patch.coma",
+    "verif/http_composition_proof_rlib/request/impl_Request_unit/trace.coma",
+    "verif/http_composition_proof_rlib/method/impl_Method_0/builder_get.coma",
+    "verif/http_composition_proof_rlib/method/impl_Method_0/builder_put.coma",
+    "verif/http_composition_proof_rlib/method/impl_Method_0/builder_post.coma",
+    "verif/http_composition_proof_rlib/method/impl_Method_0/builder_delete.coma",
+    "verif/http_composition_proof_rlib/method/impl_Method_0/builder_options.coma",
+    "verif/http_composition_proof_rlib/method/impl_Method_0/builder_head.coma",
+    "verif/http_composition_proof_rlib/method/impl_Method_0/builder_connect.coma",
+    "verif/http_composition_proof_rlib/method/impl_Method_0/builder_patch.coma",
+    "verif/http_composition_proof_rlib/method/impl_Method_0/builder_trace.coma"
+  ],
+  "own_vs_support_method": {
+    "own_definition": "VC rooted in an actual HTTP source function body in this composition profile.",
+    "support_definition": "Imported call/spec obligations, enum eliminations, and abstract closure/callee contracts.",
+    "correction": "For both request::Builder::and_then and response::Builder::and_then, vc_call_once_F is an abstract std::ops::FnOnce callee contract stub, not an HTTP source-body VC. It is support. vc_and_then_F is own.",
+    "counts": {
+      "direct_roots": {
+        "own": 35,
+        "support": 164,
+        "total": 199
+      },
+      "successful_terminal_leaves": {
+        "own": 116,
+        "support": 164,
+        "total": 280
+      }
+    },
+    "corrected_at_utc": "2026-10-05T10:40:00Z"
+  },
+  "independent_nested_task_audit": "nested-tactic-audit.json",
+  "independent_nested_task_audit_sha256": "94d536131396c36e1cf3d0182158b9ff9162db9efe2f9c8ca3d9494dafbcc858",
+  "source_task_reconciliation": {
+    "current_emission_manifest": "current-source-reemit-after-error-core-v2/manifest.json",
+    "current_emission_manifest_sha256": "02fe041922eeb96ad1ead1318c04ad96e4555efcabcde540853a42020dfe82f6",
+    "coma_comparison": {
+      "targets": 35,
+      "byte_identical_comas": 26,
+      "span_only_coma_differences": 9,
+      "comparison_rule": "Remove only generated let%span source-location bindings; all remaining Why3 declarations, axioms, bodies, predicates, and goal formulas compare byte-for-byte."
+    },
+    "independent_full_task_stream_audit": {
+      "auditor": "/root/astra_resume (read-only)",
+      "targets": 9,
+      "targets_are": [
+        "request::get",
+        "request::put",
+        "request::post",
+        "request::delete",
+        "request::options",
+        "request::head",
+        "request::connect",
+        "request::patch",
+        "request::trace"
+      ],
+      "result": "Complete printed Why3 task/context streams are byte-identical between proof snapshot and current v2 emission, with no normalization.",
+      "evidence": "nested-tactic-audit.json: shortcut_task_streams",
+      "evidence_sha256": "5c7df44dc1ce7f1ed129554d31ee819ab5636e71a54f40fa5f236a0cf4272471",
+      "stream_hashes_recorded": "Only 8-character prefixes were retained by the independent auditor; the complete streams were compared directly but their full stdout copies were not archived.",
+      "report": "current-source-reemit-after-error-core-v2/independent-astra-task-streams/report.json",
+      "report_sha256": "9d6f872143ce85bf80e6bd590c8136dcc2173bc5cb601596d4b5907580a7fcf3",
+      "durable_raw_streams": "18 complete stdout streams are gzip-preserved byte-for-byte under current-source-reemit-after-error-core-v2/independent-astra-task-streams/; report records full uncompressed and compressed SHA-256 values, exact argv/cwd/exit, goal count, and COMA hash for every target."
+    },
+    "direct_goal_audit": "All 199 direct current task names match the archived proof JSON roots; see current-source-reemit-after-error-core-v2/why3-direct-arity/report.json.",
+    "proof_reuse": "The 35-target proof run remains reusable for current v2 formulas, based on the comparison and independent stream audit above."
+  }
+}
