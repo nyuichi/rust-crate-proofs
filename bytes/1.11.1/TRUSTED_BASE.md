@@ -10,6 +10,13 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-05)
 
+The complete 82-file concrete slice Buf body gate adds no TCB or std contract.
+The actual getter source uses match to avoid a missing unwrap_or_else spec.
+19 checked reads, 19 bounded normal-return getters and two observers are body
+proved; 83-file metadata negative rejects one intended leaf. Exact extracted
+panic helpers have false preconditions, so their behavior and unwinding are
+excluded rather than assumed or trusted. Native3, ordinary118 and no_std pass.
+
 The scalable ticket inventory introduces no trusted primitive or theorem.
 Existing Authority/Fragment, PhysicalRegion/Pool and B1/B3 foundations are
 composed by body-proved registry replacement/retirement, map conservation and

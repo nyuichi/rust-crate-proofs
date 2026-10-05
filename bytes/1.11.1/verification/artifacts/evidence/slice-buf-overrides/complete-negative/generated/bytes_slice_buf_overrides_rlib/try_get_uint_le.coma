@@ -1,0 +1,153 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 310 0 310 84 *)
+
+let%span sslice = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 331 18 331 22
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span sord'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 22 8 22 20
+let%span svariable_read_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/variable_read_ops.rs" 73 11 73 23
+let%span svariable_read_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/variable_read_ops.rs" 74 10 79 1
+let%span sactual_slice_overrides = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 311 30 311 36
+let%span sactual_slice_overrides'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 311 30 311 56
+let%span sactual_slice_overrides'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 316 8 316 60
+let%span sactual_slice_overrides'2 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 318 23 318 34
+let%span sactual_slice_overrides'3 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 316 8 319 10
+let%span sactual_slice_overrides'4 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 313 20 313 49
+let%span sactual_slice_overrides'5 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 308 11 308 27
+let%span sactual_slice_overrides'6 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 309 10 309 289
+let%span soption = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/option.rs" 246 18 249 9
+let%span snum = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 328 20 329 89
+let%span snum'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/num.rs" 332 26 332 87
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_Option_usize = None | Some UInt64.t
+
+constant const_MIN: UInt64.t = (0: UInt64.t)
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+let checked_sub (self_: UInt64.t) (rhs: UInt64.t) (return (x: t_Option_usize)) = any
+  [ return (result: t_Option_usize) ->
+  {[@stop_split] [@expl:checked_sub ensures] ([@stop_split] [@expl:checked_sub ensures #0] [%#snum] (result = None)
+      = (UInt64.t'int self_ - UInt64.t'int rhs < UInt64.t'int const_MIN
+      \/ gt_log_Int (UInt64.t'int self_ - UInt64.t'int rhs) (UInt64.t'int const_MAX)))
+    /\ ([@stop_split] [@expl:checked_sub ensures #1] [%#snum'0] forall r: UInt64.t. result = Some r
+      -> UInt64.t'int r = UInt64.t'int self_ - UInt64.t'int rhs)}
+    (! return {result}) ]
+
+let elim_Some (_x: t_Option_usize) (return (f0: UInt64.t)) = any
+  [ _k (f0: UInt64.t) -> {Some f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_Option_u64 = None'0 | Some'0 UInt64.t
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function le_weight [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/variable_read_ops.rs" 23 0 23 54] (bytes: Seq.seq UInt8.t) (n: int) : int
+
+type t_RangeFrom_Int = { start: int }
+
+function index_Seq_u8 [@inline:trivial] (self: Seq.seq UInt8.t) (range: t_RangeFrom_Int) : Seq.seq UInt8.t =
+  [%#sseq] Seq.([..]) self range.start (Seq.length self)
+
+meta "rewrite_def" function index_Seq_u8
+
+let read_le_u64 (input: MutBorrow.t (Slice64.slice UInt8.t)) (nbytes: UInt64.t) (return (x: t_Option_u64)) =
+{[@stop_split] [@expl:read_le_u64 requires] [%#svariable_read_ops] UInt64.t'int nbytes <= 8}
+  any
+  [ return (result: t_Option_u64) ->
+  {[@stop_split] [@expl:read_le_u64 ensures] [%#svariable_read_ops'0] match result with
+      | Some'0 value -> ge_log_Int (Seq.length (Slice64.view input.current)) (UInt64.t'int nbytes)
+      /\ UInt64.t'int value = le_weight (Slice64.view input.current) (UInt64.t'int nbytes)
+      /\ Slice64.view input.final = index_Seq_u8 (Slice64.view input.current) { start = UInt64.t'int nbytes }
+      | None'0 -> Seq.length (Slice64.view input.current) < UInt64.t'int nbytes
+      /\ Slice64.view input.final = Slice64.view input.current
+      end}
+    (! return {result}) ]
+
+predicate resolve_refmut_ref_slice_u8 [@inline:trivial] (_1: MutBorrow.t (Slice64.slice UInt8.t)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_ref_slice_u8
+
+let len_u8 (self_: Slice64.slice UInt8.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+type t_TryGetError = { requested: UInt64.t; available: UInt64.t }
+
+type t_Result_u64_TryGetError = Ok UInt64.t | Err t_TryGetError
+
+predicate resolve_TryGetError [@inline:trivial] (_1: t_TryGetError) = true
+
+meta "rewrite_def" predicate resolve_TryGetError
+
+let ok_or_u64 (self_: t_Option_u64) (err: t_TryGetError) (return (x: t_Result_u64_TryGetError)) = any
+  [ return (result: t_Result_u64_TryGetError) -> {[@stop_split] [@expl:ok_or ensures] [%#soption] match self_ with
+      | None'0 -> result = Err err
+      | Some'0 t -> result = Ok t /\ resolve_TryGetError err
+      end}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let try_get_uint_le [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-slice-buf-overrides-aa8145414d659310/out/actual_slice_overrides.rs" 310 0 310 84]
+  (input: MutBorrow.t (Slice64.slice UInt8.t)) (nbytes: UInt64.t) (return (x: t_Result_u64_TryGetError)) =
+{[@stop_split] [@expl:try_get_uint_le requires] [%#sactual_slice_overrides'5] UInt64.le nbytes (8: UInt64.t)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = checked_sub [%#sactual_slice_overrides'0] {[%#sactual_slice_overrides] (8: UInt64.t)} {nbytes}
+        (fun (_x: t_Option_usize) -> [ &_9 <- _x ] s1)
+    | s1 = any [ br0 -> {_9 = None} (! bb4) | br1 (x0: UInt64.t) -> {_9 = Some x0} (! bb5) ] ]
+  | bb5 = s0
+    [ s0 = elim_Some {_9} (fun (r0: UInt64.t) -> [ &slice_at <- r0 ] s1)
+    | s1 = MutBorrow.borrow_final <Slice64.slice UInt8.t> {input.current} {MutBorrow.get_id input}
+        (fun (_bor: MutBorrow.t (Slice64.slice UInt8.t)) ->
+          [ &_16 <- _bor ] [ &input <- { input with current = _bor.final } ] s2)
+    | s2 = read_le_u64 [%#sactual_slice_overrides'1] {_16} {nbytes} (fun (_x: t_Option_u64) -> [ &_15 <- _x ] s3)
+    | s3 = -{resolve_refmut_ref_slice_u8 input}- s4
+    | s4 = len_u8 [%#sactual_slice_overrides'2] {input.current} (fun (_x: UInt64.t) -> [ &_20 <- _x ] s5)
+    | s5 = [ &_18 <- { requested = nbytes; available = _20 } ] s6
+    | s6 = ok_or_u64 [%#sactual_slice_overrides'3] {_15} {_18}
+        (fun (_x: t_Result_u64_TryGetError) -> [ &_ret <- _x ] s7)
+    | s7 = return {_ret} ]
+  | bb4 = s0 [ s0 = -{resolve_refmut_ref_slice_u8 input}- s1 | s1 = {[%#sactual_slice_overrides'4] false} any ] ]
+  [ & _ret: t_Result_u64_TryGetError = Any.any_l ()
+  | & input: MutBorrow.t (Slice64.slice UInt8.t) = input
+  | & nbytes: UInt64.t = nbytes
+  | & _9: t_Option_usize = Any.any_l ()
+  | & slice_at: UInt64.t = Any.any_l ()
+  | & _15: t_Option_u64 = Any.any_l ()
+  | & _16: MutBorrow.t (Slice64.slice UInt8.t) = Any.any_l ()
+  | & _18: t_TryGetError = Any.any_l ()
+  | & _20: UInt64.t = Any.any_l () ])
+  [ return (result: t_Result_u64_TryGetError) ->
+  {[@stop_split] [@expl:try_get_uint_le ensures] [%#sactual_slice_overrides'6] match result with
+      | Ok value -> ge_log_Int (Seq.length (Slice64.view input.current)) (UInt64.t'int nbytes)
+      /\ UInt64.t'int value = le_weight (Slice64.view input.current) (UInt64.t'int nbytes)
+      /\ Slice64.view input.final = index_Seq_u8 (Slice64.view input.current) { start = UInt64.t'int nbytes }
+      | Err error -> Seq.length (Slice64.view input.current) < UInt64.t'int nbytes
+      /\ error.requested = nbytes
+      /\ UInt64.t'int error.available = Seq.length (Slice64.view input.current)
+      /\ Slice64.view input.final = Slice64.view input.current
+      end}
+    (! return {result}) ]

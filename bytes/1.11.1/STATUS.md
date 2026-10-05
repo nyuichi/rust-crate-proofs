@@ -2,6 +2,16 @@
 
 ## Current working-tree status (2026-10-05)
 
+The complete concrete slice Buf body gate passes 82 files with zero unproved
+leaves and three native matrices: 19 checked integer readers, 19 normal-return
+getters and remaining/chunk (40 bodies). Variable unsigned reads allow 0..=8
+bytes. 19 native getters use equivalent match syntax to avoid the absent
+Result::unwrap_or_else contract; ordinary test_bytes118 and no_std pass. The
+83-file wrong-available negative rejects one intended leaf (1/2). Getter input
+and width preconditions exclude panic/unwind; exact extracted panic bodies are
+uncallable from proved paths and add no trust. Trait dispatch/refinement and
+full-crate proof remain excluded. Evidence: slice-buf-overrides/complete-*.
+
 The scalable sequential ticket/physical-region protocol passes 45 proof files
 with zero unproved leaves and one native matrix. It supports repeated affine
 replacement, exact dynamic pending entries, fresh monotonic IDs, disjoint
