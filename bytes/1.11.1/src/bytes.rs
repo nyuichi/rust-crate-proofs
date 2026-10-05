@@ -117,6 +117,8 @@ pub struct Bytes {
 }
 
 pub(crate) struct Vtable {
+    /// Marks the two Vec-backed tables whose storage must be promoted before truncation.
+    pub promotable: bool,
     /// fn(data, ptr, len, current_vtable)
     ///
     /// Pass the current table so callbacks that preserve the storage kind do
@@ -603,9 +605,7 @@ impl Bytes {
             // The Vec "promotable" vtables do not store the capacity,
             // so we cannot truncate while using this repr. We *have* to
             // promote using `split_off` so the capacity can be stored.
-            if self.vtable as *const Vtable == &PROMOTABLE_EVEN_VTABLE
-                || self.vtable as *const Vtable == &PROMOTABLE_ODD_VTABLE
-            {
+            if self.vtable.promotable {
                 drop(self.split_off(len));
             } else {
                 self.len = len;
@@ -1206,6 +1206,7 @@ impl fmt::Debug for Vtable {
 // ===== impl StaticVtable =====
 
 const STATIC_VTABLE: Vtable = Vtable {
+    promotable: false,
     clone: static_clone,
     into_vec: static_to_vec,
     into_mut: static_to_mut,
@@ -1255,6 +1256,7 @@ struct Owned<T> {
 
 impl<T> Owned<T> {
     const VTABLE: Vtable = Vtable {
+        promotable: false,
         clone: owned_clone::<T>,
         into_vec: owned_to_vec::<T>,
         into_mut: owned_to_mut::<T>,
@@ -1324,6 +1326,7 @@ unsafe fn owned_drop<T>(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) 
 // ===== impl PromotableVtable =====
 
 static PROMOTABLE_EVEN_VTABLE: Vtable = Vtable {
+    promotable: true,
     clone: promotable_even_clone,
     into_vec: promotable_even_to_vec,
     into_mut: promotable_even_to_mut,
@@ -1332,6 +1335,7 @@ static PROMOTABLE_EVEN_VTABLE: Vtable = Vtable {
 };
 
 static PROMOTABLE_ODD_VTABLE: Vtable = Vtable {
+    promotable: true,
     clone: promotable_odd_clone,
     into_vec: promotable_odd_to_vec,
     into_mut: promotable_odd_to_mut,
@@ -1518,6 +1522,7 @@ impl Drop for Shared {
 const _: [(); 0 - mem::align_of::<Shared>() % 2] = []; // Assert that the alignment of `Shared` is divisible by 2.
 
 static SHARED_VTABLE: Vtable = Vtable {
+    promotable: false,
     clone: shared_clone,
     into_vec: shared_to_vec,
     into_mut: shared_to_mut,
@@ -1792,6 +1797,54 @@ fn _split_to_must_use() {}
 /// }
 /// ```
 fn _split_off_must_use() {}
+
+#[cfg(all(test, not(loom)))]
+mod promotable_vtable_tests {
+    use super::{Bytes, Owned, Vtable, PROMOTABLE_EVEN_VTABLE, PROMOTABLE_ODD_VTABLE, SHARED_VTABLE, STATIC_VTABLE};
+    use crate::BytesMut;
+    use alloc::vec;
+    use alloc::vec::Vec;
+
+    fn assert_matches_old_pointer_classifier(vtable: &Vtable) {
+        let was_promotable = core::ptr::eq(vtable, &PROMOTABLE_EVEN_VTABLE)
+            || core::ptr::eq(vtable, &PROMOTABLE_ODD_VTABLE);
+        assert_eq!(vtable.promotable, was_promotable);
+    }
+
+    #[test]
+    fn promotable_tag_matches_old_classifier_for_all_vtable_paths() {
+        // Check each table initializer in bytes.rs directly, including both
+        // promotable tables regardless of the allocator's alignment choice.
+        assert_matches_old_pointer_classifier(&STATIC_VTABLE);
+        assert_matches_old_pointer_classifier(&Owned::<Vec<u8>>::VTABLE);
+        assert_matches_old_pointer_classifier(&PROMOTABLE_EVEN_VTABLE);
+        assert_matches_old_pointer_classifier(&PROMOTABLE_ODD_VTABLE);
+        assert_matches_old_pointer_classifier(&SHARED_VTABLE);
+
+        // Check the reachable static, owner, shared Bytes, boxed-slice, and
+        // BytesMut shared-storage paths as well.
+        let static_bytes = Bytes::from_static(b"static");
+        assert_matches_old_pointer_classifier(static_bytes.vtable);
+
+        let owner_bytes = Bytes::from_owner(vec![1, 2, 3]);
+        assert_matches_old_pointer_classifier(owner_bytes.vtable);
+
+        let mut spare_capacity = Vec::with_capacity(16);
+        spare_capacity.extend_from_slice(b"shared");
+        let shared_bytes = Bytes::from(spare_capacity);
+        assert_matches_old_pointer_classifier(shared_bytes.vtable);
+
+        let boxed_bytes = Bytes::from(vec![4, 5, 6].into_boxed_slice());
+        assert_matches_old_pointer_classifier(boxed_bytes.vtable);
+
+        let mut mutable = BytesMut::from(&b"mutable shared bytes"[..]);
+        let prefix: Bytes = mutable.split_to(7).into();
+        let suffix: Bytes = mutable.into();
+        assert!(!core::ptr::eq(prefix.vtable, &SHARED_VTABLE));
+        assert_matches_old_pointer_classifier(prefix.vtable);
+        assert_matches_old_pointer_classifier(suffix.vtable);
+    }
+}
 
 // fuzz tests
 #[cfg(all(test, loom))]

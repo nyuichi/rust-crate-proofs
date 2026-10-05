@@ -50,7 +50,7 @@ mod tests {
     unsafe fn forbidden_mut(_: &AtomicPtr<()>, _: *const u8, _: usize) -> crate::BytesMut { panic!("dispatch excluded") }
     unsafe fn forbidden_unique(_: &AtomicPtr<()>) -> bool { panic!("dispatch excluded") }
     unsafe fn forbidden_drop(_: &mut AtomicPtr<()>, _: *const u8, _: usize) { panic!("dispatch excluded") }
-    static TABLE: Vtable = Vtable { clone: forbidden_clone, into_vec: forbidden_vec, into_mut: forbidden_mut, is_unique: forbidden_unique, drop: forbidden_drop };
+    static TABLE: Vtable = Vtable { promotable: false, clone: forbidden_clone, into_vec: forbidden_vec, into_mut: forbidden_mut, is_unique: forbidden_unique, drop: forbidden_drop };
     #[test]
     fn actual_receiver_reads_and_explicit_close() {
         for values in [alloc::vec![], alloc::vec![7], alloc::vec![2,4,6,8]] {
