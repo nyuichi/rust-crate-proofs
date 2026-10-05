@@ -1,8 +1,8 @@
 # Native integration frontier, 2026-10-05
 
-The current crate-wide `verify-all` attempt fails before body verification on
-five trait diagnostics: `Bytes` Send/Sync, `Bytes::deref`, `BytesMut::deref`, and
-`BytesMut::deref_mut`. The exact diagnostic log is in `logs/verify-all.log`.
+The first resumed crate-wide `verify-all` attempt failed before body verification
+on five trait diagnostics: `Bytes` Send/Sync, `Bytes::deref`, `BytesMut::deref`, and
+`BytesMut::deref_mut`. That historical diagnostic log is in `logs/verify-all.log`.
 Passing cfg/extraction probes do not establish that the native crate verifies.
 
 At pinned Creusot `318615be3b8bbc60d1f6d52469ba5c0bdebed4f1`,
