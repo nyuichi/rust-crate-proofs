@@ -8,6 +8,9 @@ authorize staging unrelated in-progress source changes.
 
 - `http/1.5.0/verification/CHECKPOINT_2026-10-05.md`
 - `http/1.5.0/verification/CHECKPOINT_STAGE_LIST_2026-10-05.md`
+- `http/1.5.0/PROVENANCE.md`, `IMPLEMENTATION_INVENTORY.md`,
+  `API_EVIDENCE.json`, `API_INVENTORY.json`, and the focused component README
+  changes referenced from the checkpoint.
 - Current source files needed for the accepted groups: `src/header/name.rs`,
   `src/header/value.rs`, `src/header/map.rs`, `src/request.rs`,
   `src/response.rs`, and URI support sources listed by the accepted URI
@@ -29,6 +32,13 @@ authorize staging unrelated in-progress source changes.
 - HeaderValue current helper: the complete
   `verification/headers/evidence/archived_snapshots/value_hex_digit_repair_v1/`
   archive and `verification/headers/evidence/header-value-debug-parity-2026-10-05.json`.
+- HeaderValue numeric/hex checkpoint: the complete
+  `verification/headers/evidence/archived_snapshots/value_numeric_hex_contract_v1/`
+  archive. Its snapshot SHA-256 is
+  `284c03c850a41e7d5d4aaba5c3f469a9cbc6876a1075bb3c0f98ce3c968508ff`; it
+  records the exact `value.rs` source SHA `5420fc7682706cb56adc2516a94cd29182ffad5997186cf59593742549c9f8f6`,
+  the `From<u16>` body/refinement, and `hex_digit` (3 targets / 12 own leaves).
+  Other integer `From` implementations remain open.
 - HeaderValue historical group: the complete
   `verification/headers/evidence/archived_snapshots/value_complete_translation_v7/`
   archive. Keep it labeled historical; it records the older `value.rs` source
@@ -47,13 +57,15 @@ authorize staging unrelated in-progress source changes.
 - URI `Parts` / conversion partial batch:
   `verification/uri/evidence/parts-uri-constructors-2026-10-05/` (manifest,
   selected COMAs and proof JSONs, `sources-at-emission/` copies, and the
-  recursive recorded-tree audit). The manifest SHA-256 is
-  `ece93d91b01e0b2ae6497d21c9ace3a87e885750cffc855ae5295f113f9535d2`.
-  It records 12 roots with 55 terminal nodes (48 prover results, 7 nulls).
-  The audit validates JSON accounting only; expected child arity from COMA is
-  still unverified, so this is staged as an explicit partial result. Do not
-  stage current URI working files on the strength of this archive; the manifest
-  identifies post-emission source changes.
+  independent `recursive-vc-arity-audit.json`). The current manifest SHA-256
+  is `0a7fe4f6ce5b821c4d46a74cd5cc53422340595e743ef44a7f13555d7a93a437` and the
+  arity audit SHA-256 is
+  `73c31f70f650bdc136ddf5e174eb82a7b1115a1f73e45b2f792315e1e9f79f5e`. It
+  records 12 roots / 55 expected own terminal leaves: 48 prover results and 7
+  unresolved leaves; the COMA arity audit accounts for all 55. It remains an
+  explicit partial result. Do not stage current URI working files on the
+  strength of this archive; the manifest identifies post-emission source
+  changes.
 - URI Authority comparisons:
   `verification/uri/evidence/authority-comparison-2026-10-05/` (manifest,
   proof artifacts, proof logs, and `sources-at-emission/src/uri/{authority.rs,mod.rs}`).
@@ -73,6 +85,16 @@ authorize staging unrelated in-progress source changes.
   (manifest, four exact COMA/proof artifacts, and captured source files). It
   records the proved one-leaf power-of-two lemma and `try_with_capacity` body
   proof, plus a passing normal HTTP library check.
+- HeaderMap Entry accessors:
+  `verification/header-map-api/evidence/run-2026-10-05-entry-accessors/`
+  (manifest, `commands.log`, `proof-results.txt`, six exact COMAs and six proof
+  JSONs under `artifacts/`, the no-preprocess solver-free
+  `recursive-vc-arity-audit.json`, its script, and source snapshots). The
+  manifest SHA-256 is
+  `75dcc4f7db526ef711cb9e4a8d2171a59d2f5e72b02b4f2828684ea4476347ad`.
+  Six source bodies pass (6 own leaves) with four `Vec<Bucket<T>>` index
+  support leaves. Occupied accessor postconditions are conditional on an
+  in-range index and do not prove occupancy or lookup reachability.
 - Native regression evidence for the current post-rebase checkpoint:
   `verification/runtime-check/evidence/http-native-checkpoint-results-2026-10-05.json`,
   the matching all-features summary, and the source snapshot referenced by that

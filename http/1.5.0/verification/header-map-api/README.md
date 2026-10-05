@@ -1,10 +1,10 @@
 # HeaderMap actual-source API leaves
 
-> **Checkpoint note (2026-10-05):** This page describes the earlier
-> seven-method/Vec-bound run. The current selected results also include a conditional
-> `IterMut::next_unsafe` proof run; its nested split arity is not independently
-> checked yet. The public Iterator graph proof and two generic `len` layout
-> obligations remain open. See
+> **Checkpoint note (2026-10-05):** This page records the earlier
+> seven-method/Vec-bound run, plus later Entry accessor and conditional
+> `IterMut::next_unsafe` results. The IterMut nested split arity has been
+> independently checked. The public Iterator graph proof and two generic
+> `len` layout obligations remain open. See
 > [the HTTP checkpoint](../CHECKPOINT_2026-10-05.md) and the run manifests.
 
 This harness includes the production `src/header/map.rs`,
@@ -45,6 +45,33 @@ the permission helper and four Vec probes.
 This is a selected actual-source method run, not an integrated proof of the
 complete `HeaderMap` implementation. The helper and its calls are
 `cfg(creusot)`-only; normal runtime code is unchanged.
+
+## Entry accessor checkpoint
+
+The focused archive at
+[`evidence/run-2026-10-05-entry-accessors/manifest.json`](evidence/run-2026-10-05-entry-accessors/manifest.json)
+records a fresh named-profile emission and proof for these six actual-source
+method bodies:
+
+| Methods | Own body leaves | Vec index support leaves |
+|---|---:|---:|
+| `VacantEntry::{key,into_key}` | 2 | 0 |
+| `OccupiedEntry::{key,get,get_mut,into_mut}` | 4 | 4 |
+| Total | 6 | 4 |
+
+All 10 leaves passed. Each target's COMA-derived root set has the same arity
+as its proof JSON: the two vacant projections each have one direct own task;
+each occupied projection has one direct own task and one `Vec<Bucket<T>>`
+index/index-mut support task. The proof trees are flat, with no nested or
+unresolved child nodes.
+
+The occupied accessors require only `entry.index < entry.map.entries.len()`.
+Their postconditions connect the result to the selected storage slot. This
+proves the conditional indexed projection bodies; it does not prove that a
+selected slot is occupied, that it matches a lookup key, or that a valid
+`OccupiedEntry` was produced by the map's public lookup/entry path. The
+`http_map_entry_api_leaf` feature is enabled only in the verification harness
+alongside `http_map_api_leaf`; the normal crate configuration is unchanged.
 
 ## Reproduce
 

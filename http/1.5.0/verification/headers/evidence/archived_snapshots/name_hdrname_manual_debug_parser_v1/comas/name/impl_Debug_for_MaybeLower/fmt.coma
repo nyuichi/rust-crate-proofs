@@ -1,0 +1,102 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 114 9 114 14 *)
+
+(* <header::name::MaybeLower<'a> as std::fmt::Debug> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 135 20 135 24
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 133 18 133 76
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 114 9 114 14
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 117 4 117 17
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 118 4 118 15
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.prelude.Any
+
+type t_MaybeLower = { buf: Slice64.slice UInt8.t; lower: bool }
+
+type dyn_Debug
+
+function dyn_Debug_of_ref_slice_u8 (x: Slice64.slice UInt8.t) : dyn_Debug
+
+function dyn_Debug_of_ref_bool (x: bool) : dyn_Debug
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+type t_Result_unit_Error = Ok () | Err ()
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'1] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+let rec debug_struct_field2_finish (self_: MutBorrow.t t_Formatter) (name: string) (name1: string) (value1: dyn_Debug)
+  (name2: string) (value2: dyn_Debug) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:debug_struct_field2_finish 'self_' type invariant] [%#sfmt] inv_refmut_Formatter self_}
+  any
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:debug_struct_field2_finish ensures] [%#sfmt'0] formatter_extends (deep_model_refmut_Formatter self_) (deep_model_Formatter self_.final)}
+    (! return {result}) ]
+
+predicate resolve_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Formatter
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec fmt_MaybeLower
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 114 9 114 14]
+  (self: t_MaybeLower) (f: MutBorrow.t t_Formatter) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:fmt 'f' type invariant] [%#sname] inv_refmut_Formatter f}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_5 <- [%#sname] "MaybeLower" ] s1
+    | s1 = [ &_7 <- [%#sname'0] "buf" ] s2
+    | s2 = [ &_10 <- self.buf ] s3
+    | s3 = [ &_8 <- dyn_Debug_of_ref_slice_u8 _10 ] s4
+    | s4 = [ &_12 <- [%#sname'1] "lower" ] s5
+    | s5 = [ &_15 <- self.lower ] s6
+    | s6 = [ &_13 <- dyn_Debug_of_ref_bool _15 ] s7
+    | s7 = MutBorrow.borrow_final <t_Formatter> {f.current} {MutBorrow.get_id f}
+        (fun (_bor: MutBorrow.t t_Formatter) ->
+          [ &_3 <- _bor ] -{inv_Formatter _bor.final}-
+          [ &f <- { f with current = _bor.final } ] s8)
+      [ _ck -> (! {[@expl:type invariant] inv_Formatter f.current} any) ]
+    | s8 = debug_struct_field2_finish [%#sname] {_3} {_5} {_7} {_8} {_12} {_13}
+        (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s9)
+    | s9 = s10 [ _ck -> (! {[@expl:type invariant] inv_refmut_Formatter f} any) ]
+    | s10 = -{resolve_refmut_Formatter f}- s11
+    | s11 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & self: t_MaybeLower = self
+  | & f: MutBorrow.t t_Formatter = f
+  | & _3: MutBorrow.t t_Formatter = Any.any_l ()
+  | & _5: string = Any.any_l ()
+  | & _7: string = Any.any_l ()
+  | & _8: dyn_Debug = Any.any_l ()
+  | & _10: Slice64.slice UInt8.t = Any.any_l ()
+  | & _12: string = Any.any_l ()
+  | & _13: dyn_Debug = Any.any_l ()
+  | & _15: bool = Any.any_l () ]) [ return (result: t_Result_unit_Error) -> (! return {result}) ]
