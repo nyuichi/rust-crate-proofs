@@ -8,7 +8,7 @@ pearlite-syn 0.13.0 with Cargo locks, pinned Why3/Why3find and fixed solver vers
 Their translation, primitive specifications, solver logic, Rust/LLVM and Global
 allocator semantics are foundational assumptions, not proved by these probes.
 
-## Current working-tree addition (2026-10-04)
+## Current working-tree addition (2026-10-05)
 
 - `B4-read`, `raw_vec::borrow_bound`, is an additional reviewed initialized
   read-only slice bridge. Shared borrows of the sealed descriptor and matching
@@ -233,3 +233,16 @@ The storage-ops prefix fill/copy loops are body proved with standard
 MaybeUninit<u8> contracts (four proof files, nine goals, native four tests). They
 add no local trusted primitive. Their separate gate does not prove runtime
 resize/extend callers until those callers are connected and verified.
+
+The 93-file unique-access gate reuses B4-read/B4-bound/B4-uninit with the full
+constructor region. It adds no physical primitive. The canonical Known clause
+on B4-bound follows from its existing Some(Some(final_byte)) clause; it is not
+an additional physical assumption. Unique cleanup consumes full Recovery and
+capacity coverage at offset zero; deallocation does not read Unknown u8 slots.
+Sixteen native tests include exact unique A-free counts with no S allocation.
+Global type invariants, traits and unique advance remain subsequent work.
+
+The unique-access/negative-unknown-publication archive records exactly one
+failed Known-prefix guard in actual set_len after unique spare storage is
+re-uninitialized (94 proof files; caller 13/14). Full allocation ownership and
+Some(None) are established before that attempted publication.

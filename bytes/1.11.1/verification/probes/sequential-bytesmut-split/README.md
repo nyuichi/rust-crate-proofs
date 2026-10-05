@@ -167,3 +167,40 @@ unique-state access and a global valid-handle invariant remain subsequent work.
 The readonly-access/lifetime-diagnostic archive records Rust E0505 rejecting
 release of a handle while a later read keeps its as_slice borrow live. This is
 translation/borrow-check evidence only, not a Why3 VC or automatic Drop proof.
+
+## Unique offset-zero access checkpoint
+
+The same actual access methods now accept a freshly detached unique handle as
+well as a registered shared handle. Native KIND metadata selects the branch;
+no Ghost value selects runtime behavior. The unique caller reads, truncates,
+initializes spare storage, publishes the byte with `set_len`, mutates and reads
+it, then explicitly returns full allocation authority to B3. Cleanup requires
+full unique ownership and an offset-zero bound descriptor; it does not require
+Known slots because B3 reconstructs a zero-length Vec and reads no byte.
+
+The positive gate proves 93 files, and all sixteen native tests pass. Unique
+allocator checks record no control allocation, no reallocation, and exactly one
+buffer free when capacity is nonzero. The B4-bound canonical `slot_known`
+postcondition is a redundant consequence of its existing exact byte writeback;
+this checkpoint adds no physical or ownership trusted primitive.
+
+`negative_unique_uninitialized_growth` truncates a unique handle, re-uninitializes
+its first spare byte, and attempts actual `set_len(1)`. Ownership and capacity
+remain valid; the intended rejection is the Known-prefix publication guard.
+Unique advancement, safe trait dispatch, and a global handle invariant remain
+separate work.
+
+## Unique-at-zero access checkpoint
+
+The unique-access positive archive contains 93 proof files with zero null leaves
+and sixteen native tests. The ordinary KIND_VEC branch borrows its existing
+constructor region for read/write/spare operations, and composes truncate and
+Known-only set_len with explicit unique cleanup. It does not mint a second
+region or allocate S. Explicit cleanup can free Unknown slots without reading;
+access/publication still need Known bytes. Unique advance, global invariant,
+actual traits and automatic Drop remain outside this checkpoint.
+
+The unique-access/negative-unknown-publication archive records exactly one
+failed Known-prefix guard in actual set_len after unique spare storage is
+re-uninitialized (94 proof files; caller 13/14). Full allocation ownership and
+Some(None) are established before that attempted publication.

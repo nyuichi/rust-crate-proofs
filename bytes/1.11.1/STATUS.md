@@ -1,6 +1,19 @@
 # bytes 1.11.1 runtime proof checkpoint
 
-## Current working-tree status (2026-10-04)
+## Current working-tree status (2026-10-05)
+
+The unified unique-at-offset-zero / Shared access gate passes 93 proof files
+with no unproved leaves and sixteen native tests. Actual as_slice, as_slice_mut,
+spare_capacity_mut, truncate, clear and set_len use the constructor's full unique
+Recovery/Region or the matching Shared packet. Unique writes preserve Recovery;
+no second detach or Shared allocation occurs. Explicit unique cleanup requires
+full ownership and offset-zero metadata, and safely frees Unknown spare slots
+without reading them. Access/publication still require Known bytes. B4-bound's
+canonical Known postcondition is logically redundant with its exact slot-value
+postcondition; no new physical trusted primitive is added. Canonical evidence
+is under unique-access/positive. Unique advance, global invariant and real trait
+integration are not established by this checkpoint.
+
 
 The storage-ops helper gate passes four proof files (nine discharged goals,
 no unproved leaves) and four native tests. The ordinary fill/copy loops operate
@@ -436,3 +449,13 @@ above do not establish complete bytes verification.
 The readonly-access/lifetime-diagnostic archive records Rust E0505 rejecting
 release of a handle while a later read keeps its as_slice borrow live. This is
 translation/borrow-check evidence only, not a Why3 VC or automatic Drop proof.
+
+The unique-access/negative-unknown-publication archive records exactly one
+failed Known-prefix guard in actual set_len after unique spare storage is
+re-uninitialized (94 proof files; caller 13/14). Full allocation ownership and
+Some(None) are established before that attempted publication.
+
+Fresh actual_from_vec constructor regression after unique access passes 56
+proof files, with zero unproved leaves. Frozen source/configuration and exact
+extraction are in bound-vec-constructor/unique-access/positive. Automatic Drop
+is excluded; cleanup is explicit.

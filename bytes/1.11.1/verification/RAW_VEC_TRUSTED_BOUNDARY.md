@@ -272,3 +272,10 @@ permission from integer metadata. Empty access grants no allocation liveness.
 The body-proved packet wrapper and actual as_slice callers pass 90 files;
 Unknown reading is rejected by one obligation among 91 files. This is local
 physical-access trust, not a trusted handle protocol.
+
+The unique-access checkpoint reuses the same sealed physical boundaries for
+constructor-owned full regions. Returning the full unique region to B3 requires
+no Known-prefix condition: the native recovery descriptor has length zero and
+frees the allocation without reading bytes. Normal slice access and set_len
+retain their Known requirements. The canonical slot_known clause on B4-bound
+only restates its exact initialized-byte writeback, adding no physical premise.
