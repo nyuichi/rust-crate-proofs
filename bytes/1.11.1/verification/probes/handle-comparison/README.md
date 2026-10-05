@@ -47,9 +47,13 @@ small component without importing physical ownership. This is a concrete
 slice specialization, not verification of arbitrary `T: Buf`.
 
 Native tests cover empty/prefix/mismatch/high-byte comparisons, UTF-8 strings,
-and iteration through empty and nonempty slices. Proof results and snapshots
-are recorded alongside the corresponding logs; no whole-crate or automatic
-Drop proof is implied by this gate.
+and iteration through empty and nonempty slices. The all-features native run
+also extracts the exact source bodies for `PartialEq<Vec<u8>> for BytesMut`,
+`PartialEq<BytesMut> for Vec<u8>`, and `PartialOrd<BytesMut> for Vec<u8>` to
+exercise the heterogeneous ordering implementation. That cross-type case is a
+native regression only; this gate does not claim its Creusot refinement. Proof
+results and snapshots are recorded alongside the corresponding logs; no
+whole-crate or automatic Drop proof is implied by this gate.
 
 Commands from the bytes crate directory:
 
@@ -62,5 +66,6 @@ bash verification/probes/handle-comparison/iterator/run.sh
 ```
 
 Proof commands use the shared lock and one prover. Request elevated execution
-for Why3 sockets. The ordinary implementation files remain unchanged; generated
+for Why3 sockets. Apart from the small vector operand-order fix recorded in
+`PROGRESS.md`, production comparison bodies remain unchanged; generated
 model/contract/purity annotations are proposals for reviewed integration.

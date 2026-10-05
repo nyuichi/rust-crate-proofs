@@ -114,6 +114,16 @@ impl DeepModel for BytesMut {
         generated.push_str(&format!("#[cfg(feature = \"actual-traits\")]\n{}\n", comparison_contracts(&original)));
         exact.push_str(&format!("{original}\n"));
     }
+    // The heterogeneous Vec comparisons are native-only here. They exercise
+    // the exact source bodies, while this gate's Creusot model proves only the
+    // self/slice adapters above.
+    for marker in ["impl PartialEq<Vec<u8>> for BytesMut {",
+        "impl PartialEq<BytesMut> for Vec<u8> {",
+        "impl PartialOrd<BytesMut> for Vec<u8> {"] {
+        let original = item(&source, marker);
+        generated.push_str(&format!("#[cfg(all(not(creusot), feature = \"actual-traits\", feature = \"readonly-deref\"))]\n{original}\n"));
+        exact.push_str(&format!("{original}\n"));
+    }
     generated.push_str(r#"
 #[cfg_attr(creusot, ensures(result.0 == (left.deep_model() == right.deep_model())))]
 #[cfg_attr(creusot, ensures(result.1 == left.deep_model().cmp_log(right.deep_model())))]
@@ -127,6 +137,14 @@ pub fn compare_unique(left: Vec<u8>, right: Vec<u8>) -> (bool, cmp::Ordering) {
     left.proof_release_unique_at_zero();
     right.proof_release_unique_at_zero();
     answer
+}
+#[cfg(all(feature = "actual-traits", feature = "readonly-deref", not(creusot)))]
+pub fn compare_vec_to_unique(left: Vec<u8>, right: Vec<u8>) -> (cmp::Ordering, cmp::Ordering) {
+    let right = BytesMut::from_vec(right);
+    let actual = left.partial_cmp(&right).unwrap();
+    let expected = left.as_slice().partial_cmp(right.as_slice()).unwrap();
+    right.proof_release_unique_at_zero();
+    (actual, expected)
 }
 #[cfg(all(creusot, feature = "negative_wrong_equality"))]
 #[requires(left.deep_model() != right.deep_model())]

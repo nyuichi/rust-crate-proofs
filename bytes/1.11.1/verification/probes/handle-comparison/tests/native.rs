@@ -11,6 +11,26 @@ fn comparisons_cover_empty_prefix_mismatch_and_high_bytes() {
     }
 }
 
+#[cfg(all(feature = "actual-traits", feature = "readonly-deref"))]
+#[test]
+fn vec_partial_order_matches_the_exact_bytes_mut_source_impl() {
+    use bytes_handle_comparison::compare_vec_to_unique;
+    use std::cmp::Ordering;
+
+    let cases: &[(&[u8], &[u8], Ordering)] = &[
+        (b"", b"", Ordering::Equal),
+        (&[0], &[1], Ordering::Less),
+        (&[1], &[0], Ordering::Greater),
+        (&[0], &[0, 1], Ordering::Less),
+        (&[0, 1], &[0], Ordering::Greater),
+        (&[0, 255], &[0, 128], Ordering::Greater),
+    ];
+
+    for &(left, right, expected) in cases {
+        assert_eq!(compare_vec_to_unique(left.to_vec(), right.to_vec()), (expected, expected));
+    }
+}
+
 #[cfg(feature = "str-adapters")]
 #[test]
 fn strings_compare_their_exact_utf8_bytes() {

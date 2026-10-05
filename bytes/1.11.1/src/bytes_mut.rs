@@ -3826,7 +3826,7 @@ impl PartialEq<BytesMut> for Vec<u8> {
 
 impl PartialOrd<BytesMut> for Vec<u8> {
     fn partial_cmp(&self, other: &BytesMut) -> Option<cmp::Ordering> {
-        other.partial_cmp(self)
+        self.as_slice().partial_cmp(other.as_slice())
     }
 }
 

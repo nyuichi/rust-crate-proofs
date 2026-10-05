@@ -43,6 +43,11 @@ pub fn compare_unique(left: Vec<u8>, right: Vec<u8>) -> (bool, core::cmp::Orderi
     actual::compare_unique(left, right)
 }
 
+#[cfg(all(feature = "actual-traits", feature = "readonly-deref", not(creusot)))]
+pub fn compare_vec_to_unique(left: Vec<u8>, right: Vec<u8>) -> (core::cmp::Ordering, core::cmp::Ordering) {
+    actual::compare_vec_to_unique(left, right)
+}
+
 #[cfg(feature = "str-adapters")]
 mod str_contract;
 

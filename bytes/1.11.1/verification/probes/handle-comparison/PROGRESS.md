@@ -1,7 +1,7 @@
 # Handle comparison and concrete iterator proof progress
 
-All changes in this increment are confined to this new probe. Production
-source files remain owned by the other integration tasks.
+Comparison changes include one small production fix plus its native regression;
+generated Creusot proof models remain confined to this probe.
 
 ## Established results
 
@@ -11,8 +11,22 @@ source files remain owned by the other integration tasks.
   `as_slice` bodies connect the checked initialized handle to its `Seq<Int>`
   view. Four unchanged self/slice adapter bodies prove exact equality and
   lexicographic order. Constructor/comparison/explicit-cleanup caller proved.
-- Native all-features: `logs/native-final.log`, **3 tests passed**. Covers 36
-  byte-pair comparisons, UTF-8 strings, and concrete slice iteration.
+  This is the archived earlier proof snapshot: its manifest's `build.rs` hash
+  predates the later native-only vector test extraction, so the current probe
+  has not yet been replayed into a matching manifest.
+- Native all-features: `logs/native-final-vector-regression.log`, **4 tests
+  passed**. Covers 36 byte-pair comparisons, UTF-8 strings, concrete slice
+  iteration, and the exact extracted heterogeneous `Vec<u8>` to `BytesMut`
+  partial-order source body. This last case is a native check, not a Creusot
+  trait-refinement proof. The production crate regression at
+  `../../tests/test_comparison.rs` also passes in
+  `logs/native-vec-order-fixed.log`.
+- The suspected defect was confirmed by the baseline
+  `logs/native-vec-order-counterexample.log`: `[0] < BytesMut([1])` returned
+  `Greater`. The production `Vec<u8>` implementation now compares the left
+  slice directly with `BytesMut::as_slice()`. Regression cases check equality,
+  opposite byte orders, unequal prefixes, and both heterogeneous operand
+  directions.
 - Concrete iterator initial attempt: body/accessor/size/law proofs succeed;
   one `next__refines` Some branch fails for missing sequence decomposition
   guidance. `iterator/evidence/iterator-refinement-before/` preserves it.
@@ -53,6 +67,15 @@ laws or iterator specification laws are trusted.
 ## Running follow-ups
 
 The strengthened `next` postcondition states both exact suffix advancement
-and singleton-prefix concatenation. Its exact runtime body remains unchanged.
-The combined readonly self/cross-slice traits and string adapters are queued
-under the common prover lock. Results will be appended after completion.
+and singleton-prefix concatenation. `logs/semantic-next-contract.log` reports
+**22 proof files passed**, but its source/result pair has no matching checked-in
+digest manifest; the older positive logs still show the prior refinement
+failure. A fresh replay compiled and translated the current source, then
+stopped before proving because the installed `why3find` rejects the wrapper's
+`--summary` argument. Rerun with the pinned compatible `why3find` before
+treating the 22-file result as verified against this checkpoint.
+
+`logs/readonly-str-traits.log` records a completed **100-file** proof run for
+the readonly comparison and string adapter configuration. The independent
+`actual-traits` run remains incomplete: `logs/traits-positive.log` has four
+failed refinement obligations in the self equality/order methods and caller.
