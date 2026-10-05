@@ -1,5 +1,31 @@
 # Concurrent verification progress (2026-10-05)
 
+## Cloud resume: stock Creusot weak physical connection
+
+`weak-native-publication` now passes3 proof files with native Relaxed/Release/
+Acquire orderings and sc-drf disabled. Release publishes only a snapshot of
+SyncView metadata. The deferred stock atomic load is converted to an Acquire
+witness by an actual `fence_acquire` before peer AtView synchronization. Missing
+Acquire, dropped prior publication and metadata-to-witness controls reject at
+the archived intended boundaries; the prior-publication test is sequential and
+does not claim all concurrent histories are detected.
+
+`weak-physical-retirement` passes36 files and connects a fixed two-ticket
+retirement protocol to actual affine PhysicalRegion and Recovery payloads. Both
+retirement orders join the conserved permissions and reach B3 only on the native
+final-result branch after Acquire. Removing Acquire rejects retire11/12. Native
+matrices exercise endpoints and spare capacity; they are sequential harnesses.
+
+The native atomic wrappers and generic release-RMW publication-history union
+remain explicit generic physical/weak-memory TCB. No bytes-specific ticket,
+refcount retirement or last-owner theorem is trusted. This is a component
+connection, not the actual Bytes Shared control/vtable protocol, arbitrary
+refcounts, native concurrent schedule adequacy, or whole-crate proof. Evidence:
+`probes/weak-native-publication/evidence` and
+`probes/weak-physical-retirement/evidence`.
+
+## Earlier Verus checkpoint (historical)
+
 Astra pursued a runnable Verus proof after the earlier source-only suitability
 audit. The new [probe](probes/verus-refcount/README.md) supplies positive and
 negative evidence without changing native Relaxed/Release/Acquire orderings,

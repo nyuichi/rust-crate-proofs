@@ -1,6 +1,60 @@
 # bytes 1.11.1 runtime proof checkpoint
 
-## Current checkpoint (2026-10-05)
+## Cloud resume results (2026-10-05)
+
+This session resumed `3e28a3b1` on `bytes-runtime-verification`, audited the
+archived handoff, rebuilt pinned stock Creusot0.13/Why3/why3find and matched
+source extraction to saved evidence. `verification/CLOUD_RUNTIME_2026-10-05.json`
+records the tool binaries. Results below are scoped gates, not whole-crate
+completion. Earlier checkpoints below remain historical.
+
+Validated and committed: actual cfg unique reserve/reclaim120, growing unique
+resize/append124, singleton Shared reserve100, adjacent same-control public cfg
+unsplit101, frozen receiver/read/recovery64, concrete slice iterator22, comparison
+readonly trait122, UninitSlice core8, carrier checkpoint replay117, weak generic
+publication3 and fixed-two-ticket physical retirement36. These counts are
+proved files; helper, source-sliced trait and restricted cfg scopes differ. Each
+probe README and archived source manifest states the admitted configurations.
+
+The native Vec-vs-BytesMut PartialOrd reversal was reproduced and fixed with a
+regression test. Native crate tests, including docs, currently pass1255; no_std
+check passes. Native observations establish no affine or concurrent protocol.
+
+Readonly immutable B4 classification passes34 and rejects erased mutable writes
+and a stale-read claim. Production BytesMut immutable purity now translates;
+mutable B4 remains non-ghost. The default-source readonly extraction still
+cannot prove AsRef's initialized-authority precondition without a handle
+invariant. Mutable Deref cannot be classified ghost: the preserved
+mutable-B4 diagnostic is a semantic counterexample.
+
+Actual integrated translation is still incomplete. The latest frontend attempt
+reports Bytes unsafe Send/Sync requiring trusted markers, default Bytes Deref
+purity, and BytesMut DerefMut purity. The unmodified compiler mandates trusted
+unsafe marker traits; no bytes marker/protocol was annotated trusted to pass.
+Fresh actual Clone dispatch fails unsupported function pointers; shared-reference
+affine fraction splitting also fails mutable-borrow requirements. The finite
+private Clone-enum translation feasibility does not integrate actual Clone or
+its atomic invariant. `verification/probes/native-integration-frontier` preserves
+concrete diagnostics and Astra's reviewed limits. Automatic Drop, general native
+Shared/vtable concurrency, arbitrary public trait implementors, and panic/unwind
+cleanup remain outside the current proof.
+
+Exact public cfg Shared reserve now passes106 files (105 plus a body-proved
+initialization-coordinate helper), including singleton and
+nonunique sibling callers; checked unique advance and its RawTransition helpers
+pass3. Requested-capacity construction replays101. Same-control public cfg
+unsplit empty/adoption/copy fallbacks pass115; independent-control fallbacks
+pass114, including singleton final retirement. The adjacent gate remains separate.
+UninitSlice projection and all six range-index variants pass12 per selected gate
+after adding a prophetic caller condition preserving already
+initialized bytes. The unsafe deinitialization counterexample against the old
+contract is retained; the repaired contract rejects it at the call precondition.
+The bounded raw UninitSlice constructor passes42 with the existing B4 authority;
+its wrong-pointer control leaves exactly the pointer-match requirement unproved.
+The ordinary bare-pointer signature is excluded. These proofs do not discharge
+automatic Drop or general Shared concurrency.
+
+## Pre-resume checkpoint (2026-10-05)
 
 Vtable source refactor: private clone callbacks now receive their actual current
 vtable. Static/Owned clones preserve that table instead of referencing its

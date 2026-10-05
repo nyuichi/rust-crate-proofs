@@ -333,3 +333,19 @@ The read bridge itself remains trusted physical TCB, not a body-proved
 raw-slice construction and not a trusted bytes ownership law. The earlier
 mutable-B4 ghost diagnostic remains a counterexample and is not repaired by
 this immutable-only classification. See `probes/readonly-b4-purity/evidence`.
+
+## Bounded raw UninitSlice conversion
+
+The `bytes_proof_bound_uninit_raw` constructor composes existing mutable B4
+`borrow_bound_uninit_mut` with the body-proved typed `UninitSlice::uninit`. It
+requires the actual raw argument to equal the pointer carried by the sealed
+descriptor and checks that equality in its executable body. An exclusive
+`Ghost<&'a mut PhysicalRegion>` ties the returned reference lifetime and final
+slot/frame facts to the existing namespace, capacity and interval capability.
+`BoundPtr::raw_pointer` is body-defined logic; its `as_ptr` relation is proved,
+not a new trusted pointer axiom. The positive full imported gate passes42 files.
+
+This adds no raw-pointer ownership mint or bytes protocol trust. Existing B4
+still justifies the physical raw slice borrow. The ordinary two-argument public
+unsafe API and arbitrary stack/foreign allocations are outside this bounded
+Global-Vec capability gate.
