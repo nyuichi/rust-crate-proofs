@@ -37,7 +37,7 @@ first checkpoint.
 - `http/1.5.0/verification/bytes/evidence/`
 - `http/1.5.0/verification/byte-str/evidence/`
 - `http/1.5.0/verification/byte-eq/evidence/creusot-std/partial_eq/seq_eq_u8_int_view_transport/`
-- `http/1.5.0/verification/byte-ord/evidence/creusot-std/`
+- `http/1.5.0/verification/byte-ord/evidence/`
 - `http/1.5.0/verification/hash-std/evidence/manifest.json`
 - `http/1.5.0/verification/hash-std/evidence/run-2026-10-05-hashword-modulo/`
 - `http/1.5.0/verification/map-capacity/evidence/manifest.json`

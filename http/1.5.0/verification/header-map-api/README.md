@@ -1,9 +1,10 @@
 # HeaderMap actual-source API leaves
 
 > **Checkpoint note (2026-10-05):** This page describes the earlier
-> seven-method/Vec-bound run. The current selected results also include the
-> conditional `IterMut::next_unsafe` body archive; the public Iterator graph
-> proof and two generic `len` layout obligations remain open. See
+> seven-method/Vec-bound run. The current selected results also include a conditional
+> `IterMut::next_unsafe` proof run; its nested split arity is not independently
+> checked yet. The public Iterator graph proof and two generic `len` layout
+> obligations remain open. See
 > [the HTTP checkpoint](../CHECKPOINT_2026-10-05.md) and the run manifests.
 
 This harness includes the production `src/header/map.rs`,
