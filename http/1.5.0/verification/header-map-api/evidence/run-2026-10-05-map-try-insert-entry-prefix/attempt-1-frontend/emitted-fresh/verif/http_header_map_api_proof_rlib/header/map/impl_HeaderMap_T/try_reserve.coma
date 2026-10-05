@@ -1,0 +1,703 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1276 4 1276 82 *)
+
+(* header::map::HeaderMap<T> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+let%span sconvert = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 31 18 31 32
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 658 18 661 9
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 675 25 675 33
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 671 18 674 9
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 160 14 160 114
+let%span sops'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 165 14 165 100
+let%span sops'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 170 14 170 61
+let%span sops'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 126 15 126 59
+let%span sops'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 127 14 127 38
+let%span sops'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 132 14 132 33
+let%span sops'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 137 15 137 31
+let%span sops'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 138 15 138 28
+let%span sops'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 139 14 139 30
+let%span sops'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 144 14 145 104
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 115 16 115 20
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 114 18 114 40
+let%span svec'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 96 22 96 41
+let%span svec'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 97 22 97 70
+let%span svec'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 169 18 169 34
+let%span svec'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 108 18 108 36
+let%span svec'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span svec'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 44 20 44 29
+let%span svec'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 89 20 89 30
+let%span svec'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 74 20 74 76
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 551 20 552 89
+let%span snum'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 555 26 555 87
+let%span snum'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 497 30 506 21
+let%span smap_capacity = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_capacity.rs" 6 10 6 46
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 11 0 11 32
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 84 14 84 63
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1279 18 1281 18
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1279 18 1282 36
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1283 24 1283 43
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1279 18 1283 44
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1279 18 1283 45
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1285 22 1285 42
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1285 22 1285 43
+let%span smap'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1287 21 1287 39
+let%span smap'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1288 26 1289 44
+let%span smap'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1290 28 1290 47
+let%span smap'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1288 26 1290 48
+let%span smap'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1288 26 1290 49
+let%span smap'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1291 25 1291 33
+let%span smap'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1292 27 1292 48
+let%span smap'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1295 15 1295 33
+let%span smap'14 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1295 37 1295 38
+let%span smap'15 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1296 46 1296 47
+let%span smap'16 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1296 16 1296 47
+let%span smap'17 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1297 36 1297 47
+let%span smap'18 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1297 31 1297 76
+let%span smap'19 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1298 50 1298 74
+let%span smap'20 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1298 31 1298 75
+let%span smap'21 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1300 16 1300 38
+let%span smap'22 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1300 16 1300 39
+let%span smap'23 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1276 28 1276 32
+let%span smap'24 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4762 28 4765 1
+let%span smap'25 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2714 21 2714 25
+let%span smap'26 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4738 4 4738 20
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 24 8 24 22
+let%span soption = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/option.rs" 269 19 269 56
+let%span soption'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/option.rs" 270 18 273 9
+
+use creusot.int.UInt16
+use creusot.slice.Slice64
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.MutBorrow
+use int.ComputerDivision
+use creusot.prelude.Any
+use int.Int
+
+type t_Vec_Bucket_T_Global
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+type t_Vec_ExtraValue_T_Global
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+type t_HeaderMap_T = {
+  mask: UInt16.t;
+  indices: Slice64.slice t_Pos;
+  entries: t_Vec_Bucket_T_Global;
+  extra_values: t_Vec_ExtraValue_T_Global;
+  danger: t_Danger }
+
+type t_HeaderName
+
+type t_T
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None | Some t_Links
+
+type t_Bucket_T = { hash'0: t_HashValue; key'0: t_HeaderName; value'0: t_T; links'0: t_Option_Links }
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Bucket_T (_1: t_Bucket_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Bucket_T [inv_Bucket_T x]. inv_Bucket_T x
+    = (inv_HeaderName x.key'0 /\ inv_T x.value'0)
+
+predicate invariant_ref_Bucket_T [@inline:trivial] (self: t_Bucket_T) = [%#sinvariant'0] inv_Bucket_T self
+
+meta "rewrite_def" predicate invariant_ref_Bucket_T
+
+predicate inv_ref_Bucket_T [@inline:trivial] (_1: t_Bucket_T) = invariant_ref_Bucket_T _1
+
+meta "rewrite_def" predicate inv_ref_Bucket_T
+
+predicate invariant_Seq_Bucket_T [@inline:trivial] (self: Seq.seq t_Bucket_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_Bucket_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_Bucket_T
+
+predicate inv_Seq_Bucket_T [@inline:trivial] (_1: Seq.seq t_Bucket_T) = invariant_Seq_Bucket_T _1
+
+meta "rewrite_def" predicate inv_Seq_Bucket_T
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) : Seq.seq t_Bucket_T
+
+axiom view_Vec_Bucket_T_Global_spec:
+  forall self: t_Vec_Bucket_T_Global. [%#svec'5] Seq.length (view_Vec_Bucket_T_Global self) <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) =
+  [%#svec'7] inv_Seq_Bucket_T (view_Vec_Bucket_T_Global self)
+
+predicate inv_Vec_Bucket_T_Global (_1: t_Vec_Bucket_T_Global)
+
+axiom inv_axiom'0: forall x: t_Vec_Bucket_T_Global [inv_Vec_Bucket_T_Global x]. inv_Vec_Bucket_T_Global x
+    -> invariant_Vec_Bucket_T_Global x
+
+predicate invariant_ref_Vec_Bucket_T_Global [@inline:trivial] (self: t_Vec_Bucket_T_Global) =
+  [%#sinvariant'0] inv_Vec_Bucket_T_Global self
+
+meta "rewrite_def" predicate invariant_ref_Vec_Bucket_T_Global
+
+predicate inv_ref_Vec_Bucket_T_Global [@inline:trivial] (_1: t_Vec_Bucket_T_Global) =
+  invariant_ref_Vec_Bucket_T_Global _1
+
+meta "rewrite_def" predicate inv_ref_Vec_Bucket_T_Global
+
+let rec len_Bucket_T (self_: t_Vec_Bucket_T_Global) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:len 'self_' type invariant] [%#svec] inv_ref_Vec_Bucket_T_Global self_}
+  any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#svec'0] UInt64.t'int result
+    = Seq.length (view_Vec_Bucket_T_Global self_)}
+    (! return {result}) ]
+
+type t_Option_usize = None'0 | Some'0 UInt64.t
+
+constant const_MIN: UInt64.t = (0: UInt64.t)
+
+let rec checked_add (self_: UInt64.t) (rhs: UInt64.t) (return (x: t_Option_usize)) = any
+  [ return (result: t_Option_usize) ->
+  {[@stop_split] [@expl:checked_add ensures] ([@stop_split] [@expl:checked_add ensures #0] [%#snum] (result = None'0)
+      = (UInt64.t'int self_ + UInt64.t'int rhs < UInt64.t'int const_MIN
+      \/ UInt64.t'int self_ + UInt64.t'int rhs > UInt64.t'int const_MAX))
+    /\ ([@stop_split] [@expl:checked_add ensures #1] [%#snum'0] forall r: UInt64.t. result = Some'0 r
+      -> UInt64.t'int r = UInt64.t'int self_ + UInt64.t'int rhs)}
+    (! return {result}) ]
+
+type t_MaxSizeReached = { _priv: () }
+
+type t_Result_usize_MaxSizeReached = Ok UInt64.t | Err t_MaxSizeReached
+
+predicate precondition_new [@inline:trivial] (self: ()) (args: ()) = [%#smap'26] let () = args in true
+
+meta "rewrite_def" predicate precondition_new
+
+predicate postcondition_once_new [@inline:trivial] (self: ()) (args: ()) (result: t_MaxSizeReached) =
+  [%#smap'26] let () = args in true
+
+meta "rewrite_def" predicate postcondition_once_new
+
+let rec ok_or_else_usize (self_: t_Option_usize) (err: ()) (return (x: t_Result_usize_MaxSizeReached)) =
+  {[@stop_split] [@expl:ok_or_else requires] [%#soption] self_ = None'0 -> precondition_new err ()}
+  any
+  [ return (result: t_Result_usize_MaxSizeReached) ->
+  {[@stop_split] [@expl:ok_or_else ensures] [%#soption'0] match self_ with
+      | None'0 -> exists r: t_MaxSizeReached. result = Err r /\ postcondition_once_new err () r
+      | Some'0 t -> result = Ok t
+      end}
+    (! return {result}) ]
+
+type t_Result_Infallible_MaxSizeReached = Ok'0 () | Err'0 t_MaxSizeReached
+
+type t_ControlFlow_Result_Infallible_MaxSizeReached_usize = Continue UInt64.t | Break t_Result_Infallible_MaxSizeReached
+
+predicate inv_Infallible [@inline:trivial] (_1: ()) = false
+
+meta "rewrite_def" predicate inv_Infallible
+
+predicate inv_Result_Infallible_MaxSizeReached (_1: t_Result_Infallible_MaxSizeReached)
+
+axiom inv_axiom'1 [@rewrite]:
+  forall x: t_Result_Infallible_MaxSizeReached [inv_Result_Infallible_MaxSizeReached x]. inv_Result_Infallible_MaxSizeReached x
+    = match x with
+      | Ok'0 f0'0 -> inv_Infallible f0'0
+      | Err'0 f0'0 -> true
+      end
+
+predicate inv_ControlFlow_Result_Infallible_MaxSizeReached_usize (_1: t_ControlFlow_Result_Infallible_MaxSizeReached_usize)
+
+axiom inv_axiom'2 [@rewrite]:
+  forall x: t_ControlFlow_Result_Infallible_MaxSizeReached_usize [inv_ControlFlow_Result_Infallible_MaxSizeReached_usize x]. inv_ControlFlow_Result_Infallible_MaxSizeReached_usize x
+    = match x with
+      | Continue f0'0 -> true
+      | Break f0'0 -> inv_Result_Infallible_MaxSizeReached f0'0
+      end
+
+let rec branch_Result_usize_MaxSizeReached (self_: t_Result_usize_MaxSizeReached)
+  (return (x: t_ControlFlow_Result_Infallible_MaxSizeReached_usize)) = any
+  [ return (result: t_ControlFlow_Result_Infallible_MaxSizeReached_usize) ->
+  {[@stop_split] [@expl:branch_Result_usize_MaxSizeReached ensures] ([@stop_split] [@expl:branch result type invariant] inv_ControlFlow_Result_Infallible_MaxSizeReached_usize result)
+    /\ ([@stop_split] [@expl:branch ensures] [%#sops] match self_ with
+      | Ok v -> result = Continue v
+      | Err e -> result = Break (Err'0 e)
+      end)}
+    (! return {result}) ]
+
+type t_Link = Entry UInt64.t | Extra UInt64.t
+
+type t_ExtraValue_T = { value'1: t_T; prev'1: t_Link; next'1: t_Link }
+
+predicate inv_ExtraValue_T (_1: t_ExtraValue_T)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_ExtraValue_T [inv_ExtraValue_T x]. inv_ExtraValue_T x = inv_T x.value'1
+
+predicate invariant_ref_ExtraValue_T [@inline:trivial] (self: t_ExtraValue_T) = [%#sinvariant'0] inv_ExtraValue_T self
+
+meta "rewrite_def" predicate invariant_ref_ExtraValue_T
+
+predicate inv_ref_ExtraValue_T [@inline:trivial] (_1: t_ExtraValue_T) = invariant_ref_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_ref_ExtraValue_T
+
+predicate invariant_Seq_ExtraValue_T [@inline:trivial] (self: Seq.seq t_ExtraValue_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_ExtraValue_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_ExtraValue_T
+
+predicate inv_Seq_ExtraValue_T [@inline:trivial] (_1: Seq.seq t_ExtraValue_T) = invariant_Seq_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_Seq_ExtraValue_T
+
+function view_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) : Seq.seq t_ExtraValue_T
+
+axiom view_Vec_ExtraValue_T_Global_spec:
+  forall self: t_Vec_ExtraValue_T_Global. [%#svec'5] Seq.length (view_Vec_ExtraValue_T_Global self)
+    <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) =
+  [%#svec'7] inv_Seq_ExtraValue_T (view_Vec_ExtraValue_T_Global self)
+
+predicate inv_Vec_ExtraValue_T_Global (_1: t_Vec_ExtraValue_T_Global)
+
+axiom inv_axiom'4: forall x: t_Vec_ExtraValue_T_Global [inv_Vec_ExtraValue_T_Global x]. inv_Vec_ExtraValue_T_Global x
+    -> invariant_Vec_ExtraValue_T_Global x
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom'5 [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0'0 -> inv_RandomState f0'0
+      end
+
+predicate inv_HeaderMap_T (_1: t_HeaderMap_T)
+
+axiom inv_axiom'6 [@rewrite]: forall x: t_HeaderMap_T [inv_HeaderMap_T x]. inv_HeaderMap_T x
+    = (inv_Vec_Bucket_T_Global x.entries /\ inv_Vec_ExtraValue_T_Global x.extra_values /\ inv_Danger x.danger)
+
+predicate invariant_refmut_HeaderMap_T [@inline:trivial] (self: MutBorrow.t t_HeaderMap_T) =
+  [%#sinvariant] inv_HeaderMap_T self.current /\ inv_HeaderMap_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_HeaderMap_T
+
+predicate inv_refmut_HeaderMap_T [@inline:trivial] (_1: MutBorrow.t t_HeaderMap_T) = invariant_refmut_HeaderMap_T _1
+
+meta "rewrite_def" predicate inv_refmut_HeaderMap_T
+
+predicate resolve_refmut_HeaderMap_T [@inline:trivial] (_1: MutBorrow.t t_HeaderMap_T) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_HeaderMap_T
+
+let rec elim_Break (_x: t_ControlFlow_Result_Infallible_MaxSizeReached_usize)
+  (return (f0'0: t_Result_Infallible_MaxSizeReached)) = any
+  [ _k (f0'0: t_Result_Infallible_MaxSizeReached) -> {Break f0'0 = _x} (! return {f0'0})
+  | _chk -> (! {[@expl:elim Break] match _x with
+      | Break _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_Result_unit_MaxSizeReached = Ok'1 () | Err'1 t_MaxSizeReached
+
+type tup2_Result_unit_MaxSizeReached_Result_Infallible_MaxSizeReached = {
+  f0'0: t_Result_unit_MaxSizeReached;
+  f1'0: t_Result_Infallible_MaxSizeReached }
+
+predicate postcondition_once_from [@inline:trivial] (self: ()) (args: t_MaxSizeReached) (result: t_MaxSizeReached) =
+  let self_ = args in [%#sconvert] result = self_
+
+meta "rewrite_def" predicate postcondition_once_from
+
+predicate resolve_from [@inline:trivial] (_1: ()) = true
+
+meta "rewrite_def" predicate resolve_from
+
+predicate postcondition_mut_from [@inline:trivial] (self: ()) (args: t_MaxSizeReached) (result_state: ()) (result: t_MaxSizeReached) =
+  let self_ = args in [%#sconvert] result = self_
+
+meta "rewrite_def" predicate postcondition_mut_from
+
+function fn_mut_once_from (self: ()) (args: t_MaxSizeReached) (res: t_MaxSizeReached) : ()
+
+axiom fn_mut_once_from_spec:
+  forall self: (), args: t_MaxSizeReached, res: t_MaxSizeReached. [%#sops'11] postcondition_once_from self args res
+    = (exists res_state: (). postcondition_mut_from self args res_state res /\ resolve_from res_state)
+
+predicate hist_inv_from [@inline:trivial] (self: ()) (result_state: ()) = true
+
+meta "rewrite_def" predicate hist_inv_from
+
+function hist_inv_trans_from (self: ()) (b: ()) (c: ()) : ()
+
+axiom hist_inv_trans_from_spec: forall self: (), b: (), c: (). ([%#sops'8] hist_inv_from self b)
+    -> ([%#sops'9] hist_inv_from b c) -> ([%#sops'10] hist_inv_from self c)
+
+function hist_inv_refl_from (self: ()) : ()
+
+axiom hist_inv_refl_from_spec: forall self: (). [%#sops'7] hist_inv_from self self
+
+function postcondition_mut_hist_inv_from (self: ()) (args: t_MaxSizeReached) (res_state: ()) (res: t_MaxSizeReached) : ()
+
+axiom postcondition_mut_hist_inv_from_spec:
+  forall self: (), args: t_MaxSizeReached, res_state: (), res: t_MaxSizeReached. ([%#sops'5] postcondition_mut_from self args res_state res)
+    -> ([%#sops'6] hist_inv_from self res_state)
+
+function fn_hist_inv_from (self: ()) (res_state: ()) : ()
+
+axiom fn_hist_inv_from_spec: forall self: (), res_state: (). [%#sops'4] hist_inv_from self res_state
+    = (self = res_state)
+
+predicate postcondition_from [@inline:trivial] (self: ()) (args: t_MaxSizeReached) (result: t_MaxSizeReached) =
+  let self_ = args in [%#sconvert] result = self_
+
+meta "rewrite_def" predicate postcondition_from
+
+function fn_once_from (self: ()) (args: t_MaxSizeReached) (res: t_MaxSizeReached) : ()
+
+axiom fn_once_from_spec:
+  forall self: (), args: t_MaxSizeReached, res: t_MaxSizeReached. [%#sops'3] postcondition_once_from self args res
+    = (postcondition_from self args res /\ resolve_from self)
+
+function fn_mut_from (self: ()) (args: t_MaxSizeReached) (res_state: ()) (res: t_MaxSizeReached) : ()
+
+axiom fn_mut_from_spec:
+  forall self: (), args: t_MaxSizeReached, res_state: (), res: t_MaxSizeReached. [%#sops'2] postcondition_mut_from self args res_state res
+    = (postcondition_from self args res /\ self = res_state)
+
+let rec from_MaxSizeReached (self_: t_MaxSizeReached) (return (x: t_MaxSizeReached)) = any
+  [ return (result: t_MaxSizeReached) -> {[@stop_split] [@expl:from ensures] [%#sconvert] result = self_}
+    (! return {result}) ]
+
+let rec from_residual_Result_unit_MaxSizeReached (residual: t_Result_Infallible_MaxSizeReached)
+  (return (x: t_Result_unit_MaxSizeReached)) =
+  {[@stop_split] [@expl:from_residual 'residual' type invariant] [%#sops'0] inv_Result_Infallible_MaxSizeReached residual}
+  any
+  [ return (result: t_Result_unit_MaxSizeReached) ->
+  {[@stop_split] [@expl:from_residual ensures] [%#sops'1] match { f0'0 = result; f1'0 = residual } with
+      | {f0'0 = Err'1 result'0; f1'0 = Err'0 residual'0} -> postcondition_from () residual'0 result'0
+      | _ -> false
+      end}
+    (! return {result}) ]
+
+let rec elim_Continue (_x: t_ControlFlow_Result_Infallible_MaxSizeReached_usize) (return (f0'1: UInt64.t)) = any
+  [ _k (f0'1: UInt64.t) -> {Continue f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Continue] match _x with
+      | Continue _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+let rec to_raw_capacity (n: UInt64.t) (return (x: t_Result_usize_MaxSizeReached)) = any
+  [ return (result: t_Result_usize_MaxSizeReached) ->
+  {[@stop_split] [@expl:to_raw_capacity ensures] [%#smap'24] match result with
+      | Ok raw -> UInt64.t'int raw = UInt64.t'int n + ComputerDivision.div (UInt64.t'int n) 3
+      | Err _ -> UInt64.t'int n + ComputerDivision.div (UInt64.t'int n) 3 > UInt64.t'int const_MAX
+      end}
+    (! return {result}) ]
+
+let rec len_Pos (self_: Slice64.slice t_Pos) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+let rec checked_next_power_of_two (self_: UInt64.t) (return (x: t_Option_usize)) = any
+  [ return (result: t_Option_usize) ->
+  {[@stop_split] [@expl:checked_next_power_of_two ensures] [%#snum'1] match result with
+      | Some'0 next'0 -> next'0 <> (0: UInt64.t)
+      /\ UInt64.bw_and next'0 (UInt64.sub next'0 (1: UInt64.t)) = (0: UInt64.t)
+      /\ UInt64.t'int self_ <= UInt64.t'int next'0
+      /\ (next'0 = (1: UInt64.t) \/ ComputerDivision.div (UInt64.t'int next'0) 2 < UInt64.t'int self_)
+      /\ (forall p: UInt64.t. UInt64.t'int self_ <= UInt64.t'int p
+          /\ p <> (0: UInt64.t) /\ UInt64.bw_and p (UInt64.sub p (1: UInt64.t)) = (0: UInt64.t)
+        -> UInt64.t'int next'0 <= UInt64.t'int p)
+      | None'0 -> UInt64.t'int self_ > ComputerDivision.div (UInt64.t'int const_MAX + 1) 2
+      end}
+    (! return {result}) ]
+
+constant const_MAX_SIZE: UInt64.t = [%#smap_index] (32768: UInt64.t)
+
+let rec new (return (x: t_MaxSizeReached)) = any [ return (result: t_MaxSizeReached) -> (! return {result}) ]
+
+constant const_MAX'0: UInt16.t = (65535: UInt16.t)
+
+let rec none (return (x: t_Pos)) = any
+  [ return (result: t_Pos) -> {[@stop_split] [@expl:none ensures] [%#smap_index'0] result.index = const_MAX'0
+    /\ result.hash.f0 = (0: UInt16.t)}
+    (! return {result}) ]
+
+type t_Vec_Pos_Global
+
+function view_Vec_Pos_Global (self: t_Vec_Pos_Global) : Seq.seq t_Pos
+
+axiom view_Vec_Pos_Global_spec: forall self: t_Vec_Pos_Global. [%#svec'5] Seq.length (view_Vec_Pos_Global self)
+    <= UInt64.t'int const_MAX
+
+function index_Vec_Pos_Global [@inline:trivial] (self: t_Vec_Pos_Global) (ix: int) : t_Pos =
+  [%#svec'6] Seq.get (view_Vec_Pos_Global self) ix
+
+meta "rewrite_def" function index_Vec_Pos_Global
+
+let rec from_elem_Pos (elem: t_Pos) (n: UInt64.t) (return (x: t_Vec_Pos_Global)) = any
+  [ return (result: t_Vec_Pos_Global) ->
+  {[@stop_split] [@expl:from_elem_Pos ensures] ([@stop_split] [@expl:from_elem ensures #0] [%#svec'1] Seq.length (view_Vec_Pos_Global result)
+      = UInt64.t'int n)
+    /\ ([@stop_split] [@expl:from_elem ensures #1] [%#svec'2] forall i: int. 0 <= i /\ i < UInt64.t'int n
+      -> index_Vec_Pos_Global result i = elem)}
+    (! return {result}) ]
+
+function view_Box_slice_Pos_Global [@inline:trivial] (self: Slice64.slice t_Pos) : Seq.seq t_Pos =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_Pos_Global
+
+let rec into_boxed_slice_Pos (self_: t_Vec_Pos_Global) (return (x: Slice64.slice t_Pos)) = any
+  [ return (result: Slice64.slice t_Pos) ->
+  {[@stop_split] [@expl:into_boxed_slice ensures] [%#svec'3] view_Box_slice_Pos_Global result
+    = view_Vec_Pos_Global self_}
+    (! return {result}) ]
+
+let rec usable_capacity (capacity: UInt64.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:usable_capacity ensures] [%#smap_capacity] UInt64.t'int result
+    = UInt64.t'int capacity - ComputerDivision.div (UInt64.t'int capacity) 4}
+    (! return {result}) ]
+
+let rec with_capacity_Bucket_T (capacity: UInt64.t) (return (x: t_Vec_Bucket_T_Global)) = any
+  [ return (result: t_Vec_Bucket_T_Global) ->
+  {[@stop_split] [@expl:with_capacity_Bucket_T ensures] ([@stop_split] [@expl:with_capacity result type invariant] inv_Vec_Bucket_T_Global result)
+    /\ ([@stop_split] [@expl:with_capacity ensures] [%#svec'4] Seq.length (view_Vec_Bucket_T_Global result) = 0)}
+    (! return {result}) ]
+
+predicate resolve_HeaderName (_1: t_HeaderName)
+
+predicate resolve_T (_1: t_T)
+
+predicate resolve_Bucket_T (_1: t_Bucket_T)
+
+axiom resolve_axiom [@rewrite]: forall x: t_Bucket_T [resolve_Bucket_T x]. resolve_Bucket_T x
+    = (resolve_HeaderName x.key'0 /\ resolve_T x.value'0)
+
+function index_Vec_Bucket_T_Global [@inline:trivial] (self: t_Vec_Bucket_T_Global) (ix: int) : t_Bucket_T =
+  [%#svec'6] Seq.get (view_Vec_Bucket_T_Global self) ix
+
+meta "rewrite_def" function index_Vec_Bucket_T_Global
+
+predicate resolve_Vec_Bucket_T_Global [@inline:trivial] (self: t_Vec_Bucket_T_Global) =
+  [%#svec'8] forall i: int. 0 <= i /\ i < Seq.length (view_Vec_Bucket_T_Global self)
+    -> resolve_Bucket_T (index_Vec_Bucket_T_Global self i)
+
+meta "rewrite_def" predicate resolve_Vec_Bucket_T_Global
+
+predicate resolve_Vec_Bucket_T_Global'0 (_1: t_Vec_Bucket_T_Global)
+
+axiom resolve_axiom'0:
+  forall x: t_Vec_Bucket_T_Global [resolve_Vec_Bucket_T_Global'0 x]. resolve_Vec_Bucket_T_Global'0 x
+    -> resolve_Vec_Bucket_T_Global x
+
+let rec try_grow_T (self: MutBorrow.t t_HeaderMap_T) (new_raw_cap: UInt64.t)
+  (return (x: t_Result_unit_MaxSizeReached)) =
+  {[@stop_split] [@expl:try_grow 'self' type invariant] [%#smap'25] inv_refmut_HeaderMap_T self}
+  any [ return (result: t_Result_unit_MaxSizeReached) -> (! return {result}) ]
+
+type t_ControlFlow_Result_Infallible_MaxSizeReached_unit = Continue'0 () | Break'0 t_Result_Infallible_MaxSizeReached
+
+predicate inv_ControlFlow_Result_Infallible_MaxSizeReached_unit (_1: t_ControlFlow_Result_Infallible_MaxSizeReached_unit)
+
+axiom inv_axiom'7 [@rewrite]:
+  forall x: t_ControlFlow_Result_Infallible_MaxSizeReached_unit [inv_ControlFlow_Result_Infallible_MaxSizeReached_unit x]. inv_ControlFlow_Result_Infallible_MaxSizeReached_unit x
+    = match x with
+      | Continue'0 f0'1 -> true
+      | Break'0 f0'1 -> inv_Result_Infallible_MaxSizeReached f0'1
+      end
+
+let rec branch_Result_unit_MaxSizeReached (self_: t_Result_unit_MaxSizeReached)
+  (return (x: t_ControlFlow_Result_Infallible_MaxSizeReached_unit)) = any
+  [ return (result: t_ControlFlow_Result_Infallible_MaxSizeReached_unit) ->
+  {[@stop_split] [@expl:branch_Result_unit_MaxSizeReached ensures] ([@stop_split] [@expl:branch result type invariant] inv_ControlFlow_Result_Infallible_MaxSizeReached_unit result)
+    /\ ([@stop_split] [@expl:branch ensures] [%#sops] match self_ with
+      | Ok'1 v -> result = Continue'0 v
+      | Err'1 e -> result = Break'0 (Err'0 e)
+      end)}
+    (! return {result}) ]
+
+let rec elim_Break'0 (_x: t_ControlFlow_Result_Infallible_MaxSizeReached_unit)
+  (return (f0'1: t_Result_Infallible_MaxSizeReached)) = any
+  [ _k (f0'1: t_Result_Infallible_MaxSizeReached) -> {Break'0 f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Break] match _x with
+      | Break'0 _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec try_reserve_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 1276 4 1276 82]
+  (self: MutBorrow.t t_HeaderMap_T) (additional: UInt64.t) (return (x: t_Result_unit_MaxSizeReached)) =
+  {[@stop_split] [@expl:try_reserve 'self' type invariant] [%#smap'23] inv_refmut_HeaderMap_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = len_Bucket_T [%#smap] {self.current.entries} (fun (_x: UInt64.t) -> [ &_7 <- _x ] s1)
+    | s1 = checked_add [%#smap'0] {_7} {additional} (fun (_x: t_Option_usize) -> [ &_6 <- _x ] s2)
+    | s2 = ok_or_else_usize [%#smap'2] {_6} {[%#smap'1] ()}
+        (fun (_x: t_Result_usize_MaxSizeReached) -> [ &_5 <- _x ] s3)
+    | s3 = branch_Result_usize_MaxSizeReached [%#smap'3] {_5}
+        (fun (_x: t_ControlFlow_Result_Infallible_MaxSizeReached_usize) -> [ &_4 <- _x ] s4)
+    | s4 = any
+      [ br0 (x0: UInt64.t) -> {_4 = Continue x0} (! bb7)
+      | br1 (x0: t_Result_Infallible_MaxSizeReached) -> {_4 = Break x0} (! bb6) ] ]
+  | bb6 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s1 = -{resolve_refmut_HeaderMap_T self}- s2
+    | s2 = elim_Break {_4} (fun (r0: t_Result_Infallible_MaxSizeReached) -> [ &residual <- r0 ] s3)
+    | s3 = from_residual_Result_unit_MaxSizeReached [%#smap'3] {residual}
+        (fun (_x: t_Result_unit_MaxSizeReached) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ]
+  | bb7 = s0
+    [ s0 = elim_Continue {_4} (fun (r0: UInt64.t) -> [ &val' <- r0 ] s1)
+    | s1 = [ &cap <- val' ] s2
+    | s2 = to_raw_capacity [%#smap'4] {cap} (fun (_x: t_Result_usize_MaxSizeReached) -> [ &_17 <- _x ] s3)
+    | s3 = branch_Result_usize_MaxSizeReached [%#smap'5] {_17}
+        (fun (_x: t_ControlFlow_Result_Infallible_MaxSizeReached_usize) -> [ &_16 <- _x ] s4)
+    | s4 = any
+      [ br0 (x0: UInt64.t) -> {_16 = Continue x0} (! bb14)
+      | br1 (x0: t_Result_Infallible_MaxSizeReached) -> {_16 = Break x0} (! bb13) ] ]
+  | bb13 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s1 = -{resolve_refmut_HeaderMap_T self}- s2
+    | s2 = elim_Break {_16} (fun (r0: t_Result_Infallible_MaxSizeReached) -> [ &residual'0 <- r0 ] s3)
+    | s3 = from_residual_Result_unit_MaxSizeReached [%#smap'5] {residual'0}
+        (fun (_x: t_Result_unit_MaxSizeReached) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ]
+  | bb14 = s0
+    [ s0 = elim_Continue {_16} (fun (r0: UInt64.t) -> [ &val''0 <- r0 ] s1)
+    | s1 = [ &raw_cap <- val''0 ] s2
+    | s2 = len_Pos [%#smap'6] {self.current.indices} (fun (_x: UInt64.t) -> [ &_27 <- _x ] s3)
+    | s3 = [ &_25 <- UInt64.gt raw_cap _27 ] s4
+    | s4 = any [ br0 -> {_25 = false} (! bb52) | br1 -> {_25} (! bb18) ] ]
+  | bb18 = s0
+    [ s0 = checked_next_power_of_two [%#smap'7] {raw_cap} (fun (_x: t_Option_usize) -> [ &_32 <- _x ] s1)
+    | s1 = ok_or_else_usize [%#smap'9] {_32} {[%#smap'8] ()}
+        (fun (_x: t_Result_usize_MaxSizeReached) -> [ &_31 <- _x ] s2)
+    | s2 = branch_Result_usize_MaxSizeReached [%#smap'10] {_31}
+        (fun (_x: t_ControlFlow_Result_Infallible_MaxSizeReached_usize) -> [ &_30 <- _x ] s3)
+    | s3 = any
+      [ br0 (x0: UInt64.t) -> {_30 = Continue x0} (! bb24)
+      | br1 (x0: t_Result_Infallible_MaxSizeReached) -> {_30 = Break x0} (! bb23) ] ]
+  | bb23 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s1 = -{resolve_refmut_HeaderMap_T self}- s2
+    | s2 = elim_Break {_30} (fun (r0: t_Result_Infallible_MaxSizeReached) -> [ &residual'1 <- r0 ] s3)
+    | s3 = from_residual_Result_unit_MaxSizeReached [%#smap'10] {residual'1}
+        (fun (_x: t_Result_unit_MaxSizeReached) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ]
+  | bb24 = s0
+    [ s0 = elim_Continue {_30} (fun (r0: UInt64.t) -> [ &val''1 <- r0 ] s1)
+    | s1 = [ &raw_cap'0 <- val''1 ] s2
+    | s2 = [ &_40 <- UInt64.gt raw_cap'0 ([%#smap'11] const_MAX_SIZE) ] s3
+    | s3 = any [ br0 -> {_40 = false} (! bb28) | br1 -> {_40} (! bb27) ] ]
+  | bb27 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s1 = -{resolve_refmut_HeaderMap_T self}- s2
+    | s2 = new [%#smap'12] (fun (_x: t_MaxSizeReached) -> [ &_43 <- _x ] s3)
+    | s3 = [ &_ret <- Err'1 _43 ] s4
+    | s4 = return {_ret} ]
+  | bb28 = s0
+    [ s0 = len_Bucket_T [%#smap'13] {self.current.entries} (fun (_x: UInt64.t) -> [ &_45 <- _x ] s1)
+    | s1 = [ &_44 <- _45 = ([%#smap'14] (0: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_44 = false} (! bb43) | br1 -> {_44} (! bb31) ] ]
+  | bb31 = s0
+    [ s0 = UInt16.of_int {UInt64.t'int raw_cap'0} (fun (_x: UInt16.t) -> [ &_47 <- _x ] s1)
+    | s1 = UInt16.sub [%#smap'16] {_47} {[%#smap'15] (1: UInt16.t)}
+        (fun (_x: UInt16.t) -> [ &self <- { self with current = { self.current with mask = _x } } ] s2)
+    | s2 = none [%#smap'17] (fun (_x: t_Pos) -> [ &_51 <- _x ] s3)
+    | s3 = from_elem_Pos {_51} {raw_cap'0} (fun (_x: t_Vec_Pos_Global) -> [ &_50 <- _x ] s4)
+    | s4 = into_boxed_slice_Pos [%#smap'18] {_50} (fun (_x: Slice64.slice t_Pos) -> [ &_49 <- _x ] s5)
+    | s5 = [ &self <- { self with current = { self.current with indices = _49 } } ] s6
+    | s6 = usable_capacity [%#smap'19] {raw_cap'0} (fun (_x: UInt64.t) -> [ &_54 <- _x ] s7)
+    | s7 = with_capacity_Bucket_T [%#smap'20] {_54} (fun (_x: t_Vec_Bucket_T_Global) -> [ &_53 <- _x ] s8)
+    | s8 = s9 [ _ck -> (! {[@expl:type invariant] inv_Vec_Bucket_T_Global self.current.entries} any) ]
+    | s9 = -{resolve_Vec_Bucket_T_Global'0 self.current.entries}- s10
+    | s10 = [ &self <- { self with current = { self.current with entries = _53 } } ] s11
+    | s11 = s12 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s12 = -{resolve_refmut_HeaderMap_T self}- s13
+    | s13 = bb53 ]
+  | bb43 = s0
+    [ s0 = MutBorrow.borrow_final <t_HeaderMap_T> {self.current} {MutBorrow.get_id self}
+        (fun (_bor: MutBorrow.t t_HeaderMap_T) ->
+          [ &_59 <- _bor ] -{inv_HeaderMap_T _bor.final}-
+          [ &self <- { self with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_HeaderMap_T self.current} any) ]
+    | s1 = try_grow_T [%#smap'21] {_59} {raw_cap'0} (fun (_x: t_Result_unit_MaxSizeReached) -> [ &_58 <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s3 = -{resolve_refmut_HeaderMap_T self}- s4
+    | s4 = branch_Result_unit_MaxSizeReached [%#smap'22] {_58}
+        (fun (_x: t_ControlFlow_Result_Infallible_MaxSizeReached_unit) -> [ &_57 <- _x ] s5)
+    | s5 = any
+      [ br0 (x0: ()) -> {_57 = Continue'0 x0} (! bb53)
+      | br1 (x0: t_Result_Infallible_MaxSizeReached) -> {_57 = Break'0 x0} (! bb49) ] ]
+  | bb49 = s0
+    [ s0 = elim_Break'0 {_57} (fun (r0: t_Result_Infallible_MaxSizeReached) -> [ &residual'2 <- r0 ] s1)
+    | s1 = from_residual_Result_unit_MaxSizeReached [%#smap'22] {residual'2}
+        (fun (_x: t_Result_unit_MaxSizeReached) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ]
+  | bb52 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s1 = -{resolve_refmut_HeaderMap_T self}- s2
+    | s2 = bb53 ]
+  | bb53 = s0 [ s0 = [ &_ret <- Ok'1 _66 ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_MaxSizeReached = Any.any_l ()
+  | & self: MutBorrow.t t_HeaderMap_T = self
+  | & additional: UInt64.t = additional
+  | & cap: UInt64.t = Any.any_l ()
+  | & _4: t_ControlFlow_Result_Infallible_MaxSizeReached_usize = Any.any_l ()
+  | & _5: t_Result_usize_MaxSizeReached = Any.any_l ()
+  | & _6: t_Option_usize = Any.any_l ()
+  | & _7: UInt64.t = Any.any_l ()
+  | & residual: t_Result_Infallible_MaxSizeReached = Any.any_l ()
+  | & val': UInt64.t = Any.any_l ()
+  | & raw_cap: UInt64.t = Any.any_l ()
+  | & _16: t_ControlFlow_Result_Infallible_MaxSizeReached_usize = Any.any_l ()
+  | & _17: t_Result_usize_MaxSizeReached = Any.any_l ()
+  | & residual'0: t_Result_Infallible_MaxSizeReached = Any.any_l ()
+  | & val''0: UInt64.t = Any.any_l ()
+  | & _25: bool = Any.any_l ()
+  | & _27: UInt64.t = Any.any_l ()
+  | & raw_cap'0: UInt64.t = Any.any_l ()
+  | & _30: t_ControlFlow_Result_Infallible_MaxSizeReached_usize = Any.any_l ()
+  | & _31: t_Result_usize_MaxSizeReached = Any.any_l ()
+  | & _32: t_Option_usize = Any.any_l ()
+  | & residual'1: t_Result_Infallible_MaxSizeReached = Any.any_l ()
+  | & val''1: UInt64.t = Any.any_l ()
+  | & _40: bool = Any.any_l ()
+  | & _43: t_MaxSizeReached = Any.any_l ()
+  | & _44: bool = Any.any_l ()
+  | & _45: UInt64.t = Any.any_l ()
+  | & _47: UInt16.t = Any.any_l ()
+  | & _49: Slice64.slice t_Pos = Any.any_l ()
+  | & _50: t_Vec_Pos_Global = Any.any_l ()
+  | & _51: t_Pos = Any.any_l ()
+  | & _53: t_Vec_Bucket_T_Global = Any.any_l ()
+  | & _54: UInt64.t = Any.any_l ()
+  | & _57: t_ControlFlow_Result_Infallible_MaxSizeReached_unit = Any.any_l ()
+  | & _58: t_Result_unit_MaxSizeReached = Any.any_l ()
+  | & _59: MutBorrow.t t_HeaderMap_T = Any.any_l ()
+  | & residual'2: t_Result_Infallible_MaxSizeReached = Any.any_l ()
+  | & _66: () = Any.any_l () ]) [ return (result: t_Result_unit_MaxSizeReached) -> (! return {result}) ]

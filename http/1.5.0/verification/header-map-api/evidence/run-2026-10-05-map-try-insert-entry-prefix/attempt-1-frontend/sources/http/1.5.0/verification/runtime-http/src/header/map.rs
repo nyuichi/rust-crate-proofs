@@ -1,45 +1,15 @@
-#![allow(unexpected_cfgs)]
-
 use std::collections::hash_map::RandomState;
-#[cfg(not(http_composition_header_leaf))]
 use std::collections::HashMap;
-#[cfg(not(http_composition_header_leaf))]
 use std::convert::TryFrom;
 use std::hash::{BuildHasher, Hash, Hasher};
-#[cfg(not(http_composition_header_leaf))]
-use std::iter::FromIterator;
-use std::iter::FusedIterator;
+use std::iter::{FromIterator, FusedIterator};
 use std::marker::PhantomData;
 use std::{fmt, mem, ops, ptr, vec};
-use creusot_std::ghost::{perm::Perm, Ghost};
-use creusot_std::logic::Seq;
-use creusot_std::std::ptr::{PtrAddExt, PtrLive};
-use creusot_std::std::slice::SliceExt;
 
-#[cfg(creusot)]
-#[allow(unused_imports)]
-use creusot_std::prelude::{check, ensures, ghost, pearlite, proof_assert, requires, snapshot, variant, DeepModel, Int, logic, View};
-#[cfg(creusot)]
-use creusot_std::std::ptr::SizedPointerExt;
-#[cfg(creusot)]
-use creusot_std::prelude::Invariant;
-#[cfg(creusot)]
-use creusot_std::std::mem::size_of_logic;
-#[cfg(not(http_composition_header_leaf))]
 use crate::Error;
 
 use super::name::{HdrName, HeaderName, InvalidHeaderName};
-use super::map_capacity::{checked_raw_capacity, usable_capacity};
-#[path = "map_index.rs"]
-mod map_index;
-use self::map_index::{desired_pos, probe_distance, HashValue, Pos, Size, MAX_SIZE};
 use super::HeaderValue;
-
-#[cfg(creusot)]
-#[check(ghost)]
-#[creusot_std::prelude::bitwise_proof]
-#[ensures(MAX_SIZE != 0usize && (MAX_SIZE & (MAX_SIZE - 1usize)) == 0usize)]
-fn max_size_is_power_of_two() {}
 
 pub use self::as_header_name::AsHeaderName;
 pub use self::into_header_name::IntoHeaderName;
@@ -117,170 +87,6 @@ pub struct HeaderMap<T = HeaderValue> {
     danger: Danger,
 }
 
-// Opaque public logic projections keep method contracts useful to clients
-// without exposing HeaderMap's private storage layout.
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-pub fn header_map_keys_len<T>(map: HeaderMap<T>) -> Int {
-    map.entries.view().len()
-}
-
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-#[requires(0 <= index && index < header_map_keys_len(map))]
-pub fn header_map_key_at<T>(
-    map: HeaderMap<T>,
-    index: Int,
-) -> <HeaderName as DeepModel>::DeepModelTy {
-    map.entries.view()[index].key.deep_model()
-}
-
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-#[requires(0 <= index && index < header_map_keys_len(map))]
-pub fn header_map_value_at<T>(map: HeaderMap<T>, index: Int) -> T {
-    map.entries.view()[index].value
-}
-
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-pub fn header_map_extra_values_len<T>(map: HeaderMap<T>) -> Int {
-    map.extra_values.view().len()
-}
-
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-pub fn header_map_total_len<T>(map: HeaderMap<T>) -> Int {
-    header_map_keys_len(map) + header_map_extra_values_len(map)
-}
-
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-pub fn header_map_capacity<T>(map: HeaderMap<T>) -> Int {
-    map.indices.view().len() - map.indices.view().len() / 4
-}
-
-// Preconditions needed by the actual Robin Hood lookup loop. This observer is
-// deliberately a caller premise until the map constructors and mutations
-// establish the table representation invariant.
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-pub fn header_map_find_ready<T>(map: HeaderMap<T>) -> bool {
-    pearlite! {
-        map.entries.view().len() == 0 || (
-            map.indices.view().len() > 0
-            && map.mask@ + 1 == map.indices.view().len()
-            && map.mask@ < MAX_SIZE@
-            && exists<k: Int> k >= 0 && map.mask@ + 1 == 2.pow(k)
-            && exists<empty: Int> 0 <= empty && empty < map.indices.view().len()
-                && map.indices.view()[empty].index == u16::MAX
-            && forall<slot: Int> 0 <= slot && slot < map.indices.view().len() ==>
-                map.indices.view()[slot].index == u16::MAX
-                || (map.indices.view()[slot].index@ < map.entries.view().len()
-                    && map.entries.view()[map.indices.view()[slot].index@].hash
-                        == map.indices.view()[slot].hash)
-        )
-    }
-}
-
-// The mutable getter preserves the map structure and every entry except the
-// returned value. Keep this predicate opaque so public contracts do not expose
-// HeaderMap's private storage layout.
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-pub fn header_map_get_mut_frame<T>(
-    before: HeaderMap<T>,
-    after: HeaderMap<T>,
-    selected: Option<Int>,
-) -> bool {
-    pearlite! {
-        before.mask == after.mask
-        && before.danger == after.danger
-        && before.indices.view().len() == after.indices.view().len()
-        && before.entries.view().len() == after.entries.view().len()
-        && before.extra_values.view().len() == after.extra_values.view().len()
-        && (forall<slot: Int> (0 <= slot && slot < before.indices.view().len()) ==>
-            before.indices.view()[slot].index == after.indices.view()[slot].index
-            && before.indices.view()[slot].hash == after.indices.view()[slot].hash)
-        && (forall<extra: Int> (0 <= extra && extra < before.extra_values.view().len()) ==>
-            before.extra_values.view()[extra].value == after.extra_values.view()[extra].value
-            && before.extra_values.view()[extra].prev.deep_model()
-                == after.extra_values.view()[extra].prev.deep_model()
-            && before.extra_values.view()[extra].next.deep_model()
-                == after.extra_values.view()[extra].next.deep_model())
-        && (forall<index: Int> (0 <= index && index < before.entries.view().len()) ==>
-            before.entries.view()[index].hash == after.entries.view()[index].hash
-            && before.entries.view()[index].key.deep_model()
-                == after.entries.view()[index].key.deep_model()
-            && (match (before.entries.view()[index].links, after.entries.view()[index].links) {
-                (None, None) => true,
-                (Some(before_links), Some(after_links)) =>
-                    before_links.next == after_links.next
-                    && before_links.tail == after_links.tail,
-                _ => false,
-            })
-            && (match selected {
-                Some(selected_index) => index == selected_index
-                    || before.entries.view()[index].value == after.entries.view()[index].value,
-                None => before.entries.view()[index].value == after.entries.view()[index].value,
-            }))
-    }
-}
-
-// Public, proof-only observers keep the public Entry accessor contracts from
-// exposing the private storage fields of the entry and map representations.
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-pub fn vacant_entry_key_matches<'a, T>(entry: VacantEntry<'a, T>, key: HeaderName) -> bool {
-    entry.key == key
-}
-
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-pub fn occupied_entry_index_in_range<'a, T>(entry: OccupiedEntry<'a, T>) -> bool {
-    pearlite! { entry.index@ < header_map_keys_len(*entry.map) }
-}
-
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-#[requires(occupied_entry_index_in_range(entry))]
-pub fn occupied_entry_key_matches<'a, T>(entry: OccupiedEntry<'a, T>, key: HeaderName) -> bool {
-    entry.map.entries[entry.index].key == key
-}
-
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-#[requires(occupied_entry_index_in_range(entry))]
-pub fn occupied_entry_value_matches<'a, T>(entry: OccupiedEntry<'a, T>, value: T) -> bool {
-    entry.map.entries[entry.index].value == value
-}
-
-// A Vec's allocation is bounded by isize::MAX bytes. Derive the corresponding
-// element-count bound from the actual borrowed slice permission rather than
-// adding a separate postcondition to the external Vec::len specification.
-#[cfg(creusot)]
-#[check(terminates)]
-#[requires(size_of_logic::<T>() > 0)]
-#[ensures(values@.len() <= isize::MAX@)]
-pub(crate) fn allocation_len_bound<T>(values: &Vec<T>) {
-    let slice: &[T] = values;
-    let (_base, permission) = slice.as_ptr_perm();
-    let live = ghost! { permission.live() };
-    proof_assert! { live.inner_logic().len()@ == values@.len() };
-}
-
 // # Implementation notes
 //
 // Below, you will find a fairly large amount of code. Most of this is to
@@ -310,7 +116,7 @@ pub(crate) fn allocation_len_bound<T>(values: &Vec<T>) {
 ///
 /// Yields `(&HeaderName, &value)` tuples. The same header name may be yielded
 /// more than once if it has more than one associated value.
-#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
+#[derive(Debug)]
 pub struct Iter<'a, T> {
     map: &'a HeaderMap<T>,
     entry: usize,
@@ -321,161 +127,18 @@ pub struct Iter<'a, T> {
 ///
 /// Yields `(&HeaderName, &mut value)` tuples. The same header name may be
 /// yielded more than once if it has more than one associated value.
+#[derive(Debug)]
 pub struct IterMut<'a, T> {
     // Raw access avoids reborrowing the whole `HeaderMap` on every `next()`,
     // which would invalidate previously yielded `&mut T`s.
     entries: *mut Bucket<T>,
     entries_len: usize,
-    #[allow(dead_code)]
-    entries_live: Ghost<PtrLive<'a, Bucket<T>>>,
-    #[allow(dead_code)]
-    entry_permissions: Ghost<Seq<Option<&'a mut Perm<*const Bucket<T>>>>>,
     // This points at the original `HeaderMap::extra_values` allocation for the
     // lifetime of the iterator.
     extra_values: *mut ExtraValue<T>,
-    #[allow(dead_code)]
-    extra_values_live: Ghost<PtrLive<'a, ExtraValue<T>>>,
-    #[allow(dead_code)]
-    extra_permissions: Ghost<Seq<Option<&'a mut Perm<*const ExtraValue<T>>>>>,
     entry: usize,
     cursor: Option<Cursor>,
-    // The current bucket key is retained after its first value is yielded, so
-    // later values in the same chain do not reborrow the whole bucket.
-    current_key: Option<&'a HeaderName>,
     lt: PhantomData<&'a mut HeaderMap<T>>,
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic]
-pub fn iter_mut_storage_invariant<T>(iter: &IterMut<'_, T>) -> bool {
-    pearlite! {
-        (*iter.entries_live).ward() == iter.entries as *const Bucket<T>
-        && (*iter.entries_live).len()@ == iter.entries_len@
-        && (*iter.entry_permissions).len() == iter.entries_len@
-        && forall<i: Int> 0 <= i && i < iter.entries_len@ ==> match (*iter.entry_permissions)[i] {
-            Some(token) => *token.ward() == (iter.entries as *const Bucket<T>).offset_logic(i),
-            None => true,
-        }
-        && (*iter.extra_values_live).ward() == iter.extra_values as *const ExtraValue<T>
-        && (*iter.extra_permissions).len() == (*iter.extra_values_live).len()@
-        && forall<i: Int> 0 <= i && i < (*iter.extra_values_live).len()@ ==> match (*iter.extra_permissions)[i] {
-            Some(token) => *token.ward() == (iter.extra_values as *const ExtraValue<T>).offset_logic(i),
-            None => true,
-        }
-    }
-}
-
-#[cfg(creusot)]
-#[doc(hidden)]
-#[logic]
-pub fn iter_mut_cursor_ready<T>(iter: &IterMut<'_, T>) -> bool {
-    pearlite! {
-        (iter.entries_len@ == 0 ==> iter.entry@ == 0 && iter.cursor == None)
-        && (iter.entries_len@ != 0 ==> iter.entry@ < iter.entries_len@)
-        && match iter.cursor {
-            None =>
-                if iter.entries_len@ == 0 || iter.entry@ + 1 >= iter.entries_len@ {
-                    true
-                } else {
-                    match (*iter.entry_permissions)[iter.entry@ + 1] {
-                        Some(_) => true,
-                        None => false,
-                    }
-                },
-            Some(Cursor::Head) =>
-                iter.entry@ < iter.entries_len@
-                && match (*iter.entry_permissions)[iter.entry@] {
-                    Some(_) => true,
-                    None => false,
-            },
-            Some(Cursor::Values(index)) =>
-                (match iter.current_key {
-                    Some(_) => true,
-                    None => false,
-                })
-                && index@ < (*iter.extra_values_live).len()@
-                && match (*iter.extra_permissions)[index@] {
-                    Some(_) => true,
-                    None => false,
-                },
-        }
-    }
-}
-
-impl<T> fmt::Debug for IterMut<'_, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("IterMut")
-            .field("entries", &self.entries)
-            .field("entries_len", &self.entries_len)
-            .field("extra_values", &self.extra_values)
-            .field("entry", &self.entry)
-            .field("cursor", &self.cursor)
-            .field("lt", &self.lt)
-            .finish()
-    }
-}
-
-/// Capture the allocation lifetime and split a slice permission into one-shot
-/// element tokens. The runtime pointer is the same pointer returned by
-/// `Vec::as_mut_ptr`; all ownership state is ghost-only.
-#[cfg_attr(creusot, ensures((*result.1).len() == slice@.len()))]
-#[cfg_attr(creusot, ensures((*result.2).ward() == result.0 as *const T))]
-#[cfg_attr(creusot, ensures((*result.2).len()@ == slice@.len()))]
-#[cfg_attr(creusot, ensures(forall<i: Int> 0 <= i && i < slice@.len() ==> match (*result.1)[i] {
-    Some(token) => *token.ward() == (result.0 as *const T).offset_logic(i) && *token.val() == slice@[i],
-    None => false,
-}))]
-fn slice_element_permissions<'a, T>(
-    slice: &'a mut [T],
-) -> (
-    *mut T,
-    Ghost<Seq<Option<&'a mut Perm<*const T>>>>,
-    Ghost<PtrLive<'a, T>>,
-) {
-    #[cfg(creusot)]
-    let original = snapshot!(slice@);
-    let (ptr, permission) = slice.as_mut_ptr_perm();
-    #[cfg(not(creusot))]
-    let _ = permission;
-    let live = {
-        #[cfg(creusot)]
-        {
-            ghost! { permission.live_mut() }
-        }
-        #[cfg(not(creusot))]
-        {
-            Ghost::from_fn(|| unreachable!())
-        }
-    };
-    let tokens = {
-        #[cfg(creusot)]
-        {
-            ghost! {
-                let mut elements = permission.into_inner().elements_mut();
-                let mut tokens: Seq<Option<&'a mut Perm<*const T>>> = Seq::new().into_inner();
-                #[variant(elements.len())]
-                #[invariant(tokens.len() + elements.len() == (*original).len())]
-                #[invariant(forall<i: Int> 0 <= i && i < tokens.len() ==> match tokens[i] {
-                    Some(token) => *token.ward() == (ptr as *const T).offset_logic(i) && *token.val() == (*original)[i],
-                    None => false,
-                })]
-                #[invariant(forall<i: Int> 0 <= i && i < elements.len() ==>
-                    *elements[i].ward() == (ptr as *const T).offset_logic(tokens.len() + i)
-                    && *elements[i].val() == (*original)[tokens.len() + i]
-                )]
-                while !elements.is_empty_ghost() {
-                    tokens.push_back_ghost(Some(elements.pop_front_ghost().unwrap()));
-                }
-                tokens
-            }
-        }
-        #[cfg(not(creusot))]
-        {
-            Ghost::from_fn(|| unreachable!())
-        }
-    };
-    (ptr, tokens, live)
 }
 
 /// An owning iterator over the entries of a `HeaderMap`.
@@ -501,7 +164,7 @@ pub struct Keys<'a, T> {
 /// `HeaderMap` value iterator.
 ///
 /// Each value contained in the `HeaderMap` will be yielded.
-#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
+#[derive(Debug)]
 pub struct Values<'a, T> {
     inner: Iter<'a, T>,
 }
@@ -527,26 +190,14 @@ pub struct Drain<'a, T> {
 /// A view to all values stored in a single entry.
 ///
 /// This struct is returned by `HeaderMap::get_all`.
-#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
+#[derive(Debug)]
 pub struct GetAll<'a, T> {
     map: &'a HeaderMap<T>,
     index: Option<usize>,
 }
 
-#[cfg(creusot)]
-#[logic]
-#[doc(hidden)]
-pub fn header_map_get_all_index<T>(values: &GetAll<'_, T>) -> Option<Int> {
-    pearlite! {
-        match values.index {
-            Some(index) => Some(index@),
-            None => None,
-        }
-    }
-}
-
 /// A view into a single location in a `HeaderMap`, which may be vacant or occupied.
-#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
+#[derive(Debug)]
 pub enum Entry<'a, T: 'a> {
     /// An occupied entry
     Occupied(OccupiedEntry<'a, T>),
@@ -558,7 +209,7 @@ pub enum Entry<'a, T: 'a> {
 /// A view into a single empty location in a `HeaderMap`.
 ///
 /// This struct is returned as part of the `Entry` enum.
-#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
+#[derive(Debug)]
 pub struct VacantEntry<'a, T> {
     map: &'a mut HeaderMap<T>,
     key: HeaderName,
@@ -570,7 +221,7 @@ pub struct VacantEntry<'a, T> {
 /// A view into a single occupied location in a `HeaderMap`.
 ///
 /// This struct is returned as part of the `Entry` enum.
-#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
+#[derive(Debug)]
 pub struct OccupiedEntry<'a, T> {
     map: &'a mut HeaderMap<T>,
     probe: usize,
@@ -578,7 +229,7 @@ pub struct OccupiedEntry<'a, T> {
 }
 
 /// An iterator of all values associated with a single header name.
-#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Debug))]
+#[derive(Debug)]
 pub struct ValueIter<'a, T> {
     map: &'a HeaderMap<T>,
     index: usize,
@@ -614,12 +265,45 @@ pub struct MaxSizeReached {
 }
 
 /// Tracks the value iterator state
-#[derive(Debug, Copy, Clone)]
-#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Eq, PartialEq))]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum Cursor {
     Head,
     Values(usize),
 }
+
+/// Type used for representing the size of a HeaderMap value.
+///
+/// 32,768 is more than enough entries for a single header map. Setting this
+/// limit enables using `u16` to represent all offsets, which takes 2 bytes
+/// instead of 8 on 64 bit processors.
+///
+/// Setting this limit is especially beneficial for `indices`, making it more
+/// cache friendly. More hash codes can fit in a cache line.
+///
+/// You may notice that `u16` may represent more than 32,768 values. This is
+/// true, but 32,768 should be plenty and it allows us to reserve the top bit
+/// for future usage.
+type Size = u16;
+
+/// This limit falls out from above.
+const MAX_SIZE: usize = 1 << 15;
+
+/// An entry in the hash table. This represents the full hash code for an entry
+/// as well as the position of the entry in the `entries` vector.
+#[derive(Copy, Clone)]
+struct Pos {
+    // Index in the `entries` vec
+    index: Size,
+    // Full hash value for the entry.
+    hash: HashValue,
+}
+
+/// Hash values are limited to u16 as well. While `fast_hash` and `Hasher`
+/// return `usize` hash codes, limiting the effective hash code to the lower 16
+/// bits is fine since we know that the `indices` vector will never grow beyond
+/// that size.
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+struct HashValue(u16);
 
 /// Stores the data associated with a `HeaderMap` entry. Only the first value is
 /// included in this struct. If a header name has more than one associated
@@ -642,169 +326,6 @@ struct Links {
     tail: usize,
 }
 
-/// Split field permissions for a live bucket. Each token is created before a
-/// mutable value is yielded, so later key and links reads never reborrow the
-/// whole bucket.
-struct BucketFieldPtrs<'a, T> {
-    hash_ptr: *const HashValue,
-    hash_permission: Ghost<&'a Perm<*const HashValue>>,
-    key_ptr: *const HeaderName,
-    key_permission: Ghost<&'a Perm<*const HeaderName>>,
-    value_ptr: *mut T,
-    #[allow(dead_code)]
-    value_permission: Ghost<Option<&'a mut Perm<*const T>>>,
-    links_ptr: *const Option<Links>,
-    links_permission: Ghost<&'a Perm<*const Option<Links>>>,
-}
-
-#[cfg(creusot)]
-impl<'a, T> Invariant for BucketFieldPtrs<'a, T> {
-    #[logic]
-    fn invariant(self) -> bool {
-        pearlite! {
-            self.hash_ptr == *(*self.hash_permission).ward() &&
-            self.key_ptr == *(*self.key_permission).ward() &&
-            self.links_ptr == *(*self.links_permission).ward() &&
-            match *self.value_permission {
-                Some(permission) => self.value_ptr as *const T == *permission.ward(),
-                None => true,
-            }
-        }
-    }
-}
-
-impl<T> Bucket<T> {
-    #[allow(dead_code)]
-    #[cfg_attr(creusot, ensures(result.invariant()))]
-    #[cfg_attr(creusot, ensures(*(*result.hash_permission).val() == self.hash))]
-    #[cfg_attr(creusot, ensures(*(*result.key_permission).val() == self.key))]
-    #[cfg_attr(creusot, ensures(*(*result.links_permission).val() == self.links))]
-    #[cfg_attr(creusot, ensures((^self).hash == self.hash))]
-    #[cfg_attr(creusot, ensures((^self).key == self.key))]
-    #[cfg_attr(creusot, ensures((^self).links == self.links))]
-    #[cfg_attr(creusot, ensures(match *result.value_permission {
-        Some(permission) => *permission.val() == self.value && *(^permission).val() == (^self).value,
-        None => false,
-    }))]
-    fn field_ptrs(&mut self) -> BucketFieldPtrs<'_, T> {
-        let (hash_ptr, hash_permission) = Perm::from_ref(&self.hash);
-        let (key_ptr, key_permission) = Perm::from_ref(&self.key);
-        let (value_ptr, value_permission) = Perm::from_mut(&mut self.value);
-        let (links_ptr, links_permission) = Perm::from_ref(&self.links);
-
-        let value_permission = {
-            #[cfg(creusot)]
-            {
-                ghost! { Some(value_permission.into_inner()) }
-            }
-            #[cfg(not(creusot))]
-            {
-                Ghost::from_fn(|| Some(value_permission.into_inner()))
-            }
-        };
-
-        BucketFieldPtrs {
-            hash_ptr,
-            hash_permission,
-            key_ptr,
-            key_permission,
-            value_ptr,
-            value_permission,
-            links_ptr,
-            links_permission,
-        }
-    }
-}
-
-impl<'a, T> BucketFieldPtrs<'a, T> {
-    #[allow(dead_code)]
-    #[cfg_attr(creusot, requires(self.invariant()))]
-    #[cfg_attr(creusot, requires(match *self.value_permission {
-        Some(_) => true,
-        None => false,
-    }))]
-    #[cfg_attr(creusot, ensures((^self).invariant()))]
-    #[cfg_attr(creusot, ensures(match *((^self).value_permission) {
-        Some(_) => false,
-        None => true,
-    }))]
-    #[cfg_attr(creusot, ensures(*(^self).hash_permission == *self.hash_permission))]
-    #[cfg_attr(creusot, ensures(*(^self).key_permission == *self.key_permission))]
-    #[cfg_attr(creusot, ensures(*(^self).links_permission == *self.links_permission))]
-    #[cfg_attr(creusot, ensures(match *self.value_permission {
-        Some(permission) => *result == *permission.val() && ^result == *(^permission).val(),
-        None => false,
-    }))]
-    fn take_value(&mut self) -> &'a mut T {
-        let permission = {
-            #[cfg(creusot)]
-            {
-                ghost! { self.value_permission.take().unwrap() }
-            }
-            #[cfg(not(creusot))]
-            {
-                Ghost::from_fn(|| unreachable!())
-            }
-        };
-        unsafe { Perm::as_mut(self.value_ptr, permission) }
-    }
-
-    #[allow(dead_code)]
-    #[cfg_attr(creusot, requires(self.invariant()))]
-    #[cfg_attr(creusot, ensures(*result == *(*self.hash_permission).val()))]
-    fn hash(&self) -> &'a HashValue {
-        unsafe { Perm::as_ref(self.hash_ptr, self.hash_permission) }
-    }
-
-    #[allow(dead_code)]
-    #[cfg_attr(creusot, requires(self.invariant()))]
-    #[cfg_attr(creusot, ensures(*result == *(*self.key_permission).val()))]
-    fn key(&self) -> &'a HeaderName {
-        unsafe { Perm::as_ref(self.key_ptr, self.key_permission) }
-    }
-
-    #[allow(dead_code)]
-    #[cfg_attr(creusot, requires(self.invariant()))]
-    #[cfg_attr(creusot, ensures(*result == *(*self.links_permission).val()))]
-    fn links(&self) -> &'a Option<Links> {
-        unsafe { Perm::as_ref(self.links_ptr, self.links_permission) }
-    }
-}
-
-/// Yield the first value of a bucket while retaining separate field borrows.
-/// The iterator keeps the key reference for the remainder of this bucket's
-/// linked value chain.
-#[cfg_attr(creusot, ensures(*result.0 == bucket.key))]
-#[cfg_attr(creusot, ensures(*result.1 == bucket.value))]
-#[cfg_attr(creusot, ensures(result.2 == bucket.links))]
-#[cfg_attr(creusot, ensures((^bucket).hash == bucket.hash))]
-#[cfg_attr(creusot, ensures((^bucket).key == bucket.key))]
-#[cfg_attr(creusot, ensures((^bucket).links == bucket.links))]
-#[cfg_attr(creusot, ensures((^bucket).value == ^result.1))]
-fn yield_bucket_head<'a, T>(
-    bucket: &'a mut Bucket<T>,
-) -> (&'a HeaderName, &'a mut T, Option<Links>) {
-    let mut fields = bucket.field_ptrs();
-    let links = *fields.links();
-    let key = fields.key();
-    let value = fields.take_value();
-    (key, value, links)
-}
-
-/// Yield an extra value while preserving its link fields for the next step.
-#[cfg_attr(creusot, ensures(*result.0 == extra.value))]
-#[cfg_attr(creusot, ensures(result.1 == extra.next))]
-#[cfg_attr(creusot, ensures((^extra).prev == extra.prev))]
-#[cfg_attr(creusot, ensures((^extra).next == extra.next))]
-#[cfg_attr(creusot, ensures((^extra).value == ^result.0))]
-fn yield_extra_value<'a, T>(extra: &'a mut ExtraValue<T>) -> (&'a mut T, Link) {
-    let (value_ptr, value_permission) = Perm::from_mut(&mut extra.value);
-    let (next_ptr, next_permission) = Perm::from_ref(&extra.next);
-    let next = *unsafe { Perm::as_ref(next_ptr, next_permission) };
-    let value = unsafe { Perm::as_mut(value_ptr, value_permission) };
-    (value, next)
-}
-
 /// Access to the `links` value in a slice of buckets.
 ///
 /// It's important that no other field is accessed, since it may have been
@@ -823,24 +344,10 @@ struct ExtraValue<T> {
 /// A header value node is either linked to another node in the `extra_values`
 /// list or it points to an entry in `entries`. The entry in `entries` is the
 /// start of the list and holds the associated header name.
-#[derive(Debug, Copy, Clone)]
-#[cfg_attr(not(feature = "http_map_api_leaf"), derive(Eq, PartialEq))]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum Link {
     Entry(usize),
     Extra(usize),
-}
-
-#[cfg(creusot)]
-impl DeepModel for Link {
-    type DeepModelTy = (bool, usize);
-
-    #[logic(open, inline)]
-    fn deep_model(self) -> Self::DeepModelTy {
-        match self {
-            Link::Entry(index) => (false, index),
-            Link::Extra(index) => (true, index),
-        }
-    }
 }
 
 /// Tracks the header map danger level! This relates to the adaptive hashing
@@ -985,17 +492,12 @@ impl HeaderMap {
     /// assert_eq!(0, map.capacity());
     /// ```
     #[inline]
-    #[cfg_attr(creusot, ensures(header_map_total_len(result) == 0))]
-    #[cfg_attr(creusot, ensures(header_map_capacity(result) == 0))]
     pub fn new() -> Self {
         Self::default()
     }
 }
 
 impl<T> Default for HeaderMap<T> {
-    #[cfg_attr(creusot, ensures(header_map_keys_len(result) == 0))]
-    #[cfg_attr(creusot, ensures(header_map_extra_values_len(result) == 0))]
-    #[cfg_attr(creusot, ensures(header_map_capacity(result) == 0))]
     fn default() -> Self {
         HeaderMap {
             mask: 0,
@@ -1030,9 +532,6 @@ impl<T> HeaderMap<T> {
     /// assert!(map.is_empty());
     /// assert_eq!(12, map.capacity());
     /// ```
-    #[cfg_attr(creusot, requires(capacity@ <= 24_576))]
-    #[cfg_attr(creusot, ensures(header_map_total_len(result) == 0))]
-    #[cfg_attr(creusot, ensures(header_map_capacity(result) >= capacity@))]
     pub fn with_capacity(capacity: usize) -> HeaderMap<T> {
         Self::try_with_capacity(capacity).expect("size overflows MAX_SIZE")
     }
@@ -1059,12 +558,6 @@ impl<T> HeaderMap<T> {
     /// assert!(map.is_empty());
     /// assert_eq!(12, map.capacity());
     /// ```
-    #[cfg_attr(creusot, ensures(match result {
-        Ok(map) => header_map_total_len(map) == 0
-            && header_map_capacity(map) >= capacity@
-            && capacity@ <= 24_576,
-        Err(_) => capacity@ > 24_576,
-    }))]
     pub fn try_with_capacity(capacity: usize) -> Result<HeaderMap<T>, MaxSizeReached> {
         if capacity == 0 {
             Ok(Self::default())
@@ -1074,8 +567,6 @@ impl<T> HeaderMap<T> {
                 Some(c) => c,
                 None => return Err(MaxSizeReached { _priv: () }),
             };
-            #[cfg(creusot)]
-            max_size_is_power_of_two();
             if raw_cap > MAX_SIZE {
                 return Err(MaxSizeReached { _priv: () });
             }
@@ -1115,13 +606,7 @@ impl<T> HeaderMap<T> {
     ///
     /// assert_eq!(3, map.len());
     /// ```
-    #[cfg_attr(creusot, ensures(result@ == header_map_total_len(*self)))]
     pub fn len(&self) -> usize {
-        #[cfg(creusot)]
-        {
-            allocation_len_bound(&self.entries);
-            allocation_len_bound(&self.extra_values);
-        }
         self.entries.len() + self.extra_values.len()
     }
 
@@ -1148,7 +633,6 @@ impl<T> HeaderMap<T> {
     ///
     /// assert_eq!(2, map.keys_len());
     /// ```
-    #[cfg_attr(creusot, ensures(result@ == header_map_keys_len(*self)))]
     pub fn keys_len(&self) -> usize {
         self.entries.len()
     }
@@ -1168,7 +652,6 @@ impl<T> HeaderMap<T> {
     ///
     /// assert!(!map.is_empty());
     /// ```
-    #[cfg_attr(creusot, ensures(result == (header_map_keys_len(*self) == 0)))]
     pub fn is_empty(&self) -> bool {
         self.entries.len() == 0
     }
@@ -1188,9 +671,6 @@ impl<T> HeaderMap<T> {
     /// assert!(map.is_empty());
     /// assert!(map.capacity() > 0);
     /// ```
-    #[cfg_attr(creusot, ensures(header_map_keys_len(^self) == 0))]
-    #[cfg_attr(creusot, ensures(header_map_extra_values_len(^self) == 0))]
-    #[cfg_attr(creusot, ensures(header_map_capacity(^self) == header_map_capacity(*self)))]
     pub fn clear(&mut self) {
         self.entries.clear();
         self.extra_values.clear();
@@ -1218,7 +698,6 @@ impl<T> HeaderMap<T> {
     /// map.insert(HOST, "hello.world".parse().unwrap());
     /// assert_eq!(6, map.capacity());
     /// ```
-    #[cfg_attr(creusot, ensures(result@ == header_map_capacity(*self)))]
     pub fn capacity(&self) -> usize {
         usable_capacity(self.indices.len())
     }
@@ -1292,7 +771,7 @@ impl<T> HeaderMap<T> {
                 return Err(MaxSizeReached::new());
             }
 
-            if self.entries.len() == 0 {
+            if self.entries.is_empty() {
                 self.mask = raw_cap as Size - 1;
                 self.indices = vec![Pos::none(); raw_cap].into_boxed_slice();
                 self.entries = Vec::with_capacity(usable_capacity(raw_cap));
@@ -1325,8 +804,6 @@ impl<T> HeaderMap<T> {
     /// map.append(HOST, "world".parse().unwrap());
     /// assert_eq!(map.get("host").unwrap(), &"hello");
     /// ```
-    #[cfg(all(not(creusot), any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
     pub fn get<K>(&self, key: K) -> Option<&T>
     where
         K: AsHeaderName,
@@ -1334,47 +811,6 @@ impl<T> HeaderMap<T> {
         self.get2(&key)
     }
 
-    #[cfg(all(creusot, any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[inline]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
-    #[cfg_attr(creusot, ensures(match result {
-        Some(value) => exists<index: Int>
-            0 <= index && index < header_map_keys_len(*self)
-                && *value == header_map_value_at(*self, index)
-                && key.matches_header(header_map_key_at(*self, index)),
-        None => true,
-    }))]
-    pub fn get<K>(&self, key: K) -> Option<&T>
-    where
-        K: AsHeaderName,
-    {
-        self.get2(&key)
-    }
-
-    #[cfg(all(not(creusot), any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    fn get2<K>(&self, key: &K) -> Option<&T>
-    where
-        K: AsHeaderName,
-    {
-        match key.find(self) {
-            Some((_, found)) => {
-                let entry = &self.entries[found];
-                Some(&entry.value)
-            }
-            None => None,
-        }
-    }
-
-    #[cfg(all(creusot, any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[inline]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
-    #[cfg_attr(creusot, ensures(match result {
-        Some(value) => exists<index: Int>
-            0 <= index && index < header_map_keys_len(*self)
-                && *value == header_map_value_at(*self, index)
-                && key.matches_header(header_map_key_at(*self, index)),
-        None => true,
-    }))]
     fn get2<K>(&self, key: &K) -> Option<&T>
     where
         K: AsHeaderName,
@@ -1405,34 +841,6 @@ impl<T> HeaderMap<T> {
     ///
     /// assert_eq!(map.get(HOST).unwrap(), &"hello-world");
     /// ```
-    #[cfg(all(not(creusot), any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    pub fn get_mut<K>(&mut self, key: K) -> Option<&mut T>
-    where
-        K: AsHeaderName,
-    {
-        match key.find(self) {
-            Some((_, found)) => {
-                let entry = &mut self.entries[found];
-                Some(&mut entry.value)
-            }
-            None => None,
-        }
-    }
-
-    #[cfg(all(creusot, any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[inline]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
-    #[cfg_attr(creusot, ensures(header_map_find_ready(^self)))]
-    #[cfg_attr(creusot, ensures(match result {
-        Some(value) => exists<index: Int>
-            0 <= index && index < header_map_keys_len(*self)
-                && index < header_map_keys_len(^self)
-                && key.matches_header(header_map_key_at(*self, index))
-                && *value == header_map_value_at(*self, index)
-                && header_map_get_mut_frame(*self, ^self, Some(index))
-                && ^value == header_map_value_at(^self, index),
-        None => header_map_get_mut_frame(*self, ^self, None),
-    }))]
     pub fn get_mut<K>(&mut self, key: K) -> Option<&mut T>
     where
         K: AsHeaderName,
@@ -1471,25 +879,6 @@ impl<T> HeaderMap<T> {
     /// assert_eq!(&"goodbye", iter.next().unwrap());
     /// assert!(iter.next().is_none());
     /// ```
-    #[cfg(all(not(creusot), any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    pub fn get_all<K>(&self, key: K) -> GetAll<'_, T>
-    where
-        K: AsHeaderName,
-    {
-        GetAll {
-            map: self,
-            index: key.find(self).map(|(_, i)| i),
-        }
-    }
-
-    #[cfg(all(creusot, any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[inline]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
-    #[cfg_attr(creusot, ensures(match header_map_get_all_index(&result) {
-        Some(index) => index < header_map_keys_len(*self)
-            && key.matches_header(header_map_key_at(*self, index)),
-        None => true,
-    }))]
     pub fn get_all<K>(&self, key: K) -> GetAll<'_, T>
     where
         K: AsHeaderName,
@@ -1513,21 +902,6 @@ impl<T> HeaderMap<T> {
     /// map.insert(HOST, "world".parse().unwrap());
     /// assert!(map.contains_key("host"));
     /// ```
-    #[cfg(all(not(creusot), any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    pub fn contains_key<K>(&self, key: K) -> bool
-    where
-        K: AsHeaderName,
-    {
-        key.find(self).is_some()
-    }
-
-    #[cfg(all(creusot, any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[inline]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
-    #[cfg_attr(creusot, ensures(result ==> exists<index: Int>
-        0 <= index && index < header_map_keys_len(*self)
-            && key.matches_header(header_map_key_at(*self, index))
-    ))]
     pub fn contains_key<K>(&self, key: K) -> bool
     where
         K: AsHeaderName,
@@ -1556,7 +930,6 @@ impl<T> HeaderMap<T> {
     ///     println!("{:?}: {:?}", key, value);
     /// }
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn iter(&self) -> Iter<'_, T> {
         Iter {
             map: self,
@@ -1586,32 +959,13 @@ impl<T> HeaderMap<T> {
     ///     value.push_str("-boop");
     /// }
     /// ```
-    #[cfg(any(not(feature = "http_map_api_leaf"), http_bucket_iter_mut_leaf))]
-    #[cfg_attr(creusot, ensures(iter_mut_storage_invariant(&result)))]
-    #[cfg_attr(creusot, ensures(iter_mut_cursor_ready(&result)))]
-    pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a, T> {
-        let entries_len = self.entries.len();
-        let cursor = if entries_len == 0 {
-            None
-        } else {
-            Some(Cursor::Head)
-        };
-        let entries_slice: &mut [Bucket<T>] = &mut self.entries;
-        let extra_values_slice: &mut [ExtraValue<T>] = &mut self.extra_values;
-        let (entries, entry_permissions, entries_live) = slice_element_permissions(entries_slice);
-        let (extra_values, extra_permissions, extra_values_live) =
-            slice_element_permissions(extra_values_slice);
+    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut {
-            entries,
-            entries_len,
-            entries_live,
-            entry_permissions,
-            extra_values,
-            extra_values_live,
-            extra_permissions,
+            entries: self.entries.as_mut_ptr(),
+            entries_len: self.entries.len(),
+            extra_values: self.extra_values.as_mut_ptr(),
             entry: 0,
-            cursor,
-            current_key: None,
+            cursor: self.entries.first().map(|_| Cursor::Head),
             lt: PhantomData,
         }
     }
@@ -1637,7 +991,6 @@ impl<T> HeaderMap<T> {
     ///     println!("{:?}", key);
     /// }
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn keys(&self) -> Keys<'_, T> {
         Keys {
             inner: self.entries.iter(),
@@ -1664,7 +1017,6 @@ impl<T> HeaderMap<T> {
     ///     println!("{:?}", value);
     /// }
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn values(&self) -> Values<'_, T> {
         Values { inner: self.iter() }
     }
@@ -1689,7 +1041,6 @@ impl<T> HeaderMap<T> {
     ///     value.push_str("-boop");
     /// }
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn values_mut(&mut self) -> ValuesMut<'_, T> {
         ValuesMut {
             inner: self.iter_mut(),
@@ -1725,7 +1076,6 @@ impl<T> HeaderMap<T> {
     ///
     /// assert_eq!(drain.next(), None);
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn drain(&mut self) -> Drain<'_, T> {
         for i in self.indices.iter_mut() {
             *i = Pos::none();
@@ -1755,7 +1105,6 @@ impl<T> HeaderMap<T> {
         }
     }
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     fn value_iter(&self, idx: Option<usize>) -> ValueIter<'_, T> {
         use self::Cursor::*;
 
@@ -1782,7 +1131,6 @@ impl<T> HeaderMap<T> {
         }
     }
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     fn value_iter_mut(&mut self, idx: usize) -> ValueIterMut<'_, T> {
         use self::Cursor::*;
 
@@ -1830,7 +1178,6 @@ impl<T> HeaderMap<T> {
     /// assert_eq!(map["content-length"], 2);
     /// assert_eq!(map["x-hello"], 1);
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn entry<K>(&mut self, key: K) -> Entry<'_, T>
     where
         K: IntoHeaderName,
@@ -1852,7 +1199,6 @@ impl<T> HeaderMap<T> {
     /// error. However, to prevent breaking changes to the return type, the
     /// error will still say `InvalidHeaderName`, unlike other `try_*` methods
     /// which return a `MaxSizeReached` error.
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn try_entry<K>(&mut self, key: K) -> Result<Entry<'_, T>, InvalidHeaderName>
     where
         K: AsHeaderName,
@@ -1868,52 +1214,12 @@ impl<T> HeaderMap<T> {
         })
     }
 
-    #[cfg(all(not(creusot), not(feature = "http_map_api_leaf")))]
     fn try_entry2<K>(&mut self, key: K) -> Result<Entry<'_, T>, MaxSizeReached>
     where
         K: Hash + Into<HeaderName>,
         HeaderName: PartialEq<K>,
     {
         // Ensure that there is space in the map
-        self.try_reserve_one()?;
-
-        Ok(insert_phase_one!(
-            self,
-            key,
-            probe,
-            pos,
-            hash,
-            danger,
-            Entry::Vacant(VacantEntry {
-                map: self,
-                hash,
-                key: key.into(),
-                probe,
-                danger,
-            }),
-            Entry::Occupied(OccupiedEntry {
-                map: self,
-                index: pos,
-                probe,
-            }),
-            Entry::Vacant(VacantEntry {
-                map: self,
-                hash,
-                key: key.into(),
-                probe,
-                danger,
-            })
-        ))
-    }
-
-    #[cfg(all(creusot, not(feature = "http_map_api_leaf")))]
-    fn try_entry2<K>(&mut self, key: K) -> Result<Entry<'_, T>, MaxSizeReached>
-    where
-        K: Hash + Into<HeaderName> + DeepModel,
-        HeaderName: PartialEq<K>,
-        <HeaderName as DeepModel>::DeepModelTy:
-            creusot_std::std::partial_eq::PartialEqModel<<K as DeepModel>::DeepModelTy>,
-    {
         self.try_reserve_one()?;
 
         Ok(insert_phase_one!(
@@ -1976,7 +1282,6 @@ impl<T> HeaderMap<T> {
     /// let mut prev = map.insert(HOST, "earth".parse().unwrap()).unwrap();
     /// assert_eq!("world", prev);
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn insert<K>(&mut self, key: K, val: T) -> Option<T>
     where
         K: IntoHeaderName,
@@ -2015,7 +1320,6 @@ impl<T> HeaderMap<T> {
     /// let mut prev = map.try_insert(HOST, "earth".parse().unwrap()).unwrap().unwrap();
     /// assert_eq!("world", prev);
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn try_insert<K>(&mut self, key: K, val: T) -> Result<Option<T>, MaxSizeReached>
     where
         K: IntoHeaderName,
@@ -2024,7 +1328,6 @@ impl<T> HeaderMap<T> {
     }
 
     #[inline]
-    #[cfg(all(not(creusot), not(feature = "http_map_api_leaf")))]
     fn try_insert2<K>(&mut self, key: K, value: T) -> Result<Option<T>, MaxSizeReached>
     where
         K: Hash + Into<HeaderName>,
@@ -2057,45 +1360,8 @@ impl<T> HeaderMap<T> {
         ))
     }
 
-    #[inline]
-    #[cfg(all(creusot, not(feature = "http_map_api_leaf")))]
-    fn try_insert2<K>(&mut self, key: K, value: T) -> Result<Option<T>, MaxSizeReached>
-    where
-        K: Hash + Into<HeaderName> + DeepModel,
-        HeaderName: PartialEq<K>,
-        <HeaderName as DeepModel>::DeepModelTy:
-            creusot_std::std::partial_eq::PartialEqModel<<K as DeepModel>::DeepModelTy>,
-    {
-        self.try_reserve_one()?;
-
-        Ok(insert_phase_one!(
-            self,
-            key,
-            probe,
-            pos,
-            hash,
-            danger,
-            // Vacant
-            {
-                let _ = danger;
-                let index = self.entries.len();
-                self.try_insert_entry(hash, key.into(), value)?;
-                self.indices[probe] = Pos::new(index, hash);
-                None
-            },
-            // Occupied
-            Some(self.insert_occupied(pos, value)),
-            // Robinhood
-            {
-                self.try_insert_phase_two(key.into(), value, hash, probe, danger)?;
-                None
-            }
-        ))
-    }
-
     /// Set an occupied bucket to the given value
     #[inline]
-    #[cfg(not(feature = "http_map_api_leaf"))]
     fn insert_occupied(&mut self, index: usize, value: T) -> T {
         if let Some(links) = self.entries[index].links {
             self.remove_all_extra_values(links.next);
@@ -2105,7 +1371,6 @@ impl<T> HeaderMap<T> {
         mem::replace(&mut entry.value, value)
     }
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     fn insert_occupied_mult(&mut self, index: usize, value: T) -> ValueDrain<'_, T> {
         let old;
         let links;
@@ -2160,7 +1425,6 @@ impl<T> HeaderMap<T> {
     /// assert_eq!("world", *i.next().unwrap());
     /// assert_eq!("earth", *i.next().unwrap());
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn append<K>(&mut self, key: K, value: T) -> bool
     where
         K: IntoHeaderName,
@@ -2199,7 +1463,6 @@ impl<T> HeaderMap<T> {
     /// assert_eq!("world", *i.next().unwrap());
     /// assert_eq!("earth", *i.next().unwrap());
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn try_append<K>(&mut self, key: K, value: T) -> Result<bool, MaxSizeReached>
     where
         K: IntoHeaderName,
@@ -2208,7 +1471,6 @@ impl<T> HeaderMap<T> {
     }
 
     #[inline]
-    #[cfg(all(not(creusot), not(feature = "http_map_api_leaf")))]
     fn try_append2<K>(&mut self, key: K, value: T) -> Result<bool, MaxSizeReached>
     where
         K: Hash + Into<HeaderName>,
@@ -2246,126 +1508,16 @@ impl<T> HeaderMap<T> {
     }
 
     #[inline]
-    #[cfg(all(creusot, not(feature = "http_map_api_leaf")))]
-    fn try_append2<K>(&mut self, key: K, value: T) -> Result<bool, MaxSizeReached>
-    where
-        K: Hash + Into<HeaderName> + DeepModel,
-        HeaderName: PartialEq<K>,
-        <HeaderName as DeepModel>::DeepModelTy:
-            creusot_std::std::partial_eq::PartialEqModel<<K as DeepModel>::DeepModelTy>,
-    {
-        self.try_reserve_one()?;
-
-        Ok(insert_phase_one!(
-            self,
-            key,
-            probe,
-            pos,
-            hash,
-            danger,
-            // Vacant
-            {
-                let _ = danger;
-                let index = self.entries.len();
-                self.try_insert_entry(hash, key.into(), value)?;
-                self.indices[probe] = Pos::new(index, hash);
-                false
-            },
-            // Occupied
-            {
-                append_value(pos, &mut self.entries[pos], &mut self.extra_values, value);
-                true
-            },
-            // Robinhood
-            {
-                self.try_insert_phase_two(key.into(), value, hash, probe, danger)?;
-                false
-            }
-        ))
-    }
-
-    #[cfg(all(not(creusot), any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[inline]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
-    #[cfg_attr(creusot, ensures(match result {
-        Some((probe, index)) => probe@ < self.indices.view().len()
-            && index@ < self.entries.view().len()
-            && self.entries.view()[index@].hash == self.indices.view()[probe@].hash
-            && creusot_std::std::partial_eq::PartialEqModel::eq_model(
-                self.entries.view()[index@].key.deep_model(),
-                key.deep_model(),
-            ),
-        None => true,
-    }))]
     fn find<K>(&self, key: &K) -> Option<(usize, usize)>
     where
         K: Hash + Into<HeaderName> + ?Sized,
         HeaderName: PartialEq<K>,
     {
-        if self.entries.len() == 0 {
+        if self.entries.is_empty() {
             return None;
         }
 
         let hash = hash_elem_using(&self.danger, key);
-        self.find_with_hash(key, hash)
-    }
-
-    #[cfg(all(creusot, any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[inline]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
-    #[cfg_attr(creusot, ensures(match result {
-        Some((probe, index)) => probe@ < self.indices.view().len()
-            && index@ < self.entries.view().len()
-            && self.entries.view()[index@].hash == self.indices.view()[probe@].hash
-            && creusot_std::std::partial_eq::PartialEqModel::eq_model(
-                self.entries.view()[index@].key.deep_model(),
-                key.deep_model(),
-            ),
-        None => true,
-    }))]
-    fn find<K>(&self, key: &K) -> Option<(usize, usize)>
-    where
-        K: Hash + Into<HeaderName> + creusot_std::prelude::DeepModel + ?Sized,
-        HeaderName: PartialEq<K>,
-        <HeaderName as creusot_std::prelude::DeepModel>::DeepModelTy:
-            creusot_std::std::partial_eq::PartialEqModel<
-                <K as creusot_std::prelude::DeepModel>::DeepModelTy,
-            >,
-    {
-        if self.entries.len() == 0 {
-            return None;
-        }
-
-        let hash = hash_elem_using(&self.danger, key);
-        self.find_with_hash(key, hash)
-    }
-
-    /// Probe using an already-computed hash. The precondition is the storage
-    /// portion of the map invariant: every occupied slot points to a matching
-    /// bucket, and the table has an empty slot so this bounded cyclic search
-    /// reaches a stopping point. The postcondition describes a found slot;
-    /// `None` remains unconstrained until probe-order and hash/equality
-    /// coherence are established.
-    #[cfg(all(not(creusot), any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[inline]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
-    #[cfg_attr(creusot, requires(header_map_keys_len(*self) > 0))]
-    #[cfg_attr(creusot, ensures(match result {
-        Some((probe, index)) => probe@ < self.indices.view().len()
-            && index@ < self.entries.view().len()
-            && self.entries.view()[index@].hash == hash
-            && self.entries.view()[index@].hash == self.indices.view()[probe@].hash
-            && creusot_std::std::partial_eq::PartialEqModel::eq_model(
-                self.entries.view()[index@].key.deep_model(),
-                key.deep_model(),
-            ),
-        None => true,
-    }))]
-    fn find_with_hash<K>(&self, key: &K, hash: HashValue) -> Option<(usize, usize)>
-    where
-        K: Hash + Into<HeaderName> + ?Sized,
-        HeaderName: PartialEq<K>,
-    {
         let mask = self.mask;
         let mut probe = desired_pos(mask, hash);
         let mut dist = 0;
@@ -2374,49 +1526,6 @@ impl<T> HeaderMap<T> {
             if let Some((i, entry_hash)) = self.indices[probe].resolve() {
                 if dist > probe_distance(mask, entry_hash, probe) {
                     // give up when probe distance is too long
-                    return None;
-                } else if entry_hash == hash && self.entries[i].key == *key {
-                    return Some((probe, i));
-                }
-            } else {
-                return None;
-            }
-
-            dist += 1;
-        });
-    }
-
-    #[cfg(all(creusot, any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
-    #[inline]
-    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
-    #[cfg_attr(creusot, requires(header_map_keys_len(*self) > 0))]
-    #[cfg_attr(creusot, ensures(match result {
-        Some((probe, index)) => probe@ < self.indices.view().len()
-            && index@ < self.entries.view().len()
-            && self.entries.view()[index@].hash == hash
-            && self.entries.view()[index@].hash == self.indices.view()[probe@].hash
-            && creusot_std::std::partial_eq::PartialEqModel::eq_model(
-                self.entries.view()[index@].key.deep_model(),
-                key.deep_model(),
-            ),
-        None => true,
-    }))]
-    fn find_with_hash<K>(&self, key: &K, hash: HashValue) -> Option<(usize, usize)>
-    where
-        K: Hash + Into<HeaderName> + creusot_std::prelude::DeepModel + ?Sized,
-        HeaderName: PartialEq<K>,
-        <HeaderName as creusot_std::prelude::DeepModel>::DeepModelTy:
-            creusot_std::std::partial_eq::PartialEqModel<
-                <K as creusot_std::prelude::DeepModel>::DeepModelTy,
-            >,
-    {
-        let mask = self.mask;
-        let mut probe = desired_pos(mask, hash);
-        let mut dist = 0;
-
-        probe_loop!(probe < self.indices.len(), {
-            if let Some((i, entry_hash)) = self.indices[probe].resolve() {
-                if dist > probe_distance(mask, entry_hash, probe) {
                     return None;
                 } else if entry_hash == hash && self.entries[i].key == *key {
                     return Some((probe, i));
@@ -2473,7 +1582,6 @@ impl<T> HeaderMap<T> {
     ///
     /// assert!(map.remove(HOST).is_none());
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn remove<K>(&mut self, key: K) -> Option<T>
     where
         K: AsHeaderName,
@@ -2498,7 +1606,6 @@ impl<T> HeaderMap<T> {
     /// for the `found` index (via `remove_all_extra_values` or similar)
     /// _before_ this method is called.
     #[inline]
-    #[cfg(not(feature = "http_map_api_leaf"))]
     fn remove_found(&mut self, probe: usize, found: usize) -> Bucket<T> {
         // index `probe` and entry `found` is to be removed
         // use swap_remove, but then we need to update the index that points
@@ -2556,13 +1663,11 @@ impl<T> HeaderMap<T> {
 
     /// Removes the `ExtraValue` at the given index.
     #[inline]
-    #[cfg(not(feature = "http_map_api_leaf"))]
     fn remove_extra_value(&mut self, idx: usize) -> ExtraValue<T> {
         let raw_links = self.raw_links();
         remove_extra_value(raw_links, &mut self.extra_values, idx)
     }
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     fn remove_all_extra_values(&mut self, mut head: usize) {
         loop {
             let extra = self.remove_extra_value(head);
@@ -2576,32 +1681,6 @@ impl<T> HeaderMap<T> {
     }
 
     #[inline]
-    #[cfg_attr(creusot, ensures(match result {
-        Ok(()) => header_map_keys_len(*self) < MAX_SIZE@
-            && header_map_keys_len(^self) == header_map_keys_len(*self) + 1
-            && (^self).entries[header_map_keys_len(*self)].hash == hash
-            && (^self).entries[header_map_keys_len(*self)].key == key
-            && (^self).entries[header_map_keys_len(*self)].value == value
-            && (^self).entries[header_map_keys_len(*self)].links == None,
-        Err(_) => header_map_keys_len(*self) >= MAX_SIZE@
-            && header_map_keys_len(^self) == header_map_keys_len(*self),
-    }))]
-    #[cfg_attr(creusot, ensures((^self).mask == self.mask))]
-    #[cfg_attr(creusot, ensures((^self).indices@ == self.indices@))]
-    #[cfg_attr(creusot, ensures((^self).extra_values@ == self.extra_values@))]
-    #[cfg_attr(creusot, ensures((^self).danger == self.danger))]
-    #[cfg_attr(creusot, ensures((forall<i: Int>
-        (0 <= i && i < header_map_keys_len(*self)) ==>
-            ((^self).entries@[i].hash == self.entries@[i].hash
-            && (^self).entries@[i].key.deep_model() == self.entries@[i].key.deep_model()
-            && (^self).entries@[i].value == self.entries@[i].value
-            && match (self.entries@[i].links, (^self).entries@[i].links) {
-                (None, None) => true,
-                (Some(before), Some(after)) =>
-                    before.next == after.next && before.tail == after.tail,
-                _ => false,
-            })
-    )))]
     fn try_insert_entry(
         &mut self,
         hash: HashValue,
@@ -2758,7 +1837,6 @@ impl<T> HeaderMap<T> {
 
 /// Removes the `ExtraValue` at the given index.
 #[inline]
-#[cfg(not(feature = "http_map_api_leaf"))]
 fn remove_extra_value<T>(
     mut raw_links: RawLinks<T>,
     extra_values: &mut Vec<ExtraValue<T>>,
@@ -2877,7 +1955,6 @@ fn remove_extra_value<T>(
     extra
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 fn drain_all_extra_values<T>(
     raw_links: RawLinks<T>,
     extra_values: &mut Vec<ExtraValue<T>>,
@@ -2897,7 +1974,6 @@ fn drain_all_extra_values<T>(
     vec
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> IntoIterator for &'a HeaderMap<T> {
     type Item = (&'a HeaderName, &'a T);
     type IntoIter = Iter<'a, T>;
@@ -2907,7 +1983,6 @@ impl<'a, T> IntoIterator for &'a HeaderMap<T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> IntoIterator for &'a mut HeaderMap<T> {
     type Item = (&'a HeaderName, &'a mut T);
     type IntoIter = IterMut<'a, T>;
@@ -2917,7 +1992,6 @@ impl<'a, T> IntoIterator for &'a mut HeaderMap<T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> IntoIterator for HeaderMap<T> {
     type Item = (Option<HeaderName>, T);
     type IntoIter = IntoIter<T>;
@@ -2980,7 +2054,6 @@ impl<T> IntoIterator for HeaderMap<T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<T> FromIterator<(HeaderName, T)> for HeaderMap<T> {
     fn from_iter<I>(iter: I) -> Self
     where
@@ -3007,7 +2080,6 @@ impl<T> FromIterator<(HeaderName, T)> for HeaderMap<T> {
 /// let headers: HeaderMap = (&map).try_into().expect("valid headers");
 /// assert_eq!(headers["X-Custom-Header"], "my value");
 /// ```
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, K, V, S, T> TryFrom<&'a HashMap<K, V, S>> for HeaderMap<T>
 where
     K: Eq + Hash,
@@ -3029,7 +2101,6 @@ where
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<T> Extend<(Option<HeaderName>, T)> for HeaderMap<T> {
     /// Extend a `HeaderMap` with the contents of another `HeaderMap`.
     ///
@@ -3127,7 +2198,6 @@ impl<T> Extend<(Option<HeaderName>, T)> for HeaderMap<T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<T> Extend<(HeaderName, T)> for HeaderMap<T> {
     fn extend<I: IntoIterator<Item = (HeaderName, T)>>(&mut self, iter: I) {
         // Keys may be already present or show multiple times in the iterator.
@@ -3154,7 +2224,6 @@ impl<T> Extend<(HeaderName, T)> for HeaderMap<T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T: PartialEq> PartialEq for HeaderMap<T> {
     fn eq(&self, other: &HeaderMap<T>) -> bool {
         if self.len() != other.len() {
@@ -3166,19 +2235,14 @@ impl<T: PartialEq> PartialEq for HeaderMap<T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T: Eq> Eq for HeaderMap<T> {}
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T: fmt::Debug> fmt::Debug for HeaderMap<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map().entries(self.iter()).finish()
     }
 }
 
-// The composition header leaf targets Builder::header -> HeaderMap::try_append;
-// the index operator and its formatted panic path are unrelated to that body.
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<K, T> ops::Index<K> for HeaderMap<T>
 where
     K: AsHeaderName,
@@ -3219,46 +2283,6 @@ fn do_insert_phase_two(indices: &mut [Pos], mut probe: usize, mut old_pos: Pos) 
 }
 
 #[inline]
-#[cfg_attr(creusot, requires(match entry.links {
-    Some(links) => links.tail@ < extra@.len(),
-    None => true,
-}))]
-#[cfg_attr(creusot, ensures((^extra)@.len() == extra@.len() + 1))]
-#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].value == value))]
-#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].prev.deep_model().0
-    == match entry.links {
-        Some(_) => true,
-        None => false,
-    }))]
-#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].prev.deep_model().1@
-    == match entry.links {
-        Some(links) => links.tail@,
-        None => entry_idx@,
-    }))]
-#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].next.deep_model().0 == false))]
-#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].next.deep_model().1@ == entry_idx@))]
-#[cfg_attr(creusot, ensures((^entry).hash == entry.hash))]
-#[cfg_attr(creusot, ensures((^entry).key == entry.key))]
-#[cfg_attr(creusot, ensures((^entry).value == entry.value))]
-#[cfg_attr(creusot, ensures(match (entry.links, (^entry).links) {
-    (Some(old), Some(new)) => new.next == old.next && new.tail@ == extra@.len(),
-    (None, Some(new)) => new.next@ == extra@.len() && new.tail@ == extra@.len(),
-    (_, None) => false,
-}))]
-#[cfg_attr(creusot, ensures(forall<i: Int>
-    0 <= i && i < extra@.len() ==>
-        (^extra)@[i].value == extra@[i].value
-            && (^extra)@[i].prev == extra@[i].prev
-            && match entry.links {
-                Some(links) =>
-                    (i == links.tail@ ==>
-                        (^extra)@[i].next.deep_model().0 == true
-                            && (^extra)@[i].next.deep_model().1@ == extra@.len())
-                        && (i != links.tail@ ==>
-                            (^extra)@[i].next.deep_model() == extra@[i].next.deep_model()),
-                None => (^extra)@[i].next.deep_model() == extra@[i].next.deep_model(),
-            }
-))]
 fn append_value<T>(
     entry_idx: usize,
     entry: &mut Bucket<T>,
@@ -3296,7 +2320,6 @@ fn append_value<T>(
 
 // ===== impl Iter =====
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for Iter<'a, T> {
     type Item = (&'a HeaderName, &'a T);
 
@@ -3345,7 +2368,6 @@ impl<'a, T> Iterator for Iter<'a, T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for Iter<'a, T> {}
 
 unsafe impl<'a, T: Sync> Sync for Iter<'a, T> {}
@@ -3353,19 +2375,8 @@ unsafe impl<'a, T: Sync> Send for Iter<'a, T> {}
 
 // ===== impl IterMut =====
 
-#[cfg(any(not(feature = "http_map_api_leaf"), http_bucket_iter_mut_leaf))]
 impl<'a, T> IterMut<'a, T> {
-    #[cfg_attr(creusot, requires(iter_mut_storage_invariant(self)))]
-    #[cfg_attr(creusot, requires(iter_mut_cursor_ready(self)))]
-    #[cfg_attr(creusot, ensures((^self).entries_len == self.entries_len))]
-    #[cfg_attr(creusot, ensures((^self).entries == self.entries))]
-    #[cfg_attr(creusot, ensures((^self).extra_values == self.extra_values))]
-    #[cfg_attr(creusot, ensures(iter_mut_storage_invariant(&^self)))]
-    #[cfg_attr(creusot, ensures(match result {
-        Some(_) => match self.cursor { Some(_) => true, None => self.entry < self.entries_len },
-        None => match (^self).cursor { Some(_) => false, None => true },
-    }))]
-    fn next_unsafe(&mut self) -> Option<(&'a HeaderName, &'a mut T)> {
+    fn next_unsafe(&mut self) -> Option<(*const HeaderName, *mut T)> {
         use self::Cursor::*;
 
         if self.cursor.is_none() {
@@ -3380,97 +2391,54 @@ impl<'a, T> IterMut<'a, T> {
         // SAFETY: `self.entry < self.entries_len`, and the iterator has
         // exclusive access to the underlying map for `'a`, so the `entries`
         // allocation remains valid for the lifetime of the iterator.
-        let entries_live = {
-            #[cfg(creusot)]
-            {
-                ghost! { (*self.entries_live).clone() }
-            }
-            #[cfg(not(creusot))]
-            {
-                Ghost::from_fn(|| unreachable!())
-            }
-        };
-        let entry = unsafe { self.entries.add_live(self.entry, entries_live) };
+        let entry = unsafe { self.entries.add(self.entry) };
 
         match self.cursor.unwrap() {
             Head => {
-                // SAFETY: this is the first visit to this entry, the vector
-                // allocation remains borrowed for `'a`, and entries are
-                // visited in increasing order. The helper splits the key,
-                // value, and links borrows before the value escapes.
-                let permission = {
-                    #[cfg(creusot)]
-                    {
-                        ghost! {
-                            self.entry_permissions
-                                .get_mut_ghost(Int::new(self.entry as i128).into_inner())
-                                .unwrap()
-                                .take()
-                                .unwrap()
-                        }
-                    }
-                    #[cfg(not(creusot))]
-                    {
-                        Ghost::from_fn(|| unreachable!())
-                    }
-                };
-                let bucket = unsafe { Perm::as_mut(entry, permission) };
-                let (key, value, links) = yield_bucket_head(bucket);
-                self.current_key = Some(key);
-                self.cursor = links.map(|l| Values(l.next));
-                Some((key, value))
+                // SAFETY: `entry` points at a live bucket in `entries`.
+                self.cursor = unsafe { (*entry).links }.map(|l| Values(l.next));
+                // SAFETY: `entry` points at a live bucket, and the iterator only
+                // yields each slot at most once, so materializing these field
+                // pointers does not alias another yielded `&mut T`.
+                Some(unsafe {
+                    (
+                        ptr::addr_of!((*entry).key),
+                        ptr::addr_of_mut!((*entry).value),
+                    )
+                })
             }
             Values(idx) => {
-                let key = self.current_key.unwrap();
                 // SAFETY: `idx` comes from the `links` chain stored in a live
                 // bucket / extra value, so it points at a live `extra_values`
                 // slot for the duration of iteration.
-                let extra_live = {
-                    #[cfg(creusot)]
-                    {
-                        ghost! { (*self.extra_values_live).clone() }
-                    }
-                    #[cfg(not(creusot))]
-                    {
-                        Ghost::from_fn(|| unreachable!())
-                    }
-                };
-                let extra = unsafe { self.extra_values.add_live(idx, extra_live) };
-                let permission = {
-                    #[cfg(creusot)]
-                    {
-                        ghost! {
-                            self.extra_permissions
-                                .get_mut_ghost(Int::new(idx as i128).into_inner())
-                                .unwrap()
-                                .take()
-                                .unwrap()
-                        }
-                    }
-                    #[cfg(not(creusot))]
-                    {
-                        Ghost::from_fn(|| unreachable!())
-                    }
-                };
-                let extra = unsafe { Perm::as_mut(extra, permission) };
-                let (value, next) = yield_extra_value(extra);
-                match next {
+                let extra = unsafe { self.extra_values.add(idx) };
+
+                // SAFETY: `extra` points at a live extra value.
+                match unsafe { (*extra).next } {
                     Link::Entry(_) => self.cursor = None,
                     Link::Extra(i) => self.cursor = Some(Values(i)),
                 }
 
-                Some((key, value))
+                // SAFETY: `entry` and `extra` both point at live elements in the
+                // map backing storage, and the iterator only yields each value
+                // slot at most once.
+                Some(unsafe {
+                    (
+                        ptr::addr_of!((*entry).key),
+                        ptr::addr_of_mut!((*extra).value),
+                    )
+                })
             }
         }
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for IterMut<'a, T> {
     type Item = (&'a HeaderName, &'a mut T);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next_unsafe()
+            .map(|(key, ptr)| (unsafe { &*key }, unsafe { &mut *ptr }))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -3485,7 +2453,6 @@ impl<'a, T> Iterator for IterMut<'a, T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for IterMut<'a, T> {}
 
 unsafe impl<'a, T: Sync> Sync for IterMut<'a, T> {}
@@ -3493,7 +2460,6 @@ unsafe impl<'a, T: Send> Send for IterMut<'a, T> {}
 
 // ===== impl Keys =====
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for Keys<'a, T> {
     type Item = &'a HeaderName;
 
@@ -3518,14 +2484,11 @@ impl<'a, T> Iterator for Keys<'a, T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> ExactSizeIterator for Keys<'a, T> {}
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for Keys<'a, T> {}
 
 // ===== impl Values ====
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T> Iterator for Values<'a, T> {
     type Item = &'a T;
 
@@ -3538,12 +2501,10 @@ impl<'a, T> Iterator for Values<'a, T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T> FusedIterator for Values<'a, T> {}
 
 // ===== impl ValuesMut ====
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T> Iterator for ValuesMut<'a, T> {
     type Item = &'a mut T;
 
@@ -3556,12 +2517,10 @@ impl<'a, T> Iterator for ValuesMut<'a, T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T> FusedIterator for ValuesMut<'a, T> {}
 
 // ===== impl Drain =====
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T> Iterator for Drain<'a, T> {
     type Item = (Option<HeaderName>, T);
 
@@ -3612,10 +2571,8 @@ impl<'a, T> Iterator for Drain<'a, T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T> FusedIterator for Drain<'a, T> {}
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T> Drop for Drain<'a, T> {
     fn drop(&mut self) {
         for _ in self {}
@@ -3627,7 +2584,6 @@ unsafe impl<'a, T: Send> Send for Drain<'a, T> {}
 
 // ===== impl Entry =====
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Entry<'a, T> {
     /// Ensures a value is in the entry by inserting the default if empty.
     ///
@@ -3815,10 +2771,6 @@ impl<'a, T> Entry<'a, T> {
 
 // ===== impl VacantEntry =====
 
-#[cfg(any(
-    not(feature = "http_map_api_leaf"),
-    feature = "http_map_entry_api_leaf"
-))]
 impl<'a, T> VacantEntry<'a, T> {
     /// Returns a reference to the entry's key
     ///
@@ -3830,7 +2782,6 @@ impl<'a, T> VacantEntry<'a, T> {
     ///
     /// assert_eq!(map.entry("x-hello").key().as_str(), "x-hello");
     /// ```
-    #[cfg_attr(creusot, ensures(vacant_entry_key_matches(*self, *result)))]
     pub fn key(&self) -> &HeaderName {
         &self.key
     }
@@ -3847,7 +2798,6 @@ impl<'a, T> VacantEntry<'a, T> {
     ///     assert_eq!(v.into_key().as_str(), "x-hello");
     /// }
     /// ```
-    #[cfg_attr(creusot, ensures(vacant_entry_key_matches(self, result)))]
     pub fn into_key(self) -> HeaderName {
         self.key
     }
@@ -3869,7 +2819,6 @@ impl<'a, T> VacantEntry<'a, T> {
     ///
     /// assert_eq!(map["x-hello"], "world");
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn insert(self, value: T) -> &'a mut T {
         self.try_insert(value).expect("size overflows MAX_SIZE")
     }
@@ -3891,7 +2840,6 @@ impl<'a, T> VacantEntry<'a, T> {
     ///
     /// assert_eq!(map["x-hello"], "world");
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn try_insert(self, value: T) -> Result<&'a mut T, MaxSizeReached> {
         // Ensure that there is space in the map
         let index =
@@ -3919,7 +2867,6 @@ impl<'a, T> VacantEntry<'a, T> {
     ///
     /// assert_eq!(map["x-hello"], "world2");
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn insert_entry(self, value: T) -> OccupiedEntry<'a, T> {
         self.try_insert_entry(value)
             .expect("size overflows MAX_SIZE")
@@ -3943,7 +2890,6 @@ impl<'a, T> VacantEntry<'a, T> {
     ///
     /// assert_eq!(map["x-hello"], "world2");
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn try_insert_entry(self, value: T) -> Result<OccupiedEntry<'a, T>, MaxSizeReached> {
         // Ensure that there is space in the map
         let index =
@@ -3960,7 +2906,6 @@ impl<'a, T> VacantEntry<'a, T> {
 
 // ===== impl GetAll =====
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T: 'a> GetAll<'a, T> {
     /// Returns an iterator visiting all values associated with the entry.
     ///
@@ -3992,14 +2937,12 @@ impl<'a, T: 'a> GetAll<'a, T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T: PartialEq> PartialEq for GetAll<'a, T> {
     fn eq(&self, other: &Self) -> bool {
         self.iter().eq(other.iter())
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> IntoIterator for GetAll<'a, T> {
     type Item = &'a T;
     type IntoIter = ValueIter<'a, T>;
@@ -4009,7 +2952,6 @@ impl<'a, T> IntoIterator for GetAll<'a, T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, 'b: 'a, T> IntoIterator for &'b GetAll<'a, T> {
     type Item = &'a T;
     type IntoIter = ValueIter<'a, T>;
@@ -4021,7 +2963,6 @@ impl<'a, 'b: 'a, T> IntoIterator for &'b GetAll<'a, T> {
 
 // ===== impl ValueIter =====
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T: 'a> Iterator for ValueIter<'a, T> {
     type Item = &'a T;
 
@@ -4078,7 +3019,6 @@ impl<'a, T: 'a> Iterator for ValueIter<'a, T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T: 'a> DoubleEndedIterator for ValueIter<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         use self::Cursor::*;
@@ -4109,12 +3049,10 @@ impl<'a, T: 'a> DoubleEndedIterator for ValueIter<'a, T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T> FusedIterator for ValueIter<'a, T> {}
 
 // ===== impl ValueIterMut =====
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T: 'a> Iterator for ValueIterMut<'a, T> {
     type Item = &'a mut T;
 
@@ -4170,7 +3108,6 @@ impl<'a, T: 'a> Iterator for ValueIterMut<'a, T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T: 'a> DoubleEndedIterator for ValueIterMut<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         use self::Cursor::*;
@@ -4212,7 +3149,6 @@ impl<'a, T: 'a> DoubleEndedIterator for ValueIterMut<'a, T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<'a, T> FusedIterator for ValueIterMut<'a, T> {}
 
 unsafe impl<'a, T: Sync> Sync for ValueIterMut<'a, T> {}
@@ -4220,7 +3156,6 @@ unsafe impl<'a, T: Send> Send for ValueIterMut<'a, T> {}
 
 // ===== impl IntoIter =====
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<T> Iterator for IntoIter<T> {
     type Item = (Option<HeaderName>, T);
 
@@ -4256,10 +3191,8 @@ impl<T> Iterator for IntoIter<T> {
     }
 }
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<T> FusedIterator for IntoIter<T> {}
 
-#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
 impl<T> Drop for IntoIter<T> {
     fn drop(&mut self) {
         struct Guard<'a, T>(&'a mut IntoIter<T>);
@@ -4281,10 +3214,6 @@ impl<T> Drop for IntoIter<T> {
 
 // ===== impl OccupiedEntry =====
 
-#[cfg(any(
-    not(feature = "http_map_api_leaf"),
-    feature = "http_map_entry_api_leaf"
-))]
 impl<'a, T> OccupiedEntry<'a, T> {
     /// Returns a reference to the entry's key.
     ///
@@ -4299,8 +3228,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///     assert_eq!("host", e.key());
     /// }
     /// ```
-    #[cfg_attr(creusot, requires(occupied_entry_index_in_range(*self)))]
-    #[cfg_attr(creusot, ensures(occupied_entry_key_matches(*self, *result)))]
     pub fn key(&self) -> &HeaderName {
         &self.map.entries[self.index].key
     }
@@ -4328,8 +3255,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///     assert_eq!(e.get(), &"hello.world");
     /// }
     /// ```
-    #[cfg_attr(creusot, requires(occupied_entry_index_in_range(*self)))]
-    #[cfg_attr(creusot, ensures(occupied_entry_value_matches(*self, *result)))]
     pub fn get(&self) -> &T {
         &self.map.entries[self.index].value
     }
@@ -4354,9 +3279,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///     assert_eq!(e.get(), &"hello.world-2");
     /// }
     /// ```
-    #[cfg_attr(creusot, requires(occupied_entry_index_in_range(*self)))]
-    #[cfg_attr(creusot, ensures(occupied_entry_value_matches(*self, *result)))]
-    #[cfg_attr(creusot, ensures(occupied_entry_value_matches(^self, ^result)))]
     pub fn get_mut(&mut self) -> &mut T {
         &mut self.map.entries[self.index].value
     }
@@ -4384,8 +3306,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// assert_eq!("hello.world-2", map["host"]);
     /// ```
-    #[cfg_attr(creusot, requires(occupied_entry_index_in_range(self)))]
-    #[cfg_attr(creusot, ensures(occupied_entry_value_matches(self, *result)))]
     pub fn into_mut(self) -> &'a mut T {
         &mut self.map.entries[self.index].value
     }
@@ -4409,7 +3329,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// assert_eq!("earth", map["host"]);
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn insert(&mut self, value: T) -> T {
         self.map.insert_occupied(self.index, value)
     }
@@ -4436,7 +3355,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// assert_eq!("earth", map["host"]);
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn insert_mult(&mut self, value: T) -> ValueDrain<'_, T> {
         self.map.insert_occupied_mult(self.index, value)
     }
@@ -4462,7 +3380,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     /// assert_eq!("world", *i.next().unwrap());
     /// assert_eq!("earth", *i.next().unwrap());
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn append(&mut self, value: T) {
         let idx = self.index;
         let entry = &mut self.map.entries[idx];
@@ -4488,7 +3405,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// assert!(!map.contains_key("host"));
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn remove(self) -> T {
         self.remove_entry().1
     }
@@ -4514,7 +3430,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// assert!(!map.contains_key("host"));
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn remove_entry(self) -> (HeaderName, T) {
         if let Some(links) = self.map.entries[self.index].links {
             self.map.remove_all_extra_values(links.next);
@@ -4529,7 +3444,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///
     /// The key and all values associated with the entry are removed and
     /// returned.
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn remove_entry_mult(self) -> (HeaderName, ValueDrain<'a, T>) {
         let raw_links = self.map.raw_links();
         let extra_values = &mut self.map.extra_values;
@@ -4567,7 +3481,6 @@ impl<'a, T> OccupiedEntry<'a, T> {
     ///     assert!(iter.next().is_none());
     /// }
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn iter(&self) -> ValueIter<'_, T> {
         self.map.value_iter(Some(self.index))
     }
@@ -4596,13 +3509,11 @@ impl<'a, T> OccupiedEntry<'a, T> {
     /// assert_eq!(&"world-boop", i.next().unwrap());
     /// assert_eq!(&"earth-boop", i.next().unwrap());
     /// ```
-    #[cfg(not(feature = "http_map_api_leaf"))]
     pub fn iter_mut(&mut self) -> ValueIterMut<'_, T> {
         self.map.value_iter_mut(self.index)
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> IntoIterator for OccupiedEntry<'a, T> {
     type Item = &'a mut T;
     type IntoIter = ValueIterMut<'a, T>;
@@ -4612,7 +3523,6 @@ impl<'a, T> IntoIterator for OccupiedEntry<'a, T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, 'b: 'a, T> IntoIterator for &'b OccupiedEntry<'a, T> {
     type Item = &'a T;
     type IntoIter = ValueIter<'a, T>;
@@ -4622,7 +3532,6 @@ impl<'a, 'b: 'a, T> IntoIterator for &'b OccupiedEntry<'a, T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, 'b: 'a, T> IntoIterator for &'b mut OccupiedEntry<'a, T> {
     type Item = &'a mut T;
     type IntoIter = ValueIterMut<'a, T>;
@@ -4634,7 +3543,6 @@ impl<'a, 'b: 'a, T> IntoIterator for &'b mut OccupiedEntry<'a, T> {
 
 // ===== impl ValueDrain =====
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Iterator for ValueDrain<'a, T> {
     type Item = T;
 
@@ -4665,10 +3573,8 @@ impl<'a, T> Iterator for ValueDrain<'a, T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> FusedIterator for ValueDrain<'a, T> {}
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<'a, T> Drop for ValueDrain<'a, T> {
     fn drop(&mut self) {
         for _ in self.by_ref() {}
@@ -4680,17 +3586,14 @@ unsafe impl<'a, T: Send> Send for ValueDrain<'a, T> {}
 
 // ===== impl RawLinks =====
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> Clone for RawLinks<T> {
     fn clone(&self) -> RawLinks<T> {
         *self
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> Copy for RawLinks<T> {}
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> ops::Index<usize> for RawLinks<T> {
     type Output = Option<Links>;
 
@@ -4699,10 +3602,49 @@ impl<T> ops::Index<usize> for RawLinks<T> {
     }
 }
 
-#[cfg(not(feature = "http_map_api_leaf"))]
 impl<T> ops::IndexMut<usize> for RawLinks<T> {
     fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
         unsafe { &mut (*self.0)[idx].links }
+    }
+}
+
+// ===== impl Pos =====
+
+impl Pos {
+    #[inline]
+    fn new(index: usize, hash: HashValue) -> Self {
+        debug_assert!(index < MAX_SIZE);
+        Pos {
+            index: index as Size,
+            hash,
+        }
+    }
+
+    #[inline]
+    fn none() -> Self {
+        Pos {
+            index: !0,
+            hash: HashValue(0),
+        }
+    }
+
+    #[inline]
+    fn is_some(&self) -> bool {
+        !self.is_none()
+    }
+
+    #[inline]
+    fn is_none(&self) -> bool {
+        self.index == !0
+    }
+
+    #[inline]
+    fn resolve(&self) -> Option<(usize, HashValue)> {
+        if self.is_some() {
+            Some((self.index as usize, self.hash))
+        } else {
+            None
+        }
     }
 }
 
@@ -4759,12 +3701,24 @@ impl std::error::Error for MaxSizeReached {}
 // ===== impl Utils =====
 
 #[inline]
-#[cfg_attr(creusot, ensures(match result {
-    Ok(raw) => raw@ == n@ + n@ / 3,
-    Err(_) => n@ + n@ / 3 > usize::MAX@,
-}))]
+fn usable_capacity(cap: usize) -> usize {
+    cap - cap / 4
+}
+
+#[inline]
 fn to_raw_capacity(n: usize) -> Result<usize, MaxSizeReached> {
-    checked_raw_capacity(n).ok_or_else(MaxSizeReached::new)
+    n.checked_add(n / 3).ok_or_else(MaxSizeReached::new)
+}
+
+#[inline]
+fn desired_pos(mask: Size, hash: HashValue) -> usize {
+    (hash.0 & mask) as usize
+}
+
+/// The number of steps that `current` is forward of the desired position for hash
+#[inline]
+fn probe_distance(mask: Size, hash: HashValue, current: usize) -> usize {
+    current.wrapping_sub(desired_pos(mask, hash)) & mask as usize
 }
 
 #[inline]
@@ -4853,7 +3807,6 @@ mod into_header_name {
 
     // ==== impls ====
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for HeaderName {
         #[inline]
         fn try_insert<T>(
@@ -4875,10 +3828,8 @@ mod into_header_name {
         }
     }
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     impl IntoHeaderName for HeaderName {}
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for &HeaderName {
         #[inline]
         fn try_insert<T>(
@@ -4899,10 +3850,8 @@ mod into_header_name {
         }
     }
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     impl IntoHeaderName for &HeaderName {}
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     impl Sealed for &'static str {
         #[inline]
         fn try_insert<T>(
@@ -4923,38 +3872,15 @@ mod into_header_name {
         }
     }
 
-    #[cfg(not(feature = "http_map_api_leaf"))]
     impl IntoHeaderName for &'static str {}
 }
 
 mod as_header_name {
     use super::{Entry, HdrName, HeaderMap, HeaderName, InvalidHeaderName, MaxSizeReached};
-    #[cfg(creusot)]
-    #[allow(unused_imports)]
-    use creusot_std::prelude::{ensures, logic, pearlite, requires, DeepModel};
-    #[cfg(creusot)]
-    #[allow(unused_imports)]
-    use creusot_std::logic::Seq;
-    #[cfg(creusot)]
-    #[allow(unused_imports)]
-    use super::super::name::{hdr_parse_success, header_name_matches_hdr_name, ReprDeepModel};
 
     /// A marker trait used to identify values that can be used as search keys
     /// to a `HeaderMap`.
     pub trait AsHeaderName: Sealed {}
-
-    #[cfg(creusot)]
-    #[logic(open)]
-    fn text_matches_header_model(
-        header: ReprDeepModel<Seq<u8>>,
-        text: Seq<char>,
-    ) -> bool {
-        pearlite! {
-            exists<parsed: ReprDeepModel<(Seq<u8>, bool)>>
-                hdr_parse_success(text.to_bytes(), parsed)
-                    && header_name_matches_hdr_name(header, parsed)
-        }
-    }
 
     // Debug not currently needed, save on compiling it
     #[allow(missing_debug_implementations)]
@@ -4983,73 +3909,26 @@ mod as_header_name {
     //
     // Ultimately, this allows us to adjust the signatures of these methods
     // without breaking any external crate.
-    macro_rules! define_sealed_trait {
-        ($($bounds:tt)*) => {
-            pub trait Sealed $($bounds)* {
-                #[doc(hidden)]
-                #[cfg(not(feature = "http_map_find_api_leaf"))]
-                fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError>;
+    pub trait Sealed {
+        #[doc(hidden)]
+        fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError>;
 
-                #[doc(hidden)]
-                #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
-                #[cfg_attr(creusot, ensures(match result {
-                    Some((_, index)) => index@ < super::header_map_keys_len(*map)
-                        && self.matches_header(super::header_map_key_at(*map, index@)),
-                    None => true,
-                }))]
-                fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)>;
+        #[doc(hidden)]
+        fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)>;
 
-                #[cfg(creusot)]
-                #[doc(hidden)]
-                #[logic]
-                fn matches_header(
-                    &self,
-                    header: <HeaderName as DeepModel>::DeepModelTy,
-                ) -> bool;
-
-                #[doc(hidden)]
-                fn as_str(&self) -> &str;
-            }
-        };
+        #[doc(hidden)]
+        fn as_str(&self) -> &str;
     }
-
-    #[cfg(creusot)]
-    define_sealed_trait! {
-        : creusot_std::prelude::DeepModel
-    }
-
-    #[cfg(not(creusot))]
-    define_sealed_trait!();
 
     // ==== impls ====
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl Sealed for HeaderName {
-        #[cfg(not(feature = "http_map_find_api_leaf"))]
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
             Ok(map.try_entry2(self)?)
         }
 
-        #[cfg(creusot)]
-        #[logic(open(self))]
-        fn matches_header(
-            &self,
-            header: <HeaderName as DeepModel>::DeepModelTy,
-        ) -> bool {
-            creusot_std::std::partial_eq::PartialEqModel::eq_model(
-                self.deep_model(),
-                header,
-            )
-        }
-
         #[inline]
-        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
-        #[cfg_attr(creusot, ensures(match result {
-            Some((_, index)) => index@ < super::header_map_keys_len(*map)
-                && self.matches_header(super::header_map_key_at(*map, index@)),
-            None => true,
-        }))]
         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
             map.find(self)
         }
@@ -5059,36 +3938,15 @@ mod as_header_name {
         }
     }
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl AsHeaderName for HeaderName {}
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl Sealed for &HeaderName {
-        #[cfg(not(feature = "http_map_find_api_leaf"))]
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
             Ok(map.try_entry2(self)?)
         }
 
-        #[cfg(creusot)]
-        #[logic(open(self))]
-        fn matches_header(
-            &self,
-            header: <HeaderName as DeepModel>::DeepModelTy,
-        ) -> bool {
-            creusot_std::std::partial_eq::PartialEqModel::eq_model(
-                self.deep_model(),
-                header,
-            )
-        }
-
         #[inline]
-        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
-        #[cfg_attr(creusot, ensures(match result {
-            Some((_, index)) => index@ < super::header_map_keys_len(*map)
-                && self.matches_header(super::header_map_key_at(*map, index@)),
-            None => true,
-        }))]
         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
             map.find(*self)
         }
@@ -5098,12 +3956,9 @@ mod as_header_name {
         }
     }
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl AsHeaderName for &HeaderName {}
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl Sealed for &str {
-        #[cfg(not(feature = "http_map_find_api_leaf"))]
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
             Ok(HdrName::from_bytes(self.as_bytes(), move |hdr| {
@@ -5111,22 +3966,7 @@ mod as_header_name {
             })??)
         }
 
-        #[cfg(creusot)]
-        #[logic(open(self))]
-        fn matches_header(
-            &self,
-            header: <HeaderName as DeepModel>::DeepModelTy,
-        ) -> bool {
-            text_matches_header_model(header, self.deep_model())
-        }
-
         #[inline]
-        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
-        #[cfg_attr(creusot, ensures(match result {
-            Some((_, index)) => index@ < super::header_map_keys_len(*map)
-                && self.matches_header(super::header_map_key_at(*map, index@)),
-            None => true,
-        }))]
         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
             HdrName::from_bytes(self.as_bytes(), move |hdr| map.find(&hdr)).unwrap_or(None)
         }
@@ -5136,37 +3976,17 @@ mod as_header_name {
         }
     }
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl AsHeaderName for &str {}
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl Sealed for String {
-        #[cfg(not(feature = "http_map_find_api_leaf"))]
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
-            let text: &str = &self;
-            text.try_entry(map)
-        }
-
-        #[cfg(creusot)]
-        #[logic(open(self))]
-        fn matches_header(
-            &self,
-            header: <HeaderName as DeepModel>::DeepModelTy,
-        ) -> bool {
-            text_matches_header_model(header, self.deep_model())
+            self.as_str().try_entry(map)
         }
 
         #[inline]
-        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
-        #[cfg_attr(creusot, ensures(match result {
-            Some((_, index)) => index@ < super::header_map_keys_len(*map)
-                && self.matches_header(super::header_map_key_at(*map, index@)),
-            None => true,
-        }))]
         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
-            let text: &str = self;
-            Sealed::find(&text, map)
+            Sealed::find(&self.as_str(), map)
         }
 
         fn as_str(&self) -> &str {
@@ -5174,34 +3994,15 @@ mod as_header_name {
         }
     }
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl AsHeaderName for String {}
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl Sealed for &String {
-        #[cfg(not(feature = "http_map_find_api_leaf"))]
         #[inline]
         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
-            let text: &str = self;
-            text.try_entry(map)
-        }
-
-        #[cfg(creusot)]
-        #[logic(open(self))]
-        fn matches_header(
-            &self,
-            header: <HeaderName as DeepModel>::DeepModelTy,
-        ) -> bool {
-            text_matches_header_model(header, self.deep_model())
+            self.as_str().try_entry(map)
         }
 
         #[inline]
-        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
-        #[cfg_attr(creusot, ensures(match result {
-            Some((_, index)) => index@ < super::header_map_keys_len(*map)
-                && self.matches_header(super::header_map_key_at(*map, index@)),
-            None => true,
-        }))]
         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
             Sealed::find(*self, map)
         }
@@ -5211,7 +4012,6 @@ mod as_header_name {
         }
     }
 
-    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
     impl AsHeaderName for &String {}
 }
 

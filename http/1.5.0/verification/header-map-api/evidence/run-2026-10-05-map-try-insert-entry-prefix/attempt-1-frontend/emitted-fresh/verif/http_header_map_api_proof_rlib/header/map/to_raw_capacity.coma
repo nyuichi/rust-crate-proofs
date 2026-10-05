@@ -1,0 +1,70 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4766 0 4766 61 *)
+
+let%span smap_capacity = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_capacity.rs" 13 10 16 1
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4767 4 4767 27
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4767 39 4767 58
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4767 4 4767 59
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4762 28 4765 1
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4738 4 4738 20
+let%span soption = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/option.rs" 269 19 269 56
+let%span soption'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/option.rs" 270 18 273 9
+
+use creusot.int.UInt64
+use int.ComputerDivision
+use creusot.prelude.Any
+use int.Int
+
+type t_Option_usize = None | Some UInt64.t
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+let rec checked_raw_capacity (requested: UInt64.t) (return (x: t_Option_usize)) = any
+  [ return (result: t_Option_usize) ->
+  {[@stop_split] [@expl:checked_raw_capacity ensures] [%#smap_capacity] match result with
+      | Some raw -> UInt64.t'int raw = UInt64.t'int requested + ComputerDivision.div (UInt64.t'int requested) 3
+      | None -> UInt64.t'int requested + ComputerDivision.div (UInt64.t'int requested) 3 > UInt64.t'int const_MAX
+      end}
+    (! return {result}) ]
+
+type t_MaxSizeReached = { _priv: () }
+
+type t_Result_usize_MaxSizeReached = Ok UInt64.t | Err t_MaxSizeReached
+
+predicate precondition_new [@inline:trivial] (self: ()) (args: ()) = [%#smap'3] let () = args in true
+
+meta "rewrite_def" predicate precondition_new
+
+predicate postcondition_once_new [@inline:trivial] (self: ()) (args: ()) (result: t_MaxSizeReached) =
+  [%#smap'3] let () = args in true
+
+meta "rewrite_def" predicate postcondition_once_new
+
+let rec ok_or_else_usize (self_: t_Option_usize) (err: ()) (return (x: t_Result_usize_MaxSizeReached)) =
+  {[@stop_split] [@expl:ok_or_else requires] [%#soption] self_ = None -> precondition_new err ()}
+  any
+  [ return (result: t_Result_usize_MaxSizeReached) ->
+  {[@stop_split] [@expl:ok_or_else ensures] [%#soption'0] match self_ with
+      | None -> exists r: t_MaxSizeReached. result = Err r /\ postcondition_once_new err () r
+      | Some t -> result = Ok t
+      end}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec to_raw_capacity
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4766 0 4766 61]
+  (n: UInt64.t) (return (x: t_Result_usize_MaxSizeReached)) = (! bb0
+  [ bb0 = s0
+    [ s0 = checked_raw_capacity [%#smap] {n} (fun (_x: t_Option_usize) -> [ &_4 <- _x ] s1)
+    | s1 = ok_or_else_usize [%#smap'1] {_4} {[%#smap'0] ()}
+        (fun (_x: t_Result_usize_MaxSizeReached) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: t_Result_usize_MaxSizeReached = Any.any_l () | & n: UInt64.t = n | & _4: t_Option_usize = Any.any_l () ])
+  [ return (result: t_Result_usize_MaxSizeReached) ->
+  {[@stop_split] [@expl:to_raw_capacity ensures] [%#smap'2] match result with
+      | Ok raw -> UInt64.t'int raw = UInt64.t'int n + ComputerDivision.div (UInt64.t'int n) 3
+      | Err _ -> UInt64.t'int n + ComputerDivision.div (UInt64.t'int n) 3 > UInt64.t'int const_MAX
+      end}
+    (! return {result}) ]

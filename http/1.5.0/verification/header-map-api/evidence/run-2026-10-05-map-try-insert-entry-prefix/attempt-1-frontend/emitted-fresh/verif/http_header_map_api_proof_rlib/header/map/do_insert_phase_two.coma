@@ -1,0 +1,128 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3203 0 3203 88 *)
+
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 99 14 99 48
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3204 28 3204 29
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3206 24 3206 37
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 895 29 895 30
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3207 23 3207 37
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3209 11 3209 24
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3213 29 3213 30
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3213 12 3213 30
+let%span smap'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3214 22 3214 48
+let%span smap'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 899 30 899 31
+let%span smap'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 899 16 899 31
+let%span smap'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 901 29 901 30
+let%span smem = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/mem.rs" 17 22 17 34
+let%span smem'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/mem.rs" 18 22 18 37
+
+use creusot.int.UInt64
+use creusot.slice.Slice64
+use creusot.int.UInt16
+use seq.Seq
+use creusot.prelude.MutBorrow
+use creusot.prelude.Opaque
+use creusot.prelude.Any
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+let rec len_Pos (self_: Slice64.slice t_Pos) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+predicate resolve_refmut_slice_Pos [@inline:trivial] (_1: MutBorrow.t (Slice64.slice t_Pos)) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_slice_Pos
+
+constant const_MAX: UInt16.t = (65535: UInt16.t)
+
+let rec is_none (self: t_Pos) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:is_none ensures] [%#smap_index] result = (self.index = const_MAX)}
+    (! return {result}) ]
+
+let rec replace_Pos (dest: MutBorrow.t t_Pos) (src: t_Pos) (return (x: t_Pos)) = any
+  [ return (result: t_Pos) ->
+  {[@stop_split] [@expl:replace_Pos ensures] ([@stop_split] [@expl:replace ensures #0] [%#smem] dest.final = src)
+    /\ ([@stop_split] [@expl:replace ensures #1] [%#smem'0] result = dest.current)}
+    (! return {result}) ]
+
+predicate resolve_refmut_Pos [@inline:trivial] (_1: MutBorrow.t t_Pos) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Pos
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec do_insert_phase_two
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3203 0 3203 88]
+  (indices: MutBorrow.t (Slice64.slice t_Pos)) (probe: UInt64.t) (old_pos: t_Pos) (return (x: UInt64.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &num_displaced <- [%#smap] (0: UInt64.t) ] s1 | s1 = any [ br0 -> {false} (! bb6) | br1 -> (! bb1) ] ]
+  | bb1 = s0
+    [ s0 = len_Pos [%#smap'0] {indices.current} (fun (_x: UInt64.t) -> [ &_9 <- _x ] s1)
+    | s1 = [ &_8 <- UInt64.gt _9 ([%#smap'1] (0: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_8 = false} (! bb4) | br1 -> {_8} (! bb6) ] ]
+  | bb4 = s0 [ s0 = -{resolve_refmut_slice_Pos indices}- s1 | s1 = {false} any ]
+  | bb6 = s0 [ s0 = [ &_old <- indices.final ] s1 | s1 = bb7 ]
+  | bb7 = bb7
+    [ bb7 = {[@expl:inferred invariant: unchanged value] _old = indices.final}
+      (! s0)
+      [ s0 = len_Pos [%#smap'0] {indices.current} (fun (_x: UInt64.t) -> [ &_16 <- _x ] s1)
+      | s1 = [ &_14 <- UInt64.lt probe _16 ] s2
+      | s2 = any [ br0 -> {_14 = false} (! bb16) | br1 -> {_14} (! bb10) ] ]
+      [ bb10 = s0
+        [ s0 = [ &_20 <- probe ] s1
+        | s1 = Opaque.fresh_ptr
+            (fun (_ptr: Opaque.ptr) ->
+              -{Slice64.slice_ptr_len _ptr = Slice64.length indices.current}-
+              [ &_21 <- _ptr ] s2)
+        | s2 = [ &_22 <- Slice64.slice_ptr_len _21 ] s3
+        | s3 = [ &_23 <- UInt64.lt _20 _22 ] s4
+        | s4 = {[@expl:index in bounds] [%#smap'2] _23} s5
+        | s5 = Slice64.get <t_Pos> {indices.current} {_20}
+            (fun (r: t_Pos) ->
+              MutBorrow.borrow_mut <t_Pos> {r}
+                (fun (_bor: MutBorrow.t t_Pos) ->
+                  [ &pos <- _bor ] Slice64.set <t_Pos> {indices.current} {_20} {_bor.final}
+                    (fun (r'0: Slice64.slice t_Pos) -> [ &indices <- { indices with current = r'0 } ] s6)))
+        | s6 = is_none [%#smap'3] {pos.current} (fun (_x: bool) -> [ &_24 <- _x ] s7)
+        | s7 = any [ br0 -> {_24 = false} (! bb14) | br1 -> {_24} (! bb13) ] ]
+      | bb14 = s0
+        [ s0 = UInt64.add [%#smap'5] {num_displaced} {[%#smap'4] (1: UInt64.t)}
+            (fun (_x: UInt64.t) -> [ &num_displaced <- _x ] s1)
+        | s1 = MutBorrow.borrow_final <t_Pos> {pos.current} {MutBorrow.get_id pos}
+            (fun (_bor: MutBorrow.t t_Pos) -> [ &_29 <- _bor ] [ &pos <- { pos with current = _bor.final } ] s2)
+        | s2 = replace_Pos [%#smap'6] {_29} {old_pos} (fun (_x: t_Pos) -> [ &_28 <- _x ] s3)
+        | s3 = -{resolve_refmut_Pos pos}- s4
+        | s4 = [ &old_pos <- _28 ] s5
+        | s5 = UInt64.add [%#smap'8] {probe} {[%#smap'7] (1: UInt64.t)} (fun (_x: UInt64.t) -> [ &probe <- _x ] s6)
+        | s6 = bb7 ]
+      | bb16 = s0 [ s0 = [ &probe <- [%#smap'9] (0: UInt64.t) ] s1 | s1 = bb7 ] ] ]
+  | bb13 = s0
+    [ s0 = [ &pos <- { pos with current = old_pos } ] s1
+    | s1 = -{resolve_refmut_Pos pos}- s2
+    | s2 = -{resolve_refmut_slice_Pos indices}- s3
+    | s3 = [ &_ret <- num_displaced ] s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l ()
+  | & indices: MutBorrow.t (Slice64.slice t_Pos) = indices
+  | & probe: UInt64.t = probe
+  | & old_pos: t_Pos = old_pos
+  | & num_displaced: UInt64.t = Any.any_l ()
+  | & _8: bool = Any.any_l ()
+  | & _9: UInt64.t = Any.any_l ()
+  | & _14: bool = Any.any_l ()
+  | & _16: UInt64.t = Any.any_l ()
+  | & pos: MutBorrow.t t_Pos = Any.any_l ()
+  | & _20: UInt64.t = Any.any_l ()
+  | & _21: Opaque.ptr = Any.any_l ()
+  | & _22: UInt64.t = Any.any_l ()
+  | & _23: bool = Any.any_l ()
+  | & _24: bool = Any.any_l ()
+  | & _28: t_Pos = Any.any_l ()
+  | & _29: MutBorrow.t t_Pos = Any.any_l ()
+  | & _old: Slice64.slice t_Pos = Any.any_l () ]) [ return (result: UInt64.t) -> (! return {result}) ]

@@ -1,0 +1,359 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2657 4 2657 51 *)
+
+(* header::map::HeaderMap<T> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 296 16 302 17
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 89 20 89 30
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 105 14 109 5
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 121 10 121 44
+let%span smap_index'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 122 10 122 33
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2658 39 2658 52
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2660 28 2660 62
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2662 32 2662 50
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 895 29 895 30
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2663 19 2663 38
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2663 19 2663 48
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2663 19 2663 58
+let%span smap'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 899 30 899 31
+let%span smap'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 899 16 899 31
+let%span smap'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 901 29 901 30
+let%span smap'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2665 20 2665 39
+let%span smap'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2657 36 2657 40
+let%span soption = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/option.rs" 73 18 73 43
+
+use creusot.int.UInt16
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.slice.Slice64
+use seq.Seq
+use creusot.prelude.Opaque
+use creusot.prelude.Any
+use int.Int
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+type tup2_usize_HashValue = { f0'0: UInt64.t; f1'0: t_HashValue }
+
+type t_Option_tup2_usize_HashValue = None | Some tup2_usize_HashValue
+
+constant const_MAX: UInt16.t = (65535: UInt16.t)
+
+let rec resolve (self: t_Pos) (return (x: t_Option_tup2_usize_HashValue)) = any
+  [ return (result: t_Option_tup2_usize_HashValue) ->
+  {[@stop_split] [@expl:resolve ensures] [%#smap_index] match result with
+      | Some {f0'0 = index'0; f1'0 = hash'0} -> self.index <> const_MAX
+      /\ UInt64.t'int index'0 = UInt16.t'int self.index /\ hash'0 = self.hash
+      | None -> self.index = const_MAX
+      end}
+    (! return {result}) ]
+
+type t_Vec_Bucket_T_Global
+
+type t_Vec_ExtraValue_T_Global
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+type t_HeaderMap_T = {
+  mask: UInt16.t;
+  indices: Slice64.slice t_Pos;
+  entries: t_Vec_Bucket_T_Global;
+  extra_values: t_Vec_ExtraValue_T_Global;
+  danger: t_Danger }
+
+type t_HeaderName
+
+type t_T
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None'0 | Some'0 t_Links
+
+type t_Bucket_T = { hash'0: t_HashValue; key'0: t_HeaderName; value'0: t_T; links'0: t_Option_Links }
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Bucket_T (_1: t_Bucket_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Bucket_T [inv_Bucket_T x]. inv_Bucket_T x
+    = (inv_HeaderName x.key'0 /\ inv_T x.value'0)
+
+predicate invariant_ref_Bucket_T [@inline:trivial] (self: t_Bucket_T) = [%#sinvariant'0] inv_Bucket_T self
+
+meta "rewrite_def" predicate invariant_ref_Bucket_T
+
+predicate inv_ref_Bucket_T [@inline:trivial] (_1: t_Bucket_T) = invariant_ref_Bucket_T _1
+
+meta "rewrite_def" predicate inv_ref_Bucket_T
+
+predicate invariant_Seq_Bucket_T [@inline:trivial] (self: Seq.seq t_Bucket_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_Bucket_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_Bucket_T
+
+predicate inv_Seq_Bucket_T [@inline:trivial] (_1: Seq.seq t_Bucket_T) = invariant_Seq_Bucket_T _1
+
+meta "rewrite_def" predicate inv_Seq_Bucket_T
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) : Seq.seq t_Bucket_T
+
+axiom view_Vec_Bucket_T_Global_spec:
+  forall self: t_Vec_Bucket_T_Global. [%#svec'0] Seq.length (view_Vec_Bucket_T_Global self) <= UInt64.t'int const_MAX'0
+
+predicate invariant_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) =
+  [%#svec] inv_Seq_Bucket_T (view_Vec_Bucket_T_Global self)
+
+predicate inv_Vec_Bucket_T_Global (_1: t_Vec_Bucket_T_Global)
+
+axiom inv_axiom'0: forall x: t_Vec_Bucket_T_Global [inv_Vec_Bucket_T_Global x]. inv_Vec_Bucket_T_Global x
+    -> invariant_Vec_Bucket_T_Global x
+
+type t_Link = Entry UInt64.t | Extra UInt64.t
+
+type t_ExtraValue_T = { value'1: t_T; prev'1: t_Link; next'1: t_Link }
+
+predicate inv_ExtraValue_T (_1: t_ExtraValue_T)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_ExtraValue_T [inv_ExtraValue_T x]. inv_ExtraValue_T x = inv_T x.value'1
+
+predicate invariant_ref_ExtraValue_T [@inline:trivial] (self: t_ExtraValue_T) = [%#sinvariant'0] inv_ExtraValue_T self
+
+meta "rewrite_def" predicate invariant_ref_ExtraValue_T
+
+predicate inv_ref_ExtraValue_T [@inline:trivial] (_1: t_ExtraValue_T) = invariant_ref_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_ref_ExtraValue_T
+
+predicate invariant_Seq_ExtraValue_T [@inline:trivial] (self: Seq.seq t_ExtraValue_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_ExtraValue_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_ExtraValue_T
+
+predicate inv_Seq_ExtraValue_T [@inline:trivial] (_1: Seq.seq t_ExtraValue_T) = invariant_Seq_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_Seq_ExtraValue_T
+
+function view_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) : Seq.seq t_ExtraValue_T
+
+axiom view_Vec_ExtraValue_T_Global_spec:
+  forall self: t_Vec_ExtraValue_T_Global. [%#svec'0] Seq.length (view_Vec_ExtraValue_T_Global self)
+    <= UInt64.t'int const_MAX'0
+
+predicate invariant_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) =
+  [%#svec] inv_Seq_ExtraValue_T (view_Vec_ExtraValue_T_Global self)
+
+predicate inv_Vec_ExtraValue_T_Global (_1: t_Vec_ExtraValue_T_Global)
+
+axiom inv_axiom'2: forall x: t_Vec_ExtraValue_T_Global [inv_Vec_ExtraValue_T_Global x]. inv_Vec_ExtraValue_T_Global x
+    -> invariant_Vec_ExtraValue_T_Global x
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0'1 -> inv_RandomState f0'1
+      end
+
+predicate inv_HeaderMap_T (_1: t_HeaderMap_T)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_HeaderMap_T [inv_HeaderMap_T x]. inv_HeaderMap_T x
+    = (inv_Vec_Bucket_T_Global x.entries /\ inv_Vec_ExtraValue_T_Global x.extra_values /\ inv_Danger x.danger)
+
+predicate invariant_refmut_HeaderMap_T [@inline:trivial] (self: MutBorrow.t t_HeaderMap_T) =
+  [%#sinvariant] inv_HeaderMap_T self.current /\ inv_HeaderMap_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_HeaderMap_T
+
+predicate inv_refmut_HeaderMap_T [@inline:trivial] (_1: MutBorrow.t t_HeaderMap_T) = invariant_refmut_HeaderMap_T _1
+
+meta "rewrite_def" predicate inv_refmut_HeaderMap_T
+
+predicate resolve_refmut_HeaderMap_T [@inline:trivial] (_1: MutBorrow.t t_HeaderMap_T) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_HeaderMap_T
+
+let rec elim_Some (_x: t_Option_tup2_usize_HashValue) (return (f0'1: tup2_usize_HashValue)) = any
+  [ _k (f0'1: tup2_usize_HashValue) -> {Some f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_Ordering = Less | Equal | Greater
+
+function cmp_log_usize (self: UInt64.t) (o: UInt64.t) : t_Ordering = [%#sord'12] if UInt64.lt self o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom eq_cmp_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'11] (x = y) = (cmp_log_usize x y = Equal)
+
+function antisym2_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom antisym2_usize_spec: forall x: UInt64.t, y: UInt64.t. ([%#sord'9] cmp_log_usize x y = Greater)
+    -> ([%#sord'10] cmp_log_usize y x = Less)
+
+function antisym1_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom antisym1_usize_spec: forall x: UInt64.t, y: UInt64.t. ([%#sord'7] cmp_log_usize x y = Less)
+    -> ([%#sord'8] cmp_log_usize y x = Greater)
+
+function trans_usize (x: UInt64.t) (y: UInt64.t) (z: UInt64.t) (o: t_Ordering) : ()
+
+axiom trans_usize_spec: forall x: UInt64.t, y: UInt64.t, z: UInt64.t, o: t_Ordering. ([%#sord'4] cmp_log_usize x y = o)
+    -> ([%#sord'5] cmp_log_usize y z = o) -> ([%#sord'6] cmp_log_usize x z = o)
+
+function refl_usize (x: UInt64.t) : ()
+
+axiom refl_usize_spec: forall x: UInt64.t. [%#sord'3] cmp_log_usize x x = Equal
+
+function cmp_gt_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_gt_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'2] UInt64.gt x y = (cmp_log_usize x y = Greater)
+
+function cmp_ge_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_ge_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'1] UInt64.ge x y = (cmp_log_usize x y <> Less)
+
+function cmp_lt_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_lt_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'0] UInt64.lt x y = (cmp_log_usize x y = Less)
+
+function cmp_le_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_le_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord] UInt64.le x y = (cmp_log_usize x y <> Greater)
+
+let rec desired_pos (mask'0: UInt16.t) (hash'1: t_HashValue) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:desired_pos ensures] ([@stop_split] [@expl:desired_pos ensures #0] [%#smap_index'0] result
+      = UInt64.of_int (UInt16.t'int (UInt16.bw_and hash'1.f0 mask'0)))
+    /\ ([@stop_split] [@expl:desired_pos ensures #1] [%#smap_index'1] UInt64.le result (UInt64.of_int (UInt16.t'int mask'0)))}
+    (! return {result}) ]
+
+let rec len_Pos (self_: Slice64.slice t_Pos) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+let rec is_none_tup2_usize_HashValue (self_: t_Option_tup2_usize_HashValue) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:is_none ensures] [%#soption] result = (self_ = None)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec reinsert_entry_in_order_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2657 4 2657 51]
+  (self: MutBorrow.t t_HeaderMap_T) (pos: t_Pos) (return (x: ())) =
+  {[@stop_split] [@expl:reinsert_entry_in_order 'self' type invariant] [%#smap'10] inv_refmut_HeaderMap_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = resolve [%#smap] {pos} (fun (_x: t_Option_tup2_usize_HashValue) -> [ &_3 <- _x ] s1)
+    | s1 = any [ br0 -> {_3 = None} (! bb23) | br1 (x0: tup2_usize_HashValue) -> {_3 = Some x0} (! bb3) ] ]
+  | bb23 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s1 = -{resolve_refmut_HeaderMap_T self}- s2
+    | s2 = return {_ret} ]
+  | bb3 = s0
+    [ s0 = elim_Some {_3} (fun (r0: tup2_usize_HashValue) -> [ &entry_hash <- r0.f1'0 ] s1)
+    | s1 = desired_pos [%#smap'0] {self.current.mask} {entry_hash} (fun (_x: UInt64.t) -> [ &probe <- _x ] s2)
+    | s2 = any [ br0 -> {false} (! bb12) | br1 -> (! bb5) ] ]
+  | bb5 = s0
+    [ s0 = len_Pos [%#smap'1] {self.current.indices} (fun (_x: UInt64.t) -> [ &_15 <- _x ] s1)
+    | s1 = [ &_14 <- UInt64.gt _15 ([%#smap'2] (0: UInt64.t)) ] s2
+    | s2 = any [ br0 -> {_14 = false} (! bb8) | br1 -> {_14} (! bb12) ] ]
+  | bb8 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s1 = -{resolve_refmut_HeaderMap_T self}- s2
+    | s2 = {false} any ]
+  | bb12 = bb12
+    [ bb12 = (! s0
+      [ s0 = len_Pos [%#smap'1] {self.current.indices} (fun (_x: UInt64.t) -> [ &_22 <- _x ] s1)
+      | s1 = [ &_20 <- UInt64.lt probe _22 ] s2
+      | s2 = any [ br0 -> {_20 = false} (! bb21) | br1 -> {_20} (! bb14) ] ])
+      [ bb14 = s0
+        [ s0 = [ &_29 <- probe ] s1
+        | s1 = Opaque.fresh_ptr
+            (fun (_ptr: Opaque.ptr) ->
+              -{Slice64.slice_ptr_len _ptr = Slice64.length self.current.indices}-
+              [ &_30 <- _ptr ] s2)
+        | s2 = [ &_31 <- Slice64.slice_ptr_len _30 ] s3
+        | s3 = [ &_32 <- UInt64.lt _29 _31 ] s4
+        | s4 = {[@expl:index in bounds] [%#smap'3] _32} s5
+        | s5 = Slice64.get <t_Pos> {self.current.indices} {_29} (fun (r: t_Pos) -> [ &_28 <- r ] s6)
+        | s6 = resolve [%#smap'4] {_28} (fun (_x: t_Option_tup2_usize_HashValue) -> [ &_27 <- _x ] s7)
+        | s7 = is_none_tup2_usize_HashValue [%#smap'5] {_27} (fun (_x: bool) -> [ &_25 <- _x ] s8)
+        | s8 = any [ br0 -> {_25 = false} (! bb20) | br1 -> {_25} (! bb18) ] ]
+      | bb20 = s0
+        [ s0 = UInt64.add [%#smap'7] {probe} {[%#smap'6] (1: UInt64.t)} (fun (_x: UInt64.t) -> [ &probe <- _x ] s1)
+        | s1 = bb12 ]
+      | bb21 = s0 [ s0 = [ &probe <- [%#smap'8] (0: UInt64.t) ] s1 | s1 = bb12 ] ] ]
+  | bb18 = s0
+    [ s0 = [ &_35 <- probe ] s1
+    | s1 = Opaque.fresh_ptr
+        (fun (_ptr: Opaque.ptr) ->
+          -{Slice64.slice_ptr_len _ptr = Slice64.length self.current.indices}-
+          [ &_36 <- _ptr ] s2)
+    | s2 = [ &_37 <- Slice64.slice_ptr_len _36 ] s3
+    | s3 = [ &_38 <- UInt64.lt _35 _37 ] s4
+    | s4 = {[@expl:index in bounds] [%#smap'9] _38} s5
+    | s5 = Slice64.set <t_Pos> {self.current.indices} {_35} {pos}
+        (fun (r: Slice64.slice t_Pos) -> [ &self <- { self with current = { self.current with indices = r } } ] s6)
+    | s6 = s7 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s7 = -{resolve_refmut_HeaderMap_T self}- s8
+    | s8 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: MutBorrow.t t_HeaderMap_T = self
+  | & pos: t_Pos = pos
+  | & _3: t_Option_tup2_usize_HashValue = Any.any_l ()
+  | & entry_hash: t_HashValue = Any.any_l ()
+  | & probe: UInt64.t = Any.any_l ()
+  | & _14: bool = Any.any_l ()
+  | & _15: UInt64.t = Any.any_l ()
+  | & _20: bool = Any.any_l ()
+  | & _22: UInt64.t = Any.any_l ()
+  | & _25: bool = Any.any_l ()
+  | & _27: t_Option_tup2_usize_HashValue = Any.any_l ()
+  | & _28: t_Pos = Any.any_l ()
+  | & _29: UInt64.t = Any.any_l ()
+  | & _30: Opaque.ptr = Any.any_l ()
+  | & _31: UInt64.t = Any.any_l ()
+  | & _32: bool = Any.any_l ()
+  | & _35: UInt64.t = Any.any_l ()
+  | & _36: Opaque.ptr = Any.any_l ()
+  | & _37: UInt64.t = Any.any_l ()
+  | & _38: bool = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

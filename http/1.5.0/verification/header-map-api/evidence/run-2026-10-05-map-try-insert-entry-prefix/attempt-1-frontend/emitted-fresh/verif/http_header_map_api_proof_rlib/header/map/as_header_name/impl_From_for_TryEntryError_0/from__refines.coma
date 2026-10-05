@@ -1,0 +1,28 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4973 8 4973 51 *)
+
+(* <header::map::as_header_name::TryEntryError as std::convert::From<header::map::MaxSizeReached>> *)
+
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4973 38 4973 51
+
+type t_InvalidHeaderName
+
+type t_MaxSizeReached = { _priv: () }
+
+type t_TryEntryError = InvalidHeaderName t_InvalidHeaderName | MaxSizeReached t_MaxSizeReached
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+predicate inv_TryEntryError (_1: t_TryEntryError)
+
+axiom inv_axiom [@rewrite]: forall x: t_TryEntryError [inv_TryEntryError x]. inv_TryEntryError x
+    = match x with
+      | InvalidHeaderName f0 -> inv_InvalidHeaderName f0
+      | MaxSizeReached f0 -> true
+      end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall value: t_MaxSizeReached. forall result: t_TryEntryError. ([%#smap] inv_TryEntryError result)
+      -> inv_TryEntryError result

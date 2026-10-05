@@ -1,0 +1,76 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4723 4 4723 28 *)
+
+(* header::map::Danger *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4723 23 4723 27
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0 -> inv_RandomState f0
+      end
+
+predicate invariant_refmut_Danger [@inline:trivial] (self: MutBorrow.t t_Danger) =
+  [%#sinvariant] inv_Danger self.current /\ inv_Danger self.final
+
+meta "rewrite_def" predicate invariant_refmut_Danger
+
+predicate inv_refmut_Danger [@inline:trivial] (_1: MutBorrow.t t_Danger) = invariant_refmut_Danger _1
+
+meta "rewrite_def" predicate inv_refmut_Danger
+
+predicate resolve_refmut_Danger [@inline:trivial] (_1: MutBorrow.t t_Danger) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Danger
+
+predicate resolve_RandomState (_1: t_RandomState)
+
+predicate resolve_Danger (_1: t_Danger)
+
+axiom resolve_axiom [@rewrite]: forall x: t_Danger [resolve_Danger x]. resolve_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red x0 -> resolve_RandomState x0
+      end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec set_yellow
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4723 4 4723 28]
+  (self: MutBorrow.t t_Danger) (return (x: ())) =
+  {[@stop_split] [@expl:set_yellow 'self' type invariant] [%#smap] inv_refmut_Danger self}
+  (! bb0
+  [ bb0 = any
+    [ br0 -> {self.current = Green} (! bb2)
+    | br1 -> {self.current = Yellow} (! bb3)
+    | br2 (x0: t_RandomState) -> {self.current = Red x0} (! bb3) ]
+  | bb3 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_Danger self} any) ]
+    | s1 = -{resolve_refmut_Danger self}- s2
+    | s2 = return {_ret} ]
+  | bb2 = s0
+    [ s0 = [ &_3 <- Yellow ] s1
+    | s1 = s2 [ _ck -> (! {[@expl:type invariant] inv_Danger self.current} any) ]
+    | s2 = -{resolve_Danger self.current}- s3
+    | s3 = [ &self <- { self with current = _3 } ] s4
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_Danger self} any) ]
+    | s5 = -{resolve_refmut_Danger self}- s6
+    | s6 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l () | & self: MutBorrow.t t_Danger = self | & _3: t_Danger = Any.any_l () ])
+  [ return (result: ()) -> (! return {result}) ]

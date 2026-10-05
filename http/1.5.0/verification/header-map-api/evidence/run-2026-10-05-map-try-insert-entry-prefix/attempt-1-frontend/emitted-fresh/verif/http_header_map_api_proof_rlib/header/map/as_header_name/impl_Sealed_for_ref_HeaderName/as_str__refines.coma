@@ -1,0 +1,34 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 5096 8 5096 32 *)
+
+(* <&header::name::HeaderName as header::map::as_header_name::Sealed> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 5011 27 5011 31
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 5096 19 5096 23
+
+type t_HeaderName
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate invariant_ref_HeaderName [@inline:trivial] (self: t_HeaderName) = [%#sinvariant] inv_HeaderName self
+
+meta "rewrite_def" predicate invariant_ref_HeaderName
+
+predicate inv_ref_HeaderName [@inline:trivial] (_1: t_HeaderName) = invariant_ref_HeaderName _1
+
+meta "rewrite_def" predicate inv_ref_HeaderName
+
+predicate invariant_ref_ref_HeaderName [@inline:trivial] (self: t_HeaderName) = [%#sinvariant] inv_ref_HeaderName self
+
+meta "rewrite_def" predicate invariant_ref_ref_HeaderName
+
+predicate inv_ref_ref_HeaderName [@inline:trivial] (_1: t_HeaderName) = invariant_ref_ref_HeaderName _1
+
+meta "rewrite_def" predicate inv_ref_ref_HeaderName
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self: t_HeaderName. ([%#smap] inv_ref_ref_HeaderName self)
+    -> ([%#smap'0] inv_ref_ref_HeaderName self)

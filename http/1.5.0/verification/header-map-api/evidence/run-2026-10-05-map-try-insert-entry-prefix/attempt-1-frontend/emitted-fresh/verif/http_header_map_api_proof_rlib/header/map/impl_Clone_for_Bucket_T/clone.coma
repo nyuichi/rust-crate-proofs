@@ -1,0 +1,320 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 630 16 630 21 *)
+
+(* <header::map::Bucket<T> as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 54 14 54 18
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 54 23 54 27
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 52 32 52 72
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 53 32 53 48
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 1590 14 1590 54
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 160 14 160 114
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 165 14 165 100
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 170 14 170 61
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 126 15 126 59
+let%span sops'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 127 14 127 38
+let%span sops'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 132 14 132 33
+let%span sops'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 137 15 137 31
+let%span sops'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 138 15 138 28
+let%span sops'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 139 14 139 30
+let%span sops'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 144 14 145 104
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 28 14 28 34
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 632 4 632 19
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 633 4 633 19
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 634 4 634 12
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 635 4 635 24
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 630 16 630 21
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 630 16 630 21
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 639 22 639 27
+let%span soption = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/option.rs" 34 18 38 9
+
+use creusot.int.UInt16
+use creusot.int.UInt64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_HeaderName
+
+type t_T
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None | Some t_Links
+
+type t_Bucket_T = { hash: t_HashValue; key: t_HeaderName; value: t_T; links: t_Option_Links }
+
+let rec clone_HashValue (self: t_HashValue) (return (x: t_HashValue)) = any
+  [ return (result: t_HashValue) -> {[@stop_split] [@expl:clone ensures] [%#smap_index] UInt16.t'int result.f0
+    = UInt16.t'int self.f0}
+    (! return {result}) ]
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate invariant_ref_HeaderName [@inline:trivial] (self: t_HeaderName) = [%#sinvariant] inv_HeaderName self
+
+meta "rewrite_def" predicate invariant_ref_HeaderName
+
+predicate inv_ref_HeaderName [@inline:trivial] (_1: t_HeaderName) = invariant_ref_HeaderName _1
+
+meta "rewrite_def" predicate inv_ref_HeaderName
+
+type t_StandardHeaderModel =
+  | Accept
+  | AcceptCharset
+  | AcceptEncoding
+  | AcceptLanguage
+  | AcceptRanges
+  | AccessControlAllowCredentials
+  | AccessControlAllowHeaders
+  | AccessControlAllowMethods
+  | AccessControlAllowOrigin
+  | AccessControlExposeHeaders
+  | AccessControlMaxAge
+  | AccessControlRequestHeaders
+  | AccessControlRequestMethod
+  | Age
+  | Allow
+  | AltSvc
+  | Authorization
+  | CacheControl
+  | CacheStatus
+  | CdnCacheControl
+  | Connection
+  | ContentDisposition
+  | ContentEncoding
+  | ContentLanguage
+  | ContentLength
+  | ContentLocation
+  | ContentRange
+  | ContentSecurityPolicy
+  | ContentSecurityPolicyReportOnly
+  | ContentType
+  | Cookie
+  | Dnt
+  | Date
+  | Etag
+  | Expect
+  | Expires
+  | Forwarded
+  | From
+  | Host
+  | IfMatch
+  | IfModifiedSince
+  | IfNoneMatch
+  | IfRange
+  | IfUnmodifiedSince
+  | LastModified
+  | Link
+  | Location
+  | MaxForwards
+  | Origin
+  | Pragma
+  | ProxyAuthenticate
+  | ProxyAuthorization
+  | PublicKeyPins
+  | PublicKeyPinsReportOnly
+  | Range
+  | Referer
+  | ReferrerPolicy
+  | Refresh
+  | RetryAfter
+  | SecWebSocketAccept
+  | SecWebSocketExtensions
+  | SecWebSocketKey
+  | SecWebSocketProtocol
+  | SecWebSocketVersion
+  | Server
+  | SetCookie
+  | StrictTransportSecurity
+  | Te
+  | Trailer
+  | TransferEncoding
+  | UserAgent
+  | Upgrade
+  | UpgradeInsecureRequests
+  | Vary
+  | Via
+  | Warning
+  | WwwAuthenticate
+  | XContentTypeOptions
+  | XDnsPrefetchControl
+  | XFrameOptions
+  | XXssProtection
+
+type t_ReprDeepModel_Seq_u8 = Standard t_StandardHeaderModel | Custom (Seq.seq UInt8.t)
+
+function header_name_model_bytes [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 1455 0 1455 72] (model: t_ReprDeepModel_Seq_u8) : Seq.seq UInt8.t
+
+function view_HeaderName [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 1575 4 1575 33] (self: t_HeaderName) : Seq.seq UInt8.t
+
+function deep_model_HeaderName [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 1591 4 1591 44] (self: t_HeaderName) : t_ReprDeepModel_Seq_u8
+
+axiom deep_model_HeaderName_spec:
+  forall self: t_HeaderName. [%#sname'3] header_name_model_bytes (deep_model_HeaderName self) = view_HeaderName self
+
+function deep_model_ref_HeaderName [@inline:trivial] (self: t_HeaderName) : t_ReprDeepModel_Seq_u8 =
+  [%#smodel] deep_model_HeaderName self
+
+meta "rewrite_def" function deep_model_ref_HeaderName
+
+let rec clone_HeaderName (self: t_HeaderName) (return (x: t_HeaderName)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#sname] inv_ref_HeaderName self}
+  any
+  [ return (result: t_HeaderName) ->
+  {[@stop_split] [@expl:clone_HeaderName ensures] ([@stop_split] [@expl:clone result type invariant] [%#sname'0] inv_HeaderName result)
+    /\ ([@stop_split] [@expl:clone ensures #0] [%#sname'1] deep_model_HeaderName result
+      = deep_model_ref_HeaderName self)
+    /\ ([@stop_split] [@expl:clone ensures #1] [%#sname'2] view_HeaderName result = view_HeaderName self)}
+    (! return {result}) ]
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate precondition_clone (self: ()) (args: t_T)
+
+axiom precondition_fndef:
+  forall args: t_T [precondition_clone () args]. (let self_ = args in [%#sclone] inv_ref_T self_)
+    -> precondition_clone () args
+
+predicate postcondition_once_clone (self: ()) (args: t_T) (result: t_T)
+
+axiom postcondition_fndef:
+  forall args: t_T, res: t_T [postcondition_once_clone () args res]. postcondition_once_clone () args res
+    -> (let self_ = args in inv_T res)
+
+let rec clone_T (self_: t_T) (return (x: t_T)) = {[@stop_split] [@expl:clone requires] precondition_clone () self_}
+  any
+  [ return (result: t_T) -> {[@stop_split] [@expl:clone ensures] postcondition_once_clone () self_ result}
+    (! return {result}) ]
+
+type tup2_Option_Links_Option_Links = { f0'0: t_Option_Links; f1'0: t_Option_Links }
+
+predicate postcondition_once_clone'0 [@inline:trivial] (self: ()) (args: t_Links) (result: t_Links) =
+  [%#smap'5] let self'0 = args in true
+
+meta "rewrite_def" predicate postcondition_once_clone'0
+
+predicate resolve_clone [@inline:trivial] (_1: ()) = true
+
+meta "rewrite_def" predicate resolve_clone
+
+predicate postcondition_mut_clone [@inline:trivial] (self: ()) (args: t_Links) (result_state: ()) (result: t_Links) =
+  [%#smap'5] let self'0 = args in true
+
+meta "rewrite_def" predicate postcondition_mut_clone
+
+function fn_mut_once_clone (self: ()) (args: t_Links) (res: t_Links) : ()
+
+axiom fn_mut_once_clone_spec:
+  forall self: (), args: t_Links, res: t_Links. [%#sops'8] postcondition_once_clone'0 self args res
+    = (exists res_state: (). postcondition_mut_clone self args res_state res /\ resolve_clone res_state)
+
+predicate hist_inv_clone [@inline:trivial] (self: ()) (result_state: ()) = true
+
+meta "rewrite_def" predicate hist_inv_clone
+
+function hist_inv_trans_clone (self: ()) (b: ()) (c: ()) : ()
+
+axiom hist_inv_trans_clone_spec: forall self: (), b: (), c: (). ([%#sops'5] hist_inv_clone self b)
+    -> ([%#sops'6] hist_inv_clone b c) -> ([%#sops'7] hist_inv_clone self c)
+
+function hist_inv_refl_clone (self: ()) : ()
+
+axiom hist_inv_refl_clone_spec: forall self: (). [%#sops'4] hist_inv_clone self self
+
+function postcondition_mut_hist_inv_clone (self: ()) (args: t_Links) (res_state: ()) (res: t_Links) : ()
+
+axiom postcondition_mut_hist_inv_clone_spec:
+  forall self: (), args: t_Links, res_state: (), res: t_Links. ([%#sops'2] postcondition_mut_clone self args res_state res)
+    -> ([%#sops'3] hist_inv_clone self res_state)
+
+function fn_hist_inv_clone (self: ()) (res_state: ()) : ()
+
+axiom fn_hist_inv_clone_spec: forall self: (), res_state: (). [%#sops'1] hist_inv_clone self res_state
+    = (self = res_state)
+
+predicate postcondition_clone [@inline:trivial] (self: ()) (args: t_Links) (result: t_Links) =
+  [%#smap'5] let self'0 = args in true
+
+meta "rewrite_def" predicate postcondition_clone
+
+function fn_once_clone (self: ()) (args: t_Links) (res: t_Links) : ()
+
+axiom fn_once_clone_spec:
+  forall self: (), args: t_Links, res: t_Links. [%#sops'0] postcondition_once_clone'0 self args res
+    = (postcondition_clone self args res /\ resolve_clone self)
+
+function fn_mut_clone (self: ()) (args: t_Links) (res_state: ()) (res: t_Links) : ()
+
+axiom fn_mut_clone_spec:
+  forall self: (), args: t_Links, res_state: (), res: t_Links. [%#sops] postcondition_mut_clone self args res_state res
+    = (postcondition_clone self args res /\ self = res_state)
+
+let rec clone_Links (self: t_Links) (return (x: t_Links)) = any [ return (result: t_Links) -> (! return {result}) ]
+
+let rec clone_Option_Links (self_: t_Option_Links) (return (x: t_Option_Links)) = any
+  [ return (result: t_Option_Links) -> {[@stop_split] [@expl:clone ensures] [%#soption] match { f0'0 = self_;
+                                                                                                f1'0 = result } with
+      | {f0'0 = None; f1'0 = None} -> true
+      | {f0'0 = Some s; f1'0 = Some r} -> postcondition_clone () s r
+      | _ -> false
+      end}
+    (! return {result}) ]
+
+predicate inv_Bucket_T (_1: t_Bucket_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Bucket_T [inv_Bucket_T x]. inv_Bucket_T x
+    = (inv_HeaderName x.key /\ inv_T x.value)
+
+predicate invariant_ref_Bucket_T [@inline:trivial] (self: t_Bucket_T) = [%#sinvariant] inv_Bucket_T self
+
+meta "rewrite_def" predicate invariant_ref_Bucket_T
+
+predicate inv_ref_Bucket_T [@inline:trivial] (_1: t_Bucket_T) = invariant_ref_Bucket_T _1
+
+meta "rewrite_def" predicate inv_ref_Bucket_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_Bucket_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 630 16 630 21]
+  (self: t_Bucket_T) (return (x: t_Bucket_T)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smap'3] inv_ref_Bucket_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- self.hash ] s1
+    | s1 = clone_HashValue [%#smap] {_4} (fun (_x: t_HashValue) -> [ &_2 <- _x ] s2)
+    | s2 = [ &_7 <- self.key ] s3
+    | s3 = clone_HeaderName [%#smap'0] {_7} (fun (_x: t_HeaderName) -> [ &_5 <- _x ] s4)
+    | s4 = [ &_10 <- self.value ] s5
+    | s5 = clone_T [%#smap'1] {_10} (fun (_x: t_T) -> [ &_8 <- _x ] s6)
+    | s6 = [ &_13 <- self.links ] s7
+    | s7 = clone_Option_Links [%#smap'2] {_13} (fun (_x: t_Option_Links) -> [ &_11 <- _x ] s8)
+    | s8 = [ &_ret <- { hash = _2; key = _5; value = _8; links = _11 } ] s9
+    | s9 = return {_ret} ] ]
+  [ & _ret: t_Bucket_T = Any.any_l ()
+  | & self: t_Bucket_T = self
+  | & _2: t_HashValue = Any.any_l ()
+  | & _4: t_HashValue = Any.any_l ()
+  | & _5: t_HeaderName = Any.any_l ()
+  | & _7: t_HeaderName = Any.any_l ()
+  | & _8: t_T = Any.any_l ()
+  | & _10: t_T = Any.any_l ()
+  | & _11: t_Option_Links = Any.any_l ()
+  | & _13: t_Option_Links = Any.any_l () ])
+  [ return (result: t_Bucket_T) -> {[@stop_split] [@expl:clone result type invariant] [%#smap'4] inv_Bucket_T result}
+    (! return {result}) ]

@@ -1,0 +1,31 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4967 8 4967 54 *)
+
+(* <header::map::as_header_name::TryEntryError as std::convert::From<header::name::InvalidHeaderName>> *)
+
+let%span sconvert = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 12 24 12 29
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4967 16 4967 17
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4967 41 4967 54
+
+type t_InvalidHeaderName
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+type t_MaxSizeReached = { _priv: () }
+
+type t_TryEntryError = InvalidHeaderName t_InvalidHeaderName | MaxSizeReached t_MaxSizeReached
+
+predicate inv_TryEntryError (_1: t_TryEntryError)
+
+axiom inv_axiom [@rewrite]: forall x: t_TryEntryError [inv_TryEntryError x]. inv_TryEntryError x
+    = match x with
+      | InvalidHeaderName f0 -> inv_InvalidHeaderName f0
+      | MaxSizeReached f0 -> true
+      end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall value: t_InvalidHeaderName. ([%#sconvert] inv_InvalidHeaderName value)
+    -> ([%#smap] inv_InvalidHeaderName value)
+    /\ (forall result: t_TryEntryError. ([%#smap'0] inv_TryEntryError result) -> inv_TryEntryError result)
