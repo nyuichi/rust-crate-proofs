@@ -26,8 +26,8 @@ No new trusted ownership or refcount protocol is introduced. The existing Vec,
 physical byte access, boxed alignment, and exclusive scalar atomic bridges and
 standard permission operations remain the trusted boundary.
 
-Status: the integrated gate passes 88 proof files with zero unproved leaves.
-Two native matrices cover boundary positions/all six release orders and exact
+Status: the integrated gate passes 93 proof files with zero unproved leaves.
+Three native tests cover boundary positions/all six release orders and exact
 original-buffer/control-block allocation/free counts. Native execution does not
 by itself establish the ghost protocol or a whole-crate proof.
 
@@ -41,7 +41,7 @@ These proof interfaces add no trusted ownership rule.
 The `negative_carrier_missing_ticket` feature constructs an empty Vec, performs
 two actual split_to(0) calls, forgets one empty sibling and explicitly releases
 the other two. Claiming the second release is final is rejected at exactly one
-assertion (17/18), in a 90-file negative run. This feature is proof-only and is
+assertion (17/18), in a 95-file negative run. This feature is proof-only and is
 not executed natively. Empty physical coverage cannot replace the missing ticket.
 
 Final source regressions pass legacy split/storage110, safe traits72 and public
@@ -51,3 +51,14 @@ initialization postcondition is decomposed into its equivalent ownership and
 Known-prefix clauses. Existing B4 remains the only physical spare-access axiom.
 Evidence: `prefix-final-positive`, `prefix-final-negative`, and `regressions/`
 under `verification/artifacts/evidence/coordinator-carrier-split`.
+
+The second operation may instead be actual `split_off`, bounded by remaining
+capacity. Its returned right handle retains the coordinator; left length is
+min(old_len, at), right length saturates at zero, and the full capacity slot
+state is preserved, including Unknown spare bytes when at > old_len.
+The `negative_carrier_unknown_publication` proof-only feature rejects exactly
+set_len's Known-prefix guard (16/17, 95 files) after this repeated split path.
+Do not execute negative features natively.
+Final split_off evidence is `split-off-final-positive`,
+`split-off-final-ticket-negative`, `split-off-unknown-negative`; the 110-file
+legacy regression is `regressions/split-off-final`.
