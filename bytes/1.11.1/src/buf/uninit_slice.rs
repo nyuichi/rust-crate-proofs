@@ -25,9 +25,9 @@ pub struct UninitSlice([MaybeUninit<u8>]);
 impl View for UninitSlice {
     type ViewTy = Seq<Option<u8>>;
 
-    #[logic(open)]
+    #[logic(open(self))]
     fn view(self) -> Self::ViewTy {
-        pearlite! { Seq::create(self.0@.len(), |index| self.0@[index]@) }
+        pearlite! { Seq::create(self.0@.len(), |index: Int| self.0@[index]@) }
     }
 }
 
@@ -48,6 +48,7 @@ impl UninitSlice {
     #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == Some(slice@[i]))]
     #[ensures((^result)@.len() == slice@.len())]
     #[ensures(forall<i> 0 <= i && i < slice@.len() ==> (^result)@[i] == Some((^slice)@[i]))]
+    #[ensures((^slice)@.len() == slice@.len())]
     pub fn new(slice: &mut [u8]) -> &mut UninitSlice {
         unsafe { &mut *(slice as *mut [u8] as *mut [MaybeUninit<u8>] as *mut UninitSlice) }
     }
@@ -72,6 +73,7 @@ impl UninitSlice {
     #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == slice@[i]@)]
     #[ensures((^result)@.len() == slice@.len())]
     #[ensures(forall<i> 0 <= i && i < slice@.len() ==> (^result)@[i] == (^slice)@[i]@)]
+    #[ensures((^slice)@.len() == slice@.len())]
     pub fn uninit(slice: &mut [MaybeUninit<u8>]) -> &mut UninitSlice {
         unsafe { &mut *(slice as *mut [MaybeUninit<u8>] as *mut UninitSlice) }
     }
@@ -236,6 +238,7 @@ impl UninitSlice {
     /// assert_eq!(len, 3);
     /// ```
     #[inline]
+    #[ensures(result@ == self@.len())]
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -250,6 +253,9 @@ impl fmt::Debug for UninitSlice {
 impl<'a> From<&'a mut [u8]> for &'a mut UninitSlice {
     #[ensures(result@.len() == slice@.len())]
     #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == Some(slice@[i]))]
+    #[ensures((^result)@.len() == slice@.len())]
+    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> (^result)@[i] == Some((^slice)@[i]))]
+    #[ensures((^slice)@.len() == slice@.len())]
     fn from(slice: &'a mut [u8]) -> Self {
         UninitSlice::new(slice)
     }
@@ -258,6 +264,9 @@ impl<'a> From<&'a mut [u8]> for &'a mut UninitSlice {
 impl<'a> From<&'a mut [MaybeUninit<u8>]> for &'a mut UninitSlice {
     #[ensures(result@.len() == slice@.len())]
     #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == slice@[i]@)]
+    #[ensures((^result)@.len() == slice@.len())]
+    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> (^result)@[i] == (^slice)@[i]@)]
+    #[ensures((^slice)@.len() == slice@.len())]
     fn from(slice: &'a mut [MaybeUninit<u8>]) -> Self {
         UninitSlice::uninit(slice)
     }

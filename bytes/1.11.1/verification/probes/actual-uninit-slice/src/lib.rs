@@ -4,11 +4,15 @@
 #[allow(unused_imports)]
 use creusot_std::prelude::*;
 
-mod actual {
-    include!(concat!(env!("OUT_DIR"), "/actual_uninit_slice.rs"));
+pub mod buf {
+    mod uninit_slice {
+        include!(concat!(env!("OUT_DIR"), "/actual_uninit_slice.rs"));
+    }
+
+    pub use uninit_slice::UninitSlice;
 }
 
-pub use actual::UninitSlice;
+pub use buf::UninitSlice;
 
 /// Convert an initialized slice through the exact `From` implementation,
 /// overwrite one slot, and verify the writeback to the original borrow.
