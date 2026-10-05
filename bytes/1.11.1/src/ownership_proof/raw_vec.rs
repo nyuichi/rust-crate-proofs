@@ -61,6 +61,72 @@ fn slots_from_vec(contents: Seq<u8>, capacity: Int) -> SlotMap {
     }
 }
 
+/// Preserve every old slot while extending the allocation with Unknown slots.
+#[logic]
+#[requires(0 <= old_capacity && old_capacity <= capacity)]
+#[ensures(forall<index: Int> index < old_capacity ==>
+    result.get(index) == old.get(index))]
+#[ensures(forall<index: Int> old_capacity <= index && index < capacity ==>
+    result.get(index) == Some(Excl(None)))]
+#[variant(capacity - old_capacity)]
+fn slots_grown(old: SlotMap, old_capacity: Int, capacity: Int) -> SlotMap {
+    if capacity == old_capacity {
+        old
+    } else {
+        slots_grown(old, old_capacity, capacity - 1).insert(capacity - 1, Excl(None))
+    }
+}
+
+/// B5: transfer full byte-allocation authority through native realloc/alloc.
+/// Only the allocator representation/preservation is trusted, not any bytes
+/// growth policy, region splitting, refcount or handle invariant.
+#[trusted]
+#[requires(base.invariant())]
+#[requires(capabilities.inner_logic().0.invariant() && capabilities.inner_logic().1.invariant())]
+#[requires(base@ == Some((capabilities.inner_logic().0.namespace(), old_capacity@, 0int)))]
+#[requires(capabilities.inner_logic().0.capacity() == old_capacity@ && capabilities.inner_logic().1.capacity() == old_capacity@)]
+#[requires(capabilities.inner_logic().1.namespace() == capabilities.inner_logic().0.namespace())]
+#[requires(capabilities.inner_logic().1.resource_id() == capabilities.inner_logic().0.namespace())]
+#[requires(capabilities.inner_logic().1.lo() == 0 && capabilities.inner_logic().1.hi() == old_capacity@)]
+#[requires(old_capacity < capacity && capacity@ <= isize::MAX@)]
+#[ensures(result.0.invariant())]
+#[ensures(result.1.inner_logic().0.invariant() && result.1.inner_logic().1.invariant())]
+#[ensures(result.0@ == Some((result.1.inner_logic().0.namespace(), capacity@, 0int)))]
+#[ensures(result.1.inner_logic().0.capacity() == capacity@ && result.1.inner_logic().1.capacity() == capacity@)]
+#[ensures(result.1.inner_logic().1.namespace() == result.1.inner_logic().0.namespace())]
+#[ensures(result.1.inner_logic().1.resource_id() == result.1.inner_logic().0.namespace())]
+#[ensures(result.1.inner_logic().1.lo() == 0 && result.1.inner_logic().1.hi() == capacity@)]
+#[ensures(forall<index: Int> 0 <= index && index < old_capacity@ ==>
+    result.1.inner_logic().1.slot(index) == capabilities.inner_logic().1.slot(index))]
+#[ensures(forall<index: Int> old_capacity@ <= index && index < capacity@ ==>
+    result.1.inner_logic().1.slot(index) == Some(None))]
+pub(crate) unsafe fn reallocate_bound(base: BoundPtr, old_capacity: usize, capacity: usize,
+    capabilities: Ghost<(Recovery, PhysicalRegion)>) -> (BoundPtr, Ghost<(Recovery, PhysicalRegion)>) {
+    #[cfg(not(creusot))]
+    let pointer = unsafe { allocation_ops::reallocate_u8(base.pointer.as_ptr(), old_capacity, capacity) };
+    #[cfg(creusot)]
+    let pointer = base.pointer;
+    let slots = snapshot! { slots_grown(capabilities.inner_logic().1.ledger.slots(), old_capacity@, capacity@) };
+    let binding = ghost! {
+        let _old = capabilities.into_inner();
+        let whole = snapshot!((Some(Excl(())), *slots));
+        let recovery_value = snapshot!((Some(Excl(())), FMap::empty()));
+        let region_value = snapshot!((None, *slots));
+        let allocation = Resource::alloc(whole).into_inner();
+        let (recovery_resource, region_resource) = allocation.split(recovery_value, region_value);
+        let namespace = region_resource.id_ghost();
+        let capacity_int = *Int::new(capacity as i128);
+        let descriptor = AllocationDesc { capacity: capacity_int, namespace };
+        let recovery = Recovery { resource: recovery_resource, descriptor, _not_objective: NotObjective {} };
+        let ledger = OwnedRegion::from_model_ledger(0int, capacity_int, region_resource);
+        let region = PhysicalRegion { ledger, descriptor, _not_objective: NotObjective {} };
+        (namespace, (recovery, region))
+    };
+    let (namespace, capabilities) = binding.split();
+    let raw = RawAllocation { base: pointer, capacity, namespace, _not_objective: NotObjective {} };
+    (raw.into_bound_ptr_at_zero().0, capabilities)
+}
+
 /// Native pointer metadata minted only by [`detach_vec`].
 ///
 /// This wrapper has no destructor and is intentionally not cloneable or

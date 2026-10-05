@@ -16,6 +16,8 @@ use crate::buf::IntoIter;
 use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
 use crate::{Buf, BytesMut};
+#[cfg(all(creusot, bytes_proof_frozen))]
+use creusot_std::prelude::*;
 
 /// A cheaply cloneable and sliceable chunk of contiguous memory.
 ///
@@ -99,8 +101,16 @@ use crate::{Buf, BytesMut};
 /// └─────┴─────┴───────────┴───────────────┴─────┘
 /// ```
 pub struct Bytes {
+    #[cfg(not(bytes_proof_frozen))]
     ptr: *const u8,
+    #[cfg(bytes_proof_frozen)]
+    pub(crate) ptr: crate::ownership_proof::raw_vec::BoundPtr,
+    #[cfg(bytes_proof_frozen)]
+    pub(crate) frozen: Option<crate::ownership_proof::frozen_region::FrozenReader>,
+    #[cfg(not(bytes_proof_frozen))]
     len: usize,
+    #[cfg(bytes_proof_frozen)]
+    pub(crate) len: usize,
     // inlined "trait object"
     data: AtomicPtr<()>,
     vtable: &'static Vtable,
@@ -645,27 +655,86 @@ impl Bytes {
         }
     }
 
+    // BEGIN EXACT FROZEN BYTES CONSTRUCTOR
     #[inline]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), requires(frozen.valid(ptr, len)))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.ptr == ptr && result.len == len))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.frozen == Some(frozen)))]
     pub(crate) unsafe fn with_vtable(
-        ptr: *const u8,
+        #[cfg(not(bytes_proof_frozen))] ptr: *const u8,
+        #[cfg(bytes_proof_frozen)] ptr: crate::ownership_proof::raw_vec::BoundPtr,
         len: usize,
         data: AtomicPtr<()>,
         vtable: &'static Vtable,
+        #[cfg(bytes_proof_frozen)] frozen: crate::ownership_proof::frozen_region::FrozenReader,
     ) -> Bytes {
         Bytes {
             ptr,
             len,
             data,
             vtable,
+            #[cfg(bytes_proof_frozen)] frozen: Some(frozen),
         }
     }
+    // END EXACT FROZEN BYTES CONSTRUCTOR
 
     // private
 
+    // BEGIN EXACT FROZEN BYTES READ
     #[inline]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), requires(self.frozen != None))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), requires(self.frozen.unwrap_logic().valid(self.ptr, self.len)))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result@.len() == self.len@))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(forall<i: Int> 0 <= i && i < self.len@ ==>
+        self.frozen.unwrap_logic().shared.val().cur().slot(self.ptr@.unwrap_logic().2 + i) == Some(Some(result@[i]))))]
     fn as_slice(&self) -> &[u8] {
-        unsafe { slice::from_raw_parts(self.ptr, self.len) }
+        #[cfg(not(bytes_proof_frozen))]
+        { unsafe { slice::from_raw_parts(self.ptr, self.len) } }
+        #[cfg(bytes_proof_frozen)]
+        {
+            let reader = self.frozen.as_ref().unwrap();
+            crate::ownership_proof::frozen_region::borrow_frozen(
+                &self.ptr, self.len, reader.shared, &reader.ticket,
+            )
+        }
     }
+    // END EXACT FROZEN BYTES READ
+
+    // BEGIN EXACT FROZEN BYTES SHARE
+    /// Explicit sequential sharing adapter. Its mutable receiver splits an
+    /// affine read ticket; native `Clone::clone(&self)` has a separate frontier.
+    #[cfg(bytes_proof_frozen)]
+    #[cfg_attr(creusot, requires(self.frozen != None && self.frozen.unwrap_logic().valid(self.ptr,self.len)))]
+    #[cfg_attr(creusot, requires(at <= self.len && len <= self.len-at))]
+    #[cfg_attr(creusot, ensures(result.frozen != None && result.frozen.unwrap_logic().valid(result.ptr,result.len)))]
+    #[cfg_attr(creusot, ensures((^self).frozen != None && (^self).frozen.unwrap_logic().valid((^self).ptr,(^self).len)))]
+    #[cfg_attr(creusot, ensures((^self).ptr == self.ptr && (^self).len == self.len))]
+    #[cfg_attr(creusot, ensures(result.len == len))]
+    #[cfg_attr(creusot, ensures(result.ptr@.unwrap_logic().2 == self.ptr@.unwrap_logic().2 + at@))]
+    #[cfg_attr(creusot, ensures(result.frozen.unwrap_logic().shared == self.frozen.unwrap_logic().shared && (^self).frozen.unwrap_logic().shared == self.frozen.unwrap_logic().shared))]
+    #[cfg_attr(creusot, ensures(result.frozen.unwrap_logic().ticket.frac() + (^self).frozen.unwrap_logic().ticket.frac() == self.frozen.unwrap_logic().ticket.frac()))]
+    pub(crate) fn proof_share_frozen(&mut self,at:usize,len:usize)->Bytes {
+        let reader=self.frozen.as_mut().unwrap();
+        let ticket=reader.ticket.split_off();
+        let shared=reader.shared;
+        let ptr=self.ptr.advance_within(at);
+        unsafe { Bytes::with_vtable(ptr,len,AtomicPtr::new(core::ptr::null_mut()),self.vtable,
+            crate::ownership_proof::frozen_region::FrozenReader{shared,ticket}) }
+    }
+    // END EXACT FROZEN BYTES SHARE
+
+    // BEGIN EXACT FROZEN BYTES CLOSE
+    /// Explicit extraction-only cleanup entry. Automatic Drop is not modeled.
+    #[cfg(bytes_proof_frozen)]
+    #[cfg_attr(creusot, requires(self.frozen != None))]
+    #[cfg_attr(creusot, ensures(result.lft() == self.frozen.unwrap_logic().ticket.lft()))]
+    #[cfg_attr(creusot, ensures(result.frac() == self.frozen.unwrap_logic().ticket.frac()))]
+    pub(crate) fn proof_return_frozen_ticket(mut self) -> creusot_std::ghost::lifetime_logic::LifetimeToken {
+        let reader = self.frozen.take().unwrap();
+        core::mem::forget(self);
+        reader.ticket
+    }
+    // END EXACT FROZEN BYTES CLOSE
 
     #[inline]
     unsafe fn inc_start(&mut self, by: usize) {

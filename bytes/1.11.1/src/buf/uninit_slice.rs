@@ -3,6 +3,7 @@ use core::mem::MaybeUninit;
 use core::ops::{
     Index, IndexMut, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
 };
+use creusot_std::prelude::*;
 
 /// Uninitialized byte slice.
 ///
@@ -21,6 +22,15 @@ use core::ops::{
 #[repr(transparent)]
 pub struct UninitSlice([MaybeUninit<u8>]);
 
+impl View for UninitSlice {
+    type ViewTy = Seq<Option<u8>>;
+
+    #[logic(open)]
+    fn view(self) -> Self::ViewTy {
+        pearlite! { Seq::create(self.0@.len(), |index| self.0@[index]@) }
+    }
+}
+
 impl UninitSlice {
     /// Creates a `&mut UninitSlice` wrapping a slice of initialised memory.
     ///
@@ -33,6 +43,11 @@ impl UninitSlice {
     /// let slice = UninitSlice::new(&mut buffer[..]);
     /// ```
     #[inline]
+    #[trusted]
+    #[ensures(result@.len() == slice@.len())]
+    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == Some(slice@[i]))]
+    #[ensures((^result)@.len() == slice@.len())]
+    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> (^result)@[i] == Some((^slice)@[i]))]
     pub fn new(slice: &mut [u8]) -> &mut UninitSlice {
         unsafe { &mut *(slice as *mut [u8] as *mut [MaybeUninit<u8>] as *mut UninitSlice) }
     }
@@ -52,10 +67,18 @@ impl UninitSlice {
     /// let spare: &mut UninitSlice = vec.spare_capacity_mut().into();
     /// ```
     #[inline]
+    #[trusted]
+    #[ensures(result@.len() == slice@.len())]
+    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == slice@[i]@)]
+    #[ensures((^result)@.len() == slice@.len())]
+    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> (^result)@[i] == (^slice)@[i]@)]
     pub fn uninit(slice: &mut [MaybeUninit<u8>]) -> &mut UninitSlice {
         unsafe { &mut *(slice as *mut [MaybeUninit<u8>] as *mut UninitSlice) }
     }
 
+    #[trusted]
+    #[ensures(result@.len() == slice@.len())]
+    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == slice@[i]@)]
     fn uninit_ref(slice: &[MaybeUninit<u8>]) -> &UninitSlice {
         unsafe { &*(slice as *const [MaybeUninit<u8>] as *const UninitSlice) }
     }
@@ -104,10 +127,14 @@ impl UninitSlice {
     /// assert_eq!(b"boo", &data[..]);
     /// ```
     #[inline]
+    #[requires(index@ < self@.len())]
+    #[ensures((^self)@.len() == self@.len())]
+    #[ensures((^self)@[index@] == Some(byte))]
+    #[ensures(forall<i> 0 <= i && i < self@.len() && i != index@ ==> (^self)@[i] == self@[i])]
     pub fn write_byte(&mut self, index: usize, byte: u8) {
         assert!(index < self.len());
 
-        unsafe { self[index..].as_mut_ptr().write(byte) }
+        self.0[index] = MaybeUninit::new(byte);
     }
 
     /// Copies bytes from `src` into `self`.
@@ -131,13 +158,20 @@ impl UninitSlice {
     /// assert_eq!(b"bar", &data[..]);
     /// ```
     #[inline]
+    #[requires(src@.len() == self@.len())]
+    #[ensures((^self)@.len() == self@.len())]
+    #[ensures(forall<i> 0 <= i && i < src@.len() ==> (^self)@[i] == Some(src@[i]))]
     pub fn copy_from_slice(&mut self, src: &[u8]) {
-        use core::ptr;
-
         assert_eq!(self.len(), src.len());
 
-        unsafe {
-            ptr::copy_nonoverlapping(src.as_ptr(), self.as_mut_ptr(), self.len());
+        let mut index = 0;
+        #[invariant(index@ <= src@.len())]
+        #[invariant(self@.len() == src@.len())]
+        #[invariant(forall<i> 0 <= i && i < index@ ==> self@[i] == Some(src@[i]))]
+        #[variant(src@.len() - index@)]
+        while index < src.len() {
+            self.0[index] = MaybeUninit::new(src[index]);
+            index += 1;
         }
     }
 
@@ -214,12 +248,16 @@ impl fmt::Debug for UninitSlice {
 }
 
 impl<'a> From<&'a mut [u8]> for &'a mut UninitSlice {
+    #[ensures(result@.len() == slice@.len())]
+    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == Some(slice@[i]))]
     fn from(slice: &'a mut [u8]) -> Self {
         UninitSlice::new(slice)
     }
 }
 
 impl<'a> From<&'a mut [MaybeUninit<u8>]> for &'a mut UninitSlice {
+    #[ensures(result@.len() == slice@.len())]
+    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == slice@[i]@)]
     fn from(slice: &'a mut [MaybeUninit<u8>]) -> Self {
         UninitSlice::uninit(slice)
     }

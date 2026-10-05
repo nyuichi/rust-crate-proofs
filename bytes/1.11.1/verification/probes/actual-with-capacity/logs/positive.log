@@ -1,0 +1,684 @@
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/actual-with-capacity; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 73 files, 21.5MiB total
+   Compiling bytes-actual-with-capacity v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/actual-with-capacity)
+warning: unused import: `owned_region`
+  --> src/lib.rs:33:37
+   |
+33 |         bound_ptr, boxed_alignment, owned_region, raw_vec, sequential_counter, shared_protocol,
+   |                                     ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ManuallyDrop`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:3:23
+  |
+3 | use core::mem::{self, ManuallyDrop, MaybeUninit};
+  |                       ^^^^^^^^^^^^
+
+warning: unused import: `self`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:4:17
+  |
+4 | use core::ptr::{self,NonNull};
+  |                 ^^^^
+
+warning: unused imports: `AtomicUsize` and `Ordering`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:6:26
+  |
+6 | use core::sync::atomic::{AtomicUsize,Ordering};
+  |                          ^^^^^^^^^^^ ^^^^^^^^
+
+warning: unreachable expression
+    --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:1075:13
+     |
+1065 |             panic!("ARC clone is outside the first sequential split gate");
+     |             -------------------------------------------------------------- any code following this expression is unreachable
+...
+1075 |             { self.pending_descriptor_copy() }
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable expression
+     |
+     = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `prelude`
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:90:53
+   |
+90 |     use creusot_std::{ghost::perm::Perm, logic::Id, prelude::*};
+   |                                                     ^^^^^^^
+
+warning: unused variable: `base`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:905:25
+    |
+905 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                         ^^^^ help: try ignoring the field: `base: _`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `capacity`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:905:31
+    |
+905 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
+
+warning: unused variable: `base`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:941:9
+    |
+941 |     let base = bound.as_ptr();
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
+
+warning: unused variable: `off`
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:987:13
+    |
+987 |         let off = crate::capacity_ops::vec_pos_from_data(
+    |             ^^^ help: if this is intentional, prefix it with an underscore: `_off`
+
+warning: variable does not need to be mutable
+  --> src/lib.rs:48:17
+   |
+48 |             let mut owner = Self::with_capacity(requested);
+   |                 ----^^^^^
+   |                 |
+   |                 help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `fill_uninit_prefix` is never used
+  --> src/../../../../src/storage_ops.rs:15:15
+   |
+15 | pub(crate) fn fill_uninit_prefix(dst: &mut [MaybeUninit<u8>], count: usize, value: u8) {
+   |               ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `copy_to_uninit_prefix` is never used
+  --> src/../../../../src/storage_ops.rs:36:15
+   |
+36 | pub(crate) fn copy_to_uninit_prefix(dst: &mut [MaybeUninit<u8>], src: &[u8]) {
+   |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `NOT_VEC_POS_MASK` is never used
+  --> src/../../../../src/capacity_ops.rs:29:18
+   |
+29 | pub(crate) const NOT_VEC_POS_MASK: usize = 0b11111;
+   |                  ^^^^^^^^^^^^^^^^
+
+warning: constant `MAX_VEC_POS` is never used
+  --> src/../../../../src/capacity_ops.rs:30:18
+   |
+30 | pub(crate) const MAX_VEC_POS: usize = usize::MAX >> VEC_POS_OFFSET;
+   |                  ^^^^^^^^^^^
+
+warning: function `original_capacity_repr_from_data` is never used
+   --> src/../../../../src/capacity_ops.rs:125:15
+    |
+125 | pub(crate) fn original_capacity_repr_from_data(data: usize) -> usize {
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `set_vec_pos_in_data` is never used
+   --> src/../../../../src/capacity_ops.rs:143:15
+    |
+143 | pub(crate) fn set_vec_pos_in_data(data: usize, pos: usize) -> usize {
+    |               ^^^^^^^^^^^^^^^^^^^
+
+warning: function `pointer_addr_eq` is never used
+  --> src/../../../../src/provenance_specs.rs:19:15
+   |
+19 | pub(crate) fn pointer_addr_eq<T>(left: *const T, right: *const T) -> bool {
+   |               ^^^^^^^^^^^^^^^
+
+warning: function `pointer_with_address` is never used
+  --> src/../../../../src/provenance_specs.rs:86:15
+   |
+86 | pub(crate) fn pointer_with_address(ptr: *mut u8, new_addr: usize) -> *mut u8 {
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `map_op_get` is never used
+  --> src/../../../../src/ownership_proof/owned_region.rs:47:15
+   |
+47 | pub(crate) fn map_op_get(
+   |               ^^^^^^^^^^
+
+warning: associated items `into_parts`, `slots`, `slot`, `restrict`, `split_at`, and `join` are never used
+   --> src/../../../../src/ownership_proof/owned_region.rs:125:19
+    |
+ 95 | impl OwnedRegion {
+    | ---------------- associated items in this implementation
+...
+125 |     pub(crate) fn into_parts(self) -> (Int, Int, Resource<KernelRA>) {
+    |                   ^^^^^^^^^^
+...
+149 |     pub(crate) fn slots(self) -> FMap<Int, Excl<Option<u8>>> {
+    |                   ^^^^^
+...
+156 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+    |                   ^^^^
+...
+167 |     fn restrict(
+    |        ^^^^^^^^
+...
+192 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+    |                   ^^^^^^^^
+...
+243 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: function `slots_grown` is never used
+  --> src/../../../../src/ownership_proof/raw_vec.rs:72:4
+   |
+72 | fn slots_grown(old: SlotMap, old_capacity: Int, capacity: Int) -> SlotMap {
+   |    ^^^^^^^^^^^
+
+warning: function `reallocate_bound` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:103:22
+    |
+103 | pub(crate) unsafe fn reallocate_bound(base: BoundPtr, old_capacity: usize, capacity: usize,
+    |                      ^^^^^^^^^^^^^^^^
+
+warning: associated items `unbound`, `as_non_null`, and `advance_within` are never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:252:19
+    |
+241 | impl BoundPtr {
+    | ------------- associated items in this implementation
+...
+252 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
+    |                   ^^^^^^^
+...
+273 |     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
+    |                   ^^^^^^^^^^^
+...
+331 |     pub(crate) fn advance_within(&self, count: usize) -> Self {
+    |                   ^^^^^^^^^^^^^^
+
+warning: methods `split_at` and `join` are never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:535:19
+    |
+479 | impl PhysicalRegion {
+    | ------------------- methods in this implementation
+...
+535 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+    |                   ^^^^^^^^
+...
+565 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: associated items `slot`, `kernel_unit_is_empty`, `empty_from`, `retire`, and `finish` are never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:632:19
+    |
+610 | impl PhysicalPool {
+    | ----------------- associated items in this implementation
+...
+632 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+    |                   ^^^^
+...
+646 |     fn kernel_unit_is_empty() {
+    |        ^^^^^^^^^^^^^^^^^^^^
+...
+672 |     pub(crate) fn empty_from(region: &PhysicalRegion) -> Self {
+    |                   ^^^^^^^^^^
+...
+705 |     pub(crate) fn retire(self, region: PhysicalRegion) -> Self {
+    |                   ^^^^^^
+...
+741 |     pub(crate) fn finish(self, lo: Int) -> PhysicalRegion {
+    |                   ^^^^^^
+
+warning: function `resume_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:865:22
+    |
+865 | pub(crate) unsafe fn resume_vec(
+    |                      ^^^^^^^^^^
+
+warning: function `deallocate_vec` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:901:22
+    |
+901 | pub(crate) unsafe fn deallocate_vec(
+    |                      ^^^^^^^^^^^^^^
+
+warning: function `borrow_mut` is never used
+   --> src/../../../../src/ownership_proof/raw_vec.rs:985:22
+    |
+985 | pub(crate) unsafe fn borrow_mut<'a>(
+    |                      ^^^^^^^^^^
+
+warning: function `slot_known_equivalence` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1007:15
+     |
+1007 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+     |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_bound_mut` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1046:22
+     |
+1046 | pub(crate) unsafe fn borrow_bound_mut<'a>(
+     |                      ^^^^^^^^^^^^^^^^
+
+warning: function `borrow_bound_uninit_mut` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1086:22
+     |
+1086 | pub(crate) unsafe fn borrow_bound_uninit_mut<'a>(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_spare_preserving_prefix` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1124:22
+     |
+1124 | pub(crate) unsafe fn borrow_spare_preserving_prefix<'a>(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_bound` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1150:22
+     |
+1150 | pub(crate) unsafe fn borrow_bound<'a>(
+     |                      ^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1164:22
+     |
+1164 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
+     |                      ^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound_mut` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1173:22
+     |
+1173 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound_uninit_mut` is never used
+    --> src/../../../../src/ownership_proof/raw_vec.rs:1181:22
+     |
+1181 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `inner` is never read
+  --> src/../../../../src/ownership_proof/sequential_counter.rs:21:5
+   |
+20 | pub(crate) struct SequentialCounter {
+   |                   ----------------- field in this struct
+21 |     inner: AtomicUsize,
+   |     ^^^^^
+
+warning: associated items `new`, `fetch_add_relaxed`, `fetch_sub_release`, and `load_acquire` are never used
+  --> src/../../../../src/ownership_proof/sequential_counter.rs:48:19
+   |
+43 | impl SequentialCounter {
+   | ---------------------- associated items in this implementation
+...
+48 |     pub(crate) fn new(value: usize) -> (Self, Ghost<CounterOwn>) {
+   |                   ^^^
+...
+66 |     pub(crate) fn fetch_add_relaxed(&self, amount: usize, own: Ghost<&mut CounterOwn>) -> usize {
+   |                   ^^^^^^^^^^^^^^^^^
+...
+79 |     pub(crate) fn fetch_sub_release(&self, amount: usize, own: Ghost<&mut CounterOwn>) -> usize {
+   |                   ^^^^^^^^^^^^^^^^^
+...
+89 |     pub(crate) fn load_acquire(&self, own: Ghost<&CounterOwn>) -> usize {
+   |                   ^^^^^^^^^^^^
+
+warning: field `resource` is never read
+  --> src/../../../../src/ownership_proof/shared_protocol.rs:12:5
+   |
+11 | pub(crate) struct Ticket {
+   |                   ------ field in this struct
+12 |     resource: Resource<RegistrationRA>,
+   |     ^^^^^^^^
+
+warning: function `ticket_value` is never used
+  --> src/../../../../src/ownership_proof/shared_protocol.rs:37:4
+   |
+37 | fn ticket_value(left: bool) -> RegistrationRA {
+   |    ^^^^^^^^^^^^
+
+warning: function `packet_matches` is never used
+  --> src/../../../../src/ownership_proof/shared_protocol.rs:42:15
+   |
+42 | pub(crate) fn packet_matches(packet: Packet, allocation: Id, capacity: Int, split: Int, registration: Id, left: bool) -> bool {
+   |               ^^^^^^^^^^^^^^
+
+warning: function `initialize` is never used
+   --> src/../../../../src/ownership_proof/shared_protocol.rs:103:15
+    |
+103 | pub(crate) fn initialize(capacity: usize, split: usize, caps: Ghost<(Recovery, PhysicalRegion)>) -> Ghost<(Coordinator, Packet, Pac...
+    |               ^^^^^^^^^^
+
+warning: function `retire` is never used
+   --> src/../../../../src/ownership_proof/shared_protocol.rs:135:15
+    |
+135 | pub(crate) fn retire(coordinator: Ghost<&mut Coordinator>, packet: Ghost<Packet>, left: bool) {
+    |               ^^^^^^
+
+warning: function `finish` is never used
+   --> src/../../../../src/ownership_proof/shared_protocol.rs:162:15
+    |
+162 | pub(crate) fn finish(coordinator: Ghost<Coordinator>) -> Ghost<(Recovery, PhysicalRegion)> {
+    |               ^^^^^^
+
+warning: function `borrow_packet_mut` is never used
+   --> src/../../../../src/ownership_proof/shared_protocol.rs:200:22
+    |
+200 | pub(crate) unsafe fn borrow_packet_mut<'a>(
+    |                      ^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_packet_uninit_mut` is never used
+   --> src/../../../../src/ownership_proof/shared_protocol.rs:237:22
+    |
+237 | pub(crate) unsafe fn borrow_packet_uninit_mut<'a>(
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_packet` is never used
+   --> src/../../../../src/ownership_proof/shared_protocol.rs:264:22
+    |
+264 | pub(crate) unsafe fn borrow_packet<'a>(
+    |                      ^^^^^^^^^^^^^
+
+warning: function `into_raw_aligned` is never used
+  --> src/../../../../src/ownership_proof/boxed_alignment.rs:13:15
+   |
+13 | pub(crate) fn into_raw_aligned<T>(value: Box<T>) -> (*mut T, Ghost<Box<Perm<*const T>>>) {
+   |               ^^^^^^^^^^^^^^^^
+
+warning: function `aligned_address_has_clear_low_bit` is never used
+  --> src/../../../../src/ownership_proof/boxed_alignment.rs:23:15
+   |
+23 | pub(crate) fn aligned_address_has_clear_low_bit(address: usize, alignment: usize) {}
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `buffer`, `original_capacity_repr`, and `ref_count` are never read
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:58:5
+   |
+57 | struct Shared {
+   |        ------ fields in this struct
+58 |     buffer: SharedBuffer,
+   |     ^^^^^^
+59 |     original_capacity_repr: usize,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+...
+63 |     ref_count: crate::ownership_proof::sequential_counter::SequentialCounter,
+   |     ^^^^^^^^^
+
+warning: fields `base` and `capacity` are never read
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:69:5
+   |
+65 | struct SharedBuffer {
+   |        ------------ fields in this struct
+...
+69 |     base: crate::ownership_proof::raw_vec::BoundPtr,
+   |     ^^^^
+70 |     capacity: usize,
+   |     ^^^^^^^^
+
+warning: constant `KIND_ARC` is never used
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:73:7
+   |
+73 | const KIND_ARC: usize = 0b0;
+   |       ^^^^^^^^
+
+warning: multiple associated items are never used
+    --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:376:15
+     |
+ 355 | impl BytesMut {
+     | ------------- associated items in this implementation
+...
+ 376 |     unsafe fn set_vec_pos(&mut self, pos: usize) {
+     |               ^^^^^^^^^^^
+...
+ 399 |     pub fn resize(&mut self, new_len: usize, value: u8) {
+     |            ^^^^^^
+...
+ 431 |     pub fn reserve(&mut self, additional: usize) {
+     |            ^^^^^^^
+...
+ 463 |     pub fn extend_from_slice(&mut self, extend: &[u8]) {
+     |            ^^^^^^^^^^^^^^^^^
+...
+ 502 |     pub(crate) fn proof_release_unique_at_zero(mut self) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+ 527 |     fn as_slice(&self) -> &[u8] {
+     |        ^^^^^^^^
+...
+ 581 |     pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<u8>] {
+     |            ^^^^^^^^^^^^^^^^^^
+...
+ 612 |     pub fn truncate(&mut self, len: usize) {
+     |            ^^^^^^^^
+...
+ 624 |     pub fn clear(&mut self) {
+     |            ^^^^^
+...
+ 637 |     pub unsafe fn set_len(&mut self, len: usize) {
+     |                   ^^^^^^^
+...
+ 681 |     pub fn split_off(&mut self, at: usize) -> BytesMut {
+     |            ^^^^^^^^^
+...
+ 736 |     fn as_slice_mut(&mut self) -> &mut [u8] {
+     |        ^^^^^^^^^^^^
+...
+ 770 |     pub(crate) fn from_vec(vec: Vec<u8>) -> BytesMut {
+     |                   ^^^^^^^^
+...
+ 883 |     pub fn split_to(&mut self, at: usize) -> BytesMut {
+     |            ^^^^^^^^
+...
+ 926 |     pub(crate) unsafe fn advance_unchecked(&mut self, count: usize) {
+     |                          ^^^^^^^^^^^^^^^^^
+...
+ 976 |     unsafe fn promote_to_shared(&mut self, ref_cnt: usize) {
+     |               ^^^^^^^^^^^^^^^^^
+...
+1060 |     unsafe fn shallow_clone(&mut self) -> BytesMut {
+     |               ^^^^^^^^^^^^^
+...
+1089 |     fn pending_descriptor_copy(&self) -> BytesMut {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^
+...
+1104 |     pub(crate) fn proof_view_slot(self, index: Int) -> Option<Option<u8>> {
+     |                   ^^^^^^^^^^^^^^^
+...
+1118 |     pub(crate) fn proof_owned_slot(self, index: Int) -> Option<Option<u8>> {
+     |                   ^^^^^^^^^^^^^^^^
+...
+1131 |     fn proof_empty_valid(self) -> bool {
+     |        ^^^^^^^^^^^^^^^^^
+...
+1141 |     fn proof_owned_valid(self) -> bool {
+     |        ^^^^^^^^^^^^^^^^^
+...
+1153 |     fn proof_initialized(self) -> bool {
+     |        ^^^^^^^^^^^^^^^^^
+...
+1162 |     fn proof_pending_valid(self) -> bool {
+     |        ^^^^^^^^^^^^^^^^^^^
+...
+1177 |     fn proof_shared_allocation_registered(self) -> bool {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1192 |     fn proof_registered_valid(self) -> bool {
+     |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+1212 |     pub(crate) fn proof_split_pair_valid(self, left: Self) -> bool {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^
+...
+1249 |     fn proof_register_split(&mut self, other: &mut Self, at: usize) {
+     |        ^^^^^^^^^^^^^^^^^^^^
+...
+1263 |     fn proof_take_coordinator(&mut self) -> Ghost<sequential_shared_control::ControlContext> {
+     |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+1278 |     fn proof_release(mut self, context: Ghost<&mut sequential_shared_control::ControlContext>, left: bool) -> bool {
+     |        ^^^^^^^^^^^^^
+...
+1299 |     pub(crate) fn proof_split_then_release(input: Vec<u8>, at: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1331 |     pub(crate) fn proof_mutate_split_then_release(input: Vec<u8>, at: usize, left_value: u8, right_value: u8, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1360 |     pub(crate) fn proof_access_split_then_release(input: Vec<u8>, at: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1400 |     pub(crate) fn proof_split_off_then_release(input: Vec<u8>, requested: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1431 |     pub(crate) fn proof_shrink_split_off_then_release(input: Vec<u8>, requested: usize, keep: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1478 |     pub(crate) fn proof_advance_split_off_then_release(input: Vec<u8>, requested: usize, left_count: usize, right_count: usize, ri...
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1545 |     fn proof_initialize_spare_byte(&mut self, value: u8, use_write: bool) {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1559 |     pub(crate) fn proof_initialize_split_spare(input: Vec<u8>, requested: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1585 |     pub(crate) fn proof_reinitialize_split_prefix(input: Vec<u8>, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1617 |     pub(crate) fn proof_readonly_split(input: Vec<u8>, requested: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^
+...
+1660 |     pub(crate) fn proof_unique_access(input: Vec<u8>, keep: usize, value: u8) {
+     |                   ^^^^^^^^^^^^^^^^^^^
+...
+1767 |     pub(crate) fn proof_unique_advance(input: Vec<u8>, first: usize, second: usize, value: u8) {
+     |                   ^^^^^^^^^^^^^^^^^^^^
+...
+1826 |     fn proof_same_storage(self, other: Self) -> bool {
+     |        ^^^^^^^^^^^^^^^^^^
+...
+1846 |     fn proof_noalloc_update(&mut self, new_len: usize, value: u8, extend: &[u8]) {
+     |        ^^^^^^^^^^^^^^^^^^^^
+...
+1863 |     pub(crate) fn proof_noalloc_unique(input: Vec<u8>, new_len: usize, value: u8, extend: &[u8]) {
+     |                   ^^^^^^^^^^^^^^^^^^^^
+...
+1872 |     pub(crate) fn proof_noalloc_split(input: Vec<u8>, split: usize, new_len: usize, value: u8, extend: &[u8], left_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^
+
+warning: fields `pointer` and `identity` are never read
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:95:20
+   |
+94 |     pub(crate) struct ControlPtr {
+   |                       ---------- fields in this struct
+95 |         pub(super) pointer: *mut Shared,
+   |                    ^^^^^^^
+96 |         pub(super) identity: Ghost<Id>,
+   |                    ^^^^^^^^
+   |
+   = note: `ControlPtr` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: fields `registry`, `counter`, `owner`, and `status` are never read
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:99:20
+    |
+ 98 |     pub(crate) struct ControlContext {
+    |                       -------------- fields in this struct
+ 99 |         pub(super) registry: Option<Coordinator>,
+    |                    ^^^^^^^^
+100 |         pub(super) counter: Option<CounterOwn>,
+    |                    ^^^^^^^
+101 |         pub(super) owner: Option<Box<Perm<*const Shared>>>,
+    |                    ^^^^^
+102 |         pub(super) status: Snapshot<Status>,
+    |                    ^^^^^^
+
+warning: methods `valid` and `active` are never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:106:23
+    |
+104 |     impl ControlContext {
+    |     ------------------- methods in this implementation
+105 |         #[logic(open(super), prophetic)]
+106 |         pub(super) fn valid(self, control: ControlPtr) -> bool {
+    |                       ^^^^^
+...
+124 |         pub(super) fn active(self) -> bool { pearlite! { self.registry != None } }
+    |                       ^^^^^^
+
+warning: fields `counter`, `owner`, and `caps` are never read
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:130:20
+    |
+129 |     pub(super) struct PendingControl {
+    |                       -------------- fields in this struct
+130 |         pub(super) counter: CounterOwn,
+    |                    ^^^^^^^
+131 |         pub(super) owner: Box<Perm<*const Shared>>,
+    |                    ^^^^^
+132 |         pub(super) caps: (raw_vec::Recovery, raw_vec::PhysicalRegion),
+    |                    ^^^^
+
+warning: method `valid` is never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:136:23
+    |
+134 |     impl PendingControl {
+    |     ------------------- method in this implementation
+135 |         #[logic(open(super), prophetic)]
+136 |         pub(super) fn valid(self, pointer: *mut Shared, base: BoundPtr, capacity: usize) -> bool {
+    |                       ^^^^^
+
+warning: fields `control`, `status`, `packet`, and `left` are never read
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:152:20
+    |
+151 |     pub(super) struct HandleRegistration {
+    |                       ------------------ fields in this struct
+152 |         pub(super) control: ControlPtr,
+    |                    ^^^^^^^
+153 |         pub(super) status: Snapshot<Status>,
+    |                    ^^^^^^
+154 |         pub(super) packet: Packet,
+    |                    ^^^^^^
+155 |         pub(super) left: bool,
+    |                    ^^^^
+
+warning: methods `view_lo`, `view_hi`, `valid`, `same_registration`, and `matches` are never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:159:23
+    |
+157 |     impl HandleRegistration {
+    |     ----------------------- methods in this implementation
+158 |         #[logic(open(super))]
+159 |         pub(super) fn view_lo(self) -> Int {
+    |                       ^^^^^^^
+...
+163 |         pub(super) fn view_hi(self) -> Int {
+    |                       ^^^^^^^
+...
+168 |         pub(super) fn valid(self) -> bool {
+    |                       ^^^^^
+...
+173 |         pub(super) fn same_registration(self, other: Self) -> bool {
+    |                       ^^^^^^^^^^^^^^^^^
+...
+183 |         pub(super) fn matches(self, context: ControlContext) -> bool {
+    |                       ^^^^^^^
+
+warning: function `activate` is never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:214:19
+    |
+214 |     pub(super) fn activate(pointer: *mut Shared, base: BoundPtr, capacity: usize, split: usize,
+    |                   ^^^^^^^^
+
+warning: function `new` is never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:243:8
+    |
+243 |     fn new(input: Vec<u8>, split: usize) -> (ControlPtr, Ghost<ControlContext>, Ghost<Packet>, Ghost<Packet>) {
+    |        ^^^
+
+warning: function `release` is never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:280:19
+    |
+280 |     pub(super) fn release(control: ControlPtr, mut context: Ghost<&mut ControlContext>, packet: Ghost<Packet>, left: bool) -> bool {
+    |                   ^^^^^^^
+
+warning: function `release_left_then_right` is never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:324:19
+    |
+324 |     pub(crate) fn release_left_then_right(input: Vec<u8>, split: usize) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `release_right_then_left` is never used
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-with-capacity-6bc7bf9ee9c6f1e1/out/actual_with_capacity.rs:333:19
+    |
+333 |     pub(crate) fn release_right_then_left(input: Vec<u8>, split: usize) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `bytes-actual-with-capacity` (lib) generated 66 warnings (run `cargo fix --lib -p bytes-actual-with-capacity` to apply 9 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.65s
+No dangling files found
+Proved (101 files) ✔

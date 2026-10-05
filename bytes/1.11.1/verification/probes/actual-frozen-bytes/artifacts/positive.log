@@ -1,0 +1,80 @@
+     Locking 26 packages to latest compatible versions
+     Removed 21 files, 9.4MiB total
+   Compiling bytes-actual-frozen v0.1.0 (/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/actual-frozen-bytes)
+warning: unused import: `ManuallyDrop`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-8c47a95745a59574/out/actual_frozen.rs:5:22
+  |
+5 | use core::mem::{self,ManuallyDrop};
+  |                      ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `core::sync::atomic::AtomicUsize`
+ --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-8c47a95745a59574/out/actual_frozen.rs:7:5
+  |
+7 | use core::sync::atomic::AtomicUsize;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `prelude`
+  --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-8c47a95745a59574/out/actual_frozen.rs:15:53
+   |
+15 |     use creusot_std::{ghost::perm::Perm, logic::Id, prelude::*};
+   |                                                     ^^^^^^^
+
+warning: unused variable: `base`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:905:25
+    |
+905 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                         ^^^^ help: try ignoring the field: `base: _`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `capacity`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:905:31
+    |
+905 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
+
+warning: unused variable: `base`
+   --> src/../../../../src/ownership_proof/raw_vec.rs:941:9
+    |
+941 |     let base = bound.as_ptr();
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
+
+warning: type `frozen_region::FrozenOwner` is more private than the item `actual::BytesMut::freeze`
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-8c47a95745a59574/out/actual_frozen.rs:423:5
+    |
+423 | /     pub fn freeze(self,
+424 | |         #[cfg(bytes_proof_frozen)] coordinator: &mut Option<crate::ownership_proof::frozen_region::FrozenOwner>,
+425 | |         #[cfg(bytes_proof_frozen)] table: &'static crate::bytes::Vtable,
+426 | |     ) -> Bytes {
+    | |______________^ method `actual::BytesMut::freeze` is reachable at visibility `pub`
+    |
+note: but type `frozen_region::FrozenOwner` is only usable at visibility `pub(crate)`
+   --> src/../../../../src/ownership_proof/frozen_region.rs:67:1
+    |
+ 67 | pub(crate) struct FrozenOwner {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: `#[warn(private_interfaces)]` on by default
+
+warning: type `actual::Vtable` is more private than the item `actual::BytesMut::freeze`
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-8c47a95745a59574/out/actual_frozen.rs:423:5
+    |
+423 | /     pub fn freeze(self,
+424 | |         #[cfg(bytes_proof_frozen)] coordinator: &mut Option<crate::ownership_proof::frozen_region::FrozenOwner>,
+425 | |         #[cfg(bytes_proof_frozen)] table: &'static crate::bytes::Vtable,
+426 | |     ) -> Bytes {
+    | |______________^ method `actual::BytesMut::freeze` is reachable at visibility `pub`
+    |
+note: but type `actual::Vtable` is only usable at visibility `pub(crate)`
+   --> /workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-actual-frozen-8c47a95745a59574/out/actual_frozen.rs:479:1
+    |
+479 | pub(crate) struct Vtable {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `bytes-actual-frozen` (lib) generated 8 warnings (run `cargo fix --lib -p bytes-actual-frozen` to apply 5 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.56s
+No dangling files found
+Goal Coma.vc_actual_freeze_then_read_and_reclaim: ✘ (14/15)
+Error: 1 unproved file
+Error: 'why3find prove' failed

@@ -20,7 +20,7 @@ The user asked to move this work to a new thread. No create_thread/fork_thread/h
 
 ## Working tree: IMPORTANT
 
-There is substantial uncommitted source/proof/evidence work. Do not reset, clean, or blanket commit it. Some exact source methods are verified; other source edits remain exploratory. `bytes_mut.rs` mixes root unique reserve work with Astra freeze/split metadata changes. Review/stage hunks or finish dependent gates before committing the entire file. New module declarations require corresponding files in the same commit.
+CLOUD UPDATE: Previously uncommitted source/proof/evidence work is now preserved in a WIP checkpoint commit on this branch. This commit is transport/storage, NOT a claim that all changes pass. Do not reset or discard exploratory work. Some exact source methods are verified; other source edits remain exploratory. `bytes_mut.rs` mixes root unique reserve work with Astra freeze/split metadata changes. Review/stage hunks or finish dependent gates before committing the entire file. New module declarations require corresponding files in the same commit.
 
 Inspect `git status --short`, probe README/PROGRESS/evidence and recent `/tmp/bytes-*.log` files. The checked-in `STATUS.md` is older than this handoff. Dedicated progress files include `VTABLE_DROP_PROGRESS.md`, `verification/CONCURRENT_VERIFICATION_PROGRESS.md`, `verification/REMAINING_API_MATRIX.md`, and `verification/probes/handle-comparison/PROGRESS.md`.
 
@@ -94,3 +94,16 @@ Several agents hit usage limits until 2026-10-12 02:20; Luna comparison spawning
 4. Finish native comparison defect, UninitSlice/comparison/iterator and advanced transactional gates; widen actual resize/extend growth paths.
 5. Finish actual freeze explicit coordinator proof and small weak AtView/native RMW route; retain precise unsupported automatic Drop/vtable concurrency boundaries.
 6. Run actual crate-local verify-all.bash on newest source, relevant native/std/no_std regressions; update STATUS/API matrix/TCB with exact distinctions. Commit/push validated increments. Do not claim full verification while integrated crate or native concurrency remains unproved.
+
+
+## Cloud resumption update
+
+The earlier suggestion to reuse the same workspace was incorrect for Codex Cloud. A new Cloud task must select repository `nyuichi/rust-crate-proofs` and branch `bytes-runtime-verification`; checkout carries the WIP checkpoint and this note. Historical references above to uncommitted work describe the pre-checkpoint state. Do not re-stage or recommit unchanged checkpoint content; finish and validate logical increments on top of it.
+
+Local `/tmp` logs and last live probe `.coma`/proof JSON for new gates are preserved in `verification/cloud-handoff/session-evidence.tar.gz`, with per-file and archive SHA256 in `manifest.json`. Extract to a scratch directory if needed. These include successful, failed, diagnostic and unfinished runs; inspect outcomes and exact source hashes. Frozen probe evidence remains at its original tracked locations. No compiler caches, binaries, credentials or external tool installations are included.
+
+Environment is NOT transported by Git. First inspect available Rust/Creusot/Why3 tools. Existing `scripts/setup-bytes-toolchain.sh` assumes a pre-existing `/workspace/proof-tools/activate.sh`, so it is NOT a standalone clean-Cloud bootstrap. Recreate needed dependencies with pinned versions listed above using normal installation instructions, or adapt that script for the new environment. Do not run the old `/workspace/proof-tools/install-tested.sh`: it verifies unrelated fnv and installs older Creusot. New checkout path may differ; derive repo/crate paths rather than assuming the previous absolute path. Probe wrappers default to old tool locations but expose environment overrides. Dependencies may need `cargo fetch --locked` before wrappers enable offline mode.
+
+No fresh whole-crate proof was run merely to create this checkpoint. Proof-status claims above remain historical scoped claims. Start by auditing latest archived outcomes and checkpoint source, then rerun affected gates. Uploaded external plan files are not required for resumption: the operative scope, authorization, design constraints and implementation priorities are recorded here.
+
+Checkpoint transport validation: the archive SHA256 and all 2142 member hashes were checked. Current native `cargo test --locked --test test_unique_growth` passed all four tests on the complete checkpoint source. No new Why3 or integrated crate proof is claimed.

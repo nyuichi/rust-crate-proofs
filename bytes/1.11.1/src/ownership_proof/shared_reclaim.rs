@@ -22,6 +22,7 @@ impl SingletonLease {
             self.counter@.0 == *control.identity && self.counter@.1 == 1 &&
             *self.owner.ward() == control.pointer &&
             self.owner.val().ref_count@ == self.counter@.0 &&
+            self.owner.val().original_capacity_repr <= 7usize &&
             self.owner.val().buffer.base.invariant() &&
             self.owner.val().buffer.base@ == Some((self.caps.0.namespace(), self.caps.0.capacity(), 0int)) &&
             self.owner.val().buffer.capacity@ == self.caps.0.capacity() &&

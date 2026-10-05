@@ -28,6 +28,7 @@ impl ControlContext {
                     counter@.1 == (*self.status.pending).len() + extra &&
                     *owner.ward() == control.pointer &&
                     owner.val().ref_count@ == counter@.0 &&
+                    owner.val().original_capacity_repr <= 7usize &&
                     owner.val().buffer.base.invariant() &&
                     owner.val().buffer.base@ == Some((self.status.allocation, self.status.capacity, 0int)) &&
                     owner.val().buffer.capacity@ == self.status.capacity,
@@ -58,6 +59,7 @@ impl PendingControl {
             self.caps.1.lo() == 0 && self.caps.1.hi() == capacity@ &&
             *self.owner.ward() == pointer && self.counter@.1 == 2 &&
             self.owner.val().ref_count@ == self.counter@.0 &&
+            self.owner.val().original_capacity_repr <= 7usize &&
             self.owner.val().buffer.base == base && self.owner.val().buffer.capacity == capacity
         }
     }

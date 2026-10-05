@@ -81,6 +81,22 @@ and tasks are retained under `b1-b2-b4-b3-*` with a separate manifest.
 
 ## Compiler-model restriction
 
+### B5 physical reallocation (unique-growth gate)
+
+`reallocate_bound` adds a local physical allocator contract. It consumes
+matching Recovery and full capacity coverage, requires an offset-zero base and
+strictly greater capacity bounded by `isize::MAX`, and returns the replacement
+allocation's complete authority. Existing slots preserve their current Known
+or Unknown state; newly allocated slots are Unknown. The native leaf uses the
+global byte allocator's `alloc`/`realloc` and matching old layout. Failure follows
+Rust's allocation-error path and is outside normal-return proof.
+
+No bytes handle, refcount, sharing, or final-owner rule is trusted by B5. It
+does not promise distinct resource IDs or pointer addresses. Strict growth
+ensures old descriptor capacity cannot match the returned capabilities. Equal
+capacity reallocation is deliberately excluded. See the exact body gate and
+negative controls in `probes/unique-growing-reserve`.
+
 Native raw-pointer Eq/Ne is translated as logical pointer equality/inequality.
 The paired diagnostic demonstrates that address-only `addr_eq` does not grant
 that identity. All proved caller paths must therefore exclude native pointer

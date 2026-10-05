@@ -395,7 +395,8 @@ fn state_pending_regions_disjoint(state: State) -> bool {
         (forall<left: Int, right: Int> match
             ((*state.status.pending).get(left), (*state.status.pending).get(right)) {
             (Some((left_lo, left_hi)), Some((right_lo, right_hi))) =>
-                left == right || left_hi <= right_lo || right_hi <= left_lo,
+                left == right || left_lo == left_hi || right_lo == right_hi ||
+                    left_hi <= right_lo || right_hi <= left_lo,
             _ => true,
         })
     }

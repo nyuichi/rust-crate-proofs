@@ -245,9 +245,29 @@ impl BytesMut {
     /// assert_eq!(&bytes[..], b"hello world");
     /// ```
     #[inline]
+    // BEGIN EXACT WITH_CAPACITY
+    #[cfg_attr(creusot, ensures(result.proof_unique_at_zero_valid()))]
+    #[cfg_attr(creusot, ensures(result.len@ == 0 && result.cap@ >= capacity@))]
+    #[cfg_attr(creusot, ensures(forall<index: Int> 0 <= index && index < result.cap@ ==>
+        result.proof_unique_slot(index) == Some(None)))]
     pub fn with_capacity(capacity: usize) -> BytesMut {
-        BytesMut::from_vec(Vec::with_capacity(capacity))
+        #[cfg(not(any(creusot, bytes_proof_probe)))]
+        { BytesMut::from_vec(Vec::with_capacity(capacity)) }
+        #[cfg(any(creusot, bytes_proof_probe))]
+        {
+            let (ptr, len, cap, capabilities) =
+                crate::ownership_proof::vec_capacity::with_capacity_bound(capacity);
+            let data = crate::capacity_ops::pack_vec_metadata(original_capacity_to_repr(cap));
+            BytesMut {
+                ptr, len, cap, data: invalid_ptr(data),
+                unique_at_zero: ghost! { Some(capabilities.into_inner()) },
+                pending_control: ghost! { None },
+                shared_registration: ghost! { None },
+                shared_context: ghost! { None },
+            }
+        }
     }
+    // END EXACT WITH_CAPACITY
 
     /// Creates a new `BytesMut` with default capacity.
     ///
@@ -346,8 +366,36 @@ impl BytesMut {
     /// assert_eq!(&b2[..], b"hello world");
     /// th.join().unwrap();
     /// ```
+    // BEGIN EXACT FROZEN BYTESMUT FREEZE
     #[inline]
-    pub fn freeze(self) -> Bytes {
+    #[cfg_attr(all(creusot, bytes_proof_frozen), requires(self.proof_unique_at_zero_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), requires(*coordinator == None))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures((^coordinator) != None && (^coordinator).unwrap_logic().valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.frozen != None && result.frozen.unwrap_logic().valid(result.ptr,result.len)))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.frozen.unwrap_logic().shared == (^coordinator).unwrap_logic().shared))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.frozen.unwrap_logic().ticket.frac() == creusot_std::logic::real::PositiveReal::from_int(1)))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(result.len == self.len))]
+    #[cfg_attr(all(creusot, bytes_proof_frozen), ensures(forall<i:Int> 0 <= i && i < self.len@ ==> result.frozen.unwrap_logic().shared.val().cur().slot(i) == self.proof_unique_slot(i)))]
+    pub fn freeze(self,
+        #[cfg(bytes_proof_frozen)] coordinator: &mut Option<crate::ownership_proof::frozen_region::FrozenOwner>,
+        #[cfg(bytes_proof_frozen)] table: &'static crate::bytes::Vtable,
+    ) -> Bytes {
+        // Extraction-only explicit coordinator: transfers the actual receiver's
+        // affine physical ownership and leaves native callback dispatch aside.
+        #[cfg(bytes_proof_frozen)]
+        {
+            let mut bytes=self;
+            let ptr=bytes.ptr;
+            let len=bytes.len;
+            let cap=bytes.cap;
+            let capabilities=ghost! { bytes.unique_at_zero.take().unwrap() };
+            mem::forget(bytes);
+            let (owner,reader)=crate::ownership_proof::frozen_region::FrozenOwner::new(ptr,cap,len,capabilities);
+            *coordinator=Some(owner);
+            return unsafe { Bytes::with_vtable(ptr,len,AtomicPtr::new(core::ptr::null_mut()),table,reader) };
+        }
+        #[cfg(not(bytes_proof_frozen))]
+        {
         let bytes = ManuallyDrop::new(self);
         if bytes.kind() == KIND_VEC {
             // Just re-use `Bytes` internal Vec vtable
@@ -366,7 +414,9 @@ impl BytesMut {
             let data = AtomicPtr::new(bytes.data.cast());
             unsafe { Bytes::with_vtable(ptr, len, data, &SHARED_VTABLE) }
         }
+        }
     }
+    // END EXACT FROZEN BYTESMUT FREEZE
 
     /// Creates a new `BytesMut` containing `len` zeros.
     ///
@@ -578,6 +628,9 @@ impl BytesMut {
     #[cfg_attr(all(creusot, not(bytes_proof_repeated_split)), ensures(forall<index: Int> 0 <= index && index < self.len@ - at@ ==>
         (^self).proof_view_slot(index) == self.proof_unique_slot(index + at@)))]
     #[cfg_attr(all(creusot, bytes_proof_repeated_split), requires(self.proof_carrier_ready() && at <= self.len))]
+    #[cfg_attr(all(creusot, bytes_proof_repeated_split), ensures((^self).shared_registration.inner_logic().unwrap_logic().packet.1.lo() == self.ptr@.unwrap_logic().2 + at@))]
+    #[cfg_attr(all(creusot, bytes_proof_repeated_split), ensures(result.shared_registration.inner_logic().unwrap_logic().packet.1.lo() ==
+        if self.shared_registration.inner_logic() == None { 0int } else { self.shared_registration.inner_logic().unwrap_logic().packet.1.lo() }))]
     #[cfg_attr(all(creusot, bytes_proof_repeated_split), ensures((^self).proof_carrier_pair(result)))]
     #[cfg_attr(all(creusot, bytes_proof_repeated_split), ensures(result.ptr@ == self.ptr@ && (^self).ptr@ == Some((self.ptr@.unwrap_logic().0, self.ptr@.unwrap_logic().1, self.ptr@.unwrap_logic().2 + at@))))]
     #[cfg_attr(all(creusot, bytes_proof_repeated_split), ensures(result.len == at && (^self).len@ == self.len@ - at@ && result.cap == at && (^self).cap@ == self.cap@ - at@))]
@@ -834,8 +887,19 @@ impl BytesMut {
     #[inline]
     // BEGIN EXACT RESERVE
     #[cfg_attr(creusot, requires(self.proof_initialized()))]
-    #[cfg_attr(creusot, requires(additional@ <= self.cap@ - self.len@))]
-    #[cfg_attr(creusot, ensures(^self == *self))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_growth)), requires(additional@ <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_growth)), ensures(^self == *self))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_growth, not(bytes_proof_unique_reserve)), requires(additional@ <= self.cap@ - self.len@ ||
+        (self.proof_unique_owned() && additional@ <= isize::MAX@ - self.ptr@.unwrap_logic().2 - self.len@ &&
+         (additional@ > self.cap@ - self.len@ + self.ptr@.unwrap_logic().2 || self.ptr@.unwrap_logic().2 < self.len@))))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), requires(additional@ <= self.cap@ - self.len@ ||
+        (self.proof_unique_owned() && additional@ <= isize::MAX@ - self.ptr@.unwrap_logic().2 - self.len@)))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_growth), ensures(additional@ <= self.cap@ - self.len@ ==> ^self == *self))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_growth), ensures((^self).proof_initialized() && (^self).len == self.len && (^self).cap >= self.cap))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_growth), ensures(additional@ <= (^self).cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_growth), ensures(self.proof_unique_owned() ==> (^self).proof_unique_owned()))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_growth), ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
+        (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
     pub fn reserve(&mut self, additional: usize) {
         let len = self.len();
         let rem = self.capacity() - len;
@@ -849,9 +913,102 @@ impl BytesMut {
         // The proof gate covers only the native fast path above.
         #[cfg(not(any(creusot, bytes_proof_probe)))]
         { let _ = self.reserve_inner(additional, true); }
-        #[cfg(any(creusot, bytes_proof_probe))]
+        #[cfg(all(any(creusot, bytes_proof_probe), bytes_proof_unique_growth))]
+        {
+            #[cfg(bytes_proof_unique_reserve)]
+            {
+                let off = unsafe { self.get_vec_pos() };
+                if self.cap - self.len + off >= additional && off >= self.len {
+                    self.reclaim_unique();
+                    return;
+                }
+            }
+            self.reserve_unique_growing(additional);
+        }
+        #[cfg(all(any(creusot, bytes_proof_probe), not(bytes_proof_unique_growth)))]
         panic!("growing reserve is outside the in-capacity proof gate");
     }
+
+    // BEGIN EXACT UNIQUE_GROWING_RESERVE
+    #[cfg_attr(creusot, requires(self.proof_unique_owned() && self.proof_initialized()))]
+    #[cfg_attr(creusot, requires(additional@ > self.cap@ - self.len@))]
+    #[cfg_attr(creusot, requires(additional@ <= isize::MAX@ - self.ptr@.unwrap_logic().2 - self.len@))]
+    #[cfg_attr(creusot, ensures((^self).proof_unique_owned() && (^self).proof_initialized()))]
+    #[cfg_attr(creusot, ensures((^self).len == self.len && (^self).data == self.data))]
+    #[cfg_attr(creusot, ensures((^self).cap >= self.cap && additional@ <= (^self).cap@ - self.len@))]
+    #[cfg_attr(creusot, ensures(forall<index: Int> 0 <= index && index < self.cap@ ==>
+        (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
+    #[cfg_attr(creusot, ensures(forall<index: Int> self.cap@ <= index && index < (^self).cap@ ==>
+        (^self).proof_view_slot(index) == Some(None)))]
+    fn reserve_unique_growing(&mut self, additional: usize) {
+        let offset = unsafe { self.get_vec_pos() };
+        let old_capacity = self.cap + offset;
+        let used = offset + self.len;
+        if additional > usize::MAX - used { panic!("capacity overflow"); }
+        let needed = used + additional;
+        let double = if old_capacity > isize::MAX as usize / 2 { needed } else { old_capacity * 2 };
+        let capacity = cmp::max(8, cmp::max(needed, double));
+        #[cfg(not(any(creusot, bytes_proof_probe)))]
+        {
+            let base = unsafe { self.ptr.as_ptr().sub(offset) };
+            let base = unsafe { crate::allocation_ops::reallocate_u8(base, old_capacity, capacity) };
+            self.ptr = unsafe { NonNull::new_unchecked(base.as_ptr().add(offset)) };
+        }
+        #[cfg(any(creusot, bytes_proof_probe))]
+        {
+            let base = self.ptr.retreat_within(offset);
+            let capabilities = ghost! { self.unique_at_zero.take().unwrap() };
+            let (base, capabilities) = unsafe {
+                crate::ownership_proof::raw_vec::reallocate_bound(base, old_capacity, capacity, capabilities)
+            };
+            self.ptr = base.advance_within(offset);
+            self.unique_at_zero = ghost! { Some(capabilities.into_inner()) };
+        }
+        self.cap = capacity - offset;
+    }
+    // END EXACT UNIQUE_GROWING_RESERVE
+
+    // BEGIN EXACT UNIQUE_RECLAIM
+    #[cfg_attr(creusot, requires(self.proof_unique_owned() && self.proof_initialized()))]
+    #[cfg_attr(creusot, requires(self.len@ <= self.ptr@.unwrap_logic().2))]
+    #[cfg_attr(creusot, ensures((^self).proof_unique_owned() && (^self).proof_initialized()))]
+    #[cfg_attr(creusot, ensures((^self).len == self.len))]
+    #[cfg_attr(creusot, ensures((^self).cap@ == self.cap@ + self.ptr@.unwrap_logic().2))]
+    #[cfg_attr(creusot, ensures((^self).ptr@ == Some((self.ptr@.unwrap_logic().0, self.ptr@.unwrap_logic().1, 0int))))]
+    #[cfg_attr(creusot, ensures((^self).data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK == self.data.addr_logic() & crate::capacity_ops::NOT_VEC_POS_MASK))]
+    #[cfg_attr(creusot, ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
+        (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
+    fn reclaim_unique(&mut self) {
+        let offset = unsafe { self.get_vec_pos() };
+        #[cfg(not(any(creusot, bytes_proof_probe)))]
+        {
+            let base = unsafe { self.ptr.as_ptr().sub(offset) };
+            // offset >= len makes source/destination disjoint.
+            unsafe { ptr::copy_nonoverlapping(self.ptr.as_ptr(), base, self.len); }
+            self.ptr = unsafe { NonNull::new_unchecked(base) };
+        }
+        #[cfg(any(creusot, bytes_proof_probe))]
+        {
+            let original = snapshot!(self);
+            let capabilities = ghost! {
+                let capabilities = self.unique_at_zero.take().unwrap();
+                proof_assert!(forall<index: Int> 0 <= index && index < original.len@ ==>
+                    original.proof_view_slot(index) == capabilities.1.slot(offset@ + index));
+                proof_assert!(forall<index: Int> 0 <= index && index < original.len@ ==>
+                    crate::ownership_proof::raw_vec::slot_known(capabilities.1.slot(offset@ + index)));
+                capabilities
+            };
+            let (recovery, region) = capabilities.split();
+            let (base, region) = crate::ownership_proof::unique_reclaim::reclaim(
+                self.ptr, offset, self.len, region,
+            );
+            self.ptr = base;
+            self.unique_at_zero = ghost! { Some((recovery.into_inner(), region.into_inner())) };
+        }
+        self.cap += offset;
+        unsafe { self.set_vec_pos(0); }
+    }
+    // END EXACT UNIQUE_RECLAIM
 
     // In separate function to allow the short-circuits in `reserve` and `try_reclaim` to
     // be inline-able. Significantly helps performance. Returns false if it did not succeed.
@@ -894,29 +1051,14 @@ impl BytesMut {
                     //
                     // Just move the pointer back to the start after copying
                     // data back.
-                    let base_ptr = self.ptr.as_ptr().sub(off);
-                    // Since `off >= self.len()`, the two regions don't overlap.
-                    ptr::copy_nonoverlapping(self.ptr.as_ptr(), base_ptr, self.len);
-                    self.ptr = vptr(base_ptr);
-                    self.set_vec_pos(0);
-
-                    // Length stays constant, but since we moved backwards we
-                    // can gain capacity back.
-                    self.cap += off;
+                    self.reclaim_unique();
                 } else {
                     if !allocate {
                         return false;
                     }
                     // Not enough space, or reusing might be too much overhead:
                     // allocate more space!
-                    let mut v =
-                        ManuallyDrop::new(rebuild_vec(self.ptr.as_ptr(), self.len, self.cap, off));
-                    v.reserve(additional);
-
-                    // Update the info
-                    self.ptr = vptr(v.as_mut_ptr().add(off));
-                    self.cap = v.capacity() - off;
-                    debug_assert_eq!(self.len, v.len() - off);
+                    self.reserve_unique_growing(additional);
                 }
 
                 return true;
@@ -1086,8 +1228,15 @@ impl BytesMut {
     #[must_use = "consider BytesMut::reserve if you need an infallible reservation"]
     // BEGIN EXACT TRY_RECLAIM
     #[cfg_attr(creusot, requires(self.proof_initialized()))]
-    #[cfg_attr(creusot, requires(additional@ <= self.cap@ - self.len@))]
-    #[cfg_attr(creusot, ensures(result && ^self == *self))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), requires(additional@ <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(result && ^self == *self))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), requires(self.proof_unique_owned()))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures((^self).proof_unique_owned() && (^self).proof_initialized()))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures((^self).len == self.len && (^self).cap >= self.cap))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(result ==> additional@ <= (^self).cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(!result ==> ^self == *self))]
+    #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
+        (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
     pub fn try_reclaim(&mut self, additional: usize) -> bool {
         let len = self.len();
         let rem = self.capacity() - len;
@@ -1100,7 +1249,15 @@ impl BytesMut {
 
         #[cfg(not(any(creusot, bytes_proof_probe)))]
         { self.reserve_inner(additional, false) }
-        #[cfg(any(creusot, bytes_proof_probe))]
+        #[cfg(all(any(creusot, bytes_proof_probe), bytes_proof_unique_reserve))]
+        {
+            let off = unsafe { self.get_vec_pos() };
+            if self.cap - self.len + off >= additional && off >= self.len {
+                self.reclaim_unique();
+                true
+            } else { false }
+        }
+        #[cfg(all(any(creusot, bytes_proof_probe), not(bytes_proof_unique_reserve)))]
         panic!("growing try_reclaim is outside the unchanged-capacity proof gate")
     }
 
@@ -1277,7 +1434,7 @@ impl BytesMut {
     #[logic(prophetic)]
     fn proof_owned_valid(self) -> bool {
         pearlite! {
-            self.proof_unique_at_zero_owned() || self.proof_registered_valid() || self.proof_empty_valid()
+            self.proof_unique_owned() || self.proof_registered_valid() || self.proof_empty_valid()
         }
     }
     #[cfg(creusot)]
@@ -2041,6 +2198,9 @@ impl BytesMut {
             (*handle).proof_view_slot(index - handle.ptr@.unwrap_logic().2));
     }
 
+    #[cfg_attr(creusot, ensures((^self).shared_registration.inner_logic().unwrap_logic().packet.1.lo() == self.ptr@.unwrap_logic().2 + at@))]
+    #[cfg_attr(creusot, ensures(result.shared_registration.inner_logic().unwrap_logic().packet.1.lo() ==
+        if self.pending_control.inner_logic() != None { 0int } else { self.shared_registration.inner_logic().unwrap_logic().packet.1.lo() }))]
     #[cfg(all(any(creusot, bytes_proof_probe), bytes_proof_repeated_split))]
     #[cfg_attr(creusot, requires(self.proof_carrier_pending() && at <= self.len))]
     #[cfg_attr(creusot, ensures((^self).proof_carrier_pair(result)))]
@@ -2163,6 +2323,8 @@ impl BytesMut {
             }
         }
     }
+    #[cfg_attr(creusot, ensures((^other).shared_registration.inner_logic().unwrap_logic().packet.1.lo() ==
+        if self.pending_control.inner_logic() != None { 0int } else { self.shared_registration.inner_logic().unwrap_logic().packet.1.lo() }))]
     #[cfg(all(any(creusot, bytes_proof_probe), bytes_proof_repeated_split))]
     #[cfg_attr(creusot, requires(self.proof_carrier_pending() && at <= self.cap))]
     #[cfg_attr(creusot, requires(other.ptr == self.ptr && other.len == self.len && other.cap == self.cap && other.data == self.data))]
@@ -2422,6 +2584,45 @@ impl BytesMut {
     }
     // END EXACT CARRIER SPLIT METHODS
 
+    #[cfg(all(any(creusot, bytes_proof_probe), bytes_proof_unique_growth))]
+    #[cfg_attr(creusot, requires(input@.len() + offset@ + additional@ <= isize::MAX@))]
+    pub(crate) fn proof_unique_growing(input: Vec<u8>, offset: usize, additional: usize, value: u8) {
+        let mut owner = Self::from_vec(input);
+        let offset = cmp::min(cmp::min(offset, owner.capacity()), crate::capacity_ops::MAX_VEC_POS);
+        unsafe { owner.advance_unchecked(offset); }
+        let old = snapshot!(owner);
+        if additional > owner.cap - owner.len &&
+            (additional > owner.cap - owner.len + offset || offset < owner.len) {
+            owner.reserve(additional);
+            proof_assert!(owner.proof_unique_owned() && owner.proof_initialized());
+            proof_assert!(forall<index: Int> 0 <= index && index < old.len@ ==>
+                owner.proof_view_slot(index) == old.proof_view_slot(index));
+            if owner.len > 0 {
+                owner.as_slice_mut()[0] = value;
+                assert!(owner.as_slice()[0] == value);
+            }
+        }
+        owner.proof_release_unique();
+    }
+    #[cfg(all(creusot, bytes_proof_unique_reserve))]
+    #[requires(input@.len() + offset@ + additional@ <= isize::MAX@)]
+    pub(crate) fn proof_all_unique_reserve(input: Vec<u8>, offset: usize, additional: usize, value: u8) {
+        let mut owner = Self::from_vec(input);
+        let offset = cmp::min(cmp::min(offset, owner.capacity()), crate::capacity_ops::MAX_VEC_POS);
+        unsafe { owner.advance_unchecked(offset); }
+        let old = snapshot!(owner);
+        let reclaimed = owner.try_reclaim(additional);
+        if !reclaimed { owner.reserve(additional); }
+        proof_assert!(owner.proof_unique_owned() && owner.proof_initialized());
+        proof_assert!(owner.len == old.len && additional@ <= owner.cap@ - owner.len@);
+        proof_assert!(forall<index: Int> 0 <= index && index < old.len@ ==>
+            owner.proof_view_slot(index) == old.proof_view_slot(index));
+        if owner.len > 0 {
+            owner.as_slice_mut()[0] = value;
+            assert!(owner.as_slice()[0] == value);
+        }
+        owner.proof_release_unique();
+    }
     // END EXACT BYTESMUT SEQUENTIAL SPLIT METHODS
 
     // A restricted predicate for freshly constructed unique handles. It is
