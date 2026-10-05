@@ -1,0 +1,103 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 290 0 290 53 *)
+
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 38 11 38 27
+let%span snum'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 39 11 39 37
+let%span snum'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 41 4 86 5
+let%span snum'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 16 11 16 27
+let%span snum'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 17 11 17 36
+let%span snum'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 19 4 19 30
+let%span snum'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 192 28 192 33
+let%span sversion = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 288 11 288 27
+let%span sversion'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 289 10 289 71
+
+use creusot.prelude.Any
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum'5] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+function u64_from_ne_bytes_byte (bytes: Seq.seq UInt8.t) (offset: int) : int =
+  [%#snum'4] deep_model_u8 (Seq.get bytes offset)
+
+function u64_from_ne_bytes_tail (bytes: Seq.seq UInt8.t) (offset: int) : int = [%#snum'1] if offset = 0 then
+    u64_from_ne_bytes_byte bytes 0
+    + 256
+    * (u64_from_ne_bytes_byte bytes 1
+    + 256
+    * (u64_from_ne_bytes_byte bytes 2
+    + 256
+    * (u64_from_ne_bytes_byte bytes 3
+    + 256
+    * (u64_from_ne_bytes_byte bytes 4
+    + 256
+    * (u64_from_ne_bytes_byte bytes 5
+    + 256 * (u64_from_ne_bytes_byte bytes 6 + 256 * u64_from_ne_bytes_byte bytes 7))))))
+  else
+    if offset = 1 then
+      u64_from_ne_bytes_byte bytes 1
+      + 256
+      * (u64_from_ne_bytes_byte bytes 2
+      + 256
+      * (u64_from_ne_bytes_byte bytes 3
+      + 256
+      * (u64_from_ne_bytes_byte bytes 4
+      + 256
+      * (u64_from_ne_bytes_byte bytes 5
+      + 256 * (u64_from_ne_bytes_byte bytes 6 + 256 * u64_from_ne_bytes_byte bytes 7)))))
+    else
+      if offset = 2 then
+        u64_from_ne_bytes_byte bytes 2
+        + 256
+        * (u64_from_ne_bytes_byte bytes 3
+        + 256
+        * (u64_from_ne_bytes_byte bytes 4
+        + 256
+        * (u64_from_ne_bytes_byte bytes 5
+        + 256 * (u64_from_ne_bytes_byte bytes 6 + 256 * u64_from_ne_bytes_byte bytes 7))))
+      else
+        if offset = 3 then
+          u64_from_ne_bytes_byte bytes 3
+          + 256
+          * (u64_from_ne_bytes_byte bytes 4
+          + 256
+          * (u64_from_ne_bytes_byte bytes 5
+          + 256 * (u64_from_ne_bytes_byte bytes 6 + 256 * u64_from_ne_bytes_byte bytes 7)))
+        else
+          if offset = 4 then
+            u64_from_ne_bytes_byte bytes 4
+            + 256
+            * (u64_from_ne_bytes_byte bytes 5
+            + 256 * (u64_from_ne_bytes_byte bytes 6 + 256 * u64_from_ne_bytes_byte bytes 7))
+          else
+            if offset = 5 then
+              u64_from_ne_bytes_byte bytes 5
+              + 256 * (u64_from_ne_bytes_byte bytes 6 + 256 * u64_from_ne_bytes_byte bytes 7)
+            else
+              if offset = 6 then
+                u64_from_ne_bytes_byte bytes 6 + 256 * u64_from_ne_bytes_byte bytes 7
+              else
+                if offset = 7 then u64_from_ne_bytes_byte bytes 7 else 0
+            
+          
+        
+      
+    
+  
+
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec native_pack_tail_end
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 290 0 290 53]
+  (bytes: Seq.seq UInt8.t) (return (x: ())) =
+  {[@stop_split] [@expl:native_pack_tail_end requires] [%#sversion] Seq.length bytes = 8}
+  (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:native_pack_tail_end ensures] [%#sversion'0] u64_from_ne_bytes_tail bytes 8 = 0}
+    (! return {result}) ]

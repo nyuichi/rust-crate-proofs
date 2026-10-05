@@ -1,0 +1,41 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 267 0 272 1 *)
+
+let%span sversion = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 273 18 273 43
+let%span sversion'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 274 18 274 43
+let%span sversion'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 262 11 262 46
+let%span sversion'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 263 11 263 48
+let%span sversion'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 264 11 264 75
+let%span sversion'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 265 10 265 35
+let%span sversion'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 266 10 266 35
+
+use creusot.prelude.Any
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec base256_head_injective
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 267 0 272 1]
+  (left_byte: int) (right_byte: int) (left_tail: int) (right_tail: int) (return (x: ())) =
+  {[@stop_split] [@expl:base256_head_injective requires] ([@stop_split] [@expl:base256_head_injective requires #0] [%#sversion'1] 0
+      <= left_byte
+    /\ left_byte < 256)
+  /\ ([@stop_split] [@expl:base256_head_injective requires #1] [%#sversion'2] 0 <= right_byte /\ right_byte < 256)
+  /\ ([@stop_split] [@expl:base256_head_injective requires #2] [%#sversion'3] left_byte + 256 * left_tail
+  = right_byte + 256 * right_tail)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#sversion] left_byte = right_byte} s1
+    | s1 = {[@expl:assertion] [%#sversion'0] left_tail = right_tail} s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & left_byte: int = left_byte
+  | & right_byte: int = right_byte
+  | & left_tail: int = left_tail
+  | & right_tail: int = right_tail ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:base256_head_injective ensures] ([@stop_split] [@expl:base256_head_injective ensures #0] [%#sversion'4] left_byte
+      = right_byte)
+    /\ ([@stop_split] [@expl:base256_head_injective ensures #1] [%#sversion'5] left_tail = right_tail)}
+    (! return {result}) ]

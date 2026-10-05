@@ -1,0 +1,98 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/iter.rs" 445 4 445 26 *)
+
+(* <iter::Bytes<'_> as creusot_std::prelude::IteratorSpec> *)
+
+let%span smodel = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 348 8 350 82
+let%span smodel'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 308 4 308 52
+let%span siter = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/iter.rs" 444 14 444 47
+let%span siter'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 42 14 42 47
+let%span siter'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/iter.rs" 440 20 440 86
+let%span siter'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/iter.rs" 352 12 357 13
+let%span sptr = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 258 14 258 42
+let%span sptr'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 263 14 263 102
+let%span sptr'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 275 14 275 39
+let%span sptr'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 280 14 280 65
+let%span sptr'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 249 15 249 70
+let%span sptr'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 250 15 250 80
+let%span sptr'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 251 14 251 88
+let%span smem = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/mem.rs" 131 10 131 21
+
+use creusot.prelude.Opaque
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use int.Int
+
+type t_Perm_ptr_slice_u8
+
+type t_Bytes = {
+  start: Opaque.ptr;
+  end': Opaque.ptr;
+  cursor: Opaque.ptr;
+  permission: t_Perm_ptr_slice_u8;
+  input: Seq.seq UInt8.t;
+  origin: Opaque.ptr;
+  phantom: () }
+
+type t_CursorModel = { input'0: Seq.seq UInt8.t; mark'0: int; cursor'0: int; end''0: int }
+
+function cursor_remaining [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 307 0 307 54] (state: t_CursorModel) : Seq.seq UInt8.t
+ = [%#smodel'0] Seq.([..]) state.input'0 state.cursor'0 state.end''0
+
+predicate cursor_produces [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 346 0 346 89] (before: t_CursorModel) (visited: Seq.seq UInt8.t) (after: t_CursorModel) =
+  [%#smodel] before.input'0 = after.input'0
+  /\ before.end''0 = after.end''0 /\ cursor_remaining before = Seq.(++) visited (cursor_remaining after)
+
+constant size_of_u8: int = 1
+
+meta "rewrite_def" constant size_of_u8
+
+axiom size_of_u8_spec: [%#smem] 0 <= size_of_u8
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function offset_ptr_u8 (self: Opaque.ptr) (offset: int) : Opaque.ptr
+
+axiom offset_ptr_u8_spec: forall self: Opaque.ptr, offset: int. ([%#sptr'3] 0
+      <= UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+    -> ([%#sptr'4] UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8 <= UInt64.t'int const_MAX)
+    -> ([%#sptr'5] UInt64.t'int (Ptr.addr_logic_u64 (offset_ptr_u8 self offset))
+    = UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+
+function sub_ptr_u8 (self: Opaque.ptr) (rhs: Opaque.ptr) : int
+
+function sub_offset_ptr_u8 (self: Opaque.ptr) (offset: int) : ()
+
+axiom sub_offset_ptr_u8_spec:
+  forall self: Opaque.ptr, offset: int. [%#sptr'2] sub_ptr_u8 (offset_ptr_u8 self offset) self = offset
+
+function sub_logic_refl_ptr_u8 (self: Opaque.ptr) : ()
+
+axiom sub_logic_refl_ptr_u8_spec: forall self: Opaque.ptr. [%#sptr'1] sub_ptr_u8 self self = 0
+
+function offset_logic_assoc_ptr_u8 (self: Opaque.ptr) (offset1: int) (offset2: int) : ()
+
+axiom offset_logic_assoc_ptr_u8_spec:
+  forall self: Opaque.ptr, offset1: int, offset2: int. [%#sptr'0] offset_ptr_u8 (offset_ptr_u8 self offset1) offset2
+    = offset_ptr_u8 self (offset1 + offset2)
+
+function offset_logic_zero_ptr_u8 (self: Opaque.ptr) : ()
+
+axiom offset_logic_zero_ptr_u8_spec: forall self: Opaque.ptr. [%#sptr] offset_ptr_u8 self 0 = self
+
+function view_Bytes [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/iter.rs" 350 4 350 33] (self: t_Bytes) : t_CursorModel
+ = [%#siter'2] { input'0 = self.input;
+                 mark'0 = sub_ptr_u8 self.start self.origin;
+                 cursor'0 = sub_ptr_u8 self.cursor self.origin;
+                 end''0 = sub_ptr_u8 self.end' self.origin }
+
+predicate produces_Bytes [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/iter.rs" 439 4 439 60] (self: t_Bytes) (visited: Seq.seq UInt8.t) (after: t_Bytes) =
+  [%#siter'1] cursor_produces (view_Bytes self) visited (view_Bytes after)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self: t_Bytes. forall result: (). ([%#siter] produces_Bytes self (Seq.empty: Seq.seq UInt8.t) self)
+      -> ([%#siter'0] produces_Bytes self (Seq.empty: Seq.seq UInt8.t) self)

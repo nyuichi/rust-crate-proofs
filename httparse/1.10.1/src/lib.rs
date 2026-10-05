@@ -59,6 +59,9 @@ mod verification_model;
 #[path = "verification/code.rs"]
 mod verification_code;
 #[cfg(creusot)]
+#[path = "verification/version.rs"]
+mod verification_version;
+#[cfg(creusot)]
 #[path = "verification/chunk.rs"]
 pub mod verification_chunk;
 
@@ -330,43 +333,7 @@ impl<'h, 'b> Response<'h, 'b> {
     }
 }
 
-#[inline]
-#[doc(hidden)]
-#[allow(missing_docs)]
-// WARNING: Exported for internal benchmarks, not fit for public consumption
-pub fn parse_version(bytes: &mut Bytes) -> Result<u8> {
-    if let Some(eight) = bytes.peek_array8() {
-        // NOTE: should be const once MSRV >= 1.44
-        let h10: u64 = u64::from_ne_bytes(*b"HTTP/1.0");
-        let h11: u64 = u64::from_ne_bytes(*b"HTTP/1.1");
-        // SAFETY: peek_array8 returned Some, so at least 8 bytes are available.
-        unsafe {
-            bytes.advance(8);
-        }
-        let block = u64::from_ne_bytes(eight);
-        // NOTE: should be match once h10 & h11 are consts
-        return if block == h10 {
-            Ok(Status::Complete(0))
-        } else if block == h11 {
-            Ok(Status::Complete(1))
-        } else {
-            Err(Error::Version)
-        };
-    }
-
-    // else (but not in `else` because of borrow checker)
-
-    // If there aren't at least 8 bytes, we still want to detect early
-    // if this is a valid version or not. If it is, we'll return Partial.
-    expect!(bytes.next() == b'H' => Err(Error::Version));
-    expect!(bytes.next() == b'T' => Err(Error::Version));
-    expect!(bytes.next() == b'T' => Err(Error::Version));
-    expect!(bytes.next() == b'P' => Err(Error::Version));
-    expect!(bytes.next() == b'/' => Err(Error::Version));
-    expect!(bytes.next() == b'1' => Err(Error::Version));
-    expect!(bytes.next() == b'.' => Err(Error::Version));
-    Ok(Status::Partial)
-}
+include!("parse_version.rs");
 
 #[inline]
 #[doc(hidden)]

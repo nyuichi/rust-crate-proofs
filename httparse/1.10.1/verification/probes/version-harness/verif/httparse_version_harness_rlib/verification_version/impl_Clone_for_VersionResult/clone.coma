@@ -1,0 +1,20 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 27 15 27 20 *)
+
+(* <verification_version::VersionResult as std::clone::Clone> *)
+
+use creusot.prelude.Any
+
+type t_VersionOutcome = Http10 | Http11 | Partial | Error
+
+type t_VersionResult = { outcome: t_VersionOutcome; mark: int; cursor: int }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_VersionResult
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 27 15 27 20]
+  (self: t_VersionResult) (return (x: t_VersionResult)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_VersionResult = Any.any_l () | & self: t_VersionResult = self ])
+  [ return (result: t_VersionResult) -> (! return {result}) ]

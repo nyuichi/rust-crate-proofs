@@ -1,0 +1,201 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 90 0 95 18 *)
+
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 192 28 192 33
+let%span sversion = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 85 11 85 59
+let%span sversion'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 86 11 86 37
+let%span sversion'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 87 11 87 26
+let%span sversion'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 88 10 88 29
+let%span sversion'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 89 10 89 56
+let%span sversion'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 39 11 39 36
+let%span sversion'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 96 4 186 5
+let%span sversion'6 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 41 4 53 5
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_VersionOutcome = Http10 | Http11 | Partial | Error
+
+type t_VersionResult = { outcome: t_VersionOutcome; mark: int; cursor: int }
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+function version_prefix_byte [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 40 0 40 46] (offset: int) : int
+ = [%#sversion'6] if offset = 0 then
+    72
+  else
+    if offset = 1 \/ offset = 2 then
+      84
+    else
+      if offset = 3 then 80 else if offset = 4 then 47 else if offset = 5 then 49 else 46
+  
+
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant mark'0 : int
+
+constant start : int
+
+constant end' : int
+
+function short_version_model [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 90 0 95 18] (input: Seq.seq UInt8.t) (mark'0: int) (start: int) (end': int) : t_VersionResult
+
+goal vc_short_version_model: ([%#sversion] 0 <= start /\ start <= end' /\ end' <= Seq.length input)
+  -> ([%#sversion'0] 0 <= mark'0 /\ mark'0 <= start)
+  -> ([%#sversion'1] end' - start < 8)
+  -> (if end' - start = 0 then
+    let result = { outcome = Partial;
+                   mark = mark'0;
+                   cursor = end' } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+      = mark'0)
+    /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+    /\ result.cursor <= end')
+  else
+    ([@stop_split] [@expl:version_prefix_byte requires] [%#sversion'4] 0 <= 0 /\ 0 < 7)
+    /\ (if deep_model_u8 (Seq.get input start) <> version_prefix_byte 0 then
+      let result = { outcome = Error;
+                     mark = mark'0;
+                     cursor = start
+                     + 1 } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+        = mark'0)
+      /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+      /\ result.cursor <= end')
+    else
+      if end' - start = 1 then
+        let result = { outcome = Partial;
+                       mark = mark'0;
+                       cursor = end' } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+          = mark'0)
+        /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+        /\ result.cursor <= end')
+      else
+        ([@stop_split] [@expl:version_prefix_byte requires] [%#sversion'4] 0 <= 1 /\ 1 < 7)
+        /\ (if deep_model_u8 (Seq.get input (start + 1)) <> version_prefix_byte 1 then
+          let result = { outcome = Error;
+                         mark = mark'0;
+                         cursor = start
+                         + 2 } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+            = mark'0)
+          /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+          /\ result.cursor <= end')
+        else
+          if end' - start = 2 then
+            let result = { outcome = Partial;
+                           mark = mark'0;
+                           cursor = end' } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+              = mark'0)
+            /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+            /\ result.cursor <= end')
+          else
+            ([@stop_split] [@expl:version_prefix_byte requires] [%#sversion'4] 0 <= 2 /\ 2 < 7)
+            /\ (if deep_model_u8 (Seq.get input (start + 2)) <> version_prefix_byte 2 then
+              let result = { outcome = Error;
+                             mark = mark'0;
+                             cursor = start
+                             + 3 } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                = mark'0)
+              /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+              /\ result.cursor <= end')
+            else
+              if end' - start = 3 then
+                let result = { outcome = Partial;
+                               mark = mark'0;
+                               cursor = end' } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                  = mark'0)
+                /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+                /\ result.cursor <= end')
+              else
+                ([@stop_split] [@expl:version_prefix_byte requires] [%#sversion'4] 0 <= 3 /\ 3 < 7)
+                /\ (if deep_model_u8 (Seq.get input (start + 3)) <> version_prefix_byte 3 then
+                  let result = { outcome = Error;
+                                 mark = mark'0;
+                                 cursor = start
+                                 + 4 } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                    = mark'0)
+                  /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+                  /\ result.cursor <= end')
+                else
+                  if end' - start = 4 then
+                    let result = { outcome = Partial;
+                                   mark = mark'0;
+                                   cursor = end' } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                      = mark'0)
+                    /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+                    /\ result.cursor <= end')
+                  else
+                    ([@stop_split] [@expl:version_prefix_byte requires] [%#sversion'4] 0 <= 4 /\ 4 < 7)
+                    /\ (if deep_model_u8 (Seq.get input (start + 4)) <> version_prefix_byte 4 then
+                      let result = { outcome = Error;
+                                     mark = mark'0;
+                                     cursor = start
+                                     + 5 } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                        = mark'0)
+                      /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+                      /\ result.cursor <= end')
+                    else
+                      if end' - start = 5 then
+                        let result = { outcome = Partial;
+                                       mark = mark'0;
+                                       cursor = end' } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                          = mark'0)
+                        /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+                        /\ result.cursor <= end')
+                      else
+                        ([@stop_split] [@expl:version_prefix_byte requires] [%#sversion'4] 0 <= 5 /\ 5 < 7)
+                        /\ (if deep_model_u8 (Seq.get input (start + 5)) <> version_prefix_byte 5 then
+                          let result = { outcome = Error;
+                                         mark = mark'0;
+                                         cursor = start
+                                         + 6 } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                            = mark'0)
+                          /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start <= result.cursor
+                          /\ result.cursor <= end')
+                        else
+                          if end' - start = 6 then
+                            let result = { outcome = Partial;
+                                           mark = mark'0;
+                                           cursor = end' } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                              = mark'0)
+                            /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start
+                              <= result.cursor
+                            /\ result.cursor <= end')
+                          else
+                            ([@stop_split] [@expl:version_prefix_byte requires] [%#sversion'4] 0 <= 6 /\ 6 < 7)
+                            /\ (if deep_model_u8 (Seq.get input (start + 6)) <> version_prefix_byte 6 then
+                              let result = { outcome = Error;
+                                             mark = mark'0;
+                                             cursor = start
+                                             + 7 } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                                = mark'0)
+                              /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start
+                                <= result.cursor
+                              /\ result.cursor <= end')
+                            else
+                              let result = { outcome = Partial;
+                                             mark = mark'0;
+                                             cursor = end' } in [@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'2] result.mark
+                                = mark'0)
+                              /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'3] start
+                                <= result.cursor
+                              /\ result.cursor <= end')
+                            )
+                        
+                        )
+                    
+                    )
+                
+                )
+            
+            )
+        
+        )
+    
+    )
+  )

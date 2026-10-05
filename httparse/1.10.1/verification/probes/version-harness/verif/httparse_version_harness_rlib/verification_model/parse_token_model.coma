@@ -1,0 +1,373 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 209 0 209 77 *)
+
+let%span smodel = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 174 11 174 59
+let%span smodel'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 175 10 175 67
+let%span smodel'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 176 10 176 83
+let%span smodel'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 177 10 178 46
+let%span smodel'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 179 10 180 70
+let%span smodel'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 181 10 183 48
+let%span smodel'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 184 10 186 64
+let%span smodel'6 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 187 10 190 49
+let%span smodel'7 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 191 10 194 84
+let%span smodel'8 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 195 10 199 64
+let%span smodel'9 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 200 10 203 46
+let%span smodel'10 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 204 10 208 43
+let%span smodel'11 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 71 11 71 59
+let%span smodel'12 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 72 10 72 42
+let%span smodel'13 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 73 10 73 78
+let%span smodel'14 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 74 10 74 57
+let%span smodel'15 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 210 4 246 5
+let%span smodel'16 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 126 4 129 5
+let%span smodel'17 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 154 4 157 5
+let%span smodel'18 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 30 4 43 5
+let%span smodel'19 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 134 4 137 5
+let%span smodel'20 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 70 10 70 21
+let%span smodel'21 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 76 4 80 5
+let%span smodel'22 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 118 4 121 5
+let%span smodel'23 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 162 4 165 5
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 192 28 192 33
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_TokenOutcome = Complete | Partial | Error
+
+type t_Span = { start: int; end': int }
+
+type t_Option_Span = None | Some t_Span
+
+type t_TokenResult = { outcome: t_TokenOutcome; cursor: int; token: t_Option_Span }
+
+predicate token_outcome_is_partial [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 125 0 125 62] (outcome'0: t_TokenOutcome) =
+  [%#smodel'16] match outcome'0 with
+    | Partial -> true
+    | _ -> false
+    end
+
+predicate token_result_has_no_span [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 153 0 153 60] (parsed: t_TokenResult) =
+  [%#smodel'17] match parsed.token with
+    | None -> true
+    | Some _ -> false
+    end
+
+type t_ByteClass = Token | Uri | HeaderValue
+
+predicate accepts [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 29 0 29 50] (class: t_ByteClass) (byte: UInt8.t) =
+  [%#smodel'18] match class with
+    | Token -> UInt8.t'int byte >= 48 /\ UInt8.t'int byte <= 57
+    \/ UInt8.t'int byte >= 65 /\ UInt8.t'int byte <= 90
+    \/ UInt8.t'int byte >= 97 /\ UInt8.t'int byte <= 122
+    \/ UInt8.t'int byte = 33
+    \/ UInt8.t'int byte = 35
+    \/ UInt8.t'int byte = 36
+    \/ UInt8.t'int byte = 37
+    \/ UInt8.t'int byte = 38
+    \/ UInt8.t'int byte = 39
+    \/ UInt8.t'int byte = 42
+    \/ UInt8.t'int byte = 43
+    \/ UInt8.t'int byte = 45
+    \/ UInt8.t'int byte = 46
+    \/ UInt8.t'int byte = 94
+    \/ UInt8.t'int byte = 95 \/ UInt8.t'int byte = 96 \/ UInt8.t'int byte = 124 \/ UInt8.t'int byte = 126
+    | Uri -> UInt8.t'int byte >= 33 /\ UInt8.t'int byte <> 127
+    | HeaderValue -> UInt8.t'int byte = 9 \/ UInt8.t'int byte >= 32 /\ UInt8.t'int byte <> 127
+    end
+
+predicate token_outcome_is_error [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 133 0 133 60] (outcome'0: t_TokenOutcome) =
+  [%#smodel'19] match outcome'0 with
+    | Error -> true
+    | _ -> false
+    end
+
+function maximal_prefix_end [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 75 0 75 88] (input: Seq.seq UInt8.t) (start'0: int) (end''0: int) (class: t_ByteClass) : int
+
+axiom maximal_prefix_end_def:
+  forall input: Seq.seq UInt8.t, start'0: int, end''0: int, class: t_ByteClass. ([%#smodel'11] 0 <= start'0
+      /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+    -> maximal_prefix_end input start'0 end''0 class
+    = ([%#smodel'21] if start'0 = end''0 \/ not accepts class (Seq.get input start'0) then
+      start'0
+    else
+      maximal_prefix_end input (start'0 + 1) end''0 class
+    )
+
+axiom maximal_prefix_end_spec:
+  forall input: Seq.seq UInt8.t, start'0: int, end''0: int, class: t_ByteClass. ([%#smodel'11] 0 <= start'0
+      /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+    -> ([%#smodel'12] start'0 <= maximal_prefix_end input start'0 end''0 class
+    /\ maximal_prefix_end input start'0 end''0 class <= end''0)
+
+axiom maximal_prefix_end_spec'0:
+  forall input: Seq.seq UInt8.t, start'0: int, end''0: int, class: t_ByteClass. ([%#smodel'11] 0 <= start'0
+      /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+    -> ([%#smodel'13] forall i: int. start'0 <= i /\ i < maximal_prefix_end input start'0 end''0 class
+      -> accepts class (Seq.get input i))
+
+axiom maximal_prefix_end_spec'1:
+  forall input: Seq.seq UInt8.t, start'0: int, end''0: int, class: t_ByteClass. ([%#smodel'11] 0 <= start'0
+      /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+    -> ([%#smodel'14] maximal_prefix_end input start'0 end''0 class < end''0
+    -> not accepts class (Seq.get input (maximal_prefix_end input start'0 end''0 class)))
+
+predicate token_outcome_is_complete [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 117 0 117 63] (outcome'0: t_TokenOutcome) =
+  [%#smodel'22] match outcome'0 with
+    | Complete -> true
+    | _ -> false
+    end
+
+predicate token_result_span_is [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 161 0 161 78] (parsed: t_TokenResult) (start'0: int) (end''0: int) =
+  [%#smodel'23] match parsed.token with
+    | None -> false
+    | Some span -> span.start = start'0 /\ span.end' = end''0
+    end
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant start'0 : int
+
+constant end''0 : int
+
+function parse_token_model [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 209 0 209 77] (input: Seq.seq UInt8.t) (start'0: int) (end''0: int) : t_TokenResult
+
+goal vc_parse_token_model: ([%#smodel] 0 <= start'0 /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+  -> (if start'0 = end''0 then
+    let result = { outcome = Partial;
+                   cursor = end''0;
+                   token = None } in [@stop_split] [@expl:parse_token_model ensures] ([@stop_split] [@expl:parse_token_model ensures #0] [%#smodel'0] start'0
+        = end''0 -> token_outcome_is_partial result.outcome)
+    /\ ([@stop_split] [@expl:parse_token_model ensures #1] [%#smodel'1] start'0 = end''0
+      -> result.cursor = end''0 /\ token_result_has_no_span result)
+    /\ ([@stop_split] [@expl:parse_token_model ensures #2] [%#smodel'2] start'0 < end''0
+        /\ not accepts (Token) (Seq.get input start'0) -> token_outcome_is_error result.outcome)
+    /\ ([@stop_split] [@expl:parse_token_model ensures #3] [%#smodel'3] start'0 < end''0
+        /\ not accepts (Token) (Seq.get input start'0)
+      -> result.cursor = start'0 + 1 /\ token_result_has_no_span result)
+    /\ ([@stop_split] [@expl:parse_token_model ensures #4] [%#smodel'4] start'0 < end''0
+        /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+      -> token_outcome_is_partial result.outcome)
+    /\ ([@stop_split] [@expl:parse_token_model ensures #5] [%#smodel'5] start'0 < end''0
+        /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+      -> result.cursor = end''0 /\ token_result_has_no_span result)
+    /\ ([@stop_split] [@expl:parse_token_model ensures #6] [%#smodel'6] start'0 < end''0
+        /\ accepts (Token) (Seq.get input start'0)
+        /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+        /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+      -> token_outcome_is_complete result.outcome)
+    /\ ([@stop_split] [@expl:parse_token_model ensures #7] [%#smodel'7] start'0 < end''0
+        /\ accepts (Token) (Seq.get input start'0)
+        /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+        /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+      -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1)
+    /\ ([@stop_split] [@expl:parse_token_model ensures #8] [%#smodel'8] start'0 < end''0
+        /\ accepts (Token) (Seq.get input start'0)
+        /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+        /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+      -> token_result_span_is result start'0 (maximal_prefix_end input start'0 end''0 (Token)))
+    /\ ([@stop_split] [@expl:parse_token_model ensures #9] [%#smodel'9] start'0 < end''0
+        /\ accepts (Token) (Seq.get input start'0)
+        /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+        /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+      -> token_outcome_is_error result.outcome)
+    /\ ([@stop_split] [@expl:parse_token_model ensures #10] [%#smodel'10] start'0 < end''0
+      /\ accepts (Token) (Seq.get input start'0)
+      /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+      /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+    -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1 /\ token_result_has_no_span result)
+  else
+    if not accepts (Token) (Seq.get input start'0) then
+      let result = { outcome = Error;
+                     cursor = start'0 + 1;
+                     token = None } in [@stop_split] [@expl:parse_token_model ensures] ([@stop_split] [@expl:parse_token_model ensures #0] [%#smodel'0] start'0
+          = end''0 -> token_outcome_is_partial result.outcome)
+      /\ ([@stop_split] [@expl:parse_token_model ensures #1] [%#smodel'1] start'0 = end''0
+        -> result.cursor = end''0 /\ token_result_has_no_span result)
+      /\ ([@stop_split] [@expl:parse_token_model ensures #2] [%#smodel'2] start'0 < end''0
+          /\ not accepts (Token) (Seq.get input start'0) -> token_outcome_is_error result.outcome)
+      /\ ([@stop_split] [@expl:parse_token_model ensures #3] [%#smodel'3] start'0 < end''0
+          /\ not accepts (Token) (Seq.get input start'0)
+        -> result.cursor = start'0 + 1 /\ token_result_has_no_span result)
+      /\ ([@stop_split] [@expl:parse_token_model ensures #4] [%#smodel'4] start'0 < end''0
+          /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+        -> token_outcome_is_partial result.outcome)
+      /\ ([@stop_split] [@expl:parse_token_model ensures #5] [%#smodel'5] start'0 < end''0
+          /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+        -> result.cursor = end''0 /\ token_result_has_no_span result)
+      /\ ([@stop_split] [@expl:parse_token_model ensures #6] [%#smodel'6] start'0 < end''0
+          /\ accepts (Token) (Seq.get input start'0)
+          /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+          /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+        -> token_outcome_is_complete result.outcome)
+      /\ ([@stop_split] [@expl:parse_token_model ensures #7] [%#smodel'7] start'0 < end''0
+          /\ accepts (Token) (Seq.get input start'0)
+          /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+          /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+        -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1)
+      /\ ([@stop_split] [@expl:parse_token_model ensures #8] [%#smodel'8] start'0 < end''0
+          /\ accepts (Token) (Seq.get input start'0)
+          /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+          /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+        -> token_result_span_is result start'0 (maximal_prefix_end input start'0 end''0 (Token)))
+      /\ ([@stop_split] [@expl:parse_token_model ensures #9] [%#smodel'9] start'0 < end''0
+          /\ accepts (Token) (Seq.get input start'0)
+          /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+          /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+        -> token_outcome_is_error result.outcome)
+      /\ ([@stop_split] [@expl:parse_token_model ensures #10] [%#smodel'10] start'0 < end''0
+        /\ accepts (Token) (Seq.get input start'0)
+        /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+        /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+      -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1 /\ token_result_has_no_span result)
+    else
+      ([@stop_split] [@expl:maximal_prefix_end requires] [%#smodel'11] 0 <= start'0
+        /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+      /\ (([@stop_split] [@expl:maximal_prefix_end ensures] ([@stop_split] [@expl:maximal_prefix_end ensures #0] [%#smodel'12] start'0
+            <= maximal_prefix_end input start'0 end''0 (Token)
+          /\ maximal_prefix_end input start'0 end''0 (Token) <= end''0)
+        /\ ([@stop_split] [@expl:maximal_prefix_end ensures #1] [%#smodel'13] forall i: int. start'0 <= i
+              /\ i < maximal_prefix_end input start'0 end''0 (Token) -> accepts (Token) (Seq.get input i))
+        /\ ([@stop_split] [@expl:maximal_prefix_end ensures #2] [%#smodel'14] maximal_prefix_end input start'0 end''0 (Token)
+          < end''0 -> not accepts (Token) (Seq.get input (maximal_prefix_end input start'0 end''0 (Token)))))
+      -> (let token_end = maximal_prefix_end input start'0 end''0 (Token) in if token_end = end''0 then
+        let result = { outcome = Partial;
+                       cursor = end''0;
+                       token = None } in [@stop_split] [@expl:parse_token_model ensures] ([@stop_split] [@expl:parse_token_model ensures #0] [%#smodel'0] start'0
+            = end''0 -> token_outcome_is_partial result.outcome)
+        /\ ([@stop_split] [@expl:parse_token_model ensures #1] [%#smodel'1] start'0 = end''0
+          -> result.cursor = end''0 /\ token_result_has_no_span result)
+        /\ ([@stop_split] [@expl:parse_token_model ensures #2] [%#smodel'2] start'0 < end''0
+            /\ not accepts (Token) (Seq.get input start'0) -> token_outcome_is_error result.outcome)
+        /\ ([@stop_split] [@expl:parse_token_model ensures #3] [%#smodel'3] start'0 < end''0
+            /\ not accepts (Token) (Seq.get input start'0)
+          -> result.cursor = start'0 + 1 /\ token_result_has_no_span result)
+        /\ ([@stop_split] [@expl:parse_token_model ensures #4] [%#smodel'4] start'0 < end''0
+            /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+          -> token_outcome_is_partial result.outcome)
+        /\ ([@stop_split] [@expl:parse_token_model ensures #5] [%#smodel'5] start'0 < end''0
+            /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+          -> result.cursor = end''0 /\ token_result_has_no_span result)
+        /\ ([@stop_split] [@expl:parse_token_model ensures #6] [%#smodel'6] start'0 < end''0
+            /\ accepts (Token) (Seq.get input start'0)
+            /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+            /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+          -> token_outcome_is_complete result.outcome)
+        /\ ([@stop_split] [@expl:parse_token_model ensures #7] [%#smodel'7] start'0 < end''0
+            /\ accepts (Token) (Seq.get input start'0)
+            /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+            /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+          -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1)
+        /\ ([@stop_split] [@expl:parse_token_model ensures #8] [%#smodel'8] start'0 < end''0
+            /\ accepts (Token) (Seq.get input start'0)
+            /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+            /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+          -> token_result_span_is result start'0 (maximal_prefix_end input start'0 end''0 (Token)))
+        /\ ([@stop_split] [@expl:parse_token_model ensures #9] [%#smodel'9] start'0 < end''0
+            /\ accepts (Token) (Seq.get input start'0)
+            /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+            /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+          -> token_outcome_is_error result.outcome)
+        /\ ([@stop_split] [@expl:parse_token_model ensures #10] [%#smodel'10] start'0 < end''0
+          /\ accepts (Token) (Seq.get input start'0)
+          /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+          /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+        -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1 /\ token_result_has_no_span result)
+      else
+        if deep_model_u8 (Seq.get input token_end) = 32 then
+          let result = { outcome = Complete;
+                         cursor = token_end + 1;
+                         token = Some { start = start'0;
+                                        end' = token_end } } in [@stop_split] [@expl:parse_token_model ensures] ([@stop_split] [@expl:parse_token_model ensures #0] [%#smodel'0] start'0
+              = end''0 -> token_outcome_is_partial result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #1] [%#smodel'1] start'0 = end''0
+            -> result.cursor = end''0 /\ token_result_has_no_span result)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #2] [%#smodel'2] start'0 < end''0
+              /\ not accepts (Token) (Seq.get input start'0) -> token_outcome_is_error result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #3] [%#smodel'3] start'0 < end''0
+              /\ not accepts (Token) (Seq.get input start'0)
+            -> result.cursor = start'0 + 1 /\ token_result_has_no_span result)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #4] [%#smodel'4] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+            -> token_outcome_is_partial result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #5] [%#smodel'5] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+            -> result.cursor = end''0 /\ token_result_has_no_span result)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #6] [%#smodel'6] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0)
+              /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+              /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+            -> token_outcome_is_complete result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #7] [%#smodel'7] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0)
+              /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+              /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+            -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #8] [%#smodel'8] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0)
+              /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+              /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+            -> token_result_span_is result start'0 (maximal_prefix_end input start'0 end''0 (Token)))
+          /\ ([@stop_split] [@expl:parse_token_model ensures #9] [%#smodel'9] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0)
+              /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+              /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+            -> token_outcome_is_error result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #10] [%#smodel'10] start'0 < end''0
+            /\ accepts (Token) (Seq.get input start'0)
+            /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+            /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+          -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1 /\ token_result_has_no_span result)
+        else
+          let result = { outcome = Error;
+                         cursor = token_end + 1;
+                         token = None } in [@stop_split] [@expl:parse_token_model ensures] ([@stop_split] [@expl:parse_token_model ensures #0] [%#smodel'0] start'0
+              = end''0 -> token_outcome_is_partial result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #1] [%#smodel'1] start'0 = end''0
+            -> result.cursor = end''0 /\ token_result_has_no_span result)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #2] [%#smodel'2] start'0 < end''0
+              /\ not accepts (Token) (Seq.get input start'0) -> token_outcome_is_error result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #3] [%#smodel'3] start'0 < end''0
+              /\ not accepts (Token) (Seq.get input start'0)
+            -> result.cursor = start'0 + 1 /\ token_result_has_no_span result)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #4] [%#smodel'4] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+            -> token_outcome_is_partial result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #5] [%#smodel'5] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0) /\ maximal_prefix_end input start'0 end''0 (Token) = end''0
+            -> result.cursor = end''0 /\ token_result_has_no_span result)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #6] [%#smodel'6] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0)
+              /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+              /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+            -> token_outcome_is_complete result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #7] [%#smodel'7] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0)
+              /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+              /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+            -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #8] [%#smodel'8] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0)
+              /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+              /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) = 32
+            -> token_result_span_is result start'0 (maximal_prefix_end input start'0 end''0 (Token)))
+          /\ ([@stop_split] [@expl:parse_token_model ensures #9] [%#smodel'9] start'0 < end''0
+              /\ accepts (Token) (Seq.get input start'0)
+              /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+              /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+            -> token_outcome_is_error result.outcome)
+          /\ ([@stop_split] [@expl:parse_token_model ensures #10] [%#smodel'10] start'0 < end''0
+            /\ accepts (Token) (Seq.get input start'0)
+            /\ maximal_prefix_end input start'0 end''0 (Token) < end''0
+            /\ UInt8.t'int (Seq.get input (maximal_prefix_end input start'0 end''0 (Token))) <> 32
+          -> result.cursor = maximal_prefix_end input start'0 end''0 (Token) + 1 /\ token_result_has_no_span result)
+      
+      ))
+  
+  )
