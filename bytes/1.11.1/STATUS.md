@@ -2,6 +2,15 @@
 
 ## Current working-tree status (2026-10-05)
 
+Actual public BytesMut::zeroed and core From<&[u8]> constructor bodies pass a
+60-file exact-source gate with zero unproved leaves and three native fixtures.
+Contracts establish unique validity, exact length, and pointwise Known zero /
+copied bytes. The real From impl and a generic trait caller are included.
+No capacity promise is inferred from Vec::with_capacity, and no trusted helper
+is added. Automatic Drop and the full crate are excluded. Evidence:
+public-bytesmut-constructors/positive.
+
+
 The actual private advance_unchecked Vec branch is now body proved under the
 packed-offset bound, in the 109-file lifecycle gate with zero unproved leaves
 and twenty-one native tests. Two advances preserve owned slots and low metadata
