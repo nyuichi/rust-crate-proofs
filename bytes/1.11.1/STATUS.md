@@ -17,7 +17,7 @@ proved files; helper, source-sliced trait and restricted cfg scopes differ. Each
 probe README and archived source manifest states the admitted configurations.
 
 The native Vec-vs-BytesMut PartialOrd reversal was reproduced and fixed with a
-regression test. Native crate tests, including docs, currently pass1255; no_std
+regression test. Native crate tests, including docs, currently pass1256; no_std
 check passes. Native observations establish no affine or concurrent protocol.
 
 Readonly immutable B4 classification passes34 and rejects erased mutable writes
@@ -41,18 +41,21 @@ cleanup remain outside the current proof.
 
 Exact public cfg Shared reserve now passes106 files (105 plus a body-proved
 initialization-coordinate helper), including singleton and
-nonunique sibling callers; checked unique advance and its RawTransition helpers
-pass3. Requested-capacity construction replays101. Same-control public cfg
+nonunique sibling callers; bounded Shared no-allocation try_reclaim passes108 with512 native cases and rejects allocation identity changes. Checked unique advance and its RawTransition helpers
+pass3. Requested-capacity construction replays101. Shared growing resize/append and callers pass115; capacity-only no-op framing and final registration matching are body-proved contracts. Vec/BytesMut semantic comparison traits pass103 alongside a fresh122-file readonly baseline. Same-control public cfg
 unsplit empty/adoption/copy fallbacks pass115; independent-control fallbacks
-pass114, including singleton final retirement. The adjacent gate remains separate.
+pass114, including singleton final retirement. Mixed Unique/Shared and both-Unique public cfg gates pass121 each, including canonical empties and advanced Unique views. The adjacent gate remains separate.
 UninitSlice projection and all six range-index variants pass12 per selected gate
 after adding a prophetic caller condition preserving already
 initialized bytes. The unsafe deinitialization counterexample against the old
 contract is retained; the repaired contract rejects it at the call precondition.
 The bounded raw UninitSlice constructor passes42 with the existing B4 authority;
 its wrong-pointer control leaves exactly the pointer-match requirement unproved.
-The ordinary bare-pointer signature is excluded. These proofs do not discharge
-automatic Drop or general Shared concurrency.
+The ordinary bare-pointer signature is excluded. The exact BytesMut len/is_empty/reference-caller selection passes3; Bytes
+len/is_empty metadata bodies pass2. Nonpromotable Bytes truncate/clear and callers pass6 under an explicit table-tag precondition; the native classifier regression checks all six table sites. Exact new/from_static constructor attempts still fail function-pointer/static-pointer translation. Concrete mutable-slice BufMut bodies pass16,
+with unsafe initialization promises and public trait laws excluded. Pure
+Take/Limit/Chain/Reader/Writer field projections and callers pass28. These
+proofs do not discharge automatic Drop or general Shared concurrency.
 
 ## Pre-resume checkpoint (2026-10-05)
 

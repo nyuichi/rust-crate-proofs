@@ -1,5 +1,5 @@
 bytes proof: /workspace/rust-crate-proofs/bytes/1.11.1; one prover; 1024 MiB; native Ordering; sc-drf disabled
-     Removed 896 files, 226.1MiB total
+     Removed 893 files, 218.1MiB total
     Checking bytes v1.11.1 (/workspace/rust-crate-proofs/bytes/1.11.1)
 warning: unused import: `string::String`
  --> src/bytes_mut.rs:9:5
@@ -16,26 +16,26 @@ warning: unused import: `AtomicUsize`
    |                                            ^^^^^^^^^^^
 
 warning: unreachable expression
-    --> src/bytes_mut.rs:3427:13
+    --> src/bytes_mut.rs:3578:13
      |
-3417 |             panic!("ARC clone is outside the first sequential split gate");
+3568 |             panic!("ARC clone is outside the first sequential split gate");
      |             -------------------------------------------------------------- any code following this expression is unreachable
 ...
-3427 |             { self.pending_descriptor_copy() }
+3578 |             { self.pending_descriptor_copy() }
      |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable expression
      |
      = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
 
 warning: unused import: `prelude`
-    --> src/bytes_mut.rs:4608:53
+    --> src/bytes_mut.rs:4760:53
      |
-4608 |     use creusot_std::{ghost::perm::Perm, logic::Id, prelude::*};
+4760 |     use creusot_std::{ghost::perm::Perm, logic::Id, prelude::*};
      |                                                     ^^^^^^^
 
 warning: unused variable: `off`
-    --> src/bytes_mut.rs:3332:13
+    --> src/bytes_mut.rs:3483:13
      |
-3332 |         let off = crate::capacity_ops::vec_pos_from_data(
+3483 |         let off = crate::capacity_ops::vec_pos_from_data(
      |             ^^^ help: if this is intentional, prefix it with an underscore: `_off`
      |
      = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
@@ -139,87 +139,87 @@ warning: associated items `from_handle` and `reserve` are never used
     |               ^^^^^^^
 
 warning: multiple associated items are never used
-    --> src/bytes_mut.rs:1182:8
+    --> src/bytes_mut.rs:1212:8
      |
  386 | impl BytesMut {
      | ------------- associated items in this implementation
 ...
-1182 |     fn reserve_unique_growing(&mut self, additional: usize) {
+1212 |     fn reserve_unique_growing(&mut self, additional: usize) {
      |        ^^^^^^^^^^^^^^^^^^^^^^
 ...
-1220 |     fn reclaim_unique(&mut self) {
+1250 |     fn reclaim_unique(&mut self) {
      |        ^^^^^^^^^^^^^^
 ...
-1254 |     fn reserve_inner(&mut self, additional: usize, allocate: bool) -> bool {
+1284 |     fn reserve_inner(&mut self, additional: usize, allocate: bool) -> bool {
      |        ^^^^^^^^^^^^^
 ...
-1789 |     fn proof_empty_valid(self) -> bool {
+1940 |     fn proof_empty_valid(self) -> bool {
      |        ^^^^^^^^^^^^^^^^^
 ...
-1921 |     fn proof_take_coordinator(&mut self) -> Ghost<sequential_shared_control::ControlContext> {
+2072 |     fn proof_take_coordinator(&mut self) -> Ghost<sequential_shared_control::ControlContext> {
      |        ^^^^^^^^^^^^^^^^^^^^^^
 ...
-1936 |     fn proof_release(mut self, context: Ghost<&mut sequential_shared_control::ControlContext>, left: bool) -> bool {
+2087 |     fn proof_release(mut self, context: Ghost<&mut sequential_shared_control::ControlContext>, left: bool) -> bool {
      |        ^^^^^^^^^^^^^
 ...
-1957 |     pub(crate) fn proof_split_then_release(input: Vec<u8>, at: usize, right_first: bool) {
+2108 |     pub(crate) fn proof_split_then_release(input: Vec<u8>, at: usize, right_first: bool) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-1989 |     pub(crate) fn proof_mutate_split_then_release(input: Vec<u8>, at: usize, left_value: u8, right_value: u8, right_first: bool) {
+2140 |     pub(crate) fn proof_mutate_split_then_release(input: Vec<u8>, at: usize, left_value: u8, right_value: u8, right_first: bool) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-2018 |     pub(crate) fn proof_access_split_then_release(input: Vec<u8>, at: usize, right_first: bool) {
+2169 |     pub(crate) fn proof_access_split_then_release(input: Vec<u8>, at: usize, right_first: bool) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-2058 |     pub(crate) fn proof_split_off_then_release(input: Vec<u8>, requested: usize, right_first: bool) {
+2209 |     pub(crate) fn proof_split_off_then_release(input: Vec<u8>, requested: usize, right_first: bool) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-2089 |     pub(crate) fn proof_shrink_split_off_then_release(input: Vec<u8>, requested: usize, keep: usize, right_first: bool) {
+2240 |     pub(crate) fn proof_shrink_split_off_then_release(input: Vec<u8>, requested: usize, keep: usize, right_first: bool) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-2136 |     pub(crate) fn proof_advance_split_off_then_release(input: Vec<u8>, requested: usize, left_count: usize, right_count: usize, ri...
+2287 |     pub(crate) fn proof_advance_split_off_then_release(input: Vec<u8>, requested: usize, left_count: usize, right_count: usize, ri...
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-2203 |     fn proof_initialize_spare_byte(&mut self, value: u8, use_write: bool) {
+2354 |     fn proof_initialize_spare_byte(&mut self, value: u8, use_write: bool) {
      |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-2217 |     pub(crate) fn proof_initialize_split_spare(input: Vec<u8>, requested: usize, right_first: bool) {
+2368 |     pub(crate) fn proof_initialize_split_spare(input: Vec<u8>, requested: usize, right_first: bool) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-2243 |     pub(crate) fn proof_reinitialize_split_prefix(input: Vec<u8>, right_first: bool) {
+2394 |     pub(crate) fn proof_reinitialize_split_prefix(input: Vec<u8>, right_first: bool) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-2275 |     pub(crate) fn proof_readonly_split(input: Vec<u8>, requested: usize, right_first: bool) {
+2426 |     pub(crate) fn proof_readonly_split(input: Vec<u8>, requested: usize, right_first: bool) {
      |                   ^^^^^^^^^^^^^^^^^^^^
 ...
-2318 |     pub(crate) fn proof_unique_access(input: Vec<u8>, keep: usize, value: u8) {
+2469 |     pub(crate) fn proof_unique_access(input: Vec<u8>, keep: usize, value: u8) {
      |                   ^^^^^^^^^^^^^^^^^^^
 ...
-3087 |     pub(crate) fn proof_release_unique_at_zero(mut self) {
+3238 |     pub(crate) fn proof_release_unique_at_zero(mut self) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `new` is never used
-    --> src/bytes_mut.rs:4761:8
+    --> src/bytes_mut.rs:4913:8
      |
-4761 |     fn new(input: Vec<u8>, split: usize) -> (ControlPtr, Ghost<ControlContext>, Ghost<Packet>, Ghost<Packet>) {
+4913 |     fn new(input: Vec<u8>, split: usize) -> (ControlPtr, Ghost<ControlContext>, Ghost<Packet>, Ghost<Packet>) {
      |        ^^^
 
 warning: function `release` is never used
-    --> src/bytes_mut.rs:4798:19
+    --> src/bytes_mut.rs:4950:19
      |
-4798 |     pub(super) fn release(control: ControlPtr, mut context: Ghost<&mut ControlContext>, packet: Ghost<Packet>, left: bool) -> bool {
+4950 |     pub(super) fn release(control: ControlPtr, mut context: Ghost<&mut ControlContext>, packet: Ghost<Packet>, left: bool) -> bool {
      |                   ^^^^^^^
 
 warning: function `release_left_then_right` is never used
-    --> src/bytes_mut.rs:4842:19
+    --> src/bytes_mut.rs:4994:19
      |
-4842 |     pub(crate) fn release_left_then_right(input: Vec<u8>, split: usize) {
+4994 |     pub(crate) fn release_left_then_right(input: Vec<u8>, split: usize) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `release_right_then_left` is never used
-    --> src/bytes_mut.rs:4851:19
+    --> src/bytes_mut.rs:5003:19
      |
-4851 |     pub(crate) fn release_right_then_left(input: Vec<u8>, split: usize) {
+5003 |     pub(crate) fn release_right_then_left(input: Vec<u8>, split: usize) {
      |                   ^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `map_op_get` is never used
@@ -393,9 +393,9 @@ error: Expected `deref` to be `#[check(ghost)]` as specified by the trait declar
     |     ^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: Expected `deref_mut` to be `#[check(ghost)]` as specified by the trait declaration
-    --> src/bytes_mut.rs:3783:5
+    --> src/bytes_mut.rs:3934:5
      |
-3783 |     fn deref_mut(&mut self) -> &mut [u8] {
+3934 |     fn deref_mut(&mut self) -> &mut [u8] {
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: `bytes` (lib) generated 43 warnings

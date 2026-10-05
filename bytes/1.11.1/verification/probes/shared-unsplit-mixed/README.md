@@ -31,7 +31,8 @@ Its first caller failure and the corrected positive run are archived separately.
 Fresh extraction differs only by removal of a duplicate active Shared-reserve
 postcondition; the remaining identical contract and all mixed bodies are
 unchanged. The reextraction receipt records this explicitly. The both-Unique
-public gate is still being checked.
+public gate also proves 121 files with zero unproved leaves; its source and
+proof evidence are archived independently.
 
 Run from this directory:
 

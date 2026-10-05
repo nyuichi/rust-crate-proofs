@@ -349,3 +349,21 @@ This adds no raw-pointer ownership mint or bytes protocol trust. Existing B4
 still justifies the physical raw slice borrow. The ordinary two-argument public
 unsafe API and arbitrary stack/foreign allocations are outside this bounded
 Global-Vec capability gate.
+
+## Metadata-only Bytes probes and private table tag
+
+The private Vtable `promotable` flag replaces the old pointer classifier with
+true at exactly the two promotable initializers and false at the other four.
+The Bytes handle layout is unchanged; private Vtable storage gains a boolean
+and padding. The native mapping regression checks both promotable constants,
+static/owned/shared paths, and BytesMut's shared freeze table. The six-file
+truncate/clear gate requires a nonpromotable tag and proves that its excluded
+split_off adapter (requires false) is unreachable. It proves neither table
+initializer callback values nor the promotable path or Drop.
+
+Failed Bytes constructor experiments use a generic AtomicPtr::new contract
+with only ensures(true), and an immutable uninterpreted external table when
+isolating the real callback initializer. These exploratory boundaries carry
+no pointer-value, ordering, initialized-authority, ownership or refcount facts.
+The constructor still fails translation, and these experiments are not positive
+constructor/protocol evidence. Metadata-only observers require none of them.
