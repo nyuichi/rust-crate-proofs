@@ -159,7 +159,7 @@ fn main() {
         extract_item(&source,"get_vec_pos","    // BEGIN EXACT GET_VEC_POS","    unsafe fn get_vec_pos(&self) -> usize {"),
         extract_item(&source,"set_vec_pos","    // BEGIN EXACT SET_VEC_POS","    unsafe fn set_vec_pos(&mut self, pos: usize) {"),
         extract_item(&source,"resize","    // BEGIN EXACT RESIZE","    pub fn resize(&mut self, new_len: usize, value: u8) {"),
-        extract_item(&source,"reserve","    // BEGIN EXACT RESERVE","    pub fn reserve(&mut self, additional: usize) {"),
+        extract_item(&source,"reserve","    // BEGIN EXACT RESERVE","    pub fn reserve("),
         extract_item(&source,"extend_from_slice","    // BEGIN EXACT EXTEND_FROM_SLICE","    pub fn extend_from_slice(&mut self, extend: &[u8]) {"),
         extract_item(&source,"proof_unique_at_zero_owned","    #[cfg(creusot)]\n    #[logic(prophetic)]\n    pub(crate) fn proof_unique_at_zero_owned","    pub(crate) fn proof_unique_at_zero_owned(self) -> bool {"),
         extract_item(&source,"proof_release_unique_at_zero","    // Explicit restricted proof path.","    pub(crate) fn proof_release_unique_at_zero(mut self) {"),

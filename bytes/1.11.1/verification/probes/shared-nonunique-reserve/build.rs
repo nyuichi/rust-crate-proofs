@@ -164,7 +164,7 @@ fn main() {
         extract_item(&source,"try_reclaim","    // BEGIN EXACT TRY_RECLAIM","    pub fn try_reclaim(&mut self, additional: usize) -> bool {"),
         extract_item(&source,"resize","    // BEGIN EXACT RESIZE","    pub fn resize(&mut self, new_len: usize, value: u8) {"),
         extract_item(&source,"extend_from_slice","    // BEGIN EXACT EXTEND_FROM_SLICE","    pub fn extend_from_slice(&mut self, extend: &[u8]) {"),
-        extract_item(&source,"reserve","    // BEGIN EXACT RESERVE","    pub fn reserve(&mut self, additional: usize) {"),
+        extract_item(&source,"reserve","    // BEGIN EXACT RESERVE","    pub fn reserve("),
         extract_item(&source,"proof_same_storage","    // This relation frames the native descriptor and authority identities while","    fn proof_same_storage(self, other: Self) -> bool {"),
         extract_item(&source,"spare_capacity_mut","    // BEGIN EXACT SPARE_CAPACITY_MUT","    pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<u8>] {"),
         extract_item(&source,"truncate","    // BEGIN EXACT TRUNCATE","    pub fn truncate(&mut self, len: usize) {"),
