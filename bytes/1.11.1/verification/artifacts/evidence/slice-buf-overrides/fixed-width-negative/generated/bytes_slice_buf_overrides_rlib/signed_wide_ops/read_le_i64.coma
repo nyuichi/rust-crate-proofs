@@ -1,0 +1,115 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/signed_wide_ops.rs" 88 0 88 59 *)
+
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span sslice_wide_read_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/slice_wide_read_ops.rs" 28 10 33 1
+let%span ssigned_wide_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/signed_wide_ops.rs" 89 10 89 56
+let%span ssigned_wide_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/signed_wide_ops.rs" 90 27 90 48
+let%span ssigned_wide_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/signed_wide_ops.rs" 73 10 87 1
+let%span ssigned_wide_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/signed_wide_ops.rs" 27 10 27 38
+let%span ssigned_wide_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/signed_wide_ops.rs" 10 4 14 5
+
+use creusot.prelude.MutBorrow
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.int.Int64
+use creusot.prelude.Any
+use int.Int
+
+type t_Option_u64 = None | Some UInt64.t
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+type t_RangeFrom_Int = { start: int }
+
+function index_Seq_u8 [@inline:trivial] (self: Seq.seq UInt8.t) (range: t_RangeFrom_Int) : Seq.seq UInt8.t =
+  [%#sseq] Seq.([..]) self range.start (Seq.length self)
+
+meta "rewrite_def" function index_Seq_u8
+
+let read_le_u64 (input: MutBorrow.t (Slice64.slice UInt8.t)) (return (x: t_Option_u64)) = any
+  [ return (result: t_Option_u64) ->
+  {[@stop_split] [@expl:read_le_u64 ensures] [%#sslice_wide_read_ops] match result with
+      | Some value -> ge_log_Int (Seq.length (Slice64.view input.current)) 8
+      /\ UInt64.t'int value
+        = UInt8.t'int (Seq.get (Slice64.view input.current) 0)
+                    + UInt8.t'int (Seq.get (Slice64.view input.current) 1) * 256
+                  + UInt8.t'int (Seq.get (Slice64.view input.current) 2) * 65536
+                + UInt8.t'int (Seq.get (Slice64.view input.current) 3) * 16777216
+              + UInt8.t'int (Seq.get (Slice64.view input.current) 4) * 4294967296
+            + UInt8.t'int (Seq.get (Slice64.view input.current) 5) * 1099511627776
+          + UInt8.t'int (Seq.get (Slice64.view input.current) 6) * 281474976710656
+        + UInt8.t'int (Seq.get (Slice64.view input.current) 7) * 72057594037927936
+      /\ Slice64.view input.final = index_Seq_u8 (Slice64.view input.current) { start = 8 }
+      | None -> Seq.length (Slice64.view input.current) < 8 /\ Slice64.view input.final = Slice64.view input.current
+      end}
+    (! return {result}) ]
+
+predicate resolve_refmut_ref_slice_u8 [@inline:trivial] (_1: MutBorrow.t (Slice64.slice UInt8.t)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_ref_slice_u8
+
+let elim_Some (_x: t_Option_u64) (return (f0: UInt64.t)) = any
+  [ _k (f0: UInt64.t) -> {Some f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function signed_u64 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/signed_wide_ops.rs" 9 0 9 42] (word: int) : int
+ = [%#ssigned_wide_ops'3] if word <= 9223372036854775807 then word else word - 18446744073709551616
+
+let signed_from_u64 (word: UInt64.t) (return (x: Int64.t)) = any
+  [ return (result: Int64.t) ->
+  {[@stop_split] [@expl:signed_from_u64 ensures] [%#ssigned_wide_ops'2] Int64.to_int result
+    = signed_u64 (UInt64.t'int word)}
+    (! return {result}) ]
+
+type t_Option_i64 = None'0 | Some'0 Int64.t
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let read_le_i64 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/signed_wide_ops.rs" 88 0 88 59]
+  (input: MutBorrow.t (Slice64.slice UInt8.t)) (return (x: t_Option_i64)) = (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <Slice64.slice UInt8.t> {input.current} {MutBorrow.get_id input}
+        (fun (_bor: MutBorrow.t (Slice64.slice UInt8.t)) ->
+          [ &_5 <- _bor ] [ &input <- { input with current = _bor.final } ] s1)
+    | s1 = read_le_u64 [%#ssigned_wide_ops] {_5} (fun (_x: t_Option_u64) -> [ &_4 <- _x ] s2)
+    | s2 = -{resolve_refmut_ref_slice_u8 input}- s3
+    | s3 = any [ br0 -> {_4 = None} (! bb4) | br1 (x0: UInt64.t) -> {_4 = Some x0} (! bb5) ] ]
+  | bb5 = s0
+    [ s0 = elim_Some {_4} (fun (r0: UInt64.t) -> [ &word <- r0 ] s1)
+    | s1 = signed_from_u64 [%#ssigned_wide_ops'0] {word} (fun (_x: Int64.t) -> [ &_8 <- _x ] s2)
+    | s2 = [ &_ret <- Some'0 _8 ] s3
+    | s3 = return {_ret} ]
+  | bb4 = s0 [ s0 = [ &_ret <- None'0 ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Option_i64 = Any.any_l ()
+  | & input: MutBorrow.t (Slice64.slice UInt8.t) = input
+  | & _4: t_Option_u64 = Any.any_l ()
+  | & _5: MutBorrow.t (Slice64.slice UInt8.t) = Any.any_l ()
+  | & word: UInt64.t = Any.any_l ()
+  | & _8: Int64.t = Any.any_l () ])
+  [ return (result: t_Option_i64) -> {[@stop_split] [@expl:read_le_i64 ensures] [%#ssigned_wide_ops'1] match result with
+      | Some'0 value -> ge_log_Int (Seq.length (Slice64.view input.current)) 8
+      /\ Int64.to_int value
+        = signed_u64 (UInt8.t'int (Seq.get (Slice64.view input.current) 0)
+                    + UInt8.t'int (Seq.get (Slice64.view input.current) 1) * 256
+                  + UInt8.t'int (Seq.get (Slice64.view input.current) 2) * 65536
+                + UInt8.t'int (Seq.get (Slice64.view input.current) 3) * 16777216
+              + UInt8.t'int (Seq.get (Slice64.view input.current) 4) * 4294967296
+            + UInt8.t'int (Seq.get (Slice64.view input.current) 5) * 1099511627776
+          + UInt8.t'int (Seq.get (Slice64.view input.current) 6) * 281474976710656
+        + UInt8.t'int (Seq.get (Slice64.view input.current) 7) * 72057594037927936)
+      /\ Slice64.view input.final = index_Seq_u8 (Slice64.view input.current) { start = 8 }
+      | None'0 -> Seq.length (Slice64.view input.current) < 8 /\ Slice64.view input.final = Slice64.view input.current
+      end}
+    (! return {result}) ]

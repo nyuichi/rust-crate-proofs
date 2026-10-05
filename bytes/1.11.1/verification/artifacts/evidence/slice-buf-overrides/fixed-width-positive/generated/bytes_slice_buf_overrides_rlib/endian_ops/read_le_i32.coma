@@ -1,0 +1,105 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 171 0 171 59 *)
+
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 34 8 34 21
+let%span sendian_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 172 10 172 28
+let%span sendian_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 173 27 173 48
+let%span sendian_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 160 10 170 1
+let%span sendian_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 88 10 95 1
+let%span sendian_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 37 10 37 38
+let%span sendian_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 19 4 23 5
+
+use creusot.prelude.MutBorrow
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt32
+use seq.Seq
+use creusot.int.Int32
+use creusot.prelude.Any
+use int.Int
+
+type t_Option_u32 = None | Some UInt32.t
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+type t_RangeFrom_Int = { start: int }
+
+function index_Seq_u8 [@inline:trivial] (self: Seq.seq UInt8.t) (range: t_RangeFrom_Int) : Seq.seq UInt8.t =
+  [%#sseq] Seq.([..]) self range.start (Seq.length self)
+
+meta "rewrite_def" function index_Seq_u8
+
+let read_le_u32 (input: MutBorrow.t (Slice64.slice UInt8.t)) (return (x: t_Option_u32)) = any
+  [ return (result: t_Option_u32) -> {[@stop_split] [@expl:read_le_u32 ensures] [%#sendian_ops'2] match result with
+      | Some value -> ge_log_Int (Seq.length (Slice64.view input.current)) 4
+      /\ UInt32.t'int value
+        = UInt8.t'int (Seq.get (Slice64.view input.current) 0)
+            + UInt8.t'int (Seq.get (Slice64.view input.current) 1) * 256
+          + UInt8.t'int (Seq.get (Slice64.view input.current) 2) * 65536
+        + UInt8.t'int (Seq.get (Slice64.view input.current) 3) * 16777216
+      /\ Slice64.view input.final = index_Seq_u8 (Slice64.view input.current) { start = 4 }
+      | None -> Seq.length (Slice64.view input.current) < 4 /\ Slice64.view input.final = Slice64.view input.current
+      end}
+    (! return {result}) ]
+
+predicate resolve_refmut_ref_slice_u8 [@inline:trivial] (_1: MutBorrow.t (Slice64.slice UInt8.t)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_ref_slice_u8
+
+let elim_Some (_x: t_Option_u32) (return (f0: UInt32.t)) = any
+  [ _k (f0: UInt32.t) -> {Some f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function signed_u32 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 18 0 18 42] (word: int) : int
+ = [%#sendian_ops'4] if word <= 2147483647 then word else word - 4294967296
+
+let signed_from_u32 (word: UInt32.t) (return (x: Int32.t)) = any
+  [ return (result: Int32.t) -> {[@stop_split] [@expl:signed_from_u32 ensures] [%#sendian_ops'3] Int32.to_int result
+    = signed_u32 (UInt32.t'int word)}
+    (! return {result}) ]
+
+type t_Option_i32 = None'0 | Some'0 Int32.t
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let read_le_i32 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 171 0 171 59]
+  (input: MutBorrow.t (Slice64.slice UInt8.t)) (return (x: t_Option_i32)) = (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <Slice64.slice UInt8.t> {input.current} {MutBorrow.get_id input}
+        (fun (_bor: MutBorrow.t (Slice64.slice UInt8.t)) ->
+          [ &_5 <- _bor ] [ &input <- { input with current = _bor.final } ] s1)
+    | s1 = read_le_u32 [%#sendian_ops] {_5} (fun (_x: t_Option_u32) -> [ &_4 <- _x ] s2)
+    | s2 = -{resolve_refmut_ref_slice_u8 input}- s3
+    | s3 = any [ br0 -> {_4 = None} (! bb4) | br1 (x0: UInt32.t) -> {_4 = Some x0} (! bb5) ] ]
+  | bb5 = s0
+    [ s0 = elim_Some {_4} (fun (r0: UInt32.t) -> [ &word <- r0 ] s1)
+    | s1 = signed_from_u32 [%#sendian_ops'0] {word} (fun (_x: Int32.t) -> [ &_8 <- _x ] s2)
+    | s2 = [ &_ret <- Some'0 _8 ] s3
+    | s3 = return {_ret} ]
+  | bb4 = s0 [ s0 = [ &_ret <- None'0 ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Option_i32 = Any.any_l ()
+  | & input: MutBorrow.t (Slice64.slice UInt8.t) = input
+  | & _4: t_Option_u32 = Any.any_l ()
+  | & _5: MutBorrow.t (Slice64.slice UInt8.t) = Any.any_l ()
+  | & word: UInt32.t = Any.any_l ()
+  | & _8: Int32.t = Any.any_l () ])
+  [ return (result: t_Option_i32) -> {[@stop_split] [@expl:read_le_i32 ensures] [%#sendian_ops'1] match result with
+      | Some'0 value -> ge_log_Int (Seq.length (Slice64.view input.current)) 4
+      /\ Int32.to_int value
+        = signed_u32 (UInt8.t'int (Seq.get (Slice64.view input.current) 0)
+            + UInt8.t'int (Seq.get (Slice64.view input.current) 1) * 256
+          + UInt8.t'int (Seq.get (Slice64.view input.current) 2) * 65536
+        + UInt8.t'int (Seq.get (Slice64.view input.current) 3) * 16777216)
+      /\ Slice64.view input.final = index_Seq_u8 (Slice64.view input.current) { start = 4 }
+      | None'0 -> Seq.length (Slice64.view input.current) < 4 /\ Slice64.view input.final = Slice64.view input.current
+      end}
+    (! return {result}) ]

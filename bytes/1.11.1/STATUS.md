@@ -2,6 +2,16 @@
 
 ## Current working-tree status (2026-10-05)
 
+Concrete slice Buf checked-read bodies now pass a 55-file gate with zero
+unproved leaves and two native matrices: try_get_u8 plus signed/unsigned
+16/32/64/128-bit readers in both endian orders (17 methods). The exact source
+body is adapted only by inverse-checked receiver substitution, with success
+value/suffix and failure requested/available/unchanged-input contracts. The
+56-file wrong-available negative rejects exactly one intended leaf (1/2).
+This is body evidence, not Buf trait dispatch/refinement or full-crate proof;
+no production source or trusted boundary changes. Evidence: slice-buf-overrides.
+
+
 Advanced safe-trait integration after unique advance was attempted and stopped
 at one current-state type-invariant obligation (advance_unchecked 27/28;
 77-file diagnostic). Simplifying the unique-only predicate and computing the

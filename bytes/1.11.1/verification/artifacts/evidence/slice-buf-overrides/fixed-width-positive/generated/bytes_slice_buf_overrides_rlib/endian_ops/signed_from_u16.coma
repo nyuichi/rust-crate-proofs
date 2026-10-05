@@ -1,0 +1,48 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 28 0 28 36 *)
+
+let%span sendian_ops = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 29 15 29 23
+let%span sendian_ops'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 32 16 32 22
+let%span sendian_ops'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 32 8 32 23
+let%span sendian_ops'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 32 33 32 41
+let%span sendian_ops'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 32 8 32 41
+let%span sendian_ops'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 27 10 27 38
+let%span sendian_ops'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 10 4 14 5
+
+use creusot.int.Int16
+use creusot.int.UInt16
+use creusot.prelude.Any
+use int.Int
+
+constant const_MAX: Int16.t = (32767: Int16.t)
+
+constant const_MIN: Int16.t = (-32768: Int16.t)
+
+function signed_u16 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 9 0 9 42] (word: int) : int
+ = [%#sendian_ops'5] if word <= 32767 then word else word - 65536
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let signed_from_u16 [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/slice-buf-overrides/src/../../../../src/endian_ops.rs" 28 0 28 36]
+  (word: UInt16.t) (return (x: Int16.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_6 <- UInt16.of_int (Int16.to_int ([%#sendian_ops] const_MAX)) ] s1
+    | s1 = [ &_4 <- UInt16.le word _6 ] s2
+    | s2 = any [ br0 -> {_4 = false} (! bb2) | br1 -> {_4} (! bb1) ] ]
+  | bb1 = s0 [ s0 = [ &_ret <- Int16.of_int (UInt16.t'int word) ] s1 | s1 = return {_ret} ]
+  | bb2 = s0
+    [ s0 = UInt16.sub [%#sendian_ops'1] {word} {[%#sendian_ops'0] (32768: UInt16.t)}
+        (fun (_x: UInt16.t) -> [ &_9 <- _x ] s1)
+    | s1 = [ &_8 <- Int16.of_int (UInt16.t'int _9) ] s2
+    | s2 = Int16.add [%#sendian_ops'3] {_8} {[%#sendian_ops'2] const_MIN} (fun (_x: Int16.t) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ]
+  [ & _ret: Int16.t = Any.any_l ()
+  | & word: UInt16.t = word
+  | & _4: bool = Any.any_l ()
+  | & _6: UInt16.t = Any.any_l ()
+  | & _8: Int16.t = Any.any_l ()
+  | & _9: UInt16.t = Any.any_l () ])
+  [ return (result: Int16.t) -> {[@stop_split] [@expl:signed_from_u16 ensures] [%#sendian_ops'4] Int16.to_int result
+    = signed_u16 (UInt16.t'int word)}
+    (! return {result}) ]

@@ -10,6 +10,14 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-05)
 
+The concrete slice Buf fixed-width override gate adds no TCB: 17 exact method
+bodies compose the existing proved readers and standard Option::ok_or. 55 files
+pass; the wrong-available negative has exactly one rejected leaf among 56 files.
+Receiver adapters are inverse checked; no generic Buf dispatch/refinement or
+new compiler/std contract is claimed. Advanced unique safe-trait integration
+was stopped at its current-state invariant, with failed evidence retained and
+live source restored to the last proved checkpoint.
+
 The 109-file unique-view advancement gate adds no trust. It preserves full
 Recovery/Region ownership while actual packed metadata and pointer offset change,
 and explicitly recovers the sealed base before B3. The strengthened BoundPtr
