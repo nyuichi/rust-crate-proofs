@@ -31,3 +31,13 @@ The production immutable B4/frozen-reader classification was replayed separately
 all 64 files pass again. `evidence/readonly-positive.{tar.gz,json}` records that
 exact source/proof snapshot. The classification changes no native reads or
 writes and adds no protocol trust.
+
+After adding the private `Vtable.promotable` field, the exact-layout frozen
+gate was replayed again and passed 64 files. The
+`evidence/tagged-vtable-layout-positive-v3.tar.gz` archive contains the final source tree, regenerated extraction and
+source correspondence, proof COMA/JSON, and run logs; its adjacent SHA-256 and
+member manifest pin the archive. The bytes.rs and bytes_mut.rs snapshots match
+the final tag source hashes. The native fixture's uncalled forbidden callback
+table now supplies `promotable: false` to match the extracted Vtable layout;
+the exact-source compatibility test passes 1/1. This replay does not widen the
+selected proof scope.

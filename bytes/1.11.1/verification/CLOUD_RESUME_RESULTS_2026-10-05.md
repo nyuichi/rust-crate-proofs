@@ -90,3 +90,12 @@ proved interfaces. These are limits of this representation and pinned toolchain,
 not mathematical impossibility claims. The fresh-layout observer replay proves
 two files with zero unproved leaves; both archived source snapshots match the
 final native regression code.
+
+The final Vtable-layout frozen gate also replays 64 files. Its corrected
+`tagged-vtable-layout-positive-v3.tar.gz` has 64 proof JSON, zero unproved
+leaves, 64 Coma files, and all 63 current Rust source snapshots. SHA256:
+`795ad44f4aabe20a427844d717405d885358e5892d0fccaf664ee6cf9366e347`.
+Independent audit rejected the initial archive that included only 15 actual-module
+JSON files; it was replaced before commit with all imported-module evidence.
+Historical extracted artifacts remain unchanged; new correspondence is archived
+separately. This replay changes no production code or protocol scope.

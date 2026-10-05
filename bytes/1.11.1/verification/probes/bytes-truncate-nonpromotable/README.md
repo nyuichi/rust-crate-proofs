@@ -32,6 +32,12 @@ pointer classifier across all six initializer sites and reachable static,
 owner, shared, boxed-slice, and `BytesMut` shared paths; it passed 1/1. Earlier
 failed pointer-expression attempts remain in `truncate-frontier.tar.gz`.
 
+The `BytesMut` case starts from a Vec-backed buffer, splits it into shared
+storage, then converts both halves through `BytesMut::freeze`; the returned
+vtable is distinct from `bytes.rs`'s shared table, and its `promotable` bit is
+checked against the old pointer classifier. This exercises the sixth
+`bytes_mut.rs` shared-table initializer on the native path.
+
 Run native tests with `cargo test --locked --offline`. Run the serialized pinned
 Creusot gate with `bash run.sh`. Any success is bounded to the exact
 `truncate`/`clear` bodies and the explicit nonpromotable tag precondition; it
