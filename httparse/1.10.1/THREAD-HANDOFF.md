@@ -1,5 +1,60 @@
 # httparse verification thread handoff — 2026-10-05
 
+## Current resumption — restored archive and method UTF-8 checkpoint
+
+This section is the current durable state; the environment and “unfinished
+method preparation” statements below describe the earlier handoff snapshot.
+The user asked to continue full formal verification, restore the archived work
+in a fresh worktree, rebuild the proof tools, and push each reviewed commit to
+`origin/main`. The restored worktree is `/workspace/httparse-cloud-resume` on
+`httparse-cloud-resume`. All 1,593 entries in the archive passed
+`FILES.SHA256`; this worktree has integrated the published `origin/main`
+checkpoint `7a038aa`.
+
+The safe-entry `parse_method` UTF-8 gap was fixed in commit `267fb46`. The
+shared checked helper is `src/parse_method_utf8.rs`; GET, POST, and generic
+token completion paths use it after the existing `slice_skip(1)` commit. A
+bad retained prefix returns `Error::Token`. `parse_uri` already checks the
+whole retained span with `core::str::from_utf8`. Native default and
+no-default suites passed (105/101 unit, 263 URI integration, and 6 docs each);
+four focused method/URI regressions also passed after the shared helper was
+qualified as `core::str::from_utf8`.
+
+Commit `71253be` records the rebuilt string-model proof profile and the
+method-helper proof checkpoint; it is part of the published `7a038aa` history.
+The exact setup and identities are in
+`verification/probes/method-utf8/evidence/tool-rebuild-20261005/`. Compiler
+SHA-256 is `29fcf8914166db07a910c45e4c8462f5665cfe4eee482509b885e629d3ff826e`
+and matching prelude SHA-256 is
+`cca0368e966eacff2188dae670d35678fd95e801a2fce5a3154a61d300b2798b`. Fresh
+translation and type checking are retained in
+`verification/probes/method-utf8/evidence/translation-20261005T145116Z-12312/`.
+The actual included `method_from_bytes` helper passed all 3 VCs, and the
+representative outcome mapper passed all 3 VCs. Raw solver runs and their
+source/tool bundles are in the adjacent `proof-20261005T145600Z-*` and
+`proof-20261005T145626Z-*` directories. `core::str::from_utf8`'s frozen
+standard-library contract is trusted; its Rust body is not proved. The mapper
+is a harness caller, not the production scanner, so `parse_method`'s scanner
+body and full crate proof remain open.
+
+The five-scalar replay under the rebuilt profile is complete in
+`verification/probes/utf8-lemmas/evidence/replay-five-scalars-20261005/`.
+Its five targets were copied byte-for-byte from the recovered archive at
+`verification/probes/utf8-lemmas/evidence/direct-why3-five-scalars-20261005/`;
+the new directory preserves its own input hashes, tool identity, type-only
+logs, actual commands, and fresh solver output. Fresh replay results are
+6+7+7+7+8 = **35 Valid**, with no counterexamples; all five corrected target
+runs exited 0. The rejected initial `-j 1` command is retained separately and
+did not start a solver. The old archived proof logs remain historical evidence
+and are not used as results for the rebuilt profile. These targets assume the
+existing `utf8_byte_spec` numeric and `to_utf8_char_spec` length contracts;
+neither universal encoding nor those helper bodies is proved. The replay
+directory's `SHA256SUMS` validates all of its files.
+
+Continue using the single-worker proof lock and 30-second / 1000-MiB bound.
+On a future proof run, stop at the first non-Valid solver result for Astra
+review.
+
 ## Codex Cloud: start here in a new task
 
 The next thread may have a fresh container. Do not assume that this thread's
@@ -80,8 +135,9 @@ is not established. Do not silently add proof-only mark==cursor to a public
 safe function. Enforce a runtime boundary condition or validate every returned
 byte, preserving intended behavior; review public parse_uri similarly. Full
 diagnosis and options are in the end of VERIFIER-SUPPORT-CONSULT.md. A Luna
-parse_method preparation task was interrupted for consultation; no finished
-method harness is known. Prioritize concrete remediation/refinement review.
+parse_method preparation task was interrupted for consultation; at that point
+no finished method harness was known. The current remediation and proof
+checkpoint are recorded at the top of this file.
 
 ## Uncommitted ready/reviewable proof milestones
 
@@ -188,9 +244,9 @@ target_feature call preconditions remain OPEN.
   6dbf3de79e51f3d586ab4cb9d5c3e2c14aa28ed23d180cf89b4df0454a69cc87.
 - Creusot upstream437d3d8d00b8114d7a3b4f7b8738d594a395f5bc; Rust nightly
   2026-02-27, sysroot source6a979b3e32522049d0acb4a47f7ae44b7c8abfd5.
-- `source /workspace/proof-tools/activate.sh`; isolated string env
-  `/workspace/scratch/httparse-string-model/creusot-env.sh`. Restore isolated
-  config/data/XDG/DUNE *inside* child wrappers after their activation.
+- `source /workspace/proof-tools/activate.sh`, then source the isolated string
+  env `/workspace/httparse-tool-rebuild/string-model/creusot-env.sh` inside
+  proof child wrappers to restore its config/data/XDG/DUNE paths.
 - Direct Why3, Z3 4.15.3, split_vc, fixed30s, max1,1000MiB. Negatives10s.
   Exclusive `/tmp/itoa-creusot-proof.lock`, single worker solver grant at a time.
   First nonValid stops; freeze evidence, consult Astra, change proof structure.
