@@ -1326,7 +1326,40 @@ impl BytesMut {
     /// buf.unsplit(split);
     /// assert_eq!(b"aaabbbcccddd", &buf[..]);
     /// ```
-    pub fn unsplit(&mut self, other: BytesMut) {
+    // BEGIN EXACT SHARED UNSPLIT
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(self.proof_initialized() && other.proof_initialized()))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(self.shared_context.inner_logic() == None && other.shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(self.shared_registration.inner_logic() != None && other.shared_registration.inner_logic() != None))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(self.shared_registration.inner_logic().unwrap_logic().matches(*context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(other.shared_registration.inner_logic().unwrap_logic().matches(*context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(self.shared_registration.inner_logic().unwrap_logic().control == other.shared_registration.inner_logic().unwrap_logic().control))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() != other.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id()))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(self.len == self.cap))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(self.shared_registration.inner_logic().unwrap_logic().packet.1.hi() == other.shared_registration.inner_logic().unwrap_logic().packet.1.lo()))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), requires(other.ptr@.unwrap_logic().2 == other.shared_registration.inner_logic().unwrap_logic().packet.1.lo()))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), ensures((^self).proof_initialized() && (^self).shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), ensures((^self).shared_registration.inner_logic().unwrap_logic().matches(^context.inner_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), ensures((^self).shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() ==
+        self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id()))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), ensures((^self).ptr == self.ptr && (^self).data == self.data))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), ensures((^self).len@ == self.len@ + other.len@ && (^self).cap@ == self.cap@ + other.cap@))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), ensures((* (^context.inner_logic()).status.pending).len() + 1 == (*context.inner_logic().status.pending).len()))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), ensures(forall<index: Int> 0 <= index && index < (^self).len@ ==>
+        (^self).proof_view_slot(index) == if index < self.len@ { self.proof_view_slot(index) }
+            else { other.proof_view_slot(index - self.len@) }))]
+    #[cfg_attr(all(creusot, bytes_proof_adjacent_unsplit), ensures(forall<remaining: sequential_shared_control::HandleRegistration> remaining.matches(*context.inner_logic()) &&
+        remaining.packet.0.logical_id() != self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() &&
+        remaining.packet.0.logical_id() != other.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() ==>
+            remaining.matches(^context.inner_logic())))]
+    pub fn unsplit(&mut self, other: BytesMut,
+        #[cfg(bytes_proof_adjacent_unsplit)] context: Ghost<&mut sequential_shared_control::ControlContext>,
+    ) {
+        #[cfg(bytes_proof_adjacent_unsplit)]
+        {
+            shared_unsplit::merge_into(self, other, context);
+        }
+        #[cfg(not(bytes_proof_adjacent_unsplit))]
+        {
         if self.is_empty() {
             *self = other;
             return;
@@ -1335,7 +1368,9 @@ impl BytesMut {
         if let Err(other) = self.try_unsplit(other) {
             self.extend_from_slice(other.as_ref());
         }
+        }
     }
+    // END EXACT SHARED UNSPLIT
 
     // private
 
@@ -4431,3 +4466,9 @@ pub(crate) mod sequential_shared_control {
 #[cfg(bytes_proof_repeated_split)]
 #[path = "ownership_proof/carrier_protocol.rs"]
 pub(crate) mod sequential_shared_control;
+
+// Restricted public unsplit gate; the same physical merge also serves the
+// extracted sequential caller. Ordinary native dispatch retains its own body.
+#[cfg(bytes_proof_adjacent_unsplit)]
+#[path = "ownership_proof/shared_unsplit.rs"]
+pub(crate) mod shared_unsplit;

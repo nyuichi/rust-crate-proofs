@@ -135,7 +135,7 @@ fn main() {
     let source_path=root.join("bytes_mut.rs");
     println!("cargo:rerun-if-changed={}",source_path.display());
     println!("cargo:rerun-if-changed=build.rs");
-    for cfg in ["bytes_proof_probe","bytes_proof_repeated_split"] { println!("cargo:rustc-cfg={cfg}"); println!("cargo:rustc-check-cfg=cfg({cfg})"); }
+    for cfg in ["bytes_proof_probe","bytes_proof_repeated_split","bytes_proof_adjacent_unsplit"] { println!("cargo:rustc-cfg={cfg}"); println!("cargo:rustc-check-cfg=cfg({cfg})"); }
     let source=fs::read_to_string(source_path).unwrap();
     let mut items=vec![
         extract_item(&source, "release_unique_storage", "// BEGIN EXACT RELEASE_UNIQUE_STORAGE", "unsafe fn release_unique_storage("),
@@ -148,6 +148,7 @@ fn main() {
     ];
     for (name,marker) in [("KIND_VEC","const KIND_VEC: usize = 0b1;"),("KIND_ARC","const KIND_ARC: usize = 0b0;"),("KIND_MASK","const KIND_MASK: usize = 0b1;")] { items.push(extract_line(&source,name,marker)); }
     let methods=vec![
+        extract_item(&source,"unsplit","    // BEGIN EXACT SHARED UNSPLIT","    pub fn unsplit("),
         extract_item(&source,"get_vec_pos","    // BEGIN EXACT GET_VEC_POS","    unsafe fn get_vec_pos(&self) -> usize {"),
         extract_item(&source,"set_vec_pos","    // BEGIN EXACT SET_VEC_POS","    unsafe fn set_vec_pos(&mut self, pos: usize) {"),
         extract_item(&source,"proof_unique_at_zero_owned","    #[cfg(creusot)]\n    #[logic(prophetic)]\n    pub(crate) fn proof_unique_at_zero_owned","    pub(crate) fn proof_unique_at_zero_owned(self) -> bool {"),
@@ -164,7 +165,7 @@ fn main() {
         extract_item(&source,"try_reclaim","    // BEGIN EXACT TRY_RECLAIM","    pub fn try_reclaim(&mut self, additional: usize) -> bool {"),
         extract_item(&source,"resize","    // BEGIN EXACT RESIZE","    pub fn resize(&mut self, new_len: usize, value: u8) {"),
         extract_item(&source,"extend_from_slice","    // BEGIN EXACT EXTEND_FROM_SLICE","    pub fn extend_from_slice(&mut self, extend: &[u8]) {"),
-        extract_item(&source,"reserve","    // BEGIN EXACT RESERVE","    pub fn reserve(&mut self, additional: usize) {"),
+        extract_item(&source,"reserve","    // BEGIN EXACT RESERVE","    pub fn reserve("),
         extract_item(&source,"proof_same_storage","    // This relation frames the native descriptor and authority identities while","    fn proof_same_storage(self, other: Self) -> bool {"),
         extract_item(&source,"spare_capacity_mut","    // BEGIN EXACT SPARE_CAPACITY_MUT","    pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<u8>] {"),
         extract_item(&source,"truncate","    // BEGIN EXACT TRUNCATE","    pub fn truncate(&mut self, len: usize) {"),

@@ -4,7 +4,7 @@ pub(crate) fn unsplit_caller(input: Vec<u8>, first: usize, second: usize, revers
     let mut left = tail.split_to(cmp::min(first, tail.len()));
     let middle = tail.split_to(cmp::min(second, tail.len()));
     let mut context = tail.proof_take_coordinator();
-    shared_unsplit::merge_into(&mut left, middle, context.borrow_mut());
+    left.unsplit(middle, context.borrow_mut());
     if left.len() > 0 {
         let last = left.len() - 1;
         left.as_slice_mut()[last] = value;
@@ -28,7 +28,7 @@ pub(crate) fn negative_gap_merge(input: Vec<u8>) {
     let middle = tail.split_to(1);
     let mut context = tail.proof_take_coordinator();
     // The middle registration still owns the byte separating these views.
-    shared_unsplit::merge_into(&mut left, tail, context.borrow_mut());
+    left.unsplit(tail, context.borrow_mut());
     mem::forget(left);
     mem::forget(middle);
 }
