@@ -2,6 +2,15 @@
 
 ## Current working-tree status (2026-10-05)
 
+The derived pointer-base recovery primitive gate proves 32 files with zero
+unproved leaves and one native roundtrip fixture. BoundPtr's lower-address
+invariant follows from the existing NonNull base; advance and retreat preserve
+it. The body-proved retreat returns sealed offset-zero metadata without
+creating permissions; the caller recovers through B3 using original full
+capacity/resources. No trusted fact/spec is added. This is not yet actual
+unique BytesMut advancement. Evidence: bound-pointer-offset/retreat-positive.
+
+
 The in-capacity runtime update gate proves 103 files with zero unproved leaves
 and nineteen native tests. Actual reserve's fast branch preserves the handle;
 actual resize and extend_from_slice use the same body-proved MaybeUninit fill /
