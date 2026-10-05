@@ -1,0 +1,161 @@
+theory Task
+
+type int
+
+type real
+
+type string
+
+predicate infix_eq 'a 'a
+
+(* use why3.BuiltIn.BuiltIn *)
+
+type bool =
+  | True
+  | False
+
+(* use why3.Bool.Bool *)
+
+type tuple0 =
+  | Tuple0 [@builtin]
+
+(* use why3.Tuple0.Tuple01 *)
+
+type unit [@builtin] = unit
+
+(* use why3.Unit.Unit *)
+
+type t 'a =
+  | Tqtmk [@builtin] (current:'a) (final:'a) (id:int)
+
+(* meta model_record function id *)
+
+(* meta model_record function final *)
+
+(* meta model_record function current *)
+
+function borrow_logic (cur:'a) (fin:'a) (id1:int) : t 'a = Tqtmk cur fin id1
+
+function get_id (x:t 'a) : int = x.id
+
+function inherit_id int int : int
+
+(* use creusot.prelude.MutBorrow *)
+
+type t_H
+
+predicate inv_H t_H
+
+predicate invariant_refmut_H [@inline:trivial] (self:t t_H) =
+  inv_H (self.current) /\ inv_H (self.final)
+
+(* meta rewrite_def predicate invariant_refmut_H *)
+
+predicate inv_refmut_H [@inline:trivial] (us1:t t_H) = invariant_refmut_H us1
+
+(* meta rewrite_def predicate inv_refmut_H *)
+
+type t_StandardHeader =
+  | Accept
+  | AcceptCharset
+  | AcceptEncoding
+  | AcceptLanguage
+  | AcceptRanges
+  | AccessControlAllowCredentials
+  | AccessControlAllowHeaders
+  | AccessControlAllowMethods
+  | AccessControlAllowOrigin
+  | AccessControlExposeHeaders
+  | AccessControlMaxAge
+  | AccessControlRequestHeaders
+  | AccessControlRequestMethod
+  | Age
+  | Allow
+  | AltSvc
+  | Authorization
+  | CacheControl
+  | CacheStatus
+  | CdnCacheControl
+  | Connection
+  | ContentDisposition
+  | ContentEncoding
+  | ContentLanguage
+  | ContentLength
+  | ContentLocation
+  | ContentRange
+  | ContentSecurityPolicy
+  | ContentSecurityPolicyReportOnly
+  | ContentType
+  | Cookie
+  | Dnt
+  | Date
+  | Etag
+  | Expect
+  | Expires
+  | Forwarded
+  | From
+  | Host
+  | IfMatch
+  | IfModifiedSince
+  | IfNoneMatch
+  | IfRange
+  | IfUnmodifiedSince
+  | LastModified
+  | Link
+  | Location
+  | MaxForwards
+  | Origin
+  | Pragma
+  | ProxyAuthenticate
+  | ProxyAuthorization
+  | PublicKeyPins
+  | PublicKeyPinsReportOnly
+  | Range
+  | Referer
+  | ReferrerPolicy
+  | Refresh
+  | RetryAfter
+  | SecWebSocketAccept
+  | SecWebSocketExtensions
+  | SecWebSocketKey
+  | SecWebSocketProtocol
+  | SecWebSocketVersion
+  | Server
+  | SetCookie
+  | StrictTransportSecurity
+  | Te
+  | Trailer
+  | TransferEncoding
+  | UserAgent
+  | Upgrade
+  | UpgradeInsecureRequests
+  | Vary
+  | Via
+  | Warning
+  | WwwAuthenticate
+  | XContentTypeOptions
+  | XDnsPrefetchControl
+  | XFrameOptions
+  | XXssProtection
+
+(* meta compute_max_steps 1000000 *)
+
+(* meta select_lsinst "all" *)
+
+constant self_ [@introduced] : t_StandardHeader
+
+constant state [@introduced] : t t_H
+
+axiom H [@introduced] : inv_refmut_H state
+
+(* meta syntax_type type int, "int", 0 *)
+
+(* meta syntax_type type real, "real", 0 *)
+
+(* meta syntax_logic predicate infix_eq, "(%1 = %2)", 0 *)
+
+(* meta encoding:ignore_polymorphism_ls predicate infix_eq *)
+
+goal refines : inv_refmut_H state
+
+end
