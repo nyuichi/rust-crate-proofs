@@ -2,6 +2,22 @@
 
 ## Current checkpoint (2026-10-05)
 
+Explicit-cleanup continuation: ordinary SharedBuffer cleanup and both existing
+B3 deallocation variants now use one native `allocation_ops::deallocate_u8`
+leaf: direct global deallocation with byte layout, with no allocation at capacity
+zero. This replaces the prior Vec reconstruction/destructor dependency without
+adding trusted clauses. Carrier consuming release suppresses handle automatic
+cleanup before entering the protocol. Current positive gate: 114 files, zero
+unproved; native allocation/mutation matrix: 7 tests; ordinary test_bytes: 118;
+no-default-features check: pass. Evidence is `explicit-cleanup-positive`.
+This connects the physical buffer-deallocation leaf, not yet original
+release_shared control flow or automatic destructor invocation.
+
+A read-only Luna xhigh Verus audit found upstream PAtomic load/add/sub use
+hard-coded SeqCst. Stock Verus does not express the unchanged native
+Relaxed/Release/Acquire sequence; a custom weak-memory model remains necessary.
+See `verification/VERUS_REFCOUNT_FEASIBILITY.md`. No Verus proof is claimed.
+
 The coordinator-carrier gate passes 114 proof files with zero unproved leaves.
 Exact cfg-adapted from_vec, promotion, ARC shallow_clone/native increment,
 repeated split_to/split_off/split, mutable/read/spare access, set_len,
@@ -37,8 +53,9 @@ no new trusted protocol/physical-access clause or core/std change is introduced.
 Luna xhigh prepared native cases and audited scope; Astra reviewed proof
 interfaces, split_off, capacity paths and coordinator relocation.
 
-Remaining boundaries: ordinary Shared/Vec representation equivalence and original
-release_shared; automatic scope-exit Drop effects; concurrent RMW/release-sequence/
+Remaining boundaries: original release_shared control-flow integration and
+ordinary/proof ownership interpretation (ordinary Shared already uses raw
+SharedBuffer, not a live Vec); automatic scope-exit Drop effects; concurrent RMW/release-sequence/
 view synchronization; Bytes/freeze read-sharing and vtable dispatch; and
 storage-moving/growing reserve/reclaim/unsplit. Unmediated sibling API calls still
 lack the explicit coordinator required by this adapter. Requested-capacity

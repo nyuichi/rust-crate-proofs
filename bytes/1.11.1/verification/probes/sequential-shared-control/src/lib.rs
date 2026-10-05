@@ -2,6 +2,9 @@
 #![allow(unexpected_cfgs)]
 #![recursion_limit = "512"]
 extern crate alloc;
+#[cfg(not(creusot))]
+#[path = "../../../../src/allocation_ops.rs"]
+mod allocation_ops;
 #[path = "../../../../src/capacity_ops.rs"]
 mod capacity_ops;
 #[path = "../../../../src/provenance_specs.rs"]

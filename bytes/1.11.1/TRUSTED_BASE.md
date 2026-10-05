@@ -215,9 +215,11 @@ See `verification/RAW_VEC_TRUSTED_BOUNDARY.md` for bounds and lifetime limits.
 
 `ownership_proof/raw_vec.rs::deallocate_vec` is an audited trusted physical
 boundary: exact sealed base/capacity, full region and unique Recovery are
-consumed, then a zero-length Vec is actually destroyed. No byte initialization
-is required. Native destruction is assumed by this boundary; caller proofs do
-not derive it from standard `mem::drop` or establish automatic Drop effects.
+consumed, then `allocation_ops::deallocate_u8` directly calls the global allocator
+with the original byte capacity and alignment 1 (capacity zero does nothing).
+The same native leaf is used by ordinary SharedBuffer cleanup. No byte
+initialization is required. The existing B3 trust covers this physical leaf;
+caller proofs do not prove allocator semantics or automatic Drop effects.
 
 ## Initial bound-pointer adapter checkpoint
 
