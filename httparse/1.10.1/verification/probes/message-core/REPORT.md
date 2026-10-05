@@ -57,14 +57,26 @@ afterward it requires the Request and Response constructor bodies, Header clone
 body, and all three callers in its mandatory manifest to be nonempty. Additional
 Coma outputs are allowed.
 
-Proof result: passed, 9 VCs, `bash verification/probes/message-core/verify.sh prove`
-from the `httparse/1.10.1` directory.
+Prior proof result: passed, 9 VCs, from
+`bash verification/probes/message-core/verify.sh prove` in the
+`httparse/1.10.1` directory.
 
 The harness imports `ensures` unconditionally because the shared source uses
 that attribute in both native and Creusot builds. Native offline checks passed
 for default features and `--no-default-features`; both emitted only the existing
 `creusot-std` unstable-auto-trait warning. This import-only correction leaves the
-Creusot cfg, specifications, and function bodies unchanged. The proof was not
-rerun, so the existing 9-VC artifacts were left untouched. The revised
-split-phase runner has only passed shell syntax and diff checks; it has not yet
-been run to create fresh proof evidence.
+Creusot cfg, specifications, and function bodies unchanged.
+
+After the split-phase runner repair, `bash verify.sh translate` exited
+successfully on 2026-10-05 at 02:02:29 UTC and regenerated all six current Coma
+outputs: the Request and Response constructor bodies, Header clone body, and
+three callers. Proof mode was not invoked, so the prior 9-VC result remains the
+only recorded proof result.
+
+The six `proof.json` files in this harness and 17 in byteclass were unchanged
+across these translation runs; their combined sorted manifest hash before and
+after was
+`43e3345390339e95d407379f02b77fce4dcd1f6d60cc3429789bba241a38bc4c`. The
+selected Why3 config `/workspace/proof-tools/config/creusot/why3.conf` also
+retained its SHA-256 hash before and after:
+`e1124888733158546f027f02926484f591bed63bb5e10f861a6c93a54330ea07`.

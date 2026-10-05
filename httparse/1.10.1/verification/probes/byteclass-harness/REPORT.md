@@ -48,7 +48,7 @@ passed, and the shared-queue proof passed all 29 obligations:
 - The included independent model discharged 9 VCs: accepted span, cursor skip,
   five Clone bodies, maximal prefix, and token model.
 
-The command sequence for this clean target-local run was:
+The historical 29-VC proof run used this command sequence:
 
 ```sh
 source /workspace/proof-tools/activate.sh
@@ -72,9 +72,20 @@ successful VCs and no failures. The generated Why3 session is under
 `verif/httparse_byteclass_harness_rlib`; translation and proof configuration
 is in this target directory.
 
-The 29/29 result above is from the previously recorded proof run. This revised
-split-phase runner has only passed shell syntax and diff checks so far; it has
-not yet been run to create fresh proof evidence.
+The 29/29 result above is from the previously recorded proof run. After the
+split-phase runner repair, `bash verify.sh translate` exited successfully on
+2026-10-05 at 02:01:53 UTC and regenerated all 17 currently manifested Coma
+outputs: the three map constructors, four runtime helpers, `classify_byte`,
+and nine verification-model bodies. The proof mode was not invoked, so this
+translation-only run adds no proof result.
+
+The 17 `proof.json` files in this harness and six in message-core were
+unchanged across these translation runs; their combined sorted manifest hash
+before and after was
+`43e3345390339e95d407379f02b77fce4dcd1f6d60cc3429789bba241a38bc4c`. The
+selected Why3 config `/workspace/proof-tools/config/creusot/why3.conf` also
+retained its SHA-256 hash before and after:
+`e1124888733158546f027f02926484f591bed63bb5e10f861a6c93a54330ea07`.
 
 The generated `.coma` files show the concrete table-content bridge. For each
 table, `const_*_spec` contributes only the array invariant; there is no assumed

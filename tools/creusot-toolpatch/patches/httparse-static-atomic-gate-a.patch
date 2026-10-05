@@ -1,0 +1,1228 @@
+diff --git a/creusot-rustc/src/main.rs b/creusot-rustc/src/main.rs
+index d5710a2..50a00f8 100644
+--- a/creusot-rustc/src/main.rs
++++ b/creusot-rustc/src/main.rs
+@@ -42,6 +42,41 @@ fn main() {
+ fn setup_plugin() {
+     let mut args = env::args().collect::<Vec<_>>();
+ 
++    let static_audit = match creusot::static_atomic::AuditConfig::from_env() {
++        Ok(config) => config,
++        Err(message) => {
++            eprintln!("Static AtomicU8 audit configuration error: {message}");
++            std::process::exit(1)
++        }
++    };
++    let static_target = match &static_audit {
++        Some(config) => match config.matches_invocation(&args) {
++            Ok(matches) => matches,
++            Err(message) => {
++                eprintln!("Static AtomicU8 audit routing error: {message}");
++                std::process::exit(1)
++            }
++        },
++        None => false,
++    };
++    let static_proof_target = static_target
++        && static_audit.as_ref().is_some_and(|config| {
++            config.mode == creusot::static_atomic::AuditMode::Proof
++        });
++    if static_audit.as_ref().is_some_and(|config| {
++        config.mode == creusot::static_atomic::AuditMode::Normal
++    }) {
++        remove_creusot_cfg(&mut args);
++        append_creusot_args_without_cfg(&mut args);
++        if static_target {
++            let config = static_audit.expect("matched audit config");
++            run_compiler(&args, &mut creusot::static_atomic::NormalAuditCallbacks::new(config));
++        } else {
++            run_compiler(&args, &mut DefaultCallbacks);
++        }
++        return;
++    }
++
+     let creusot = match std::env::var("CREUSOT_ARGS") {
+         Ok(json) => {
+             let creusot = serde_json::from_str(&json).unwrap();
+@@ -69,6 +104,17 @@ fn setup_plugin() {
+ 
+     let has_contracts = args.iter().any(|arg| arg == "creusot_std" || arg.contains("creusot_std="));
+ 
++    // The target-local proof-cfg smoke mode audits its executable MIR without
++    // asking cargo-creusot for proof options or invoking translation.
++    if static_proof_target && opts.is_none() {
++        for &arg in CREUSOT_RUSTC_ARGS {
++            args.push(arg.to_owned());
++        }
++        let config = static_audit.expect("matched proof audit config");
++        run_compiler(&args, &mut creusot::static_atomic::ProofAuditCallbacks::new(config));
++        return;
++    }
++
+     if has_contracts {
+         let Some(opts) = opts else {
+             eprintln!("Missing Creusot options");
+@@ -80,10 +126,50 @@ fn setup_plugin() {
+         debug!("creusot args={:?}", args);
+         run_compiler(&args, &mut ToWhy::new(opts))
+     } else {
+-        args.push("--cfg=creusot".to_string());
++        if static_proof_target {
++            for &arg in CREUSOT_RUSTC_ARGS {
++                args.push(arg.to_owned());
++            }
++        } else {
++            args.push("--cfg=creusot".to_string());
++        }
+         match opts {
+             None => run_compiler(&args, &mut DefaultCallbacks), // This is probably rustc -vV
+             Some(opts) => run_compiler(&args, &mut WithoutContracts::new(opts)),
+         }
+     }
+ }
++
++fn remove_creusot_cfg(args: &mut Vec<String>) {
++    let mut filtered = Vec::with_capacity(args.len());
++    let mut index = 0;
++    while index < args.len() {
++        if args[index] == "--cfg" && args.get(index + 1).is_some_and(|value| value == "creusot") {
++            index += 2;
++        } else if args[index] == "--cfg=creusot" {
++            index += 1;
++        } else {
++            filtered.push(args[index].clone());
++            index += 1;
++        }
++    }
++    *args = filtered;
++}
++
++fn append_creusot_args_without_cfg(args: &mut Vec<String>) {
++    let mut skip_cfg_value = false;
++    for &arg in CREUSOT_RUSTC_ARGS {
++        if skip_cfg_value {
++            skip_cfg_value = false;
++            continue;
++        }
++        if arg == "--cfg" {
++            skip_cfg_value = true;
++            continue;
++        }
++        if arg == "--cfg=creusot" {
++            continue;
++        }
++        args.push(arg.to_owned());
++    }
++}
+diff --git a/creusot/src/callbacks.rs b/creusot/src/callbacks.rs
+index 2640ad7..0d79154 100644
+--- a/creusot/src/callbacks.rs
++++ b/creusot/src/callbacks.rs
+@@ -120,8 +120,20 @@ impl Callbacks for ToWhy {
+     }
+ 
+     fn after_expansion<'tcx>(&mut self, c: &Compiler, tcx: TyCtxt<'tcx>) -> Compilation {
++        let static_audit = match crate::static_atomic::capture_proof_if_requested(tcx) {
++            Ok(audit) => audit,
++            Err(message) => {
++                c.sess.dcx().err(message);
++                return Compilation::Stop;
++            }
++        };
+         let params_open_inv = crate::translation::before_analysis(tcx);
+         let _ = tcx.analysis(());
++        if let Some((config, bodies)) = static_audit
++            && let Err(message) = crate::static_atomic::run_captured_audit(&config, tcx, &bodies)
++        {
++            c.sess.dcx().err(message);
++        }
+         let _ = crate::translation::after_analysis(tcx, self.opts.clone(), params_open_inv);
+ 
+         c.sess.dcx().abort_if_errors();
+@@ -198,6 +210,20 @@ impl WithoutContracts {
+ 
+ impl Callbacks for WithoutContracts {
+     fn after_expansion<'tcx>(&mut self, c: &Compiler, tcx: TyCtxt<'tcx>) -> Compilation {
++        let static_audit = match crate::static_atomic::capture_proof_if_requested(tcx) {
++            Ok(audit) => audit,
++            Err(message) => {
++                c.sess.dcx().err(message);
++                return Compilation::Stop;
++            }
++        };
++        if let Some((config, bodies)) = static_audit {
++            let _ = tcx.analysis(());
++            if let Err(message) = crate::static_atomic::run_captured_audit(&config, tcx, &bodies) {
++                c.sess.dcx().err(message);
++                return Compilation::Stop;
++            }
++        }
+         if self.opts.erasure_check.is_no() {
+             return Compilation::Continue;
+         }
+diff --git a/creusot/src/lib.rs b/creusot/src/lib.rs
+index 84d2657..5e6b97e 100644
+--- a/creusot/src/lib.rs
++++ b/creusot/src/lib.rs
+@@ -38,6 +38,7 @@ extern crate rustc_trait_selection;
+ extern crate rustc_type_ir;
+ 
+ pub mod callbacks;
++pub mod static_atomic;
+ 
+ mod analysis;
+ mod backend;
+diff --git a/creusot/src/static_atomic.rs b/creusot/src/static_atomic.rs
+new file mode 100644
+index 0000000..e747a6e
+--- /dev/null
++++ b/creusot/src/static_atomic.rs
+@@ -0,0 +1,1048 @@
++//! Target-local audit support for the first static `AtomicU8` prototype.
++//!
++//! This module only validates registrations and inventories ordinary Rust MIR.
++//! It does not change how an atomic load or store is translated and does not
++//! grant a proof rule to the registered static.
++
++use std::{collections::{HashMap, HashSet}, env, fs, path::PathBuf};
++
++use rustc_hir::def::DefKind;
++use rustc_middle::{
++    mir::{
++        self, interpret::alloc_range, visit::{PlaceContext, Visitor}, LocalInfo, Place,
++        Rvalue, StatementKind, TerminatorKind,
++    },
++    ty::{self, TyCtxt},
++};
++use rustc_span::Symbol;
++use rustc_abi::Size;
++
++const MODE_ENV: &str = "CREUSOT_STATIC_ATOMIC_MODE";
++const MANIFEST_ENV: &str = "CREUSOT_STATIC_ATOMIC_MANIFEST";
++const OUTPUT_ENV: &str = "CREUSOT_STATIC_ATOMIC_OUTPUT";
++const SOURCE_HASH_ENV: &str = "CREUSOT_STATIC_ATOMIC_SOURCE_SHA256";
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum AuditMode {
++    Normal,
++    Proof,
++}
++
++#[derive(Clone, Debug)]
++pub struct StaticRegistration {
++    pub static_path: String,
++    pub predicate_path: String,
++}
++
++#[derive(Clone, Debug)]
++pub struct AuditProvenance {
++    pub run_id: String,
++    pub normal_input_sha256: String,
++    pub proof_input_sha256: String,
++    pub compiler_sha256: String,
++    pub patch_sha256: String,
++    pub fixture_sha256: String,
++    pub runner_sha256: String,
++}
++
++#[derive(Clone, Debug)]
++pub struct AuditConfig {
++    pub mode: AuditMode,
++    pub crate_name: String,
++    pub manifest_dir: PathBuf,
++    pub target: String,
++    pub source_sha256: String,
++    pub provenance: AuditProvenance,
++    pub output: PathBuf,
++    pub statics: Vec<StaticRegistration>,
++}
++
++impl AuditConfig {
++    /// Parse the opt-in environment settings. The versioned manifest is plain
++    /// UTF-8 so this compiler patch does not add a serialization dependency.
++    pub fn from_env() -> Result<Option<Self>, String> {
++        let Some(mode) = env::var_os(MODE_ENV) else { return Ok(None) };
++        let mode = mode
++            .into_string()
++            .map_err(|_| format!("{MODE_ENV} must be Unicode"))?;
++        let mode = match mode.as_str() {
++            "normal-audit" => AuditMode::Normal,
++            "proof-audit" => AuditMode::Proof,
++            _ => return Err(format!("unsupported {MODE_ENV} value `{mode}`")),
++        };
++        let manifest_path = required_path(MANIFEST_ENV)?;
++        let output = required_path(OUTPUT_ENV)?;
++        let source_sha256 = env::var(SOURCE_HASH_ENV)
++            .map_err(|_| format!("missing {SOURCE_HASH_ENV}"))?;
++        if !is_sha256(&source_sha256) {
++            return Err(format!("{SOURCE_HASH_ENV} must be 64 lowercase hexadecimal characters"));
++        }
++
++        let manifest = fs::read_to_string(&manifest_path)
++            .map_err(|err| format!("cannot read {}: {err}", manifest_path.display()))?;
++        parse_manifest(mode, &manifest, &source_sha256, output)
++    }
++
++    /// `false` means this compiler invocation is a dependency and must follow
++    /// its ordinary driver path. A same-name crate from another package is an
++    /// error, so an incorrectly routed target cannot silently pass through.
++    pub fn matches_invocation(&self, args: &[String]) -> Result<bool, String> {
++        let Some(crate_name) = arg_value(args, "--crate-name") else {
++            // Cargo may ask the rustc wrapper for version information. That
++            // is not the registered crate invocation.
++            return Ok(false);
++        };
++        if crate_name != self.crate_name {
++            return Ok(false);
++        }
++        let actual_dir = env::var("CARGO_MANIFEST_DIR")
++            .map_err(|_| "target audit requires CARGO_MANIFEST_DIR".to_string())?;
++        let actual_dir = fs::canonicalize(&actual_dir)
++            .map_err(|err| format!("cannot canonicalize CARGO_MANIFEST_DIR: {err}"))?;
++        if actual_dir != self.manifest_dir {
++            return Err(format!(
++                "crate `{crate_name}` matched the static audit registration, but CARGO_MANIFEST_DIR is {}; expected {}",
++                actual_dir.display(),
++                self.manifest_dir.display()
++            ));
++        }
++        Ok(true)
++    }
++
++    fn matches_tcx(&self, tcx: TyCtxt<'_>) -> Result<bool, String> {
++        let crate_name = tcx.crate_name(rustc_hir::def_id::LOCAL_CRATE).to_string();
++        if crate_name != self.crate_name {
++            return Ok(false);
++        }
++        let actual_dir = env::var("CARGO_MANIFEST_DIR")
++            .map_err(|_| "target audit requires CARGO_MANIFEST_DIR".to_string())?;
++        let actual_dir = fs::canonicalize(&actual_dir)
++            .map_err(|err| format!("cannot canonicalize CARGO_MANIFEST_DIR: {err}"))?;
++        if actual_dir != self.manifest_dir {
++            return Err(format!(
++                "crate `{crate_name}` matched the static audit registration, but CARGO_MANIFEST_DIR is {}; expected {}",
++                actual_dir.display(),
++                self.manifest_dir.display()
++            ));
++        }
++        let actual_target = tcx.sess.opts.target_triple.to_string();
++        if actual_target != self.target {
++            return Err(format!(
++                "target `{actual_target}` does not match static audit manifest target `{}`",
++                self.target
++            ));
++        }
++        Ok(true)
++    }
++}
++
++/// Capture pre-optimization executable MIR before rustc steals the `mir_built`
++/// query to produce optimized MIR. `LocalInfo::StaticRef` carries the resolved
++/// static identity at this stage.
++pub fn capture_bodies<'tcx>(tcx: TyCtxt<'tcx>) -> Vec<(rustc_hir::def_id::DefId, mir::Body<'tcx>)> {
++    tcx.hir_body_owners()
++        .filter(|body_id| {
++            matches!(
++                tcx.def_kind(body_id.to_def_id()),
++                DefKind::Fn
++                    | DefKind::AssocFn
++                    | DefKind::Closure
++                    | DefKind::SyntheticCoroutineBody
++                    | DefKind::Const
++                    | DefKind::AssocConst
++                    | DefKind::InlineConst
++                    | DefKind::Static { .. }
++            )
++        })
++        .map(|body_id| {
++            let body = tcx.mir_built(body_id).borrow().clone();
++            (body_id.to_def_id(), body)
++        })
++        .collect()
++}
++
++/// Resolve whether a proof-cfg callback is the registered target, then capture
++/// its executable MIR before analysis consumes `mir_built`.
++pub fn capture_proof_if_requested<'tcx>(
++    tcx: TyCtxt<'tcx>,
++) -> Result<Option<(AuditConfig, Vec<(rustc_hir::def_id::DefId, mir::Body<'tcx>)>)>, String> {
++    let Some(config) = AuditConfig::from_env()? else { return Ok(None) };
++    if config.mode != AuditMode::Proof || !config.matches_tcx(tcx)? {
++        return Ok(None);
++    }
++    let bodies = capture_bodies(tcx);
++    Ok(Some((config, bodies)))
++}
++
++pub struct NormalAuditCallbacks {
++    config: AuditConfig,
++}
++
++impl NormalAuditCallbacks {
++    pub fn new(config: AuditConfig) -> Self {
++        Self { config }
++    }
++}
++
++impl rustc_driver::Callbacks for NormalAuditCallbacks {
++    fn after_expansion<'tcx>(
++        &mut self,
++        compiler: &rustc_interface::interface::Compiler,
++        tcx: TyCtxt<'tcx>,
++    ) -> rustc_driver::Compilation {
++        let bodies = capture_bodies(tcx);
++        let _ = tcx.analysis(());
++        match run_audit(&self.config, tcx, &bodies) {
++            Ok(()) => rustc_driver::Compilation::Continue,
++            Err(message) => {
++                compiler.sess.dcx().err(message);
++                rustc_driver::Compilation::Stop
++            }
++        }
++    }
++}
++
++pub struct ProofAuditCallbacks {
++    config: AuditConfig,
++}
++
++impl ProofAuditCallbacks {
++    pub fn new(config: AuditConfig) -> Self {
++        Self { config }
++    }
++}
++
++impl rustc_driver::Callbacks for ProofAuditCallbacks {
++    fn after_expansion<'tcx>(
++        &mut self,
++        compiler: &rustc_interface::interface::Compiler,
++        tcx: TyCtxt<'tcx>,
++    ) -> rustc_driver::Compilation {
++        let bodies = capture_bodies(tcx);
++        let _ = tcx.analysis(());
++        match run_audit(&self.config, tcx, &bodies) {
++            Ok(()) => rustc_driver::Compilation::Continue,
++            Err(message) => {
++                compiler.sess.dcx().err(message);
++                rustc_driver::Compilation::Stop
++            }
++        }
++    }
++}
++
++pub fn run_captured_audit<'tcx>(
++    config: &AuditConfig,
++    tcx: TyCtxt<'tcx>,
++    bodies: &[(rustc_hir::def_id::DefId, mir::Body<'tcx>)],
++) -> Result<(), String> {
++    run_audit(config, tcx, bodies)
++}
++
++fn run_audit<'tcx>(
++    config: &AuditConfig,
++    tcx: TyCtxt<'tcx>,
++    bodies: &[(rustc_hir::def_id::DefId, mir::Body<'tcx>)],
++) -> Result<(), String> {
++    let actual_target = tcx.sess.opts.target_triple.to_string();
++    if actual_target != config.target {
++        return Err(format!(
++            "target `{actual_target}` does not match static audit manifest target `{}`",
++            config.target
++        ));
++    }
++
++    let atomic_u8 = tcx
++        .get_diagnostic_item(Symbol::intern("AtomicU8"))
++        .ok_or_else(|| "sysroot AtomicU8 diagnostic item was not found".to_string())?;
++    let atomic_methods = atomic_method_ids(tcx, atomic_u8);
++    if !atomic_methods.values().any(|method| *method == AtomicMethod::Load)
++        || !atomic_methods.values().any(|method| *method == AtomicMethod::Store)
++    {
++        return Err("sysroot AtomicU8 load/store method definitions were not resolved".into());
++    }
++    let atomic_new = atomic_constructor_id(tcx, atomic_u8)
++        .ok_or_else(|| "sysroot AtomicU8::new definition was not resolved".to_string())?;
++    let mut output = format!(
++        "creusot-static-atomic-audit-v2\nmode\t{:?}\ncrate\t{}\ntarget\t{}\nsource_sha256\t{}\nrun_id\t{}\nnormal_input_sha256\t{}\nproof_input_sha256\t{}\ncompiler_sha256\t{}\npatch_sha256\t{}\nfixture_sha256\t{}\nrunner_sha256\t{}\n",
++        config.mode,
++        config.crate_name,
++        config.target,
++        config.source_sha256,
++        config.provenance.run_id,
++        config.provenance.normal_input_sha256,
++        config.provenance.proof_input_sha256,
++        config.provenance.compiler_sha256,
++        config.provenance.patch_sha256,
++        config.provenance.fixture_sha256,
++        config.provenance.runner_sha256,
++    );
++    let mut resolved = Vec::new();
++    for registration in &config.statics {
++        let static_id = resolve_local(tcx, &registration.static_path)?;
++        validate_static(tcx, static_id, atomic_u8)?;
++        if config.mode == AuditMode::Proof {
++            let predicate_id = resolve_local(tcx, &registration.predicate_path)?;
++            validate_predicate(tcx, predicate_id)?;
++        }
++        let initial = read_initial_byte(tcx, static_id)?;
++        let initializer_body = bodies
++            .iter()
++            .find(|(body_id, _)| *body_id == static_id)
++            .map(|(_, body)| body)
++            .ok_or_else(|| format!("{} has no captured initializer MIR", tcx.def_path_str(static_id)))?;
++        validate_initializer(tcx, static_id, initializer_body, atomic_new, initial)?;
++        output.push_str(&format!(
++            "registration\t{}\t{}\tinitial={initial}\tpredicate_checked={}\n",
++            registration.static_path,
++            registration.predicate_path,
++            config.mode == AuditMode::Proof,
++        ));
++        resolved.push((static_id, registration.static_path.as_str()));
++    }
++
++    // Include the full built MIR for every body whose compiler metadata
++    // records a reference to one of the registered statics. The two audit
++    // runs can compare these blocks byte-for-byte to detect cfg-specific
++    // changes to executable bodies.
++    for (body_id, body) in bodies {
++        let mut static_ids = HashSet::new();
++        for local in &body.local_decls {
++            if let Some(LocalInfo::StaticRef { def_id, is_thread_local }) = local_info(local)
++                && resolved.iter().any(|(registered, _)| *registered == *def_id)
++            {
++                if *is_thread_local {
++                    return Err(format!(
++                        "{} is accessed as a thread-local static in {}",
++                        tcx.def_path_str(*def_id),
++                        tcx.def_path_str(*body_id)
++                    ));
++                }
++                static_ids.insert(*def_id);
++            }
++        }
++        if !static_ids.is_empty() {
++            let operations = audit_body(
++                tcx,
++                body,
++                *body_id,
++                &static_ids,
++                atomic_u8,
++                &atomic_methods,
++            )?;
++            let path = tcx.def_path_str(*body_id);
++            for (static_id, method) in operations {
++                output.push_str(&format!(
++                    "access\t{path}\t{}\t{}\tOrdering::Relaxed\n",
++                    tcx.def_path_str(static_id), method.as_str()
++                ));
++            }
++            output.push_str(&format!("begin_mir\t{path}\n{body:?}\nend_mir\t{path}\n"));
++        }
++    }
++
++    let temp_path = config.output.with_extension("audit.tmp");
++    fs::write(&temp_path, output)
++        .map_err(|err| format!("cannot write audit output {}: {err}", temp_path.display()))?;
++    fs::rename(&temp_path, &config.output)
++        .map_err(|err| format!("cannot publish audit output {}: {err}", config.output.display()))?;
++    Ok(())
++}
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++enum AtomicMethod {
++    Load,
++    Store,
++}
++
++impl AtomicMethod {
++    fn as_str(self) -> &'static str {
++        match self {
++            Self::Load => "load",
++            Self::Store => "store",
++        }
++    }
++}
++
++fn atomic_method_ids(
++    tcx: TyCtxt<'_>,
++    atomic_u8: rustc_hir::def_id::DefId,
++) -> HashMap<rustc_hir::def_id::DefId, AtomicMethod> {
++    let mut methods = HashMap::new();
++    for impl_id in tcx.inherent_impls(atomic_u8) {
++        for item in tcx.associated_items(*impl_id).in_definition_order() {
++            let method = match item.kind {
++                ty::AssocKind::Fn { name, .. } if name == Symbol::intern("load") => {
++                    Some(AtomicMethod::Load)
++                }
++                ty::AssocKind::Fn { name, .. } if name == Symbol::intern("store") => {
++                    Some(AtomicMethod::Store)
++                }
++                _ => None,
++            };
++            if let Some(method) = method {
++                methods.insert(item.def_id, method);
++            }
++        }
++    }
++    methods
++}
++
++fn atomic_constructor_id(
++    tcx: TyCtxt<'_>,
++    atomic_u8: rustc_hir::def_id::DefId,
++) -> Option<rustc_hir::def_id::DefId> {
++    for impl_id in tcx.inherent_impls(atomic_u8) {
++        for item in tcx.associated_items(*impl_id).in_definition_order() {
++            if matches!(item.kind, ty::AssocKind::Fn { name, .. } if name == Symbol::intern("new")) {
++                return Some(item.def_id);
++            }
++        }
++    }
++    None
++}
++
++fn validate_initializer<'tcx>(
++    tcx: TyCtxt<'tcx>,
++    static_id: rustc_hir::def_id::DefId,
++    body: &mir::Body<'tcx>,
++    atomic_new: rustc_hir::def_id::DefId,
++    initial: u8,
++) -> Result<(), String> {
++    let calls = body
++        .basic_blocks
++        .iter()
++        .filter_map(|block| match &block.terminator().kind {
++            TerminatorKind::Call { func, args, destination, target, .. } => {
++                Some((func, args, destination, target))
++            }
++            _ => None,
++        })
++        .collect::<Vec<_>>();
++    if calls.len() != 1 {
++        return Err(format!(
++            "{} initializer must contain exactly one direct AtomicU8::new call",
++            tcx.def_path_str(static_id)
++        ));
++    }
++    let (func, args, destination, target) = calls[0];
++    let called = match func {
++        mir::Operand::Constant(constant) => match constant.const_.ty().kind() {
++            ty::FnDef(def_id, _) => Some(*def_id),
++            _ => None,
++        },
++        _ => None,
++    };
++    let correct_arg = args.len() == 1
++        && matches!(
++            &args[0].node,
++            mir::Operand::Constant(constant)
++                if constant.const_.ty() == tcx.types.u8
++                    && constant.const_.try_eval_bits(tcx, ty::TypingEnv::post_analysis(tcx, static_id)) == Some(initial as u128)
++        );
++    let returns_atomic = destination.local == mir::RETURN_PLACE
++        && destination.projection.is_empty()
++        && body.local_decls[mir::RETURN_PLACE].ty == tcx.type_of(static_id).instantiate_identity();
++    let returns_after_call = target.is_some_and(|block| {
++        matches!(body[block].terminator().kind, TerminatorKind::Return)
++    });
++    if called != Some(atomic_new) || !correct_arg || !returns_atomic || !returns_after_call {
++        return Err(format!(
++            "{} initializer is not the recognized AtomicU8::new(const_u8) form",
++            tcx.def_path_str(static_id)
++        ));
++    }
++    Ok(())
++}
++
++#[derive(Default)]
++struct PlaceCollector<'tcx> {
++    places: Vec<Place<'tcx>>,
++}
++
++impl<'tcx> Visitor<'tcx> for PlaceCollector<'tcx> {
++    fn visit_place(&mut self, place: &Place<'tcx>, _context: PlaceContext, _location: mir::Location) {
++        self.places.push(*place);
++    }
++}
++
++fn audit_body<'tcx>(
++    tcx: TyCtxt<'tcx>,
++    body: &mir::Body<'tcx>,
++    body_id: rustc_hir::def_id::DefId,
++    static_ids: &HashSet<rustc_hir::def_id::DefId>,
++    atomic_u8: rustc_hir::def_id::DefId,
++    methods: &HashMap<rustc_hir::def_id::DefId, AtomicMethod>,
++) -> Result<Vec<(rustc_hir::def_id::DefId, AtomicMethod)>, String> {
++    let mut aliases = vec![HashSet::new(); body.local_decls.len()];
++    for (local, decl) in body.local_decls.iter_enumerated() {
++        if let Some(LocalInfo::StaticRef { def_id, .. }) = local_info(decl)
++            && static_ids.contains(def_id)
++        {
++            aliases[local.as_usize()].insert(*def_id);
++        }
++    }
++
++    let relaxed_orderings = relaxed_ordering_locals(tcx, body_id, body);
++
++    // This monotone fixed point conservatively joins aliases from every CFG
++    // predecessor. It never forgets an identity when a local is reassigned.
++    loop {
++        let mut changed = false;
++        for block in body.basic_blocks.iter() {
++            for statement in &block.statements {
++                let StatementKind::Assign(box (destination, rvalue)) = &statement.kind else { continue };
++                if !destination.projection.is_empty() { continue; }
++                let source = match rvalue {
++                    Rvalue::Use(mir::Operand::Copy(place) | mir::Operand::Move(place))
++                        if place.projection.is_empty() => Some(place.local),
++                    Rvalue::Ref(_, mir::BorrowKind::Shared, place)
++                        if matches!(place.projection.as_ref(), [mir::ProjectionElem::Deref]) => Some(place.local),
++                    _ => None,
++                };
++                let Some(source) = source else { continue };
++                let source_ids = aliases[source.as_usize()].clone();
++                if !source_ids.is_empty() {
++                    let destination_index = destination.local.as_usize();
++                    let before = aliases[destination_index].len();
++                    aliases[destination_index].extend(source_ids);
++                    changed |= aliases[destination_index].len() != before;
++                }
++            }
++        }
++        if !changed { break; }
++    }
++
++    let mut operations = Vec::new();
++    for (block_index, block) in body.basic_blocks.iter_enumerated() {
++        for (statement_index, statement) in block.statements.iter().enumerate() {
++            match &statement.kind {
++                StatementKind::Assign(box (destination, rvalue)) => {
++                    let mut collector = PlaceCollector::default();
++                    collector.visit_rvalue(rvalue, mir::Location {
++                        block: block_index,
++                        statement_index,
++                    });
++                    let used = ids_in_places(&collector.places, &aliases);
++                    let destination_ids = place_ids(*destination, &aliases);
++                    if !used.is_empty() {
++                        let alias_copy = matches!(
++                            rvalue,
++                            Rvalue::Use(mir::Operand::Copy(place) | mir::Operand::Move(place))
++                                if place.projection.is_empty()
++                        );
++                        let alias_reborrow = matches!(
++                            rvalue,
++                            Rvalue::Ref(_, mir::BorrowKind::Shared, place)
++                                if matches!(place.projection.as_ref(), [mir::ProjectionElem::Deref])
++                        );
++                        if (!alias_copy && !alias_reborrow)
++                            || !destination.projection.is_empty()
++                            || !is_shared_atomic_ref(body.local_decls[destination.local].ty, atomic_u8)
++                            || used.len() > 1
++                        {
++                            return Err(format!(
++                                "registered static reference escapes through an unsupported assignment in {} at bb{}[{}]",
++                                tcx.def_path_str(body_id), block_index.as_u32(), statement_index
++                            ));
++                        }
++                    } else if !destination_ids.is_empty()
++                        && !is_registered_static_reference_initializer(
++                            body,
++                            *destination,
++                            rvalue,
++                            static_ids,
++                        )
++                    {
++                        return Err(format!(
++                            "registered static alias is overwritten in {} at bb{}[{}]",
++                            tcx.def_path_str(body_id), block_index.as_u32(), statement_index
++                        ));
++                    }
++                }
++                StatementKind::FakeRead(..) => {}
++                _ => {
++                    let mut collector = PlaceCollector::default();
++                    collector.visit_statement(statement, mir::Location {
++                        block: block_index,
++                        statement_index,
++                    });
++                    if !ids_in_places(&collector.places, &aliases).is_empty() {
++                        return Err(format!(
++                            "registered static reference is used by unsupported MIR statement in {} at bb{}[{}]",
++                            tcx.def_path_str(body_id), block_index.as_u32(), statement_index
++                        ));
++                    }
++                }
++            }
++        }
++
++        let terminator = block.terminator();
++        match &terminator.kind {
++            TerminatorKind::Call { func, args, destination, .. } => {
++                let mut collector = PlaceCollector::default();
++                let call_location = mir::Location {
++                    block: block_index,
++                    statement_index: block.statements.len(),
++                };
++                collector.visit_operand(func, call_location);
++                for arg in args.iter() {
++                    collector.visit_operand(&arg.node, call_location);
++                }
++                let used = ids_in_places(&collector.places, &aliases);
++                let destination_ids = place_ids(*destination, &aliases);
++                if !used.is_empty() {
++                    let callee = match func {
++                        mir::Operand::Constant(constant) => match constant.const_.ty().kind() {
++                            ty::FnDef(def_id, _) => Some(*def_id),
++                            _ => None,
++                        },
++                        _ => None,
++                    };
++                    let method = callee.and_then(|def_id| methods.get(&def_id).copied());
++                    let Some(method) = method else {
++                        return Err(format!(
++                            "registered static reference is passed to an unknown or unsupported callee in {}",
++                            tcx.def_path_str(body_id)
++                        ));
++                    };
++                    let expected_args = match method {
++                        AtomicMethod::Load => 2,
++                        AtomicMethod::Store => 3,
++                    };
++                    if args.len() != expected_args || used.len() != 1 || !destination_ids.is_empty() {
++                        return Err(format!(
++                            "registered static reference reaches malformed AtomicU8::{} call in {}",
++                            method.as_str(), tcx.def_path_str(body_id)
++                        ));
++                    }
++                    let receiver = &args[0].node;
++                    let mut receiver_places = PlaceCollector::default();
++                    receiver_places.visit_operand(receiver, call_location);
++                    let receiver_ids = ids_in_places(&receiver_places.places, &aliases);
++                    let nonreceiver_used = args.iter().skip(1).any(|arg| {
++                        let mut collector = PlaceCollector::default();
++                        collector.visit_operand(&arg.node, call_location);
++                        !ids_in_places(&collector.places, &aliases).is_empty()
++                    });
++                    if receiver_ids.len() != 1 || receiver_ids != used || nonreceiver_used {
++                        return Err(format!(
++                            "registered static reference is not the sole receiver of AtomicU8::{} in {}",
++                            method.as_str(), tcx.def_path_str(body_id)
++                        ));
++                    }
++                    let ordering_index = expected_args - 1;
++                    if !operand_is_relaxed_ordering(
++                        tcx,
++                        body_id,
++                        &args[ordering_index].node,
++                        &relaxed_orderings,
++                    ) {
++                        return Err(format!(
++                            "registered static AtomicU8::{} uses a non-Relaxed or unresolved ordering in {}",
++                            method.as_str(), tcx.def_path_str(body_id)
++                        ));
++                    }
++                    let static_id = *used.iter().next().expect("one static id");
++                    operations.push((static_id, method));
++                }
++            }
++            TerminatorKind::Return => {
++                if !aliases[mir::RETURN_PLACE.as_usize()].is_empty() {
++                    return Err(format!(
++                        "registered static reference is returned from {}",
++                        tcx.def_path_str(body_id)
++                    ));
++                }
++            }
++            _ => {
++                let mut collector = PlaceCollector::default();
++                collector.visit_terminator(terminator, mir::Location {
++                    block: block_index,
++                    statement_index: block.statements.len(),
++                });
++                if !ids_in_places(&collector.places, &aliases).is_empty() {
++                    return Err(format!(
++                        "registered static reference is used by unsupported MIR terminator in {} at bb{}",
++                        tcx.def_path_str(body_id), block_index.as_u32()
++                    ));
++                }
++            }
++        }
++    }
++    if operations.is_empty() {
++        return Err(format!(
++            "registered static reference has no recognized direct load/store use in {}",
++            tcx.def_path_str(body_id)
++        ));
++    }
++    Ok(operations)
++}
++
++fn local_info<'a, 'tcx>(decl: &'a mir::LocalDecl<'tcx>) -> Option<&'a LocalInfo<'tcx>> {
++    match decl.local_info.as_ref() {
++        mir::ClearCrossCrate::Clear => None,
++        mir::ClearCrossCrate::Set(info) => Some(info.as_ref()),
++    }
++}
++
++fn place_ids(
++    place: Place<'_>,
++    aliases: &[HashSet<rustc_hir::def_id::DefId>],
++) -> HashSet<rustc_hir::def_id::DefId> {
++    aliases[place.local.as_usize()].clone()
++}
++
++fn is_registered_static_reference_initializer(
++    body: &mir::Body<'_>,
++    destination: Place<'_>,
++    rvalue: &Rvalue<'_>,
++    static_ids: &HashSet<rustc_hir::def_id::DefId>,
++) -> bool {
++    if !destination.projection.is_empty()
++        || !matches!(rvalue, Rvalue::Use(mir::Operand::Constant(_)))
++    {
++        return false;
++    }
++    matches!(
++        local_info(&body.local_decls[destination.local]),
++        Some(LocalInfo::StaticRef { def_id, is_thread_local: false })
++            if static_ids.contains(def_id)
++    )
++}
++
++fn ids_in_places(
++    places: &[Place<'_>],
++    aliases: &[HashSet<rustc_hir::def_id::DefId>],
++) -> HashSet<rustc_hir::def_id::DefId> {
++    places
++        .iter()
++        .flat_map(|place| aliases[place.local.as_usize()].iter().copied())
++        .collect()
++}
++
++fn is_shared_atomic_ref(
++    ref_ty: ty::Ty<'_>,
++    atomic_u8: rustc_hir::def_id::DefId,
++) -> bool {
++    matches!(ref_ty.kind(), ty::Ref(_, referent, ty::Mutability::Not)
++        if matches!(referent.kind(), ty::Adt(adt, _) if adt.did() == atomic_u8))
++}
++
++#[derive(Clone, Copy)]
++enum OrderingSource {
++    Relaxed,
++    Copy(mir::Local),
++    Other,
++    Multiple,
++}
++
++fn relaxed_ordering_locals<'tcx>(
++    tcx: TyCtxt<'tcx>,
++    body_id: rustc_hir::def_id::DefId,
++    body: &mir::Body<'tcx>,
++) -> Vec<bool> {
++    let mut sources = vec![None; body.local_decls.len()];
++    for block in body.basic_blocks.iter() {
++        for statement in &block.statements {
++            let StatementKind::Assign(box (destination, rvalue)) = &statement.kind else { continue };
++            if !destination.projection.is_empty() { continue; }
++            let source = match rvalue {
++                rvalue if is_relaxed_ordering_rvalue(tcx, rvalue) => OrderingSource::Relaxed,
++                Rvalue::Use(mir::Operand::Constant(constant))
++                    if is_relaxed_constant(tcx, body_id, &constant.const_) => OrderingSource::Relaxed,
++                Rvalue::Use(mir::Operand::Copy(place) | mir::Operand::Move(place))
++                    if place.projection.is_empty() => OrderingSource::Copy(place.local),
++                _ => OrderingSource::Other,
++            };
++            let index = destination.local.as_usize();
++            sources[index] = Some(match sources[index] {
++                None => source,
++                Some(_) => OrderingSource::Multiple,
++            });
++        }
++    }
++    let mut known = vec![false; sources.len()];
++    loop {
++        let mut changed = false;
++        for (index, source) in sources.iter().enumerate() {
++            let value = match source {
++                Some(OrderingSource::Relaxed) => true,
++                Some(OrderingSource::Copy(local)) => known[local.as_usize()],
++                _ => false,
++            };
++            if value && !known[index] {
++                known[index] = true;
++                changed = true;
++            }
++        }
++        if !changed { break; }
++    }
++    known
++}
++
++fn operand_is_relaxed_ordering<'tcx>(
++    tcx: TyCtxt<'tcx>,
++    body_id: rustc_hir::def_id::DefId,
++    operand: &mir::Operand<'tcx>,
++    known: &[bool],
++) -> bool {
++    match operand {
++        mir::Operand::Constant(constant) => is_relaxed_constant(tcx, body_id, &constant.const_),
++        mir::Operand::Copy(place) | mir::Operand::Move(place)
++            if place.projection.is_empty() => known[place.local.as_usize()],
++        _ => false,
++    }
++}
++
++fn is_relaxed_constant<'tcx>(
++    tcx: TyCtxt<'tcx>,
++    body_id: rustc_hir::def_id::DefId,
++    constant: &mir::Const<'tcx>,
++) -> bool {
++    let Some(ordering) = tcx.get_diagnostic_item(Symbol::intern("Ordering")) else { return false };
++    let ty = constant.ty();
++    let ty::Adt(adt, _) = ty.kind() else { return false };
++    if adt.did() != ordering { return false }
++    let Some((relaxed_index, _)) = adt
++        .variants()
++        .iter_enumerated()
++        .find(|(_, variant)| variant.name == Symbol::intern("Relaxed"))
++    else {
++        return false;
++    };
++    let expected = adt.discriminant_for_variant(tcx, relaxed_index).val;
++    let typing_env = ty::TypingEnv::post_analysis(tcx, body_id);
++    constant.try_eval_bits(tcx, typing_env) == Some(expected)
++}
++
++fn is_relaxed_ordering_rvalue(tcx: TyCtxt<'_>, rvalue: &Rvalue<'_>) -> bool {
++    let Some(ordering) = tcx.get_diagnostic_item(Symbol::intern("Ordering")) else { return false };
++    let Rvalue::Aggregate(box mir::AggregateKind::Adt(def_id, variant_index, _, _, _), operands) = rvalue else {
++        return false;
++    };
++    if *def_id != ordering || !operands.is_empty() {
++        return false;
++    }
++    tcx.adt_def(*def_id).variants()[*variant_index].name == Symbol::intern("Relaxed")
++}
++
++fn validate_static(tcx: TyCtxt<'_>, def_id: rustc_hir::def_id::DefId, atomic_u8: rustc_hir::def_id::DefId) -> Result<(), String> {
++    match tcx.def_kind(def_id) {
++        DefKind::Static { mutability: rustc_ast::Mutability::Not, .. } => {}
++        _ => return Err(format!("{} is not an immutable static", tcx.def_path_str(def_id))),
++    }
++    let ty = tcx.type_of(def_id).instantiate_identity();
++    if !matches!(ty.kind(), ty::Adt(adt, _) if adt.did() == atomic_u8) {
++        return Err(format!(
++            "{} has type `{ty}`, expected the resolved sysroot AtomicU8 type",
++            tcx.def_path_str(def_id)
++        ));
++    }
++    if tcx.visibility(def_id).is_public() {
++        return Err(format!("{} is externally visible", tcx.def_path_str(def_id)));
++    }
++    const FORBIDDEN: &[&str] = &[
++        "no_mangle",
++        "export_name",
++        "linkage",
++        "link_section",
++        "used",
++        "thread_local",
++    ];
++    if FORBIDDEN
++        .iter()
++        .any(|name| tcx.get_attrs(def_id, Symbol::intern(name)).next().is_some())
++    {
++        return Err(format!(
++            "{} has an export, linkage, or thread-local attribute",
++            tcx.def_path_str(def_id)
++        ));
++    }
++    Ok(())
++}
++
++fn validate_predicate(tcx: TyCtxt<'_>, def_id: rustc_hir::def_id::DefId) -> Result<(), String> {
++    if tcx.def_kind(def_id) != DefKind::Fn {
++        return Err(format!("{} is not a free function", tcx.def_path_str(def_id)));
++    }
++    if !crate::contracts_items::is_logic(tcx, def_id)
++        || crate::contracts_items::is_prophetic(tcx, def_id)
++        || crate::contracts_items::is_trusted(tcx, def_id)
++    {
++        return Err(format!(
++            "{} must be a checked, nonprophetic logical function",
++            tcx.def_path_str(def_id)
++        ));
++    }
++    let sig = tcx.fn_sig(def_id).instantiate_identity().skip_binder();
++    if tcx.generics_of(def_id).count() != 0
++        || sig.inputs().len() != 1
++        || sig.inputs()[0] != tcx.types.u8
++        || sig.output() != tcx.types.bool
++    {
++        return Err(format!(
++            "{} must have the exact non-generic signature fn(u8) -> bool",
++            tcx.def_path_str(def_id)
++        ));
++    }
++    Ok(())
++}
++
++fn read_initial_byte(tcx: TyCtxt<'_>, def_id: rustc_hir::def_id::DefId) -> Result<u8, String> {
++    let allocation = tcx
++        .eval_static_initializer(def_id)
++        .map_err(|err| format!("cannot constant-evaluate {}: {err:?}", tcx.def_path_str(def_id)))?;
++    let allocation = allocation.inner();
++    if allocation.len() != 1 {
++        return Err(format!(
++            "{} initializer allocation is {} bytes, expected one-byte AtomicU8",
++            tcx.def_path_str(def_id),
++            allocation.len()
++        ));
++    }
++    let bytes = allocation
++        .get_bytes_strip_provenance(&tcx, alloc_range(Size::ZERO, Size::from_bytes(1)))
++        .map_err(|err| format!("{} initializer is not one initialized byte: {err:?}", tcx.def_path_str(def_id)))?;
++    Ok(bytes[0])
++}
++
++fn resolve_local(tcx: TyCtxt<'_>, path: &str) -> Result<rustc_hir::def_id::DefId, String> {
++    let mut found = tcx
++        .iter_local_def_id()
++        .filter(|id| tcx.def_path_str(id.to_def_id()) == path)
++        .map(|id| id.to_def_id());
++    let Some(def_id) = found.next() else {
++        let candidates = tcx
++            .iter_local_def_id()
++            .filter(|id| matches!(tcx.def_kind(id.to_def_id()), DefKind::Static { .. } | DefKind::Fn))
++            .map(|id| tcx.def_path_str(id.to_def_id()))
++            .collect::<Vec<_>>();
++        return Err(format!("no local definition resolves `{path}`; local static/function paths: {candidates:?}"));
++    };
++    if found.next().is_some() {
++        return Err(format!("multiple local definitions resolve `{path}`"));
++    }
++    Ok(def_id)
++}
++
++fn parse_manifest(
++    mode: AuditMode,
++    contents: &str,
++    source_sha256: &str,
++    output: PathBuf,
++) -> Result<Option<AuditConfig>, String> {
++    let mut lines = contents.lines();
++    if lines.next() != Some("creusot-static-atomic-v2") {
++        return Err("static audit manifest has an unknown or missing version header".into());
++    }
++    let mut crate_name = None;
++    let mut manifest_dir = None;
++    let mut target = None;
++    let mut manifest_hash = None;
++    let mut run_id = None;
++    let mut normal_input_hash = None;
++    let mut proof_input_hash = None;
++    let mut compiler_hash = None;
++    let mut patch_hash = None;
++    let mut fixture_hash = None;
++    let mut runner_hash = None;
++    let mut statics = Vec::new();
++    for (line_no, line) in lines.enumerate() {
++        if line.is_empty() || line.starts_with('#') { continue }
++        let fields: Vec<_> = line.split('\t').collect();
++        match fields.as_slice() {
++            ["crate", value] if crate_name.is_none() => crate_name = Some((*value).to_string()),
++            ["manifest_dir", value] if manifest_dir.is_none() => {
++                manifest_dir = Some(PathBuf::from(value));
++            }
++            ["target", value] if target.is_none() => target = Some((*value).to_string()),
++            ["source_sha256", value] if manifest_hash.is_none() => manifest_hash = Some((*value).to_string()),
++            ["run_id", value] if run_id.is_none() => run_id = Some((*value).to_string()),
++            ["normal_input_sha256", value] if normal_input_hash.is_none() => normal_input_hash = Some((*value).to_string()),
++            ["proof_input_sha256", value] if proof_input_hash.is_none() => proof_input_hash = Some((*value).to_string()),
++            ["compiler_sha256", value] if compiler_hash.is_none() => compiler_hash = Some((*value).to_string()),
++            ["patch_sha256", value] if patch_hash.is_none() => patch_hash = Some((*value).to_string()),
++            ["fixture_sha256", value] if fixture_hash.is_none() => fixture_hash = Some((*value).to_string()),
++            ["runner_sha256", value] if runner_hash.is_none() => runner_hash = Some((*value).to_string()),
++            ["static", static_path, predicate_path] => statics.push(StaticRegistration {
++                static_path: (*static_path).to_string(),
++                predicate_path: (*predicate_path).to_string(),
++            }),
++            _ => return Err(format!("invalid or duplicate static audit manifest entry on line {}", line_no + 2)),
++        }
++    }
++    let crate_name = crate_name.ok_or("manifest is missing crate")?;
++    let manifest_dir = manifest_dir.ok_or("manifest is missing manifest_dir")?;
++    let manifest_dir = fs::canonicalize(&manifest_dir)
++        .map_err(|err| format!("cannot canonicalize manifest_dir {}: {err}", manifest_dir.display()))?;
++    let target = target.ok_or("manifest is missing target")?;
++    let manifest_hash = manifest_hash.ok_or("manifest is missing source_sha256")?;
++    if manifest_hash != source_sha256 {
++        return Err("source hash in manifest does not match the source hash supplied by the audit driver".into());
++    }
++    let provenance = AuditProvenance {
++        run_id: run_id.ok_or("manifest is missing run_id")?,
++        normal_input_sha256: normal_input_hash.ok_or("manifest is missing normal_input_sha256")?,
++        proof_input_sha256: proof_input_hash.ok_or("manifest is missing proof_input_sha256")?,
++        compiler_sha256: compiler_hash.ok_or("manifest is missing compiler_sha256")?,
++        patch_sha256: patch_hash.ok_or("manifest is missing patch_sha256")?,
++        fixture_sha256: fixture_hash.ok_or("manifest is missing fixture_sha256")?,
++        runner_sha256: runner_hash.ok_or("manifest is missing runner_sha256")?,
++    };
++    for (name, value) in [
++        ("run_id", provenance.run_id.as_str()),
++        ("normal_input_sha256", provenance.normal_input_sha256.as_str()),
++        ("proof_input_sha256", provenance.proof_input_sha256.as_str()),
++        ("compiler_sha256", provenance.compiler_sha256.as_str()),
++        ("patch_sha256", provenance.patch_sha256.as_str()),
++        ("fixture_sha256", provenance.fixture_sha256.as_str()),
++        ("runner_sha256", provenance.runner_sha256.as_str()),
++    ] {
++        if !is_sha256(value) {
++            return Err(format!("manifest {name} must be 64 lowercase hexadecimal characters"));
++        }
++    }
++    if statics.is_empty() {
++        return Err("static audit manifest has no registrations".into());
++    }
++    if statics.iter().any(|entry| entry.static_path.is_empty() || entry.predicate_path.is_empty()) {
++        return Err("static audit manifest contains an empty definition path".into());
++    }
++    let mut paths = std::collections::HashSet::new();
++    if statics.iter().any(|entry| !paths.insert(entry.static_path.clone())) {
++        return Err("static audit manifest registers a static more than once".into());
++    }
++    Ok(Some(AuditConfig {
++        mode,
++        crate_name,
++        manifest_dir,
++        target,
++        source_sha256: source_sha256.to_string(),
++        provenance,
++        output,
++        statics,
++    }))
++}
++
++fn required_path(var: &str) -> Result<PathBuf, String> {
++    let value = env::var_os(var).ok_or_else(|| format!("missing {var}"))?;
++    let value = PathBuf::from(value);
++    if value.as_os_str().is_empty() {
++        return Err(format!("{var} must not be empty"));
++    }
++    Ok(value)
++}
++
++fn is_sha256(value: &str) -> bool {
++    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
++}
++
++fn arg_value<'a>(args: &'a [String], key: &str) -> Option<&'a str> {
++    args.iter().enumerate().find_map(|(index, arg)| {
++        if arg == key {
++            args.get(index + 1).map(String::as_str)
++        } else {
++            arg.strip_prefix(&format!("{key}="))
++        }
++    })
++}
