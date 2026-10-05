@@ -2,6 +2,16 @@
 
 ## Current working-tree status (2026-10-05)
 
+Advanced safe-trait integration after unique advance was attempted and stopped
+at one current-state type-invariant obligation (advance_unchecked 27/28;
+77-file diagnostic). Simplifying the unique-only predicate and computing the
+next descriptor in locals did not discharge it. Native trait matrices2,
+ordinary tests118 and no_std passed, but no advanced-trait gate is claimed.
+The attempted changes were reverted to the last proved source; exact failed
+source/VC/log evidence is under valid-handle-traits/advanced-invariant-blocker.
+No new trust or core/std modification was introduced.
+
+
 Actual public BytesMut::zeroed and core From<&[u8]> constructor bodies pass a
 60-file exact-source gate with zero unproved leaves and three native fixtures.
 Contracts establish unique validity, exact length, and pointwise Known zero /
