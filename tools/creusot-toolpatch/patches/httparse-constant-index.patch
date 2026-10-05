@@ -1,0 +1,124 @@
+diff --git a/creusot/src/backend/projections.rs b/creusot/src/backend/projections.rs
+index 3d01f3d..cf59ece 100644
+--- a/creusot/src/backend/projections.rs
++++ b/creusot/src/backend/projections.rs
+@@ -16,7 +16,7 @@ use crate::{
+ use rustc_abi::VariantIdx;
+ use rustc_middle::{
+     mir::{PlaceTy, ProjectionElem},
+-    ty::{GenericArg, Ty, TyCtxt, TyKind, TypingEnv},
++    ty::{ConstKind, GenericArg, Ty, TyCtxt, TyKind, TypingEnv},
+ };
+ use rustc_span::Span;
+ use rustc_type_ir::UintTy;
+@@ -26,6 +26,7 @@ use why3::{
+     coma::{Arg, Param},
+     exp::{Constant, Exp},
+ };
++use why3::ty::Type;
+ 
+ /// The challenge here is correctly construction the expression that assigns deep inside a structure.
+ /// (_1 as Some) = P      ---> let _1 = P ??
+@@ -201,21 +202,64 @@ pub(crate) fn projections_to_expr<'tcx, 'a>(
+                     ctx.dcx().span_bug(span, format!("cannot access field of type {}", place_ty.ty))
+                 }
+             },
+-            ProjectionElem::Index(ix) => {
+-                let ix = ix.0;
++            ProjectionElem::Index(_) | ProjectionElem::ConstantIndex { .. } => {
++                let ix = match elem {
++                    ProjectionElem::Index(ix) => Exp::var(ix.0),
++                    ProjectionElem::ConstantIndex {
++                        offset,
++                        min_length,
++                        from_end: false,
++                    } => {
++                        let TyKind::Array(_, array_len) = place_ty.ty.kind() else {
++                            ctx.dcx().span_bug(span, format!(
++                                "ConstantIndex requires an array in this supported case: {elem:?}"
++                            ))
++                        };
++                        let ConstKind::Value(array_len) = array_len.kind() else {
++                            ctx.dcx().span_bug(span, format!(
++                                "ConstantIndex requires a concrete array length: {elem:?}"
++                            ))
++                        };
++                        let Some(array_len) = array_len.try_to_target_usize(ctx.tcx) else {
++                            ctx.dcx().span_bug(span, format!(
++                                "ConstantIndex array length is not representable as target usize: {elem:?}"
++                            ))
++                        };
++                        if offset >= min_length || min_length > &array_len {
++                            ctx.dcx().span_bug(span, format!(
++                                "ConstantIndex violates offset < min_length <= array length: {elem:?}"
++                            ))
++                        }
++                        // `min_length <= array_len` makes both MIR indices target-usize
++                        // representable; offset < min_length gives an in-bounds read.
++                        let usize_ty = Type::qconstructor(names.in_pre(
++                            uty_to_prelude(ctx.tcx, UintTy::Usize),
++                            "t",
++                        ));
++                        Exp::Const(Constant::Uint(*offset as u128, Some(usize_ty)))
++                    }
++                    ProjectionElem::ConstantIndex { .. } => {
++                        ctx.dcx().span_bug(span, format!(
++                            "unsupported from-end ConstantIndex projection: {elem:?}"
++                        ))
++                    }
++                    _ => unreachable!("matched only indexed place projections"),
++                };
+                 let elt_ty = projection_ty(place_ty, names.tcx(), elem);
+                 let elt_ty = translate_ty(ctx, names, span, elt_ty.ty);
+                 let ty = translate_ty(ctx, names, span, place_ty.ty);
+ 
+                 let focus1 = focus.clone();
+                 let elt_ty1 = elt_ty.clone();
++                let ix_get = ix.clone();
++                let ix_set = ix;
+                 focus = Focus::new(move |is| {
+                     let foc = focus.call(is);
+                     let result = Ident::fresh_local("r");
+                     is.push(IntermediateStmt::Call(
+                         Box::new([Param::Term(result, elt_ty1.clone())]),
+                         Name::Global(names.in_pre(PreMod::Slice, "get")),
+-                        Box::new([Arg::Ty(elt_ty1), Arg::Term(foc), Arg::Term(Exp::var(ix))]),
++                        Box::new([Arg::Ty(elt_ty1), Arg::Term(foc), Arg::Term(ix_get)]),
+                         None,
+                     ));
+                     Exp::var(result)
+@@ -231,7 +275,7 @@ pub(crate) fn projections_to_expr<'tcx, 'a>(
+                         Box::new([
+                             Arg::Ty(elt_ty),
+                             Arg::Term(foc),
+-                            Arg::Term(Exp::var(ix)),
++                            Arg::Term(ix_set),
+                             Arg::Term(rhs),
+                         ]),
+                         None,
+@@ -241,8 +285,7 @@ pub(crate) fn projections_to_expr<'tcx, 'a>(
+             }
+             ProjectionElem::Downcast(_, _) => {}
+             // UNSUPPORTED
+-            ProjectionElem::ConstantIndex { .. }
+-            | ProjectionElem::Subslice { .. }
++            ProjectionElem::Subslice { .. }
+             | ProjectionElem::OpaqueCast(_)
+             | ProjectionElem::UnwrapUnsafeBinder(_) => {
+                 ctx.dcx().span_bug(span, format!("Unsupported projection {elem:?}"))
+diff --git a/creusot/src/backend/optimization/remove_dead_locals.rs b/creusot/src/backend/optimization/remove_dead_locals.rs
+index 10262a9..445fe05 100644
+--- a/creusot/src/backend/optimization/remove_dead_locals.rs
++++ b/creusot/src/backend/optimization/remove_dead_locals.rs
+@@ -140,7 +140,10 @@ impl<'tcx> FmirVisitor<'tcx> for PurityVisitor<'_, 'tcx> {
+                     TyKind::Adt(def, _) if def.is_enum() || def.is_union() => self.pure = false,
+                     _ => (),
+                 },
+-                ProjectionElem::Index(_) => self.pure = false,
++                ProjectionElem::Index(_) | ProjectionElem::ConstantIndex { from_end: false, .. } => {
++                    // Array reads still generate slice bounds preconditions; keep them live.
++                    self.pure = false
++                }
+                 ProjectionElem::Downcast(..) => (), // Handled in `Field` case
+                 // UNSUPPORTED
+                 ProjectionElem::ConstantIndex { .. }
