@@ -1,0 +1,166 @@
+{
+  "artifacts": {
+    "coma": {
+      "path": "artifacts/find_with_hash.coma",
+      "sha256": "509aeac14fe4760c2a391d95c1af3cb01fa2e007091146cdb9dca8d5d2e21de6"
+    },
+    "commands_log": {
+      "path": "commands.log",
+      "sha256": "c0276aaed07033f6d47ce361df5520c29bbce4c38543722699b9ae17b42c8795"
+    },
+    "independent_arity_audit": {
+      "path": "arity/arity-audit.json",
+      "sha256": "2619e80c6c6e6505425fda383f56eda8515a2831600be7dbc6f5a28ed49908e1"
+    },
+    "printer_exit_status": {
+      "path": "arity/exit-status.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "printer_stderr": {
+      "path": "arity/printer.stderr",
+      "sha256": "ece401b91f004dc147101879268494958efa66583cc24f1492067666a2236ce8"
+    },
+    "printer_stdout": {
+      "path": "arity/printer.stdout",
+      "sha256": "cd8e81c1f7d1ec00ce13b6bfb0d0c76649375c53a406b9e283c8ebeb7e7c5dcc"
+    },
+    "proof_json": {
+      "path": "artifacts/proof.json",
+      "sha256": "bb1370f683b71d78684281b375eb1e38c8c9be831c44698af50aface20550ece"
+    },
+    "proof_results": {
+      "path": "proof-results.txt",
+      "sha256": "1d61ab6817eee32cbbff336f9434b9e843555172bbc5dfb173a32d49ad984beb"
+    }
+  },
+  "contract_boundary": "Requires header_map_find_ready(*self) and header_map_keys_len(*self) > 0. On Some(probe,index), guarantees the probe and entry indices are in range, the bucket hash matches both the supplied hash and Pos hash, and the bucket key equals the query under the existing PartialEqModel relation. None remains unconstrained. This does not prove the caller premise from constructors or mutations, probe-order/hash coherence, or None iff absent.",
+  "crate": "http 1.5.0",
+  "frontend_checks": [
+    {
+      "command": "source /workspace/proof-tools/activate.sh && RUSTFLAGS='--cfg http_map_api_leaf --cfg http_map_find_api_leaf' CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http cargo creusot --check -- --features http_map_api_leaf,http_map_find_api_leaf --locked --offline",
+      "profile": "actual-source named map API + find leaf",
+      "result": "pass"
+    },
+    {
+      "command": "source /workspace/proof-tools/activate.sh && RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http cargo check --lib --locked --offline",
+      "profile": "native HTTP 1.5.0 default library",
+      "result": "pass"
+    }
+  ],
+  "independent_arity_audit": {
+    "audit_sha256": "2619e80c6c6e6505425fda383f56eda8515a2831600be7dbc6f5a28ed49908e1",
+    "command": "why3 prove -C /workspace/proof-tools/config/creusot/why3.conf -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot -D why3 verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/find_with_hash.coma",
+    "expected_root_count": 9,
+    "printed_task_count": 9,
+    "result": "PASS: all nine untransformed task names match the nine direct successful proof JSON roots.",
+    "solver_used": false
+  },
+  "profile": {
+    "cargo_features": [
+      "http_map_api_leaf",
+      "http_map_find_api_leaf"
+    ],
+    "harness": "verification/header-map-api",
+    "offline_locked": true,
+    "rustflags": [
+      "--cfg http_map_api_leaf",
+      "--cfg http_map_find_api_leaf"
+    ]
+  },
+  "proof_run": {
+    "elevated": true,
+    "own_successful_leaves": 1,
+    "own_target_key": "vc_find_with_hash_T",
+    "preprocess": "none",
+    "proof_json_roots": 9,
+    "result": "Theory verif.http_header_map_api_proof_rlib.header.map.impl_HeaderMap_T.find_with_hash.Coma: \u2714 (9)",
+    "split_tree": "All nine direct roots have a prover object; no null, empty, or nested children.",
+    "support_successful_leaves": 8,
+    "support_target_keys": [
+      "vc_desired_pos",
+      "vc_elim_Some",
+      "vc_eq_HashValue",
+      "vc_eq_HeaderName",
+      "vc_index_Vec_Bucket_T_Global",
+      "vc_len_Pos",
+      "vc_probe_distance",
+      "vc_resolve"
+    ],
+    "total_successful_leaves": 9,
+    "wrapper": "http/1.5.0/scripts/run-proof.sh"
+  },
+  "snapshot": "http-header-map-find-with-hash-2026-10-05",
+  "source_scope": "Freshly emitted actual HeaderMap::find_with_hash body from src/header/map.rs. No runtime replacement or external HTTP trusted contract was used. The cfg(creusot) definition adds only the DeepModel and PartialEqModel type bounds needed to translate its existing HeaderName == query comparison; its executable body matches the native generic implementation.",
+  "sources": [
+    {
+      "archived_path": "sources/http/1.5.0/src/header/map.rs",
+      "path": "http/1.5.0/src/header/map.rs",
+      "sha256": "28ead285a44ab86a3e72e6f4125d58f6f0fbf067b6868086eabe632e32cb17af"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/src/header/map_index.rs",
+      "path": "http/1.5.0/src/header/map_index.rs",
+      "sha256": "86500e8601d3a15ec6beeb0deaafa6cf1ab848182911e3596be5bc2cbe343fa8"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/src/header/name.rs",
+      "path": "http/1.5.0/src/header/name.rs",
+      "sha256": "650c63383deecbdd892156edbc058ea4bf017334fd9fe9ea2f5079feb80b62a7"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/src/ascii.rs",
+      "path": "http/1.5.0/src/ascii.rs",
+      "sha256": "6620f3a38389cb067789f025507f5743ebfa9a8b56cd186dd07f1502e4bf4e47"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/src/lib.rs",
+      "path": "http/1.5.0/verification/header-map-api/src/lib.rs",
+      "sha256": "b3a41c0c243aaa33c2d85ebc7a092bc4f2f3170049fcc50f67d133c787e36f1d"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/src/header.rs",
+      "path": "http/1.5.0/verification/header-map-api/src/header.rs",
+      "sha256": "7736a09379eecf2f8a8126cd65d15cef707f9d4b2551f85375b9a24d5ca2e7a7"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/Cargo.toml",
+      "path": "http/1.5.0/verification/header-map-api/Cargo.toml",
+      "sha256": "e69eed75562e2f95c6b0e869b2c13fd7a80dbf55ea5c22b3fada5c63b02e3d54"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/Cargo.lock",
+      "path": "http/1.5.0/verification/header-map-api/Cargo.lock",
+      "sha256": "f3656ba9be1ca4501916286a20c7ad252892d4ac963100f903abe1267b3590d6"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/why3find.json",
+      "path": "http/1.5.0/verification/header-map-api/why3find.json",
+      "sha256": "c7014603e8a4f00384e112d1c626b3c0ed1a6fdf54425d25ee2d6e3bfcdd685d"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/model.rs",
+      "path": "creusot-libs/creusot-std/src/model.rs",
+      "sha256": "a774d52a986692f9b52d543f7b6e238a18d1c4c04b667242b06630df8f6f54ad"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/std/partial_eq.rs",
+      "path": "creusot-libs/creusot-std/src/std/partial_eq.rs",
+      "sha256": "efe3e792d9deea9dfa89ba2c4adf0b55c7c4fb0709c48b8e791753ee487c5756"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/std/hash.rs",
+      "path": "creusot-libs/creusot-std/src/std/hash.rs",
+      "sha256": "a24a1bc06a5f7ffee1e7512bf5aea3b1fdc0791c3caebd79be5bc1eeacfd8fed"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/std/vec.rs",
+      "path": "creusot-libs/creusot-std/src/std/vec.rs",
+      "sha256": "597db7fb360b320e0809843a73ac9f6208e6acae61d578d9c3ef0d421069e2ed"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/std/option.rs",
+      "path": "creusot-libs/creusot-std/src/std/option.rs",
+      "sha256": "8aa50cd37123457cac84c22bfe3a232a2b13ee93d76e6bdff75481e458afabf9"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+Fresh profile emission:
+source /workspace/proof-tools/activate.sh && RUSTFLAGS='--cfg http_map_api_leaf --cfg http_map_find_api_leaf' CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http cargo creusot --simple-triggers=false -- --features http_map_api_leaf,http_map_find_api_leaf --locked --offline
+
+Bounded proof (run through the repository proof wrapper with elevated execution):
+source /workspace/proof-tools/activate.sh && RUSTFLAGS='--cfg http_map_api_leaf --cfg http_map_find_api_leaf' CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http ../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/find_with_hash.coma -- --features http_map_api_leaf,http_map_find_api_leaf --locked --offline
+
+Independent no-preprocess task printer (no prover selected):
+source /workspace/proof-tools/activate.sh && why3 prove -C /workspace/proof-tools/config/creusot/why3.conf -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot -D why3 verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/find_with_hash.coma
+
+Result line:
+Theory verif.http_header_map_api_proof_rlib.header.map.impl_HeaderMap_T.find_with_hash.Coma: ✔ (9)
