@@ -1,0 +1,67 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 487 4 487 46 *)
+
+(* header::value::HeaderValue *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 487 30 487 34
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 485 32 485 49
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 486 32 486 64
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 50 8 50 49
+let%span svalue'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 70 8 70 25
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+use creusot.int.UInt8
+use seq.Seq
+
+type t_Bytes
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+predicate invariant_refmut_HeaderValue [@inline:trivial] (self: MutBorrow.t t_HeaderValue) =
+  [%#sinvariant] inv_HeaderValue self.current /\ inv_HeaderValue self.final
+
+meta "rewrite_def" predicate invariant_refmut_HeaderValue
+
+predicate inv_refmut_HeaderValue [@inline:trivial] (_1: MutBorrow.t t_HeaderValue) = invariant_refmut_HeaderValue _1
+
+meta "rewrite_def" predicate inv_refmut_HeaderValue
+
+predicate resolve_refmut_HeaderValue [@inline:trivial] (_1: MutBorrow.t t_HeaderValue) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_HeaderValue
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function view_HeaderValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 49 4 49 33] (self: t_HeaderValue) : Seq.seq UInt8.t
+ = [%#svalue'2] bytes_seq self.inner
+
+predicate sensitive_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 69 4 69 41] (self: t_HeaderValue) =
+  [%#svalue'3] self.is_sensitive
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec set_sensitive
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 487 4 487 46]
+  (self: MutBorrow.t t_HeaderValue) (val': bool) (return (x: ())) =
+  {[@stop_split] [@expl:set_sensitive 'self' type invariant] [%#svalue] inv_refmut_HeaderValue self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &self <- { self with current = { self.current with is_sensitive = val' } } ] s1
+    | s1 = s2 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderValue self} any) ]
+    | s2 = -{resolve_refmut_HeaderValue self}- s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l () | & self: MutBorrow.t t_HeaderValue = self | & val': bool = val' ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:set_sensitive ensures] ([@stop_split] [@expl:set_sensitive ensures #0] [%#svalue'0] view_HeaderValue self.final
+      = view_HeaderValue self.current)
+    /\ ([@stop_split] [@expl:set_sensitive ensures #1] [%#svalue'1] sensitive_model self.final = val')}
+    (! return {result}) ]
