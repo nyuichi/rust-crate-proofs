@@ -1,0 +1,7 @@
+# Executed from /workspace/rust-crate-proofs/http/1.5.0/verification/uri
+source /workspace/proof-tools/activate.sh
+export DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find'
+export CARGO_NET_OFFLINE=true
+export CARGO_TARGET_DIR=/tmp/http-uri-eq-branching-target
+export RUSTFLAGS='--cfg http_uri_compare_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_authority_scanner_leaf --cfg http_uri_host_leaf --cfg http_uri_leaf --cfg http_uri_builder_leaf'
+../../scripts/run-proof.sh bash -c 'cargo clean -p http-uri-proof && cargo creusot --simple-triggers=false -- --locked --offline'

@@ -1,0 +1,4058 @@
+theory Task
+
+type int
+
+type real
+
+type string
+
+predicate infix_eq 'a 'a
+
+(* use why3.BuiltIn.BuiltIn *)
+
+type bool =
+  | True
+  | False
+
+(* use why3.Bool.Bool *)
+
+type tuple0 =
+  | Tuple0 [@builtin]
+
+(* use why3.Tuple0.Tuple01 *)
+
+type unit [@builtin] = unit
+
+(* use why3.Unit.Unit *)
+
+constant zero : int = 0
+
+constant one : int = 1
+
+function prefix_mn int : int
+
+function infix_pl int int : int
+
+function infix_as int int : int
+
+predicate infix_ls int int
+
+function infix_mn (x:int) (y:int) : int = infix_pl x (prefix_mn y)
+
+predicate infix_gt (x:int) (y:int) = infix_ls y x
+
+predicate infix_lseq (x:int) (y:int) = infix_ls x y \/ x = y
+
+predicate infix_gteq (x:int) (y:int) = infix_lseq y x
+
+axiom Assoc :
+  forall x:int, y:int, z:int.
+   infix_pl (infix_pl x y) z = infix_pl x (infix_pl y z)
+
+(* clone algebra.Assoc with type t = int, function op = infix_pl,
+  prop Assoc1 = Assoc,  *)
+
+axiom Unit_def_l : forall x:int. infix_pl zero x = x
+
+axiom Unit_def_r : forall x:int. infix_pl x zero = x
+
+(* clone algebra.Monoid with type t1 = int, constant unit = zero,
+  function op1 = infix_pl, prop Unit_def_r1 = Unit_def_r,
+  prop Unit_def_l1 = Unit_def_l, prop Assoc2 = Assoc,  *)
+
+axiom Inv_def_l : forall x:int. infix_pl (prefix_mn x) x = zero
+
+axiom Inv_def_r : forall x:int. infix_pl x (prefix_mn x) = zero
+
+(* clone algebra.Group with type t2 = int, function inv = prefix_mn,
+  constant unit1 = zero, function op2 = infix_pl,
+  prop Inv_def_r1 = Inv_def_r, prop Inv_def_l1 = Inv_def_l,
+  prop Unit_def_r2 = Unit_def_r, prop Unit_def_l2 = Unit_def_l,
+  prop Assoc3 = Assoc,  *)
+
+axiom Comm : forall x:int, y:int. infix_pl x y = infix_pl y x
+
+(* clone algebra.Comm with type t3 = int, function op3 = infix_pl,
+  prop Comm1 = Comm,  *)
+
+(* meta AC function infix_pl *)
+
+(* clone algebra.CommutativeGroup with type t4 = int,
+  function inv1 = prefix_mn, constant unit2 = zero, function op4 = infix_pl,
+  prop Comm2 = Comm, prop Inv_def_r2 = Inv_def_r,
+  prop Inv_def_l2 = Inv_def_l, prop Unit_def_r3 = Unit_def_r,
+  prop Unit_def_l3 = Unit_def_l, prop Assoc4 = Assoc,  *)
+
+axiom Assoc5 :
+  forall x:int, y:int, z:int.
+   infix_as (infix_as x y) z = infix_as x (infix_as y z)
+
+(* clone algebra.Assoc with type t = int, function op = infix_as,
+  prop Assoc1 = Assoc5,  *)
+
+axiom Mul_distr_l :
+  forall x:int, y:int, z:int.
+   infix_as x (infix_pl y z) = infix_pl (infix_as x y) (infix_as x z)
+
+axiom Mul_distr_r :
+  forall x:int, y:int, z:int.
+   infix_as (infix_pl y z) x = infix_pl (infix_as y x) (infix_as z x)
+
+(* clone algebra.Ring with type t5 = int, function infix_as1 = infix_as,
+  function prefix_mn1 = prefix_mn, function infix_pl1 = infix_pl,
+  constant zero1 = zero, prop Mul_distr_r1 = Mul_distr_r,
+  prop Mul_distr_l1 = Mul_distr_l, prop Assoc6 = Assoc5, prop Comm3 = Comm,
+  prop Inv_def_r3 = Inv_def_r, prop Inv_def_l3 = Inv_def_l,
+  prop Unit_def_r4 = Unit_def_r, prop Unit_def_l4 = Unit_def_l,
+  prop Assoc7 = Assoc,  *)
+
+axiom Comm4 : forall x:int, y:int. infix_as x y = infix_as y x
+
+(* clone algebra.Comm with type t3 = int, function op3 = infix_as,
+  prop Comm1 = Comm4,  *)
+
+(* meta AC function infix_as *)
+
+(* clone algebra.CommutativeRing with type t6 = int,
+  function infix_as2 = infix_as, function prefix_mn2 = prefix_mn,
+  function infix_pl2 = infix_pl, constant zero2 = zero, prop Comm5 = Comm4,
+  prop Mul_distr_r2 = Mul_distr_r, prop Mul_distr_l2 = Mul_distr_l,
+  prop Assoc8 = Assoc5, prop Comm6 = Comm, prop Inv_def_r4 = Inv_def_r,
+  prop Inv_def_l4 = Inv_def_l, prop Unit_def_r5 = Unit_def_r,
+  prop Unit_def_l5 = Unit_def_l, prop Assoc9 = Assoc,  *)
+
+axiom Unitary : forall x:int. infix_as one x = x
+
+axiom NonTrivialRing : not zero = one
+
+(* clone algebra.UnitaryCommutativeRing with type t7 = int,
+  constant one1 = one, function infix_as3 = infix_as,
+  function prefix_mn3 = prefix_mn, function infix_pl3 = infix_pl,
+  constant zero3 = zero, prop NonTrivialRing1 = NonTrivialRing,
+  prop Unitary1 = Unitary, prop Comm7 = Comm4,
+  prop Mul_distr_r3 = Mul_distr_r, prop Mul_distr_l3 = Mul_distr_l,
+  prop Assoc10 = Assoc5, prop Comm8 = Comm, prop Inv_def_r5 = Inv_def_r,
+  prop Inv_def_l5 = Inv_def_l, prop Unit_def_r6 = Unit_def_r,
+  prop Unit_def_l6 = Unit_def_l, prop Assoc11 = Assoc,  *)
+
+(* clone relations.EndoRelation with type t8 = int,
+  predicate rel = infix_lseq,  *)
+
+axiom Refl : forall x:int. infix_lseq x x
+
+(* clone relations.Reflexive with type t9 = int, predicate rel1 = infix_lseq,
+  prop Refl1 = Refl,  *)
+
+(* clone relations.EndoRelation with type t8 = int,
+  predicate rel = infix_lseq,  *)
+
+axiom Trans :
+  forall x:int, y:int, z:int.
+   infix_lseq x y -> infix_lseq y z -> infix_lseq x z
+
+(* clone relations.Transitive with type t10 = int,
+  predicate rel2 = infix_lseq, prop Trans1 = Trans,  *)
+
+(* clone relations.PreOrder with type t11 = int, predicate rel3 = infix_lseq,
+  prop Trans2 = Trans, prop Refl2 = Refl,  *)
+
+(* clone relations.EndoRelation with type t8 = int,
+  predicate rel = infix_lseq,  *)
+
+axiom Antisymm :
+  forall x:int, y:int. infix_lseq x y -> infix_lseq y x -> x = y
+
+(* clone relations.Antisymmetric with type t12 = int,
+  predicate rel4 = infix_lseq, prop Antisymm1 = Antisymm,  *)
+
+(* clone relations.PartialOrder with type t13 = int,
+  predicate rel5 = infix_lseq, prop Antisymm2 = Antisymm,
+  prop Trans3 = Trans, prop Refl3 = Refl,  *)
+
+(* clone relations.EndoRelation with type t8 = int,
+  predicate rel = infix_lseq,  *)
+
+axiom Total : forall x:int, y:int. infix_lseq x y \/ infix_lseq y x
+
+(* clone relations.Total with type t14 = int, predicate rel6 = infix_lseq,
+  prop Total1 = Total,  *)
+
+(* clone relations.TotalOrder with type t15 = int,
+  predicate rel7 = infix_lseq, prop Total2 = Total,
+  prop Antisymm3 = Antisymm, prop Trans4 = Trans, prop Refl4 = Refl,  *)
+
+axiom ZeroLessOne : infix_lseq zero one
+
+axiom CompatOrderAdd :
+  forall x:int, y:int, z:int.
+   infix_lseq x y -> infix_lseq (infix_pl x z) (infix_pl y z)
+
+axiom CompatOrderMult :
+  forall x:int, y:int, z:int.
+   infix_lseq x y ->
+   infix_lseq zero z -> infix_lseq (infix_as x z) (infix_as y z)
+
+(* meta remove_unused:dependency prop CompatOrderMult, function infix_as *)
+
+(* clone algebra.OrderedUnitaryCommutativeRing with type t16 = int,
+  predicate infix_lseq1 = infix_lseq, constant one2 = one,
+  function infix_as4 = infix_as, function prefix_mn4 = prefix_mn,
+  function infix_pl4 = infix_pl, constant zero4 = zero,
+  prop CompatOrderMult1 = CompatOrderMult,
+  prop CompatOrderAdd1 = CompatOrderAdd, prop ZeroLessOne1 = ZeroLessOne,
+  prop Total3 = Total, prop Antisymm4 = Antisymm, prop Trans5 = Trans,
+  prop Refl5 = Refl, prop NonTrivialRing2 = NonTrivialRing,
+  prop Unitary2 = Unitary, prop Comm9 = Comm4,
+  prop Mul_distr_r4 = Mul_distr_r, prop Mul_distr_l4 = Mul_distr_l,
+  prop Assoc12 = Assoc5, prop Comm10 = Comm, prop Inv_def_r6 = Inv_def_r,
+  prop Inv_def_l6 = Inv_def_l, prop Unit_def_r7 = Unit_def_r,
+  prop Unit_def_l7 = Unit_def_l, prop Assoc13 = Assoc,  *)
+
+(* meta remove_unused:keep function infix_pl *)
+
+(* meta remove_unused:keep function infix_mn *)
+
+(* meta remove_unused:keep function prefix_mn *)
+
+(* meta remove_unused:keep predicate infix_ls *)
+
+(* meta remove_unused:keep predicate infix_lseq *)
+
+(* meta remove_unused:keep predicate infix_gt *)
+
+(* meta remove_unused:keep predicate infix_gteq *)
+
+(* use int.Int *)
+
+type seq 'a
+
+(* meta infinite_type type seq *)
+
+function length (seq 'a) : int
+
+axiom length_nonnegative [@useraxiom] :
+  forall s:seq 'a. infix_lseq 0 (length s)
+
+(* meta remove_unused:dependency prop length_nonnegative, function length *)
+
+function get (seq 'a) int : 'a
+
+function mixfix_lbrb (s:seq 'a) (i:int) : 'a = get s i
+
+predicate infix_eqeq (seq 'a) (seq 'a)
+
+axiom infix_eqeqqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures]
+   infix_eqeq s1 s2 <->
+   ([@asym_split] length s1 = length s2) &&
+   (forall i:int.
+     infix_lseq 0 i /\ infix_ls i (length s1) ->
+     mixfix_lbrb s1 i = mixfix_lbrb s2 i)
+
+axiom infix_eqeqqtspec [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures] infix_eqeq s1 s2 -> s1 = s2
+
+(* meta remove_unused:dependency prop infix_eqeqqtspecqt0,
+  predicate infix_eqeq *)
+
+(* meta remove_unused:dependency prop infix_eqeqqtspec,
+  predicate infix_eqeq *)
+
+(* meta extensionality predicate infix_eqeq *)
+
+type (->) 'a 'b
+
+function infix_at ('a -> 'b) 'a : 'b
+
+(* use why3.HighOrd.HighOrd *)
+
+function create int (int -> 'a) : seq 'a
+
+axiom createqtspecqt0 [@W:non_conservative_extension:N] :
+  forall len:int, f:int -> 'a.
+   ([@hyp_name:Requires] infix_lseq 0 len) ->
+   ([@hyp_name:Ensures] length (create len f) = len)
+
+axiom createqtspec [@W:non_conservative_extension:N] :
+  forall len:int, f:int -> 'a.
+   ([@hyp_name:Requires] infix_lseq 0 len) ->
+   ([@hyp_name:Ensures]
+    forall i:int.
+     infix_lseq 0 i /\ infix_ls i len ->
+     mixfix_lbrb (create len f) i = infix_at f i)
+
+(* meta remove_unused:dependency prop createqtspecqt0, function create *)
+
+(* meta remove_unused:dependency prop createqtspec, function create *)
+
+constant empty : seq 'a
+
+axiom emptyqtdef [@W:non_conservative_extension:N] :
+  [@hyp_name:Ensures] length (empty: seq 'a) = 0
+
+(* meta remove_unused:dependency prop emptyqtdef, constant empty *)
+
+function set (seq 'a) int 'a : seq 'a
+
+axiom setqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   set s i v =
+   create (length s) (fun (j:int) -> if j = i then v else mixfix_lbrb s j)
+
+axiom setqtspecqt1 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   ([@hyp_name:Ensures] length (set s i v) = length s)
+
+axiom setqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   ([@hyp_name:Ensures] mixfix_lbrb (set s i v) i = v)
+
+axiom setqtspec [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   ([@hyp_name:Ensures]
+    forall j:int.
+     (infix_lseq 0 j /\ infix_ls j (length s)) /\ not j = i ->
+     mixfix_lbrb (set s i v) j = mixfix_lbrb s j)
+
+(* meta remove_unused:dependency prop setqtdef, function set *)
+
+(* meta remove_unused:dependency prop setqtspecqt1, function set *)
+
+(* meta remove_unused:dependency prop setqtspecqt0, function set *)
+
+(* meta remove_unused:dependency prop setqtspec, function set *)
+
+function mixfix_lblsmnrb (seq 'a) int 'a : seq 'a
+
+axiom mixfix_lblsmnrbqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   mixfix_lblsmnrb s i v = set s i v
+
+(* meta remove_unused:dependency prop mixfix_lblsmnrbqtdef,
+  function mixfix_lblsmnrb *)
+
+function singleton (v:'a) : seq 'a =
+  create 1 (fun (us [@__dummy__]:int) -> v)
+
+axiom singletonqtspecqt0 [@W:non_conservative_extension:N] :
+  forall v:'a. [@hyp_name:Ensures] length (singleton v) = 1
+
+axiom singletonqtspec [@W:non_conservative_extension:N] :
+  forall v:'a. [@hyp_name:Ensures] mixfix_lbrb (singleton v) 0 = v
+
+(* meta remove_unused:dependency prop singletonqtspecqt0,
+  function singleton *)
+
+(* meta remove_unused:dependency prop singletonqtspec, function singleton *)
+
+function cons (x:'a) (s:seq 'a) : seq 'a =
+  create (infix_pl 1 (length s))
+  (fun (i:int) -> if i = 0 then x else mixfix_lbrb s (infix_mn i 1))
+
+axiom consqtspecqt1 [@W:non_conservative_extension:N] :
+  forall x:'a, s:seq 'a.
+   [@hyp_name:Ensures] length (cons x s) = infix_pl 1 (length s)
+
+axiom consqtspecqt0 [@W:non_conservative_extension:N] :
+  forall x:'a, s:seq 'a. [@hyp_name:Ensures] mixfix_lbrb (cons x s) 0 = x
+
+axiom consqtspec [@W:non_conservative_extension:N] :
+  forall x:'a, s:seq 'a.
+   [@hyp_name:Ensures]
+   forall i:int.
+    infix_ls 0 i /\ infix_lseq i (length s) ->
+    mixfix_lbrb (cons x s) i = mixfix_lbrb s (infix_mn i 1)
+
+(* meta remove_unused:dependency prop consqtspecqt1, function cons *)
+
+(* meta remove_unused:dependency prop consqtspecqt0, function cons *)
+
+(* meta remove_unused:dependency prop consqtspec, function cons *)
+
+function snoc (s:seq 'a) (x:'a) : seq 'a =
+  create (infix_pl 1 (length s))
+  (fun (i:int) -> if i = length s then x else mixfix_lbrb s i)
+
+axiom snocqtspecqt1 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, x:'a.
+   [@hyp_name:Ensures] length (snoc s x) = infix_pl 1 (length s)
+
+axiom snocqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, x:'a.
+   [@hyp_name:Ensures] mixfix_lbrb (snoc s x) (length s) = x
+
+axiom snocqtspec [@W:non_conservative_extension:N] :
+  forall s:seq 'a, x:'a.
+   [@hyp_name:Ensures]
+   forall i:int.
+    infix_lseq 0 i /\ infix_ls i (length s) ->
+    mixfix_lbrb (snoc s x) i = mixfix_lbrb s i
+
+(* meta remove_unused:dependency prop snocqtspecqt1, function snoc *)
+
+(* meta remove_unused:dependency prop snocqtspecqt0, function snoc *)
+
+(* meta remove_unused:dependency prop snocqtspec, function snoc *)
+
+function mixfix_lbdtdtrb (seq 'a) int int : seq 'a
+
+axiom mixfix_lbdtdtrbqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, j:int.
+   ([@hyp_name:Requires]
+    infix_lseq 0 i /\ infix_lseq i j /\ infix_lseq j (length s)) ->
+   mixfix_lbdtdtrb s i j =
+   create (infix_mn j i) (fun (k:int) -> mixfix_lbrb s (infix_pl i k))
+
+axiom mixfix_lbdtdtrbqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, j:int.
+   ([@hyp_name:Requires]
+    infix_lseq 0 i /\ infix_lseq i j /\ infix_lseq j (length s)) ->
+   ([@hyp_name:Ensures] length (mixfix_lbdtdtrb s i j) = infix_mn j i)
+
+axiom mixfix_lbdtdtrbqtspec [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, j:int.
+   ([@hyp_name:Requires]
+    infix_lseq 0 i /\ infix_lseq i j /\ infix_lseq j (length s)) ->
+   ([@hyp_name:Ensures]
+    forall k:int.
+     infix_lseq 0 k /\ infix_ls k (infix_mn j i) ->
+     mixfix_lbrb (mixfix_lbdtdtrb s i j) k = mixfix_lbrb s (infix_pl i k))
+
+(* meta remove_unused:dependency prop mixfix_lbdtdtrbqtdef,
+  function mixfix_lbdtdtrb *)
+
+(* meta remove_unused:dependency prop mixfix_lbdtdtrbqtspecqt0,
+  function mixfix_lbdtdtrb *)
+
+(* meta remove_unused:dependency prop mixfix_lbdtdtrbqtspec,
+  function mixfix_lbdtdtrb *)
+
+function mixfix_lb_dtdtrb (seq 'a) int : seq 'a
+
+axiom mixfix_lb_dtdtrbqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_lseq i (length s)) ->
+   mixfix_lb_dtdtrb s i = mixfix_lbdtdtrb s i (length s)
+
+(* meta remove_unused:dependency prop mixfix_lb_dtdtrbqtdef,
+  function mixfix_lb_dtdtrb *)
+
+function mixfix_lbdtdt_rb (seq 'a) int : seq 'a
+
+axiom mixfix_lbdtdt_rbqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, j:int.
+   ([@hyp_name:Requires] infix_lseq 0 j /\ infix_lseq j (length s)) ->
+   mixfix_lbdtdt_rb s j = mixfix_lbdtdtrb s 0 j
+
+(* meta remove_unused:dependency prop mixfix_lbdtdt_rbqtdef,
+  function mixfix_lbdtdt_rb *)
+
+function infix_plpl (s1:seq 'a) (s2:seq 'a) : seq 'a =
+  let l = length s1 in
+  create (infix_pl l (length s2))
+  (fun (i:int) ->
+    if infix_ls i l then mixfix_lbrb s1 i else mixfix_lbrb s2 (infix_mn i l))
+
+axiom infix_plplqtspecqt1 [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures]
+   length (infix_plpl s1 s2) = infix_pl (length s1) (length s2)
+
+axiom infix_plplqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures]
+   forall i:int.
+    infix_lseq 0 i /\ infix_ls i (length s1) ->
+    mixfix_lbrb (infix_plpl s1 s2) i = mixfix_lbrb s1 i
+
+axiom infix_plplqtspec [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures]
+   forall i:int.
+    infix_lseq (length s1) i /\ infix_ls i (length (infix_plpl s1 s2)) ->
+    mixfix_lbrb (infix_plpl s1 s2) i =
+    mixfix_lbrb s2 (infix_mn i (length s1))
+
+(* meta remove_unused:dependency prop infix_plplqtspecqt1,
+  function infix_plpl *)
+
+(* meta remove_unused:dependency prop infix_plplqtspecqt0,
+  function infix_plpl *)
+
+(* meta remove_unused:dependency prop infix_plplqtspec,
+  function infix_plpl *)
+
+(* use seq.Seq *)
+
+function abs (x:int) : int = if infix_gteq x 0 then x else prefix_mn x
+
+axiom Abs_le :
+  forall x:int, y:int.
+   infix_lseq (abs x) y <-> infix_lseq (prefix_mn y) x /\ infix_lseq x y
+
+(* meta remove_unused:dependency prop Abs_le, function abs *)
+
+axiom Abs_pos : forall x:int. infix_gteq (abs x) 0
+
+(* meta remove_unused:dependency prop Abs_pos, function abs *)
+
+(* use int.Abs *)
+
+function div int int : int
+
+function mod int int : int
+
+axiom Div_mod [@useraxiom] :
+  forall x:int, y:int.
+   not y = 0 -> x = infix_pl (infix_as y (div x y)) (mod x y)
+
+(* meta remove_unused:dependency prop Div_mod, function div *)
+
+(* meta remove_unused:dependency prop Div_mod, function mod *)
+
+axiom Div_bound [@useraxiom] :
+  forall x:int, y:int.
+   infix_gteq x 0 /\ infix_gt y 0 ->
+   infix_lseq 0 (div x y) /\ infix_lseq (div x y) x
+
+(* meta remove_unused:dependency prop Div_bound, function div *)
+
+(* meta remove_unused:dependency prop Div_bound, function mod *)
+
+axiom Mod_bound [@useraxiom] :
+  forall x:int, y:int.
+   not y = 0 ->
+   infix_ls (prefix_mn (abs y)) (mod x y) /\ infix_ls (mod x y) (abs y)
+
+(* meta remove_unused:dependency prop Mod_bound, function div *)
+
+(* meta remove_unused:dependency prop Mod_bound, function mod *)
+
+axiom Div_sign_pos [@useraxiom] :
+  forall x:int, y:int.
+   infix_gteq x 0 /\ infix_gt y 0 -> infix_gteq (div x y) 0
+
+(* meta remove_unused:dependency prop Div_sign_pos, function div *)
+
+(* meta remove_unused:dependency prop Div_sign_pos, function mod *)
+
+axiom Div_sign_neg [@useraxiom] :
+  forall x:int, y:int.
+   infix_lseq x 0 /\ infix_gt y 0 -> infix_lseq (div x y) 0
+
+(* meta remove_unused:dependency prop Div_sign_neg, function div *)
+
+(* meta remove_unused:dependency prop Div_sign_neg, function mod *)
+
+axiom Mod_sign_pos [@useraxiom] :
+  forall x:int, y:int. infix_gteq x 0 /\ not y = 0 -> infix_gteq (mod x y) 0
+
+(* meta remove_unused:dependency prop Mod_sign_pos, function div *)
+
+(* meta remove_unused:dependency prop Mod_sign_pos, function mod *)
+
+axiom Mod_sign_neg [@useraxiom] :
+  forall x:int, y:int. infix_lseq x 0 /\ not y = 0 -> infix_lseq (mod x y) 0
+
+(* meta remove_unused:dependency prop Mod_sign_neg, function div *)
+
+(* meta remove_unused:dependency prop Mod_sign_neg, function mod *)
+
+axiom Rounds_toward_zero :
+  forall x:int, y:int.
+   not y = 0 -> infix_lseq (abs (infix_as (div x y) y)) (abs x)
+
+(* meta remove_unused:dependency prop Rounds_toward_zero, function div *)
+
+(* meta remove_unused:dependency prop Rounds_toward_zero, function mod *)
+
+axiom Div_1 : forall x:int. div x 1 = x
+
+(* meta remove_unused:dependency prop Div_1, function div *)
+
+(* meta remove_unused:dependency prop Div_1, function mod *)
+
+axiom Mod_1 : forall x:int. mod x 1 = 0
+
+(* meta remove_unused:dependency prop Mod_1, function div *)
+
+(* meta remove_unused:dependency prop Mod_1, function mod *)
+
+axiom Div_inf :
+  forall x:int, y:int. infix_lseq 0 x /\ infix_ls x y -> div x y = 0
+
+(* meta remove_unused:dependency prop Div_inf, function div *)
+
+(* meta remove_unused:dependency prop Div_inf, function mod *)
+
+axiom Mod_inf :
+  forall x:int, y:int. infix_lseq 0 x /\ infix_ls x y -> mod x y = x
+
+(* meta remove_unused:dependency prop Mod_inf, function div *)
+
+(* meta remove_unused:dependency prop Mod_inf, function mod *)
+
+axiom Div_mult :
+  forall x:int, y:int, z:int [div (infix_pl (infix_as x y) z) x].
+   infix_gt x 0 /\ infix_gteq y 0 /\ infix_gteq z 0 ->
+   div (infix_pl (infix_as x y) z) x = infix_pl y (div z x)
+
+(* meta remove_unused:dependency prop Div_mult, function div *)
+
+(* meta remove_unused:dependency prop Div_mult, function mod *)
+
+axiom Mod_mult :
+  forall x:int, y:int, z:int [mod (infix_pl (infix_as x y) z) x].
+   infix_gt x 0 /\ infix_gteq y 0 /\ infix_gteq z 0 ->
+   mod (infix_pl (infix_as x y) z) x = mod z x
+
+(* meta remove_unused:dependency prop Mod_mult, function div *)
+
+(* meta remove_unused:dependency prop Mod_mult, function mod *)
+
+(* use int.ComputerDivision *)
+
+(* use mach.int.Int1 *)
+
+type t17 = <range 0 18446744073709551615>
+
+function tqtint t17 : int
+
+constant tqtmaxInt : int = 18446744073709551615
+
+constant tqtminInt : int = 0
+
+predicate tqteq (a:t17) (b:t17) = tqtint a = tqtint b
+
+axiom tqtinj [@W:non_conservative_extension:N] :
+  forall a:t17, b:t17. tqteq a b -> a = b
+
+(* meta range_type type t17, function tqtint *)
+
+(* meta model_projection function tqtint *)
+
+(* meta remove_unused:dependency prop tqtinj, predicate tqteq *)
+
+constant two_power_size : int = 0x10000000000000000
+
+axiom extensionality [@useraxiom] :
+  forall x:t17, y:t17 [tqtint x, tqtint y]. tqtint x = tqtint y -> x = y
+
+predicate in_bounds [@inline:trivial] (n:int) =
+  infix_lseq 0 n /\ infix_lseq n 0xFFFFFFFFFFFFFFFF
+
+function of_int int : t17
+
+axiom to_of_int [@useraxiom] :
+  forall x:int [of_int x]. in_bounds x -> tqtint (of_int x) = x
+
+function add t17 t17 : t17
+
+axiom add_in_bounds [@useraxiom] :
+  forall x:t17, y:t17 [add x y].
+   in_bounds (infix_pl (tqtint x) (tqtint y)) ->
+   tqtint (add x y) = infix_pl (tqtint x) (tqtint y)
+
+axiom add_wrapping [@useraxiom] :
+  forall x:t17, y:t17 [add x y].
+   exists k:int.
+    tqtint (add x y) =
+    infix_pl (infix_pl (tqtint x) (tqtint y)) (infix_as k two_power_size)
+
+function sub t17 t17 : t17
+
+axiom sub_in_bounds [@useraxiom] :
+  forall x:t17, y:t17 [sub x y].
+   in_bounds (infix_mn (tqtint x) (tqtint y)) ->
+   tqtint (sub x y) = infix_mn (tqtint x) (tqtint y)
+
+axiom sub_wrapping [@useraxiom] :
+  forall x:t17, y:t17 [sub x y].
+   exists k:int.
+    tqtint (sub x y) =
+    infix_pl (infix_mn (tqtint x) (tqtint y)) (infix_as k two_power_size)
+
+function mul t17 t17 : t17
+
+axiom mul_in_bounds [@useraxiom] :
+  forall x:t17, y:t17 [mul x y].
+   in_bounds (infix_as (tqtint x) (tqtint y)) ->
+   tqtint (mul x y) = infix_as (tqtint x) (tqtint y)
+
+axiom mul_wrapping [@useraxiom] :
+  forall x:t17, y:t17 [mul x y].
+   exists k:int.
+    tqtint (mul x y) =
+    infix_pl (infix_as (tqtint x) (tqtint y)) (infix_as k two_power_size)
+
+function neg t17 : t17
+
+axiom neg_zero [@useraxiom] :
+  forall x:t17 [neg x]. tqtint x = 0 -> tqtint (neg x) = 0
+
+axiom neg_not_zero [@useraxiom] :
+  forall x:t17 [neg x].
+   infix_ls 0 (tqtint x) /\ infix_lseq (tqtint x) 0xFFFFFFFFFFFFFFFF ->
+   tqtint (neg x) = infix_mn two_power_size (tqtint x)
+
+function of_bool [@inline:trivial] (b:bool) : t17 =
+  if b = True then (1:t17) else (0:t17)
+
+predicate le [@inline:trivial] (a:t17) (b:t17) =
+  infix_lseq (tqtint a) (tqtint b)
+
+predicate lt [@inline:trivial] (a:t17) (b:t17) =
+  infix_ls (tqtint a) (tqtint b)
+
+predicate ge [@inline:trivial] (a:t17) (b:t17) =
+  infix_gteq (tqtint a) (tqtint b)
+
+predicate gt [@inline:trivial] (a:t17) (b:t17) =
+  infix_gt (tqtint a) (tqtint b)
+
+function bw_and t17 t17 : t17
+
+function bw_or t17 t17 : t17
+
+function bw_xor t17 t17 : t17
+
+function bw_not t17 : t17
+
+function shl t17 t17 : t17
+
+function shr t17 t17 : t17
+
+function nth t17 int : bool
+
+type tuple2 'a 'a1 =
+  | Tuple2 [@builtin] 'a 'a1
+
+(* use why3.Tuple2.Tuple21 *)
+
+function add_with_overflow (a:t17) (b:t17) : (t17, bool) = (add a b,
+  if not in_bounds (infix_pl (tqtint a) (tqtint b)) then True else False)
+
+function sub_with_overflow (a:t17) (b:t17) : (t17, bool) = (sub a b,
+  if not in_bounds (infix_mn (tqtint a) (tqtint b)) then True else False)
+
+function mul_with_overflow (a:t17) (b:t17) : (t17, bool) = (mul a b,
+  if not in_bounds (infix_as (tqtint a) (tqtint b)) then True else False)
+
+(* use creusot.int.UInt64 *)
+
+type ptr
+
+function thin ptr : ptr
+
+type foreign
+
+(* use creusot.prelude.Opaque *)
+
+type slice 'a
+
+function elts [@is_field_id] [@builtin] (slice 'a) : seq 'a
+
+axiom sliceqtinvariant :
+  forall self:slice 'a [self.elts].
+   [@hyp_name:TypeInvariant] in_bounds (length (self.elts))
+
+predicate sliceqteq (a:slice 'a) (b:slice 'a) = a.elts = b.elts
+
+axiom sliceqtinj [@W:non_conservative_extension:N] :
+  forall a:slice 'a, b:slice 'a. sliceqteq a b -> a = b
+
+(* meta remove_unused:dependency prop sliceqtinj, predicate sliceqteq *)
+
+(* meta model_record function elts *)
+
+axiom slice_ext [@useraxiom] :
+  forall x:slice 'a, y:slice 'a. x.elts = y.elts -> x = y
+
+type array 'a = slice 'a
+
+function length1 (slice 'a) : t17
+
+axiom spec [@useraxiom] :
+  forall s:slice 'a. tqtint (length1 s) = length (s.elts)
+
+function view (s:slice 'a) : seq 'a = s.elts
+
+function slice_ptr_len ptr : t17
+
+(* use creusot.slice.Slice64 *)
+
+type t18 = <range 0 255>
+
+function tqtint1 t18 : int
+
+constant tqtmaxInt1 : int = 255
+
+constant tqtminInt1 : int = 0
+
+predicate tqteq1 (a:t18) (b:t18) = tqtint1 a = tqtint1 b
+
+axiom tqtinj1 [@W:non_conservative_extension:N] :
+  forall a:t18, b:t18. tqteq1 a b -> a = b
+
+(* meta range_type type t18, function tqtint1 *)
+
+(* meta model_projection function tqtint1 *)
+
+(* meta remove_unused:dependency prop tqtinj1, predicate tqteq1 *)
+
+constant two_power_size1 : int = 0x100
+
+axiom extensionality1 [@useraxiom] :
+  forall x:t18, y:t18 [tqtint1 x, tqtint1 y]. tqtint1 x = tqtint1 y -> x = y
+
+predicate in_bounds1 [@inline:trivial] (n:int) =
+  infix_lseq 0 n /\ infix_lseq n 0xFF
+
+function of_int1 int : t18
+
+axiom to_of_int1 [@useraxiom] :
+  forall x:int [of_int1 x]. in_bounds1 x -> tqtint1 (of_int1 x) = x
+
+function add1 t18 t18 : t18
+
+axiom add_in_bounds1 [@useraxiom] :
+  forall x:t18, y:t18 [add1 x y].
+   in_bounds1 (infix_pl (tqtint1 x) (tqtint1 y)) ->
+   tqtint1 (add1 x y) = infix_pl (tqtint1 x) (tqtint1 y)
+
+axiom add_wrapping1 [@useraxiom] :
+  forall x:t18, y:t18 [add1 x y].
+   exists k:int.
+    tqtint1 (add1 x y) =
+    infix_pl (infix_pl (tqtint1 x) (tqtint1 y)) (infix_as k two_power_size1)
+
+function sub1 t18 t18 : t18
+
+axiom sub_in_bounds1 [@useraxiom] :
+  forall x:t18, y:t18 [sub1 x y].
+   in_bounds1 (infix_mn (tqtint1 x) (tqtint1 y)) ->
+   tqtint1 (sub1 x y) = infix_mn (tqtint1 x) (tqtint1 y)
+
+axiom sub_wrapping1 [@useraxiom] :
+  forall x:t18, y:t18 [sub1 x y].
+   exists k:int.
+    tqtint1 (sub1 x y) =
+    infix_pl (infix_mn (tqtint1 x) (tqtint1 y)) (infix_as k two_power_size1)
+
+function mul1 t18 t18 : t18
+
+axiom mul_in_bounds1 [@useraxiom] :
+  forall x:t18, y:t18 [mul1 x y].
+   in_bounds1 (infix_as (tqtint1 x) (tqtint1 y)) ->
+   tqtint1 (mul1 x y) = infix_as (tqtint1 x) (tqtint1 y)
+
+axiom mul_wrapping1 [@useraxiom] :
+  forall x:t18, y:t18 [mul1 x y].
+   exists k:int.
+    tqtint1 (mul1 x y) =
+    infix_pl (infix_as (tqtint1 x) (tqtint1 y)) (infix_as k two_power_size1)
+
+function neg1 t18 : t18
+
+axiom neg_zero1 [@useraxiom] :
+  forall x:t18 [neg1 x]. tqtint1 x = 0 -> tqtint1 (neg1 x) = 0
+
+axiom neg_not_zero1 [@useraxiom] :
+  forall x:t18 [neg1 x].
+   infix_ls 0 (tqtint1 x) /\ infix_lseq (tqtint1 x) 0xFF ->
+   tqtint1 (neg1 x) = infix_mn two_power_size1 (tqtint1 x)
+
+function of_bool1 [@inline:trivial] (b:bool) : t18 =
+  if b = True then (1:t18) else (0:t18)
+
+predicate le1 [@inline:trivial] (a:t18) (b:t18) =
+  infix_lseq (tqtint1 a) (tqtint1 b)
+
+predicate lt1 [@inline:trivial] (a:t18) (b:t18) =
+  infix_ls (tqtint1 a) (tqtint1 b)
+
+predicate ge1 [@inline:trivial] (a:t18) (b:t18) =
+  infix_gteq (tqtint1 a) (tqtint1 b)
+
+predicate gt1 [@inline:trivial] (a:t18) (b:t18) =
+  infix_gt (tqtint1 a) (tqtint1 b)
+
+function bw_and1 t18 t18 : t18
+
+function bw_or1 t18 t18 : t18
+
+function bw_xor1 t18 t18 : t18
+
+function bw_not1 t18 : t18
+
+function shl1 t18 t18 : t18
+
+function shr1 t18 t18 : t18
+
+function nth1 t18 int : bool
+
+function add_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (add1 a b,
+  if not in_bounds1 (infix_pl (tqtint1 a) (tqtint1 b)) then True else False)
+
+function sub_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (sub1 a b,
+  if not in_bounds1 (infix_mn (tqtint1 a) (tqtint1 b)) then True else False)
+
+function mul_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (mul1 a b,
+  if not in_bounds1 (infix_as (tqtint1 a) (tqtint1 b)) then True else False)
+
+(* use creusot.int.UInt8 *)
+
+constant size : int = 256
+
+constant two_power_size2 : int =
+  0x10000000000000000000000000000000000000000000000000000000000000000
+
+constant two_power_sizem1 : int =
+  0x8000000000000000000000000000000000000000000000000000000000000000
+
+type t19 =
+  <range 0 115792089237316195423570985008687907853269984665640564039457584007913129639935>
+
+function tqtint2 t19 : int
+
+constant tqtmaxInt2 : int =
+  115792089237316195423570985008687907853269984665640564039457584007913129639935
+
+constant tqtminInt2 : int = 0
+
+predicate tqteq2 (a:t19) (b:t19) = tqtint2 a = tqtint2 b
+
+axiom tqtinj2 [@W:non_conservative_extension:N] :
+  forall a:t19, b:t19. tqteq2 a b -> a = b
+
+(* meta range_type type t19, function tqtint2 *)
+
+(* meta model_projection function tqtint2 *)
+
+(* meta remove_unused:dependency prop tqtinj2, predicate tqteq2 *)
+
+constant zeros : t19 = (0x0:t19)
+
+constant ones : t19 =
+  (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:t19)
+
+constant one3 : t19 = (0x1:t19)
+
+constant minus_one : t19 =
+  (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:t19)
+
+constant min_sint : t19 =
+  (0x8000000000000000000000000000000000000000000000000000000000000000:t19)
+
+constant max_sint : t19 =
+  (0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:t19)
+
+constant max_uint : t19 =
+  (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:t19)
+
+function andb (x:bool) (y:bool) : bool =
+  match x with
+  | True -> y
+  | False -> False
+  end
+
+function orb (x:bool) (y:bool) : bool =
+  match x with
+  | False -> y
+  | True -> True
+  end
+
+function notb (x:bool) : bool = match x with
+  | False -> True
+  | True -> False
+  end
+
+function xorb (x:bool) (y:bool) : bool =
+  match x with
+  | False -> y
+  | True -> notb y
+  end
+
+function implb (x:bool) (y:bool) : bool =
+  match x with
+  | False -> True
+  | True -> y
+  end
+
+(* use bool.Bool1 *)
+
+function nth2 t19 int : bool
+
+axiom nth_out_of_bound :
+  forall x:t19, n:int. infix_ls n 0 \/ infix_gteq n size -> nth2 x n = False
+
+(* meta remove_unused:dependency prop nth_out_of_bound, function nth2 *)
+
+axiom Nth_zeros : forall n:int. nth2 zeros n = False
+
+(* meta remove_unused:dependency prop Nth_zeros, constant zeros *)
+
+axiom Nth_ones :
+  forall n:int. infix_lseq 0 n /\ infix_ls n size -> nth2 ones n = True
+
+(* meta remove_unused:dependency prop Nth_ones, constant ones *)
+
+function bw_and2 t19 t19 : t19
+
+axiom Nth_bw_and :
+  forall v1:t19, v2:t19, n:int.
+   infix_lseq 0 n /\ infix_ls n size ->
+   nth2 (bw_and2 v1 v2) n = andb (nth2 v1 n) (nth2 v2 n)
+
+(* meta remove_unused:dependency prop Nth_bw_and, function bw_and2 *)
+
+function bw_or2 t19 t19 : t19
+
+axiom Nth_bw_or :
+  forall v1:t19, v2:t19, n:int.
+   infix_lseq 0 n /\ infix_ls n size ->
+   nth2 (bw_or2 v1 v2) n = orb (nth2 v1 n) (nth2 v2 n)
+
+(* meta remove_unused:dependency prop Nth_bw_or, function bw_or2 *)
+
+function bw_xor2 t19 t19 : t19
+
+axiom Nth_bw_xor :
+  forall v1:t19, v2:t19, n:int.
+   infix_lseq 0 n /\ infix_ls n size ->
+   nth2 (bw_xor2 v1 v2) n = xorb (nth2 v1 n) (nth2 v2 n)
+
+(* meta remove_unused:dependency prop Nth_bw_xor, function bw_xor2 *)
+
+function bw_not2 t19 : t19
+
+axiom Nth_bw_not :
+  forall v:t19, n:int.
+   infix_lseq 0 n /\ infix_ls n size -> nth2 (bw_not2 v) n = notb (nth2 v n)
+
+(* meta remove_unused:dependency prop Nth_bw_not, function bw_not2 *)
+
+function lsr t19 int : t19
+
+axiom Lsr_nth_low :
+  forall b:t19, n:int, s:int.
+   infix_lseq 0 s ->
+   infix_lseq 0 n ->
+   infix_ls (infix_pl n s) size -> nth2 (lsr b s) n = nth2 b (infix_pl n s)
+
+(* meta remove_unused:dependency prop Lsr_nth_low, function lsr *)
+
+axiom Lsr_nth_high :
+  forall b:t19, n:int, s:int.
+   infix_lseq 0 s ->
+   infix_lseq 0 n ->
+   infix_gteq (infix_pl n s) size -> nth2 (lsr b s) n = False
+
+(* meta remove_unused:dependency prop Lsr_nth_high, function lsr *)
+
+axiom lsr_zeros : forall x:t19. lsr x 0 = x
+
+(* meta remove_unused:dependency prop lsr_zeros, function lsr *)
+
+function asr t19 int : t19
+
+axiom Asr_nth_low :
+  forall b:t19, n:int, s:int.
+   infix_lseq 0 s ->
+   infix_lseq 0 n /\ infix_ls n size ->
+   infix_ls (infix_pl n s) size -> nth2 (asr b s) n = nth2 b (infix_pl n s)
+
+(* meta remove_unused:dependency prop Asr_nth_low, function asr *)
+
+axiom Asr_nth_high :
+  forall b:t19, n:int, s:int.
+   infix_lseq 0 s ->
+   infix_lseq 0 n /\ infix_ls n size ->
+   infix_gteq (infix_pl n s) size ->
+   nth2 (asr b s) n = nth2 b (infix_mn size 1)
+
+(* meta remove_unused:dependency prop Asr_nth_high, function asr *)
+
+axiom asr_zeros : forall x:t19. asr x 0 = x
+
+(* meta remove_unused:dependency prop asr_zeros, function asr *)
+
+function lsl t19 int : t19
+
+axiom Lsl_nth_high :
+  forall b:t19, n:int, s:int.
+   infix_lseq 0 s /\ infix_lseq s n /\ infix_ls n size ->
+   nth2 (lsl b s) n = nth2 b (infix_mn n s)
+
+(* meta remove_unused:dependency prop Lsl_nth_high, function lsl *)
+
+axiom Lsl_nth_low :
+  forall b:t19, n:int, s:int.
+   infix_lseq 0 n /\ infix_ls n s -> nth2 (lsl b s) n = False
+
+(* meta remove_unused:dependency prop Lsl_nth_low, function lsl *)
+
+axiom lsl_zeros : forall x:t19. lsl x 0 = x
+
+(* meta remove_unused:dependency prop lsl_zeros, function lsl *)
+
+function div1 int int : int
+
+function mod1 int int : int
+
+axiom Div_mod1 [@useraxiom] :
+  forall x:int, y:int.
+   not y = 0 -> x = infix_pl (infix_as y (div1 x y)) (mod1 x y)
+
+(* meta remove_unused:dependency prop Div_mod1, function div1 *)
+
+(* meta remove_unused:dependency prop Div_mod1, function mod1 *)
+
+axiom Mod_bound1 [@useraxiom] :
+  forall x:int, y:int.
+   not y = 0 -> infix_lseq 0 (mod1 x y) /\ infix_ls (mod1 x y) (abs y)
+
+(* meta remove_unused:dependency prop Mod_bound1, function mod1 *)
+
+axiom Div_unique :
+  forall x:int, y:int, q:int.
+   infix_gt y 0 ->
+   infix_lseq (infix_as q y) x /\ infix_ls x (infix_pl (infix_as q y) y) ->
+   div1 x y = q
+
+(* meta remove_unused:dependency prop Div_unique, function div1 *)
+
+axiom Div_bound1 :
+  forall x:int, y:int.
+   infix_gteq x 0 /\ infix_gt y 0 ->
+   infix_lseq 0 (div1 x y) /\ infix_lseq (div1 x y) x
+
+(* meta remove_unused:dependency prop Div_bound1, function div1 *)
+
+axiom Mod_11 : forall x:int. mod1 x 1 = 0
+
+(* meta remove_unused:dependency prop Mod_11, function mod1 *)
+
+axiom Div_11 : forall x:int. div1 x 1 = x
+
+(* meta remove_unused:dependency prop Div_11, function div1 *)
+
+axiom Div_inf1 :
+  forall x:int, y:int. infix_lseq 0 x /\ infix_ls x y -> div1 x y = 0
+
+(* meta remove_unused:dependency prop Div_inf1, function div1 *)
+
+axiom Div_inf_neg :
+  forall x:int, y:int.
+   infix_ls 0 x /\ infix_lseq x y -> div1 (prefix_mn x) y = (- 1)
+
+(* meta remove_unused:dependency prop Div_inf_neg, function div1 *)
+
+axiom Mod_0 : forall y:int. not y = 0 -> mod1 0 y = 0
+
+(* meta remove_unused:dependency prop Mod_0, function mod1 *)
+
+axiom Div_1_left : forall y:int. infix_gt y 1 -> div1 1 y = 0
+
+(* meta remove_unused:dependency prop Div_1_left, function div1 *)
+
+axiom Div_minus1_left : forall y:int. infix_gt y 1 -> div1 (- 1) y = (- 1)
+
+(* meta remove_unused:dependency prop Div_minus1_left, function div1 *)
+
+axiom Mod_1_left : forall y:int. infix_gt y 1 -> mod1 1 y = 1
+
+(* meta remove_unused:dependency prop Mod_1_left, function mod1 *)
+
+axiom Mod_minus1_left :
+  forall y:int. infix_gt y 1 -> mod1 (- 1) y = infix_mn y 1
+
+(* meta remove_unused:dependency prop Mod_minus1_left, function mod1 *)
+
+axiom Div_mult1 :
+  forall x:int, y:int, z:int [div1 (infix_pl (infix_as x y) z) x].
+   infix_gt x 0 -> div1 (infix_pl (infix_as x y) z) x = infix_pl y (div1 z x)
+
+(* meta remove_unused:dependency prop Div_mult1, function div1 *)
+
+axiom Mod_mult1 :
+  forall x:int, y:int, z:int [mod1 (infix_pl (infix_as x y) z) x].
+   infix_gt x 0 -> mod1 (infix_pl (infix_as x y) z) x = mod1 z x
+
+(* meta remove_unused:dependency prop Mod_mult1, function mod1 *)
+
+(* use int.EuclideanDivision *)
+
+function rotate_right t19 int : t19
+
+axiom Nth_rotate_right :
+  forall v:t19, n:int, i:int.
+   infix_lseq 0 i /\ infix_ls i size ->
+   infix_lseq 0 n ->
+   nth2 (rotate_right v n) i = nth2 v (mod1 (infix_pl i n) size)
+
+(* meta remove_unused:dependency prop Nth_rotate_right,
+  function rotate_right *)
+
+function rotate_left t19 int : t19
+
+axiom Nth_rotate_left :
+  forall v:t19, n:int, i:int.
+   infix_lseq 0 i /\ infix_ls i size ->
+   infix_lseq 0 n ->
+   nth2 (rotate_left v n) i = nth2 v (mod1 (infix_mn i n) size)
+
+(* meta remove_unused:dependency prop Nth_rotate_left,
+  function rotate_left *)
+
+function pow2 int : int
+
+axiom Power_0 [@useraxiom] : pow2 0 = 1
+
+(* meta remove_unused:dependency prop Power_0, function pow2 *)
+
+axiom Power_s [@useraxiom] :
+  forall n:int. infix_gteq n 0 -> pow2 (infix_pl n 1) = infix_as 2 (pow2 n)
+
+(* meta remove_unused:dependency prop Power_s, function pow2 *)
+
+axiom Power_1 : pow2 1 = 2
+
+(* meta remove_unused:dependency prop Power_1, function pow2 *)
+
+axiom Power_sum :
+  forall n:int, m:int.
+   infix_gteq n 0 /\ infix_gteq m 0 ->
+   pow2 (infix_pl n m) = infix_as (pow2 n) (pow2 m)
+
+(* meta remove_unused:dependency prop Power_sum, function pow2 *)
+
+axiom pow2pos : forall i:int. infix_gteq i 0 -> infix_gt (pow2 i) 0
+
+(* meta remove_unused:dependency prop pow2pos, function pow2 *)
+
+axiom pow2_0 : pow2 0 = 0x1
+
+axiom pow2_1 : pow2 1 = 0x2
+
+axiom pow2_2 : pow2 2 = 0x4
+
+axiom pow2_3 : pow2 3 = 0x8
+
+axiom pow2_4 : pow2 4 = 0x10
+
+axiom pow2_5 : pow2 5 = 0x20
+
+axiom pow2_6 : pow2 6 = 0x40
+
+axiom pow2_7 : pow2 7 = 0x80
+
+axiom pow2_8 : pow2 8 = 0x100
+
+axiom pow2_9 : pow2 9 = 0x200
+
+axiom pow2_10 : pow2 10 = 0x400
+
+axiom pow2_11 : pow2 11 = 0x800
+
+axiom pow2_12 : pow2 12 = 0x1000
+
+axiom pow2_13 : pow2 13 = 0x2000
+
+axiom pow2_14 : pow2 14 = 0x4000
+
+axiom pow2_15 : pow2 15 = 0x8000
+
+axiom pow2_16 : pow2 16 = 0x10000
+
+axiom pow2_17 : pow2 17 = 0x20000
+
+axiom pow2_18 : pow2 18 = 0x40000
+
+axiom pow2_19 : pow2 19 = 0x80000
+
+axiom pow2_20 : pow2 20 = 0x100000
+
+axiom pow2_21 : pow2 21 = 0x200000
+
+axiom pow2_22 : pow2 22 = 0x400000
+
+axiom pow2_23 : pow2 23 = 0x800000
+
+axiom pow2_24 : pow2 24 = 0x1000000
+
+axiom pow2_25 : pow2 25 = 0x2000000
+
+axiom pow2_26 : pow2 26 = 0x4000000
+
+axiom pow2_27 : pow2 27 = 0x8000000
+
+axiom pow2_28 : pow2 28 = 0x10000000
+
+axiom pow2_29 : pow2 29 = 0x20000000
+
+axiom pow2_30 : pow2 30 = 0x40000000
+
+axiom pow2_31 : pow2 31 = 0x80000000
+
+axiom pow2_32 : pow2 32 = 0x100000000
+
+axiom pow2_33 : pow2 33 = 0x200000000
+
+axiom pow2_34 : pow2 34 = 0x400000000
+
+axiom pow2_35 : pow2 35 = 0x800000000
+
+axiom pow2_36 : pow2 36 = 0x1000000000
+
+axiom pow2_37 : pow2 37 = 0x2000000000
+
+axiom pow2_38 : pow2 38 = 0x4000000000
+
+axiom pow2_39 : pow2 39 = 0x8000000000
+
+axiom pow2_40 : pow2 40 = 0x10000000000
+
+axiom pow2_41 : pow2 41 = 0x20000000000
+
+axiom pow2_42 : pow2 42 = 0x40000000000
+
+axiom pow2_43 : pow2 43 = 0x80000000000
+
+axiom pow2_44 : pow2 44 = 0x100000000000
+
+axiom pow2_45 : pow2 45 = 0x200000000000
+
+axiom pow2_46 : pow2 46 = 0x400000000000
+
+axiom pow2_47 : pow2 47 = 0x800000000000
+
+axiom pow2_48 : pow2 48 = 0x1000000000000
+
+axiom pow2_49 : pow2 49 = 0x2000000000000
+
+axiom pow2_50 : pow2 50 = 0x4000000000000
+
+axiom pow2_51 : pow2 51 = 0x8000000000000
+
+axiom pow2_52 : pow2 52 = 0x10000000000000
+
+axiom pow2_53 : pow2 53 = 0x20000000000000
+
+axiom pow2_54 : pow2 54 = 0x40000000000000
+
+axiom pow2_55 : pow2 55 = 0x80000000000000
+
+axiom pow2_56 : pow2 56 = 0x100000000000000
+
+axiom pow2_57 : pow2 57 = 0x200000000000000
+
+axiom pow2_58 : pow2 58 = 0x400000000000000
+
+axiom pow2_59 : pow2 59 = 0x800000000000000
+
+axiom pow2_60 : pow2 60 = 0x1000000000000000
+
+axiom pow2_61 : pow2 61 = 0x2000000000000000
+
+axiom pow2_62 : pow2 62 = 0x4000000000000000
+
+axiom pow2_63 : pow2 63 = 0x8000000000000000
+
+axiom pow2_64 : pow2 64 = 0x10000000000000000
+
+(* meta remove_unused:dependency prop pow2_0, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_1, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_2, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_3, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_4, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_5, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_6, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_7, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_8, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_9, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_10, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_11, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_12, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_13, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_14, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_15, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_16, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_17, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_18, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_19, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_20, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_21, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_22, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_23, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_24, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_25, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_26, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_27, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_28, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_29, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_30, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_31, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_32, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_33, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_34, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_35, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_36, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_37, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_38, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_39, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_40, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_41, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_42, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_43, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_44, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_45, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_46, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_47, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_48, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_49, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_50, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_51, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_52, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_53, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_54, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_55, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_56, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_57, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_58, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_59, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_60, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_61, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_62, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_63, function pow2 *)
+
+(* meta remove_unused:dependency prop pow2_64, function pow2 *)
+
+(* use bv.Pow2int *)
+
+predicate is_signed_positive t19
+
+function of_int2 int : t19
+
+function to_int (x:t19) : int =
+  if is_signed_positive x then tqtint2 x
+  else prefix_mn (infix_mn two_power_size2 (tqtint2 x))
+
+axiom to_uint_extensionality :
+  forall v:t19, vqt:t19. tqtint2 v = tqtint2 vqt -> v = vqt
+
+(* meta remove_unused:dependency prop to_uint_extensionality,
+  function tqtint2 *)
+
+axiom to_int_extensionality :
+  forall v:t19, vqt:t19. to_int v = to_int vqt -> v = vqt
+
+(* meta remove_unused:dependency prop to_int_extensionality,
+  function to_int *)
+
+predicate uint_in_range (i:int) = infix_lseq 0 i /\ infix_lseq i tqtmaxInt2
+
+axiom to_uint_bounds :
+  forall v:t19.
+   infix_lseq 0 (tqtint2 v) /\ infix_ls (tqtint2 v) two_power_size2
+
+(* meta remove_unused:dependency prop to_uint_bounds, function tqtint2 *)
+
+axiom to_uint_of_int :
+  forall i:int.
+   infix_lseq 0 i /\ infix_ls i two_power_size2 -> tqtint2 (of_int2 i) = i
+
+(* meta remove_unused:dependency prop to_uint_of_int, function tqtint2 *)
+
+(* meta remove_unused:dependency prop to_uint_of_int, function of_int2 *)
+
+axiom to_int_bounds :
+  forall v:t19.
+   infix_lseq (prefix_mn two_power_sizem1) (to_int v) /\
+   infix_ls (to_int v) two_power_sizem1
+
+(* meta remove_unused:dependency prop to_int_bounds, function to_int *)
+
+axiom to_int_of_int :
+  forall i:int.
+   infix_lseq (prefix_mn two_power_sizem1) i /\ infix_ls i two_power_sizem1 ->
+   to_int (of_int2 i) = i
+
+(* meta remove_unused:dependency prop to_int_of_int, function of_int2 *)
+
+constant size_bv : t19
+
+inductive acc ('a -> 'a -> bool) 'a =
+  | acc_x :
+      forall r:'a -> 'a -> bool, x:'a.
+       (forall y:'a. infix_at (infix_at r y) x = True -> acc r y) -> acc r x
+
+predicate well_founded (r:'a -> 'a -> bool) = forall x:'a. acc r x
+
+(* use why3.WellFounded.WellFounded *)
+
+predicate ult (x:t19) (y:t19) = infix_ls (tqtint2 x) (tqtint2 y)
+
+axiom ult_wf : well_founded (fun (y0:t19) (y1:t19) -> ult y0 y1)
+
+(* meta vc:proved_wf predicate ult, prop ult_wf *)
+
+(* meta remove_unused:dependency prop ult_wf, predicate ult *)
+
+predicate ule (x:t19) (y:t19) = infix_lseq (tqtint2 x) (tqtint2 y)
+
+predicate ugt (x:t19) (y:t19) = infix_gt (tqtint2 x) (tqtint2 y)
+
+axiom ugt_wf : well_founded (fun (y0:t19) (y1:t19) -> ugt y0 y1)
+
+(* meta vc:proved_wf predicate ugt, prop ugt_wf *)
+
+(* meta remove_unused:dependency prop ugt_wf, predicate ugt *)
+
+predicate uge (x:t19) (y:t19) = infix_gteq (tqtint2 x) (tqtint2 y)
+
+predicate slt (v1:t19) (v2:t19) = infix_ls (to_int v1) (to_int v2)
+
+axiom slt_wf : well_founded (fun (y0:t19) (y1:t19) -> slt y0 y1)
+
+(* meta vc:proved_wf predicate slt, prop slt_wf *)
+
+(* meta remove_unused:dependency prop slt_wf, predicate slt *)
+
+predicate sle (v1:t19) (v2:t19) = infix_lseq (to_int v1) (to_int v2)
+
+predicate sgt (v1:t19) (v2:t19) = infix_gt (to_int v1) (to_int v2)
+
+axiom sgt_wf : well_founded (fun (y0:t19) (y1:t19) -> sgt y0 y1)
+
+(* meta vc:proved_wf predicate sgt, prop sgt_wf *)
+
+(* meta remove_unused:dependency prop sgt_wf, predicate sgt *)
+
+predicate sge (v1:t19) (v2:t19) = infix_gteq (to_int v1) (to_int v2)
+
+axiom positive_is_ge_zeros :
+  forall x:t19. is_signed_positive x <-> sge x zeros
+
+(* meta remove_unused:dependency prop positive_is_ge_zeros, predicate sge *)
+
+(* meta remove_unused:dependency prop positive_is_ge_zeros,
+  predicate is_signed_positive *)
+
+function add2 t19 t19 : t19
+
+axiom to_uint_add :
+  forall v1:t19, v2:t19.
+   tqtint2 (add2 v1 v2) =
+   mod1 (infix_pl (tqtint2 v1) (tqtint2 v2)) two_power_size2
+
+(* meta remove_unused:dependency prop to_uint_add, function add2 *)
+
+axiom to_uint_add_bounded :
+  forall v1:t19, v2:t19.
+   infix_ls (infix_pl (tqtint2 v1) (tqtint2 v2)) two_power_size2 ->
+   tqtint2 (add2 v1 v2) = infix_pl (tqtint2 v1) (tqtint2 v2)
+
+(* meta remove_unused:dependency prop to_uint_add_bounded, function add2 *)
+
+axiom to_uint_add_overflow :
+  forall v1:t19, v2:t19.
+   infix_gteq (infix_pl (tqtint2 v1) (tqtint2 v2)) two_power_size2 ->
+   tqtint2 (add2 v1 v2) =
+   infix_mn (infix_pl (tqtint2 v1) (tqtint2 v2)) two_power_size2
+
+(* meta remove_unused:dependency prop to_uint_add_overflow, function add2 *)
+
+function sub2 t19 t19 : t19
+
+axiom to_uint_sub :
+  forall v1:t19, v2:t19.
+   tqtint2 (sub2 v1 v2) =
+   mod1 (infix_mn (tqtint2 v1) (tqtint2 v2)) two_power_size2
+
+(* meta remove_unused:dependency prop to_uint_sub, function sub2 *)
+
+axiom to_uint_sub_bounded :
+  forall v1:t19, v2:t19.
+   infix_lseq 0 (infix_mn (tqtint2 v1) (tqtint2 v2)) ->
+   tqtint2 (sub2 v1 v2) = infix_mn (tqtint2 v1) (tqtint2 v2)
+
+(* meta remove_unused:dependency prop to_uint_sub_bounded, function sub2 *)
+
+axiom to_uint_sub_overflow :
+  forall v1:t19, v2:t19.
+   infix_gt 0 (infix_mn (tqtint2 v1) (tqtint2 v2)) ->
+   tqtint2 (sub2 v1 v2) =
+   infix_pl (infix_mn (tqtint2 v1) (tqtint2 v2)) two_power_size2
+
+(* meta remove_unused:dependency prop to_uint_sub_overflow, function sub2 *)
+
+function neg2 t19 : t19
+
+axiom to_uint_neg :
+  forall v:t19.
+   tqtint2 (neg2 v) = mod1 (prefix_mn (tqtint2 v)) two_power_size2
+
+(* meta remove_unused:dependency prop to_uint_neg, function neg2 *)
+
+axiom to_uint_neg_no_mod :
+  forall v:t19.
+   tqtint2 (neg2 v) =
+   (if v = zeros then 0 else infix_mn two_power_size2 (tqtint2 v))
+
+(* meta remove_unused:dependency prop to_uint_neg_no_mod, function neg2 *)
+
+function mul2 t19 t19 : t19
+
+axiom to_uint_mul :
+  forall v1:t19, v2:t19.
+   tqtint2 (mul2 v1 v2) =
+   mod1 (infix_as (tqtint2 v1) (tqtint2 v2)) two_power_size2
+
+(* meta remove_unused:dependency prop to_uint_mul, function mul2 *)
+
+axiom to_uint_mul_bounded :
+  forall v1:t19, v2:t19.
+   infix_ls (infix_as (tqtint2 v1) (tqtint2 v2)) two_power_size2 ->
+   tqtint2 (mul2 v1 v2) = infix_as (tqtint2 v1) (tqtint2 v2)
+
+(* meta remove_unused:dependency prop to_uint_mul_bounded, function mul2 *)
+
+function udiv t19 t19 : t19
+
+axiom to_uint_udiv :
+  forall v1:t19, v2:t19.
+   tqtint2 (udiv v1 v2) = div1 (tqtint2 v1) (tqtint2 v2)
+
+(* meta remove_unused:dependency prop to_uint_udiv, function udiv *)
+
+function urem t19 t19 : t19
+
+axiom to_uint_urem :
+  forall v1:t19, v2:t19.
+   tqtint2 (urem v1 v2) = mod1 (tqtint2 v1) (tqtint2 v2)
+
+(* meta remove_unused:dependency prop to_uint_urem, function urem *)
+
+function sdiv t19 t19 : t19
+
+axiom to_int_sdiv :
+  forall v1:t19, v2:t19.
+   to_int (sdiv v1 v2) = mod (div (to_int v1) (to_int v2)) two_power_size2
+
+(* meta remove_unused:dependency prop to_int_sdiv, function sdiv *)
+
+axiom to_int_sdiv_bounded :
+  forall v1:t19, v2:t19.
+   not v1 = lsl one3 (infix_mn size 1) \/ not v2 = ones ->
+   to_int (sdiv v1 v2) = div (to_int v1) (to_int v2)
+
+(* meta remove_unused:dependency prop to_int_sdiv_bounded, function sdiv *)
+
+function srem t19 t19 : t19
+
+axiom to_int_srem :
+  forall v1:t19, v2:t19. to_int (srem v1 v2) = mod (to_int v1) (to_int v2)
+
+(* meta remove_unused:dependency prop to_int_srem, function srem *)
+
+predicate u_add_o (a:t19) (b:t19) =
+  not infix_ls (infix_pl (tqtint2 a) (tqtint2 b)) two_power_size2
+
+predicate s_add_o (a:t19) (b:t19) =
+  not (infix_lseq (prefix_mn two_power_sizem1)
+       (infix_pl (to_int a) (to_int b)) /\
+       infix_ls (infix_pl (to_int a) (to_int b)) two_power_sizem1)
+
+predicate u_sub_o (a:t19) (b:t19) = not infix_gteq (tqtint2 a) (tqtint2 b)
+
+predicate s_sub_o (a:t19) (b:t19) =
+  not (infix_lseq (prefix_mn two_power_sizem1)
+       (infix_mn (to_int a) (to_int b)) /\
+       infix_ls (infix_mn (to_int a) (to_int b)) two_power_sizem1)
+
+predicate u_mul_o (a:t19) (b:t19) =
+  not infix_ls (infix_as (tqtint2 a) (tqtint2 b)) two_power_size2
+
+predicate s_mul_o (a:t19) (b:t19) =
+  not (infix_lseq (prefix_mn two_power_sizem1)
+       (infix_as (to_int a) (to_int b)) /\
+       infix_ls (infix_as (to_int a) (to_int b)) two_power_sizem1)
+
+predicate s_neg_o (a:t19) = to_int a = prefix_mn two_power_sizem1
+
+predicate s_div_o (a:t19) (b:t19) = a = min_sint /\ b = minus_one
+
+function lsr_bv t19 t19 : t19
+
+axiom lsr_bv_is_lsr : forall x:t19, n:t19. lsr_bv x n = lsr x (tqtint2 n)
+
+(* meta remove_unused:dependency prop lsr_bv_is_lsr, function lsr_bv *)
+
+axiom to_uint_lsr :
+  forall v:t19, n:t19.
+   tqtint2 (lsr_bv v n) = div1 (tqtint2 v) (pow2 (tqtint2 n))
+
+(* meta remove_unused:dependency prop to_uint_lsr, function lsr_bv *)
+
+function asr_bv t19 t19 : t19
+
+axiom asr_bv_is_asr : forall x:t19, n:t19. asr_bv x n = asr x (tqtint2 n)
+
+(* meta remove_unused:dependency prop asr_bv_is_asr, function asr_bv *)
+
+function lsl_bv t19 t19 : t19
+
+axiom lsl_bv_is_lsl : forall x:t19, n:t19. lsl_bv x n = lsl x (tqtint2 n)
+
+(* meta remove_unused:dependency prop lsl_bv_is_lsl, function lsl_bv *)
+
+axiom to_uint_lsl :
+  forall v:t19, n:t19.
+   tqtint2 (lsl_bv v n) =
+   mod1 (infix_as (tqtint2 v) (pow2 (tqtint2 n))) two_power_size2
+
+(* meta remove_unused:dependency prop to_uint_lsl, function lsl_bv *)
+
+function rotate_right_bv t19 t19 : t19
+
+function rotate_left_bv t19 t19 : t19
+
+axiom rotate_left_bv_is_rotate_left :
+  forall v:t19, n:t19. rotate_left_bv v n = rotate_left v (tqtint2 n)
+
+(* meta remove_unused:dependency prop rotate_left_bv_is_rotate_left,
+  function rotate_left_bv *)
+
+(* meta remove_unused:dependency prop rotate_left_bv_is_rotate_left,
+  function rotate_left *)
+
+axiom rotate_right_bv_is_rotate_right :
+  forall v:t19, n:t19. rotate_right_bv v n = rotate_right v (tqtint2 n)
+
+(* meta remove_unused:dependency prop rotate_right_bv_is_rotate_right,
+  function rotate_right_bv *)
+
+(* meta remove_unused:dependency prop rotate_right_bv_is_rotate_right,
+  function rotate_right *)
+
+function nth_bv t19 t19 : bool
+
+axiom nth_bv_def :
+  forall x:t19, i:t19.
+   nth_bv x i = True <-> not bw_and2 (lsr_bv x i) one3 = zeros
+
+(* meta remove_unused:dependency prop nth_bv_def, function nth_bv *)
+
+axiom Nth_bv_is_nth : forall x:t19, i:t19. nth2 x (tqtint2 i) = nth_bv x i
+
+(* meta remove_unused:dependency prop Nth_bv_is_nth, function nth_bv *)
+
+(* meta remove_unused:dependency prop Nth_bv_is_nth, function nth2 *)
+
+axiom Nth_bv_is_nth2 :
+  forall x:t19, i:int.
+   infix_lseq 0 i /\ infix_ls i two_power_size2 ->
+   nth_bv x (of_int2 i) = nth2 x i
+
+(* meta remove_unused:dependency prop Nth_bv_is_nth2, function nth_bv *)
+
+(* meta remove_unused:dependency prop Nth_bv_is_nth2, function nth2 *)
+
+predicate eq_sub_bv t19 t19 t19 t19
+
+axiom eq_sub_bv_def :
+  forall a:t19, b:t19, i:t19, n:t19.
+   let mask = lsl_bv (sub2 (lsl_bv one3 n) one3) i in
+   eq_sub_bv a b i n <-> bw_and2 b mask = bw_and2 a mask
+
+(* meta remove_unused:dependency prop eq_sub_bv_def, predicate eq_sub_bv *)
+
+predicate eq_sub (a:t19) (b:t19) (i:int) (n:int) =
+  forall j:int.
+   infix_lseq i j /\ infix_ls j (infix_pl i n) -> nth2 a j = nth2 b j
+
+axiom eq_sub_equiv :
+  forall a:t19, b:t19, i:t19, n:t19.
+   eq_sub a b (tqtint2 i) (tqtint2 n) <-> eq_sub_bv a b i n
+
+(* meta remove_unused:dependency prop eq_sub_equiv, predicate eq_sub_bv *)
+
+(* meta remove_unused:dependency prop eq_sub_equiv, predicate eq_sub *)
+
+predicate infix_eqeq1 (v1:t19) (v2:t19) = eq_sub v1 v2 0 size
+
+axiom Extensionality [@W:non_conservative_extension:N] :
+  forall x:t19, y:t19 [infix_eqeq1 x y]. infix_eqeq1 x y -> x = y
+
+(* meta remove_unused:dependency prop Extensionality,
+  predicate infix_eqeq1 *)
+
+(* clone bv.BV_Gen with type t20 = t19, predicate infix_eqeq2 = infix_eqeq1,
+  predicate eq_sub1 = eq_sub, predicate eq_sub_bv1 = eq_sub_bv,
+  function nth_bv1 = nth_bv, function rotate_left_bv1 = rotate_left_bv,
+  function rotate_right_bv1 = rotate_right_bv, function lsl_bv1 = lsl_bv,
+  function asr_bv1 = asr_bv, function lsr_bv1 = lsr_bv,
+  predicate s_div_o1 = s_div_o, predicate s_neg_o1 = s_neg_o,
+  predicate s_mul_o1 = s_mul_o, predicate u_mul_o1 = u_mul_o,
+  predicate s_sub_o1 = s_sub_o, predicate u_sub_o1 = u_sub_o,
+  predicate s_add_o1 = s_add_o, predicate u_add_o1 = u_add_o,
+  function srem1 = srem, function sdiv1 = sdiv, function urem1 = urem,
+  function udiv1 = udiv, function mul3 = mul2, function neg3 = neg2,
+  function sub3 = sub2, function add3 = add2, predicate sge1 = sge,
+  predicate sgt1 = sgt, predicate sle1 = sle, predicate slt1 = slt,
+  predicate uge1 = uge, predicate ugt1 = ugt, predicate ule1 = ule,
+  predicate ult1 = ult, constant size_bv1 = size_bv,
+  predicate uint_in_range1 = uint_in_range, function to_int1 = to_int,
+  function of_int3 = of_int2, function to_uint = tqtint2,
+  predicate is_signed_positive1 = is_signed_positive,
+  constant max_int = tqtmaxInt2,
+  constant two_power_sizem11 = two_power_sizem1,
+  constant two_power_size3 = two_power_size2,
+  function rotate_left1 = rotate_left, function rotate_right1 = rotate_right,
+  function lsl1 = lsl, function asr1 = asr, function lsr1 = lsr,
+  function bw_not3 = bw_not2, function bw_xor3 = bw_xor2,
+  function bw_or3 = bw_or2, function bw_and3 = bw_and2,
+  constant max_uint1 = max_uint, constant max_sint1 = max_sint,
+  constant min_sint1 = min_sint, constant minus_one1 = minus_one,
+  constant one4 = one3, constant ones1 = ones, constant zeros1 = zeros,
+  function nth3 = nth2, constant size1 = size,
+  prop Extensionality1 = Extensionality, prop eq_sub_equiv1 = eq_sub_equiv,
+  prop eq_sub_bv_def1 = eq_sub_bv_def, prop Nth_bv_is_nth21 = Nth_bv_is_nth2,
+  prop Nth_bv_is_nth1 = Nth_bv_is_nth, prop nth_bv_def1 = nth_bv_def,
+  prop rotate_right_bv_is_rotate_right1 = rotate_right_bv_is_rotate_right,
+  prop rotate_left_bv_is_rotate_left1 = rotate_left_bv_is_rotate_left,
+  prop to_uint_lsl1 = to_uint_lsl, prop lsl_bv_is_lsl1 = lsl_bv_is_lsl,
+  prop asr_bv_is_asr1 = asr_bv_is_asr, prop to_uint_lsr1 = to_uint_lsr,
+  prop lsr_bv_is_lsr1 = lsr_bv_is_lsr, prop to_int_srem1 = to_int_srem,
+  prop to_int_sdiv_bounded1 = to_int_sdiv_bounded,
+  prop to_int_sdiv1 = to_int_sdiv, prop to_uint_urem1 = to_uint_urem,
+  prop to_uint_udiv1 = to_uint_udiv,
+  prop to_uint_mul_bounded1 = to_uint_mul_bounded,
+  prop to_uint_mul1 = to_uint_mul,
+  prop to_uint_neg_no_mod1 = to_uint_neg_no_mod,
+  prop to_uint_neg1 = to_uint_neg,
+  prop to_uint_sub_overflow1 = to_uint_sub_overflow,
+  prop to_uint_sub_bounded1 = to_uint_sub_bounded,
+  prop to_uint_sub1 = to_uint_sub,
+  prop to_uint_add_overflow1 = to_uint_add_overflow,
+  prop to_uint_add_bounded1 = to_uint_add_bounded,
+  prop to_uint_add1 = to_uint_add,
+  prop positive_is_ge_zeros1 = positive_is_ge_zeros, prop sgt_wf1 = sgt_wf,
+  prop slt_wf1 = slt_wf, prop ugt_wf1 = ugt_wf, prop ult_wf1 = ult_wf,
+  prop to_uint_max_uint = to_uint_max_uint1,
+  prop to_int_max_sint = to_int_max_sint1,
+  prop to_int_min_sint = to_int_min_sint1,
+  prop to_int_minus_one = to_int_minus_one1, prop to_uint_one = to_uint_one1,
+  prop to_uint_ones = to_uint_ones1, prop to_uint_zeros = to_uint_zeros1,
+  prop to_uint_size_bv = to_uint_size_bv1,
+  prop to_int_of_int1 = to_int_of_int, prop to_int_bounds1 = to_int_bounds,
+  prop to_uint_of_int1 = to_uint_of_int,
+  prop to_uint_bounds1 = to_uint_bounds,
+  prop to_int_extensionality1 = to_int_extensionality,
+  prop to_uint_extensionality1 = to_uint_extensionality,
+  prop max_int_val = max_int_val1,
+  prop two_power_sizem1_val = two_power_sizem1_val1,
+  prop two_power_size_val = two_power_size_val1,
+  prop Nth_rotate_left1 = Nth_rotate_left,
+  prop Nth_rotate_right1 = Nth_rotate_right, prop lsl_zeros1 = lsl_zeros,
+  prop Lsl_nth_low1 = Lsl_nth_low, prop Lsl_nth_high1 = Lsl_nth_high,
+  prop asr_zeros1 = asr_zeros, prop Asr_nth_high1 = Asr_nth_high,
+  prop Asr_nth_low1 = Asr_nth_low, prop lsr_zeros1 = lsr_zeros,
+  prop Lsr_nth_high1 = Lsr_nth_high, prop Lsr_nth_low1 = Lsr_nth_low,
+  prop Nth_bw_not1 = Nth_bw_not, prop Nth_bw_xor1 = Nth_bw_xor,
+  prop Nth_bw_or1 = Nth_bw_or, prop Nth_bw_and1 = Nth_bw_and,
+  prop Nth_ones1 = Nth_ones, prop Nth_zeros1 = Nth_zeros,
+  prop nth_out_of_bound1 = nth_out_of_bound, prop size_pos = size_pos1,  *)
+
+(* use bv.BV256 *)
+
+type t21
+
+function to_int2 t21 : int
+
+axiom to_int [@useraxiom] :
+  forall c:t21.
+   (infix_lseq 0 (to_int2 c) /\ infix_ls (to_int2 c) 0x10FFFF) /\
+   not (infix_lseq 0xD800 (to_int2 c) /\ infix_ls (to_int2 c) 0xE000)
+
+axiom extensionality2 [@useraxiom] :
+  forall x:t21, y:t21 [to_int2 x, to_int2 y]. to_int2 x = to_int2 y -> x = y
+
+function of_int4 int : t21
+
+axiom to_of_int2 [@useraxiom] :
+  forall n:int [of_int4 n].
+   (infix_lseq 0 n /\ infix_ls n 0x10FFFF) /\
+   not (infix_lseq 0xD800 n /\ infix_ls n 0xE000) -> to_int2 (of_int4 n) = n
+
+predicate le2 [@inline:trivial] (a:t21) (b:t21) =
+  infix_lseq (to_int2 a) (to_int2 b)
+
+predicate lt2 [@inline:trivial] (a:t21) (b:t21) =
+  infix_ls (to_int2 a) (to_int2 b)
+
+predicate ge2 [@inline:trivial] (a:t21) (b:t21) =
+  infix_gteq (to_int2 a) (to_int2 b)
+
+predicate gt2 [@inline:trivial] (a:t21) (b:t21) =
+  infix_gt (to_int2 a) (to_int2 b)
+
+(* use creusot.prelude.Char *)
+
+type map 'a 'b = 'a -> 'b
+
+function get1 (f:'a -> 'b) (x:'a) : 'b = infix_at f x
+
+function set1 (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b =
+  fun (y:'a) -> if y = x then v else infix_at f y
+
+function mixfix_lbrb1 (f:'a -> 'b) (x:'a) : 'b = infix_at f x
+
+function mixfix_lblsmnrb1 (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b = set1 f x v
+
+(* use map.Map *)
+
+type t22 = <range 0 65535>
+
+function tqtint3 t22 : int
+
+constant tqtmaxInt3 : int = 65535
+
+constant tqtminInt3 : int = 0
+
+predicate tqteq3 (a:t22) (b:t22) = tqtint3 a = tqtint3 b
+
+axiom tqtinj3 [@W:non_conservative_extension:N] :
+  forall a:t22, b:t22. tqteq3 a b -> a = b
+
+(* meta range_type type t22, function tqtint3 *)
+
+(* meta model_projection function tqtint3 *)
+
+(* meta remove_unused:dependency prop tqtinj3, predicate tqteq3 *)
+
+constant two_power_size4 : int = 0x10000
+
+axiom extensionality3 [@useraxiom] :
+  forall x:t22, y:t22 [tqtint3 x, tqtint3 y]. tqtint3 x = tqtint3 y -> x = y
+
+predicate in_bounds2 [@inline:trivial] (n:int) =
+  infix_lseq 0 n /\ infix_lseq n 0xFFFF
+
+function of_int5 int : t22
+
+axiom to_of_int3 [@useraxiom] :
+  forall x:int [of_int5 x]. in_bounds2 x -> tqtint3 (of_int5 x) = x
+
+function add4 t22 t22 : t22
+
+axiom add_in_bounds2 [@useraxiom] :
+  forall x:t22, y:t22 [add4 x y].
+   in_bounds2 (infix_pl (tqtint3 x) (tqtint3 y)) ->
+   tqtint3 (add4 x y) = infix_pl (tqtint3 x) (tqtint3 y)
+
+axiom add_wrapping2 [@useraxiom] :
+  forall x:t22, y:t22 [add4 x y].
+   exists k:int.
+    tqtint3 (add4 x y) =
+    infix_pl (infix_pl (tqtint3 x) (tqtint3 y)) (infix_as k two_power_size4)
+
+function sub4 t22 t22 : t22
+
+axiom sub_in_bounds2 [@useraxiom] :
+  forall x:t22, y:t22 [sub4 x y].
+   in_bounds2 (infix_mn (tqtint3 x) (tqtint3 y)) ->
+   tqtint3 (sub4 x y) = infix_mn (tqtint3 x) (tqtint3 y)
+
+axiom sub_wrapping2 [@useraxiom] :
+  forall x:t22, y:t22 [sub4 x y].
+   exists k:int.
+    tqtint3 (sub4 x y) =
+    infix_pl (infix_mn (tqtint3 x) (tqtint3 y)) (infix_as k two_power_size4)
+
+function mul4 t22 t22 : t22
+
+axiom mul_in_bounds2 [@useraxiom] :
+  forall x:t22, y:t22 [mul4 x y].
+   in_bounds2 (infix_as (tqtint3 x) (tqtint3 y)) ->
+   tqtint3 (mul4 x y) = infix_as (tqtint3 x) (tqtint3 y)
+
+axiom mul_wrapping2 [@useraxiom] :
+  forall x:t22, y:t22 [mul4 x y].
+   exists k:int.
+    tqtint3 (mul4 x y) =
+    infix_pl (infix_as (tqtint3 x) (tqtint3 y)) (infix_as k two_power_size4)
+
+function neg4 t22 : t22
+
+axiom neg_zero2 [@useraxiom] :
+  forall x:t22 [neg4 x]. tqtint3 x = 0 -> tqtint3 (neg4 x) = 0
+
+axiom neg_not_zero2 [@useraxiom] :
+  forall x:t22 [neg4 x].
+   infix_ls 0 (tqtint3 x) /\ infix_lseq (tqtint3 x) 0xFFFF ->
+   tqtint3 (neg4 x) = infix_mn two_power_size4 (tqtint3 x)
+
+function of_bool2 [@inline:trivial] (b:bool) : t22 =
+  if b = True then (1:t22) else (0:t22)
+
+predicate le3 [@inline:trivial] (a:t22) (b:t22) =
+  infix_lseq (tqtint3 a) (tqtint3 b)
+
+predicate lt3 [@inline:trivial] (a:t22) (b:t22) =
+  infix_ls (tqtint3 a) (tqtint3 b)
+
+predicate ge3 [@inline:trivial] (a:t22) (b:t22) =
+  infix_gteq (tqtint3 a) (tqtint3 b)
+
+predicate gt3 [@inline:trivial] (a:t22) (b:t22) =
+  infix_gt (tqtint3 a) (tqtint3 b)
+
+function bw_and4 t22 t22 : t22
+
+function bw_or4 t22 t22 : t22
+
+function bw_xor4 t22 t22 : t22
+
+function bw_not4 t22 : t22
+
+function shl2 t22 t22 : t22
+
+function shr2 t22 t22 : t22
+
+function nth4 t22 int : bool
+
+function add_with_overflow2 (a:t22) (b:t22) : (t22, bool) = (add4 a b,
+  if not in_bounds2 (infix_pl (tqtint3 a) (tqtint3 b)) then True else False)
+
+function sub_with_overflow2 (a:t22) (b:t22) : (t22, bool) = (sub4 a b,
+  if not in_bounds2 (infix_mn (tqtint3 a) (tqtint3 b)) then True else False)
+
+function mul_with_overflow2 (a:t22) (b:t22) : (t22, bool) = (mul4 a b,
+  if not in_bounds2 (infix_as (tqtint3 a) (tqtint3 b)) then True else False)
+
+(* use creusot.int.UInt16 *)
+
+function any_l 'a : 'b
+
+(* use creusot.prelude.Any *)
+
+function tail_char (self:seq t21) : seq t21 =
+  mixfix_lbdtdtrb self 1 (length self)
+
+function flat_map_char (seq t21) (t21 -> seq t18) : seq t18
+
+axiom flat_map_char_def [@useraxiom] :
+  forall self:seq t21, other:t21 -> seq t18.
+   flat_map_char self other =
+   (if length self = 0 then empty: seq t18
+    else infix_plpl (get1 other (get self 0))
+         (flat_map_char (tail_char self) other))
+
+function utf8_byte int : t18
+
+axiom utf8_byte_spec [@useraxiom] :
+  forall value:int.
+   infix_lseq 0 value /\ infix_lseq value 255 ->
+   tqtint1 (utf8_byte value) = value
+
+function to_utf8_char (self:t21) : seq t18 =
+  let code = to_int2 self in
+  if infix_ls code 128 then singleton (utf8_byte code)
+  else if infix_ls code 2048
+       then snoc (singleton (utf8_byte (infix_pl 192 (div code 64))))
+            (utf8_byte (infix_pl 128 (mod code 64)))
+       else if infix_ls code 65536
+            then snoc
+                 (snoc (singleton (utf8_byte (infix_pl 224 (div code 4096))))
+                  (utf8_byte (infix_pl 128 (mod (div code 64) 64))))
+                 (utf8_byte (infix_pl 128 (mod code 64)))
+            else snoc
+                 (snoc
+                  (snoc
+                   (singleton (utf8_byte (infix_pl 240 (div code 262144))))
+                   (utf8_byte (infix_pl 128 (mod (div code 4096) 64))))
+                  (utf8_byte (infix_pl 128 (mod (div code 64) 64))))
+                 (utf8_byte (infix_pl 128 (mod code 64)))
+
+axiom to_utf8_char_spec [@useraxiom] :
+  forall self:t21.
+   infix_lseq 1 (length (to_utf8_char self)) /\
+   infix_lseq (length (to_utf8_char self)) 4
+
+function to_bytes (seq t21) : seq t18
+
+axiom to_bytes_def [@useraxiom] :
+  forall self:seq t21.
+   to_bytes self =
+   (if length self = 0 then empty: seq t18
+    else infix_plpl (to_utf8_char (get self 0)) (to_bytes (tail_char self)))
+
+axiom to_bytes_spec [@useraxiom] :
+  forall self:seq t21.
+   to_bytes self = flat_map_char self (fun (c:t21) -> to_utf8_char c)
+
+function view_str string : seq t21
+
+type t_Protocol =
+  | Http
+  | Https
+
+type t_ByteStr
+
+type t_Scheme2_Box_ByteStr_Global =
+  | None
+  | Standard t_Protocol
+  | Other t_ByteStr
+
+type t_Scheme =
+  | T_Schemeqtmk [@builtin] (inner:t_Scheme2_Box_ByteStr_Global)
+
+(* meta model_record function inner *)
+
+type t_Authority =
+  | T_Authorityqtmk [@builtin] (data:t_ByteStr)
+
+(* meta model_record function data *)
+
+type t_PathAndQuery =
+  | T_PathAndQueryqtmk [@builtin] (dataqt0:t_ByteStr) (queryqt0:t22)
+
+(* meta model_record function queryqt0 *)
+
+(* meta model_record function dataqt0 *)
+
+type t_Uri =
+  | T_Uriqtmk [@builtin] (scheme:t_Scheme) (authority:t_Authority)
+      (path_and_query:t_PathAndQuery)
+
+(* meta model_record function path_and_query *)
+
+(* meta model_record function authority *)
+
+(* meta model_record function scheme *)
+
+type t_Option_ref_Scheme =
+  | Noneqt0
+  | Someqt0 t_Scheme
+
+predicate valid_utf8 (bytes:seq t18) =
+  exists characters:seq t21. to_bytes characters = bytes
+
+function view_ByteStr t_ByteStr : seq t18
+
+predicate invariant_ByteStr (self:t_ByteStr) = valid_utf8 (view_ByteStr self)
+
+predicate inv_ByteStr t_ByteStr
+
+axiom inv_axiom [@useraxiom] :
+  forall x:t_ByteStr [inv_ByteStr x]. inv_ByteStr x -> invariant_ByteStr x
+
+predicate invariant_Box_ByteStr_Global (self:t_ByteStr) = inv_ByteStr self
+
+predicate inv_Box_ByteStr_Global [@inline:trivial] (us1:t_ByteStr) =
+  invariant_Box_ByteStr_Global us1
+
+(* meta rewrite_def predicate inv_Box_ByteStr_Global *)
+
+predicate inv_Scheme2_Box_ByteStr_Global t_Scheme2_Box_ByteStr_Global
+
+axiom inv_axiomqt0 [@useraxiom] [@rewrite] :
+  forall x:t_Scheme2_Box_ByteStr_Global [inv_Scheme2_Box_ByteStr_Global x].
+   inv_Scheme2_Box_ByteStr_Global x <->
+   match x with
+   | None -> true
+   | Standard f0 -> true
+   | Other f0 -> inv_Box_ByteStr_Global f0
+   end
+
+predicate inv_Scheme t_Scheme
+
+axiom inv_axiomqt1 [@useraxiom] [@rewrite] :
+  forall x:t_Scheme [inv_Scheme x].
+   inv_Scheme x <-> inv_Scheme2_Box_ByteStr_Global (x.inner)
+
+predicate inv_Authority t_Authority
+
+axiom inv_axiomqt2 [@useraxiom] [@rewrite] :
+  forall x:t_Authority [inv_Authority x].
+   inv_Authority x <-> inv_ByteStr (x.data)
+
+type t_Option_Int =
+  | Noneqt1
+  | Someqt1 int
+
+type t_PathAndQueryModel =
+  | T_PathAndQueryModelqtmk [@builtin] (bytes:seq t18) (query:t_Option_Int)
+
+(* meta model_record function query *)
+
+(* meta model_record function bytes *)
+
+predicate path_query_boundaries (model:t_PathAndQueryModel) =
+  match model.query with
+  | Noneqt1 -> true
+  | Someqt1 queryqt1 ->
+      infix_lseq 0 queryqt1 /\
+      infix_ls queryqt1 (length (model.bytes)) /\
+      tqtint1 (get (model.bytes) queryqt1) = 63
+  end
+
+function view_PathAndQuery t_PathAndQuery : t_PathAndQueryModel
+
+predicate invariant_PathAndQuery (self:t_PathAndQuery) =
+  path_query_boundaries (view_PathAndQuery self)
+
+predicate inv_PathAndQuery t_PathAndQuery
+
+axiom inv_axiomqt3 [@useraxiom] [@rewrite] :
+  forall x:t_PathAndQuery [inv_PathAndQuery x].
+   inv_PathAndQuery x <-> invariant_PathAndQuery x /\ inv_ByteStr (x.dataqt0)
+
+predicate inv_Uri t_Uri
+
+axiom inv_axiomqt4 [@useraxiom] [@rewrite] :
+  forall x:t_Uri [inv_Uri x].
+   inv_Uri x <->
+   inv_Scheme (x.scheme) /\
+   inv_Authority (x.authority) /\ inv_PathAndQuery (x.path_and_query)
+
+predicate invariant_ref_Uri [@inline:trivial] (self:t_Uri) = inv_Uri self
+
+(* meta rewrite_def predicate invariant_ref_Uri *)
+
+predicate inv_ref_Uri [@inline:trivial] (us1:t_Uri) = invariant_ref_Uri us1
+
+(* meta rewrite_def predicate inv_ref_Uri *)
+
+predicate invariant_ref_Scheme [@inline:trivial] (self:t_Scheme) =
+  inv_Scheme self
+
+(* meta rewrite_def predicate invariant_ref_Scheme *)
+
+predicate inv_ref_Scheme [@inline:trivial] (us1:t_Scheme) =
+  invariant_ref_Scheme us1
+
+(* meta rewrite_def predicate inv_ref_Scheme *)
+
+predicate inv_Option_ref_Scheme t_Option_ref_Scheme
+
+axiom inv_axiomqt5 [@useraxiom] [@rewrite] :
+  forall x:t_Option_ref_Scheme [inv_Option_ref_Scheme x].
+   inv_Option_ref_Scheme x <->
+   match x with
+   | Noneqt0 -> true
+   | Someqt0 f0 -> inv_ref_Scheme f0
+   end
+
+type t_SchemeModel =
+  | Noneqt2
+  | Httpqt2
+  | Httpsqt2
+  | Otherqt2 (seq t18)
+
+function view_Scheme2_Box_ByteStr_Global (self:
+  t_Scheme2_Box_ByteStr_Global) : t_SchemeModel =
+  match self with
+  | None -> Noneqt2
+  | Standard Http -> Httpqt2
+  | Standard Https -> Httpsqt2
+  | Other bytesqt0 -> Otherqt2 (view_ByteStr bytesqt0)
+  end
+
+function view_Scheme (self:t_Scheme) : t_SchemeModel =
+  view_Scheme2_Box_ByteStr_Global (self.inner)
+
+type t_UriModel =
+  | T_UriModelqtmk [@builtin] (schemeqt0:t_SchemeModel) (authorityqt0:seq
+      t18) (path_and_queryqt0:t_PathAndQueryModel)
+
+(* meta model_record function path_and_queryqt0 *)
+
+(* meta model_record function authorityqt0 *)
+
+(* meta model_record function schemeqt0 *)
+
+function view_Authority (self:t_Authority) : seq t18 =
+  view_ByteStr (self.data)
+
+function view_Uri (self:t_Uri) : t_UriModel =
+  T_UriModelqtmk (view_Scheme (self.scheme))
+  (view_Authority (self.authority)) (view_PathAndQuery (self.path_and_query))
+
+predicate uri_scheme_is_none (schemeqt1:t_SchemeModel) =
+  match schemeqt1 with
+  | Noneqt2 -> true
+  | _ -> false
+  end
+
+predicate scheme_text_matches t_SchemeModel (seq t21)
+
+type t_RangeTo_usize =
+  | T_RangeTo_usizeqtmk [@builtin] (endqt:t17)
+
+(* meta model_record function endqt *)
+
+predicate in_bounds_RangeTo_usize (self:t_RangeTo_usize) (seq:seq t18) =
+  infix_lseq (tqtint (self.endqt)) (length seq)
+
+predicate has_value_RangeTo_usize (self:t_RangeTo_usize) (seq:seq t18) (out:
+  slice t18) = mixfix_lbdtdtrb seq 0 (tqtint (self.endqt)) = view out
+
+function index_Mapping_u8_Int [@inline:trivial] (self:t18 -> int) (a:t18) :
+  int = get1 self a
+
+(* meta rewrite_def function index_Mapping_u8_Int *)
+
+function map_u8 (seq t18) (t18 -> int) : seq int
+
+axiom map_u8_spec [@useraxiom] :
+  forall self:seq t18, m:t18 -> int. length (map_u8 self m) = length self
+
+axiom map_u8_specqt0 [@useraxiom] :
+  forall self:seq t18, m:t18 -> int.
+   forall i:int.
+    infix_lseq 0 i /\ infix_ls i (length self) ->
+    get (map_u8 self m) i = index_Mapping_u8_Int m (get self i)
+
+function authority_fold_ascii_byte (byte:int) : int =
+  if infix_lseq 65 byte /\ infix_lseq byte 90 then infix_pl byte 32 else byte
+
+function authority_folded_bytes (bytesqt0:seq t18) : seq int =
+  map_u8 bytesqt0
+  (fun (byte:t18) -> authority_fold_ascii_byte (tqtint1 byte))
+
+type t_RangeFrom_usize =
+  | T_RangeFrom_usizeqtmk [@builtin] (start:t17)
+
+(* meta model_record function start *)
+
+predicate in_bounds_RangeFrom_usize (self:t_RangeFrom_usize) (seq:seq t18) =
+  infix_lseq (tqtint (self.start)) (length seq)
+
+predicate has_value_RangeFrom_usize (self:t_RangeFrom_usize) (seq:seq t18)
+  (out:slice t18) =
+  mixfix_lbdtdtrb seq (tqtint (self.start)) (length seq) = view out
+
+type t_Option_ref_Authority =
+  | Noneqt3
+  | Someqt3 t_Authority
+
+predicate invariant_ref_Authority [@inline:trivial] (self:t_Authority) =
+  inv_Authority self
+
+(* meta rewrite_def predicate invariant_ref_Authority *)
+
+predicate inv_ref_Authority [@inline:trivial] (us1:t_Authority) =
+  invariant_ref_Authority us1
+
+(* meta rewrite_def predicate inv_ref_Authority *)
+
+predicate inv_Option_ref_Authority t_Option_ref_Authority
+
+axiom inv_axiomqt6 [@useraxiom] [@rewrite] :
+  forall x:t_Option_ref_Authority [inv_Option_ref_Authority x].
+   inv_Option_ref_Authority x <->
+   match x with
+   | Noneqt3 -> true
+   | Someqt3 f0 -> inv_ref_Authority f0
+   end
+
+predicate invariant_ref_ByteStr [@inline:trivial] (self:t_ByteStr) =
+  inv_ByteStr self
+
+(* meta rewrite_def predicate invariant_ref_ByteStr *)
+
+predicate inv_ref_ByteStr [@inline:trivial] (us1:t_ByteStr) =
+  invariant_ref_ByteStr us1
+
+(* meta rewrite_def predicate inv_ref_ByteStr *)
+
+predicate uri_model_has_path (model:t_UriModel) =
+  infix_gt (length ((model.path_and_queryqt0).bytes)) 0 \/
+  not uri_scheme_is_none (model.schemeqt0)
+
+function path_component_bytes (model:t_PathAndQueryModel) : seq t18 =
+  let endqtqt0 =
+    match model.query with
+  | Noneqt1 -> length (model.bytes)
+  | Someqt1 queryqt1 -> queryqt1
+  end
+  in
+  if endqtqt0 = 0 then singleton (47:t18)
+  else mixfix_lbdtdtrb (model.bytes) 0 endqtqt0
+
+predicate eq_model_Seq_Int (self:seq int) (rhs:seq int) = self = rhs
+
+function deep_model_u8 [@inline:trivial] (self:t18) : int = tqtint1 self
+
+(* meta rewrite_def function deep_model_u8 *)
+
+function index_slice_u8qt1 [@inline:trivial] (self:slice t18) (ix:int) :
+  t18 = get (view self) ix
+
+(* meta rewrite_def function index_slice_u8qt1 *)
+
+function deep_model_slice_u8 (slice t18) : seq int
+
+axiom deep_model_slice_u8_spec [@useraxiom] :
+  forall self:slice t18.
+   length (view self) = length (deep_model_slice_u8 self)
+
+axiom deep_model_slice_u8_specqt0 [@useraxiom] :
+  forall self:slice t18.
+   forall i:int.
+    infix_lseq 0 i /\ infix_ls i (length (deep_model_slice_u8 self)) ->
+    get (deep_model_slice_u8 self) i =
+    deep_model_u8 (index_slice_u8qt1 self i)
+
+function deep_model_ref_slice_u8 [@inline:trivial] (self:slice t18) : seq
+  int = deep_model_slice_u8 self
+
+(* meta rewrite_def function deep_model_ref_slice_u8 *)
+
+function deep_model_ref_ref_slice_u8 [@inline:trivial] (self:slice t18) : seq
+  int = deep_model_ref_slice_u8 self
+
+(* meta rewrite_def function deep_model_ref_ref_slice_u8 *)
+
+type t_Option_ref_str =
+  | Noneqt4
+  | Someqt4 string
+
+type tup2_Option_Int_Option_ref_str =
+  | Tup2_Option_Int_Option_ref_strqtmk [@builtin] (f0:t_Option_Int) (f1:
+      t_Option_ref_str)
+
+(* meta model_record function f1 *)
+
+(* meta model_record function f0 *)
+
+type t_UriSchemeCompareModel =
+  | Noneqt5
+  | Httpqt5
+  | Httpsqt5
+  | Otherqt5 (seq int)
+
+type t_Option_Seq_u8 =
+  | Noneqt6
+  | Someqt6 (seq t18)
+
+type t_UriCompareModel =
+  | T_UriCompareModelqtmk [@builtin] (schemeqt2:t_UriSchemeCompareModel)
+      (authorityqt2:seq int) (pathqt2:seq t18) (queryqt2:t_Option_Seq_u8)
+
+(* meta model_record function queryqt2 *)
+
+(* meta model_record function pathqt2 *)
+
+(* meta model_record function authorityqt2 *)
+
+(* meta model_record function schemeqt2 *)
+
+type t_Option_Seq_Int =
+  | Noneqt7
+  | Someqt7 (seq int)
+
+function uri_scheme_comparison_text (schemeqt3:t_UriSchemeCompareModel) :
+  t_Option_Seq_Int =
+  match schemeqt3 with
+  | Noneqt5 -> Noneqt7
+  | Httpqt5 ->
+      Someqt7
+      (map_u8
+       (create 4
+        ([@funlit]
+         fun (xqtx:int) ->
+          if xqtx = 0 then (104:t18)
+          else if xqtx = 1 then (116:t18)
+               else if xqtx = 2 then (116:t18)
+                    else if xqtx = 3 then (112:t18) else (112:t18)))
+       (fun (byte:t18) -> tqtint1 byte))
+  | Httpsqt5 ->
+      Someqt7
+      (map_u8
+       (create 5
+        ([@funlit]
+         fun (xqtx:int) ->
+          if xqtx = 0 then (104:t18)
+          else if xqtx = 1 then (116:t18)
+               else if xqtx = 2 then (116:t18)
+                    else if xqtx = 3 then (112:t18)
+                         else if xqtx = 4 then (115:t18) else (115:t18)))
+       (fun (byte:t18) -> tqtint1 byte))
+  | Otherqt5 bytesqt0 -> Someqt7 bytesqt0
+  end
+
+function uri_ascii_fold_bytes (bytesqt0:seq t18) : seq int =
+  authority_folded_bytes bytesqt0
+
+predicate uri_folded_bytes_match_at (bytesqt0:seq t18) (startqt0:int)
+  (expected:seq int) =
+  infix_lseq 0 startqt0 /\
+  infix_lseq (infix_pl startqt0 (length expected)) (length bytesqt0) /\
+  uri_ascii_fold_bytes
+  (mixfix_lbdtdtrb bytesqt0 startqt0 (infix_pl startqt0 (length expected))) =
+  expected
+
+predicate uri_exact_bytes_match_at (bytesqt0:seq t18) (startqt0:int)
+  (expected:seq t18) =
+  infix_lseq 0 startqt0 /\
+  infix_lseq (infix_pl startqt0 (length expected)) (length bytesqt0) /\
+  mixfix_lbdtdtrb bytesqt0 startqt0 (infix_pl startqt0 (length expected)) =
+  expected
+
+predicate uri_compare_model_matches_text (model:t_UriCompareModel) (text:seq
+  t21) =
+  let bytesqt0 = to_bytes text in
+  let scheme_text = uri_scheme_comparison_text (model.schemeqt2) in
+  let scheme_present =
+    match scheme_text with
+  | Noneqt7 -> False
+  | Someqt7 _ -> True
+  end
+  in
+  let scheme_ok =
+    (if match scheme_text with
+     | Noneqt7 -> true
+     | Someqt7 scheme_bytes ->
+         infix_lseq 0 (infix_pl (length scheme_bytes) 3) /\
+         infix_lseq (infix_pl (length scheme_bytes) 3) (length bytesqt0) /\
+         uri_folded_bytes_match_at bytesqt0 0 scheme_bytes /\
+         mixfix_lbdtdtrb bytesqt0 (length scheme_bytes)
+         (infix_pl (length scheme_bytes) 3) =
+         create 3
+         ([@funlit]
+          fun (xqtx:int) ->
+           if xqtx = 0 then (58:t18)
+           else if xqtx = 1 then (47:t18)
+                else if xqtx = 2 then (47:t18) else (47:t18))
+     end then True else False)
+  in
+  let after_scheme =
+    match scheme_text with
+  | Noneqt7 -> 0
+  | Someqt7 scheme_bytes -> infix_pl (length scheme_bytes) 3
+  end
+  in
+  let authority_present =
+    (if infix_gt (length (model.authorityqt2)) 0 then True else False)
+  in
+  let authority_ok =
+    (if not authority_present = True \/
+        uri_folded_bytes_match_at bytesqt0 after_scheme (model.authorityqt2)
+     then True else False)
+  in
+  let after_authority =
+    infix_pl after_scheme (length (model.authorityqt2))
+  in
+  let absolute =
+    (if scheme_present = True \/ authority_present = True then True
+     else False)
+  in
+  let path_start =
+    (if scheme_ok = True /\ authority_ok = True then after_authority else 0)
+  in
+  let path_matches =
+    (if uri_exact_bytes_match_at bytesqt0 path_start (model.pathqt2)
+     then True else False)
+  in
+  let omitted_absolute_slash =
+    (if absolute = True /\
+        model.pathqt2 =
+        create 1
+        ([@funlit] fun (xqtx:int) -> if xqtx = 0 then (47:t18) else (47:t18))
+     then True else False)
+  in
+  let path_ok =
+    (if path_matches = True \/ omitted_absolute_slash = True then True
+     else False)
+  in
+  let after_path =
+    (if path_matches = True then infix_pl path_start (length (model.pathqt2))
+     else path_start)
+  in
+  let query_ok =
+    (if match model.queryqt2 with
+     | Noneqt6 -> true
+     | Someqt6 query_bytes ->
+         if after_path = length bytesqt0 then length query_bytes = 0
+         else infix_ls after_path (length bytesqt0) /\
+              tqtint1 (get bytesqt0 after_path) = 63 /\
+              uri_exact_bytes_match_at bytesqt0 (infix_pl after_path 1)
+              query_bytes
+     end then True else False)
+  in
+  let after_query =
+    match model.queryqt2 with
+  | Noneqt6 -> after_path
+  | Someqt6 query_bytes ->
+      if after_path = length bytesqt0 then after_path
+      else infix_pl (infix_pl after_path 1) (length query_bytes)
+  end
+  in
+  scheme_ok = True /\
+  authority_ok = True /\
+  path_ok = True /\
+  query_ok = True /\
+  (after_query = length bytesqt0 \/
+   infix_lseq 0 after_query /\
+   infix_ls after_query (length bytesqt0) /\
+   tqtint1 (get bytesqt0 after_query) = 35)
+
+function uri_scheme_comparison_model (schemeqt3:t_SchemeModel) :
+  t_UriSchemeCompareModel =
+  match schemeqt3 with
+  | Noneqt2 -> Noneqt5
+  | Httpqt2 -> Httpqt5
+  | Httpsqt2 -> Httpsqt5
+  | Otherqt2 bytesqt0 -> Otherqt5 (uri_ascii_fold_bytes bytesqt0)
+  end
+
+function uri_comparison_model (model:t_UriModel) : t_UriCompareModel =
+  T_UriCompareModelqtmk (uri_scheme_comparison_model (model.schemeqt0))
+  (uri_ascii_fold_bytes (model.authorityqt0))
+  (if uri_model_has_path model
+   then path_component_bytes (model.path_and_queryqt0) else empty: seq t18)
+  match (model.path_and_queryqt0).query with
+  | Noneqt1 -> Noneqt6
+  | Someqt1 offset ->
+      Someqt6
+      (mixfix_lbdtdtrb ((model.path_and_queryqt0).bytes) (infix_pl offset 1)
+       (length ((model.path_and_queryqt0).bytes)))
+  end
+
+function deep_model_Uri (self:t_Uri) : t_UriCompareModel =
+  uri_comparison_model (view_Uri self)
+
+function deep_model_ref_Uri [@inline:trivial] (self:t_Uri) :
+  t_UriCompareModel = deep_model_Uri self
+
+(* meta rewrite_def function deep_model_ref_Uri *)
+
+(* meta compute_max_steps 1000000 *)
+
+(* meta select_lsinst "all" *)
+
+constant self [@introduced] : t_Uri
+
+constant other [@introduced] : string
+
+axiom Assert [@introduced] :
+  [@hyp_name:Assert] [@expl:eq 'self' type invariant] inv_ref_Uri self
+
+constant otherqt0 [@introduced] : slice t18
+
+constant absolute [@introduced] : bool
+
+constant us10 [@introduced] : t_Option_ref_Scheme
+
+constant schemeqt3 [@introduced] [@field:0:inner] :
+  t_Scheme2_Box_ByteStr_Global
+
+constant schemeqt4 [@introduced] : slice t18
+
+constant us16 [@introduced] : string
+
+constant us19 [@introduced] : bool
+
+constant us20 [@introduced] : t17
+
+constant us22 [@introduced] : t17
+
+constant us23 [@introduced] : t17
+
+constant us27 [@introduced] : bool
+
+constant us30 [@introduced] : slice t18
+
+constant us31 [@introduced] : slice t18
+
+constant us33 [@introduced] [@field:0:end'] : t17
+
+constant us34 [@introduced] : t17
+
+constant us38 [@introduced] : slice t18
+
+constant us39 [@introduced] : slice t18
+
+constant us41 [@introduced] [@field:0:start] : t17
+
+constant us42 [@introduced] : t17
+
+constant us45 [@introduced] : bool
+
+constant us46 [@introduced] : t18
+
+constant us47 [@introduced] : t17
+
+constant us48 [@introduced] : t17
+
+constant us49 [@introduced] : bool
+
+constant us50 [@introduced] : bool
+
+constant us51 [@introduced] : t18
+
+constant us52 [@introduced] : t17
+
+constant us53 [@introduced] : t17
+
+constant us54 [@introduced] : bool
+
+constant us55 [@introduced] : bool
+
+constant us56 [@introduced] : t18
+
+constant us57 [@introduced] : t17
+
+constant us58 [@introduced] : t17
+
+constant us59 [@introduced] : bool
+
+constant us62 [@introduced] : slice t18
+
+constant us63 [@introduced] : slice t18
+
+constant us65 [@introduced] [@field:0:start] : t17
+
+constant us67 [@introduced] : t_Option_ref_Authority
+
+constant auth [@introduced] [@field:0:data] : t_ByteStr
+
+constant lenqt0 [@introduced] : t17
+
+constant us73 [@introduced] : string
+
+constant us76 [@introduced] : bool
+
+constant us77 [@introduced] : t17
+
+constant us82 [@introduced] : bool
+
+constant us84 [@introduced] : slice t18
+
+constant us86 [@introduced] : string
+
+constant us89 [@introduced] : slice t18
+
+constant us90 [@introduced] : slice t18
+
+constant us92 [@introduced] [@field:0:end'] : t17
+
+constant us96 [@introduced] : slice t18
+
+constant us97 [@introduced] : slice t18
+
+constant us99 [@introduced] [@field:0:start] : t17
+
+constant pathqt0 [@introduced] : string
+
+constant us104 [@introduced] : bool
+
+constant us105 [@introduced] : t17
+
+constant us107 [@introduced] : t17
+
+constant us109 [@introduced] : bool
+
+constant us111 [@introduced] : slice t18
+
+constant us115 [@introduced] : slice t18
+
+constant us117 [@introduced] [@field:0:end'] : t17
+
+constant us118 [@introduced] : t17
+
+constant us121 [@introduced] : bool
+
+constant us122 [@introduced] : t17
+
+constant us124 [@introduced] : bool
+
+constant us125 [@introduced] : t18
+
+constant us126 [@introduced] : slice t18
+
+constant us128 [@introduced] : t17
+
+constant us129 [@introduced] : t17
+
+constant us130 [@introduced] : bool
+
+constant us133 [@introduced] : slice t18
+
+constant us134 [@introduced] : slice t18
+
+constant us136 [@introduced] [@field:0:start] : t17
+
+constant us137 [@introduced] : t17
+
+constant us140 [@introduced] : t_Option_ref_str
+
+constant queryqt3 [@introduced] : string
+
+constant us145 [@introduced] : bool
+
+constant us151 [@introduced] : bool
+
+constant us152 [@introduced] : t18
+
+constant us153 [@introduced] : t17
+
+constant us154 [@introduced] : t17
+
+constant us155 [@introduced] : bool
+
+constant us158 [@introduced] : slice t18
+
+constant us159 [@introduced] : slice t18
+
+constant us161 [@introduced] [@field:0:start] : t17
+
+constant us163 [@introduced] : bool
+
+constant us164 [@introduced] : t17
+
+constant us166 [@introduced] : t17
+
+constant us170 [@introduced] : bool
+
+constant us172 [@introduced] : slice t18
+
+constant us176 [@introduced] : slice t18
+
+constant us178 [@introduced] [@field:0:end'] : t17
+
+constant us179 [@introduced] : t17
+
+constant us183 [@introduced] : slice t18
+
+constant us184 [@introduced] : slice t18
+
+constant us186 [@introduced] [@field:0:start] : t17
+
+constant us187 [@introduced] : t17
+
+constant otherqt01 [@introduced] : slice t18
+
+constant absolute1 [@introduced] : bool
+
+constant us101 [@introduced] : t_Option_ref_Scheme
+
+constant schemeqt31 [@introduced] [@field:0:inner] :
+  t_Scheme2_Box_ByteStr_Global
+
+constant schemeqt41 [@introduced] : slice t18
+
+constant us162 [@introduced] : string
+
+constant us191 [@introduced] : bool
+
+constant us201 [@introduced] : t17
+
+constant us221 [@introduced] : t17
+
+constant us231 [@introduced] : t17
+
+constant us271 [@introduced] : bool
+
+constant us301 [@introduced] : slice t18
+
+constant us311 [@introduced] : slice t18
+
+constant us331 [@introduced] [@field:0:end'] : t17
+
+constant us341 [@introduced] : t17
+
+constant us381 [@introduced] : slice t18
+
+constant us391 [@introduced] : slice t18
+
+constant us411 [@introduced] [@field:0:start] : t17
+
+constant us421 [@introduced] : t17
+
+constant us451 [@introduced] : bool
+
+constant us461 [@introduced] : t18
+
+constant us471 [@introduced] : t17
+
+constant us481 [@introduced] : t17
+
+constant us491 [@introduced] : bool
+
+constant us501 [@introduced] : bool
+
+constant us511 [@introduced] : t18
+
+constant us521 [@introduced] : t17
+
+constant us531 [@introduced] : t17
+
+constant us541 [@introduced] : bool
+
+constant us551 [@introduced] : bool
+
+constant us561 [@introduced] : t18
+
+constant us571 [@introduced] : t17
+
+constant us581 [@introduced] : t17
+
+constant us591 [@introduced] : bool
+
+constant us621 [@introduced] : slice t18
+
+constant us631 [@introduced] : slice t18
+
+constant us651 [@introduced] [@field:0:start] : t17
+
+constant us671 [@introduced] : t_Option_ref_Authority
+
+constant auth1 [@introduced] [@field:0:data] : t_ByteStr
+
+constant lenqt01 [@introduced] : t17
+
+constant us731 [@introduced] : string
+
+constant us761 [@introduced] : bool
+
+constant us771 [@introduced] : t17
+
+constant us821 [@introduced] : bool
+
+constant us841 [@introduced] : slice t18
+
+constant us861 [@introduced] : string
+
+constant us891 [@introduced] : slice t18
+
+constant us901 [@introduced] : slice t18
+
+constant us921 [@introduced] [@field:0:end'] : t17
+
+constant us961 [@introduced] : slice t18
+
+constant us971 [@introduced] : slice t18
+
+constant us991 [@introduced] [@field:0:start] : t17
+
+constant pathqt01 [@introduced] : string
+
+constant us1041 [@introduced] : bool
+
+constant us1051 [@introduced] : t17
+
+constant us1071 [@introduced] : t17
+
+constant us1091 [@introduced] : bool
+
+constant us1111 [@introduced] : slice t18
+
+constant us1151 [@introduced] : slice t18
+
+constant us1171 [@introduced] [@field:0:end'] : t17
+
+constant us1181 [@introduced] : t17
+
+constant us1211 [@introduced] : bool
+
+constant us1221 [@introduced] : t17
+
+constant us1241 [@introduced] : bool
+
+constant us1251 [@introduced] : t18
+
+constant us1261 [@introduced] : slice t18
+
+constant us1281 [@introduced] : t17
+
+constant us1291 [@introduced] : t17
+
+constant us1301 [@introduced] : bool
+
+constant us1331 [@introduced] : slice t18
+
+constant us1341 [@introduced] : slice t18
+
+constant us1361 [@introduced] [@field:0:start] : t17
+
+constant us1371 [@introduced] : t17
+
+constant auth2 [@introduced] : t_Authority = T_Authorityqtmk auth1
+
+constant otherqt08 [@introduced] : slice t18
+
+constant absolute8 [@introduced] : bool
+
+constant us1012 [@introduced] : t_Option_ref_Scheme
+
+constant schemeqt311 [@introduced] [@field:0:inner] :
+  t_Scheme2_Box_ByteStr_Global
+
+constant schemeqt48 [@introduced] : slice t18
+
+constant us1612 [@introduced] : string
+
+constant us198 [@introduced] : bool
+
+constant us208 [@introduced] : t17
+
+constant us228 [@introduced] : t17
+
+constant us238 [@introduced] : t17
+
+constant us278 [@introduced] : bool
+
+constant us308 [@introduced] : slice t18
+
+constant us318 [@introduced] : slice t18
+
+constant us338 [@introduced] [@field:0:end'] : t17
+
+constant us348 [@introduced] : t17
+
+constant us388 [@introduced] : slice t18
+
+constant us398 [@introduced] : slice t18
+
+constant us418 [@introduced] [@field:0:start] : t17
+
+constant us428 [@introduced] : t17
+
+constant us458 [@introduced] : bool
+
+constant us468 [@introduced] : t18
+
+constant us478 [@introduced] : t17
+
+constant us488 [@introduced] : t17
+
+constant us498 [@introduced] : bool
+
+constant us508 [@introduced] : bool
+
+constant us518 [@introduced] : t18
+
+constant us528 [@introduced] : t17
+
+constant us538 [@introduced] : t17
+
+constant us548 [@introduced] : bool
+
+constant us558 [@introduced] : bool
+
+constant us568 [@introduced] : t18
+
+constant us578 [@introduced] : t17
+
+constant us588 [@introduced] : t17
+
+constant us598 [@introduced] : bool
+
+constant us628 [@introduced] : slice t18
+
+constant us638 [@introduced] : slice t18
+
+constant us658 [@introduced] [@field:0:start] : t17
+
+constant us675 [@introduced] : t_Option_ref_Authority
+
+constant auth8 [@introduced] [@field:0:data] : t_ByteStr
+
+constant lenqt05 [@introduced] : t17
+
+constant us735 [@introduced] : string
+
+constant us765 [@introduced] : bool
+
+constant us775 [@introduced] : t17
+
+constant us825 [@introduced] : bool
+
+constant us845 [@introduced] : slice t18
+
+constant us865 [@introduced] : string
+
+constant us895 [@introduced] : slice t18
+
+constant us905 [@introduced] : slice t18
+
+constant us925 [@introduced] [@field:0:end'] : t17
+
+constant us965 [@introduced] : slice t18
+
+constant us975 [@introduced] : slice t18
+
+constant us995 [@introduced] [@field:0:start] : t17
+
+constant pathqt03 [@introduced] : string
+
+constant us1043 [@introduced] : bool
+
+constant us1053 [@introduced] : t17
+
+constant us1073 [@introduced] : t17
+
+constant us1093 [@introduced] : bool
+
+constant us1113 [@introduced] : slice t18
+
+constant us1153 [@introduced] : slice t18
+
+constant us1173 [@introduced] [@field:0:end'] : t17
+
+constant us1183 [@introduced] : t17
+
+axiom H9 [@introduced] :
+  [@case_split]
+  (exists otherqt09:slice t18.
+    (exists otherqt010:slice t18, absolute9:bool, us1013:t_Option_ref_Scheme,
+      schemeqt312 [@field:0:inner]:t_Scheme2_Box_ByteStr_Global, schemeqt49:
+      slice t18, us1613:string, us199:bool, us209:t17, us229:t17, us239:t17,
+      us279:bool, us309:slice t18, us319:slice t18, us339 [@field:0:end']:
+      t17, us349:t17, us389:slice t18, us399:slice t18, us419
+      [@field:0:start]:t17, us429:t17, us459:bool, us469:t18, us479:t17,
+      us489:t17, us499:bool, us509:bool, us519:t18, us529:t17, us539:t17,
+      us549:bool, us559:bool, us569:t18, us579:t17, us589:t17, us599:bool,
+      us629:slice t18, us639:slice t18, us659 [@field:0:start]:t17.
+      let schemeqt313 = T_Schemeqtmk schemeqt312 in
+      (exists result40:slice t18.
+        ([@stop_split] [@expl:as_bytes ensures] [@hyp_name:Assert]
+         view result40 = to_bytes (view_str other)) /\
+        (exists result41:t_Option_ref_Scheme.
+          ([@stop_split] [@hyp_name:Assert] [@expl:scheme ensures]
+           ([@stop_split] [@expl:scheme result type invariant]
+            inv_Option_ref_Scheme result41) /\
+           ([@stop_split] [@expl:scheme ensures]
+            match result41 with
+            | Someqt0 schemeqt21 ->
+                view_Scheme schemeqt21 = (view_Uri self).schemeqt0 /\
+                not uri_scheme_is_none ((view_Uri self).schemeqt0)
+            | Noneqt0 -> uri_scheme_is_none ((view_Uri self).schemeqt0)
+            end)) /\
+          ([@case_split]
+           ([@stop_split] [@hyp_name:Assert] result41 = Noneqt0) /\
+           otherqt010 = result40 /\
+           absolute9 = False /\
+           us1013 = result41 /\
+           schemeqt313 = (any_l (): t_Scheme) /\
+           schemeqt49 = (any_l (): slice t18) /\
+           us1613 = (any_l (): string) /\
+           us199 = (any_l (): bool) /\
+           us209 = (any_l (): t17) /\
+           us229 = (any_l (): t17) /\
+           us239 = (any_l (): t17) /\
+           us279 = (any_l (): bool) /\
+           us309 = (any_l (): slice t18) /\
+           us319 = (any_l (): slice t18) /\
+           T_RangeTo_usizeqtmk us339 = (any_l (): t_RangeTo_usize) /\
+           us349 = (any_l (): t17) /\
+           us389 = (any_l (): slice t18) /\
+           us399 = (any_l (): slice t18) /\
+           T_RangeFrom_usizeqtmk us419 = (any_l (): t_RangeFrom_usize) /\
+           us429 = (any_l (): t17) /\
+           us459 = (any_l (): bool) /\
+           us469 = (any_l (): t18) /\
+           us479 = (any_l (): t17) /\
+           us489 = (any_l (): t17) /\
+           us499 = (any_l (): bool) /\
+           us509 = (any_l (): bool) /\
+           us519 = (any_l (): t18) /\
+           us529 = (any_l (): t17) /\
+           us539 = (any_l (): t17) /\
+           us549 = (any_l (): bool) /\
+           us559 = (any_l (): bool) /\
+           us569 = (any_l (): t18) /\
+           us579 = (any_l (): t17) /\
+           us589 = (any_l (): t17) /\
+           us599 = (any_l (): bool) /\
+           us629 = (any_l (): slice t18) /\
+           us639 = (any_l (): slice t18) /\
+           T_RangeFrom_usizeqtmk us659 = (any_l (): t_RangeFrom_usize) \/
+           (exists x02 [@field:0:inner]:t_Scheme2_Box_ByteStr_Global.
+             ([@stop_split] [@hyp_name:Assert]
+              result41 = Someqt0 (T_Schemeqtmk x02)) /\
+             ([@stop_split] [@hyp_name:Assert] Someqt0 schemeqt313 = result41) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:as_str ensures]
+              scheme_text_matches (view_Scheme schemeqt313) (view_str us1613)) /\
+             ([@stop_split] [@expl:as_bytes ensures] [@hyp_name:Assert]
+              view schemeqt49 = to_bytes (view_str us1613)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+              length (view result40) = tqtint us209) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+              length (view schemeqt49) = tqtint us239) /\
+             ([@stop_split] [@hyp_name:Assert]
+              tqtint us229 = infix_pl (tqtint us239) (tqtint (3:t17))) /\
+             ([@stop_split] [@hyp_name:Assert] not lt us209 us229) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+              length (view schemeqt49) = tqtint us349) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+              has_value_RangeTo_usize (T_RangeTo_usizeqtmk us349)
+              (view result40) us309) /\
+             ([@stop_split] [@hyp_name:Assert]
+              [@expl:authority_ascii_case_eq ensures]
+              true <->
+              authority_folded_bytes (view schemeqt49) =
+              authority_folded_bytes (view us309)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+              length (view schemeqt49) = tqtint us429) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+              has_value_RangeFrom_usize (T_RangeFrom_usizeqtmk us429)
+              (view result40) us389) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index in bounds]
+              lt (0:t17) (length1 us389)) /\
+             ([@stop_split] [@hyp_name:Assert]
+              infix_ls (tqtint (0:t17)) (length (us389.elts))) /\
+             ([@stop_split] [@hyp_name:Assert]
+              get (us389.elts) (tqtint (0:t17)) = (58:t18)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index in bounds]
+              lt (1:t17) (length1 us389)) /\
+             ([@stop_split] [@hyp_name:Assert]
+              infix_ls (tqtint (1:t17)) (length (us389.elts))) /\
+             ([@stop_split] [@hyp_name:Assert]
+              get (us389.elts) (tqtint (1:t17)) = (47:t18)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index in bounds]
+              lt (2:t17) (length1 us389)) /\
+             ([@stop_split] [@hyp_name:Assert]
+              infix_ls (tqtint (2:t17)) (length (us389.elts))) /\
+             ([@stop_split] [@hyp_name:Assert]
+              get (us389.elts) (tqtint (2:t17)) = (47:t18)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+              has_value_RangeFrom_usize (T_RangeFrom_usizeqtmk (3:t17))
+              (view us389) otherqt010) /\
+             absolute9 = True /\
+             us1013 = result41 /\
+             (if lt us209 us229 then us199 = True else us199 = False) /\
+             us279 = True /\
+             us319 = us309 /\
+             us339 = us349 /\
+             us399 = us389 /\
+             us419 = us429 /\
+             (if not get (us389.elts) (tqtint (0:t17)) = (58:t18)
+              then us459 = True else us459 = False) /\
+             us469 = get (us389.elts) (tqtint (0:t17)) /\
+             us479 = (0:t17) /\
+             us489 = length1 us389 /\
+             (if lt (0:t17) (length1 us389) then us499 = True
+              else us499 = False) /\
+             (if not get (us389.elts) (tqtint (1:t17)) = (47:t18)
+              then us509 = True else us509 = False) /\
+             us519 = get (us389.elts) (tqtint (1:t17)) /\
+             us529 = (1:t17) /\
+             us539 = length1 us389 /\
+             (if lt (1:t17) (length1 us389) then us549 = True
+              else us549 = False) /\
+             (if not get (us389.elts) (tqtint (2:t17)) = (47:t18)
+              then us559 = True else us559 = False) /\
+             us569 = get (us389.elts) (tqtint (2:t17)) /\
+             us579 = (2:t17) /\
+             us589 = length1 us389 /\
+             (if lt (2:t17) (length1 us389) then us599 = True
+              else us599 = False) /\
+             us629 = otherqt010 /\ us639 = otherqt010 /\ us659 = (3:t17))))) /\
+      (exists result40:t_Option_ref_Authority.
+        ([@stop_split] [@hyp_name:Assert] [@expl:authority ensures]
+         ([@stop_split] [@expl:authority result type invariant]
+          inv_Option_ref_Authority result40) /\
+         ([@stop_split] [@expl:authority ensures]
+          match result40 with
+          | Someqt3 authorityqt21 ->
+              view_Authority authorityqt21 = (view_Uri self).authorityqt0 /\
+              infix_gt (length ((view_Uri self).authorityqt0)) 0
+          | Noneqt3 -> length ((view_Uri self).authorityqt0) = 0
+          end)) /\
+        ([@case_split]
+         ([@stop_split] [@hyp_name:Assert] result40 = Noneqt3) /\
+         otherqt09 = otherqt010 /\
+         absolute1 = absolute9 /\
+         us101 = us1013 /\
+         schemeqt31 = schemeqt312 /\
+         schemeqt41 = schemeqt49 /\
+         us162 = us1613 /\
+         us191 = us199 /\
+         us201 = us209 /\
+         us221 = us229 /\
+         us231 = us239 /\
+         us271 = us279 /\
+         us301 = us309 /\
+         us311 = us319 /\
+         us331 = us339 /\
+         us341 = us349 /\
+         us381 = us389 /\
+         us391 = us399 /\
+         us411 = us419 /\
+         us421 = us429 /\
+         us451 = us459 /\
+         us461 = us469 /\
+         us471 = us479 /\
+         us481 = us489 /\
+         us491 = us499 /\
+         us501 = us509 /\
+         us511 = us519 /\
+         us521 = us529 /\
+         us531 = us539 /\
+         us541 = us549 /\
+         us551 = us559 /\
+         us561 = us569 /\
+         us571 = us579 /\
+         us581 = us589 /\
+         us591 = us599 /\
+         us621 = us629 /\
+         us631 = us639 /\
+         us651 = us659 /\
+         us671 = result40 /\
+         auth2 = (any_l (): t_Authority) /\
+         lenqt01 = (any_l (): t17) /\
+         us731 = (any_l (): string) /\
+         us761 = (any_l (): bool) /\
+         us771 = (any_l (): t17) /\
+         us821 = (any_l (): bool) /\
+         us841 = (any_l (): slice t18) /\
+         us861 = (any_l (): string) /\
+         us891 = (any_l (): slice t18) /\
+         us901 = (any_l (): slice t18) /\
+         T_RangeTo_usizeqtmk us921 = (any_l (): t_RangeTo_usize) /\
+         us961 = (any_l (): slice t18) /\
+         us971 = (any_l (): slice t18) /\
+         T_RangeFrom_usizeqtmk us991 = (any_l (): t_RangeFrom_usize) \/
+         (exists x02 [@field:0:data]:t_ByteStr.
+           ([@stop_split] [@hyp_name:Assert]
+            result40 = Someqt3 (T_Authorityqtmk x02)) /\
+           ([@stop_split] [@hyp_name:Assert] Someqt3 auth2 = result40) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:deref ensures]
+            to_bytes (view_str us731) = view_ByteStr auth1) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+            tqtint lenqt01 = length (to_bytes (view_str us731))) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+            length (view otherqt010) = tqtint us771) /\
+           ([@stop_split] [@hyp_name:Assert] not lt us771 lenqt01) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:deref ensures]
+            to_bytes (view_str us861) = view_ByteStr auth1) /\
+           ([@stop_split] [@expl:as_bytes ensures] [@hyp_name:Assert]
+            view us841 = to_bytes (view_str us861)) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+            has_value_RangeTo_usize (T_RangeTo_usizeqtmk lenqt01)
+            (view otherqt010) us891) /\
+           ([@stop_split] [@hyp_name:Assert]
+            [@expl:authority_ascii_case_eq ensures]
+            true <->
+            authority_folded_bytes (view us841) =
+            authority_folded_bytes (view us891)) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+            has_value_RangeFrom_usize (T_RangeFrom_usizeqtmk lenqt01)
+            (view otherqt010) otherqt09) /\
+           absolute1 = True /\
+           us101 = us1013 /\
+           schemeqt31 = schemeqt312 /\
+           schemeqt41 = schemeqt49 /\
+           us162 = us1613 /\
+           us191 = us199 /\
+           us201 = us209 /\
+           us221 = us229 /\
+           us231 = us239 /\
+           us271 = us279 /\
+           us301 = us309 /\
+           us311 = us319 /\
+           us331 = us339 /\
+           us341 = us349 /\
+           us381 = us389 /\
+           us391 = us399 /\
+           us411 = us419 /\
+           us421 = us429 /\
+           us451 = us459 /\
+           us461 = us469 /\
+           us471 = us479 /\
+           us481 = us489 /\
+           us491 = us499 /\
+           us501 = us509 /\
+           us511 = us519 /\
+           us521 = us529 /\
+           us531 = us539 /\
+           us541 = us549 /\
+           us551 = us559 /\
+           us561 = us569 /\
+           us571 = us579 /\
+           us581 = us589 /\
+           us591 = us599 /\
+           us621 = us629 /\
+           us631 = us639 /\
+           us651 = us659 /\
+           us671 = result40 /\
+           (if lt us771 lenqt01 then us761 = True else us761 = False) /\
+           us821 = True /\
+           us901 = us891 /\
+           us921 = lenqt01 /\
+           us961 = otherqt09 /\ us971 = otherqt09 /\ us991 = lenqt01)))) /\
+    ([@stop_split] [@hyp_name:Assert] [@expl:path ensures]
+     if uri_model_has_path (view_Uri self)
+     then to_bytes (view_str pathqt01) =
+          path_component_bytes ((view_Uri self).path_and_queryqt0)
+     else to_bytes (view_str pathqt01) = (empty: seq t18)) /\
+    ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+     length (view otherqt09) = tqtint us1051) /\
+    ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+     tqtint us1071 = length (to_bytes (view_str pathqt01))) /\
+    ([@stop_split] [@hyp_name:Assert] not lt us1051 us1071) /\
+    ([@stop_split] [@expl:as_bytes ensures] [@hyp_name:Assert]
+     view us1111 = to_bytes (view_str pathqt01)) /\
+    ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+     tqtint us1181 = length (to_bytes (view_str pathqt01))) /\
+    ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+     has_value_RangeTo_usize (T_RangeTo_usizeqtmk us1181) (view otherqt09)
+     us1151) /\
+    ([@stop_split] [@hyp_name:Assert] [@expl:ne ensures]
+     false <->
+     not eq_model_Seq_Int (deep_model_ref_ref_slice_u8 us1111)
+         (deep_model_ref_ref_slice_u8 us1151)) /\
+    ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+     tqtint us1371 = length (to_bytes (view_str pathqt01))) /\
+    ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+     has_value_RangeFrom_usize (T_RangeFrom_usizeqtmk us1371)
+     (view otherqt09) otherqt01) /\
+    (if lt us1051 us1071 then us1041 = True else us1041 = False) /\
+    us1091 = False /\
+    us1171 = us1181 /\
+    us1211 = (any_l (): bool) /\
+    us1221 = (any_l (): t17) /\
+    us1241 = (any_l (): bool) /\
+    us1251 = (any_l (): t18) /\
+    us1261 = (any_l (): slice t18) /\
+    us1281 = (any_l (): t17) /\
+    us1291 = (any_l (): t17) /\
+    us1301 = (any_l (): bool) /\
+    us1331 = otherqt01 /\ us1341 = otherqt01 /\ us1361 = us1371) \/
+  (exists otherqt09:slice t18, absolute9:bool, us1013:t_Option_ref_Scheme,
+    schemeqt312 [@field:0:inner]:t_Scheme2_Box_ByteStr_Global, schemeqt49:
+    slice t18, us1613:string, us199:bool, us209:t17, us229:t17, us239:t17,
+    us279:bool, us309:slice t18, us319:slice t18, us339 [@field:0:end']:t17,
+    us349:t17, us389:slice t18, us399:slice t18, us419 [@field:0:start]:t17,
+    us429:t17, us459:bool, us469:t18, us479:t17, us489:t17, us499:bool,
+    us509:bool, us519:t18, us529:t17, us539:t17, us549:bool, us559:bool,
+    us569:t18, us579:t17, us589:t17, us599:bool, us629:slice t18, us639:slice
+    t18, us659 [@field:0:start]:t17, us676:t_Option_ref_Authority, auth9
+    [@field:0:data]:t_ByteStr, lenqt06:t17, us736:string, us766:bool, us776:
+    t17, us826:bool, us846:slice t18, us866:string, us896:slice t18, us906:
+    slice t18, us926 [@field:0:end']:t17, us966:slice t18, us976:slice t18,
+    us996 [@field:0:start]:t17.
+    let auth10 = T_Authorityqtmk auth9 in
+    (exists otherqt010:slice t18, absolute10:bool, us1014:
+      t_Option_ref_Scheme, schemeqt313 [@field:0:inner]:
+      t_Scheme2_Box_ByteStr_Global, schemeqt410:slice t18, us1614:string,
+      us1910:bool, us2010:t17, us2210:t17, us2310:t17, us2710:bool, us3010:
+      slice t18, us3110:slice t18, us3310 [@field:0:end']:t17, us3410:t17,
+      us3810:slice t18, us3910:slice t18, us4110 [@field:0:start]:t17,
+      us4210:t17, us4510:bool, us4610:t18, us4710:t17, us4810:t17, us4910:
+      bool, us5010:bool, us5110:t18, us5210:t17, us5310:t17, us5410:bool,
+      us5510:bool, us5610:t18, us5710:t17, us5810:t17, us5910:bool, us6210:
+      slice t18, us6310:slice t18, us6510 [@field:0:start]:t17.
+      let schemeqt314 = T_Schemeqtmk schemeqt313 in
+      (exists result40:slice t18.
+        ([@stop_split] [@expl:as_bytes ensures] [@hyp_name:Assert]
+         view result40 = to_bytes (view_str other)) /\
+        (exists result41:t_Option_ref_Scheme.
+          ([@stop_split] [@hyp_name:Assert] [@expl:scheme ensures]
+           ([@stop_split] [@expl:scheme result type invariant]
+            inv_Option_ref_Scheme result41) /\
+           ([@stop_split] [@expl:scheme ensures]
+            match result41 with
+            | Someqt0 schemeqt21 ->
+                view_Scheme schemeqt21 = (view_Uri self).schemeqt0 /\
+                not uri_scheme_is_none ((view_Uri self).schemeqt0)
+            | Noneqt0 -> uri_scheme_is_none ((view_Uri self).schemeqt0)
+            end)) /\
+          ([@case_split]
+           ([@stop_split] [@hyp_name:Assert] result41 = Noneqt0) /\
+           otherqt010 = result40 /\
+           absolute10 = False /\
+           us1014 = result41 /\
+           schemeqt314 = (any_l (): t_Scheme) /\
+           schemeqt410 = (any_l (): slice t18) /\
+           us1614 = (any_l (): string) /\
+           us1910 = (any_l (): bool) /\
+           us2010 = (any_l (): t17) /\
+           us2210 = (any_l (): t17) /\
+           us2310 = (any_l (): t17) /\
+           us2710 = (any_l (): bool) /\
+           us3010 = (any_l (): slice t18) /\
+           us3110 = (any_l (): slice t18) /\
+           T_RangeTo_usizeqtmk us3310 = (any_l (): t_RangeTo_usize) /\
+           us3410 = (any_l (): t17) /\
+           us3810 = (any_l (): slice t18) /\
+           us3910 = (any_l (): slice t18) /\
+           T_RangeFrom_usizeqtmk us4110 = (any_l (): t_RangeFrom_usize) /\
+           us4210 = (any_l (): t17) /\
+           us4510 = (any_l (): bool) /\
+           us4610 = (any_l (): t18) /\
+           us4710 = (any_l (): t17) /\
+           us4810 = (any_l (): t17) /\
+           us4910 = (any_l (): bool) /\
+           us5010 = (any_l (): bool) /\
+           us5110 = (any_l (): t18) /\
+           us5210 = (any_l (): t17) /\
+           us5310 = (any_l (): t17) /\
+           us5410 = (any_l (): bool) /\
+           us5510 = (any_l (): bool) /\
+           us5610 = (any_l (): t18) /\
+           us5710 = (any_l (): t17) /\
+           us5810 = (any_l (): t17) /\
+           us5910 = (any_l (): bool) /\
+           us6210 = (any_l (): slice t18) /\
+           us6310 = (any_l (): slice t18) /\
+           T_RangeFrom_usizeqtmk us6510 = (any_l (): t_RangeFrom_usize) \/
+           (exists x02 [@field:0:inner]:t_Scheme2_Box_ByteStr_Global.
+             ([@stop_split] [@hyp_name:Assert]
+              result41 = Someqt0 (T_Schemeqtmk x02)) /\
+             ([@stop_split] [@hyp_name:Assert] Someqt0 schemeqt314 = result41) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:as_str ensures]
+              scheme_text_matches (view_Scheme schemeqt314) (view_str us1614)) /\
+             ([@stop_split] [@expl:as_bytes ensures] [@hyp_name:Assert]
+              view schemeqt410 = to_bytes (view_str us1614)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+              length (view result40) = tqtint us2010) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+              length (view schemeqt410) = tqtint us2310) /\
+             ([@stop_split] [@hyp_name:Assert]
+              tqtint us2210 = infix_pl (tqtint us2310) (tqtint (3:t17))) /\
+             ([@stop_split] [@hyp_name:Assert] not lt us2010 us2210) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+              length (view schemeqt410) = tqtint us3410) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+              has_value_RangeTo_usize (T_RangeTo_usizeqtmk us3410)
+              (view result40) us3010) /\
+             ([@stop_split] [@hyp_name:Assert]
+              [@expl:authority_ascii_case_eq ensures]
+              true <->
+              authority_folded_bytes (view schemeqt410) =
+              authority_folded_bytes (view us3010)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+              length (view schemeqt410) = tqtint us4210) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+              has_value_RangeFrom_usize (T_RangeFrom_usizeqtmk us4210)
+              (view result40) us3810) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index in bounds]
+              lt (0:t17) (length1 us3810)) /\
+             ([@stop_split] [@hyp_name:Assert]
+              infix_ls (tqtint (0:t17)) (length (us3810.elts))) /\
+             ([@stop_split] [@hyp_name:Assert]
+              get (us3810.elts) (tqtint (0:t17)) = (58:t18)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index in bounds]
+              lt (1:t17) (length1 us3810)) /\
+             ([@stop_split] [@hyp_name:Assert]
+              infix_ls (tqtint (1:t17)) (length (us3810.elts))) /\
+             ([@stop_split] [@hyp_name:Assert]
+              get (us3810.elts) (tqtint (1:t17)) = (47:t18)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index in bounds]
+              lt (2:t17) (length1 us3810)) /\
+             ([@stop_split] [@hyp_name:Assert]
+              infix_ls (tqtint (2:t17)) (length (us3810.elts))) /\
+             ([@stop_split] [@hyp_name:Assert]
+              get (us3810.elts) (tqtint (2:t17)) = (47:t18)) /\
+             ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+              has_value_RangeFrom_usize (T_RangeFrom_usizeqtmk (3:t17))
+              (view us3810) otherqt010) /\
+             absolute10 = True /\
+             us1014 = result41 /\
+             (if lt us2010 us2210 then us1910 = True else us1910 = False) /\
+             us2710 = True /\
+             us3110 = us3010 /\
+             us3310 = us3410 /\
+             us3910 = us3810 /\
+             us4110 = us4210 /\
+             (if not get (us3810.elts) (tqtint (0:t17)) = (58:t18)
+              then us4510 = True else us4510 = False) /\
+             us4610 = get (us3810.elts) (tqtint (0:t17)) /\
+             us4710 = (0:t17) /\
+             us4810 = length1 us3810 /\
+             (if lt (0:t17) (length1 us3810) then us4910 = True
+              else us4910 = False) /\
+             (if not get (us3810.elts) (tqtint (1:t17)) = (47:t18)
+              then us5010 = True else us5010 = False) /\
+             us5110 = get (us3810.elts) (tqtint (1:t17)) /\
+             us5210 = (1:t17) /\
+             us5310 = length1 us3810 /\
+             (if lt (1:t17) (length1 us3810) then us5410 = True
+              else us5410 = False) /\
+             (if not get (us3810.elts) (tqtint (2:t17)) = (47:t18)
+              then us5510 = True else us5510 = False) /\
+             us5610 = get (us3810.elts) (tqtint (2:t17)) /\
+             us5710 = (2:t17) /\
+             us5810 = length1 us3810 /\
+             (if lt (2:t17) (length1 us3810) then us5910 = True
+              else us5910 = False) /\
+             us6210 = otherqt010 /\ us6310 = otherqt010 /\ us6510 = (3:t17))))) /\
+      (exists result40:t_Option_ref_Authority.
+        ([@stop_split] [@hyp_name:Assert] [@expl:authority ensures]
+         ([@stop_split] [@expl:authority result type invariant]
+          inv_Option_ref_Authority result40) /\
+         ([@stop_split] [@expl:authority ensures]
+          match result40 with
+          | Someqt3 authorityqt21 ->
+              view_Authority authorityqt21 = (view_Uri self).authorityqt0 /\
+              infix_gt (length ((view_Uri self).authorityqt0)) 0
+          | Noneqt3 -> length ((view_Uri self).authorityqt0) = 0
+          end)) /\
+        ([@case_split]
+         ([@stop_split] [@hyp_name:Assert] result40 = Noneqt3) /\
+         otherqt09 = otherqt010 /\
+         absolute9 = absolute10 /\
+         us1013 = us1014 /\
+         schemeqt312 = schemeqt313 /\
+         schemeqt49 = schemeqt410 /\
+         us1613 = us1614 /\
+         us199 = us1910 /\
+         us209 = us2010 /\
+         us229 = us2210 /\
+         us239 = us2310 /\
+         us279 = us2710 /\
+         us309 = us3010 /\
+         us319 = us3110 /\
+         us339 = us3310 /\
+         us349 = us3410 /\
+         us389 = us3810 /\
+         us399 = us3910 /\
+         us419 = us4110 /\
+         us429 = us4210 /\
+         us459 = us4510 /\
+         us469 = us4610 /\
+         us479 = us4710 /\
+         us489 = us4810 /\
+         us499 = us4910 /\
+         us509 = us5010 /\
+         us519 = us5110 /\
+         us529 = us5210 /\
+         us539 = us5310 /\
+         us549 = us5410 /\
+         us559 = us5510 /\
+         us569 = us5610 /\
+         us579 = us5710 /\
+         us589 = us5810 /\
+         us599 = us5910 /\
+         us629 = us6210 /\
+         us639 = us6310 /\
+         us659 = us6510 /\
+         us676 = result40 /\
+         auth10 = (any_l (): t_Authority) /\
+         lenqt06 = (any_l (): t17) /\
+         us736 = (any_l (): string) /\
+         us766 = (any_l (): bool) /\
+         us776 = (any_l (): t17) /\
+         us826 = (any_l (): bool) /\
+         us846 = (any_l (): slice t18) /\
+         us866 = (any_l (): string) /\
+         us896 = (any_l (): slice t18) /\
+         us906 = (any_l (): slice t18) /\
+         T_RangeTo_usizeqtmk us926 = (any_l (): t_RangeTo_usize) /\
+         us966 = (any_l (): slice t18) /\
+         us976 = (any_l (): slice t18) /\
+         T_RangeFrom_usizeqtmk us996 = (any_l (): t_RangeFrom_usize) \/
+         (exists x02 [@field:0:data]:t_ByteStr.
+           ([@stop_split] [@hyp_name:Assert]
+            result40 = Someqt3 (T_Authorityqtmk x02)) /\
+           ([@stop_split] [@hyp_name:Assert] Someqt3 auth10 = result40) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:deref ensures]
+            to_bytes (view_str us736) = view_ByteStr auth9) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+            tqtint lenqt06 = length (to_bytes (view_str us736))) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+            length (view otherqt010) = tqtint us776) /\
+           ([@stop_split] [@hyp_name:Assert] not lt us776 lenqt06) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:deref ensures]
+            to_bytes (view_str us866) = view_ByteStr auth9) /\
+           ([@stop_split] [@expl:as_bytes ensures] [@hyp_name:Assert]
+            view us846 = to_bytes (view_str us866)) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+            has_value_RangeTo_usize (T_RangeTo_usizeqtmk lenqt06)
+            (view otherqt010) us896) /\
+           ([@stop_split] [@hyp_name:Assert]
+            [@expl:authority_ascii_case_eq ensures]
+            true <->
+            authority_folded_bytes (view us846) =
+            authority_folded_bytes (view us896)) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+            has_value_RangeFrom_usize (T_RangeFrom_usizeqtmk lenqt06)
+            (view otherqt010) otherqt09) /\
+           absolute9 = True /\
+           us1013 = us1014 /\
+           schemeqt312 = schemeqt313 /\
+           schemeqt49 = schemeqt410 /\
+           us1613 = us1614 /\
+           us199 = us1910 /\
+           us209 = us2010 /\
+           us229 = us2210 /\
+           us239 = us2310 /\
+           us279 = us2710 /\
+           us309 = us3010 /\
+           us319 = us3110 /\
+           us339 = us3310 /\
+           us349 = us3410 /\
+           us389 = us3810 /\
+           us399 = us3910 /\
+           us419 = us4110 /\
+           us429 = us4210 /\
+           us459 = us4510 /\
+           us469 = us4610 /\
+           us479 = us4710 /\
+           us489 = us4810 /\
+           us499 = us4910 /\
+           us509 = us5010 /\
+           us519 = us5110 /\
+           us529 = us5210 /\
+           us539 = us5310 /\
+           us549 = us5410 /\
+           us559 = us5510 /\
+           us569 = us5610 /\
+           us579 = us5710 /\
+           us589 = us5810 /\
+           us599 = us5910 /\
+           us629 = us6210 /\
+           us639 = us6310 /\
+           us659 = us6510 /\
+           us676 = result40 /\
+           (if lt us776 lenqt06 then us766 = True else us766 = False) /\
+           us826 = True /\
+           us906 = us896 /\
+           us926 = lenqt06 /\
+           us966 = otherqt09 /\ us976 = otherqt09 /\ us996 = lenqt06)))) /\
+    (exists result40:string.
+      ([@stop_split] [@hyp_name:Assert] [@expl:path ensures]
+       if uri_model_has_path (view_Uri self)
+       then to_bytes (view_str result40) =
+            path_component_bytes ((view_Uri self).path_and_queryqt0)
+       else to_bytes (view_str result40) = (empty: seq t18)) /\
+      (exists result41:t17.
+        ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+         length (view otherqt09) = tqtint result41) /\
+        (exists result42:t17.
+          ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+           tqtint result42 = length (to_bytes (view_str result40))) /\
+          ([@case_split]
+           ([@stop_split] [@hyp_name:Assert] not lt result41 result42) /\
+           ([@stop_split] [@expl:as_bytes ensures] [@hyp_name:Assert]
+            view us1113 = to_bytes (view_str result40)) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+            tqtint us1183 = length (to_bytes (view_str result40))) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:index ensures]
+            has_value_RangeTo_usize (T_RangeTo_usizeqtmk us1183)
+            (view otherqt09) us1153) /\
+           ([@stop_split] [@hyp_name:Assert] [@expl:ne ensures]
+            true <->
+            not eq_model_Seq_Int (deep_model_ref_ref_slice_u8 us1113)
+                (deep_model_ref_ref_slice_u8 us1153)) /\
+           otherqt08 = otherqt09 /\
+           absolute8 = absolute9 /\
+           us1012 = us1013 /\
+           schemeqt311 = schemeqt312 /\
+           schemeqt48 = schemeqt49 /\
+           us1612 = us1613 /\
+           us198 = us199 /\
+           us208 = us209 /\
+           us228 = us229 /\
+           us238 = us239 /\
+           us278 = us279 /\
+           us308 = us309 /\
+           us318 = us319 /\
+           us338 = us339 /\
+           us348 = us349 /\
+           us388 = us389 /\
+           us398 = us399 /\
+           us418 = us419 /\
+           us428 = us429 /\
+           us458 = us459 /\
+           us468 = us469 /\
+           us478 = us479 /\
+           us488 = us489 /\
+           us498 = us499 /\
+           us508 = us509 /\
+           us518 = us519 /\
+           us528 = us529 /\
+           us538 = us539 /\
+           us548 = us549 /\
+           us558 = us559 /\
+           us568 = us569 /\
+           us578 = us579 /\
+           us588 = us589 /\
+           us598 = us599 /\
+           us628 = us629 /\
+           us638 = us639 /\
+           us658 = us659 /\
+           us675 = us676 /\
+           auth8 = auth9 /\
+           lenqt05 = lenqt06 /\
+           us735 = us736 /\
+           us765 = us766 /\
+           us775 = us776 /\
+           us825 = us826 /\
+           us845 = us846 /\
+           us865 = us866 /\
+           us895 = us896 /\
+           us905 = us906 /\
+           us925 = us926 /\
+           us965 = us966 /\
+           us975 = us976 /\
+           us995 = us996 /\
+           pathqt03 = result40 /\
+           (if lt result41 result42 then us1043 = True else us1043 = False) /\
+           us1053 = result41 /\
+           us1073 = result42 /\ us1093 = True /\ us1173 = us1183 \/
+           ([@stop_split] [@hyp_name:Assert] lt result41 result42) /\
+           otherqt08 = otherqt09 /\
+           absolute8 = absolute9 /\
+           us1012 = us1013 /\
+           schemeqt311 = schemeqt312 /\
+           schemeqt48 = schemeqt49 /\
+           us1612 = us1613 /\
+           us198 = us199 /\
+           us208 = us209 /\
+           us228 = us229 /\
+           us238 = us239 /\
+           us278 = us279 /\
+           us308 = us309 /\
+           us318 = us319 /\
+           us338 = us339 /\
+           us348 = us349 /\
+           us388 = us389 /\
+           us398 = us399 /\
+           us418 = us419 /\
+           us428 = us429 /\
+           us458 = us459 /\
+           us468 = us469 /\
+           us478 = us479 /\
+           us488 = us489 /\
+           us498 = us499 /\
+           us508 = us509 /\
+           us518 = us519 /\
+           us528 = us529 /\
+           us538 = us539 /\
+           us548 = us549 /\
+           us558 = us559 /\
+           us568 = us569 /\
+           us578 = us579 /\
+           us588 = us589 /\
+           us598 = us599 /\
+           us628 = us629 /\
+           us638 = us639 /\
+           us658 = us659 /\
+           us675 = us676 /\
+           auth8 = auth9 /\
+           lenqt05 = lenqt06 /\
+           us735 = us736 /\
+           us765 = us766 /\
+           us775 = us776 /\
+           us825 = us826 /\
+           us845 = us846 /\
+           us865 = us866 /\
+           us895 = us896 /\
+           us905 = us906 /\
+           us925 = us926 /\
+           us965 = us966 /\
+           us975 = us976 /\
+           us995 = us996 /\
+           pathqt03 = result40 /\
+           (if lt result41 result42 then us1043 = True else us1043 = False) /\
+           us1053 = result41 /\
+           us1073 = result42 /\
+           us1093 = (any_l (): bool) /\
+           us1113 = (any_l (): slice t18) /\
+           us1153 = (any_l (): slice t18) /\
+           T_RangeTo_usizeqtmk us1173 = (any_l (): t_RangeTo_usize) /\
+           us1183 = (any_l (): t17)))))) /\
+  ([@stop_split] [@hyp_name:Assert] ([@hyp_name:Assert] absolute8) = True) /\
+  ([@stop_split] [@hyp_name:Assert] [@expl:len ensures]
+   tqtint (1:t17) = length (to_bytes (view_str pathqt03))) /\
+  ([@stop_split] [@expl:as_bytes ensures] [@hyp_name:Assert]
+   view us1261 = to_bytes (view_str pathqt03)) /\
+  ([@stop_split] [@hyp_name:Assert] [@expl:index in bounds]
+   lt (0:t17) (length1 us1261)) /\
+  ([@stop_split] [@hyp_name:Assert]
+   infix_ls (tqtint (0:t17)) (length (us1261.elts))) /\
+  ([@stop_split] [@hyp_name:Assert]
+   get (us1261.elts) (tqtint (0:t17)) = (47:t18)) /\
+  otherqt01 = otherqt08 /\
+  absolute1 = absolute8 /\
+  us101 = us1012 /\
+  schemeqt31 = schemeqt311 /\
+  schemeqt41 = schemeqt48 /\
+  us162 = us1612 /\
+  us191 = us198 /\
+  us201 = us208 /\
+  us221 = us228 /\
+  us231 = us238 /\
+  us271 = us278 /\
+  us301 = us308 /\
+  us311 = us318 /\
+  us331 = us338 /\
+  us341 = us348 /\
+  us381 = us388 /\
+  us391 = us398 /\
+  us411 = us418 /\
+  us421 = us428 /\
+  us451 = us458 /\
+  us461 = us468 /\
+  us471 = us478 /\
+  us481 = us488 /\
+  us491 = us498 /\
+  us501 = us508 /\
+  us511 = us518 /\
+  us521 = us528 /\
+  us531 = us538 /\
+  us541 = us548 /\
+  us551 = us558 /\
+  us561 = us568 /\
+  us571 = us578 /\
+  us581 = us588 /\
+  us591 = us598 /\
+  us621 = us628 /\
+  us631 = us638 /\
+  us651 = us658 /\
+  us671 = us675 /\
+  auth1 = auth8 /\
+  lenqt01 = lenqt05 /\
+  us731 = us735 /\
+  us761 = us765 /\
+  us771 = us775 /\
+  us821 = us825 /\
+  us841 = us845 /\
+  us861 = us865 /\
+  us891 = us895 /\
+  us901 = us905 /\
+  us921 = us925 /\
+  us961 = us965 /\
+  us971 = us975 /\
+  us991 = us995 /\
+  pathqt01 = pathqt03 /\
+  us1041 = us1043 /\
+  us1051 = us1053 /\
+  us1071 = us1073 /\
+  us1091 = us1093 /\
+  us1111 = us1113 /\
+  us1151 = us1153 /\
+  us1171 = us1173 /\
+  us1181 = us1183 /\
+  (if true then us1211 = True else us1211 = False) /\
+  us1221 = (1:t17) /\
+  (if get (us1261.elts) (tqtint (0:t17)) = (47:t18) then us1241 = True
+   else us1241 = False) /\
+  us1251 = get (us1261.elts) (tqtint (0:t17)) /\
+  us1281 = (0:t17) /\
+  us1291 = length1 us1261 /\
+  (if lt (0:t17) (length1 us1261) then us1301 = True else us1301 = False) /\
+  us1331 = (any_l (): slice t18) /\
+  us1341 = (any_l (): slice t18) /\
+  T_RangeFrom_usizeqtmk us1361 = (any_l (): t_RangeFrom_usize) /\
+  us1371 = (any_l (): t17)
+
+constant result40 [@introduced] : t_Option_ref_str
+
+axiom Assert74 [@introduced] :
+  [@hyp_name:Assert] [@expl:query ensures]
+  match result40 with
+  | Noneqt4 ->
+      match ((view_Uri self).path_and_queryqt0).query with
+      | Noneqt1 -> true
+      | _ -> false
+      end
+  | Someqt4 x ->
+      match ((view_Uri self).path_and_queryqt0).query with
+      | Someqt1 x1 ->
+          to_bytes (view_str x) =
+          mixfix_lbdtdtrb (((view_Uri self).path_and_queryqt0).bytes)
+          (infix_pl x1 1)
+          (length (((view_Uri self).path_and_queryqt0).bytes))
+      | _ -> false
+      end
+  end
+
+constant x02 [@introduced] : string
+
+axiom Assert75 [@introduced] : [@hyp_name:Assert] result40 = Someqt4 x02
+
+(* meta syntax_type type int, "int", 0 *)
+
+(* meta syntax_type type real, "real", 0 *)
+
+(* meta syntax_logic predicate infix_eq, "(%1 = %2)", 0 *)
+
+(* meta encoding:ignore_polymorphism_ls predicate infix_eq *)
+
+goal vc_eq_Uri :
+  [@hyp_name:Assert] [@expl:elim Some]
+  match result40 with
+  | Someqt4 _ -> true
+  | _ -> false
+  end
+
+end
