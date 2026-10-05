@@ -74,7 +74,10 @@ pub(crate) fn actual_freeze_then_read_and_reclaim(input:Vec<u8>,table:&'static V
     let _=contents;
     let ticket=bytes.proof_return_frozen_ticket();
     let other_ticket=other.proof_return_frozen_ticket();
+    #[cfg(not(feature="negative_missing_fraction"))]
     let ticket=ticket.join(other_ticket);
+    #[cfg(feature="negative_missing_fraction")]
+    let _=other_ticket;
     proof_assert!(ticket.frac().ext_eq(creusot_std::logic::real::PositiveReal::from_int(1)));
     coordinator.unwrap().reclaim(ticket);
     first

@@ -21,6 +21,8 @@ it is not a proof of `Clone::clone(&self)`. Historical diagnostics preserve the
 unsupported dynamic vtable call and shared-receiver affine mutation attempts.
 
 `negative_missing_fraction` deliberately omits one returned ticket from the
-join; reclaim must remain blocked. `negative_shared_clone` and
-`negative_actual_clone` preserve the distinct native Clone frontiers.
-Run `bash run-proof.sh`, or append `--features FEATURE` for a negative control.
+join. Its fresh replay rejects the final reclamation caller at 13/14 goals;
+`evidence/cloud-resume/negative-missing-fraction.{tar.gz,json}` preserves the
+source, Coma, proof JSON and log. Run `bash run-proof.sh --features
+negative_missing_fraction` to repeat it. Current native Clone diagnostics live
+in the separate `native-integration-frontier` diagnostic archive.
