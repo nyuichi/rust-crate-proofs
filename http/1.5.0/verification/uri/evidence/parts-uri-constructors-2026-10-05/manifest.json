@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "task": "URI Parts defaults/conversions and Uri parts projections (selected partial proof batch)",
+  "captured_at_utc": "2026-10-05",
+  "status": "Fresh named URI leaf-harness emission. In the archived proof JSON trees, 48 of 55 recorded terminal leaves passed and seven are null. Independent expected split_vc child arity from the COMA is pending, so these counts are qualified as recorded-tree results rather than a completeness claim.",
+  "semantic_scope": {
+    "covered": "All recorded JSON leaves for Parts::default, Uri::default, TryFrom<Parts> for Uri, Uri::into_parts, and both direct harness relay calls passed. From<Uri> for Parts recorded leaves: two refinement successes and 7/9 body terminals passed. Uri::from_parts recorded 25/30 terminal leaves passed. Independent COMA-to-tree arity validation remains pending.",
+    "open": "Two From<Uri> for Parts body leaves and five Uri::from_parts body leaves are null. Exact recursive null paths: From<Uri> for Parts `vc_from_Parts` children [4,1] and [5,1]; Uri::from_parts `vc_from_parts` children [4,1], [11,1], [16,1], [22,1], [23,1]. Astra read-only diagnosis: the From<Uri> nulls need the Scheme and Authority view bodies visible to the parent URI module so the source projections connect to their models. In Uri::from_parts, three error branches need the ErrorKind\u2192InvalidUriParts deep-model relay, and two successful None-scheme branches need the Scheme::None view exposed (or the contracted Scheme::empty constructor). These were source gaps, not solver counterexamples.",
+    "not_verified": "This named URI harness is not the full production Creusot profile; no parser-wide or full constructor correctness claim is made."
+  },
+  "profile": {
+    "working_directory": "verification/uri",
+    "rustflags": "--cfg http_uri_parts_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_host_leaf",
+    "cargo_target_dir": "/workspace/proof-tools/targets/http-uri",
+    "proof_settings": {
+      "wrapper": "scripts/run-proof.sh",
+      "sandbox_permissions": "require_escalated",
+      "why3_no_cache": true,
+      "preprocess": "split_vc",
+      "jobs": 1
+    }
+  },
+  "source_hashes_at_emission": {
+    "src/uri/mod.rs": "18d913b59d32ae36d5794f6c23b3c1a0d0f05c877ae1abb1c55ec398b1f2bc56",
+    "src/uri/authority.rs": "cd80cf69a68c443ee5261b8be4f6ca8a9cef831d3762b158159a9eba8ae493c3",
+    "src/uri/authority_chars.rs": "2685a6221da7b2136d7cd99874d05589e7298d7ed73d8a33aeca766cdc3cab76",
+    "src/uri/path.rs": "bf88c94ea128d92e79f94a4e472dec83f9bc0fdf8985c18d4db51340e3663bc7",
+    "src/uri/scheme.rs": "711898fb025eb3463b96a00d32f758152401135e9837522258221b35365c314e",
+    "src/uri/scheme/types.rs": "ed66d9067b739ae4ea0dd3e2ea39b2024c0c96738774d2a9a503beb992aa3991",
+    "src/uri/port.rs": "4a16b3c7f78d44f4bbc4568d703fa21b70fa75b0dd0eb1d0410e3231f16c750e",
+    "src/uri/error.rs": "f20ad5af84d0f6853c308244a0a91e9e9c0f5d9f83c92db61199ffd5b4b2dd43",
+    "src/uri/limits.rs": "699dfb12d2b7a58b6181accfbda9e98ee84b444d075c453927fce568e88dccd7",
+    "src/uri/path_class.rs": "c73264a7dc66c0823e781eed73ab5fe44dff5ac7431a1fe59ee45c537f171dd8",
+    "src/uri/path_static_domain.rs": "e170e39717bbe67843bdaf42d619b742ba80ff9f204eadd134b8c4f4ec721c84",
+    "src/ascii.rs": "6620f3a38389cb067789f025507f5743ebfa9a8b56cd186dd07f1502e4bf4e47",
+    "src/byte_str.rs": "ccffe62cc16a3789160cfadad831d03b9ada717c7acc5062fafec6a35cea9245",
+    "src/bytes_model.rs": "130965c4ee8e269e76b8a5a7462aa95877daba56583ecffca2c137453ff0e145",
+    "verification/uri/src/lib.rs": "150ccbe27f993f9d7e45ebfa7f91244c19b848ec8eef333d8aa218c80afb4cd0",
+    "verification/uri/Cargo.toml": "f3be031015fb1f12f41be00ad1b1baabf15c407fee16f8108ceb489e2152899a",
+    "verification/uri/Cargo.lock": "92e620abcf12279a7d3d4359a320d5a569b70906204fb8e0cc1e71b5e61aa7fc",
+    "../../creusot-libs/creusot-std/src/std/convert.rs": "a74830cdae42660ed03533d4d33c77c5b9244605fa9cb0d2a9941ced395a0061",
+    "../../creusot-libs/creusot-std/src/std/string.rs": "3dec1d56ca9863212738ef21c83ca87a5f6d079008bc25e1bbebe32575f77dfc",
+    "../../creusot-libs/creusot-std/src/std/partial_eq.rs": "efe3e792d9deea9dfa89ba2c4adf0b55c7c4fb0709c48b8e791753ee487c5756",
+    "../../creusot-libs/creusot-std/src/std/partial_ord.rs": "8d1fbfd3b1189be19874efdef9aba5b4f58fd9c3bb545d061052e95dd9266a26",
+    "../../creusot-libs/creusot-std/src/std/hash.rs": "a24a1bc06a5f7ffee1e7512bf5aea3b1fdc0791c3caebd79be5bc1eeacfd8fed",
+    "../../creusot-libs/creusot-std/src/std/bytes.rs": "6f3aaae39bab2c5888b8ffe7a33fc773ac668ca5f9afb953e58ab8bb8ef8ceb2",
+    "../../creusot-libs/creusot-std/src/std/fmt.rs": "45a68d77d9987e6adc8ecbc32ba2ed3838decdd562a463d211216ee342afeb84",
+    "../../creusot-libs/creusot-std/src/std/seq_ord.rs": "5604d675006d0830cc9c74d461826b2f07ef4c8c94781e5c64b66a7b5050fef8",
+    "../../creusot-libs/creusot-std/src/model.rs": "a774d52a986692f9b52d543f7b6e238a18d1c4c04b667242b06630df8f6f54ad"
+  },
+  "frontend": {
+    "exit_code": 0,
+    "scope": "named URI leaf harness",
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_uri_parts_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && cargo creusot --check -- --locked --offline"
+  },
+  "emission": {
+    "exit_code": 0,
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_uri_parts_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_host_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && ../../scripts/run-proof.sh bash -c 'cargo clean -p http-uri-proof && cargo creusot --simple-triggers=false -- --locked --offline'"
+  },
+  "proof_batch": {
+    "exit_code": 1,
+    "own_terminal_leaves": 55,
+    "passed": 48,
+    "null": 7,
+    "target_counts": [
+      {
+        "target": "uri/impl_Default_for_Parts/default",
+        "coma_archive": "comas/uri__impl_Default_for_Parts__default.coma",
+        "coma_sha256": "cc0d9eef7f8a930da08630e8e3da02e375474286aab17402c48bb727ec8a4755",
+        "proof_archive": "proofs/uri__impl_Default_for_Parts__default.json",
+        "proof_json_sha256": "05ae5e0e6af377afcdb0a4d53408ae1402034591ed8c55e6dd90ee3831058aca",
+        "own_terminal_leaves": 1,
+        "passed": 1,
+        "null": 0
+      },
+      {
+        "target": "uri/impl_Default_for_Parts/default__refines",
+        "coma_archive": "comas/uri__impl_Default_for_Parts__default__refines.coma",
+        "coma_sha256": "7bf9ac19290e6f30be6a164065b2ab877bd4661e3aaee737c02da5188dda8f0b",
+        "proof_archive": "proofs/uri__impl_Default_for_Parts__default__refines.json",
+        "proof_json_sha256": "c48627dedcbf7c223a81e87c60dae201f5b06999e5922896f2119a8a6e4eb96e",
+        "own_terminal_leaves": 1,
+        "passed": 1,
+        "null": 0
+      },
+      {
+        "target": "uri/impl_Default_for_Uri/default",
+        "coma_archive": "comas/uri__impl_Default_for_Uri__default.coma",
+        "coma_sha256": "d56e6c8e5312ca8dbe30a9ed1ad68fb980d404241b39b5eb7defed6f01d55a1c",
+        "proof_archive": "proofs/uri__impl_Default_for_Uri__default.json",
+        "proof_json_sha256": "4035f71f79707f3fd9fb567c9decc00708aff759094b5677e88ae679d06c0a76",
+        "own_terminal_leaves": 1,
+        "passed": 1,
+        "null": 0
+      },
+      {
+        "target": "uri/impl_Default_for_Uri/default__refines",
+        "coma_archive": "comas/uri__impl_Default_for_Uri__default__refines.coma",
+        "coma_sha256": "e3b01bc73130ef97ba12f9d712152cb2f1d342390303eea869a3e194dc424105",
+        "proof_archive": "proofs/uri__impl_Default_for_Uri__default__refines.json",
+        "proof_json_sha256": "840f776baf3c09c610e1998450286466ec0944581e6be37df7d8702d5d7465dd",
+        "own_terminal_leaves": 1,
+        "passed": 1,
+        "null": 0
+      },
+      {
+        "target": "uri/impl_From_for_Parts/from",
+        "coma_archive": "comas/uri__impl_From_for_Parts__from.coma",
+        "coma_sha256": "82790354ec3fb2d96cc8d117de7f5a391e687e841b8bfeafd35288366ea2289c",
+        "proof_archive": "proofs/uri__impl_From_for_Parts__from.json",
+        "proof_json_sha256": "0686c73f0275a9692a4ddb0212b32d3e69ce86e5934deeefcc768c402d05458d",
+        "own_terminal_leaves": 9,
+        "passed": 7,
+        "null": 2
+      },
+      {
+        "target": "uri/impl_From_for_Parts/from__refines",
+        "coma_archive": "comas/uri__impl_From_for_Parts__from__refines.coma",
+        "coma_sha256": "0d3540e4c10f50703b3d26ffe7ea7fc2131f614d31ab42577670a439601d3229",
+        "proof_archive": "proofs/uri__impl_From_for_Parts__from__refines.json",
+        "proof_json_sha256": "46c0baea1fa7e124ff9b7aa8f70b9a4cef8219eb5b82feee93d47313a40a8899",
+        "own_terminal_leaves": 2,
+        "passed": 2,
+        "null": 0
+      },
+      {
+        "target": "uri/impl_TryFrom_for_Uri/try_from",
+        "coma_archive": "comas/uri__impl_TryFrom_for_Uri__try_from.coma",
+        "coma_sha256": "187b7b78dfac6590696a544a9fabb38d6b46ba0215d175bff7d7af31fb6b3dc4",
+        "proof_archive": "proofs/uri__impl_TryFrom_for_Uri__try_from.json",
+        "proof_json_sha256": "79fe25ad6dd7f54f6fc149961d8b12a3eaa558c87aadea2011de46d0b5627695",
+        "own_terminal_leaves": 2,
+        "passed": 2,
+        "null": 0
+      },
+      {
+        "target": "uri/impl_TryFrom_for_Uri/try_from__refines",
+        "coma_archive": "comas/uri__impl_TryFrom_for_Uri__try_from__refines.coma",
+        "coma_sha256": "cd8553469c8984216f90d54124e6e2e39c02450c3118cf9fd8b67521d367a889",
+        "proof_archive": "proofs/uri__impl_TryFrom_for_Uri__try_from__refines.json",
+        "proof_json_sha256": "a5b10fc7e63138448beae2d884b54217616007d003c5917618163bad02b8ec47",
+        "own_terminal_leaves": 2,
+        "passed": 2,
+        "null": 0
+      },
+      {
+        "target": "uri/impl_Uri/from_parts",
+        "coma_archive": "comas/uri__impl_Uri__from_parts.coma",
+        "coma_sha256": "e478b7e82054d93a71e34bce3002c05b520413305c1279c0d20b9ff9694c1db8",
+        "proof_archive": "proofs/uri__impl_Uri__from_parts.json",
+        "proof_json_sha256": "b0d6e6227954af7a1ec766a6d3377e3f8ef226115cdeeb258acf1148c2be59d0",
+        "own_terminal_leaves": 30,
+        "passed": 25,
+        "null": 5
+      },
+      {
+        "target": "uri/impl_Uri/into_parts",
+        "coma_archive": "comas/uri__impl_Uri__into_parts.coma",
+        "coma_sha256": "549cb637a8ed2e3a2deb359c38708754ae5c401d287272eeb564596e0ffa97ec",
+        "proof_archive": "proofs/uri__impl_Uri__into_parts.json",
+        "proof_json_sha256": "9732ba0949b41df5079f6fccedeb7236dc10b2bebc72aae07131992671a15062",
+        "own_terminal_leaves": 2,
+        "passed": 2,
+        "null": 0
+      },
+      {
+        "target": "actual_uri_from_parts",
+        "coma_archive": "comas/actual_uri_from_parts.coma",
+        "coma_sha256": "46b7365678c1b3eae5fedf4d148a8a218dcdb0e3bf7262f4af6dd95b7e2a0c8e",
+        "proof_archive": "proofs/actual_uri_from_parts.json",
+        "proof_json_sha256": "b59387e2ad2d93596d2fad1ea5bf3da835e69207534a6c6e6e7fffba6f156846",
+        "own_terminal_leaves": 2,
+        "passed": 2,
+        "null": 0
+      },
+      {
+        "target": "actual_uri_into_parts",
+        "coma_archive": "comas/actual_uri_into_parts.coma",
+        "coma_sha256": "6b04625606e9259a3632ef39210f68599543131b1ec784011567aaec08eee39e",
+        "proof_archive": "proofs/actual_uri_into_parts.json",
+        "proof_json_sha256": "83a5847578411b6f0c74d1cae9a04e17a22da28effc333e16ed734ca2de84d50",
+        "own_terminal_leaves": 2,
+        "passed": 2,
+        "null": 0
+      }
+    ],
+    "command": "source /workspace/proof-tools/activate.sh && export DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find' && export RUSTFLAGS='--cfg http_uri_parts_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_host_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && ../../scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always verif/http_uri_proof_rlib/uri/impl_Default_for_Parts/default.coma verif/http_uri_proof_rlib/uri/impl_Default_for_Parts/default__refines.coma verif/http_uri_proof_rlib/uri/impl_Default_for_Uri/default.coma verif/http_uri_proof_rlib/uri/impl_Default_for_Uri/default__refines.coma verif/http_uri_proof_rlib/uri/impl_From_for_Parts/from.coma verif/http_uri_proof_rlib/uri/impl_From_for_Parts/from__refines.coma verif/http_uri_proof_rlib/uri/impl_TryFrom_for_Uri/try_from.coma verif/http_uri_proof_rlib/uri/impl_TryFrom_for_Uri/try_from__refines.coma verif/http_uri_proof_rlib/uri/impl_Uri/from_parts.coma verif/http_uri_proof_rlib/uri/impl_Uri/into_parts.coma verif/http_uri_proof_rlib/actual_uri_from_parts.coma verif/http_uri_proof_rlib/actual_uri_into_parts.coma",
+    "output_note": "Interactive progress output was not captured as a file. Per-target proof JSON and COMA are archived and individually hashed.",
+    "null_leaf_paths": {
+      "uri/impl_From_for_Parts/from": [
+        "vc_from_Parts[4,1]",
+        "vc_from_Parts[5,1]"
+      ],
+      "uri/impl_Uri/from_parts": [
+        "vc_from_parts[4,1]",
+        "vc_from_parts[11,1]",
+        "vc_from_parts[16,1]",
+        "vc_from_parts[22,1]",
+        "vc_from_parts[23,1]"
+      ]
+    },
+    "arity_audit": "Each target own_terminal_leaves count is the recursive sum of terminal prover/null nodes under its top-level Coma proof obligations; empty support/callee stubs contribute zero. Null leaves are retained in the per-target and null_leaf_paths counts.",
+    "recursive_arity_audit": {
+      "file": "recursive-vc-arity-audit.json",
+      "script": "audit_recursive_vc_tree.py",
+      "sha256": "ec63434d8c05d7c831bc3650e3cfa4f75d65023bad31997f9b8208042b2b15a8",
+      "script_sha256": "c4027b807dd41a086c1d80ec462018113f7a59142c3667a182249b3deb1ed6f6",
+      "result": "Solver-free recursive extraction from the archived JSON child arrays reproduces the 12-root totals of 55 recorded terminal nodes (48 prover results, 7 nulls). This checks JSON tree accounting only.",
+      "completeness_limit": "Does not independently prove the JSON contains every split_vc child expected from the corresponding COMA. A solver-free COMA-to-task arity extraction is still needed before treating these counts as complete.",
+      "transform_note": "No solver-free Why3 split transform was available through the tested CLI interface: direct split_vc output without a prover/driver was rejected. No prover was launched for this audit."
+    },
+    "completeness": "Qualified: recorded-tree counts only; independent expected child arity from archived COMA is pending."
+  },
+  "artifacts": {
+    "comas/actual_uri_from_parts.coma": "46b7365678c1b3eae5fedf4d148a8a218dcdb0e3bf7262f4af6dd95b7e2a0c8e",
+    "comas/actual_uri_into_parts.coma": "6b04625606e9259a3632ef39210f68599543131b1ec784011567aaec08eee39e",
+    "comas/uri__impl_Default_for_Parts__default.coma": "cc0d9eef7f8a930da08630e8e3da02e375474286aab17402c48bb727ec8a4755",
+    "comas/uri__impl_Default_for_Parts__default__refines.coma": "7bf9ac19290e6f30be6a164065b2ab877bd4661e3aaee737c02da5188dda8f0b",
+    "comas/uri__impl_Default_for_Uri__default.coma": "d56e6c8e5312ca8dbe30a9ed1ad68fb980d404241b39b5eb7defed6f01d55a1c",
+    "comas/uri__impl_Default_for_Uri__default__refines.coma": "e3b01bc73130ef97ba12f9d712152cb2f1d342390303eea869a3e194dc424105",
+    "comas/uri__impl_From_for_Parts__from.coma": "82790354ec3fb2d96cc8d117de7f5a391e687e841b8bfeafd35288366ea2289c",
+    "comas/uri__impl_From_for_Parts__from__refines.coma": "0d3540e4c10f50703b3d26ffe7ea7fc2131f614d31ab42577670a439601d3229",
+    "comas/uri__impl_TryFrom_for_Uri__try_from.coma": "187b7b78dfac6590696a544a9fabb38d6b46ba0215d175bff7d7af31fb6b3dc4",
+    "comas/uri__impl_TryFrom_for_Uri__try_from__refines.coma": "cd8553469c8984216f90d54124e6e2e39c02450c3118cf9fd8b67521d367a889",
+    "comas/uri__impl_Uri__from_parts.coma": "e478b7e82054d93a71e34bce3002c05b520413305c1279c0d20b9ff9694c1db8",
+    "comas/uri__impl_Uri__into_parts.coma": "549cb637a8ed2e3a2deb359c38708754ae5c401d287272eeb564596e0ffa97ec",
+    "proofs/actual_uri_from_parts.json": "b59387e2ad2d93596d2fad1ea5bf3da835e69207534a6c6e6e7fffba6f156846",
+    "proofs/actual_uri_into_parts.json": "83a5847578411b6f0c74d1cae9a04e17a22da28effc333e16ed734ca2de84d50",
+    "proofs/uri__impl_Default_for_Parts__default.json": "05ae5e0e6af377afcdb0a4d53408ae1402034591ed8c55e6dd90ee3831058aca",
+    "proofs/uri__impl_Default_for_Parts__default__refines.json": "c48627dedcbf7c223a81e87c60dae201f5b06999e5922896f2119a8a6e4eb96e",
+    "proofs/uri__impl_Default_for_Uri__default.json": "4035f71f79707f3fd9fb567c9decc00708aff759094b5677e88ae679d06c0a76",
+    "proofs/uri__impl_Default_for_Uri__default__refines.json": "840f776baf3c09c610e1998450286466ec0944581e6be37df7d8702d5d7465dd",
+    "proofs/uri__impl_From_for_Parts__from.json": "0686c73f0275a9692a4ddb0212b32d3e69ce86e5934deeefcc768c402d05458d",
+    "proofs/uri__impl_From_for_Parts__from__refines.json": "46c0baea1fa7e124ff9b7aa8f70b9a4cef8219eb5b82feee93d47313a40a8899",
+    "proofs/uri__impl_TryFrom_for_Uri__try_from.json": "79fe25ad6dd7f54f6fc149961d8b12a3eaa558c87aadea2011de46d0b5627695",
+    "proofs/uri__impl_TryFrom_for_Uri__try_from__refines.json": "a5b10fc7e63138448beae2d884b54217616007d003c5917618163bad02b8ec47",
+    "proofs/uri__impl_Uri__from_parts.json": "b0d6e6227954af7a1ec766a6d3377e3f8ef226115cdeeb258acf1148c2be59d0",
+    "proofs/uri__impl_Uri__into_parts.json": "9732ba0949b41df5079f6fccedeb7236dc10b2bebc72aae07131992671a15062",
+    "sources-at-emission/src/ascii.rs": "6620f3a38389cb067789f025507f5743ebfa9a8b56cd186dd07f1502e4bf4e47",
+    "sources-at-emission/src/byte_str.rs": "ccffe62cc16a3789160cfadad831d03b9ada717c7acc5062fafec6a35cea9245",
+    "sources-at-emission/src/bytes_model.rs": "130965c4ee8e269e76b8a5a7462aa95877daba56583ecffca2c137453ff0e145",
+    "sources-at-emission/src/uri/authority.rs": "cd80cf69a68c443ee5261b8be4f6ca8a9cef831d3762b158159a9eba8ae493c3",
+    "sources-at-emission/src/uri/authority_chars.rs": "2685a6221da7b2136d7cd99874d05589e7298d7ed73d8a33aeca766cdc3cab76",
+    "sources-at-emission/src/uri/error.rs": "f20ad5af84d0f6853c308244a0a91e9e9c0f5d9f83c92db61199ffd5b4b2dd43",
+    "sources-at-emission/src/uri/limits.rs": "699dfb12d2b7a58b6181accfbda9e98ee84b444d075c453927fce568e88dccd7",
+    "sources-at-emission/src/uri/mod.rs": "18d913b59d32ae36d5794f6c23b3c1a0d0f05c877ae1abb1c55ec398b1f2bc56",
+    "sources-at-emission/src/uri/path.rs": "bf88c94ea128d92e79f94a4e472dec83f9bc0fdf8985c18d4db51340e3663bc7",
+    "sources-at-emission/src/uri/path_class.rs": "c73264a7dc66c0823e781eed73ab5fe44dff5ac7431a1fe59ee45c537f171dd8",
+    "sources-at-emission/src/uri/path_static_domain.rs": "e170e39717bbe67843bdaf42d619b742ba80ff9f204eadd134b8c4f4ec721c84",
+    "sources-at-emission/src/uri/port.rs": "4a16b3c7f78d44f4bbc4568d703fa21b70fa75b0dd0eb1d0410e3231f16c750e",
+    "sources-at-emission/src/uri/scheme/fixed.rs": "5f012d4614a3200ee573c08261ebff42fa4be6c0fb10a2592ec01407ccf564e5",
+    "sources-at-emission/src/uri/scheme/protocol.rs": "1439d355fcae43853e8390adc48adfca3acc8871f9ab35ddeff0c1d8470b87c9",
+    "sources-at-emission/src/uri/scheme/types.rs": "ed66d9067b739ae4ea0dd3e2ea39b2024c0c96738774d2a9a503beb992aa3991",
+    "sources-at-emission/src/uri/scheme.rs": "711898fb025eb3463b96a00d32f758152401135e9837522258221b35365c314e",
+    "sources-at-emission/verification/uri/Cargo.lock": "92e620abcf12279a7d3d4359a320d5a569b70906204fb8e0cc1e71b5e61aa7fc",
+    "sources-at-emission/verification/uri/Cargo.toml": "f3be031015fb1f12f41be00ad1b1baabf15c407fee16f8108ceb489e2152899a",
+    "sources-at-emission/verification/uri/src/lib.rs": "150ccbe27f993f9d7e45ebfa7f91244c19b848ec8eef333d8aa218c80afb4cd0",
+    "audit_recursive_vc_tree.py": "c4027b807dd41a086c1d80ec462018113f7a59142c3667a182249b3deb1ed6f6",
+    "recursive-vc-arity-audit.json": "ec63434d8c05d7c831bc3650e3cfa4f75d65023bad31997f9b8208042b2b15a8"
+  },
+  "post_emission_source_changes": {
+    "status": "The following URI source changes were made after this archived emission and are not covered by this batch:",
+    "files": {
+      "src/uri/authority.rs": "Changed Authority View opacity to open(super) to expose its exact raw-byte projection to the parent URI module. This is a proof-visibility change.",
+      "src/uri/scheme.rs": "Changed Scheme2 and Scheme View opacity to open(super) to expose existing SchemeModel projections to the parent URI module. Proof-visibility change.",
+      "src/uri/mod.rs": "Changed from_parts None-scheme construction to the already-contracted Scheme::empty() body (same runtime representation); added the deep-model-preserving ensures to From<ErrorKind> for InvalidUriParts."
+    }
+  },
+  "post_emission_native_check": {
+    "exit_code": 0,
+    "scope": "ordinary production http crate, default configuration; not the URI Creusot harness",
+    "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo check --locked --offline",
+    "source_hashes_at_check": {
+      "src/uri/mod.rs": "b6a022bed7d283cb02a9c61b09d6de3d8962e9e03f0311039967db025ec92feb",
+      "src/uri/authority.rs": "0715dbf8f053242271bc0a6c6136ddcf2c2731986c197d3bf81232246345994b",
+      "src/uri/scheme.rs": "2ae5146ff221f23b6e628831e1d160f49ebcfcf27b227da408eef5c002a258ce",
+      "src/uri/scheme/types.rs": "ed66d9067b739ae4ea0dd3e2ea39b2024c0c96738774d2a9a503beb992aa3991",
+      "verification/uri/src/lib.rs": "150ccbe27f993f9d7e45ebfa7f91244c19b848ec8eef333d8aa218c80afb4cd0"
+    },
+    "note": "An initial check without the required nightly crate attributes failed on expected stmt-expression feature gates; the recorded command is the successful check with the repo profile."
+  }
+}

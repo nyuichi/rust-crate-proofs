@@ -83,6 +83,16 @@ stand-ins.
 - `verify-all.bash` is a crate-level pipeline check and may stop at the first
   frontend/proof failure. Its outcome is recorded separately from the accepted
   leaf results above; it is not a substitute for the exact target manifests.
+- A separate URI `Parts`/conversion run is preserved at
+  `verification/uri/evidence/parts-uri-constructors-2026-10-05/`. Its manifest
+  SHA-256 is
+  `ece93d91b01e0b2ae6497d21c9ace3a87e885750cffc855ae5295f113f9535d2`.
+  The archive contains 12 proof roots and 55 recorded terminal nodes: 48
+  prover results and 7 null leaves. The recursive audit checks only the
+  archived JSON tree totals; expected split arity from each COMA has not been
+  independently checked. This is a partial attempt, not 48 accepted own-body
+  leaves or a completed constructor/API proof. Its exact source snapshot and
+  post-emission source changes are listed in that manifest.
 - An earlier integrated check stopped before VC generation with 27 frontend
   diagnostics: 8 missing root exports, 17 unused-parentheses diagnostics, and
   2 unused Pearlite imports. Its logs and unchanged-source hash are retained

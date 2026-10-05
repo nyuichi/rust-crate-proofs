@@ -1,0 +1,145 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/lib.rs" 121 0 121 55 *)
+
+let%span smod = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 642 22 642 26
+let%span smod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 642 31 642 36
+let%span smod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 639 32 641 74
+let%span smod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 161 8 177 9
+let%span smod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 128 16 131 5
+let%span smod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 139 8 139 81
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/lib.rs" 122 4 122 22
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/lib.rs" 121 25 121 30
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/lib.rs" 121 45 121 55
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/lib.rs" 117 4 119 80
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_Uri
+
+type t_Parts__private
+
+type t_Scheme
+
+type t_Option_Scheme = None | Some t_Scheme
+
+type t_Authority
+
+type t_Option_Authority = None'0 | Some'0 t_Authority
+
+type t_PathAndQuery
+
+type t_Option_PathAndQuery = None'1 | Some'1 t_PathAndQuery
+
+type t_Parts = {
+  scheme: t_Option_Scheme;
+  authority: t_Option_Authority;
+  path_and_query: t_Option_PathAndQuery;
+  t_Parts__private: t_Parts__private }
+
+predicate inv_Uri (_1: t_Uri)
+
+predicate inv_Scheme (_1: t_Scheme)
+
+predicate inv_Option_Scheme (_1: t_Option_Scheme)
+
+axiom inv_axiom [@rewrite]: forall x: t_Option_Scheme [inv_Option_Scheme x]. inv_Option_Scheme x
+    = match x with
+      | None -> true
+      | Some f0 -> inv_Scheme f0
+      end
+
+predicate inv_Authority (_1: t_Authority)
+
+predicate inv_Option_Authority (_1: t_Option_Authority)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Option_Authority [inv_Option_Authority x]. inv_Option_Authority x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0 -> inv_Authority f0
+      end
+
+predicate inv_PathAndQuery (_1: t_PathAndQuery)
+
+predicate inv_Option_PathAndQuery (_1: t_Option_PathAndQuery)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Option_PathAndQuery [inv_Option_PathAndQuery x]. inv_Option_PathAndQuery x
+    = match x with
+      | None'1 -> true
+      | Some'1 f0 -> inv_PathAndQuery f0
+      end
+
+predicate inv__private (x: t_Parts__private)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_Option_Scheme x.scheme
+    /\ inv_Option_Authority x.authority /\ inv_Option_PathAndQuery x.path_and_query /\ inv__private x.t_Parts__private)
+
+type t_SchemeModel = None'2 | Http'2 | Https'2 | Other'2 (Seq.seq UInt8.t)
+
+type t_Option_SchemeModel = None'3 | Some'3 t_SchemeModel
+
+type t_Option_Seq_u8 = None'4 | Some'4 (Seq.seq UInt8.t)
+
+type t_Option_Int = None'5 | Some'5 int
+
+type t_PathAndQueryModel = { bytes: Seq.seq UInt8.t; query: t_Option_Int }
+
+type t_Option_PathAndQueryModel = None'6 | Some'6 t_PathAndQueryModel
+
+type t_PartsModel = {
+  scheme'0: t_Option_SchemeModel;
+  authority'0: t_Option_Seq_u8;
+  path_and_query'0: t_Option_PathAndQueryModel }
+
+function view_Parts [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 104 4 104 33] (self: t_Parts) : t_PartsModel
+
+type t_UriModel = { scheme'1: t_SchemeModel; authority'1: Seq.seq UInt8.t; path_and_query'1: t_PathAndQueryModel }
+
+predicate uri_scheme_is_none [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 127 0 127 54] (scheme'2: t_SchemeModel) =
+  [%#smod'3] match scheme'2 with
+    | None'2 -> true
+    | _ -> false
+    end
+
+predicate uri_model_has_path [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 137 0 137 50] (model: t_UriModel) =
+  [%#smod'4] Seq.length model.path_and_query'1.bytes > 0 \/ not uri_scheme_is_none model.scheme'1
+
+function uri_parts_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 159 0 159 53] (model: t_UriModel) : t_PartsModel
+ = [%#smod'2] { scheme'0 = (if uri_scheme_is_none model.scheme'1 then None'3 else Some'3 (model.scheme'1));
+                authority'0 = (if Seq.length model.authority'1 = 0 then None'4 else Some'4 (model.authority'1));
+                path_and_query'0 = (if uri_model_has_path model then Some'6 (model.path_and_query'1) else None'6) }
+
+function view_Uri [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 88 4 88 33] (self: t_Uri) : t_UriModel
+
+let rec into_parts (self: t_Uri) (return (x: t_Parts)) =
+  {[@stop_split] [@expl:into_parts 'self' type invariant] [%#smod] inv_Uri self}
+  any
+  [ return (result: t_Parts) ->
+  {[@stop_split] [@expl:into_parts ensures] ([@stop_split] [@expl:into_parts result type invariant] [%#smod'0] inv_Parts result)
+    /\ ([@stop_split] [@expl:into_parts ensures] [%#smod'1] (view_Parts result).scheme'0
+      = (uri_parts_model (view_Uri self)).scheme'0
+    /\ (view_Parts result).authority'0 = (uri_parts_model (view_Uri self)).authority'0
+    /\ (view_Parts result).path_and_query'0 = (uri_parts_model (view_Uri self)).path_and_query'0)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec actual_uri_into_parts [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/lib.rs" 121 0 121 55]
+  (value: t_Uri) (return (x: t_Parts)) =
+  {[@stop_split] [@expl:actual_uri_into_parts 'value' type invariant] [%#slib'0] inv_Uri value}
+  (! bb0
+  [ bb0 = s0 [ s0 = into_parts [%#slib] {value} (fun (_x: t_Parts) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_Parts = Any.any_l () | & value: t_Uri = value ])
+  [ return (result: t_Parts) ->
+  {[@stop_split] [@expl:actual_uri_into_parts ensures] ([@stop_split] [@expl:actual_uri_into_parts result type invariant] [%#slib'1] inv_Parts result)
+    /\ ([@stop_split] [@expl:actual_uri_into_parts ensures] [%#slib'2] (view_Parts result).scheme'0
+      = (uri_parts_model (view_Uri value)).scheme'0
+    /\ (view_Parts result).authority'0 = (uri_parts_model (view_Uri value)).authority'0
+    /\ (view_Parts result).path_and_query'0 = (uri_parts_model (view_Uri value)).path_and_query'0)}
+    (! return {result}) ]

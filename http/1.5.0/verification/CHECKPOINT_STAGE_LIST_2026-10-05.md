@@ -44,6 +44,16 @@ authorize staging unrelated in-progress source changes.
 - URI PathAndQuery Display:
   `verification/uri/evidence/path-display-2026-10-05/` (manifest, three COMAs,
   and their three proof JSON files).
+- URI `Parts` / conversion partial batch:
+  `verification/uri/evidence/parts-uri-constructors-2026-10-05/` (manifest,
+  selected COMAs and proof JSONs, `sources-at-emission/` copies, and the
+  recursive recorded-tree audit). The manifest SHA-256 is
+  `ece93d91b01e0b2ae6497d21c9ace3a87e885750cffc855ae5295f113f9535d2`.
+  It records 12 roots with 55 terminal nodes (48 prover results, 7 nulls).
+  The audit validates JSON accounting only; expected child arity from COMA is
+  still unverified, so this is staged as an explicit partial result. Do not
+  stage current URI working files on the strength of this archive; the manifest
+  identifies post-emission source changes.
 - URI Authority comparisons:
   `verification/uri/evidence/authority-comparison-2026-10-05/` (manifest,
   proof artifacts, proof logs, and `sources-at-emission/src/uri/{authority.rs,mod.rs}`).

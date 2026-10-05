@@ -1,0 +1,234 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 361 4 361 24 *)
+
+(* <uri::Parts as std::default::Default> *)
+
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span sstring = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 14 16 14 76
+let%span sstring'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 290 14 290 24
+let%span sstring'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 291 14 291 60
+let%span sstring'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 294 12 298 13
+let%span schar = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span sbyte_str = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 49 20 49 37
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 48 8 48 18
+let%span smod = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 361 20 361 24
+let%span smod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 357 8 359 45
+let%span smod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 106 12 119 13
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Char
+use map.Map
+use int.ComputerDivision
+use int.Int
+
+type t_Protocol = Http | Https
+
+type t_ByteStr
+
+type t_Scheme2_Box_ByteStr_Global = None | Standard t_Protocol | Other t_ByteStr
+
+type t_Scheme = { inner: t_Scheme2_Box_ByteStr_Global }
+
+type t_Option_Scheme = None'0 | Some'0 t_Scheme
+
+type t_Authority = { data: t_ByteStr }
+
+type t_Option_Authority = None'1 | Some'1 t_Authority
+
+type t_PathAndQuery = { data'0: t_ByteStr; query'0: UInt16.t }
+
+type t_Option_PathAndQuery = None'2 | Some'2 t_PathAndQuery
+
+type t_Parts = {
+  scheme: t_Option_Scheme;
+  authority: t_Option_Authority;
+  path_and_query: t_Option_PathAndQuery;
+  _priv: () }
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'1] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'0] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t
+
+axiom to_bytes_def: forall self: Seq.seq Char.t. to_bytes self
+    = ([%#sstring'2] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (to_utf8_char (Seq.get self 0)) (to_bytes (tail_char self))
+    )
+
+axiom to_bytes_spec: forall self: Seq.seq Char.t. [%#sstring'1] to_bytes self
+    = flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+predicate valid_utf8 (bytes: Seq.seq UInt8.t) =
+  [%#sstring] exists characters: Seq.seq Char.t. to_bytes characters = bytes
+
+function view_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 41 4 41 33] (self: t_ByteStr) : Seq.seq UInt8.t
+
+predicate invariant_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/byte_str.rs" 48 4 48 30] (self: t_ByteStr) =
+  [%#sbyte_str] valid_utf8 (view_ByteStr self)
+
+predicate inv_ByteStr (_1: t_ByteStr)
+
+axiom inv_axiom: forall x: t_ByteStr [inv_ByteStr x]. inv_ByteStr x -> invariant_ByteStr x
+
+predicate invariant_Box_ByteStr_Global (self: t_ByteStr) = [%#sboxed] inv_ByteStr self
+
+predicate inv_Box_ByteStr_Global [@inline:trivial] (_1: t_ByteStr) = invariant_Box_ByteStr_Global _1
+
+meta "rewrite_def" predicate inv_Box_ByteStr_Global
+
+predicate inv_Scheme2_Box_ByteStr_Global (_1: t_Scheme2_Box_ByteStr_Global)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_Scheme2_Box_ByteStr_Global [inv_Scheme2_Box_ByteStr_Global x]. inv_Scheme2_Box_ByteStr_Global x
+    = match x with
+      | None -> true
+      | Standard f0 -> true
+      | Other f0 -> inv_Box_ByteStr_Global f0
+      end
+
+predicate inv_Scheme (_1: t_Scheme)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Scheme [inv_Scheme x]. inv_Scheme x = inv_Scheme2_Box_ByteStr_Global x.inner
+
+predicate inv_Option_Scheme (_1: t_Option_Scheme)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_Option_Scheme [inv_Option_Scheme x]. inv_Option_Scheme x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0 -> inv_Scheme f0
+      end
+
+predicate inv_Authority (_1: t_Authority)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_Authority [inv_Authority x]. inv_Authority x = inv_ByteStr x.data
+
+predicate inv_Option_Authority (_1: t_Option_Authority)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_Option_Authority [inv_Option_Authority x]. inv_Option_Authority x
+    = match x with
+      | None'1 -> true
+      | Some'1 f0 -> inv_Authority f0
+      end
+
+predicate inv_PathAndQuery (_1: t_PathAndQuery)
+
+axiom inv_axiom'5 [@rewrite]: forall x: t_PathAndQuery [inv_PathAndQuery x]. inv_PathAndQuery x = inv_ByteStr x.data'0
+
+predicate inv_Option_PathAndQuery (_1: t_Option_PathAndQuery)
+
+axiom inv_axiom'6 [@rewrite]: forall x: t_Option_PathAndQuery [inv_Option_PathAndQuery x]. inv_Option_PathAndQuery x
+    = match x with
+      | None'2 -> true
+      | Some'2 f0 -> inv_PathAndQuery f0
+      end
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom'7 [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_Option_Scheme x.scheme /\ inv_Option_Authority x.authority /\ inv_Option_PathAndQuery x.path_and_query)
+
+type t_SchemeModel = None'3 | Http'3 | Https'3 | Other'3 (Seq.seq UInt8.t)
+
+type t_Option_SchemeModel = None'4 | Some'4 t_SchemeModel
+
+type t_Option_Seq_u8 = None'5 | Some'5 (Seq.seq UInt8.t)
+
+type t_Option_Int = None'6 | Some'6 int
+
+type t_PathAndQueryModel = { bytes: Seq.seq UInt8.t; query: t_Option_Int }
+
+type t_Option_PathAndQueryModel = None'7 | Some'7 t_PathAndQueryModel
+
+type t_PartsModel = {
+  scheme'0: t_Option_SchemeModel;
+  authority'0: t_Option_Seq_u8;
+  path_and_query'0: t_Option_PathAndQueryModel }
+
+function view_Scheme [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/scheme.rs" 89 4 89 33] (self: t_Scheme) : t_SchemeModel
+
+function view_Authority [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 817 4 817 33] (self: t_Authority) : Seq.seq UInt8.t
+
+function view_PathAndQuery [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/path.rs" 42 4 42 33] (self: t_PathAndQuery) : t_PathAndQueryModel
+
+function view_Parts [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 104 4 104 33] (self: t_Parts) : t_PartsModel
+ = [%#smod'1] { scheme'0 = match self.scheme with
+                  | Some'0 value -> Some'4 (view_Scheme value)
+                  | None'0 -> None'4
+                  end;
+                authority'0 = match self.authority with
+                  | Some'1 value -> Some'5 (view_Authority value)
+                  | None'1 -> None'5
+                  end;
+                path_and_query'0 = match self.path_and_query with
+                  | Some'2 value -> Some'7 (view_PathAndQuery value)
+                  | None'2 -> None'7
+                  end }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec default_Parts
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 361 4 361 24]
+  (return (x: t_Parts)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_2 <- None'0 ] s1
+    | s1 = [ &_3 <- None'1 ] s2
+    | s2 = [ &_4 <- None'2 ] s3
+    | s3 = [ &_ret <- { scheme = _2; authority = _3; path_and_query = _4; _priv = _5 } ] s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Parts = Any.any_l ()
+  | & _2: t_Option_Scheme = Any.any_l ()
+  | & _3: t_Option_Authority = Any.any_l ()
+  | & _4: t_Option_PathAndQuery = Any.any_l ()
+  | & _5: () = Any.any_l () ])
+  [ return (result: t_Parts) ->
+  {[@stop_split] [@expl:default_Parts ensures] ([@stop_split] [@expl:default result type invariant] [%#smod] inv_Parts result)
+    /\ ([@stop_split] [@expl:default ensures] [%#smod'0] (view_Parts result).scheme'0 = None'4
+    /\ (view_Parts result).authority'0 = None'5 /\ (view_Parts result).path_and_query'0 = None'7)}
+    (! return {result}) ]
