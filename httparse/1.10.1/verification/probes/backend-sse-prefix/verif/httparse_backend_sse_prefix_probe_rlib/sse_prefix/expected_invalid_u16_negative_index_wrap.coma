@@ -1,0 +1,19 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 112 4 112 49 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 110 14 110 32
+
+use creusot.prelude.Any
+use creusot.int.UInt16BW
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec expected_invalid_u16_negative_index_wrap
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 112 4 112 49]
+  (return (x: ())) = (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:expected_invalid_u16_negative_index_wrap ensures] [%#slib] UInt16BW.nth (1: UInt16BW.t) (- 1)}
+    (! return {result}) ]

@@ -24,7 +24,9 @@ and hit a Why3 timer assertion. Its output is preserved separately at
 `evidence/negative-infrastructure-attempt.log`; those labels are excluded
 from solver results.
 
-`STAGE.targets` is the exact target list. `SHA256SUMS` fingerprints the copied
-inputs, generated goals/sessions, source manifest, isolated compiler/model
-artifacts, and the two result logs. The global/isolated Why3 config and
+`STAGE.targets` is the exact target list. `REPORT.snapshot.md` freezes the
+parent report at this checkpoint, so later report edits do not invalidate the
+bundle. `SHA256SUMS` fingerprints the copied inputs, generated
+goals/sessions, source manifest, isolated compiler/model artifacts, report
+snapshot, and the two result logs. The global/isolated Why3 config and
 compiler/package hashes were unchanged by this checkpoint.

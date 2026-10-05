@@ -1,0 +1,34 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 52 4 52 44 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 49 8 50 39
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 23 8 27 9
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+
+use creusot.prelude.Any
+use creusot.int.Int8
+use int.Int
+
+function deep_model_i8 [@inline:trivial] (self: Int8.t) : int = [%#snum] Int8.to_int self
+
+meta "rewrite_def" function deep_model_i8
+
+function byte_value [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 22 4 22 38] (lane: Int8.t) : int
+ = [%#slib'0] if deep_model_i8 lane < 0 then deep_model_i8 lane + 256 else deep_model_i8 lane
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec unsigned_max_lane_threshold
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 52 4 52 44]
+  (lane: Int8.t) (return (x: ())) = (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) -> {[@stop_split] [@expl:unsigned_max_lane_threshold ensures] [%#slib] ((if byte_value lane
+        >= 33 then
+          lane
+        else
+          (33: Int8.t)
+        )
+      = lane)
+    = (byte_value lane >= 33)}
+    (! return {result}) ]

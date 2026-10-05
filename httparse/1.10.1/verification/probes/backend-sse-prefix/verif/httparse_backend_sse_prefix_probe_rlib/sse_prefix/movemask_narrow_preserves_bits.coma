@@ -1,0 +1,28 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 64 4 64 49 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 59 15 59 45
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 60 14 60 39
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 61 14 62 53
+
+use creusot.prelude.Any
+use creusot.int.Int32BW
+use creusot.int.UInt16BW
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec movemask_narrow_preserves_bits
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 64 4 64 49]
+  (value: Int32BW.t) (return (x: ())) = {[@stop_split] [@expl:movemask_narrow_preserves_bits requires] [%#slib] 0
+    <= Int32BW.to_int value
+  /\ Int32BW.to_int value <= 65535}
+  (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:movemask_narrow_preserves_bits ensures] ([@stop_split] [@expl:movemask_narrow_preserves_bits ensures #0] [%#slib'0] UInt16BW.t'int (UInt16BW.of_BV256 (Int32BW.to_BV256 value))
+      = Int32BW.to_int value)
+    /\ ([@stop_split] [@expl:movemask_narrow_preserves_bits ensures #1] [%#slib'1] forall i: int. 0 <= i /\ i < 16
+      -> UInt16BW.nth (UInt16BW.of_BV256 (Int32BW.to_BV256 value)) i = Int32BW.nth value i)}
+    (! return {result}) ]

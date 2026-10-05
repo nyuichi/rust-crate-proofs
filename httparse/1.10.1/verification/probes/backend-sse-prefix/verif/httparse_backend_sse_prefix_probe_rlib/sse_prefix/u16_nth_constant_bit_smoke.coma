@@ -1,0 +1,28 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 83 4 83 35 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 76 14 76 31
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 77 14 77 33
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 78 14 78 37
+let%span slib'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 79 14 79 37
+let%span slib'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 80 14 80 33
+let%span slib'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 81 14 81 33
+
+use creusot.prelude.Any
+use creusot.int.UInt16BW
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec u16_nth_constant_bit_smoke
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 83 4 83 35]
+  (return (x: ())) = (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:u16_nth_constant_bit_smoke ensures] ([@stop_split] [@expl:u16_nth_constant_bit_smoke ensures #0] [%#slib] UInt16BW.nth (1: UInt16BW.t) 0)
+    /\ ([@stop_split] [@expl:u16_nth_constant_bit_smoke ensures #1] [%#slib'0] not UInt16BW.nth (1: UInt16BW.t) 15)
+    /\ ([@stop_split] [@expl:u16_nth_constant_bit_smoke ensures #2] [%#slib'1] UInt16BW.nth (32768: UInt16BW.t) 15)
+    /\ ([@stop_split] [@expl:u16_nth_constant_bit_smoke ensures #3] [%#slib'2] not UInt16BW.nth (32768: UInt16BW.t) 0)
+    /\ ([@stop_split] [@expl:u16_nth_constant_bit_smoke ensures #4] [%#slib'3] UInt16BW.nth (UInt16BW.bw_not (1: UInt16BW.t)) 15)
+    /\ ([@stop_split] [@expl:u16_nth_constant_bit_smoke ensures #5] [%#slib'4] not UInt16BW.nth (UInt16BW.bw_not (1: UInt16BW.t)) 0)}
+    (! return {result}) ]

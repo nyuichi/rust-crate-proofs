@@ -1,0 +1,35 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 57 4 57 47 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 54 15 54 65
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 55 14 55 64
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 38 8 38 49
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+
+use creusot.prelude.Any
+use creusot.int.Int8BW
+use int.Int
+
+function deep_model_i8 [@inline:trivial] (self: Int8BW.t) : int = [%#snum] Int8BW.to_int self
+
+meta "rewrite_def" function deep_model_i8
+
+function sign_bit [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 37 4 37 36] (lane: Int8BW.t) : int
+ = [%#slib'1] if deep_model_i8 lane < 0 then 1 else 0
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec andnot_signbit_truth_table
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 57 4 57 47]
+  (a: Int8BW.t) (b: Int8BW.t) (return (x: ())) = {[@stop_split] [@expl:andnot_signbit_truth_table requires] [%#slib] (a
+      = Int8BW.neg (1: Int8BW.t)
+    \/ a = (0: Int8BW.t))
+  /\ (b = Int8BW.neg (1: Int8BW.t) \/ b = (0: Int8BW.t))}
+  (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:andnot_signbit_truth_table ensures] [%#slib'0] (sign_bit (Int8BW.bw_and (Int8BW.bw_not a) b)
+      = 1)
+    = (a = (0: Int8BW.t) /\ b = Int8BW.neg (1: Int8BW.t))}
+    (! return {result}) ]
