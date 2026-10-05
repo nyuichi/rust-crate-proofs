@@ -379,6 +379,13 @@ extern_spec! {
         #[ensures(result == self.addr_logic())]
         fn addr(self) -> usize;
 
+        // Numeric address observation preserves Rust's exposed-provenance side
+        // effect. The contract models the returned number only; it does not
+        // turn that number into a memory permission or justify a later cast.
+        #[check(terminates)]
+        #[ensures(result == self.addr_logic())]
+        fn expose_provenance(self) -> usize;
+
         #[check(ghost)]
         #[ensures(result == self.is_null_logic())]
         fn is_null(self) -> bool;
@@ -424,6 +431,12 @@ extern_spec! {
         #[check(ghost)]
         #[ensures(result == self.addr_logic())]
         fn addr(self) -> usize;
+
+        // See the const-pointer contract above: exposing an address is a
+        // runtime observation, but the model only records its numeric value.
+        #[check(terminates)]
+        #[ensures(result == self.addr_logic())]
+        fn expose_provenance(self) -> usize;
 
         #[check(ghost)]
         #[ensures(result == self.is_null_logic())]
