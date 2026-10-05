@@ -19,6 +19,11 @@ use super::sequential_shared_control::{ControlContext, ControlPtr, HandleRegistr
 #[ensures(result.0@.unwrap_logic().1 == result.2.inner_logic().caps.0.capacity())]
 #[ensures(result.0@.unwrap_logic().2 + result.1@ <= result.2.inner_logic().caps.0.capacity())]
 #[ensures(len@ + additional@ <= result.1@)]
+// A fitting request takes only the reuse/movement branches, preserving the
+// original physical allocation authority rather than invoking reallocation.
+#[ensures((lease.inner_logic().caps.0.capacity() >= offset@ + len@ + additional@ ||
+    (lease.inner_logic().caps.0.capacity() >= len@ + additional@ && offset >= len)) ==>
+    result.2.inner_logic().caps.0 == lease.inner_logic().caps.0)]
 #[ensures(forall<i: Int> 0 <= i && i < len@ ==>
     result.2.inner_logic().caps.1.slot(result.0@.unwrap_logic().2 + i) == lease.inner_logic().caps.1.slot(offset@ + i))]
 pub(crate) fn reserve_lease(

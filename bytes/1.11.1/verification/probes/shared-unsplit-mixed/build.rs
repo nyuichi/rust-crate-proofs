@@ -163,7 +163,7 @@ fn main() {
         extract_item(&source,"kind","    #[inline]\n    #[cfg_attr(creusot, ensures(result == (self.data.addr_logic() & KIND_MASK)))]","    fn kind(&self) -> usize {"),
         extract_item(&source,"split","    // BEGIN EXACT SPLIT\n","    pub fn split(&mut self) -> BytesMut {"),
         extract_item(&source,"is_empty","    // BEGIN EXACT IS_EMPTY","    pub fn is_empty(&self) -> bool {"),
-        extract_item(&source,"try_reclaim","    // BEGIN EXACT TRY_RECLAIM","    pub fn try_reclaim(&mut self, additional: usize) -> bool {"),
+        extract_item(&source,"try_reclaim","    // BEGIN EXACT TRY_RECLAIM","    pub fn try_reclaim("),
         extract_item(&source,"resize","    // BEGIN EXACT RESIZE","    pub fn resize("),
         extract_item(&source,"extend_from_slice","    // BEGIN EXACT EXTEND_FROM_SLICE","    pub fn extend_from_slice("),
         extract_item(&source,"reserve","    // BEGIN EXACT RESERVE","    pub fn reserve("),

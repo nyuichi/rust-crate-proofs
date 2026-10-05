@@ -1114,6 +1114,12 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(forall<other: sequential_shared_control::HandleRegistration>
         other.matches(coordinator.inner_logic().unwrap_logic()) && other.packet.0.logical_id() != self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() ==>
         other.matches((^coordinator.inner_logic()).unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(
+        (*coordinator.inner_logic().unwrap_logic().status.pending).len() == 1 &&
+        (coordinator.inner_logic().unwrap_logic().status.capacity >= self.ptr@.unwrap_logic().2 + self.len@ + additional@ ||
+         (coordinator.inner_logic().unwrap_logic().status.capacity >= self.len@ + additional@ && self.ptr@.unwrap_logic().2 >= self.len@)) ==>
+        ((^coordinator.inner_logic()).unwrap_logic().status.allocation == coordinator.inner_logic().unwrap_logic().status.allocation &&
+         (^coordinator.inner_logic()).unwrap_logic().status.capacity == coordinator.inner_logic().unwrap_logic().status.capacity)))]
     pub fn reserve(&mut self, additional: usize,
         #[cfg(bytes_proof_shared_reserve)] mut coordinator: Ghost<&mut Option<sequential_shared_control::ControlContext>>,
     ) {
@@ -1491,8 +1497,8 @@ impl BytesMut {
     #[must_use = "consider BytesMut::reserve if you need an infallible reservation"]
     // BEGIN EXACT TRY_RECLAIM
     #[cfg_attr(creusot, requires(self.proof_initialized()))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), requires(additional@ <= self.cap@ - self.len@))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve)), ensures(result && ^self == *self))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve), not(bytes_proof_shared_reclaim)), requires(additional@ <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_reserve), not(bytes_proof_shared_reclaim)), ensures(result && ^self == *self))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), requires(self.proof_unique_owned()))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures((^self).proof_unique_owned() && (^self).proof_initialized()))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures((^self).len == self.len && (^self).cap >= self.cap))]
@@ -1500,13 +1506,55 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(!result ==> ^self == *self))]
     #[cfg_attr(all(creusot, bytes_proof_unique_reserve), ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
         (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
-    pub fn try_reclaim(&mut self, additional: usize) -> bool {
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), requires(self.proof_registered_valid() && self.shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), requires(*coordinator.inner_logic() != None && self.shared_registration.inner_logic().unwrap_logic().matches(coordinator.inner_logic().unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), requires(self.ptr@.unwrap_logic().2 + self.len@ + additional@ <= isize::MAX@))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures((^self).proof_initialized() && (^self).proof_registered_valid() && (^self).shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures((^self).len == self.len))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures(result ==> additional@ <= (^self).cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures(!result ==> ^self == *self))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures((*coordinator.inner_logic().unwrap_logic().status.pending).len() >= 2 ==> ^self == *self))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures(forall<i:Int> 0 <= i && i < self.len@ ==> (^self).proof_view_slot(i) == self.proof_view_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures((^coordinator.inner_logic()) != None && (^self).shared_registration.inner_logic().unwrap_logic().matches((^coordinator.inner_logic()).unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures((^coordinator.inner_logic()).unwrap_logic().status.allocation == coordinator.inner_logic().unwrap_logic().status.allocation && (^coordinator.inner_logic()).unwrap_logic().status.capacity == coordinator.inner_logic().unwrap_logic().status.capacity))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures((*(^coordinator.inner_logic()).unwrap_logic().status.pending).len() == (*coordinator.inner_logic().unwrap_logic().status.pending).len()))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures(forall<other:sequential_shared_control::HandleRegistration> other.matches(coordinator.inner_logic().unwrap_logic()) && other.packet.0.logical_id() != self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() ==> other.matches((^coordinator.inner_logic()).unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reclaim), ensures(result == (additional@ <= self.cap@ - self.len@ ||
+        ((*coordinator.inner_logic().unwrap_logic().status.pending).len() == 1 &&
+         (coordinator.inner_logic().unwrap_logic().status.capacity >= self.ptr@.unwrap_logic().2 + self.len@ + additional@ ||
+          (coordinator.inner_logic().unwrap_logic().status.capacity >= self.len@ + additional@ && self.ptr@.unwrap_logic().2 >= self.len@))))))]
+    pub fn try_reclaim(&mut self, additional: usize,
+        #[cfg(bytes_proof_shared_reclaim)] mut coordinator: Ghost<&mut Option<sequential_shared_control::ControlContext>>,
+    ) -> bool {
         let len = self.len();
         let rem = self.capacity() - len;
 
         if additional <= rem {
             // The handle can already store at least `additional` more bytes, so
             // there is no further work needed to be done.
+            return true;
+        }
+
+        #[cfg(bytes_proof_shared_reclaim)]
+        {
+            let identity = ghost! { self.shared_registration.as_ref().unwrap().control.identity.into_inner() };
+            let control = sequential_shared_control::ControlPtr { pointer: self.data, identity };
+            if !shared_reclaim::is_unique(control, ghost! { coordinator.as_ref().unwrap() }) {
+                return false;
+            }
+            let (base, allocation_capacity) = {
+                let shared = unsafe { creusot_std::ghost::perm::Perm::as_ref(self.data,
+                    ghost! { &**coordinator.as_ref().unwrap().owner.as_ref().unwrap() }) };
+                (shared.buffer.base, shared.buffer.capacity)
+            };
+            let offset = self.ptr.offset_from_bound_base(base);
+            let required = len + additional;
+            if allocation_capacity < required + offset && !(allocation_capacity >= required && offset >= len) {
+                return false;
+            }
+            // The capacity guard selects the already-proved nonallocating
+            // singleton paths of public reserve.
+            self.reserve(additional, coordinator);
             return true;
         }
 
@@ -1520,7 +1568,7 @@ impl BytesMut {
                 true
             } else { false }
         }
-        #[cfg(all(any(creusot, bytes_proof_probe), not(bytes_proof_unique_reserve)))]
+        #[cfg(all(any(creusot, bytes_proof_probe), not(bytes_proof_unique_reserve), not(bytes_proof_shared_reclaim)))]
         panic!("growing try_reclaim is outside the unchanged-capacity proof gate")
     }
 

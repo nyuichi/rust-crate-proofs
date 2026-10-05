@@ -158,7 +158,7 @@ fn main() {
     ];
     let methods = vec![
         extract_item(&source,"reclaim_unique","    // BEGIN EXACT UNIQUE_RECLAIM","    fn reclaim_unique(&mut self) {"),
-        extract_item(&source,"try_reclaim","    // BEGIN EXACT TRY_RECLAIM","    pub fn try_reclaim(&mut self, additional: usize) -> bool {"),
+        extract_item(&source,"try_reclaim","    // BEGIN EXACT TRY_RECLAIM","    pub fn try_reclaim("),
         extract_item(&source,"reserve_unique_growing","    // BEGIN EXACT UNIQUE_GROWING_RESERVE","    fn reserve_unique_growing(&mut self, additional: usize) {"),
         extract_item(&source,"get_vec_pos","    // BEGIN EXACT GET_VEC_POS","    unsafe fn get_vec_pos(&self) -> usize {"),
         extract_item(&source,"set_vec_pos","    // BEGIN EXACT SET_VEC_POS","    unsafe fn set_vec_pos(&mut self, pos: usize) {"),

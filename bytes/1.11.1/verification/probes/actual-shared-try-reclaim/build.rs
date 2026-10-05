@@ -131,12 +131,11 @@ fn fnv1a64(bytes: &[u8]) -> u64 {
 }
 
 fn main() {
-    println!("cargo:rustc-cfg=bytes_proof_unsplit_fallbacks");
     let root=PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("../../../src");
     let source_path=root.join("bytes_mut.rs");
     println!("cargo:rerun-if-changed={}",source_path.display());
     println!("cargo:rerun-if-changed=build.rs");
-    for cfg in ["bytes_proof_probe","bytes_proof_repeated_split","bytes_proof_shared_reserve"] { println!("cargo:rustc-cfg={cfg}"); println!("cargo:rustc-check-cfg=cfg({cfg})"); }
+    for cfg in ["bytes_proof_probe","bytes_proof_repeated_split","bytes_proof_shared_reserve","bytes_proof_shared_reclaim"] { println!("cargo:rustc-cfg={cfg}"); println!("cargo:rustc-check-cfg=cfg({cfg})"); }
     let source=fs::read_to_string(source_path).unwrap();
     let mut items=vec![
         extract_item(&source, "release_unique_storage", "// BEGIN EXACT RELEASE_UNIQUE_STORAGE", "unsafe fn release_unique_storage("),
@@ -187,10 +186,8 @@ fn main() {
         extract_item(&source,"proof_owned_valid","    #[cfg(all(creusot, not(bytes_proof_valid_handle)))]\n    #[logic(prophetic)]\n    fn proof_owned_valid","    #[cfg(all(creusot, not(bytes_proof_valid_handle)))]\n    #[logic(prophetic)]\n    fn proof_owned_valid(self) -> bool {"),
         extract_item(&source,"proof_take_coordinator","    #[cfg(any(creusot, bytes_proof_probe))]\n    #[cfg_attr(creusot, requires(self.shared_context.inner_logic() != None))]","    fn proof_take_coordinator(&mut self) -> Ghost<sequential_shared_control::ControlContext> {"),
     ];
-    let mut methods = methods;
-    methods.push(extract_item(&source,"unsplit","    // BEGIN EXACT SHARED UNSPLIT", "    pub fn unsplit("));
     let methods: Vec<_> = methods.into_iter().filter(|item| ![
-        "split", "is_empty", "try_reclaim", "resize", "extend_from_slice",
+        "split", "is_empty", "resize", "extend_from_slice",
         "proof_same_storage", "clear", "split_off",
     ].contains(&item.name)).collect();
     let start=unique_index(&source,"    // BEGIN EXACT CARRIER SPLIT METHODS");
@@ -224,7 +221,6 @@ fn main() {
     generated.push_str(&format!("#[path = {:?}]\npub(crate) mod shared_reclaim;\n",root.join("ownership_proof/shared_reclaim.rs").canonicalize().unwrap()));
     generated.push_str(&format!("#[path = {:?}]\npub(crate) mod shared_copy;\n",root.join("ownership_proof/shared_copy.rs").canonicalize().unwrap()));
     generated.push_str(&format!("#[path = {:?}]\npub(crate) mod shared_reserve;\n",root.join("ownership_proof/shared_reserve.rs").canonicalize().unwrap()));
-    generated.push_str(&format!("#[path = {:?}]\npub(crate) mod shared_unsplit_fallbacks;\n",root.join("ownership_proof/shared_unsplit_fallbacks.rs").canonicalize().unwrap()));
     generated.push_str(include_str!("src/caller.inc"));
     let out=PathBuf::from(env::var_os("OUT_DIR").unwrap());
     let mut tickets = fs::read_to_string(root.join("ownership_proof/scalable_tickets.rs")).unwrap();
