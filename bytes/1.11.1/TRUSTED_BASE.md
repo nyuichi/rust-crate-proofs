@@ -10,6 +10,18 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-05)
 
+- Fixed-zero u8 physical bridges: `borrow_empty_bound`,
+  `borrow_empty_bound_mut`, and `borrow_empty_bound_uninit_mut` return literal
+  zero-length references from sealed non-null BoundPtr metadata. Their lifetime
+  borrows immutable descriptor metadata; they preserve the native pointer and
+  grant no positive-byte permission, Known evidence, allocation liveness, or
+  recovery. One-byte alignment suffices. These are ordinary program operations,
+  not ghost-callable physical writes. The unique-only valid-handle-traits gate
+  proves actual AsRef/AsMut bodies and refinement VCs (70 files/native1); the
+  matching negative rejects one invariant obligation (71 files). Neither the
+  strong invariant nor this gate covers Shared promotion/split or automatic Drop.
+
+
 - `B4-read`, `raw_vec::borrow_bound`, is an additional reviewed initialized
   read-only slice bridge. Shared borrows of the sealed descriptor and matching
   PhysicalRegion bound the returned lifetime; all visible slots must be Known.

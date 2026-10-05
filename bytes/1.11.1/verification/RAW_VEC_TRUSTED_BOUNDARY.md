@@ -279,3 +279,15 @@ no Known-prefix condition: the native recovery descriptor has length zero and
 frees the allocation without reading bytes. Normal slice access and set_len
 retain their Known requirements. The canonical slot_known clause on B4-bound
 only restates its exact initialized-byte writeback, adding no physical premise.
+
+## Fixed-zero physical references
+
+The unique-only safe-trait gate adds `borrow_empty_bound`,
+`borrow_empty_bound_mut`, and `borrow_empty_bound_uninit_mut`. They share-borrow
+sealed non-null descriptor metadata and return only literal zero-length u8 or
+MaybeUninit<u8> references at that native pointer. Empty mutable footprints may
+coexist. They neither establish allocation liveness nor create byte permissions
+or recovery authority. These remain explicitly trusted ordinary program
+bridges. A nonzero full buffer must use its shifted spare endpoint; the empty
+shortcut applies only when capacity is zero. Actual trait bodies and refinement
+are proved in a separate unique-only invariant context, not the split context.

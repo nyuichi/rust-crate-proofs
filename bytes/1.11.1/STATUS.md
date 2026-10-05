@@ -2,6 +2,23 @@
 
 ## Current working-tree status (2026-10-05)
 
+The independent valid-handle-traits gate proves 70 files with no unproved leaves
+and one native fixture matrix. It extracts actual core AsRef<[u8]> and
+AsMut<[u8]> implementations, including implementation refinement and generic
+trait callers. Its checked BytesMut invariant admits initialized unique
+ownership and canonical empty handles only; Shared registrations, promotion,
+and split transitions are excluded. This is not an integrated split-to-trait
+proof. The unregistered safe-AsRef negative has exactly one unproved leaf among
+71 files (5/6 in its caller). Frozen evidence is under valid-handle-traits.
+Final-source regression also passes the explicit-precondition lifecycle gate
+(93 files/native16) and actual_from_vec constructor gate (56 files). These remain
+separate configurations; evidence is under their trait-scope-regression paths.
+Three fixed-zero physical reference bridges are added to the explicit TCB;
+these grant no byte access, allocation liveness, or ownership. Nonzero full
+buffers retain the correct spare endpoint pointer. Deref/DerefMut remain
+blocked by standard ghost-purity requirements, recorded separately.
+
+
 The unified unique-at-offset-zero / Shared access gate passes 93 proof files
 with no unproved leaves and sixteen native tests. Actual as_slice, as_slice_mut,
 spare_capacity_mut, truncate, clear and set_len use the constructor's full unique
@@ -11,8 +28,8 @@ full ownership and offset-zero metadata, and safely frees Unknown spare slots
 without reading them. Access/publication still require Known bytes. B4-bound's
 canonical Known postcondition is logically redundant with its exact slot-value
 postcondition; no new physical trusted primitive is added. Canonical evidence
-is under unique-access/positive. Unique advance, global invariant and real trait
-integration are not established by this checkpoint.
+is under unique-access/positive. Unique advance and an invariant covering
+Shared transitions remain unproved; the separate unique-only trait gate is above.
 
 
 The storage-ops helper gate passes four proof files (nine discharged goals,
