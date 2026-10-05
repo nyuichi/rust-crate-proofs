@@ -1,0 +1,31 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 85 4 85 32 *)
+
+(* header::map::map_index::Pos *)
+
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 88 28 88 29
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 87 19 87 27
+let%span smap_index'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 84 14 84 63
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+
+type t_HashValue = { f0: UInt16.t }
+
+constant const_MAX: UInt16.t = (65535: UInt16.t)
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec none
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 85 4 85 32]
+  (return (x: t_Pos)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_2 <- { f0 = ([%#smap_index] (0: UInt16.t)) } ] s1
+    | s1 = [ &_ret <- { index = ([%#smap_index'0] const_MAX); hash = _2 } ] s2
+    | s2 = return {_ret} ] ] [ & _ret: t_Pos = Any.any_l () | & _2: t_HashValue = Any.any_l () ])
+  [ return (result: t_Pos) -> {[@stop_split] [@expl:none ensures] [%#smap_index'1] result.index = const_MAX
+    /\ result.hash.f0 = (0: UInt16.t)}
+    (! return {result}) ]

@@ -1,0 +1,83 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 915 4 915 54 *)
+
+(* <header::value::HeaderValue as std::convert::TryFrom<&[u8]>> *)
+
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 916 8 916 34
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 915 29 915 54
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 910 32 914 5
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 308 37 308 76
+let%span svalue'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 303 32 307 5
+let%span svalue'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 52 8 52 49
+let%span svalue'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 81 8 82 69
+let%span svalue'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 72 8 72 25
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_Bytes
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+type t_InvalidHeaderValue = { _priv: () }
+
+type t_Result_HeaderValue_InvalidHeaderValue = Ok t_HeaderValue | Err t_InvalidHeaderValue
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+predicate inv_Result_HeaderValue_InvalidHeaderValue (_1: t_Result_HeaderValue_InvalidHeaderValue)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_Result_HeaderValue_InvalidHeaderValue [inv_Result_HeaderValue_InvalidHeaderValue x]. inv_Result_HeaderValue_InvalidHeaderValue x
+    = match x with
+      | Ok f0 -> inv_HeaderValue f0
+      | Err f0 -> true
+      end
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function view_HeaderValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 51 4 51 33] (self: t_HeaderValue) : Seq.seq UInt8.t
+ = [%#svalue'4] bytes_seq self.inner
+
+predicate valid_value_bytes [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 79 0 79 48] (bytes: Seq.seq UInt8.t) =
+  [%#svalue'5] forall i: int. 0 <= i /\ i < Seq.length bytes
+    -> UInt8.t'int (Seq.get bytes i) >= 32 /\ UInt8.t'int (Seq.get bytes i) <> 127 \/ UInt8.t'int (Seq.get bytes i) = 9
+
+predicate sensitive_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 71 4 71 41] (self: t_HeaderValue) =
+  [%#svalue'6] self.is_sensitive
+
+let rec from_bytes (src: Slice64.slice UInt8.t) (return (x: t_Result_HeaderValue_InvalidHeaderValue)) = any
+  [ return (result: t_Result_HeaderValue_InvalidHeaderValue) ->
+  {[@stop_split] [@expl:from_bytes ensures] ([@stop_split] [@expl:from_bytes result type invariant] [%#svalue'2] inv_Result_HeaderValue_InvalidHeaderValue result)
+    /\ ([@stop_split] [@expl:from_bytes ensures] [%#svalue'3] match result with
+      | Ok value -> view_HeaderValue value = Slice64.view src
+      /\ valid_value_bytes (Slice64.view src) /\ not sensitive_model value
+      | Err _ -> not valid_value_bytes (Slice64.view src)
+      end)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec try_from_HeaderValue
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 915 4 915 54]
+  (t: Slice64.slice UInt8.t) (return (x: t_Result_HeaderValue_InvalidHeaderValue)) = (! bb0
+  [ bb0 = s0
+    [ s0 = from_bytes [%#svalue] {t} (fun (_x: t_Result_HeaderValue_InvalidHeaderValue) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ]
+  [ & _ret: t_Result_HeaderValue_InvalidHeaderValue = Any.any_l () | & t: Slice64.slice UInt8.t = t ])
+  [ return (result: t_Result_HeaderValue_InvalidHeaderValue) ->
+  {[@stop_split] [@expl:try_from_HeaderValue ensures] ([@stop_split] [@expl:try_from result type invariant] [%#svalue'0] inv_Result_HeaderValue_InvalidHeaderValue result)
+    /\ ([@stop_split] [@expl:try_from ensures] [%#svalue'1] match result with
+      | Ok value -> view_HeaderValue value = Slice64.view t
+      /\ valid_value_bytes (Slice64.view t) /\ not sensitive_model value
+      | Err _ -> not valid_value_bytes (Slice64.view t)
+      end)}
+    (! return {result}) ]

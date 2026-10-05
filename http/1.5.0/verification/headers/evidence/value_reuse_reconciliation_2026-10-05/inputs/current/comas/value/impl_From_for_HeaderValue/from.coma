@@ -1,0 +1,70 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 755 4 755 41 *)
+
+(* <header::value::HeaderValue as std::convert::From<header::name::HeaderName>> *)
+
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2128 29 2128 33
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2128 38 2128 43
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2127 32 2127 78
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 757 19 757 33
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 758 26 758 31
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 755 12 755 13
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 755 30 755 41
+let%span svalue'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 754 32 754 74
+let%span svalue'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 52 8 52 49
+let%span svalue'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 72 8 72 25
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_HeaderName
+
+type t_Bytes
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate inv_Bytes (_1: t_Bytes)
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function view_HeaderName [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1525 4 1525 33] (self: t_HeaderName) : Seq.seq UInt8.t
+
+let rec into_bytes (self: t_HeaderName) (return (x: t_Bytes)) =
+  {[@stop_split] [@expl:into_bytes 'self' type invariant] [%#sname] inv_HeaderName self}
+  any
+  [ return (result: t_Bytes) ->
+  {[@stop_split] [@expl:into_bytes ensures] ([@stop_split] [@expl:into_bytes result type invariant] [%#sname'0] inv_Bytes result)
+    /\ ([@stop_split] [@expl:into_bytes ensures] [%#sname'1] bytes_seq result = view_HeaderName self)}
+    (! return {result}) ]
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+function view_HeaderValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 51 4 51 33] (self: t_HeaderValue) : Seq.seq UInt8.t
+ = [%#svalue'4] bytes_seq self.inner
+
+predicate sensitive_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 71 4 71 41] (self: t_HeaderValue) =
+  [%#svalue'5] self.is_sensitive
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_HeaderValue
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 755 4 755 41]
+  (h: t_HeaderName) (return (x: t_HeaderValue)) =
+  {[@stop_split] [@expl:from 'h' type invariant] [%#svalue'1] inv_HeaderName h}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = into_bytes [%#svalue] {h} (fun (_x: t_Bytes) -> [ &_4 <- _x ] s1)
+    | s1 = [ &_ret <- { inner = _4; is_sensitive = ([%#svalue'0] false) } ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: t_HeaderValue = Any.any_l () | & h: t_HeaderName = h | & _4: t_Bytes = Any.any_l () ])
+  [ return (result: t_HeaderValue) ->
+  {[@stop_split] [@expl:from_HeaderValue ensures] ([@stop_split] [@expl:from result type invariant] [%#svalue'2] inv_HeaderValue result)
+    /\ ([@stop_split] [@expl:from ensures] [%#svalue'3] view_HeaderValue result = view_HeaderName h
+    /\ not sensitive_model result)}
+    (! return {result}) ]

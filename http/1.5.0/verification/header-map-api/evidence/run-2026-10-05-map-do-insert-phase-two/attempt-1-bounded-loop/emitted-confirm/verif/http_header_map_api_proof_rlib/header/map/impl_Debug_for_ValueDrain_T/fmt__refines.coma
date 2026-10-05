@@ -1,0 +1,96 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 604 9 604 14 *)
+
+(* <header::map::ValueDrain<'a, T> as std::fmt::Debug> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 45 21 45 25
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 46 20 46 29
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 43 26 43 94
+let%span sfmt'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 604 9 604 14
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 604 9 604 14
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+
+type t_T
+
+type t_Option_T = None | Some t_T
+
+type t_IntoIter_T_Global
+
+type t_Option_IntoIter_T_Global = None'0 | Some'0 t_IntoIter_T_Global
+
+type t_ValueDrain_T = { first: t_Option_T; next: t_Option_IntoIter_T_Global; lt: () }
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Option_T (_1: t_Option_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Option_T [inv_Option_T x]. inv_Option_T x
+    = match x with
+      | None -> true
+      | Some f0 -> inv_T f0
+      end
+
+predicate inv_IntoIter_T_Global (_1: t_IntoIter_T_Global)
+
+predicate inv_Option_IntoIter_T_Global (_1: t_Option_IntoIter_T_Global)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_Option_IntoIter_T_Global [inv_Option_IntoIter_T_Global x]. inv_Option_IntoIter_T_Global x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0 -> inv_IntoIter_T_Global f0
+      end
+
+predicate inv_ValueDrain_T (_1: t_ValueDrain_T)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_ValueDrain_T [inv_ValueDrain_T x]. inv_ValueDrain_T x
+    = (inv_Option_T x.first /\ inv_Option_IntoIter_T_Global x.next)
+
+predicate invariant_ref_ValueDrain_T [@inline:trivial] (self: t_ValueDrain_T) = [%#sinvariant] inv_ValueDrain_T self
+
+meta "rewrite_def" predicate invariant_ref_ValueDrain_T
+
+predicate inv_ref_ValueDrain_T [@inline:trivial] (_1: t_ValueDrain_T) = invariant_ref_ValueDrain_T _1
+
+meta "rewrite_def" predicate inv_ref_ValueDrain_T
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant'0] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'2] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+type t_Result_unit_Error = Ok () | Err ()
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall self_: t_ValueDrain_T. forall formatter: MutBorrow.t t_Formatter. ([%#sfmt] inv_ref_ValueDrain_T self_)
+        /\ ([%#sfmt'0] inv_refmut_Formatter formatter)
+      -> ([%#smap] inv_ref_ValueDrain_T self_)
+      /\ ([%#smap'0] inv_refmut_Formatter formatter)
+      /\ (forall result: t_Result_unit_Error. [%#sfmt'1] formatter_extends (deep_model_refmut_Formatter formatter) (deep_model_Formatter formatter.final))

@@ -1,0 +1,84 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 854 9 854 14 *)
+
+(* <header::map::Danger as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+let%span sclone'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 13 27 13 31
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 858 8 858 19
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 854 9 854 14
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 854 9 854 14
+
+use creusot.prelude.Any
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+let rec elim_Red (_x: t_Danger) (return (f0: t_RandomState)) = any
+  [ _k (f0: t_RandomState) -> {Red f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Red] match _x with
+      | Red _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate invariant_ref_RandomState [@inline:trivial] (self: t_RandomState) = [%#sinvariant] inv_RandomState self
+
+meta "rewrite_def" predicate invariant_ref_RandomState
+
+predicate inv_ref_RandomState [@inline:trivial] (_1: t_RandomState) = invariant_ref_RandomState _1
+
+meta "rewrite_def" predicate inv_ref_RandomState
+
+let rec clone_RandomState (self_: t_RandomState) (return (x: t_RandomState)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#sclone] inv_ref_RandomState self_}
+  any
+  [ return (result: t_RandomState) -> {[@stop_split] [@expl:clone result type invariant] inv_RandomState result}
+    (! return {result}) ]
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0 -> inv_RandomState f0
+      end
+
+predicate invariant_ref_Danger [@inline:trivial] (self: t_Danger) = [%#sinvariant] inv_Danger self
+
+meta "rewrite_def" predicate invariant_ref_Danger
+
+predicate inv_ref_Danger [@inline:trivial] (_1: t_Danger) = invariant_ref_Danger _1
+
+meta "rewrite_def" predicate inv_ref_Danger
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_Danger
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 854 9 854 14]
+  (self: t_Danger) (return (x: t_Danger)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smap'0] inv_ref_Danger self}
+  (! bb0
+  [ bb0 = any
+    [ br0 -> {self = Green} (! bb6)
+    | br1 -> {self = Yellow} (! bb5)
+    | br2 (x0: t_RandomState) -> {self = Red x0} (! bb4) ]
+  | bb4 = s0
+    [ s0 = elim_Red {self} (fun (r0: t_RandomState) -> [ &__self_0 <- r0 ] s1)
+    | s1 = clone_RandomState [%#smap] {__self_0} (fun (_x: t_RandomState) -> [ &_4 <- _x ] s2)
+    | s2 = [ &_ret <- Red _4 ] s3
+    | s3 = return {_ret} ]
+  | bb5 = s0 [ s0 = [ &_ret <- Yellow ] s1 | s1 = return {_ret} ]
+  | bb6 = s0 [ s0 = [ &_ret <- Green ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Danger = Any.any_l ()
+  | & self: t_Danger = self
+  | & __self_0: t_RandomState = Any.any_l ()
+  | & _4: t_RandomState = Any.any_l () ])
+  [ return (result: t_Danger) -> {[@stop_split] [@expl:clone result type invariant] [%#smap'1] inv_Danger result}
+    (! return {result}) ]

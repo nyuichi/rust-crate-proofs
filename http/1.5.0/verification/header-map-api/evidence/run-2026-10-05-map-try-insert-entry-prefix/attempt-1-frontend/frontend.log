@@ -1,0 +1,193 @@
+   Compiling autocfg v1.5.1
+   Compiling proc-macro2 v1.0.107
+   Compiling libc v0.2.190
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.26
+   Compiling getrandom v0.4.3
+   Compiling num-traits v0.2.19
+   Compiling cfg-if v1.0.5
+    Checking bytes v1.11.1
+    Checking num-integer v0.1.47
+    Checking itoa v1.0.18
+   Compiling syn v2.0.119
+    Checking http v1.5.0 (/workspace/rust-crate-proofs/http/1.5.0/verification/runtime-http)
+    Checking num-bigint v0.4.8
+   Compiling uuid v1.27.0
+    Checking num-rational v0.4.2
+   Compiling pearlite-syn v0.11.0-dev (/workspace/rust-crate-proofs/creusot-libs/pearlite-syn)
+   Compiling creusot-std-proc v0.11.0-dev (/workspace/rust-crate-proofs/creusot-libs/creusot-std-proc)
+    Checking creusot-std v0.11.0-dev (/workspace/rust-crate-proofs/creusot-libs/creusot-std)
+    Checking http-header-map-api-proof v0.1.0 (/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api)
+warning: unused import: `std::collections::HashMap`
+ --> src/../../../src/header/map.rs:5:5
+  |
+5 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::convert::TryFrom`
+ --> src/../../../src/header/map.rs:7:5
+  |
+7 | use std::convert::TryFrom;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::iter::FromIterator`
+  --> src/../../../src/header/map.rs:10:5
+   |
+10 | use std::iter::FromIterator;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::iter::FusedIterator`
+  --> src/../../../src/header/map.rs:11:5
+   |
+11 | use std::iter::FusedIterator;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ops` and `ptr`
+  --> src/../../../src/header/map.rs:13:21
+   |
+13 | use std::{fmt, mem, ops, ptr, vec};
+   |                     ^^^  ^^^
+
+warning: unused import: `PtrAddExt`
+  --> src/../../../src/header/map.rs:16:29
+   |
+16 | use creusot_std::std::ptr::{PtrAddExt, PtrLive};
+   |                             ^^^^^^^^^
+
+warning: unused import: `crate::Error`
+  --> src/../../../src/header/map.rs:29:5
+   |
+29 | use crate::Error;
+   |     ^^^^^^^^^^^^
+
+warning: unnecessary parentheses around function argument
+   --> src/../../../src/header/map.rs:210:31
+    |
+210 |         && (forall<slot: Int> (0 <= slot && slot < before.indices.view().len()) ==>
+    |                               ^                                               ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+210 -         && (forall<slot: Int> (0 <= slot && slot < before.indices.view().len()) ==>
+210 +         && (forall<slot: Int> 0 <= slot && slot < before.indices.view().len() ==>
+    |
+
+warning: unnecessary parentheses around function argument
+   --> src/../../../src/header/map.rs:213:32
+    |
+213 |         && (forall<extra: Int> (0 <= extra && extra < before.extra_values.view().len()) ==>
+    |                                ^                                                      ^
+    |
+help: remove these parentheses
+    |
+213 -         && (forall<extra: Int> (0 <= extra && extra < before.extra_values.view().len()) ==>
+213 +         && (forall<extra: Int> 0 <= extra && extra < before.extra_values.view().len() ==>
+    |
+
+warning: unnecessary parentheses around function argument
+   --> src/../../../src/header/map.rs:219:32
+    |
+219 |         && (forall<index: Int> (0 <= index && index < before.entries.view().len()) ==>
+    |                                ^                                                 ^
+    |
+help: remove these parentheses
+    |
+219 -         && (forall<index: Int> (0 <= index && index < before.entries.view().len()) ==>
+219 +         && (forall<index: Int> 0 <= index && index < before.entries.view().len() ==>
+    |
+
+warning: unused macro definition: `insert_phase_one`
+   --> src/../../../src/header/map.rs:916:14
+    |
+916 | macro_rules! insert_phase_one {
+    |              ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_macros)]` (part of `#[warn(unused)]`) on by default
+
+warning: unnecessary parentheses around block return value
+    --> src/../../../src/header/map.rs:2593:33
+     |
+2593 |       #[cfg_attr(creusot, ensures((forall<i: Int>
+     |                                   ^
+...
+2603 |               })
+     |  _______________^
+2604 | |     )))]
+     | |_____^
+     |
+help: remove these parentheses
+     |
+2593 ~     #[cfg_attr(creusot, ensures(forall<i: Int>
+2594 |         (0 <= i && i < header_map_keys_len(*self)) ==>
+ ...
+2602 |                 _ => false,
+2603 ~             })))]
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:2594:9
+     |
+2594 |         (0 <= i && i < header_map_keys_len(*self)) ==>
+     |         ^                                        ^
+     |
+help: remove these parentheses
+     |
+2594 -         (0 <= i && i < header_map_keys_len(*self)) ==>
+2594 +         0 <= i && i < header_map_keys_len(*self) ==>
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:2595:13
+     |
+2595 |             ((^self).entries@[i].hash == self.entries@[i].hash
+     |             ^
+...
+2603 |             })
+     |              ^
+     |
+help: remove these parentheses
+     |
+2595 ~             (^self).entries@[i].hash == self.entries@[i].hash
+2596 |             && (^self).entries@[i].key.deep_model() == self.entries@[i].key.deep_model()
+ ...
+2602 |                 _ => false,
+2603 ~             }
+     |
+
+warning: unused imports: `HdrName` and `HeaderName`
+    --> src/../../../src/header/map.rs:4828:24
+     |
+4828 |     use super::{Entry, HdrName, HeaderMap, HeaderName, MaxSizeReached};
+     |                        ^^^^^^^             ^^^^^^^^^^
+
+warning: unused import: `Entry`
+    --> src/../../../src/header/map.rs:4931:17
+     |
+4931 |     use super::{Entry, HdrName, HeaderMap, HeaderName, InvalidHeaderName, MaxSizeReached};
+     |                 ^^^^^
+
+warning: calling external function `new` with no contract will yield an impossible precondition
+    --> src/../../../src/header/map.rs:4716:29
+     |
+4716 |         *self = Danger::Red(RandomState::new());
+     |                             ^^^^^^^^^^^^^^^^^^ function called here
+     |
+     = note: `#[warn(creusot::contractless_external_function)]` on by default
+
+warning: calling external function `build_hasher` with no contract will yield an impossible precondition
+    --> src/../../../src/header/map.rs:4780:25
+     |
+4780 |             let mut h = hasher.build_hasher();
+     |                         ^^^^^^^^^^^^^^^^^^^^^ function called here
+
+warning: calling external function `finish` with no contract will yield an impossible precondition
+    --> src/../../../src/header/map.rs:4782:13
+     |
+4782 |             h.finish()
+     |             ^^^^^^^^^^ function called here
+
+warning: `http-header-map-api-proof` (lib) generated 19 warnings (run `cargo fix --lib -p http-header-map-api-proof` to apply 15 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 23.29s

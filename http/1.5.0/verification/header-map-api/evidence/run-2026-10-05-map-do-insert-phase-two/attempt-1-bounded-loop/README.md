@@ -1,0 +1,9 @@
+# Bounded `do_insert_phase_two` proof
+
+The frozen `do_insert_phase_two` COMA passed a direct Why3 proof. Its proof tree has four direct successful roots: the actual function body `vc_do_insert_phase_two` and three imported literal-true support roots (`vc_len_Pos`, `vc_is_none`, and `vc_replace_Pos`). All four used Z3 4.15.3. The run used no proof transformation. The independently observed 25-child split of the body root is only an arity candidate and is not part of this successful proof tree. The exact COMA, proof JSON, invocation, raw log, task streams, and independent reconciliation are recorded here.
+
+The result proves the bounded one-ring worker modularly against its emitted support contracts. Its contract records the first empty cyclic offset, exact shifted prefix, unchanged suffix, and preserved slice length. The implementation uses `len - step` as its loop variant and normalizes wraparound within each visited slot. Frozen Map and Name inputs are SHA-256 `56a201350fa1da592f7bc100a1cc983481ab883c7e900d3328584ca9b5fb82bb` and `fa9742ee1a16f3967fcf00338c5e6a36cfa98a41c922faaa3738aff004d6ca7d`; the 177-file source snapshot was hash-checked by the independent post-proof audit.
+
+The fresh Creusot frontend check and isolated emissions succeeded. Both complete emissions contained 443 COMAs and had identical path/hash sets. Native `cargo check` succeeded and the `header_map` integration suite passed 35/35 tests on the frozen source.
+
+This does not prove either caller body (`try_insert_phase_two` or `rebuild`), caller preconditions, spare capacity, table coverage or uniqueness, hash coherence, or post-insert lookup readiness. In particular, one empty slot is enough for this worker to terminate but can be consumed; preserving lookup readiness needs an additional empty-slot/count invariant. Global diagnostics about `RandomState`, `BuildHasher`, and `Hasher` are outside the selected worker task context.

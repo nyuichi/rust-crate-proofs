@@ -1,0 +1,91 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 816 16 816 21 *)
+
+(* <header::map::ExtraValue<T> as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 818 4 818 12
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 819 4 819 14
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 820 4 820 14
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 816 16 816 21
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 816 16 816 21
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_T
+
+type t_Link = Entry UInt64.t | Extra UInt64.t
+
+type t_ExtraValue_T = { value: t_T; prev: t_Link; next: t_Link }
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate precondition_clone (self: ()) (args: t_T)
+
+axiom precondition_fndef:
+  forall args: t_T [precondition_clone () args]. (let self_ = args in [%#sclone] inv_ref_T self_)
+    -> precondition_clone () args
+
+predicate postcondition_once_clone (self: ()) (args: t_T) (result: t_T)
+
+axiom postcondition_fndef:
+  forall args: t_T, res: t_T [postcondition_once_clone () args res]. postcondition_once_clone () args res
+    -> (let self_ = args in inv_T res)
+
+let rec clone_T (self_: t_T) (return (x: t_T)) = {[@stop_split] [@expl:clone requires] precondition_clone () self_}
+  any
+  [ return (result: t_T) -> {[@stop_split] [@expl:clone ensures] postcondition_once_clone () self_ result}
+    (! return {result}) ]
+
+let rec clone_Link (self: t_Link) (return (x: t_Link)) = any [ return (result: t_Link) -> (! return {result}) ]
+
+predicate inv_ExtraValue_T (_1: t_ExtraValue_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_ExtraValue_T [inv_ExtraValue_T x]. inv_ExtraValue_T x = inv_T x.value
+
+predicate invariant_ref_ExtraValue_T [@inline:trivial] (self: t_ExtraValue_T) = [%#sinvariant] inv_ExtraValue_T self
+
+meta "rewrite_def" predicate invariant_ref_ExtraValue_T
+
+predicate inv_ref_ExtraValue_T [@inline:trivial] (_1: t_ExtraValue_T) = invariant_ref_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_ref_ExtraValue_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_ExtraValue_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 816 16 816 21]
+  (self: t_ExtraValue_T) (return (x: t_ExtraValue_T)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smap'2] inv_ref_ExtraValue_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- self.value ] s1
+    | s1 = clone_T [%#smap] {_4} (fun (_x: t_T) -> [ &_2 <- _x ] s2)
+    | s2 = [ &_7 <- self.prev ] s3
+    | s3 = clone_Link [%#smap'0] {_7} (fun (_x: t_Link) -> [ &_5 <- _x ] s4)
+    | s4 = [ &_10 <- self.next ] s5
+    | s5 = clone_Link [%#smap'1] {_10} (fun (_x: t_Link) -> [ &_8 <- _x ] s6)
+    | s6 = [ &_ret <- { value = _2; prev = _5; next = _8 } ] s7
+    | s7 = return {_ret} ] ]
+  [ & _ret: t_ExtraValue_T = Any.any_l ()
+  | & self: t_ExtraValue_T = self
+  | & _2: t_T = Any.any_l ()
+  | & _4: t_T = Any.any_l ()
+  | & _5: t_Link = Any.any_l ()
+  | & _7: t_Link = Any.any_l ()
+  | & _8: t_Link = Any.any_l ()
+  | & _10: t_Link = Any.any_l () ])
+  [ return (result: t_ExtraValue_T) ->
+  {[@stop_split] [@expl:clone result type invariant] [%#smap'3] inv_ExtraValue_T result}
+    (! return {result}) ]

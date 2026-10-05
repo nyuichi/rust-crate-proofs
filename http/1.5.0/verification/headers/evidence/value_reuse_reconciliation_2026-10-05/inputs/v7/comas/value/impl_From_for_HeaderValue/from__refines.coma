@@ -1,0 +1,47 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 581 4 581 41 *)
+
+(* <header::value::HeaderValue as std::convert::From<header::name::HeaderName>> *)
+
+let%span sconvert = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 12 24 12 29
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 581 12 581 13
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 581 30 581 41
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 580 32 580 74
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 50 8 50 49
+let%span svalue'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 70 8 70 25
+
+use creusot.int.UInt8
+use seq.Seq
+
+type t_HeaderName
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function view_HeaderValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 49 4 49 33] (self: t_HeaderValue) : Seq.seq UInt8.t
+ = [%#svalue'2] bytes_seq self.inner
+
+function view_HeaderName [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1427 4 1427 33] (self: t_HeaderName) : Seq.seq UInt8.t
+
+predicate sensitive_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 69 4 69 41] (self: t_HeaderValue) =
+  [%#svalue'3] self.is_sensitive
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall value: t_HeaderName. ([%#sconvert] inv_HeaderName value)
+    -> ([%#svalue] inv_HeaderName value)
+    /\ (forall result: t_HeaderValue. ([%#svalue'0] inv_HeaderValue result)
+        /\ ([%#svalue'1] view_HeaderValue result = view_HeaderName value /\ not sensitive_model result)
+      -> inv_HeaderValue result)

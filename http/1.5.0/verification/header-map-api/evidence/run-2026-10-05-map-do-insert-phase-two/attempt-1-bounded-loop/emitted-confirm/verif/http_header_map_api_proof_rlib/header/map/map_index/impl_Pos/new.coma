@@ -1,0 +1,49 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 75 4 75 60 *)
+
+(* header::map::map_index::Pos *)
+
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 76 30 76 38
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 72 15 72 33
+let%span smap_index'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 73 14 73 37
+let%span smap_index'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 74 14 74 33
+let%span smap_index'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 11 0 11 32
+
+use creusot.int.UInt64
+use creusot.int.UInt16
+use creusot.prelude.Any
+use int.Int
+
+constant const_MAX_SIZE: UInt64.t = [%#smap_index'3] (32768: UInt64.t)
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec new
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 75 4 75 60]
+  (index'0: UInt64.t) (hash'0: t_HashValue) (return (x: t_Pos)) =
+  {[@stop_split] [@expl:new requires] [%#smap_index'0] UInt64.t'int index'0 < UInt64.t'int const_MAX_SIZE}
+  (! bb0
+  [ bb0 = any [ br0 -> {false} (! bb5) | br1 -> (! bb1) ]
+  | bb1 = s0
+    [ s0 = [ &_12 <- UInt64.lt index'0 ([%#smap_index] const_MAX_SIZE) ] s1
+    | s1 = any [ br0 -> {_12 = false} (! bb3) | br1 -> {_12} (! bb5) ] ]
+  | bb3 = {false} any
+  | bb5 = s0
+    [ s0 = UInt16.of_int {UInt64.t'int index'0} (fun (_x: UInt16.t) -> [ &_15 <- _x ] s1)
+    | s1 = [ &_ret <- { index = _15; hash = hash'0 } ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: t_Pos = Any.any_l ()
+  | & index'0: UInt64.t = index'0
+  | & hash'0: t_HashValue = hash'0
+  | & _12: bool = Any.any_l ()
+  | & _15: UInt16.t = Any.any_l () ])
+  [ return (result: t_Pos) ->
+  {[@stop_split] [@expl:new ensures] ([@stop_split] [@expl:new ensures #0] [%#smap_index'1] UInt16.t'int result.index
+      = UInt64.t'int index'0)
+    /\ ([@stop_split] [@expl:new ensures #1] [%#smap_index'2] result.hash = hash'0)}
+    (! return {result}) ]

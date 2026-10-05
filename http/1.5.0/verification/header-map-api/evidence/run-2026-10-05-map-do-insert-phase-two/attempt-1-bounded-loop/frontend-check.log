@@ -1,0 +1,297 @@
+warning: unused import: `std::collections::HashMap`
+ --> src/../../../src/header/map.rs:5:5
+  |
+5 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::convert::TryFrom`
+ --> src/../../../src/header/map.rs:7:5
+  |
+7 | use std::convert::TryFrom;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::iter::FromIterator`
+  --> src/../../../src/header/map.rs:10:5
+   |
+10 | use std::iter::FromIterator;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::iter::FusedIterator`
+  --> src/../../../src/header/map.rs:11:5
+   |
+11 | use std::iter::FusedIterator;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ops` and `ptr`
+  --> src/../../../src/header/map.rs:13:21
+   |
+13 | use std::{fmt, mem, ops, ptr, vec};
+   |                     ^^^  ^^^
+
+warning: unused import: `PtrAddExt`
+  --> src/../../../src/header/map.rs:16:29
+   |
+16 | use creusot_std::std::ptr::{PtrAddExt, PtrLive};
+   |                             ^^^^^^^^^
+
+warning: unused import: `crate::Error`
+  --> src/../../../src/header/map.rs:29:5
+   |
+29 | use crate::Error;
+   |     ^^^^^^^^^^^^
+
+warning: unnecessary parentheses around function argument
+   --> src/../../../src/header/map.rs:210:31
+    |
+210 |         && (forall<slot: Int> (0 <= slot && slot < before.indices.view().len()) ==>
+    |                               ^                                               ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+210 -         && (forall<slot: Int> (0 <= slot && slot < before.indices.view().len()) ==>
+210 +         && (forall<slot: Int> 0 <= slot && slot < before.indices.view().len() ==>
+    |
+
+warning: unnecessary parentheses around function argument
+   --> src/../../../src/header/map.rs:213:32
+    |
+213 |         && (forall<extra: Int> (0 <= extra && extra < before.extra_values.view().len()) ==>
+    |                                ^                                                      ^
+    |
+help: remove these parentheses
+    |
+213 -         && (forall<extra: Int> (0 <= extra && extra < before.extra_values.view().len()) ==>
+213 +         && (forall<extra: Int> 0 <= extra && extra < before.extra_values.view().len() ==>
+    |
+
+warning: unnecessary parentheses around function argument
+   --> src/../../../src/header/map.rs:219:32
+    |
+219 |         && (forall<index: Int> (0 <= index && index < before.entries.view().len()) ==>
+    |                                ^                                                 ^
+    |
+help: remove these parentheses
+    |
+219 -         && (forall<index: Int> (0 <= index && index < before.entries.view().len()) ==>
+219 +         && (forall<index: Int> 0 <= index && index < before.entries.view().len() ==>
+    |
+
+warning: unused macro definition: `insert_phase_one`
+   --> src/../../../src/header/map.rs:916:14
+    |
+916 | macro_rules! insert_phase_one {
+    |              ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_macros)]` (part of `#[warn(unused)]`) on by default
+
+warning: unnecessary parentheses around block return value
+    --> src/../../../src/header/map.rs:2593:33
+     |
+2593 |       #[cfg_attr(creusot, ensures((forall<i: Int>
+     |                                   ^
+...
+2603 |               })
+     |  _______________^
+2604 | |     )))]
+     | |_____^
+     |
+help: remove these parentheses
+     |
+2593 ~     #[cfg_attr(creusot, ensures(forall<i: Int>
+2594 |         (0 <= i && i < header_map_keys_len(*self)) ==>
+ ...
+2602 |                 _ => false,
+2603 ~             })))]
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:2594:9
+     |
+2594 |         (0 <= i && i < header_map_keys_len(*self)) ==>
+     |         ^                                        ^
+     |
+help: remove these parentheses
+     |
+2594 -         (0 <= i && i < header_map_keys_len(*self)) ==>
+2594 +         0 <= i && i < header_map_keys_len(*self) ==>
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:2595:13
+     |
+2595 |             ((^self).entries@[i].hash == self.entries@[i].hash
+     |             ^
+...
+2603 |             })
+     |              ^
+     |
+help: remove these parentheses
+     |
+2595 ~             (^self).entries@[i].hash == self.entries@[i].hash
+2596 |             && (^self).entries@[i].key.deep_model() == self.entries@[i].key.deep_model()
+ ...
+2602 |                 _ => false,
+2603 ~             }
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:3240:5
+     |
+3240 |     (result@ < offset && offset < indices@.len()) ==>
+     |     ^                                           ^
+     |
+help: remove these parentheses
+     |
+3240 -     (result@ < offset && offset < indices@.len()) ==>
+3240 +     result@ < offset && offset < indices@.len() ==>
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:3241:9
+     |
+3241 |         ((^indices)@[phase_two_slot(probe@, offset, indices@.len())].index
+     |         ^
+...
+3244 |             == indices@[phase_two_slot(probe@, offset, indices@.len())].hash)))]
+     |                                                                             ^
+     |
+help: remove these parentheses
+     |
+3241 ~         (^indices)@[phase_two_slot(probe@, offset, indices@.len())].index
+3242 |             == indices@[phase_two_slot(probe@, offset, indices@.len())].index
+3243 |         && (^indices)@[phase_two_slot(probe@, offset, indices@.len())].hash
+3244 ~             == indices@[phase_two_slot(probe@, offset, indices@.len())].hash))]
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:3226:5
+     |
+3226 |     (0 <= offset && offset <= result@) ==>
+     |     ^                                ^
+     |
+help: remove these parentheses
+     |
+3226 -     (0 <= offset && offset <= result@) ==>
+3226 +     0 <= offset && offset <= result@ ==>
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:3223:5
+     |
+3223 |     (0 <= offset && offset < result@) ==>
+     |     ^                               ^
+     |
+help: remove these parentheses
+     |
+3223 -     (0 <= offset && offset < result@) ==>
+3223 +     0 <= offset && offset < result@ ==>
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:3262:9
+     |
+3262 |         (0 <= offset && offset < step@) ==>
+     |         ^                             ^
+     |
+help: remove these parentheses
+     |
+3262 -         (0 <= offset && offset < step@) ==>
+3262 +         0 <= offset && offset < step@ ==>
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:3265:9
+     |
+3265 |         (0 <= offset && offset < step@) ==>
+     |         ^                             ^
+     |
+help: remove these parentheses
+     |
+3265 -         (0 <= offset && offset < step@) ==>
+3265 +         0 <= offset && offset < step@ ==>
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:3266:13
+     |
+3266 |             ((indices@[phase_two_slot(probe@, offset, (*original).len())].index
+     |             ^
+...
+3277 |                 }))))]
+     |                   ^
+     |
+help: remove these parentheses
+     |
+3266 ~             (indices@[phase_two_slot(probe@, offset, (*original).len())].index
+3267 |                 == if offset == 0 {
+ ...
+3276 |                     (*original)[phase_two_slot(probe@, offset - 1, (*original).len())].hash
+3277 ~                 })))]
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:3279:9
+     |
+3279 |         (step@ <= offset && offset < (*original).len()) ==>
+     |         ^                                             ^
+     |
+help: remove these parentheses
+     |
+3279 -         (step@ <= offset && offset < (*original).len()) ==>
+3279 +         step@ <= offset && offset < (*original).len() ==>
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/../../../src/header/map.rs:3280:13
+     |
+3280 |             (indices@[phase_two_slot(probe@, offset, (*original).len())].index
+     |             ^
+...
+3283 |                 == (*original)[phase_two_slot(probe@, offset, (*original).len())].hash)))]
+     |                                                                                       ^
+     |
+help: remove these parentheses
+     |
+3280 ~             indices@[phase_two_slot(probe@, offset, (*original).len())].index
+3281 |                 == (*original)[phase_two_slot(probe@, offset, (*original).len())].index
+3282 |             && indices@[phase_two_slot(probe@, offset, (*original).len())].hash
+3283 ~                 == (*original)[phase_two_slot(probe@, offset, (*original).len())].hash))]
+     |
+
+warning: unused imports: `HdrName` and `HeaderName`
+    --> src/../../../src/header/map.rs:4920:24
+     |
+4920 |     use super::{Entry, HdrName, HeaderMap, HeaderName, MaxSizeReached};
+     |                        ^^^^^^^             ^^^^^^^^^^
+
+warning: unused import: `Entry`
+    --> src/../../../src/header/map.rs:5023:17
+     |
+5023 |     use super::{Entry, HdrName, HeaderMap, HeaderName, InvalidHeaderName, MaxSizeReached};
+     |                 ^^^^^
+
+warning: calling external function `new` with no contract will yield an impossible precondition
+    --> src/../../../src/header/map.rs:4808:29
+     |
+4808 |         *self = Danger::Red(RandomState::new());
+     |                             ^^^^^^^^^^^^^^^^^^ function called here
+     |
+     = note: `#[warn(creusot::contractless_external_function)]` on by default
+
+warning: calling external function `build_hasher` with no contract will yield an impossible precondition
+    --> src/../../../src/header/map.rs:4872:25
+     |
+4872 |             let mut h = hasher.build_hasher();
+     |                         ^^^^^^^^^^^^^^^^^^^^^ function called here
+
+warning: calling external function `finish` with no contract will yield an impossible precondition
+    --> src/../../../src/header/map.rs:4874:13
+     |
+4874 |             h.finish()
+     |             ^^^^^^^^^^ function called here
+
+warning: `http-header-map-api-proof` (lib) generated 28 warnings (run `cargo fix --lib -p http-header-map-api-proof` to apply 24 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s

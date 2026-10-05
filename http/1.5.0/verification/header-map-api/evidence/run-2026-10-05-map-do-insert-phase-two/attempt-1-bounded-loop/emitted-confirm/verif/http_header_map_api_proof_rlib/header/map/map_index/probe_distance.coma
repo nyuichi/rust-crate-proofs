@@ -1,0 +1,141 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 138 0 138 82 *)
+
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 296 16 302 17
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 139 18 139 41
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 141 8 141 25
+let%span smap_index'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 143 8 143 31
+let%span smap_index'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 143 34 143 35
+let%span smap_index'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 143 8 143 35
+let%span smap_index'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 143 8 143 45
+let%span smap_index'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 129 11 129 57
+let%span smap_index'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 130 11 130 28
+let%span smap_index'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 131 11 131 28
+let%span smap_index'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 132 11 132 46
+let%span smap_index'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 133 10 137 1
+let%span smap_index'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 121 10 121 44
+let%span smap_index'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 122 10 122 33
+let%span smap_index'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 11 0 11 32
+
+use creusot.int.UInt16
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Power
+use int.Int
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Ordering = Less | Equal | Greater
+
+function cmp_log_usize (self: UInt64.t) (o: UInt64.t) : t_Ordering = [%#sord'12] if UInt64.lt self o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom eq_cmp_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'11] (x = y) = (cmp_log_usize x y = Equal)
+
+function antisym2_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom antisym2_usize_spec: forall x: UInt64.t, y: UInt64.t. ([%#sord'9] cmp_log_usize x y = Greater)
+    -> ([%#sord'10] cmp_log_usize y x = Less)
+
+function antisym1_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom antisym1_usize_spec: forall x: UInt64.t, y: UInt64.t. ([%#sord'7] cmp_log_usize x y = Less)
+    -> ([%#sord'8] cmp_log_usize y x = Greater)
+
+function trans_usize (x: UInt64.t) (y: UInt64.t) (z: UInt64.t) (o: t_Ordering) : ()
+
+axiom trans_usize_spec: forall x: UInt64.t, y: UInt64.t, z: UInt64.t, o: t_Ordering. ([%#sord'4] cmp_log_usize x y = o)
+    -> ([%#sord'5] cmp_log_usize y z = o) -> ([%#sord'6] cmp_log_usize x z = o)
+
+function refl_usize (x: UInt64.t) : ()
+
+axiom refl_usize_spec: forall x: UInt64.t. [%#sord'3] cmp_log_usize x x = Equal
+
+function cmp_gt_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_gt_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'2] UInt64.gt x y = (cmp_log_usize x y = Greater)
+
+function cmp_ge_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_ge_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'1] UInt64.ge x y = (cmp_log_usize x y <> Less)
+
+function cmp_lt_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_lt_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'0] UInt64.lt x y = (cmp_log_usize x y = Less)
+
+function cmp_le_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_le_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord] UInt64.le x y = (cmp_log_usize x y <> Greater)
+
+let rec desired_pos (mask: UInt16.t) (hash: t_HashValue) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:desired_pos ensures] ([@stop_split] [@expl:desired_pos ensures #0] [%#smap_index'10] result
+      = UInt64.of_int (UInt16.t'int (UInt16.bw_and hash.f0 mask)))
+    /\ ([@stop_split] [@expl:desired_pos ensures #1] [%#smap_index'11] UInt64.le result (UInt64.of_int (UInt16.t'int mask)))}
+    (! return {result}) ]
+
+constant const_MAX_SIZE: UInt64.t = [%#smap_index'12] (32768: UInt64.t)
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec probe_distance
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 138 0 138 82]
+  (mask: UInt16.t) (hash: t_HashValue) (current': UInt64.t) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:probe_distance requires] ([@stop_split] [@expl:probe_distance requires #0] [%#smap_index'5] exists k: int. k
+        >= 0
+      /\ UInt16.t'int mask + 1 = Power.power 2 k)
+  /\ ([@stop_split] [@expl:probe_distance requires #1] [%#smap_index'6] UInt16.t'int mask < UInt64.t'int const_MAX_SIZE)
+  /\ ([@stop_split] [@expl:probe_distance requires #2] [%#smap_index'7] UInt64.t'int current' <= UInt16.t'int mask)
+  /\ ([@stop_split] [@expl:probe_distance requires #3] [%#smap_index'8] UInt64.t'int current' + UInt16.t'int mask + 1
+  <= UInt64.t'int const_MAX)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = desired_pos [%#smap_index] {mask} {hash} (fun (_x: UInt64.t) -> [ &desired <- _x ] s1)
+    | s1 = [ &_21 <- UInt64.ge current' desired ] s2
+    | s2 = any [ br0 -> {_21 = false} (! bb3) | br1 -> {_21} (! bb2) ] ]
+  | bb2 = s0
+    [ s0 = UInt64.sub [%#smap_index'0] {current'} {desired} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ]
+  | bb3 = s0
+    [ s0 = UInt64.of_int {UInt16.t'int mask} (fun (_x: UInt64.t) -> [ &_29 <- _x ] s1)
+    | s1 = UInt64.add [%#smap_index'1] {current'} {_29} (fun (_x: UInt64.t) -> [ &_27 <- _x ] s2)
+    | s2 = UInt64.add [%#smap_index'3] {_27} {[%#smap_index'2] (1: UInt64.t)} (fun (_x: UInt64.t) -> [ &_26 <- _x ] s3)
+    | s3 = UInt64.sub [%#smap_index'4] {_26} {desired} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l ()
+  | & mask: UInt16.t = mask
+  | & hash: t_HashValue = hash
+  | & current': UInt64.t = current'
+  | & desired: UInt64.t = Any.any_l ()
+  | & _21: bool = Any.any_l ()
+  | & _26: UInt64.t = Any.any_l ()
+  | & _27: UInt64.t = Any.any_l ()
+  | & _29: UInt64.t = Any.any_l () ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:probe_distance ensures] [%#smap_index'9] UInt64.t'int result
+    = (if UInt64.t'int current' >= UInt16.t'int (UInt16.bw_and hash.f0 mask) then
+      UInt64.t'int current' - UInt16.t'int (UInt16.bw_and hash.f0 mask)
+    else
+      UInt64.t'int current' + UInt16.t'int mask + 1 - UInt16.t'int (UInt16.bw_and hash.f0 mask)
+    )}
+    (! return {result}) ]

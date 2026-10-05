@@ -1,0 +1,76 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 258 0 258 94 *)
+
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 54 20 54 30
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 257 11 257 47
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 259 4 259 45
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 251 16 251 62
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 126 4 126 28
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt16
+use creusot.slice.Slice64
+use creusot.int.UInt64
+use seq.Seq
+use int.Int
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+type t_Vec_Bucket_T_Global
+
+type t_Vec_ExtraValue_T_Global
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+type t_HeaderMap_T = {
+  mask: UInt16.t;
+  indices: Slice64.slice t_Pos;
+  entries: t_Vec_Bucket_T_Global;
+  extra_values: t_Vec_ExtraValue_T_Global;
+  danger: t_Danger }
+
+type t_OccupiedEntry_T = { map'0: MutBorrow.t t_HeaderMap_T; probe'0: UInt64.t; index'0: UInt64.t }
+
+type t_HeaderName
+
+type t_T
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None | Some t_Links
+
+type t_Bucket_T = { hash'0: t_HashValue; key'0: t_HeaderName; value'0: t_T; links'0: t_Option_Links }
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) : Seq.seq t_Bucket_T
+
+axiom view_Vec_Bucket_T_Global_spec:
+  forall self: t_Vec_Bucket_T_Global. [%#svec'0] Seq.length (view_Vec_Bucket_T_Global self) <= UInt64.t'int const_MAX
+
+function header_map_keys_len_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 125 0 125 55] (map: t_HeaderMap_T) : int
+ = [%#smap'2] Seq.length (view_Vec_Bucket_T_Global map.entries)
+
+predicate occupied_entry_index_in_range_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 250 0 250 80] (entry: t_OccupiedEntry_T) =
+  [%#smap'1] UInt64.t'int entry.index'0 < header_map_keys_len_T entry.map'0.current
+
+function index_Vec_Bucket_T_Global [@inline:trivial] (self: t_Vec_Bucket_T_Global) (ix: UInt64.t) : t_Bucket_T =
+  [%#svec] Seq.get (view_Vec_Bucket_T_Global self) (UInt64.t'int ix)
+
+meta "rewrite_def" function index_Vec_Bucket_T_Global
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant entry : t_OccupiedEntry_T
+
+constant key : t_HeaderName
+
+predicate occupied_entry_key_matches_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 258 0 258 94] (entry: t_OccupiedEntry_T) (key: t_HeaderName)
+
+goal vc_occupied_entry_key_matches_T: true

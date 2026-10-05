@@ -1,0 +1,125 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 871 4 871 38 *)
+
+(* <header::value::HeaderValue as std::cmp::PartialEq<[u8]>> *)
+
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 52 8 52 23
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span spartial_eq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 48 12 49 72
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 52 14 52 44
+let%span sslice'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 53 14 53 91
+let%span sslice'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 64 20 64 29
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 19 23 19 27
+let%span scmp'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 18 26 18 80
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 872 8 872 27
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 871 11 871 15
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 870 32 870 88
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 60 20 60 25
+let%span svalue'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 50 8 50 49
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_Bytes
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+predicate eq_model_Seq_u8 (self: Seq.seq UInt8.t) (rhs: Seq.seq int) =
+  [%#spartial_eq] Seq.length self = Seq.length rhs
+  /\ (forall i: int. 0 <= i /\ i < Seq.length self -> UInt8.t'int (Seq.get self i) = Seq.get rhs i)
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function deep_model_Bytes (self: t_Bytes) : Seq.seq UInt8.t = [%#sbytes] bytes_seq self
+
+function deep_model_ref_Bytes [@inline:trivial] (self: t_Bytes) : Seq.seq UInt8.t = [%#smodel] deep_model_Bytes self
+
+meta "rewrite_def" function deep_model_ref_Bytes
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+function index_slice_u8 [@inline:trivial] (self: Slice64.slice UInt8.t) (ix: int) : UInt8.t =
+  [%#sslice'1] Seq.get (Slice64.view self) ix
+
+meta "rewrite_def" function index_slice_u8
+
+function deep_model_slice_u8 (self: Slice64.slice UInt8.t) : Seq.seq int
+
+axiom deep_model_slice_u8_spec: forall self: Slice64.slice UInt8.t. [%#sslice] Seq.length (Slice64.view self)
+    = Seq.length (deep_model_slice_u8 self)
+
+axiom deep_model_slice_u8_spec'0: forall self: Slice64.slice UInt8.t. [%#sslice'0] forall i: int. 0 <= i
+        /\ i < Seq.length (deep_model_slice_u8 self)
+      -> Seq.get (deep_model_slice_u8 self) i = deep_model_u8 (index_slice_u8 self i)
+
+function deep_model_ref_slice_u8 [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq int =
+  [%#smodel] deep_model_slice_u8 self
+
+meta "rewrite_def" function deep_model_ref_slice_u8
+
+function deep_model_ref_ref_slice_u8 [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq int =
+  [%#smodel] deep_model_ref_slice_u8 self
+
+meta "rewrite_def" function deep_model_ref_ref_slice_u8
+
+let rec eq_Bytes (self_: t_Bytes) (rhs: Slice64.slice UInt8.t) (return (x: bool)) =
+  {[@stop_split] [@expl:eq 'self_' type invariant] [%#scmp] inv_ref_Bytes self_}
+  any
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#scmp'0] result
+    = eq_model_Seq_u8 (deep_model_ref_Bytes self_) (deep_model_ref_ref_slice_u8 rhs)}
+    (! return {result}) ]
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+predicate invariant_ref_HeaderValue [@inline:trivial] (self: t_HeaderValue) = [%#sinvariant] inv_HeaderValue self
+
+meta "rewrite_def" predicate invariant_ref_HeaderValue
+
+predicate inv_ref_HeaderValue [@inline:trivial] (_1: t_HeaderValue) = invariant_ref_HeaderValue _1
+
+meta "rewrite_def" predicate inv_ref_HeaderValue
+
+function view_HeaderValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 49 4 49 33] (self: t_HeaderValue) : Seq.seq UInt8.t
+ = [%#svalue'3] bytes_seq self.inner
+
+function deep_model_HeaderValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 59 4 59 44] (self: t_HeaderValue) : Seq.seq UInt8.t
+ = [%#svalue'2] view_HeaderValue self
+
+function deep_model_ref_HeaderValue [@inline:trivial] (self: t_HeaderValue) : Seq.seq UInt8.t =
+  [%#smodel] deep_model_HeaderValue self
+
+meta "rewrite_def" function deep_model_ref_HeaderValue
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec eq_HeaderValue
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 871 4 871 38]
+  (self: t_HeaderValue) (other: Slice64.slice UInt8.t) (return (x: bool)) =
+  {[@stop_split] [@expl:eq 'self' type invariant] [%#svalue'0] inv_ref_HeaderValue self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = eq_Bytes [%#svalue] {self.inner} {other} (fun (_x: bool) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & self: t_HeaderValue = self | & other: Slice64.slice UInt8.t = other ])
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#svalue'1] result
+    = eq_model_Seq_u8 (deep_model_ref_HeaderValue self) (deep_model_ref_slice_u8 other)}
+    (! return {result}) ]

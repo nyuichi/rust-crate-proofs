@@ -1,0 +1,175 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 516 9 516 14 *)
+
+(* <header::map::Drain<'a, T> as std::fmt::Debug> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 187 20 187 24
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 185 18 185 76
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 519 4 519 14
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 520 4 520 29
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 522 4 522 23
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 523 4 523 41
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 524 4 524 41
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 518 4 518 14
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 516 9 516 14
+
+use creusot.slice.Slice64
+use creusot.prelude.Any
+use creusot.int.UInt64
+use creusot.prelude.Opaque
+use creusot.prelude.MutBorrow
+use seq.Seq
+
+type t_Option_usize = None | Some UInt64.t
+
+type t_Drain_T = {
+  idx: UInt64.t;
+  len: UInt64.t;
+  entries: Opaque.ptr;
+  next: t_Option_usize;
+  extra_values: Opaque.ptr;
+  lt: () }
+
+type dyn_Debug
+
+function dyn_Debug_of_usize (x: UInt64.t) : dyn_Debug
+
+function dyn_Debug_of_ptr_slice_Bucket_T (x: Opaque.ptr) : dyn_Debug
+
+function dyn_Debug_of_Option_usize (x: t_Option_usize) : dyn_Debug
+
+function dyn_Debug_of_ptr_Vec_ExtraValue_T_Global (x: Opaque.ptr) : dyn_Debug
+
+function dyn_Debug_of_ref_PhantomData_refmut_HeaderMap_T (x: ()) : dyn_Debug
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+type t_Result_unit_Error = Ok () | Err ()
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'1] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+let rec debug_struct_fields_finish (self_: MutBorrow.t t_Formatter) (name: string) (names: Slice64.slice string)
+  (values: Slice64.slice dyn_Debug) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:debug_struct_fields_finish 'self_' type invariant] [%#sfmt] inv_refmut_Formatter self_}
+  any
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:debug_struct_fields_finish ensures] [%#sfmt'0] formatter_extends (deep_model_refmut_Formatter self_) (deep_model_Formatter self_.final)}
+    (! return {result}) ]
+
+predicate resolve_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Formatter
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec fmt_Drain_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 516 9 516 14]
+  (self: t_Drain_T) (f: MutBorrow.t t_Formatter) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:fmt 'f' type invariant] [%#smap'5] inv_refmut_Formatter f}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = bb0'0
+      [ bb0'0 = s0'0
+        [ s0'0 = [ &_3 <- [%#smap] "len" ] s1'0
+        | s1'0 = [ &_5 <- [%#smap'0] "entries" ] s2'0
+        | s2'0 = [ &_7 <- [%#smap'1] "next" ] s3'0
+        | s3'0 = [ &_9 <- [%#smap'2] "extra_values" ] s4'0
+        | s4'0 = [ &_11 <- [%#smap'3] "lt" ] s5'0
+        | s5'0 = any
+          [ any_ (__arr_temp: Slice64.array string) -> (! -{Seq.get __arr_temp.Slice64.elts 0 = ([%#smap'4] "idx")
+            /\ Seq.get __arr_temp.Slice64.elts 1 = _3
+            /\ Seq.get __arr_temp.Slice64.elts 2 = _5
+            /\ Seq.get __arr_temp.Slice64.elts 3 = _7
+            /\ Seq.get __arr_temp.Slice64.elts 4 = _9
+            /\ Seq.get __arr_temp.Slice64.elts 5 = _11 /\ Seq.length __arr_temp.Slice64.elts = 6}-
+            [ &_1 <- __arr_temp ] s6'0) ]
+        | s6'0 = [ &_ret'0 <- _1 ] s7'0
+        | s7'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: Slice64.array string = Any.any_l ()
+      | & _1: Slice64.array string = Any.any_l ()
+      | & _3: string = Any.any_l ()
+      | & _5: string = Any.any_l ()
+      | & _7: string = Any.any_l ()
+      | & _9: string = Any.any_l ()
+      | & _11: string = Any.any_l () ] [ _const_ret (_const: Slice64.array string) -> [ &_45 <- _const ] s1 ]
+    | s1 = [ &_4 <- _45 ] s2
+    | s2 = [ &names <- _4 ] s3
+    | s3 = [ &_22 <- self.idx ] s4
+    | s4 = [ &_20 <- dyn_Debug_of_usize _22 ] s5
+    | s5 = [ &_25 <- self.len ] s6
+    | s6 = [ &_23 <- dyn_Debug_of_usize _25 ] s7
+    | s7 = [ &_28 <- self.entries ] s8
+    | s8 = [ &_26 <- dyn_Debug_of_ptr_slice_Bucket_T _28 ] s9
+    | s9 = [ &_31 <- self.next ] s10
+    | s10 = [ &_29 <- dyn_Debug_of_Option_usize _31 ] s11
+    | s11 = [ &_34 <- self.extra_values ] s12
+    | s12 = [ &_32 <- dyn_Debug_of_ptr_Vec_ExtraValue_T_Global _34 ] s13
+    | s13 = [ &_37 <- self.lt ] s14
+    | s14 = [ &_35 <- dyn_Debug_of_ref_PhantomData_refmut_HeaderMap_T _37 ] s15
+    | s15 = any
+      [ any_ (__arr_temp: Slice64.array dyn_Debug) -> (! -{Seq.get __arr_temp.Slice64.elts 0 = _20
+        /\ Seq.get __arr_temp.Slice64.elts 1 = _23
+        /\ Seq.get __arr_temp.Slice64.elts 2 = _26
+        /\ Seq.get __arr_temp.Slice64.elts 3 = _29
+        /\ Seq.get __arr_temp.Slice64.elts 4 = _32
+        /\ Seq.get __arr_temp.Slice64.elts 5 = _35 /\ Seq.length __arr_temp.Slice64.elts = 6}-
+        [ &_19 <- __arr_temp ] s16) ]
+    | s16 = [ &_18 <- _19 ] s17
+    | s17 = [ &values <- _18 ] s18
+    | s18 = [ &_41 <- [%#smap'5] "Drain" ] s19
+    | s19 = MutBorrow.borrow_final <t_Formatter> {f.current} {MutBorrow.get_id f}
+        (fun (_bor: MutBorrow.t t_Formatter) ->
+          [ &_39 <- _bor ] -{inv_Formatter _bor.final}-
+          [ &f <- { f with current = _bor.final } ] s20)
+      [ _ck -> (! {[@expl:type invariant] inv_Formatter f.current} any) ]
+    | s20 = debug_struct_fields_finish [%#smap'5] {_39} {_41} {names} {values}
+        (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s21)
+    | s21 = s22 [ _ck -> (! {[@expl:type invariant] inv_refmut_Formatter f} any) ]
+    | s22 = -{resolve_refmut_Formatter f}- s23
+    | s23 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & self: t_Drain_T = self
+  | & f: MutBorrow.t t_Formatter = f
+  | & names: Slice64.array string = Any.any_l ()
+  | & _4: Slice64.array string = Any.any_l ()
+  | & values: Slice64.slice dyn_Debug = Any.any_l ()
+  | & _18: Slice64.array dyn_Debug = Any.any_l ()
+  | & _19: Slice64.array dyn_Debug = Any.any_l ()
+  | & _20: dyn_Debug = Any.any_l ()
+  | & _22: UInt64.t = Any.any_l ()
+  | & _23: dyn_Debug = Any.any_l ()
+  | & _25: UInt64.t = Any.any_l ()
+  | & _26: dyn_Debug = Any.any_l ()
+  | & _28: Opaque.ptr = Any.any_l ()
+  | & _29: dyn_Debug = Any.any_l ()
+  | & _31: t_Option_usize = Any.any_l ()
+  | & _32: dyn_Debug = Any.any_l ()
+  | & _34: Opaque.ptr = Any.any_l ()
+  | & _35: dyn_Debug = Any.any_l ()
+  | & _37: () = Any.any_l ()
+  | & _39: MutBorrow.t t_Formatter = Any.any_l ()
+  | & _41: string = Any.any_l ()
+  | & _45: Slice64.array string = Any.any_l () ]) [ return (result: t_Result_unit_Error) -> (! return {result}) ]

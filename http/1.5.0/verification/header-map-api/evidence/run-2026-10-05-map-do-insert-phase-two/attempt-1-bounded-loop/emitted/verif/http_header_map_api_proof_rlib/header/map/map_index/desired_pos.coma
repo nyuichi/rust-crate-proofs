@@ -1,0 +1,96 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 123 0 123 63 *)
+
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 296 16 302 17
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 121 10 121 44
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 122 10 122 33
+
+use creusot.int.UInt16BW
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+
+type t_HashValue = { f0: UInt16BW.t }
+
+type t_Ordering = Less | Equal | Greater
+
+function cmp_log_usize (self: UInt64BW.t) (o: UInt64BW.t) : t_Ordering = [%#sord'12] if UInt64BW.lt self o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_usize (x: UInt64BW.t) (y: UInt64BW.t) : ()
+
+axiom eq_cmp_usize_spec: forall x: UInt64BW.t, y: UInt64BW.t. [%#sord'11] (x = y) = (cmp_log_usize x y = Equal)
+
+function antisym2_usize (x: UInt64BW.t) (y: UInt64BW.t) : ()
+
+axiom antisym2_usize_spec: forall x: UInt64BW.t, y: UInt64BW.t. ([%#sord'9] cmp_log_usize x y = Greater)
+    -> ([%#sord'10] cmp_log_usize y x = Less)
+
+function antisym1_usize (x: UInt64BW.t) (y: UInt64BW.t) : ()
+
+axiom antisym1_usize_spec: forall x: UInt64BW.t, y: UInt64BW.t. ([%#sord'7] cmp_log_usize x y = Less)
+    -> ([%#sord'8] cmp_log_usize y x = Greater)
+
+function trans_usize (x: UInt64BW.t) (y: UInt64BW.t) (z: UInt64BW.t) (o: t_Ordering) : ()
+
+axiom trans_usize_spec: forall x: UInt64BW.t, y: UInt64BW.t, z: UInt64BW.t, o: t_Ordering. ([%#sord'4] cmp_log_usize x y
+      = o) -> ([%#sord'5] cmp_log_usize y z = o) -> ([%#sord'6] cmp_log_usize x z = o)
+
+function refl_usize (x: UInt64BW.t) : ()
+
+axiom refl_usize_spec: forall x: UInt64BW.t. [%#sord'3] cmp_log_usize x x = Equal
+
+function cmp_gt_log_usize (x: UInt64BW.t) (y: UInt64BW.t) : ()
+
+axiom cmp_gt_log_usize_spec: forall x: UInt64BW.t, y: UInt64BW.t. [%#sord'2] UInt64BW.gt x y
+    = (cmp_log_usize x y = Greater)
+
+function cmp_ge_log_usize (x: UInt64BW.t) (y: UInt64BW.t) : ()
+
+axiom cmp_ge_log_usize_spec: forall x: UInt64BW.t, y: UInt64BW.t. [%#sord'1] UInt64BW.ge x y
+    = (cmp_log_usize x y <> Less)
+
+function cmp_lt_log_usize (x: UInt64BW.t) (y: UInt64BW.t) : ()
+
+axiom cmp_lt_log_usize_spec: forall x: UInt64BW.t, y: UInt64BW.t. [%#sord'0] UInt64BW.lt x y
+    = (cmp_log_usize x y = Less)
+
+function cmp_le_log_usize (x: UInt64BW.t) (y: UInt64BW.t) : ()
+
+axiom cmp_le_log_usize_spec: forall x: UInt64BW.t, y: UInt64BW.t. [%#sord] UInt64BW.le x y
+    = (cmp_log_usize x y <> Greater)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec desired_pos
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 123 0 123 63]
+  (mask: UInt16BW.t) (hash: t_HashValue) (return (x: UInt64BW.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_8 <- UInt16BW.bw_and hash.f0 mask ] s1
+    | s1 = UInt64BW.of_BV256 {UInt16BW.to_BV256 _8} (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt64BW.t = Any.any_l ()
+  | & mask: UInt16BW.t = mask
+  | & hash: t_HashValue = hash
+  | & _8: UInt16BW.t = Any.any_l () ])
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:desired_pos ensures] ([@stop_split] [@expl:desired_pos ensures #0] [%#smap_index] result
+      = UInt64BW.of_BV256 (UInt16BW.to_BV256 (UInt16BW.bw_and hash.f0 mask)))
+    /\ ([@stop_split] [@expl:desired_pos ensures #1] [%#smap_index'0] UInt64BW.le result (UInt64BW.of_BV256 (UInt16BW.to_BV256 mask)))}
+    (! return {result}) ]

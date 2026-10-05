@@ -1,0 +1,118 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2518 4 2518 56 *)
+
+(* <header::name::InvalidHeaderName as std::fmt::Debug> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 80 20 80 24
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 78 18 78 76
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 94 23 94 27
+let%span sfmt'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 93 18 93 28
+let%span sfmt'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2519 23 2519 42
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2519 8 2519 43
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2519 8 2521 21
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2518 18 2518 19
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2513 16 2516 9
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.prelude.Any
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+type t_DebugStruct
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate inv_DebugStruct (_1: t_DebugStruct)
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'3] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+let rec debug_struct (self_: MutBorrow.t t_Formatter) (name: string) (return (x: t_DebugStruct)) =
+  {[@stop_split] [@expl:debug_struct 'self_' type invariant] [%#sfmt] inv_refmut_Formatter self_}
+  any
+  [ return (result: t_DebugStruct) ->
+  {[@stop_split] [@expl:debug_struct ensures] ([@stop_split] [@expl:debug_struct result type invariant] inv_DebugStruct result)
+    /\ ([@stop_split] [@expl:debug_struct ensures] [%#sfmt'0] formatter_extends (deep_model_refmut_Formatter self_) (deep_model_Formatter self_.final))}
+    (! return {result}) ]
+
+type t_Result_unit_Error = Ok () | Err ()
+
+predicate invariant_refmut_DebugStruct [@inline:trivial] (self: MutBorrow.t t_DebugStruct) =
+  [%#sinvariant] inv_DebugStruct self.current /\ inv_DebugStruct self.final
+
+meta "rewrite_def" predicate invariant_refmut_DebugStruct
+
+predicate inv_refmut_DebugStruct [@inline:trivial] (_1: MutBorrow.t t_DebugStruct) = invariant_refmut_DebugStruct _1
+
+meta "rewrite_def" predicate inv_refmut_DebugStruct
+
+let rec finish (self_: MutBorrow.t t_DebugStruct) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:finish 'self_' type invariant] [%#sfmt'1] inv_refmut_DebugStruct self_}
+  any
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:finish ensures] [%#sfmt'2] inv_DebugStruct self_.final}
+    (! return {result}) ]
+
+predicate resolve_DebugStruct (_1: t_DebugStruct)
+
+predicate resolve_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Formatter
+
+type t_InvalidHeaderName = { _priv: () }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec fmt_InvalidHeaderName
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2518 4 2518 56]
+  (self: t_InvalidHeaderName) (f: MutBorrow.t t_Formatter) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:fmt 'f' type invariant] [%#sname'2] inv_refmut_Formatter f}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_9 <- [%#sname] "InvalidHeaderName" ] s1
+    | s1 = MutBorrow.borrow_final <t_Formatter> {f.current} {MutBorrow.get_id f}
+        (fun (_bor: MutBorrow.t t_Formatter) ->
+          [ &_7 <- _bor ] -{inv_Formatter _bor.final}-
+          [ &f <- { f with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_Formatter f.current} any) ]
+    | s2 = debug_struct [%#sname'0] {_7} {_9} (fun (_x: t_DebugStruct) -> [ &_6 <- _x ] s3)
+    | s3 = MutBorrow.borrow_mut <t_DebugStruct> {_6}
+        (fun (_bor: MutBorrow.t t_DebugStruct) ->
+          [ &_5 <- _bor ] -{inv_DebugStruct _bor.final}-
+          [ &_6 <- _bor.final ] s4) [ _ck -> (! {[@expl:type invariant] inv_DebugStruct _6} any) ]
+    | s4 = finish [%#sname'1] {_5} (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s5)
+    | s5 = s6 [ _ck -> (! {[@expl:type invariant] inv_DebugStruct _6} any) ]
+    | s6 = -{resolve_DebugStruct _6}- s7
+    | s7 = s8 [ _ck -> (! {[@expl:type invariant] inv_refmut_Formatter f} any) ]
+    | s8 = -{resolve_refmut_Formatter f}- s9
+    | s9 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & f: MutBorrow.t t_Formatter = f
+  | & _5: MutBorrow.t t_DebugStruct = Any.any_l ()
+  | & _6: t_DebugStruct = Any.any_l ()
+  | & _7: MutBorrow.t t_Formatter = Any.any_l ()
+  | & _9: string = Any.any_l () ])
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:fmt ensures] [%#sname'3] formatter_extends (deep_model_refmut_Formatter f) (deep_model_Formatter f.final)}
+    (! return {result}) ]

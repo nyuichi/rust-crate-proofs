@@ -1,0 +1,48 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4719 4 4719 31 *)
+
+(* header::map::Danger *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4719 18 4719 22
+
+use creusot.prelude.Any
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0 -> inv_RandomState f0
+      end
+
+predicate invariant_ref_Danger [@inline:trivial] (self: t_Danger) = [%#sinvariant] inv_Danger self
+
+meta "rewrite_def" predicate invariant_ref_Danger
+
+predicate inv_ref_Danger [@inline:trivial] (_1: t_Danger) = invariant_ref_Danger _1
+
+meta "rewrite_def" predicate inv_ref_Danger
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec is_yellow
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4719 4 4719 31]
+  (self: t_Danger) (return (x: bool)) =
+  {[@stop_split] [@expl:is_yellow 'self' type invariant] [%#smap] inv_ref_Danger self}
+  (! bb0
+  [ bb0 = any
+    [ br0 -> {self = Green} (! bb1)
+    | br1 -> {self = Yellow} (! bb3)
+    | br2 (x0: t_RandomState) -> {self = Red x0} (! bb1) ]
+  | bb1 = s0 [ s0 = [ &_ret <- false ] s1 | s1 = return {_ret} ]
+  | bb3 = s0 [ s0 = [ &_ret <- true ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & self: t_Danger = self ]) [ return (result: bool) -> (! return {result}) ]

@@ -1,0 +1,23 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4903 4 4903 37 *)
+
+(* <header::map::FnvHasher as std::hash::Hasher> *)
+
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 28 26 28 36
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.slice.Slice64
+use creusot.int.UInt8
+
+type t_FnvHasher = { f0: UInt64.t }
+
+predicate inv_FnvHasher [@inline:trivial] (_1: t_FnvHasher) = true
+
+meta "rewrite_def" predicate inv_FnvHasher
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall self_: MutBorrow.t t_FnvHasher. forall bytes: Slice64.slice UInt8.t. forall result: (). [%#shash] inv_FnvHasher self_.final

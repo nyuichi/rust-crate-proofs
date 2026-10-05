@@ -1,0 +1,56 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 528 8 528 52 *)
+
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 551 46 551 50
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 551 52 551 56
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 551 58 551 62
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 551 64 551 69
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 551 71 551 76
+let%span sname'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 551 78 551 83
+let%span sname'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 529 12 529 55
+let%span sname'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 527 36 527 84
+let%span sname'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 504 28 504 52
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+let rec bytes_equal (lhs: Slice64.slice UInt8.t) (rhs: Slice64.slice UInt8.t) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:bytes_equal ensures] [%#sname'7] result
+    = (Slice64.view lhs = Slice64.view rhs)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec bytes_equal_accept
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 528 8 528 52]
+  (name_bytes: Slice64.slice UInt8.t) (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = bb0'0
+      [ bb0'0 = s0'0
+        [ s0'0 = any
+          [ any_ (__arr_temp: Slice64.array UInt8.t) -> (! -{Seq.get __arr_temp.Slice64.elts 0
+              = ([%#sname] (97: UInt8.t))
+            /\ Seq.get __arr_temp.Slice64.elts 1 = ([%#sname'0] (99: UInt8.t))
+            /\ Seq.get __arr_temp.Slice64.elts 2 = ([%#sname'1] (99: UInt8.t))
+            /\ Seq.get __arr_temp.Slice64.elts 3 = ([%#sname'2] (101: UInt8.t))
+            /\ Seq.get __arr_temp.Slice64.elts 4 = ([%#sname'3] (112: UInt8.t))
+            /\ Seq.get __arr_temp.Slice64.elts 5 = ([%#sname'4] (116: UInt8.t))
+            /\ Seq.length __arr_temp.Slice64.elts = 6}-
+            [ &_1 <- __arr_temp ] s1'0) ]
+        | s1'0 = [ &_ret'0 <- _1 ] s2'0
+        | s2'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: Slice64.array UInt8.t = Any.any_l () | & _1: Slice64.array UInt8.t = Any.any_l () ]
+      [ _const_ret (_const: Slice64.array UInt8.t) -> [ &_9 <- _const ] s1 ]
+    | s1 = [ &_7 <- _9 ] s2
+    | s2 = bytes_equal [%#sname'5] {name_bytes} {_7} (fun (_x: bool) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & name_bytes: Slice64.slice UInt8.t = name_bytes
+  | & _7: Slice64.array UInt8.t = Any.any_l ()
+  | & _9: Slice64.array UInt8.t = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:bytes_equal_accept ensures] [%#sname'6] result
+    = (Slice64.view name_bytes
+    = Seq.create 6 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t)|])}
+    (! return {result}) ]
