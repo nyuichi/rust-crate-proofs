@@ -1,0 +1,75 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 65 0 65 32 *)
+
+(* <IntoIter<&'a [u8]> as std::iter::Iterator> *)
+
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+let%span sactual_iterator = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 64 10 64 253
+let%span sactual_iterator'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 95 50 95 72
+let%span sactual_iterator'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 91 8 91 35
+let%span sactual_iterator'2 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 97 14 97 47
+let%span sactual_iterator'3 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 98 29 98 61
+let%span sactual_iterator'4 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 100 15 100 32
+let%span sactual_iterator'5 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 101 15 101 32
+let%span sactual_iterator'6 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 102 14 102 42
+let%span sactual_iterator'7 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 104 8 104 40
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 22 8 22 20
+let%span siter = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/iter.rs" 120 26 123 17
+
+use creusot.prelude.MutBorrow
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_IntoIter_ref_slice_u8 = { inner: Slice64.slice UInt8.t }
+
+type t_Option_u8 = None | Some UInt8.t
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+type t_RangeFrom_Int = { start: int }
+
+function index_Seq_u8 [@inline:trivial] (self: Seq.seq UInt8.t) (range: t_RangeFrom_Int) : Seq.seq UInt8.t =
+  [%#sseq] Seq.([..]) self range.start (Seq.length self)
+
+meta "rewrite_def" function index_Seq_u8
+
+predicate produces_IntoIter_ref_slice_u8 [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 90 4 90 60] (self: t_IntoIter_ref_slice_u8) (visited: Seq.seq UInt8.t) (other: t_IntoIter_ref_slice_u8) =
+  [%#sactual_iterator'1] Slice64.view self.inner = Seq.(++) visited (Slice64.view other.inner)
+
+function produces_trans_IntoIter_ref_slice_u8 [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 103 4 103 74] (a: t_IntoIter_ref_slice_u8) (ab: Seq.seq UInt8.t) (b: t_IntoIter_ref_slice_u8) (bc: Seq.seq UInt8.t) (c: t_IntoIter_ref_slice_u8) : ()
+ = [%#sactual_iterator'7] ()
+
+axiom produces_trans_IntoIter_ref_slice_u8_spec:
+  forall a: t_IntoIter_ref_slice_u8, ab: Seq.seq UInt8.t, b: t_IntoIter_ref_slice_u8, bc: Seq.seq UInt8.t, c: t_IntoIter_ref_slice_u8. ([%#sactual_iterator'4] produces_IntoIter_ref_slice_u8 a ab b)
+    -> ([%#sactual_iterator'5] produces_IntoIter_ref_slice_u8 b bc c)
+    -> ([%#sactual_iterator'6] produces_IntoIter_ref_slice_u8 a (Seq.(++) ab bc) c)
+
+function produces_refl_IntoIter_ref_slice_u8 [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 98 4 98 26] (self: t_IntoIter_ref_slice_u8) : ()
+ = [%#sactual_iterator'3] ()
+
+axiom produces_refl_IntoIter_ref_slice_u8_spec:
+  forall self: t_IntoIter_ref_slice_u8. [%#sactual_iterator'2] produces_IntoIter_ref_slice_u8 self (Seq.empty: Seq.seq UInt8.t) self
+
+predicate completed_IntoIter_ref_slice_u8 [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 95 4 95 35] (self: MutBorrow.t t_IntoIter_ref_slice_u8) =
+  [%#sactual_iterator'0] Seq.length (Slice64.view self.current.inner) = 0
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall self_: MutBorrow.t t_IntoIter_ref_slice_u8. forall result: t_Option_u8. ([%#sactual_iterator] match result with
+          | Some byte -> gt_log_Int (Seq.length (Slice64.view self_.current.inner)) 0
+          /\ byte = Seq.get (Slice64.view self_.current.inner) 0
+          /\ Slice64.view self_.final.inner = index_Seq_u8 (Slice64.view self_.current.inner) { start = 1 }
+          /\ Slice64.view self_.current.inner = Seq.(++) (Seq.singleton byte) (Slice64.view self_.final.inner)
+          | None -> Seq.length (Slice64.view self_.current.inner) = 0
+          /\ Slice64.view self_.final.inner = Slice64.view self_.current.inner
+          end)
+      -> ([%#siter] match result with
+        | None -> completed_IntoIter_ref_slice_u8 self_
+        | Some v -> produces_IntoIter_ref_slice_u8 self_.current (Seq.singleton v) self_.final
+        end)

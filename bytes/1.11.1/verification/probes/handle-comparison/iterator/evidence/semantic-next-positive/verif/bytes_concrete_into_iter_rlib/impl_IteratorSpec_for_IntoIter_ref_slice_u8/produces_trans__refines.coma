@@ -1,0 +1,32 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 103 4 103 74 *)
+
+(* <IntoIter<&'a [u8]> as creusot_std::prelude::IteratorSpec> *)
+
+let%span sactual_iterator = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 100 15 100 32
+let%span sactual_iterator'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 101 15 101 32
+let%span sactual_iterator'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 102 14 102 42
+let%span sactual_iterator'2 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 91 8 91 35
+let%span siter = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/iter.rs" 48 15 48 32
+let%span siter'0 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/iter.rs" 49 15 49 32
+let%span siter'1 = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/iter.rs" 50 14 50 42
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+
+type t_IntoIter_ref_slice_u8 = { inner: Slice64.slice UInt8.t }
+
+predicate produces_IntoIter_ref_slice_u8 [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 90 4 90 60] (self: t_IntoIter_ref_slice_u8) (visited: Seq.seq UInt8.t) (other: t_IntoIter_ref_slice_u8) =
+  [%#sactual_iterator'2] Slice64.view self.inner = Seq.(++) visited (Slice64.view other.inner)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall a: t_IntoIter_ref_slice_u8, ab: Seq.seq UInt8.t, b: t_IntoIter_ref_slice_u8, bc: Seq.seq UInt8.t, c: t_IntoIter_ref_slice_u8. ([%#siter] produces_IntoIter_ref_slice_u8 a ab b)
+    -> ([%#siter'0] produces_IntoIter_ref_slice_u8 b bc c)
+    -> ([%#sactual_iterator] produces_IntoIter_ref_slice_u8 a ab b)
+    /\ ([%#sactual_iterator'0] produces_IntoIter_ref_slice_u8 b bc c)
+    /\ (forall result: (). ([%#sactual_iterator'1] produces_IntoIter_ref_slice_u8 a (Seq.(++) ab bc) c)
+      -> ([%#siter'1] produces_IntoIter_ref_slice_u8 a (Seq.(++) ab bc) c))

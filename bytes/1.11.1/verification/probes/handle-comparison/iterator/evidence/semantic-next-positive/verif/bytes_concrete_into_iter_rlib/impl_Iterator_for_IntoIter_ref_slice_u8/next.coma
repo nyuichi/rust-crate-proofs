@@ -1,0 +1,124 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 65 0 65 32 *)
+
+(* <IntoIter<&'a [u8]> as std::iter::Iterator> *)
+
+let%span sseq = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/seq.rs" 521 8 521 49
+let%span sactual_iterator = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 66 12 66 38
+let%span sactual_iterator'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 70 16 70 34
+let%span sactual_iterator'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 70 35 70 36
+let%span sactual_iterator'2 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 70 16 70 37
+let%span sactual_iterator'3 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 71 33 71 34
+let%span sactual_iterator'4 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 71 8 71 35
+let%span sactual_iterator'5 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 64 10 64 253
+let%span sactual_iterator'6 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 23 10 23 38
+let%span sactual_iterator'7 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 7 10 7 27
+let%span sactual_iterator'8 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 11 11 11 31
+let%span sactual_iterator'9 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 12 10 12 37
+let%span sord = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/logic/ord.rs" 22 8 22 20
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+use int.Int
+
+type t_IntoIter_ref_slice_u8 = { inner: Slice64.slice UInt8.t }
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+let has_remaining (input: Slice64.slice UInt8.t) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:has_remaining ensures] [%#sactual_iterator'6] result
+    = gt_log_Int (Seq.length (Slice64.view input)) 0}
+    (! return {result}) ]
+
+let chunk (input: Slice64.slice UInt8.t) (return (x: Slice64.slice UInt8.t)) = any
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:chunk ensures] [%#sactual_iterator'7] Slice64.view result = Slice64.view input}
+    (! return {result}) ]
+
+type t_RangeFrom_Int = { start: int }
+
+function index_Seq_u8 [@inline:trivial] (self: Seq.seq UInt8.t) (range: t_RangeFrom_Int) : Seq.seq UInt8.t =
+  [%#sseq] Seq.([..]) self range.start (Seq.length self)
+
+meta "rewrite_def" function index_Seq_u8
+
+let advance (input: MutBorrow.t (Slice64.slice UInt8.t)) (cnt: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:advance requires] [%#sactual_iterator'8] UInt64.t'int cnt
+  <= Seq.length (Slice64.view input.current)}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:advance ensures] [%#sactual_iterator'9] Slice64.view input.final
+    = index_Seq_u8 (Slice64.view input.current) { start = UInt64.t'int cnt }}
+    (! return {result}) ]
+
+predicate resolve_refmut_ref_slice_u8 [@inline:trivial] (_1: MutBorrow.t (Slice64.slice UInt8.t)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_ref_slice_u8
+
+predicate resolve_refmut_IntoIter_ref_slice_u8 [@inline:trivial] (_1: MutBorrow.t t_IntoIter_ref_slice_u8) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_IntoIter_ref_slice_u8
+
+type t_Option_u8 = None | Some UInt8.t
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let next_IntoIter_ref_slice_u8 [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 65 0 65 32]
+  (self: MutBorrow.t t_IntoIter_ref_slice_u8) (return (x: t_Option_u8)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_7 <- self.current.inner ] s1
+    | s1 = has_remaining [%#sactual_iterator] {_7} (fun (_x: bool) -> [ &_5 <- _x ] s2)
+    | s2 = any [ br0 -> {_5 = false} (! bb3) | br1 -> {_5} (! bb2) ] ]
+  | bb2 = s0
+    [ s0 = [ &_12 <- self.current.inner ] s1
+    | s1 = chunk [%#sactual_iterator'0] {_12} (fun (_x: Slice64.slice UInt8.t) -> [ &_10 <- _x ] s2)
+    | s2 = [ &_13 <- [%#sactual_iterator'1] (0: UInt64.t) ] s3
+    | s3 = [ &_14 <- Slice64.length _10 ] s4
+    | s4 = [ &_15 <- UInt64.lt _13 _14 ] s5
+    | s5 = {[@expl:index in bounds] [%#sactual_iterator'2] _15} s6
+    | s6 = Slice64.get [%#sactual_iterator'2] <UInt8.t> {_10} {_13} (fun (r: UInt8.t) -> [ &b <- r ] s7)
+    | s7 = MutBorrow.borrow_final <Slice64.slice UInt8.t> {self.current.inner}
+        {MutBorrow.inherit_id (MutBorrow.get_id self) 0}
+        (fun (_bor: MutBorrow.t (Slice64.slice UInt8.t)) ->
+          [ &_18 <- _bor ] [ &self <- { self with current = { inner = _bor.final } } ] s8)
+    | s8 = MutBorrow.borrow_final <Slice64.slice UInt8.t> {_18.current} {MutBorrow.get_id _18}
+        (fun (_bor: MutBorrow.t (Slice64.slice UInt8.t)) ->
+          [ &_17 <- _bor ] [ &_18 <- { _18 with current = _bor.final } ] s9)
+    | s9 = advance [%#sactual_iterator'4] {_17} {[%#sactual_iterator'3] (1: UInt64.t)}
+        (fun (_x: ()) -> [ &_16 <- _x ] s10)
+    | s10 = -{resolve_refmut_ref_slice_u8 _18}- s11
+    | s11 = -{resolve_refmut_IntoIter_ref_slice_u8 self}- s12
+    | s12 = [ &_ret <- Some b ] s13
+    | s13 = return {_ret} ]
+  | bb3 = s0
+    [ s0 = -{resolve_refmut_IntoIter_ref_slice_u8 self}- s1 | s1 = [ &_ret <- None ] s2 | s2 = return {_ret} ] ]
+  [ & _ret: t_Option_u8 = Any.any_l ()
+  | & self: MutBorrow.t t_IntoIter_ref_slice_u8 = self
+  | & _5: bool = Any.any_l ()
+  | & _7: Slice64.slice UInt8.t = Any.any_l ()
+  | & b: UInt8.t = Any.any_l ()
+  | & _10: Slice64.slice UInt8.t = Any.any_l ()
+  | & _12: Slice64.slice UInt8.t = Any.any_l ()
+  | & _13: UInt64.t = Any.any_l ()
+  | & _14: UInt64.t = Any.any_l ()
+  | & _15: bool = Any.any_l ()
+  | & _16: () = Any.any_l ()
+  | & _17: MutBorrow.t (Slice64.slice UInt8.t) = Any.any_l ()
+  | & _18: MutBorrow.t (Slice64.slice UInt8.t) = Any.any_l () ])
+  [ return (result: t_Option_u8) -> {[@stop_split] [@expl:next ensures] [%#sactual_iterator'5] match result with
+      | Some byte -> gt_log_Int (Seq.length (Slice64.view self.current.inner)) 0
+      /\ byte = Seq.get (Slice64.view self.current.inner) 0
+      /\ Slice64.view self.final.inner = index_Seq_u8 (Slice64.view self.current.inner) { start = 1 }
+      /\ Slice64.view self.current.inner = Seq.(++) (Seq.singleton byte) (Slice64.view self.final.inner)
+      | None -> Seq.length (Slice64.view self.current.inner) = 0
+      /\ Slice64.view self.final.inner = Slice64.view self.current.inner
+      end}
+    (! return {result}) ]

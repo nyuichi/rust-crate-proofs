@@ -1,0 +1,46 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 113 4 113 59 *)
+
+(* <IntoIter<&'a [u8]> as creusot_std::std::iter::ExactSizeIteratorSpec> *)
+
+let%span sactual_iterator = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 111 15 111 59
+let%span sactual_iterator'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 112 14 112 36
+let%span sactual_iterator'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 75 10 75 70
+let%span sactual_iterator'2 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 76 0 76 45
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+
+type t_IntoIter_ref_slice_u8 = { inner: Slice64.slice UInt8.t }
+
+type t_Option_usize = None | Some UInt64.t
+
+type tup2_usize_Option_usize = { f0: UInt64.t; f1: t_Option_usize }
+
+predicate postcondition_size_hint (self: ()) (args: t_IntoIter_ref_slice_u8) (result: tup2_usize_Option_usize) =
+  [%#sactual_iterator'2] let self'0 = args in [%#sactual_iterator'1] UInt64.t'int result.f0
+    = Seq.length (Slice64.view self'0.inner)
+  /\ result.f1 = Some (result.f0)
+
+meta "rewrite_def" predicate postcondition_size_hint
+
+let size_hint_IntoIter_ref_slice_u8 (self: t_IntoIter_ref_slice_u8) (return (x: tup2_usize_Option_usize)) = any
+  [ return (result: tup2_usize_Option_usize) ->
+  {[@stop_split] [@expl:size_hint ensures] [%#sactual_iterator'1] UInt64.t'int result.f0
+      = Seq.length (Slice64.view self.inner)
+    /\ result.f1 = Some (result.f0)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_IntoIter_ref_slice_u8
+
+constant hint : tup2_usize_Option_usize
+
+function size_hint_exact_IntoIter_ref_slice_u8 [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 113 4 113 59] (self: t_IntoIter_ref_slice_u8) (hint: tup2_usize_Option_usize) : ()
+
+goal vc_size_hint_exact_IntoIter_ref_slice_u8: ([%#sactual_iterator] postcondition_size_hint () self hint)
+  -> ([@stop_split] [@expl:size_hint_exact ensures] [%#sactual_iterator'0] hint.f1 = Some (hint.f0))

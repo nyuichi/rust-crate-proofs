@@ -1,0 +1,19 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 8 0 8 42 *)
+
+let%span sactual_iterator = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 7 10 7 27
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let chunk [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 8 0 8 42]
+  (input: Slice64.slice UInt8.t) (return (x: Slice64.slice UInt8.t)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- input ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: Slice64.slice UInt8.t = Any.any_l () | & input: Slice64.slice UInt8.t = input ])
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:chunk ensures] [%#sactual_iterator] Slice64.view result = Slice64.view input}
+    (! return {result}) ]

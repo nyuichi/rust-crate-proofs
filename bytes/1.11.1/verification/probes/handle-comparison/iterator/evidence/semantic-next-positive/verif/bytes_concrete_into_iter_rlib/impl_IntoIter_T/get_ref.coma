@@ -1,0 +1,51 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 54 0 54 27 *)
+
+(* IntoIter<T> *)
+
+let%span sactual_iterator = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 54 16 54 20
+let%span sactual_iterator'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 54 25 54 27
+let%span sactual_iterator'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 53 10 53 31
+let%span sinvariant = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/invariant.rs" 85 8 85 18
+
+use creusot.prelude.Any
+
+type t_T
+
+type t_IntoIter_T = { inner: t_T }
+
+predicate inv_T (_1: t_T)
+
+predicate inv_IntoIter_T (_1: t_IntoIter_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_IntoIter_T [inv_IntoIter_T x]. inv_IntoIter_T x = inv_T x.inner
+
+predicate invariant_ref_IntoIter_T [@inline:trivial] (self: t_IntoIter_T) = [%#sinvariant] inv_IntoIter_T self
+
+meta "rewrite_def" predicate invariant_ref_IntoIter_T
+
+predicate inv_ref_IntoIter_T [@inline:trivial] (_1: t_IntoIter_T) = invariant_ref_IntoIter_T _1
+
+meta "rewrite_def" predicate inv_ref_IntoIter_T
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let get_ref_T [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-concrete-into-iter-3c9a44e1c143b68b/out/actual_iterator.rs" 54 0 54 27]
+  (self: t_IntoIter_T) (return (x: t_T)) =
+{[@stop_split] [@expl:get_ref 'self' type invariant] [%#sactual_iterator] inv_ref_IntoIter_T self}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_4 <- self.inner ] s1 | s1 = [ &_ret <- _4 ] s2 | s2 = return {_ret} ] ]
+  [ & _ret: t_T = Any.any_l () | & self: t_IntoIter_T = self | & _4: t_T = Any.any_l () ])
+  [ return (result: t_T) ->
+  {[@stop_split] [@expl:get_ref_T ensures] ([@stop_split] [@expl:get_ref result type invariant] [%#sactual_iterator'0] inv_ref_T result)
+    /\ ([@stop_split] [@expl:get_ref ensures] [%#sactual_iterator'1] result = self.inner)}
+    (! return {result}) ]
