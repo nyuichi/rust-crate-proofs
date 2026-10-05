@@ -1,0 +1,418 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 335 12 335 52 *)
+
+(* <header::name::StandardHeader as std::hash::Hash> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 336 17 336 28
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 336 16 336 50
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 335 38 335 43
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 240 40 240 75
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 185 20 187 21
+let%span sname'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 314 16 314 28
+let%span sname'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 256 16 258 17
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 115 34 115 39
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 114 18 114 29
+
+use creusot.int.UInt8
+use creusot.int.Int64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_StandardHeader =
+  | Accept
+  | AcceptCharset
+  | AcceptEncoding
+  | AcceptLanguage
+  | AcceptRanges
+  | AccessControlAllowCredentials
+  | AccessControlAllowHeaders
+  | AccessControlAllowMethods
+  | AccessControlAllowOrigin
+  | AccessControlExposeHeaders
+  | AccessControlMaxAge
+  | AccessControlRequestHeaders
+  | AccessControlRequestMethod
+  | Age
+  | Allow
+  | AltSvc
+  | Authorization
+  | CacheControl
+  | CacheStatus
+  | CdnCacheControl
+  | Connection
+  | ContentDisposition
+  | ContentEncoding
+  | ContentLanguage
+  | ContentLength
+  | ContentLocation
+  | ContentRange
+  | ContentSecurityPolicy
+  | ContentSecurityPolicyReportOnly
+  | ContentType
+  | Cookie
+  | Dnt
+  | Date
+  | Etag
+  | Expect
+  | Expires
+  | Forwarded
+  | From
+  | Host
+  | IfMatch
+  | IfModifiedSince
+  | IfNoneMatch
+  | IfRange
+  | IfUnmodifiedSince
+  | LastModified
+  | Link
+  | Location
+  | MaxForwards
+  | Origin
+  | Pragma
+  | ProxyAuthenticate
+  | ProxyAuthorization
+  | PublicKeyPins
+  | PublicKeyPinsReportOnly
+  | Range
+  | Referer
+  | ReferrerPolicy
+  | Refresh
+  | RetryAfter
+  | SecWebSocketAccept
+  | SecWebSocketExtensions
+  | SecWebSocketKey
+  | SecWebSocketProtocol
+  | SecWebSocketVersion
+  | Server
+  | SetCookie
+  | StrictTransportSecurity
+  | Te
+  | Trailer
+  | TransferEncoding
+  | UserAgent
+  | Upgrade
+  | UpgradeInsecureRequests
+  | Vary
+  | Via
+  | Warning
+  | WwwAuthenticate
+  | XContentTypeOptions
+  | XDnsPrefetchControl
+  | XFrameOptions
+  | XXssProtection
+
+type t_StandardHeaderModel =
+  | Accept'0
+  | AcceptCharset'0
+  | AcceptEncoding'0
+  | AcceptLanguage'0
+  | AcceptRanges'0
+  | AccessControlAllowCredentials'0
+  | AccessControlAllowHeaders'0
+  | AccessControlAllowMethods'0
+  | AccessControlAllowOrigin'0
+  | AccessControlExposeHeaders'0
+  | AccessControlMaxAge'0
+  | AccessControlRequestHeaders'0
+  | AccessControlRequestMethod'0
+  | Age'0
+  | Allow'0
+  | AltSvc'0
+  | Authorization'0
+  | CacheControl'0
+  | CacheStatus'0
+  | CdnCacheControl'0
+  | Connection'0
+  | ContentDisposition'0
+  | ContentEncoding'0
+  | ContentLanguage'0
+  | ContentLength'0
+  | ContentLocation'0
+  | ContentRange'0
+  | ContentSecurityPolicy'0
+  | ContentSecurityPolicyReportOnly'0
+  | ContentType'0
+  | Cookie'0
+  | Dnt'0
+  | Date'0
+  | Etag'0
+  | Expect'0
+  | Expires'0
+  | Forwarded'0
+  | From'0
+  | Host'0
+  | IfMatch'0
+  | IfModifiedSince'0
+  | IfNoneMatch'0
+  | IfRange'0
+  | IfUnmodifiedSince'0
+  | LastModified'0
+  | Link'0
+  | Location'0
+  | MaxForwards'0
+  | Origin'0
+  | Pragma'0
+  | ProxyAuthenticate'0
+  | ProxyAuthorization'0
+  | PublicKeyPins'0
+  | PublicKeyPinsReportOnly'0
+  | Range'0
+  | Referer'0
+  | ReferrerPolicy'0
+  | Refresh'0
+  | RetryAfter'0
+  | SecWebSocketAccept'0
+  | SecWebSocketExtensions'0
+  | SecWebSocketKey'0
+  | SecWebSocketProtocol'0
+  | SecWebSocketVersion'0
+  | Server'0
+  | SetCookie'0
+  | StrictTransportSecurity'0
+  | Te'0
+  | Trailer'0
+  | TransferEncoding'0
+  | UserAgent'0
+  | Upgrade'0
+  | UpgradeInsecureRequests'0
+  | Vary'0
+  | Via'0
+  | Warning'0
+  | WwwAuthenticate'0
+  | XContentTypeOptions'0
+  | XDnsPrefetchControl'0
+  | XFrameOptions'0
+  | XXssProtection'0
+
+function rank [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 183 12 183 32] (self: t_StandardHeaderModel) : int
+ = [%#sname'3] match self with
+    | Accept'0 -> 0
+    | AcceptCharset'0 -> 1
+    | AcceptEncoding'0 -> 2
+    | AcceptLanguage'0 -> 3
+    | AcceptRanges'0 -> 4
+    | AccessControlAllowCredentials'0 -> 5
+    | AccessControlAllowHeaders'0 -> 6
+    | AccessControlAllowMethods'0 -> 7
+    | AccessControlAllowOrigin'0 -> 8
+    | AccessControlExposeHeaders'0 -> 9
+    | AccessControlMaxAge'0 -> 10
+    | AccessControlRequestHeaders'0 -> 11
+    | AccessControlRequestMethod'0 -> 12
+    | Age'0 -> 13
+    | Allow'0 -> 14
+    | AltSvc'0 -> 15
+    | Authorization'0 -> 16
+    | CacheControl'0 -> 17
+    | CacheStatus'0 -> 18
+    | CdnCacheControl'0 -> 19
+    | Connection'0 -> 20
+    | ContentDisposition'0 -> 21
+    | ContentEncoding'0 -> 22
+    | ContentLanguage'0 -> 23
+    | ContentLength'0 -> 24
+    | ContentLocation'0 -> 25
+    | ContentRange'0 -> 26
+    | ContentSecurityPolicy'0 -> 27
+    | ContentSecurityPolicyReportOnly'0 -> 28
+    | ContentType'0 -> 29
+    | Cookie'0 -> 30
+    | Dnt'0 -> 31
+    | Date'0 -> 32
+    | Etag'0 -> 33
+    | Expect'0 -> 34
+    | Expires'0 -> 35
+    | Forwarded'0 -> 36
+    | From'0 -> 37
+    | Host'0 -> 38
+    | IfMatch'0 -> 39
+    | IfModifiedSince'0 -> 40
+    | IfNoneMatch'0 -> 41
+    | IfRange'0 -> 42
+    | IfUnmodifiedSince'0 -> 43
+    | LastModified'0 -> 44
+    | Link'0 -> 45
+    | Location'0 -> 46
+    | MaxForwards'0 -> 47
+    | Origin'0 -> 48
+    | Pragma'0 -> 49
+    | ProxyAuthenticate'0 -> 50
+    | ProxyAuthorization'0 -> 51
+    | PublicKeyPins'0 -> 52
+    | PublicKeyPinsReportOnly'0 -> 53
+    | Range'0 -> 54
+    | Referer'0 -> 55
+    | ReferrerPolicy'0 -> 56
+    | Refresh'0 -> 57
+    | RetryAfter'0 -> 58
+    | SecWebSocketAccept'0 -> 59
+    | SecWebSocketExtensions'0 -> 60
+    | SecWebSocketKey'0 -> 61
+    | SecWebSocketProtocol'0 -> 62
+    | SecWebSocketVersion'0 -> 63
+    | Server'0 -> 64
+    | SetCookie'0 -> 65
+    | StrictTransportSecurity'0 -> 66
+    | Te'0 -> 67
+    | Trailer'0 -> 68
+    | TransferEncoding'0 -> 69
+    | UserAgent'0 -> 70
+    | Upgrade'0 -> 71
+    | UpgradeInsecureRequests'0 -> 72
+    | Vary'0 -> 73
+    | Via'0 -> 74
+    | Warning'0 -> 75
+    | WwwAuthenticate'0 -> 76
+    | XContentTypeOptions'0 -> 77
+    | XDnsPrefetchControl'0 -> 78
+    | XFrameOptions'0 -> 79
+    | XXssProtection'0 -> 80
+    end
+
+function model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 255 12 255 49] (self: t_StandardHeader) : t_StandardHeaderModel
+ = [%#sname'5] match self with
+    | Accept -> Accept'0
+    | AcceptCharset -> AcceptCharset'0
+    | AcceptEncoding -> AcceptEncoding'0
+    | AcceptLanguage -> AcceptLanguage'0
+    | AcceptRanges -> AcceptRanges'0
+    | AccessControlAllowCredentials -> AccessControlAllowCredentials'0
+    | AccessControlAllowHeaders -> AccessControlAllowHeaders'0
+    | AccessControlAllowMethods -> AccessControlAllowMethods'0
+    | AccessControlAllowOrigin -> AccessControlAllowOrigin'0
+    | AccessControlExposeHeaders -> AccessControlExposeHeaders'0
+    | AccessControlMaxAge -> AccessControlMaxAge'0
+    | AccessControlRequestHeaders -> AccessControlRequestHeaders'0
+    | AccessControlRequestMethod -> AccessControlRequestMethod'0
+    | Age -> Age'0
+    | Allow -> Allow'0
+    | AltSvc -> AltSvc'0
+    | Authorization -> Authorization'0
+    | CacheControl -> CacheControl'0
+    | CacheStatus -> CacheStatus'0
+    | CdnCacheControl -> CdnCacheControl'0
+    | Connection -> Connection'0
+    | ContentDisposition -> ContentDisposition'0
+    | ContentEncoding -> ContentEncoding'0
+    | ContentLanguage -> ContentLanguage'0
+    | ContentLength -> ContentLength'0
+    | ContentLocation -> ContentLocation'0
+    | ContentRange -> ContentRange'0
+    | ContentSecurityPolicy -> ContentSecurityPolicy'0
+    | ContentSecurityPolicyReportOnly -> ContentSecurityPolicyReportOnly'0
+    | ContentType -> ContentType'0
+    | Cookie -> Cookie'0
+    | Dnt -> Dnt'0
+    | Date -> Date'0
+    | Etag -> Etag'0
+    | Expect -> Expect'0
+    | Expires -> Expires'0
+    | Forwarded -> Forwarded'0
+    | From -> From'0
+    | Host -> Host'0
+    | IfMatch -> IfMatch'0
+    | IfModifiedSince -> IfModifiedSince'0
+    | IfNoneMatch -> IfNoneMatch'0
+    | IfRange -> IfRange'0
+    | IfUnmodifiedSince -> IfUnmodifiedSince'0
+    | LastModified -> LastModified'0
+    | Link -> Link'0
+    | Location -> Location'0
+    | MaxForwards -> MaxForwards'0
+    | Origin -> Origin'0
+    | Pragma -> Pragma'0
+    | ProxyAuthenticate -> ProxyAuthenticate'0
+    | ProxyAuthorization -> ProxyAuthorization'0
+    | PublicKeyPins -> PublicKeyPins'0
+    | PublicKeyPinsReportOnly -> PublicKeyPinsReportOnly'0
+    | Range -> Range'0
+    | Referer -> Referer'0
+    | ReferrerPolicy -> ReferrerPolicy'0
+    | Refresh -> Refresh'0
+    | RetryAfter -> RetryAfter'0
+    | SecWebSocketAccept -> SecWebSocketAccept'0
+    | SecWebSocketExtensions -> SecWebSocketExtensions'0
+    | SecWebSocketKey -> SecWebSocketKey'0
+    | SecWebSocketProtocol -> SecWebSocketProtocol'0
+    | SecWebSocketVersion -> SecWebSocketVersion'0
+    | Server -> Server'0
+    | SetCookie -> SetCookie'0
+    | StrictTransportSecurity -> StrictTransportSecurity'0
+    | Te -> Te'0
+    | Trailer -> Trailer'0
+    | TransferEncoding -> TransferEncoding'0
+    | UserAgent -> UserAgent'0
+    | Upgrade -> Upgrade'0
+    | UpgradeInsecureRequests -> UpgradeInsecureRequests'0
+    | Vary -> Vary'0
+    | Via -> Via'0
+    | Warning -> Warning'0
+    | WwwAuthenticate -> WwwAuthenticate'0
+    | XContentTypeOptions -> XContentTypeOptions'0
+    | XDnsPrefetchControl -> XDnsPrefetchControl'0
+    | XFrameOptions -> XFrameOptions'0
+    | XXssProtection -> XXssProtection'0
+    end
+
+function deep_model_StandardHeader [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 313 12 313 52] (self: t_StandardHeader) : t_StandardHeaderModel
+ = [%#sname'4] model self
+
+function deep_model_ref_StandardHeader [@inline:trivial] (self: t_StandardHeader) : t_StandardHeaderModel =
+  [%#smodel] deep_model_StandardHeader self
+
+meta "rewrite_def" function deep_model_ref_StandardHeader
+
+let rec rank'0 (self: t_StandardHeader) (return (x: UInt8.t)) = any
+  [ return (result: UInt8.t) -> {[@stop_split] [@expl:rank ensures] [%#sname'2] UInt8.t'int result
+    = rank (deep_model_ref_StandardHeader self)}
+    (! return {result}) ]
+
+type t_H
+
+predicate inv_H (_1: t_H)
+
+predicate invariant_refmut_H [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+let rec hash_isize (self_: Int64.t) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash 'state' type invariant] [%#shash] inv_refmut_H state}
+  any [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] [%#shash'0] inv_H state.final} (! return {result}) ]
+
+predicate resolve_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_H
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec hash_StandardHeader
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 335 12 335 52]
+  (self: t_StandardHeader) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash 'state' type invariant] [%#sname'1] inv_refmut_H state}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = rank'0 [%#sname] {self} (fun (_x: UInt8.t) -> [ &_5 <- _x ] s1)
+    | s1 = Int64.of_int {UInt8.t'int _5} (fun (_x: Int64.t) -> [ &_4 <- _x ] s2)
+    | s2 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_7 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s3)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s3 = hash_isize [%#sname'0] {_4} {_7} (fun (_x: ()) -> [ &_ret <- _x ] s4)
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s5 = -{resolve_refmut_H state}- s6
+    | s6 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: t_StandardHeader = self
+  | & state: MutBorrow.t t_H = state
+  | & _4: Int64.t = Any.any_l ()
+  | & _5: UInt8.t = Any.any_l ()
+  | & _7: MutBorrow.t t_H = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

@@ -78,27 +78,11 @@ impl fmt::Debug for HdrName<'_> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 #[cfg_attr(not(creusot), derive(Eq, PartialEq))]
 enum Repr<T> {
     Standard(StandardHeader),
     Custom(T),
-}
-
-impl<T: fmt::Debug> fmt::Debug for Repr<T> {
-    #[cfg_attr(
-        creusot,
-        ensures(creusot_std::std::fmt::formatter_extends(
-            formatter.deep_model(),
-            (^formatter).deep_model()
-        ))
-    )]
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Repr::Standard(header) => formatter.debug_tuple("Standard").field(header).finish(),
-            Repr::Custom(value) => formatter.debug_tuple("Custom").field(value).finish(),
-        }
-    }
 }
 
 impl<T: Hash> Hash for Repr<T> {
@@ -125,44 +109,14 @@ pub enum ReprDeepModel<T> {
 }
 
 // Used to hijack the Hash impl
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 struct Custom(ByteStr);
 
-impl fmt::Debug for Custom {
-    #[cfg_attr(
-        creusot,
-        ensures(creusot_std::std::fmt::formatter_extends(
-            formatter.deep_model(),
-            (^formatter).deep_model()
-        ))
-    )]
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.debug_tuple("Custom").field(&self.0).finish()
-    }
-}
-
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 // Invariant: If lower then buf is valid UTF-8.
 struct MaybeLower<'a> {
     buf: &'a [u8],
     lower: bool,
-}
-
-impl fmt::Debug for MaybeLower<'_> {
-    #[cfg_attr(
-        creusot,
-        ensures(creusot_std::std::fmt::formatter_extends(
-            formatter.deep_model(),
-            (^formatter).deep_model()
-        ))
-    )]
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("MaybeLower")
-            .field("buf", &self.buf)
-            .field("lower", &self.lower)
-            .finish()
-    }
 }
 
 #[cfg(creusot)]
@@ -188,22 +142,18 @@ macro_rules! standard_headers {
                 [$($name_byte:literal),*]);
         )+
     ) => {
-        #[derive(Clone, Copy)]
+        #[derive(Debug, Clone, Copy)]
         enum StandardHeader {
             $(
                 $konst,
             )+
         }
 
-        const STANDARD_HEADER_DEBUG_NAMES: [&str; 81] = [
-            $(stringify!($konst),)+
-        ];
-
         // Test-only reference types retain rustc's original derive behavior so
         // the manual implementations below can be checked at the hasher-call
         // boundary, including enum tags and callback ordering.
         #[cfg(test)]
-        #[derive(Clone, Copy, Debug, Hash)]
+        #[derive(Clone, Copy, Hash)]
         enum LegacyStandardHeader {
             $(
                 $konst,
@@ -211,7 +161,7 @@ macro_rules! standard_headers {
         }
 
         #[cfg(test)]
-        #[derive(Debug, Hash)]
+        #[derive(Hash)]
         enum LegacyRepr<T> {
             Standard(LegacyStandardHeader),
             Custom(T),
@@ -288,7 +238,6 @@ macro_rules! standard_headers {
         impl StandardHeader {
             #[inline]
             #[cfg_attr(creusot, ensures(result@ == self.deep_model().rank()))]
-            #[cfg_attr(creusot, ensures(result@ < 81))]
             fn rank(&self) -> u8 {
                 match *self {
                     $(StandardHeader::$konst => $rank,)+
@@ -328,20 +277,6 @@ macro_rules! standard_headers {
                     }
                 )+
                 None
-            }
-        }
-
-        impl fmt::Debug for StandardHeader {
-            #[cfg_attr(
-                creusot,
-                ensures(creusot_std::std::fmt::formatter_extends(
-                    formatter.deep_model(),
-                    (^formatter).deep_model()
-                ))
-            )]
-            fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-                let rank = self.rank() as usize;
-                formatter.write_str(STANDARD_HEADER_DEBUG_NAMES.as_slice()[rank])
             }
         }
 
@@ -2712,17 +2647,6 @@ mod tests {
         inner: Repr<MaybeLower<'a>>,
     }
 
-    #[derive(Debug)]
-    #[allow(dead_code)]
-    struct LegacyCustom(ByteStr);
-
-    #[derive(Debug)]
-    #[allow(dead_code)]
-    struct LegacyMaybeLower<'a> {
-        buf: &'a [u8],
-        lower: bool,
-    }
-
     fn assert_hdr_name_debug_matches_derive(inner: Repr<MaybeLower<'_>>) {
         let actual = format!("{:?}", HdrName { inner: inner.clone() });
         let derived = format!("{:?}", DerivedHdrName { inner });
@@ -2741,41 +2665,6 @@ mod tests {
             buf: b"X\"Name",
             lower: false,
         }));
-    }
-
-    #[test]
-    fn manual_debug_implementations_match_the_original_derives() {
-        for &(header, legacy_header) in TEST_HASH_HEADERS {
-            assert_eq!(format!("{header:?}"), format!("{legacy_header:?}"));
-            assert_eq!(
-                format!("{:?}", Repr::<Custom>::Standard(header)),
-                format!("{:?}", LegacyRepr::<LegacyCustom>::Standard(legacy_header)),
-            );
-        }
-
-        let bytes = ByteStr::from_static("custom-name");
-        assert_eq!(
-            format!("{:?}", Custom(bytes.clone())),
-            format!("{:?}", LegacyCustom(bytes.clone())).replacen("LegacyCustom", "Custom", 1),
-        );
-        assert_eq!(
-            format!("{:?}", Repr::Custom(Custom(bytes.clone()))),
-            format!("{:?}", LegacyRepr::Custom(LegacyCustom(bytes)))
-                .replacen("LegacyCustom", "Custom", 1),
-        );
-
-        for &(buf, lower) in &[(b"custom-name" as &[u8], true), (b"X\"Name", false)] {
-            assert_eq!(
-                format!("{:?}", MaybeLower { buf, lower }),
-                format!("{:?}", LegacyMaybeLower { buf, lower })
-                    .replacen("LegacyMaybeLower", "MaybeLower", 1),
-            );
-            assert_eq!(
-                format!("{:?}", Repr::Custom(MaybeLower { buf, lower })),
-                format!("{:?}", LegacyRepr::Custom(LegacyMaybeLower { buf, lower }))
-                    .replacen("LegacyMaybeLower", "MaybeLower", 1),
-            );
-        }
     }
 
     #[derive(Debug, PartialEq, Eq)]
