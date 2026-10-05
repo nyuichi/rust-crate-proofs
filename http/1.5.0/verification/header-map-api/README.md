@@ -89,6 +89,75 @@ Robin Hood table invariant. The archive uses the named actual-source
 below reproduce the seven-method run; use the exact commands in the manifest
 for this separate helper snapshot.
 
+## Lookup-loop helper checkpoint
+
+The fresh actual-source proof for [`HeaderMap::find_with_hash`] records one
+own body leaf and eight call/specification support leaves, all successful, in
+[`evidence/run-2026-10-05-find-with-hash/manifest.json`](evidence/run-2026-10-05-find-with-hash/manifest.json).
+Its preconditions require the map's storage/table representation predicate
+`header_map_find_ready` and a nonempty map. A found result carries a bounded
+probe and bucket index, matching bucket/slot/input hashes, and the actual
+`HeaderName`/query `PartialEqModel` relation. `None` remains unconstrained.
+
+This is a one-helper result. It does not prove that constructors or mutations
+establish `header_map_find_ready`, lookup's absent-key completeness, or the
+public `get`/`get_mut`/`get_all`/`contains_key` wrappers. Those remain separate
+lookup and map-invariant work. The Creusot definition retains the native
+generic equality body and adds only the model type bounds needed to translate
+that existing comparison; the normal build keeps its original generic
+signature. The named `http_map_find_api_leaf` profile excludes unrelated
+map families only in the verification harness.
+
+## Lookup/getter body batch on current source
+
+The accepted resumed run is recorded in
+[`evidence/run-2026-10-05-map-lookup-getters-resume/manifest.json`](evidence/run-2026-10-05-map-lookup-getters-resume/manifest.json).
+It freshly emitted 13 COMAs from `map.rs` SHA
+`ca22bfb5673eba84281bf3b1738e831a15b94cfcb99b0f8e16cab4fa46f9ce6e` and
+`name.rs` SHA `8c4633906a8ecd6e30e7eb75f8ace00c9b9f89d5e5f4c325f7e6b10a4eee94d6`,
+then proved them through the shared HTTP wrapper. All 43 direct Why3 roots
+passed. The independent no-prover task print matched every proof JSON root;
+Astra separately accepted the batch as conditional modular body/refinement
+evidence. Its report and task audit are in the run directory.
+
+The batch covers seven `HeaderMap` bodies (`find`, `find_with_hash`, `get`,
+`get2`, `get_mut`, `get_all`, and `contains_key`) and three sealed key adapters
+(`HeaderName`, `&HeaderName`, and `&str`), plus their three trait-refinement
+checks. The root audit separates 10 actual body roots, 3 refinement roots, and
+30 imported support stubs. Those 30 roots are literal `true` stubs, not proofs
+of their callees.
+
+The contracts remain conditional and narrow. Each lookup body requires
+`header_map_find_ready`; `find_with_hash` also requires a nonempty entries
+vector. `find` and `find_with_hash` establish bounds and the slot/bucket/hash
+and key-model relations only for `Some`; `None` carries no absence theorem.
+The public getters have no functional result postcondition: they establish local
+call, index, and type-invariant obligations. `get_mut` exports no map frame or
+readiness-preservation postcondition. The sealed adapters establish only an
+in-range index for `Some`.
+
+The proof of `find` consumes an abstract `hash_elem_using` summary whose result
+is an arbitrary `HashValue`; the selected run does not prove actual hash
+semantics. Its summary has no false precondition, so this does not make the
+selected caller proof vacuous. The `&str` adapter consumes the actual
+`HdrName::from_bytes` parse/callback contract, which this map batch does not
+reprove. Astra found no selected-context impossible precondition or false HTTP
+axiom. The `RandomState` and `String::as_str` frontend warnings are from
+unselected code, while `BuildHasher::build_hasher` and `Hasher::finish` mark the
+unproved hash-helper body boundary.
+
+The WIP `append_value` exact-append/frame contract and the map insertion,
+mutation, growth, and actual-Map composition work remain unproved. This batch
+does not establish that constructors or mutations create
+`header_map_find_ready`, or prove slot coverage, Robin Hood probe order,
+key/hash coherence, or `None iff absent`. The named leaf profile only changes
+verification-only cfg branches; the native public API is unchanged.
+
+The prior handoff text referred to an untracked partial batch directory that
+was omitted from the recovery archive. Its proof JSON and COMAs were not
+available to revalidate, so its partial-pass counts are not evidence. The fresh
+run above is the source-linked record for this resumed work.
+
 ## Reproduce
 
 From this directory, emit current Coma after a package-scoped clean, then prove
