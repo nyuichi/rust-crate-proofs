@@ -1,6 +1,6 @@
 use creusot_std::prelude::{ensures, logic};
 #[cfg(creusot)]
-use creusot_std::prelude::{pearlite, Int};
+use creusot_std::prelude::Int;
 
 pub(crate) const CLASS_VALID: u8 = 0;
 pub(crate) const CLASS_QUERY: u8 = 1;

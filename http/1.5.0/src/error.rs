@@ -11,6 +11,8 @@ use crate::{header, status};
 #[path = "error/core.rs"]
 mod core;
 pub use self::core::{Error, Result};
+#[cfg(creusot)]
+pub use self::core::{error_model_ref, ErrorModelRef};
 use self::core::ErrorKind;
 
 impl fmt::Debug for Error {

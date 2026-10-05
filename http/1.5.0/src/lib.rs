@@ -190,6 +190,9 @@ mod error;
 mod extensions;
 
 pub use crate::error::{Error, Result};
+#[cfg(creusot)]
+#[doc(hidden)]
+pub use crate::error::{error_model_ref, ErrorModelRef};
 pub use crate::extensions::Extensions;
 #[doc(no_inline)]
 pub use crate::header::{HeaderMap, HeaderName, HeaderValue};

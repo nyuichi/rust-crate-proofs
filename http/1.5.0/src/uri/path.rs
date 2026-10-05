@@ -403,7 +403,7 @@ impl PathAndQuery {
     // This optimization relies on a dyn Any downcast, which Creusot does not
     // model. It affects allocation/sharing only; the verified constructors
     // below use the same scanner and return the same byte value.
-    #[cfg(not(http_uri_leaf))]
+    #[cfg(not(any(http_uri_leaf, http_uri_parts_leaf)))]
     pub fn from_maybe_shared<T>(src: T) -> Result<Self, InvalidUri>
     where
         T: AsRef<[u8]> + 'static,
@@ -688,7 +688,7 @@ impl fmt::Display for PathAndQuery {
         ))
     )]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if !self.data.is_empty() {
+        if self.data.len() != 0 {
             match self.data.as_bytes()[0] {
                 b'/' | b'*' => fmt.write_str(&self.data),
                 _ => {

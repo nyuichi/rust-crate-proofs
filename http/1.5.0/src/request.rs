@@ -154,8 +154,7 @@ use creusot_std::std::ops::{FnExt as _, FnOnceExt as _};
 /// #
 /// # fn main() {}
 /// ```
-#[allow(unexpected_cfgs)]
-#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Clone))]
+#[derive(Clone)]
 pub struct Request<T> {
     head: Parts,
     body: T,
@@ -166,7 +165,6 @@ pub struct Request<T> {
 /// The HTTP request head consists of a method, uri, version, and a set of
 /// header fields.
 #[allow(unexpected_cfgs)]
-#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Clone))]
 pub struct Parts {
     /// The request's method
     pub method: Method,
@@ -184,6 +182,19 @@ pub struct Parts {
     pub extensions: Extensions,
 
     _priv: (),
+}
+
+impl Clone for Parts {
+    fn clone(&self) -> Parts {
+        Parts {
+            method: self.method.clone(),
+            uri: self.uri.clone(),
+            version: self.version.clone(),
+            headers: self.headers.clone(),
+            extensions: self.extensions.clone(),
+            _priv: self._priv,
+        }
+    }
 }
 
 /// An HTTP request builder
@@ -274,11 +285,11 @@ where
     <T as TryInto<Uri>>::Error: Into<crate::Error>,
 {
     pearlite! {
-        exists<method_result: std::result::Result<Method, <Method as TryInto<Method>>::Error>> (
+        exists<method_result: std::result::Result<Method, <Method as TryInto<Method>>::Error>>
             <Method as TryInto<Method>>::try_into.postcondition((*method,), method_result)
                 && match method_result {
                     Ok(converted_method) => converted_method == *method
-                        && exists<uri_result: std::result::Result<Uri, <T as TryInto<Uri>>::Error>> (
+                        && exists<uri_result: std::result::Result<Uri, <T as TryInto<Uri>>::Error>>
                             <T as TryInto<Uri>>::try_into.postcondition((*uri,), uri_result)
                                 && match uri_result {
                                     Ok(converted_uri) => request_builder_is_valid(builder)
@@ -292,8 +303,7 @@ where
                                         && request_builder_version(builder) == None
                                         && request_builder_headers(builder) == None
                                         && request_builder_extensions(builder) == None,
-                                }
-                        ),
+                                },
                     Err(conversion_error) => !request_builder_is_valid(builder)
                         && request_builder_error_is_from(builder, conversion_error)
                         && request_builder_method(builder) == None
@@ -302,7 +312,6 @@ where
                         && request_builder_headers(builder) == None
                         && request_builder_extensions(builder) == None,
                 }
-        )
     }
 }
 
@@ -322,14 +331,14 @@ where
     <T as TryInto<Uri>>::Error: Into<crate::Error>,
 {
     pearlite! {
-        exists<source_method: Method> (
+        exists<source_method: Method>
             source_method.invariant()
                 && source_method.deep_model() == method_text
-                && exists<method_result: std::result::Result<Method, <Method as TryInto<Method>>::Error>> (
+                && exists<method_result: std::result::Result<Method, <Method as TryInto<Method>>::Error>>
                     <Method as TryInto<Method>>::try_into.postcondition((source_method,), method_result)
                         && match method_result {
                             Ok(converted_method) => converted_method.deep_model() == method_text
-                                && exists<uri_result: std::result::Result<Uri, <T as TryInto<Uri>>::Error>> (
+                                && exists<uri_result: std::result::Result<Uri, <T as TryInto<Uri>>::Error>>
                                     <T as TryInto<Uri>>::try_into.postcondition((*uri,), uri_result)
                                         && match uri_result {
                                             Ok(converted_uri) => request_builder_is_valid(builder)
@@ -346,8 +355,7 @@ where
                                                 && request_builder_version(builder) == None
                                                 && request_builder_headers(builder) == None
                                                 && request_builder_extensions(builder) == None,
-                                        }
-                                ),
+                                        },
                             Err(conversion_error) => !request_builder_is_valid(builder)
                                 && request_builder_error_is_from(builder, conversion_error)
                                 && request_builder_method(builder) == None
@@ -356,8 +364,6 @@ where
                                 && request_builder_headers(builder) == None
                                 && request_builder_extensions(builder) == None,
                         }
-                )
-        )
     }
 }
 
@@ -495,10 +501,9 @@ impl Request<()> {
     /// ```
     #[cfg_attr(creusot, requires(
         <T as TryInto<Uri>>::try_into.precondition((uri,))
-            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+            && forall<uri_error: <T as TryInto<Uri>>::Error>
                 <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
                     ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
-            )
     ))]
     #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
         &result,
@@ -529,10 +534,9 @@ impl Request<()> {
     /// ```
     #[cfg_attr(creusot, requires(
         <T as TryInto<Uri>>::try_into.precondition((uri,))
-            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+            && forall<uri_error: <T as TryInto<Uri>>::Error>
                 <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
                     ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
-            )
     ))]
     #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
         &result,
@@ -563,10 +567,9 @@ impl Request<()> {
     /// ```
     #[cfg_attr(creusot, requires(
         <T as TryInto<Uri>>::try_into.precondition((uri,))
-            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+            && forall<uri_error: <T as TryInto<Uri>>::Error>
                 <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
                     ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
-            )
     ))]
     #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
         &result,
@@ -597,10 +600,9 @@ impl Request<()> {
     /// ```
     #[cfg_attr(creusot, requires(
         <T as TryInto<Uri>>::try_into.precondition((uri,))
-            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+            && forall<uri_error: <T as TryInto<Uri>>::Error>
                 <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
                     ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
-            )
     ))]
     #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
         &result,
@@ -632,10 +634,9 @@ impl Request<()> {
     /// ```
     #[cfg_attr(creusot, requires(
         <T as TryInto<Uri>>::try_into.precondition((uri,))
-            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+            && forall<uri_error: <T as TryInto<Uri>>::Error>
                 <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
                     ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
-            )
     ))]
     #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
         &result,
@@ -666,10 +667,9 @@ impl Request<()> {
     /// ```
     #[cfg_attr(creusot, requires(
         <T as TryInto<Uri>>::try_into.precondition((uri,))
-            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+            && forall<uri_error: <T as TryInto<Uri>>::Error>
                 <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
                     ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
-            )
     ))]
     #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
         &result,
@@ -700,10 +700,9 @@ impl Request<()> {
     /// ```
     #[cfg_attr(creusot, requires(
         <T as TryInto<Uri>>::try_into.precondition((uri,))
-            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+            && forall<uri_error: <T as TryInto<Uri>>::Error>
                 <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
                     ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
-            )
     ))]
     #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
         &result,
@@ -734,10 +733,9 @@ impl Request<()> {
     /// ```
     #[cfg_attr(creusot, requires(
         <T as TryInto<Uri>>::try_into.precondition((uri,))
-            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+            && forall<uri_error: <T as TryInto<Uri>>::Error>
                 <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
                     ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
-            )
     ))]
     #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
         &result,
@@ -768,10 +766,9 @@ impl Request<()> {
     /// ```
     #[cfg_attr(creusot, requires(
         <T as TryInto<Uri>>::try_into.precondition((uri,))
-            && forall<uri_error: <T as TryInto<Uri>>::Error> (
+            && forall<uri_error: <T as TryInto<Uri>>::Error>
                 <T as TryInto<Uri>>::try_into.postcondition((uri,), Err(uri_error))
                     ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((uri_error,))
-            )
     ))]
     #[cfg_attr(creusot, ensures(request_fixed_method_model_post(
         &result,
@@ -1120,6 +1117,9 @@ impl<T: Default> Default for Request<T> {
 }
 
 impl<T: fmt::Debug> fmt::Debug for Request<T> {
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::fmt::formatter_extends(f.deep_model(), (^f).deep_model())
+    ))]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Request")
             .field("method", self.method())
@@ -1157,6 +1157,9 @@ impl Parts {
 }
 
 impl fmt::Debug for Parts {
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::fmt::formatter_extends(f.deep_model(), (^f).deep_model())
+    ))]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Parts")
             .field("method", &self.method)
@@ -1212,7 +1215,7 @@ impl Builder {
                 ==> <<T as TryInto<Method>>::Error as Into<crate::Error>>::into.precondition((e,))
     )))]
     #[cfg_attr(creusot, ensures(!request_builder_is_valid(&self) ==> request_builder_error(&result) == request_builder_error(&self)))]
-    #[cfg_attr(creusot, ensures(request_builder_is_valid(&self) ==> exists<converted: std::result::Result<Method, <T as TryInto<Method>>::Error>> (
+    #[cfg_attr(creusot, ensures(request_builder_is_valid(&self) ==> exists<converted: std::result::Result<Method, <T as TryInto<Method>>::Error>>
         <T as TryInto<Method>>::try_into.postcondition((method,), converted)
         && match converted {
             Ok(new_method) => request_builder_is_valid(&result)
@@ -1230,7 +1233,7 @@ impl Builder {
                 && request_builder_headers(&result) == None
                 && request_builder_extensions(&result) == None,
         }
-    )))]
+    ))]
     pub fn method<T>(self, method: T) -> Builder
     where
         T: TryInto<Method>,
@@ -1287,7 +1290,7 @@ impl Builder {
                 ==> <<T as TryInto<Uri>>::Error as Into<crate::Error>>::into.precondition((e,))
     )))]
     #[cfg_attr(creusot, ensures(!request_builder_is_valid(&self) ==> request_builder_error(&result) == request_builder_error(&self)))]
-    #[cfg_attr(creusot, ensures(request_builder_is_valid(&self) ==> exists<converted: std::result::Result<Uri, <T as TryInto<Uri>>::Error>> (
+    #[cfg_attr(creusot, ensures(request_builder_is_valid(&self) ==> exists<converted: std::result::Result<Uri, <T as TryInto<Uri>>::Error>>
         <T as TryInto<Uri>>::try_into.postcondition((uri,), converted)
         && match converted {
             Ok(new_uri) => request_builder_is_valid(&result)
@@ -1305,7 +1308,7 @@ impl Builder {
                 && request_builder_headers(&result) == None
                 && request_builder_extensions(&result) == None,
         }
-    )))]
+    ))]
     pub fn uri<T>(self, uri: T) -> Builder
     where
         T: TryInto<Uri>,

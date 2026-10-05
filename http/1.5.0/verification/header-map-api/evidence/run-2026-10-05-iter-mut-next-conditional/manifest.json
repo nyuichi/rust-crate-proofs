@@ -18,9 +18,68 @@
     "supporting_proved_leaves": 33,
     "total_keys": 34,
     "total_terminal_leaves": 112,
-    "proof_json_arity_checked": false,
-    "note": "The proof report contains 34 top-level goal trees and 112 recorded prover leaves. The own goal has 70 first-level split_vc children; 9 are nested split_vc nodes with 2 recorded successful children each. No null or empty child arrays were found. The current exact-arity checker reports nested arity unsupported, so no complete own-goal-set claim is made until those nested tasks are independently replayed.",
-    "proof_json_arity_status": "unchecked_nested_split_arity"
+    "proof_json_arity_checked": true,
+    "note": "All 34 top-level goal trees are present. Own goal arity was independently checked: 70 first-level tasks plus 9 selected nested two-child splits give 79 expected and recorded prover leaves. The full proof has 112 successful terminal leaves including 33 supporting goals.",
+    "proof_json_arity_status": "checked_nested_split_vc",
+    "nested_arity_audit": {
+      "method": "solver-free Why3 split_vc replay on each nested parent selected by the stored proof tree; no global second split was used",
+      "first_level_expected": 70,
+      "first_level_recorded": 70,
+      "nested_parent_indices": [
+        7,
+        12,
+        14,
+        16,
+        36,
+        40,
+        44,
+        46,
+        48
+      ],
+      "children_per_nested_parent": 2,
+      "nested_expected_tasks": 18,
+      "nested_recorded_prover_leaves": 18,
+      "task_indices": [
+        [
+          15,
+          16
+        ],
+        [
+          25,
+          26
+        ],
+        [
+          29,
+          30
+        ],
+        [
+          33,
+          34
+        ],
+        [
+          77,
+          78
+        ],
+        [
+          85,
+          86
+        ],
+        [
+          93,
+          94
+        ],
+        [
+          97,
+          98
+        ],
+        [
+          101,
+          102
+        ]
+      ],
+      "total_own_terminal_leaves": 79,
+      "note": "A global second split yields extra tasks by splitting already-proved conjunctions; the selected-parent replay matches the stored JSON tree."
+    }
   },
   "proof_command": "../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache <next_unsafe.coma> -- --features http_map_api_leaf --locked --offline",
   "source_fingerprints": [
@@ -71,7 +130,6 @@
     "iter_mut_storage_invariant and iter_mut_cursor_ready hold at call entry",
     "the final storage invariant is preserved",
     "map graph validity, cross-entry non-revisiting and public Iterator::next sequence refinement are not established here",
-    "Drain and raw removal are not covered",
-    "nested split_vc arity is not independently validated by validate_own_target.py; recorded proof leaves are reported but own-goal completeness remains unchecked"
+    "Drain and raw removal are not covered"
   ]
 }

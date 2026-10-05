@@ -176,8 +176,7 @@ use creusot_std::std::ops::{FnExt as _, FnOnceExt as _};
 /// #
 /// # fn main() {}
 /// ```
-#[allow(unexpected_cfgs)]
-#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Clone))]
+#[derive(Clone)]
 pub struct Response<T> {
     head: Parts,
     body: T,
@@ -188,7 +187,6 @@ pub struct Response<T> {
 /// The HTTP response head consists of a status, version, and a set of
 /// header fields.
 #[allow(unexpected_cfgs)]
-#[cfg_attr(not(any(http_composition_leaf, http_builder_entrypoints_leaf)), derive(Clone))]
 pub struct Parts {
     /// The response's status
     pub status: StatusCode,
@@ -203,6 +201,18 @@ pub struct Parts {
     pub extensions: Extensions,
 
     _priv: (),
+}
+
+impl Clone for Parts {
+    fn clone(&self) -> Parts {
+        Parts {
+            status: self.status.clone(),
+            version: self.version.clone(),
+            headers: self.headers.clone(),
+            extensions: self.extensions.clone(),
+            _priv: self._priv,
+        }
+    }
 }
 
 /// An HTTP response builder
@@ -677,6 +687,9 @@ impl<T: Default> Default for Response<T> {
 }
 
 impl<T: fmt::Debug> fmt::Debug for Response<T> {
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::fmt::formatter_extends(f.deep_model(), (^f).deep_model())
+    ))]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Response")
             .field("status", &self.status())
@@ -708,6 +721,9 @@ impl Parts {
 }
 
 impl fmt::Debug for Parts {
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::fmt::formatter_extends(f.deep_model(), (^f).deep_model())
+    ))]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Parts")
             .field("status", &self.status)
@@ -763,7 +779,7 @@ impl Builder {
                 ==> <<T as TryInto<StatusCode>>::Error as Into<crate::Error>>::into.precondition((e,))
     )))]
     #[cfg_attr(creusot, ensures(!response_builder_is_valid(&self) ==> response_builder_error(&result) == response_builder_error(&self)))]
-    #[cfg_attr(creusot, ensures(response_builder_is_valid(&self) ==> exists<converted: std::result::Result<StatusCode, <T as TryInto<StatusCode>>::Error>> (
+    #[cfg_attr(creusot, ensures(response_builder_is_valid(&self) ==> exists<converted: std::result::Result<StatusCode, <T as TryInto<StatusCode>>::Error>>
         <T as TryInto<StatusCode>>::try_into.postcondition((status,), converted)
         && match converted {
             Ok(new_status) => response_builder_is_valid(&result)
@@ -779,7 +795,7 @@ impl Builder {
                 && response_builder_headers(&result) == None
                 && response_builder_extensions(&result) == None,
         }
-    )))]
+    ))]
     pub fn status<T>(self, status: T) -> Builder
     where
         T: TryInto<StatusCode>,

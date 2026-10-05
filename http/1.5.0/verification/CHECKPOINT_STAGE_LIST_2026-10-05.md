@@ -1,98 +1,84 @@
-# First-checkpoint staging list — 2026-10-05
+# Incremental checkpoint staging list — 2026-10-05
 
-This list is for the root commit/push. The repository owner has already staged
-the production HTTP source/Cargo changes and the required `creusot-std` source
-support. This sub-agent has not run Git staging or commit commands.
+This is the curated file list for the next component checkpoint. The root agent
+handles staging and commits. It excludes generated working trees and does not
+authorize staging unrelated in-progress source changes.
 
-## Stage the checkpoint and runnable harnesses
-
-Stage these documentation and harness files/directories:
+## Checkpoint documents and source
 
 - `http/1.5.0/verification/CHECKPOINT_2026-10-05.md`
 - `http/1.5.0/verification/CHECKPOINT_STAGE_LIST_2026-10-05.md`
-- The checked-in verification harness inputs and area docs in
-  `http/1.5.0/verification/{bytes,byte-str,byte-eq,byte-ord,composition,convert-std,error-conversions,error-formatting,hash-std,header-map-api,headers,id-hasher,method,map-capacity,path-scanner,runtime-check,runtime-http,scalars,str-index,uri}/`:
-  `Cargo.toml`, `Cargo.lock` where present, `README.md`, `src/`, `tests/`,
-  scripts, and `why3find.json` where present. Stage no generated `verif/`
-  subtrees through this directory selector.
-- `http/1.5.0/verification/evidence/validate_own_target.py`
-- `http/1.5.0/verification/runtime-check/evidence/http-native-checkpoint-results-2026-10-05.json`
-- `http/1.5.0/verification/runtime-check/evidence/http-native-allfeatures-summary-2026-10-05.txt`
-- `http/1.5.0/verification/runtime-check/evidence/http-native-checkpoint-source-2026-10-05T08-03-09Z.json`
-- `http/1.5.0/verification/runtime-check/evidence/http-native-checkpoint-source-2026-10-05T08-03-09Z.tar.gz`
-- `http/1.5.0/verification/evidence/http-integrated-proof-frontier-2026-10-05.json`
-- `http/1.5.0/verification/evidence/http-default_verify_all_log-2026-10-05.log`
-- `http/1.5.0/verification/evidence/http-all_features_followup_log-2026-10-05.log`
-- `http/1.5.0/verification/evidence/http-proof-frontier-source-after-runs-2026-10-05.json`
-- `http/1.5.0/verification/runtime-check/HEADER_NAME.md` and
-  `tests/header_name_boundaries.rs`.
+- Current source files needed for the accepted groups: `src/header/name.rs`,
+  `src/header/value.rs`, `src/header/map.rs`, `src/request.rs`,
+  `src/response.rs`, and URI support sources listed by the accepted URI
+  manifests. `creusot-libs/creusot-std/src/std/num.rs` supplies the checked
+  power-of-two standard-library contract. `src/uri/authority.rs` and
+  `src/uri/mod.rs` have small post-emission changes; stage them only with their
+  recorded delta and the matching source-at-emission copies below.
+- Do not include unrelated or later unproved edits to these shared source
+  files; preserve the exact proof/source fingerprint links in the manifests.
 
-The native test evidence is the post-rebase snapshot. Older interim native
-snapshots are historical and are not needed for this first checkpoint.
+## Accepted proof and regression evidence
 
-## Stage accepted evidence archives and manifests
+- HeaderName: `verification/headers/evidence/archived_snapshots/name_hdrname_invariant_v1/`
+  `snapshot.json` (SHA-256
+  `2cdebd67096b95e4f61e81b15bd82d9f856dfa02314b274d20a6c38570bca5fb`),
+  `why3find.json`, all 195 emitted `.coma` files, and only the proof JSON files
+  for the 34 targets listed in `snapshot.json`'s `proof_results`. Exclude the
+  partial `parse_hdr` proof JSON and failed `HdrName` Debug refinement.
+- HeaderValue current helper: the complete
+  `verification/headers/evidence/archived_snapshots/value_hex_digit_repair_v1/`
+  archive and `verification/headers/evidence/header-value-debug-parity-2026-10-05.json`.
+- HeaderValue historical group: the complete
+  `verification/headers/evidence/archived_snapshots/value_complete_translation_v7/`
+  archive. Keep it labeled historical; it records the older `value.rs` source
+  SHA `1ab329864e57e80bd494fcc610ee0da3c7ac77c95c13fcf5a23647166a452e0c`.
+- Request/Response composition: the fresh
+  `verification/composition/evidence/run-2026-10-05-current-composition-full-clone/`
+  archive and its manifest (SHA-256
+  `c468e11225502a0f8fc80c05442a56c9f15f0b385ee3ab3b5732fc5901e4dc2a`). It
+  records 49 targets, 107 terminal leaves (65 own / 42 support), matching
+  proof-tree/run-log arities, and source-map SHA
+  `54d174cd6a830a50e101d376ab95209a2aad258d1b7f19d78d2e26a8e5bb1efd`. The
+  older 45-target archive is superseded; its old COMA hashes were not reused.
+- URI PathAndQuery Display:
+  `verification/uri/evidence/path-display-2026-10-05/` (manifest, three COMAs,
+  and their three proof JSON files).
+- URI Authority comparisons:
+  `verification/uri/evidence/authority-comparison-2026-10-05/` (manifest,
+  proof artifacts, proof logs, and `sources-at-emission/src/uri/{authority.rs,mod.rs}`).
+  The updated manifest SHA is
+  `190f60249b7e91a885646391de26de04420e8cc6f79487cdd0634f43289e098a`; all 69
+  declared artifact/log/source-copy hashes match. The manifest records the
+  post-emission `Parts::default` delta and Authority hash/helper deltas. The
+  source-emission snapshot is the proved comparison source; the later Hash
+  body proof is pending. Its focused runtime regression passes 1/1, as does
+  the comparison behavior regression.
+- HeaderMap conditional `IterMut::next_unsafe`:
+  `verification/header-map-api/evidence/run-2026-10-05-iter-mut-next-conditional/`
+  (manifest, one COMA, and matching proof JSON). Preserve its nested split
+  arity audit and one-call precondition limits.
+- HeaderMap capacity constructor pilot:
+  `verification/header-map-api/evidence/run-2026-10-05-capacity-constructor-lemma/`
+  (manifest, four exact COMA/proof artifacts, and captured source files). It
+  records the proved one-leaf power-of-two lemma and `try_with_capacity` body
+  proof, plus a passing normal HTTP library check.
+- Native regression evidence for the current post-rebase checkpoint:
+  `verification/runtime-check/evidence/http-native-checkpoint-results-2026-10-05.json`,
+  the matching all-features summary, and the source snapshot referenced by that
+  result file.
 
-Stage only the following curated evidence. Paths are repository-relative; each
-listed run directory is a curated archive with a manifest or associated
-run-level evidence. The HeaderName archive is intentionally limited to the
-single v7 snapshot so old duplicate snapshots and ICE output do not enter the
-first checkpoint.
+## Exclude
 
-- `http/1.5.0/verification/bytes/evidence/`
-- `http/1.5.0/verification/byte-str/evidence/`
-- `http/1.5.0/verification/byte-eq/evidence/creusot-std/partial_eq/seq_eq_u8_int_view_transport/`
-- `http/1.5.0/verification/byte-ord/evidence/`
-- `http/1.5.0/verification/hash-std/evidence/manifest.json`
-- `http/1.5.0/verification/hash-std/evidence/run-2026-10-05-hashword-modulo/`
-- `http/1.5.0/verification/map-capacity/evidence/manifest.json`
-- `http/1.5.0/verification/map-capacity/evidence/run-2026-10-05-manual-debug/`
-- `http/1.5.0/verification/header-map-api/evidence/run-2026-10-05-live-bound/`
-- `http/1.5.0/verification/header-map-api/evidence/run-2026-10-05-bucket-fields/`
-- `http/1.5.0/verification/header-map-api/evidence/run-2026-10-05-iter-mut-next-conditional/`
-- `http/1.5.0/verification/composition/evidence/request-entrypoints-2026-10-05.json`
-- `http/1.5.0/verification/composition/evidence/run-2026-10-05-request-shortcuts-current/`
-- `http/1.5.0/verification/composition/evidence/run-2026-10-05-builder-into-relay/`
-- `http/1.5.0/verification/composition/evidence/parts-defaults-2026-10-05.json`
-- `http/1.5.0/verification/composition/evidence/run-2026-10-05-default-field-relay/`
-- `http/1.5.0/verification/error-formatting/evidence/error-formatters-2026-10-05.json`
-- `http/1.5.0/verification/error-formatting/evidence/run-2026-10-05-error-formatters-current/`
-- `http/1.5.0/verification/uri/evidence/authority-utf8-boundaries-2026-10-05/`
-- `http/1.5.0/verification/uri/evidence/path-api-checkpoint-2026-10-05/`
-- `http/1.5.0/verification/headers/evidence/archived_snapshots/value_complete_translation_v7/`
-- `http/1.5.0/verification/method/evidence/final-2026-10-05.json` and
-  `outcomes.json`
-- `http/1.5.0/verification/scalars/evidence/final-2026-10-05.json`,
-  `nonhash-2026-10-05.json`, and `outcomes.json`
-- `http/1.5.0/verification/str-index/evidence/manifest.json`
-- `http/1.5.0/verification/convert-std/evidence/run-2026-10-05-slice-asref-identity/`
-
-For Method and Scalars, the accepted `.coma`/`proof.json` files are generated
-under ignored `verification/{method,scalars}/verif/`. Stage only targets listed
-as accepted by the corresponding final evidence manifest, matching the
-recorded COMA hashes. For Scalars, exclude
-`status_array_model_probe` and `status_array_model_borrowed`; they are named
-capability probes, not accepted body evidence. Do not add a whole generated
-`verif/` tree without this target filter.
-
-## Keep out of this checkpoint
-
-- Every live `verification/**/verif/` tree except the manifest-filtered Method
-  and Scalars targets above; the separate archived `.coma`/proof JSON
-  directories explicitly listed above are retained.
-- `creusot-libs/_creusot_erasure/`, `target/`, `.why3find/` runtime state,
-  Why3 sockets/logs, interrupted proof JSONs, and all `rustc-ice-*.txt` dumps.
-- `verification/headers/evidence/archived_snapshots/**` other than
-  `value_complete_translation_v7/`; the older copies are duplicated and
-  historical.
-- `verification/composition/evidence/run-2026-10-05-clean-builder/` and
-  `verification/header-map-api/evidence/run-2026-10-05-clean-map-api/`;
-  these are translation/diagnostic runs, not accepted proof archives.
-- `verification/map-capacity/evidence/attempts/`; the derived Debug attempt
-  was rejected and is superseded by the accepted manual Debug run.
-- `verification/headers/why3find.json` if it contains transient, unaccepted
-  target selections; keep the checked-in harness profile only if it matches
-  the reviewed source and named profile at freeze.
-
-The map capacity constructor additions and `num.rs` contract remain
-unverified source changes in this checkpoint; the checkpoint README labels
-them explicitly. Their presence in the source commit is not proof evidence.
+- All live `verification/**/verif/` trees, proof-server state, Why3 sockets,
+  interrupted proof JSON, `rustc-ice-*.txt`, `target/`, and
+  `creusot-libs/_creusot_erasure/`.
+- HeaderName partial `parse_hdr` proof output and the failed `HdrName` Debug
+  refinement.
+- HeaderMap capacity proof outputs outside the selected two-target archive;
+  in particular exclude stale generated `verif/` files and the earlier failed
+  assertion attempt.
+- The superseded 45-target composition archive; use the fresh 49-target
+  archive above.
+- The pre-invariant duplicate HeaderName archives and unrelated historical
+  native snapshots.

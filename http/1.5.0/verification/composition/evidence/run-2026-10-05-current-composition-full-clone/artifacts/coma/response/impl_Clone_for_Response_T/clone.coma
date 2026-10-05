@@ -1,0 +1,127 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 179 9 179 14 *)
+
+(* <response::Response<T> as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+let%span sresponse = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 181 4 181 15
+let%span sresponse'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 182 4 182 11
+let%span sresponse'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 179 9 179 14
+let%span sresponse'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 179 9 179 14
+let%span sresponse'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 207 14 207 18
+let%span sresponse'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 207 23 207 28
+
+use creusot.prelude.Any
+
+type t_StatusCode
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  status: t_StatusCode;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+type t_T
+
+type t_Response_T = { head: t_Parts; body: t_T }
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+predicate inv_Version (_1: t_Version)
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_StatusCode x.status
+    /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+predicate invariant_ref_Parts [@inline:trivial] (self: t_Parts) = [%#sinvariant] inv_Parts self
+
+meta "rewrite_def" predicate invariant_ref_Parts
+
+predicate inv_ref_Parts [@inline:trivial] (_1: t_Parts) = invariant_ref_Parts _1
+
+meta "rewrite_def" predicate inv_ref_Parts
+
+let rec clone_Parts (self: t_Parts) (return (x: t_Parts)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#sresponse'3] inv_ref_Parts self}
+  any
+  [ return (result: t_Parts) -> {[@stop_split] [@expl:clone result type invariant] [%#sresponse'4] inv_Parts result}
+    (! return {result}) ]
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate precondition_clone (self: ()) (args: t_T)
+
+axiom precondition_fndef:
+  forall args: t_T [precondition_clone () args]. (let self_ = args in [%#sclone] inv_ref_T self_)
+    -> precondition_clone () args
+
+predicate postcondition_once_clone (self: ()) (args: t_T) (result: t_T)
+
+axiom postcondition_fndef:
+  forall args: t_T, res: t_T [postcondition_once_clone () args res]. postcondition_once_clone () args res
+    -> (let self_ = args in inv_T res)
+
+let rec clone_T (self_: t_T) (return (x: t_T)) = {[@stop_split] [@expl:clone requires] precondition_clone () self_}
+  any
+  [ return (result: t_T) -> {[@stop_split] [@expl:clone ensures] postcondition_once_clone () self_ result}
+    (! return {result}) ]
+
+predicate inv_Response_T (_1: t_Response_T)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Response_T [inv_Response_T x]. inv_Response_T x
+    = (inv_Parts x.head /\ inv_T x.body)
+
+predicate invariant_ref_Response_T [@inline:trivial] (self: t_Response_T) = [%#sinvariant] inv_Response_T self
+
+meta "rewrite_def" predicate invariant_ref_Response_T
+
+predicate inv_ref_Response_T [@inline:trivial] (_1: t_Response_T) = invariant_ref_Response_T _1
+
+meta "rewrite_def" predicate inv_ref_Response_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_Response_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 179 9 179 14]
+  (self: t_Response_T) (return (x: t_Response_T)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#sresponse'1] inv_ref_Response_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- self.head ] s1
+    | s1 = clone_Parts [%#sresponse] {_4} (fun (_x: t_Parts) -> [ &_2 <- _x ] s2)
+    | s2 = [ &_7 <- self.body ] s3
+    | s3 = clone_T [%#sresponse'0] {_7} (fun (_x: t_T) -> [ &_5 <- _x ] s4)
+    | s4 = [ &_ret <- { head = _2; body = _5 } ] s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: t_Response_T = Any.any_l ()
+  | & self: t_Response_T = self
+  | & _2: t_Parts = Any.any_l ()
+  | & _4: t_Parts = Any.any_l ()
+  | & _5: t_T = Any.any_l ()
+  | & _7: t_T = Any.any_l () ])
+  [ return (result: t_Response_T) ->
+  {[@stop_split] [@expl:clone result type invariant] [%#sresponse'2] inv_Response_T result}
+    (! return {result}) ]

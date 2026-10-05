@@ -1,0 +1,86 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 633 4 633 31 *)
+
+(* response::Response<T> *)
+
+let%span sresponse = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 633 21 633 25
+let%span sresponse'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 633 30 633 31
+let%span sresponse'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 632 14 632 43
+let%span sresponse'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 238 4 238 17
+
+use creusot.prelude.Any
+
+type t_StatusCode
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  status: t_StatusCode;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+predicate inv_Version (_1: t_Version)
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_StatusCode x.status
+    /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+type t_T
+
+type t_Response_T = { head: t_Parts; body: t_T }
+
+predicate resolve_StatusCode (_1: t_StatusCode)
+
+predicate resolve_Version (_1: t_Version)
+
+predicate resolve_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate resolve_Extensions (_1: t_Extensions)
+
+predicate resolve_Parts (_1: t_Parts)
+
+axiom resolve_axiom [@rewrite]: forall x: t_Parts [resolve_Parts x]. resolve_Parts x
+    = (resolve_StatusCode x.status
+    /\ resolve_Version x.version /\ resolve_HeaderMap_HeaderValue x.headers /\ resolve_Extensions x.extensions)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Response_T (_1: t_Response_T)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Response_T [inv_Response_T x]. inv_Response_T x
+    = (inv_Parts x.head /\ inv_T x.body)
+
+function response_body_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 237 0 237 51] (response: t_Response_T) : t_T
+ = [%#sresponse'2] response.body
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec into_body_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 633 4 633 31]
+  (self: t_Response_T) (return (x: t_T)) =
+  {[@stop_split] [@expl:into_body 'self' type invariant] [%#sresponse] inv_Response_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_Parts self.head} any) ]
+    | s1 = -{resolve_Parts self.head}- s2
+    | s2 = [ &_ret <- self.body ] s3
+    | s3 = return {_ret} ] ] [ & _ret: t_T = Any.any_l () | & self: t_Response_T = self ])
+  [ return (result: t_T) ->
+  {[@stop_split] [@expl:into_body_T ensures] ([@stop_split] [@expl:into_body result type invariant] [%#sresponse'0] inv_T result)
+    /\ ([@stop_split] [@expl:into_body ensures] [%#sresponse'1] result = response_body_T self)}
+    (! return {result}) ]

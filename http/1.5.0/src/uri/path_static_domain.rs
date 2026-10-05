@@ -1,7 +1,7 @@
 //! Public, verifier-only description of the inputs accepted by
 //! `PathAndQuery::from_static`.
 
-use creusot_std::prelude::{logic, pearlite, Int, Seq};
+use creusot_std::prelude::{logic, Int, Seq};
 
 #[doc(hidden)]
 #[logic(open)]

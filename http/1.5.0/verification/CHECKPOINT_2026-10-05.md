@@ -27,36 +27,33 @@ stand-ins.
 |---|---|---|
 | `Method` | The final Method snapshot records 103 targets and 877 successful leaves (737 own, 140 supporting), including all nine exact fixed-method constructors. The HTTP Request shortcut batch separately proves 9 own bodies, one per shortcut, with 108 supporting goals. | The Method harness is a leaf source proof. Request/Response default constructors and the full builder chain still depend on opaque published component contracts. |
 | `StatusCode` / `Version` | The scalar snapshot records 80 supported targets and 381 successful leaves (133 own, 248 supporting). | The 62 numeric associated constants remain excluded after a recorded constant-translation failure. |
-| `HeaderValue` | The latest durable v7 snapshot records 60 targets and 169 own leaves: 42 comparison targets (40 `PartialEq`/`PartialOrd`, 2 `Ord::cmp`) / 116 leaves, 9 getter/sensitivity/`AsRef`/`Clone` targets / 16 leaves, 2 byte-validation targets / 19 leaves, `from_static` / 5 leaves, and 6 conversion targets / 13 leaves. | This is a selected comparison/accessor/validation/conversion slice. Other constructors, formatting, and the full value API are not included in that count. The `HeaderValue` source fingerprint matches the current source; read the manifest for supporting premises. |
+| `HeaderValue` v7 archive | The archived v7 snapshot records 67 targets and 184 own leaves, including `HeaderValue::to_str` / 5 leaves. | This is historical for `value.rs` SHA `1ab329864e57e80bd494fcc610ee0da3c7ac77c95c13fcf5a23647166a452e0c`; current `value.rs` is a different source snapshot. Do not aggregate it with current-source evidence. |
+| `HeaderValue::hex_digit` | The focused current-source proof closes 4 own leaves on `value.rs` SHA `1009a163a8f3dc853d228d8fc25de07cc176c974aa278361b274c4e72c8702e9`. A separate runtime parity check compares the old formatter output across all 256 byte values. | This is one helper and a runtime regression check, not a fresh proof of the v7 API group. |
+| `HeaderName` | The sealed snapshot at `verification/headers/evidence/archived_snapshots/name_hdrname_invariant_v1/snapshot.json` records 34 accepted targets and 280 own leaves on source SHA `fbb82430831eee11bbb5d6487edfe6975f89d211e0757566efd4843b9baaa63f`. Its 34 proof JSON artifacts and all 195 recorded Comas passed the snapshot hash check. | `parse_hdr` remains a separate partial attempt at 35/37 own leaves; its two unresolved leaves are excluded. The failed `HdrName` Debug refinement is also excluded. This does not establish complete parser behavior. |
 | `ByteStr` / bytes consumers | The ByteStr and bytes manifests record the actual included HTTP `ByteStr` bodies and 36 actual bytes consumers (79 consumer VCs), with exact byte-sequence contracts. | The pinned `bytes` implementation and the documented Creusot UTF-8 boundary remain premises/limitations; these are not proofs of the dependency crate. `ByteStr`'s unsafe-constructor panic text differs from the published implementation. |
 | HeaderMap capacity/index helpers | The map-capacity manifest records 15 source targets and 30 successful leaves, including `desired_pos` and `probe_distance`. | The private callers' power-of-two, mask, and range invariants are not proved at all HeaderMap call sites. This does not prove insertion, lookup, growth, removal, or the map as a whole. |
-| HeaderMap actual-source leaves | The named `http_map_api_leaf` snapshot records `new`, `default`, `len`, `keys_len`, `is_empty`, `clear`, and `capacity`, plus the allocation-bound/Vec probes: 47/49 total leaves pass. In `len`, 6 own leaves pass and 2 remain open; its supporting calls pass. The conditional `IterMut::next_unsafe` run reports 79 own prover leaves and 33 supporting leaves (112 total); every recorded leaf is non-null. | `next_unsafe` has nine nested `split_vc` nodes. Their recorded children are successful, but the current checker does not independently replay nested task arity, so the own-goal set remains arity-unchecked in this checkpoint. The method assumes storage/cursor-ready preconditions; map graph validity, cross-entry non-revisiting, and public Iterator refinement are not established. Drain and raw removal remain open. The current source also contains an unverified capacity-contract pilot. |
-| Request/Response composition | The current request-shortcut archive proves the 9 fixed Request methods under explicit generic conversion callback premises. `Builder::and_then` has separate conditional callback-relay evidence. The Error formatter archive proves both outer formatter bodies and both refinements (4 own leaves). | Formatter contracts establish append-only formatter-model behavior, not exact output bytes. `Error::is`, `get_ref`, and `source` are excluded from that named profile because trait-object translation is unsupported. Dynamic Extensions and full default field state remain outside these results. |
-| URI | The URI path API checkpoint and authority UTF-8 manifest record selected actual-source URI groups and exact artifacts for their recorded profiles. | The URI owner's `PathAndQuery` comparison group has 28 targets and 125 terminal leaves, with all own goals closed; `Display::fmt` remains open at 1/2 own goals. Other constructors and API closures are profile-scoped; see the URI checkpoint manifest. |
+| HeaderMap capacity constructors | The curated [two-target archive](header-map-api/evidence/run-2026-10-05-capacity-constructor-lemma/manifest.json) proves `max_size_is_power_of_two` (1 own leaf) and actual-source `HeaderMap::try_with_capacity` (13 own + 16 call/spec leaves). Its named-profile frontend and normal HTTP library `cargo check` both pass. | This proves the selected constructor under the named leaf profile; the `usize::checked_next_power_of_two` standard-library contract is a TCB premise. It does not prove the integrated HeaderMap invariant or all capacity/reservation APIs. |
+| HeaderMap actual-source leaves | The named `http_map_api_leaf` snapshot records `new`, `default`, `len`, `keys_len`, `is_empty`, `clear`, and `capacity`, plus the allocation-bound/Vec probes: 47/49 total leaves pass. In `len`, 6 own leaves pass and 2 remain open; its supporting calls pass. The conditional `IterMut::next_unsafe` run has 79 own leaves and 33 supporting leaves (112 total); the 70 first-level tasks and nine selected two-child splits were checked against the archived tree. | `next_unsafe` assumes storage/cursor-ready preconditions; map graph validity, cross-entry non-revisiting, and public Iterator refinement are not established. Drain and raw removal remain open. |
+| Request/Response composition | The fresh sealed archive records 49 targets with 107 terminal leaves: 65 own and 42 call/spec support leaves. All 49 proof JSON trees match the run-log arities. It includes 30 structural API bodies, three Builder version bodies, Parts Clone, generic Request/Response Clone bodies and refinements, and four Debug bodies/refinements. | The manifest is bound to source-map SHA `54d174cd6a830a50e101d376ab95209a2aad258d1b7f19d78d2e26a8e5bb1efd` and records source stability during proof. Parts Clone relies on imported field Clone contracts, especially HeaderMap/Extensions. Debug proves append preservation, not exact rendered bytes. Builder header/extension methods and `Error::is`, `get_ref`, and `source` remain outside the named profile because their respective dependencies are unresolved or trait-object translation is unsupported. |
+| URI | The URI path API checkpoint records selected actual-source groups. `PathAndQuery` Display closes the body, refinement, and transitive formatter helper: 31 own leaves (25 + 3 + 3). Its comparison checkpoint has 28 targets and 125 terminal leaves, with first-level and nested task arities checked. The Authority comparison archive records 119 own leaves (44 helper, 41 PartialEq, 34 PartialOrd) and a native comparison regression check of 1/1. | These are named URI leaf-harness results, not a full URI API proof. The comparison run is bound to archived Authority source SHA `5b5698cb74cfc68c84f234481e6291c1112b1e80cbcf7fdd56d573b750b5ac5d`; the current file is SHA `fd3f129ab0683ba62f747a18f6e43106888bdb6224d4f7e4477e389ef913828f`. A post-emission runtime regression for the helper-based `Authority::hash` passes 1/1, but proof of that changed Hash body is pending. `Parts::default` in `uri/mod.rs` is also a post-emission source delta. Other URI constructors and API closures remain profile-scoped. |
 
 ## Historical or partial results
 
-- `HeaderName` source at checkpoint SHA
-  `fbb82430831eee11bbb5d6487edfe6975f89d211e0757566efd4843b9baaa63f` passes
-  its current named frontend check. The archived translation/proof snapshots
-  predate the current source; callback-contract changes affect the
-  `from_bytes` and `from_static` proof obligations. Do not describe the full
-  current HeaderName proof chain as fresh until those caller artifacts are
-  regenerated and checked.
-- Archived HeaderName results include useful constructor, equality, standard
-  spelling, and refinement work, but the current callback contracts changed
-  the `from_bytes` and `from_static` tasks. The latest native check does not
-  upgrade those artifacts into current proof results. The previous evidence
-  reported 8 hash-related targets/51 leaves and several constructor/equality
-  batches; they remain historical until the current callers are replayed.
+- The sealed `HeaderName` snapshot records 34 accepted current-source targets
+  and 280 own leaves. Its separate `parse_hdr` attempt has two unresolved
+  leaves and is excluded from that accepted count.
+- Earlier HeaderName archives include useful constructor, equality, standard
+  spelling, and refinement work. The 8 hash-related targets/51 leaves and
+  other pre-invariant batches remain historical; only the exact targets listed
+  in the sealed 34-target snapshot count as accepted current-source results.
 - The Builder known-field/default relay has 11 accepted own goals in its
   archived run, but its manifest marks that run historical after dependent
   source changes. It gives conditional evidence for GET, `/`, HTTP/1.1, and
   response status 200; it does not establish exact HeaderMap or Extensions
   state.
-- The composition field-accessor, mutator, parts, and `map` evidence is a
-  named-profile leaf result. The current Request shortcut result is separate;
-  older broad builder manifests are not proof of an integrated builder.
+- The composition evidence is a named-profile leaf result. Request shortcuts
+  and Builder callbacks retain their separate conditional contracts; this is
+  not a proof of every Builder setter or the integrated crate.
 - `Builder::and_then` has accepted own-body results under its conditional
   `FnOnce` callback contracts. Those results do not establish arbitrary
   `Extensions` contents or prove every setter call.
@@ -66,34 +63,32 @@ stand-ins.
 
 ## Pending work and current non-claims
 
-- The HeaderMap capacity API pilot in `src/header/map.rs` and the matching
-  `usize::checked_next_power_of_two` contract in `creusot-libs` are source
-  changes only at this checkpoint. They have no accepted frontend or proof
-  result yet; the standard-library declaration is a TCB contract if retained.
+- The broader HeaderMap reserve/growth/lookup family remains open. The
+  successful capacity-constructor pilot above does not prove those operations
+  or the map's global table invariant. The standard-library
+  `checked_next_power_of_two` declaration is a TCB contract, not a proof of the
+  Rust standard-library body.
 - `HeaderMap::len` still has the two generic layout obligations above. The
   existing permission helper proves a `Vec` allocation bound only when called
   from a real borrowed Vec; it cannot be called from pure logic. A live
   positive generic element does not currently imply a nonzero generic ADT
   layout in the model.
-- The conditional `IterMut::next_unsafe` run preserves its storage invariant
-  for one call and has no null recorded leaves, but its nested split arities
-  have not been independently checked. The public Iterator's repeated-call
-  graph invariant and Drain ownership transition remain open. No full
-  raw-pointer or map-safety claim is made.
-- The URI `Display::fmt` body has one unresolved own leaf. HeaderName's current
-  callback callers need fresh proof artifacts. Status constants remain
-  excluded. These are not hidden by aggregate counts.
+- The conditional `IterMut::next_unsafe` body proof preserves its storage
+  invariant for one call, with all 79 own leaves independently arity-checked.
+  The public Iterator's repeated-call graph invariant and Drain ownership
+  transition remain open. No full raw-pointer or map-safety claim is made.
+- The separate `HeaderName::parse_hdr` attempt remains at 35/37 own leaves;
+  its two open leaves are outside the accepted Name target count. Status
+  constants remain excluded. These are not hidden by aggregate counts.
 - `verify-all.bash` is a crate-level pipeline check and may stop at the first
   frontend/proof failure. Its outcome is recorded separately from the accepted
   leaf results above; it is not a substitute for the exact target manifests.
-- The required `verify-all.bash` default stage and a separate all-features
-  follow-up both stop during frontend compilation, before Why3 generates VCs.
-  Each reports the same 27 errors: 8 missing root exports for
-  `ErrorModelRef`/`error_model_ref`, 17 deny-level unused-parentheses
-  diagnostics, and 2 unused Pearlite imports. These are source integration
-  errors, not accepted external limitations. The captured 172-file source hash
-  was unchanged during both runs. Full logs and the exact failure frontier are
-  in `verification/evidence/http-integrated-proof-frontier-2026-10-05.json`.
+- An earlier integrated check stopped before VC generation with 27 frontend
+  diagnostics: 8 missing root exports, 17 unused-parentheses diagnostics, and
+  2 unused Pearlite imports. Its logs and unchanged-source hash are retained
+  under `verification/evidence/`. This checkpoint does not claim a fresh
+  integrated production check; in-progress frontend results are recorded only
+  after the corresponding source snapshot is frozen.
 
 ## Native regression snapshot
 
