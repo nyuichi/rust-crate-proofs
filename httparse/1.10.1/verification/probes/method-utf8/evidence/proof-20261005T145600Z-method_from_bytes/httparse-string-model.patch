@@ -1,0 +1,106 @@
+--- a/creusot/src/backend/clone_map.rs
++++ b/creusot/src/backend/clone_map.rs
+@@ -48,6 +48,7 @@
+     UInt64,
+     UInt128,
+     Char,
++    Seq,
+     Bool,
+     MutBor,
+     Slice,
+@@ -167,6 +168,7 @@
+             (PreMod::UInt64, true) => &["creusot", "int", "UInt64BW"],
+             (PreMod::UInt128, true) => &["creusot", "int", "UInt128BW"],
+             (PreMod::Char, _) => &["creusot", "prelude", "Char"],
++            (PreMod::Seq, _) => &["seq", "Seq"],
+             (PreMod::Opaque, _) => &["creusot", "prelude", "Opaque"],
+             (PreMod::Bool, _) => &["creusot", "prelude", "Bool"],
+             (PreMod::MutBor, _) => &["creusot", "prelude", "MutBorrow"],
+--- a/creusot/src/backend/ty.rs
++++ b/creusot/src/backend/ty.rs
+@@ -121,7 +121,8 @@
+             .tapp([translate_ty(ctx, names, span, *ty)]),
+         Array(ty, _) => MlT::qconstructor(names.in_pre(PreMod::Slice, "array"))
+             .tapp([translate_ty(ctx, names, span, *ty)]),
+-        Str => MlT::qconstructor(name::string()),
++        Str => MlT::qconstructor(names.in_pre(PreMod::Seq, "seq"))
++            .tapp([MlT::qconstructor(names.in_pre(PreMod::Char, "t"))]),
+         Never => MlT::unit(),
+         RawPtr(_, _) => MlT::qconstructor(names.in_pre(PreMod::Opaque, "ptr")),
+         Closure(id, subst)
+--- a/creusot/src/backend/term.rs
++++ b/creusot/src/backend/term.rs
+@@ -132,6 +132,24 @@
+ }
+ 
+ impl<'tcx, N: Namer<'tcx>> Lower<'_, 'tcx, N> {
++    fn lower_string_literal(&self, string: &str) -> Exp {
++        let char_ty = Type::qconstructor(self.names.in_pre(PreMod::Char, "t"));
++        let seq_ty = Type::qconstructor(self.names.in_pre(PreMod::Seq, "seq")).tapp([char_ty]);
++        if string.is_empty() {
++            return Exp::qvar(self.names.in_pre(PreMod::Seq, "empty")).ascribe(seq_ty);
++        }
++        let elts: Box<[Exp]> = string
++            .chars()
++            .map(|ch| {
++                Exp::qvar(self.names.in_pre(PreMod::Char, "of_int"))
++                    .app([Constant::Int(ch as u32 as i128, None).into()])
++            })
++            .collect();
++        let seq = Exp::qvar(self.names.in_pre(PreMod::Seq, "create"))
++            .app([Exp::int(elts.len() as i128), Exp::FunLiteral(elts)]);
++        seq.ascribe(seq_ty)
++    }
++
+     fn lower_term(&self, term: &Term<'tcx>) -> Exp {
+         match &term.kind {
+             TermKind::Lit(l) => self.lower_literal(l),
+@@ -561,7 +576,7 @@
+                 Constant::Float(f.0, Some(why_ty)).into()
+             }
+             Literal::ZST => Exp::unit(),
+-            Literal::String(ref string) => Constant::String(string.clone()).into(),
++            Literal::String(ref string) => self.lower_string_literal(string),
+         }
+     }
+ }
+--- a/creusot/src/translation/pearlite/from_thir.rs
++++ b/creusot/src/translation/pearlite/from_thir.rs
+@@ -325,6 +325,7 @@
+                         }
+                     }
+                     LitKind::Char(c) => Literal::Char(c),
++                    LitKind::Str(symbol, _) => Literal::String(symbol.as_str().to_owned()),
+                     _ => self.ctx.dcx().span_bug(span, "Unsupported literal"),
+                 };
+                 Ok(Term { ty, span, kind: TermKind::Lit(lit) })
+--- a/prelude-generator/prelude.coma
++++ b/prelude-generator/prelude.coma
+@@ -42,23 +42,23 @@
+   type t
+ 
+   function to_int (x : t) : int
+-  axiom to_int: forall c. 0 <= to_int c < 0x10FFFF /\ not(0xD800 <= to_int c < 0xE000)
++  axiom to_int: forall c. 0 <= to_int c < 0x110000 /\ not(0xD800 <= to_int c < 0xE000)
+   axiom extensionality:
+     forall x y: t [to_int x, to_int y]. to_int x = to_int y -> x = y
+ 
+   function of_int (n: int) : t
+-  axiom to_of_int: forall n [of_int n]. 0 <= n < 0x10FFFF /\ not(0xD800 <= n < 0xE000) -> to_int (of_int n) = n
++  axiom to_of_int: forall n [of_int n]. 0 <= n < 0x110000 /\ not(0xD800 <= n < 0xE000) -> to_int (of_int n) = n
+ 
+   predicate le [@inline:trivial] (a:t) (b:t) = to_int a <= to_int b
+   predicate lt [@inline:trivial] (a:t) (b:t) = to_int a < to_int b
+   predicate ge [@inline:trivial] (a:t) (b:t) = to_int a >= to_int b
+   predicate gt [@inline:trivial] (a:t) (b:t) = to_int a > to_int b
+ 
+-  let of_int (n : int) { 0 <= n < 0x10FFFF } { not(0xD800 <= n < 0xE000) }
++  let of_int (n : int) { 0 <= n < 0x110000 } { not(0xD800 <= n < 0xE000) }
+     (ret (result : t) { to_int result = n }) = any
+ 
+   let of_BV256 (n: BV256.t)
+-    { [@expl:arithmetic overflow] BV256.t'int n >= 0 /\ BV256.t'int n < 0x10FFFF }
++    { [@expl:arithmetic overflow] BV256.t'int n >= 0 /\ BV256.t'int n < 0x110000 }
+     { not(0xD800 <= BV256.t'int n < 0xE000) }
+     (ret (result: t)  { to_int result = BV256.t'int n}) = any
+ end
