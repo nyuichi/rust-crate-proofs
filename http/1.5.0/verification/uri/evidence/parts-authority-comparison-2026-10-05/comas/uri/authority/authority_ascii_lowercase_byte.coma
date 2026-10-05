@@ -1,0 +1,46 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 936 0 936 49 *)
+
+let%span sauthority = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 937 15 937 19
+let%span sauthority'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 937 31 937 35
+let%span sauthority'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 938 23 938 27
+let%span sauthority'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 938 16 938 20
+let%span sauthority'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 938 15 938 28
+let%span sauthority'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 938 8 938 28
+let%span sauthority'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 935 28 935 71
+let%span sauthority'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 849 16 849 71
+
+use creusot.int.UInt8
+use creusot.prelude.Any
+use int.Int
+
+function authority_fold_ascii_byte [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 848 0 848 50] (byte: int) : int
+ = [%#sauthority'6] if 65 <= byte /\ byte <= 90 then byte + 32 else byte
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec authority_ascii_lowercase_byte
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 936 0 936 49]
+  (byte: UInt8.t) (return (x: UInt8.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- UInt8.ge byte ([%#sauthority] (65: UInt8.t)) ] s1
+    | s1 = any [ br0 -> {_4 = false} (! bb5) | br1 -> {_4} (! bb1) ] ]
+  | bb1 = s0
+    [ s0 = [ &_6 <- UInt8.le byte ([%#sauthority'0] (90: UInt8.t)) ] s1
+    | s1 = any [ br0 -> {_6 = false} (! bb5) | br1 -> {_6} (! bb2) ] ]
+  | bb2 = s0
+    [ s0 = UInt8.sub [%#sauthority'3] {[%#sauthority'2] (97: UInt8.t)} {[%#sauthority'1] (65: UInt8.t)}
+        (fun (_x: UInt8.t) -> [ &_9 <- _x ] s1)
+    | s1 = UInt8.add [%#sauthority'4] {byte} {_9} (fun (_x: UInt8.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ]
+  | bb5 = s0 [ s0 = [ &_ret <- byte ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: UInt8.t = Any.any_l ()
+  | & byte: UInt8.t = byte
+  | & _4: bool = Any.any_l ()
+  | & _6: bool = Any.any_l ()
+  | & _9: UInt8.t = Any.any_l () ])
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:authority_ascii_lowercase_byte ensures] [%#sauthority'5] UInt8.t'int result
+    = authority_fold_ascii_byte (UInt8.t'int byte)}
+    (! return {result}) ]
