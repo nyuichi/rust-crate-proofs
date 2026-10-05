@@ -1,0 +1,50 @@
+Exact-source extraction record — bytes 1.11.1 `UninitSlice`
+
+Runtime source: `src/buf/uninit_slice.rs`
+Checkpoint baseline source SHA256 at HEAD: `9351ebdc8568fd99ed559335590b87a0cd1da887fefcb629b473690d40b2036d`
+Current runtime source SHA256: `4576f0fcc4476cba18db594399db14dfa966df0da69975914a5c3b984757d529`
+Extractor: `verification/probes/actual-uninit-slice/build.rs`
+Current extractor SHA256: `dcbbc9d3efaacaf04078d7079c08e794f1ea962d79786f5f533e354778f3ec35`
+Current expanded generated source SHA256: `926799f7a285c4ae22da2217476cd8dabe5887b7d22c83721d71a31678fdbde7`
+
+The default extraction contains the transparent wrapper and open view,
+`new`, `uninit`, `write_byte`, `copy_from_slice`, `len`, and both borrowed-slice
+`From` implementations. The `remaining_apis` feature adds exact `uninit_ref`,
+`as_mut_ptr`, and `as_uninit_slice_mut` source methods. The unsafe mutable-slice
+projection requires every currently `Some` slot to remain `Some` in the final
+wrapper view; its body preserves the current and prophetic backing-slice model.
+The `range_full_index` feature adds the source index macro's RangeFull model
+branch and checks that its bodies match the runtime macro bodies after
+whitespace normalization.
+
+The current expanded `remaining_apis,range_full_index` proof reports `Proved
+(12 files)`, and the native suite passes 3/3 tests. Exact source, generated
+extraction, proof reports, Why3 sessions, logs, and checksums are archived in
+`evidence/positive-expanded-rangefull.tar.gz` (checksum recorded alongside the
+archive).
+
+The strengthened negative caller starts with a known MaybeUninit slot and
+specifies a final None. Its deinitialization postcondition proves, while the
+initially Some slot remain Some. The exact source, generated extraction, proof
+reports, Why3 session, and log are in `evidence/deinitialize-negative.tar.gz`
+with its checksum in the adjacent `.sha256` file.
+The prior `ensures(false)` control demonstrated that this same unsafe caller
+could prove when the requirement was missing; that pre-repair artifact is
+`evidence/unsafe-deinitialization-counterexample.tar.gz` (SHA256
+`72f40f13fab44da7be5c0d8f87369cd4f17b3d0b971108cdde8e9b93c0bbe281`). The
+repaired scratch audit and ghost-mutation control are in
+`evidence/prophetic-safety-rejects-deinitialization.tar.gz` (SHA256
+`13d4353efd3ed0ac27b18759a2e68fee1059776b4ba160034235fbdc7aa979cf`).
+
+The older 12-file expanded archive predates the unsafe-boundary requirement
+and is retained as
+`evidence/superseded-positive-expanded-rangefull-before-deinitialize-requirement.tar.gz`.
+It proves the accessor body but does not establish a caller obligation to
+preserve initialized slots; do not use it as current positive evidence. The
+original core-only eight-file proof and deliberately false copy-model control
+remain in `evidence/positive.tar.gz` and `evidence/negative.tar.gz`.
+
+The raw-pointer conversion `from_raw_parts_mut` is not extracted because a raw
+pointer and length alone do not provide the modeled exclusive slice authority
+required to justify it. No integrated crate or whole `UninitSlice` API proof is
+claimed.

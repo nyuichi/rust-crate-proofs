@@ -1,0 +1,125 @@
+     Removed 54 files, 16.5MiB total
+   Compiling bytes-actual-uninit-slice v0.1.0 (/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/actual-uninit-slice)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.41s
+No dangling files found
+Theory verif.bytes_actual_uninit_slice_rlib.buf.uninit_slice.impl_From_for_refmut_UninitSlice.from.Coma: ✔ (2)
+Theory verif.bytes_actual_uninit_slice_rlib.buf.uninit_slice.impl_UninitSlice.as_mut_ptr.Coma: ✔ (2)
+Theory verif.bytes_actual_uninit_slice_rlib.buf.uninit_slice.impl_UninitSlice.as_uninit_slice_mut.Coma: ✔ (1)
+Theory verif.bytes_actual_uninit_slice_rlib.buf.uninit_slice.impl_UninitSlice.copy_from_slice.Coma: ✔ (4)
+Theory verif.bytes_actual_uninit_slice_rlib.buf.uninit_slice.impl_UninitSlice.len.Coma: ✔ (2)
+Theory verif.bytes_actual_uninit_slice_rlib.buf.uninit_slice.impl_From_for_refmut_UninitSlice_0.from.Coma: ✔ (2)
+Theory verif.bytes_actual_uninit_slice_rlib.buf.uninit_slice.impl_UninitSlice.write_byte.Coma: ✔ (3)
+Theory verif.bytes_actual_uninit_slice_rlib.copy_through_initialized_slice.Coma: ✔ (4)
+Theory verif.bytes_actual_uninit_slice_rlib.copy_through_uninitialized_slice.Coma: ✔ (4)
+Theory verif.bytes_actual_uninit_slice_rlib.write_through_initialized_slice.Coma: ✔ (4)
+Goal Coma.vc_index_mut_UninitSlice: ✘ (3/5)
+--------------------------- Local Context ---------------------------
+
+type t_MaybeUninit_u8
+
+type t_UninitSlice =
+  | T_UninitSlice'mk (f0:slice t_MaybeUninit_u8)
+
+predicate in_bounds_RangeFull (self:unit) (_seq:seq t_MaybeUninit_u8) = true
+
+predicate has_value_RangeFull (self:unit) (seq:seq t_MaybeUninit_u8) (out:
+  slice t_MaybeUninit_u8) = seq = view out
+
+predicate resolve_elswhere_RangeFull (self:unit) (_old:seq t_MaybeUninit_u8)
+  (_fin:seq t_MaybeUninit_u8) = true
+
+type t_Option_u8 =
+  | None
+  | Some t
+
+function view_MaybeUninit_u8 t_MaybeUninit_u8 : t_Option_u8
+
+function view_UninitSlice (self:t_UninitSlice) : seq t_Option_u8 =
+  create (length (view (self.f0)))
+  (fun (index:int) -> view_MaybeUninit_u8 (get (view (self.f0)) index))
+
+predicate resolve_refmut_slice_MaybeUninit_u8 (_1:t1 (slice
+  t_MaybeUninit_u8)) = _1.final = _1.current
+
+predicate resolve_refmut_UninitSlice (_1:t1 t_UninitSlice) =
+  _1.final = _1.current
+
+constant self : t1 t_UninitSlice
+
+axiom Assert : in_bounds_RangeFull () (view ((self.current).f0))
+
+constant fin : slice t_MaybeUninit_u8
+
+constant result : t1 (slice t_MaybeUninit_u8)
+
+axiom H : has_value_RangeFull () (view ((self.current).f0)) (result.current)
+
+axiom H1 : has_value_RangeFull () (view fin) (result.final)
+
+axiom H2 :
+  resolve_elswhere_RangeFull () (view ((self.current).f0)) (view fin)
+
+axiom H3 : length (view fin) = length (view ((self.current).f0))
+
+constant fin1 : slice t_MaybeUninit_u8
+
+constant fin2 : slice t_MaybeUninit_u8
+
+constant result1 : t1 t_UninitSlice
+
+axiom H4 :
+  length (view_UninitSlice (result1.current)) =
+  length (view (result.current))
+
+axiom H5 :
+  view_UninitSlice (result1.current) =
+  create (length (view (result.current)))
+  (fun (index:int) -> view_MaybeUninit_u8 (get (view (result.current)) index))
+
+axiom H6 :
+  forall i:int.
+   0 <= i /\ i < length (view (result.current)) ->
+   get (view_UninitSlice (result1.current)) i =
+   view_MaybeUninit_u8 (get (view (result.current)) i)
+
+axiom H7 :
+  length (view_UninitSlice (result1.final)) = length (view (result.current))
+
+axiom H8 :
+  view_UninitSlice (result1.final) =
+  create (length (view fin2))
+  (fun (index:int) -> view_MaybeUninit_u8 (get (view fin2) index))
+
+axiom H9 :
+  forall i:int.
+   0 <= i /\ i < length (view (result.current)) ->
+   get (view_UninitSlice (result1.final)) i =
+   view_MaybeUninit_u8 (get (view fin2) i)
+
+axiom H10 : length (view fin2) = length (view (result.current))
+
+constant fin3 : slice t_MaybeUninit_u8
+
+constant fin4 : slice t_MaybeUninit_u8
+
+axiom Assert1 : result.final = fin1
+
+axiom Assert2 : fin1 = fin2
+
+axiom Assert3 : result1.final = T_UninitSlice'mk fin3
+
+axiom Assert4 : fin3 = fin4
+
+axiom Assert5 : self.final = T_UninitSlice'mk fin
+
+------------------------------- Goal --------------------------------
+
+goal vc_index_mut_UninitSlice :
+  has_value_RangeFull () (view ((self.final).f0)) fin4
+
+---------------------------------------------------------------------
+Theory verif.bytes_actual_uninit_slice_rlib.buf.uninit_slice.impl_IndexMut_for_UninitSlice.index_mut.Coma: ✘ (5/7)
+Goal Coma.vc_index_UninitSlice: ✘ (1/2)
+Theory verif.bytes_actual_uninit_slice_rlib.buf.uninit_slice.impl_Index_for_UninitSlice.index.Coma: ✘ (3/4)
+Error: 2 unproved files
+Error: 'why3find prove' failed
