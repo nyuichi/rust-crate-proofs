@@ -46,6 +46,7 @@ include!("config.rs");
 include!("status.rs");
 include!("invalid_chunk_size.rs");
 include!("skip_spaces.rs");
+include!("parse_newline.rs");
 include!("error.rs");
 #[allow(unused_imports)]
 pub(crate) use byteclass::{
@@ -59,6 +60,9 @@ mod verification_model;
 #[cfg(creusot)]
 #[path = "verification/spaces.rs"]
 mod verification_spaces;
+#[cfg(creusot)]
+#[path = "verification/newline.rs"]
+mod verification_newline;
 #[cfg(creusot)]
 #[path = "verification/code.rs"]
 mod verification_code;
@@ -148,7 +152,7 @@ impl<'h, 'b> Request<'h, 'b> {
             complete!(skip_spaces(&mut bytes));
         }
         self.version = Some(complete!(parse_version(&mut bytes)));
-        newline!(bytes);
+        complete!(parse_newline(&mut bytes));
 
         let len = orig_len - bytes.len();
         let headers_len = complete!(parse_headers_iter_uninit(
