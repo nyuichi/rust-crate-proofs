@@ -253,3 +253,12 @@ cannot call program(terminates) access operations. Native Rust checks the
 reduced example. These are compiler diagnostics, not rejected Why3 VCs or
 proof of actual BytesMut Deref. Current physical B4 operations remain ordinary
 program operations; no ghost writeback or trait-body axiom is introduced.
+
+The completed open-invariant-borrow reduced gate rejects nine mutable
+reborrow/resolve invariant leaves across three functions. Even with open_inv
+arguments and open_inv_result, an intentionally invalid intermediate value
+cannot cross those generated checks in vanilla 0.13. The actual strong
+lifecycle-invariant attempt is not claimed proved; valid-handle-only trait
+verification is being separated from the explicit-predicate lifecycle gate.
+Canonical reduced source/configuration and failed proof leaves are archived
+in open-invariant-borrow/rejected, without weakened invariants or new trust.

@@ -1,0 +1,72 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 39 0 39 44 *)
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 40 15 40 32
+let%span slib'0 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 41 13 41 14
+let%span slib'1 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 39 27 39 32
+let%span slib'2 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 38 10 38 30
+let%span slib'3 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 32 10 32 28
+let%span slib'4 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 33 10 33 27
+let%span slib'5 = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 6 45 6 61
+let%span sinvariant = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/invariant.rs" 93 20 93 44
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use int.ComputerDivision
+use creusot.prelude.Any
+
+type t_Even = { f0: UInt64.t }
+
+predicate invariant_Even [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 6 4 6 30] (self: t_Even) =
+  [%#slib'5] ComputerDivision.mod (UInt64.t'int self.f0) 2 = 0
+
+predicate inv_Even (_1: t_Even)
+
+axiom inv_axiom [@rewrite]: forall x: t_Even [inv_Even x]. inv_Even x = invariant_Even x
+
+let relay_open (value: MutBorrow.t t_Even) (return (x: MutBorrow.t t_Even)) = any
+  [ return (result: MutBorrow.t t_Even) ->
+  {[@stop_split] [@expl:relay_open ensures] ([@stop_split] [@expl:relay_open ensures #0] [%#slib'3] result.current.f0
+      = (1: UInt64.t))
+    /\ ([@stop_split] [@expl:relay_open ensures #1] [%#slib'4] result.final = value.final)}
+    (! return {result}) ]
+
+predicate invariant_refmut_Even [@inline:trivial] (self: MutBorrow.t t_Even) =
+  [%#sinvariant] inv_Even self.current /\ inv_Even self.final
+
+meta "rewrite_def" predicate invariant_refmut_Even
+
+predicate inv_refmut_Even [@inline:trivial] (_1: MutBorrow.t t_Even) = invariant_refmut_Even _1
+
+meta "rewrite_def" predicate inv_refmut_Even
+
+predicate resolve_refmut_Even [@inline:trivial] (_1: MutBorrow.t t_Even) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Even
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let restore_after_relay [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/open-invariant-borrow/src/lib.rs" 39 0 39 44]
+  (value: MutBorrow.t t_Even) (return (x: ())) =
+{[@stop_split] [@expl:restore_after_relay 'value' type invariant] [%#slib'1] inv_refmut_Even value}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_Even> {value.current} {MutBorrow.get_id value}
+        (fun (_bor: MutBorrow.t t_Even) ->
+          [ &_5 <- _bor ] -{inv_Even _bor.final}-
+          [ &value <- { value with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_Even value.current} any) ]
+    | s1 = relay_open [%#slib] {_5} (fun (_x: MutBorrow.t t_Even) -> [ &open <- _x ] s2)
+    | s2 = [ &open <- { open with current = { f0 = ([%#slib'0] (2: UInt64.t)) } } ] s3
+    | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut_Even open} any) ]
+    | s4 = -{resolve_refmut_Even open}- s5
+    | s5 = s6 [ _ck -> (! {[@expl:type invariant] inv_refmut_Even value} any) ]
+    | s6 = -{resolve_refmut_Even value}- s7
+    | s7 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & value: MutBorrow.t t_Even = value
+  | & open: MutBorrow.t t_Even = Any.any_l ()
+  | & _5: MutBorrow.t t_Even = Any.any_l () ])
+  [ return (result: ()) -> {[@stop_split] [@expl:restore_after_relay ensures] [%#slib'2] value.final.f0 = (2: UInt64.t)}
+    (! return {result}) ]
