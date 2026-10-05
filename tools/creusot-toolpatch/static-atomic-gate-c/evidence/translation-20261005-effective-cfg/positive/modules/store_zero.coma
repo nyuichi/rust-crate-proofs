@@ -1,0 +1,28 @@
+(* #"/tmp/httparse-static-atomic-gate-c-final/d5721f7f08e131c7dfb45224d0b210c2b8e09a6ba7be50f6ba070dc582d3fdb0/positive/fixture/src/lib.rs" 34 0 34 19 *)
+
+let%span slib = "/tmp/httparse-static-atomic-gate-c-final/d5721f7f08e131c7dfb45224d0b210c2b8e09a6ba7be50f6ba070dc582d3fdb0/positive/fixture/src/lib.rs" 35 16 35 17
+let%span slib'0 = "/tmp/httparse-static-atomic-gate-c-final/d5721f7f08e131c7dfb45224d0b210c2b8e09a6ba7be50f6ba070dc582d3fdb0/positive/fixture/src/lib.rs" 14 8 17 26
+
+use creusot.int.UInt8
+use creusot.prelude.StaticAtomicCaps
+use creusot.prelude.Any
+
+predicate value_invariant [#"/tmp/httparse-static-atomic-gate-c-final/d5721f7f08e131c7dfb45224d0b210c2b8e09a6ba7be50f6ba070dc582d3fdb0/positive/fixture/src/lib.rs" 12 0 12 66] [@inline:trivial] (value: UInt8.t) (avx2: bool) (sse42: bool) =
+  [%#slib'0] UInt8.t'int value = 0
+  \/ UInt8.t'int value = 1 /\ avx2 \/ UInt8.t'int value = 2 /\ sse42 \/ UInt8.t'int value = 3
+
+meta "rewrite_def" predicate value_invariant
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec store_zero
+  [#"/tmp/httparse-static-atomic-gate-c-final/d5721f7f08e131c7dfb45224d0b210c2b8e09a6ba7be50f6ba070dc582d3fdb0/positive/fixture/src/lib.rs" 34 0 34 19]
+  (return (x: ())) = (! bb0
+  [ bb0 = s0
+    [ s0 =
+      {[@expl:static AtomicU8 store preserves CACHE] value_invariant ([%#slib] (0: UInt8.t)) StaticAtomicCaps.avx2_usable StaticAtomicCaps.sse42_usable}
+      [ &_1 <- () ] s1
+    | s1 = return {_ret} ] ] [ & _ret: () = Any.any_l () | & _1: () = Any.any_l () ])
+  [ return (result: ()) -> (! return {result}) ]

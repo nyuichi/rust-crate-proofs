@@ -1,0 +1,36 @@
+(* #"/tmp/httparse-static-atomic-gate-c-final-typeonly/ff6591e585e25bfd4a4d3421110b74615997a55412b6f99e592e330bed8b91e3/positive/fixture/src/lib.rs" 50 0 50 31 *)
+
+let%span slib = "/tmp/httparse-static-atomic-gate-c-final-typeonly/ff6591e585e25bfd4a4d3421110b74615997a55412b6f99e592e330bed8b91e3/positive/fixture/src/lib.rs" 14 8 17 26
+
+use creusot.int.UInt8
+use creusot.prelude.StaticAtomicCaps
+use creusot.prelude.Any
+
+predicate value_invariant [#"/tmp/httparse-static-atomic-gate-c-final-typeonly/ff6591e585e25bfd4a4d3421110b74615997a55412b6f99e592e330bed8b91e3/positive/fixture/src/lib.rs" 12 0 12 66] [@inline:trivial] (value: UInt8.t) (avx2: bool) (sse42: bool) =
+  [%#slib] UInt8.t'int value = 0
+  \/ UInt8.t'int value = 1 /\ avx2 \/ UInt8.t'int value = 2 /\ sse42 \/ UInt8.t'int value = 3
+
+meta "rewrite_def" predicate value_invariant
+
+type tup2_u8_u8 = { f0: UInt8.t; f1: UInt8.t }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec read_twice
+  [#"/tmp/httparse-static-atomic-gate-c-final-typeonly/ff6591e585e25bfd4a4d3421110b74615997a55412b6f99e592e330bed8b91e3/positive/fixture/src/lib.rs" 50 0 50 31]
+  (return (x: tup2_u8_u8)) = (! bb0
+  [ bb0 = s0
+    [ s0 = any
+      [ any_ (static_atomic_observation: UInt8.t) ->
+      (! -{value_invariant static_atomic_observation StaticAtomicCaps.avx2_usable StaticAtomicCaps.sse42_usable}-
+        [ &_1 <- static_atomic_observation ] s1) ]
+    | s1 = any
+      [ any_ (static_atomic_observation: UInt8.t) ->
+      (! -{value_invariant static_atomic_observation StaticAtomicCaps.avx2_usable StaticAtomicCaps.sse42_usable}-
+        [ &_5 <- static_atomic_observation ] s2) ]
+    | s2 = [ &_ret <- { f0 = _1; f1 = _5 } ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: tup2_u8_u8 = Any.any_l () | & _1: UInt8.t = Any.any_l () | & _5: UInt8.t = Any.any_l () ])
+  [ return (result: tup2_u8_u8) -> (! return {result}) ]

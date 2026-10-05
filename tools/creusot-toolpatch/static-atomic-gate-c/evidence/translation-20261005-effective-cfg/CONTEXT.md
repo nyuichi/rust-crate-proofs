@@ -1,0 +1,7 @@
+# Gate C effective target configuration checkpoint
+
+This isolated translation run checks rustc's resolved `Session::target_features` and merged `ParseSess::config`, in addition to raw compiler arguments. The positive normal and proof reports both record AVX2 and SSE4.2 absent from both the effective session feature set and effective cfg. Manual builtin cfg overrides are rejected through ordinary rustc flags and `CARGO_ENCODED_RUSTFLAGS`.
+
+The positive fixture translates the parameterized invariant through its initializer, each audited store, and every load; the two `read_twice` loads remain separate nondeterministic observations. The fixed capability symbols are unconstrained. The negative cases reject a wrong signature/profile, explicit target-feature override, manual and encoded target-feature cfg, and a caller-supplied capability path.
+
+This is translation/audit evidence only. No Why3 solver was run. The actual CPU detector identities and their relationship to these logical capability symbols remain open; no `#[target_feature]` branch proof is established, so this is not a complete httparse dispatch proof. Gate C adds no trusted detector axiom. Existing standard atomic history contracts from Gate B remain their own trusted standard-library boundary. `PROVENANCE.tsv` records the source, patch, compiler, and fixture input hashes. `FILES.SHA256` covers all other files in this bundle.
