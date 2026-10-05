@@ -2,6 +2,25 @@
 
 ## Current working-tree status (2026-10-05)
 
+The coordinator-carrier actual two-split gate passes 88 proof files with zero
+unproved leaves. Exact extracted from_vec, promotion, ARC shallow_clone/native
+increment, two split_to calls, mutable/read access and explicit three-handle
+release compose through the scalable registry. All six retirement orders lead
+to full original B3 buffer recovery and typed Perm control-block destruction.
+Two native matrices cover boundary positions and exact original A/S free counts.
+The 90-file empty-ticket negative rejects exactly the false final-release claim
+(17/18) after one empty sibling is forgotten. No new trusted protocol or core/std
+change is introduced. This restricted cfg adapter keeps the coordinator on the
+handle being split; sibling-only splitting, concurrency, original release_shared
+and automatic Drop are excluded. Evidence: coordinator-carrier-split/prefix-final-positive and
+prefix-final-negative (historical 87/89-file variants are retained). The final
+legacy split/storage regression passes 110 files, safe traits 72 and public
+constructors 61, all with zero unproved leaves. Native carrier2, legacy21,
+traits1, constructors3, ordinary test_bytes118 and no_std pass. Spare access
+now uses a body-proved prefix-preserving B4 adapter in both ownership modes;
+the final initialization contract is split into equivalent ownership/known-byte
+clauses. No physical-access axiom or specification weakening is added.
+
 The complete concrete slice Buf body gate passes 82 files with zero unproved
 leaves and three native matrices: 19 checked integer readers, 19 normal-return
 getters and remaining/chunk (40 bodies). Variable unsigned reads allow 0..=8

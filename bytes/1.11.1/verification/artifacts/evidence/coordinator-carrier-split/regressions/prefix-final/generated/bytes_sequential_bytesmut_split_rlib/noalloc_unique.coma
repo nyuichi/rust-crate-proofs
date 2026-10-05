@@ -1,0 +1,34 @@
+(* #"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 109 0 109 79 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_RETIREMENT int | Other namespace_other
+
+let%span slib = "/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 110 4 110 73
+
+use creusot.int.UInt64
+use creusot.int.UInt8
+use creusot.slice.Slice64
+use creusot.prelude.Any
+
+type t_Vec_u8_Global
+
+let proof_noalloc_unique (input: t_Vec_u8_Global) (new_len: UInt64.t) (value: UInt8.t) (extend: Slice64.slice UInt8.t)
+  (return (x: ())) = any [ return (result: ()) -> (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let noalloc_unique [#"/workspace/bytes-runtime-verification/bytes/1.11.1/verification/probes/sequential-bytesmut-split/src/lib.rs" 109 0 109 79]
+  (input: t_Vec_u8_Global) (new_len: UInt64.t) (value: UInt8.t) (extend: Slice64.slice UInt8.t) (return (x: ())) =
+(! bb0
+  [ bb0 = s0
+    [ s0 = proof_noalloc_unique [%#slib] {input} {new_len} {value} {extend} (fun (_x: ()) -> [ &_5 <- _x ] s1)
+    | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & input: t_Vec_u8_Global = input
+  | & new_len: UInt64.t = new_len
+  | & value: UInt8.t = value
+  | & extend: Slice64.slice UInt8.t = extend
+  | & _5: () = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

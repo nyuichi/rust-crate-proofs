@@ -10,6 +10,23 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-05)
 
+The 88-file coordinator-carrier gate adds no trusted primitive. Its dynamic
+registration/cardinality/coordinate lemmas, pending descriptor completion,
+native-count conservation and explicit finalization all have proved bodies.
+It reuses existing B1/B3/B4 Vec/raw/physical-access, boxed-alignment, vanilla typed
+Perm and exclusive sequential native scalar-atomic contracts. Acquire occurs in
+the native final branch, but this gate has no cross-thread synchronization/view
+claim. The proof SharedBuffer descriptor adapter is used instead of simultaneous
+ordinary Vec ownership and affine physical regions. Exact source fragments and
+native allocation counts are frozen with the evidence. This proves explicit
+cleanup through this cfg adapter; original release_shared and automatic Drop,
+ordinary Shared representation equivalence and concurrent refcount/free remain
+separate unproved obligations. An unreleased empty ticket is rejected (90 files,
+one intended failed assertion), so byte coverage alone does not grant finalization.
+The spare-prefix helper and shared spare adapter are body proved from existing
+B4 metadata/writeback/frame; they add no trusted clause. Final legacy110,
+safe-trait72 and public-constructor61 regressions all have zero unproved leaves.
+
 The complete 82-file concrete slice Buf body gate adds no TCB or std contract.
 The actual getter source uses match to avoid a missing unwrap_or_else spec.
 19 checked reads, 19 bounded normal-return getters and two observers are body
