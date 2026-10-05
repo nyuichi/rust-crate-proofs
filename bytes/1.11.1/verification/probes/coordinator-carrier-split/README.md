@@ -102,3 +102,8 @@ physical leaf is common with existing B3. This is sequential adapter evidence,
 not automatic Drop or weak-memory verification. Frozen snapshots are
 connected-release-positive, connected-release-ticket-negative and
 connected-release-unknown-negative.
+
+Cloud resume replay: the checkpoint empty-interval/split-metadata gate was rebuilt
+with the pinned stock toolchain and passed 117 files with zero unproved leaves.
+The log and generated tasks are under `evidence/cloud-replay`. This precedes
+the later singleton-only lemma and public Shared reserve integration.
