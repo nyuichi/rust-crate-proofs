@@ -45,6 +45,7 @@ mod byteclass;
 include!("config.rs");
 include!("status.rs");
 include!("invalid_chunk_size.rs");
+include!("skip_spaces.rs");
 include!("error.rs");
 #[allow(unused_imports)]
 pub(crate) use byteclass::{
@@ -55,6 +56,9 @@ pub use chunk::parse_chunk_size;
 #[cfg(creusot)]
 #[path = "verification/model.rs"]
 mod verification_model;
+#[cfg(creusot)]
+#[path = "verification/spaces.rs"]
+mod verification_spaces;
 #[cfg(creusot)]
 #[path = "verification/code.rs"]
 mod verification_code;
@@ -216,24 +220,6 @@ fn skip_empty_lines(bytes: &mut Bytes<'_>) -> Result<()> {
                 unsafe {
                     bytes.bump();
                 }
-            }
-            Some(..) => {
-                bytes.slice();
-                return Ok(Status::Complete(()));
-            }
-            None => return Ok(Status::Partial),
-        }
-    }
-}
-
-#[inline]
-fn skip_spaces(bytes: &mut Bytes<'_>) -> Result<()> {
-    loop {
-        let b = bytes.peek();
-        match b {
-            Some(b' ') => {
-                // SAFETY: peeked and found ` `, so it's safe to bump 1 pos
-                unsafe { bytes.bump() };
             }
             Some(..) => {
                 bytes.slice();
