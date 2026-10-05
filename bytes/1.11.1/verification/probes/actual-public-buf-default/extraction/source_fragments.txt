@@ -1,0 +1,38 @@
+// Exact public trait and selected implementation methods from bytes 1.11.1.
+
+fn remaining(&self) -> usize;
+
+fn chunk(&self) -> &[u8];
+
+fn advance(&mut self, cnt: usize);
+
+fn try_get_u8(&mut self) -> Result<u8, TryGetError> {
+        if self.remaining() < 1 {
+            return Err(TryGetError {
+                requested: 1,
+                available: self.remaining(),
+            });
+        }
+        let ret = self.chunk()[0];
+        self.advance(1);
+        Ok(ret)
+    }
+
+fn remaining(&self) -> usize {
+        self.len()
+    }
+
+fn chunk(&self) -> &[u8] {
+        self
+    }
+
+fn advance(&mut self, cnt: usize) {
+        if self.len() < cnt {
+            panic_advance(&TryGetError {
+                requested: cnt,
+                available: self.len(),
+            });
+        }
+
+        crate::slice_ops::advance_slice(self, cnt);
+    }
