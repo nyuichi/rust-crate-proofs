@@ -30,3 +30,19 @@ mod actual { include!(concat!(env!("OUT_DIR"), "/actual_traits.rs")); }
 pub fn traits_unique(input: Vec<u8>, value: u8) {
     actual::BytesMut::proof_traits_unique(input, value);
 }
+
+// The build script relocates this proof-caller template into the generated
+// `actual` module. Keeping it disabled here ensures the caller is translated
+// in the same module as the private-field method contracts it consumes.
+#[cfg(any())]
+fn proof_observe_is_empty(owner: &actual::BytesMut) {
+    assert!(owner.is_empty() == (owner.len() == 0));
+}
+
+#[cfg(not(creusot))]
+pub fn unique_is_empty(input: Vec<u8>) -> bool {
+    let owner = actual::BytesMut::from_vec(input);
+    let result = owner.is_empty();
+    owner.proof_release_unique_at_zero();
+    result
+}

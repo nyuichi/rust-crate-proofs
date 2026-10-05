@@ -1,4 +1,4 @@
-# Actual valid-handle `AsRef` / `AsMut` gate
+# Actual valid-handle `AsRef` / `AsMut` and observers gate
 
 This independent gate extracts the actual `BytesMut` declaration, `from_vec`,
 read/mutable/spare access, length operations, explicit unique cleanup, and core
@@ -6,6 +6,30 @@ read/mutable/spare access, length operations, explicit unique cleanup, and core
 The build records exact source fragment offsets and hashes. Generic trait callers
 are included, and Creusot generates the actual implementation refinement VCs.
 There are no stub traits or stronger implementation preconditions.
+
+This gate also extracts the exact `BytesMut::is_empty` body and its production
+contract. A Creusot caller takes a checked valid-handle reference, calls
+`is_empty`, compares it with `len() == 0`, and asserts the comparison. The
+generated extraction adds only a checker attribute to the exact source method so
+Creusot verifies the exact `len` and `is_empty` bodies used by the proof
+caller. A separate native `unique_is_empty` caller builds a real unique handle
+from a `Vec`, observes emptiness, and explicitly releases the allocation.
+Native cases cover canonical empty, allocated-empty, and nonempty handles.
+
+The proof caller is authored in `src/lib.rs` and relocated by the build script
+into the generated `actual` module. This keeps the caller in the same module as
+the extracted private-field contracts; an earlier outer-module caller produced
+an invalid `ERROR_UNBOUND_len` selector in Creusot's generated Coma. The exact
+caller assertion is preserved, with only the module qualifier removed during
+relocation. The separate `Vec` construction and cleanup remain native-only.
+
+The focused observer proof passes exactly three selected Coma files: `len`,
+`is_empty`, and the reference caller. It does not contribute to a full-gate
+proof-file count. The generated source snapshot, three proof JSON files, native
+and translation logs, and earlier failed caller attempts are archived under
+`evidence/exact-is-empty-observer-v2.tar.gz`; its sibling JSON receipt lists the
+three selected Coma members and verifies their hashes against the replay inputs.
+The v1 archive remains preserved as the earlier evidence snapshot.
 
 `bytes_proof_valid_handle` enables a checked type invariant: initialized unique
 ownership or a canonical empty handle
