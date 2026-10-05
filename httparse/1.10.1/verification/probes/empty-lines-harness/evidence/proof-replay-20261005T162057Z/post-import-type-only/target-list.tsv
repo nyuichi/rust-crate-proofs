@@ -1,0 +1,21 @@
+order	group	target	coma_sha256	purpose	proof_status
+01	bytes	iter/impl_Bytes/byte_permission	5866f03a5cfca0404db9a8de033a55d6165c208eaa4d381b2b992f490412157d	transitive cursor permission used by Bytes::peek and Bytes::next	Why3 --type-only passed; no solver run
+02	bytes	iter/impl_Bytes/peek	c8d0bbaa2c75deb8e1a380c805f4bb7fca2cf630f14c8b8887f9fcee13da89e1	direct helper dependency: non-consuming lookahead	Why3 --type-only passed; no solver run
+03	bytes	iter/impl_Bytes/advance	5e0fdcfa0488a23962d3cff75082b53776ef34188b82e6e7e824906b238cca6d	transitive implementation dependency of Bytes::bump	Why3 --type-only passed; no solver run
+04	bytes	iter/impl_Bytes/bump	ce6e979f619ca14ed138a758d350c7fa834f312f847ec0f74dab922c7ead44c7	direct helper dependency: consume the observed CR or LF	Why3 --type-only passed; no solver run
+05	bytes	iter/bytes_subsequence_head	e7a3a9d8eccbaa06b1ebf113a1822b9221c05c7fb545fac92c99b60d16534eb5	ghost lemma called by Bytes::next	Why3 --type-only passed; no solver run
+06	bytes	iter/impl_Iterator_for_Bytes/next	149045ff4fb71e99dd22004fed2f2b6b390e820e6368390d453da5ed5e77b6d3	direct helper dependency through expect! -> next!	Why3 --type-only passed; no solver run
+07	bytes	iter/impl_Iterator_for_Bytes/next__refines	20dd5b1e1bc9c764c725f559b0408a32a2f02f8db6bcfd209b5c851276607f95	trait implementation refinement for the called Iterator::next	Why3 --type-only passed; no solver run
+08	bytes	iter/impl_Bytes/commit	ebd076a5b0114fd5ba350dd89a2982f5c9447a33a588008bff3a1fe1e3e151bb	transitive implementation dependency of Bytes::slice	Why3 --type-only passed; no solver run
+09	bytes	iter/slice_from_ptr_range	633cfa5b742c524af350248fab0d2ace68682582c74ab9e42b20c4f356435c2b	transitive unsafe slice construction dependency of Bytes::slice	Why3 --type-only passed; no solver run
+10	bytes	iter/impl_Bytes/slice	5470255824e7a3fdd993d193d1a2c4ac2f8294a58f5f90ab4b45ac53110d8b9e	direct helper dependency: commit at the first non-newline byte	Why3 --type-only passed; no solver run
+11	model	verification_empty_lines/complete_line_ending_at	69731cc7550a94bcbc174a2d3c52d2815da61ecd369af752ca15bfc6566a2cba	base LF/CRLF recognition used by endpoint model and bridge	Why3 --type-only passed; no solver run
+12	model	verification_empty_lines/complete_line_prefix	2d2ccd0557b34a1a8bf9d1e5f9d9b392eafe4d37b9403cd0152713069f17d870	recursive complete-ending prefix predicate	Why3 --type-only passed; no solver run
+13	model	verification_empty_lines/complete_line_prefix_end	3815cbe8e9bb5e00aa50f0ce13945d44bb6ccd5a568d0d67ecb6f6d376ab07da	maximal endpoint with checked exact stop/LF/CRLF recurrence	Why3 --type-only passed; no solver run
+14	model	verification_empty_lines/complete_line_prefix_concat	da8c2ceb79952c53a21643b13fd2523418e1741ee657c0011816afcc2ef9f1c1	body-checked induction over the start-to-mid prefix; composes adjacent complete LF/CRLF prefixes	Why3 --type-only passed; no solver run
+15	model	verification_empty_lines/complete_line_prefix_extend_crlf	234afe91371f8323fefef93e78a1f6b50fc8e029b992385ac5eced0f46b0a68f	finite two-byte CRLF suffix followed by checked prefix concatenation	Why3 --type-only passed; no solver run
+16	model	verification_empty_lines/complete_line_prefix_extend_lf	71eabb0c2037fe0f531d4d03bc73594e3aaab24aacdb0292a545a1a05e6685b2	finite one-byte LF suffix followed by checked prefix concatenation	Why3 --type-only passed; no solver run
+17	model	verification_empty_lines/complete_line_prefix_cursor_induction	046ce8d4cc809cf404c006c8fb31a4fc6c1d0a1674ef8c21677d6542b45e446c	structural LF/CRLF induction relating a complete scanned prefix to the maximal endpoint	Why3 --type-only passed; no solver run
+18	model	verification_empty_lines/complete_line_prefix_at_cursor	4a8b79037711b67e0504028b8730b6c3c2e30445a21f8bf13b0ea1d48e20531d	checked loop-cursor relation, delegated to structural cursor induction	Why3 --type-only passed; no solver run
+19	model	verification_empty_lines/skip_empty_lines_model	1f076acd5fe0b0209cae2c818e55549ac72a0b7036976a760e2204fab8d80a77	exact outcome/cursor/mark model used by helper contract	Why3 --type-only passed; no solver run
+20	parser	skip_empty_lines	03da2689fb4da6a80e959a5d4c4cbd69de34bfcd904a028ab86ef0e82c6684b1	actual extracted runtime helper; selected last after exact dependencies	Why3 --type-only passed; no solver run
