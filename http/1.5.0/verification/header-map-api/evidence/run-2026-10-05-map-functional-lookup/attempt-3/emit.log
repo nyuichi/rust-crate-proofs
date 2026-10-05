@@ -1,0 +1,314 @@
+     Removed 2 files, 42.5KiB total
+    Checking http-header-map-api-proof v0.1.0 (/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api)
+warning: unused import: `std::collections::HashMap`
+ --> src/../../../src/header/map.rs:5:5
+  |
+5 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::convert::TryFrom`
+ --> src/../../../src/header/map.rs:7:5
+  |
+7 | use std::convert::TryFrom;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::iter::FromIterator`
+  --> src/../../../src/header/map.rs:10:5
+   |
+10 | use std::iter::FromIterator;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::iter::FusedIterator`
+  --> src/../../../src/header/map.rs:11:5
+   |
+11 | use std::iter::FusedIterator;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ops` and `ptr`
+  --> src/../../../src/header/map.rs:13:21
+   |
+13 | use std::{fmt, mem, ops, ptr, vec};
+   |                     ^^^  ^^^
+
+warning: unused import: `PtrAddExt`
+  --> src/../../../src/header/map.rs:16:29
+   |
+16 | use creusot_std::std::ptr::{PtrAddExt, PtrLive};
+   |                             ^^^^^^^^^
+
+warning: unused import: `crate::Error`
+  --> src/../../../src/header/map.rs:29:5
+   |
+29 | use crate::Error;
+   |     ^^^^^^^^^^^^
+
+warning: unused macro definition: `insert_phase_one`
+   --> src/../../../src/header/map.rs:840:14
+    |
+840 | macro_rules! insert_phase_one {
+    |              ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_macros)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `HdrName` and `HeaderName`
+    --> src/../../../src/header/map.rs:4750:24
+     |
+4750 |     use super::{Entry, HdrName, HeaderMap, HeaderName, MaxSizeReached};
+     |                        ^^^^^^^             ^^^^^^^^^^
+
+warning: unused import: `Entry`
+    --> src/../../../src/header/map.rs:4853:17
+     |
+4853 |     use super::{Entry, HdrName, HeaderMap, HeaderName, InvalidHeaderName, MaxSizeReached};
+     |                 ^^^^^
+
+warning: unused import: `pearlite`
+    --> src/../../../src/header/map.rs:4855:48
+     |
+4855 |     use creusot_std::prelude::{ensures, logic, pearlite, requires, DeepModel, View};
+     |                                                ^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::get"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1265:65
+     |
+1265 |         Some(value) => exists<index: Int> 0 <= index && index < self.entries.view().len()
+     |                                                                 ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::value"` transparent in `"header::map::HeaderMap::<T>::get"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1266:26
+     |
+1266 |             && *value == self.entries.view()[index].value
+     |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"header::map::HeaderMap::<T>::get"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1267:35
+     |
+1267 |             && key.matches_header(self.entries.view()[index].key.deep_model()),
+     |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::mask"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1347:33
+     |
+1347 |     #[cfg_attr(creusot, ensures((^self).mask == self.mask))]
+     |                                 ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::mask"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1347:49
+     |
+1347 |     #[cfg_attr(creusot, ensures((^self).mask == self.mask))]
+     |                                                 ^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::indices"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1348:33
+     |
+1348 |     #[cfg_attr(creusot, ensures((^self).indices@ == self.indices@))]
+     |                                 ^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::indices"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1348:53
+     |
+1348 |     #[cfg_attr(creusot, ensures((^self).indices@ == self.indices@))]
+     |                                                     ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::extra_values"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1349:33
+     |
+1349 |     #[cfg_attr(creusot, ensures((^self).extra_values@ == self.extra_values@))]
+     |                                 ^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::extra_values"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1349:58
+     |
+1349 |     #[cfg_attr(creusot, ensures((^self).extra_values@ == self.extra_values@))]
+     |                                                          ^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::danger"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1350:33
+     |
+1350 |     #[cfg_attr(creusot, ensures((^self).danger == self.danger))]
+     |                                 ^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::danger"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1350:51
+     |
+1350 |     #[cfg_attr(creusot, ensures((^self).danger == self.danger))]
+     |                                                   ^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1351:33
+     |
+1351 |     #[cfg_attr(creusot, ensures((^self).entries@.len() == self.entries@.len()))]
+     |                                 ^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1351:59
+     |
+1351 |     #[cfg_attr(creusot, ensures((^self).entries@.len() == self.entries@.len()))]
+     |                                                           ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1353:31
+     |
+1353 |         0 <= index && index < self.entries@.len() ==>
+     |                               ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::hash"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1354:13
+     |
+1354 |             (^self).entries@[index].hash == self.entries@[index].hash
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::hash"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1354:45
+     |
+1354 |             (^self).entries@[index].hash == self.entries@[index].hash
+     |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1355:20
+     |
+1355 |                 && (^self).entries@[index].key == self.entries@[index].key
+     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1355:51
+     |
+1355 |                 && (^self).entries@[index].key == self.entries@[index].key
+     |                                                   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::links"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1356:20
+     |
+1356 |                 && (^self).entries@[index].links == self.entries@[index].links
+     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::links"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1356:53
+     |
+1356 |                 && (^self).entries@[index].links == self.entries@[index].links
+     |                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1359:17
+     |
+1359 |         None => (^self).entries@ == self.entries@,
+     |                 ^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1359:37
+     |
+1359 |         None => (^self).entries@ == self.entries@,
+     |                                     ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1361:35
+     |
+1361 |             0 <= index && index < self.entries@.len()
+     |                                   ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::value"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1362:30
+     |
+1362 |                 && *value == self.entries@[index].value
+     |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::value"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1363:30
+     |
+1363 |                 && ^value == (^self).entries@[index].value
+     |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1364:39
+     |
+1364 |                 && key.matches_header(self.entries@[index].key.deep_model())
+     |                                       ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1366:43
+     |
+1366 |                     0 <= other && other < self.entries@.len() && other != index ==>
+     |                                           ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::value"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1367:25
+     |
+1367 |                         (^self).entries@[other].value == self.entries@[other].value,
+     |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::value"` transparent in `"header::map::HeaderMap::<T>::get_mut"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1367:58
+     |
+1367 |                         (^self).entries@[other].value == self.entries@[other].value,
+     |                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::GetAll::index"` transparent in `"header::map::HeaderMap::<T>::get_all"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1422:39
+     |
+1422 |     #[cfg_attr(creusot, ensures(match result.index {
+     |                                       ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::get_all"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1423:33
+     |
+1423 |         Some(index) => index@ < self.entries.view().len()
+     |                                 ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"header::map::HeaderMap::<T>::get_all"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1424:35
+     |
+1424 |             && key.matches_header(self.entries.view()[index@].key.deep_model()),
+     |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::HeaderMap::entries"` transparent in `"header::map::HeaderMap::<T>::contains_key"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1462:31
+     |
+1462 |         0 <= index && index < self.entries.view().len()
+     |                               ^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"header::map::HeaderMap::<T>::contains_key"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:1463:35
+     |
+1463 |             && key.matches_header(self.entries.view()[index].key.deep_model())
+     |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: called prophetic logic function `creusot_std::invariant::inv` in logic context
+    --> src/../../../src/header/map.rs:4873:17
+     |
+4873 |                 creusot_std::invariant::inv(parsed)
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"<header::name::HeaderName as header::map::as_header_name::Sealed>::find"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:4970:40
+     |
+4970 |                 && self.matches_header(map.entries.view()[index@].key.deep_model()),
+     |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"<&header::name::HeaderName as header::map::as_header_name::Sealed>::find"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:5009:40
+     |
+5009 |                 && self.matches_header(map.entries.view()[index@].key.deep_model()),
+     |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"<&str as header::map::as_header_name::Sealed>::find"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:5047:40
+     |
+5047 |                 && self.matches_header(map.entries.view()[index@].key.deep_model()),
+     |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"<std::string::String as header::map::as_header_name::Sealed>::find"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:5084:40
+     |
+5084 |                 && self.matches_header(map.entries.view()[index@].key.deep_model()),
+     |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Cannot make `"header::map::Bucket::key"` transparent in `"<&std::string::String as header::map::as_header_name::Sealed>::find"` as it would call a less-visible item.
+    --> src/../../../src/header/map.rs:5122:40
+     |
+5122 |                 && self.matches_header(map.entries.view()[index@].key.deep_model()),
+     |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `http-header-map-api-proof` (lib) generated 11 warnings
+error: could not compile `http-header-map-api-proof` (lib) due to 40 previous errors; 11 warnings emitted
