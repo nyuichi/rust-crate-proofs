@@ -274,6 +274,29 @@ impl BoundPtr {
         self.pointer
     }
 
+    /// B6: recover numeric offset from two sealed descriptors of one allocation.
+    ///
+    /// The native representation stores only a pointer. Its ghost binding is
+    /// minted by B1 and preserved by the body-proved offset operations, so a
+    /// matching allocation namespace/capacity and offset-zero base determine
+    /// this difference. The current abstract invariant omits that relational
+    /// address fact; this narrow physical metadata bridge supplies it.
+    ///
+    /// No pointer is dereferenced or reconstructed, no allocation liveness or
+    /// read/write authority is granted, and equal numeric addresses alone do
+    /// not satisfy the same-namespace requirement. Empty and one-past views
+    /// are supported without the provenance requirements of `offset_from`.
+    #[trusted]
+    #[requires(self.invariant() && self@ != None)]
+    #[requires(base.invariant() && base@ != None)]
+    #[requires(self@.unwrap_logic().0 == base@.unwrap_logic().0)]
+    #[requires(self@.unwrap_logic().1 == base@.unwrap_logic().1)]
+    #[requires(base@.unwrap_logic().2 == 0)]
+    #[ensures(result@ == self@.unwrap_logic().2)]
+    pub(crate) fn offset_from_bound_base(&self, base: Self) -> usize {
+        self.pointer.as_ptr().addr() - base.pointer.as_ptr().addr()
+    }
+
     /// Move metadata back within the same sealed allocation. This retains the
     /// original pointer provenance and grants no liveness or byte permission.
     #[requires(self.invariant() && self@ != None)]

@@ -1059,8 +1059,8 @@ impl BytesMut {
     #[inline]
     // BEGIN EXACT RESERVE
     #[cfg_attr(creusot, requires(self.proof_initialized()))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_growth)), requires(additional@ <= self.cap@ - self.len@))]
-    #[cfg_attr(all(creusot, not(bytes_proof_unique_growth)), ensures(^self == *self))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_growth), not(bytes_proof_shared_reserve)), requires(additional@ <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, not(bytes_proof_unique_growth), not(bytes_proof_shared_reserve)), ensures(^self == *self))]
     #[cfg_attr(all(creusot, bytes_proof_unique_growth, not(bytes_proof_unique_reserve)), requires(additional@ <= self.cap@ - self.len@ ||
         (self.proof_unique_owned() && additional@ <= isize::MAX@ - self.ptr@.unwrap_logic().2 - self.len@ &&
          (additional@ > self.cap@ - self.len@ + self.ptr@.unwrap_logic().2 || self.ptr@.unwrap_logic().2 < self.len@))))]
@@ -1072,13 +1072,80 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_proof_unique_growth), ensures(self.proof_unique_owned() ==> (^self).proof_unique_owned()))]
     #[cfg_attr(all(creusot, bytes_proof_unique_growth), ensures(forall<index: Int> 0 <= index && index < self.len@ ==>
         (^self).proof_view_slot(index) == self.proof_view_slot(index)))]
-    pub fn reserve(&mut self, additional: usize) {
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(self.proof_registered_valid() && self.shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(*coordinator.inner_logic() != None && self.shared_registration.inner_logic().unwrap_logic().matches(coordinator.inner_logic().unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), requires(self.ptr@.unwrap_logic().2 + self.len@ + additional@ <= isize::MAX@))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^self).proof_initialized() && (^self).len == self.len && (^self).cap@ >= self.len@ + additional@))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(forall<i: Int> 0 <= i && i < self.len@ ==> (^self).proof_view_slot(i) == self.proof_view_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^coordinator.inner_logic()) != None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^coordinator.inner_logic()).unwrap_logic().valid(self.shared_registration.inner_logic().unwrap_logic().control) && (^coordinator.inner_logic()).unwrap_logic().active()))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^self).shared_registration.inner_logic() != None ==> (^self).shared_registration.inner_logic().unwrap_logic().matches((^coordinator.inner_logic()).unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((*coordinator.inner_logic().unwrap_logic().status.pending).len() >= 2 && additional@ > self.cap@ - self.len@ ==> (^self).proof_unique_at_zero_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((^self).shared_context.inner_logic() == None))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((*coordinator.inner_logic().unwrap_logic().status.pending).len() == 1 ==>
+        (^self).proof_registered_valid()))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures((*(^coordinator.inner_logic()).unwrap_logic().status.pending).len() ==
+        (*coordinator.inner_logic().unwrap_logic().status.pending).len() -
+        (if (*coordinator.inner_logic().unwrap_logic().status.pending).len() >= 2 && additional@ > self.cap@ - self.len@ { 1int } else { 0int })))]
+    #[cfg_attr(all(creusot, bytes_proof_shared_reserve), ensures(forall<other: sequential_shared_control::HandleRegistration>
+        other.matches(coordinator.inner_logic().unwrap_logic()) && other.packet.0.logical_id() != self.shared_registration.inner_logic().unwrap_logic().packet.0.logical_id() ==>
+        other.matches((^coordinator.inner_logic()).unwrap_logic())))]
+    pub fn reserve(&mut self, additional: usize,
+        #[cfg(bytes_proof_shared_reserve)] mut coordinator: Ghost<&mut Option<sequential_shared_control::ControlContext>>,
+    ) {
         let len = self.len();
         let rem = self.capacity() - len;
 
         if additional <= rem {
             // The handle can already store at least `additional` more bytes, so
             // there is no further work needed to be done.
+            return;
+        }
+
+        // Restricted proof configuration carries the external affine coordinator
+        // explicitly. The ordinary runtime below retains its native API.
+        #[cfg(bytes_proof_shared_reserve)]
+        {
+            let original = snapshot!(*self);
+            let identity = ghost! { self.shared_registration.as_ref().unwrap().control.identity.into_inner() };
+            let control = sequential_shared_control::ControlPtr { pointer: self.data, identity };
+            if shared_reclaim::is_unique(control, ghost! { coordinator.as_ref().unwrap() }) {
+                ghost! { sequential_shared_control::HandleRegistration::singleton_is_sole(
+                    snapshot!(coordinator.inner_logic().unwrap_logic()),
+                    snapshot!(self.shared_registration.inner_logic().unwrap_logic())); };
+                let base = {
+                    let shared = unsafe { creusot_std::ghost::perm::Perm::as_ref(self.data,
+                        ghost! { &**coordinator.as_ref().unwrap().owner.as_ref().unwrap() }) };
+                    shared.buffer.base
+                };
+                let offset = self.ptr.offset_from_bound_base(base);
+                let registration = ghost! { self.shared_registration.take().unwrap() };
+                let context = ghost! { coordinator.take().unwrap() };
+                let lease = shared_reclaim::acquire(control, context, registration);
+                let (pointer, capacity, lease) = shared_reserve::reserve_lease(control, lease, self.ptr, offset, self.len, additional);
+                let end = snapshot!(pointer@.unwrap_logic().2 + capacity@);
+                let (context, registration) = shared_reserve::reactivate_view(control, lease, end).split();
+                self.ptr = pointer;
+                self.cap = capacity;
+                self.shared_registration = ghost! { Some(registration.into_inner()) };
+                ghost! { **coordinator = Some(context.into_inner()); };
+                proof_assert!(forall<i: Int> 0 <= i && i < self.len@ ==>
+                    self.proof_view_slot(i) == original.proof_view_slot(i));
+                proof_assert!(self.proof_initialized());
+            } else {
+                ghost! { crate::ownership_proof::scalable_tickets::pending_cardinality(
+                    snapshot!(*coordinator.inner_logic().unwrap_logic().status.pending)); };
+                proof_assert!((*coordinator.inner_logic().unwrap_logic().status.pending).len() >= 2);
+                let empty = Self::from_vec(Vec::new());
+                let old = mem::replace(self, empty);
+                let grown = shared_copy::reserve_copy(old, additional, ghost! { coordinator.as_mut().unwrap() });
+                let mut empty = mem::replace(self, grown);
+                let pointer = empty.ptr;
+                let capacity = empty.cap;
+                let caps = ghost! { empty.unique_at_zero.take().unwrap() };
+                mem::forget(empty);
+                unsafe { release_unique_storage(pointer, capacity, 0, caps); }
+            }
             return;
         }
 
@@ -1097,7 +1164,7 @@ impl BytesMut {
             }
             self.reserve_unique_growing(additional);
         }
-        #[cfg(all(any(creusot, bytes_proof_probe), not(bytes_proof_unique_growth)))]
+        #[cfg(all(any(creusot, bytes_proof_probe), not(bytes_proof_unique_growth), not(bytes_proof_shared_reserve)))]
         panic!("growing reserve is outside the in-capacity proof gate");
     }
 
@@ -4727,3 +4794,13 @@ pub(crate) mod sequential_shared_control;
 #[cfg(bytes_proof_adjacent_unsplit)]
 #[path = "ownership_proof/shared_unsplit.rs"]
 pub(crate) mod shared_unsplit;
+
+#[cfg(bytes_proof_shared_reserve)]
+#[path = "ownership_proof/shared_reclaim.rs"]
+pub(crate) mod shared_reclaim;
+#[cfg(bytes_proof_shared_reserve)]
+#[path = "ownership_proof/shared_reserve.rs"]
+pub(crate) mod shared_reserve;
+#[cfg(bytes_proof_shared_reserve)]
+#[path = "ownership_proof/shared_copy.rs"]
+pub(crate) mod shared_copy;

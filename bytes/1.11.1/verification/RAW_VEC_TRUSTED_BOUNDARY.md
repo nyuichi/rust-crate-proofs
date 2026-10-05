@@ -308,6 +308,18 @@ bridges. A nonzero full buffer must use its shifted spare endpoint; the empty
 shortcut applies only when capacity is zero. Actual trait bodies and refinement
 are proved in a separate unique-only invariant context, not the split context.
 
+## B6 sealed pointer offset metadata
+
+`BoundPtr::offset_from_bound_base` is a trusted physical representation primitive
+introduced for exact cfg Shared reserve. It requires valid sealed descriptors
+with the same namespace and capacity and an offset-zero base, and returns the
+view's existing logical offset. Its native body subtracts numeric addresses.
+It neither dereferences nor creates/reconstructs a pointer, grants no byte or
+liveness authority, and proves no singleton/refcount/recovery rule. Those rules
+remain body-proved affine protocol code. The relational representation fact
+between sealed pointer addresses and their ghost offsets remains in the TCB.
+The unrelated-allocation negative feature is proof-only.
+
 ## Immutable B4 ghost classification
 
 Only `borrow_bound` and literal-zero immutable `borrow_empty_bound` are now

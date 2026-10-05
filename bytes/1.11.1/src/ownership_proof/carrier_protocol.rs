@@ -73,6 +73,22 @@ pub(super) struct HandleRegistration {
     pub(super) left: bool,
 }
 impl HandleRegistration {
+    /// A singleton inventory admits no other live registration id. This is a
+    /// finite-map cardinality fact, independently proved before reallocating A.
+    #[check(ghost)]
+    #[requires(registration.matches(*context))]
+    #[requires((*context.status.pending).len() == 1)]
+    #[ensures(forall<other: HandleRegistration> other.matches(*context) ==>
+        other.packet.0.logical_id() == registration.packet.0.logical_id())]
+    pub(super) fn singleton_is_sole(context: Snapshot<ControlContext>, registration: Snapshot<Self>) {
+        let pending = snapshot!(*context.status.pending);
+        let remainder = snapshot!((*pending).remove(registration.packet.0.logical_id()));
+        scalable_tickets::pending_cardinality(remainder);
+        proof_assert!((*remainder).len() == 0);
+        proof_assert!(forall<id: Int> (*pending).contains(id) ==>
+            id == registration.packet.0.logical_id());
+    }
+
     #[logic(open(super), prophetic)]
     pub(super) fn view_lo(self) -> Int { self.packet.1.lo() }
     #[logic(open(super), prophetic)]
