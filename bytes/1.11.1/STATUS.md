@@ -19,6 +19,11 @@ explicit consuming proof paths. Automatic Drop dispatch is still unverified.
 The carrier extraction omits BytesMut Drop: its additional proof arguments
 do not establish whole-crate compilation under bytes_proof_repeated_split.
 Astra reviewed original-base cleanup, zero capacity and forget-before-release.
+Final whole-crate translation was attempted with BYTES_TRANSLATE_ONLY=1.
+It remains blocked by the two previously recorded Bytes vtable recursion
+cycles (shared_clone/SHARED_VTABLE and owned_clone/Owned::VTABLE). No whole-crate
+proof was run or claimed. Log: verification/artifacts/logs/
+explicit-cleanup-runtime-frontier.log.
 Luna xhigh added four native ordinary-public-API allocator tests: advanced
 unique cleanup after spare writes, endpoint splits in all six three-handle
 drop orders, and unique/shared capacity zero. Pointer/size/alignment logs

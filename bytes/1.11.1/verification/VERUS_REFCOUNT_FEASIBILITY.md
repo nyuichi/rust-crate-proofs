@@ -27,3 +27,15 @@ sequence model, conserved tickets/retired regions, and an explicit connection
 to Creusot's affine physical resources. Importing an abstract Verus theorem
 as a Creusot trusted contract would add a tool-boundary assumption and must
 be recorded as such. Stock Verus alone is not an established solution here.
+
+## SeqCst alternative reviewed by Astra
+
+Strengthening all relevant native refcount operations and uniqueness checks to
+SeqCst would make a stock-Verus protocol proof plausible, at a runtime cost.
+This was not implemented. The remaining issue is the physical resource in
+the atomic invariant: Verus tracked tokens are not automatically Creusot
+Recovery/PhysicalRegion authority. Assuming a conversion or a release contract
+would add a trusted ownership boundary. A standalone SeqCst protocol experiment
+may be useful, but must remain independent until the relevant ownership slice
+is verified wholly in Verus or a checked cross-tool connection is established.
+It would not by itself verify the unchanged bytes implementation.

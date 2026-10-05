@@ -1,0 +1,379 @@
+bytes proof: /workspace/bytes-runtime-verification/bytes/1.11.1; one prover; 1024 MiB; native Ordering; sc-drf disabled
+     Removed 532 files, 107.3MiB total
+    Checking bytes v1.11.1 (/workspace/bytes-runtime-verification/bytes/1.11.1)
+warning: unused import: `string::String`
+ --> src/bytes_mut.rs:9:5
+  |
+9 |     string::String,
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `AtomicUsize`
+  --> src/bytes_mut.rs:18:44
+   |
+18 | use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
+   |                                            ^^^^^^^^^^^
+
+warning: unreachable expression
+    --> src/bytes_mut.rs:2784:13
+     |
+2774 |             panic!("ARC clone is outside the first sequential split gate");
+     |             -------------------------------------------------------------- any code following this expression is unreachable
+...
+2784 |             { self.pending_descriptor_copy() }
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable expression
+     |
+     = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `prelude`
+    --> src/bytes_mut.rs:3958:53
+     |
+3958 |     use creusot_std::{ghost::perm::Perm, logic::Id, prelude::*};
+     |                                                     ^^^^^^^
+
+warning: unused variable: `off`
+    --> src/bytes_mut.rs:2689:13
+     |
+2689 |         let off = crate::capacity_ops::vec_pos_from_data(
+     |             ^^^ help: if this is intentional, prefix it with an underscore: `_off`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `base`
+   --> src/ownership_proof/raw_vec.rs:839:25
+    |
+839 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                         ^^^^ help: try ignoring the field: `base: _`
+
+warning: unused variable: `capacity`
+   --> src/ownership_proof/raw_vec.rs:839:31
+    |
+839 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
+
+warning: unused variable: `base`
+   --> src/ownership_proof/raw_vec.rs:875:9
+    |
+875 |     let base = bound.as_ptr();
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
+
+warning: associated function `new` is never used
+  --> src/buf/chain.rs:42:19
+   |
+38 | impl<T, U> Chain<T, U> {
+   | ---------------------- associated function in this implementation
+...
+42 |     pub(crate) fn new(a: T, b: U) -> Chain<T, U> {
+   |                   ^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `chain` is never used
+  --> src/buf/proof_convenience.rs:22:15
+   |
+22 | pub(crate) fn chain<T: Buf, U: Buf>(first: T, second: U) -> Chain<T, U> {
+   |               ^^^^^
+
+warning: function `reader` is never used
+  --> src/buf/proof_convenience.rs:32:15
+   |
+32 | pub(crate) fn reader<T: Buf>(inner: T) -> super::Reader<T> {
+   |               ^^^^^^
+
+warning: function `writer` is never used
+  --> src/buf/proof_convenience.rs:42:15
+   |
+42 | pub(crate) fn writer<T: BufMut>(inner: T) -> super::Writer<T> {
+   |               ^^^^^^
+
+warning: function `chain_mut` is never used
+  --> src/buf/proof_convenience.rs:51:15
+   |
+51 | pub(crate) fn chain_mut<T: BufMut, U: BufMut>(first: T, second: U) -> Chain<T, U> {
+   |               ^^^^^^^^^
+
+warning: function `new` is never used
+  --> src/buf/reader.rs:19:8
+   |
+19 | pub fn new<B>(buf: B) -> Reader<B> {
+   |        ^^^
+
+warning: function `new` is never used
+  --> src/buf/writer.rs:19:8
+   |
+19 | pub fn new<B>(buf: B) -> Writer<B> {
+   |        ^^^
+
+warning: field `original_capacity_repr` is never read
+   --> src/bytes_mut.rs:108:5
+    |
+106 | struct Shared {
+    |        ------ field in this struct
+107 |     buffer: SharedBuffer,
+108 |     original_capacity_repr: usize,
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `from_handle` and `reserve` are never used
+   --> src/bytes_mut.rs:157:15
+    |
+154 | impl SharedBuffer {
+    | ----------------- associated items in this implementation
+...
+157 |     unsafe fn from_handle(ptr: *mut u8, capacity: usize, offset: usize) -> Self {
+    |               ^^^^^^^^^^^
+...
+175 |     unsafe fn reserve(&mut self, capacity: usize) {
+    |               ^^^^^^^
+
+warning: multiple associated items are never used
+    --> src/bytes_mut.rs:858:8
+     |
+ 224 | impl BytesMut {
+     | ------------- associated items in this implementation
+...
+ 858 |     fn reserve_inner(&mut self, additional: usize, allocate: bool) -> bool {
+     |        ^^^^^^^^^^^^^
+...
+1263 |     fn proof_empty_valid(self) -> bool {
+     |        ^^^^^^^^^^^^^^^^^
+...
+1395 |     fn proof_take_coordinator(&mut self) -> Ghost<sequential_shared_control::ControlContext> {
+     |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+1410 |     fn proof_release(mut self, context: Ghost<&mut sequential_shared_control::ControlContext>, left: bool) -> bool {
+     |        ^^^^^^^^^^^^^
+...
+1431 |     pub(crate) fn proof_split_then_release(input: Vec<u8>, at: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1463 |     pub(crate) fn proof_mutate_split_then_release(input: Vec<u8>, at: usize, left_value: u8, right_value: u8, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1492 |     pub(crate) fn proof_access_split_then_release(input: Vec<u8>, at: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1532 |     pub(crate) fn proof_split_off_then_release(input: Vec<u8>, requested: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1563 |     pub(crate) fn proof_shrink_split_off_then_release(input: Vec<u8>, requested: usize, keep: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1610 |     pub(crate) fn proof_advance_split_off_then_release(input: Vec<u8>, requested: usize, left_count: usize, right_count: usize, ri...
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1677 |     fn proof_initialize_spare_byte(&mut self, value: u8, use_write: bool) {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1691 |     pub(crate) fn proof_initialize_split_spare(input: Vec<u8>, requested: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1717 |     pub(crate) fn proof_reinitialize_split_prefix(input: Vec<u8>, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1749 |     pub(crate) fn proof_readonly_split(input: Vec<u8>, requested: usize, right_first: bool) {
+     |                   ^^^^^^^^^^^^^^^^^^^^
+...
+1792 |     pub(crate) fn proof_unique_access(input: Vec<u8>, keep: usize, value: u8) {
+     |                   ^^^^^^^^^^^^^^^^^^^
+...
+2482 |     pub(crate) fn proof_release_unique_at_zero(mut self) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `new` is never used
+    --> src/bytes_mut.rs:4111:8
+     |
+4111 |     fn new(input: Vec<u8>, split: usize) -> (ControlPtr, Ghost<ControlContext>, Ghost<Packet>, Ghost<Packet>) {
+     |        ^^^
+
+warning: function `release` is never used
+    --> src/bytes_mut.rs:4148:19
+     |
+4148 |     pub(super) fn release(control: ControlPtr, mut context: Ghost<&mut ControlContext>, packet: Ghost<Packet>, left: bool) -> bool {
+     |                   ^^^^^^^
+
+warning: function `release_left_then_right` is never used
+    --> src/bytes_mut.rs:4192:19
+     |
+4192 |     pub(crate) fn release_left_then_right(input: Vec<u8>, split: usize) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `release_right_then_left` is never used
+    --> src/bytes_mut.rs:4201:19
+     |
+4201 |     pub(crate) fn release_right_then_left(input: Vec<u8>, split: usize) {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `map_op_get` is never used
+  --> src/ownership_proof/owned_region.rs:47:15
+   |
+47 | pub(crate) fn map_op_get(
+   |               ^^^^^^^^^^
+
+warning: methods `into_parts`, `slots`, and `join` are never used
+   --> src/ownership_proof/owned_region.rs:125:19
+    |
+ 95 | impl OwnedRegion {
+    | ---------------- methods in this implementation
+...
+125 |     pub(crate) fn into_parts(self) -> (Int, Int, Resource<KernelRA>) {
+    |                   ^^^^^^^^^^
+...
+149 |     pub(crate) fn slots(self) -> FMap<Int, Excl<Option<u8>>> {
+    |                   ^^^^^
+...
+243 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: method `as_non_null` is never used
+   --> src/ownership_proof/raw_vec.rs:207:19
+    |
+175 | impl BoundPtr {
+    | ------------- method in this implementation
+...
+207 |     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
+    |                   ^^^^^^^^^^^
+
+warning: method `join` is never used
+   --> src/ownership_proof/raw_vec.rs:499:19
+    |
+413 | impl PhysicalRegion {
+    | ------------------- method in this implementation
+...
+499 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: methods `slot`, `retire`, and `finish` are never used
+   --> src/ownership_proof/raw_vec.rs:566:19
+    |
+544 | impl PhysicalPool {
+    | ----------------- methods in this implementation
+...
+566 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+    |                   ^^^^
+...
+639 |     pub(crate) fn retire(self, region: PhysicalRegion) -> Self {
+    |                   ^^^^^^
+...
+675 |     pub(crate) fn finish(self, lo: Int) -> PhysicalRegion {
+    |                   ^^^^^^
+
+warning: function `resume_vec` is never used
+   --> src/ownership_proof/raw_vec.rs:799:22
+    |
+799 | pub(crate) unsafe fn resume_vec(
+    |                      ^^^^^^^^^^
+
+warning: function `deallocate_vec` is never used
+   --> src/ownership_proof/raw_vec.rs:835:22
+    |
+835 | pub(crate) unsafe fn deallocate_vec(
+    |                      ^^^^^^^^^^^^^^
+
+warning: function `borrow_mut` is never used
+   --> src/ownership_proof/raw_vec.rs:919:22
+    |
+919 | pub(crate) unsafe fn borrow_mut<'a>(
+    |                      ^^^^^^^^^^
+
+warning: function `slot_known_equivalence` is never used
+   --> src/ownership_proof/raw_vec.rs:941:15
+    |
+941 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound` is never used
+    --> src/ownership_proof/raw_vec.rs:1098:22
+     |
+1098 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
+     |                      ^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound_mut` is never used
+    --> src/ownership_proof/raw_vec.rs:1107:22
+     |
+1107 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound_uninit_mut` is never used
+    --> src/ownership_proof/raw_vec.rs:1115:22
+     |
+1115 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `inner` is never read
+  --> src/ownership_proof/sequential_counter.rs:21:5
+   |
+20 | pub(crate) struct SequentialCounter {
+   |                   ----------------- field in this struct
+21 |     inner: AtomicUsize,
+   |     ^^^^^
+
+warning: methods `fetch_add_relaxed`, `fetch_sub_release`, and `load_acquire` are never used
+  --> src/ownership_proof/sequential_counter.rs:66:19
+   |
+43 | impl SequentialCounter {
+   | ---------------------- methods in this implementation
+...
+66 |     pub(crate) fn fetch_add_relaxed(&self, amount: usize, own: Ghost<&mut CounterOwn>) -> usize {
+   |                   ^^^^^^^^^^^^^^^^^
+...
+79 |     pub(crate) fn fetch_sub_release(&self, amount: usize, own: Ghost<&mut CounterOwn>) -> usize {
+   |                   ^^^^^^^^^^^^^^^^^
+...
+89 |     pub(crate) fn load_acquire(&self, own: Ghost<&CounterOwn>) -> usize {
+   |                   ^^^^^^^^^^^^
+
+warning: function `retire` is never used
+   --> src/ownership_proof/shared_protocol.rs:135:15
+    |
+135 | pub(crate) fn retire(coordinator: Ghost<&mut Coordinator>, packet: Ghost<Packet>, left: bool) {
+    |               ^^^^^^
+
+warning: function `finish` is never used
+   --> src/ownership_proof/shared_protocol.rs:162:15
+    |
+162 | pub(crate) fn finish(coordinator: Ghost<Coordinator>) -> Ghost<(Recovery, PhysicalRegion)> {
+    |               ^^^^^^
+
+error: Mutually recursive functions: when calling `bytes::static_clone`...
+    --> src/bytes.rs:1143:1
+     |
+1143 | unsafe fn static_clone(_: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: `bytes::static_clone` calls `bytes::Bytes::from_static`...
+    --> src/bytes.rs:1145:5
+     |
+1145 |     Bytes::from_static(slice)
+     |     ^^^^^^^^^^^^^^^^^^
+note: then `bytes::Bytes::from_static` calls `bytes::STATIC_VTABLE`...
+    --> src/bytes.rs:172:22
+     |
+ 172 |             vtable: &STATIC_VTABLE,
+     |                      ^^^^^^^^^^^^^
+note: finally `bytes::STATIC_VTABLE` uses `bytes::static_clone`.
+    --> src/bytes.rs:1136:12
+     |
+1136 |     clone: static_clone,
+     |            ^^^^^^^^^^^^
+
+error: Mutually recursive functions: when calling `bytes::owned_clone`...
+    --> src/bytes.rs:1184:1
+     |
+1184 | unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: `bytes::owned_clone` calls `bytes::Owned::<T>::VTABLE`...
+    --> src/bytes.rs:1195:18
+     |
+1195 |         vtable: &Owned::<T>::VTABLE,
+     |                  ^^^^^^^^^^^^^^^^^^
+note: finally `bytes::Owned::<T>::VTABLE` uses `bytes::owned_clone`.
+    --> src/bytes.rs:1176:16
+     |
+1176 |         clone: owned_clone::<T>,
+     |                ^^^^^^^^^^^^^^^^
+
+warning: `bytes` (lib) generated 38 warnings
+error: could not compile `bytes` (lib) due to 2 previous errors; 38 warnings emitted
+Error: Compilation failed
