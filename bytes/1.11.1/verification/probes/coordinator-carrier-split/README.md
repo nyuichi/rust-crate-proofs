@@ -26,8 +26,8 @@ No new trusted ownership or refcount protocol is introduced. The existing Vec,
 physical byte access, boxed alignment, and exclusive scalar atomic bridges and
 standard permission operations remain the trusted boundary.
 
-Status: the integrated gate passes 93 proof files with zero unproved leaves.
-Three native tests cover boundary positions/all six release orders and exact
+Status: the integrated gate passes 106 proof files with zero unproved leaves.
+Five native tests cover boundary positions/all six release orders and exact
 original-buffer/control-block allocation/free counts. Native execution does not
 by itself establish the ghost protocol or a whole-crate proof.
 
@@ -62,3 +62,16 @@ Do not execute negative features natively.
 Final split_off evidence is `split-off-final-positive`,
 `split-off-final-ticket-negative`, `split-off-unknown-negative`; the 110-file
 legacy regression is `regressions/split-off-final`.
+
+The final gate also extracts actual spare_capacity_mut/set_len, advance_unchecked,
+truncate/clear, resize/extend_from_slice and reserve. The reserve contract
+restricts its unchanged fast path; resize/append are bounded by current capacity.
+A storage harness reinitializes/writes/publishes one spare byte, advances all
+three descriptors, shrinks/clears, and recovers the original full allocation.
+A capacity harness fills/appends in the disjoint regions. Ticket identity and
+region endpoints are body-proved frames. Native5 observes no reallocations.
+Final evidence: capacity-positive (106 files), capacity-unknown-negative and
+capacity-ticket-negative (108 files, one intended leaf each), with the legacy
+110-file regression under regressions/capacity-final. Historical split-only
+counts above refer to their archived checkpoints. No growth or general reclaim
+claim is made.

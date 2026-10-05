@@ -10,7 +10,7 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-05)
 
-The 93-file coordinator-carrier gate adds no trusted primitive. Its dynamic
+The 106-file coordinator-carrier gate adds no trusted primitive. Its dynamic
 registration/cardinality/coordinate lemmas, pending descriptor completion,
 native-count conservation and explicit finalization all have proved bodies.
 It reuses existing B1/B3/B4 Vec/raw/physical-access, boxed-alignment, vanilla typed
@@ -21,7 +21,7 @@ ordinary Vec ownership and affine physical regions. Exact source fragments and
 native allocation counts are frozen with the evidence. This proves explicit
 cleanup through this cfg adapter; original release_shared and automatic Drop,
 ordinary Shared representation equivalence and concurrent refcount/free remain
-separate unproved obligations. An unreleased empty ticket is rejected (95 files,
+separate unproved obligations. An unreleased empty ticket is rejected (108 files,
 one intended failed assertion), so byte coverage alone does not grant finalization.
 The spare-prefix helper and shared spare adapter are body proved from existing
 B4 metadata/writeback/frame; they add no trusted clause. Final legacy110,
@@ -31,7 +31,15 @@ Repeated actual split_off moves the three affine state fields into the returned
 right descriptor, reuses the existing split registration boundary, and retains
 full-capacity Known/Unknown slot correspondence. No new axiom is added. The
 Unknown-publication negative rejects exactly actual set_len's initialization
-guard (95 files, 16/17); empty tickets still block finalization (95 files, 17/18).
+guard (108 files, 16/17); empty tickets still block finalization (108 files, 17/18).
+
+Dynamic-ticket spare access, actual set_len/advance/truncate/clear, and the
+in-capacity resize/append/reserve paths have proved bodies in the 106-file gate.
+The existing body-proved fill/copy helpers initialize bounded physical spare
+slices; exact ticket/endpoints are framed across byte changes. Native5 checks
+allocation events separately. Growth, overlapping source copies, reclamation
+and ordinary Drop are not inferred from these bounded paths. Separate 108-file
+negatives each contain exactly one intended rejection. No new trust is added.
 
 The complete 82-file concrete slice Buf body gate adds no TCB or std contract.
 The actual getter source uses match to avoid a missing unwrap_or_else spec.
