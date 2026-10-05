@@ -25,8 +25,14 @@ pointer provenance or access authority relation in this gate.
 The `range_full_index` feature extracts the source `impl_index!` macro and
 checks its `RangeFull` expansion. Its proof-only branch has public-model
 contracts over `UninitSlice@`; `build.rs` checks that both branch bodies match
-the runtime macro bodies after whitespace normalization. The gate proves this
-one range type, not the other five range implementations.
+the runtime macro bodies after whitespace normalization. The
+`range_bounds_index` feature independently checks the half-open
+`Range<usize>` implementation with pointwise offset and frame contracts. Each
+gate proves only its selected range type; the other four range implementations
+remain separate proof targets. The `range_from_index` gate also passes with the
+same public `Seq<Option<u8>>` model: its contract maps the suffix and frames the
+prefix. Its model functions are body-defined logic and add no trusted range
+axiom.
 
 The expanded configuration below proves all 12 generated files, and its native
 suite passes all three tests. The captured source, generated extraction, Coma,
@@ -44,6 +50,24 @@ Run the serialized expanded proof from this directory:
 ```sh
 ./verify.bash --features remaining_apis,range_full_index
 ```
+
+The separate half-open range gate is:
+
+```sh
+./verify.bash --features remaining_apis,range_bounds_index
+```
+
+Its 12-file proof and 3-test native replay are archived in
+`evidence/range-bounds-positive.tar.gz`.
+
+The `RangeFrom<usize>` gate is:
+
+```sh
+./verify.bash --features remaining_apis,range_from_index
+```
+
+Its 12-file proof and 3-test native replay are archived in
+`evidence/range-from-positive.tar.gz`.
 
 Translation only, without starting Why3:
 

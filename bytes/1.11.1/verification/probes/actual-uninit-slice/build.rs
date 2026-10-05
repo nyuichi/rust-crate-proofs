@@ -131,9 +131,31 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-env-changed=CARGO_FEATURE_REMAINING_APIS");
     println!("cargo:rerun-if-env-changed=CARGO_FEATURE_RANGE_FULL_INDEX");
+    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_RANGE_BOUNDS_INDEX");
+    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_RANGE_FROM_INDEX");
+    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_RANGE_TO_INDEX");
+    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_RANGE_TO_INCLUSIVE_INDEX");
+    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_RANGE_INCLUSIVE_INDEX");
     let source = fs::read_to_string(&source_path).unwrap();
     let remaining_apis = env::var_os("CARGO_FEATURE_REMAINING_APIS").is_some();
     let range_full_index = env::var_os("CARGO_FEATURE_RANGE_FULL_INDEX").is_some();
+    let range_bounds_index = env::var_os("CARGO_FEATURE_RANGE_BOUNDS_INDEX").is_some();
+    let range_from_index = env::var_os("CARGO_FEATURE_RANGE_FROM_INDEX").is_some();
+    let range_to_index = env::var_os("CARGO_FEATURE_RANGE_TO_INDEX").is_some();
+    let range_to_inclusive_index =
+        env::var_os("CARGO_FEATURE_RANGE_TO_INCLUSIVE_INDEX").is_some();
+    let range_inclusive_index = env::var_os("CARGO_FEATURE_RANGE_INCLUSIVE_INDEX").is_some();
+    let range_family_count = [
+        range_from_index,
+        range_to_index,
+        range_to_inclusive_index,
+        range_inclusive_index,
+    ]
+    .into_iter()
+    .filter(|enabled| *enabled)
+    .count();
+    assert!(range_family_count <= 1, "select only one range family at a time");
+    let range_family_index = range_family_count == 1;
 
     let struct_start = unique_index(&source, "#[repr(transparent)]\npub struct UninitSlice(");
     let struct_end = struct_start + source[struct_start..].find(';').unwrap() + 1;
@@ -166,7 +188,7 @@ fn main() {
             "    pub fn len(&self) -> usize {",
         ),
     ];
-    if remaining_apis || range_full_index {
+    if remaining_apis || range_full_index || range_bounds_index || range_family_index {
         methods.push(extract_item(
             &source,
             "    #[trusted]\n    #[cfg_attr(creusot, check(ghost))]\n    #[ensures(result@.len() == slice@.len())]\n    #[ensures(result@ == Seq::create(slice@.len(), |index: Int| slice@[index]@))]\n    #[ensures(forall<i> 0 <= i && i < slice@.len() ==> result@[i] == slice@[i]@)]\n    fn uninit_ref(slice: &[MaybeUninit<u8>]) -> &UninitSlice {",
@@ -211,14 +233,48 @@ fn main() {
     extracted.push_str("\n}\n");
     extracted.push_str(from_maybe_uninit);
     extracted.push_str("\n}\n");
-    if range_full_index {
+    if range_full_index || range_bounds_index || range_family_index {
+        let (index_signature, index_mut_signature, expansion) = if range_full_index {
+            (
+                "fn index(&self, index: RangeFull) -> &UninitSlice {",
+                "fn index_mut(&mut self, index: RangeFull) -> &mut UninitSlice {",
+                "\nuse core::ops::{Index, IndexMut, RangeFull};\nimpl_index!(@range_full);\n",
+            )
+        } else if range_bounds_index {
+            (
+                "fn index(&self, index: Range<usize>) -> &UninitSlice {",
+                "fn index_mut(&mut self, index: Range<usize>) -> &mut UninitSlice {",
+                "\nuse core::ops::{Index, IndexMut, Range};\nimpl_index!(@range_bounds);\n",
+            )
+        } else if range_from_index {
+            (
+                "fn index(&self, index: $index_ty) -> &UninitSlice {",
+                "fn index_mut(&mut self, index: $index_ty) -> &mut UninitSlice {",
+                "\nuse core::ops::{Index, IndexMut, RangeFrom};\nimpl_index!(@range_family RangeFrom<usize>);\n",
+            )
+        } else if range_to_index {
+            (
+                "fn index(&self, index: $index_ty) -> &UninitSlice {",
+                "fn index_mut(&mut self, index: $index_ty) -> &mut UninitSlice {",
+                "\nuse core::ops::{Index, IndexMut, RangeTo};\nimpl_index!(@range_family RangeTo<usize>);\n",
+            )
+        } else if range_to_inclusive_index {
+            (
+                "fn index(&self, index: $index_ty) -> &UninitSlice {",
+                "fn index_mut(&mut self, index: $index_ty) -> &mut UninitSlice {",
+                "\nuse core::ops::{Index, IndexMut, RangeToInclusive};\nimpl_index!(@range_family RangeToInclusive<usize>);\n",
+            )
+        } else {
+            (
+                "fn index(&self, index: $index_ty) -> &UninitSlice {",
+                "fn index_mut(&mut self, index: $index_ty) -> &mut UninitSlice {",
+                "\nuse core::ops::{Index, IndexMut, RangeInclusive};\nimpl_index!(@range_family RangeInclusive<usize>);\n",
+            )
+        };
         assert_eq!(
             function_body(&source, "fn index(&self, index: $t) -> &UninitSlice {",),
-            function_body(
-                &source,
-                "fn index(&self, index: RangeFull) -> &UninitSlice {",
-            ),
-            "RangeFull proof index body must match the runtime macro body",
+            function_body(&source, index_signature),
+            "proof Index body must match the runtime macro body",
         );
         assert_eq!(
             function_body(
@@ -227,13 +283,19 @@ fn main() {
             ),
             function_body(
                 &source,
-                "fn index_mut(&mut self, index: RangeFull) -> &mut UninitSlice {",
+                index_mut_signature,
             ),
-            "RangeFull proof index_mut body must match the runtime macro body",
+            "proof IndexMut body must match the runtime macro body",
         );
-        extracted.push_str("\nuse core::ops::{Index, IndexMut, RangeFull};\n");
+        if range_family_index {
+            extracted.push_str(&extract_block(
+                &source,
+                "#[cfg(creusot)]\nmod uninit_index_model {",
+            ));
+            extracted.push_str("\n#[cfg(creusot)]\nuse uninit_index_model::UninitSliceIndexModel;\n");
+        }
         extracted.push_str(&extract_block(&source, "macro_rules! impl_index {"));
-        extracted.push_str("\nimpl_index!(@range_full);\n");
+        extracted.push_str(expansion);
     }
 
     let out = PathBuf::from(env::var_os("OUT_DIR").unwrap());

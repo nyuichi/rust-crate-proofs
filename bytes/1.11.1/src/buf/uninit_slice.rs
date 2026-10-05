@@ -283,29 +283,182 @@ impl<'a> From<&'a mut [MaybeUninit<u8>]> for &'a mut UninitSlice {
     }
 }
 
+#[cfg(creusot)]
+mod uninit_index_model {
+    use core::ops::{Range, RangeFrom, RangeInclusive, RangeTo, RangeToInclusive};
+    use creusot_std::prelude::*;
+    use creusot_std::std::slice::SliceIndexSpec;
+
+    pub(super) trait UninitSliceIndexModel {
+        #[logic]
+        fn uninit_in_bounds(self, source: Seq<Option<u8>>) -> bool;
+
+        #[logic]
+        fn uninit_view(self, source: Seq<Option<u8>>) -> Seq<Option<u8>>;
+
+        #[logic]
+        fn uninit_frame(
+            self,
+            old: Seq<Option<u8>>,
+            final_view: Seq<Option<u8>>,
+        ) -> bool;
+    }
+
+    impl UninitSliceIndexModel for Range<usize> {
+        #[logic(open)]
+        fn uninit_in_bounds(self, source: Seq<Option<u8>>) -> bool {
+            pearlite! { self.start@ <= self.end@ && self.end@ <= source.len() }
+        }
+
+        #[logic(open)]
+        fn uninit_view(self, source: Seq<Option<u8>>) -> Seq<Option<u8>> {
+            pearlite! { source.subsequence(self.start@, self.end@) }
+        }
+
+        #[logic(open)]
+        fn uninit_frame(
+            self,
+            old: Seq<Option<u8>>,
+            final_view: Seq<Option<u8>>,
+        ) -> bool {
+            pearlite! {
+                forall<i> 0 <= i && (i < self.start@ || self.end@ <= i) && i < old.len()
+                ==> old[i] == final_view[i]
+            }
+        }
+    }
+
+    impl UninitSliceIndexModel for RangeFrom<usize> {
+        #[logic(open)]
+        fn uninit_in_bounds(self, source: Seq<Option<u8>>) -> bool {
+            pearlite! { self.start@ <= source.len() }
+        }
+
+        #[logic(open)]
+        fn uninit_view(self, source: Seq<Option<u8>>) -> Seq<Option<u8>> {
+            pearlite! { source.subsequence(self.start@, source.len()) }
+        }
+
+        #[logic(open)]
+        fn uninit_frame(
+            self,
+            old: Seq<Option<u8>>,
+            final_view: Seq<Option<u8>>,
+        ) -> bool {
+            pearlite! {
+                forall<i> 0 <= i && i < self.start@ && i < old.len()
+                ==> old[i] == final_view[i]
+            }
+        }
+    }
+
+    impl UninitSliceIndexModel for RangeTo<usize> {
+        #[logic(open)]
+        fn uninit_in_bounds(self, source: Seq<Option<u8>>) -> bool {
+            pearlite! { self.end@ <= source.len() }
+        }
+
+        #[logic(open)]
+        fn uninit_view(self, source: Seq<Option<u8>>) -> Seq<Option<u8>> {
+            pearlite! { source.subsequence(0, self.end@) }
+        }
+
+        #[logic(open)]
+        fn uninit_frame(
+            self,
+            old: Seq<Option<u8>>,
+            final_view: Seq<Option<u8>>,
+        ) -> bool {
+            pearlite! {
+                forall<i> self.end@ <= i && i < old.len()
+                ==> old[i] == final_view[i]
+            }
+        }
+    }
+
+    impl UninitSliceIndexModel for RangeToInclusive<usize> {
+        #[logic(open)]
+        fn uninit_in_bounds(self, source: Seq<Option<u8>>) -> bool {
+            pearlite! { self.end@ < source.len() }
+        }
+
+        #[logic(open)]
+        fn uninit_view(self, source: Seq<Option<u8>>) -> Seq<Option<u8>> {
+            pearlite! { source.subsequence(0, self.end@ + 1) }
+        }
+
+        #[logic(open)]
+        fn uninit_frame(
+            self,
+            old: Seq<Option<u8>>,
+            final_view: Seq<Option<u8>>,
+        ) -> bool {
+            pearlite! {
+                forall<i> self.end@ < i && i < old.len()
+                ==> old[i] == final_view[i]
+            }
+        }
+    }
+
+    impl UninitSliceIndexModel for RangeInclusive<usize> {
+        #[logic(open)]
+        fn uninit_in_bounds(self, source: Seq<Option<u8>>) -> bool {
+            <Self as SliceIndexSpec<[Option<u8>]>>::in_bounds(self, source)
+        }
+
+        #[logic(open)]
+        fn uninit_view(self, source: Seq<Option<u8>>) -> Seq<Option<u8>> {
+            pearlite! {
+                if self.is_empty_log() {
+                    Seq::empty()
+                } else {
+                    source.subsequence(self.start_log()@, self.end_log()@ + 1)
+                }
+            }
+        }
+
+        #[logic(open)]
+        fn uninit_frame(
+            self,
+            old: Seq<Option<u8>>,
+            final_view: Seq<Option<u8>>,
+        ) -> bool {
+            pearlite! {
+                forall<i> 0 <= i
+                    && (i < self.start_log()@ || self.end_log()@ < i || self.is_empty_log())
+                    && i < old.len()
+                ==> old[i] == final_view[i]
+            }
+        }
+    }
+}
+
 macro_rules! impl_index {
-    (@range_family $index_ty:ty) => {
-        impl Index<$index_ty> for UninitSlice {
+    (@range_bounds) => {
+        impl Index<Range<usize>> for UninitSlice {
             type Output = UninitSlice;
 
             #[inline]
             #[cfg_attr(creusot, check(ghost))]
-            #[cfg_attr(creusot, requires(index.in_bounds(self@)))]
-            #[cfg_attr(creusot, ensures(result@ == index.index_view(self@)))]
-            fn index(&self, index: $index_ty) -> &UninitSlice {
+            #[cfg_attr(creusot, requires(index.start@ <= index.end@ && index.end@ <= self@.len()))]
+            #[cfg_attr(creusot, ensures(result@.len() == index.end@ - index.start@))]
+            #[cfg_attr(creusot, ensures(forall<i: Int> 0 <= i && i < result@.len() ==> result@[i] == self@[index.start@ + i]))]
+            fn index(&self, index: Range<usize>) -> &UninitSlice {
                 UninitSlice::uninit_ref(&self.0[index])
             }
         }
 
-        impl IndexMut<$index_ty> for UninitSlice {
+        impl IndexMut<Range<usize>> for UninitSlice {
             #[inline]
             #[cfg_attr(creusot, check(ghost))]
-            #[cfg_attr(creusot, requires(index.in_bounds(self@)))]
-            #[cfg_attr(creusot, ensures(result@ == index.index_view(self@)))]
-            #[cfg_attr(creusot, ensures((^result)@ == index.index_view((^self)@)))]
-            #[cfg_attr(creusot, ensures(index.resolve_elswhere(self@, (^self)@)))]
+            #[cfg_attr(creusot, requires(index.start@ <= index.end@ && index.end@ <= self@.len()))]
+            #[cfg_attr(creusot, ensures(result@.len() == index.end@ - index.start@))]
+            #[cfg_attr(creusot, ensures(forall<i: Int> 0 <= i && i < result@.len() ==> result@[i] == self@[index.start@ + i]))]
+            #[cfg_attr(creusot, ensures((^result)@.len() == index.end@ - index.start@))]
+            #[cfg_attr(creusot, ensures(forall<i: Int> 0 <= i && i < (^result)@.len() ==> (^result)@[i] == (^self)@[index.start@ + i]))]
+            #[cfg_attr(creusot, ensures(forall<i: Int> 0 <= i && i < self@.len() && (i < index.start@ || index.end@ <= i) ==> (^self)@[i] == self@[i]))]
             #[cfg_attr(creusot, ensures((^self)@.len() == self@.len()))]
-            fn index_mut(&mut self, index: $index_ty) -> &mut UninitSlice {
+            fn index_mut(&mut self, index: Range<usize>) -> &mut UninitSlice {
                 UninitSlice::uninit(&mut self.0[index])
             }
         }
@@ -331,6 +484,32 @@ macro_rules! impl_index {
             #[cfg_attr(creusot, ensures((^result)@.len() == (^self)@.len()))]
             #[cfg_attr(creusot, ensures((^result)@ == (^self)@))]
             fn index_mut(&mut self, index: RangeFull) -> &mut UninitSlice {
+                UninitSlice::uninit(&mut self.0[index])
+            }
+        }
+    };
+    (@range_family $index_ty:ty) => {
+        impl Index<$index_ty> for UninitSlice {
+            type Output = UninitSlice;
+
+            #[inline]
+            #[cfg_attr(creusot, check(ghost))]
+            #[cfg_attr(creusot, requires(index.uninit_in_bounds(self@)))]
+            #[cfg_attr(creusot, ensures(result@ == index.uninit_view(self@)))]
+            fn index(&self, index: $index_ty) -> &UninitSlice {
+                UninitSlice::uninit_ref(&self.0[index])
+            }
+        }
+
+        impl IndexMut<$index_ty> for UninitSlice {
+            #[inline]
+            #[cfg_attr(creusot, check(ghost))]
+            #[cfg_attr(creusot, requires(index.uninit_in_bounds(self@)))]
+            #[cfg_attr(creusot, ensures(result@ == index.uninit_view(self@)))]
+            #[cfg_attr(creusot, ensures((^result)@ == index.uninit_view((^self)@)))]
+            #[cfg_attr(creusot, ensures(index.uninit_frame(self@, (^self)@)))]
+            #[cfg_attr(creusot, ensures((^self)@.len() == self@.len()))]
+            fn index_mut(&mut self, index: $index_ty) -> &mut UninitSlice {
                 UninitSlice::uninit(&mut self.0[index])
             }
         }
