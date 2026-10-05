@@ -86,6 +86,5 @@ pub(crate) fn reject_unknown_growth_publication() {
     assert!(!left.proof_carrier_release(context.borrow_mut()));
     let mut coordinator = ghost! { Some(context.into_inner()) };
     right.reserve(1, coordinator.borrow_mut());
-    proof_assert!(right.proof_view_slot(0int) == Some(None));
     unsafe { right.set_len(1); }
 }

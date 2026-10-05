@@ -44,7 +44,12 @@ smoke checks; see `evidence/shared-growth/legacy-buildrs-smoke.log`.
 before the reviewed interface correction. `negative_wrong_offset_namespace` is
 proof-only and must reject supplying a base descriptor detached from a different
 Vec; never execute negative features natively. The unknown-publication negative
-feature is also proof-only and its rejection is not part of the positive receipt.
+feature is also proof-only: its isolated caller leaves only the `set_len`
+known-slot precondition unproved. The one-null result and proof-time source are
+saved in `evidence/shared-growth/negative-unknown-publication-one-null.tar.gz`;
+the earlier two-null run and default-sandbox socket failure are retained as
+separate diagnostics. None of these negative outcomes are part of the positive
+receipt.
 
 Excluded: native concurrent schedules, arbitrary refcounts, panic/unwind cleanup,
 default public dispatch without a coordinator, general automatic Drop and the
