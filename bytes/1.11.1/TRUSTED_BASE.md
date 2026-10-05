@@ -8,55 +8,32 @@ pearlite-syn 0.13.0 with Cargo locks, pinned Why3/Why3find and fixed solver vers
 Their translation, primitive specifications, solver logic, Rust/LLVM and Global
 allocator semantics are foundational assumptions, not proved by these probes.
 
-## Current working-tree addition (2026-10-05)
+## Current checkpoint addition (2026-10-05)
 
-The 114-file coordinator-carrier gate adds no trusted primitive. Its dynamic
-registration/cardinality/coordinate lemmas, pending descriptor completion,
-native-count conservation and explicit finalization all have proved bodies.
-It reuses existing B1/B3/B4 Vec/raw/physical-access, boxed-alignment, vanilla typed
-Perm and exclusive sequential native scalar-atomic contracts. Acquire occurs in
-the native final branch, but this gate has no cross-thread synchronization/view
-claim. The proof SharedBuffer descriptor adapter is used instead of simultaneous
-ordinary Vec ownership and affine physical regions. Exact source fragments and
-native allocation counts are frozen with the evidence. This proves explicit
-cleanup through this cfg adapter; original release_shared and automatic Drop,
-ordinary Shared representation equivalence and concurrent refcount/free remain
-separate unproved obligations. An unreleased empty ticket is rejected (108 files,
-one intended failed assertion), so byte coverage alone does not grant finalization.
-The spare-prefix helper and shared spare adapter are body proved from existing
-B4 metadata/writeback/frame; they add no trusted clause. Final legacy110,
-safe-trait72 and public-constructor61 regressions all have zero unproved leaves.
+The 114-file coordinator-carrier gate adds no trusted primitive or ownership rule.
+It composes existing B1/B3/B4 Vec/raw/physical access, boxed alignment, vanilla
+typed Perm, and exclusive sequential C1-C4 native scalar-atomic contracts.
+Registration/cardinality/coordinate lemmas, pending completion, ticket/count
+conservation, spare-prefix framing, bounded fill/copy/resize/append and explicit
+finalization all have proved bodies. Native7 observes allocation events separately;
+116-file negatives each reject one intended guard. Final-source legacy110,
+safe-trait72 and public-constructor61 regressions have zero unproved leaves.
 
-Repeated actual split_off moves the three affine state fields into the returned
-right descriptor, reuses the existing split registration boundary, and retains
-full-capacity Known/Unknown slot correspondence. No new axiom is added. The
-Unknown-publication negative rejects exactly actual set_len's initialization
-guard (108 files, 16/17); empty tickets still block finalization (108 files, 17/18).
+The coordinator move consumes Ghost<ControlContext>, requires an initialized
+matching registration and no existing context, and preserves the descriptor and
+affine packet. Its lifecycle checks retirement followed by re-split (3 -> 2 -> 3),
+retired-pool retention, older creation snapshots and fresh monotone IDs. Explicit
+coordinator access remains a precondition for splitting a sibling.
 
-Dynamic-ticket spare access, actual set_len/advance/truncate/clear, and the
-in-capacity resize/append/reserve paths have proved bodies in the 106-file gate.
-The existing body-proved fill/copy helpers initialize bounded physical spare
-slices; exact ticket/endpoints are framed across byte changes. Native5 checks
-allocation events separately. Growth, overlapping source copies, reclamation
-and ordinary Drop are not inferred from these bounded paths. Separate 108-file
-negatives each contain exactly one intended rejection. No new trust is added.
-
-Actual split()/is_empty() and try_reclaim's unchanged early return add no trust.
-The final 111-file gate and legacy110 regression have zero unproved leaves;
-113-file negatives each reject one intended guard. Native6/ordinary118/no_std
-pass. The proof try_reclaim adapter excludes growth/reclamation just as reserve
-does; ordinary Rust still executes its original reserve_inner call outside the
-proved fast path. Constructor requested-capacity guarantees are not derived
-from the unchanged pure-Seq Vec model by these lifecycle gates.
-
-The final addition is a body-proved coordinator move: it consumes Ghost<Context>
-and requires a matching initialized registration with no existing context.
-No permission is duplicated. A 114-file lifecycle retires one handle before
-relocating and re-splitting, preserving the returned pool and monotone ticket
-frontier while native count changes 3 -> 2 -> 3. Native7 checks frees separately;
-116-file negatives each contain one intended guard failure; legacy110 passes.
-This is explicit coordinator relocation, not ambient/unrestricted sibling API
-verification. No trusted axiom or compiler/std modification is introduced.
+Acquire occurs in the final native branch, but no cross-thread publication/view
+claim is made. SharedBuffer is a proof descriptor adapter rather than a proved
+ordinary Shared/Vec representation correspondence. Original release_shared,
+automatic Drop, ordinary Shared equivalence, concurrent refcount/free, Bytes/freeze
+read-sharing and moving/growing reserve/reclaim/unsplit remain unproved. reserve
+and try_reclaim model only unchanged fast paths; ordinary Rust retains the original
+reserve_inner calls. Constructor requested-capacity guarantees are not obtained
+from the unchanged pure-Seq Vec model by these gates. Exact source fragments and
+allocation counts are frozen with their proof evidence; no full-crate claim is made.
 
 The complete 82-file concrete slice Buf body gate adds no TCB or std contract.
 The actual getter source uses match to avoid a missing unwrap_or_else spec.
