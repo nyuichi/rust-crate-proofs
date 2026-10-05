@@ -263,3 +263,96 @@ pub struct Span {
 pub fn valid_span(span: Span, input_len: Int) -> bool {
     pearlite! { 0 <= span.start && span.start <= span.end && span.end <= input_len }
 }
+
+/// Logical state of the public `Bytes` cursor, with offsets from the original
+/// input allocation. The runtime `start` pointer corresponds to `mark`;
+/// `cursor` and `end` remain absolute even when `commit` changes the mark.
+#[derive(Copy, Clone)]
+pub struct CursorModel {
+    /// Immutable byte snapshot of the input slice retained by `Bytes`.
+    pub input: Seq<u8>,
+    /// Absolute start of the current zero-copy slice, inclusive.
+    pub mark: Int,
+    /// Absolute next-byte position.
+    pub cursor: Int,
+    /// Absolute end of the input slice.
+    pub end: Int,
+}
+
+/// Bounds and ordering invariant for a logical `Bytes` cursor.
+#[logic(open)]
+pub fn valid_cursor(state: CursorModel) -> bool {
+    pearlite! {
+        0 <= state.mark
+            && state.mark <= state.cursor
+            && state.cursor <= state.end
+            && state.end <= state.input.len()
+    }
+}
+
+/// Number of bytes advanced since the current mark, matching `Bytes::pos()`.
+#[logic(open)]
+pub fn cursor_pos(state: CursorModel) -> Int {
+    state.cursor - state.mark
+}
+
+/// Number of input bytes remaining, matching `Bytes::len()`.
+#[logic(open)]
+pub fn cursor_len(state: CursorModel) -> Int {
+    state.end - state.cursor
+}
+
+/// Remaining immutable suffix beginning at the next byte.
+#[logic(open)]
+pub fn cursor_remaining(state: CursorModel) -> Seq<u8> {
+    state.input.subsequence(state.cursor, state.end)
+}
+
+/// All input bytes visible from the current mark to the original end.
+#[logic(open)]
+pub fn cursor_visible(state: CursorModel) -> Seq<u8> {
+    state.input.subsequence(state.mark, state.end)
+}
+
+/// Bytes returned by `Bytes::slice()` before committing the cursor.
+#[logic(open)]
+pub fn cursor_slice(state: CursorModel) -> Seq<u8> {
+    state.input.subsequence(state.mark, state.cursor)
+}
+
+/// Bytes returned by `Bytes::slice_skip(skip)`; the cursor is unchanged and
+/// the returned suffix omits the final `skip` already-consumed bytes.
+#[logic(open)]
+#[requires(0 <= skip && skip <= cursor_pos(state))]
+pub fn cursor_slice_skip(state: CursorModel, skip: Int) -> Seq<u8> {
+    state.input.subsequence(state.mark, state.cursor - skip)
+}
+
+/// Cursor state after `Bytes::commit()`.
+#[logic(open)]
+pub fn cursor_commit(state: CursorModel) -> CursorModel {
+    CursorModel {
+        input: state.input,
+        mark: state.cursor,
+        cursor: state.cursor,
+        end: state.end,
+    }
+}
+
+/// Iterator relation: the original remaining suffix is exactly the bytes
+/// visited by `next` followed by the final remaining suffix. The mark is
+/// omitted because `commit()` does not change what `Iterator::next()` visits.
+#[logic(open)]
+pub fn cursor_produces(before: CursorModel, visited: Seq<u8>, after: CursorModel) -> bool {
+    pearlite! {
+        before.input == after.input
+            && before.end == after.end
+            && cursor_remaining(before) == visited.concat(cursor_remaining(after))
+    }
+}
+
+/// Whether iterator exhaustion is exact at the current absolute cursor.
+#[logic(open)]
+pub fn cursor_completed(state: CursorModel) -> bool {
+    state.cursor == state.end
+}

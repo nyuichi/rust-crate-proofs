@@ -31,6 +31,22 @@ macro_rules! complete {
 }
 
 macro_rules! byte_map {
+    ($predicate:path; $($p:pat)|+) => {{
+        #[ensures(forall<b: u8> result@[b@] == $predicate(b))]
+        const fn make_map() -> [bool; 256] {
+            let mut ret = [false; 256];
+            let mut i = 0;
+            #[invariant(i@ <= 256)]
+            #[invariant(forall<b: u8> b@ < i@ ==> ret@[b@] == $predicate(b))]
+            #[variant(256 - i@)]
+            while i < 256 {
+                ret[i] = matches!(i as u8, $($p)|+);
+                i += 1;
+            }
+            ret
+        }
+        make_map()
+    }};
     ($($p:pat)|+) => {{
         const fn make_map() -> [bool; 256] {
             let mut ret = [false; 256];
