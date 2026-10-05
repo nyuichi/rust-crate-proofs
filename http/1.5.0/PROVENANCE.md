@@ -115,6 +115,7 @@ Current proof evidence:
 | `header::value::is_valid` | yes | yes, 1 VC | no | no; actual-source leaf harness only |
 | `header::value::is_visible_ascii` | yes | yes, 1 VC | no | no; actual-source leaf harness only |
 | `HeaderValue::from(u16)` / `hex_digit` | yes | yes, 3 targets / 12 own leaves (From body 7, refinement 1, helper 4) | no HTTP body trusted; Bytes remains a stated dependency premise | no; source-linked named leaf snapshot only; the other integer conversions remain open |
+| `HeaderName` / `HdrName` increment | yes, for selected targets | yes, 3 targets / 52 own leaves (`parse_hdr` 39, `HdrName` Debug body 10, refinement 3) on source SHA `3f68bc7c…`; cfg(test)-only parity regression 1/1 on `b8075444…` | no | no; source-linked partial increment only; the 195 emitted Comas are task-comparison inputs, not a 195-target closure |
 | `VacantEntry::{key,into_key}` and `OccupiedEntry::{key,get,get_mut,into_mut}` | yes, with conditional in-range premise for occupied accessors | yes, 6 own leaves and 4 Vec-index support leaves | no | no; actual-source named leaf harness only; does not prove occupancy or reachability |
 | URI Parts/default/conversion partial batch | yes, selected contracts | 48 of 55 expected own terminal leaves passed; 7 remain unresolved | no | no; named URI leaf harness only |
 | `uri::Port<T>::as_u16`, conversion, and three `PartialEq` bodies | yes | yes; 5 bodies/7 VCs, plus 4 refinements/8 VCs | no | no; actual-source leaf harness only |

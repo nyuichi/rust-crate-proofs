@@ -28,7 +28,18 @@ authorize staging unrelated in-progress source changes.
   `2cdebd67096b95e4f61e81b15bd82d9f856dfa02314b274d20a6c38570bca5fb`),
   `why3find.json`, all 195 emitted `.coma` files, and only the proof JSON files
   for the 34 targets listed in `snapshot.json`'s `proof_results`. Exclude the
-  partial `parse_hdr` proof JSON and failed `HdrName` Debug refinement.
+  superseded partial `parse_hdr` proof JSON and old failed `HdrName` Debug
+  refinement.
+- HeaderName current increment:
+  `verification/headers/evidence/archived_snapshots/name_hdrname_manual_debug_parser_v1/`
+  `snapshot.json` (SHA-256
+  `e4e3372e11d2a073f29a2985dbd9106bcb6bc60f6c4ba5bfbd6cba8e8ba0e3fe`), all
+  195 emission-context Comas, exactly the three proof JSONs named in
+  `proof_results`, its archived source copies, and `native_debug_parity.json`.
+  It contains 3 fresh targets / 52 own leaves on `name.rs` source SHA
+  `3f68bc7cafe0d96d6fb237cfa7f5931521a72818e550bf50863f13fae44bc48b`; the
+  cfg(test)-only post-proof source snapshot is `b807544438a60c3213677e112f335f3cd1e05cb16784cfb42d9ac4d408d02a80` and its parity regression is 1/1. The 195 Comas are comparison inputs, not
+  195 newly proved targets. Exclude unaccepted proof JSONs and attempt logs.
 - HeaderValue current helper: the complete
   `verification/headers/evidence/archived_snapshots/value_hex_digit_repair_v1/`
   archive and `verification/headers/evidence/header-value-debug-parity-2026-10-05.json`.

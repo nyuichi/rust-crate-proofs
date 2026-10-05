@@ -30,7 +30,7 @@ stand-ins.
 | `HeaderValue` v7 archive | The archived v7 snapshot records 67 targets and 184 own leaves, including `HeaderValue::to_str` / 5 leaves. | Historical for `value.rs` SHA `1ab329864e57e80bd494fcc610ee0da3c7ac77c95c13fcf5a23647166a452e0c`; current-source evidence is listed separately. |
 | `HeaderValue` numeric/hex group | The source-linked snapshot [`value_numeric_hex_contract_v1`](headers/evidence/archived_snapshots/value_numeric_hex_contract_v1/snapshot.json) proves 3 targets / 12 own leaves on `value.rs` SHA `5420fc7682706cb56adc2516a94cd29182ffad5997186cf59593742549c9f8f6`: `From<u16>` body (7), its refinement (1), and `hex_digit` (4). All 12 direct own tasks passed the independent arity check. | Other integer `From` implementations remain unproved. The `bytes` 1.11.1 model remains an explicitly assumed dependency premise; this is not a full HeaderValue/API proof. |
 | Earlier `HeaderValue::hex_digit` snapshot | A separate prior-source proof closed 4 own leaves on `value.rs` SHA `1009a163a8f3dc853d228d8fc25de07cc176c974aa278361b274c4e72c8702e9`; the runtime parity check compares old formatter output for all 256 byte values. | Historical after the `5420fc…` source snapshot; its body result is superseded by the fresh 4-leaf `hex_digit` target in the numeric/hex group. |
-| `HeaderName` | The sealed snapshot at `verification/headers/evidence/archived_snapshots/name_hdrname_invariant_v1/snapshot.json` records 34 accepted targets and 280 own leaves on source SHA `fbb82430831eee11bbb5d6487edfe6975f89d211e0757566efd4843b9baaa63f`. Its 34 proof JSON artifacts and all 195 recorded Comas passed the snapshot hash check. | `parse_hdr` remains a separate partial attempt at 35/37 own leaves; its two unresolved leaves are excluded. The failed `HdrName` Debug refinement is also excluded. This does not establish complete parser behavior. |
+| `HeaderName` | The sealed base snapshot at `verification/headers/evidence/archived_snapshots/name_hdrname_invariant_v1/snapshot.json` records 34 targets / 280 own leaves on source SHA `fbb82430831eee11bbb5d6487edfe6975f89d211e0757566efd4843b9baaa63f`. A later exact-source increment in `name_hdrname_manual_debug_parser_v1/snapshot.json` proves 3 targets / 52 own leaves on source SHA `3f68bc7cafe0d96d6fb237cfa7f5931521a72818e550bf50863f13fae44bc48b`: `parse_hdr` (39), `HdrName` Debug body (10), and Debug refinement (3). Its only post-proof source delta is cfg(test) parity code; the native parity check passes 1/1 at source SHA `b807544438a60c3213677e112f335f3cd1e05cb16784cfb42d9ac4d408d02a80`. | These are two source-linked checkpoints, not a 37-target proof on one identical source snapshot. The second snapshot's 195 emitted Comas are comparison inputs; only its three named proof targets are fresh proofs. It does not establish all Name APIs or a full 195-target closure. |
 | `ByteStr` / bytes consumers | The ByteStr and bytes manifests record the actual included HTTP `ByteStr` bodies and 36 actual bytes consumers (79 consumer VCs), with exact byte-sequence contracts. | The pinned `bytes` implementation and the documented Creusot UTF-8 boundary remain premises/limitations; these are not proofs of the dependency crate. `ByteStr`'s unsafe-constructor panic text differs from the published implementation. |
 | HeaderMap capacity/index helpers | The map-capacity manifest records 15 source targets and 30 successful leaves, including `desired_pos` and `probe_distance`. | The private callers' power-of-two, mask, and range invariants are not proved at all HeaderMap call sites. This does not prove insertion, lookup, growth, removal, or the map as a whole. |
 | HeaderMap capacity constructors | The curated [two-target archive](header-map-api/evidence/run-2026-10-05-capacity-constructor-lemma/manifest.json) proves `max_size_is_power_of_two` (1 own leaf) and actual-source `HeaderMap::try_with_capacity` (13 own + 16 call/spec leaves). Its named-profile frontend and normal HTTP library `cargo check` both pass. | This proves the selected constructor under the named leaf profile; the `usize::checked_next_power_of_two` standard-library contract is a TCB premise. It does not prove the integrated HeaderMap invariant or all capacity/reservation APIs. |
@@ -40,9 +40,12 @@ stand-ins.
 
 ## Historical or partial results
 
-- The sealed `HeaderName` snapshot records 34 accepted current-source targets
-  and 280 own leaves. Its separate `parse_hdr` attempt has two unresolved
-  leaves and is excluded from that accepted count.
+- The HeaderName base snapshot records 34 targets / 280 own leaves, followed by
+  a separate 3-target / 52-own-leaf exact-source increment for `parse_hdr` and
+  `HdrName` Debug. The second increment's cfg(test)-only parity addition passes
+  its native regression 1/1. Keep the two source fingerprints separate; neither
+  proves the complete Name surface, and no blanket 195-target closure is
+  claimed.
 - Earlier HeaderName archives include useful constructor, equality, standard
   spelling, and refinement work. The 8 hash-related targets/51 leaves and
   other pre-invariant batches remain historical; only the exact targets listed
@@ -78,9 +81,10 @@ stand-ins.
   invariant for one call, with all 79 own leaves independently arity-checked.
   The public Iterator's repeated-call graph invariant and Drain ownership
   transition remain open. No full raw-pointer or map-safety claim is made.
-- The separate `HeaderName::parse_hdr` attempt remains at 35/37 own leaves;
-  its two open leaves are outside the accepted Name target count. Status
-  constants remain excluded. These are not hidden by aggregate counts.
+- Status constants remain excluded. The Name snapshots record only their
+  enumerated successful own goals; historical reuse candidates with unknown
+  run-exit provenance and targets without complete matching trees are not
+  counted as accepted proofs.
 - `verify-all.bash` is a crate-level pipeline check and may stop at the first
   frontend/proof failure. Its outcome is recorded separately from the accepted
   leaf results above; it is not a substitute for the exact target manifests.
