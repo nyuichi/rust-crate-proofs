@@ -2,6 +2,18 @@
 
 ## Current working-tree status (2026-10-05)
 
+The in-capacity runtime update gate proves 103 files with zero unproved leaves
+and nineteen native tests. Actual reserve's fast branch preserves the handle;
+actual resize and extend_from_slice use the same body-proved MaybeUninit fill /
+copy loops in ordinary and proof builds. Their contracts preserve storage
+identity, initialize exactly the written interval, frame all outside slots,
+and preserve the retained split partner. Explicit recovery is proved in both
+release orders. Reserve growth/reallocation is excluded by an explicit capacity
+precondition. Native allocator checks observe no buffer allocation/reallocation
+for these updates. Ordinary test_bytes passes 118 tests and no-default-features
+build passes. No trusted bridge is added. Frozen evidence: sequential-bytesmut-split/noalloc-update/positive.
+
+
 The independent valid-handle-traits gate proves 70 files with no unproved leaves
 and one native fixture matrix. It extracts actual core AsRef<[u8]> and
 AsMut<[u8]> implementations, including implementation refinement and generic

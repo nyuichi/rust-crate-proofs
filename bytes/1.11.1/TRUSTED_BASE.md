@@ -10,6 +10,14 @@ allocator semantics are foundational assumptions, not proved by these probes.
 
 ## Current working-tree addition (2026-10-05)
 
+The 103-file in-capacity reserve/resize/extend_from_slice gate adds no TCB.
+It calls the body-proved ordinary MaybeUninit fill/copy helpers and publishes
+only Known slots through actual set_len. spare_capacity_mut exports its existing
+slot interpretation in both slice-relative and buffer-visible index forms;
+these additional postconditions are body proved. Native19, ordinary test_bytes118,
+and no-default-features checks pass. Reallocation and automatic Drop are excluded.
+
+
 - Fixed-zero u8 physical bridges: `borrow_empty_bound`,
   `borrow_empty_bound_mut`, and `borrow_empty_bound_uninit_mut` return literal
   zero-length references from sealed non-null BoundPtr metadata. Their lifetime

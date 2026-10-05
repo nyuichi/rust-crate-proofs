@@ -1,0 +1,98 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-valid-handle-traits-3435ad20961744b9/out/actual_traits.rs" 733 4 733 68 *)
+
+(* actual::BytesMut *)
+
+type namespace_other
+
+type t_Namespace = Namespace_RETIREMENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/invariant.rs" 85 8 85 18
+let%span sactual_traits = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-valid-handle-traits-3435ad20961744b9/out/actual_traits.rs" 734 20 734 34
+let%span sactual_traits'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-valid-handle-traits-3435ad20961744b9/out/actual_traits.rs" 735 11 735 22
+let%span sactual_traits'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-valid-handle-traits-3435ad20961744b9/out/actual_traits.rs" 735 25 735 26
+let%span sactual_traits'2 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-valid-handle-traits-3435ad20961744b9/out/actual_traits.rs" 735 40 735 41
+let%span sactual_traits'3 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-valid-handle-traits-3435ad20961744b9/out/actual_traits.rs" 735 34 735 42
+let%span sactual_traits'4 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-valid-handle-traits-3435ad20961744b9/out/actual_traits.rs" 733 44 733 49
+let%span sslice = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/slice.rs" 331 18 331 22
+let%span sconvert = "/workspace/bytes-proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/creusot-std-0.13.0/src/std/convert.rs" 11 27 11 31
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.Any
+
+type t_T
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate precondition_as_ref (self: ()) (args: t_T)
+
+axiom precondition_fndef:
+  forall args: t_T [precondition_as_ref () args]. (let self_ = args in [%#sconvert] inv_ref_T self_)
+    -> precondition_as_ref () args
+
+predicate postcondition_as_ref (self: ()) (args: t_T) (result: Slice64.slice UInt8.t)
+
+axiom postcondition_fndef:
+  forall args: t_T, res: Slice64.slice UInt8.t [postcondition_as_ref () args res]. postcondition_as_ref () args res
+    -> (let self_ = args in true)
+
+predicate postcondition_once_as_ref (self: ()) (args: t_T) (result: Slice64.slice UInt8.t) =
+  postcondition_as_ref self args result
+
+meta "rewrite_def" predicate postcondition_once_as_ref
+
+let as_ref_T (self_: t_T) (return (x: Slice64.slice UInt8.t)) =
+{[@stop_split] [@expl:as_ref requires] precondition_as_ref () self_}
+  any
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:as_ref ensures] postcondition_once_as_ref () self_ result}
+    (! return {result}) ]
+
+let len_u8 (self_: Slice64.slice UInt8.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+type t_Option_u8 = None | Some UInt8.t
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let proof_generic_as_ref_T [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytes-valid-handle-traits-3435ad20961744b9/out/actual_traits.rs" 733 4 733 68]
+  (owner: t_T) (return (x: t_Option_u8)) =
+{[@stop_split] [@expl:proof_generic_as_ref 'owner' type invariant] [%#sactual_traits'4] inv_ref_T owner}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = as_ref_T [%#sactual_traits] {owner} (fun (_x: Slice64.slice UInt8.t) -> [ &bytes <- _x ] s1)
+    | s1 = len_u8 [%#sactual_traits'0] {bytes} (fun (_x: UInt64.t) -> [ &_5 <- _x ] s2)
+    | s2 = [ &_4 <- UInt64.gt _5 ([%#sactual_traits'1] (0: UInt64.t)) ] s3
+    | s3 = any [ br0 -> {_4 = false} (! bb5) | br1 -> {_4} (! bb3) ] ]
+  | bb3 = s0
+    [ s0 = [ &_8 <- [%#sactual_traits'2] (0: UInt64.t) ] s1
+    | s1 = [ &_9 <- Slice64.length bytes ] s2
+    | s2 = [ &_10 <- UInt64.lt _8 _9 ] s3
+    | s3 = {[@expl:index in bounds] [%#sactual_traits'3] _10} s4
+    | s4 = Slice64.get [%#sactual_traits'3] <UInt8.t> {bytes} {_8} (fun (r: UInt8.t) -> [ &_7 <- r ] s5)
+    | s5 = [ &_ret <- Some _7 ] s6
+    | s6 = return {_ret} ]
+  | bb5 = s0 [ s0 = [ &_ret <- None ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Option_u8 = Any.any_l ()
+  | & owner: t_T = owner
+  | & bytes: Slice64.slice UInt8.t = Any.any_l ()
+  | & _4: bool = Any.any_l ()
+  | & _5: UInt64.t = Any.any_l ()
+  | & _7: UInt8.t = Any.any_l ()
+  | & _8: UInt64.t = Any.any_l ()
+  | & _9: UInt64.t = Any.any_l ()
+  | & _10: bool = Any.any_l () ]) [ return (result: t_Option_u8) -> (! return {result}) ]
