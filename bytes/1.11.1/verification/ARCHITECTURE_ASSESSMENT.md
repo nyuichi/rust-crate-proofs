@@ -1,8 +1,8 @@
 # Architecture admission assessment — 2026-10-06 (Asia/Tokyo)
 
 Status: full architecture NOT ADMITTED. This is a dependency assessment against
-`ARCHITECTURE_DECISIONS.md`, not a proof-impossibility theorem. The original
-complete target remains open. No broad API expansion should start from this
+`ARCHITECTURE_DECISIONS.md`, not a proof-impossibility theorem. The selected complete target is now the modified variant authorized by route 1;
+the original API is not claimed verified. No broad API expansion should start from this
 assessment. T01 found a structural rejection; T02 now proves concrete thread transport (37 files). The full Bytes architecture is still not admitted.
 
 ## What the existing evidence decides
@@ -166,3 +166,20 @@ D01's mutable ghost bridge, D02's weak-SC shortcut or D05's unchanged Clone
 attempts. This resolves one prerequisite and leaves the complete architecture
 unadmitted. The remaining public-API/tool-scope choice was requested explicitly;
 no dependent public API migration or large tool work has started.
+
+## User selection: route 1 — 2026-10-06 UTC
+
+The user explicitly authorized public API/representation changes and selected
+the modified bytes variant with no large verifier changes. Earlier references
+to a pending public-API choice are historical and superseded by this selection.
+Work order items 2 and 3 are resolved: proceed with item 4, a production variant
+and a full admission witness, before broad API migration. Architecture admission
+remains NOT ADMITTED; this authorization is not a proof result.
+
+The next witness must connect actual initialized bytes, read leases, real scoped
+threads, retirement of another handle while a reader stays live, and formally
+derived one-time final resource recovery and explicit cleanup. An empty handle
+must retain its retirement obligation. Parent cleanup after joined leases is an
+authorized interface design; its lifetime semantics must be stated separately
+from independent original Bytes::clone lifetimes. Native XOR assertions and
+conditional cleanup alone do not close the admission gate.

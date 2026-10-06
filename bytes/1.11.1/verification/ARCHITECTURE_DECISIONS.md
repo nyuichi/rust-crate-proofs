@@ -9,19 +9,24 @@ architecture admission first.
 
 ## Target and authorized changes
 
-The goal remains complete verification of the bytes 1.11.1 implementation under
-explicitly documented primitive/tool assumptions, with actual byte semantics,
-memory safety, ownership, concurrency, and destruction. Existing scope-limited
-gates remain reusable component evidence, not the full target.
+The user selected route 1 on 2026-10-06 UTC: the final target is a clearly
+named modified bytes 1.11.1 implementation with changed public API and runtime
+representation where necessary, under the pinned stock verifier. Complete
+verification of the original public API/automatic Drop is no longer the selected
+target. Existing proofs remain component evidence until composed into the actual
+modified implementation; this decision itself proves no code.
 
-Small bytes code changes and explicit consuming cleanup are already authorized.
-A cleanup-based implementation may be evaluated as a named modified variant;
-proving that variant does not prove original automatic Drop. Do not silently
-remove sharing, Clone, downstream trait use, or concurrency to obtain success.
-Large Creusot changes and trusted bytes-specific ownership/refcount protocol are
-outside the currently authorized approach. Generic physical/atomic primitive
-assumptions must stay explicit, reviewed, and distinguishable from protocol
-contracts; preserving an existing TCB does not establish its formal adequacy.
+Explicit context/lease operations, consuming sharing or splitting, borrowed read
+views and explicit consuming cleanup are authorized. Record a correspondence for
+every retained, replaced or excluded legacy API and configuration before claiming
+full coverage. Sharing and concurrency must have actual body/resource proofs;
+a fixed-two-handle admission witness is not arbitrary-handle completion.
+Large Creusot changes and trusted bytes-specific ownership/refcount protocol
+remain outside the approach. Generic physical/atomic primitive assumptions must
+stay explicit and reviewed; preserving an existing TCB does not establish its
+formal adequacy. D01–D07 remain frozen. An actual new representation/interface
+is the changed premise for the modified implementation, not permission to retry
+unchanged failures.
 
 The initial architecture witness uses std on x86_64, normal-return execution,
 and an explicitly recorded allocator/atomic boundary. Passing it is necessary,
