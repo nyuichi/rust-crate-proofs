@@ -1,5 +1,15 @@
 # bytes 1.11.1 runtime proof checkpoint
 
+## Architecture-first work policy (2026-10-06, Asia/Tokyo)
+
+The user approved freezing rejected approaches and reopening them only with a
+recorded changed premise. Read [ARCHITECTURE_DECISIONS.md](verification/ARCHITECTURE_DECISIONS.md)
+and [ARCHITECTURE_ASSESSMENT.md](verification/ARCHITECTURE_ASSESSMENT.md) before
+new proof work. The ordinary complete target has not passed architecture
+admission. Existing component results below are preserved; broad API expansion
+is gated on one coherent sharing/thread/retirement ownership witness.
+
+
 ## Cloud resume results (2026-10-05)
 
 This session resumed `3e28a3b1` on `bytes-runtime-verification`, audited the

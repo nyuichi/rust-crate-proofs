@@ -48,6 +48,6 @@ only under its capability-carrying cfg. Mutable B4 remains ordinary.
 The final resumed-source `verify-all.bash` again stops before VC generation on
 the same four frontend errors (exit1); its exact log is
 `logs/production-current-frontend.log`. `native-latest-manifest.json` pins the
-source hashes and reports1255 ordinary native tests (including docs), no_std
+source hashes and reports1256 ordinary native tests (including docs), no_std
 check exit0, and no whole-crate proof phase. No bytes Send/Sync marker or
 ownership protocol was made trusted to bypass these errors.

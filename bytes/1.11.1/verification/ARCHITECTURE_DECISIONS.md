@@ -47,9 +47,22 @@ four frontend errors. The current evidence is
 `native-latest-manifest.json`. Rerun after a relevant source/tool/configuration
 change or an evidence-integrity failure, not as architecture progress.
 
+## T01 follow-up decision D07
+
+Freeze the unchanged real-spawn attempt with `State<T>.expected: Snapshot<(T,T)>`
+when T carries non-Objective physical ownership. Both spawn sites fail E0277;
+no VC phase is reached. Evidence is in `probes/architecture-thread-transport/`.
+Native threaded success is not a reason to repeat the proof or assert Sync.
+
+Reopen only with an actually objective metadata representation and a body-proved
+relation to the affine AtView payloads, or relevant independently justified
+new tool support. A blanket Objective/Sync implementation, an erased payload,
+or another wrapper around the same snapshot does not meet that condition.
+This freezes one concrete representation, not every possible concurrency proof.
+
 ## Reopening procedure
 
-Before an experiment reopening D01–D06, record its decision ID, exact changed
+Before an experiment reopening D01–D07, record its decision ID, exact changed
 premise (source/tool/contract/configuration), evidence that it changed, the one
 question the experiment distinguishes, positive and negative acceptance checks,
 and a bounded stop condition. Preserve old failures and scope. A different
