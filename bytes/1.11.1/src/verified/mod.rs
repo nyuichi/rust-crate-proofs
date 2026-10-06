@@ -221,6 +221,33 @@ pub fn scoped_roundtrip(input:Vec<u8>,index:usize,reverse:bool)->(Option<u8>,Opt
     (first.0,second.0,flags.0,flags.1)
 }
 
+/// Ordered witness: the first worker closes and joins while the second reader
+/// remains live; a second real worker then reads those bytes and closes.
+#[ensures(result.0 == if index@ < input@.len() {Some(input@[index@])} else {None})]
+#[ensures(result.1 == result.0)]
+#[ensures(result.2 != result.3)]
+pub fn scoped_after_peer_close(input:Vec<u8>,index:usize,reverse:bool)->(Option<u8>,Option<u8>,bool,bool) {
+    use creusot_std::std::thread::{self,JoinHandleExt};
+    let mut owner=Owner::new(input);
+    let (left,right,context)=owner.share_pair();
+    let (first,second)=if reverse {(right,left)} else {(left,right)};
+    let context_ref=&context;
+    let (first,second)=thread::scope(move |scope| {
+        let first=scope.spawn(move |tokens| {
+            let byte=if index < first.len() {Some(first.read(index))} else {None};
+            (byte,first.close(context_ref,tokens))
+        });
+        let first=first.join_unwrap();
+        let second=scope.spawn(move |tokens| {
+            let byte=if index < second.len() {Some(second.read(index))} else {None};
+            (byte,second.close(context_ref,tokens))
+        });
+        (first,second.join_unwrap())
+    });
+    let flags=owner.close(context,first.1,second.1);
+    (first.0,second.0,flags.0,flags.1)
+}
+
 #[cfg(all(test,not(creusot)))]
 mod tests {
     use super::*;
@@ -230,7 +257,9 @@ mod tests {
             let mut input=Vec::with_capacity(len+spare);
             input.extend((0..len).map(|i| (31+i) as u8));
             let expected=input.get(index).copied();
-            let (a,b,x,y)=scoped_roundtrip(input,index,reverse);
+            let (a,b,x,y)=scoped_roundtrip(input.clone(),index,reverse);
+            assert_eq!(a,expected);assert_eq!(b,expected);assert_ne!(x,y);
+            let (a,b,x,y)=scoped_after_peer_close(input,index,reverse);
             assert_eq!(a,expected);assert_eq!(b,expected);assert_ne!(x,y);
         }}}}
     }

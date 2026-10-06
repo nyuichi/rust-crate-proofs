@@ -94,3 +94,20 @@ concurrent witness before the ordered caller was added. This is a validated
 increment; admission remains pending ordered peer retirement and negatives.
 The low-level Owner/ReadHandle/CloseContext/Closed types are crate-private, so
 external callers cannot mix ghost-only receipts or bypass their helper contracts.
+
+### Ordered peer retirement positive (47 files)
+
+The added production scoped_after_peer_close caller keeps the second read handle
+live while the first real child closes and joins, then reads in a second real
+child. Its byte-value and XOR contracts compose into Owner cleanup. The matching
+native run exercises96 lifecycle cases (48 concurrent,48 ordered) plus the
+primitive race test. All47 production proof files close with zero null leaves.
+Root independently audited119 archive members and47 Coma/47 JSON/zero nulls;
+archive SHA256
+`6b44e73169fc6037759ec0f39eb35d1b89eafa7170f1345a3ab7ea8b658b1dd2`.
+
+The consuming B3 path is invoked once. Positive capacity releases one allocated
+block; zero capacity has no allocation and the primitive performs no allocator
+deallocation. This distinction does not erase any empty handle's close obligation.
+Negative controls are still pending. Low-level helpers remain internal, and
+panic/unwind/thread-creation failure is outside this normal-return milestone.
