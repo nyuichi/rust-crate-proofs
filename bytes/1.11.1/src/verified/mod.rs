@@ -12,6 +12,8 @@ mod atomic;
 use atomic as primitive;
 use atomic::NativeAtomic;
 mod retirement;
+mod tree;
+pub use tree::scoped_tree;
 use retirement::{Payload,SharedRetirement,Ticket,Receipt};
 
 impl Payload for LifetimeToken {
