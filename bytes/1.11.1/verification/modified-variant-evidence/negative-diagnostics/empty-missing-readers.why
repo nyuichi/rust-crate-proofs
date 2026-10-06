@@ -1,0 +1,2093 @@
+theory Task
+
+type int
+
+type real
+
+type string
+
+predicate infix_eq 'a 'a
+
+(* use why3.BuiltIn.BuiltIn *)
+
+type bool =
+  | True
+  | False
+
+(* use why3.Bool.Bool *)
+
+type tuple0 =
+  | Tuple0 [@builtin]
+
+(* use why3.Tuple0.Tuple01 *)
+
+type unit [@builtin] = unit
+
+(* use why3.Unit.Unit *)
+
+type namespace_other
+
+type t_Namespace =
+  | Namespace_PUBLICATION int
+  | Other namespace_other
+
+constant zero : int = 0
+
+constant one : int = 1
+
+function prefix_mn int : int
+
+function infix_pl int int : int
+
+function infix_as int int : int
+
+predicate infix_ls int int
+
+function infix_mn (x:int) (y:int) : int = infix_pl x (prefix_mn y)
+
+predicate infix_gt (x:int) (y:int) = infix_ls y x
+
+predicate infix_lseq (x:int) (y:int) = infix_ls x y \/ x = y
+
+predicate infix_gteq (x:int) (y:int) = infix_lseq y x
+
+axiom Assoc :
+  forall x:int, y:int, z:int.
+   infix_pl (infix_pl x y) z = infix_pl x (infix_pl y z)
+
+(* clone algebra.Assoc with type t = int, function op = infix_pl,
+  prop Assoc1 = Assoc,  *)
+
+axiom Unit_def_l : forall x:int. infix_pl zero x = x
+
+axiom Unit_def_r : forall x:int. infix_pl x zero = x
+
+(* clone algebra.Monoid with type t1 = int, constant unit = zero,
+  function op1 = infix_pl, prop Unit_def_r1 = Unit_def_r,
+  prop Unit_def_l1 = Unit_def_l, prop Assoc2 = Assoc,  *)
+
+axiom Inv_def_l : forall x:int. infix_pl (prefix_mn x) x = zero
+
+axiom Inv_def_r : forall x:int. infix_pl x (prefix_mn x) = zero
+
+(* clone algebra.Group with type t2 = int, function inv = prefix_mn,
+  constant unit1 = zero, function op2 = infix_pl,
+  prop Inv_def_r1 = Inv_def_r, prop Inv_def_l1 = Inv_def_l,
+  prop Unit_def_r2 = Unit_def_r, prop Unit_def_l2 = Unit_def_l,
+  prop Assoc3 = Assoc,  *)
+
+axiom Comm : forall x:int, y:int. infix_pl x y = infix_pl y x
+
+(* clone algebra.Comm with type t3 = int, function op3 = infix_pl,
+  prop Comm1 = Comm,  *)
+
+(* meta AC function infix_pl *)
+
+(* clone algebra.CommutativeGroup with type t4 = int,
+  function inv1 = prefix_mn, constant unit2 = zero, function op4 = infix_pl,
+  prop Comm2 = Comm, prop Inv_def_r2 = Inv_def_r,
+  prop Inv_def_l2 = Inv_def_l, prop Unit_def_r3 = Unit_def_r,
+  prop Unit_def_l3 = Unit_def_l, prop Assoc4 = Assoc,  *)
+
+axiom Assoc5 :
+  forall x:int, y:int, z:int.
+   infix_as (infix_as x y) z = infix_as x (infix_as y z)
+
+(* clone algebra.Assoc with type t = int, function op = infix_as,
+  prop Assoc1 = Assoc5,  *)
+
+axiom Mul_distr_l :
+  forall x:int, y:int, z:int.
+   infix_as x (infix_pl y z) = infix_pl (infix_as x y) (infix_as x z)
+
+axiom Mul_distr_r :
+  forall x:int, y:int, z:int.
+   infix_as (infix_pl y z) x = infix_pl (infix_as y x) (infix_as z x)
+
+(* clone algebra.Ring with type t5 = int, function infix_as1 = infix_as,
+  function prefix_mn1 = prefix_mn, function infix_pl1 = infix_pl,
+  constant zero1 = zero, prop Mul_distr_r1 = Mul_distr_r,
+  prop Mul_distr_l1 = Mul_distr_l, prop Assoc6 = Assoc5, prop Comm3 = Comm,
+  prop Inv_def_r3 = Inv_def_r, prop Inv_def_l3 = Inv_def_l,
+  prop Unit_def_r4 = Unit_def_r, prop Unit_def_l4 = Unit_def_l,
+  prop Assoc7 = Assoc,  *)
+
+axiom Comm4 : forall x:int, y:int. infix_as x y = infix_as y x
+
+(* clone algebra.Comm with type t3 = int, function op3 = infix_as,
+  prop Comm1 = Comm4,  *)
+
+(* meta AC function infix_as *)
+
+(* clone algebra.CommutativeRing with type t6 = int,
+  function infix_as2 = infix_as, function prefix_mn2 = prefix_mn,
+  function infix_pl2 = infix_pl, constant zero2 = zero, prop Comm5 = Comm4,
+  prop Mul_distr_r2 = Mul_distr_r, prop Mul_distr_l2 = Mul_distr_l,
+  prop Assoc8 = Assoc5, prop Comm6 = Comm, prop Inv_def_r4 = Inv_def_r,
+  prop Inv_def_l4 = Inv_def_l, prop Unit_def_r5 = Unit_def_r,
+  prop Unit_def_l5 = Unit_def_l, prop Assoc9 = Assoc,  *)
+
+axiom Unitary : forall x:int. infix_as one x = x
+
+axiom NonTrivialRing : not zero = one
+
+(* clone algebra.UnitaryCommutativeRing with type t7 = int,
+  constant one1 = one, function infix_as3 = infix_as,
+  function prefix_mn3 = prefix_mn, function infix_pl3 = infix_pl,
+  constant zero3 = zero, prop NonTrivialRing1 = NonTrivialRing,
+  prop Unitary1 = Unitary, prop Comm7 = Comm4,
+  prop Mul_distr_r3 = Mul_distr_r, prop Mul_distr_l3 = Mul_distr_l,
+  prop Assoc10 = Assoc5, prop Comm8 = Comm, prop Inv_def_r5 = Inv_def_r,
+  prop Inv_def_l5 = Inv_def_l, prop Unit_def_r6 = Unit_def_r,
+  prop Unit_def_l6 = Unit_def_l, prop Assoc11 = Assoc,  *)
+
+(* clone relations.EndoRelation with type t8 = int,
+  predicate rel = infix_lseq,  *)
+
+axiom Refl : forall x:int. infix_lseq x x
+
+(* clone relations.Reflexive with type t9 = int, predicate rel1 = infix_lseq,
+  prop Refl1 = Refl,  *)
+
+(* clone relations.EndoRelation with type t8 = int,
+  predicate rel = infix_lseq,  *)
+
+axiom Trans :
+  forall x:int, y:int, z:int.
+   infix_lseq x y -> infix_lseq y z -> infix_lseq x z
+
+(* clone relations.Transitive with type t10 = int,
+  predicate rel2 = infix_lseq, prop Trans1 = Trans,  *)
+
+(* clone relations.PreOrder with type t11 = int, predicate rel3 = infix_lseq,
+  prop Trans2 = Trans, prop Refl2 = Refl,  *)
+
+(* clone relations.EndoRelation with type t8 = int,
+  predicate rel = infix_lseq,  *)
+
+axiom Antisymm :
+  forall x:int, y:int. infix_lseq x y -> infix_lseq y x -> x = y
+
+(* clone relations.Antisymmetric with type t12 = int,
+  predicate rel4 = infix_lseq, prop Antisymm1 = Antisymm,  *)
+
+(* clone relations.PartialOrder with type t13 = int,
+  predicate rel5 = infix_lseq, prop Antisymm2 = Antisymm,
+  prop Trans3 = Trans, prop Refl3 = Refl,  *)
+
+(* clone relations.EndoRelation with type t8 = int,
+  predicate rel = infix_lseq,  *)
+
+axiom Total : forall x:int, y:int. infix_lseq x y \/ infix_lseq y x
+
+(* clone relations.Total with type t14 = int, predicate rel6 = infix_lseq,
+  prop Total1 = Total,  *)
+
+(* clone relations.TotalOrder with type t15 = int,
+  predicate rel7 = infix_lseq, prop Total2 = Total,
+  prop Antisymm3 = Antisymm, prop Trans4 = Trans, prop Refl4 = Refl,  *)
+
+axiom ZeroLessOne : infix_lseq zero one
+
+axiom CompatOrderAdd :
+  forall x:int, y:int, z:int.
+   infix_lseq x y -> infix_lseq (infix_pl x z) (infix_pl y z)
+
+axiom CompatOrderMult :
+  forall x:int, y:int, z:int.
+   infix_lseq x y ->
+   infix_lseq zero z -> infix_lseq (infix_as x z) (infix_as y z)
+
+(* meta remove_unused:dependency prop CompatOrderMult, function infix_as *)
+
+(* clone algebra.OrderedUnitaryCommutativeRing with type t16 = int,
+  predicate infix_lseq1 = infix_lseq, constant one2 = one,
+  function infix_as4 = infix_as, function prefix_mn4 = prefix_mn,
+  function infix_pl4 = infix_pl, constant zero4 = zero,
+  prop CompatOrderMult1 = CompatOrderMult,
+  prop CompatOrderAdd1 = CompatOrderAdd, prop ZeroLessOne1 = ZeroLessOne,
+  prop Total3 = Total, prop Antisymm4 = Antisymm, prop Trans5 = Trans,
+  prop Refl5 = Refl, prop NonTrivialRing2 = NonTrivialRing,
+  prop Unitary2 = Unitary, prop Comm9 = Comm4,
+  prop Mul_distr_r4 = Mul_distr_r, prop Mul_distr_l4 = Mul_distr_l,
+  prop Assoc12 = Assoc5, prop Comm10 = Comm, prop Inv_def_r6 = Inv_def_r,
+  prop Inv_def_l6 = Inv_def_l, prop Unit_def_r7 = Unit_def_r,
+  prop Unit_def_l7 = Unit_def_l, prop Assoc13 = Assoc,  *)
+
+(* meta remove_unused:keep function infix_pl *)
+
+(* meta remove_unused:keep function infix_mn *)
+
+(* meta remove_unused:keep function prefix_mn *)
+
+(* meta remove_unused:keep predicate infix_ls *)
+
+(* meta remove_unused:keep predicate infix_lseq *)
+
+(* meta remove_unused:keep predicate infix_gt *)
+
+(* meta remove_unused:keep predicate infix_gteq *)
+
+(* use int.Int *)
+
+function abs (x:int) : int = if infix_gteq x 0 then x else prefix_mn x
+
+axiom Abs_le :
+  forall x:int, y:int.
+   infix_lseq (abs x) y <-> infix_lseq (prefix_mn y) x /\ infix_lseq x y
+
+(* meta remove_unused:dependency prop Abs_le, function abs *)
+
+axiom Abs_pos : forall x:int. infix_gteq (abs x) 0
+
+(* meta remove_unused:dependency prop Abs_pos, function abs *)
+
+(* use int.Abs *)
+
+function div int int : int
+
+function mod int int : int
+
+axiom Div_mod [@useraxiom] :
+  forall x:int, y:int.
+   not y = 0 -> x = infix_pl (infix_as y (div x y)) (mod x y)
+
+(* meta remove_unused:dependency prop Div_mod, function div *)
+
+(* meta remove_unused:dependency prop Div_mod, function mod *)
+
+axiom Div_bound [@useraxiom] :
+  forall x:int, y:int.
+   infix_gteq x 0 /\ infix_gt y 0 ->
+   infix_lseq 0 (div x y) /\ infix_lseq (div x y) x
+
+(* meta remove_unused:dependency prop Div_bound, function div *)
+
+(* meta remove_unused:dependency prop Div_bound, function mod *)
+
+axiom Mod_bound [@useraxiom] :
+  forall x:int, y:int.
+   not y = 0 ->
+   infix_ls (prefix_mn (abs y)) (mod x y) /\ infix_ls (mod x y) (abs y)
+
+(* meta remove_unused:dependency prop Mod_bound, function div *)
+
+(* meta remove_unused:dependency prop Mod_bound, function mod *)
+
+axiom Div_sign_pos [@useraxiom] :
+  forall x:int, y:int.
+   infix_gteq x 0 /\ infix_gt y 0 -> infix_gteq (div x y) 0
+
+(* meta remove_unused:dependency prop Div_sign_pos, function div *)
+
+(* meta remove_unused:dependency prop Div_sign_pos, function mod *)
+
+axiom Div_sign_neg [@useraxiom] :
+  forall x:int, y:int.
+   infix_lseq x 0 /\ infix_gt y 0 -> infix_lseq (div x y) 0
+
+(* meta remove_unused:dependency prop Div_sign_neg, function div *)
+
+(* meta remove_unused:dependency prop Div_sign_neg, function mod *)
+
+axiom Mod_sign_pos [@useraxiom] :
+  forall x:int, y:int. infix_gteq x 0 /\ not y = 0 -> infix_gteq (mod x y) 0
+
+(* meta remove_unused:dependency prop Mod_sign_pos, function div *)
+
+(* meta remove_unused:dependency prop Mod_sign_pos, function mod *)
+
+axiom Mod_sign_neg [@useraxiom] :
+  forall x:int, y:int. infix_lseq x 0 /\ not y = 0 -> infix_lseq (mod x y) 0
+
+(* meta remove_unused:dependency prop Mod_sign_neg, function div *)
+
+(* meta remove_unused:dependency prop Mod_sign_neg, function mod *)
+
+axiom Rounds_toward_zero :
+  forall x:int, y:int.
+   not y = 0 -> infix_lseq (abs (infix_as (div x y) y)) (abs x)
+
+(* meta remove_unused:dependency prop Rounds_toward_zero, function div *)
+
+(* meta remove_unused:dependency prop Rounds_toward_zero, function mod *)
+
+axiom Div_1 : forall x:int. div x 1 = x
+
+(* meta remove_unused:dependency prop Div_1, function div *)
+
+(* meta remove_unused:dependency prop Div_1, function mod *)
+
+axiom Mod_1 : forall x:int. mod x 1 = 0
+
+(* meta remove_unused:dependency prop Mod_1, function div *)
+
+(* meta remove_unused:dependency prop Mod_1, function mod *)
+
+axiom Div_inf :
+  forall x:int, y:int. infix_lseq 0 x /\ infix_ls x y -> div x y = 0
+
+(* meta remove_unused:dependency prop Div_inf, function div *)
+
+(* meta remove_unused:dependency prop Div_inf, function mod *)
+
+axiom Mod_inf :
+  forall x:int, y:int. infix_lseq 0 x /\ infix_ls x y -> mod x y = x
+
+(* meta remove_unused:dependency prop Mod_inf, function div *)
+
+(* meta remove_unused:dependency prop Mod_inf, function mod *)
+
+axiom Div_mult :
+  forall x:int, y:int, z:int [div (infix_pl (infix_as x y) z) x].
+   infix_gt x 0 /\ infix_gteq y 0 /\ infix_gteq z 0 ->
+   div (infix_pl (infix_as x y) z) x = infix_pl y (div z x)
+
+(* meta remove_unused:dependency prop Div_mult, function div *)
+
+(* meta remove_unused:dependency prop Div_mult, function mod *)
+
+axiom Mod_mult :
+  forall x:int, y:int, z:int [mod (infix_pl (infix_as x y) z) x].
+   infix_gt x 0 /\ infix_gteq y 0 /\ infix_gteq z 0 ->
+   mod (infix_pl (infix_as x y) z) x = mod z x
+
+(* meta remove_unused:dependency prop Mod_mult, function div *)
+
+(* meta remove_unused:dependency prop Mod_mult, function mod *)
+
+(* use int.ComputerDivision *)
+
+(* use mach.int.Int1 *)
+
+type t17 = <range 0 18446744073709551615>
+
+function tqtint t17 : int
+
+constant tqtmaxInt : int = 18446744073709551615
+
+constant tqtminInt : int = 0
+
+predicate tqteq (a:t17) (b:t17) = tqtint a = tqtint b
+
+axiom tqtinj [@W:non_conservative_extension:N] :
+  forall a:t17, b:t17. tqteq a b -> a = b
+
+(* meta range_type type t17, function tqtint *)
+
+(* meta model_projection function tqtint *)
+
+(* meta remove_unused:dependency prop tqtinj, predicate tqteq *)
+
+constant two_power_size : int = 0x10000000000000000
+
+axiom extensionality [@useraxiom] :
+  forall x:t17, y:t17 [tqtint x, tqtint y]. tqtint x = tqtint y -> x = y
+
+predicate in_bounds [@inline:trivial] (n:int) =
+  infix_lseq 0 n /\ infix_lseq n 0xFFFFFFFFFFFFFFFF
+
+function of_int int : t17
+
+axiom to_of_int [@useraxiom] :
+  forall x:int [of_int x]. in_bounds x -> tqtint (of_int x) = x
+
+function add t17 t17 : t17
+
+axiom add_in_bounds [@useraxiom] :
+  forall x:t17, y:t17 [add x y].
+   in_bounds (infix_pl (tqtint x) (tqtint y)) ->
+   tqtint (add x y) = infix_pl (tqtint x) (tqtint y)
+
+axiom add_wrapping [@useraxiom] :
+  forall x:t17, y:t17 [add x y].
+   exists k:int.
+    tqtint (add x y) =
+    infix_pl (infix_pl (tqtint x) (tqtint y)) (infix_as k two_power_size)
+
+function sub t17 t17 : t17
+
+axiom sub_in_bounds [@useraxiom] :
+  forall x:t17, y:t17 [sub x y].
+   in_bounds (infix_mn (tqtint x) (tqtint y)) ->
+   tqtint (sub x y) = infix_mn (tqtint x) (tqtint y)
+
+axiom sub_wrapping [@useraxiom] :
+  forall x:t17, y:t17 [sub x y].
+   exists k:int.
+    tqtint (sub x y) =
+    infix_pl (infix_mn (tqtint x) (tqtint y)) (infix_as k two_power_size)
+
+function mul t17 t17 : t17
+
+axiom mul_in_bounds [@useraxiom] :
+  forall x:t17, y:t17 [mul x y].
+   in_bounds (infix_as (tqtint x) (tqtint y)) ->
+   tqtint (mul x y) = infix_as (tqtint x) (tqtint y)
+
+axiom mul_wrapping [@useraxiom] :
+  forall x:t17, y:t17 [mul x y].
+   exists k:int.
+    tqtint (mul x y) =
+    infix_pl (infix_as (tqtint x) (tqtint y)) (infix_as k two_power_size)
+
+function neg t17 : t17
+
+axiom neg_zero [@useraxiom] :
+  forall x:t17 [neg x]. tqtint x = 0 -> tqtint (neg x) = 0
+
+axiom neg_not_zero [@useraxiom] :
+  forall x:t17 [neg x].
+   infix_ls 0 (tqtint x) /\ infix_lseq (tqtint x) 0xFFFFFFFFFFFFFFFF ->
+   tqtint (neg x) = infix_mn two_power_size (tqtint x)
+
+function of_bool [@inline:trivial] (b:bool) : t17 =
+  if b = True then (1:t17) else (0:t17)
+
+predicate le [@inline:trivial] (a:t17) (b:t17) =
+  infix_lseq (tqtint a) (tqtint b)
+
+predicate lt [@inline:trivial] (a:t17) (b:t17) =
+  infix_ls (tqtint a) (tqtint b)
+
+predicate ge [@inline:trivial] (a:t17) (b:t17) =
+  infix_gteq (tqtint a) (tqtint b)
+
+predicate gt [@inline:trivial] (a:t17) (b:t17) =
+  infix_gt (tqtint a) (tqtint b)
+
+function bw_and t17 t17 : t17
+
+function bw_or t17 t17 : t17
+
+function bw_xor t17 t17 : t17
+
+function bw_not t17 : t17
+
+function shl t17 t17 : t17
+
+function shr t17 t17 : t17
+
+function nth t17 int : bool
+
+type tuple2 'a 'a1 =
+  | Tuple2 [@builtin] 'a 'a1
+
+(* use why3.Tuple2.Tuple21 *)
+
+function add_with_overflow (a:t17) (b:t17) : (t17, bool) = (add a b,
+  if not in_bounds (infix_pl (tqtint a) (tqtint b)) then True else False)
+
+function sub_with_overflow (a:t17) (b:t17) : (t17, bool) = (sub a b,
+  if not in_bounds (infix_mn (tqtint a) (tqtint b)) then True else False)
+
+function mul_with_overflow (a:t17) (b:t17) : (t17, bool) = (mul a b,
+  if not in_bounds (infix_as (tqtint a) (tqtint b)) then True else False)
+
+(* use creusot.int.UInt64 *)
+
+type t18 = <range 0 255>
+
+function tqtint1 t18 : int
+
+constant tqtmaxInt1 : int = 255
+
+constant tqtminInt1 : int = 0
+
+predicate tqteq1 (a:t18) (b:t18) = tqtint1 a = tqtint1 b
+
+axiom tqtinj1 [@W:non_conservative_extension:N] :
+  forall a:t18, b:t18. tqteq1 a b -> a = b
+
+(* meta range_type type t18, function tqtint1 *)
+
+(* meta model_projection function tqtint1 *)
+
+(* meta remove_unused:dependency prop tqtinj1, predicate tqteq1 *)
+
+constant two_power_size1 : int = 0x100
+
+axiom extensionality1 [@useraxiom] :
+  forall x:t18, y:t18 [tqtint1 x, tqtint1 y]. tqtint1 x = tqtint1 y -> x = y
+
+predicate in_bounds1 [@inline:trivial] (n:int) =
+  infix_lseq 0 n /\ infix_lseq n 0xFF
+
+function of_int1 int : t18
+
+axiom to_of_int1 [@useraxiom] :
+  forall x:int [of_int1 x]. in_bounds1 x -> tqtint1 (of_int1 x) = x
+
+function add1 t18 t18 : t18
+
+axiom add_in_bounds1 [@useraxiom] :
+  forall x:t18, y:t18 [add1 x y].
+   in_bounds1 (infix_pl (tqtint1 x) (tqtint1 y)) ->
+   tqtint1 (add1 x y) = infix_pl (tqtint1 x) (tqtint1 y)
+
+axiom add_wrapping1 [@useraxiom] :
+  forall x:t18, y:t18 [add1 x y].
+   exists k:int.
+    tqtint1 (add1 x y) =
+    infix_pl (infix_pl (tqtint1 x) (tqtint1 y)) (infix_as k two_power_size1)
+
+function sub1 t18 t18 : t18
+
+axiom sub_in_bounds1 [@useraxiom] :
+  forall x:t18, y:t18 [sub1 x y].
+   in_bounds1 (infix_mn (tqtint1 x) (tqtint1 y)) ->
+   tqtint1 (sub1 x y) = infix_mn (tqtint1 x) (tqtint1 y)
+
+axiom sub_wrapping1 [@useraxiom] :
+  forall x:t18, y:t18 [sub1 x y].
+   exists k:int.
+    tqtint1 (sub1 x y) =
+    infix_pl (infix_mn (tqtint1 x) (tqtint1 y)) (infix_as k two_power_size1)
+
+function mul1 t18 t18 : t18
+
+axiom mul_in_bounds1 [@useraxiom] :
+  forall x:t18, y:t18 [mul1 x y].
+   in_bounds1 (infix_as (tqtint1 x) (tqtint1 y)) ->
+   tqtint1 (mul1 x y) = infix_as (tqtint1 x) (tqtint1 y)
+
+axiom mul_wrapping1 [@useraxiom] :
+  forall x:t18, y:t18 [mul1 x y].
+   exists k:int.
+    tqtint1 (mul1 x y) =
+    infix_pl (infix_as (tqtint1 x) (tqtint1 y)) (infix_as k two_power_size1)
+
+function neg1 t18 : t18
+
+axiom neg_zero1 [@useraxiom] :
+  forall x:t18 [neg1 x]. tqtint1 x = 0 -> tqtint1 (neg1 x) = 0
+
+axiom neg_not_zero1 [@useraxiom] :
+  forall x:t18 [neg1 x].
+   infix_ls 0 (tqtint1 x) /\ infix_lseq (tqtint1 x) 0xFF ->
+   tqtint1 (neg1 x) = infix_mn two_power_size1 (tqtint1 x)
+
+function of_bool1 [@inline:trivial] (b:bool) : t18 =
+  if b = True then (1:t18) else (0:t18)
+
+predicate le1 [@inline:trivial] (a:t18) (b:t18) =
+  infix_lseq (tqtint1 a) (tqtint1 b)
+
+predicate lt1 [@inline:trivial] (a:t18) (b:t18) =
+  infix_ls (tqtint1 a) (tqtint1 b)
+
+predicate ge1 [@inline:trivial] (a:t18) (b:t18) =
+  infix_gteq (tqtint1 a) (tqtint1 b)
+
+predicate gt1 [@inline:trivial] (a:t18) (b:t18) =
+  infix_gt (tqtint1 a) (tqtint1 b)
+
+function bw_and1 t18 t18 : t18
+
+function bw_or1 t18 t18 : t18
+
+function bw_xor1 t18 t18 : t18
+
+function bw_not1 t18 : t18
+
+function shl1 t18 t18 : t18
+
+function shr1 t18 t18 : t18
+
+function nth1 t18 int : bool
+
+function add_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (add1 a b,
+  if not in_bounds1 (infix_pl (tqtint1 a) (tqtint1 b)) then True else False)
+
+function sub_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (sub1 a b,
+  if not in_bounds1 (infix_mn (tqtint1 a) (tqtint1 b)) then True else False)
+
+function mul_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (mul1 a b,
+  if not in_bounds1 (infix_as (tqtint1 a) (tqtint1 b)) then True else False)
+
+(* use creusot.int.UInt8 *)
+
+type seq 'a
+
+(* meta infinite_type type seq *)
+
+function length (seq 'a) : int
+
+axiom length_nonnegative [@useraxiom] :
+  forall s:seq 'a. infix_lseq 0 (length s)
+
+(* meta remove_unused:dependency prop length_nonnegative, function length *)
+
+function get (seq 'a) int : 'a
+
+function mixfix_lbrb (s:seq 'a) (i:int) : 'a = get s i
+
+predicate infix_eqeq (seq 'a) (seq 'a)
+
+axiom infix_eqeqqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures]
+   infix_eqeq s1 s2 <->
+   ([@asym_split] length s1 = length s2) &&
+   (forall i:int.
+     infix_lseq 0 i /\ infix_ls i (length s1) ->
+     mixfix_lbrb s1 i = mixfix_lbrb s2 i)
+
+axiom infix_eqeqqtspec [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures] infix_eqeq s1 s2 -> s1 = s2
+
+(* meta remove_unused:dependency prop infix_eqeqqtspecqt0,
+  predicate infix_eqeq *)
+
+(* meta remove_unused:dependency prop infix_eqeqqtspec,
+  predicate infix_eqeq *)
+
+(* meta extensionality predicate infix_eqeq *)
+
+type (->) 'a 'b
+
+function infix_at ('a -> 'b) 'a : 'b
+
+(* use why3.HighOrd.HighOrd *)
+
+function create int (int -> 'a) : seq 'a
+
+axiom createqtspecqt0 [@W:non_conservative_extension:N] :
+  forall len:int, f:int -> 'a.
+   ([@hyp_name:Requires] infix_lseq 0 len) ->
+   ([@hyp_name:Ensures] length (create len f) = len)
+
+axiom createqtspec [@W:non_conservative_extension:N] :
+  forall len:int, f:int -> 'a.
+   ([@hyp_name:Requires] infix_lseq 0 len) ->
+   ([@hyp_name:Ensures]
+    forall i:int.
+     infix_lseq 0 i /\ infix_ls i len ->
+     mixfix_lbrb (create len f) i = infix_at f i)
+
+(* meta remove_unused:dependency prop createqtspecqt0, function create *)
+
+(* meta remove_unused:dependency prop createqtspec, function create *)
+
+constant empty : seq 'a
+
+axiom emptyqtdef [@W:non_conservative_extension:N] :
+  [@hyp_name:Ensures] length (empty: seq 'a) = 0
+
+(* meta remove_unused:dependency prop emptyqtdef, constant empty *)
+
+function set (seq 'a) int 'a : seq 'a
+
+axiom setqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   set s i v =
+   create (length s) (fun (j:int) -> if j = i then v else mixfix_lbrb s j)
+
+axiom setqtspecqt1 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   ([@hyp_name:Ensures] length (set s i v) = length s)
+
+axiom setqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   ([@hyp_name:Ensures] mixfix_lbrb (set s i v) i = v)
+
+axiom setqtspec [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   ([@hyp_name:Ensures]
+    forall j:int.
+     (infix_lseq 0 j /\ infix_ls j (length s)) /\ not j = i ->
+     mixfix_lbrb (set s i v) j = mixfix_lbrb s j)
+
+(* meta remove_unused:dependency prop setqtdef, function set *)
+
+(* meta remove_unused:dependency prop setqtspecqt1, function set *)
+
+(* meta remove_unused:dependency prop setqtspecqt0, function set *)
+
+(* meta remove_unused:dependency prop setqtspec, function set *)
+
+function mixfix_lblsmnrb (seq 'a) int 'a : seq 'a
+
+axiom mixfix_lblsmnrbqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, v:'a.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_ls i (length s)) ->
+   mixfix_lblsmnrb s i v = set s i v
+
+(* meta remove_unused:dependency prop mixfix_lblsmnrbqtdef,
+  function mixfix_lblsmnrb *)
+
+function singleton (v:'a) : seq 'a =
+  create 1 (fun (us [@__dummy__]:int) -> v)
+
+axiom singletonqtspecqt0 [@W:non_conservative_extension:N] :
+  forall v:'a. [@hyp_name:Ensures] length (singleton v) = 1
+
+axiom singletonqtspec [@W:non_conservative_extension:N] :
+  forall v:'a. [@hyp_name:Ensures] mixfix_lbrb (singleton v) 0 = v
+
+(* meta remove_unused:dependency prop singletonqtspecqt0,
+  function singleton *)
+
+(* meta remove_unused:dependency prop singletonqtspec, function singleton *)
+
+function cons (x:'a) (s:seq 'a) : seq 'a =
+  create (infix_pl 1 (length s))
+  (fun (i:int) -> if i = 0 then x else mixfix_lbrb s (infix_mn i 1))
+
+axiom consqtspecqt1 [@W:non_conservative_extension:N] :
+  forall x:'a, s:seq 'a.
+   [@hyp_name:Ensures] length (cons x s) = infix_pl 1 (length s)
+
+axiom consqtspecqt0 [@W:non_conservative_extension:N] :
+  forall x:'a, s:seq 'a. [@hyp_name:Ensures] mixfix_lbrb (cons x s) 0 = x
+
+axiom consqtspec [@W:non_conservative_extension:N] :
+  forall x:'a, s:seq 'a.
+   [@hyp_name:Ensures]
+   forall i:int.
+    infix_ls 0 i /\ infix_lseq i (length s) ->
+    mixfix_lbrb (cons x s) i = mixfix_lbrb s (infix_mn i 1)
+
+(* meta remove_unused:dependency prop consqtspecqt1, function cons *)
+
+(* meta remove_unused:dependency prop consqtspecqt0, function cons *)
+
+(* meta remove_unused:dependency prop consqtspec, function cons *)
+
+function snoc (s:seq 'a) (x:'a) : seq 'a =
+  create (infix_pl 1 (length s))
+  (fun (i:int) -> if i = length s then x else mixfix_lbrb s i)
+
+axiom snocqtspecqt1 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, x:'a.
+   [@hyp_name:Ensures] length (snoc s x) = infix_pl 1 (length s)
+
+axiom snocqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, x:'a.
+   [@hyp_name:Ensures] mixfix_lbrb (snoc s x) (length s) = x
+
+axiom snocqtspec [@W:non_conservative_extension:N] :
+  forall s:seq 'a, x:'a.
+   [@hyp_name:Ensures]
+   forall i:int.
+    infix_lseq 0 i /\ infix_ls i (length s) ->
+    mixfix_lbrb (snoc s x) i = mixfix_lbrb s i
+
+(* meta remove_unused:dependency prop snocqtspecqt1, function snoc *)
+
+(* meta remove_unused:dependency prop snocqtspecqt0, function snoc *)
+
+(* meta remove_unused:dependency prop snocqtspec, function snoc *)
+
+function mixfix_lbdtdtrb (seq 'a) int int : seq 'a
+
+axiom mixfix_lbdtdtrbqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, j:int.
+   ([@hyp_name:Requires]
+    infix_lseq 0 i /\ infix_lseq i j /\ infix_lseq j (length s)) ->
+   mixfix_lbdtdtrb s i j =
+   create (infix_mn j i) (fun (k:int) -> mixfix_lbrb s (infix_pl i k))
+
+axiom mixfix_lbdtdtrbqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, j:int.
+   ([@hyp_name:Requires]
+    infix_lseq 0 i /\ infix_lseq i j /\ infix_lseq j (length s)) ->
+   ([@hyp_name:Ensures] length (mixfix_lbdtdtrb s i j) = infix_mn j i)
+
+axiom mixfix_lbdtdtrbqtspec [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int, j:int.
+   ([@hyp_name:Requires]
+    infix_lseq 0 i /\ infix_lseq i j /\ infix_lseq j (length s)) ->
+   ([@hyp_name:Ensures]
+    forall k:int.
+     infix_lseq 0 k /\ infix_ls k (infix_mn j i) ->
+     mixfix_lbrb (mixfix_lbdtdtrb s i j) k = mixfix_lbrb s (infix_pl i k))
+
+(* meta remove_unused:dependency prop mixfix_lbdtdtrbqtdef,
+  function mixfix_lbdtdtrb *)
+
+(* meta remove_unused:dependency prop mixfix_lbdtdtrbqtspecqt0,
+  function mixfix_lbdtdtrb *)
+
+(* meta remove_unused:dependency prop mixfix_lbdtdtrbqtspec,
+  function mixfix_lbdtdtrb *)
+
+function mixfix_lb_dtdtrb (seq 'a) int : seq 'a
+
+axiom mixfix_lb_dtdtrbqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, i:int.
+   ([@hyp_name:Requires] infix_lseq 0 i /\ infix_lseq i (length s)) ->
+   mixfix_lb_dtdtrb s i = mixfix_lbdtdtrb s i (length s)
+
+(* meta remove_unused:dependency prop mixfix_lb_dtdtrbqtdef,
+  function mixfix_lb_dtdtrb *)
+
+function mixfix_lbdtdt_rb (seq 'a) int : seq 'a
+
+axiom mixfix_lbdtdt_rbqtdef [@W:non_conservative_extension:N] :
+  forall s:seq 'a, j:int.
+   ([@hyp_name:Requires] infix_lseq 0 j /\ infix_lseq j (length s)) ->
+   mixfix_lbdtdt_rb s j = mixfix_lbdtdtrb s 0 j
+
+(* meta remove_unused:dependency prop mixfix_lbdtdt_rbqtdef,
+  function mixfix_lbdtdt_rb *)
+
+function infix_plpl (s1:seq 'a) (s2:seq 'a) : seq 'a =
+  let l = length s1 in
+  create (infix_pl l (length s2))
+  (fun (i:int) ->
+    if infix_ls i l then mixfix_lbrb s1 i else mixfix_lbrb s2 (infix_mn i l))
+
+axiom infix_plplqtspecqt1 [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures]
+   length (infix_plpl s1 s2) = infix_pl (length s1) (length s2)
+
+axiom infix_plplqtspecqt0 [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures]
+   forall i:int.
+    infix_lseq 0 i /\ infix_ls i (length s1) ->
+    mixfix_lbrb (infix_plpl s1 s2) i = mixfix_lbrb s1 i
+
+axiom infix_plplqtspec [@W:non_conservative_extension:N] :
+  forall s1:seq 'a, s2:seq 'a.
+   [@hyp_name:Ensures]
+   forall i:int.
+    infix_lseq (length s1) i /\ infix_ls i (length (infix_plpl s1 s2)) ->
+    mixfix_lbrb (infix_plpl s1 s2) i =
+    mixfix_lbrb s2 (infix_mn i (length s1))
+
+(* meta remove_unused:dependency prop infix_plplqtspecqt1,
+  function infix_plpl *)
+
+(* meta remove_unused:dependency prop infix_plplqtspecqt0,
+  function infix_plpl *)
+
+(* meta remove_unused:dependency prop infix_plplqtspec,
+  function infix_plpl *)
+
+(* use seq.Seq *)
+
+type t19 = <range -9223372036854775808 9223372036854775807>
+
+function tqtint2 t19 : int
+
+constant tqtmaxInt2 : int = 9223372036854775807
+
+constant tqtminInt2 : int = (- 9223372036854775808)
+
+predicate tqteq2 (a:t19) (b:t19) = tqtint2 a = tqtint2 b
+
+axiom tqtinj2 [@W:non_conservative_extension:N] :
+  forall a:t19, b:t19. tqteq2 a b -> a = b
+
+(* meta range_type type t19, function tqtint2 *)
+
+(* meta model_projection function tqtint2 *)
+
+(* meta remove_unused:dependency prop tqtinj2, predicate tqteq2 *)
+
+constant min_int : int = (- 0x8000000000000000)
+
+constant max_int : int = 0x7FFFFFFFFFFFFFFF
+
+constant two_power_size2 : int = 0x10000000000000000
+
+predicate in_bounds2 [@inline:trivial] (n:int) =
+  infix_lseq min_int n /\ infix_lseq n max_int
+
+function to_int (x:t19) : int = tqtint2 x
+
+axiom extensionality2 [@useraxiom] :
+  forall x:t19, y:t19 [to_int x, to_int y]. to_int x = to_int y -> x = y
+
+function of_int2 int : t19
+
+axiom to_of_int2 [@useraxiom] :
+  forall x:int [of_int2 x]. in_bounds2 x -> to_int (of_int2 x) = x
+
+function add2 t19 t19 : t19
+
+axiom add_in_bounds2 [@useraxiom] :
+  forall x:t19, y:t19 [add2 x y].
+   in_bounds2 (infix_pl (to_int x) (to_int y)) ->
+   to_int (add2 x y) = infix_pl (to_int x) (to_int y)
+
+axiom add_wrapping2 [@useraxiom] :
+  forall x:t19, y:t19 [add2 x y].
+   exists k:int.
+    to_int (add2 x y) =
+    infix_pl (infix_pl (to_int x) (to_int y)) (infix_as k two_power_size2)
+
+function sub2 t19 t19 : t19
+
+axiom sub_in_bounds2 [@useraxiom] :
+  forall x:t19, y:t19 [sub2 x y].
+   in_bounds2 (infix_mn (to_int x) (to_int y)) ->
+   to_int (sub2 x y) = infix_mn (to_int x) (to_int y)
+
+axiom sub_wrapping2 [@useraxiom] :
+  forall x:t19, y:t19 [sub2 x y].
+   exists k:int.
+    to_int (sub2 x y) =
+    infix_pl (infix_mn (to_int x) (to_int y)) (infix_as k two_power_size2)
+
+function mul2 t19 t19 : t19
+
+axiom mul_in_bounds2 [@useraxiom] :
+  forall x:t19, y:t19 [mul2 x y].
+   in_bounds2 (infix_as (to_int x) (to_int y)) ->
+   to_int (mul2 x y) = infix_as (to_int x) (to_int y)
+
+axiom mul_wrapping2 [@useraxiom] :
+  forall x:t19, y:t19 [mul2 x y].
+   exists k:int.
+    to_int (mul2 x y) =
+    infix_pl (infix_as (to_int x) (to_int y)) (infix_as k two_power_size2)
+
+function neg2 t19 : t19
+
+axiom neg_in_bounds [@useraxiom] :
+  forall x:t19 [neg2 x].
+   infix_ls min_int (to_int x) /\ infix_lseq (to_int x) max_int ->
+   to_int (neg2 x) = prefix_mn (to_int x)
+
+axiom neg_wrapping [@useraxiom] :
+  forall x:t19 [neg2 x]. to_int x = min_int -> to_int (neg2 x) = min_int
+
+function of_bool2 [@inline:trivial] (b:bool) : t19 =
+  if b = True then (1:t19) else (0:t19)
+
+predicate le2 [@inline:trivial] (a:t19) (b:t19) =
+  infix_lseq (to_int a) (to_int b)
+
+predicate lt2 [@inline:trivial] (a:t19) (b:t19) =
+  infix_ls (to_int a) (to_int b)
+
+predicate ge2 [@inline:trivial] (a:t19) (b:t19) =
+  infix_gteq (to_int a) (to_int b)
+
+predicate gt2 [@inline:trivial] (a:t19) (b:t19) =
+  infix_gt (to_int a) (to_int b)
+
+function bw_and2 t19 t19 : t19
+
+function bw_or2 t19 t19 : t19
+
+function bw_xor2 t19 t19 : t19
+
+function bw_not2 t19 : t19
+
+function shl2 t19 t19 : t19
+
+function shr2 t19 t19 : t19
+
+function add_with_overflow2 (a:t19) (b:t19) : (t19, bool) = (add2 a b,
+  if not in_bounds2 (infix_pl (tqtint2 a) (tqtint2 b)) then True else False)
+
+function sub_with_overflow2 (a:t19) (b:t19) : (t19, bool) = (sub2 a b,
+  if not in_bounds2 (infix_mn (tqtint2 a) (tqtint2 b)) then True else False)
+
+function mul_with_overflow2 (a:t19) (b:t19) : (t19, bool) = (mul2 a b,
+  if not in_bounds2 (infix_as (tqtint2 a) (tqtint2 b)) then True else False)
+
+(* use creusot.int.Int64 *)
+
+type map 'a 'b = 'a -> 'b
+
+function get1 (f:'a -> 'b) (x:'a) : 'b = infix_at f x
+
+function set1 (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b =
+  fun (y:'a) -> if y = x then v else infix_at f y
+
+function mixfix_lbrb1 (f:'a -> 'b) (x:'a) : 'b = infix_at f x
+
+function mixfix_lblsmnrb1 (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b = set1 f x v
+
+(* use map.Map *)
+
+function const (v:'b) : 'a -> 'b = fun (us [@__dummy__]:'a) -> v
+
+(* use map.Const *)
+
+constant zero5 : real = 0.0
+
+constant one3 : real = 1.0
+
+function prefix_mn5 real : real
+
+function infix_pl5 real real : real
+
+function infix_as5 real real : real
+
+predicate infix_ls1 real real
+
+predicate infix_gt1 (x:real) (y:real) = infix_ls1 y x
+
+predicate infix_lseq2 (x:real) (y:real) = infix_ls1 x y \/ x = y
+
+predicate infix_gteq1 (x:real) (y:real) = infix_lseq2 y x
+
+axiom Assoc14 :
+  forall x:real, y:real, z:real.
+   infix_pl5 (infix_pl5 x y) z = infix_pl5 x (infix_pl5 y z)
+
+(* clone algebra.Assoc with type t = real, function op = infix_pl5,
+  prop Assoc1 = Assoc14,  *)
+
+axiom Unit_def_l8 : forall x:real. infix_pl5 zero5 x = x
+
+axiom Unit_def_r8 : forall x:real. infix_pl5 x zero5 = x
+
+(* clone algebra.Monoid with type t1 = real, constant unit = zero5,
+  function op1 = infix_pl5, prop Unit_def_r1 = Unit_def_r8,
+  prop Unit_def_l1 = Unit_def_l8, prop Assoc2 = Assoc14,  *)
+
+axiom Inv_def_l7 : forall x:real. infix_pl5 (prefix_mn5 x) x = zero5
+
+axiom Inv_def_r7 : forall x:real. infix_pl5 x (prefix_mn5 x) = zero5
+
+(* clone algebra.Group with type t2 = real, function inv = prefix_mn5,
+  constant unit1 = zero5, function op2 = infix_pl5,
+  prop Inv_def_r1 = Inv_def_r7, prop Inv_def_l1 = Inv_def_l7,
+  prop Unit_def_r2 = Unit_def_r8, prop Unit_def_l2 = Unit_def_l8,
+  prop Assoc3 = Assoc14,  *)
+
+axiom Comm11 : forall x:real, y:real. infix_pl5 x y = infix_pl5 y x
+
+(* clone algebra.Comm with type t3 = real, function op3 = infix_pl5,
+  prop Comm1 = Comm11,  *)
+
+(* meta AC function infix_pl5 *)
+
+(* clone algebra.CommutativeGroup with type t4 = real,
+  function inv1 = prefix_mn5, constant unit2 = zero5,
+  function op4 = infix_pl5, prop Comm2 = Comm11,
+  prop Inv_def_r2 = Inv_def_r7, prop Inv_def_l2 = Inv_def_l7,
+  prop Unit_def_r3 = Unit_def_r8, prop Unit_def_l3 = Unit_def_l8,
+  prop Assoc4 = Assoc14,  *)
+
+axiom Assoc15 :
+  forall x:real, y:real, z:real.
+   infix_as5 (infix_as5 x y) z = infix_as5 x (infix_as5 y z)
+
+(* clone algebra.Assoc with type t = real, function op = infix_as5,
+  prop Assoc1 = Assoc15,  *)
+
+axiom Mul_distr_l5 :
+  forall x:real, y:real, z:real.
+   infix_as5 x (infix_pl5 y z) = infix_pl5 (infix_as5 x y) (infix_as5 x z)
+
+axiom Mul_distr_r5 :
+  forall x:real, y:real, z:real.
+   infix_as5 (infix_pl5 y z) x = infix_pl5 (infix_as5 y x) (infix_as5 z x)
+
+(* clone algebra.Ring with type t5 = real, function infix_as1 = infix_as5,
+  function prefix_mn1 = prefix_mn5, function infix_pl1 = infix_pl5,
+  constant zero1 = zero5, prop Mul_distr_r1 = Mul_distr_r5,
+  prop Mul_distr_l1 = Mul_distr_l5, prop Assoc6 = Assoc15,
+  prop Comm3 = Comm11, prop Inv_def_r3 = Inv_def_r7,
+  prop Inv_def_l3 = Inv_def_l7, prop Unit_def_r4 = Unit_def_r8,
+  prop Unit_def_l4 = Unit_def_l8, prop Assoc7 = Assoc14,  *)
+
+axiom Comm12 : forall x:real, y:real. infix_as5 x y = infix_as5 y x
+
+(* clone algebra.Comm with type t3 = real, function op3 = infix_as5,
+  prop Comm1 = Comm12,  *)
+
+(* meta AC function infix_as5 *)
+
+(* clone algebra.CommutativeRing with type t6 = real,
+  function infix_as2 = infix_as5, function prefix_mn2 = prefix_mn5,
+  function infix_pl2 = infix_pl5, constant zero2 = zero5,
+  prop Comm5 = Comm12, prop Mul_distr_r2 = Mul_distr_r5,
+  prop Mul_distr_l2 = Mul_distr_l5, prop Assoc8 = Assoc15,
+  prop Comm6 = Comm11, prop Inv_def_r4 = Inv_def_r7,
+  prop Inv_def_l4 = Inv_def_l7, prop Unit_def_r5 = Unit_def_r8,
+  prop Unit_def_l5 = Unit_def_l8, prop Assoc9 = Assoc14,  *)
+
+axiom Unitary3 : forall x:real. infix_as5 one3 x = x
+
+axiom NonTrivialRing3 : not zero5 = one3
+
+(* clone algebra.UnitaryCommutativeRing with type t7 = real,
+  constant one1 = one3, function infix_as3 = infix_as5,
+  function prefix_mn3 = prefix_mn5, function infix_pl3 = infix_pl5,
+  constant zero3 = zero5, prop NonTrivialRing1 = NonTrivialRing3,
+  prop Unitary1 = Unitary3, prop Comm7 = Comm12,
+  prop Mul_distr_r3 = Mul_distr_r5, prop Mul_distr_l3 = Mul_distr_l5,
+  prop Assoc10 = Assoc15, prop Comm8 = Comm11, prop Inv_def_r5 = Inv_def_r7,
+  prop Inv_def_l5 = Inv_def_l7, prop Unit_def_r6 = Unit_def_r8,
+  prop Unit_def_l6 = Unit_def_l8, prop Assoc11 = Assoc14,  *)
+
+function inv2 real : real
+
+axiom Inverse : forall x:real. not x = zero5 -> infix_as5 x (inv2 x) = one3
+
+function infix_mn1 (x:real) (y:real) : real = infix_pl5 x (prefix_mn5 y)
+
+function infix_sl (x:real) (y:real) : real = infix_as5 x (inv2 y)
+
+axiom add_div :
+  forall x:real, y:real, z:real.
+   not z = zero5 ->
+   infix_sl (infix_pl5 x y) z = infix_pl5 (infix_sl x z) (infix_sl y z)
+
+(* meta remove_unused:dependency prop add_div, function infix_sl *)
+
+axiom sub_div :
+  forall x:real, y:real, z:real.
+   not z = zero5 ->
+   infix_sl (infix_mn1 x y) z = infix_mn1 (infix_sl x z) (infix_sl y z)
+
+(* meta remove_unused:dependency prop sub_div, function infix_sl *)
+
+axiom neg_div :
+  forall x:real, y:real.
+   not y = zero5 -> infix_sl (prefix_mn5 x) y = prefix_mn5 (infix_sl x y)
+
+(* meta remove_unused:dependency prop neg_div, function infix_sl *)
+
+axiom assoc_mul_div :
+  forall x:real, y:real, z:real.
+   not z = zero5 -> infix_sl (infix_as5 x y) z = infix_as5 x (infix_sl y z)
+
+(* meta remove_unused:dependency prop assoc_mul_div, function infix_sl *)
+
+axiom assoc_div_mul :
+  forall x:real, y:real, z:real.
+   not y = zero5 /\ not z = zero5 ->
+   infix_sl (infix_sl x y) z = infix_sl x (infix_as5 y z)
+
+(* meta remove_unused:dependency prop assoc_div_mul, function infix_sl *)
+
+axiom assoc_div_div :
+  forall x:real, y:real, z:real.
+   not y = zero5 /\ not z = zero5 ->
+   infix_sl x (infix_sl y z) = infix_sl (infix_as5 x z) y
+
+(* meta remove_unused:dependency prop assoc_div_div, function infix_sl *)
+
+(* clone algebra.Field with type t20 = real, function infix_sl1 = infix_sl,
+  function infix_mn2 = infix_mn1, function inv3 = inv2, constant one4 = one3,
+  function infix_as6 = infix_as5, function prefix_mn6 = prefix_mn5,
+  function infix_pl6 = infix_pl5, constant zero6 = zero5,
+  prop assoc_div_div1 = assoc_div_div, prop assoc_div_mul1 = assoc_div_mul,
+  prop assoc_mul_div1 = assoc_mul_div, prop neg_div1 = neg_div,
+  prop sub_div1 = sub_div, prop add_div1 = add_div, prop Inverse1 = Inverse,
+  prop NonTrivialRing4 = NonTrivialRing3, prop Unitary4 = Unitary3,
+  prop Comm13 = Comm12, prop Mul_distr_r6 = Mul_distr_r5,
+  prop Mul_distr_l6 = Mul_distr_l5, prop Assoc16 = Assoc15,
+  prop Comm14 = Comm11, prop Inv_def_r8 = Inv_def_r7,
+  prop Inv_def_l8 = Inv_def_l7, prop Unit_def_r9 = Unit_def_r8,
+  prop Unit_def_l9 = Unit_def_l8, prop Assoc17 = Assoc14,  *)
+
+(* clone relations.EndoRelation with type t8 = real,
+  predicate rel = infix_lseq2,  *)
+
+axiom Refl6 : forall x:real. infix_lseq2 x x
+
+(* clone relations.Reflexive with type t9 = real,
+  predicate rel1 = infix_lseq2, prop Refl1 = Refl6,  *)
+
+(* clone relations.EndoRelation with type t8 = real,
+  predicate rel = infix_lseq2,  *)
+
+axiom Trans6 :
+  forall x:real, y:real, z:real.
+   infix_lseq2 x y -> infix_lseq2 y z -> infix_lseq2 x z
+
+(* clone relations.Transitive with type t10 = real,
+  predicate rel2 = infix_lseq2, prop Trans1 = Trans6,  *)
+
+(* clone relations.PreOrder with type t11 = real,
+  predicate rel3 = infix_lseq2, prop Trans2 = Trans6, prop Refl2 = Refl6,  *)
+
+(* clone relations.EndoRelation with type t8 = real,
+  predicate rel = infix_lseq2,  *)
+
+axiom Antisymm5 :
+  forall x:real, y:real. infix_lseq2 x y -> infix_lseq2 y x -> x = y
+
+(* clone relations.Antisymmetric with type t12 = real,
+  predicate rel4 = infix_lseq2, prop Antisymm1 = Antisymm5,  *)
+
+(* clone relations.PartialOrder with type t13 = real,
+  predicate rel5 = infix_lseq2, prop Antisymm2 = Antisymm5,
+  prop Trans3 = Trans6, prop Refl3 = Refl6,  *)
+
+(* clone relations.EndoRelation with type t8 = real,
+  predicate rel = infix_lseq2,  *)
+
+axiom Total4 : forall x:real, y:real. infix_lseq2 x y \/ infix_lseq2 y x
+
+(* clone relations.Total with type t14 = real, predicate rel6 = infix_lseq2,
+  prop Total1 = Total4,  *)
+
+(* clone relations.TotalOrder with type t15 = real,
+  predicate rel7 = infix_lseq2, prop Total2 = Total4,
+  prop Antisymm3 = Antisymm5, prop Trans4 = Trans6, prop Refl4 = Refl6,  *)
+
+axiom ZeroLessOne2 : infix_lseq2 zero5 one3
+
+axiom CompatOrderAdd2 :
+  forall x:real, y:real, z:real.
+   infix_lseq2 x y -> infix_lseq2 (infix_pl5 x z) (infix_pl5 y z)
+
+axiom CompatOrderMult2 :
+  forall x:real, y:real, z:real.
+   infix_lseq2 x y ->
+   infix_lseq2 zero5 z -> infix_lseq2 (infix_as5 x z) (infix_as5 y z)
+
+(* clone algebra.OrderedField with type t21 = real,
+  predicate infix_lseq3 = infix_lseq2, function infix_sl2 = infix_sl,
+  function infix_mn3 = infix_mn1, function inv4 = inv2, constant one5 = one3,
+  function infix_as7 = infix_as5, function prefix_mn7 = prefix_mn5,
+  function infix_pl7 = infix_pl5, constant zero7 = zero5,
+  prop CompatOrderMult3 = CompatOrderMult2,
+  prop CompatOrderAdd3 = CompatOrderAdd2, prop ZeroLessOne3 = ZeroLessOne2,
+  prop Total5 = Total4, prop Antisymm6 = Antisymm5, prop Trans7 = Trans6,
+  prop Refl7 = Refl6, prop assoc_div_div2 = assoc_div_div,
+  prop assoc_div_mul2 = assoc_div_mul, prop assoc_mul_div2 = assoc_mul_div,
+  prop neg_div2 = neg_div, prop sub_div2 = sub_div, prop add_div2 = add_div,
+  prop Inverse2 = Inverse, prop NonTrivialRing5 = NonTrivialRing3,
+  prop Unitary5 = Unitary3, prop Comm15 = Comm12,
+  prop Mul_distr_r7 = Mul_distr_r5, prop Mul_distr_l7 = Mul_distr_l5,
+  prop Assoc18 = Assoc15, prop Comm16 = Comm11, prop Inv_def_r9 = Inv_def_r7,
+  prop Inv_def_l9 = Inv_def_l7, prop Unit_def_r10 = Unit_def_r8,
+  prop Unit_def_l10 = Unit_def_l8, prop Assoc19 = Assoc14,  *)
+
+(* meta remove_unused:keep function infix_pl5 *)
+
+(* meta remove_unused:keep function infix_mn1 *)
+
+(* meta remove_unused:keep function prefix_mn5 *)
+
+(* meta remove_unused:keep predicate infix_ls1 *)
+
+(* meta remove_unused:keep predicate infix_lseq2 *)
+
+(* meta remove_unused:keep predicate infix_gt1 *)
+
+(* meta remove_unused:keep predicate infix_gteq1 *)
+
+(* use real.Real *)
+
+function from_int int : real
+
+axiom Zero [@useraxiom] : from_int 0 = 0.0
+
+axiom One [@useraxiom] : from_int 1 = 1.0
+
+axiom Add [@useraxiom] :
+  forall x:int, y:int.
+   from_int (infix_pl x y) = infix_pl5 (from_int x) (from_int y)
+
+axiom Sub [@useraxiom] :
+  forall x:int, y:int.
+   from_int (infix_mn x y) = infix_mn1 (from_int x) (from_int y)
+
+axiom Mul [@useraxiom] :
+  forall x:int, y:int.
+   from_int (infix_as x y) = infix_as5 (from_int x) (from_int y)
+
+axiom Neg [@useraxiom] :
+  forall x:int. from_int (prefix_mn x) = prefix_mn5 (from_int x)
+
+axiom Injective : forall x:int, y:int. from_int x = from_int y -> x = y
+
+axiom Monotonic [@useraxiom] :
+  forall x:int, y:int.
+   infix_lseq x y -> infix_lseq2 (from_int x) (from_int y)
+
+(* use real.FromInt *)
+
+type t22 'a =
+  | Tqtmk [@builtin] (current:'a) (final:'a) (id:int)
+
+(* meta model_record function id *)
+
+(* meta model_record function final *)
+
+(* meta model_record function current *)
+
+function borrow_logic (cur:'a) (fin:'a) (id1:int) : t22 'a =
+  Tqtmk cur fin id1
+
+function get_id (x:t22 'a) : int = x.id
+
+function inherit_id int int : int
+
+(* use creusot.prelude.MutBorrow *)
+
+type ptr
+
+function thin ptr : ptr
+
+type foreign
+
+(* use creusot.prelude.Opaque *)
+
+type slice 'a
+
+function elts [@is_field_id] [@builtin] (slice 'a) : seq 'a
+
+axiom sliceqtinvariant :
+  forall self:slice 'a [self.elts].
+   [@hyp_name:TypeInvariant] in_bounds (length (self.elts))
+
+predicate sliceqteq (a:slice 'a) (b:slice 'a) = a.elts = b.elts
+
+axiom sliceqtinj [@W:non_conservative_extension:N] :
+  forall a:slice 'a, b:slice 'a. sliceqteq a b -> a = b
+
+(* meta remove_unused:dependency prop sliceqtinj, predicate sliceqteq *)
+
+(* meta model_record function elts *)
+
+axiom slice_ext [@useraxiom] :
+  forall x:slice 'a, y:slice 'a. x.elts = y.elts -> x = y
+
+type array 'a = slice 'a
+
+function view (s:slice 'a) : seq 'a = s.elts
+
+function length1 (slice 'a) : t17
+
+axiom length_spec [@useraxiom] :
+  forall s:slice 'a. tqtint (length1 s) = length (s.elts)
+
+function slice_ptr_len ptr : t17
+
+(* use creusot.slice.Slice64 *)
+
+function any_l 'a : 'b
+
+(* use creusot.prelude.Any *)
+
+type t_Vec_u8_Global
+
+type t_BoundPtr
+
+type t_Recovery
+
+type t_EndBorrow_PhysicalRegion
+
+type t_FullBorrow_PhysicalRegion
+
+type t_FrozenOwner =
+  | T_FrozenOwnerqtmk [@builtin] (base:t_BoundPtr) (capacity:t17) (recovery:
+      t_Recovery) (endqt:t_EndBorrow_PhysicalRegion) (shared:
+      t_FullBorrow_PhysicalRegion)
+
+(* meta model_record function shared *)
+
+(* meta model_record function endqt *)
+
+(* meta model_record function recovery *)
+
+(* meta model_record function capacity *)
+
+(* meta model_record function base *)
+
+type t_LifetimeToken
+
+type t_Owner =
+  | T_Ownerqtmk [@builtin] (frozen:t_FrozenOwner) (anchor:t_LifetimeToken)
+      (len:t17) (model:seq t18)
+
+(* meta model_record function model *)
+
+(* meta model_record function len *)
+
+(* meta model_record function anchor *)
+
+(* meta model_record function frozen *)
+
+type t_Id
+
+type tup3_Id_Int_Int =
+  | Tup3_Id_Int_Intqtmk [@builtin] (f0:t_Id) (f1:int) (f2:int)
+
+(* meta model_record function f2 *)
+
+(* meta model_record function f1 *)
+
+(* meta model_record function f0 *)
+
+type t_Option_tup3_Id_Int_Int =
+  | None
+  | Some tup3_Id_Int_Int
+
+function view_BoundPtr t_BoundPtr : t_Option_tup3_Id_Int_Int
+
+constant const_MAX : t19 = (9223372036854775807:t19)
+
+function current_address t_BoundPtr : int
+
+constant const_MAXqt0 : t17 = (18446744073709551615:t17)
+
+predicate invariant_BoundPtr (self:t_BoundPtr) =
+  match view_BoundPtr self with
+  | None -> true
+  | Some (Tup3_Id_Int_Intqtmk _ allocation_capacity absolute_offset) ->
+      infix_lseq 0 absolute_offset /\
+      infix_lseq absolute_offset allocation_capacity /\
+      infix_lseq allocation_capacity (to_int const_MAX) /\
+      infix_ls absolute_offset (current_address self) /\
+      infix_lseq
+      (infix_mn (infix_pl (current_address self) allocation_capacity)
+       absolute_offset)
+      (tqtint const_MAXqt0)
+  end
+
+predicate inv_BoundPtr t_BoundPtr
+
+axiom inv_axiom [@useraxiom] :
+  forall x:t_BoundPtr [inv_BoundPtr x].
+   inv_BoundPtr x -> invariant_BoundPtr x
+
+predicate inv_Recovery t_Recovery
+
+predicate invariant_Ghost_Recovery [@inline:trivial] (self:t_Recovery) =
+  inv_Recovery self
+
+(* meta rewrite_def predicate invariant_Ghost_Recovery *)
+
+predicate inv_Ghost_Recovery [@inline:trivial] (us1:t_Recovery) =
+  invariant_Ghost_Recovery us1
+
+(* meta rewrite_def predicate inv_Ghost_Recovery *)
+
+type t_PhysicalRegion
+
+function cur_PhysicalRegion t_FullBorrow_PhysicalRegion : t_PhysicalRegion
+
+function fin_FullBorrow_PhysicalRegion t_FullBorrow_PhysicalRegion :
+  t_PhysicalRegion
+
+predicate resolve_FullBorrow_PhysicalRegion (self:
+  t_FullBorrow_PhysicalRegion) =
+  cur_PhysicalRegion self = fin_FullBorrow_PhysicalRegion self
+
+predicate resolve_FullBorrow_PhysicalRegionqt0 t_FullBorrow_PhysicalRegion
+
+axiom resolve_axiom [@useraxiom] [@rewrite] :
+  forall x:t_FullBorrow_PhysicalRegion
+   [resolve_FullBorrow_PhysicalRegionqt0 x].
+   resolve_FullBorrow_PhysicalRegionqt0 x <->
+   resolve_FullBorrow_PhysicalRegion x
+
+predicate invariant_PhysicalRegion t_PhysicalRegion
+
+predicate inv_PhysicalRegion t_PhysicalRegion
+
+axiom inv_axiomqt0 [@useraxiom] :
+  forall x:t_PhysicalRegion [inv_PhysicalRegion x].
+   inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate invariant_FullBorrow_PhysicalRegion [@inline:trivial] (self:
+  t_FullBorrow_PhysicalRegion) =
+  inv_PhysicalRegion (cur_PhysicalRegion self) /\
+  inv_PhysicalRegion (fin_FullBorrow_PhysicalRegion self)
+
+(* meta rewrite_def predicate invariant_FullBorrow_PhysicalRegion *)
+
+predicate inv_FullBorrow_PhysicalRegion t_FullBorrow_PhysicalRegion
+
+axiom inv_axiomqt1 [@useraxiom] [@rewrite] :
+  forall x:t_FullBorrow_PhysicalRegion [inv_FullBorrow_PhysicalRegion x].
+   inv_FullBorrow_PhysicalRegion x <-> invariant_FullBorrow_PhysicalRegion x
+
+predicate invariant_GhostShared_FullBorrow_PhysicalRegion (self:
+  t_FullBorrow_PhysicalRegion) =
+  resolve_FullBorrow_PhysicalRegionqt0 self /\
+  inv_FullBorrow_PhysicalRegion self
+
+predicate inv_GhostShared_FullBorrow_PhysicalRegion [@inline:trivial] (us1:
+  t_FullBorrow_PhysicalRegion) =
+  invariant_GhostShared_FullBorrow_PhysicalRegion us1
+
+(* meta rewrite_def predicate inv_GhostShared_FullBorrow_PhysicalRegion *)
+
+predicate invariant_Ghost_GhostShared_FullBorrow_PhysicalRegion
+  [@inline:trivial] (self:t_FullBorrow_PhysicalRegion) =
+  inv_GhostShared_FullBorrow_PhysicalRegion self
+
+(* meta rewrite_def
+  predicate invariant_Ghost_GhostShared_FullBorrow_PhysicalRegion *)
+
+predicate inv_Ghost_GhostShared_FullBorrow_PhysicalRegion [@inline:trivial]
+  (us1:t_FullBorrow_PhysicalRegion) =
+  invariant_Ghost_GhostShared_FullBorrow_PhysicalRegion us1
+
+(* meta rewrite_def
+  predicate inv_Ghost_GhostShared_FullBorrow_PhysicalRegion *)
+
+predicate inv_FrozenOwner t_FrozenOwner
+
+axiom inv_axiomqt2 [@useraxiom] [@rewrite] :
+  forall x:t_FrozenOwner [inv_FrozenOwner x].
+   inv_FrozenOwner x <->
+   inv_BoundPtr (x.base) /\
+   inv_Ghost_Recovery (x.recovery) /\
+   inv_Ghost_GhostShared_FullBorrow_PhysicalRegion (x.shared)
+
+predicate inv_LifetimeToken t_LifetimeToken
+
+predicate invariant_Ghost_LifetimeToken [@inline:trivial] (self:
+  t_LifetimeToken) = inv_LifetimeToken self
+
+(* meta rewrite_def predicate invariant_Ghost_LifetimeToken *)
+
+predicate inv_Ghost_LifetimeToken [@inline:trivial] (us1:t_LifetimeToken) =
+  invariant_Ghost_LifetimeToken us1
+
+(* meta rewrite_def predicate inv_Ghost_LifetimeToken *)
+
+predicate inv_Owner t_Owner
+
+axiom inv_axiomqt3 [@useraxiom] [@rewrite] :
+  forall x:t_Owner [inv_Owner x].
+   inv_Owner x <->
+   inv_FrozenOwner (x.frozen) /\ inv_Ghost_LifetimeToken (x.anchor)
+
+type t_Excl_unit =
+  | T_Excl_unitqtmk [@builtin] (f0qt0:unit)
+
+(* meta model_record function f0qt0 *)
+
+type t_Option_Excl_unit =
+  | Noneqt0
+  | Someqt0 t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 =
+  | Tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8qtmk [@builtin] (f0qt1:
+      t_Option_Excl_unit) (f1qt1:t_FMap_Int_Excl_Option_u8)
+
+(* meta model_record function f1qt1 *)
+
+(* meta model_record function f0qt1 *)
+
+type tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id =
+  | Tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Idqtmk
+      [@builtin] (f0qt2:tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8)
+      (f1qt2:int) (f2qt2:t_Id) (f3qt2:t_Id)
+
+(* meta model_record function f3qt2 *)
+
+(* meta model_record function f2qt2 *)
+
+(* meta model_record function f1qt2 *)
+
+(* meta model_record function f0qt2 *)
+
+function view_Recovery t_Recovery :
+  tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id
+
+type t_Option_u8 =
+  | Noneqt1
+  | Someqt1 t18
+
+type t_Excl_Option_u8 =
+  | T_Excl_Option_u8qtmk [@builtin] (f0qt3:t_Option_u8)
+
+(* meta model_record function f0qt3 *)
+
+type t_Option_Excl_Option_u8 =
+  | Noneqt2
+  | Someqt2 t_Excl_Option_u8
+
+function to_mapping_Int t_FMap_Int_Excl_Option_u8 : int ->
+  t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self:t_FMap_Int_Excl_Option_u8) (k:int) :
+  t_Option_Excl_Option_u8 = get1 (to_mapping_Int self) k
+
+(* meta rewrite_def function get_Int *)
+
+predicate ext_eq_Int (self:t_FMap_Int_Excl_Option_u8) (other:
+  t_FMap_Int_Excl_Option_u8) = forall k:int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec [@useraxiom] :
+  forall self:t_FMap_Int_Excl_Option_u8, other:t_FMap_Int_Excl_Option_u8
+   [self = other]. ext_eq_Int self other <-> self = other
+
+predicate ge_log_Int [@inline:trivial] (self:int) (other:int) =
+  infix_lseq other self
+
+(* meta rewrite_def predicate ge_log_Int *)
+
+function len_Int t_FMap_Int_Excl_Option_u8 : int
+
+axiom len_Int_spec [@useraxiom] :
+  forall self:t_FMap_Int_Excl_Option_u8 [len_Int self].
+   ge_log_Int (len_Int self) 0
+
+constant empty_Int : t_FMap_Int_Excl_Option_u8
+
+axiom empty_Int_spec [@useraxiom] : len_Int empty_Int = 0
+
+axiom empty_Int_specqt0 [@useraxiom] :
+  to_mapping_Int empty_Int = (const Noneqt2: int -> t_Option_Excl_Option_u8)
+
+predicate is_empty_Int (self:t_FMap_Int_Excl_Option_u8) =
+  ext_eq_Int self empty_Int
+
+predicate invariantqt (self:t_Recovery) =
+  ((view_Recovery self).f0qt2).f0qt1 = Someqt0 (T_Excl_unitqtmk ()) /\
+  is_empty_Int (((view_Recovery self).f0qt2).f1qt1) /\
+  (view_Recovery self).f2qt2 = (view_Recovery self).f3qt2
+
+function namespace (self:t_Recovery) : t_Id = (view_Recovery self).f2qt2
+
+function capacityqt0 (self:t_Recovery) : int = (view_Recovery self).f1qt2
+
+type t_OwnedRegion
+
+type tup3_OwnedRegion_Int_Id =
+  | Tup3_OwnedRegion_Int_Idqtmk [@builtin] (f0qt4:t_OwnedRegion) (f1qt4:int)
+      (f2qt4:t_Id)
+
+(* meta model_record function f2qt4 *)
+
+(* meta model_record function f1qt4 *)
+
+(* meta model_record function f0qt4 *)
+
+function view_PhysicalRegion t_PhysicalRegion : tup3_OwnedRegion_Int_Id
+
+function namespaceqt0 (self:t_PhysicalRegion) : t_Id =
+  (view_PhysicalRegion self).f2qt4
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 =
+  | Tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8qtmk
+      [@builtin] (f0qt5:int) (f1qt5:int) (f2qt5:t_Id) (f3qt5:
+      tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8)
+
+(* meta model_record function f3qt5 *)
+
+(* meta model_record function f2qt5 *)
+
+(* meta model_record function f1qt5 *)
+
+(* meta model_record function f0qt5 *)
+
+function view_OwnedRegion t_OwnedRegion :
+  tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function resource_id (self:t_PhysicalRegion) : t_Id =
+  (view_OwnedRegion ((view_PhysicalRegion self).f0qt4)).f2qt5
+
+function capacityqt1 (self:t_PhysicalRegion) : int =
+  (view_PhysicalRegion self).f1qt4
+
+function lo (self:t_PhysicalRegion) : int =
+  (view_OwnedRegion ((view_PhysicalRegion self).f0qt4)).f0qt5
+
+function hi (self:t_PhysicalRegion) : int =
+  (view_OwnedRegion ((view_PhysicalRegion self).f0qt4)).f1qt5
+
+type t_Lifetime
+
+function lft_PhysicalRegion t_EndBorrow_PhysicalRegion : t_Lifetime
+
+function lft_PhysicalRegionqt0 t_FullBorrow_PhysicalRegion : t_Lifetime
+
+function fin_EndBorrow_PhysicalRegion t_EndBorrow_PhysicalRegion :
+  t_PhysicalRegion
+
+function fin_Ghost_EndBorrow_PhysicalRegion [@inline:trivial] (self:
+  t_EndBorrow_PhysicalRegion) : t_PhysicalRegion =
+  fin_EndBorrow_PhysicalRegion self
+
+(* meta rewrite_def function fin_Ghost_EndBorrow_PhysicalRegion *)
+
+predicate valid (self:t_FrozenOwner) =
+  invariant_BoundPtr (self.base) /\
+  invariantqt (self.recovery) /\
+  view_BoundPtr (self.base) =
+  Some
+  (Tup3_Id_Int_Intqtmk (namespace (self.recovery)) (tqtint (self.capacity)) 0) /\
+  capacityqt0 (self.recovery) = tqtint (self.capacity) /\
+  invariant_PhysicalRegion (cur_PhysicalRegion (self.shared)) /\
+  namespaceqt0 (cur_PhysicalRegion (self.shared)) = namespace (self.recovery) /\
+  resource_id (cur_PhysicalRegion (self.shared)) = namespace (self.recovery) /\
+  capacityqt1 (cur_PhysicalRegion (self.shared)) = tqtint (self.capacity) /\
+  lo (cur_PhysicalRegion (self.shared)) = 0 /\
+  hi (cur_PhysicalRegion (self.shared)) = tqtint (self.capacity) /\
+  lft_PhysicalRegion (self.endqt) = lft_PhysicalRegionqt0 (self.shared) /\
+  fin_Ghost_EndBorrow_PhysicalRegion (self.endqt) =
+  cur_PhysicalRegion (self.shared)
+
+function lft t_LifetimeToken : t_Lifetime
+
+type t_Option_Option_u8 =
+  | Noneqt3
+  | Someqt3 t_Option_u8
+
+function slot (self:t_PhysicalRegion) (index:int) : t_Option_Option_u8 =
+  match get_Int
+        (((view_OwnedRegion ((view_PhysicalRegion self).f0qt4)).f3qt5).f1qt1)
+        index with
+  | Noneqt2 -> Noneqt3
+  | Someqt2 (T_Excl_Option_u8qtmk value) -> Someqt3 value
+  end
+
+predicate validqt0 (self:t_Owner) =
+  valid (self.frozen) /\
+  lft (self.anchor) = lft_PhysicalRegionqt0 ((self.frozen).shared) /\
+  tqtint (self.len) = length (self.model) /\
+  le (self.len) ((self.frozen).capacity) /\
+  (forall i:int.
+    infix_lseq 0 i /\ infix_ls i (tqtint (self.len)) ->
+    slot (cur_PhysicalRegion ((self.frozen).shared)) i =
+    Someqt3 (Someqt1 (get (self.model) i)))
+
+function contents (self:t_Owner) : seq t18 = self.model
+
+function view_Vec_u8_Global t_Vec_u8_Global : seq t18
+
+axiom view_Vec_u8_Global_spec [@useraxiom] :
+  forall self:t_Vec_u8_Global [view_Vec_u8_Global self].
+   infix_lseq (length (view_Vec_u8_Global self)) (tqtint const_MAXqt0)
+
+type t_PositiveReal
+
+function frac t_LifetimeToken : t_PositiveReal
+
+predicate gt_log_Real [@inline:trivial] (self:real) (other:real) =
+  infix_ls1 other self
+
+(* meta rewrite_def predicate gt_log_Real *)
+
+function to_real t_PositiveReal : real
+
+axiom to_real_spec [@useraxiom] :
+  forall self:t_PositiveReal [to_real self].
+   gt_log_Real (to_real self) (from_int 0)
+
+function new real : t_PositiveReal
+
+axiom new_spec [@useraxiom] :
+  forall n:real [new n]. gt_log_Real n (from_int 0) -> to_real (new n) = n
+
+function from_int1 [@inline:trivial] (i:int) : t_PositiveReal =
+  new (from_int i)
+
+(* meta rewrite_def function from_int1 *)
+
+type t_Ticket
+
+type t_ReadHandle =
+  | T_ReadHandleqtmk [@builtin] (bytes:slice t18) (permit:t_LifetimeToken)
+      (ticket:t_Ticket)
+
+(* meta model_record function ticket *)
+
+(* meta model_record function permit *)
+
+(* meta model_record function bytes *)
+
+type t_SharedRetirement_LifetimeToken
+
+type t_CloseContext =
+  | T_CloseContextqtmk [@builtin] (machine:t_SharedRetirement_LifetimeToken)
+
+(* meta model_record function machine *)
+
+type tup3_ReadHandle_ReadHandle_CloseContext =
+  | Tup3_ReadHandle_ReadHandle_CloseContextqtmk [@builtin] (f0qt6:
+      t_ReadHandle) (f1qt6:t_ReadHandle) (f2qt6:t_CloseContext)
+
+(* meta model_record function f2qt6 *)
+
+(* meta model_record function f1qt6 *)
+
+(* meta model_record function f0qt6 *)
+
+predicate invariant_refmut_Owner [@inline:trivial] (self:t22 t_Owner) =
+  inv_Owner (self.current) /\ inv_Owner (self.final)
+
+(* meta rewrite_def predicate invariant_refmut_Owner *)
+
+predicate inv_refmut_Owner [@inline:trivial] (us1:t22 t_Owner) =
+  invariant_refmut_Owner us1
+
+(* meta rewrite_def predicate inv_refmut_Owner *)
+
+predicate inv_Ticket t_Ticket
+
+predicate invariant_Ghost_Ticket [@inline:trivial] (self:t_Ticket) =
+  inv_Ticket self
+
+(* meta rewrite_def predicate invariant_Ghost_Ticket *)
+
+predicate inv_Ghost_Ticket [@inline:trivial] (us1:t_Ticket) =
+  invariant_Ghost_Ticket us1
+
+(* meta rewrite_def predicate inv_Ghost_Ticket *)
+
+predicate inv_ReadHandle t_ReadHandle
+
+axiom inv_axiomqt4 [@useraxiom] [@rewrite] :
+  forall x:t_ReadHandle [inv_ReadHandle x].
+   inv_ReadHandle x <->
+   inv_Ghost_LifetimeToken (x.permit) /\ inv_Ghost_Ticket (x.ticket)
+
+predicate inv_SharedRetirement_LifetimeToken t_SharedRetirement_LifetimeToken
+
+predicate inv_CloseContext t_CloseContext
+
+axiom inv_axiomqt5 [@useraxiom] [@rewrite] :
+  forall x:t_CloseContext [inv_CloseContext x].
+   inv_CloseContext x <-> inv_SharedRetirement_LifetimeToken (x.machine)
+
+predicate inv_tup3_ReadHandle_ReadHandle_CloseContext [@inline:trivial] (us1:
+  tup3_ReadHandle_ReadHandle_CloseContext) =
+  inv_ReadHandle (us1.f0qt6) /\
+  inv_ReadHandle (us1.f1qt6) /\ inv_CloseContext (us1.f2qt6)
+
+(* meta rewrite_def predicate inv_tup3_ReadHandle_ReadHandle_CloseContext *)
+
+function div_PositiveReal t_PositiveReal t_PositiveReal : t_PositiveReal
+
+axiom div_PositiveReal_spec [@useraxiom] :
+  forall self:t_PositiveReal, other:t_PositiveReal
+   [div_PositiveReal self other].
+   to_real (div_PositiveReal self other) =
+   infix_sl (to_real self) (to_real other)
+
+function contentsqt0 (self:t_ReadHandle) : seq t18 = view (self.bytes)
+
+predicate valid_LifetimeToken t_SharedRetirement_LifetimeToken
+
+predicate validqt1 (self:t_CloseContext) = valid_LifetimeToken (self.machine)
+
+predicate accepts_LifetimeToken t_SharedRetirement_LifetimeToken t_Ticket
+
+predicate lt_log_PositiveReal (self:t_PositiveReal) (o:t_PositiveReal) =
+  infix_ls1 (to_real self) (to_real o)
+
+predicate le_log_PositiveReal (self:t_PositiveReal) (o:t_PositiveReal) =
+  infix_lseq2 (to_real self) (to_real o)
+
+function le_lt_log_PositiveReal t_PositiveReal t_PositiveReal : unit
+
+axiom le_lt_log_PositiveReal_spec [@useraxiom] :
+  forall self:t_PositiveReal, other:t_PositiveReal.
+   le_log_PositiveReal self other <->
+   lt_log_PositiveReal self other \/ self = other
+
+predicate wellformed_LifetimeToken (self:t_LifetimeToken) =
+  le_log_PositiveReal (frac self) (from_int1 1)
+
+type tup2_Lifetime_PositiveReal =
+  | Tup2_Lifetime_PositiveRealqtmk [@builtin] (f0qt7:t_Lifetime) (f1qt7:
+      t_PositiveReal)
+
+(* meta model_record function f1qt7 *)
+
+(* meta model_record function f0qt7 *)
+
+function metadata_LifetimeToken (self:t_LifetimeToken) :
+  tup2_Lifetime_PositiveReal =
+  Tup2_Lifetime_PositiveRealqtmk (lft self) (frac self)
+
+predicate is_left t_Ticket
+
+type tup2_tup2_Lifetime_PositiveReal_tup2_Lifetime_PositiveReal =
+  | Tup2_tup2_Lifetime_PositiveReal_tup2_Lifetime_PositiveRealqtmk [@builtin]
+      (f0qt8:tup2_Lifetime_PositiveReal) (f1qt8:tup2_Lifetime_PositiveReal)
+
+(* meta model_record function f1qt8 *)
+
+(* meta model_record function f0qt8 *)
+
+function expected_LifetimeToken t_SharedRetirement_LifetimeToken :
+  tup2_tup2_Lifetime_PositiveReal_tup2_Lifetime_PositiveReal
+
+predicate accepts_payload_LifetimeToken (self:
+  t_SharedRetirement_LifetimeToken) (t:t_Ticket) (payload:t_LifetimeToken) =
+  accepts_LifetimeToken self t /\
+  wellformed_LifetimeToken payload /\
+  metadata_LifetimeToken payload =
+  (if is_left t then (expected_LifetimeToken self).f0qt8
+   else (expected_LifetimeToken self).f1qt8)
+
+predicate accepted_by (self:t_ReadHandle) (context:t_CloseContext) =
+  accepts_payload_LifetimeToken (context.machine) (self.ticket) (self.permit)
+
+predicate is_leftqt0 (self:t_ReadHandle) = is_left (self.ticket)
+
+predicate matches_owner (self:t_CloseContext) (owner:t_Owner) =
+  frac (owner.anchor) = div_PositiveReal (from_int1 1) (from_int1 2) /\
+  (expected_LifetimeToken (self.machine)).f0qt8 =
+  Tup2_Lifetime_PositiveRealqtmk (lft (owner.anchor))
+  (div_PositiveReal (from_int1 1) (from_int1 4)) /\
+  (expected_LifetimeToken (self.machine)).f1qt8 =
+  Tup2_Lifetime_PositiveRealqtmk (lft (owner.anchor))
+  (div_PositiveReal (from_int1 1) (from_int1 4))
+
+predicate resolve_LifetimeToken t_LifetimeToken
+
+predicate resolve_Ghost_LifetimeToken [@inline:trivial] (self:
+  t_LifetimeToken) = resolve_LifetimeToken self
+
+(* meta rewrite_def predicate resolve_Ghost_LifetimeToken *)
+
+predicate resolve_Ghost_LifetimeTokenqt0 [@inline:trivial] (us1:
+  t_LifetimeToken) = resolve_Ghost_LifetimeToken us1
+
+(* meta rewrite_def predicate resolve_Ghost_LifetimeTokenqt0 *)
+
+predicate resolve_Ticket t_Ticket
+
+predicate resolve_Ghost_Ticket [@inline:trivial] (self:t_Ticket) =
+  resolve_Ticket self
+
+(* meta rewrite_def predicate resolve_Ghost_Ticket *)
+
+predicate resolve_Ghost_Ticketqt0 [@inline:trivial] (us1:t_Ticket) =
+  resolve_Ghost_Ticket us1
+
+(* meta rewrite_def predicate resolve_Ghost_Ticketqt0 *)
+
+predicate resolve_ReadHandle t_ReadHandle
+
+axiom resolve_axiomqt0 [@useraxiom] [@rewrite] :
+  forall x:t_ReadHandle [resolve_ReadHandle x].
+   resolve_ReadHandle x <->
+   resolve_Ghost_LifetimeTokenqt0 (x.permit) /\
+   resolve_Ghost_Ticketqt0 (x.ticket)
+
+predicate resolve_SharedRetirement_LifetimeToken
+  t_SharedRetirement_LifetimeToken
+
+predicate resolve_CloseContext t_CloseContext
+
+axiom resolve_axiomqt1 [@useraxiom] [@rewrite] :
+  forall x:t_CloseContext [resolve_CloseContext x].
+   resolve_CloseContext x <->
+   resolve_SharedRetirement_LifetimeToken (x.machine)
+
+predicate resolve_tup3_ReadHandle_ReadHandle_CloseContext [@inline:trivial]
+  (us1:tup3_ReadHandle_ReadHandle_CloseContext) =
+  resolve_ReadHandle (us1.f0qt6) /\
+  resolve_ReadHandle (us1.f1qt6) /\ resolve_CloseContext (us1.f2qt6)
+
+(* meta rewrite_def
+  predicate resolve_tup3_ReadHandle_ReadHandle_CloseContext *)
+
+type t_LifetimeDead
+
+predicate inv_LifetimeDead t_LifetimeDead
+
+function lftqt0 t_LifetimeDead : t_Lifetime
+
+type tup2_Recovery_PhysicalRegion =
+  | Tup2_Recovery_PhysicalRegionqtmk [@builtin] (f0qt9:t_Recovery) (f1qt9:
+      t_PhysicalRegion)
+
+(* meta model_record function f1qt9 *)
+
+(* meta model_record function f0qt9 *)
+
+predicate inv_tup2_Recovery_PhysicalRegion [@inline:trivial] (us1:
+  tup2_Recovery_PhysicalRegion) =
+  inv_Recovery (us1.f0qt9) /\ inv_PhysicalRegion (us1.f1qt9)
+
+(* meta rewrite_def predicate inv_tup2_Recovery_PhysicalRegion *)
+
+predicate invariant_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial]
+  (self:tup2_Recovery_PhysicalRegion) = inv_tup2_Recovery_PhysicalRegion self
+
+(* meta rewrite_def predicate invariant_Ghost_tup2_Recovery_PhysicalRegion *)
+
+predicate inv_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial] (us1:
+  tup2_Recovery_PhysicalRegion) =
+  invariant_Ghost_tup2_Recovery_PhysicalRegion us1
+
+(* meta rewrite_def predicate inv_Ghost_tup2_Recovery_PhysicalRegion *)
+
+(* meta compute_max_steps 1000000 *)
+
+(* meta select_lsinst "all" *)
+
+constant input [@introduced] : t_Vec_u8_Global
+
+axiom Assert [@introduced] :
+  [@hyp_name:Assert] [@expl:negative_empty_missing_readers requires]
+  length (view_Vec_u8_Global input) = 0
+
+constant result [@introduced] : t_Owner
+
+axiom Assert1 [@introduced] :
+  [@expl:new ensures] [@hyp_name:Assert]
+  ([@stop_split] [@expl:new result type invariant] inv_Owner result) /\
+  ([@stop_split] [@expl:new ensures #0] validqt0 result) /\
+  ([@stop_split] [@expl:new ensures #1]
+   contents result = view_Vec_u8_Global input) /\
+  ([@stop_split] [@expl:new ensures #2] frac (result.anchor) = from_int1 1)
+
+constant fin [@introduced] : t_Owner
+
+constant id1 [@introduced] : int
+
+axiom Assert2 [@introduced] : [@hyp_name:Assert] inv_Owner fin
+
+constant result1 [@introduced] : tup3_ReadHandle_ReadHandle_CloseContext
+
+axiom Assert3 [@introduced] :
+  [@hyp_name:Assert] [@expl:share_pair ensures]
+  ([@stop_split] [@expl:share_pair result type invariant]
+   inv_tup3_ReadHandle_ReadHandle_CloseContext result1) /\
+  ([@stop_split] [@expl:share_pair ensures #0]
+   validqt0 fin /\ contents fin = contents result) /\
+  ([@stop_split] [@expl:share_pair ensures #1]
+   frac (fin.anchor) = div_PositiveReal (from_int1 1) (from_int1 2)) /\
+  ([@stop_split] [@expl:share_pair ensures #2]
+   contentsqt0 (result1.f0qt6) = contents result /\
+   contentsqt0 (result1.f1qt6) = contents result) /\
+  ([@stop_split] [@expl:share_pair ensures #3] validqt1 (result1.f2qt6)) /\
+  ([@stop_split] [@expl:share_pair ensures #4]
+   accepted_by (result1.f0qt6) (result1.f2qt6) /\
+   accepted_by (result1.f1qt6) (result1.f2qt6)) /\
+  ([@stop_split] [@expl:share_pair ensures #5]
+   is_leftqt0 (result1.f0qt6) /\ not is_leftqt0 (result1.f1qt6)) /\
+  ([@stop_split] [@expl:share_pair ensures #6]
+   matches_owner (result1.f2qt6) fin)
+
+axiom Assert4 [@introduced] :
+  [@hyp_name:Assert]
+  resolve_tup3_ReadHandle_ReadHandle_CloseContext
+  (Tup3_ReadHandle_ReadHandle_CloseContextqtmk (result1.f0qt6)
+   (result1.f1qt6) (result1.f2qt6))
+
+axiom Assert5 [@introduced] :
+  [@hyp_name:Assert] [@expl:into_inner_LifetimeToken ensures]
+  [@expl:into_inner result type invariant] inv_LifetimeToken (fin.anchor)
+
+(* meta syntax_type type int, "int", 0 *)
+
+(* meta syntax_type type real, "real", 0 *)
+
+(* meta syntax_logic predicate infix_eq, "(%1 = %2)", 0 *)
+
+(* meta encoding:ignore_polymorphism_ls predicate infix_eq *)
+
+goal vc_negative_empty_missing_readers :
+  [@hyp_name:Assert] [@expl:end requires]
+  ([@stop_split] [@expl:end 'self' type invariant]
+   inv_LifetimeToken (fin.anchor)) /\
+  ([@stop_split] [@expl:end requires] frac (fin.anchor) = new 1.0)
+
+end

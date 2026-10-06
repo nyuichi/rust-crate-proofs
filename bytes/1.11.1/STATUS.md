@@ -9,18 +9,20 @@ claimed fully verified. Read [MODIFIED_VARIANT_SPEC.md](verification/MODIFIED_VA
 [ARCHITECTURE_DECISIONS.md](verification/ARCHITECTURE_DECISIONS.md) and
 [ARCHITECTURE_ASSESSMENT.md](verification/ARCHITECTURE_ASSESSMENT.md) before work.
 
-Architecture admission remains NOT ADMITTED. The production concurrent scoped-reader lifecycle passes46 proof files with zero
-null leaves: actual byte values, receipt-derived XOR and consuming B3 cleanup.
-Ordered read-after-peer-retirement and negative controls are still pending, so
-this milestone does not yet pass the complete admission gate. Original default native
-regression after feature routing passes 1256 tests/17 suites; original no_std
-check passes. These regressions do not prove the modified lifecycle.
+Bounded architecture admission PASSED: actual production verified,std proves47
+files with zero null leaves; native96 lifecycle cases plus the primitive race
+test pass. Actual byte values, reading after peer retirement, receipt-derived
+XOR and consuming B3 cleanup compose in one representation. Missing Acquire and
+abandoned empty-reader obligations fail at the expected VCs; duplicate receipt
+use fails Rust typing. Final restored sources/evidence are independently audited.
+The complete modified variant remains NOT COMPLETE; arbitrary sharing, mutation,
+public API migration and configuration coverage remain.
 
 Frozen approaches remain frozen unless their actual premises change. T02 remains
 a concrete threaded transport/conditional cleanup component (37 proof files),
 not eventual exactly-one completion, arbitrary sharing or actual Bytes Clone/Drop.
-Broad API expansion waits for actual reads, peer retirement, body-proved exact
-recovery and one explicit cleanup in one coherent production configuration.
+The admission dependency is now closed within its documented scope; subsequent
+work must preserve this production representation and its proved protocol.
 
 
 ## Cloud resume results (2026-10-05)

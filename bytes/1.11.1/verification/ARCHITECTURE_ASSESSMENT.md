@@ -1,9 +1,11 @@
 # Architecture admission assessment — 2026-10-06 (Asia/Tokyo)
 
-Status: full architecture NOT ADMITTED. This is a dependency assessment against
-`ARCHITECTURE_DECISIONS.md`, not a proof-impossibility theorem. The selected complete target is now the modified variant authorized by route 1;
-the original API is not claimed verified. No broad API expansion should start from this
-assessment. T01 found a structural rejection; T02 now proves concrete thread transport (37 files). The full Bytes architecture is still not admitted.
+Status: selected modified architecture ADMITTED for the bounded std/x86_64,
+normal-return, two-reader witness, under the explicit existing primitive/library
+TCB. The complete modified API/configuration target is NOT COMPLETE. Original
+API compatibility and automatic Drop are not the user-selected target. Historical
+candidate assessments below precede route1 and are superseded by the production
+admission result in MODIFIED_VARIANT_ADMISSION.md.
 
 ## What the existing evidence decides
 
@@ -183,3 +185,24 @@ must retain its retirement obligation. Parent cleanup after joined leases is an
 authorized interface design; its lifetime semantics must be stated separately
 from independent original Bytes::clone lifetimes. Native XOR assertions and
 conditional cleanup alone do not close the admission gate.
+
+## Production admission outcome — route 1
+
+The actual verified,std production entry passes47 proof files, zero null leaves,
+and96 native lifecycle cases plus the primitive race test. Concurrent and ordered
+real-thread callers establish input-byte values and receipt-derived exactly-one
+final observer; consuming parent cleanup reunites actual lifetime fractions and
+calls B3 once. Empty handles retain their obligations. Capacity zero means no
+allocated block to deallocate.
+
+Missing Acquire fails the peer AtView synchronization prerequisite; abandoning
+empty-reader fractions fails LifetimeToken::end. Duplicate receipt use is a Rust
+E0382 typing rejection, not a failed VC. Final restored47-file run and all sources
+are archived and independently audited. No new protocol trust or unsafe Send/Sync
+is added. See MODIFIED_VARIANT_ADMISSION.md for exact hashes and boundaries.
+
+Broad migration may now proceed in the selected model. Next is arbitrary finite
+scoped sharing, then exclusive mutation/freeze, API composition and retained
+configuration coverage. This admission does not prove arbitrary counts,
+independently escaping original Clone, panic/unwind/allocator behavior or adequacy
+of the generic TCB. Previous frozen methods and counterexamples remain frozen.

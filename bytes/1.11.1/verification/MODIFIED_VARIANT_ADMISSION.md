@@ -1,7 +1,7 @@
 # Production variant admission record
 
 Target: bytes 1.11.1, `verified,std`, stock pinned Creusot, x86_64,
-normal-return scoped threads. Status: implementation/proof pending, NOT ADMITTED.
+normal-return scoped threads. Status: ADMITTED for this bounded witness; complete modified variant NOT COMPLETE.
 See MODIFIED_VARIANT_SPEC.md; this record does not complete arbitrary sharing,
 mutable APIs or all feature/configuration obligations.
 
@@ -111,3 +111,33 @@ block; zero capacity has no allocation and the primitive performs no allocator
 deallocation. This distinction does not erase any empty handle's close obligation.
 Negative controls are still pending. Low-level helpers remain internal, and
 panic/unwind/thread-creation failure is outside this normal-return milestone.
+
+### Negative controls and final restored admission
+
+Missing Acquire:47 files, two null tactic leaves in one retire file (64/66),
+exactly at peer AtView::sync view order. Archive SHA256
+`e4056a8eb40f646df557a0ef1e4cf2a82f3b622a539cab791fd2317a03a30bc3`; root audited
+118 members/47 Coma/47 JSON/two nulls.
+
+Abandoned empty readers: accepts any input Vec with length0, including positive
+spare capacity.48 files, one null lifetime-end prerequisite (anchor remains1/2).
+Archive SHA256
+`0f90e5328d0a60d8f40ca3739fa6252697c512861fcab631871f38b571e09754`; root audited
+120 members/48 Coma/48 JSON/one null. There is no requires(false) fixture.
+
+Duplicate Closed use: Rust E0382 before Coma. It is archived as a typing failure
+(24 members, zero Coma/JSON), SHA256
+`d1f6f967dff47b82f5001a0a07d521f22e7a0ea43d6b357064905d3631627515`.
+This demonstrates affine API prevention, not a protocol VC counterexample.
+
+Final restored replay:47/47 files, zero null leaves; native96 lifecycle cases plus
+primitive race test. SHA256
+`785d38e7f9ab512a29a5a41be12b4a729e6dd8c5a0c331028985f7023a507e26`. Root audited
+119 member hashes,47 Coma/47 JSON/zero nulls and all11 current Rust source files
+against the archive. Both negative edits are removed; atomic primitive is still
+byte-identical to the previous accepted primitive.
+
+Verdict: ADMITTED for the stated std/x86_64 normal-return two-reader composition.
+It permits subsequent work in this one model. It is not complete variant
+coverage, arbitrary sharing, original Clone/Drop, scheduler fairness, panic/unwind
+or proof of the primitive/library TCB's adequacy.

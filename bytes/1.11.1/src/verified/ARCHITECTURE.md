@@ -2,9 +2,12 @@
 
 The user selected public API/representation changes while avoiding large tool
 changes. This production module replaces the initial lifecycle's implicit
-Clone/Deref/Drop with Owner::new, share_pair, ReadHandle::read/close, and consuming
-Owner::close. Root-owned feature wiring selects this variant independently of
-the legacy byte handles. This is an admission candidate, not a completion claim.
+Clone/Deref/Drop with internal Owner::new, share_pair, ReadHandle::read/close,
+and consuming Owner::close. These helpers are crate-private: their ghost
+preconditions are obligations for verified callers, not runtime checks. The
+public admission surface is scoped_roundtrip and scoped_after_peer_close. Root-owned feature wiring selects this variant independently of
+the legacy byte handles. The integrated bounded core and its two public callers are proved; this is
+not a complete variant API claim.
 
 Owner consumes a Vec through existing B1 and never retains a live Vec owner.
 Existing FrozenOwner/FullBorrow keeps the actual physical region. A parent half
@@ -35,3 +38,22 @@ semantics and explicit TCB. Physical primitives are shared canonical sources.
 Stock scope/spawn/join, authoritative resources, synthetic lifetimes and AtView
 remain library assumptions. No bytes-specific protocol theorem is trusted.
 Preserve T01/T02 archives; retries of their rejected representations remain frozen.
+
+
+The concurrent caller reads in both real child threads and closes both readers.
+The ordered caller joins the first close before spawning the second reader, so
+its actual read occurs after peer retirement while its own obligation remains
+outstanding. Both formally return the input byte (or None outside bounds) and
+opposite last-observer flags. The consuming cleanup body makes one B3 call on
+normal return; positive-capacity storage is deallocated once, while capacity zero
+has no allocator block to release.
+
+Validation: the production `verified,std` gate proves 47 files. Native coverage
+includes 96 lifecycle cases (48 per caller) covering empty input, spare capacity,
+read bounds and reversed ticket roles, plus the unchanged atomic race test.
+Missing Acquire rejects the peer AtView synchronization precondition. Abandoning
+both empty-reader obligations (input length zero, arbitrary capacity) rejects
+LifetimeToken::end's full-fraction precondition. Reusing one Closed result twice
+is rejected by Rust E0382 before VCs. Exact positive/failure/negative sources and
+proof trees are in verification/modified-variant-evidence/runs; the controls are
+archived variants and are absent from this production source.

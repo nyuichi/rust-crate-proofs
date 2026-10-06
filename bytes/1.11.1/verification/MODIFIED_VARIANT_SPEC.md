@@ -6,7 +6,7 @@ builds select the same production entry and bodies; `cfg(creusot)` adds the
 existing physical/atomic specifications. The original default API remains a
 separate implementation and is not the complete verification target.
 
-Status: architecture under implementation, NOT ADMITTED. Names below describe
+Status: bounded two-reader architecture ADMITTED; complete variant NOT COMPLETE. Names below describe
 required responsibilities; the final public-method inventory must be reconciled
 with the actual compiled source. This specification introduces no trusted axiom.
 
@@ -58,3 +58,9 @@ configuration coverage. Previously proved helpers are reused only where their
 contracts and source match this implementation. Each validated increment is
 committed and pushed; admission failure triggers interface review and a recorded
 stop decision rather than repeated frozen experiments.
+
+Admission passed in MODIFIED_VARIANT_ADMISSION.md. Public runtime surface currently
+consists of scoped_roundtrip and scoped_after_peer_close; the low-level owner,
+handles and receipt/context operations are crate-private verified helpers. Public
+sharing/mutation/adapter operations remain future inventory work. Their erased
+ghost contracts must not be mistaken for runtime guards for arbitrary callers.

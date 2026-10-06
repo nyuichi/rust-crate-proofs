@@ -1,5 +1,18 @@
 # Concurrent verification progress
 
+## Modified production admission — route 1
+
+The user-selected verified,std entry now passes47 proof files with zero null
+leaves in one actual production configuration. Its concurrent and ordered real
+thread callers prove input-byte reads, receipt-derived unique final retirement,
+and consuming parent B3 cleanup after all affine lifetime fractions return.
+Missing Acquire rejects peer synchronization; empty-reader abandonment rejects
+full-lifetime end. No new bytes protocol trust or unsafe Send/Sync is introduced.
+Native96 lifecycle cases plus the primitive race test pass. See
+MODIFIED_VARIANT_ADMISSION.md for independently audited archives and exact TCB.
+This closes bounded two-reader std/x86_64 normal-return admission; arbitrary
+sharing, the full API/configuration inventory and failure paths remain open.
+
 ## Architecture thread prerequisite (2026-10-06, Asia/Tokyo)
 
 T01 crosses real stock scoped-thread boundaries and rejects the existing full
