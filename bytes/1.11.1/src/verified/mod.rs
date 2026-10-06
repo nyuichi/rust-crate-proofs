@@ -15,6 +15,8 @@ mod retirement;
 mod tree;
 pub mod exclusive;
 pub mod cursor;
+pub mod callbacks;
+pub use callbacks::with_shared_read;
 pub use tree::scoped_tree;
 use retirement::{Payload,SharedRetirement,Ticket,Receipt};
 

@@ -61,3 +61,21 @@ Remaining API correspondence and configuration obligations still include
 reusable scoped callback access, same-allocation thaw/conversions, richer write
 operations, numeric capacity specifications, no_std/serde/platform variants, and
 failure/termination behavior. Passed file counts are not completeness counts.
+
+## Reusable immutable scoped callbacks (133)
+
+`callbacks-133`: 133 Coma files, 133 proof results, zero null leaves, 11 native
+tests passed. Independently checked archive SHA-256:
+`7f36c4ffb41f7865260842557fea1efb79defa394645d4d40c84ad12eb82f289`.
+`with_shared_read` calls two higher-ranked Send FnOnce callbacks on actual
+shared bytes in scoped threads, joins them and explicitly reclaims the allocation.
+Callback behavior is expressed through each callback's own pre/postcondition,
+not trusted universal laws. Results own their data; their types cannot retain
+the callback argument lifetime. A concrete length/first-byte client is proved.
+
+Returning the borrowed callback argument as an escaping result is rejected by
+both Rust and the proof frontend, before VC generation. Independently checked
+negative archive SHA-256:
+`07da597ae4095beb567f19126ef2778341882a3849a07ef4e856b62abb247b5b`.
+The normal-return boundary remains explicit; arbitrary callback panic cleanup
+and callback termination are not claimed.
