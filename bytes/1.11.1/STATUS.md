@@ -1,19 +1,26 @@
 # bytes 1.11.1 runtime proof checkpoint
 
-## Architecture-first work policy (2026-10-06, Asia/Tokyo)
+## Selected modified target (2026-10-06 UTC)
 
-The user approved freezing rejected approaches and reopening them only with a
-recorded changed premise. Read [ARCHITECTURE_DECISIONS.md](verification/ARCHITECTURE_DECISIONS.md)
-and [ARCHITECTURE_ASSESSMENT.md](verification/ARCHITECTURE_ASSESSMENT.md) before
-new proof work. The ordinary complete target has not passed architecture
-admission. Existing component results below are preserved; broad API expansion
-is gated on one coherent sharing/thread/retirement ownership witness. T01 found
-a subjective-snapshot Objective/Sync obstruction at real thread spawns. T02
-replaces that snapshot with objective metadata while retaining affine payloads;
-37 files prove concrete threaded transport and conditional parent cleanup, and
-removing Acquire rejects retire at11/12. This proves neither eventual exactly-one
-completion nor actual Bytes Clone/Drop. See the architecture assessment for the
-remaining API/tool-scope decision.
+The user selected route 1: public API and representation changes are authorized,
+large verifier changes are avoided, and the final target is the explicitly named
+`bytes::verified` variant of bytes 1.11.1. The original Bytes/BytesMut API is not
+claimed fully verified. Read [MODIFIED_VARIANT_SPEC.md](verification/MODIFIED_VARIANT_SPEC.md),
+[ARCHITECTURE_DECISIONS.md](verification/ARCHITECTURE_DECISIONS.md) and
+[ARCHITECTURE_ASSESSMENT.md](verification/ARCHITECTURE_ASSESSMENT.md) before work.
+
+Architecture admission remains NOT ADMITTED. The production concurrent scoped-reader lifecycle passes46 proof files with zero
+null leaves: actual byte values, receipt-derived XOR and consuming B3 cleanup.
+Ordered read-after-peer-retirement and negative controls are still pending, so
+this milestone does not yet pass the complete admission gate. Original default native
+regression after feature routing passes 1256 tests/17 suites; original no_std
+check passes. These regressions do not prove the modified lifecycle.
+
+Frozen approaches remain frozen unless their actual premises change. T02 remains
+a concrete threaded transport/conditional cleanup component (37 proof files),
+not eventual exactly-one completion, arbitrary sharing or actual Bytes Clone/Drop.
+Broad API expansion waits for actual reads, peer retirement, body-proved exact
+recovery and one explicit cleanup in one coherent production configuration.
 
 
 ## Cloud resume results (2026-10-05)

@@ -8,70 +8,72 @@
 #![allow(unexpected_cfgs)]
 #![cfg_attr(creusot, recursion_limit = "512")]
 
-//! Provides abstractions for working with bytes.
-//!
-//! The `bytes` crate provides an efficient byte buffer structure
-//! ([`Bytes`]) and traits for working with buffer
-//! implementations ([`Buf`], [`BufMut`]).
-//!
-//! # `Bytes`
-//!
-//! `Bytes` is an efficient container for storing and operating on contiguous
-//! slices of memory. It is intended for use primarily in networking code, but
-//! could have applications elsewhere as well.
-//!
-//! `Bytes` values facilitate zero-copy network programming by allowing multiple
-//! `Bytes` objects to point to the same underlying memory. This is managed by
-//! using a reference count to track when the memory is no longer needed and can
-//! be freed.
-//!
-//! A `Bytes` handle can be created directly from an existing byte store (such as `&[u8]`
-//! or `Vec<u8>`), but usually a `BytesMut` is used first and written to. For
-//! example:
-//!
-//! ```rust
-//! use bytes::{BytesMut, BufMut};
-//!
-//! let mut buf = BytesMut::with_capacity(1024);
-//! buf.put(&b"hello world"[..]);
-//! buf.put_u16(1234);
-//!
-//! let a = buf.split();
-//! assert_eq!(a, b"hello world\x04\xD2"[..]);
-//!
-//! buf.put(&b"goodbye world"[..]);
-//!
-//! let b = buf.split();
-//! assert_eq!(b, b"goodbye world"[..]);
-//!
-//! assert_eq!(buf.capacity(), 998);
-//! ```
-//!
-//! In the above example, only a single buffer of 1024 is allocated. The handles
-//! `a` and `b` will share the underlying buffer and maintain indices tracking
-//! the view into the buffer represented by the handle.
-//!
-//! See the [struct docs](`Bytes`) for more details.
-//!
-//! # `Buf`, `BufMut`
-//!
-//! These two traits provide read and write access to buffers. The underlying
-//! storage may or may not be in contiguous memory. For example, `Bytes` is a
-//! buffer that guarantees contiguous memory, but a [rope] stores the bytes in
-//! disjoint chunks. `Buf` and `BufMut` maintain cursors tracking the current
-//! position in the underlying byte storage. When bytes are read or written, the
-//! cursor is advanced.
-//!
-//! [rope]: https://en.wikipedia.org/wiki/Rope_(data_structure)
-//!
-//! ## Relation with `Read` and `Write`
-//!
-//! At first glance, it may seem that `Buf` and `BufMut` overlap in
-//! functionality with [`std::io::Read`] and [`std::io::Write`]. However, they
-//! serve different purposes. A buffer is the value that is provided as an
-//! argument to `Read::read` and `Write::write`. `Read` and `Write` may then
-//! perform a syscall, which has the potential of failing. Operations on `Buf`
-//! and `BufMut` are infallible.
+#![cfg_attr(not(feature = "verified"), doc = r##"Provides abstractions for working with bytes.
+
+The `bytes` crate provides an efficient byte buffer structure
+([`Bytes`]) and traits for working with buffer
+implementations ([`Buf`], [`BufMut`]).
+
+# `Bytes`
+
+`Bytes` is an efficient container for storing and operating on contiguous
+slices of memory. It is intended for use primarily in networking code, but
+could have applications elsewhere as well.
+
+`Bytes` values facilitate zero-copy network programming by allowing multiple
+`Bytes` objects to point to the same underlying memory. This is managed by
+using a reference count to track when the memory is no longer needed and can
+be freed.
+
+A `Bytes` handle can be created directly from an existing byte store (such as `&[u8]`
+or `Vec<u8>`), but usually a `BytesMut` is used first and written to. For
+example:
+
+```rust
+use bytes::{BytesMut, BufMut};
+
+let mut buf = BytesMut::with_capacity(1024);
+buf.put(&b"hello world"[..]);
+buf.put_u16(1234);
+
+let a = buf.split();
+assert_eq!(a, b"hello world\x04\xD2"[..]);
+
+buf.put(&b"goodbye world"[..]);
+
+let b = buf.split();
+assert_eq!(b, b"goodbye world"[..]);
+
+assert_eq!(buf.capacity(), 998);
+```
+
+In the above example, only a single buffer of 1024 is allocated. The handles
+`a` and `b` will share the underlying buffer and maintain indices tracking
+the view into the buffer represented by the handle.
+
+See the [struct docs](`Bytes`) for more details.
+
+# `Buf`, `BufMut`
+
+These two traits provide read and write access to buffers. The underlying
+storage may or may not be in contiguous memory. For example, `Bytes` is a
+buffer that guarantees contiguous memory, but a [rope] stores the bytes in
+disjoint chunks. `Buf` and `BufMut` maintain cursors tracking the current
+position in the underlying byte storage. When bytes are read or written, the
+cursor is advanced.
+
+[rope]: https://en.wikipedia.org/wiki/Rope_(data_structure)
+
+## Relation with `Read` and `Write`
+
+At first glance, it may seem that `Buf` and `BufMut` overlap in
+functionality with [`std::io::Read`] and [`std::io::Write`]. However, they
+serve different purposes. A buffer is the value that is provided as an
+argument to `Read::read` and `Write::write`. `Read` and `Write` may then
+perform a syscall, which has the potential of failing. Operations on `Buf`
+and `BufMut` are infallible.
+"##)]
+#![cfg_attr(feature = "verified", doc = "Modified bytes API with explicit scoped sharing and cleanup. See the verified module for its public operations. This feature changes the public API and does not expose the original Bytes/BytesMut interfaces.")]
 
 #[allow(unused_extern_crates)]
 extern crate creusot_std;
@@ -82,41 +84,69 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+#[cfg(not(feature = "verified"))]
 pub mod buf;
+#[cfg(not(feature = "verified"))]
 pub use crate::buf::{Buf, BufMut};
 
+// Native allocation is reached through the canonical raw_vec primitive.
+#[cfg(not(feature = "verified"))]
 mod allocation_ops;
+#[cfg(not(feature = "verified"))]
 mod bounded_ops;
+#[cfg(not(feature = "verified"))]
 mod byte_codec_ops;
+#[cfg(not(feature = "verified"))]
 mod byte_codec_wide_ops;
+#[cfg(not(feature = "verified"))]
 mod bytes;
+#[cfg(not(feature = "verified"))]
 mod bytes_mut;
+#[cfg(not(feature = "verified"))]
 mod capacity_ops;
+#[cfg(not(feature = "verified"))]
 mod storage_ops;
+#[cfg(not(feature = "verified"))]
 mod chain_ops;
+#[cfg(not(feature = "verified"))]
 mod comparison_ops;
 mod provenance_specs;
 #[cfg(creusot)]
+#[cfg(not(feature = "verified"))]
 mod ownership_proof;
+#[cfg(not(feature = "verified"))]
 mod endian_ops;
+#[cfg(not(feature = "verified"))]
 mod fmt;
+#[cfg(not(feature = "verified"))]
 mod loom;
+#[cfg(not(feature = "verified"))]
 mod slice_mut_ops;
+#[cfg(not(feature = "verified"))]
 mod slice_ops;
+#[cfg(not(feature = "verified"))]
 mod slice_read_ops;
+#[cfg(not(feature = "verified"))]
 mod slice_wide_read_ops;
+#[cfg(not(feature = "verified"))]
 mod signed_wide_ops;
+#[cfg(not(feature = "verified"))]
 mod uninit_ops;
+#[cfg(not(feature = "verified"))]
 mod variable_read_ops;
+#[cfg(not(feature = "verified"))]
 pub use crate::bytes::Bytes;
+#[cfg(not(feature = "verified"))]
 pub use crate::bytes_mut::BytesMut;
 
 // Optional Serde support
 #[cfg(feature = "serde")]
+#[cfg(not(feature = "verified"))]
 mod serde;
 
 #[inline(never)]
 #[cold]
+#[cfg(not(feature = "verified"))]
 fn abort() -> ! {
     #[cfg(feature = "std")]
     {
@@ -137,11 +167,14 @@ fn abort() -> ! {
 }
 
 #[cfg(all(creusot, feature = "std"))]
+#[cfg(not(feature = "verified"))]
 mod std_specs;
 
 #[cfg(feature = "std")]
+#[cfg(not(feature = "verified"))]
 mod arithmetic;
 #[cfg(feature = "std")]
+#[cfg(not(feature = "verified"))]
 mod cursor_ops;
 
 /// Error type for the `try_get_` methods of [`Buf`].
@@ -149,6 +182,7 @@ mod cursor_ops;
 /// bytes in the buffer while attempting
 /// to get a value from a [`Buf`] with one
 /// of the `try_get_` methods.
+#[cfg(not(feature = "verified"))]
 #[derive(Debug, PartialEq, Eq)]
 pub struct TryGetError {
     /// The number of bytes necessary to get the value
@@ -158,6 +192,7 @@ pub struct TryGetError {
     pub available: usize,
 }
 
+#[cfg(not(feature = "verified"))]
 impl core::fmt::Display for TryGetError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
         write!(
@@ -170,9 +205,11 @@ impl core::fmt::Display for TryGetError {
 }
 
 #[cfg(feature = "std")]
+#[cfg(not(feature = "verified"))]
 impl std::error::Error for TryGetError {}
 
 #[cfg(feature = "std")]
+#[cfg(not(feature = "verified"))]
 impl From<TryGetError> for std::io::Error {
     fn from(error: TryGetError) -> Self {
         std::io::Error::new(std::io::ErrorKind::Other, error)
@@ -181,6 +218,7 @@ impl From<TryGetError> for std::io::Error {
 
 /// Panic with a nice error message.
 #[cold]
+#[cfg(not(feature = "verified"))]
 fn panic_advance(error_info: &TryGetError) -> ! {
     panic!(
         "advance out of bounds: the len is {} but advancing by {}",
@@ -189,9 +227,18 @@ fn panic_advance(error_info: &TryGetError) -> ! {
 }
 
 #[cold]
+#[cfg(not(feature = "verified"))]
 fn panic_does_not_fit(size: usize, nbytes: usize) -> ! {
     panic!(
         "size too large: the integer type can fit {} bytes, but nbytes is {}",
         size, nbytes
     );
 }
+
+/// Modified bytes API with explicit sharing and cleanup.
+#[cfg(feature = "verified")]
+pub mod verified;
+
+#[cfg(feature = "verified")]
+#[path = "verified_ownership.rs"]
+mod ownership_proof;
