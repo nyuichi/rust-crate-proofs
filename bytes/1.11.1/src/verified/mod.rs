@@ -13,6 +13,7 @@ use atomic as primitive;
 use atomic::NativeAtomic;
 mod retirement;
 mod tree;
+pub mod exclusive;
 pub use tree::scoped_tree;
 use retirement::{Payload,SharedRetirement,Ticket,Receipt};
 
@@ -250,6 +251,26 @@ pub fn scoped_after_peer_close(input:Vec<u8>,index:usize,reverse:bool)->(Option<
     (first.0,second.0,flags.0,flags.1)
 }
 
+/// Checked exclusive mutation followed by arbitrary finite scoped sharing.
+/// The changed Vec model is transferred through B1 into the same physical read
+/// and explicit cleanup protocol used by scoped_tree.
+#[ensures(result.0 == (write_index@ < input@.len()))]
+#[ensures((result.1 == None) == (leaves < 2usize))]
+#[ensures(result.1 != None ==> result.1.unwrap_logic().0 ==
+    if read_index@ < input@.len() {
+        Some(if read_index == write_index { value } else { input@[read_index@] })
+    } else { None })]
+#[ensures(result.1 != None ==> result.1.unwrap_logic().1 == leaves)]
+#[ensures(result.1 != None ==> result.1.unwrap_logic().2 != result.1.unwrap_logic().3)]
+pub fn scoped_set_and_read(input:Vec<u8>,write_index:usize,value:u8,read_index:usize,leaves:usize)
+    ->(bool,Option<(Option<u8>,usize,bool,bool)>)
+{
+    let mut exclusive=exclusive::ExclusiveBytes::from_vec(input);
+    let changed=exclusive.set(write_index,value);
+    let result=scoped_tree(exclusive.into_vec(),read_index,leaves);
+    (changed,result)
+}
+
 #[cfg(all(test,not(creusot)))]
 mod tests {
     use super::*;
@@ -265,4 +286,22 @@ mod tests {
             assert_eq!(a,expected);assert_eq!(b,expected);assert_ne!(x,y);
         }}}}
     }
+    #[test]
+    fn exclusive_mutation_reaches_shared_physical_reads() {
+        for leaves in [0,1,2,3,7] { for len in [0,1,5] {
+            for write in [0,4,8] { for read in [0,4,8] {
+                let mut input=Vec::with_capacity(len+8);
+                input.extend((0..len).map(|i| (91+i) as u8));
+                let mut expected=input.clone();
+                let changed=write < expected.len();
+                if changed { expected[write]=211; }
+                let expected=expected.get(read).copied();
+                let (actual_changed,result)=scoped_set_and_read(input,write,211,read,leaves);
+                assert_eq!(actual_changed,changed);
+                if leaves < 2 {assert!(result.is_none());}
+                else {let (byte,count,a,b)=result.unwrap();assert_eq!(byte,expected);assert_eq!(count,leaves);assert_ne!(a,b);}
+            }}
+        }}
+    }
+
 }

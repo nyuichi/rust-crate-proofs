@@ -21,3 +21,23 @@ Proofs cover normal-return executions, byte contents, affine lease recovery and
 exact final consuming cleanup. Thread termination, panic/unwind cleanup,
 allocation failures, no_std and other platforms remain separate obligations.
 There are no new trusted bytes-specific protocol contracts.
+
+## Ordinary exclusive mutation composed with sharing (67)
+
+`phase2-final-67`: 67 Coma files, 67 proof results, zero null leaves.
+Independently checked archive SHA-256:
+`4e4ec667416b1300098cb7e46565c94568740587a013c8edd69a508d069eabd2`.
+
+ExclusiveBytes uses an ordinary Vec with checked reads/writes, push/pop,
+truncate/resize, reserve operations and explicit consuming cleanup.
+`scoped_set_and_read` connects ordinary mutation to the same physical allocation's
+shared reads and cleanup. Native tests include 411 lifecycle cases, exclusive
+operation sequences and the atomic race test. Reserve specifications preserve
+contents; numeric capacity guarantees remain unproved.
+
+The missing tree-anchor negative retains one failed proof result: archive
+`7d7d2f646994425f415f65f714d0c6d7dd15704a6c85fb37c180c8b28c83fcc6`.
+An ordinary mutation attempted only inside ghost code is rejected at translation
+(the erased native execution retains 7 rather than the claimed 9):
+`3a4356fe1c92111a1911b027f924b2e2ddbc01cb31f32a4e1dd7d052921eeb37`.
+These negatives are independently hash-checked and preserved, not passing proofs.
