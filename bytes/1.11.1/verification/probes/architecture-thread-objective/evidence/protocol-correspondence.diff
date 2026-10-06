@@ -1,0 +1,94 @@
+diff --git a/../weak-physical-retirement/src/concurrent.rs b/src/concurrent.rs
+index 6d0efc0..c8c8287 100644
+--- a/../weak-physical-retirement/src/concurrent.rs
++++ b/src/concurrent.rs
+@@ -1,19 +1,33 @@
++//! Local T02 adaptation of weak-physical-retirement/src/concurrent.rs.
++//! Changes: expected stores objective metadata; payload matching also requires
++//! wellformedness; recovered results preserve both facts. Atomic/ticket bodies,
++//! Release/Acquire orderings and primitive interfaces remain unchanged.
+ use super::*;
+ use creusot_std::std::sync::{atomic::fence_acquire, view::AcquireSyncView};
+ use creusot_std::{ghost::{invariant::{AtomicInvariant,Protocol,Tokens,declare_namespace},resource::Resource},logic::{Id,ra::excl::Excl}};
++/// Implementations define a projection; no law or protocol fact is assumed.
++pub trait Payload {
++    type Metadata;
++    #[logic] fn metadata(self)->Self::Metadata;
++    #[logic(prophetic)] fn wellformed(self)->bool;
++}
+ declare_namespace! { PUBLICATION }
+ type Tickets=(Option<Excl<()>>,Option<Excl<()>>);
+ pub struct Ticket { resource:Resource<Tickets>, left:bool }
+-struct State<T> {
+-    own:Perm<ModelAtomic>, latest:Int, returned:Resource<Tickets>, expected:Snapshot<(T,T)>,
++impl Ticket {
++    #[logic]
++    pub(crate) fn is_left(self)->bool { self.left }
++}
++struct State<T:Payload> {
++    own:Perm<ModelAtomic>, latest:Int, returned:Resource<Tickets>, expected:Snapshot<(T::Metadata,T::Metadata)>,
+     left:Option<AtView<T>>,right:Option<AtView<T>>,withdrawn:bool,
+ }
+ #[logic]
+ fn count(r:Tickets)->usize { if r.0 == None {if r.1 == None {2usize} else {1usize}} else {if r.1 == None {1usize} else {0usize}} }
+-impl<T> Protocol for State<T> {
+-    type Public=(ModelAtomic,Id,(T,T));
++impl<T:Payload> Protocol for State<T> {
++    type Public=(ModelAtomic,Id,(T::Metadata,T::Metadata));
+     #[logic] fn public(self)->Self::Public { (*self.own.ward(),self.returned.id(),*self.expected) }
+-    #[logic] fn protocol(self)->bool { pearlite! {
++    #[logic(prophetic)] fn protocol(self)->bool { pearlite! {
+         self.own.val().get(self.latest) != None &&
+         self.own.val().get(self.latest).unwrap_logic().0 == count(self.returned@) &&
+         (forall<t:Int> self.own.val().get(t) != None ==> t <= self.latest) &&
+@@ -21,31 +35,30 @@ impl<T> Protocol for State<T> {
+         (if self.withdrawn {self.left == None && self.right == None} else {
+             (self.left == None) == (self.returned@.0 == None) &&
+             (self.right == None) == (self.returned@.1 == None) &&
+-            (self.left != None ==> self.left.unwrap_logic().val() == self.expected.0) &&
+-            (self.right != None ==> self.right.unwrap_logic().val() == self.expected.1) &&
++            (self.left != None ==> self.left.unwrap_logic().val().wellformed() && self.left.unwrap_logic().val().metadata() == self.expected.0) &&
++            (self.right != None ==> self.right.unwrap_logic().val().wellformed() && self.right.unwrap_logic().val().metadata() == self.expected.1) &&
+             (self.left != None ==> self.left.unwrap_logic().view() <= self.own.val().get(self.latest).unwrap_logic().1) &&
+             (self.right != None ==> self.right.unwrap_logic().view() <= self.own.val().get(self.latest).unwrap_logic().1)
+         })
+     } }
+ }
+-pub struct SharedRetirement<T> { atomic:NativeAtomic, invariant:Ghost<AtomicInvariant<State<T>>> }
+-impl<T> SharedRetirement<T> {
++pub struct SharedRetirement<T:Payload> { atomic:NativeAtomic, invariant:Ghost<AtomicInvariant<State<T>>> }
++impl<T:Payload> SharedRetirement<T> {
+     #[logic] pub(crate) fn valid(self)->bool { self.invariant.public().0 == self.atomic.model() && self.invariant.namespace() == PUBLICATION() }
+     #[logic] pub(crate) fn accepts(self,t:Ticket)->bool { pearlite! {
+         t.resource.id() == self.invariant.public().1 &&
+         t.resource@ == if t.left {(Some(Excl(())),None)} else {(None,Some(Excl(())))}
+     } }
+ 
+-    #[logic] pub(crate) fn expected(self)->(T,T) { self.invariant.public().2 }
+-    #[logic] pub(crate) fn accepts_payload(self,t:Ticket,payload:T)->bool {
+-        pearlite! { self.accepts(t) && payload == if t.left {self.expected().0} else {self.expected().1} }
++    #[logic] pub(crate) fn expected(self)->(T::Metadata,T::Metadata) { self.invariant.public().2 }
++    #[logic(open(crate), prophetic)] pub(crate) fn accepts_payload(self,t:Ticket,payload:T)->bool {
++        pearlite! { self.accepts(t) && payload.wellformed() && payload.metadata() == if t.is_left() {self.expected().0} else {self.expected().1} }
+     }
+ 
+     #[ensures(result.0.valid() && result.0.accepts(result.1.inner_logic()) && result.0.accepts(result.2.inner_logic()))]
+     #[ensures(result.0.expected() == *expected)]
+-    #[ensures(result.0.accepts_payload(result.1.inner_logic(),expected.0))]
+-    #[ensures(result.0.accepts_payload(result.2.inner_logic(),expected.1))]
+-    pub fn new(expected:Snapshot<(T,T)>)->(Self,Ghost<Ticket>,Ghost<Ticket>) {
++    #[ensures(result.1.inner_logic().is_left() && !result.2.inner_logic().is_left())]
++    pub fn new(expected:Snapshot<(T::Metadata,T::Metadata)>)->(Self,Ghost<Ticket>,Ghost<Ticket>) {
+         let mut view=ghost! {SyncView::new().into_inner()};
+         let (atomic,own)=NativeAtomic::new(2,view.borrow_mut());
+         let tickets=ghost! {
+@@ -68,7 +81,8 @@ impl<T> SharedRetirement<T> {
+     #[requires(self.valid() && self.accepts_payload(ticket.inner_logic(),resource.inner_logic()))]
+     #[requires(tokens.contains(PUBLICATION()))]
+     #[ensures(result.0 == (result.1.inner_logic() != None))]
+-    #[ensures(result.0 ==> result.1.inner_logic().unwrap_logic() == self.expected())]
++    #[ensures(result.0 ==> result.1.inner_logic().unwrap_logic().0.wellformed() && result.1.inner_logic().unwrap_logic().1.wellformed())]
++    #[ensures(result.0 ==> (result.1.inner_logic().unwrap_logic().0.metadata(),result.1.inner_logic().unwrap_logic().1.metadata()) == self.expected())]
+     pub fn retire(&self,ticket:Ghost<Ticket>,resource:Ghost<T>,mut tokens:Ghost<Tokens>)->(bool,Ghost<Option<(T,T)>>) {
+         let (mut current,sealed)=AtView::new(resource).split();
+         let mut collected:Ghost<Option<(T,AtView<T>,bool)>>=ghost! {None};

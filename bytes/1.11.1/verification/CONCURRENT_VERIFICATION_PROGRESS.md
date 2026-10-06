@@ -1,4 +1,19 @@
-# Concurrent verification progress (2026-10-05)
+# Concurrent verification progress
+
+## Architecture thread prerequisite (2026-10-06, Asia/Tokyo)
+
+T01 crosses real stock scoped-thread boundaries and rejects the existing full
+payload snapshot because it prevents the shared invariant from being Objective.
+T02 uses objective metadata and retains actual affine payloads in AtView. Its
+concrete RetiredPart transport, retirement and conditional parent cleanup prove
+37 files; native tests exercise84 physical cases. Removing Acquire rejects
+retire at11/12. It adds no project trust; existing physical/atomic assumptions
+and newly exercised stock thread contracts remain explicit TCB.
+
+This is not actual Bytes Clone, an arbitrary-payload theorem, eventual
+exactly-one completion, automatic Drop, or full architecture admission. Read
+ARCHITECTURE_DECISIONS.md and ARCHITECTURE_ASSESSMENT.md before further work.
+The earlier weak36 sequential gate below remains a distinct component result.
 
 ## Cloud resume: stock Creusot weak physical connection
 

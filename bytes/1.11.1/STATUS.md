@@ -7,7 +7,13 @@ recorded changed premise. Read [ARCHITECTURE_DECISIONS.md](verification/ARCHITEC
 and [ARCHITECTURE_ASSESSMENT.md](verification/ARCHITECTURE_ASSESSMENT.md) before
 new proof work. The ordinary complete target has not passed architecture
 admission. Existing component results below are preserved; broad API expansion
-is gated on one coherent sharing/thread/retirement ownership witness.
+is gated on one coherent sharing/thread/retirement ownership witness. T01 found
+a subjective-snapshot Objective/Sync obstruction at real thread spawns. T02
+replaces that snapshot with objective metadata while retaining affine payloads;
+37 files prove concrete threaded transport and conditional parent cleanup, and
+removing Acquire rejects retire at11/12. This proves neither eventual exactly-one
+completion nor actual Bytes Clone/Drop. See the architecture assessment for the
+remaining API/tool-scope decision.
 
 
 ## Cloud resume results (2026-10-05)

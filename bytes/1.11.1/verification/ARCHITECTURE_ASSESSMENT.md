@@ -3,7 +3,7 @@
 Status: full architecture NOT ADMITTED. This is a dependency assessment against
 `ARCHITECTURE_DECISIONS.md`, not a proof-impossibility theorem. The original
 complete target remains open. No broad API expansion should start from this
-assessment. T01 completed with a new structural frontend rejection; no architecture was admitted.
+assessment. T01 found a structural rejection; T02 now proves concrete thread transport (37 files). The full Bytes architecture is still not admitted.
 
 ## What the existing evidence decides
 
@@ -14,7 +14,7 @@ assessment. T01 completed with a new structural frontend rejection; no architect
 | Finite dispatch tag/enum alone | INSUFFICIENT | It can address selected indirect-call translation; it supplies no affine authority, thread safety, or destructor semantics. Generic from_owner and all conversions also need representation coverage. The successful nonpromotable truncate subset does not prove constructors or other callbacks. |
 | Stock Verus with the unchanged native weak orderings | NOT ADMITTED | Numerical primitive contracts were actually tried. They do not establish a sound weak-memory physical invariant; the SC-rule shortcut admits Release-only permission extraction. Creusot physical resources also need a checked interpretation or a complete ownership reimplementation. |
 | Stronger runtime atomics / stock SC interface | UNSELECTED, INSUFFICIENT ALONE | Would change implementation orderings and still require actual storage, dynamic ownership, dispatch, mutable access and destruction integration. It is not automatically authorized or a proven solution. |
-| Explicit-context, consuming-cleanup implementation using stock Creusot thread tokens | CANDIDATE ONLY | Existing thread wrappers supply fresh per-child tokens. T01 now rejects the existing shared state at both actual thread spawns: its full-payload Snapshot carries non-Objective physical authority. Even success would require a separate decision about broader API/representation migration. |
+| Explicit-context, consuming-cleanup implementation using stock Creusot thread tokens | CANDIDATE ONLY | Existing thread wrappers supply fresh per-child tokens. T01 rejected the old subjective snapshot. T02 proves transport of concrete physical payloads using an objective metadata projection and parent cleanup. Broader API/representation migration remains a separate decision. |
 
 ## Tool facts checked without replaying frozen failures
 
@@ -118,3 +118,51 @@ The choice of final architecture remains pending: preserving ordinary public
 interfaces may require verification-tool work beyond the prior scale limit;
 an explicit-context variant may require public API changes beyond the already
 authorized explicit cleanup. Neither change has been inferred from silence.
+
+## Authorized distinguishing follow-up T02
+
+T01 is committed and immutable at 53974279. The reviewed metadata projection
+repair is a local proof-interface change and does not require selecting a new
+public API or changing primitive TCB. T02 therefore evaluates it independently
+of the pending final-architecture preference, in the new
+`probes/architecture-thread-objective/` directory. This is a recorded reopening
+of D07 on an actual representation change, not an unchanged retry.
+
+Keep physical authority in affine AtView payloads; objective identity/bounds
+metadata cannot mint it. Body-prove the projection and sufficient output
+relations for conditional explicit cleanup after real scoped spawn/join.
+Preserve native cases, source correspondence, old failures, no-new-trust checks,
+and a threaded missing-Acquire control after a positive proof. Admission remains
+NOT ADMITTED pending the actual Bytes witness and the independent default
+Clone/Deref/Drop issues. T02 positive proof passes 37 files; the matching missing-Acquire control rejects retire at 11/12. The positive archive independently matches all 97 members, 37 Coma files and 37 proof JSON with zero null leaves.
+
+T02 interface correction: the first two semantic runs left only two child-retire
+preconditions in thread_roundtrip (39/41). The constructor contract omitted the
+returned tickets' left/right roles, and accepts_payload was opaque outside its
+module. A body-defined orientation accessor, a truthful constructor postcondition,
+and crate-visible unfolding of the body-defined accepts_payload relation close
+those obligations. Private-field Coma and visibility diagnostics are retained
+separately; they are not failed mathematical obligations. The complete positive
+run now proves 37 files. No new primitive or protocol trust was added.
+
+The proved claim is concrete RetiredPart transport through actual scoped threads,
+retirement, join and conditional parent cleanup. It does not assert eventual
+exactly-one final observer (that remains a native assertion), arbitrary payloads,
+actual Bytes Clone, automatic Drop, or architecture admission. Exactly-once and
+liveness must be established in the later complete lifecycle witness; never
+infer them from the conditional cleanup proof.
+
+The new composition exercises stock trusted scope/spawn/join contracts in
+addition to the existing physical/atomic primitive boundary. No new project
+trusted contract was introduced; this is not a proof of those standard or
+primitive contracts' adequacy. The positive archive SHA256 is
+`65e175c8fcf08ace86b59897ae284922bec542f9db233b5308a25040810db62f`.
+The same threaded missing-Acquire build rejects retirement at 11/12 obligations;
+its exact source/configuration and failure are archived separately.
+
+Decision after T02: retain objective metadata plus actual AtView payloads as a
+proved concrete transport component. Do not reopen T01's subjective snapshot,
+D01's mutable ghost bridge, D02's weak-SC shortcut or D05's unchanged Clone
+attempts. This resolves one prerequisite and leaves the complete architecture
+unadmitted. The remaining public-API/tool-scope choice was requested explicitly;
+no dependent public API migration or large tool work has started.
