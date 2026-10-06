@@ -94,9 +94,7 @@ pub use crate::buf::{Buf, BufMut};
 mod allocation_ops;
 #[cfg(not(feature = "verified"))]
 mod bounded_ops;
-#[cfg(not(feature = "verified"))]
 mod byte_codec_ops;
-#[cfg(not(feature = "verified"))]
 mod byte_codec_wide_ops;
 #[cfg(not(feature = "verified"))]
 mod bytes;
@@ -114,7 +112,6 @@ mod provenance_specs;
 #[cfg(creusot)]
 #[cfg(not(feature = "verified"))]
 mod ownership_proof;
-#[cfg(not(feature = "verified"))]
 mod endian_ops;
 #[cfg(not(feature = "verified"))]
 mod fmt;
@@ -122,17 +119,12 @@ mod fmt;
 mod loom;
 #[cfg(not(feature = "verified"))]
 mod slice_mut_ops;
-#[cfg(not(feature = "verified"))]
 mod slice_ops;
-#[cfg(not(feature = "verified"))]
 mod slice_read_ops;
-#[cfg(not(feature = "verified"))]
 mod slice_wide_read_ops;
-#[cfg(not(feature = "verified"))]
 mod signed_wide_ops;
 #[cfg(not(feature = "verified"))]
 mod uninit_ops;
-#[cfg(not(feature = "verified"))]
 mod variable_read_ops;
 #[cfg(not(feature = "verified"))]
 pub use crate::bytes::Bytes;

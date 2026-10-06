@@ -14,6 +14,7 @@ use atomic::NativeAtomic;
 mod retirement;
 mod tree;
 pub mod exclusive;
+pub mod cursor;
 pub use tree::scoped_tree;
 use retirement::{Payload,SharedRetirement,Ticket,Receipt};
 
@@ -271,6 +272,44 @@ pub fn scoped_set_and_read(input:Vec<u8>,write_index:usize,value:u8,read_index:u
     (changed,result)
 }
 
+/// Checked numeric cursor reads over the actual shared physical allocation.
+/// Each child ends its cursor use before closing its read handle.
+#[ensures(match result.0 {
+    Some(value) => input@.len() >= 2 && value@ == input@[0]@ * 256 + input@[1]@
+        && result.1@ == input@.len() - 2,
+    None => input@.len() < 2 && result.1@ == input@.len()
+})]
+#[ensures(result.2 != result.3)]
+pub fn scoped_numeric_read(input:Vec<u8>,reverse:bool)->(Option<u16>,usize,bool,bool) {
+    use creusot_std::std::thread::{self,JoinHandleExt};
+    let mut owner=Owner::new(input);
+    let (left,right,context)=owner.share_pair();
+    let (first,second)=if reverse {(right,left)} else {(left,right)};
+    let parent=&context;
+    let (first,second)=thread::scope(move |scope| {
+        let first=scope.spawn(move |tokens| {
+            let (value,remaining)={
+                let mut cursor=cursor::Cursor::new(first.bytes);
+                let value=cursor.try_get_u16_be();
+                (value,cursor.remaining())
+            };
+            (value,remaining,first.close(parent,tokens))
+        });
+        let second=scope.spawn(move |tokens| {
+            let (value,remaining)={
+                let mut cursor=cursor::Cursor::new(second.bytes);
+                let value=cursor.try_get_u16_be();
+                (value,cursor.remaining())
+            };
+            (value,remaining,second.close(parent,tokens))
+        });
+        (first.join_unwrap(),second.join_unwrap())
+    });
+    proof_assert!(first.0 == second.0 && first.1 == second.1);
+    let flags=owner.close(context,first.2,second.2);
+    (first.0,first.1,flags.0,flags.1)
+}
+
 #[cfg(all(test,not(creusot)))]
 mod tests {
     use super::*;
@@ -302,6 +341,19 @@ mod tests {
                 else {let (byte,count,a,b)=result.unwrap();assert_eq!(byte,expected);assert_eq!(count,leaves);assert_ne!(a,b);}
             }}
         }}
+    }
+
+    #[test]
+    fn shared_physical_numeric_cursor_reads() {
+        for len in [0,1,2,3,8] { for spare in [0,8] { for reverse in [false,true] {
+            let mut input=Vec::with_capacity(len+spare);
+            input.extend((0..len).map(|i| (113+i) as u8));
+            let expected=if len >= 2 {Some(u16::from_be_bytes([input[0],input[1]]))} else {None};
+            let (value,remaining,a,b)=scoped_numeric_read(input,reverse);
+            assert_eq!(value,expected);
+            assert_eq!(remaining,if len >= 2 {len-2} else {len});
+            assert_ne!(a,b);
+        }}}
     }
 
 }

@@ -41,3 +41,23 @@ An ordinary mutation attempted only inside ghost code is rejected at translation
 (the erased native execution retains 7 rather than the claimed 9):
 `3a4356fe1c92111a1911b027f924b2e2ddbc01cb31f32a4e1dd7d052921eeb37`.
 These negatives are independently hash-checked and preserved, not passing proofs.
+
+## Checked numeric Cursor integrated with physical reads (131)
+
+`cursor-integrated-131`: 131 Coma files, 131 proof results, zero null leaves;
+all archive member hashes independently checked. Archive SHA-256:
+`ec7fe13a9003d323fa07bf1adcdc74934a2faf4a68e9a13f8a9d1697e9ab3c14`.
+Native selected-feature suite: 10 tests passed.
+
+Cursor proves exact endian integer values and remaining-byte suffixes for
+checked reads (u8, u16/u32/u64/u128 BE/LE, signed counterparts, variable-width
+u64), advance and copy. Failed operations preserve input and destination.
+`scoped_numeric_read` connects the concrete reader to real shared physical
+bytes, retirement and cleanup. The existing canonical codec/slice helpers are
+now in the same selected production crate configuration. No universal Buf
+implementer laws were introduced.
+
+Remaining API correspondence and configuration obligations still include
+reusable scoped callback access, same-allocation thaw/conversions, richer write
+operations, numeric capacity specifications, no_std/serde/platform variants, and
+failure/termination behavior. Passed file counts are not completeness counts.
