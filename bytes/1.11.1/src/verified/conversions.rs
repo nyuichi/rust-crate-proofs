@@ -52,6 +52,7 @@ impl ExclusiveBytes {
 /// Copies a slice, updates one byte, and sends the resulting allocation
 /// through the physical shared-read tree and explicit cleanup path.
 #[cfg(feature = "std")]
+#[cfg(feature = "std")]
 #[ensures(result.0 == (write_index@ < source@.len()))]
 #[ensures((result.1 == None) == (leaves < 2usize))]
 #[ensures(result.1 != None ==> result.1.unwrap_logic().0 ==

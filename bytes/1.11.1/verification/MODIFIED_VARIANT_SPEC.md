@@ -66,6 +66,35 @@ scoped_after_peer_close, scoped_tree, scoped_set_and_read, scoped_numeric_read,
 with_shared_read, callback_length_and_first, ExclusiveBytes and Cursor. The
 low-level owner, handles and receipt/context operations remain private.
 
+Current committed production interface checkpoint: public-read-models-255,
+32 native tests, normal-return host verified,std. ExclusiveBytes supports
+ordinary initialized mutation, typed mutable borrowing with a final relation,
+slice/String/Box/specified-iterator conversions, exact fixed/variable/endian
+writes, same-type equality/ordering and explicit B1/B3 cleanup. Cursor supports
+checked fixed/variable signed/unsigned and bit-word reads with exact suffix and
+nonconsuming failure contracts. LimitedCursor, ChainedCursor and OwnedByteCursor
+have connected body proofs; the owned cursor requires explicit close. Public
+encoding_spec exposes existing pure models; downstream usability is checked by
+a separate consumer, not inferred solely from in-crate body proofs.
+
+with_shared_read_then_thaw recovers the original full physical region and
+descriptor through B2, then returns byte-equal ordinary Vec storage for another
+exclusive/shared cycle. Physical descriptor identity is maintained internally;
+the current std Vec model does not establish returned pointer/capacity identity.
+Native checks of those facts are recorded separately. Ranged callbacks keep the
+whole affine lease even for empty views; they do not split physical authority.
+Float32Bits/Float64Bits preserve raw patterns, including NaN payloads, without
+claiming native floating-point conversion (D08).
+
+The complete target remains open: capacity, additional closed IO/owner/observer
+responsibilities, final no_std/atomic/width configurations and failure behavior.
+Actual generic Serde and catch/unwind boundaries are frozen D09/D10; fallible
+spawning has distinct attempted interfaces in D11. None is silently omitted.
+Candidate alloc-core221 and relocated-std255 results are separate source
+snapshots pending adoption. Every final responsibility needs a retained,
+replaced or blocked correspondence; convenience traits or target configurations
+must not be called excluded merely because their proof has not been attempted.
+
 Tree sharing admits every finite requested count >= 2 through hierarchical
 two-child counters, with explicit cleanup for rejected counts 0/1. It does not
 provide escaping handles or a flat-N Clone counter. ExclusiveBytes uses ordinary

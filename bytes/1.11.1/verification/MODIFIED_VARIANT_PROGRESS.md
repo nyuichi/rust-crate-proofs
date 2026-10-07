@@ -259,3 +259,15 @@ not a new approach. Arithmetic harness and missing Why3find configuration
 diagnostics are separate from the actual opaque-weight contract failure.
 These are representative external clients, not a claim that every possible
 downstream combination or generic trait implementation is covered.
+
+## Production alloc-core integration
+
+The actual production source now separates alloc APIs from std-only scoped
+sharing without dropping the public read-model exposure. The core integrated
+proof completes 221 files, zero null leaves, exit 0; native core/std tests pass
+14/32 and original default/no-default library checks pass. Exact sources and
+logs are captured and independently audited in production-alloc-core-221,
+SHA256 `9d12b34ab533b7d95612e4782a33905b0034077b50ee287df836f1bde9afff65`.
+The relocated production std graph is a separate pending proof. The core proof
+still enables stock creusot-std/std models; genuine alloc-only proof dependencies
+and final cross-target API coverage remain outstanding.

@@ -81,7 +81,7 @@ extern crate creusot_std;
 #[allow(unused_extern_crates)]
 extern crate alloc;
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", test))]
 extern crate std;
 
 #[cfg(not(feature = "verified"))]

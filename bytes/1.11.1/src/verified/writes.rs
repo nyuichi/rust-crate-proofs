@@ -625,6 +625,7 @@ mod tests {
         for value in [i128::MIN, -1, 0, i128::MAX] { check_i128(value); }
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn written_u16_is_read_after_real_shared_close_lifecycle() {
         for value in [0, u16::MAX] {

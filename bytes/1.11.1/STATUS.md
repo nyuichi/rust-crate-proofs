@@ -12,14 +12,25 @@ claimed fully verified. Read [MODIFIED_VARIANT_SPEC.md](verification/MODIFIED_VA
 Bounded architecture admission PASSED. Subsequent production increments prove
 recursive scoped sharing, ordinary exclusive mutation connected to sharing,
 checked numeric Cursor operations and reusable immutable scoped callbacks.
-The latest archived integrated run is 133 files with zero null leaves and
-11 passing native tests. Read [MODIFIED_VARIANT_PROGRESS.md](verification/MODIFIED_VARIANT_PROGRESS.md)
+The latest committed production run, public-read-models-255 (04fa51a1), proves
+255 files with zero null leaves and 32 passing native tests. It includes affine
+thaw/recovery, conversions, signed/unsigned/endian writes, exact float-bit
+transport, ordering, checked chain/limit adapters and explicit iteration.
+Read [MODIFIED_VARIANT_PROGRESS.md](verification/MODIFIED_VARIANT_PROGRESS.md)
 for source hashes, exact scopes and negative controls. Proof-file counts are
 not API-completion counts.
 
-The complete modified variant remains NOT COMPLETE. Same-allocation thaw,
-remaining conversion/write/adapter responsibilities, capacity specifications,
-configuration coverage and failure/termination behavior remain open.
+The complete modified variant remains NOT COMPLETE. Thaw byte contents and
+affine recovery are proved; returned Vec pointer/capacity identity is not yet
+supplied by the standard model. Capacity, remaining IO/observer/owner operations,
+final configuration coverage and failure/termination behavior remain open.
+Separate alloc-core and relocated-std candidates prove 221 and 255 files;
+they are not yet production adoption. MSP43016 native core compilation passes,
+but its stock proof-library/std prerequisites fail before VC generation.
+Actual Serde and callback-unwind attempts are preserved and frozen in D09/D10;
+fallible spawning has distinct interface failures and a new restricted generic
+standard-wrapper experiment. Consult the remaining responsibility inventory;
+neither frozen failures nor configuration candidates count as full completion.
 
 Frozen approaches remain frozen unless their actual premises change. T02 remains
 a concrete threaded transport/conditional cleanup component (37 proof files),

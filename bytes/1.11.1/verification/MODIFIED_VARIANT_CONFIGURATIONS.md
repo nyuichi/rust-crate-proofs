@@ -100,3 +100,19 @@ Root independently audited all captured members. This establishes the actual
 sharing protocol's composition after relocation; it does not combine a disconnected
 core model with a different std representation. Production adoption is pending
 the concurrent public-math source gate's capture; its source must be preserved.
+
+## Production alloc core adoption (current public read models)
+
+The scoped relocation is now applied to the actual production source, retaining
+the public read models introduced in 04fa51a1. Its alloc runtime core passes
+221 proof files, exit 0, zero null leaves, and 14 native tests. Native std
+tests also pass (32); the production std proof is queued separately and is not
+claimed by this core result. Original default and no-default library compilation
+also pass, without reopening the frozen original frontend proof.
+
+The proof feature list is verified,creusot-std/std: bytes/std is disabled but the
+stock proof dependency still enables std to expose alloc models. This is not
+a genuinely alloc-only proof dependency graph. A small isolated alloc-model
+exposure experiment, including actual 16-bit translation, remains in progress.
+Production evidence production-alloc-core-221 is independently hash/proof audited:
+`9d12b34ab533b7d95612e4782a33905b0034077b50ee287df836f1bde9afff65`.
