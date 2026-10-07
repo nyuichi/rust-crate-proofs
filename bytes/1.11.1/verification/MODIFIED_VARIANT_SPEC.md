@@ -59,8 +59,22 @@ contracts and source match this implementation. Each validated increment is
 committed and pushed; admission failure triggers interface review and a recorded
 stop decision rather than repeated frozen experiments.
 
-Admission passed in MODIFIED_VARIANT_ADMISSION.md. Public runtime surface currently
-consists of scoped_roundtrip and scoped_after_peer_close; the low-level owner,
-handles and receipt/context operations are crate-private verified helpers. Public
-sharing/mutation/adapter operations remain future inventory work. Their erased
-ghost contracts must not be mistaken for runtime guards for arbitrary callers.
+Admission passed in MODIFIED_VARIANT_ADMISSION.md. Validated subsequent
+increments are recorded with exact source archives in MODIFIED_VARIANT_PROGRESS.md.
+The current proved public surface includes scoped_roundtrip,
+scoped_after_peer_close, scoped_tree, scoped_set_and_read, scoped_numeric_read,
+with_shared_read, callback_length_and_first, ExclusiveBytes and Cursor. The
+low-level owner, handles and receipt/context operations remain private.
+
+Tree sharing admits every finite requested count >= 2 through hierarchical
+two-child counters, with explicit cleanup for rejected counts 0/1. It does not
+provide escaping handles or a flat-N Clone counter. ExclusiveBytes uses ordinary
+Vec mutation and explicit close; capacity-growth quantities and same-allocation
+thaw are still open. Cursor has concrete checked integer readers and
+advance/copy, not an open Buf law. Higher-ranked callbacks cannot return a borrow
+of their input, and their own contracts govern their behavior.
+
+Remaining responsibilities in the table are still obligations until an actual
+connected implementation is proved or a concrete blocked attempt and decision
+is recorded. These normal-return std/x86_64 results do not establish no_std,
+serde, alternate atomics/platforms, unwind cleanup or total termination.

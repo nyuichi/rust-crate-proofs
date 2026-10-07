@@ -13,6 +13,15 @@ MODIFIED_VARIANT_ADMISSION.md for independently audited archives and exact TCB.
 This closes bounded two-reader std/x86_64 normal-return admission; arbitrary
 sharing, the full API/configuration inventory and failure paths remain open.
 
+## Subsequent modified production increments
+
+The current archived integrated entry proves 133 files with zero null leaves:
+recursive scoped sharing, ordinary mutation followed by sharing, checked integer
+Cursor reads, and two reusable higher-ranked callbacks on actual physical bytes.
+See MODIFIED_VARIANT_PROGRESS.md for exact source archives, independent audits
+and normal-return scope. Tree nodes use two-child counters; the theorem is
+not an escaping Clone implementation or a flat arbitrary-N refcount.
+
 ## Architecture thread prerequisite (2026-10-06, Asia/Tokyo)
 
 T01 crosses real stock scoped-thread boundaries and rejects the existing full

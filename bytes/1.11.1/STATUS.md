@@ -9,14 +9,17 @@ claimed fully verified. Read [MODIFIED_VARIANT_SPEC.md](verification/MODIFIED_VA
 [ARCHITECTURE_DECISIONS.md](verification/ARCHITECTURE_DECISIONS.md) and
 [ARCHITECTURE_ASSESSMENT.md](verification/ARCHITECTURE_ASSESSMENT.md) before work.
 
-Bounded architecture admission PASSED: actual production verified,std proves47
-files with zero null leaves; native96 lifecycle cases plus the primitive race
-test pass. Actual byte values, reading after peer retirement, receipt-derived
-XOR and consuming B3 cleanup compose in one representation. Missing Acquire and
-abandoned empty-reader obligations fail at the expected VCs; duplicate receipt
-use fails Rust typing. Final restored sources/evidence are independently audited.
-The complete modified variant remains NOT COMPLETE; arbitrary sharing, mutation,
-public API migration and configuration coverage remain.
+Bounded architecture admission PASSED. Subsequent production increments prove
+recursive scoped sharing, ordinary exclusive mutation connected to sharing,
+checked numeric Cursor operations and reusable immutable scoped callbacks.
+The latest archived integrated run is 133 files with zero null leaves and
+11 passing native tests. Read [MODIFIED_VARIANT_PROGRESS.md](verification/MODIFIED_VARIANT_PROGRESS.md)
+for source hashes, exact scopes and negative controls. Proof-file counts are
+not API-completion counts.
+
+The complete modified variant remains NOT COMPLETE. Same-allocation thaw,
+remaining conversion/write/adapter responsibilities, capacity specifications,
+configuration coverage and failure/termination behavior remain open.
 
 Frozen approaches remain frozen unless their actual premises change. T02 remains
 a concrete threaded transport/conditional cleanup component (37 proof files),
