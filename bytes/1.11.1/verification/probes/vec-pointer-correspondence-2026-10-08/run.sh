@@ -2,6 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 source "${BYTES_TOOL_ROOT:-/workspace/bytes-proof-tools}/activate.sh"
+python3 ../../../scripts/prepare-proof-std.py
 export CARGO_NET_OFFLINE=true
 exec 9>"${BYTES_PROOF_LOCK:-/tmp/itoa-creusot-proof.lock}"
 flock 9

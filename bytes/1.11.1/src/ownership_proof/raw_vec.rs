@@ -160,6 +160,10 @@ impl Invariant for RawAllocation {
 }
 
 impl RawAllocation {
+    #[cfg(creusot)]
+    #[logic(open(self))]
+    pub(crate) fn raw_pointer(self) -> *mut u8 { pearlite! { self.base@ } }
+
     /// Numeric base address only; this does not expose pointer permission.
     #[logic(open(self))]
     pub fn base_address(self) -> Int {
@@ -189,6 +193,7 @@ impl RawAllocation {
     #[ensures(result.0.invariant())]
     #[ensures(result.0@ == Some((self.namespace(), self.capacity(), 0int)))]
     #[ensures(result.0.current_address() == self.base_address())]
+    #[cfg_attr(creusot, ensures(result.0.raw_pointer() == self.raw_pointer()))]
     #[ensures(result.1@ == self.capacity())]
     pub(crate) fn bound_ptr_at_zero(&self) -> (BoundPtr, usize) {
         #[cfg(creusot)]
@@ -450,6 +455,7 @@ impl RawAllocation {
     #[ensures(result.0.invariant())]
     #[ensures(result.0@ == Some((self.namespace(), self.capacity(), 0int)))]
     #[ensures(result.0.current_address() == self.base_address())]
+    #[cfg_attr(creusot, ensures(result.0.raw_pointer() == self.raw_pointer()))]
     #[ensures(result.1@ == self.capacity())]
     pub(crate) fn into_bound_ptr_at_zero(self) -> (BoundPtr, usize) {
         let RawAllocation {
@@ -847,6 +853,11 @@ impl PhysicalPool {
 #[cfg_attr(creusot, ensures(
     result.0.base_address() == creusot_std::std::vec::base_model(input)
 ))]
+// Generic exact getter correspondence only; authority still comes from B1's
+// sealed recovery/physical-region interpretation, never pointer equality alone.
+#[cfg_attr(creusot, ensures(
+    result.0.raw_pointer() == creusot_std::std::vec::pointer_model(input)
+))]
 #[ensures(result.0.capacity() == result.2.inner_logic().0.capacity())]
 #[ensures(result.0.capacity() == result.2.inner_logic().1.capacity())]
 #[ensures(result.0.capacity() >= input@.len())]
@@ -948,6 +959,11 @@ pub(crate) fn detach_vec(
 ))]
 #[cfg_attr(creusot, ensures(
     creusot_std::std::vec::base_model(result) == raw.base_address()
+))]
+// Native from_raw_parts preserves the exact supplied pointer word. This
+// strengthens generic B2 metadata, not any bytes ownership/refcount protocol.
+#[cfg_attr(creusot, ensures(
+    creusot_std::std::vec::pointer_model(result) == raw.raw_pointer()
 ))]
 pub(crate) unsafe fn resume_vec(
     raw: RawAllocation,

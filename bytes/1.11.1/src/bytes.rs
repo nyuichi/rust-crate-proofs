@@ -1,3 +1,9 @@
+// ORIGINAL_FREEZE_BEGIN bytes_imports
+#[cfg(all(creusot, bytes_original_freeze_gate))]
+use creusot_std::{prelude::*, ghost::perm::Perm};
+#[cfg(all(creusot, bytes_original_freeze_gate))]
+use crate::ownership_proof::{raw_vec::{self, BoundPtr, Recovery, PhysicalRegion, slot_known}, boxed_alignment};
+// ORIGINAL_FREEZE_END bytes_imports
 use core::mem::{self, ManuallyDrop};
 use core::ops::{Deref, RangeBounds};
 use core::ptr::NonNull;
@@ -104,6 +110,8 @@ pub struct Bytes {
     // inlined "trait object"
     data: AtomicPtr<()>,
     vtable: &'static Vtable,
+    #[cfg(all(creusot, bytes_original_freeze_gate))]
+    original_frozen: Option<OriginalFrozenProof>,
 }
 
 pub(crate) struct Vtable {
@@ -119,6 +127,64 @@ pub(crate) struct Vtable {
     /// fn(data, ptr, len)
     pub drop: unsafe fn(&mut AtomicPtr<()>, *const u8, usize),
 }
+
+// ORIGINAL_FREEZE_BEGIN frozen_model
+#[cfg(all(creusot, bytes_original_freeze_gate))]
+struct OriginalFrozenProof {
+    base: BoundPtr,
+    capabilities: Ghost<(Recovery, PhysicalRegion)>,
+    shared: *mut Shared,
+    shared_owner: Ghost<Box<Perm<*const Shared>>>,
+}
+#[cfg(all(creusot, bytes_original_freeze_gate))]
+impl Bytes {
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_frozen_valid(self) -> bool {
+        pearlite! {
+            match self.original_frozen {
+                None => false,
+                Some(proof) => {
+                    let caps = proof.capabilities.inner_logic();
+                    proof.base.invariant() && caps.0.invariant() && caps.1.invariant() &&
+                    proof.base@ == Some((caps.0.namespace(), caps.0.capacity(), 0int)) &&
+                    self.ptr == proof.base.raw_pointer() as *const u8 &&
+                    caps.1.capacity() == caps.0.capacity() &&
+                    caps.1.namespace() == caps.0.namespace() &&
+                    caps.1.resource_id() == caps.0.namespace() &&
+                    caps.1.lo() == 0 && caps.1.hi() == caps.0.capacity() &&
+                    self.len@ < caps.0.capacity() &&
+                    *proof.shared_owner.ward() == proof.shared as *const Shared &&
+                    proof.shared_owner.val().buf == proof.base.raw_pointer() &&
+                    proof.shared_owner.val().cap@ == caps.0.capacity() &&
+                    (forall<i:Int> 0 <= i && i < self.len@ ==> slot_known(caps.1.slot(i)))
+                }
+            }
+        }
+    }
+    #[logic(open(self))]
+    pub(crate) fn original_frozen_bytes(self) -> Seq<u8> {
+        pearlite! { Seq::create(self.len@, |i:Int|
+            self.original_frozen.unwrap_logic().capabilities.inner_logic().1.slot(i).unwrap_logic().unwrap_logic()) }
+    }
+    #[logic(open(self))]
+    pub(crate) fn original_frozen_pointer(self) -> *const u8 { self.ptr }
+}
+// Temporary ordinary translation leaves. No atomic value/state, refcount,
+// vtable identity or callback law is assumed. Native branches below still use
+// the exact original core/loom constructors and SHARED_VTABLE reference.
+#[cfg(all(creusot, bytes_original_freeze_gate))]
+#[trusted]
+#[ensures(true)]
+fn original_atomic_usize_new(_value: usize) -> AtomicUsize { unimplemented!() }
+#[cfg(all(creusot, bytes_original_freeze_gate))]
+#[trusted]
+#[ensures(true)]
+fn original_atomic_ptr_new<T>(_value: *mut T) -> AtomicPtr<T> { unimplemented!() }
+#[cfg(all(creusot, bytes_original_freeze_gate))]
+#[trusted]
+#[ensures(true)]
+fn original_shared_vtable() -> &'static Vtable { unimplemented!() }
+// ORIGINAL_FREEZE_END frozen_model
 
 impl Bytes {
     /// Creates a new empty `Bytes`.
@@ -166,6 +232,8 @@ impl Bytes {
     #[cfg(not(all(loom, test)))]
     pub const fn from_static(bytes: &'static [u8]) -> Self {
         Bytes {
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            original_frozen: None,
             ptr: bytes.as_ptr(),
             len: bytes.len(),
             data: AtomicPtr::new(ptr::null_mut()),
@@ -177,6 +245,8 @@ impl Bytes {
     #[cfg(all(loom, test))]
     pub fn from_static(bytes: &'static [u8]) -> Self {
         Bytes {
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            original_frozen: None,
             ptr: bytes.as_ptr(),
             len: bytes.len(),
             data: AtomicPtr::new(ptr::null_mut()),
@@ -193,6 +263,10 @@ impl Bytes {
         let ptr = without_provenance(ptr as usize);
 
         Bytes {
+
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+
+            original_frozen: None,
             ptr,
             len: 0,
             data: AtomicPtr::new(ptr::null_mut()),
@@ -272,6 +346,8 @@ impl Bytes {
         }));
 
         let mut ret = Bytes {
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            original_frozen: None,
             ptr: NonNull::dangling().as_ptr(),
             len: 0,
             data: AtomicPtr::new(owned.cast()),
@@ -295,10 +371,13 @@ impl Bytes {
     /// let b = Bytes::from(&b"hello"[..]);
     /// assert_eq!(b.len(), 5);
     /// ```
+// ORIGINAL_FREEZE_BEGIN bytes_len
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result == self.len))]
     #[inline]
     pub const fn len(&self) -> usize {
         self.len
     }
+// ORIGINAL_FREEZE_END bytes_len
 
     /// Returns true if the `Bytes` has a length of 0.
     ///
@@ -650,6 +729,8 @@ impl Bytes {
         vtable: &'static Vtable,
     ) -> Bytes {
         Bytes {
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            original_frozen: None,
             ptr,
             len,
             data,
@@ -659,18 +740,37 @@ impl Bytes {
 
     // private
 
+// ORIGINAL_FREEZE_BEGIN bytes_as_slice
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(self.original_frozen_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result@ == self.original_frozen_bytes()))]
     #[inline]
     fn as_slice(&self) -> &[u8] {
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+        {
+            let proof = self.original_frozen.as_ref().unwrap();
+            unsafe { raw_vec::borrow_bound(&proof.base, self.len, ghost! { &proof.capabilities.1 }) }
+        }
+        #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
         unsafe { slice::from_raw_parts(self.ptr, self.len) }
     }
+// ORIGINAL_FREEZE_END bytes_as_slice
 
+// ORIGINAL_FREEZE_BEGIN bytes_inc_start
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(self.original_frozen_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(by == 0usize))]
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(^self == *self))]
     #[inline]
     unsafe fn inc_start(&mut self, by: usize) {
         // should already be asserted, but debug assert for tests
         debug_assert!(self.len >= by, "internal: inc_start out of bounds");
         self.len -= by;
-        self.ptr = self.ptr.add(by);
+        #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+        { self.ptr = self.ptr.add(by); }
+        // Selected by == 0: exact same pointer, no new raw access boundary.
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+        { proof_assert!(by == 0usize); }
     }
+// ORIGINAL_FREEZE_END bytes_inc_start
 }
 
 // Vtable must enforce this behavior
@@ -702,6 +802,10 @@ impl Buf for Bytes {
         self.as_slice()
     }
 
+// ORIGINAL_FREEZE_BEGIN bytes_advance
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(self.original_frozen_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(cnt == 0usize))]
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(^self == *self))]
     #[inline]
     fn advance(&mut self, cnt: usize) {
         assert!(
@@ -715,6 +819,7 @@ impl Buf for Bytes {
             self.inc_start(cnt);
         }
     }
+// ORIGINAL_FREEZE_END bytes_advance
 
     fn copy_to_bytes(&mut self, len: usize) -> Self {
         self.split_to(len)
@@ -958,38 +1063,79 @@ impl From<&'static str> for Bytes {
 }
 
 impl From<Vec<u8>> for Bytes {
+// ORIGINAL_FREEZE_BEGIN bytes_from_vec
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(vec@.len() < creusot_std::std::vec::capacity_model(vec)))]
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_bytes() == vec@))]
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_pointer() == creusot_std::std::vec::pointer_model(vec) as *const u8))]
     fn from(vec: Vec<u8>) -> Bytes {
+        #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
         let mut vec = ManuallyDrop::new(vec);
-        let ptr = vec.as_mut_ptr();
-        let len = vec.len();
-        let cap = vec.capacity();
+        #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+        let (ptr, len, cap) = (vec.as_mut_ptr(), vec.len(), vec.capacity());
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+        let (ptr, len, cap, base, capabilities) = {
+            let (raw, len, capabilities) = raw_vec::detach_vec(vec);
+            let (base, cap) = raw.into_bound_ptr_at_zero();
+            (base.as_ptr(), len, cap, base, capabilities)
+        };
 
         // Avoid an extra allocation if possible.
         if len == cap {
-            let vec = ManuallyDrop::into_inner(vec);
-            return Bytes::from(vec.into_boxed_slice());
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            { unreachable!("selected spare-capacity Shared path"); }
+            #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+            {
+                let vec = ManuallyDrop::into_inner(vec);
+                return Bytes::from(vec.into_boxed_slice());
+            }
         }
 
         let shared = Box::new(Shared {
             buf: ptr,
             cap,
-            ref_cnt: AtomicUsize::new(1),
+            ref_cnt: {
+                #[cfg(all(creusot, bytes_original_freeze_gate))]
+                { original_atomic_usize_new(1) }
+                #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+                { AtomicUsize::new(1) }
+            },
         });
 
+        #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
         let shared = Box::into_raw(shared);
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+        let (shared, shared_owner) = boxed_alignment::into_raw_aligned(shared);
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+        boxed_alignment::aligned_address_has_clear_low_bit(
+            crate::provenance_specs::pointer_addr(shared), core::mem::align_of::<Shared>()
+        );
         // The pointer should be aligned, so this assert should
         // always succeed.
         debug_assert!(
-            0 == (shared as usize & KIND_MASK),
+            0 == (crate::provenance_specs::pointer_addr(shared) & KIND_MASK),
             "internal: Box<Shared> should have an aligned pointer",
         );
         Bytes {
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            original_frozen: Some(OriginalFrozenProof { base, capabilities, shared, shared_owner }),
             ptr,
             len,
-            data: AtomicPtr::new(shared as _),
-            vtable: &SHARED_VTABLE,
+            data: {
+                #[cfg(all(creusot, bytes_original_freeze_gate))]
+                { original_atomic_ptr_new(shared as _) }
+                #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+                { AtomicPtr::new(shared as _) }
+            },
+            vtable: {
+                #[cfg(all(creusot, bytes_original_freeze_gate))]
+                { original_shared_vtable() }
+                #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+                { &SHARED_VTABLE }
+            },
         }
     }
+// ORIGINAL_FREEZE_END bytes_from_vec
 }
 
 impl From<Box<[u8]>> for Bytes {
@@ -1007,6 +1153,8 @@ impl From<Box<[u8]>> for Bytes {
         if ptr as usize & 0x1 == 0 {
             let data = ptr_map(ptr, |addr| addr | KIND_VEC);
             Bytes {
+                #[cfg(all(creusot, bytes_original_freeze_gate))]
+                original_frozen: None,
                 ptr,
                 len,
                 data: AtomicPtr::new(data.cast()),
@@ -1014,6 +1162,8 @@ impl From<Box<[u8]>> for Bytes {
             }
         } else {
             Bytes {
+                #[cfg(all(creusot, bytes_original_freeze_gate))]
+                original_frozen: None,
                 ptr,
                 len,
                 data: AtomicPtr::new(ptr.cast()),
@@ -1128,6 +1278,10 @@ unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> By
     }
 
     Bytes {
+
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+
+        original_frozen: None,
         ptr,
         len,
         data: AtomicPtr::new(owned as _),
@@ -1468,6 +1622,10 @@ unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> 
     }
 
     Bytes {
+
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+
+        original_frozen: None,
         ptr,
         len,
         data: AtomicPtr::new(shared as _),
@@ -1527,6 +1685,8 @@ unsafe fn shallow_clone_vec(
             // The upgrade was successful, the new handle can be
             // returned.
             Bytes {
+                #[cfg(all(creusot, bytes_original_freeze_gate))]
+                original_frozen: None,
                 ptr: offset,
                 len,
                 data: AtomicPtr::new(shared as _),

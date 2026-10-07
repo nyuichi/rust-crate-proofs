@@ -315,3 +315,20 @@ Actual check(terminates) attempts fail on FnOnce::call_once, Vec::from_iter and 
 A small checked callback trait is an enforceable changed interface: its finite implementation, generic dispatcher and closed client prove. A self-recursive implementation carrying check(terminates) and variant(0) reaches Why3; its functional normal-return VC proves, while the actual 0-to-0 variant-decrease VC fails. Both results and native checks are preserved in bundle `fec80ce45ba32c3fe1d2ab1e3058f9e1a35542388e601f22b77234676f63bbd3`. The probe has no value/result contract and is interface feasibility evidence, not completion of the scoped borrowed callback API. General diagnostics and finite cursor evidence are in `2dfef832222326a5f4a00dcab24217fc14ced3cf17fa2e4ae3a249feeaacc4bf`.
 
 Astra reviewed the exact recursive VC and cursor shape. Do not claim unconditional totality for existing arbitrary FnOnce/IteratorSpec APIs or allocator/OS-dependent cleanup and threading. Their interfaces permit divergence or omit termination guarantees. Freeze retries under those unchanged premises; wrappers, ghost Fn facts, timeout changes and new trusted B3 progress assumptions do not repair them. Reopen only with enforceable checked callback/iterator bounds and an explicit separately justified allocator/scheduler progress scope. This is not a claim that every closed byte computation is blocked: the finite checked cursor read terminates and returns its live owner; normal-return close is body proved without a totality claim. No bytes ownership/refcount theorem is trusted.
+
+## D2026-10-08 — Original bounded path and fixed tool frontiers
+
+The original unique/off0 len<cap construct/append/freeze/actual-read gate passes
+61 files, with archived exact source correspondence. This admits continued work
+on original native representation, not the retired alternative API. It does not
+admit a complete crate, Clone, Drop or refcount theorem.
+
+Keep the missing-model generic-comparison ICE and static/atomic materialization
+frontiers fixed until premises change. Comparison reopening requires an actual
+memory-linked model and contracts retaining the original generic API. The
+materialization leaves may be replaced locally when frontend/Std support gives
+sound native contracts; their present true-only contracts establish no atomic
+values, data pointer relation, refcount or callback facts. Do not repeat the same
+frontier with assertions or larger timeouts. Protocol proofs remain separate
+open obligations. Details and receipts: ORIGINAL_PATH_2026-10-08_JA.md and
+probes/original-freeze-read-2026-10-08/README.md.

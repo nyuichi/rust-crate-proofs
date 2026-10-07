@@ -28,14 +28,20 @@ No Why3 body proof completed. Sources, exit statuses and diagnostic logs are in
 `verification/cleanup-evidence-2026-10-07/manifest.json`. This newly exposed
 original-source/specification boundary is not a mathematical counterexample.
 
-Current original-path increment (2026-10-08): a source-gated unique/off0/no-growth
-BytesMut constructor → spare borrow → append → length-publication path passes
-50 Coma/JSON files with zero null leaves. Original native fields remain intact;
-a cfg-only optional sidecar carries the actual B1 allocation capabilities.
-Uninitialized publication fails at the actual advance_mut Known-slot precondition.
-Generic B1/B4 and a local typed memcpy-effect contract remain TCB; no bytes
-ownership/refcount theorem is trusted. Freeze, Shared, Clone, Drop, growth and
-whole-crate integration remain incomplete. See
+Current original-path increment (2026-10-08): the original unique/off0,
+len<cap allocation → append → freeze → actual byte-load path passes 61
+Coma/JSON files with zero null leaves. The actual Shared Box buf/cap and pointer
+correspondence are included. A retargeted-pointer negative fails exactly the
+read-validity precondition; the final unique-write regression passes 51 files.
+Native default library/integration tests pass (1009); no-default-features
+library check passes. Exact snapshots and complete proof trees are archived.
+
+This is a source-gated concrete body proof, not whole-crate integration or
+open trait refinement. Generic physical B1/B2/B4, typed memcpy, and Std observers
+remain TCB; local atomic constructors/static getter assume only normal return
+and type validity. No bytes ownership/refcount theorem is trusted. Atomic
+values/data-field relation, Clone, Drop, shared aliases, growth and other freeze
+branches remain incomplete. See
 [the current work ledger](verification/ORIGINAL_PATH_2026-10-08_JA.md).
 
 The remaining material below is a historical record of prior targets,

@@ -16,7 +16,7 @@ receiverにモデルを加えるとICEは消えるが、元のgeneric boundsで�
 
 ## 2–3. 実allocationの仕様と元の生成→freeze→読み出し
 
-作業中。with_capacity→extend_from_slice→freezeは、off=0かつ容量に余裕のある場合も、
+以下の限定経路まで通過。with_capacity→extend_from_slice→freezeは、off=0かつ容量に余裕のある場合も、
 Vec再構成と実Shared control blockの生成を含む。元のbodyを検証せずpublic freezeをtrustedにして
 所有権移動が証明できたとは扱わない。静的vtableのfrontend障害とphysical capabilityの接続を別々に調査する。
 実Clone/自動Dropとrefcount保存はこの限定経路から結論しない。
@@ -29,7 +29,7 @@ allocation identity/ownership/refcountは仮定しない。Astraレビュー済�
 同じ契約のループ実装bodyとcallerを含む5 filesがWhy3で通過。raw-copy bodyは未証明。
 元crate native lib/integration 1009、leaf native tests 5が通過。
 証拠: `artifacts/component-evidence/storage-raw-copy-2026-10-08/manifest.json`。
-trust除去はこのleaf内に限定できるが、BytesMutとB1 capabilityの対応は別途未完了。
+trust除去はこのleaf内に限定できる。BytesMutとB1 capabilityの対応は後述のbody gateで接続済み。
 
 ### 元のconstructor bodyの無改造診断
 
@@ -64,3 +64,27 @@ Shared buf/capを確認。alignmentは既存body-proved bit lemmaを使い元deb
 vtable getterとAtomic constructorsは型のnormal-returnだけのgeneric abstraction。
 Atomic初期値、Bytes.dataの格納pointerとの対応、refcount、callback、Dropは未証明。
 full From<Vec>/freeze/callerの証明とは数えない。証拠 `probes/vtable-leaf-2026-10-08/`。
+
+### 元の生成→追記→freeze→実byte読み出し: 限定経路で通過
+
+`original-freeze-read-2026-10-08` は61 Coma / 61 proof JSON / null 0。
+元の with_capacity → extend_from_slice → freeze → Bytes slice → first byte loadを接続した。
+unique/off0、入力長より容量が大きい経路に限定し、live Bytesと入力全byte列の一致、
+実ロード値（空入力ならNone）を証明する。実Shared Boxのbuf/capとpointer対応も含む。
+B1 descriptorを保持しB2再構成へ消費する。元rebuild_vecは変更せずcfg-only helperで解釈する。
+
+actual Bytes.ptrだけをnullへ変える負例はas_sliceのvalidity前提だけ失敗。
+同じ最終source/stdでunique-write回帰は51 files通過。archive内sourceと現source一致を監査済み。
+元crate native library/integration全1009 tests、no-default-features library checkも通過。
+最終証拠: `probes/original-freeze-read-2026-10-08/evidence/audit.json` と `final-native/manifest.json`。
+
+これは元bodyのsource-gated concrete proofであり、全crate・open trait refinementではない。
+元のDropはformal gateから除外。Clone、複数reader、growth、off>0、len==cap、KIND_ARC、
+Atomic値とBytes.dataの対応、refcount、vtable/callback、unwind cleanupは未完了。
+local atomic constructors/static getterはnormal-return/type-validityだけのtrusted tool境界。
+generic B1/B2/B4、typed memcpy、std observersは明示TCB。bytes protocolはtrustedにしていない。
+exact pointer観測はconstructor由来の直接copy対応であり、任意の同address pointerのprovenance証明ではない。
+
+決定: DeepModel比較ICEへの同じ試行、static/atomic materializationの迂回の追加投資は固定保留。
+前者は実memory modelと元generic APIを保つ比較契約、後者は適切なfrontend/std契約という
+新しい前提が得られた場合のみ再開する。local trusted除去とrefcount protocol証明は別課題として維持する。
