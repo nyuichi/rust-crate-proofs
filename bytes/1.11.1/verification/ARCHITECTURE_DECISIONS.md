@@ -212,3 +212,32 @@ interface whose failure behavior can be proved. Cosmetic payload wrappers,
 timeouts and normal-return contracts alone are insufficient. Panic/unwind remains
 uncovered; the failed candidate is not retained in production. Thread creation
 failure is a distinct pending experiment and is not decided by this result.
+
+## D11: unchanged raw/std scope projection for fallible spawning
+
+Freeze the raw std::thread::scope and private Scope.inner projection routes
+after actual experiments and Astra review. A changed parent-slot representation
+keeps the ReadHandle in Option until the worker starts. Spawn Err leaves it
+available for fallback read and explicit cleanup; successful workers return it
+before parent retirement. Both targeted native tests pass. Rust's pinned thread
+implementation drops the startup closure on creation Err before calling it.
+
+The actual raw-scope proof generates 230 Coma/proof JSON files and fails exactly
+one callable-precondition obligation (candidate 3/4): std::thread::scope has no
+stock contract. A separate typecheck confirms that the supported Creusot Scope
+is a different type and its inner std scope is private (E0308/E0616). These are
+interface limitations, not counterexamples to the runtime parent-slot design.
+Root independently audited all 508 and 47 members of the respective archives:
+
+- builder-spawn-scoped-parent-retained-229:
+  `61e5fd51b56d73865fe3768a37332968bed0bcb1839ba2491f1f2ce04b059773`.
+- builder-creusot-scope-projection-typecheck-229:
+  `15d26e3201292ef8317367da53e216edb0a4ed15e43ba68fd04fd6cb3dbb7388`.
+
+Reopen these unchanged routes only with relevant supported scope/spawn contracts
+or a genuinely changed interface. No projection bypass or trusted bytes
+retirement theorem is permitted. A small generic fallible-spawn library
+extension is still under adequacy review; this decision does not reject it or
+mark thread-creation failure covered. In particular, failure must preserve the
+unexecuted closure's borrowed resources without assuming its normal FnOnce
+postcondition. No production source was changed by these experiments.
