@@ -177,6 +177,44 @@ impl RawAllocation {
     pub(crate) fn namespace(self) -> Id {
         pearlite! { self@.1 }
     }
+
+    /// Borrow this B1 descriptor to create offset-zero pointer metadata for
+    /// read boundaries while retaining the raw descriptor for a later B2
+    /// resume or B3 deallocation.
+    ///
+    /// The returned `BoundPtr` carries the same allocation namespace and
+    /// capacity binding. It is still metadata only: the Recovery and
+    /// PhysicalRegion capabilities remain necessary for access or cleanup.
+    #[requires(self.invariant())]
+    #[ensures(result.0.invariant())]
+    #[ensures(result.0@ == Some((self.namespace(), self.capacity(), 0int)))]
+    #[ensures(result.0.current_address() == self.base_address())]
+    #[ensures(result.1@ == self.capacity())]
+    pub(crate) fn bound_ptr_at_zero(&self) -> (BoundPtr, usize) {
+        #[cfg(creusot)]
+        let binding = ghost! {
+            let namespace = self.namespace.into_inner();
+            let allocation_capacity: Int = *Int::new(self.capacity as i128);
+            let absolute_offset: Int = *Int::new(0i128);
+            Some(BoundPtrBinding {
+                namespace,
+                allocation_capacity,
+                absolute_offset,
+            })
+        };
+
+        #[cfg(creusot)]
+        let bound = BoundPtr {
+            pointer: self.base,
+            binding,
+        };
+        #[cfg(not(creusot))]
+        let bound = BoundPtr {
+            pointer: self.base,
+        };
+
+        (bound, self.capacity)
+    }
 }
 
 /// The proof-only descriptor paired with a native pointer word. Copying this
@@ -189,9 +227,10 @@ struct BoundPtrBinding {
     absolute_offset: Int,
 }
 
-/// A pointer-sized allocation descriptor. The `Some` binding is minted only
-/// when consuming B1's `RawAllocation`; unbound metadata carries no physical
-/// authority. The ghost field disappears from native builds.
+/// A pointer-sized allocation descriptor. The `Some` binding is derived only
+/// from B1's `RawAllocation`, by either its consuming conversion or borrowed
+/// offset-zero accessor; unbound metadata carries no physical authority. The
+/// ghost field disappears from native builds.
 #[allow(missing_debug_implementations)]
 #[cfg_attr(not(creusot), repr(transparent))]
 #[derive(core::clone::Clone, Copy)]
@@ -402,8 +441,9 @@ const _: [(); core::mem::align_of::<NonNull<u8>>()] =
 impl RawAllocation {
     /// Consume B1's raw descriptor into an offset-zero bound pointer.
     ///
-    /// This is the only constructor that creates a `Some` binding. The native
-    /// pointer word remains metadata; callers still need Recovery and complete
+    /// This consuming form complements `bound_ptr_at_zero(&self)`, which keeps
+    /// the raw descriptor available for B2 resume. The native pointer word
+    /// remains metadata; callers still need Recovery and complete
     /// PhysicalRegion capabilities for any deallocation or access.
     #[requires(self.invariant())]
     #[ensures(result.0.invariant())]

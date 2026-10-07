@@ -111,3 +111,28 @@ The exact source/log archive is preserved in exclusive-derefmut-ghost-erasure.
 The initial AsRef purity failure also remains archived; its body was corrected
 to the actual stock Vec slice borrow, and the positive source was restored
 byte-for-byte after all controls. D01's old raw B4 counterexample remains frozen.
+
+## Sharing -> full authority recovery -> B2 thaw (143)
+
+`thaw-integrated-143`: 143 Coma/proof results, zero null leaves, 12 native tests
+passed. Independently checked archive:
+`e2ebfd9fd359728b2b1aa2938187436d4a52295238bcbf97829ae9f2c17f05f9`.
+The private owner retains B1's original RawAllocation. A body-proved borrowed
+metadata accessor supplies B4's BoundPtr without copying physical authority.
+Actual close receipts recover all lifetime fractions and the entire original
+Recovery/PhysicalRegion. Existing B2 consumes that descriptor and authority to
+return Vec; B3 remains the consuming cleanup alternative.
+
+`with_shared_read_then_thaw` returns the contents-preserving Vec and owned
+callback results. `share_thaw_set_and_read` mutates that returned Vec and shares
+it again in the same production configuration. Native tests check pointer and
+capacity preservation for empty/spare-capacity/nonempty inputs. Formal posts
+prove exact contents and full affine recovery: stock Vec's model does not
+expose returned pointer/capacity identity, so those native identity checks are
+not a formal identity theorem. Existing B2's physical mapping is unchanged.
+
+Discarding spare-capacity region authority while retaining initialized-prefix
+facts causes the expected B2 full-coverage precondition to fail (19/20):
+`thaw-missing-spare-region`, 143 files, exactly one null result. The exact
+negative goal and source are preserved, including empty allocated storage.
+The routine borrowed-namespace frontend failure is retained separately.

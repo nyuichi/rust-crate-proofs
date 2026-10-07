@@ -16,7 +16,7 @@ mod tree;
 pub mod exclusive;
 pub mod cursor;
 pub mod callbacks;
-pub use callbacks::with_shared_read;
+pub use callbacks::{with_shared_read,with_shared_read_then_thaw};
 pub use tree::scoped_tree;
 use retirement::{Payload,SharedRetirement,Ticket,Receipt};
 
@@ -30,6 +30,7 @@ impl Payload for LifetimeToken {
 
 /// Owns detached physical storage. No ordinary Vec remains after construction.
 pub(crate) struct Owner {
+    raw:raw_vec::RawAllocation,
     frozen:frozen_region::FrozenOwner,
     anchor:Ghost<LifetimeToken>,
     len:usize,
@@ -84,7 +85,10 @@ impl Owner {
     #[logic(open(self), prophetic)]
     pub(crate) fn valid(self)->bool {
         pearlite! {
-            self.frozen.valid() && self.anchor.lft() == self.frozen.shared.val().lft() &&
+            self.raw.invariant() && self.frozen.valid() &&
+            self.raw.namespace() == self.frozen.recovery.namespace() &&
+            self.raw.capacity() == self.frozen.capacity@ &&
+            self.raw.base_address() == self.frozen.base.current_address() && self.anchor.lft() == self.frozen.shared.val().lft() &&
             self.len@ == self.model.len() && self.len <= self.frozen.capacity &&
             forall<i:Int> 0 <= i && i < self.len@ ==>
                 self.frozen.shared.val().cur().slot(i) == Some(Some(self.model[i]))
@@ -98,13 +102,14 @@ impl Owner {
     #[ensures(result.anchor.frac() == PositiveReal::from_int(1))]
     pub fn new(input:Vec<u8>)->Self {
         let model=snapshot!(input@);
-        let (base,len,capacity,caps)=bound_ptr::detach_bound_vec(input);
+        let (raw,len,caps)=raw_vec::detach_vec(input);
+        let (base,capacity)=raw.bound_ptr_at_zero();
         let (recovery,region)=caps.split();
         let anchor=ghost! { LifetimeToken::new() };
         let (full,end)=FullBorrow::new(region,snapshot!(anchor.lft()));
         let shared=ghost! { GhostShared::new(full).into_inner() };
         let frozen=frozen_region::FrozenOwner{base,capacity,recovery,end,shared};
-        Self{frozen,anchor,len,model}
+        Self{raw,frozen,anchor,len,model}
     }
 
     #[requires(self.valid())]
@@ -126,13 +131,14 @@ impl Owner {
          ReadHandle{bytes,permit:right,ticket:right_ticket},CloseContext{machine})
     }
 
-    /// Both close receipts are checked before recovering the full synthetic lifetime.
+    /// Complete both retirements and recover the original unborrowed authority.
     #[requires(self.valid())]
     #[requires(context.valid() && context.matches_owner(self))]
     #[requires(first.accepted_by(context) && second.accepted_by(context))]
     #[requires(first.is_left() != second.is_left())]
-    #[ensures(result.0 != result.1)]
-    pub fn close(self,context:CloseContext,first:Closed,second:Closed)->(bool,bool) {
+    #[ensures(result.0.valid() && result.0.contents() == self.contents())]
+    #[ensures(result.1 != result.2)]
+    fn recover(self,context:CloseContext,first:Closed,second:Closed)->(RecoveredAllocation,bool,bool) {
         let first_last=first.last;
         let second_last=second.last;
         context.machine.finish(first_last,first.receipt,second_last,second.receipt);
@@ -144,8 +150,72 @@ impl Owner {
             let region=self.frozen.end.into_inner().get(full.end());
             (self.frozen.recovery.into_inner(),region)
         };
-        unsafe { raw_vec::deallocate_bound_vec(self.frozen.base,self.frozen.capacity,caps); }
+        (RecoveredAllocation{raw:self.raw,len:self.len,caps,model:self.model},first_last,second_last)
+    }
+
+    #[requires(self.valid())]
+    #[requires(context.valid() && context.matches_owner(self))]
+    #[requires(first.accepted_by(context) && second.accepted_by(context))]
+    #[requires(first.is_left() != second.is_left())]
+    #[ensures(result.0 != result.1)]
+    pub fn close(self,context:CloseContext,first:Closed,second:Closed)->(bool,bool) {
+        let (recovered,first_last,second_last)=self.recover(context,first,second);
+        recovered.close();
         (first_last,second_last)
+    }
+
+    #[requires(self.valid())]
+    #[requires(context.valid() && context.matches_owner(self))]
+    #[requires(first.accepted_by(context) && second.accepted_by(context))]
+    #[requires(first.is_left() != second.is_left())]
+    #[ensures(result.0@ == self.contents())]
+    #[ensures(result.1 != result.2)]
+    fn thaw(self,context:CloseContext,first:Closed,second:Closed)->(Vec<u8>,bool,bool) {
+        let (recovered,first_last,second_last)=self.recover(context,first,second);
+        (recovered.into_vec(),first_last,second_last)
+    }
+
+}
+
+/// Completed sharing leaves one affine allocation owner. Its descriptor is the
+/// original B1 descriptor, not reconstructed pointer metadata.
+struct RecoveredAllocation {
+    raw:raw_vec::RawAllocation,
+    len:usize,
+    caps:Ghost<(raw_vec::Recovery,raw_vec::PhysicalRegion)>,
+    model:Snapshot<Seq<u8>>,
+}
+impl RecoveredAllocation {
+    #[logic(open(self), prophetic)]
+    fn valid(self)->bool {
+        pearlite! {
+            self.raw.invariant() && self.len@ == self.model.len() && self.len@ <= self.raw.capacity() &&
+            self.caps.inner_logic().0.invariant() && self.caps.inner_logic().1.invariant() &&
+            self.caps.inner_logic().0.namespace() == self.raw.namespace() &&
+            self.caps.inner_logic().1.namespace() == self.raw.namespace() &&
+            self.caps.inner_logic().1.resource_id() == self.raw.namespace() &&
+            self.caps.inner_logic().0.capacity() == self.raw.capacity() &&
+            self.caps.inner_logic().1.capacity() == self.raw.capacity() &&
+            self.caps.inner_logic().1.lo() == 0 && self.caps.inner_logic().1.hi() == self.raw.capacity() &&
+            forall<i:Int> 0 <= i && i < self.len@ ==>
+                self.caps.inner_logic().1.slot(i) == Some(Some(self.model[i]))
+        }
+    }
+    #[logic]
+    fn contents(self)->Seq<u8> { *self.model }
+
+    #[requires(self.valid())]
+    fn close(self) {
+        unsafe { raw_vec::deallocate_vec(self.raw,self.caps); }
+    }
+
+    #[requires(self.valid())]
+    #[ensures(result@ == self.contents())]
+    fn into_vec(self)->Vec<u8> {
+        let model=self.model;
+        let result=unsafe { raw_vec::resume_vec(self.raw,self.len,self.caps) };
+        proof_assert!(result@.ext_eq(*model));
+        result
     }
 }
 
