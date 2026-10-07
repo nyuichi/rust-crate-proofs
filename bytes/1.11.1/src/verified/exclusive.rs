@@ -5,6 +5,7 @@
 //! explicit B1/B3 ownership path.
 
 use alloc::vec::Vec;
+use core::ops::{Deref, DerefMut};
 
 use creusot_std::prelude::*;
 
@@ -168,10 +169,38 @@ impl ExclusiveBytes {
     }
 }
 
+impl AsRef<[u8]> for ExclusiveBytes {
+    #[check(ghost)]
+    #[ensures(result@ == self@)]
+    fn as_ref(&self) -> &[u8] {
+        &self.bytes
+    }
+}
+
+impl Deref for ExclusiveBytes {
+    type Target = [u8];
+
+    #[check(ghost)]
+    #[ensures(result@ == self@)]
+    fn deref(&self) -> &Self::Target {
+        &self.bytes
+    }
+}
+
+impl DerefMut for ExclusiveBytes {
+    #[check(ghost)]
+    #[ensures(result@ == self@)]
+    #[ensures((^self)@.len() == self@.len())]
+    #[ensures((^result)@ == (^self)@)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.bytes
+    }
+}
+
 #[cfg(all(test, not(creusot)))]
 mod tests {
     use super::ExclusiveBytes;
-    use std::{vec, vec::Vec};
+    use std::{ops::{Deref, DerefMut}, vec, vec::Vec};
 
     #[test]
     fn exclusive_sequence_operations() {
@@ -181,6 +210,11 @@ mod tests {
         assert_eq!(bytes.as_slice(), &[10, 20, 30]);
         assert_eq!(bytes.get(1), Some(20));
         assert_eq!(bytes.get(3), None);
+        assert_eq!(AsRef::<[u8]>::as_ref(&bytes), &[10, 20, 30]);
+        assert_eq!(Deref::deref(&bytes), &[10, 20, 30]);
+
+        DerefMut::deref_mut(&mut bytes)[1] = 22;
+        assert_eq!(bytes.as_slice(), &[10, 22, 30]);
 
         assert!(bytes.set(1, 21));
         assert!(!bytes.set(3, 99));

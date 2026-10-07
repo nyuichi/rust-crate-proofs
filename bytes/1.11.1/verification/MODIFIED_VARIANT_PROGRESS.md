@@ -90,3 +90,24 @@ Routine failed parser/type/spec attempts are also retained: exclusive-view-parse
 exclusive-is-empty-contract, tree-frontend-literal and callback-length-model-typing.
 Their archive member hashes have been independently checked. They neither count
 as new coverage nor justify retrying a frozen architecture.
+
+## Ordinary Vec-backed typed mutable borrowing (136)
+
+`exclusive-deref-mut`: 136 Coma/proof results, zero null leaves, 11 native tests
+passed. Independently checked archive:
+`a58c6f0c07ec230f45665d838e086e4bf91ae0fb10a2076b1ac6639446d04a28`.
+Deref/AsRef return the actual contents; DerefMut frames the final mutable slice
+back into the actual ExclusiveBytes Vec sequence. These are body-proved stock
+Vec borrows, not a trusted or ghost-classified raw B4 mutable access.
+
+Removing the final borrow relation breaks the concrete write/read client
+(137 files, one failed result at negative_missing_derefmut_frame, 2/3):
+`b41c603ce0d299bfe2992798d5b565daf5ecd583bab79602d8a7808b1bdd5c1f`.
+Attempting the typed DerefMut borrow of an ordinary owner inside ghost code
+is rejected before VC generation: the diagnostic states that a non-ghost
+variable cannot be written in ghost code. Native erasure retains Some(7).
+The exact source/log archive is preserved in exclusive-derefmut-ghost-erasure.
+
+The initial AsRef purity failure also remains archived; its body was corrected
+to the actual stock Vec slice borrow, and the positive source was restored
+byte-for-byte after all controls. D01's old raw B4 counterexample remains frozen.
