@@ -1,0 +1,1 @@
+This archive preserves an observed isolated candidate frontend failure. It is diagnostic evidence and is not a semantic counterexample. The archive includes source/configuration/log fingerprints and the exact private Std source tree used.

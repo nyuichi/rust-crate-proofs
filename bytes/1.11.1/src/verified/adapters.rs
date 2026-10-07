@@ -40,6 +40,24 @@ impl<'a> LimitedCursor<'a> {
     pub fn set_limit(&mut self, limit: usize) {
         self.limit = limit;
     }
+    /// Gets a reference to the underlying cursor.
+    ///
+    /// The cursor's `chunk()` is its current remaining input, which can be a
+    /// suffix of the original slice after prior reads or direct cursor access.
+    #[ensures(result@ == self.inner_view())]
+    pub fn get_ref(&self) -> &Cursor<'a> {
+        &self.inner
+    }
+    /// Gets a mutable reference to the underlying cursor.
+    ///
+    /// Advancing this cursor directly may consume beyond this adapter's limit,
+    /// matching the underlying-adapter access semantics of `Take<T>`.
+    #[ensures(result@ == self.inner_view())]
+    #[ensures((^result)@ == (^self).inner_view())]
+    #[ensures((^self).limit_view() == self.limit_view())]
+    pub fn get_mut(&mut self) -> &mut Cursor<'a> {
+        &mut self.inner
+    }
     #[ensures(result@ == self.inner_view())]
     pub fn into_inner(self) -> Cursor<'a> {
         self.inner
@@ -141,10 +159,46 @@ impl<'a> View for ChainedCursor<'a> {
     }
 }
 impl<'a> ChainedCursor<'a> {
+    #[ensures(result.left_view() == left@)]
+    #[ensures(result.right_view() == right@)]
     #[ensures(result@ == left@.concat(right@))]
     pub fn new(left: Cursor<'a>, right: Cursor<'a>) -> Self {
         Self { left, right }
     }
+    #[logic]
+    pub fn left_view(self) -> Seq<u8> {
+        pearlite! { self.left@ }
+    }
+    #[logic]
+    pub fn right_view(self) -> Seq<u8> {
+        pearlite! { self.right@ }
+    }
+    /// Gets a reference to the first cursor.
+    #[ensures(result@ == self.left_view())]
+    pub fn first_ref(&self) -> &Cursor<'a> {
+        &self.left
+    }
+    /// Gets a mutable reference to the first cursor.
+    #[ensures(result@ == self.left_view())]
+    #[ensures((^result)@ == (^self).left_view())]
+    #[ensures((^self).right_view() == self.right_view())]
+    pub fn first_mut(&mut self) -> &mut Cursor<'a> {
+        &mut self.left
+    }
+    /// Gets a reference to the last cursor.
+    #[ensures(result@ == self.right_view())]
+    pub fn last_ref(&self) -> &Cursor<'a> {
+        &self.right
+    }
+    /// Gets a mutable reference to the last cursor.
+    #[ensures(result@ == self.right_view())]
+    #[ensures((^result)@ == (^self).right_view())]
+    #[ensures((^self).left_view() == self.left_view())]
+    pub fn last_mut(&mut self) -> &mut Cursor<'a> {
+        &mut self.right
+    }
+    #[ensures(result.0@ == self.left_view())]
+    #[ensures(result.1@ == self.right_view())]
     #[ensures(result.0@.concat(result.1@) == self@)]
     pub fn into_inner(self) -> (Cursor<'a>, Cursor<'a>) {
         (self.left, self.right)
@@ -226,6 +280,80 @@ impl<'a> ChainedCursor<'a> {
     }
 }
 
+/// Exercises the concrete `Take`-style cursor projections and recovers the
+/// unread backing-input suffix after releasing the outer adapter.
+#[cfg(creusot)]
+#[requires(consumed@ <= input@.len())]
+#[ensures(result@ == input@[consumed@..])]
+pub(crate) fn limited_cursor_accessors_return_suffix<'a>(
+    input: &'a [u8],
+    consumed: usize,
+) -> &'a [u8] {
+    let mut cursor = LimitedCursor::new(Cursor::new(input), consumed);
+    let initial_inner = cursor.get_ref();
+    proof_assert!(initial_inner@ == input@[0..input@.len()]);
+    let observed_limit = cursor.limit();
+    proof_assert!(observed_limit@ == consumed@);
+
+    // As with Take::get_mut, direct access to the underlying cursor can move
+    // it independently of the adapter's separate limit field.
+    let projected_inner = cursor.get_mut();
+    let advanced = projected_inner.advance(consumed);
+    proof_assert!(advanced);
+    proof_assert!((^projected_inner)@ == input@[consumed@..]);
+    let remaining_inner = cursor.get_ref();
+    proof_assert!(remaining_inner@ == input@[consumed@..]);
+
+    let inner = cursor.into_inner();
+    let suffix = inner.into_inner();
+    proof_assert!(suffix@ == input@[consumed@..]);
+    suffix
+}
+
+/// Exercises both concrete chain accessors and recovers each remaining input
+/// suffix after releasing the outer adapter.
+#[cfg(creusot)]
+#[requires(split@ <= input@.len())]
+#[requires(left_consumed@ <= split@)]
+#[requires(right_consumed@ <= input@.len() - split@)]
+#[ensures(result.0@ == input@[left_consumed@..split@])]
+#[ensures(result.1@ == input@[split@ + right_consumed@..])]
+pub(crate) fn chained_cursor_accessors_return_suffixes<'a>(
+    input: &'a [u8],
+    split: usize,
+    left_consumed: usize,
+    right_consumed: usize,
+) -> (&'a [u8], &'a [u8]) {
+    let mut cursor = ChainedCursor::new(
+        Cursor::new(&input[..split]),
+        Cursor::new(&input[split..]),
+    );
+    let initial_left = cursor.first_ref();
+    let initial_right = cursor.last_ref();
+    proof_assert!(initial_left@ == input@[0..split@]);
+    proof_assert!(initial_right@ == input@[split@..]);
+
+    let projected_left = cursor.first_mut();
+    let left_advanced = projected_left.advance(left_consumed);
+    proof_assert!(left_advanced);
+    proof_assert!((^projected_left)@ == input@[left_consumed@..split@]);
+    let projected_right = cursor.last_mut();
+    let right_advanced = projected_right.advance(right_consumed);
+    proof_assert!(right_advanced);
+    proof_assert!((^projected_right)@ == input@[split@ + right_consumed@..]);
+    let remaining_left = cursor.first_ref();
+    let remaining_right = cursor.last_ref();
+    proof_assert!(remaining_left@ == input@[left_consumed@..split@]);
+    proof_assert!(remaining_right@ == input@[split@ + right_consumed@..]);
+
+    let (left, right) = cursor.into_inner();
+    let left_suffix = left.into_inner();
+    let right_suffix = right.into_inner();
+    proof_assert!(left_suffix@ == input@[left_consumed@..split@]);
+    proof_assert!(right_suffix@ == input@[split@ + right_consumed@..]);
+    (left_suffix, right_suffix)
+}
+
 #[cfg(feature = "std")]
 #[ensures(match result.0 {
     Some(v)=>input@.len().min(limit@)>=2 && v@ == input@[0]@*256+input@[1]@ && result.1@ == input@.len().min(limit@)-2,
@@ -287,6 +415,30 @@ mod tests {
             assert_eq!(cursor.limit(), limit - consumed);
             assert_eq!(cursor.into_inner().chunk(), &bytes[consumed..]);
         }
+    }
+
+    #[test]
+    fn cursor_adapters_project_and_recover_the_remaining_input() {
+        let bytes = [1, 2, 3, 4, 5];
+        let mut limited = LimitedCursor::new(Cursor::new(&bytes), 2);
+        assert_eq!(limited.get_ref().chunk(), &bytes);
+        assert_eq!(limited.limit(), 2);
+        assert!(limited.get_mut().advance(2));
+        assert_eq!(limited.get_ref().chunk(), &bytes[2..]);
+        let inner = limited.into_inner();
+        assert_eq!(inner.into_inner(), &bytes[2..]);
+
+        let mut chained = ChainedCursor::new(
+            Cursor::new(&bytes[..2]),
+            Cursor::new(&bytes[2..]),
+        );
+        assert_eq!(chained.first_ref().chunk(), &bytes[..2]);
+        assert_eq!(chained.last_ref().chunk(), &bytes[2..]);
+        assert!(chained.first_mut().advance(1));
+        assert!(chained.last_mut().advance(2));
+        let (left, right) = chained.into_inner();
+        assert_eq!(left.into_inner(), &bytes[1..2]);
+        assert_eq!(right.into_inner(), &bytes[4..]);
     }
     #[test]
     fn chained_cursor_crosses_boundary_and_preserves_failed_destination() {

@@ -39,6 +39,35 @@ impl<'a> LimitedWriter<'a> {
         self.remaining
     }
 
+    /// Returns the current write limit.
+    #[ensures(result@ == self.remaining_view())]
+    pub fn limit(&self) -> usize {
+        self.remaining
+    }
+
+    /// Sets the remaining write limit.
+    #[ensures((^self).remaining_view() == limit@)]
+    #[ensures((^self).owner_view() == self.owner_view())]
+    #[ensures((^self).owner_final_view() == self.owner_final_view())]
+    pub fn set_limit(&mut self, limit: usize) {
+        self.remaining = limit;
+    }
+
+    /// Gets a reference to the underlying byte owner.
+    #[ensures(result@ == self.owner_view())]
+    pub fn get_ref(&self) -> &ExclusiveBytes {
+        self.owner
+    }
+
+    /// Gets a mutable reference to the underlying byte owner.
+    #[ensures(result@ == self.owner_view())]
+    #[ensures((^result)@ == (^self).owner_view())]
+    #[ensures((^self).remaining_view() == self.remaining_view())]
+    #[ensures((^self).owner_final_view() == self.owner_final_view())]
+    pub fn get_mut(&mut self) -> &mut ExclusiveBytes {
+        self.owner
+    }
+
     /// Appends `source` only when it fits both the budget and the owner's length domain.
     /// Failure leaves the owner's bytes and the remaining budget unchanged.
     #[ensures(result == (
@@ -126,6 +155,43 @@ pub fn limited_write_then_close(
     written
 }
 
+/// Exercises the `Writer`-style projections, mutates through the returned
+/// owner reference, releases the adapter borrow, checks the resulting bytes,
+/// and explicitly closes the allocation.
+#[cfg(creusot)]
+#[requires(owner@.len() < usize::MAX@)]
+#[requires(source@.len() <= limit@)]
+#[requires(source@.len() <= usize::MAX@ - (owner@.len() + 1))]
+#[ensures(result)]
+pub(crate) fn limited_writer_accessors_then_close(
+    mut owner: ExclusiveBytes,
+    source: &[u8],
+    limit: usize,
+    marker: u8,
+) -> bool {
+    let original = snapshot!(owner@);
+    let source_view = snapshot!(source@);
+    let mut writer = LimitedWriter::new(&mut owner, limit);
+    let projected_owner_ref = writer.get_ref();
+    proof_assert!(projected_owner_ref@ == *original);
+    let observed_limit = writer.limit();
+    proof_assert!(observed_limit@ == limit@);
+
+    let projected_owner_mut = writer.get_mut();
+    projected_owner_mut.push(marker);
+    proof_assert!((^projected_owner_mut)@ == (*original).push_back(marker));
+    proof_assert!(writer.owner_view() == (*original).push_back(marker));
+    let written = writer.write_slice(source);
+    proof_assert!(written);
+
+    let returned_owner = writer.into_inner();
+    proof_assert!(returned_owner@ == (*original).push_back(marker).concat(*source_view));
+    proof_assert!((^returned_owner)@ == (*original).push_back(marker).concat(*source_view));
+    proof_assert!(owner@ == (*original).push_back(marker).concat(*source_view));
+    owner.close();
+    written
+}
+
 #[logic]
 fn left_chunk_len(source_len: Int, left_budget: Int) -> Int {
     pearlite! { if source_len < left_budget { source_len } else { left_budget } }
@@ -168,6 +234,42 @@ impl<'a> ChainedWriter<'a> {
     #[logic]
     pub fn right_remaining_view(self) -> Int {
         pearlite! { self.right_remaining@ }
+    }
+
+    /// Gets a reference to the first byte owner.
+    #[ensures(result@ == self.left_view())]
+    pub fn first_ref(&self) -> &ExclusiveBytes {
+        self.left
+    }
+
+    /// Gets a mutable reference to the first byte owner.
+    #[ensures(result@ == self.left_view())]
+    #[ensures((^result)@ == (^self).left_view())]
+    #[ensures((^self).left_final_view() == self.left_final_view())]
+    #[ensures((^self).left_remaining_view() == self.left_remaining_view())]
+    #[ensures((^self).right_view() == self.right_view())]
+    #[ensures((^self).right_final_view() == self.right_final_view())]
+    #[ensures((^self).right_remaining_view() == self.right_remaining_view())]
+    pub fn first_mut(&mut self) -> &mut ExclusiveBytes {
+        self.left
+    }
+
+    /// Gets a reference to the last byte owner.
+    #[ensures(result@ == self.right_view())]
+    pub fn last_ref(&self) -> &ExclusiveBytes {
+        self.right
+    }
+
+    /// Gets a mutable reference to the last byte owner.
+    #[ensures(result@ == self.right_view())]
+    #[ensures((^result)@ == (^self).right_view())]
+    #[ensures((^self).left_view() == self.left_view())]
+    #[ensures((^self).left_final_view() == self.left_final_view())]
+    #[ensures((^self).left_remaining_view() == self.left_remaining_view())]
+    #[ensures((^self).right_final_view() == self.right_final_view())]
+    #[ensures((^self).right_remaining_view() == self.right_remaining_view())]
+    pub fn last_mut(&mut self) -> &mut ExclusiveBytes {
+        self.right
     }
 
     /// Borrows both owners and records their append budgets.
@@ -345,6 +447,48 @@ pub fn chained_write_then_close(
     written
 }
 
+/// Exercises the `Chain`-style owner projections, mutates through both
+/// returned references, releases the adapter borrow, checks both final byte
+/// sequences, and explicitly closes both allocations.
+#[cfg(creusot)]
+#[requires(left@.len() < usize::MAX@)]
+#[requires(right@.len() < usize::MAX@)]
+#[ensures(result)]
+pub(crate) fn chained_writer_accessors_then_close(
+    mut left: ExclusiveBytes,
+    mut right: ExclusiveBytes,
+    left_marker: u8,
+    right_marker: u8,
+) -> bool {
+    let original_left = snapshot!(left@);
+    let original_right = snapshot!(right@);
+    let mut writer = ChainedWriter::new(&mut left, &mut right, 0, 0);
+    let projected_left = writer.first_ref();
+    let projected_right = writer.last_ref();
+    proof_assert!(projected_left@ == *original_left);
+    proof_assert!(projected_right@ == *original_right);
+
+    let projected_left_mut = writer.first_mut();
+    projected_left_mut.push(left_marker);
+    proof_assert!((^projected_left_mut)@ == (*original_left).push_back(left_marker));
+    let projected_right_mut = writer.last_mut();
+    projected_right_mut.push(right_marker);
+    proof_assert!((^projected_right_mut)@ == (*original_right).push_back(right_marker));
+    proof_assert!(writer.left_view() == (*original_left).push_back(left_marker));
+    proof_assert!(writer.right_view() == (*original_right).push_back(right_marker));
+
+    let (returned_left, returned_right) = writer.into_inner();
+    proof_assert!(returned_left@ == (*original_left).push_back(left_marker));
+    proof_assert!(returned_right@ == (*original_right).push_back(right_marker));
+    proof_assert!((^returned_left)@ == (*original_left).push_back(left_marker));
+    proof_assert!((^returned_right)@ == (*original_right).push_back(right_marker));
+    proof_assert!(left@ == (*original_left).push_back(left_marker));
+    proof_assert!(right@ == (*original_right).push_back(right_marker));
+    left.close();
+    right.close();
+    true
+}
+
 #[cfg(all(test, not(creusot), feature = "std"))]
 mod tests {
     use super::{ChainedWriter, ExclusiveBytes, LimitedWriter};
@@ -361,6 +505,26 @@ mod tests {
             let returned_owner = writer.into_inner();
             assert_eq!(returned_owner.as_slice(), &[1, 2]);
         }
+        owner.close();
+    }
+
+    #[test]
+    fn limited_writer_projects_and_returns_mutated_owner() {
+        let mut owner = ExclusiveBytes::from_vec(vec![1, 2]);
+        {
+            let mut writer = LimitedWriter::new(&mut owner, 0);
+            assert_eq!(writer.get_ref().as_slice(), &[1, 2]);
+            assert_eq!(writer.limit(), 0);
+            writer.get_mut().push(3);
+            assert_eq!(writer.get_ref().as_slice(), &[1, 2, 3]);
+            assert_eq!(writer.limit(), 0);
+            writer.set_limit(1);
+            assert!(writer.write_slice(&[4]));
+            assert_eq!(writer.get_ref().as_slice(), &[1, 2, 3, 4]);
+            let returned = writer.into_inner();
+            assert_eq!(returned.as_slice(), &[1, 2, 3, 4]);
+        }
+        assert_eq!(owner.as_slice(), &[1, 2, 3, 4]);
         owner.close();
     }
 
@@ -403,6 +567,28 @@ mod tests {
             assert_eq!(returned_left.as_slice(), &[1, 2, 3]);
             assert_eq!(returned_right.as_slice(), &[9, 4]);
         }
+        left.close();
+        right.close();
+    }
+
+    #[test]
+    fn chained_writer_projects_and_returns_mutated_owners() {
+        let mut left = ExclusiveBytes::from_vec(vec![1]);
+        let mut right = ExclusiveBytes::from_vec(vec![9]);
+        {
+            let mut writer = ChainedWriter::new(&mut left, &mut right, 0, 0);
+            assert_eq!(writer.first_ref().as_slice(), &[1]);
+            assert_eq!(writer.last_ref().as_slice(), &[9]);
+            writer.first_mut().push(2);
+            writer.last_mut().push(10);
+            assert_eq!(writer.first_ref().as_slice(), &[1, 2]);
+            assert_eq!(writer.last_ref().as_slice(), &[9, 10]);
+            let (returned_left, returned_right) = writer.into_inner();
+            assert_eq!(returned_left.as_slice(), &[1, 2]);
+            assert_eq!(returned_right.as_slice(), &[9, 10]);
+        }
+        assert_eq!(left.as_slice(), &[1, 2]);
+        assert_eq!(right.as_slice(), &[9, 10]);
         left.close();
         right.close();
     }

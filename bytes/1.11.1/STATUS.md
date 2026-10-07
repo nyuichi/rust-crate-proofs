@@ -21,12 +21,12 @@ exact actual Std dependency sources and feature graphs accompany the capture.
 Proof-file counts are not API-completion counts. Read
 [MODIFIED_VARIANT_PROGRESS.md](verification/MODIFIED_VARIANT_PROGRESS.md).
 
-The current combined production gate, production-copied-borrow-writers-325,
-proves325 matching Coma/JSON files with zero null leaves and observed exit0.
-Native suites pass61 verified,std and26 verified/alloc. It includes initialized
+The current combined production gate, production-copied-borrow-accessors-writers-346,
+proves346 matching Coma/JSON files with zero null leaves and observed exit0.
+Native suites pass65 verified,std and28 verified/alloc. It includes initialized
 LimitedWriter/ChainedWriter, copied clone/range/default, exact copied splits,
 repeated append, cursor-to-owner copying, Borrow/AsMut/BorrowMut and bidirectional
-slice comparisons. Root independently audited the complete archived source,
+slice comparisons, cursor/writer accessors and existing-spare capacity reclaim. Root independently audited the complete archived source,
 actual Std dependency and every proof result. Older287/247 configuration gates
 apply to the805 snapshot; final enlarged-source gates remain pending.
 

@@ -342,6 +342,26 @@ impl ExclusiveBytes {
         self.bytes.try_reserve_exact(additional)
     }
 
+    /// Checks whether the current allocation has room for `additional` bytes.
+    ///
+    /// This query does not allocate or move the allocation. It reports only
+    /// the spare capacity already present in this exclusive Vec-backed owner.
+    #[ensures(result == (
+        additional@ <= creusot_std::std::vec::capacity_model(self.bytes) - self@.len()
+    ))]
+    #[ensures((^self)@ == self@)]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::capacity_model((^self).bytes) ==
+            creusot_std::std::vec::capacity_model(self.bytes)
+    ))]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::base_model((^self).bytes) ==
+            creusot_std::std::vec::base_model(self.bytes)
+    ))]
+    pub fn try_reclaim(&mut self, additional: usize) -> bool {
+        self.bytes.capacity() - self.bytes.len() >= additional
+    }
+
     /// Releases this allocation through the explicit B1 detach and B3 deallocate path.
     ///
     /// The consumed `Vec` is not left for the wrapper's implicit destructor.
@@ -435,6 +455,23 @@ pub(crate) fn append_repeated_then_close(
     let appended = owner.append_repeated(byte, count);
     owner.close();
     appended
+}
+
+/// Checks existing spare capacity, proves the allocation unchanged, then closes it.
+#[cfg(creusot)]
+#[ensures(result == (
+    additional@ <= creusot_std::std::vec::capacity_model(owner.bytes) - owner@.len()
+))]
+pub(crate) fn try_reclaim_then_close(mut owner: ExclusiveBytes, additional: usize) -> bool {
+    let original_contents = snapshot!(owner@);
+    let original_capacity = snapshot!(creusot_std::std::vec::capacity_model(owner.bytes));
+    let original_base = snapshot!(creusot_std::std::vec::base_model(owner.bytes));
+    let reclaimed = owner.try_reclaim(additional);
+    proof_assert!(owner@ == *original_contents);
+    proof_assert!(creusot_std::std::vec::capacity_model(owner.bytes) == *original_capacity);
+    proof_assert!(creusot_std::std::vec::base_model(owner.bytes) == *original_base);
+    owner.close();
+    reclaimed
 }
 
 impl AsRef<[u8]> for ExclusiveBytes {
@@ -563,6 +600,30 @@ mod tests {
         assert_eq!(bytes.as_slice(), &[23]);
         assert_eq!(bytes.capacity(), old_capacity);
         bytes.close();
+    }
+
+    #[test]
+    fn try_reclaim_observes_existing_spare_without_moving_or_growing() {
+        let mut bytes = ExclusiveBytes::with_capacity(8);
+        bytes.extend_from_slice(&[17, 18, 19]);
+        let original = bytes.as_slice().to_vec();
+        let base = bytes.as_slice().as_ptr();
+        let capacity = bytes.capacity();
+        let spare = capacity - bytes.len();
+
+        assert!(bytes.try_reclaim(0));
+        assert!(bytes.try_reclaim(spare));
+        assert!(!bytes.try_reclaim(spare + 1));
+        assert_eq!(bytes.as_slice(), original.as_slice());
+        assert_eq!(bytes.as_slice().as_ptr(), base);
+        assert_eq!(bytes.capacity(), capacity);
+        bytes.close();
+
+        let mut empty = ExclusiveBytes::with_capacity(0);
+        assert!(empty.try_reclaim(0));
+        assert!(!empty.try_reclaim(1));
+        assert!(empty.is_empty());
+        empty.close();
     }
 
     #[test]

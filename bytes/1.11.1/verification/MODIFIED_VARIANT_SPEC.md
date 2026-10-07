@@ -136,3 +136,12 @@ B1 and B2 connect capacity and the generic numeric Vec base model to the raw des
 `append_repeated` checks length overflow before appending an exact repeated byte sequence; failure frames contents. `Cursor::try_copy_to_owner` returns an independent owner containing the requested prefix and advances to the exact suffix, or returns None with the cursor unchanged.
 
 Borrow, AsMut and BorrowMut forward the existing concrete slice access contracts. Mutable projections preserve length and connect the returned slice's eventual bytes to the owner's eventual bytes. Bidirectional slice PartialEq/PartialOrd compare exact byte sequences; PartialOrd delegates to the already specified slice cmp. None of these bodies assumes bytes-specific ownership or refcount facts.
+
+
+## Concrete projections and reclaim query
+
+`Cursor::into_inner` returns its remaining suffix. LimitedCursor get_ref/get_mut expose the current underlying cursor and preserve the limit on mutable access. ChainedCursor first/last projections preserve the other side; construction and into_inner specify each side separately.
+
+LimitedWriter exposes get_ref/get_mut and current limit/set_limit. ChainedWriter exposes first/last projections. Mutable getters connect their short returned borrow to the adapter's immediate post-state, while separately framing the eventual outer-owner borrow and budgets; later valid writes remain possible. Connected clients return borrows, observe final bytes and explicitly close owners.
+
+`try_reclaim(additional)` reports whether existing capacity minus length fits the request. It preserves exact contents, capacity and numeric base. It neither reallocates nor compacts an original shared head; original adjacency-sensitive zero-copy unsplit is not inferred.

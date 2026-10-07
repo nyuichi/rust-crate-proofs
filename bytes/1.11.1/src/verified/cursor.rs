@@ -179,6 +179,15 @@ impl<'a> Cursor<'a> {
         self.remaining
     }
 
+    /// Consumes the cursor and returns its current remaining input slice.
+    ///
+    /// The returned slice is the suffix after any reads or advances; it does
+    /// not restore the input that was present when the cursor was created.
+    #[ensures(result@ == self@)]
+    pub fn into_inner(self) -> &'a [u8] {
+        self.remaining
+    }
+
     /// Advances by `count` bytes, returning false without changes if it is too large.
     #[ensures(result == (count@ <= self@.len()))]
     #[ensures(if result {
