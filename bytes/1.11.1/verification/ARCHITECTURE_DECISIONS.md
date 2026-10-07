@@ -106,3 +106,27 @@ FAIL (record the exact obstruction), or BLOCKED (a prerequisite cannot be
 expressed/proved under current constraints). FAIL/BLOCKED does not authorize a
 smaller completion claim. First use existing distinguishing evidence; rerun only
 where a new premise or missing decisive test makes it necessary.
+
+## Modified ordinary-mutation and thaw experiments
+
+Changed premise for D01: ExclusiveBytes holds a genuine ordinary Vec, not a
+raw B4 mutable view whose physical writes are classified ghost. Its Vec
+mutations are ordinary program effects. Typed DerefMut may reuse the stock
+Vec's current/final mutable-borrow relation; it must reject an attempted mutable
+borrow of an ordinary owner from ghost code. The old raw B4 erasure witness
+remains frozen and preserved. Positive mutation-to-shared composition already
+passed in phase2-final-67; the typed-trait positive and separate final-relation
+and ghost-borrow controls are a bounded experiment, not an annotation fix for
+the old representation. Two equivalent failures require interface review; three
+require restructuring under the playbook.
+
+Next thaw experiment retains B1's original sealed RawAllocation in the private
+owner. A body-proved borrowed metadata helper may derive a BoundPtr without
+copying Recovery or any physical authority. After actual receipts reunite full
+lifetime fractions, a private recovery body obtains the full original region.
+Existing B2 consumes that descriptor and region to rebuild Vec; B3 consumes
+them for cleanup. No new trusted bytes-specific thaw/protocol theorem is
+authorized. Formal byte contents and affine recovery are the acceptance checks.
+The canonical Vec model lacks pointer/capacity identity, so native identity
+checks and the reviewed B2 mapping are recorded separately from formal output
+identity. Failure sources must be archived before restructuring.
