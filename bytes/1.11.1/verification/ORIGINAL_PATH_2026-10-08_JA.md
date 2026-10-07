@@ -30,3 +30,10 @@ allocation identity/ownership/refcountは仮定しない。Astraレビュー済�
 元crate native lib/integration 1009、leaf native tests 5が通過。
 証拠: `artifacts/component-evidence/storage-raw-copy-2026-10-08/manifest.json`。
 trust除去はこのleaf内に限定できるが、BytesMutとB1 capabilityの対応は別途未完了。
+
+### 元のconstructor bodyの無改造診断
+
+`probes/original-constructor-2026-10-08/evidence/diagnostic-result.json` は、
+sidecar追加前の実field/bodyをsource hashで固定した診断。native constructor 2 testsは通過。
+翻訳はinvalid_ptr内のpointer→usize castで停止し、Comaは0。ManuallyDrop/newとwrapping_addの契約不足も出ている。
+この結果は保存sourceだけに適用し、後続instrumentationの結果と混同しない。

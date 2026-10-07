@@ -1,0 +1,49 @@
+   Compiling bytes-original-constructor-probe v0.1.0 (/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/original-constructor-2026-10-08)
+warning: bytes-original-constructor-probe@0.1.0: original-constructor extraction: snapshot=cd4dd691c3ecfedfa7cbf8db095bb1d6eebefbcdc71c67f0304e467a2d45e29d; live_source_matches=true
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:21:40
+   |
+21 | pub fn capacity_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                        ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:32:36
+   |
+32 | pub fn base_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                    ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+
+warning: `creusot-std` (lib) generated 2 warnings (run `cargo fix --lib -p creusot-std` to apply 2 suggestions)
+warning: unused import: `creusot_std::prelude::*`
+ --> src/lib.rs:7:5
+  |
+7 | use creusot_std::prelude::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: calling external function `new` with no contract will yield an impossible precondition
+  --> /workspace/bytes-proof-tools/targets/bytes-original-constructor-20261008/debug/build/bytes-original-constructor-probe-d0f6e24b9ae048a2/out/original_constructor.rs:46:23
+   |
+46 |         let mut vec = ManuallyDrop::new(vec);
+   |                       ^^^^^^^^^^^^^^^^^^^^^^ function called here
+   |
+   = note: `#[warn(creusot::contractless_external_function)]` on by default
+
+warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
+  --> /workspace/bytes-proof-tools/targets/bytes-original-constructor-20261008/debug/build/bytes-original-constructor-probe-d0f6e24b9ae048a2/out/original_constructor.rs:80:15
+   |
+80 |     let ptr = core::ptr::null_mut::<u8>().wrapping_add(addr);
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
+
+error: Unsupported pointer cast: move _11 as usize (PointerExposeProvenance)
+  --> /workspace/bytes-proof-tools/targets/bytes-original-constructor-20261008/debug/build/bytes-original-constructor-probe-d0f6e24b9ae048a2/out/original_constructor.rs:81:22
+   |
+81 |     debug_assert_eq!(ptr as usize, addr);
+   |                      ^^^^^^^^^^^^
+
+warning: `bytes-original-constructor-probe` (lib) generated 3 warnings
+warning: bytes-original-constructor-probe@0.1.0: original-constructor extraction: snapshot=cd4dd691c3ecfedfa7cbf8db095bb1d6eebefbcdc71c67f0304e467a2d45e29d; live_source_matches=true
+error: could not compile `bytes-original-constructor-probe` (lib) due to 1 previous error; 3 warnings emitted
+Error: Compilation failed
