@@ -8,7 +8,7 @@
 use creusot_std::prelude::*;
 
 #[cfg(creusot)]
-use super::writes::{append_model_holds, model_be_bytes, model_le_bytes};
+use super::encoding_spec::{append_model_holds, model_be_bytes, model_le_bytes};
 use super::{cursor::Cursor, exclusive::ExclusiveBytes};
 
 /// A binary32 wire word. Its view is exactly the stored `u32` bit pattern.

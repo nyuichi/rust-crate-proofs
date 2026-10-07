@@ -203,3 +203,32 @@ native_proof_feature_difference fields compared only requested CLI feature
 lists; they must not be read as proof of identical dependency feature graphs.
 That correction does not change the completed engine results. Earlier failed
 229 candidates and native import diagnostics are preserved.
+
+## Concrete adapters, public encoding models and explicit iteration (255)
+
+`adapters-public-spec-255`: complete engine exit 0, Proved (255 files),
+255 Coma/proof JSON files, zero null leaves and 32 matching native tests.
+Root independently checked all 561 archive members:
+`5025308b66066f2d308eb731334b701f554430b047011c04038aa7c8f2b4ae74`.
+The configuration remains host verified,std with the unchanged primitive TCB.
+
+LimitedCursor exposes a bounded prefix and advances its underlying cursor;
+ChainedCursor copies across the two slices, preserves failed destinations and
+supports a checked numeric read. Actual shared-storage clients compose both
+with the physical lifetime and cleanup protocol. Borrowed iteration uses the
+stock slice iterator; OwnedByteCursor retains ExclusiveBytes and closes
+explicitly. Its successful next_byte contract specifies the full remaining
+suffix. No automatic Iterator destructor cleanup is claimed.
+
+Two equivalent sequence-composition failures triggered structural redesign:
+separate ghost helper bodies prove nested-suffix composition and two-piece
+prefix reassembly using stock sequence extensionality. They and their actual
+callers are included in the integrated positive run; no assumption or weaker
+postcondition replaces the failed goals. Initial semantic failures and the
+intermediate snapshot frontend diagnostic remain archived.
+
+Encoding byte-sequence models are now public and shared by integer and bit-word
+writes. A separate downstream crate test remains required before claiming
+external contract usability. Capacity identity, no_std adoption, further trait
+observers, configured targets and failure paths remain outstanding. D09 and D10
+record concrete Serde and callback-unwind boundaries; neither is completion.
