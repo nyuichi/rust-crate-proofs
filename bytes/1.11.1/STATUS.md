@@ -54,6 +54,13 @@ shared authority/access encoding are missing. Full shared architecture is not
 admitted; original Clone and automatic Drop have known tool boundaries.
 This increment adds no API body proof and makes no unchanged-sidecar reuse claim.
 
+Tokenless shared-update investigation (2026-10-08): an actual B1→GhostShared→
+two B4 read diagnostic proves34 files, but consuming extraction for B3 fails
+E0507. Stock shared mutation paths still require Tokens/affine permission;
+a simple new committer opening method has a reentrancy defect. No original
+Clone architecture was admitted, and production Bytes sources were unchanged.
+See [the diagnostic result](verification/probes/tokenless-sharing-2026-10-08/RESULTS_JA.md).
+
 The remaining material below is a historical record of prior targets,
 experiments and component evidence. Its claims apply to the source snapshots
 and configurations stated in each section, not to the current post-removal

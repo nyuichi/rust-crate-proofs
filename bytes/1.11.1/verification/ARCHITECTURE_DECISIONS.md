@@ -356,3 +356,29 @@ negative controls. No new failure replay was needed for this design decision.
 This fixes the architecture gate without abandoning the original target or
 discarding useful historical proofs. Full API generalization must prove the
 strong contract, with bounded branch lemmas called and not relabeled as full APIs.
+
+## D2026-10-08-T — Tokenless immutable sharing is not reclaimable ownership
+
+A changed-premise stock GhostShared diagnostic consumes the actual Vec via B1
+and duplicates readonly witnesses through &self. Two actual B4 byte reads
+prove34 files. Attempted consuming extraction for B3 is rejected E0507 before
+translation. Its immutable arbitrary-lifetime access has no lastness or owned
+extraction. Do not adopt this interface as complete original Clone/cleanup
+architecture or add an extraction axiom conflicting with its shared lifetimes.
+
+Luna audited the stock shared mutation surfaces; none removes the absent
+Tokens/affine permission from original Clone(&self). Astra reviewed the result
+and rejected a simple open_at(existing AtomicInvariant, &mut Committer, f)
+addition: f can reopen the same invariant via independent existing Tokens, and
+commit permission integration remains missing. No such trusted opening was added.
+
+Reopen only with an adequate generic atomic-event-bound opening/update/recovery
+interface preserving original API and native ordering, rejecting alternate-entry
+reentrancy, duplicate event use, missing Acquire and premature recovery. A new
+restricted invariant type is a research candidate, not a proved small wrapper
+or a temporary trusted contract with demonstrated local removal. Existing
+D01/D02/D05 and original Drop boundaries remain fixed.
+
+Evidence/source audit and detailed reasoning:
+probes/tokenless-sharing-2026-10-08/RESULTS_JA.md and audit.json. No bytes-specific
+protocol trust, production representation change or original API proof added.

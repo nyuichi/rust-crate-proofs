@@ -99,3 +99,14 @@ clone/slice/split/freeze/release/transfer/Dropの強い契約を設計した。A
 shared ghost access/readonly lifetime/token/weak atomic/Drop境界のadmissionを先に確認し、
 新前提なしに同じ失敗を再試行しない。今回production変更・新API body証明はない。
 archive全member hash、現source一致、active tool factをread-only auditで再確認した。
+
+### 元Clone(&self)の共有更新関門: 方法未確立として固定
+
+stock GhostSharedで実B1 capabilityを永久保持し、&selfから共有witnessを複製して
+二つの実B4 readを証明した（34 files）。しかしB3向け回収はE0507で拒否、Coma0。
+読み出しだけの永久保持はcomplete lifecycleには採用しない。Lunaがstock全関連API、
+Astraがresource adequacyとcommitter opening案を検討。新generic ruleなしに
+原Cloneの共有更新+回収を両立する方法は見つかっていない。productionは無変更。
+新opening案は同invariantへのalternate Tokens再入を排除できず採用しなかった。
+再開条件はD2026-10-08-Tで固定。証拠とコード:
+`probes/tokenless-sharing-2026-10-08/RESULTS_JA.md`、`audit.json`。
