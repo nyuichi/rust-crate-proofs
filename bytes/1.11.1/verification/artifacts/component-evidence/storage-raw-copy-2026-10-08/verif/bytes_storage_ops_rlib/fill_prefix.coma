@@ -1,0 +1,76 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/lib.rs" 14 0 14 72 *)
+
+let%span sstorage_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/../../../../src/storage_ops.rs" 32 11 32 31
+let%span sstorage_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/../../../../src/storage_ops.rs" 33 10 33 37
+let%span sstorage_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/../../../../src/storage_ops.rs" 34 10 34 71
+let%span sstorage_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/../../../../src/storage_ops.rs" 35 10 35 77
+let%span slib = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/lib.rs" 15 4 15 54
+let%span slib'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/lib.rs" 10 11 10 31
+let%span slib'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/lib.rs" 11 10 11 37
+let%span slib'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/lib.rs" 12 10 12 71
+let%span slib'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/lib.rs" 13 10 13 77
+
+use creusot.prelude.MutBorrow
+use creusot.slice.Slice64
+use creusot.int.UInt64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_MaybeUninit_u8
+
+type t_Option_u8 = None | Some UInt8.t
+
+function view_MaybeUninit_u8 (self: t_MaybeUninit_u8) : t_Option_u8
+
+let fill_uninit_prefix (dst: MutBorrow.t (Slice64.slice t_MaybeUninit_u8)) (count: UInt64.t) (value: UInt8.t)
+  (return (x: ())) = {[@stop_split] [@expl:fill_uninit_prefix requires] [%#sstorage_ops] UInt64.t'int count
+  <= Seq.length (Slice64.view dst.current)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:fill_uninit_prefix ensures] ([@stop_split] [@expl:fill_uninit_prefix ensures #0] [%#sstorage_ops'0] Seq.length (Slice64.view dst.final)
+      = Seq.length (Slice64.view dst.current))
+    /\ ([@stop_split] [@expl:fill_uninit_prefix ensures #1] [%#sstorage_ops'1] forall i: int. 0 <= i
+          /\ i < UInt64.t'int count -> view_MaybeUninit_u8 (Seq.get (Slice64.view dst.final) i) = Some value)
+    /\ ([@stop_split] [@expl:fill_uninit_prefix ensures #2] [%#sstorage_ops'2] forall i: int. UInt64.t'int count <= i
+        /\ i < Seq.length (Slice64.view dst.current)
+      -> view_MaybeUninit_u8 (Seq.get (Slice64.view dst.final) i)
+      = view_MaybeUninit_u8 (Seq.get (Slice64.view dst.current) i))}
+    (! return {result}) ]
+
+predicate resolve_refmut_slice_MaybeUninit_u8 [@inline:trivial] (_1: MutBorrow.t (Slice64.slice t_MaybeUninit_u8)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_slice_MaybeUninit_u8
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let fill_prefix [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/storage-ops/src/lib.rs" 14 0 14 72]
+  (dst: MutBorrow.t (Slice64.slice t_MaybeUninit_u8)) (count: UInt64.t) (value: UInt8.t) (return (x: ())) =
+{[@stop_split] [@expl:fill_prefix requires] [%#slib'0] UInt64.t'int count <= Seq.length (Slice64.view dst.current)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <Slice64.slice t_MaybeUninit_u8> {dst.current} {MutBorrow.get_id dst}
+        (fun (_bor: MutBorrow.t (Slice64.slice t_MaybeUninit_u8)) ->
+          [ &_16 <- _bor ] [ &dst <- { dst with current = _bor.final } ] s1)
+    | s1 = fill_uninit_prefix [%#slib] {_16} {count} {value} (fun (_x: ()) -> [ &_ret <- _x ] s2)
+    | s2 = -{resolve_refmut_slice_MaybeUninit_u8 dst}- s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & dst: MutBorrow.t (Slice64.slice t_MaybeUninit_u8) = dst
+  | & count: UInt64.t = count
+  | & value: UInt8.t = value
+  | & _16: MutBorrow.t (Slice64.slice t_MaybeUninit_u8) = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:fill_prefix ensures] ([@stop_split] [@expl:fill_prefix ensures #0] [%#slib'1] Seq.length (Slice64.view dst.final)
+      = Seq.length (Slice64.view dst.current))
+    /\ ([@stop_split] [@expl:fill_prefix ensures #1] [%#slib'2] forall i: int. 0 <= i /\ i < UInt64.t'int count
+        -> view_MaybeUninit_u8 (Seq.get (Slice64.view dst.final) i) = Some value)
+    /\ ([@stop_split] [@expl:fill_prefix ensures #2] [%#slib'3] forall i: int. UInt64.t'int count <= i
+        /\ i < Seq.length (Slice64.view dst.current)
+      -> view_MaybeUninit_u8 (Seq.get (Slice64.view dst.final) i)
+      = view_MaybeUninit_u8 (Seq.get (Slice64.view dst.current) i))}
+    (! return {result}) ]

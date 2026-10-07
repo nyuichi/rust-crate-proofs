@@ -20,3 +20,13 @@ receiverにモデルを加えるとICEは消えるが、元のgeneric boundsで�
 Vec再構成と実Shared control blockの生成を含む。元のbodyを検証せずpublic freezeをtrustedにして
 所有権移動が証明できたとは扱わない。静的vtableのfrontend障害とphysical capabilityの接続を別々に調査する。
 実Clone/自動Dropとrefcount保存はこの限定経路から結論しない。
+
+### 元のextendに接続した局所memory-effect境界
+
+`storage_ops::copy_to_uninit_prefix_raw`は元のnative memcpyをそのまま実行するordinary program leaf。
+一時trustedなのはtyped sliceへのcopy効果だけ（入力長のprefixがKnown、suffixと長さを保持）。
+allocation identity/ownership/refcountは仮定しない。Astraレビュー済み。
+同じ契約のループ実装bodyとcallerを含む5 filesがWhy3で通過。raw-copy bodyは未証明。
+元crate native lib/integration 1009、leaf native tests 5が通過。
+証拠: `artifacts/component-evidence/storage-raw-copy-2026-10-08/manifest.json`。
+trust除去はこのleaf内に限定できるが、BytesMutとB1 capabilityの対応は別途未完了。
