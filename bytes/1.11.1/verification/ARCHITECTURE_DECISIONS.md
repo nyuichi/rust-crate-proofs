@@ -185,3 +185,30 @@ Audited exact archives:
 - `verified-serde-serialize-229`: `6947ef468ed267ecc4bb0ac4696194bb7696ae8787642cce7b49620aa34decbe`.
 - `verified-serde-deserialize-229`: `c2489d452ff2f6191b6d360eed0986a770b978f9b5865313959bb82ff6679ca4`.
 - `verified-serde-deserialize-conversions-229`: `2b40df5521b325ad573960639037e4baa58ce2b34a3ef28f2bc2ac2bc34ca8f5`.
+
+## D10: caught callback panic and exceptional resource framing
+
+Freeze the attempted stock-tool catch_unwind route after a distinguishing actual
+implementation and Astra review. The candidate retains each ReadHandle, ticket
+and worker token outside the user callback's catch boundary, retires after either
+Ok or Err, joins workers, and explicitly closes or thaws the parent owner before
+returning or resuming a panic. Native tests pass 30/30, including first, second
+and both callback panics, empty/spare-capacity allocations and thaw identity.
+
+The actual configured translation crashes in backend/resolve.rs:187 while
+resolving the caught Box<dyn Any + Send> payload. No Coma or proof obligations
+are generated; zero null leaves here is not a successful proof. Independently,
+the stock contracts lack catch_unwind/resume_unwind exceptional-effect framing.
+An ordinary FnOnce normal-return postcondition does not establish preservation
+of resources on unwind. The exact candidate, native log, translation diagnostics
+and compiler crash are archived as callback-panic-catch-unwind-ice-229:
+`f4de2c948a77decfbf7b11c43d899d06c24df9fb5aafbb7dd05df4f0e567ca4d`.
+Root independently checked all 49 archive members and their hashes.
+
+No exceptional bytes ownership theorem or trusted catch wrapper is introduced.
+Reopen only with relevant payload translation support and a reviewed generic
+exceptional-effect interface, or a genuinely different enforceable callback
+interface whose failure behavior can be proved. Cosmetic payload wrappers,
+timeouts and normal-return contracts alone are insufficient. Panic/unwind remains
+uncovered; the failed candidate is not retained in production. Thread creation
+failure is a distinct pending experiment and is not decided by this result.
