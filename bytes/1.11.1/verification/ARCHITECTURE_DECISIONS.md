@@ -241,3 +241,31 @@ extension is still under adequacy review; this decision does not reject it or
 mark thread-creation failure covered. In particular, failure must preserve the
 unexecuted closure's borrowed resources without assuming its normal FnOnce
 postcondition. No production source was changed by these experiments.
+
+Adequacy follow-up: reject the proposed unrestricted F error frame. A concrete
+native startup failure drops F, whose owned Drop guard mutates an Arc<AtomicUsize>
+also held by the parent slot. The callback body never runs, yet the aliased state
+changes. A Copy bound rejects this owned destructor capture with Rust E0277.
+Both observations, pinned Rust/std sources and exact logs are preserved in
+builder-error-drop-alias-copy-negative-229,
+`64e3b77915dbb2d3fca108b735511695361962774ca36c2a46b9e7f525ad8795`;
+root independently checks all 14 members. This is native/typechecking evidence,
+not a formal proof. The restricted F: Copy, explicit mutable-slot, Option-return
+standard wrapper is a new bounded experiment still pending its actual caller
+proof and mutated-slot-then-failure negative. It frames only the slot's ordinary
+value/prophecy and does not assert that independent synchronized state or all
+globals stay unchanged. No bytes-specific resource theorem is authorized.
+
+Adequacy review rejected an unrestricted generic error-frame proposal with a
+concrete native counterexample: the unstarted closure captures a Drop guard
+holding an Arc clone of state also present in the parent slot. Creation Err
+drops the closure, the guard changes that atomic state, and the closure body
+never runs. Exclusive borrowing of the outer slot does not exclude such aliases.
+Freeze the unrestricted error-frame claim; normal FnOnce postconditions cannot
+repair it. An enforceable F: Copy restriction rejects that Drop capture (E0277)
+and removes this particular destructor effect. It remains a new, unproved
+generic standard-boundary experiment, with no claim about unrelated threads or
+global observations. Both native witnesses and pinned source are preserved in
+builder-error-drop-alias-copy-negative-229:
+`64e3b77915dbb2d3fca108b735511695361962774ca36c2a46b9e7f525ad8795`.
+Root audited all 14 file members. No Creusot proof is claimed by this archive.

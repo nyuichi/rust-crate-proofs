@@ -83,3 +83,20 @@ a claim that the proof dependency graph is a no_std-linkable binary. This is
 still a candidate, pending the relocated std graph proof and final production
 adoption. Later public-math and capacity changes require an updated integration;
 the 221 count is not the complete production API count.
+
+The same candidate's relocated std graph subsequently completes 255 proof
+files, exit 0, zero null leaves, with 32 native tests. Root independently checks
+its exact source/configuration archive, relocated-scoped-candidate-255:
+`7e6839878d1a9a0eb929ea874f838dd9206b0a120b6b74cff30c4238ce3dedd3`.
+This proves the module relocation preserves the full saved 255-source graph;
+production adoption and composition with later public-math/capacity changes
+remain separate steps.
+
+The same candidate's relocated std graph then passes the complete configured
+proof: 255 Coma/proof JSON files, zero null leaves, engine exit 0. Archive
+relocated-scoped-candidate-255:
+`7e6839878d1a9a0eb929ea874f838dd9206b0a120b6b74cff30c4238ce3dedd3`.
+Root independently audited all captured members. This establishes the actual
+sharing protocol's composition after relocation; it does not combine a disconnected
+core model with a different std representation. Production adoption is pending
+the concurrent public-math source gate's capture; its source must be preserved.
