@@ -21,8 +21,8 @@ exact actual Std dependency sources and feature graphs accompany the capture.
 Proof-file counts are not API-completion counts. Read
 [MODIFIED_VARIANT_PROGRESS.md](verification/MODIFIED_VARIANT_PROGRESS.md).
 
-The initialized LimitedWriter is now integrated from its exact293-file verified,std
-positive, with Root source-parity audit and native51 std /22 alloc. Older287/247
+Initialized LimitedWriter and ChainedWriter are now integrated from the exact298-file
+verified,std positive, with Root source-parity audit and native54 std /22 alloc. Older287/247
 configuration gates apply to the805 snapshot; final enlarged-source gates remain pending.
 
 The complete modified variant remains NOT COMPLETE. The small generic capacity,
