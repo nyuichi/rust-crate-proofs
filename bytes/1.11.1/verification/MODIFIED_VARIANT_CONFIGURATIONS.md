@@ -56,3 +56,30 @@ Astra reviewed a minimal replacement of the existing standard Vec contracts as
 the next step. That would extend the generic standard-library TCB explicitly,
 not prove the standard implementation or trust a bytes-specific ownership law.
 The installed tool/library source has not yet been changed.
+
+## Updated alloc-only candidate (255-source API core)
+
+The exact adapters-public-spec-255 source was copied into an isolated candidate.
+Alloc APIs remain at the verified root; the std sharing implementation and its
+children move behind a scoped module and retain public reexports. Cargo no
+longer forces bytes/std when verified is enabled; creusot-std default features
+are disabled, with bytes/std explicitly enabling its std contracts. A scoped
+write lifecycle unit test is correctly gated on std; core tests remain enabled.
+
+Native no-default-features verified library check passes, with actual feature
+lists bytes=[verified], creusot-std=[]. Fourteen core tests pass. The same
+candidate's verified,std library check and all 32 native tests also pass.
+The configured alloc-only proof completes 221 Coma/proof JSON files, exit 0,
+zero null leaves. Root independently audited all 496 archive members:
+alloc-only-candidate-221,
+`916e76b2e9ef4452bb45c7b464ba8a20ab948595634f28b3a6db1ce319c00df3`.
+
+The proof deliberately enables creusot-std/std for the existing alloc::Vec
+contracts while bytes/std remains false. Actual dependency feature lists are
+captured, including implicit creusot/nightly. Std reexports alloc::Vec and these
+are the same canonical Rust type; the runtime branch and selected bytes core
+source remain the same. This correspondence supports the core body proof, not
+a claim that the proof dependency graph is a no_std-linkable binary. This is
+still a candidate, pending the relocated std graph proof and final production
+adoption. Later public-math and capacity changes require an updated integration;
+the 221 count is not the complete production API count.
