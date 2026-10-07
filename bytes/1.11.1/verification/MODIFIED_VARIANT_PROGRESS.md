@@ -317,3 +317,10 @@ runtime change was needed. production-closed-io-zeroed-type-frontier archive:
 `54742d5fdee8f1deb84152283e06fd0b7a95eeafac7482be9add10778b3ba4d8`.
 Future source integration must use independently audited positive source hashes
 and regenerate patches from those snapshots, rather than assume draft parity.
+
+The current closed-API production alloc core also completes226 files, exit0,
+zero null leaves, with16 native core tests. The exact current source and logs
+are independently audited in production-closed-io-core-226, SHA256
+`425e40a45029106ca8f57fd748c69f7d1679ca3bf9abec1d2a28200307ad58dc`.
+As before, bytes/std=false but proof-only creusot-std/std=true; the genuinely
+alloc-only library port remains a separate in-progress configuration.

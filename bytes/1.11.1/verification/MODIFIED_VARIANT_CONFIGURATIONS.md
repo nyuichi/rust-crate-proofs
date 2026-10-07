@@ -150,3 +150,10 @@ cleanup, copied string append, framed partial-prefix reads and concrete
 Read/Write methods. No universal IO implementer law is assumed. Its source is
 not yet integrated in production. Initial frontend/configuration/socket failures
 are archived separately; the elevated replay is the proof result.
+
+The current closed-API production alloc core also completes226 files, exit0,
+zero null leaves, with16 native core tests. The exact current source and logs
+are independently audited in production-closed-io-core-226, SHA256
+`425e40a45029106ca8f57fd748c69f7d1679ca3bf9abec1d2a28200307ad58dc`.
+As before, bytes/std=false but proof-only creusot-std/std=true; the genuinely
+alloc-only library port remains a separate in-progress configuration.
