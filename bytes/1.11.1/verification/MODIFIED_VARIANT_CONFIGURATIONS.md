@@ -176,3 +176,14 @@ The actual protocol cannot recover the peer AtView without synchronization.
 The orphan sandbox invocation is preserved separately as an environment failure.
 Final enlarged API/cross-target configurations and generic primitive adequacy
 remain separate obligations; MSP alloc-only does not include scoped atomics.
+
+## Current integrated source: finite cursor and all combined APIs
+
+The production source at 805f61e3 now has independently audited host positives:
+
+| Configuration | Bodies / proof JSON | Null results | Native library tests | Archive SHA-256 |
+|---|---:|---:|---:|---|
+| verified,std,extra-platforms (actual portable AtomicUsize/fence) | 287 / 287 | 0 | 48 | eff1fb5498ac99a65327d9b62c64c3809e34d98f61906c4899422dc049f183d7 |
+| verified (alloc only, target Std alloc/creusot/creusot-deps/nightly) | 247 / 247 | 0 | 22 | e2ed53f1ddc1812ea262c71d28271f0b349eb9b9e6937d5343a85aea6795fcfd |
+
+These share identical compiled Cargo/src bytes; no proof-only target std feature is injected into the alloc configuration. Host proc-macro dependencies may use std. Older cross-target/alloc candidates above remain historical snapshots, not these source gates. Current-source i686, powerpc64 and true MSP43016 proof gates and std without extra-platforms remain pending. The small reviewed Std support installer regenerates a bytes-local ignored Cargo override to a pinned private package; all actual source contracts, patches and hashes are in each new capture.
