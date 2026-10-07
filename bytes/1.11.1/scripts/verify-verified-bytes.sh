@@ -36,7 +36,7 @@ if [[ "$feature_tree" == *'creusot-std feature "sc-drf"'* ]]; then
   printf 'sc-drf must be disabled\n' >&2
   exit 2
 fi
-cargo clean --package bytes
+cargo clean --package bytes "${target_args[@]}"
 rm -rf -- verif
 cargo creusot --only=coma -- --locked --lib --no-default-features --features "$task_features" "${target_args[@]}"
 cargo creusot clean --force
