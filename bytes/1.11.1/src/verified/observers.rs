@@ -59,6 +59,34 @@ impl PartialOrd<ExclusiveBytes> for [u8] {
     }
 }
 
+impl PartialEq<Vec<u8>> for ExclusiveBytes {
+    #[ensures(result == (self.deep_model() == other.deep_model()))]
+    fn eq(&self, other: &Vec<u8>) -> bool {
+        self.as_slice() == &**other
+    }
+}
+
+impl PartialOrd<Vec<u8>> for ExclusiveBytes {
+    #[ensures(result == self.deep_model().partial_cmp_log(other.deep_model()))]
+    fn partial_cmp(&self, other: &Vec<u8>) -> Option<Ordering> {
+        Some(self.as_slice().cmp(&**other))
+    }
+}
+
+impl PartialEq<ExclusiveBytes> for Vec<u8> {
+    #[ensures(result == (self.deep_model() == other.deep_model()))]
+    fn eq(&self, other: &ExclusiveBytes) -> bool {
+        &**self == other.as_slice()
+    }
+}
+
+impl PartialOrd<ExclusiveBytes> for Vec<u8> {
+    #[ensures(result == self.deep_model().partial_cmp_log(other.deep_model()))]
+    fn partial_cmp(&self, other: &ExclusiveBytes) -> Option<Ordering> {
+        Some((&**self).cmp(other.as_slice()))
+    }
+}
+
 impl ExclusiveBytes {
     /// Compares this owner's bytes with a string's UTF-8 bytes using a temporary copy.
     #[ensures(result == (self.deep_model() == other@.to_bytes().map(|byte: u8| byte@)))]
@@ -349,7 +377,7 @@ pub fn digest_and_hex_close(source: ExclusiveBytes) -> (u64, ExclusiveBytes) {
     (digest, encoded)
 }
 
-#[cfg(all(test, not(creusot), feature = "std"))]
+#[cfg(all(test, not(creusot)))]
 mod tests {
     use super::*;
 
@@ -384,6 +412,20 @@ mod tests {
     }
 
     #[test]
+    fn cross_vec_comparisons_match_slice_equality_and_order() {
+        let owner = ExclusiveBytes::copy_from_slice(b"byte");
+        let equal = Vec::from(&b"byte"[..]);
+        let longer = Vec::from(&b"bytes"[..]);
+        let shorter = Vec::from(&b"byt"[..]);
+        assert!(owner == equal);
+        assert!(equal == owner);
+        assert!(owner < longer);
+        assert!(shorter < owner);
+        assert!(owner != longer);
+        owner.close();
+    }
+
+    #[test]
     fn explicit_string_comparison_uses_utf8_bytes_and_closes_temporary_copies() {
         let owner = ExclusiveBytes::copy_from_slice("café".as_bytes());
         assert!(owner.eq_str_copy("café"));
@@ -398,10 +440,10 @@ mod tests {
     }
 }
 
-#[cfg(all(test, not(creusot), feature = "std"))]
+#[cfg(all(test, not(creusot)))]
 mod deterministic_tests {
     use super::{digest_and_hex_close, ExclusiveBytes};
-    use std::vec;
+    use alloc::vec;
 
     #[test]
     fn deterministic_digest_and_hex_model_match_and_close() {
