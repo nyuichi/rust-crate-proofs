@@ -281,3 +281,20 @@ routes, after Astra review. Two missing decimal byte-range model prerequisites
 are separately repairable, not a formatting impossibility claim. Explicit
 deterministic byte-digest/hex-byte APIs remain in development. Their semantics
 will be stated directly rather than presented as generic Hash/Debug verification.
+
+The relocated production std graph subsequently completes all 255 files, exit 0,
+zero null results, with the matching 32 native tests. Independently audited
+production-relocated-std-255 archive:
+`aed75d692ae671d64ec71a1e670a94e349b0b44aba82b57976df8477cbbaf018`.
+This closes host integration for the scoped relocation and current public read
+models; later additions and genuine alloc-only proof dependencies remain separate.
+
+An isolated closed convenience/IO candidate completes 263 files, zero nulls,
+exit 0, and 37 native tests. Root audits its exact source and all members:
+closed-api-conveniences-io-263, SHA256
+`be686ccc2abf42009caf4320d334fc81df4e10bf38fccc040462d3d26173a7db`.
+It proves initialized zero allocation, clear, consuming append with explicit
+cleanup, copied string append, framed partial-prefix reads and concrete
+Read/Write methods. No universal IO implementer law is assumed. Its source is
+not yet integrated in production. Initial frontend/configuration/socket failures
+are archived separately; the elevated replay is the proof result.
