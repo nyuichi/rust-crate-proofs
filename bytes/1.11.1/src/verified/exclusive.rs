@@ -136,6 +136,48 @@ impl ExclusiveBytes {
         self.truncate(0);
     }
 
+    /// Copies the suffix starting at `index`, retaining the prefix in `self`.
+    ///
+    /// The returned owner has its own Vec allocation. Both owners must be
+    /// explicitly closed by their callers.
+    #[ensures(match result {
+        Some(suffix) => index@ <= self@.len() &&
+            (^self)@ == self@.subsequence(0, index@) &&
+            suffix@ == self@.subsequence(index@, self@.len()),
+        None => index@ > self@.len() && (^self)@ == self@,
+    })]
+    pub fn try_split_off_copy(&mut self, index: usize) -> Option<Self> {
+        if index > self.bytes.len() {
+            None
+        } else {
+            let suffix = Self::copy_from_slice(&self.bytes[index..]);
+            self.truncate(index);
+            Some(suffix)
+        }
+    }
+
+    /// Copies the prefix before `index`, retaining the suffix in `self`.
+    ///
+    /// The returned owner has its own Vec allocation. Both owners must be
+    /// explicitly closed by their callers.
+    #[ensures(match result {
+        Some(prefix) => index@ <= self@.len() &&
+            prefix@ == self@.subsequence(0, index@) &&
+            (^self)@ == self@.subsequence(index@, self@.len()),
+        None => index@ > self@.len() && (^self)@ == self@,
+    })]
+    pub fn try_split_to_copy(&mut self, index: usize) -> Option<Self> {
+        if index > self.bytes.len() {
+            None
+        } else {
+            let prefix = Self::copy_from_slice(&self.bytes[..index]);
+            let suffix = Self::copy_from_slice(&self.bytes[index..]);
+            self.clear();
+            self.append_owner(suffix);
+            Some(prefix)
+        }
+    }
+
     /// Appends another owner and explicitly closes its allocation.
     #[ensures((^self)@ == self@.concat(other@))]
     pub fn append_owner(&mut self, other: Self) {
@@ -294,5 +336,68 @@ mod tests {
         assert_eq!(zeroes.as_slice(), &[0, 0, 0, 0, 0]);
         zeroes.close();
         ExclusiveBytes::zeroed(0).close();
+    }
+
+    #[test]
+    fn checked_copy_splits_preserve_sequences_and_close_both_owners() {
+        let mut empty_with_spare = ExclusiveBytes::from_vec(Vec::with_capacity(8));
+        let empty_suffix = empty_with_spare.try_split_off_copy(0).unwrap();
+        assert_eq!(empty_with_spare.as_slice(), &[]);
+        assert_eq!(empty_suffix.as_slice(), &[]);
+        empty_suffix.close();
+        assert!(empty_with_spare.try_split_to_copy(1).is_none());
+        assert_eq!(empty_with_spare.as_slice(), &[]);
+
+        empty_with_spare.extend_from_slice(&[10, 20, 30, 40]);
+        let prefix = empty_with_spare.try_split_to_copy(2).unwrap();
+        assert_eq!(prefix.as_slice(), &[10, 20]);
+        assert_eq!(empty_with_spare.as_slice(), &[30, 40]);
+        prefix.close();
+        empty_with_spare.close();
+
+        let mut at_zero = ExclusiveBytes::from_vec(vec![1, 2, 3]);
+        let all_bytes = at_zero.try_split_off_copy(0).unwrap();
+        assert_eq!(at_zero.as_slice(), &[]);
+        assert_eq!(all_bytes.as_slice(), &[1, 2, 3]);
+        all_bytes.close();
+        at_zero.close();
+
+        let mut split_off_middle = ExclusiveBytes::from_vec(vec![1, 2, 3]);
+        let suffix = split_off_middle.try_split_off_copy(2).unwrap();
+        assert_eq!(split_off_middle.as_slice(), &[1, 2]);
+        assert_eq!(suffix.as_slice(), &[3]);
+        suffix.close();
+        split_off_middle.close();
+
+        let mut at_end = ExclusiveBytes::from_vec(vec![1, 2, 3]);
+        let empty = at_end.try_split_off_copy(3).unwrap();
+        assert_eq!(at_end.as_slice(), &[1, 2, 3]);
+        assert_eq!(empty.as_slice(), &[]);
+        empty.close();
+        at_end.close();
+
+        let mut split_to_zero = ExclusiveBytes::from_vec(vec![1, 2, 3]);
+        let empty = split_to_zero.try_split_to_copy(0).unwrap();
+        assert_eq!(empty.as_slice(), &[]);
+        assert_eq!(split_to_zero.as_slice(), &[1, 2, 3]);
+        empty.close();
+        split_to_zero.close();
+
+        let mut split_to_end = ExclusiveBytes::from_vec(vec![1, 2, 3]);
+        let all_bytes = split_to_end.try_split_to_copy(3).unwrap();
+        assert_eq!(all_bytes.as_slice(), &[1, 2, 3]);
+        assert_eq!(split_to_end.as_slice(), &[]);
+        all_bytes.close();
+        split_to_end.close();
+
+        let mut invalid_off = ExclusiveBytes::from_vec(vec![1, 2, 3]);
+        assert!(invalid_off.try_split_off_copy(4).is_none());
+        assert_eq!(invalid_off.as_slice(), &[1, 2, 3]);
+        invalid_off.close();
+
+        let mut invalid_to = ExclusiveBytes::from_vec(vec![1, 2, 3]);
+        assert!(invalid_to.try_split_to_copy(4).is_none());
+        assert_eq!(invalid_to.as_slice(), &[1, 2, 3]);
+        invalid_to.close();
     }
 }

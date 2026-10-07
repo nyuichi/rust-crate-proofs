@@ -343,3 +343,19 @@ The actual protocol cannot recover the peer AtView without synchronization.
 The orphan sandbox invocation is preserved separately as an environment failure.
 Final enlarged API/cross-target configurations and generic primitive adequacy
 remain separate obligations; MSP alloc-only does not include scoped atomics.
+
+## Copied checked splits and specified iterator append in production
+
+Actual production with the portable backend completes266 proof files, exit0,
+zero nulls; std/portable native38 and core native17 tests pass. Root independently
+audits all archived members/results in production-copied-splits-portable-266.
+The two checked copy splits specify exact retained/returned sequences and
+invalid-index source preservation. Both owners require explicit cleanup;
+try_split_to_copy closes its temporary suffix through append_owner. These are
+functional copy replacements, not O(1), shared allocation or persistent handles.
+append_iter consumes only an IteratorSpec-constrained conversion and closes
+the temporary owner; no arbitrary downstream iterator law is trusted.
+The separate isolated nonportable266 source is also preserved and audited in
+copied-checked-splits-append-iter, SHA256
+`63b22a789cd98528d78f55ae92cdecccfcfd10f924db1e7d03e3483d1ef68151`.
+Final configurations still require the eventual complete API source.

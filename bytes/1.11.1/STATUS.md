@@ -12,7 +12,7 @@ claimed fully verified. Read [MODIFIED_VARIANT_SPEC.md](verification/MODIFIED_VA
 Bounded architecture admission PASSED. Subsequent production increments prove
 recursive scoped sharing, ordinary exclusive mutation connected to sharing,
 checked numeric Cursor operations and reusable immutable scoped callbacks.
-The latest committed production run, public-read-models-263 (04fa51a1), proves
+The latest committed production run, public-read-models-266 (04fa51a1), proves
 255 files with zero null leaves and 32 passing native tests. It includes affine
 thaw/recovery, conversions, signed/unsigned/endian writes, exact float-bit
 transport, ordering, checked chain/limit adapters and explicit iteration.

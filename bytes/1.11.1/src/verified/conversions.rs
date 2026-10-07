@@ -54,6 +54,24 @@ impl ExclusiveBytes {
         let bytes: Vec<u8> = Vec::from_iter(source);
         Self::from_vec(bytes)
     }
+
+    /// Appends an iterator whose actual iterator type has an `IteratorSpec` contract.
+    #[requires(I::into_iter.precondition((source,)))]
+    #[ensures(exists<initial: <I as IntoIterator>::IntoIter,
+                     done: &mut <I as IntoIterator>::IntoIter,
+                     produced: Seq<u8>>
+        I::into_iter.postcondition((source,), initial) &&
+        initial.produces(produced, *done) &&
+        done.completed() && resolve(^done) &&
+        (^self)@ == self@.concat(produced))]
+    pub fn append_iter<I>(&mut self, source: I)
+    where
+        I: IntoIterator<Item = u8>,
+        I::IntoIter: IteratorSpec,
+    {
+        let appended = Self::from_iter(source);
+        self.append_owner(appended);
+    }
 }
 
 /// Copies a slice, updates one byte, and sends the resulting allocation
@@ -108,6 +126,11 @@ mod tests {
         let iterated = ExclusiveBytes::from_iter(alloc::vec![b'i', b't', b'e', b'r'].into_iter());
         assert_eq!(iterated.as_slice(), b"iter");
         iterated.close();
+
+        let mut appended_iter = ExclusiveBytes::from_vec(b"before:".to_vec());
+        appended_iter.append_iter(alloc::vec![b'a', b'f', b't', b'e', b'r'].into_iter());
+        assert_eq!(appended_iter.as_slice(), b"before:after");
+        appended_iter.close();
 
         let equal_left = ExclusiveBytes::copy_from_slice(b"same");
         let equal_right = ExclusiveBytes::from_string(String::from("same"));

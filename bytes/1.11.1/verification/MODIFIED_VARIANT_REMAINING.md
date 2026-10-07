@@ -3,17 +3,17 @@
 This is an obligation inventory for the user-selected changed API, not approval
 to omit legacy responsibilities without recording correspondence. Read the
 frozen decisions before attempting a blocked unchanged representation.
-Latest committed production proof: production-closed-io-263,
+Latest committed production proof: production-copied-splits-portable-266,
 std/x86_64, normal return. Counts describe proof files, not API completion.
 
 | Responsibility | Current connected evidence | Next obligation |
 |---|---|---|
-| Sharing/concurrency | Arbitrary finite scoped tree; two reusable HRTB callbacks; actual weak Release/Acquire retirement | Checked ranged HRTB views proved183; chained/limited scoped views proved255; explicit split correspondence remains; escaping Clone not claimed |
+| Sharing/concurrency | Arbitrary finite scoped tree; two reusable HRTB callbacks; actual weak Release/Acquire retirement | Checked ranged HRTB views proved183; chained/limited scoped views proved255; copy-split replacements and IteratorSpec append proved266; no O(1) shared split claim; escaping Clone not claimed |
 | Cleanup | Receipt-derived exactly-one retirement and consuming B3 | Failure/unwind/allocation-error behavior; no automatic Drop claim |
 | Mutable storage | Ordinary Vec-backed ExclusiveBytes, mutation-to-shared caller | Typed DerefMut and framing/erasure controls proved136; closed append/clear/zeroed additions pass production263; capacity remains |
 | Freeze/thaw | Vec moves into B1 and returns to B3 | Complete affine recovery/B2 thaw proved143; formal returned pointer/capacity identity not supplied by stock Vec model |
 | Capacity | Reserve preserves contents; native Vec behavior | Formal numeric requested capacity and attached Vec identity; no extra bytes-specific trust |
-| Extend/write | set/push/pop/truncate/resize | Slice extension and fixed/variable signed/unsigned/endian writes proved229; representative downstream public-model clients proved6 with native3; generic iterator extension remains |
+| Extend/write | set/push/pop/truncate/resize | Slice extension and fixed/variable signed/unsigned/endian writes proved229; representative downstream public-model clients proved6 with native3; IteratorSpec append proved266; arbitrary iterator implementers still require their own contracts |
 | Cursor | Checked u8 and signed/unsigned 16/32/64/128 BE/LE, unsigned variable width, advance/copy | Integer families/aliases proved183; exact Float32Bits/64Bits transport proved229; native float materialization frozen D08; result-buffer/adapters correspondence remains |
 | Read/write adapters | Concrete Cursor/Read and ExclusiveBytes/Write proved263; reusable immutable callbacks | Concrete chaining/limit/reader/writer/iteration responsibilities connected to actual entry; no universal downstream Buf laws |
 | Conversions | Vec move-in/move-out ExclusiveBytes | Slice/static copies, String/Box ownership transfer and IteratorSpec conversion proved183; generic-owner replacement inventory and allocation correspondence remain |
