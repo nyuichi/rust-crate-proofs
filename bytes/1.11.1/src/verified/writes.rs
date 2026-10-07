@@ -327,6 +327,25 @@ impl ExclusiveBytes {
     }
 }
 
+#[cfg(feature = "std")]
+impl std::io::Write for ExclusiveBytes {
+    #[ensures(match result {
+        Ok(count) => count@ == source@.len()
+            && (^self)@ == self@.concat(source@),
+        Err(_) => false,
+    })]
+    fn write(&mut self, source: &[u8]) -> std::io::Result<usize> {
+        self.extend_from_slice(source);
+        Ok(source.len())
+    }
+
+    #[ensures((^self)@ == self@)]
+    #[ensures(match result { Ok(()) => true, Err(_) => false })]
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
 #[cfg(all(test, not(creusot)))]
 mod tests {
     use super::ExclusiveBytes;
@@ -733,5 +752,17 @@ mod tests {
         let mut invalid_native = ExclusiveBytes::from_vec(vec![0xaa]);
         assert!(!invalid_native.try_write_int_ne(-1, 9));
         assert_eq!(invalid_native.as_slice(), &[0xaa]);
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn standard_write_appends_all_bytes_and_flushes() {
+        use std::io::Write;
+
+        let mut bytes = ExclusiveBytes::from_vec(vec![1]);
+        assert_eq!(Write::write(&mut bytes, &[2, 3]).unwrap(), 2);
+        Write::flush(&mut bytes).unwrap();
+        assert_eq!(bytes.as_slice(), &[1, 2, 3]);
+        bytes.close();
     }
 }

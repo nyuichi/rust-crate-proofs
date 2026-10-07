@@ -32,6 +32,15 @@ impl ExclusiveBytes {
         Self { bytes }
     }
 
+    /// Creates `len` initialized zero bytes.
+    #[ensures(result@.len() == len@)]
+    #[ensures(forall<i: Int> 0 <= i && i < result@.len() ==> result@[i] == 0u8)]
+    pub fn zeroed(len: usize) -> Self {
+        let mut bytes = Self::from_vec(Vec::new());
+        bytes.resize(len, 0);
+        bytes
+    }
+
     /// Returns the owned vector and its byte sequence.
     #[ensures(result@ == self@)]
     pub fn into_vec(self) -> Vec<u8> {
@@ -119,6 +128,19 @@ impl ExclusiveBytes {
         while self.bytes.len() > target {
             self.bytes.pop();
         }
+    }
+
+    /// Removes all initialized bytes while retaining the allocation.
+    #[ensures((^self)@ == self@.subsequence(0, 0))]
+    pub fn clear(&mut self) {
+        self.truncate(0);
+    }
+
+    /// Appends another owner and explicitly closes its allocation.
+    #[ensures((^self)@ == self@.concat(other@))]
+    pub fn append_owner(&mut self, other: Self) {
+        self.extend_from_slice(other.as_slice());
+        other.close();
     }
 
     /// Resizes to `new_len`, filling newly added bytes with `value`.
@@ -257,5 +279,20 @@ mod tests {
         ExclusiveBytes::from_vec(Vec::new()).close();
         ExclusiveBytes::from_vec(Vec::with_capacity(8)).close();
         ExclusiveBytes::from_vec(vec![1, 2, 3]).close();
+    }
+
+    #[test]
+    fn closed_convenience_mutations_preserve_exact_sequences() {
+        let mut bytes = ExclusiveBytes::from_vec(vec![1, 2]);
+        bytes.clear();
+        assert_eq!(bytes.as_slice(), &[]);
+        bytes.append_owner(ExclusiveBytes::from_vec(vec![3, 4]));
+        assert_eq!(bytes.as_slice(), &[3, 4]);
+        bytes.close();
+
+        let zeroes = ExclusiveBytes::zeroed(5);
+        assert_eq!(zeroes.as_slice(), &[0, 0, 0, 0, 0]);
+        zeroes.close();
+        ExclusiveBytes::zeroed(0).close();
     }
 }

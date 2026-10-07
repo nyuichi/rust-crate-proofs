@@ -298,3 +298,22 @@ cleanup, copied string append, framed partial-prefix reads and concrete
 Read/Write methods. No universal IO implementer law is assumed. Its source is
 not yet integrated in production. Initial frontend/configuration/socket failures
 are archived separately; the elevated replay is the proof result.
+
+## Production closed convenience and IO integration
+
+The actual current production source now completes263 proof files, exit0,
+zero unresolved results, with37 std native tests and16 core native tests.
+It incorporates clear/zeroed, consuming append with explicit temporary cleanup,
+string append, framed partial reads and concrete Read/Write. Flush also now
+proves the owned byte sequence unchanged. Root independently audits all archive
+members and263 proof results: production-closed-io-263, SHA256
+`f3637b33418fa11c1df9d29641f2362952f16acc77849a6175071ff7610114e1`.
+The corresponding core proof is queued separately. Generic IO implementer laws,
+allocation failure and unwinding are not implied by normal-return method bodies.
+
+A stale handoff patch contained the already-repaired zeroed literal type error.
+Root preserved the actual failed production snapshot before restoring0u8; no
+runtime change was needed. production-closed-io-zeroed-type-frontier archive:
+`54742d5fdee8f1deb84152283e06fd0b7a95eeafac7482be9add10778b3ba4d8`.
+Future source integration must use independently audited positive source hashes
+and regenerate patches from those snapshots, rather than assume draft parity.

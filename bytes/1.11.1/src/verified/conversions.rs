@@ -18,6 +18,13 @@ impl ExclusiveBytes {
         Self::from_vec(Vec::from(source))
     }
 
+    /// Appends a copied UTF-8 string and closes its temporary owner.
+    #[ensures((^self)@ == self@.concat(source@.to_bytes()))]
+    pub fn append_str(&mut self, source: &str) {
+        let copied = Self::copy_from_str(source);
+        self.append_owner(copied);
+    }
+
     /// Consumes a `String` and transfers its byte vector into exclusive storage.
     #[ensures(result@ == source@.to_bytes())]
     pub fn from_string(source: String) -> Self {
@@ -105,5 +112,13 @@ mod tests {
         let equal_left = ExclusiveBytes::copy_from_slice(b"same");
         let equal_right = ExclusiveBytes::from_string(String::from("same"));
         assert!(super::super::observers::equal_then_close(equal_left, equal_right));
+    }
+
+    #[test]
+    fn appended_string_uses_checked_owned_conversion() {
+        let mut bytes = ExclusiveBytes::from_vec(b"prefix:".to_vec());
+        bytes.append_str("héllo");
+        assert_eq!(bytes.as_slice(), "prefix:héllo".as_bytes());
+        bytes.close();
     }
 }

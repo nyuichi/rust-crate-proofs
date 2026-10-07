@@ -212,6 +212,17 @@ impl<'a> Cursor<'a> {
         }
     }
 
+    /// Reads as much of the unread prefix as fits in `dst` and returns its length.
+    #[ensures(result@ == if dst@.len() < self@.len() { dst@.len() } else { self@.len() })]
+    #[ensures((^self)@ == self@[result@..])]
+    #[ensures(forall<i: Int> 0 <= i && i < result@ ==> (^dst)@[i] == self@[i])]
+    #[ensures(forall<i: Int> result@ <= i && i < dst@.len() ==> (^dst)@[i] == dst@[i])]
+    pub fn read_prefix(&mut self, dst: &mut [u8]) -> usize {
+        let count = core::cmp::min(dst.len(), self.remaining.len());
+        self.copy_to_slice(&mut dst[..count]);
+        count
+    }
+
     /// Reads one byte, leaving the cursor unchanged when it is empty.
     #[ensures(match result {
         Some(value) => self@.len() >= 1
@@ -875,6 +886,20 @@ impl<'a> Cursor<'a> {
     }
 }
 
+#[cfg(feature = "std")]
+impl std::io::Read for Cursor<'_> {
+    #[ensures(match result {
+        Ok(count) => count@ == if dst@.len() < self@.len() { dst@.len() } else { self@.len() }
+            && (^self)@ == self@[count@..]
+            && (forall<i: Int> 0 <= i && i < count@ ==> (^dst)@[i] == self@[i])
+            && (forall<i: Int> count@ <= i && i < dst@.len() ==> (^dst)@[i] == dst@[i]),
+        Err(_) => false,
+    })]
+    fn read(&mut self, dst: &mut [u8]) -> std::io::Result<usize> {
+        Ok(self.read_prefix(dst))
+    }
+}
+
 #[cfg(all(test, not(creusot)))]
 mod tests {
     use super::Cursor;
@@ -901,6 +926,39 @@ mod tests {
         assert!(cursor.copy_to_slice(&mut short_destination));
         assert_eq!(short_destination, [20]);
         assert_eq!(cursor.chunk(), &[30]);
+    }
+
+    #[test]
+    fn partial_prefix_reads_preserve_unwritten_destination_suffix() {
+        let input = [1, 2];
+        let mut cursor = Cursor::new(&input);
+        let mut dst = [0xaa; 4];
+        assert_eq!(cursor.read_prefix(&mut dst), 2);
+        assert_eq!(dst, [1, 2, 0xaa, 0xaa]);
+        assert_eq!(cursor.chunk(), &[]);
+
+        let mut empty = Cursor::new(&[]);
+        let mut untouched = [0xbb; 2];
+        assert_eq!(empty.read_prefix(&mut untouched), 0);
+        assert_eq!(untouched, [0xbb; 2]);
+
+        let mut cursor = Cursor::new(&[9, 8]);
+        let mut empty_dst = [];
+        assert_eq!(cursor.read_prefix(&mut empty_dst), 0);
+        assert_eq!(cursor.chunk(), &[9, 8]);
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn standard_read_uses_the_checked_partial_prefix_body() {
+        use std::io::Read;
+
+        let input = [4, 5];
+        let mut cursor = Cursor::new(&input);
+        let mut dst = [0xaa; 3];
+        assert_eq!(Read::read(&mut cursor, &mut dst).unwrap(), 2);
+        assert_eq!(dst, [4, 5, 0xaa]);
+        assert_eq!(cursor.chunk(), &[]);
     }
 
     #[test]
