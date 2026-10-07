@@ -130,3 +130,27 @@ authorized. Formal byte contents and affine recovery are the acceptance checks.
 The canonical Vec model lacks pointer/capacity identity, so native identity
 checks and the reviewed B2 mapping are recorded separately from formal output
 identity. Failure sources must be archived before restructuring.
+
+## D08: native floating-point bit conversion under stock contracts
+
+Freeze the unchanged materialized-float route after two distinguishing actual
+Cursor experiments and Astra review. First, an honest `Option<f32>` contract
+using `to_bits()` is rejected during translation because `to_bits` is a
+program function called in logic. Archive `cursor-f32-to-bits-frontend`:
+`4de5ac395388b32e059b0e20ce0efd8739939187a31653e175fd9475803e14b0`.
+Second, a runtime `Option<(u32,f32)>` returns the decoded word plus
+`f32::from_bits(word)` without float logic. Translation succeeds, but the
+contractless `from_bits` call has an impossible precondition; its actual caller
+VC fails 1/2. Archive `cursor-f32-from-bits-contractless-vc`:
+`2cc70dde091e17d210c4419ba9b6152ddc61c671d989a5147afadce73af2b85b`.
+Both native candidates passed 20 tests; native success does not prove bitcast
+semantics. Production Cursor was restored byte-for-byte to positive183.
+
+No trusted inverse-bit axiom or bytes-specific float theorem is introduced.
+Reopen only with a reviewed generic bitcast contract and a model preserving the
+required IEEE/NaN payload distinctions, or relevant supported translation.
+This is a current tool/contract boundary, not a mathematical impossibility.
+A changed API exposing exact Float32Bits/Float64Bits may replace byte-level
+float transport; its reads/writes must be proved through the same production
+Cursor/ExclusiveBytes. Native float materialization remains separately uncovered
+and must never be implied by proof of the raw bit pattern.
