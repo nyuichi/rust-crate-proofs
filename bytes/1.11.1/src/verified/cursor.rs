@@ -19,8 +19,8 @@ impl<'a> View for Cursor<'a> {
     }
 }
 
-#[logic]
-fn variable_width_modulus(nbytes: Int) -> Int {
+#[logic(open)]
+pub fn variable_width_modulus(nbytes: Int) -> Int {
     if nbytes <= 0 {
         1
     } else if nbytes == 1 {
@@ -42,8 +42,8 @@ fn variable_width_modulus(nbytes: Int) -> Int {
     }
 }
 
-#[logic]
-fn signed_variable_value(word: Int, nbytes: Int) -> Int {
+#[logic(open)]
+pub fn signed_variable_value(word: Int, nbytes: Int) -> Int {
     if nbytes <= 0 {
         0
     } else if word < variable_width_modulus(nbytes) / 2 {
@@ -114,8 +114,8 @@ fn signed_from_variable_word(word: u64, nbytes: usize) -> i64 {
     }
 }
 
-#[logic]
-fn be_u128_weight(bytes: Seq<u8>) -> Int {
+#[logic(open)]
+pub fn be_u128_weight(bytes: Seq<u8>) -> Int {
     pearlite! {
         bytes[0]@ * 1_329_227_995_784_915_872_903_807_060_280_344_576
             + bytes[1]@ * 5_192_296_858_534_827_628_530_496_329_220_096
@@ -136,8 +136,8 @@ fn be_u128_weight(bytes: Seq<u8>) -> Int {
     }
 }
 
-#[logic]
-fn le_u128_weight(bytes: Seq<u8>) -> Int {
+#[logic(open)]
+pub fn le_u128_weight(bytes: Seq<u8>) -> Int {
     pearlite! {
         bytes[0]@
             + bytes[1]@ * 256

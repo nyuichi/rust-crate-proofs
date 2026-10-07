@@ -232,3 +232,17 @@ writes. A separate downstream crate test remains required before claiming
 external contract usability. Capacity identity, no_std adoption, further trait
 observers, configured targets and failure paths remain outstanding. D09 and D10
 record concrete Serde and callback-unwind boundaries; neither is completion.
+
+## Public read-model exposure (255, unchanged runtime)
+
+The downstream unsigned variable-width reader initially fails 8/9 goals because
+the canonical weighted-sum definition is opaque outside bytes. Its exact
+failure is preserved in the consumer evidence. Ten existing pure Seq/Int model
+definitions are now public/open and reexported by encoding_spec: endian weights,
+signed interpretations and variable-width helpers. Bodies, runtime code and
+primitive TCB are unchanged. The actual production replay completes all 255
+files, zero null leaves, with 32 native tests. Root independently audits all
+561 members and the proof results in public-read-models-255:
+`20874bb08c829e65ce679af39605423c44cd29e966db57734517b5625095e565`.
+The downstream consumer replay is a separate obligation, still pending here;
+this production result alone does not establish external usability.

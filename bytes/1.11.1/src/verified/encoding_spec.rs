@@ -65,3 +65,14 @@ pub fn append_model_holds(
                 new[old.len() + j]@ == suffix[j])
     }
 }
+
+// Public definitions used by the checked read contracts. The canonical bodies
+// remain shared with the production slice codecs.
+#[cfg(creusot)]
+pub use crate::variable_read_ops::{be_weight, le_weight};
+#[cfg(creusot)]
+pub use crate::endian_ops::{signed_u16, signed_u32};
+#[cfg(creusot)]
+pub use crate::signed_wide_ops::{signed_u64, signed_u128};
+#[cfg(creusot)]
+pub use super::cursor::{variable_width_modulus, signed_variable_value, be_u128_weight, le_u128_weight};

@@ -5,8 +5,8 @@
 
 use creusot_std::prelude::*;
 
-#[logic(open(crate))]
-pub(crate) fn signed_u64(word: Int) -> Int {
+#[logic(open)]
+pub fn signed_u64(word: Int) -> Int {
     if word <= 9_223_372_036_854_775_807 {
         word
     } else {
@@ -14,8 +14,8 @@ pub(crate) fn signed_u64(word: Int) -> Int {
     }
 }
 
-#[logic]
-pub(crate) fn signed_u128(word: Int) -> Int {
+#[logic(open)]
+pub fn signed_u128(word: Int) -> Int {
     if word <= 170_141_183_460_469_231_731_687_303_715_884_105_727 {
         word
     } else {
