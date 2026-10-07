@@ -1,6 +1,8 @@
 # Architecture decisions — 2026-10-06 (Asia/Tokyo)
 
-Status: adopted work policy, following the user's explicit agreement to freeze
+> Current policy (2026-10-07): the user authorized removal of the alternative API and high-rework representation. The original bytes API is the target; see `REMOVAL_2026-10-07_JA.md` and crate `AGENTS.md`. Earlier route-1 selection and its admission are historical. Local temporary trusted contracts must meet the stated removal condition; D04's blanket prohibition is superseded, while counterexamples remain valid.
+
+Historical status: adopted work policy, following the user's explicit agreement to freeze
 rejected methods and reopen them only when their premises change. Baseline:
 `1ae61aabb82b4d777067eb1f83c5fb2ecad5ca77`. This document does not claim a new
 proof, silently reduce the verification target, or assert mathematical

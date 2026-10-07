@@ -8,7 +8,7 @@
 #![allow(unexpected_cfgs)]
 #![cfg_attr(creusot, recursion_limit = "512")]
 
-#![cfg_attr(not(feature = "verified"), doc = r##"Provides abstractions for working with bytes.
+#![doc = r##"Provides abstractions for working with bytes.
 
 The `bytes` crate provides an efficient byte buffer structure
 ([`Bytes`]) and traits for working with buffer
@@ -72,8 +72,7 @@ serve different purposes. A buffer is the value that is provided as an
 argument to `Read::read` and `Write::write`. `Read` and `Write` may then
 perform a syscall, which has the potential of failing. Operations on `Buf`
 and `BufMut` are infallible.
-"##)]
-#![cfg_attr(feature = "verified", doc = "Modified bytes API with explicit scoped sharing and cleanup. See the verified module for its public operations. This feature changes the public API and does not expose the original Bytes/BytesMut interfaces.")]
+"##]
 
 #[allow(unused_extern_crates)]
 extern crate creusot_std;
@@ -84,61 +83,42 @@ extern crate alloc;
 #[cfg(any(feature = "std", test))]
 extern crate std;
 
-#[cfg(not(feature = "verified"))]
 pub mod buf;
-#[cfg(not(feature = "verified"))]
 pub use crate::buf::{Buf, BufMut};
 
 // Native allocation is reached through the canonical raw_vec primitive.
-#[cfg(not(feature = "verified"))]
 mod allocation_ops;
-#[cfg(not(feature = "verified"))]
 mod bounded_ops;
 mod byte_codec_ops;
 mod byte_codec_wide_ops;
-#[cfg(not(feature = "verified"))]
 mod bytes;
-#[cfg(not(feature = "verified"))]
 mod bytes_mut;
-#[cfg(not(feature = "verified"))]
 mod capacity_ops;
-#[cfg(not(feature = "verified"))]
 mod storage_ops;
-#[cfg(not(feature = "verified"))]
 mod chain_ops;
-#[cfg(not(feature = "verified"))]
 mod comparison_ops;
 mod provenance_specs;
 #[cfg(creusot)]
-#[cfg(not(feature = "verified"))]
 mod ownership_proof;
 mod endian_ops;
-#[cfg(not(feature = "verified"))]
 mod fmt;
-#[cfg(not(feature = "verified"))]
 mod loom;
-#[cfg(not(feature = "verified"))]
 mod slice_mut_ops;
 mod slice_ops;
 mod slice_read_ops;
 mod slice_wide_read_ops;
 mod signed_wide_ops;
-#[cfg(not(feature = "verified"))]
 mod uninit_ops;
 mod variable_read_ops;
-#[cfg(not(feature = "verified"))]
 pub use crate::bytes::Bytes;
-#[cfg(not(feature = "verified"))]
 pub use crate::bytes_mut::BytesMut;
 
 // Optional Serde support
 #[cfg(feature = "serde")]
-#[cfg(not(feature = "verified"))]
 mod serde;
 
 #[inline(never)]
 #[cold]
-#[cfg(not(feature = "verified"))]
 fn abort() -> ! {
     #[cfg(feature = "std")]
     {
@@ -159,14 +139,11 @@ fn abort() -> ! {
 }
 
 #[cfg(all(creusot, feature = "std"))]
-#[cfg(not(feature = "verified"))]
 mod std_specs;
 
 #[cfg(feature = "std")]
-#[cfg(not(feature = "verified"))]
 mod arithmetic;
 #[cfg(feature = "std")]
-#[cfg(not(feature = "verified"))]
 mod cursor_ops;
 
 /// Error type for the `try_get_` methods of [`Buf`].
@@ -174,7 +151,6 @@ mod cursor_ops;
 /// bytes in the buffer while attempting
 /// to get a value from a [`Buf`] with one
 /// of the `try_get_` methods.
-#[cfg(not(feature = "verified"))]
 #[derive(Debug, PartialEq, Eq)]
 pub struct TryGetError {
     /// The number of bytes necessary to get the value
@@ -184,7 +160,6 @@ pub struct TryGetError {
     pub available: usize,
 }
 
-#[cfg(not(feature = "verified"))]
 impl core::fmt::Display for TryGetError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
         write!(
@@ -197,11 +172,9 @@ impl core::fmt::Display for TryGetError {
 }
 
 #[cfg(feature = "std")]
-#[cfg(not(feature = "verified"))]
 impl std::error::Error for TryGetError {}
 
 #[cfg(feature = "std")]
-#[cfg(not(feature = "verified"))]
 impl From<TryGetError> for std::io::Error {
     fn from(error: TryGetError) -> Self {
         std::io::Error::new(std::io::ErrorKind::Other, error)
@@ -210,7 +183,6 @@ impl From<TryGetError> for std::io::Error {
 
 /// Panic with a nice error message.
 #[cold]
-#[cfg(not(feature = "verified"))]
 fn panic_advance(error_info: &TryGetError) -> ! {
     panic!(
         "advance out of bounds: the len is {} but advancing by {}",
@@ -219,18 +191,9 @@ fn panic_advance(error_info: &TryGetError) -> ! {
 }
 
 #[cold]
-#[cfg(not(feature = "verified"))]
 fn panic_does_not_fit(size: usize, nbytes: usize) -> ! {
     panic!(
         "size too large: the integer type can fit {} bytes, but nbytes is {}",
         size, nbytes
     );
 }
-
-/// Modified bytes API with explicit sharing and cleanup.
-#[cfg(feature = "verified")]
-pub mod verified;
-
-#[cfg(feature = "verified")]
-#[path = "verified_ownership.rs"]
-mod ownership_proof;

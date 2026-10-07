@@ -28,15 +28,19 @@
       "final_sha256": "90d53d05ab8001a57267b4f7c96e4e88851d49cfd8a2e95270ac20263c94f153",
       "original_sha256": "3380344474fde787cbccb1b1c4b1d5ebe08689b13d107022d5d5de36fe2ea836"
     },
+    "src/std/thread.rs": {
+      "final_sha256": "2f209af914f7367be36b3edb8e8fe9ca880bfc2340ff4a1fa13a050c4c63a8b6",
+      "original_sha256": "e29ca23ff8e7a5640bf96ba669869e3472ef44300c9f68e317fa3a25fc04ecdc"
+    },
     "src/std/vec.rs": {
       "final_sha256": "54657d2a2392d9dafc3ac51abb8401daa69793e26c392d1ee10b5dbfe41f33b7",
       "original_sha256": "5ce87b16b5e6b633e77c32c7c98cf73e0584c0f0b23127fe4f5277c1d4f1a427"
     }
   },
   "candidate_tree": {
-    "bytes": 710053,
+    "bytes": 711729,
     "files": 110,
-    "sha256": "b6977d9c1a353919da1c56d189fa066c3099431e42781cb897349c665302d2c7"
+    "sha256": "878a63ae09dde611de547994499803158b6aa6157ce48f4332f645dff3edb155"
   },
   "install_policy": {
     "cargo_config_policy": "Append only the required crates-io patch if the table is absent; preserve unrelated config; refuse conflicting creusot-std patches; require the generated file to be Git-ignored.",
@@ -44,17 +48,18 @@
     "idempotent_only_when_exact_candidate_tree": true,
     "input_must_match_full_stock_tree": true,
     "output_is_private_copy_only": true,
-    "overwrite_existing": false
+    "overwrite_existing_output": false
   },
   "interpretation": {
     "base_model": "Opaque numeric address observer only; no pointer permission, provenance identity, or allocation liveness fact.",
     "capacity_model": "Opaque observer keyed by actual generic Vec value; no sequence identity, pointer identity, or allocation injectivity axiom.",
-    "termination": "New extern contracts add no total-correctness attributes; existing infallible std termination check remains inherited."
+    "termination": "New extern contracts add no total-correctness attributes; existing infallible std termination check remains inherited.",
+    "thread_slot": "Generic trusted std wrapper with F: Copy and explicit mutable slot; no bytes-specific ownership/refcount rule is introduced."
   },
   "package": {
     "edition": "2024",
     "name": "creusot-std",
-    "private_copy_relative_path": "bytes-proof-std",
+    "private_copy_relative_path": "bytes-verified-std",
     "provenance": "Pinned normalized Cargo registry package; no workspace-relative dependencies are used.",
     "stock_registry_glob": "*/creusot-std-0.13.0",
     "version": "0.13.0"
@@ -69,6 +74,11 @@
       "scope": "Only the eight normalized registry-package chunks from the generic capacity and alloc exposure proposal.",
       "sha256": "9eead572270996da05b5472b65ed61f1199b702e4723e88431e146edeaa80f13",
       "source_patch_sha256": "3fb15fe81bb4e5582631b7009594dc78a7af9adff73d4e56b7bc83af129d753b"
+    },
+    "copy-slot.patch": {
+      "scope": "The normalized registry-relative std thread try_spawn_with_slot contract and body.",
+      "sha256": "31e0a47eb75ea81e819055ad8dfd4c1fd554811f4286e5658943347b645aaf26",
+      "source_patch_sha256": "2e852512028d4317c17030292762b389bd5b03ba84139098c3c2e1891dea74fa"
     }
   },
   "schema_version": 1,

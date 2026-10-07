@@ -1,3 +1,21 @@
+# bytes 1.11.1: current target policy
+
+The user changed the target on 2026-10-07 and authorized removal of the
+modified `bytes::verified` API and high-rework alternatives identified by the
+inventory. Restore the upstream 1.11.1 API and representation while retaining
+the genuine Vec reverse-comparison bug fix. This instruction supersedes the
+2026-10-06 route-1 target recorded in the historical architecture documents.
+
+Do not claim the retired modified-variant proof gates as current verification.
+Keep their archived evidence for historical review. Temporary local trusted
+contracts are authorized only with precise assumptions, a reviewed strong
+contract, and a concrete path to remove trust with few changes to other code.
+They remain open proof obligations; never count assumed bytes-specific
+ownership/refcount/last-owner/destructor laws as complete verification. Generic
+physical/library TCB remains separately documented. Small trust removal for
+actual Clone/automatic Drop is not yet established. Do not remove archival
+counterexamples or imply a small tool patch solves these boundaries.
+
 # bytes 1.11.1: architecture decisions
 
 Before changing verification architecture or launching a new proof experiment,

@@ -3,7 +3,15 @@
 set -euo pipefail
 crate_root=$(cd "$(dirname "$0")/.." && pwd)
 tool_root=${BYTES_TOOL_ROOT:-/workspace/bytes-proof-tools}
+# Historical adapters are not valid current-source proof targets after cleanup.
+python3 - "$crate_root/verification/retired-probes.json" "${1:-runtime}" <<'PY_RETIRED'
+import json, pathlib, sys
+retired = json.loads(pathlib.Path(sys.argv[1]).read_text())["retired"]
+if sys.argv[2] in retired:
+    raise SystemExit("Retired proof adapter: " + sys.argv[2] + ". See verification/REMOVAL_2026-10-07_JA.md; saved evidence is historical.")
+PY_RETIRED
 source "$tool_root/activate.sh"
+python3 "$crate_root/scripts/prepare-proof-std.py"
 export CARGO_NET_OFFLINE=true
 case "${1:-runtime}" in
   actual-shared-try-reclaim|actual-bufmut-slices|shared-unsplit-mixed|shared-unsplit-fallbacks|shared-unsplit-independent|actual-public-buf-default|default-readonly|actual-shared-reserve|actual-unique-reserve|actual-uninit-slice|actual-frozen-bytes|frozen-region|unique-reclaim|shared-adjacent-unsplit|shared-singleton-reclaim|shared-singleton-reserve|shared-nonunique-reserve|weak-native-publication|weak-physical-retirement|readonly-b4-purity|handle-comparison) target=$crate_root/verification/probes/$1 ;;

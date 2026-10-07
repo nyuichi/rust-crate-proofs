@@ -1,6 +1,8 @@
 # Architecture admission assessment — 2026-10-06 (Asia/Tokyo)
 
-Status: selected modified architecture ADMITTED for the bounded std/x86_64,
+> Current policy (2026-10-07): the user authorized removal of the alternative API and high-rework representation. The original bytes API is the target; see `REMOVAL_2026-10-07_JA.md` and crate `AGENTS.md`. Earlier route-1 selection and its admission are historical. Local temporary trusted contracts must meet the stated removal condition; D04's blanket prohibition is superseded, while counterexamples remain valid.
+
+Historical status: selected modified architecture ADMITTED for the bounded std/x86_64,
 normal-return, two-reader witness, under the explicit existing primitive/library
 TCB. The complete modified API/configuration target is NOT COMPLETE. Original
 API compatibility and automatic Drop are not the user-selected target. Historical

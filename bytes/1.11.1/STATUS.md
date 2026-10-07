@@ -1,62 +1,41 @@
-# bytes 1.11.1 runtime proof checkpoint
+# bytes 1.11.1 status
 
-## Selected modified target (2026-10-06 UTC)
+## Current target — 2026-10-07
 
-The user selected route 1: public API and representation changes are authorized,
-large verifier changes are avoided, and the final target is the explicitly named
-`bytes::verified` variant of bytes 1.11.1. The original Bytes/BytesMut API is not
-claimed fully verified. Read [MODIFIED_VARIANT_SPEC.md](verification/MODIFIED_VARIANT_SPEC.md),
-[ARCHITECTURE_DECISIONS.md](verification/ARCHITECTURE_DECISIONS.md) and
-[ARCHITECTURE_ASSESSMENT.md](verification/ARCHITECTURE_ASSESSMENT.md) before work.
+The user changed the target after the removal inventory: remove the modified
+`bytes::verified` API and high-rework alternatives, restore the upstream
+bytes 1.11.1 API and representation, and retain the genuine fix for reverse
+Vec comparisons. The source cleanup and its exact retained diff are recorded
+in [the removal ledger](verification/REMOVAL_2026-10-07_JA.md).
 
-Bounded architecture admission PASSED. Subsequent production increments prove
-recursive scoped sharing, ordinary exclusive mutation connected to sharing,
-checked numeric Cursor operations and reusable immutable scoped callbacks.
-The latest production run, production-finite-cursor-std-287,
-proves 287 files with zero null leaves and native tests pass 48 std/portable
-and 22 alloc-only. It integrates checked copied splits/iterator append, concrete
-IO, capacity/error frames, numeric address framing through physical recovery,
-deterministic digest/hex and Copy-restricted fallible scoped-slot cleanup. The
-exact actual Std dependency sources and feature graphs accompany the capture.
-Proof-file counts are not API-completion counts. Read
-[MODIFIED_VARIANT_PROGRESS.md](verification/MODIFIED_VARIANT_PROGRESS.md).
+The modified-variant implementation and its `production-vec-owner-io-accessors-379`
+gate are retired from the current target. The 379-file result and all earlier
+modified-variant runs remain historical evidence only; they do not validate the
+post-removal source or count as current API coverage. Archived evidence is
+retained. No full-crate verification claim is made for the restored target.
 
-The current combined production gate, production-vec-owner-io-accessors-379,
-proves379 matching Coma/JSON files with zero null leaves and observed exit0.
-Native suites pass74 verified,std and41 verified/alloc. It includes initialized
-LimitedWriter/ChainedWriter, copied clone/range/default, exact copied splits,
-repeated append, cursor-to-owner copying, Borrow/AsMut/BorrowMut and bidirectional
-slice/Vec comparisons, cursor/writer accessors, existing-spare capacity reclaim,
-sealed copied-owner inputs, BufRead, initialized gather/scatter and explicit
-UTF-8 byte-comparison helpers. Root independently audited the complete archived source,
-actual Std dependency and every proof result. Older287/247 configuration gates
-apply to the805 snapshot; final enlarged-source gates remain pending.
+No new trusted contract was added by this cleanup. Temporary local contracts
+are allowed under the user's precise, small-removal condition; they remain
+unproved obligations and cannot count as completed bytes ownership/refcount
+verification. Generic physical/library TCB remains explicitly separate.
+Small removability of trust for actual Clone/automatic Drop remains unestablished.
 
-The complete modified variant remains NOT COMPLETE. The small generic capacity,
-numeric base observation and Copy-slot contracts are reviewed trusted Std
-boundaries. The bytes-specific sharing, refcount, retirement, recovery and
-explicit cleanup bodies remain proved. Numeric address equality is not pointer
-provenance or permission. The address client explicitly closes its returned Vec.
-Universal totality is not inferred from metadata or finite-computation proofs.
+Post-removal validation: native default library/integration tests pass (1009),
+no-default-features library check passes, and serde + extra-platforms targeted
+tests pass (2). The current runtime proof entry stops in the Creusot frontend:
+normalizing Bytes' DeepModelTy for generic comparison traits triggers an ICE.
+No Why3 body proof completed. Sources, exit statuses and diagnostic logs are in
+`verification/cleanup-evidence-2026-10-07/manifest.json`. This newly exposed
+original-source/specification boundary is not a mathematical counterexample.
 
-Actual native floating conversion, generic Serde, callback unwind, unrestricted
-spawn error-frame, and generic Hash/Formatter failures remain preserved and
-frozen in D08–D13. Changed APIs are separately admitted by their actual evidence;
-frozen failures never count as completed responsibilities. The 805f61e3 compiled-source snapshot has audited host std/core-atomic and
-std/portable gates (287 each), genuine host alloc (247), i68632LE (287),
-PowerPC64 big-endian (287), and MSP43016LE alloc (247), with zero null leaves.
-Cross-target native validation is compile-only. New concrete API candidates,
-the final API correspondence inventory and downstream/control gates remain open;
-these configuration results do not cover future candidate integration. Finite owned-cursor computation is now
-checked terminating; normal-return cleanup and arbitrary callbacks/iterators
-carry no unconditional totality claim.
+The remaining material below is a historical record of prior targets,
+experiments and component evidence. Its claims apply to the source snapshots
+and configurations stated in each section, not to the current post-removal
+source.
 
-Frozen approaches remain frozen unless their actual premises change. T02 remains
-a concrete threaded transport/conditional cleanup component (37 proof files),
-not eventual exactly-one completion, arbitrary sharing or actual Bytes Clone/Drop.
-The admission dependency is now closed within its documented scope; subsequent
-work must preserve this production representation and its proved protocol.
+---
 
+## Historical component and modified-variant record
 
 ## Cloud resume results (2026-10-05)
 

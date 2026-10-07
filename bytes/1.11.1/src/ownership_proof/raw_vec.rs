@@ -963,7 +963,7 @@ pub(crate) unsafe fn resume_vec(
 /// Explicitly free a B1 allocation after recovering its complete authority.
 ///
 /// This is B3, a trusted native boundary. It directly deallocates the byte
-/// allocation through the same native helper as ordinary SharedBuffer cleanup. The
+/// allocation through the generic native deallocation helper. The
 /// original global allocator and `u8` layout are retained by the sealed B1
 /// descriptor. No slot needs to be Known: byte deallocation
 /// does not inspect initialized or spare slots.

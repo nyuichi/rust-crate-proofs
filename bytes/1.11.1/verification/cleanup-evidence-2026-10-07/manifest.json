@@ -1,0 +1,83 @@
+{
+  "pre_removal_checkpoint": "ce69f567",
+  "baseline": "e678b774",
+  "original_source_parity": {
+    "src/bytes.rs": {
+      "baseline_sha256": "54568a31252a7cc4f1dcee26d2d34dc6e0af9c9d8bf09522b694c3bd6a2a04bc",
+      "current_sha256": "54568a31252a7cc4f1dcee26d2d34dc6e0af9c9d8bf09522b694c3bd6a2a04bc",
+      "identical": true
+    },
+    "src/bytes_mut.rs": {
+      "baseline_sha256": "aa9ce99a8c58100341f3fd33ee33c821fa89ebc3b7e98190ebe66f7632b4f6c2",
+      "current_sha256": "76b331d9ae5941d3ce4f8f4e0e62902d0d0650f0fb482dc90d651b52c0260f27",
+      "identical": false,
+      "retained_change": "Reverse other.partial_cmp(self) with map(cmp::Ordering::reverse); sole diff vs flattened upstream baseline."
+    }
+  },
+  "checks": {
+    "native-default": {
+      "command": "cargo test --locked --tests --lib --quiet",
+      "exit": 0,
+      "log_sha256": "2030280bbe6731e60ab1c7f153dd654387c0a180a32e4ce496546880d1a1fea5",
+      "passed_tests": 1009
+    },
+    "native-no-std": {
+      "command": "cargo check --locked --no-default-features --lib",
+      "exit": 0,
+      "log_sha256": "df2a7de87d6aa000dc6a9482ea3431c711e7cd0ac14ffa6ccbad1ad96b91919d",
+      "passed_tests": 0
+    },
+    "native-serde-portable": {
+      "command": "cargo test --locked --features serde,extra-platforms --test test_serde --quiet",
+      "exit": 0,
+      "log_sha256": "1d92ccf8e552686c0268da9b295e31b58f3465cf98399e365ca9bfe4782bf1ac",
+      "passed_tests": 2
+    },
+    "runtime-translation": {
+      "command": "BYTES_TRANSLATE_ONLY=1 ./verify-all.bash",
+      "exit": 1,
+      "log_sha256": "3d11d680a5d761adad4d0a33b8c339e3545aa13d7af11bbf29d4345ddeca6d0f",
+      "status": "frontend_internal_compiler_error",
+      "detail": "Failed to normalize Bytes DeepModelTy while processing generic comparison traits; no Why3 body proof phase.",
+      "live_coma_files": 0
+    }
+  },
+  "removed_tracked_paths": [
+    "bytes/1.11.1/scripts/prepare-verified-std.py",
+    "bytes/1.11.1/scripts/verify-verified-bytes.sh",
+    "bytes/1.11.1/src/ownership_proof/carrier_protocol.rs",
+    "bytes/1.11.1/src/ownership_proof/frozen_region.rs",
+    "bytes/1.11.1/src/ownership_proof/sequential_counter.rs",
+    "bytes/1.11.1/src/ownership_proof/shared_protocol.rs",
+    "bytes/1.11.1/src/ownership_proof/shared_reclaim.rs",
+    "bytes/1.11.1/src/ownership_proof/shared_reserve.rs",
+    "bytes/1.11.1/src/verification.rs",
+    "bytes/1.11.1/src/verified/ARCHITECTURE.md",
+    "bytes/1.11.1/src/verified/adapters.rs",
+    "bytes/1.11.1/src/verified/atomic.rs",
+    "bytes/1.11.1/src/verified/callbacks.rs",
+    "bytes/1.11.1/src/verified/conversions.rs",
+    "bytes/1.11.1/src/verified/cursor.rs",
+    "bytes/1.11.1/src/verified/encoding_spec.rs",
+    "bytes/1.11.1/src/verified/exclusive.rs",
+    "bytes/1.11.1/src/verified/float_bits.rs",
+    "bytes/1.11.1/src/verified/iteration.rs",
+    "bytes/1.11.1/src/verified/mod.rs",
+    "bytes/1.11.1/src/verified/observers.rs",
+    "bytes/1.11.1/src/verified/owner_io.rs",
+    "bytes/1.11.1/src/verified/ranges.rs",
+    "bytes/1.11.1/src/verified/retirement.rs",
+    "bytes/1.11.1/src/verified/scoped.rs",
+    "bytes/1.11.1/src/verified/spawn_failure.rs",
+    "bytes/1.11.1/src/verified/tree.rs",
+    "bytes/1.11.1/src/verified/write_readback.rs",
+    "bytes/1.11.1/src/verified/writer_adapters.rs",
+    "bytes/1.11.1/src/verified/writes.rs",
+    "bytes/1.11.1/src/verified_ownership.rs",
+    "bytes/1.11.1/verification/std-support/copy-slot.patch"
+  ],
+  "scope": "bytes 1.11.1 only; original API restored; no complete verification claim",
+  "native_scope_note": "Final deleted shared_protocol/frozen_region helper source does not participate in native configurations; native runtime/test source is unchanged from logged tests.",
+  "std_support": "Existing generic alloc-capacity/address-model contracts only; copy-slot removed from active overlay.",
+  "log_format_note": "Only trailing blank lines were trimmed from two native stdout/stderr logs; diagnostic/test content is unchanged."
+}

@@ -60,8 +60,6 @@ else:
     # It intentionally includes comment candidates rather than silently dropping obligations.
     unsafe = []
     for source in sorted((ROOT/'src').rglob('*.rs')):
-        if source.name == 'verification.rs':
-            continue  # legacy model is not part of the runtime configuration
         for line, text in enumerate(source.read_text().splitlines(), 1):
             if re.search(r'\bunsafe\b', text):
                 unsafe.append(dict(obligation_id=f'{source.relative_to(ROOT)}:{line}', source_location=f'{source.relative_to(ROOT)}:{line}',
