@@ -1,0 +1,28 @@
+$ BYTES_TRANSLATE_ONLY=1 cargo creusot --only=coma -- --locked
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:21:40
+   |
+21 | pub fn capacity_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                        ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:32:36
+   |
+32 | pub fn base_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                    ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+
+warning: `creusot-std` (lib) generated 2 warnings (run `cargo fix --lib -p creusot-std` to apply 2 suggestions)
+    Checking bytes-vtable-leaf-extern-getter v0.1.0 (/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/vtable-leaf-2026-10-08/extern-getter)
+warning: calling external function `new` with no contract will yield an impossible precondition
+  --> src/lib.rs:90:15
+   |
+90 |         data: AtomicPtr::new(shared),
+   |               ^^^^^^^^^^^^^^^^^^^^^^ function called here
+   |
+   = note: `#[warn(creusot::contractless_external_function)]` on by default
+
+warning: `bytes-vtable-leaf-extern-getter` (lib) generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s
+exit status: 0

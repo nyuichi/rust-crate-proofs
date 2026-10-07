@@ -1,0 +1,66 @@
+{
+  "kind": "source_sliced_translation_diagnostic",
+  "target": "original Bytes::from(Vec<u8>) shared branch",
+  "cfg_differences": {
+    "proof": "actual SHARED_VTABLE static and callback definitions excluded; trusted local getter with requires(true), ensures(true), body unimplemented!()",
+    "native": "exact static SHARED_VTABLE initializer retained; local getter returns &SHARED_VTABLE",
+    "no_correspondence_proved": true
+  },
+  "source_guard": {
+    "script": "check_source_fragments.py",
+    "checks": [
+      "Bytes fields match production",
+      "Vtable declaration matches production",
+      "Shared fields match production",
+      "KIND_MASK matches production",
+      "native SHARED_VTABLE initializer matches production",
+      "branch source differs only by pointer_addr and shared_vtable substitutions",
+      "included provenance_specs.rs matches production"
+    ],
+    "status": 0
+  },
+  "runs": {
+    "direct_pointer_cast": {
+      "translation_exit_status": 1,
+      "native_cargo_check_exit_status": 0,
+      "frontend": "Unsupported pointer cast: PointerExposeProvenance at shared as usize in retained debug_assert",
+      "atomic_warning": "AtomicUsize::new(1) has no contract and a proof caller would have an impossible precondition"
+    },
+    "pointer_addr": {
+      "translation_command": "BYTES_TRANSLATE_ONLY=1 cargo creusot --only=coma -- --locked",
+      "translation_exit_status": 0,
+      "native_command": "cargo check --locked",
+      "native_exit_status": 0,
+      "generated_coma": "artifacts/proof-pointer-addr-verif/bytes_vtable_shared_branch_probe_rlib/from_vec_shared_branch.coma",
+      "proof_phase_ran": false,
+      "atomic_warnings": [
+        "AtomicUsize::new(1) has no contract and a proof caller would have an impossible precondition",
+        "AtomicPtr::new(shared as _) has no contract and a proof caller would have an impossible precondition"
+      ],
+      "comamodel": "all five Vtable function-pointer fields are Opaque.ptr; Shared fields are buf, cap, ref_cnt; return and Box/atomic intermediates are Any.any_l()",
+      "postcondition_emitted": "result.ptr == ptr && result.len == len",
+      "postcondition_proved": false
+    }
+  },
+  "source_sha256": {
+    "production_src/bytes.rs": "54568a31252a7cc4f1dcee26d2d34dc6e0af9c9d8bf09522b694c3bd6a2a04bc",
+    "production_src/provenance_specs.rs": "8383154b0d6438f7150ea381b3b1cdffa95f90a93f19860df3334be4d8f9a0b8",
+    "probe/src/lib.rs": "2bf52504d19391da2cc0fc50891fbecf486e510ef9e90de1fd1e393f6a2a19d2",
+    "probe/Cargo.toml": "e5c3a53d9a58b4428bdec68cf0e9e3f78b6adb0cad538d500726570f1ae01f0d",
+    "probe/Cargo.lock": "975ba6ca34b27a1d95f672f4740efcc5520985fd819c81e089cdebed156c0197",
+    "production_branch_fragment.rs": "e52cf0ee728db86f0cbd1b9dc60a4287c51726a7c11f117d5e4a89fcdcd214ca",
+    "production_Shared_fields.rs": "7f160f4a8cf5dafc224764e85d52ca917c36c2f2b1cd24000da3d47c2bb87aad",
+    "production_Vtable.rs": "49b60eb2f6fc9f546509a61d66eedb363e11022b1fc4f7ce246aafd5d9d6026d",
+    "included_provenance_specs.rs": "8383154b0d6438f7150ea381b3b1cdffa95f90a93f19860df3334be4d8f9a0b8",
+    "generated_from_vec_shared_branch.coma": "90cc412c19de7a79ec96e64bf1d5e4b549c23c8a6e64f9e804274940d3d66b24",
+    "generated_pointer_addr.coma": "02af70cafe8a4c2a669c96a88ad5bbc763110c51f2fdd0069d9a0b8cfbcd30",
+    "production_SHARED_VTABLE_initializer.rs": "00d445b9a68c5214510c9d56feac9805083efba71c7ada8146e6d20463f2b664"
+  },
+  "scope_limits": [
+    "input ptr/len/cap are branch parameters; Vec extraction and the len==cap arm are omitted",
+    "production Shared::drop body omitted",
+    "native callback bodies are divergent stubs",
+    "Box/atomic authority, initialization, ownership, and refcount are not proved",
+    "not a proof of the full From<Vec<u8>> method or any Bytes API"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "kind": "source_sliced_translation_and_bounded_why3_diagnostic",
+  "date": "2026-10-07",
+  "target": "bytes 1.11.1 original From<Vec<u8>> shared-vtable record field",
+  "scope": [
+    "production Bytes field shape",
+    "exact production Vtable field layout and callback signatures",
+    "static initializer translation frontend behavior",
+    "source-sliced record construction translation"
+  ],
+  "out_of_scope": [
+    "actual Bytes::from(Vec<u8>) method proof",
+    "callback behavior",
+    "vtable value or identity facts",
+    "full allocation/ownership/refcount verification or bytes-specific theorem",
+    "native equivalence"
+  ],
+  "tool": {
+    "activation": "/workspace/bytes-proof-tools/activate.sh",
+    "rustc": "rustc 1.98.0-nightly (91fe22da8 2026-06-21)",
+    "serialization_lock": "/tmp/itoa-creusot-proof.lock",
+    "mode": "translation-only comparisons plus one source-sliced cargo creusot Why3 attempt"
+  },
+  "cases": {
+    "baseline": {
+      "feature": "baseline",
+      "record_vtable_expr": "&SHARED_VTABLE",
+      "exit_status": 1,
+      "result": "frontend rejection: unsupported definition kind for SHARED_VTABLE Static"
+    },
+    "helper": {
+      "feature": "helper",
+      "record_vtable_expr": "shared_vtable()",
+      "helper_contract": "#[trusted], requires(true), ensures(true)",
+      "exit_status": 1,
+      "result": "same frontend rejection at SHARED_VTABLE Static, before the field-expression distinction is reached"
+    }
+  },
+  "source_sha256": {
+    "src/bytes.rs": "54568a31252a7cc4f1dcee26d2d34dc6e0af9c9d8bf09522b694c3bd6a2a04bc",
+    "probe/src/lib.rs": "c4caee367c1de0a943f8247bee534d981ff9819b98b245f5b69dadd4bd2ee977",
+    "probe/Cargo.toml": "36be72c805b5b377796bbd2b2f58dc879cc4d35671543c885fd6288de1e264a6",
+    "probe/Cargo.lock": "54121f8d4910f5c4b748d9c58fa958a5851a9d4287910be0dc6196dc18d09545"
+  },
+  "production_source_modified": false,
+  "commit_created": false,
+  "follow_ups": {
+    "trusted_getter_with_proof_static_excluded": {
+      "path": "extern-getter/",
+      "translation_exit_status": 0,
+      "native_check_exit_status": 0,
+      "result": "COMA emitted with opaque Vtable slots; Bytes return remains Any.any_l(); no field relation or proof"
+    },
+    "actual_shared_branch_direct_pointer_cast": {
+      "path": "shared-branch/",
+      "translation_exit_status": 1,
+      "result": "Unsupported PointerExposeProvenance at retained shared as usize alignment assertion"
+    },
+    "actual_shared_branch_pointer_addr": {
+      "path": "shared-branch/",
+      "translation_exit_status": 0,
+      "native_check_exit_status": 0,
+      "result": "COMA emits ptr/len postcondition, but return and Box/atomic intermediates remain Any; AtomicUsize::new and AtomicPtr::new caller preconditions lack contracts; no proof ran"
+    },
+    "actual_shared_branch_atomic_aligned": {
+      "path": "shared-branch-atomic-aligned/",
+      "source_guard_exit_status": 0,
+      "translation_exit_status": 0,
+      "why3_exit_status": 0,
+      "native_check_exit_status": 0,
+      "result": "All generated VCs pass. Bytes.ptr/len, BoxPerm ward/raw-pointer identity, and Shared.buf/cap postconditions prove. A pre-lemma debug_assert panic-path VC was discharged with the existing body-proved aligned_address_has_clear_low_bit helper. Atomic wrappers add no value facts; no Bytes.data link claimed.",
+      "why3_proof_record": "shared-branch-atomic-aligned/artifacts/proof-verif/bytes_vtable_shared_branch_probe_rlib/from_vec_shared_branch/proof.json",
+      "baseline_failed_assertion_task": "shared-branch-atomic-aligned/artifacts/why3-tasks/from_vec_shared_branch-Coma-vc_from_vec_shared_branch1.why",
+      "body_proved_alignment_helper": "src/ownership_proof/boxed_alignment.rs::aligned_address_has_clear_low_bit"
+    }
+  },
+  "note": "The BytesMut definition is a stand-in in these probes. src/bytes_mut.rs was not source-sliced or changed by this diagnostic."
+}

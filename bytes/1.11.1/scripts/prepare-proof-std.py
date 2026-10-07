@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Install the reviewed generic Vec-contract std overlay for bytes 1.11.1.
 
-This copies the pinned normalized registry package, applies the two retained
+This copies the pinned normalized registry package, applies the reviewed
 generic contract patches only to the private copy, verifies all affected-file
 hashes, and generates the crate-local Cargo patch override. It never edits the
 installed Creusot source checkout or Cargo registry package.
@@ -24,7 +24,7 @@ SCRIPT = Path(__file__).resolve()
 CRATE_ROOT = SCRIPT.parents[1]
 SUPPORT_ROOT = CRATE_ROOT / "verification" / "std-support"
 MANIFEST_PATH = SUPPORT_ROOT / "manifest.json"
-PATCH_NAMES = ("alloc-capacity.patch", "address-model.patch")
+PATCH_NAMES = ("alloc-capacity.patch", "address-model.patch", "pointer-model.patch")
 
 
 def fail(message: str) -> "NoReturn":

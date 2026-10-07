@@ -1,0 +1,77 @@
+{
+  "kind": "source_sliced_why3_diagnostic",
+  "target": "original Bytes::from(Vec<u8>) shared-branch allocation and record statements",
+  "proof_interface": {
+    "atomic_usize_new": "trusted local cfg(creusot) normal-return bridge; requires(true), ensures(true); native cfg calls AtomicUsize::new(value)",
+    "atomic_ptr_new": "trusted local cfg(creusot) normal-return bridge; requires(true), ensures(true); native cfg calls AtomicPtr::new(value)",
+    "boxed_allocation": "includes current production ownership_proof::boxed_alignment::into_raw_aligned unchanged",
+    "alignment_bit_bridge": "calls existing body-proved boxed_alignment::aligned_address_has_clear_low_bit(pointer_addr(shared), align_of::<Shared>()); retained debug_assert condition is unchanged",
+    "vtable_getter": "trusted local cfg(creusot) true/true getter; proof cfg excludes static; native cfg returns exact shared static",
+    "no_atomic_values_or_bytes_data_link_claimed": true
+  },
+  "requested_postconditions": [
+    "result.0.ptr == ptr && result.0.len == len",
+    "*result.2.ward() == result.1 as *const Shared",
+    "result.2.val().buf == ptr",
+    "result.2.val().cap == cap"
+  ],
+  "source_guard": {
+    "script": "check_source_fragments.py",
+    "exit_status": 0
+  },
+  "runs": {
+    "translation": {
+      "command": "cargo creusot --only=coma -- --locked",
+      "exit_status": 0,
+      "artifact": "artifacts/creusot-verif/bytes_vtable_shared_branch_probe_rlib/from_vec_shared_branch.coma"
+    },
+    "why3": {
+      "command": "cargo creusot --only=prove --why3find-arg=-j --why3find-arg=1 -- --locked",
+      "exit_status": 0,
+      "result": "Proved (7 files); all generated VCs pass, including Bytes ptr/len, BoxPerm ward/raw-pointer identity, and Shared buf/cap postconditions",
+      "proof_json": "artifacts/proof-verif/bytes_vtable_shared_branch_probe_rlib/from_vec_shared_branch/proof.json",
+      "supporting_vcs": [
+        "vc_align_of_Shared'0",
+        "vc_aligned_address_has_clear_low_bit",
+        "vc_atomic_ptr_new_unit",
+        "vc_atomic_usize_new",
+        "vc_into_raw_aligned_Shared",
+        "vc_pointer_addr_Shared",
+        "vc_shared_vtable"
+      ],
+      "baseline_without_alignment_bit_bridge": {
+        "why3_exit_status": 1,
+        "result": "3/4 split function obligations pass; the remaining goal is the debug_assert failure/panic branch, with is_aligned_logic available but no numeric low-bit conclusion",
+        "exported_task": "artifacts/why3-tasks/from_vec_shared_branch-Coma-vc_from_vec_shared_branch1.why"
+      }
+    },
+    "native_cargo_check": {
+      "command": "cargo check --locked",
+      "exit_status": 0
+    },
+    "why3find": {
+      "config": "why3find.json",
+      "solver_time_seconds": 1,
+      "provers": ["alt-ergo", "z3", "cvc5", "cvc4"],
+      "saved_cache": "artifacts/why3find-cache",
+      "baseline_cache": "artifacts/why3find-cache-before-bitlemma"
+    }
+  },
+  "source_sha256": {
+    "production_src/bytes.rs": "54568a31252a7cc4f1dcee26d2d34dc6e0af9c9d8bf09522b694c3bd6a2a04bc",
+    "production_src/provenance_specs.rs": "8383154b0d6438f7150ea381b3b1cdffa95f90a93f19860df3334be4d8f9a0b8",
+    "production_src/ownership_proof/boxed_alignment.rs": "3a7879fc80b9aaad8a72fc8ab8a1cda82038b14f76c0fac0d415d75d35e626f5",
+    "probe/src/lib.rs": "ffe063b3a070b727fa1e688b84a10bc9ba7a0d739cab6260fcd422e2d942a8b8",
+    "probe/sources/lib-with-unproved-alignment-assert.rs": "6acbf868078433a0249243152c3566488559631a5b72ba761c1e754cd6e88af9",
+    "probe/why3find.json": "d3b6baf3ceb7350c2214c8540e99a89ccf6bb721a461a31343f5cf8fadeae34f",
+    "generated_from_vec_shared_branch.coma": "fdb630377aa3be5c36c808c1adfd53af01ed8a6e88cc2cc6195cfa97d851ddb6",
+    "generated_from_vec_shared_branch_proof.json": "345923f253ad362901b50aff2cac1a235a5d82778cc6cfaa7b6beb1099aec303",
+    "unproved_debug_assert_task.why": "358306628fc6a37b741c8bdf40fa36731fdbc75aab9f59fe70a77113a0d1d8ea"
+  },
+  "scope_limits": [
+    "input ptr/len/cap are branch parameters; Vec extraction, ManuallyDrop, and len == cap arm are omitted",
+    "production Shared::drop body omitted; native callbacks are stubs",
+    "no relation between Bytes.data and the returned Shared pointer is asserted",
+    "no static getter correspondence, callback-value, atomic-value, ordering, refcount, or full From proof"
+  ]
+}

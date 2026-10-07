@@ -51,3 +51,16 @@ bit tagはbody-proved bitwise lemmaで処理し、bytes固有ownership/refcount�
 そのunsafe pathはnativeでは実行しない。native extraction 1 test、元test_buf_mut 23 + test_bytes 118も通過。
 B1/B4とgeneric typed memcpyのTCB、cfg/native解釈は明示したまま。全crate、Shared、growth、freeze、Dropの証明ではない。
 sourceと証拠の一致をrootでも確認した。証拠はprobe/evidence/positive-final-50.tar.gzとaudit.json。
+
+### freeze接続用のgeneric pointer観測とShared branch
+
+数値base_modelだけでは原pointerとの対応を導かず、actual Vec値に対するexact mutable getter observerを追加した。
+getter callerは1 file通過、別Vecのpointerを返すnegativeはそのpostconditionだけ失敗。
+std observerとB1/B2のexact pointer clauseはgeneric TCBであり、permission/injectivity/liveness/refcountを与えない。
+probe `vec-pointer-correspondence-2026-10-08` とstrict installerの新pointer-model.patchが証拠。
+
+Shared branchのsource-sliced distinguishing testは7 files通過。元のBytes ptr/len、実Shared Boxのwardとraw pointer対応、
+Shared buf/capを確認。alignmentは既存body-proved bit lemmaを使い元debug assertionを保持した。
+vtable getterとAtomic constructorsは型のnormal-returnだけのgeneric abstraction。
+Atomic初期値、Bytes.dataの格納pointerとの対応、refcount、callback、Dropは未証明。
+full From<Vec>/freeze/callerの証明とは数えない。証拠 `probes/vtable-leaf-2026-10-08/`。
