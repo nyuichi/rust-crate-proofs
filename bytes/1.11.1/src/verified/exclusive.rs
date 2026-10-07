@@ -28,6 +28,7 @@ impl View for ExclusiveBytes {
 impl ExclusiveBytes {
     /// Takes exclusive ownership of an existing byte vector.
     #[ensures(result@ == bytes@)]
+    #[check(terminates)]
     pub fn from_vec(bytes: Vec<u8>) -> Self {
         Self { bytes }
     }
@@ -67,6 +68,7 @@ impl ExclusiveBytes {
 
     /// Returns the number of initialized bytes.
     #[ensures(result@ == self@.len())]
+    #[check(terminates)]
     pub fn len(&self) -> usize {
         self.bytes.len()
     }
@@ -91,6 +93,7 @@ impl ExclusiveBytes {
 
     /// Copies a byte at `index`, or returns `None` when it is out of bounds.
     #[ensures(result == if index@ < self@.len() { Some(self@[index@]) } else { None })]
+    #[check(terminates)]
     pub fn get(&self, index: usize) -> Option<u8> {
         if index < self.bytes.len() {
             Some(self.bytes[index])

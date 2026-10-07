@@ -21,6 +21,27 @@ pub fn copy_iter_then_close(source: ExclusiveBytes) -> ExclusiveBytes {
     copy
 }
 
+/// Reads one byte and the initial remaining length, returning the live cursor.
+#[ensures(result.0@ == if owner@.len() == 0 { owner@ } else { owner@.subsequence(1, owner@.len()) })]
+#[ensures(result.1 == if owner@.len() == 0 { None } else { Some(owner@[0]) })]
+#[ensures(result.2@ == owner@.len())]
+#[check(terminates)]
+pub fn read_first_and_return_cursor(owner: ExclusiveBytes) -> (OwnedByteCursor, Option<u8>, usize) {
+    let mut cursor = OwnedByteCursor::new(owner);
+    let remaining = cursor.remaining_len();
+    let first = cursor.next_byte();
+    (cursor, first, remaining)
+}
+
+/// Reads one byte, then closes the owner on normal return.
+#[ensures(result.0 == if owner@.len() == 0 { None } else { Some(owner@[0]) })]
+#[ensures(result.1@ == owner@.len())]
+pub fn read_first_and_close_normally(owner: ExclusiveBytes) -> (Option<u8>, usize) {
+    let (cursor, first, remaining) = read_first_and_return_cursor(owner);
+    cursor.close();
+    (first, remaining)
+}
+
 /// Proves the concrete sequence identity needed to advance an owned cursor.
 #[check(ghost)]
 #[requires(0 <= *start && *start < *end && *end <= (*source).len())]
@@ -72,6 +93,7 @@ impl View for OwnedByteCursor {
 impl OwnedByteCursor {
     /// Starts iteration at the first byte while retaining the owner.
     #[ensures(result@ == owner@)]
+    #[check(terminates)]
     pub fn new(owner: ExclusiveBytes) -> Self {
         Self { owner, index: 0 }
     }
@@ -93,6 +115,7 @@ impl OwnedByteCursor {
     } else {
         self@.subsequence(1, self@.len())
     })]
+    #[check(terminates)]
     pub fn next_byte(&mut self) -> Option<u8> {
         let owner = snapshot!(self.owner@);
         let index = snapshot!(self.index@);
@@ -112,6 +135,7 @@ impl OwnedByteCursor {
 
     /// Returns the number of bytes that remain to be read.
     #[ensures(result@ == self@.len())]
+    #[check(terminates)]
     pub fn remaining_len(&self) -> usize {
         self.owner.len() - self.index
     }

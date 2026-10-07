@@ -12,8 +12,8 @@ claimed fully verified. Read [MODIFIED_VARIANT_SPEC.md](verification/MODIFIED_VA
 Bounded architecture admission PASSED. Subsequent production increments prove
 recursive scoped sharing, ordinary exclusive mutation connected to sharing,
 checked numeric Cursor operations and reusable immutable scoped callbacks.
-The latest production run, production-capacity-address-digest-copy-slot-285,
-proves 285 files with zero null leaves and native tests pass 48 std/portable
+The latest production run, production-finite-cursor-std-287,
+proves 287 files with zero null leaves and native tests pass 48 std/portable
 and 22 alloc-only. It integrates checked copied splits/iterator append, concrete
 IO, capacity/error frames, numeric address framing through physical recovery,
 deterministic digest/hex and Copy-restricted fallible scoped-slot cleanup. The
@@ -30,10 +30,11 @@ Universal totality is not inferred from metadata or finite-computation proofs.
 
 Actual native floating conversion, generic Serde, callback unwind, unrestricted
 spawn error-frame, and generic Hash/Formatter failures remain preserved and
-frozen in D08–D12. Changed APIs are separately admitted by their actual evidence;
+frozen in D08–D13. Changed APIs are separately admitted by their actual evidence;
 frozen failures never count as completed responsibilities. Final complete-source
-configuration gates, the final API correspondence inventory and bounded
-termination-interface experiments remain open.
+configuration gates, the final API correspondence inventory and downstream/control gates remain open. Finite owned-cursor computation is now
+checked terminating; normal-return cleanup and arbitrary callbacks/iterators
+carry no unconditional totality claim.
 
 Frozen approaches remain frozen unless their actual premises change. T02 remains
 a concrete threaded transport/conditional cleanup component (37 proof files),
