@@ -67,13 +67,16 @@ def feature_configuration(features: str, native_features: str | None, target: st
         "no_default_features": True,
         "features": proof_features,
         "native_features": native_features_list,
-        "native_proof_feature_difference": proof_features != native_features_list,
+        "native_proof_requested_feature_difference": proof_features != native_features_list,
+        "native_proof_feature_difference": True,
+        "implicit_cargo_creusot_features": ["creusot-std/creusot", "creusot-std/nightly"],
+        "effective_proof_cargo_feature_arguments": [*cargo_args, "-F", "creusot-std/creusot creusot-std/nightly"],
         "cargo_feature_arguments": cargo_args,
         "native_cargo_feature_arguments": ["--no-default-features", "--features", native_features or features, *target_args],
         "creusot_translation_command": ["cargo", "creusot", "--only=coma", "--", "--locked", "--lib", *cargo_args],
         "creusot_proof_command": ["cargo", "creusot", "--only=prove", "--why3find-arg=-j", "--why3find-arg=1"],
         "correspondence_note": (
-            "If native and proof dependency features differ, a separate source/type/configuration correspondence audit is required; this record alone proves none."
+            "Requested feature equality does not mean dependency graph equality: pinned cargo-creusot automatically enables creusot-std/creusot and creusot-std/nightly. Capture the effective feature graph and separately audit source/type/configuration correspondence; this record alone proves none."
         ),
     }
 
@@ -265,6 +268,7 @@ def main() -> int:
     add(members, "configuration/effective-why3.conf", why3_config_data)
     add(members, "capture/capture.py", SCRIPT.read_bytes())
     optional_tools = [
+        Path("why3find.json"),
         Path("verify-all.bash"),
         Path("scripts/verify-all.bash"),
         Path("verification/verify-all.bash"),
@@ -272,6 +276,16 @@ def main() -> int:
     for relative in optional_tools:
         if (CRATE / relative).is_file():
             add(members, "configuration/" + relative.as_posix(), read_member(relative))
+
+    tool_paths = json.loads(tool_manifest_data)["binaries"]
+    tool_base = Path(tool_paths["cargo-creusot"]["path"]).parents[2]
+    for name, path in [
+        ("cargo-creusot-feature-flags.rs", tool_base / "creusot-source/cargo-creusot/src/main.rs"),
+        ("creusot-std-features.toml", tool_base / "creusot-source/creusot-std/Cargo.toml"),
+        ("creusot-std-vec-contracts.rs", tool_base / "creusot-source/creusot-std/src/std/vec.rs"),
+    ]:
+        if path.is_file():
+            add(members, "configuration/" + name, path.read_bytes())
 
     tool_check = verify_tool_manifest(tool_manifest_data)
     if args.kind in {"positive", "negative"} and not tool_check["binaries_match"]:

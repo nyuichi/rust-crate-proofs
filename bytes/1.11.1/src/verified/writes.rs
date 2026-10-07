@@ -72,6 +72,18 @@ impl ExclusiveBytes {
         self.append_initialized_slice(source);
     }
 
+    /// Appends one byte.
+    #[ensures(append_model_holds(self@, (^self)@, model_le_bytes(value@, 1)))]
+    pub fn write_u8(&mut self, value: u8) {
+        self.append_initialized_slice(&[value]);
+    }
+
+    /// Appends one two's-complement byte.
+    #[ensures(append_model_holds(self@, (^self)@, model_le_bytes((value as u8)@, 1)))]
+    pub fn write_i8(&mut self, value: i8) {
+        self.write_u8(value as u8);
+    }
+
     /// Appends a `u16` in big-endian order.
     #[ensures(append_model_holds(self@, (^self)@, model_be_bytes(value@, 2)))]
     pub fn write_u16_be(&mut self, value: u16) {
@@ -126,6 +138,134 @@ impl ExclusiveBytes {
     pub fn write_u128_le(&mut self, value: u128) {
         let encoded = crate::byte_codec_wide_ops::encode_le_u128(value);
         self.append_initialized_slice(&encoded);
+    }
+
+    /// Appends an `i16` in big-endian two's-complement order.
+    #[ensures(append_model_holds(self@, (^self)@, model_be_bytes((value as u16)@, 2)))]
+    pub fn write_i16_be(&mut self, value: i16) {
+        self.write_u16_be(value as u16);
+    }
+
+    /// Appends an `i16` in little-endian two's-complement order.
+    #[ensures(append_model_holds(self@, (^self)@, model_le_bytes((value as u16)@, 2)))]
+    pub fn write_i16_le(&mut self, value: i16) {
+        self.write_u16_le(value as u16);
+    }
+
+    /// Appends an `i32` in big-endian two's-complement order.
+    #[ensures(append_model_holds(self@, (^self)@, model_be_bytes((value as u32)@, 4)))]
+    pub fn write_i32_be(&mut self, value: i32) {
+        self.write_u32_be(value as u32);
+    }
+
+    /// Appends an `i32` in little-endian two's-complement order.
+    #[ensures(append_model_holds(self@, (^self)@, model_le_bytes((value as u32)@, 4)))]
+    pub fn write_i32_le(&mut self, value: i32) {
+        self.write_u32_le(value as u32);
+    }
+
+    /// Appends an `i64` in big-endian two's-complement order.
+    #[ensures(append_model_holds(self@, (^self)@, model_be_bytes((value as u64)@, 8)))]
+    pub fn write_i64_be(&mut self, value: i64) {
+        self.write_u64_be(value as u64);
+    }
+
+    /// Appends an `i64` in little-endian two's-complement order.
+    #[ensures(append_model_holds(self@, (^self)@, model_le_bytes((value as u64)@, 8)))]
+    pub fn write_i64_le(&mut self, value: i64) {
+        self.write_u64_le(value as u64);
+    }
+
+    /// Appends an `i128` in big-endian two's-complement order.
+    #[ensures(append_model_holds(self@, (^self)@, model_be_bytes((value as u128)@, 16)))]
+    pub fn write_i128_be(&mut self, value: i128) {
+        self.write_u128_be(value as u128);
+    }
+
+    /// Appends an `i128` in little-endian two's-complement order.
+    #[ensures(append_model_holds(self@, (^self)@, model_le_bytes((value as u128)@, 16)))]
+    pub fn write_i128_le(&mut self, value: i128) {
+        self.write_u128_le(value as u128);
+    }
+
+    /// Appends a `u16` in the target's native byte order.
+    #[cfg_attr(target_endian = "little", ensures(append_model_holds(self@, (^self)@, model_le_bytes(value@, 2))))]
+    #[cfg_attr(target_endian = "big", ensures(append_model_holds(self@, (^self)@, model_be_bytes(value@, 2))))]
+    pub fn write_u16_ne(&mut self, value: u16) {
+        #[cfg(target_endian = "little")]
+        self.write_u16_le(value);
+        #[cfg(target_endian = "big")]
+        self.write_u16_be(value);
+    }
+
+    /// Appends a `u32` in the target's native byte order.
+    #[cfg_attr(target_endian = "little", ensures(append_model_holds(self@, (^self)@, model_le_bytes(value@, 4))))]
+    #[cfg_attr(target_endian = "big", ensures(append_model_holds(self@, (^self)@, model_be_bytes(value@, 4))))]
+    pub fn write_u32_ne(&mut self, value: u32) {
+        #[cfg(target_endian = "little")]
+        self.write_u32_le(value);
+        #[cfg(target_endian = "big")]
+        self.write_u32_be(value);
+    }
+
+    /// Appends a `u64` in the target's native byte order.
+    #[cfg_attr(target_endian = "little", ensures(append_model_holds(self@, (^self)@, model_le_bytes(value@, 8))))]
+    #[cfg_attr(target_endian = "big", ensures(append_model_holds(self@, (^self)@, model_be_bytes(value@, 8))))]
+    pub fn write_u64_ne(&mut self, value: u64) {
+        #[cfg(target_endian = "little")]
+        self.write_u64_le(value);
+        #[cfg(target_endian = "big")]
+        self.write_u64_be(value);
+    }
+
+    /// Appends a `u128` in the target's native byte order.
+    #[cfg_attr(target_endian = "little", ensures(append_model_holds(self@, (^self)@, model_le_bytes(value@, 16))))]
+    #[cfg_attr(target_endian = "big", ensures(append_model_holds(self@, (^self)@, model_be_bytes(value@, 16))))]
+    pub fn write_u128_ne(&mut self, value: u128) {
+        #[cfg(target_endian = "little")]
+        self.write_u128_le(value);
+        #[cfg(target_endian = "big")]
+        self.write_u128_be(value);
+    }
+
+    /// Appends an `i16` in the target's native byte order.
+    #[cfg_attr(target_endian = "little", ensures(append_model_holds(self@, (^self)@, model_le_bytes((value as u16)@, 2))))]
+    #[cfg_attr(target_endian = "big", ensures(append_model_holds(self@, (^self)@, model_be_bytes((value as u16)@, 2))))]
+    pub fn write_i16_ne(&mut self, value: i16) {
+        #[cfg(target_endian = "little")]
+        self.write_i16_le(value);
+        #[cfg(target_endian = "big")]
+        self.write_i16_be(value);
+    }
+
+    /// Appends an `i32` in the target's native byte order.
+    #[cfg_attr(target_endian = "little", ensures(append_model_holds(self@, (^self)@, model_le_bytes((value as u32)@, 4))))]
+    #[cfg_attr(target_endian = "big", ensures(append_model_holds(self@, (^self)@, model_be_bytes((value as u32)@, 4))))]
+    pub fn write_i32_ne(&mut self, value: i32) {
+        #[cfg(target_endian = "little")]
+        self.write_i32_le(value);
+        #[cfg(target_endian = "big")]
+        self.write_i32_be(value);
+    }
+
+    /// Appends an `i64` in the target's native byte order.
+    #[cfg_attr(target_endian = "little", ensures(append_model_holds(self@, (^self)@, model_le_bytes((value as u64)@, 8))))]
+    #[cfg_attr(target_endian = "big", ensures(append_model_holds(self@, (^self)@, model_be_bytes((value as u64)@, 8))))]
+    pub fn write_i64_ne(&mut self, value: i64) {
+        #[cfg(target_endian = "little")]
+        self.write_i64_le(value);
+        #[cfg(target_endian = "big")]
+        self.write_i64_be(value);
+    }
+
+    /// Appends an `i128` in the target's native byte order.
+    #[cfg_attr(target_endian = "little", ensures(append_model_holds(self@, (^self)@, model_le_bytes((value as u128)@, 16))))]
+    #[cfg_attr(target_endian = "big", ensures(append_model_holds(self@, (^self)@, model_be_bytes((value as u128)@, 16))))]
+    pub fn write_i128_ne(&mut self, value: i128) {
+        #[cfg(target_endian = "little")]
+        self.write_i128_le(value);
+        #[cfg(target_endian = "big")]
+        self.write_i128_be(value);
     }
 
     /// Appends the low `nbytes` of `value` in big-endian order.
@@ -185,20 +325,64 @@ impl ExclusiveBytes {
             true
         }
     }
-}
 
-/// Writes a big-endian value, then reads it through the shared physical
-/// allocation and the existing Cursor/close lifecycle.
-#[ensures(result.0 == Some(value))]
-#[ensures(result.1 == 0usize)]
-#[ensures(result.2 != result.3)]
-pub fn scoped_write_read_u16_be(
-    value: u16,
-    reverse: bool,
-) -> (Option<u16>, usize, bool, bool) {
-    let mut bytes = ExclusiveBytes::from_vec(alloc::vec::Vec::new());
-    bytes.write_u16_be(value);
-    super::scoped_numeric_read(bytes.into_vec(), reverse)
+    /// Appends `nbytes` low bytes of a signed value in big-endian order.
+    /// Widths above eight are rejected without changing the byte sequence.
+    #[ensures(result == (nbytes@ <= 8))]
+    #[ensures(if result {
+        append_model_holds(self@, (^self)@, model_be_bytes((value as u64)@, nbytes@))
+    } else {
+        (^self)@ == self@
+    })]
+    pub fn try_write_int_be(&mut self, value: i64, nbytes: usize) -> bool {
+        self.try_write_uint_be(value as u64, nbytes)
+    }
+
+    /// Appends `nbytes` low bytes of a signed value in little-endian order.
+    /// Widths above eight are rejected without changing the byte sequence.
+    #[ensures(result == (nbytes@ <= 8))]
+    #[ensures(if result {
+        append_model_holds(self@, (^self)@, model_le_bytes((value as u64)@, nbytes@))
+    } else {
+        (^self)@ == self@
+    })]
+    pub fn try_write_int_le(&mut self, value: i64, nbytes: usize) -> bool {
+        self.try_write_uint_le(value as u64, nbytes)
+    }
+
+    /// Appends `nbytes` low unsigned bytes in the target's native byte order.
+    /// Widths above eight are rejected without changing the byte sequence.
+    #[cfg_attr(target_endian = "little", ensures(result == (nbytes@ <= 8)))]
+    #[cfg_attr(target_endian = "little", ensures(if result {
+        append_model_holds(self@, (^self)@, model_le_bytes(value@, nbytes@))
+    } else { (^self)@ == self@ }))]
+    #[cfg_attr(target_endian = "big", ensures(result == (nbytes@ <= 8)))]
+    #[cfg_attr(target_endian = "big", ensures(if result {
+        append_model_holds(self@, (^self)@, model_be_bytes(value@, nbytes@))
+    } else { (^self)@ == self@ }))]
+    pub fn try_write_uint_ne(&mut self, value: u64, nbytes: usize) -> bool {
+        #[cfg(target_endian = "little")]
+        { self.try_write_uint_le(value, nbytes) }
+        #[cfg(target_endian = "big")]
+        { self.try_write_uint_be(value, nbytes) }
+    }
+
+    /// Appends `nbytes` low signed bytes in the target's native byte order.
+    /// Widths above eight are rejected without changing the byte sequence.
+    #[cfg_attr(target_endian = "little", ensures(result == (nbytes@ <= 8)))]
+    #[cfg_attr(target_endian = "little", ensures(if result {
+        append_model_holds(self@, (^self)@, model_le_bytes((value as u64)@, nbytes@))
+    } else { (^self)@ == self@ }))]
+    #[cfg_attr(target_endian = "big", ensures(result == (nbytes@ <= 8)))]
+    #[cfg_attr(target_endian = "big", ensures(if result {
+        append_model_holds(self@, (^self)@, model_be_bytes((value as u64)@, nbytes@))
+    } else { (^self)@ == self@ }))]
+    pub fn try_write_int_ne(&mut self, value: i64, nbytes: usize) -> bool {
+        #[cfg(target_endian = "little")]
+        { self.try_write_int_le(value, nbytes) }
+        #[cfg(target_endian = "big")]
+        { self.try_write_int_be(value, nbytes) }
+    }
 }
 
 #[cfg(all(test, not(creusot)))]
@@ -223,6 +407,14 @@ mod tests {
         let mut cursor = Cursor::new(written);
         assert_eq!(cursor.try_get_u16_le(), Some(value));
         assert_eq!(cursor.remaining(), 0);
+
+        let mut native = ExclusiveBytes::from_vec(Vec::new());
+        native.write_u16_ne(value);
+        let written = native.as_slice();
+        assert_eq!(written, value.to_ne_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_u16_ne(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
     }
 
     fn check_u32(value: u32) {
@@ -240,6 +432,14 @@ mod tests {
         assert_eq!(written, value.to_le_bytes());
         let mut cursor = Cursor::new(written);
         assert_eq!(cursor.try_get_u32_le(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+
+        let mut native = ExclusiveBytes::from_vec(Vec::new());
+        native.write_u32_ne(value);
+        let written = native.as_slice();
+        assert_eq!(written, value.to_ne_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_u32_ne(), Some(value));
         assert_eq!(cursor.remaining(), 0);
     }
 
@@ -259,6 +459,14 @@ mod tests {
         let mut cursor = Cursor::new(written);
         assert_eq!(cursor.try_get_u64_le(), Some(value));
         assert_eq!(cursor.remaining(), 0);
+
+        let mut native = ExclusiveBytes::from_vec(Vec::new());
+        native.write_u64_ne(value);
+        let written = native.as_slice();
+        assert_eq!(written, value.to_ne_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_u64_ne(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
     }
 
     fn check_u128(value: u128) {
@@ -277,6 +485,146 @@ mod tests {
         let mut cursor = Cursor::new(written);
         assert_eq!(cursor.try_get_u128_le(), Some(value));
         assert_eq!(cursor.remaining(), 0);
+
+        let mut native = ExclusiveBytes::from_vec(Vec::new());
+        native.write_u128_ne(value);
+        let written = native.as_slice();
+        assert_eq!(written, value.to_ne_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_u128_ne(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+    }
+
+    fn check_i16(value: i16) {
+        let mut be = ExclusiveBytes::from_vec(Vec::new());
+        be.write_i16_be(value);
+        let written = be.as_slice();
+        assert_eq!(written, value.to_be_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i16_be(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+
+        let mut le = ExclusiveBytes::from_vec(Vec::new());
+        le.write_i16_le(value);
+        let written = le.as_slice();
+        assert_eq!(written, value.to_le_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i16_le(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+
+        let mut native = ExclusiveBytes::from_vec(Vec::new());
+        native.write_i16_ne(value);
+        let written = native.as_slice();
+        assert_eq!(written, value.to_ne_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i16_ne(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+    }
+
+    fn check_i32(value: i32) {
+        let mut be = ExclusiveBytes::from_vec(Vec::new());
+        be.write_i32_be(value);
+        let written = be.as_slice();
+        assert_eq!(written, value.to_be_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i32_be(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+
+        let mut le = ExclusiveBytes::from_vec(Vec::new());
+        le.write_i32_le(value);
+        let written = le.as_slice();
+        assert_eq!(written, value.to_le_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i32_le(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+
+        let mut native = ExclusiveBytes::from_vec(Vec::new());
+        native.write_i32_ne(value);
+        let written = native.as_slice();
+        assert_eq!(written, value.to_ne_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i32_ne(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+    }
+
+    fn check_i64(value: i64) {
+        let mut be = ExclusiveBytes::from_vec(Vec::new());
+        be.write_i64_be(value);
+        let written = be.as_slice();
+        assert_eq!(written, value.to_be_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i64_be(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+
+        let mut le = ExclusiveBytes::from_vec(Vec::new());
+        le.write_i64_le(value);
+        let written = le.as_slice();
+        assert_eq!(written, value.to_le_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i64_le(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+
+        let mut native = ExclusiveBytes::from_vec(Vec::new());
+        native.write_i64_ne(value);
+        let written = native.as_slice();
+        assert_eq!(written, value.to_ne_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i64_ne(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+    }
+
+    fn check_i128(value: i128) {
+        let mut be = ExclusiveBytes::from_vec(Vec::new());
+        be.write_i128_be(value);
+        let written = be.as_slice();
+        assert_eq!(written, value.to_be_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i128_be(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+
+        let mut le = ExclusiveBytes::from_vec(Vec::new());
+        le.write_i128_le(value);
+        let written = le.as_slice();
+        assert_eq!(written, value.to_le_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i128_le(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+
+        let mut native = ExclusiveBytes::from_vec(Vec::new());
+        native.write_i128_ne(value);
+        let written = native.as_slice();
+        assert_eq!(written, value.to_ne_bytes());
+        let mut cursor = Cursor::new(written);
+        assert_eq!(cursor.try_get_i128_ne(), Some(value));
+        assert_eq!(cursor.remaining(), 0);
+    }
+
+    fn signed_low_width(value: i64, width: usize) -> i64 {
+        if width == 0 {
+            0
+        } else if width == 8 {
+            value
+        } else {
+            let bits = width * 8;
+            let mask = (1u64 << bits) - 1;
+            let word = (value as u64) & mask;
+            let sign = 1u64 << (bits - 1);
+            if word & sign == 0 {
+                word as i64
+            } else {
+                (word | !mask) as i64
+            }
+        }
+    }
+
+    fn unsigned_low_width(value: u64, width: usize) -> u64 {
+        if width == 0 {
+            0
+        } else if width == 8 {
+            value
+        } else {
+            value & ((1u64 << (width * 8)) - 1)
+        }
     }
 
     fn decode_be(bytes: &[u8]) -> u64 {
@@ -308,11 +656,39 @@ mod tests {
     }
 
     #[test]
+    fn one_byte_unsigned_and_signed_writes_round_trip() {
+        for value in [0, u8::MAX] {
+            let mut bytes = ExclusiveBytes::from_vec(Vec::new());
+            bytes.write_u8(value);
+            assert_eq!(bytes.as_slice(), &[value]);
+            let mut cursor = Cursor::new(bytes.as_slice());
+            assert_eq!(cursor.try_get_u8(), Some(value));
+            assert_eq!(cursor.remaining(), 0);
+        }
+        for value in [i8::MIN, -1, 0, i8::MAX] {
+            let mut bytes = ExclusiveBytes::from_vec(Vec::new());
+            bytes.write_i8(value);
+            assert_eq!(bytes.as_slice(), &value.to_be_bytes());
+            let mut cursor = Cursor::new(bytes.as_slice());
+            assert_eq!(cursor.try_get_i8(), Some(value));
+            assert_eq!(cursor.remaining(), 0);
+        }
+    }
+
+    #[test]
+    fn signed_fixed_endian_and_native_writes_round_trip_extrema() {
+        for value in [i16::MIN, -1, 0, i16::MAX] { check_i16(value); }
+        for value in [i32::MIN, -1, 0, i32::MAX] { check_i32(value); }
+        for value in [i64::MIN, -1, 0, i64::MAX] { check_i64(value); }
+        for value in [i128::MIN, -1, 0, i128::MAX] { check_i128(value); }
+    }
+
+    #[test]
     fn written_u16_is_read_after_real_shared_close_lifecycle() {
         for value in [0, u16::MAX] {
             for reverse in [false, true] {
                 let (read, remaining, first_last, second_last) =
-                    super::scoped_write_read_u16_be(value, reverse);
+                    crate::verified::scoped_write_read_u16_be(value, reverse);
                 assert_eq!(read, Some(value));
                 assert_eq!(remaining, 0);
                 assert_ne!(first_last, second_last);
@@ -348,6 +724,19 @@ mod tests {
             let mut cursor = Cursor::new(&le.as_slice()[1..]);
             assert_eq!(cursor.try_get_uint_le(width), Some(expected_value));
             assert_eq!(cursor.remaining(), 0);
+
+            let mut native = ExclusiveBytes::from_vec(Vec::new());
+            assert!(native.try_write_uint_ne(value, width));
+            let big_native = cfg!(target_endian = "big");
+            let native_expected = if big_native {
+                &be_bytes[8 - width..]
+            } else {
+                &le_bytes[..width]
+            };
+            assert_eq!(native.as_slice(), native_expected);
+            let mut cursor = Cursor::new(native.as_slice());
+            assert_eq!(cursor.try_get_uint_ne(width), Some(unsigned_low_width(value, width)));
+            assert_eq!(cursor.remaining(), 0);
         }
 
         let mut invalid_be = ExclusiveBytes::from_vec(vec![0xaa]);
@@ -356,5 +745,50 @@ mod tests {
         let mut invalid_le = ExclusiveBytes::from_vec(vec![0xaa]);
         assert!(!invalid_le.try_write_uint_le(value, 9));
         assert_eq!(invalid_le.as_slice(), &[0xaa]);
+    }
+
+    #[test]
+    fn variable_signed_writes_cover_all_widths_and_endian_aliases() {
+        for value in [i64::MIN, -1, 0, i64::MAX] {
+            let big = value.to_be_bytes();
+            let little = value.to_le_bytes();
+            for width in 0..=8 {
+                let mut be = ExclusiveBytes::from_vec(Vec::new());
+                assert!(be.try_write_int_be(value, width));
+                assert_eq!(be.as_slice(), &big[8 - width..]);
+                let mut cursor = Cursor::new(be.as_slice());
+                assert_eq!(cursor.try_get_int_be(width), Some(signed_low_width(value, width)));
+                assert_eq!(cursor.remaining(), 0);
+
+                let mut le = ExclusiveBytes::from_vec(Vec::new());
+                assert!(le.try_write_int_le(value, width));
+                assert_eq!(le.as_slice(), &little[..width]);
+                let mut cursor = Cursor::new(le.as_slice());
+                assert_eq!(cursor.try_get_int_le(width), Some(signed_low_width(value, width)));
+                assert_eq!(cursor.remaining(), 0);
+
+                let mut native = ExclusiveBytes::from_vec(Vec::new());
+                assert!(native.try_write_int_ne(value, width));
+                let native_expected = if cfg!(target_endian = "big") {
+                    &big[8 - width..]
+                } else {
+                    &little[..width]
+                };
+                assert_eq!(native.as_slice(), native_expected);
+                let mut cursor = Cursor::new(native.as_slice());
+                assert_eq!(cursor.try_get_int_ne(width), Some(signed_low_width(value, width)));
+                assert_eq!(cursor.remaining(), 0);
+            }
+        }
+
+        let mut invalid_be = ExclusiveBytes::from_vec(vec![0xaa]);
+        assert!(!invalid_be.try_write_int_be(-1, 9));
+        assert_eq!(invalid_be.as_slice(), &[0xaa]);
+        let mut invalid_le = ExclusiveBytes::from_vec(vec![0xaa]);
+        assert!(!invalid_le.try_write_int_le(-1, 9));
+        assert_eq!(invalid_le.as_slice(), &[0xaa]);
+        let mut invalid_native = ExclusiveBytes::from_vec(vec![0xaa]);
+        assert!(!invalid_native.try_write_int_ne(-1, 9));
+        assert_eq!(invalid_native.as_slice(), &[0xaa]);
     }
 }

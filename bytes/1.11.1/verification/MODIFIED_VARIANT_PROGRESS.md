@@ -171,3 +171,35 @@ contract. The failed source remains in combined-leaves-scoped-write-value
 Public specification usability outside the writer module/crate, signed/native
 write aliases, floats, further adapters/observers and retained configurations
 remain separate obligations.
+
+## Ordering, signed/native writes and exact float-bit transport (229)
+
+`ordered-bit-writes-229`: complete engine exit 0, Proved (229 files),
+229 Coma/proof JSON files, zero null leaves, matching 26 native tests.
+Independently audited all 507 members:
+`26c7f386402548e02b53bac3e8441cbb9af6fd7f3f3863000d7c1610b5932735`.
+Configuration remains host `verified,std` with the pinned stock tool/library
+TCB. No bytes-specific ownership/refcount theorem is trusted.
+
+PartialOrd/Ord use the actual byte-sequence model; PartialOrd delegates to the
+proved Ord implementation after the initial slice-to-wrapper projection failed.
+The public cmp-and-close caller composes them. Writes add signed fixed/variable
+width and native-endian aliases. The physical write/readback client is now in a
+sibling module, establishing consumption of writer contracts there. Public
+downstream specification usability remains the next interface obligation.
+
+Float32Bits/Float64Bits preserve exact integer bit patterns, including NaN
+payloads, and provide checked endian readers/writers. The actual production
+write -> physical scoped sharing -> Cursor read -> close client proves exact
+binary32 bit recovery. One body-checked numeral recomposition assertion bridges
+the encoding digits to the canonical reader; no assumed arithmetic law is added.
+These wrappers do not convert to native f32/f64. D08 preserves both actual
+materialization failures and the unproved IEEE conversion boundary.
+
+Capture metadata now explicitly records cargo-creusot's injected
+creusot-std/creusot and creusot-std/nightly features, the effective proof feature
+graph, exact Why3find settings, tool flag source and Vec contract source. Older
+native_proof_feature_difference fields compared only requested CLI feature
+lists; they must not be read as proof of identical dependency feature graphs.
+That correction does not change the completed engine results. Earlier failed
+229 candidates and native import diagnostics are preserved.
