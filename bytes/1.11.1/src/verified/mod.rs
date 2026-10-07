@@ -4,6 +4,7 @@ pub mod exclusive;
 pub mod cursor;
 pub mod float_bits;
 pub mod adapters;
+pub mod writer_adapters;
 pub mod encoding_spec;
 pub mod iteration;
 pub mod conversions;

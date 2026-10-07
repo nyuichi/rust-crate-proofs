@@ -121,3 +121,7 @@ B1 and B2 connect capacity and the generic numeric Vec base model to the raw des
 ## Finite owned-cursor computation
 
 `iteration::read_first_and_return_cursor` performs one checked owned-cursor read, returns the exact optional first byte, initial length and remaining cursor suffix, and is checked terminating. The returned cursor retains its owner and must still be closed. `read_first_and_close_normally` composes that result with explicit close and exact byte/length outputs on normal return; allocator cleanup is not classified as total. Existing arbitrary callbacks/iterators retain their functional normal-return contracts. The D13 checked-trait experiment establishes a possible enforceable termination interface, without extending a totality claim to those APIs or OS thread operations.
+
+## Initialized bounded writer
+
+`writer_adapters::LimitedWriter` borrows one ExclusiveBytes and limits appended initialized bytes by an explicit budget. `write_slice` succeeds iff source fits the remaining budget and usize length domain; success appends exactly source and decreases budget, failure preserves contents and budget. `into_inner` returns the same borrowed owner. Body-proved prophetic projections connect eventual owner contents through constructor, mutations and borrow return, so a caller can observe the exact final sequence and explicitly close its owner. This is an initialized append-budget replacement for limit; it does not model uninitialized BufMut free capacity. Partiality under allocation failure/divergence remains unchanged.
