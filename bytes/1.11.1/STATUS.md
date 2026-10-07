@@ -31,8 +31,12 @@ Universal totality is not inferred from metadata or finite-computation proofs.
 Actual native floating conversion, generic Serde, callback unwind, unrestricted
 spawn error-frame, and generic Hash/Formatter failures remain preserved and
 frozen in D08–D13. Changed APIs are separately admitted by their actual evidence;
-frozen failures never count as completed responsibilities. Final complete-source
-configuration gates, the final API correspondence inventory and downstream/control gates remain open. Finite owned-cursor computation is now
+frozen failures never count as completed responsibilities. The 805f61e3 compiled-source snapshot has audited host std/core-atomic and
+std/portable gates (287 each), genuine host alloc (247), i68632LE (287),
+PowerPC64 big-endian (287), and MSP43016LE alloc (247), with zero null leaves.
+Cross-target native validation is compile-only. New concrete API candidates,
+the final API correspondence inventory and downstream/control gates remain open;
+these configuration results do not cover future candidate integration. Finite owned-cursor computation is now
 checked terminating; normal-return cleanup and arbitrary callbacks/iterators
 carry no unconditional totality claim.
 
