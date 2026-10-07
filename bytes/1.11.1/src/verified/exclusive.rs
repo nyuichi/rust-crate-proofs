@@ -5,11 +5,31 @@
 //! explicit B1/B3 ownership path.
 
 use alloc::vec::Vec;
-use core::ops::{Deref, DerefMut};
+use core::{borrow::BorrowMut, ops::{Deref, DerefMut}};
 
 use creusot_std::prelude::*;
 
 use crate::ownership_proof::{bound_ptr, raw_vec};
+
+/// Rejoins the two exact pieces named by a checked split index.
+#[check(ghost)]
+#[requires(0 <= *index && *index <= (*source).len())]
+#[ensures((*source).subsequence(0, *index)
+    .concat((*source).subsequence(*index, (*source).len())) == *source)]
+fn split_rejoins(source: Snapshot<Seq<u8>>, index: Snapshot<Int>) {
+    let prefix = snapshot!((*source).subsequence(0, *index));
+    let suffix = snapshot!((*source).subsequence(*index, (*source).len()));
+    let joined = snapshot!((*prefix).concat(*suffix));
+
+    proof_assert!((*prefix).len() == *index);
+    proof_assert!((*suffix).len() == (*source).len() - *index);
+    proof_assert!((*joined).len() == (*source).len());
+    proof_assert!(forall<i: Int> 0 <= i && i < *index ==>
+        (*joined)[i] == (*source)[i]);
+    proof_assert!(forall<i: Int> *index <= i && i < (*source).len() ==>
+        (*joined)[i] == (*source)[i]);
+    proof_assert!((*joined).ext_eq(*source));
+}
 
 /// A byte sequence with one exclusive, Vec-backed owner.
 pub struct ExclusiveBytes {
@@ -164,15 +184,18 @@ impl ExclusiveBytes {
     #[ensures(match result {
         Some(suffix) => index@ <= self@.len() &&
             (^self)@ == self@.subsequence(0, index@) &&
-            suffix@ == self@.subsequence(index@, self@.len()),
+            suffix@ == self@.subsequence(index@, self@.len()) &&
+            (^self)@.concat(suffix@) == self@,
         None => index@ > self@.len() && (^self)@ == self@,
     })]
     pub fn try_split_off_copy(&mut self, index: usize) -> Option<Self> {
+        let old = snapshot!(self@);
         if index > self.bytes.len() {
             None
         } else {
             let suffix = Self::copy_from_slice(&self.bytes[index..]);
             self.truncate(index);
+            ghost! { split_rejoins(old, snapshot!(index@)); };
             Some(suffix)
         }
     }
@@ -184,10 +207,12 @@ impl ExclusiveBytes {
     #[ensures(match result {
         Some(prefix) => index@ <= self@.len() &&
             prefix@ == self@.subsequence(0, index@) &&
-            (^self)@ == self@.subsequence(index@, self@.len()),
+            (^self)@ == self@.subsequence(index@, self@.len()) &&
+            prefix@.concat((^self)@) == self@,
         None => index@ > self@.len() && (^self)@ == self@,
     })]
     pub fn try_split_to_copy(&mut self, index: usize) -> Option<Self> {
+        let old = snapshot!(self@);
         if index > self.bytes.len() {
             None
         } else {
@@ -195,6 +220,7 @@ impl ExclusiveBytes {
             let suffix = Self::copy_from_slice(&self.bytes[index..]);
             self.clear();
             self.append_owner(suffix);
+            ghost! { split_rejoins(old, snapshot!(index@)); };
             Some(prefix)
         }
     }
@@ -204,6 +230,25 @@ impl ExclusiveBytes {
     pub fn append_owner(&mut self, other: Self) {
         self.extend_from_slice(other.as_slice());
         other.close();
+    }
+
+    /// Appends `count` copies of `byte`, returning false without mutation on overflow.
+    #[ensures(result == (count@ <= usize::MAX@ - self@.len()))]
+    #[ensures(if result {
+        (^self)@.len() == self@.len() + count@ &&
+        forall<i: Int> 0 <= i && i < self@.len() ==> (^self)@[i] == self@[i] &&
+        forall<i: Int> 0 <= i && i < count@ ==> (^self)@[self@.len() + i] == byte
+    } else {
+        (^self)@ == self@
+    })]
+    pub fn append_repeated(&mut self, byte: u8, count: usize) -> bool {
+        match self.bytes.len().checked_add(count) {
+            Some(new_len) => {
+                self.resize(new_len, byte);
+                true
+            }
+            None => false,
+        }
     }
 
     /// Resizes to `new_len`, filling newly added bytes with `value`.
@@ -326,6 +371,72 @@ pub(crate) fn reserve_then_close(mut owner: ExclusiveBytes, additional: usize) -
     capacity
 }
 
+/// Splits at `index` and explicitly closes both independently owned results.
+#[ensures(result.0 == (index@ <= input@.len()))]
+#[ensures(result.1@ == if index@ <= input@.len() { index@ } else { input@.len() })]
+#[ensures(result.2@ == if index@ <= input@.len() {
+    input@.len() - index@
+} else { 0 })]
+pub(crate) fn split_off_copy_then_close(
+    input: Vec<u8>,
+    index: usize,
+) -> (bool, usize, usize) {
+    let mut owner = ExclusiveBytes::from_vec(input);
+    match owner.try_split_off_copy(index) {
+        Some(suffix) => {
+            let prefix_len = owner.len();
+            let suffix_len = suffix.len();
+            owner.close();
+            suffix.close();
+            (true, prefix_len, suffix_len)
+        }
+        None => {
+            let retained_len = owner.len();
+            owner.close();
+            (false, retained_len, 0)
+        }
+    }
+}
+
+/// Splits at `index` in the opposite direction and explicitly closes both owners.
+#[ensures(result.0 == (index@ <= input@.len()))]
+#[ensures(result.1@ == if index@ <= input@.len() { index@ } else { 0 })]
+#[ensures(result.2@ == if index@ <= input@.len() {
+    input@.len() - index@
+} else { input@.len() })]
+pub(crate) fn split_to_copy_then_close(
+    input: Vec<u8>,
+    index: usize,
+) -> (bool, usize, usize) {
+    let mut owner = ExclusiveBytes::from_vec(input);
+    match owner.try_split_to_copy(index) {
+        Some(prefix) => {
+            let prefix_len = prefix.len();
+            let suffix_len = owner.len();
+            prefix.close();
+            owner.close();
+            (true, prefix_len, suffix_len)
+        }
+        None => {
+            let retained_len = owner.len();
+            owner.close();
+            (false, 0, retained_len)
+        }
+    }
+}
+
+/// Exercises the repeated append body and closes the owner on either result.
+#[ensures(result == (count@ <= usize::MAX@ - owner@.len()))]
+pub(crate) fn append_repeated_then_close(
+    mut owner: ExclusiveBytes,
+    byte: u8,
+    count: usize,
+) -> bool {
+    let appended = owner.append_repeated(byte, count);
+    owner.close();
+    appended
+}
+
 impl AsRef<[u8]> for ExclusiveBytes {
     #[check(ghost)]
     #[ensures(result@ == self@)]
@@ -354,10 +465,39 @@ impl DerefMut for ExclusiveBytes {
     }
 }
 
+impl AsMut<[u8]> for ExclusiveBytes {
+    #[check(ghost)]
+    #[ensures(result@ == self@)]
+    #[ensures((^self)@.len() == self@.len())]
+    #[ensures((^result)@ == (^self)@)]
+    fn as_mut(&mut self) -> &mut [u8] {
+        DerefMut::deref_mut(self)
+    }
+}
+
+impl BorrowMut<[u8]> for ExclusiveBytes {
+    #[check(ghost)]
+    #[ensures(result@ == self@)]
+    #[ensures((^self)@.len() == self@.len())]
+    #[ensures((^result)@ == (^self)@)]
+    fn borrow_mut(&mut self) -> &mut [u8] {
+        <Self as AsMut<[u8]>>::as_mut(self)
+    }
+}
+
 #[cfg(all(test, not(creusot)))]
 mod tests {
     use super::ExclusiveBytes;
-    use std::{ops::{Deref, DerefMut}, vec, vec::Vec};
+    use std::{borrow::BorrowMut, convert::AsMut, ops::{Deref, DerefMut}, vec, vec::Vec};
+
+    #[test]
+    fn mutable_slice_traits_preserve_owner_sequence_and_close() {
+        let mut bytes = ExclusiveBytes::from_vec(vec![1, 2, 3]);
+        AsMut::<[u8]>::as_mut(&mut bytes)[0] = 10;
+        BorrowMut::<[u8]>::borrow_mut(&mut bytes)[2] = 30;
+        assert_eq!(bytes.as_slice(), &[10, 2, 30]);
+        bytes.close();
+    }
 
     #[test]
     fn exclusive_sequence_operations() {
@@ -555,5 +695,57 @@ mod tests {
         assert!(invalid_to.try_split_to_copy(4).is_none());
         assert_eq!(invalid_to.as_slice(), &[1, 2, 3]);
         invalid_to.close();
+    }
+
+    #[test]
+    fn split_cleanup_callers_cover_empty_boundaries_and_invalid_indices() {
+        assert_eq!(
+            super::split_off_copy_then_close(vec![1, 2, 3], 0),
+            (true, 0, 3),
+        );
+        assert_eq!(
+            super::split_off_copy_then_close(vec![1, 2, 3], 3),
+            (true, 3, 0),
+        );
+        assert_eq!(
+            super::split_off_copy_then_close(vec![], 0),
+            (true, 0, 0),
+        );
+        assert_eq!(
+            super::split_off_copy_then_close(vec![1, 2, 3], 4),
+            (false, 3, 0),
+        );
+        assert_eq!(
+            super::split_to_copy_then_close(vec![1, 2, 3], 0),
+            (true, 0, 3),
+        );
+        assert_eq!(
+            super::split_to_copy_then_close(vec![1, 2, 3], 3),
+            (true, 3, 0),
+        );
+        assert_eq!(
+            super::split_to_copy_then_close(vec![], 0),
+            (true, 0, 0),
+        );
+        assert_eq!(
+            super::split_to_copy_then_close(vec![1, 2, 3], 4),
+            (false, 0, 3),
+        );
+    }
+
+    #[test]
+    fn repeated_append_handles_zero_success_and_checked_overflow() {
+        let mut bytes = ExclusiveBytes::from_vec(vec![4, 5]);
+        assert!(bytes.append_repeated(9, 0));
+        assert_eq!(bytes.as_slice(), &[4, 5]);
+        assert!(bytes.append_repeated(9, 3));
+        assert_eq!(bytes.as_slice(), &[4, 5, 9, 9, 9]);
+        bytes.close();
+
+        assert!(!super::append_repeated_then_close(
+            ExclusiveBytes::from_vec(vec![7]),
+            0xaa,
+            usize::MAX,
+        ));
     }
 }

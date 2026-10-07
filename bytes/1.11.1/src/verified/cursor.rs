@@ -5,6 +5,8 @@
 
 use creusot_std::prelude::*;
 
+use super::exclusive::ExclusiveBytes;
+
 /// A view into an immutable byte sequence with a checked read position.
 pub struct Cursor<'a> {
     remaining: &'a [u8],
@@ -221,6 +223,31 @@ impl<'a> Cursor<'a> {
         let count = core::cmp::min(dst.len(), self.remaining.len());
         self.copy_to_slice(&mut dst[..count]);
         count
+    }
+
+    /// Copies the unread prefix into an independent owner, or leaves the
+    /// cursor unchanged when `count` exceeds the unread length.
+    #[ensures(match result {
+        Some(owner) => count@ <= self@.len()
+            && owner@ == self@[0..count@]
+            && (^self)@ == self@[count@..],
+        None => count@ > self@.len() && (^self)@ == self@,
+    })]
+    pub fn try_copy_to_owner(&mut self, count: usize) -> Option<ExclusiveBytes> {
+        if count > self.remaining.len() {
+            None
+        } else {
+            let owner = ExclusiveBytes::copy_from_slice(&self.remaining[..count]);
+            let advanced = self.advance(count);
+            if advanced {
+                Some(owner)
+            } else {
+                // The checked branch above makes this unreachable. Keeping the
+                // fallback avoids hiding any behavior behind a trusted fact.
+                owner.close();
+                None
+            }
+        }
     }
 
     /// Reads one byte, leaving the cursor unchanged when it is empty.
@@ -900,6 +927,29 @@ impl std::io::Read for Cursor<'_> {
     }
 }
 
+/// Copies and closes the requested prefix owner, leaving the cursor at the
+/// corresponding suffix on success.
+#[ensures(result.0 == (count@ <= input@.len()))]
+#[ensures(result.1@ == if count@ <= input@.len() { count@ } else { 0 })]
+#[ensures(result.2@ == if count@ <= input@.len() {
+    input@.len() - count@
+} else { input@.len() })]
+pub(crate) fn copy_to_owner_then_close(input: &[u8], count: usize) -> (bool, usize, usize) {
+    let mut cursor = Cursor::new(input);
+    match cursor.try_copy_to_owner(count) {
+        Some(owner) => {
+            let copied_len = owner.len();
+            let remaining_len = cursor.remaining();
+            owner.close();
+            (true, copied_len, remaining_len)
+        }
+        None => {
+            let remaining_len = cursor.remaining();
+            (false, 0, remaining_len)
+        }
+    }
+}
+
 #[cfg(all(test, not(creusot)))]
 mod tests {
     use super::Cursor;
@@ -946,6 +996,34 @@ mod tests {
         let mut empty_dst = [];
         assert_eq!(cursor.read_prefix(&mut empty_dst), 0);
         assert_eq!(cursor.chunk(), &[9, 8]);
+    }
+
+    #[test]
+    fn copied_owner_consumes_exact_prefix_and_closes() {
+        let input = [4, 5, 6, 7];
+
+        for count in [0, input.len()] {
+            let mut cursor = Cursor::new(&input);
+            let owner = cursor.try_copy_to_owner(count).unwrap();
+            assert_eq!(owner.as_slice(), &input[..count]);
+            assert_eq!(cursor.chunk(), &input[count..]);
+            owner.close();
+        }
+
+        let mut empty = Cursor::new(&[]);
+        let empty_owner = empty.try_copy_to_owner(0).unwrap();
+        assert!(empty_owner.is_empty());
+        assert!(empty.chunk().is_empty());
+        empty_owner.close();
+
+        let mut short = Cursor::new(&input);
+        assert!(short.try_copy_to_owner(input.len() + 1).is_none());
+        assert_eq!(short.chunk(), &input);
+
+        assert_eq!(super::copy_to_owner_then_close(&input, 0), (true, 0, 4));
+        assert_eq!(super::copy_to_owner_then_close(&input, 4), (true, 4, 0));
+        assert_eq!(super::copy_to_owner_then_close(&input, 5), (false, 0, 4));
+        assert_eq!(super::copy_to_owner_then_close(&[], 0), (true, 0, 0));
     }
 
     #[cfg(feature = "std")]

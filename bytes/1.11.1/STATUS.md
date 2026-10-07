@@ -21,9 +21,14 @@ exact actual Std dependency sources and feature graphs accompany the capture.
 Proof-file counts are not API-completion counts. Read
 [MODIFIED_VARIANT_PROGRESS.md](verification/MODIFIED_VARIANT_PROGRESS.md).
 
-Initialized LimitedWriter and ChainedWriter are now integrated from the exact298-file
-verified,std positive, with Root source-parity audit and native54 std /22 alloc. Older287/247
-configuration gates apply to the805 snapshot; final enlarged-source gates remain pending.
+The current combined production gate, production-copied-borrow-writers-325,
+proves325 matching Coma/JSON files with zero null leaves and observed exit0.
+Native suites pass61 verified,std and26 verified/alloc. It includes initialized
+LimitedWriter/ChainedWriter, copied clone/range/default, exact copied splits,
+repeated append, cursor-to-owner copying, Borrow/AsMut/BorrowMut and bidirectional
+slice comparisons. Root independently audited the complete archived source,
+actual Std dependency and every proof result. Older287/247 configuration gates
+apply to the805 snapshot; final enlarged-source gates remain pending.
 
 The complete modified variant remains NOT COMPLETE. The small generic capacity,
 numeric base observation and Copy-slot contracts are reviewed trusted Std

@@ -2,7 +2,7 @@
 
 use alloc::vec::Vec;
 use creusot_std::prelude::*;
-use core::cmp::Ordering;
+use core::{borrow::Borrow, cmp::Ordering};
 
 use super::exclusive::ExclusiveBytes;
 
@@ -15,6 +15,13 @@ impl DeepModel for ExclusiveBytes {
     }
 }
 
+impl Borrow<[u8]> for ExclusiveBytes {
+    #[ensures(result.deep_model() == self.deep_model())]
+    fn borrow(&self) -> &[u8] {
+        self.as_slice()
+    }
+}
+
 impl PartialEq for ExclusiveBytes {
     #[ensures(result == (self.deep_model() == other.deep_model()))]
     fn eq(&self, other: &Self) -> bool {
@@ -23,6 +30,34 @@ impl PartialEq for ExclusiveBytes {
 }
 
 impl Eq for ExclusiveBytes {}
+
+impl PartialEq<[u8]> for ExclusiveBytes {
+    #[ensures(result == (self.deep_model() == other.deep_model()))]
+    fn eq(&self, other: &[u8]) -> bool {
+        self.as_slice() == other
+    }
+}
+
+impl PartialOrd<[u8]> for ExclusiveBytes {
+    #[ensures(result == self.deep_model().partial_cmp_log(other.deep_model()))]
+    fn partial_cmp(&self, other: &[u8]) -> Option<Ordering> {
+        Some(self.as_slice().cmp(other))
+    }
+}
+
+impl PartialEq<ExclusiveBytes> for [u8] {
+    #[ensures(result == (self.deep_model() == other.deep_model()))]
+    fn eq(&self, other: &ExclusiveBytes) -> bool {
+        self == other.as_slice()
+    }
+}
+
+impl PartialOrd<ExclusiveBytes> for [u8] {
+    #[ensures(result == self.deep_model().partial_cmp_log(other.deep_model()))]
+    fn partial_cmp(&self, other: &ExclusiveBytes) -> Option<Ordering> {
+        Some(self.cmp(other.as_slice()))
+    }
+}
 
 impl PartialOrd for ExclusiveBytes {
     #[ensures(result == (*self).deep_model().partial_cmp_log((*other).deep_model()))]
@@ -77,6 +112,23 @@ pub fn equal_then_close(left: ExclusiveBytes, right: ExclusiveBytes) -> bool {
     let equal = left == right;
     left.close();
     right.close();
+    equal
+}
+
+/// Consumes the checked `Borrow<[u8]>` relation through a generic caller.
+#[ensures(result == (source.deep_model() == expected.deep_model()))]
+fn borrowed_matches<T: Borrow<[u8]> + DeepModel<DeepModelTy = Seq<Int>>>(
+    source: &T,
+    expected: &[u8],
+) -> bool {
+    <T as Borrow<[u8]>>::borrow(source) == expected
+}
+
+/// Exercises generic borrowing, then explicitly closes the byte owner.
+#[ensures(result == (owner.deep_model() == expected.deep_model()))]
+pub(crate) fn borrow_matches_then_close(owner: ExclusiveBytes, expected: &[u8]) -> bool {
+    let equal = borrowed_matches(&owner, expected);
+    owner.close();
     equal
 }
 
@@ -272,6 +324,29 @@ mod tests {
         let left = ExclusiveBytes::copy_from_slice(b"byte");
         let right = ExclusiveBytes::copy_from_slice(b"bytes");
         assert_eq!(cmp_then_close(left, right), Ordering::Less);
+    }
+
+    #[test]
+    fn borrow_trait_returns_the_same_bytes_and_closes_explicitly() {
+        assert!(super::borrow_matches_then_close(
+            ExclusiveBytes::copy_from_slice(b"borrow"),
+            b"borrow",
+        ));
+        assert!(!super::borrow_matches_then_close(
+            ExclusiveBytes::copy_from_slice(b"borrow"),
+            b"Borrow",
+        ));
+    }
+
+    #[test]
+    fn cross_slice_comparisons_match_slice_equality_and_order() {
+        let owner = ExclusiveBytes::copy_from_slice(b"byte");
+        assert!(owner == b"byte"[..]);
+        assert!(b"byte"[..] == owner);
+        assert!(owner < b"bytes"[..]);
+        assert!(b"byt"[..] < owner);
+        assert!(owner != b"bytes"[..]);
+        owner.close();
     }
 }
 

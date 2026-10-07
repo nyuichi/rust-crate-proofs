@@ -1,6 +1,7 @@
 //! Standard-library conversions whose contracts preserve the byte sequence.
 
 use alloc::{boxed::Box, string::String, vec::Vec};
+use core::ops::Range;
 use creusot_std::{prelude::*, std::iter::IteratorSpec};
 
 use super::exclusive::ExclusiveBytes;
@@ -10,6 +11,29 @@ impl ExclusiveBytes {
     #[ensures(result@ == source@)]
     pub fn copy_from_slice(source: &[u8]) -> Self {
         Self::from_vec(Vec::from(source))
+    }
+
+    /// Creates a separate Vec-backed copy of this sequence.
+    #[ensures(result@ == self@)]
+    pub fn copy_clone(&self) -> Self {
+        Self::copy_from_slice(self.as_slice())
+    }
+
+    /// Copies a checked byte range into a separate owner.
+    ///
+    /// Reversed or out-of-bounds ranges return `None` without changing this owner.
+    #[ensures(match result {
+        Some(copy) => range.start@ <= range.end@ && range.end@ <= self@.len()
+            && copy@ == self@[range.start@..range.end@],
+        None => range.start@ > range.end@ || range.end@ > self@.len(),
+    })]
+    pub fn try_copy_slice(&self, range: Range<usize>) -> Option<Self> {
+        let input = self.as_slice();
+        if range.start > range.end || range.end > input.len() {
+            None
+        } else {
+            Some(Self::copy_from_slice(&input[range.start..range.end]))
+        }
     }
 
     /// Copies the UTF-8 bytes of a borrowed string into exclusive storage.
@@ -74,6 +98,36 @@ impl ExclusiveBytes {
     }
 }
 
+impl Default for ExclusiveBytes {
+    #[ensures(result@.len() == 0)]
+    fn default() -> Self {
+        Self::from_vec(Vec::new())
+    }
+}
+
+/// Copies an owner's contents and explicitly closes both owners.
+pub(crate) fn copy_clone_then_close(owner: ExclusiveBytes) {
+    let copy = owner.copy_clone();
+    owner.close();
+    copy.close();
+}
+
+/// Copies a checked range and explicitly closes every owner on both branches.
+#[ensures(result == (range.start@ <= range.end@ && range.end@ <= owner@.len()))]
+pub(crate) fn copy_slice_then_close(owner: ExclusiveBytes, range: Range<usize>) -> bool {
+    match owner.try_copy_slice(range) {
+        Some(copy) => {
+            owner.close();
+            copy.close();
+            true
+        }
+        None => {
+            owner.close();
+            false
+        }
+    }
+}
+
 /// Copies a slice, updates one byte, and sends the resulting allocation
 /// through the physical shared-read tree and explicit cleanup path.
 #[cfg(feature = "std")]
@@ -123,6 +177,42 @@ mod tests {
         assert_eq!(boxed_bytes.as_slice(), b"Box");
         boxed_bytes.close();
 
+        let mut copied = ExclusiveBytes::copy_from_slice(b"copy");
+        let clone = copied.copy_clone();
+        assert_eq!(clone.as_slice(), b"copy");
+        copied.set(0, b'C');
+        assert_eq!(clone.as_slice(), b"copy");
+        clone.close();
+        copied.close();
+
+        let mut ranged = ExclusiveBytes::copy_from_slice(b"range");
+        let range_copy = ranged.try_copy_slice(1..4).unwrap();
+        assert_eq!(range_copy.as_slice(), b"ang");
+        ranged.set(1, b'X');
+        assert_eq!(range_copy.as_slice(), b"ang");
+        range_copy.close();
+        assert!(super::copy_slice_then_close(
+            ExclusiveBytes::copy_from_slice(b"range"),
+            0..5,
+        ));
+        assert!(super::copy_slice_then_close(
+            ExclusiveBytes::copy_from_slice(b"range"),
+            5..5,
+        ));
+        assert!(!super::copy_slice_then_close(
+            ExclusiveBytes::copy_from_slice(b"range"),
+            4..2,
+        ));
+        assert!(!super::copy_slice_then_close(
+            ExclusiveBytes::copy_from_slice(b"range"),
+            0..6,
+        ));
+        super::copy_clone_then_close(ExclusiveBytes::copy_from_slice(b"closed"));
+
+        let default = ExclusiveBytes::default();
+        assert!(default.is_empty());
+        default.close();
+
         let iterated = ExclusiveBytes::from_iter(alloc::vec![b'i', b't', b'e', b'r'].into_iter());
         assert_eq!(iterated.as_slice(), b"iter");
         iterated.close();
@@ -143,5 +233,15 @@ mod tests {
         bytes.append_str("héllo");
         assert_eq!(bytes.as_slice(), "prefix:héllo".as_bytes());
         bytes.close();
+    }
+
+    #[test]
+    fn copy_ranges_cover_empty_and_invalid_owners() {
+        let mut empty_with_spare = ExclusiveBytes::from_vec(Vec::with_capacity(8));
+        let empty = empty_with_spare.try_copy_slice(0..0).unwrap();
+        assert!(empty.is_empty());
+        empty.close();
+        assert!(empty_with_spare.try_copy_slice(0..1).is_none());
+        empty_with_spare.close();
     }
 }

@@ -127,3 +127,12 @@ B1 and B2 connect capacity and the generic numeric Vec base model to the raw des
 `writer_adapters::LimitedWriter` borrows one ExclusiveBytes and limits appended initialized bytes by an explicit budget. `write_slice` succeeds iff source fits the remaining budget and usize length domain; success appends exactly source and decreases budget, failure preserves contents and budget. `into_inner` returns the same borrowed owner. Body-proved prophetic projections connect eventual owner contents through constructor, mutations and borrow return, so a caller can observe the exact final sequence and explicitly close its owner. This is an initialized append-budget replacement for limit; it does not model uninitialized BufMut free capacity. Partiality under allocation failure/divergence remains unchanged.
 
 `writer_adapters::ChainedWriter` borrows two owners and explicit append budgets. It fills the left budget first and appends the remaining source suffix to the right. Budget and each owner’s usize length limits are all checked before mutation; a failed write preserves both sequences and both budgets. Success appends the exact prefix/suffix and decrements their respective budgets. Body-proved final-borrow projections let callers return both borrows, observe final sequences, and close both owners. This is initialized append semantics, not uninitialized chunk_mut capacity or O(1) shared storage.
+
+
+## Copied ownership and borrow observations
+
+`copy_clone` creates an independent owner with the exact source bytes. `try_copy_slice` returns the exact valid range or None without mutating the source. Default creates an empty owner. Copied splits specify that the two returned pieces rejoin to the original sequence. All returned owners require explicit close; these operations allocate/copy and do not retain O(1) shared-allocation identity.
+
+`append_repeated` checks length overflow before appending an exact repeated byte sequence; failure frames contents. `Cursor::try_copy_to_owner` returns an independent owner containing the requested prefix and advances to the exact suffix, or returns None with the cursor unchanged.
+
+Borrow, AsMut and BorrowMut forward the existing concrete slice access contracts. Mutable projections preserve length and connect the returned slice's eventual bytes to the owner's eventual bytes. Bidirectional slice PartialEq/PartialOrd compare exact byte sequences; PartialOrd delegates to the already specified slice cmp. None of these bodies assumes bytes-specific ownership or refcount facts.
