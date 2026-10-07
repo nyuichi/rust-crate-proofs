@@ -36,3 +36,25 @@ allowed. A blocked target is not a completed or implicitly reduced target.
 Only bytes 1.11.1 is in scope. Commit/push validated increments to
 `origin bytes-runtime-verification`; never main or force-push. Existing proof
 serialization, elevated Why3 execution, and evidence-audit rules still apply.
+
+## Generic trusted boundaries — user direction 2026-10-08
+
+The user explicitly directed adopting a trusted generic boundary for the
+shared-update/tool-support gap, and checking how creusot-std handles analogous
+cases whenever verification becomes blocked. Consult both shipped contracts and
+relevant upstream examples; record the exact analogue and what it assumes.
+Do not infer that a missing shipped adapter means the operation cannot be modeled.
+
+A reviewed generic synchronization/resource primitive may remain trusted while
+its bytes callers and protocol transitions are body proved. Give it a strong,
+precise contract, a documented native interpretation and assumptions, and a
+replacement path preserving that interface when tool/Std support arrives.
+Do not require proving the new primitive's implementation before trying its
+callers: the user has authorized the explicit TCB boundary. Record its trust
+honestly; caller proof does not prove primitive adequacy.
+
+Known unsound rules (including alternate-entry invariant reentrancy and SC
+permission extraction for weak atomics) remain rejected. Bytes-specific clone,
+refcount, last-owner or destructor laws remain body-proof obligations. This
+changed premise permits a new restricted generic interface; it does not reopen
+unchanged failed routes or authorize replacement public buffer APIs.

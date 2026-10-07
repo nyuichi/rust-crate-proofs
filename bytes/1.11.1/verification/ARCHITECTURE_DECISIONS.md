@@ -382,3 +382,21 @@ D01/D02/D05 and original Drop boundaries remain fixed.
 Evidence/source audit and detailed reasoning:
 probes/tokenless-sharing-2026-10-08/RESULTS_JA.md and audit.json. No bytes-specific
 protocol trust, production representation change or original API proof added.
+
+## D2026-10-08-U — User-authorized generic trusted synchronization boundary
+
+After the RefCell/Mutex explanation the user explicitly selected the trusted
+boundary direction and required consulting/imitating creusot-std analogues when
+blocked. This supersedes treating lack of a presently body-proved new generic
+primitive as a reason by itself to stop. Strong reviewed generic contracts may
+be adopted as explicit TCB while bytes protocol bodies remain proof obligations.
+The pinned upstream tests/should_succeed/mutex.rs itself trusts lock/guard
+operations; shipped AtomicInvariant and Committer likewise trust primitive
+resource effects. Native interpretation and model scope must be recorded.
+
+D2026-10-08-T's immutable GhostShared recovery rejection and alternate-Tokens
+reentry counterexample remain valid. A distinct restricted interface with no
+alternate ghost opening entry is a changed premise for a bounded experiment.
+Do not copy the rejected open_at extension onto existing AtomicInvariant.
+Preserve Objective/AtView weak-memory discipline and actual atomic event identity.
+No bytes-specific ownership/refcount law is made trusted by this authorization.
