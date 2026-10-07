@@ -395,3 +395,12 @@ Production-finite-cursor-alloc-247 uses the same Cargo/src bytes as the precedin
 ### 2026-10-07: same production source, standard core-atomic backend
 
 Production-finite-cursor-core-atomic-287 proves the same compiled Cargo/src snapshot using `verified,std`, without extra-platforms: 287 matching body proof files, zero null leaves, observed exit 0. The actual core AtomicUsize/fence branch and reviewed RA protocol are included. Native library tests pass 48. Archive `c16f9cc895dc828fd6676398b90bcddef5273afd0ffd0f74bff00adf41f19c68` was independently archive/member audited and includes actual Std package, effective normal/build feature graphs and pre-run fingerprint. This is a separate backend gate, not inferred from the portable result. Cross-target and paired control gates use this source; small additional API-closure candidates are isolated and not yet adopted.
+
+### 2026-10-07: fresh paired final-source resource controls
+
+Both controls start with the same compiled Cargo/src snapshot as production-finite-cursor-std-287, including the reviewed capacity/base/Copy-slot Std additions and the explicit address-witness close. Independent archive audits and compiled-source comparisons confirm one changed Rust file each and unchanged Cargo inputs.
+
+- final-root-missing-acquire-portable-ra, archive `6d1c5e132b24ff718c11fe93e85f47d6af39705c3d13c3e9f7e2938db9bbd1c2`: actual portable Atomic backend, 287 Coma/JSON, observed exit 1, exactly two null leaves in SharedRetirement::retire after replacing final Acquire fence with the unacquired current view.
+- final-root-missing-spare-region, archive `5d399208782ce535222194c2984c0567c1032a01d0acdb855a4c7c89dfec9b41`: core Atomic backend, 287 Coma/JSON, observed exit 1, exactly one null in RecoveredAllocation::into_vec (19/20 tasks proved) after discarding spare physical region authority.
+
+No unsafe native negative ran. Actual Std source and feature graphs accompany each capture. These establish rejection at this source snapshot; the historical empty-view/lifetime and duplicate-receipt controls are labeled historical, not claimed exact-source matches. Fresh controls for those responsibilities are being prepared. Small extra API-closure candidates remain separate and will require their own production proof/configuration mapping before adoption.

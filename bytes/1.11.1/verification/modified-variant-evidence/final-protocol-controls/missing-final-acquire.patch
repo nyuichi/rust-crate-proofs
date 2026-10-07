@@ -1,0 +1,14 @@
+--- a/src/verified/retirement.rs
++++ b/src/verified/retirement.rs
+@@ -149,10 +149,7 @@
+             });
+         }});
+         if old == 1 {
+-            #[cfg(not(feature="negative_no_acquire"))]
+-            let observed=fence_acquire(ghost! {pending.into_inner().unwrap()});
+-            #[cfg(feature="negative_no_acquire")]
+-            let observed=current;
++            let observed=current; // deliberate negative: omit the final Acquire fence
+             (true,ghost! {
+                 let (local,other,left)=collected.into_inner().unwrap();
+                 let other=other.sync(*observed);
