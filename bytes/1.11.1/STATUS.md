@@ -28,6 +28,16 @@ No Why3 body proof completed. Sources, exit statuses and diagnostic logs are in
 `verification/cleanup-evidence-2026-10-07/manifest.json`. This newly exposed
 original-source/specification boundary is not a mathematical counterexample.
 
+Current original-path increment (2026-10-08): a source-gated unique/off0/no-growth
+BytesMut constructor → spare borrow → append → length-publication path passes
+50 Coma/JSON files with zero null leaves. Original native fields remain intact;
+a cfg-only optional sidecar carries the actual B1 allocation capabilities.
+Uninitialized publication fails at the actual advance_mut Known-slot precondition.
+Generic B1/B4 and a local typed memcpy-effect contract remain TCB; no bytes
+ownership/refcount theorem is trusted. Freeze, Shared, Clone, Drop, growth and
+whole-crate integration remain incomplete. See
+[the current work ledger](verification/ORIGINAL_PATH_2026-10-08_JA.md).
+
 The remaining material below is a historical record of prior targets,
 experiments and component evidence. Its claims apply to the source snapshots
 and configurations stated in each section, not to the current post-removal

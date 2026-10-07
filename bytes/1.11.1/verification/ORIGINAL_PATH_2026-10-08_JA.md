@@ -37,3 +37,17 @@ trust除去はこのleaf内に限定できるが、BytesMutとB1 capabilityの�
 sidecar追加前の実field/bodyをsource hashで固定した診断。native constructor 2 testsは通過。
 翻訳はinvalid_ptr内のpointer→usize castで停止し、Comaは0。ManuallyDrop/newとwrapping_addの契約不足も出ている。
 この結果は保存sourceだけに適用し、後続instrumentationの結果と混同しない。
+
+### 実allocationに接続した元BytesMutのbody gate: 通過
+
+`original-unique-write-2026-10-08` の最終positive replayは50 Coma / 50 proof JSON / null 0。
+actual with_capacity/from_vec、容量内reserve、spare_capacity_mut、extend_from_slice、advance_mutと
+live BytesMutを返すcallerを含むsource-gated proof。元の4 native fieldsを保持し、cfg-only sidecarに
+実B1のBoundPtrとRecovery/PhysicalRegionを運ぶ。ptrは数値address一致ではなくB1 pointer wordとの等式。
+Some以外にauthorityを与えない。constructorのspare Unknown、追記prefixの値、未使用suffixのframeを検証する。
+bit tagはbody-proved bitwise lemmaで処理し、bytes固有ownership/refcountのtrusted契約は追加していない。
+
+未書込みbyteをadvance_mutで公開するnegativeは、新intervalのKnown-slot前提だけ失敗（51 JSON中null 1）。
+そのunsafe pathはnativeでは実行しない。native extraction 1 test、元test_buf_mut 23 + test_bytes 118も通過。
+B1/B4とgeneric typed memcpyのTCB、cfg/native解釈は明示したまま。全crate、Shared、growth、freeze、Dropの証明ではない。
+sourceと証拠の一致をrootでも確認した。証拠はprobe/evidence/positive-final-50.tar.gzとaudit.json。

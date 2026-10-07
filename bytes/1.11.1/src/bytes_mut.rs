@@ -1,3 +1,9 @@
+// ORIGINAL_UNIQUE_BEGIN proof_imports
+#[cfg(all(creusot, bytes_original_unique_gate))]
+use creusot_std::prelude::*;
+#[cfg(all(creusot, bytes_original_unique_gate))]
+use crate::ownership_proof::raw_vec::{self, BoundPtr, Recovery, PhysicalRegion, slot_known};
+// ORIGINAL_UNIQUE_END proof_imports
 use core::mem::{self, ManuallyDrop, MaybeUninit};
 use core::ops::{Deref, DerefMut};
 use core::ptr::{self, NonNull};
@@ -62,7 +68,57 @@ pub struct BytesMut {
     len: usize,
     cap: usize,
     data: *mut Shared,
+    // No authority is established for unselected constructors/representations.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    unique_proof: Option<OriginalUniqueProof>,
 }
+
+// ORIGINAL_UNIQUE_BEGIN proof_model
+#[cfg(all(creusot, bytes_original_unique_gate))]
+struct OriginalUniqueProof {
+    base: BoundPtr,
+    capabilities: Ghost<(Recovery, PhysicalRegion)>,
+}
+#[cfg(all(creusot, bytes_original_unique_gate))]
+impl BytesMut {
+    #[logic(open(self), prophetic)]
+    fn unique_valid(self) -> bool {
+        pearlite! {
+            match self.unique_proof {
+                None => false,
+                Some(proof) => {
+                    let caps = proof.capabilities.inner_logic();
+                    proof.base.invariant() && caps.0.invariant() && caps.1.invariant() &&
+                    proof.base@ == Some((caps.0.namespace(), self.cap@, 0int)) &&
+                    self.ptr@ == proof.base.raw_pointer() &&
+                    caps.0.capacity() == self.cap@ && caps.1.capacity() == self.cap@ &&
+                    caps.1.namespace() == caps.0.namespace() &&
+                    caps.1.resource_id() == caps.0.namespace() &&
+                    caps.1.lo() == 0 && caps.1.hi() == self.cap@ &&
+                    self.len <= self.cap &&
+                    self.data.addr_logic()@ < 32 && self.data.addr_logic()@ % 4 == 1 &&
+                    (forall<i:Int> 0 <= i && i < self.len@ ==> slot_known(caps.1.slot(i)))
+                }
+            }
+        }
+    }
+    #[logic(open(self))]
+    fn unique_slot(self, index: Int) -> Option<Option<u8>> {
+        pearlite! { self.unique_proof.unwrap_logic().capabilities.inner_logic().1.slot(index) }
+    }
+    #[logic(open(self))]
+    fn unique_bytes(self) -> Seq<u8> {
+        pearlite! { Seq::create(self.len@, |i:Int| self.unique_slot(i).unwrap_logic().unwrap_logic()) }
+    }
+}
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[check(ghost)]
+#[bitwise_proof]
+#[requires(repr <= 7usize)]
+#[ensures(((repr << 2usize) | 1usize)@ < 32)]
+#[ensures(((repr << 2usize) | 1usize)@ % 4 == 1)]
+fn original_unique_metadata_bits(repr: usize) {}
+// ORIGINAL_UNIQUE_END proof_model
 
 // Thread-safe reference-counted container for the shared storage. This mostly
 // the same as `core::sync::Arc` but without the weak counter. The ref counting
@@ -143,10 +199,15 @@ impl BytesMut {
     ///
     /// assert_eq!(&bytes[..], b"hello world");
     /// ```
+// ORIGINAL_UNIQUE_BEGIN with_capacity
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.len == 0usize))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(capacity <= result.cap))]
     #[inline]
     pub fn with_capacity(capacity: usize) -> BytesMut {
         BytesMut::from_vec(Vec::with_capacity(capacity))
     }
+// ORIGINAL_UNIQUE_END with_capacity
 
     /// Creates a new `BytesMut` with default capacity.
     ///
@@ -182,10 +243,13 @@ impl BytesMut {
     /// let b = BytesMut::from(&b"hello"[..]);
     /// assert_eq!(b.len(), 5);
     /// ```
+// ORIGINAL_UNIQUE_BEGIN len
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result == self.len))]
     #[inline]
     pub fn len(&self) -> usize {
         self.len
     }
+// ORIGINAL_UNIQUE_END len
 
     /// Returns true if the `BytesMut` has a length of 0.
     ///
@@ -212,10 +276,13 @@ impl BytesMut {
     /// let b = BytesMut::with_capacity(64);
     /// assert_eq!(b.capacity(), 64);
     /// ```
+// ORIGINAL_UNIQUE_BEGIN capacity
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result == self.cap))]
     #[inline]
     pub fn capacity(&self) -> usize {
         self.cap
     }
+// ORIGINAL_UNIQUE_END capacity
 
     /// Converts `self` into an immutable `Bytes`.
     ///
@@ -587,6 +654,10 @@ impl BytesMut {
     /// # Panics
     ///
     /// Panics if the new capacity overflows `usize`.
+// ORIGINAL_UNIQUE_BEGIN reserve
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(additional@ <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(^self == *self))]
     #[inline]
     pub fn reserve(&mut self, additional: usize) {
         let len = self.len();
@@ -601,6 +672,7 @@ impl BytesMut {
         // will always succeed
         let _ = self.reserve_inner(additional, true);
     }
+// ORIGINAL_UNIQUE_END reserve
 
     // In separate function to allow the short-circuits in `reserve` and `try_reclaim` to
     // be inline-able. Significantly helps performance. Returns false if it did not succeed.
@@ -779,6 +851,7 @@ impl BytesMut {
 
         // Update self
         let data = (original_capacity_repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC;
+
         self.data = invalid_ptr(data);
         self.ptr = vptr(v.as_mut_ptr());
         self.cap = v.capacity();
@@ -862,6 +935,15 @@ impl BytesMut {
     ///
     /// assert_eq!(b"aaabbbcccddd", &buf[..]);
     /// ```
+// ORIGINAL_UNIQUE_BEGIN extend
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(extend@.len() <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).len@ == self.len@ + extend@.len()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> 0 <= i && i < self.len@ ==> (^self).unique_slot(i) == self.unique_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> 0 <= i && i < extend@.len() ==> (^self).unique_slot(self.len@ + i) == Some(Some(extend@[i]))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> self.len@ + extend@.len() <= i && i < self.cap@ ==> (^self).unique_slot(i) == self.unique_slot(i)))]
     #[inline]
     pub fn extend_from_slice(&mut self, extend: &[u8]) {
         let cnt = extend.len();
@@ -879,6 +961,7 @@ impl BytesMut {
             self.advance_mut(cnt);
         }
     }
+// ORIGINAL_UNIQUE_END extend
 
     /// Absorbs a `BytesMut` that was previously split off.
     ///
@@ -923,23 +1006,43 @@ impl BytesMut {
     // Thus, we don't expose an easy way to construct from a `Vec` since an
     // internal change could make a simple pattern (`BytesMut::from(vec)`)
     // suddenly a lot more expensive.
+// ORIGINAL_UNIQUE_BEGIN from_vec
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.len@ == vec@.len()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.cap@ == creusot_std::std::vec::capacity_model(vec)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> result.len@ <= i && i < result.cap@ ==> result.unique_slot(i) == Some(None)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> 0 <= i && i < vec@.len() ==> result.unique_slot(i) == Some(Some(vec@[i]))))]
     #[inline]
     pub(crate) fn from_vec(vec: Vec<u8>) -> BytesMut {
-        let mut vec = ManuallyDrop::new(vec);
-        let ptr = vptr(vec.as_mut_ptr());
-        let len = vec.len();
-        let cap = vec.capacity();
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let (ptr, len, cap) = {
+            let mut vec = ManuallyDrop::new(vec);
+            (vptr(vec.as_mut_ptr()), vec.len(), vec.capacity())
+        };
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (ptr, len, cap, unique_proof) = {
+            // B1 consumes precisely the Vec hidden by native ManuallyDrop.
+            let (raw, len, capabilities) = raw_vec::detach_vec(vec);
+            let (base, cap) = raw.into_bound_ptr_at_zero();
+            let ptr = base.as_non_null();
+            (ptr, len, cap, Some(OriginalUniqueProof { base, capabilities }))
+        };
 
         let original_capacity_repr = original_capacity_to_repr(cap);
         let data = (original_capacity_repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        ghost! { original_unique_metadata_bits(original_capacity_repr) };
 
         BytesMut {
             ptr,
             len,
             cap,
             data: invalid_ptr(data),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            unique_proof,
         }
     }
+// ORIGINAL_UNIQUE_END from_vec
 
     #[inline]
     fn as_slice(&self) -> &[u8] {
@@ -1112,8 +1215,24 @@ impl BytesMut {
     ///
     /// assert_eq!(&buf[..], &[0, 1, 2]);
     /// ```
+// ORIGINAL_UNIQUE_BEGIN spare
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@.len() == self.cap@ - self.len@ && (^result)@.len() == self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data && (^self).len == self.len))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> 0 <= i && i < self.len@ ==> (^self).unique_slot(i) == self.unique_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> self.len@ <= i && i < self.cap@ ==> self.unique_slot(i) == Some(result@[i-self.len@]@)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> self.len@ <= i && i < self.cap@ ==> (^self).unique_slot(i) == Some((^result)@[i-self.len@]@)))]
     #[inline]
     pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<u8>] {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let proof = self.unique_proof.as_mut().unwrap();
+            unsafe { raw_vec::borrow_spare_preserving_prefix(
+                proof.base, self.len, self.cap, ghost! { &mut proof.capabilities.1 }
+            ) }
+        }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
         unsafe {
             let ptr = self.ptr.as_ptr().add(self.len);
             let len = self.cap - self.len;
@@ -1121,6 +1240,7 @@ impl BytesMut {
             slice::from_raw_parts_mut(ptr.cast(), len)
         }
     }
+// ORIGINAL_UNIQUE_END spare
 }
 
 impl Drop for BytesMut {
@@ -1178,6 +1298,14 @@ unsafe impl BufMut for BytesMut {
         isize::MAX as usize - self.len()
     }
 
+// ORIGINAL_UNIQUE_BEGIN advance_mut
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cnt@ <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(forall<i:Int> self.len@ <= i && i < self.len@ + cnt@ ==> slot_known(self.unique_slot(i))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).len@ == self.len@ + cnt@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> (^self).unique_slot(i) == self.unique_slot(i)))]
     #[inline]
     unsafe fn advance_mut(&mut self, cnt: usize) {
         let remaining = self.cap - self.len();
@@ -1190,6 +1318,7 @@ unsafe impl BufMut for BytesMut {
         // Addition won't overflow since it is at most `self.cap`.
         self.len = self.len() + cnt;
     }
+// ORIGINAL_UNIQUE_END advance_mut
 
     #[inline]
     fn chunk_mut(&mut self) -> &mut UninitSlice {
@@ -1498,6 +1627,8 @@ impl Shared {
     }
 }
 
+// ORIGINAL_UNIQUE_BEGIN capacity_repr
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result <= 7usize))]
 #[inline]
 fn original_capacity_to_repr(cap: usize) -> usize {
     let width = PTR_WIDTH - ((cap >> MIN_ORIGINAL_CAPACITY_WIDTH).leading_zeros() as usize);
@@ -1506,6 +1637,7 @@ fn original_capacity_to_repr(cap: usize) -> usize {
         MAX_ORIGINAL_CAPACITY_WIDTH - MIN_ORIGINAL_CAPACITY_WIDTH,
     )
 }
+// ORIGINAL_UNIQUE_END capacity_repr
 
 fn original_capacity_from_repr(repr: usize) -> usize {
     if repr == 0 {
@@ -1763,6 +1895,9 @@ impl From<BytesMut> for Vec<u8> {
     }
 }
 
+// ORIGINAL_UNIQUE_BEGIN vptr
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(!ptr.is_null_logic()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == ptr))]
 #[inline]
 fn vptr(ptr: *mut u8) -> NonNull<u8> {
     if cfg!(debug_assertions) {
@@ -1771,18 +1906,22 @@ fn vptr(ptr: *mut u8) -> NonNull<u8> {
         unsafe { NonNull::new_unchecked(ptr) }
     }
 }
+// ORIGINAL_UNIQUE_END vptr
 
 /// Returns a dangling pointer with the given address. This is used to store
 /// integer data in pointer fields.
 ///
 /// It is equivalent to `addr as *mut T`, but this fails on miri when strict
 /// provenance checking is enabled.
+// ORIGINAL_UNIQUE_BEGIN invalid_ptr
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.addr_logic() == addr))]
 #[inline]
 fn invalid_ptr<T>(addr: usize) -> *mut T {
     let ptr = core::ptr::null_mut::<u8>().wrapping_add(addr);
-    debug_assert_eq!(ptr as usize, addr);
+    debug_assert_eq!(crate::provenance_specs::pointer_addr(ptr), addr);
     ptr.cast::<T>()
 }
+// ORIGINAL_UNIQUE_END invalid_ptr
 
 unsafe fn rebuild_vec(ptr: *mut u8, mut len: usize, mut cap: usize, off: usize) -> Vec<u8> {
     let ptr = ptr.sub(off);
@@ -1853,6 +1992,8 @@ unsafe fn shared_v_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> B
             len,
             cap,
             data: shared,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            unique_proof: None,
         }
     } else {
         let v = slice::from_raw_parts(ptr, len).to_vec();

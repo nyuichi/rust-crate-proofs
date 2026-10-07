@@ -320,6 +320,7 @@ impl BoundPtr {
     /// Return the stored non-null pointer metadata without changing its
     /// binding. This does not grant any memory permission.
     #[ensures(result.invariant())]
+    #[cfg_attr(creusot, ensures(result@ == self.raw_pointer()))]
     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
         self.pointer
     }
