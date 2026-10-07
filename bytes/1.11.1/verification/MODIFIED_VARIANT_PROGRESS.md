@@ -359,3 +359,11 @@ The separate isolated nonportable266 source is also preserved and audited in
 copied-checked-splits-append-iter, SHA256
 `63b22a789cd98528d78f55ae92cdecccfcfd10f924db1e7d03e3483d1ef68151`.
 Final configurations still require the eventual complete API source.
+
+### 2026-10-07: audited alloc-capacity and external IO evidence
+
+The frozen generic alloc-support candidate bundle `d9a7bcd0d9467215153e4e11aed73766da554b145b4a171b4ab518c16ab26d5d` passed an independent outer archive/member audit (5833 data members plus its self manifest). Its two canonical positive captures have 226 Coma files, 226 matching proof JSON files, zero null leaves and observed exit 0: genuine MSP430 UInt16/Slice16 and host UInt64, each with an alloc-only effective proof graph. These are candidate-source results, not the current 266-file production source. The local candidate Std contracts and feature exposure are retained in the outer bundle; the historical standard capture's stock installed-Std snapshots do not describe that local dependency. Four earlier unproved leaves are preserved in the supplemental failure snapshot; the canonical diagnostic capture for that failure has no Coma files. No body coverage is inferred from that empty canonical capture.
+
+The external concrete Read/Write/flush consumer archive `fb859419b31359be23685512a93ba8acda42fdb42e9fae06c3aa855910f60892` passed an independent audit: 66 data members plus its self manifest, three matching body proof results, zero null leaves, and observed successful exit. Every dependency src/Cargo snapshot equals the independently proved production-closed-io-263 archive. Its two native tests cover 30 input geometries. This proves actual downstream use of the concrete public contracts at that dependency snapshot; it does not prove arbitrary implementations of IO traits or the later production source.
+
+Both increments preserve their failures and record `full_coverage=false`. The generic capacity contracts remain an explicitly reviewed Std trusted boundary; bytes ownership/refcount/cleanup bodies are not moved into trust.
