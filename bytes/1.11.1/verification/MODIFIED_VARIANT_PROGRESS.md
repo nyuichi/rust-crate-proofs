@@ -79,3 +79,14 @@ negative archive SHA-256:
 `07da597ae4095beb567f19126ef2778341882a3849a07ef4e856b62abb247b5b`.
 The normal-return boundary remains explicit; arbitrary callback panic cleanup
 and callback termination are not claimed.
+
+## Preserved development checkpoints
+
+The earlier tree-first-51 and exclusive-tree-67 archives are retained as
+historical source snapshots, superseded by tree-final-52 and phase2-final-67.
+The first tree snapshot did not yet explicitly clean up rejected counts and
+contained an ignored termination annotation; it is not the admitted tree API.
+Routine failed parser/type/spec attempts are also retained: exclusive-view-parse,
+exclusive-is-empty-contract, tree-frontend-literal and callback-length-model-typing.
+Their archive member hashes have been independently checked. They neither count
+as new coverage nor justify retrying a frozen architecture.
