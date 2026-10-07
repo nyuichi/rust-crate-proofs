@@ -299,3 +299,9 @@ algorithms. Route 1 may instead provide explicit body-proved byte_digest and
 hex_bytes operations with exact recurrence/Seq output and consuming cleanup;
 these are pending experiments, not Rust Hash/Debug compatibility or completed
 trait verification. No bytes ownership/refcount law is trusted.
+
+### D11 / D12 changed-premise admission, 2026-10-07
+
+The unchanged and unrestricted routes above remain frozen. The restricted generic Copy-slot Option-return interface now has a positive body-checked bytes caller (256 files, zero null, `56d8767eb6117043bc14008288a0be6c3a64bc5c6b29a333605d835b7705502d`), native success/forced creation failure, and targeted mutated-slot rejection (`8dd93014c04786580f39db0d2c187d1dae114f1e11fe56b4705b8a4df1c4f435`). Astra reviewed the generic ordinary-slot frame, F:Copy enforcement, and normal-return scope. This is sufficient to attempt production integration of the explicit reviewed Std trusted method and the untrusted/body-proved bytes caller. It makes no totality, exceptional cleanup or unrelated-global frame claim.
+
+The explicit polynomial digest/lowercase hex interface has passed its candidate whole-source body gate (266 files, zero null, `a4f04f92ce61c3a9ddd43f3ab930d9ee62beba4c08cacc375df321981ab3995d`) after structural sequence lemmas. It is admitted for production integration as a changed functional API, with exact models and explicit source cleanup. Generic Hasher/Formatter compatibility stays blocked. Neither changed premise trusts a bytes-specific ownership/refcount theorem. Production completion requires its own source/configuration capture.
