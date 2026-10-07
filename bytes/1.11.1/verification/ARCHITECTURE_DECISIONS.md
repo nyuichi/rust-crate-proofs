@@ -400,3 +400,26 @@ alternate ghost opening entry is a changed premise for a bounded experiment.
 Do not copy the rejected open_at extension onto existing AtomicInvariant.
 Preserve Objective/AtView weak-memory discipline and actual atomic event identity.
 No bytes-specific ownership/refcount law is made trusted by this authorization.
+
+## D2026-10-08-V — Restricted registration caller passes under explicit generic TCB
+
+The D-U experiment uses a distinct EventAtomic, ordinary native Relaxed increments
+and FnGhost callbacks, with no alternate ghost-open/stock-invariant path. Bind
+consumes one affine protocol state; each event operates on that SAME persistent
+state and restores its successor. This native/model/resource correspondence and
+Send/Sync discipline are explicit new generic trusted assumptions, not proved
+from PhantomData or implied by positive tests.
+
+The bounded registration caller passes 8 proof files and 2 native tests, preserving
+a source ticket and producing a distinct ticket through a no-extra-argument &self
+method. Six misuse controls reject their intended invalid operations. Admit this
+interface only for the reviewed Relaxed registration experiment; do not reopen the
+reentrant old open_at rule. No bytes-specific ownership/refcount law was trusted.
+
+Original Bytes integration, physical read sharing, ordering-sensitive recovery,
+overflow-abort, last-owner and automatic Drop remain obligations. This does not
+pass the full lifecycle admission gate. Next investigate physical sharing and
+Release/Acquire using actual Std AtView/Committer rules with corresponding negative
+controls, before broad original API integration. Preserve this interface as the
+replacement boundary for future generic tool support; local trust removal has not
+been demonstrated. See TRUSTED_ATOMIC_EVENT_2026-10-08_JA.md for exact evidence scope.

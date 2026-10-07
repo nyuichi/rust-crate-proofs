@@ -1,5 +1,19 @@
 # bytes 1.11.1 status
 
+## Latest increment — 2026-10-08 (Asia/Tokyo)
+
+The user authorized a reviewed generic trusted synchronization boundary and a
+Std-analogue-first workflow. The isolated event-invariant probe proves registration
+through `&self` without a public token/context argument: the old affine ticket is
+preserved and the new ticket is distinct and tied to the actual Relaxed increment.
+Final evidence: 8 complete proof files, 2 native tests; misuse controls reject wrong
+bind/ward, omitted/double commit, ticket duplication and ghost reentry.
+The new persistent-state/native-event correspondence remains explicit generic TCB.
+No original Bytes API body or production code changed in this increment.
+Physical sharing, Release/Acquire recovery, overflow-abort, last-owner and Drop
+remain unproved; full shared-lifecycle architecture is not yet admitted.
+See [scope and evidence](verification/TRUSTED_ATOMIC_EVENT_2026-10-08_JA.md).
+
 ## Current target — 2026-10-07
 
 The user changed the target after the removal inventory: remove the modified

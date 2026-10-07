@@ -110,3 +110,12 @@ Astraがresource adequacyとcommitter opening案を検討。新generic ruleな�
 新opening案は同invariantへのalternate Tokens再入を排除できず採用しなかった。
 再開条件はD2026-10-08-Tで固定。証拠とコード:
 `probes/tokenless-sharing-2026-10-08/RESULTS_JA.md`、`audit.json`。
+
+### 新しい汎用trusted境界で登録更新callerが通過
+
+ユーザーの方針変更をD-U、限定結果をD-Vに記録した。StdのMutex例・AtomicInvariant・
+Committerの契約を参照し、別入口のないEventAtomicを明示TCBにした。
+追加引数なしのduplicate(&self)から、元登録を保存し別の登録を生成するbody proofが通過
+（最終8 files、native2 tests）。bytes固有の登録法則はtrustedにしていない。
+原Bytesへの接続、physical共有・回収・自動Dropは依然未完了。
+詳細: [trusted境界と証拠](TRUSTED_ATOMIC_EVENT_2026-10-08_JA.md)。
