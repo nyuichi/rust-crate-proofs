@@ -620,26 +620,64 @@ Original conversions and iterator trait items by direction:
 | `Hash for Bytes`, `Hash for BytesMut` | `stable_digest` | Not Hasher-compatible; D12 remains frozen. |
 | `fmt::Write for BytesMut` | none | Absent. |
 
-Original comparison impls by direction. This is narrower in the current API than in original `Bytes`/`BytesMut`.
+Original comparison trait implementations (one row per source impl/direction). The original crate exposes the following individual impls; current mappings name only the selected `ExclusiveBytes` equivalents and do not imply original trait compatibility.
 
-| Original impl(s) | Selected current form | Status |
+| Original source | Original implementation | Current replacement/status |
 |---|---|---|
-| `PartialEq<Bytes>`/`PartialOrd<Bytes>` for `Bytes`, plus `Eq`/`Ord` | Same-type ExclusiveBytes trait impls | Rewritten same-type comparisons. |
-| `PartialEq<[u8]>`/`PartialOrd<[u8]>` for Bytes | corresponding ExclusiveBytes slice impls | Rewritten. |
-| `PartialEq<Bytes>`/`PartialOrd<Bytes>` for `[u8]` | reciprocal ExclusiveBytes slice impls | Rewritten. |
-| `PartialEq<str>`/`PartialOrd<str>` for Bytes | `eq_str_copy`/`cmp_str_copy` methods | Named methods, no trait dispatch. |
-| `PartialEq<Bytes>`/`PartialOrd<Bytes>` for `str` | none | Absent. |
-| `PartialEq<Vec<u8>>`/`PartialOrd<Vec<u8>>` for Bytes | ExclusiveBytes/Vec trait impls | Rewritten. |
-| `PartialEq<Bytes>`/`PartialOrd<Bytes>` for `Vec<u8>` | reciprocal ExclusiveBytes/Vec impls | Rewritten. |
-| `PartialEq<String>`/`PartialOrd<String>` for Bytes | `eq_string_copy`/`cmp_string_copy` methods | Named methods, no trait dispatch. |
-| `PartialEq<Bytes>`/`PartialOrd<Bytes>` for `String` | none | Absent. |
-| `PartialEq<Bytes>`/`PartialOrd<Bytes>` for `&[u8]` | selected slice-shape impls | Related behavior, exact reference impl set differs. |
-| `PartialEq<Bytes>`/`PartialOrd<Bytes>` for `&str` | none | Absent. |
-| generic `PartialEq<&T>`/`PartialOrd<&T>` for Bytes | none | Absent; no generic external type law. |
-| equality both ways between Bytes and BytesMut | none | Absent. |
-| same-type `PartialEq`/`PartialOrd`/`Eq`/`Ord` for BytesMut | ExclusiveBytes same-type comparisons | Rewritten on a different ownership representation. |
-| BytesMut comparisons both directions with `[u8]`, `str`, `Vec<u8>`, `String`, `&[u8]`, `&str` | only ExclusiveBytes/slice and ExclusiveBytes/Vec trait impls, plus named string methods | Partial replacement; remaining directions absent. |
-| equality both ways between BytesMut and Bytes | none | Absent. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:862` | `PartialEq<Bytes> for Bytes` | Same-type `ExclusiveBytes` PartialEq; rewritten on a different owner. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:868` | `PartialOrd<Bytes> for Bytes` | Same-type `ExclusiveBytes` PartialOrd; rewritten on a different owner. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:874` | `Ord for Bytes` | `ExclusiveBytes: Ord`; rewritten on a different owner. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:880` | `Eq for Bytes` | `ExclusiveBytes: Eq`; rewritten on a different owner. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:882` | `PartialEq<[u8]> for Bytes` | `ExclusiveBytes` versus `[u8]`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:888` | `PartialOrd<[u8]> for Bytes` | `ExclusiveBytes` versus `[u8]`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:894` | `PartialEq<Bytes> for [u8]` | Reverse slice comparison for `ExclusiveBytes`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:900` | `PartialOrd<Bytes> for [u8]` | Reverse slice comparison for `ExclusiveBytes`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:906` | `PartialEq<str> for Bytes` | No trait impl; named `eq_str_copy` method is a partial semantic substitute. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:912` | `PartialOrd<str> for Bytes` | No trait impl; named `cmp_str_copy` method is a partial semantic substitute. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:918` | `PartialEq<Bytes> for str` | Absent. Current named string method has the opposite receiver/operator direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:924` | `PartialOrd<Bytes> for str` | Absent. Current named string method has the opposite receiver/operator direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:930` | `PartialEq<Vec<u8>> for Bytes` | `ExclusiveBytes` versus `Vec<u8>`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:936` | `PartialOrd<Vec<u8>> for Bytes` | `ExclusiveBytes` versus `Vec<u8>`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:942` | `PartialEq<Bytes> for Vec<u8>` | Reverse `Vec<u8>` comparison for `ExclusiveBytes`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:948` | `PartialOrd<Bytes> for Vec<u8>` | Reverse `Vec<u8>` comparison for `ExclusiveBytes`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:954` | `PartialEq<String> for Bytes` | No trait impl; named `eq_string_copy` method is a partial semantic substitute. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:960` | `PartialOrd<String> for Bytes` | No trait impl; named `cmp_string_copy` method is a partial semantic substitute. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:966` | `PartialEq<Bytes> for String` | Absent. Current named string method has the opposite receiver/operator direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:972` | `PartialOrd<Bytes> for String` | Absent. Current named string method has the opposite receiver/operator direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:978` | `PartialEq<Bytes> for &[u8]` | Related slice behavior exists via selected slice impl/reference forwarding; the concrete impl set differs. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:984` | `PartialOrd<Bytes> for &[u8]` | Related slice behavior exists via selected slice impl/reference forwarding; the concrete impl set differs. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:990` | `PartialEq<Bytes> for &str` | Absent; no reference-string trait direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:996` | `PartialOrd<Bytes> for &str` | Absent; no reference-string trait direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:1003` | `PartialEq<&T> for Bytes (generic, T: ?Sized)` | Absent; no generic reference operand law. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs:1013` | `PartialOrd<&T> for Bytes (generic, T: ?Sized)` | Absent; no generic reference operand law. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:3965` | `PartialEq<BytesMut> for BytesMut` | Same-type `ExclusiveBytes` PartialEq; rewritten on a different owner. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:3971` | `PartialOrd<BytesMut> for BytesMut` | Same-type `ExclusiveBytes` PartialOrd; rewritten on a different owner. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:3977` | `Ord for BytesMut` | `ExclusiveBytes: Ord`; rewritten on a different owner. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:3983` | `Eq for BytesMut` | `ExclusiveBytes: Eq`; rewritten on a different owner. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4356` | `PartialEq<[u8]> for BytesMut` | `ExclusiveBytes` versus `[u8]`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4362` | `PartialOrd<[u8]> for BytesMut` | `ExclusiveBytes` versus `[u8]`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4368` | `PartialEq<BytesMut> for [u8]` | Reverse slice comparison for `ExclusiveBytes`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4374` | `PartialOrd<BytesMut> for [u8]` | Reverse slice comparison for `ExclusiveBytes`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4380` | `PartialEq<str> for BytesMut` | No trait impl; named `eq_str_copy` is a partial semantic substitute. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4386` | `PartialOrd<str> for BytesMut` | No trait impl; named `cmp_str_copy` is a partial semantic substitute. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4392` | `PartialEq<BytesMut> for str` | Absent; named string method has the opposite receiver/operator direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4398` | `PartialOrd<BytesMut> for str` | Absent; named string method has the opposite receiver/operator direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4404` | `PartialEq<Vec<u8>> for BytesMut` | `ExclusiveBytes` versus `Vec<u8>`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4410` | `PartialOrd<Vec<u8>> for BytesMut` | `ExclusiveBytes` versus `Vec<u8>`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4416` | `PartialEq<BytesMut> for Vec<u8>` | Reverse `Vec<u8>` comparison for `ExclusiveBytes`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4422` | `PartialOrd<BytesMut> for Vec<u8>` | Reverse `Vec<u8>` comparison for `ExclusiveBytes`; rewritten. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4428` | `PartialEq<String> for BytesMut` | No trait impl; named `eq_string_copy` is a partial semantic substitute. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4434` | `PartialOrd<String> for BytesMut` | No trait impl; named `cmp_string_copy` is a partial semantic substitute. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4440` | `PartialEq<BytesMut> for String` | Absent; named string method has the opposite receiver/operator direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4446` | `PartialOrd<BytesMut> for String` | Absent; named string method has the opposite receiver/operator direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4453` | `PartialEq<&T> for BytesMut (generic, T: ?Sized)` | Absent; no generic reference operand law. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4463` | `PartialOrd<&T> for BytesMut (generic, T: ?Sized)` | Absent; no generic reference operand law. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4472` | `PartialEq<BytesMut> for &[u8]` | Related slice behavior exists via selected slice impl/reference forwarding; concrete impl set differs. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4478` | `PartialOrd<BytesMut> for &[u8]` | Related slice behavior exists via selected slice impl/reference forwarding; concrete impl set differs. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4484` | `PartialEq<BytesMut> for &str` | Absent; no reference-string trait direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4490` | `PartialOrd<BytesMut> for &str` | Absent; no reference-string trait direction. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4496` | `PartialEq<BytesMut> for Bytes` | Absent; no cross-owner comparison. |
+| `/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs:4502` | `PartialEq<Bytes> for BytesMut` | Absent; no cross-owner comparison. |
 
 ## Trusted, proved, absent, and candidate boundaries
 
