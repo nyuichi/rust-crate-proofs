@@ -246,3 +246,16 @@ files, zero null leaves, with 32 native tests. Root independently audits all
 `20874bb08c829e65ce679af39605423c44cd29e966db57734517b5625095e565`.
 The downstream consumer replay is a separate obligation, still pending here;
 this production result alone does not establish external usability.
+
+The downstream integrity replay now completes six proof files, explicit exit 0,
+zero null results and three native tests. It exercises BE/LE writing plus
+unsigned variable, signed variable, signed fixed and native-endian i128 reads.
+Root checks all 69 tar members (68 data members plus the hash manifest) and
+matches all 35 dependency src/Cargo files against public-read-models-255:
+external-six-positive,
+`96b06b29ef745327c631bf8514d0564dca0c076952043d3e4f17a60f7a5f334b`.
+An integrity replay obtains the missing transport exit status explicitly; it is
+not a new approach. Arithmetic harness and missing Why3find configuration
+diagnostics are separate from the actual opaque-weight contract failure.
+These are representative external clients, not a claim that every possible
+downstream combination or generic trait implementation is covered.
