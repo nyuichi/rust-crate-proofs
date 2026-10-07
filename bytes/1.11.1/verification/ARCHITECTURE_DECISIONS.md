@@ -154,3 +154,34 @@ A changed API exposing exact Float32Bits/Float64Bits may replace byte-level
 float transport; its reads/writes must be proved through the same production
 Cursor/ExclusiveBytes. Native float materialization remains separately uncovered
 and must never be implied by proof of the raw bit pattern.
+
+## D09: generic Serde interfaces without implementer contracts
+
+Freeze the attempted stock-tool generic Serialize/Deserialize integration after
+actual configured runs and Astra review. Both native candidates pass 27 tests
+under verified,std,serde. Serialize's own body proves the exact slice argument,
+but fails the unconstrained Serializer::serialize_bytes precondition (2/3).
+Deserialize initially has five null obligations. Replacing str::as_bytes and
+String::into_bytes with the already-proved copy_from_str/from_string operations
+closes the two avoidable conversion failures. The final three nulls are only
+Deserializer::deserialize_byte_buf and SeqAccess::{size_hint,next_element}
+callable preconditions; the other visitor bodies prove.
+
+Generated Coma exposes opaque preconditions with only false-to-pre axioms,
+and no serializer output/effect semantics. An added trusted ensures(true)
+would permit delegation without proving serialization behavior; it is not
+completion. No universal Serde law, ownership theorem or new TCB was added.
+The production source was restored exactly to positive229; candidates remain
+reviewable in immutable failed-source archives. The serde configuration and
+original trait responsibilities remain uncovered, not silently omitted.
+
+Reopen only with a genuinely enforceable verified Serializer/Deserializer
+interface and implementation refinements, or relevant tool support. The existing
+verified callback API can transport exact borrowed bytes, but must not be called
+proof of Serde's format/error/visitor behavior. Do not repeat these candidates
+with assertions, timeouts or a different agent.
+
+Audited exact archives:
+- `verified-serde-serialize-229`: `6947ef468ed267ecc4bb0ac4696194bb7696ae8787642cce7b49620aa34decbe`.
+- `verified-serde-deserialize-229`: `c2489d452ff2f6191b6d360eed0986a770b978f9b5865313959bb82ff6679ca4`.
+- `verified-serde-deserialize-conversions-229`: `2b40df5521b325ad573960639037e4baa58ce2b34a3ef28f2bc2ac2bc34ca8f5`.
