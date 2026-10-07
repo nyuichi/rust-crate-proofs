@@ -5,7 +5,7 @@
 
 use creusot_std::prelude::*;
 
-#[logic]
+#[logic(open(crate))]
 pub(crate) fn be_weight(bytes: Seq<u8>, n: Int) -> Int {
     pearlite! {
         (if n > 0 { bytes[n - 1]@ } else { 0 })
@@ -19,7 +19,7 @@ pub(crate) fn be_weight(bytes: Seq<u8>, n: Int) -> Int {
     }
 }
 
-#[logic]
+#[logic(open(crate))]
 pub(crate) fn le_weight(bytes: Seq<u8>, n: Int) -> Int {
     pearlite! {
         (if n > 0 { bytes[0]@ } else { 0 })

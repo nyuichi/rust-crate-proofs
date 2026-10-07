@@ -52,34 +52,30 @@ FIXED_SOURCE_FILES = (
     Path("verification/MODIFIED_VARIANT_ADMISSION.md"),
 )
 
-FEATURE_CONFIG = {
-    "cargo_target": "--lib",
-    "no_default_features": True,
-    "features": ["verified", "std"],
-    "cargo_feature_arguments": [
-        "--no-default-features",
-        "--features",
-        "verified,std",
-    ],
-    "creusot_translation_command": [
-        "cargo",
-        "creusot",
-        "--only=coma",
-        "--",
-        "--locked",
-        "--lib",
-        "--no-default-features",
-        "--features",
-        "verified,std",
-    ],
-    "creusot_proof_command": [
-        "cargo",
-        "creusot",
-        "--only=prove",
-        "--why3find-arg=-j",
-        "--why3find-arg=1",
-    ],
-}
+def feature_configuration(features: str, native_features: str | None, target: str | None) -> dict[str, Any]:
+    proof_features = features.split(",")
+    native_features_list = (native_features or features).split(",")
+    if "verified" not in proof_features or "verified" not in native_features_list:
+        fail("both configurations must select verified")
+    if any(not value or any(ch.isspace() for ch in value) for value in proof_features + native_features_list):
+        fail("feature lists must contain nonempty names without whitespace")
+    target_args = ["--target", target] if target else []
+    cargo_args = ["--no-default-features", "--features", features, *target_args]
+    return {
+        "cargo_target": "--lib",
+        "target": target or "host",
+        "no_default_features": True,
+        "features": proof_features,
+        "native_features": native_features_list,
+        "native_proof_feature_difference": proof_features != native_features_list,
+        "cargo_feature_arguments": cargo_args,
+        "native_cargo_feature_arguments": ["--no-default-features", "--features", native_features or features, *target_args],
+        "creusot_translation_command": ["cargo", "creusot", "--only=coma", "--", "--locked", "--lib", *cargo_args],
+        "creusot_proof_command": ["cargo", "creusot", "--only=prove", "--why3find-arg=-j", "--why3find-arg=1"],
+        "correspondence_note": (
+            "If native and proof dependency features differ, a separate source/type/configuration correspondence audit is required; this record alone proves none."
+        ),
+    }
 
 
 def sha256(data: bytes) -> str:
@@ -232,7 +228,11 @@ def main() -> int:
         default=str(DEFAULT_OUTPUT_ROOT),
         help=f"evidence root (default: {DEFAULT_OUTPUT_ROOT})",
     )
+    parser.add_argument("--features", default="verified,std", help="exact proof feature list")
+    parser.add_argument("--native-features", help="exact native feature list if different from proof")
+    parser.add_argument("--target", help="explicit Cargo target, otherwise host")
     args = parser.parse_args()
+    selected_configuration = feature_configuration(args.features, args.native_features, args.target)
 
     run_name = safe_component(args.name, "run name")
     logs = [parse_log(spec) for spec in args.log]
@@ -278,8 +278,11 @@ def main() -> int:
         fail("positive and negative proof captures require tool binaries matching the installation manifest")
 
     log_records: list[dict[str, Any]] = []
+    complete_proof_file_counts: list[int] = []
     for name, path in logs:
         data = path.read_bytes()
+        plain_log = re.sub(r"\x1b\[[0-9;]*m", "", data.decode("utf-8", errors="replace"))
+        complete_proof_file_counts.extend(int(count) for count in re.findall(r"\bProved\s+\((\d+) files?\)", plain_log))
         member_name = f"logs/{name}.log"
         add(members, member_name, data)
         log_records.append(
@@ -352,6 +355,19 @@ def main() -> int:
         ).as_posix()
         json_to_coma[item["archive_member"]] = coma_candidate if coma_candidate in {x["archive_member"] for x in coma_records} else None
 
+    if args.kind == "positive":
+        if args.exit_code != 0:
+            fail("positive capture requires an observed successful command exit code")
+        if len(coma_records) not in complete_proof_file_counts:
+            fail("positive capture requires the completed engine Proved(N files) log matching all captured Coma files")
+        coma_names = {item["archive_member"] for item in coma_records}
+        mapped_coma = list(json_to_coma.values())
+        if None in mapped_coma or len(mapped_coma) != len(set(mapped_coma)):
+            fail("positive capture requires exactly one matching Coma file per proof result")
+        missing = sorted(coma_names - set(mapped_coma))
+        if missing:
+            fail(f"positive capture is incomplete: {len(missing)} Coma files have no proof result: {missing[:5]}")
+
     correspondence = {
         "crate_entry": "src/lib.rs",
         "selected_module": "src/verified/mod.rs",
@@ -395,10 +411,11 @@ def main() -> int:
             "This capture does not report full crate/API coverage or architecture admission. "
             "Only the archived Coma and proof JSON leaves support a proof-result claim."
         ),
-        "feature_configuration": FEATURE_CONFIG,
+        "feature_configuration": selected_configuration,
         "toolchain": tool_check,
         "run_directory": str(run_dir),
         "observed_exit_code": args.exit_code,
+        "completed_engine_file_counts_in_logs": complete_proof_file_counts,
         "logs": log_records,
         "counts": {
             "coma_files": len(coma_records),

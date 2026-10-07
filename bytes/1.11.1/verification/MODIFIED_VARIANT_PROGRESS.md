@@ -136,3 +136,38 @@ facts causes the expected B2 full-coverage precondition to fail (19/20):
 `thaw-missing-spare-region`, 143 files, exactly one null result. The exact
 negative goal and source are preserved, including empty allocated storage.
 The routine borrowed-namespace frontend failure is retained separately.
+
+## Ranges, conversions, equality, and numeric closure (183)
+
+`combined-leaves-183`: complete engine exit 0, Proved (183 files),
+183 Coma/proof JSON files, zero null leaves, matching 19 native tests.
+Independently audited all 407 archive members and hashes:
+`c97f86af383fa234783dc81874df9935a964d093804fd208f1902e5fa77cfc70`.
+Configuration remains `--locked --lib --no-default-features --features verified,std`
+on the host x86_64 target, normal-return execution. This is not full API or
+configuration completion.
+
+The actual source graph adds checked ranged callbacks with explicit cleanup on
+invalid ranges; slice/string/boxed-slice/IteratorSpec conversions; equality and
+consuming equality cleanup; signed variable-width and native-endian cursor
+operations; initialized unsigned fixed/variable-width writes; and write ->
+actual scoped sharing -> cursor readback -> cleanup composition. Existing
+canonical pure definitions be_weight, le_weight and signed_u64 now unfold within
+the crate. Their bodies and runtime code are unchanged; no protocol/math trust
+is introduced. Write models use finite byte powers and direct indexed sequences.
+
+Preserved failures include frontend visibility, unsupported array-range indexing,
+and the first combined numeric-interface failures. The partial interrupted run
+with 178 JSON files is not a positive result: a per-file JSON may omit its own
+function obligation. Capture now additionally requires an engine completion
+header covering every generated file before accepting a positive archive.
+
+The last failed caller exposed a substantive contract bug: the appended-byte
+quantifier was nested inside the original-prefix implication, making it vacuous
+for an empty prefix. Explicit independent conjunctions strengthen the contract;
+all write bodies and their physical readback caller were reproved under that
+contract. The failed source remains in combined-leaves-scoped-write-value
+(`9e4ece5f684f9b64805b5e7ec80e11c7fca38f10cc2b4716e820c4ab534d40f3`).
+Public specification usability outside the writer module/crate, signed/native
+write aliases, floats, further adapters/observers and retained configurations
+remain separate obligations.

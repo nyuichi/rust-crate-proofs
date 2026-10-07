@@ -56,6 +56,12 @@ impl ExclusiveBytes {
         &self.bytes
     }
 
+    /// Appends an initialized slice using Vec's sequence-preserving extension contract.
+    #[ensures((^self)@ == self@.concat(source@))]
+    pub(super) fn append_initialized_slice(&mut self, source: &[u8]) {
+        self.bytes.extend(source.iter().copied());
+    }
+
     /// Copies a byte at `index`, or returns `None` when it is out of bounds.
     #[ensures(result == if index@ < self@.len() { Some(self@[index@]) } else { None })]
     pub fn get(&self, index: usize) -> Option<u8> {

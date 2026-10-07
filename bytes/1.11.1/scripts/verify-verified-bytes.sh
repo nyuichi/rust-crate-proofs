@@ -13,15 +13,32 @@ task_config="$PWD/.verified-proof-config"
 mkdir -p "$task_config/creusot"
 sed 's/^memlimit = .*/memlimit = 1024/' "$XDG_CONFIG_HOME/creusot/why3.conf" > "$task_config/creusot/why3.conf"
 export XDG_CONFIG_HOME="$task_config"
-printf 'modified bytes 1.11.1: verified,std; one prover; 1024 MiB; sc-drf disabled\n'
-feature_tree=$(cargo tree --locked --no-default-features --features verified,std -e features --edges normal,build)
+task_features=${BYTES_VERIFIED_FEATURES:-verified,std}
+task_target=${BYTES_VERIFIED_TARGET:-}
+IFS=, read -r -a selected_features <<< "$task_features"
+contains_verified=0
+for selected_feature in "${selected_features[@]}"; do
+  case "$selected_feature" in
+    verified) contains_verified=1 ;;
+    std|serde|extra-platforms|creusot-std/std) ;;
+    *) printf 'unsupported verification feature: %s\n' "$selected_feature" >&2; exit 2 ;;
+  esac
+done
+if [[ "$contains_verified" != 1 ]]; then
+  printf 'the modified entry requires verified\n' >&2
+  exit 2
+fi
+target_args=()
+if [[ -n "$task_target" ]]; then target_args=(--target "$task_target"); fi
+printf 'modified bytes 1.11.1: features=%s; target=%s; one prover; 1024 MiB; sc-drf disabled\n' "$task_features" "${task_target:-host}"
+feature_tree=$(cargo tree --locked --no-default-features --features "$task_features" "${target_args[@]}" -e features --edges normal,build)
 if [[ "$feature_tree" == *'creusot-std feature "sc-drf"'* ]]; then
   printf 'sc-drf must be disabled\n' >&2
   exit 2
 fi
 cargo clean --package bytes
 rm -rf -- verif
-cargo creusot --only=coma -- --locked --lib --no-default-features --features verified,std
+cargo creusot --only=coma -- --locked --lib --no-default-features --features "$task_features" "${target_args[@]}"
 cargo creusot clean --force
 if [[ "${BYTES_TRANSLATE_ONLY:-0}" == 1 ]]; then exit 0; fi
 cargo creusot --only=prove --why3find-arg=-j --why3find-arg=1
