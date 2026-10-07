@@ -271,3 +271,13 @@ SHA256 `9d12b34ab533b7d95612e4782a33905b0034077b50ee287df836f1bde9afff65`.
 The relocated production std graph is a separate pending proof. The core proof
 still enables stock creusot-std/std models; genuine alloc-only proof dependencies
 and final cross-target API coverage remain outstanding.
+
+## Actual observer-trait failures and bounded replacement
+
+Hash-only and Debug-only gates are captured and independently audited after
+actual prover runs: 259 files / 2 unresolved results and 259 / 4 respectively.
+D12 freezes only the unchanged generic Hasher and standard Formatter contract
+routes, after Astra review. Two missing decimal byte-range model prerequisites
+are separately repairable, not a formatting impossibility claim. Explicit
+deterministic byte-digest/hex-byte APIs remain in development. Their semantics
+will be stated directly rather than presented as generic Hash/Debug verification.

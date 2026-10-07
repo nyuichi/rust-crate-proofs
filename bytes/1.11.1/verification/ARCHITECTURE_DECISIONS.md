@@ -269,3 +269,33 @@ global observations. Both native witnesses and pinned source are preserved in
 builder-error-drop-alias-copy-negative-229:
 `64e3b77915dbb2d3fca108b735511695361962774ca36c2a46b9e7f525ad8795`.
 Root audited all 14 file members. No Creusot proof is claimed by this archive.
+
+## D12: unchanged generic Hash and standard Formatter boundaries
+
+Actual isolated Hash-only implementation and concrete byte-log caller complete
+translation but leave two unresolved results among 259 proof files. The generic
+Hasher::write call lacks a callable precondition/effect model; the concrete
+recorder caller also cannot recover the desired feed relation from the Hash
+implementation's interface. Archive hash-only-unproved is
+`afea2920ab829e336eded57144404b6916abca7bbb5dce76afc12330aa0cb0ea`.
+
+Actual Debug-only formatting, after repairing pure-model visibility, leaves
+four unresolved results among 259 files. Formatter::debug_tuple, field, finish
+and the resulting output have no modeled standard output effect. Two separate
+decimal-list model goals also lack byte-range prerequisites; those are repairable
+model issues and are not evidence that decimal encoding cannot be proved. Archive
+debug-only-contractless is
+`ebf2cb6270b9b2c6f50e16c96dafda2b850fa6987677ed514c0fffa5b1580fa4`.
+Both actual semantic archives and their member hashes are independently audited.
+The initial frontend visibility error and missing Why3find setup are retained
+separately as diagnostics, not additional semantic counterexamples.
+
+Astra reviewed the exact failures. Freeze the unchanged generic Hasher and
+standard Formatter interface routes: new assertions, timeout increases or opaque
+wrappers do not supply their missing contracts. Reopen only for enforceable
+standard-library/implementer contracts or relevant tool support, with a bounded
+distinguishing experiment. Do not freeze deterministic byte encodings or checksum
+algorithms. Route 1 may instead provide explicit body-proved byte_digest and
+hex_bytes operations with exact recurrence/Seq output and consuming cleanup;
+these are pending experiments, not Rust Hash/Debug compatibility or completed
+trait verification. No bytes ownership/refcount law is trusted.

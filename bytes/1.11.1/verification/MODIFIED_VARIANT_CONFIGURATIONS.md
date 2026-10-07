@@ -116,3 +116,20 @@ a genuinely alloc-only proof dependency graph. A small isolated alloc-model
 exposure experiment, including actual 16-bit translation, remains in progress.
 Production evidence production-alloc-core-221 is independently hash/proof audited:
 `9d12b34ab533b7d95612e4782a33905b0034077b50ee287df836f1bde9afff65`.
+
+## Actual 16-bit stock-model prerequisite failure
+
+The isolated 255-source alloc runtime compiles for msp430-none-elf with
+-Zbuild-std=core,alloc. The stock proof dependency requires std for Vec models,
+and the proof translation reports missing std before producing Coma files. The
+run was explicitly interrupted after that fatal prerequisite diagnostic; its
+record is not a completed VC failure. A separate attempt to build actual std
+fails because the target lacks alloc::sync::Arc (no pointer atomics).
+The exact logs/source/status are independently archived in
+alloc-only-msp430-std-model-frontier-255, SHA256
+`6c3d7c123f716cca65955cf07cd8b53342738c74cc0fb5530e4214dfcfa4e184`.
+
+This does not reject 16-bit arithmetic. A small cfg/import/feature port of
+existing alloc contracts has Astra review and fresh actual UInt16 translation
+in an isolated candidate; integrated proof is still pending. No backend changes,
+new semantic axioms or atomic emulation are authorized by that experiment.
