@@ -227,6 +227,7 @@ impl<'a> Cursor<'a> {
     #[ensures(result@ == if dst@.len() < self@.len() { dst@.len() } else { self@.len() })]
     #[ensures((^self)@ == self@[result@..])]
     #[ensures(forall<i: Int> 0 <= i && i < result@ ==> (^dst)@[i] == self@[i])]
+    #[ensures((^dst)@.len() == dst@.len())]
     #[ensures(forall<i: Int> result@ <= i && i < dst@.len() ==> (^dst)@[i] == dst@[i])]
     pub fn read_prefix(&mut self, dst: &mut [u8]) -> usize {
         let count = core::cmp::min(dst.len(), self.remaining.len());

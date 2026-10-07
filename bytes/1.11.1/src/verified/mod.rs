@@ -8,6 +8,7 @@ pub mod writer_adapters;
 pub mod encoding_spec;
 pub mod iteration;
 pub mod conversions;
+pub mod owner_io;
 pub mod observers;
 mod writes;
 #[cfg(feature = "std")]

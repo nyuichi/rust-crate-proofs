@@ -1,0 +1,128 @@
+{
+  "affected_file_sha256": {
+    "Cargo.toml": "23cec6e377be09f0ebd9465aa352c8ba446f7f81b3b2a7555b9db69ed7811ffc",
+    "src/lib.rs": "39c101b53df740b1cebdf611266d507561b8b1f78f87477c2f00bf0bb3d644b9",
+    "src/std.rs": "55dc8948c558b5c36af3fb9d5b49663d477430662536a349268e92141112eb77",
+    "src/std/boxed.rs": "4175712d7d1e8877d25e2acd989f6670beeec8762ab0644dd34f181641c6a567",
+    "src/std/convert.rs": "9129154aff915b8f11a281c1b2c99327092a98c2c68f7f2e6c60e208271a1bca",
+    "src/std/slice.rs": "7ad112d993edfbd61c5d773f9b22136a7ef31092f7ffa6cec14b496172f39e3c",
+    "src/std/string.rs": "90d53d05ab8001a57267b4f7c96e4e88851d49cfd8a2e95270ac20263c94f153",
+    "src/std/thread.rs": "2f209af914f7367be36b3edb8e8fe9ca880bfc2340ff4a1fa13a050c4c63a8b6",
+    "src/std/vec.rs": "54657d2a2392d9dafc3ac51abb8401daa69793e26c392d1ee10b5dbfe41f33b7"
+  },
+  "cargo_config": "/workspace/bytes-owner-io-probe/.cargo/config.toml",
+  "config_status": "already-correct",
+  "package_status": "already-prepared",
+  "private_std": "/workspace/bytes-proof-tools/bytes-verified-std",
+  "private_tree_sha256": "878a63ae09dde611de547994499803158b6aa6157ce48f4332f645dff3edb155",
+  "status": "ready"
+}
+modified bytes 1.11.1: features=verified,std; target=host; one prover; 1024 MiB; sc-drf disabled
+     Removed 7 files, 1.3MiB total
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-verified-std/src/std/vec.rs:21:40
+   |
+21 | pub fn capacity_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                        ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-verified-std/src/std/vec.rs:32:36
+   |
+32 | pub fn base_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                    ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+
+warning: `creusot-std` (lib) generated 2 warnings (run `cargo fix --lib -p creusot-std` to apply 2 suggestions)
+    Checking bytes v1.11.1 (/workspace/bytes-owner-io-probe)
+warning: unused imports: `Acquire` and `None as NoStore`
+  --> src/verified/scoped.rs:10:65
+   |
+10 |     std::sync::{atomic::{AtomicUsize as ModelAtomic, ordering::{Acquire,Relaxed,Release,None as NoStore}},
+   |                                                                 ^^^^^^^                 ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unnecessary parentheses around function argument
+  --> src/verified/atomic.rs:27:9
+   |
+27 |         (if c.val_load() == 0usize { c.val_store() == usize::MAX } else { c.val_store()@ + 1 == c.val_load()@ }) ==>
+   |         ^                                                                                                      ^
+   |
+   = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+   |
+27 -         (if c.val_load() == 0usize { c.val_store() == usize::MAX } else { c.val_store()@ + 1 == c.val_load()@ }) ==>
+27 +         if c.val_load() == 0usize { c.val_store() == usize::MAX } else { c.val_store()@ + 1 == c.val_load()@ } ==>
+   |
+
+warning: hidden lifetime parameters in types are deprecated
+   --> src/verified/retirement.rs:108:81
+    |
+108 |     pub fn retire(&self,ticket:Ghost<Ticket>,resource:Ghost<T>,mut tokens:Ghost<Tokens>)->(bool,Ghost<Option<(T,T)>>,Ghost<Receipt>) {
+    |                                                                                 ^^^^^^ expected lifetime parameter
+    |
+note: the lint level is defined here
+   --> src/lib.rs:1:54
+    |
+  1 | #![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
+    |                                                      ^^^^^^^^^^^^^^^^
+    = note: `#[warn(elided_lifetimes_in_paths)]` implied by `#[warn(rust_2018_idioms)]`
+help: indicate the anonymous lifetime
+    |
+108 |     pub fn retire(&self,ticket:Ghost<Ticket>,resource:Ghost<T>,mut tokens:Ghost<Tokens<'_>>)->(bool,Ghost<Option<(T,T)>>,Ghost<Receipt>) {
+    |                                                                                       ++++
+
+warning: hidden lifetime parameters in types are deprecated
+  --> src/verified/tree.rs:85:67
+   |
+85 | fn worker(handle:ReadHandle<'_>,parent:&CloseContext,tokens:Ghost<Tokens>,index:usize,leaves:usize)
+   |                                                                   ^^^^^^ expected lifetime parameter
+   |
+help: indicate the anonymous lifetime
+   |
+85 | fn worker(handle:ReadHandle<'_>,parent:&CloseContext,tokens:Ghost<Tokens<'_>>,index:usize,leaves:usize)
+   |                                                                         ++++
+
+warning: hidden lifetime parameters in types are deprecated
+  --> src/verified/spawn_failure.rs:13:23
+   |
+13 |     mut tokens: Ghost<Tokens>,
+   |                       ^^^^^^ expected lifetime parameter
+   |
+help: indicate the anonymous lifetime
+   |
+13 |     mut tokens: Ghost<Tokens<'_>>,
+   |                             ++++
+
+warning: hidden lifetime parameters in types are deprecated
+   --> src/verified/scoped.rs:290:58
+    |
+290 |     pub fn close(self,context:&CloseContext,tokens:Ghost<Tokens>)->Closed {
+    |                                                          ^^^^^^ expected lifetime parameter
+    |
+help: indicate the anonymous lifetime
+    |
+290 |     pub fn close(self,context:&CloseContext,tokens:Ghost<Tokens<'_>>)->Closed {
+    |                                                                ++++
+
+error[E0308]: mismatched types
+   --> src/verified/owner_io.rs:197:17
+    |
+197 |     if *index + 1 < *end {
+    |        ------   ^ expected `Int`, found integer
+    |        |
+    |        expected because this is `creusot_std::logic::Int`
+
+warning: unused variable: `published`
+   --> src/verified/retirement.rs:122:21
+    |
+122 |                 let published=primitive::release_rmw(c,&mut state.own,&mut current);
+    |                     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_published`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+For more information about this error, try `rustc --explain E0308`.
+warning: `bytes` (lib) generated 7 warnings
+error: could not compile `bytes` (lib) due to 1 previous error; 7 warnings emitted
+Error: Compilation failed

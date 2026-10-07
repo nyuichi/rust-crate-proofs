@@ -1,0 +1,390 @@
+{
+  "affected_file_sha256": {
+    "Cargo.toml": "23cec6e377be09f0ebd9465aa352c8ba446f7f81b3b2a7555b9db69ed7811ffc",
+    "src/lib.rs": "39c101b53df740b1cebdf611266d507561b8b1f78f87477c2f00bf0bb3d644b9",
+    "src/std.rs": "55dc8948c558b5c36af3fb9d5b49663d477430662536a349268e92141112eb77",
+    "src/std/boxed.rs": "4175712d7d1e8877d25e2acd989f6670beeec8762ab0644dd34f181641c6a567",
+    "src/std/convert.rs": "9129154aff915b8f11a281c1b2c99327092a98c2c68f7f2e6c60e208271a1bca",
+    "src/std/slice.rs": "7ad112d993edfbd61c5d773f9b22136a7ef31092f7ffa6cec14b496172f39e3c",
+    "src/std/string.rs": "90d53d05ab8001a57267b4f7c96e4e88851d49cfd8a2e95270ac20263c94f153",
+    "src/std/thread.rs": "2f209af914f7367be36b3edb8e8fe9ca880bfc2340ff4a1fa13a050c4c63a8b6",
+    "src/std/vec.rs": "54657d2a2392d9dafc3ac51abb8401daa69793e26c392d1ee10b5dbfe41f33b7"
+  },
+  "cargo_config": "/workspace/bytes-owner-io-probe/.cargo/config.toml",
+  "config_status": "already-correct",
+  "package_status": "already-prepared",
+  "private_std": "/workspace/bytes-proof-tools/bytes-verified-std",
+  "private_tree_sha256": "878a63ae09dde611de547994499803158b6aa6157ce48f4332f645dff3edb155",
+  "status": "ready"
+}
+modified bytes 1.11.1: features=verified,std; target=host; one prover; 1024 MiB; sc-drf disabled
+     Removed 2 files, 19.4KiB total
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-verified-std/src/std/vec.rs:21:40
+   |
+21 | pub fn capacity_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                        ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-verified-std/src/std/vec.rs:32:36
+   |
+32 | pub fn base_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                    ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+
+warning: `creusot-std` (lib) generated 2 warnings (run `cargo fix --lib -p creusot-std` to apply 2 suggestions)
+    Checking bytes v1.11.1 (/workspace/bytes-owner-io-probe)
+warning: unused imports: `Acquire` and `None as NoStore`
+  --> src/verified/scoped.rs:10:65
+   |
+10 |     std::sync::{atomic::{AtomicUsize as ModelAtomic, ordering::{Acquire,Relaxed,Release,None as NoStore}},
+   |                                                                 ^^^^^^^                 ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unnecessary parentheses around function argument
+  --> src/verified/atomic.rs:27:9
+   |
+27 |         (if c.val_load() == 0usize { c.val_store() == usize::MAX } else { c.val_store()@ + 1 == c.val_load()@ }) ==>
+   |         ^                                                                                                      ^
+   |
+   = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+   |
+27 -         (if c.val_load() == 0usize { c.val_store() == usize::MAX } else { c.val_store()@ + 1 == c.val_load()@ }) ==>
+27 +         if c.val_load() == 0usize { c.val_store() == usize::MAX } else { c.val_store()@ + 1 == c.val_load()@ } ==>
+   |
+
+warning: hidden lifetime parameters in types are deprecated
+   --> src/verified/retirement.rs:108:81
+    |
+108 |     pub fn retire(&self,ticket:Ghost<Ticket>,resource:Ghost<T>,mut tokens:Ghost<Tokens>)->(bool,Ghost<Option<(T,T)>>,Ghost<Receipt>) {
+    |                                                                                 ^^^^^^ expected lifetime parameter
+    |
+note: the lint level is defined here
+   --> src/lib.rs:1:54
+    |
+  1 | #![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
+    |                                                      ^^^^^^^^^^^^^^^^
+    = note: `#[warn(elided_lifetimes_in_paths)]` implied by `#[warn(rust_2018_idioms)]`
+help: indicate the anonymous lifetime
+    |
+108 |     pub fn retire(&self,ticket:Ghost<Ticket>,resource:Ghost<T>,mut tokens:Ghost<Tokens<'_>>)->(bool,Ghost<Option<(T,T)>>,Ghost<Receipt>) {
+    |                                                                                       ++++
+
+warning: hidden lifetime parameters in types are deprecated
+  --> src/verified/tree.rs:85:67
+   |
+85 | fn worker(handle:ReadHandle<'_>,parent:&CloseContext,tokens:Ghost<Tokens>,index:usize,leaves:usize)
+   |                                                                   ^^^^^^ expected lifetime parameter
+   |
+help: indicate the anonymous lifetime
+   |
+85 | fn worker(handle:ReadHandle<'_>,parent:&CloseContext,tokens:Ghost<Tokens<'_>>,index:usize,leaves:usize)
+   |                                                                         ++++
+
+warning: hidden lifetime parameters in types are deprecated
+  --> src/verified/spawn_failure.rs:13:23
+   |
+13 |     mut tokens: Ghost<Tokens>,
+   |                       ^^^^^^ expected lifetime parameter
+   |
+help: indicate the anonymous lifetime
+   |
+13 |     mut tokens: Ghost<Tokens<'_>>,
+   |                             ++++
+
+warning: hidden lifetime parameters in types are deprecated
+   --> src/verified/scoped.rs:290:58
+    |
+290 |     pub fn close(self,context:&CloseContext,tokens:Ghost<Tokens>)->Closed {
+    |                                                          ^^^^^^ expected lifetime parameter
+    |
+help: indicate the anonymous lifetime
+    |
+290 |     pub fn close(self,context:&CloseContext,tokens:Ghost<Tokens<'_>>)->Closed {
+    |                                                                ++++
+
+warning: unused variable: `published`
+   --> src/verified/retirement.rs:122:21
+    |
+122 |                 let published=primitive::release_rmw(c,&mut state.own,&mut current);
+    |                     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_published`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `base`
+   --> src/ownership_proof/raw_vec.rs:991:25
+    |
+991 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                         ^^^^ help: try ignoring the field: `base: _`
+
+warning: unused variable: `capacity`
+   --> src/ownership_proof/raw_vec.rs:991:31
+    |
+991 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+    |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
+
+warning: unused variable: `base`
+    --> src/ownership_proof/raw_vec.rs:1027:9
+     |
+1027 |     let base = bound.as_ptr();
+     |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
+
+warning: function `pointer_addr_eq` is never used
+  --> src/provenance_specs.rs:19:15
+   |
+19 | pub(crate) fn pointer_addr_eq<T>(left: *const T, right: *const T) -> bool {
+   |               ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `wrapping_offset` is never used
+  --> src/provenance_specs.rs:77:15
+   |
+77 | pub(crate) fn wrapping_offset(ptr: *mut u8, offset: usize) -> *mut u8 {
+   |               ^^^^^^^^^^^^^^^
+
+warning: function `pointer_with_address` is never used
+  --> src/provenance_specs.rs:88:15
+   |
+88 | pub(crate) fn pointer_with_address(ptr: *mut u8, new_addr: usize) -> *mut u8 {
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `metadata_pointer` is never used
+  --> src/provenance_specs.rs:98:15
+   |
+98 | pub(crate) fn metadata_pointer(addr: usize) -> *mut u8 {
+   |               ^^^^^^^^^^^^^^^^
+
+warning: function `map_op_get` is never used
+  --> src/ownership_proof/owned_region.rs:47:15
+   |
+47 | pub(crate) fn map_op_get(
+   |               ^^^^^^^^^^
+
+warning: associated items `into_parts`, `slots`, `slot`, `restrict`, `split_at`, and `join` are never used
+   --> src/ownership_proof/owned_region.rs:125:19
+    |
+ 95 | impl OwnedRegion {
+    | ---------------- associated items in this implementation
+...
+125 |     pub(crate) fn into_parts(self) -> (Int, Int, Resource<KernelRA>) {
+    |                   ^^^^^^^^^^
+...
+149 |     pub(crate) fn slots(self) -> FMap<Int, Excl<Option<u8>>> {
+    |                   ^^^^^
+...
+156 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+    |                   ^^^^
+...
+167 |     fn restrict(
+    |        ^^^^^^^^
+...
+192 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+    |                   ^^^^^^^^
+...
+243 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: function `slots_grown` is never used
+  --> src/ownership_proof/raw_vec.rs:72:4
+   |
+72 | fn slots_grown(old: SlotMap, old_capacity: Int, capacity: Int) -> SlotMap {
+   |    ^^^^^^^^^^^
+
+warning: function `reallocate_bound` is never used
+   --> src/ownership_proof/raw_vec.rs:103:22
+    |
+103 | pub(crate) unsafe fn reallocate_bound(base: BoundPtr, old_capacity: usize, capacity: usize,
+    |                      ^^^^^^^^^^^^^^^^
+
+warning: associated items `unbound`, `as_non_null`, `offset_from_bound_base`, `retreat_within`, and `advance_within` are never used
+   --> src/ownership_proof/raw_vec.rs:301:19
+    |
+280 | impl BoundPtr {
+    | ------------- associated items in this implementation
+...
+301 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
+    |                   ^^^^^^^
+...
+323 |     pub(crate) fn as_non_null(&self) -> NonNull<u8> {
+    |                   ^^^^^^^^^^^
+...
+346 |     pub(crate) fn offset_from_bound_base(&self, base: Self) -> usize {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^
+...
+358 |     pub(crate) fn retreat_within(&self, count: usize) -> Self {
+    |                   ^^^^^^^^^^^^^^
+...
+404 |     pub(crate) fn advance_within(&self, count: usize) -> Self {
+    |                   ^^^^^^^^^^^^^^
+
+warning: methods `split_at` and `join` are never used
+   --> src/ownership_proof/raw_vec.rs:609:19
+    |
+553 | impl PhysicalRegion {
+    | ------------------- methods in this implementation
+...
+609 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+    |                   ^^^^^^^^
+...
+639 |     pub(crate) fn join(self, other: Self) -> Self {
+    |                   ^^^^
+
+warning: struct `PhysicalPool` is never constructed
+   --> src/ownership_proof/raw_vec.rs:653:19
+    |
+653 | pub(crate) struct PhysicalPool {
+    |                   ^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src/ownership_proof/raw_vec.rs:686:19
+    |
+684 | impl PhysicalPool {
+    | ----------------- associated items in this implementation
+685 |     #[logic(open)]
+686 |     pub(crate) fn capacity(self) -> Int {
+    |                   ^^^^^^^^
+...
+691 |     pub(crate) fn namespace(self) -> Id {
+    |                   ^^^^^^^^^
+...
+696 |     pub(crate) fn resource_id(self) -> Id {
+    |                   ^^^^^^^^^^^
+...
+701 |     pub(crate) fn contains(self, index: Int) -> bool {
+    |                   ^^^^^^^^
+...
+706 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+    |                   ^^^^
+...
+720 |     fn kernel_unit_is_empty() {
+    |        ^^^^^^^^^^^^^^^^^^^^
+...
+746 |     pub(crate) fn empty_from(region: &PhysicalRegion) -> Self {
+    |                   ^^^^^^^^^^
+...
+779 |     pub(crate) fn retire(self, region: PhysicalRegion) -> Self {
+    |                   ^^^^^^
+...
+815 |     pub(crate) fn finish(self, lo: Int) -> PhysicalRegion {
+    |                   ^^^^^^
+
+warning: function `borrow_mut` is never used
+    --> src/ownership_proof/raw_vec.rs:1071:22
+     |
+1071 | pub(crate) unsafe fn borrow_mut<'a>(
+     |                      ^^^^^^^^^^
+
+warning: function `slot_known_equivalence` is never used
+    --> src/ownership_proof/raw_vec.rs:1093:15
+     |
+1093 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+     |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_bound_mut` is never used
+    --> src/ownership_proof/raw_vec.rs:1132:22
+     |
+1132 | pub(crate) unsafe fn borrow_bound_mut<'a>(
+     |                      ^^^^^^^^^^^^^^^^
+
+warning: function `borrow_bound_uninit_mut` is never used
+    --> src/ownership_proof/raw_vec.rs:1172:22
+     |
+1172 | pub(crate) unsafe fn borrow_bound_uninit_mut<'a>(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_spare_preserving_prefix` is never used
+    --> src/ownership_proof/raw_vec.rs:1210:22
+     |
+1210 | pub(crate) unsafe fn borrow_spare_preserving_prefix<'a>(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound` is never used
+    --> src/ownership_proof/raw_vec.rs:1256:22
+     |
+1256 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
+     |                      ^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound_mut` is never used
+    --> src/ownership_proof/raw_vec.rs:1265:22
+     |
+1265 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
+     |                      ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_empty_bound_uninit_mut` is never used
+    --> src/ownership_proof/raw_vec.rs:1273:22
+     |
+1273 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `borrow_frozen` is never used
+  --> src/ownership_proof/frozen_region.rs:28:15
+   |
+28 | pub(crate) fn borrow_frozen<'a>(
+   |               ^^^^^^^^^^^^^
+
+warning: struct `FrozenReader` is never constructed
+  --> src/ownership_proof/frozen_region.rs:43:19
+   |
+43 | pub(crate) struct FrozenReader {
+   |                   ^^^^^^^^^^^^
+
+warning: method `valid` is never used
+  --> src/ownership_proof/frozen_region.rs:50:19
+   |
+48 | impl FrozenReader {
+   | ----------------- method in this implementation
+49 |     #[logic(open(crate), prophetic)]
+50 |     pub(crate) fn valid(self, bound: BoundPtr, len: usize) -> bool {
+   |                   ^^^^^
+
+warning: associated items `new` and `reclaim` are never used
+   --> src/ownership_proof/frozen_region.rs:107:19
+    |
+ 76 | impl FrozenOwner {
+    | ---------------- associated items in this implementation
+...
+107 |     pub(crate) fn new(bound:BoundPtr, capacity:usize, len:usize,
+    |                   ^^^
+...
+119 |     pub(crate) fn reclaim(self,ticket:LifetimeToken) {
+    |                   ^^^^^^^
+
+warning: missing documentation for a struct
+ --> src/verified/adapters.rs:7:1
+  |
+7 | pub struct LimitedCursor<'a> {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+note: the lint level is defined here
+ --> src/lib.rs:1:9
+  |
+1 | #![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
+  |         ^^^^^^^^^^^^
+
+warning: missing documentation for a struct
+   --> src/verified/adapters.rs:132:1
+    |
+132 | pub struct ChainedCursor<'a> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: calling external function `as_slice` with no contract will yield an impossible precondition
+  --> src/verified/owner_io.rs:66:19
+   |
+66 |         Vec::from(self.as_slice())
+   |                   ^^^^^^^^^^^^^^^ function called here
+   |
+   = note: `#[warn(creusot::contractless_external_function)]` on by default
+
+warning: `bytes` (lib) generated 37 warnings (run `cargo fix --lib -p bytes` to apply 6 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.20s
+No dangling files found
+Goal Coma.vc_copy_bytes_Vec_u8_Global: ✘
+Goal Coma.vc_extend_from_slices: ✘ (14/15)
+Goal Coma.vc_copy_owner_read_prefix_and_close_T: ✘ (9/10)
+Goal Coma.vc_read_scatter_prefix: ✘ (23/28)
+Error: 4 unproved files
+Error: 'why3find prove' failed

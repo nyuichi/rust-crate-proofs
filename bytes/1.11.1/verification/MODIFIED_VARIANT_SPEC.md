@@ -145,3 +145,12 @@ Borrow, AsMut and BorrowMut forward the existing concrete slice access contracts
 LimitedWriter exposes get_ref/get_mut and current limit/set_limit. ChainedWriter exposes first/last projections. Mutable getters connect their short returned borrow to the adapter's immediate post-state, while separately framing the eventual outer-owner borrow and budgets; later valid writes remain possible. Connected clients return borrows, observe final bytes and explicitly close owners.
 
 `try_reclaim(additional)` reports whether existing capacity minus length fits the request. It preserves exact contents, capacity and numeric base. It neither reallocates nor compacts an original shared head; original adjacency-sensitive zero-copy unsplit is not inferred.
+
+
+## Copied owners, BufRead, gather/scatter and UTF-8 comparison
+
+Public `owner_io::ReadableOwner` is sealed to Vec<u8>, &[u8], Box<[u8]> and String. Each in-crate copy_bytes body establishes its byte view; copy_from_owner returns the original value and an independently allocated ExclusiveBytes copy. That returned copy still needs explicit close. No arbitrary AsRef owner, original allocation transfer/identity, erased owner destructor or pointer lifetime theorem follows.
+
+Cursor BufRead fill_buf returns its remaining initialized slice without consuming input; consume clamps oversized amounts to remaining length. This explicit clamping policy is part of the changed API. extend_from_slices appends ordered initialized byte slices. read_scatter_prefix reads min(input length, flattened destination length), preserves destination segment lengths and untouched tails, and leaves the exact input suffix. The composed gather/scatter caller explicitly closes its owner. These operations use initialized slice arrays, rather than original IoSlice/IoSliceMut or uninitialized storage contracts.
+
+eq_str_copy/cmp_str_copy and String-forwarding helpers compare exact UTF-8 byte sequences through a temporary copied owner, explicitly close it and return equality/optional ordering. They allocate and copy, retaining stock character deep models; legacy str/String PartialEq/PartialOrd compatibility is not claimed.

@@ -59,6 +59,40 @@ impl PartialOrd<ExclusiveBytes> for [u8] {
     }
 }
 
+impl ExclusiveBytes {
+    /// Compares this owner's bytes with a string's UTF-8 bytes using a temporary copy.
+    #[ensures(result == (self.deep_model() == other@.to_bytes().map(|byte: u8| byte@)))]
+    pub fn eq_str_copy(&self, other: &str) -> bool {
+        let copy = Self::copy_from_str(other);
+        let equal = self.as_slice() == copy.as_slice();
+        copy.close();
+        equal
+    }
+
+    /// Compares this owner's bytes with a string's UTF-8 bytes using a temporary copy.
+    #[ensures(result == self.deep_model().partial_cmp_log(
+        other@.to_bytes().map(|byte: u8| byte@)))]
+    pub fn cmp_str_copy(&self, other: &str) -> Option<Ordering> {
+        let copy = Self::copy_from_str(other);
+        let ordering = self.as_slice().cmp(copy.as_slice());
+        copy.close();
+        Some(ordering)
+    }
+
+    /// Compares this owner's bytes with a String's UTF-8 bytes using a temporary copy.
+    #[ensures(result == (self.deep_model() == other@.to_bytes().map(|byte: u8| byte@)))]
+    pub fn eq_string_copy(&self, other: &alloc::string::String) -> bool {
+        self.eq_str_copy(other)
+    }
+
+    /// Compares this owner's bytes with a String's UTF-8 bytes using a temporary copy.
+    #[ensures(result == self.deep_model().partial_cmp_log(
+        other@.to_bytes().map(|byte: u8| byte@)))]
+    pub fn cmp_string_copy(&self, other: &alloc::string::String) -> Option<Ordering> {
+        self.cmp_str_copy(other)
+    }
+}
+
 impl PartialOrd for ExclusiveBytes {
     #[ensures(result == (*self).deep_model().partial_cmp_log((*other).deep_model()))]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -346,6 +380,20 @@ mod tests {
         assert!(owner < b"bytes"[..]);
         assert!(b"byt"[..] < owner);
         assert!(owner != b"bytes"[..]);
+        owner.close();
+    }
+
+    #[test]
+    fn explicit_string_comparison_uses_utf8_bytes_and_closes_temporary_copies() {
+        let owner = ExclusiveBytes::copy_from_slice("café".as_bytes());
+        assert!(owner.eq_str_copy("café"));
+        assert!(!owner.eq_str_copy("cafe"));
+        assert_eq!(owner.cmp_str_copy("cafê"), Some(Ordering::Less));
+
+        let equal = alloc::string::String::from("café");
+        let after = alloc::string::String::from("cafê");
+        assert!(owner.eq_string_copy(&equal));
+        assert_eq!(owner.cmp_string_copy(&after), Some(Ordering::Less));
         owner.close();
     }
 }
