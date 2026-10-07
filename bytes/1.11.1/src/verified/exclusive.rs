@@ -32,6 +32,24 @@ impl ExclusiveBytes {
         Self { bytes }
     }
 
+    /// Creates an empty byte sequence with room for at least `capacity` bytes.
+    #[ensures(result@.len() == 0)]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::capacity_model(result.bytes) >= capacity@
+    ))]
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self { bytes: Vec::with_capacity(capacity) }
+    }
+
+    /// Returns the number of bytes the allocation can hold without growing.
+    #[cfg_attr(creusot, ensures(
+        result@ == creusot_std::std::vec::capacity_model(self.bytes)
+    ))]
+    #[ensures(result@ >= self@.len())]
+    pub fn capacity(&self) -> usize {
+        self.bytes.capacity()
+    }
+
     /// Creates `len` initialized zero bytes.
     #[ensures(result@.len() == len@)]
     #[ensures(forall<i: Int> 0 <= i && i < result@.len() ==> result@[i] == 0u8)]
@@ -208,23 +226,72 @@ impl ExclusiveBytes {
     }
 
     /// Requests capacity for at least `len() + additional` bytes.
-    ///
-    /// The current formal postcondition specifies byte-sequence preservation;
-    /// the capacity guarantee follows the native `Vec::reserve` behavior and
-    /// is outside this leaf's current formal contract.
     #[ensures((^self)@ == self@)]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::capacity_model((^self).bytes) >=
+            creusot_std::std::vec::capacity_model(self.bytes)
+    ))]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::capacity_model((^self).bytes) >=
+            self@.len() + additional@
+    ))]
     pub fn reserve(&mut self, additional: usize) {
         self.bytes.reserve(additional);
     }
 
     /// Requests capacity for at least `len() + additional` bytes, minimizing excess capacity.
-    ///
-    /// The current formal postcondition specifies byte-sequence preservation;
-    /// the capacity guarantee follows the native `Vec::reserve_exact` behavior
-    /// and is outside this leaf's current formal contract.
     #[ensures((^self)@ == self@)]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::capacity_model((^self).bytes) >=
+            creusot_std::std::vec::capacity_model(self.bytes)
+    ))]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::capacity_model((^self).bytes) >=
+            self@.len() + additional@
+    ))]
     pub fn reserve_exact(&mut self, additional: usize) {
         self.bytes.reserve_exact(additional);
+    }
+
+    /// Tries to reserve capacity for at least `len() + additional` bytes.
+    ///
+    /// The byte sequence is unchanged whether reservation succeeds or returns
+    /// an allocation or capacity-overflow error.
+    #[ensures((^self)@ == self@)]
+    #[cfg_attr(creusot, ensures(match result {
+        Ok(()) =>
+            creusot_std::std::vec::capacity_model((^self).bytes) >=
+                creusot_std::std::vec::capacity_model(self.bytes) &&
+            creusot_std::std::vec::capacity_model((^self).bytes) >=
+                self@.len() + additional@,
+        Err(_) =>
+            creusot_std::std::vec::capacity_model((^self).bytes) ==
+                creusot_std::std::vec::capacity_model(self.bytes),
+    }))]
+    pub fn try_reserve(
+        &mut self,
+        additional: usize,
+    ) -> Result<(), alloc::collections::TryReserveError> {
+        self.bytes.try_reserve(additional)
+    }
+
+    /// Tries to reserve the minimum capacity for at least `len() + additional` bytes.
+    #[ensures((^self)@ == self@)]
+    #[cfg_attr(creusot, ensures(match result {
+        Ok(()) =>
+            creusot_std::std::vec::capacity_model((^self).bytes) >=
+                creusot_std::std::vec::capacity_model(self.bytes) &&
+            creusot_std::std::vec::capacity_model((^self).bytes) >=
+                self@.len() + additional@,
+        Err(_) =>
+            creusot_std::std::vec::capacity_model((^self).bytes) ==
+                creusot_std::std::vec::capacity_model(self.bytes),
+    }))]
+    pub fn try_reserve_exact(
+        &mut self,
+        additional: usize,
+    ) -> Result<(), alloc::collections::TryReserveError> {
+        self.bytes.try_reserve_exact(additional)
     }
 
     /// Releases this allocation through the explicit B1 detach and B3 deallocate path.
@@ -237,6 +304,23 @@ impl ExclusiveBytes {
         // Recovery/PhysicalRegion capabilities for this exact Vec allocation.
         unsafe { raw_vec::deallocate_bound_vec(bound, capacity, capabilities) };
     }
+}
+
+/// A basic verified caller for reserve framing followed by explicit cleanup.
+///
+/// This checks that the sequence is preserved at the reserve boundary and that
+/// the observed capacity meets the requested lower bound before closing the owner.
+#[cfg(creusot)]
+#[ensures(result@ >= owner@.len() + additional@)]
+pub(crate) fn reserve_then_close(mut owner: ExclusiveBytes, additional: usize) -> usize {
+    let original_contents = snapshot!(owner@);
+    owner.reserve(additional);
+    proof_assert!(owner@ == *original_contents);
+
+    let capacity = owner.capacity();
+    proof_assert!(capacity@ >= original_contents.len() + additional@);
+    owner.close();
+    capacity
 }
 
 impl AsRef<[u8]> for ExclusiveBytes {
@@ -314,6 +398,75 @@ mod tests {
         bytes.reserve(12);
         bytes.reserve_exact(4);
         assert_eq!(bytes.into_vec(), vec![1]);
+    }
+
+    #[test]
+    fn try_reserve_overflow_preserves_contents_and_capacity() {
+        let mut bytes = ExclusiveBytes::from_vec(vec![17]);
+        let old_capacity = bytes.capacity();
+        let result = bytes.try_reserve(usize::MAX);
+        assert!(result.is_err());
+        assert_eq!(bytes.as_slice(), &[17]);
+        assert_eq!(bytes.capacity(), old_capacity);
+        bytes.close();
+    }
+
+    #[test]
+    fn try_reserve_exact_overflow_preserves_contents_and_capacity() {
+        let mut bytes = ExclusiveBytes::from_vec(vec![23]);
+        let old_capacity = bytes.capacity();
+        let result = bytes.try_reserve_exact(usize::MAX);
+        assert!(result.is_err());
+        assert_eq!(bytes.as_slice(), &[23]);
+        assert_eq!(bytes.capacity(), old_capacity);
+        bytes.close();
+    }
+
+    #[test]
+    fn zero_and_spare_capacity_reservations_preserve_capacity() {
+        let mut empty = ExclusiveBytes::with_capacity(0);
+        let empty_capacity = empty.capacity();
+        assert_eq!(empty.try_reserve(0), Ok(()));
+        assert_eq!(empty.capacity(), empty_capacity);
+        empty.close();
+
+        let mut spare = ExclusiveBytes::from_vec(Vec::with_capacity(8));
+        spare.push(31);
+        let spare_capacity = spare.capacity();
+        assert_eq!(spare.try_reserve_exact(0), Ok(()));
+        assert_eq!(spare.capacity(), spare_capacity);
+        assert_eq!(spare.as_slice(), &[31]);
+        spare.close();
+    }
+
+    #[test]
+    fn successful_reservations_preserve_contents_and_meet_lower_bound() {
+        let original = vec![3, 5, 8, 13];
+        let additional = 32;
+
+        let mut amortized = ExclusiveBytes::from_vec(original.clone());
+        assert_eq!(amortized.try_reserve(additional), Ok(()));
+        assert_eq!(amortized.as_slice(), original.as_slice());
+        assert!(amortized.capacity() >= original.len() + additional);
+        amortized.close();
+
+        let mut exact = ExclusiveBytes::from_vec(original.clone());
+        assert_eq!(exact.try_reserve_exact(additional), Ok(()));
+        assert_eq!(exact.as_slice(), original.as_slice());
+        assert!(exact.capacity() >= original.len() + additional);
+        exact.close();
+    }
+
+    #[test]
+    fn reserve_then_close_preserves_contents_and_capacity_lower_bound() {
+        let original = vec![2, 4, 6, 8];
+        let additional = 24;
+        let mut owner = ExclusiveBytes::from_vec(original.clone());
+        owner.reserve(additional);
+        assert_eq!(owner.as_slice(), original.as_slice());
+        let capacity = owner.capacity();
+        assert!(capacity >= original.len() + additional);
+        owner.close();
     }
 
     #[test]

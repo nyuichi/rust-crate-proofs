@@ -46,6 +46,14 @@ where
 #[requires(forall<arg: &[u8]> arg@ == input@ ==> first.precondition((arg,)))]
 #[requires(forall<arg: &[u8]> arg@ == input@ ==> second.precondition((arg,)))]
 #[ensures(result.0@ == input@)]
+#[cfg_attr(creusot, ensures(
+    creusot_std::std::vec::capacity_model(result.0) ==
+        creusot_std::std::vec::capacity_model(input)
+))]
+#[cfg_attr(creusot, ensures(
+    creusot_std::std::vec::base_model(result.0) ==
+        creusot_std::std::vec::base_model(input)
+))]
 #[ensures(exists<arg: &[u8]> arg@ == input@ && first.postcondition_once((arg,),result.1))]
 #[ensures(exists<arg: &[u8]> arg@ == input@ && second.postcondition_once((arg,),result.2))]
 pub fn with_shared_read_then_thaw<F,G,R,S>(input:Vec<u8>,first:F,second:G)->(Vec<u8>,R,S)
@@ -73,6 +81,25 @@ where
     let (bytes,first_last,second_last)=owner.thaw(context,left.1,right.1);
     proof_assert!(first_last != second_last);
     (bytes,left.0,right.0)
+}
+
+/// Observe the numeric base address before and after an actual shared-read and
+/// B2 thaw lifecycle. The positive-capacity precondition restricts the client
+/// to a Vec with an allocation; the result concerns numeric addresses only.
+#[cfg_attr(creusot, requires(
+    creusot_std::std::vec::capacity_model(input) > 0
+))]
+#[ensures(result.0 == result.1)]
+pub(crate) fn scoped_address_roundtrip(input: Vec<u8>) -> (usize, usize) {
+    let before = crate::provenance_specs::pointer_addr(input.as_ptr());
+    let (output, _, _) = with_shared_read_then_thaw(
+        input,
+        |_bytes: &[u8]| (),
+        |_bytes: &[u8]| (),
+    );
+    let after = crate::provenance_specs::pointer_addr(output.as_ptr());
+    exclusive::ExclusiveBytes::from_vec(output).close();
+    (before, after)
 }
 
 /// One connected lifecycle: shared reads, full recovery, exclusive mutation,
@@ -118,6 +145,13 @@ mod tests {
                 move |bytes:&[u8]| (bytes.len(),owned));
             assert_eq!(copy,expected);assert_eq!(size,len);assert_eq!(label,"owned result");
         }}
+    }
+    #[test]
+    fn observed_address_survives_shared_read_and_thaw() {
+        let mut input = Vec::with_capacity(8);
+        input.extend_from_slice(&[9, 8, 7]);
+        let (before, after) = scoped_address_roundtrip(input);
+        assert_eq!(before, after);
     }
     #[test]
     fn thaw_preserves_native_allocation_then_mutates_and_reshares() {

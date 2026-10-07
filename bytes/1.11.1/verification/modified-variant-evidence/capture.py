@@ -60,7 +60,8 @@ def feature_configuration(features: str, native_features: str | None, target: st
     if any(not value or any(ch.isspace() for ch in value) for value in proof_features + native_features_list):
         fail("feature lists must contain nonempty names without whitespace")
     target_args = ["--target", target] if target else []
-    cargo_args = ["--no-default-features", "--features", features, *target_args]
+    build_std_args = ["-Zbuild-std=core,alloc"] if target == "msp430-none-elf" else []
+    cargo_args = ["--no-default-features", "--features", features, *target_args, *build_std_args]
     return {
         "cargo_target": "--lib",
         "target": target or "host",
@@ -234,6 +235,7 @@ def main() -> int:
     parser.add_argument("--features", default="verified,std", help="exact proof feature list")
     parser.add_argument("--native-features", help="exact native feature list if different from proof")
     parser.add_argument("--target", help="explicit Cargo target, otherwise host")
+    parser.add_argument("--std-source-root", help="actual resolved creusot-std package, required for a local path override")
     args = parser.parse_args()
     selected_configuration = feature_configuration(args.features, args.native_features, args.target)
 
@@ -279,14 +281,50 @@ def main() -> int:
 
     tool_paths = json.loads(tool_manifest_data)["binaries"]
     tool_base = Path(tool_paths["cargo-creusot"]["path"]).parents[2]
+    std_root = (Path(args.std_source_root).expanduser().resolve() if args.std_source_root
+                else tool_base / "creusot-source/creusot-std")
+    local_config = CRATE / ".cargo/config.toml"
+    if local_config.is_file():
+        add(members, "configuration/cargo-config.toml", local_config.read_bytes())
+        if not args.std_source_root:
+            fail("local Cargo configuration requires --std-source-root to avoid capturing stock contracts")
     for name, path in [
         ("cargo-creusot-feature-flags.rs", tool_base / "creusot-source/cargo-creusot/src/main.rs"),
-        ("creusot-std-features.toml", tool_base / "creusot-source/creusot-std/Cargo.toml"),
-        ("creusot-std-vec-contracts.rs", tool_base / "creusot-source/creusot-std/src/std/vec.rs"),
+        ("creusot-std-features.toml", std_root / "Cargo.toml"),
+        ("creusot-std-vec-contracts.rs", std_root / "src/std/vec.rs"),
     ]:
         if path.is_file():
             add(members, "configuration/" + name, path.read_bytes())
+    if args.std_source_root:
+        if not (std_root / "Cargo.toml").is_file():
+            fail("actual Std package is missing")
+        std_hashes = {}
+        for path in sorted(std_root.rglob("*")):
+            if path.is_file() and (path.suffix in {".rs", ".toml"}):
+                relative = path.relative_to(std_root).as_posix()
+                data = path.read_bytes()
+                add(members, "configuration/actual-creusot-std/" + relative, data)
+                std_hashes[relative] = {"sha256": sha256(data), "bytes": len(data)}
+        add(members, "configuration/actual-creusot-std-source.json", json_bytes({
+            "resolved_package_root": str(std_root), "files": std_hashes,
+            "note": "Actual dependency source snapshot; library contracts are trusted, not body proofs."
+        }))
+        for relative in [Path("scripts/prepare-verified-std.py"),
+                         *sorted((CRATE / "verification/std-support").glob("*"))]:
+            if relative.is_absolute():
+                relative = relative.relative_to(CRATE)
+            if (CRATE / relative).is_file():
+                add(members, "configuration/" + relative.as_posix(), read_member(relative))
 
+    before_path = CRATE / ".verified-proof-config/source-before.json"
+    if before_path.is_file():
+        before = json.loads(before_path.read_text())
+        # Only enforce fingerprints emitted by the new wrapper for this run.
+        if args.std_source_root:
+            for relative, expected in before.items():
+                if sha256(read_member(Path(relative))) != expected:
+                    fail(f"source differs from pre-run fingerprint: {relative}")
+            add(members, "configuration/source-before.json", before_path.read_bytes())
     tool_check = verify_tool_manifest(tool_manifest_data)
     if args.kind in {"positive", "negative"} and not tool_check["binaries_match"]:
         fail("positive and negative proof captures require tool binaries matching the installation manifest")

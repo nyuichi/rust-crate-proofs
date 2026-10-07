@@ -1,0 +1,311 @@
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -43,7 +43,8 @@
+ nightly = []
+ num-rational = ["dep:num-rational"]
+ sc-drf = []
+-std = []
++std = ["alloc"]
++alloc = []
+ 
+ [lib]
+ name = "creusot_std"
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -46,7 +46,7 @@
+ //! 7. [`prelude`][mod@prelude]: What you should import before doing anything with Creusot
+ #![cfg_attr(feature = "nightly", allow(incomplete_features, internal_features))]
+ #![cfg_attr(feature = "nightly", feature(step_trait, unboxed_closures, tuple_trait, edition_panic))]
+-#![cfg_attr(all(feature = "nightly", feature = "std"), feature(allocator_api))]
++#![cfg_attr(all(feature = "nightly", feature = "alloc"), feature(allocator_api))]
+ #![cfg_attr(
+     creusot,
+     feature(
+@@ -77,6 +77,10 @@
+ extern crate creusot_std_proc as base_macros;
+ extern crate self as creusot_std;
+ 
++#[cfg(feature = "alloc")]
++#[doc(hidden)]
++pub extern crate alloc;
++
+ /// Specification are written using these macros
+ ///
+ /// All of those are re-exported at the top of the crate.
+@@ -606,7 +610,7 @@
+         default::Default,
+     };
+ 
+-    #[cfg(feature = "std")]
++    #[cfg(feature = "alloc")]
+     pub use crate::std::vec::vec;
+ 
+     // Export extension traits anonymously
+--- a/src/std.rs
++++ b/src/std.rs
+@@ -34,7 +34,7 @@
+     pub mod hash_map;
+     pub mod hash_set;
+ }
+-#[cfg(feature = "std")]
++#[cfg(feature = "alloc")]
+ mod boxed;
+ #[cfg(feature = "std")]
+ pub mod deque;
+@@ -44,5 +44,5 @@
+ pub mod rc;
+ #[cfg(feature = "std")]
+ pub mod thread;
+-#[cfg(feature = "std")]
++#[cfg(feature = "alloc")]
+ pub mod vec;
+--- a/src/std/boxed.rs
++++ b/src/std/boxed.rs
+@@ -1,11 +1,12 @@
+ #[cfg(creusot)]
+ use crate::resolve::structural_resolve;
+ use crate::{invariant::*, prelude::*};
++use alloc::boxed::*;
+ #[cfg(feature = "nightly")]
+-use std::alloc::Allocator;
++use core::alloc::Allocator;
+ 
+ #[cfg(creusot)]
+-use std::ops::{Deref, DerefMut};
++use core::ops::{Deref, DerefMut};
+ 
+ #[cfg(feature = "nightly")]
+ impl<T: DeepModel + ?Sized, A: Allocator> DeepModel for Box<T, A> {
+--- a/src/std/string.rs
++++ b/src/std/string.rs
+@@ -1,5 +1,9 @@
+ use crate::prelude::*;
+-#[cfg(all(creusot, feature = "std"))]
++#[cfg(feature = "alloc")]
++use alloc::string::String;
++#[cfg(all(creusot, feature = "alloc"))]
++use alloc::{borrow::ToOwned, boxed::Box, vec::Vec};
++#[cfg(all(creusot, feature = "alloc"))]
+ use core::ops::Deref;
+ 
+ impl View for str {
+@@ -20,7 +24,7 @@
+     }
+ }
+ 
+-#[cfg(feature = "std")]
++#[cfg(feature = "alloc")]
+ impl View for String {
+     type ViewTy = Seq<char>;
+ 
+@@ -30,7 +34,7 @@
+     }
+ }
+ 
+-#[cfg(feature = "std")]
++#[cfg(feature = "alloc")]
+ impl DeepModel for String {
+     type DeepModelTy = Seq<char>;
+ 
+@@ -40,7 +44,7 @@
+     }
+ }
+ 
+-#[cfg(feature = "std")]
++#[cfg(feature = "alloc")]
+ extern_spec! {
+     impl Deref for String {
+         #[check(ghost)]
+@@ -129,7 +133,7 @@
+         fn from_iter<I: IntoIterator<Item = &'a str, IntoIter: IteratorSpec>>(iter: I) -> Self;
+     }
+ 
+-    impl<A: std::alloc::Allocator> FromIterator<Box<str, A>> for String {
++    impl<A: core::alloc::Allocator> FromIterator<Box<str, A>> for String {
+         #[requires(I::into_iter.precondition((iter,)))]
+         #[ensures(exists<into_iter: I::IntoIter, produced: Seq<I::Item>, done: &mut I::IntoIter>
+             I::into_iter.postcondition((iter,), into_iter) &&
+@@ -139,7 +143,7 @@
+         fn from_iter<I: IntoIterator<Item = Box<str, A>, IntoIter: IteratorSpec>>(iter: I) -> Self;
+     }
+ 
+-    impl<A: std::alloc::Allocator> FromIterator<Box<str, A>> for Box<str> {
++    impl<A: core::alloc::Allocator> FromIterator<Box<str, A>> for Box<str> {
+         #[requires(I::into_iter.precondition((iter,)))]
+         #[ensures(exists<into_iter: I::IntoIter, produced: Seq<I::Item>, done: &mut I::IntoIter>
+             I::into_iter.postcondition((iter,), into_iter) &&
+--- a/src/std/vec.rs
++++ b/src/std/vec.rs
+@@ -3,11 +3,24 @@
+ #[cfg(creusot)]
+ use crate::{invariant::inv, resolve::structural_resolve, std::slice::SliceIndexSpec};
+ use crate::{logic::ops::IndexLogic, prelude::*};
+-#[cfg(feature = "nightly")]
+-use std::alloc::Allocator;
++#[cfg(any(feature = "nightly", creusot))]
++use core::alloc::Allocator;
+ #[cfg(creusot)]
+-use std::ops::{Deref, DerefMut, Index, IndexMut};
+-use std::vec::*;
++use core::ops::{Deref, DerefMut, Index, IndexMut};
++#[cfg(creusot)]
++use alloc::boxed::Box;
++use alloc::vec::*;
++
++// This ghost observer tracks capacity for a particular Vec value. It is
++// intentionally opaque: it exposes no pointer, injectivity, or allocation
++// identity law. Its relation to the runtime capacity is stated by the Vec
++// extern contracts below.
++#[cfg(creusot)]
++#[trusted]
++#[logic(opaque)]
++pub fn capacity_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
++    dead
++}
+ 
+ #[cfg(feature = "nightly")]
+ impl<T, A: Allocator> View for Vec<T, A> {
+@@ -91,7 +104,7 @@
+ }
+ 
+ extern_spec! {
+-    mod std {
++    mod alloc {
+         mod vec {
+             #[ensures(result@.len() == n@)]
+             #[ensures(forall<i> 0 <= i && i < n@ ==> result[i] == elem)]
+@@ -104,8 +117,9 @@
+         #[ensures(result@.len() == 0)]
+         fn new() -> Vec<T>;
+ 
+-        #[check(terminates)] // can OOM
++        #[check(terminates)] // inherited std extern total-correctness assumption
+         #[ensures(result@.len() == 0)]
++        #[ensures(capacity_model(result) >= capacity@)]
+         fn with_capacity(capacity: usize) -> Vec<T>;
+     }
+ 
+@@ -142,16 +156,43 @@
+         fn insert(&mut self, index: usize, element: T);
+ 
+         #[check(ghost)]
++        #[ensures(result@ == capacity_model(*self))]
+         #[ensures(result@ >= self@.len())]
+         fn capacity(&self) -> usize;
+ 
+-        #[check(terminates)] // can OOM
+-        #[ensures((^self)@ == self@)]
++        #[check(terminates)] // inherited std extern total-correctness assumption
++        #[ensures((^self)@ == self@)]
++        #[ensures(capacity_model(^self) >= capacity_model(*self))]
++        #[ensures(capacity_model(^self) >= self@.len() + additional@)]
+         fn reserve(&mut self, additional: usize);
+ 
+-        #[check(terminates)] // can OOM
+-        #[ensures((^self)@ == self@)]
++        #[check(terminates)] // inherited std extern total-correctness assumption
++        #[ensures((^self)@ == self@)]
++        #[ensures(capacity_model(^self) >= capacity_model(*self))]
++        #[ensures(capacity_model(^self) >= self@.len() + additional@)]
+         fn reserve_exact(&mut self, additional: usize);
++
++        // Default partial correctness only; generic allocators may panic, abort, or diverge.
++        #[ensures((^self)@ == self@)]
++        #[ensures(match result {
++            Ok(()) =>
++                capacity_model(^self) >= capacity_model(*self) &&
++                capacity_model(^self) >= self@.len() + additional@,
++            Err(_) => capacity_model(^self) == capacity_model(*self),
++        })]
++        fn try_reserve(&mut self, additional: usize)
++            -> Result<(), alloc::collections::TryReserveError>;
++
++        // Same error and success framing as try_reserve; still partial correctness.
++        #[ensures((^self)@ == self@)]
++        #[ensures(match result {
++            Ok(()) =>
++                capacity_model(^self) >= capacity_model(*self) &&
++                capacity_model(^self) >= self@.len() + additional@,
++            Err(_) => capacity_model(^self) == capacity_model(*self),
++        })]
++        fn try_reserve_exact(&mut self, additional: usize)
++            -> Result<(), alloc::collections::TryReserveError>;
+ 
+         #[check(ghost)]
+         #[ensures((^self)@ == self@)]
+@@ -370,7 +411,7 @@
+ #[cfg(not(feature = "nightly"))]
+ mod impls {
+     use crate::{prelude::*, std::iter::ExactSizeIteratorSpec};
+-    use std::vec::*;
++    use alloc::vec::*;
+ 
+     impl<T> View for Vec<T> {
+         type ViewTy = Seq<T>;
+@@ -397,14 +438,14 @@
+ #[macro_export]
+ macro_rules! vec {
+     () => (
+-        ::std::vec::Vec::new()
++        $crate::alloc::vec::Vec::new()
+     );
+     ($elem:expr; $n:expr) => (
+-        ::std::vec::from_elem($elem, $n)
++        $crate::alloc::vec::from_elem($elem, $n)
+     );
+     ($($x:expr),*) => (
+-        <[_]>::into_vec(::std::boxed::Box::new([$($x),*]))
++        <[_]>::into_vec($crate::alloc::boxed::Box::new([$($x),*]))
+     );
+-    ($($x:expr,)*) => (vec![$($x),*])
++    ($($x:expr,)*) => ($crate::vec![$($x),*])
+ }
+ pub use vec;
+--- a/src/std/convert.rs
++++ b/src/std/convert.rs
+@@ -1,8 +1,10 @@
+ use crate::prelude::*;
+ #[cfg(creusot)]
+ use core::marker::PointeeSized;
+-#[cfg(all(creusot, feature = "std"))]
+-use std::alloc::Allocator;
++#[cfg(all(creusot, feature = "alloc"))]
++use alloc::{boxed::Box, string::String, vec::Vec};
++#[cfg(all(creusot, feature = "alloc"))]
++use core::alloc::Allocator;
+ 
+ extern_spec! {
+     mod core {
+@@ -111,7 +113,7 @@
+     }
+ }
+ 
+-#[cfg(feature = "std")]
++#[cfg(feature = "alloc")]
+ extern_spec! {
+     impl<T> From<T> for Box<T> {
+         #[check(ghost)]
+--- a/src/std/slice.rs
++++ b/src/std/slice.rs
+@@ -10,8 +10,10 @@
+     ops::{Bound, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive},
+     slice::*,
+ };
+-#[cfg(all(creusot, feature = "std"))]
+-use std::alloc::Allocator;
++#[cfg(all(creusot, feature = "alloc"))]
++use alloc::{boxed::Box, vec::Vec};
++#[cfg(all(creusot, feature = "alloc"))]
++use core::alloc::Allocator;
+ 
+ impl<T> Invariant for [T] {
+     #[logic(open, prophetic)]
+@@ -513,7 +515,7 @@
+     }
+ }
+ 
+-#[cfg(feature = "std")]
++#[cfg(feature = "alloc")]
+ extern_spec! {
+     impl<T> [T] {
+         #[check(ghost)]

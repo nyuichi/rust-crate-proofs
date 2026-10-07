@@ -1,5 +1,6 @@
 //! Equality observers backed by the verified standard slice comparison contract.
 
+use alloc::vec::Vec;
 use creusot_std::prelude::*;
 use core::cmp::Ordering;
 
@@ -37,6 +38,39 @@ impl Ord for ExclusiveBytes {
     }
 }
 
+/// Establishes that a prefix ending at the sequence length is the full sequence.
+#[check(ghost)]
+#[ensures((*source).subsequence(0, (*source).len()) == *source)]
+fn full_prefix(source: Snapshot<Seq<Int>>) {
+    let prefix = snapshot!((*source).subsequence(0, (*source).len()));
+    proof_assert!((*prefix).len() == (*source).len());
+    proof_assert!(forall<i: Int> 0 <= i && i < (*source).len() ==>
+        (*prefix)[i] == (*source)[i]);
+    proof_assert!((*prefix).ext_eq(*source));
+}
+
+/// Rejoins a prefix and its next element using explicit sequence extensionality.
+#[check(ghost)]
+#[requires(0 <= *index && *index < (*source).len())]
+#[ensures((*source).subsequence(0, *index + 1)
+    == (*source).subsequence(0, *index).push_back((*source)[*index]))]
+fn prefix_snoc(source: Snapshot<Seq<Int>>, index: Snapshot<Int>) {
+    let prefix = snapshot!((*source).subsequence(0, *index));
+    let longer = snapshot!((*source).subsequence(0, *index + 1));
+    let appended = snapshot!((*prefix).push_back((*source)[*index]));
+
+    proof_assert!((*prefix).len() == *index);
+    proof_assert!((*longer).len() == *index + 1);
+    proof_assert!((*appended).len() == *index + 1);
+    proof_assert!(forall<i: Int> 0 <= i && i < (*longer).len() ==>
+        if i < *index {
+            (*longer)[i] == (*prefix)[i]
+        } else {
+            (*longer)[i] == (*source)[*index]
+        });
+    proof_assert!((*longer).ext_eq(*appended));
+}
+
 /// Compares two exclusive owners, then releases both allocations explicitly.
 #[ensures(result == (left.deep_model() == right.deep_model()))]
 pub fn equal_then_close(left: ExclusiveBytes, right: ExclusiveBytes) -> bool {
@@ -55,6 +89,180 @@ pub fn cmp_then_close(left: ExclusiveBytes, right: ExclusiveBytes) -> Ordering {
     ordering
 }
 
+/// Stable 64-bit polynomial digest over bytes, processed from left to right.
+///
+/// This is a deterministic summary function, not Rust's `Hash` protocol and
+/// not a cryptographic digest.
+#[logic(open)]
+pub fn stable_digest_step_model(prefix: Int, byte: Int) -> Int {
+    pearlite! {
+        ((prefix * 257) % 18446744073709551616 + byte) % 18446744073709551616
+    }
+}
+
+#[logic(open)]
+#[variant(bytes.len())]
+pub fn stable_digest_model(bytes: Seq<Int>) -> Int {
+    pearlite! {
+        if bytes.len() == 0 {
+            0
+        } else {
+            stable_digest_step_model(
+                stable_digest_model(bytes.subsequence(0, bytes.len() - 1)),
+                bytes[bytes.len() - 1],
+            )
+        }
+    }
+}
+
+/// Establishes the one-byte recurrence of the mathematical digest model.
+#[check(ghost)]
+#[ensures(stable_digest_model((*prefix).push_back(*byte))
+    == stable_digest_step_model(stable_digest_model(*prefix), *byte))]
+fn stable_digest_model_snoc(prefix: Snapshot<Seq<Int>>, byte: Snapshot<Int>) {
+    let appended = snapshot!((*prefix).push_back(*byte));
+    proof_assert!((*appended).len() == (*prefix).len() + 1);
+    proof_assert!((*appended).subsequence(0, (*appended).len() - 1).ext_eq(*prefix));
+    proof_assert!((*appended)[(*appended).len() - 1] == *byte);
+}
+
+/// Executes one wrapping digest step and relates it to the integer model.
+#[ensures(result@ == stable_digest_step_model(prefix@, byte@))]
+fn wrapping_digest_step(prefix: u64, byte: u8) -> u64 {
+    prefix.wrapping_mul(257u64).wrapping_add(byte as u64)
+}
+
+/// A lowercase ASCII hex digit. The precondition keeps the addition in range.
+#[logic(open)]
+pub fn hex_digit_model(nibble: Int) -> Int {
+    pearlite! {
+        if nibble < 10 { 48 + nibble } else { 87 + nibble }
+    }
+}
+
+#[requires(nibble@ <= 15)]
+#[ensures(result@ == hex_digit_model(nibble@))]
+fn encode_hex_digit(nibble: u8) -> u8 {
+    if nibble < 10 {
+        b'0' + nibble
+    } else {
+        b'a' + (nibble - 10)
+    }
+}
+
+/// The two lowercase hexadecimal digits for one byte.
+#[logic(open)]
+pub fn hex_byte_model(byte: Int) -> Seq<Int> {
+    pearlite! {
+        Seq::singleton(hex_digit_model(byte / 16))
+            .push_back(hex_digit_model(byte % 16))
+    }
+}
+
+/// The concatenated lowercase hexadecimal representation of a byte sequence.
+#[logic(open)]
+#[variant(bytes.len())]
+pub fn hex_bytes_model(bytes: Seq<Int>) -> Seq<Int> {
+    pearlite! {
+        if bytes.len() == 0 {
+            Seq::empty()
+        } else {
+            hex_bytes_model(bytes.subsequence(0, bytes.len() - 1))
+                .concat(hex_byte_model(bytes[bytes.len() - 1]))
+        }
+    }
+}
+
+/// Extends the hex model by the exact two-digit sequence for one byte.
+#[check(ghost)]
+#[ensures(hex_bytes_model((*prefix).push_back(*byte))
+    == hex_bytes_model(*prefix).concat(hex_byte_model(*byte)))]
+fn hex_bytes_model_snoc(prefix: Snapshot<Seq<Int>>, byte: Snapshot<Int>) {
+    let bytes = snapshot!((*prefix).push_back(*byte));
+    let prior = snapshot!((*bytes).subsequence(0, (*bytes).len() - 1));
+    let extended = snapshot!(hex_bytes_model(*bytes));
+    let expected = snapshot!(hex_bytes_model(*prefix).concat(hex_byte_model(*byte)));
+    proof_assert!((*bytes).len() == (*prefix).len() + 1);
+    proof_assert!((*prior).len() == (*prefix).len());
+    proof_assert!((*prior).ext_eq(*prefix));
+    proof_assert!((*bytes)[(*bytes).len() - 1] == *byte);
+    proof_assert!((*extended).ext_eq(*expected));
+}
+
+impl ExclusiveBytes {
+    /// Computes the specified 64-bit polynomial digest over this byte sequence.
+    #[ensures(result@ == stable_digest_model(self.deep_model()))]
+    pub fn stable_digest(&self) -> u64 {
+        let input = self.as_slice();
+        let mut digest = 0u64;
+        let mut index = 0usize;
+
+        #[invariant(index@ <= input@.len())]
+        #[invariant(digest@ == stable_digest_model(self.deep_model().subsequence(0, index@)))]
+        #[variant(input@.len() - index@)]
+        while index < input.len() {
+            let source = snapshot!(self.deep_model());
+            let position = snapshot!(index@);
+            let prefix = snapshot!((*source).subsequence(0, *position));
+            let byte = snapshot!((*source)[*position]);
+            ghost! {
+                prefix_snoc(source, position);
+                stable_digest_model_snoc(prefix, byte);
+            };
+            digest = wrapping_digest_step(digest, input[index]);
+            index += 1;
+        }
+
+        ghost! { full_prefix(snapshot!(self.deep_model())); };
+
+        digest
+    }
+
+    /// Creates a new owner containing two lowercase hex digits per input byte.
+    ///
+    /// The returned owner has the exact byte model in `hex_bytes_model`; callers
+    /// release it explicitly with [`ExclusiveBytes::close`].
+    #[ensures(result.deep_model() == hex_bytes_model(self.deep_model()))]
+    pub fn hex_bytes(&self) -> ExclusiveBytes {
+        let input = self.as_slice();
+        let mut output = ExclusiveBytes::from_vec(Vec::new());
+        let mut index = 0usize;
+
+        #[invariant(index@ <= input@.len())]
+        #[invariant(output.deep_model() ==
+            hex_bytes_model(self.deep_model().subsequence(0, index@)))]
+        #[variant(input@.len() - index@)]
+        while index < input.len() {
+            let byte = input[index];
+            let pair = [encode_hex_digit(byte / 16), encode_hex_digit(byte % 16)];
+            let source = snapshot!(self.deep_model());
+            let position = snapshot!(index@);
+            let prefix = snapshot!((*source).subsequence(0, *position));
+            let model_byte = snapshot!((*source)[*position]);
+            ghost! {
+                prefix_snoc(source, position);
+                hex_bytes_model_snoc(prefix, model_byte);
+            };
+            output.append_initialized_slice(&pair);
+            index += 1;
+        }
+
+        ghost! { full_prefix(snapshot!(self.deep_model())); };
+
+        output
+    }
+}
+
+/// Computes both summaries, then explicitly closes the source owner.
+#[ensures(result.0@ == stable_digest_model(source.deep_model()))]
+#[ensures(result.1.deep_model() == hex_bytes_model(source.deep_model()))]
+pub fn digest_and_hex_close(source: ExclusiveBytes) -> (u64, ExclusiveBytes) {
+    let digest = source.stable_digest();
+    let encoded = source.hex_bytes();
+    source.close();
+    (digest, encoded)
+}
+
 #[cfg(all(test, not(creusot), feature = "std"))]
 mod tests {
     use super::*;
@@ -64,5 +272,33 @@ mod tests {
         let left = ExclusiveBytes::copy_from_slice(b"byte");
         let right = ExclusiveBytes::copy_from_slice(b"bytes");
         assert_eq!(cmp_then_close(left, right), Ordering::Less);
+    }
+}
+
+#[cfg(all(test, not(creusot), feature = "std"))]
+mod deterministic_tests {
+    use super::{digest_and_hex_close, ExclusiveBytes};
+    use std::vec;
+
+    #[test]
+    fn deterministic_digest_and_hex_model_match_and_close() {
+        let (digest, encoded) = digest_and_hex_close(
+            ExclusiveBytes::from_vec(vec![0x00, 0x0a, 0x10, 0xff]),
+        );
+        let expected_digest = (((0u64.wrapping_mul(257).wrapping_add(0x00))
+            .wrapping_mul(257).wrapping_add(0x0a))
+            .wrapping_mul(257).wrapping_add(0x10))
+            .wrapping_mul(257).wrapping_add(0xff);
+        assert_eq!(digest, expected_digest);
+        assert_eq!(encoded.as_slice(), b"000a10ff");
+        encoded.close();
+    }
+
+    #[test]
+    fn empty_deterministic_summaries_close() {
+        let (digest, encoded) = digest_and_hex_close(ExclusiveBytes::from_vec(vec![]));
+        assert_eq!(digest, 0);
+        assert!(encoded.is_empty());
+        encoded.close();
     }
 }

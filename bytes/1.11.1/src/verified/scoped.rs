@@ -17,6 +17,9 @@ use atomic::NativeAtomic;
 mod retirement;
 #[path = "tree.rs"]
 mod tree;
+#[path = "spawn_failure.rs"]
+mod spawn_failure;
+pub use spawn_failure::parent_retained_builder_attempt;
 #[path = "callbacks.rs"]
 pub mod callbacks;
 #[path = "ranges.rs"]
@@ -103,8 +106,18 @@ impl Owner {
     #[logic]
     pub fn contents(self)->Seq<u8> { *self.model }
 
+    #[requires(self.valid())]
+    #[ensures(result@ == self.raw.capacity())]
+    pub(crate) fn capacity(&self)->usize { self.frozen.capacity }
+
     #[ensures(result.valid())]
     #[ensures(result.contents() == input@)]
+    #[cfg_attr(creusot, ensures(
+        result.frozen.capacity@ == creusot_std::std::vec::capacity_model(input)
+    ))]
+    #[cfg_attr(creusot, ensures(
+        result.raw.base_address() == creusot_std::std::vec::base_model(input)
+    ))]
     #[ensures(result.anchor.frac() == PositiveReal::from_int(1))]
     pub fn new(input:Vec<u8>)->Self {
         let model=snapshot!(input@);
@@ -121,6 +134,9 @@ impl Owner {
     #[requires(self.valid())]
     #[requires(self.anchor.frac() == PositiveReal::from_int(1))]
     #[ensures((^self).valid() && (^self).contents() == self.contents())]
+    #[ensures((^self).frozen.capacity@ == self.frozen.capacity@)]
+    #[ensures((^self).raw.capacity() == self.raw.capacity())]
+    #[ensures((^self).raw.base_address() == self.raw.base_address())]
     #[ensures((^self).anchor.frac() == PositiveReal::from_int(1)/PositiveReal::from_int(2))]
     #[ensures(result.0.contents() == self.contents() && result.1.contents() == self.contents())]
     #[ensures(result.2.valid())]
@@ -143,6 +159,8 @@ impl Owner {
     #[requires(first.accepted_by(context) && second.accepted_by(context))]
     #[requires(first.is_left() != second.is_left())]
     #[ensures(result.0.valid() && result.0.contents() == self.contents())]
+    #[ensures(result.0.raw.capacity() == self.raw.capacity())]
+    #[ensures(result.0.raw.base_address() == self.raw.base_address())]
     #[ensures(result.1 != result.2)]
     fn recover(self,context:CloseContext,first:Closed,second:Closed)->(RecoveredAllocation,bool,bool) {
         let first_last=first.last;
@@ -175,6 +193,12 @@ impl Owner {
     #[requires(first.accepted_by(context) && second.accepted_by(context))]
     #[requires(first.is_left() != second.is_left())]
     #[ensures(result.0@ == self.contents())]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::capacity_model(result.0) == self.frozen.capacity@
+    ))]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::base_model(result.0) == self.raw.base_address()
+    ))]
     #[ensures(result.1 != result.2)]
     fn thaw(self,context:CloseContext,first:Closed,second:Closed)->(Vec<u8>,bool,bool) {
         let (recovered,first_last,second_last)=self.recover(context,first,second);
@@ -217,6 +241,12 @@ impl RecoveredAllocation {
 
     #[requires(self.valid())]
     #[ensures(result@ == self.contents())]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::capacity_model(result) == self.raw.capacity()
+    ))]
+    #[cfg_attr(creusot, ensures(
+        creusot_std::std::vec::base_model(result) == self.raw.base_address()
+    ))]
     fn into_vec(self)->Vec<u8> {
         let model=self.model;
         let result=unsafe { raw_vec::resume_vec(self.raw,self.len,self.caps) };

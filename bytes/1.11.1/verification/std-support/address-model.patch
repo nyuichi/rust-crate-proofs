@@ -1,0 +1,37 @@
+--- a/src/std/vec.rs
++++ b/src/std/vec.rs
+@@ -22,6 +22,17 @@
+     dead
+ }
+ 
++// Numeric address of the first element pointer returned by Vec::as_ptr.
++// This is an opaque observation only; it carries no pointer permission,
++// provenance identity, or allocation-liveness fact.
++#[cfg(creusot)]
++#[trusted]
++#[logic(opaque)]
++#[doc(hidden)]
++pub fn base_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
++    dead
++}
++
+ #[cfg(feature = "nightly")]
+ impl<T, A: Allocator> View for Vec<T, A> {
+     type ViewTy = Seq<T>;
+@@ -124,6 +135,16 @@
+     }
+ 
+     impl<T, A: Allocator> Vec<T, A> {
++        #[check(ghost)]
++        #[ensures(result.addr_logic()@ == base_model(*self))]
++        fn as_ptr(&self) -> *const T;
++
++        #[check(ghost)]
++        #[ensures((^self)@ == self@)]
++        #[ensures(base_model(^self) == base_model(*self))]
++        #[ensures(result.addr_logic()@ == base_model(*self))]
++        fn as_mut_ptr(&mut self) -> *mut T;
++
+         #[check(ghost)]
+         #[ensures(result@ == self@.len())]
+         fn len(&self) -> usize;

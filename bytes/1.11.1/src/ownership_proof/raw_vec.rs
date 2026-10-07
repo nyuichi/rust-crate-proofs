@@ -840,6 +840,12 @@ impl PhysicalPool {
 #[trusted]
 #[ensures(result.0.invariant())]
 #[ensures(result.1@ == input@.len())]
+#[cfg_attr(creusot, ensures(
+    result.0.capacity() == creusot_std::std::vec::capacity_model(input)
+))]
+#[cfg_attr(creusot, ensures(
+    result.0.base_address() == creusot_std::std::vec::base_model(input)
+))]
 #[ensures(result.0.capacity() == result.2.inner_logic().0.capacity())]
 #[ensures(result.0.capacity() == result.2.inner_logic().1.capacity())]
 #[ensures(result.0.capacity() >= input@.len())]
@@ -936,6 +942,12 @@ pub(crate) fn detach_vec(
 #[ensures(result@.len() == len@)]
 #[ensures(forall<index: Int> 0 <= index && index < len@ ==>
     capabilities.inner_logic().1.slot(index) == Some(Some(result@[index])))]
+#[cfg_attr(creusot, ensures(
+    creusot_std::std::vec::capacity_model(result) == raw.capacity()
+))]
+#[cfg_attr(creusot, ensures(
+    creusot_std::std::vec::base_model(result) == raw.base_address()
+))]
 pub(crate) unsafe fn resume_vec(
     raw: RawAllocation,
     len: usize,

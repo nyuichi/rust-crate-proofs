@@ -46,9 +46,10 @@ rustdoc-args = [
 
 [features]
 default = ["std"]
-std = ["creusot-std/std"]
-# Modified public API; scoped thread admission currently requires std.
-verified = []
+alloc = ["creusot-std/alloc"]
+std = ["alloc", "creusot-std/std"]
+# Modified public API: owned byte buffers need alloc; scoped threads also need std.
+verified = ["alloc"]
 
 [lib]
 name = "bytes"

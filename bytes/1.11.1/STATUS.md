@@ -12,25 +12,28 @@ claimed fully verified. Read [MODIFIED_VARIANT_SPEC.md](verification/MODIFIED_VA
 Bounded architecture admission PASSED. Subsequent production increments prove
 recursive scoped sharing, ordinary exclusive mutation connected to sharing,
 checked numeric Cursor operations and reusable immutable scoped callbacks.
-The latest committed production run, public-read-models-266 (04fa51a1), proves
-255 files with zero null leaves and 32 passing native tests. It includes affine
-thaw/recovery, conversions, signed/unsigned/endian writes, exact float-bit
-transport, ordering, checked chain/limit adapters and explicit iteration.
-Read [MODIFIED_VARIANT_PROGRESS.md](verification/MODIFIED_VARIANT_PROGRESS.md)
-for source hashes, exact scopes and negative controls. Proof-file counts are
-not API-completion counts.
+The latest production run, production-capacity-address-digest-copy-slot-285,
+proves 285 files with zero null leaves and native tests pass 48 std/portable
+and 22 alloc-only. It integrates checked copied splits/iterator append, concrete
+IO, capacity/error frames, numeric address framing through physical recovery,
+deterministic digest/hex and Copy-restricted fallible scoped-slot cleanup. The
+exact actual Std dependency sources and feature graphs accompany the capture.
+Proof-file counts are not API-completion counts. Read
+[MODIFIED_VARIANT_PROGRESS.md](verification/MODIFIED_VARIANT_PROGRESS.md).
 
-The complete modified variant remains NOT COMPLETE. Thaw byte contents and
-affine recovery are proved; returned Vec pointer/capacity identity is not yet
-supplied by the standard model. Capacity, remaining IO/observer/owner operations,
-final configuration coverage and failure/termination behavior remain open.
-Separate alloc-core and relocated-std candidates prove 221 and 255 files;
-they are not yet production adoption. MSP43016 native core compilation passes,
-but its stock proof-library/std prerequisites fail before VC generation.
-Actual Serde and callback-unwind attempts are preserved and frozen in D09/D10;
-fallible spawning has distinct interface failures and a new restricted generic
-standard-wrapper experiment. Consult the remaining responsibility inventory;
-neither frozen failures nor configuration candidates count as full completion.
+The complete modified variant remains NOT COMPLETE. The small generic capacity,
+numeric base observation and Copy-slot contracts are reviewed trusted Std
+boundaries. The bytes-specific sharing, refcount, retirement, recovery and
+explicit cleanup bodies remain proved. Numeric address equality is not pointer
+provenance or permission. The address client explicitly closes its returned Vec.
+Universal totality is not inferred from metadata or finite-computation proofs.
+
+Actual native floating conversion, generic Serde, callback unwind, unrestricted
+spawn error-frame, and generic Hash/Formatter failures remain preserved and
+frozen in D08–D12. Changed APIs are separately admitted by their actual evidence;
+frozen failures never count as completed responsibilities. Final complete-source
+configuration gates, the final API correspondence inventory and bounded
+termination-interface experiments remain open.
 
 Frozen approaches remain frozen unless their actual premises change. T02 remains
 a concrete threaded transport/conditional cleanup component (37 proof files),
