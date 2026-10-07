@@ -332,3 +332,27 @@ values, data pointer relation, refcount or callback facts. Do not repeat the sam
 frontier with assertions or larger timeouts. Protocol proofs remain separate
 open obligations. Details and receipts: ORIGINAL_PATH_2026-10-08_JA.md and
 probes/original-freeze-read-2026-10-08/README.md.
+
+## D2026-10-08-S — Strong original contract admission before further ownership work
+
+Stages 1–2 define the final original ownership/refcount contract and audit
+freeze/read61 as a reusable physical/content component, not an already-embedded
+singleton of a full shared protocol. See ownership-design-2026-10-08/STRONG_SPEC_JA.md.
+The exclusive per-handle PhysicalRegion/Recovery/Box Perm storage cannot be
+duplicated for Clone; shared authority/access encoding needs redesign. Small
+removability of that change has not been established.
+
+Do not grow singleton-only ownership scaffolding or claim a final shared API
+architecture before a sound generic interface supports original Clone(&self),
+readonly sharing and relevant weak-memory resource transfer. Original signature
+and native ordering must be preserved. New state summaries cannot trust bytes
+registration/refcount/finalizer laws. D01/D02/D05 remain fixed pending their
+specified changed premises. Automatic Drop is still blocked by the existing
+Drop-to-Goto semantics; explicit cleanup is not a proof of original scope-exit
+effects. Numerical atomic constructor contracts alone do not admit the protocol.
+
+Revisit only on concrete new generic/tool support with adequacy and bounded
+negative controls. No new failure replay was needed for this design decision.
+This fixes the architecture gate without abandoning the original target or
+discarding useful historical proofs. Full API generalization must prove the
+strong contract, with bounded branch lemmas called and not relabeled as full APIs.

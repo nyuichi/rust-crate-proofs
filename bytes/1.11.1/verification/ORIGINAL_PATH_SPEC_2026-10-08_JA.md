@@ -6,7 +6,9 @@
 unique/off0/no-growthのsource-gated body proofが50 filesで通過した。
 監査の「候補／未証明」は監査時点の区分であり、最新の範囲と証拠は
 `ORIGINAL_PATH_2026-10-08_JA.md` と `probes/original-unique-write-2026-10-08/README.md` を参照。
-freeze/Shared/Dropは引き続き未証明。
+後続のfreeze/read61はselected physical/content経路で通過。Dropとfull shared protocolは未証明。
+最終の強い契約・再利用判定は`ownership-design-2026-10-08/STRONG_SPEC_JA.md`を参照。
+本書の候補記述は下記baseline時点の履歴である。
 
 監査基準: commit `738cdeb5`（raw-copy leaf 接続後、original-unique sidecar 導入前）
 

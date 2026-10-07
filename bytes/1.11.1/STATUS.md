@@ -44,6 +44,16 @@ values/data-field relation, Clone, Drop, shared aliases, growth and other freeze
 branches remain incomplete. See
 [the current work ledger](verification/ORIGINAL_PATH_2026-10-08_JA.md).
 
+Strong-contract design/reuse audit (stages 1–2, 2026-10-08):
+[the ownership specification](verification/ownership-design-2026-10-08/STRONG_SPEC_JA.md)
+records the final original representation, initialized storage, dynamic handle
+obligations, native atomic synchronization and exactly-once safety requirements.
+The current 61-file predicate supplies physical/content components but does not
+imply a final singleton shared protocol: actual data/count/vtable relations and
+shared authority/access encoding are missing. Full shared architecture is not
+admitted; original Clone and automatic Drop have known tool boundaries.
+This increment adds no API body proof and makes no unchanged-sidecar reuse claim.
+
 The remaining material below is a historical record of prior targets,
 experiments and component evidence. Its claims apply to the source snapshots
 and configurations stated in each section, not to the current post-removal

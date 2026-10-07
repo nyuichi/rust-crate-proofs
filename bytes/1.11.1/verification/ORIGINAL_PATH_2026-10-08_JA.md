@@ -88,3 +88,14 @@ exact pointer観測はconstructor由来の直接copy対応であり、任意の�
 決定: DeepModel比較ICEへの同じ試行、static/atomic materializationの迂回の追加投資は固定保留。
 前者は実memory modelと元generic APIを保つ比較契約、後者は適切なfrontend/std契約という
 新しい前提が得られた場合のみ再開する。local trusted除去とrefcount protocol証明は別課題として維持する。
+
+### 強い最終契約と再利用監査（依頼stage 1–2）
+
+`ownership-design-2026-10-08/STRONG_SPEC_JA.md`に、全original representation、
+clone/slice/split/freeze/release/transfer/Dropの強い契約を設計した。Astraレビュー済み。
+61件のphysical/content部分は有用だが、actual data/count/vtableが不足しているため
+最終singleton protocolへのembeddingは未証明。現exclusive sidecarは共有用に配置変更が必要。
+「既存証明が全てそのまま使える」「共有まで小変更で済む」は保証しない。
+shared ghost access/readonly lifetime/token/weak atomic/Drop境界のadmissionを先に確認し、
+新前提なしに同じ失敗を再試行しない。今回production変更・新API body証明はない。
+archive全member hash、現source一致、active tool factをread-only auditで再確認した。
