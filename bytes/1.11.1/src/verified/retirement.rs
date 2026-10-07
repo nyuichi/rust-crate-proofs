@@ -2,7 +2,8 @@
 //! T02 objective metadata/AtView protocol plus authoritative receipt conservation.
 //! The native atomic primitive is unchanged; no protocol theorem is trusted.
 use super::*;
-use creusot_std::std::sync::{atomic::fence_acquire, view::AcquireSyncView};
+use creusot_std::std::sync::view::AcquireSyncView;
+use super::primitive::fence_acquire;
 use creusot_std::{ghost::{invariant::{AtomicInvariant,Protocol,Tokens,declare_namespace},resource::{Resource,Authority,Fragment}},logic::{Id,ra::{excl::Excl,agree::Ag}}};
 /// Implementations define a projection; no law or protocol fact is assumed.
 pub trait Payload {

@@ -20,7 +20,7 @@ std/x86_64, normal return. Counts describe proof files, not API completion.
 | Trait observers | Exclusive immutable slice; current trait experiment | Equality proved183, PartialOrd/Ord and cleanup proved229; borrowed iteration and explicit OwnedByteCursor proved255; Hash/Formatter unchanged contracts frozen D12 after real failures; explicit digest/hex replacement in progress |
 | no_std | Production alloc core221 and relocated std255 proved; native14/32 | Stock proof-only dependency still enables std; isolated genuine alloc model port and actual MSP UInt16 integration in progress |
 | serde | Legacy serde gated away | Actual Serialize/Deserialize failures reviewed and frozen D09; generic interface semantics remain uncovered |
-| extra-platforms | Legacy portable atomics gated away | Native modified primitive mapping, generic contract adequacy and configured proof |
+| extra-platforms | Actual portable RMW and matching Acquire fence; host263/native37, missing-Acquire control fails | Final API/cross-target configurations; generic primitive TCB remains explicit |
 | Width/alignment/target | x86_64 current configuration | 183 source passed configured i68632/little and powerpc64/big proofs with native cross checks; final API graph and unsupported target inventory remain |
 | Termination/failure | Normal-return partial-correctness | Callback catch/unwind attempt frozen D10; Copy-slot fallible spawn and try-reserve candidates in progress; allocation/termination obligations remain, actual attempts and Astra review before blocking |
 

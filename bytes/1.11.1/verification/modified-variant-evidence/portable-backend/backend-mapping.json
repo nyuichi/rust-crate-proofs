@@ -1,0 +1,27 @@
+{
+  "version": "portable-atomic 1.15.0",
+  "cargo_alias": "extra-platforms",
+  "features": [
+    "require-cas"
+  ],
+  "default_features": false,
+  "scope": "host x86_64 std lifecycle; MSP alloc entry excludes scoped atomics",
+  "runtime_mapping": {
+    "NativeAtomic::new": "portable AtomicUsize::new",
+    "NativeAtomic::decrement": "portable fetch_sub(1,Release)",
+    "NativeAtomic::acquire": "portable load(Acquire)",
+    "retirement final acquire": "portable fence(Acquire); on x86 current library delegates non-SeqCst fence to core fence"
+  },
+  "model_sorts": "unchanged stock ModelAtomic/Perm/Committer/SyncView",
+  "protocol": "unchanged body and release_rmw generic rule",
+  "TCB": "existing generic atomic contracts mapped to portable operations; added local Acquire fence adapter has exact stock contract. Portable implementation is not body-proved.",
+  "source_files": {
+    "Cargo.toml": "30e602bcf54f19dbdcf52315a262c88e8efbd12455ee4d4fe63f2880e4ac10e1",
+    "build.rs": "9d0b1e071715580497aadb918d4b3b124ee366ba66f15ac05a3d8045f0bc2cf0",
+    "src/lib.rs": "8fac4257f626a2669a44dd74a966677b368647fd883e32d8db79c57a06af6895",
+    "src/imp/mod.rs": "d9505be50a63ea4b00590a3637266ccb88dc85078572aa8fd8bf4236bb9ae18c",
+    "src/imp/core_atomic.rs": "0ce4a6ca4fb50fd8e3c6fb2adf96535ab9b8593b951d25f16b5762ddf867b7bd",
+    "src/imp/x86.rs": "4c11976fccadc618d68d6aba4caf744d2859f60f63c6fb08f626f2a2561e6b52",
+    "src/imp/msp430.rs": "16635485eeca1c1c4b866253eefc1f39fa6121c84c16ec389b904c03fa9cdb55"
+  }
+}

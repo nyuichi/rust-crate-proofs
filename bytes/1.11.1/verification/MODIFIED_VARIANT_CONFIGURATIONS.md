@@ -157,3 +157,22 @@ are independently audited in production-closed-io-core-226, SHA256
 `425e40a45029106ca8f57fd748c69f7d1679ca3bf9abec1d2a28200307ad58dc`.
 As before, bytes/std=false but proof-only creusot-std/std=true; the genuinely
 alloc-only library port remains a separate in-progress configuration.
+
+## Actual portable atomic backend adoption
+
+Production adopts the byte-exact positive NativeAtomic/fence mapping. Root
+independently rehashes the positive and negative archives and compares all
+captured production src/Cargo files against the integrated source. The host
+verified,std,extra-platforms graph passes263 files, zero nulls, native37:
+portable-atomic-host-263 SHA256
+`350bca93c4b3b5060c6ac8b5b4a9937b9ecd70dd74b1aaa5013eaa7079e15b56`.
+Both Release RMW and the final Acquire fence select portable-atomic1.15.0,
+under an explicitly reviewed generic atomic TCB. No protocol body is trusted.
+
+Removing only that selected Acquire fence fails retirement64/66 (two nulls),
+with all263 files captured: portable-atomic-missing-acquire-263 SHA256
+`b25d8daf7dca3c5a3f41e8e81d6b34cf12628fe620b9b03168158a50aab31639`.
+The actual protocol cannot recover the peer AtView without synchronization.
+The orphan sandbox invocation is preserved separately as an environment failure.
+Final enlarged API/cross-target configurations and generic primitive adequacy
+remain separate obligations; MSP alloc-only does not include scoped atomics.

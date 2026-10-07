@@ -1,6 +1,9 @@
 //! Generic native-atomic semantics TCB, not a bytes/refcount protocol.
 //! ModelAtomic supplies the existing stock Perm/Committer/SyncView sorts.
-use core::sync::atomic::{AtomicUsize,Ordering};
+#[cfg(not(feature = "extra-platforms"))]
+use core::sync::atomic::{AtomicUsize, Ordering};
+#[cfg(feature = "extra-platforms")]
+use extra_platforms::{AtomicUsize, Ordering};
 use creusot_std::{prelude::*, ghost::{FnGhost,Perm},logic::FMap,
     std::sync::{atomic::{AtomicUsize as ModelAtomic,ordering::{Acquire,Relaxed,Release,None as NoStore}},
         committer::Committer,view::{HasTimestamp,SyncView}}};
@@ -85,4 +88,20 @@ mod tests {
             }), 0);
         }
     }
+}
+
+// The core backend continues to use the exact stock primitive.
+#[cfg(not(feature = "extra-platforms"))]
+pub use creusot_std::std::sync::atomic::fence_acquire;
+
+/// Generic portable-atomic Acquire fence boundary, with the exact stock view
+/// contract. portable-atomic supplies the platform-specific native fence;
+/// no bytes ownership, retirement, or last-owner fact is assumed here.
+#[cfg(feature = "extra-platforms")]
+#[trusted]
+#[ensures(acq_view@ == *result)]
+#[allow(unused_variables)]
+pub fn fence_acquire(acq_view: Ghost<creusot_std::std::sync::view::AcquireSyncView>) -> Ghost<SyncView> {
+    extra_platforms::fence(Ordering::Acquire);
+    Ghost::conjure()
 }
