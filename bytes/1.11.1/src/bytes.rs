@@ -4,6 +4,8 @@ use creusot_std::{prelude::*, ghost::perm::Perm};
 #[cfg(all(creusot, bytes_original_freeze_gate))]
 use crate::ownership_proof::{raw_vec::{self, BoundPtr, Recovery, PhysicalRegion, slot_known}, boxed_alignment};
 // ORIGINAL_FREEZE_END bytes_imports
+#[cfg(all(creusot, bytes_original_shared_gate))]
+use creusot_std::prelude::*;
 use core::mem::{self, ManuallyDrop};
 use core::ops::{Deref, RangeBounds};
 use core::ptr::NonNull;
@@ -23,110 +25,8 @@ use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
 use crate::{Buf, BytesMut};
 
-/// A cheaply cloneable and sliceable chunk of contiguous memory.
-///
-/// `Bytes` is an efficient container for storing and operating on contiguous
-/// slices of memory. It is intended for use primarily in networking code, but
-/// could have applications elsewhere as well.
-///
-/// `Bytes` values facilitate zero-copy network programming by allowing multiple
-/// `Bytes` objects to point to the same underlying memory.
-///
-/// `Bytes` does not have a single implementation. It is an interface, whose
-/// exact behavior is implemented through dynamic dispatch in several underlying
-/// implementations of `Bytes`.
-///
-/// All `Bytes` implementations must fulfill the following requirements:
-/// - They are cheaply cloneable and thereby shareable between an unlimited amount
-///   of components, for example by modifying a reference count.
-/// - Instances can be sliced to refer to a subset of the original buffer.
-///
-/// ```
-/// use bytes::Bytes;
-///
-/// let mut mem = Bytes::from("Hello world");
-/// let a = mem.slice(0..5);
-///
-/// assert_eq!(a, "Hello");
-///
-/// let b = mem.split_to(6);
-///
-/// assert_eq!(mem, "world");
-/// assert_eq!(b, "Hello ");
-/// ```
-///
-/// # Memory layout
-///
-/// The `Bytes` struct itself is fairly small, limited to 4 `usize` fields used
-/// to track information about which segment of the underlying memory the
-/// `Bytes` handle has access to.
-///
-/// `Bytes` keeps both a pointer to the shared state containing the full memory
-/// slice and a pointer to the start of the region visible by the handle.
-/// `Bytes` also tracks the length of its view into the memory.
-///
-/// # Sharing
-///
-/// `Bytes` contains a vtable, which allows implementations of `Bytes` to define
-/// how sharing/cloning is implemented in detail.
-/// When `Bytes::clone()` is called, `Bytes` will call the vtable function for
-/// cloning the backing storage in order to share it behind multiple `Bytes`
-/// instances.
-///
-/// For `Bytes` implementations which refer to constant memory (e.g. created
-/// via `Bytes::from_static()`) the cloning implementation will be a no-op.
-///
-/// For `Bytes` implementations which point to a reference counted shared storage
-/// (e.g. an `Arc<[u8]>`), sharing will be implemented by increasing the
-/// reference count.
-///
-/// Due to this mechanism, multiple `Bytes` instances may point to the same
-/// shared memory region.
-/// Each `Bytes` instance can point to different sections within that
-/// memory region, and `Bytes` instances may or may not have overlapping views
-/// into the memory.
-///
-/// The following diagram visualizes a scenario where 2 `Bytes` instances make
-/// use of an `Arc`-based backing storage, and provide access to different views:
-///
-/// ```text
-///
-///    Arc ptrs                   ┌─────────┐
-///    ________________________ / │ Bytes 2 │
-///   /                           └─────────┘
-///  /          ┌───────────┐     |         |
-/// |_________/ │  Bytes 1  │     |         |
-/// |           └───────────┘     |         |
-/// |           |           | ___/ data     | tail
-/// |      data |      tail |/              |
-/// v           v           v               v
-/// ┌─────┬─────┬───────────┬───────────────┬─────┐
-/// │ Arc │     │           │               │     │
-/// └─────┴─────┴───────────┴───────────────┴─────┘
-/// ```
-pub struct Bytes {
-    ptr: *const u8,
-    len: usize,
-    // inlined "trait object"
-    data: AtomicPtr<()>,
-    vtable: &'static Vtable,
-    #[cfg(all(creusot, bytes_original_freeze_gate))]
-    original_frozen: Option<OriginalFrozenProof>,
-}
-
-pub(crate) struct Vtable {
-    /// fn(data, ptr, len)
-    pub clone: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> Bytes,
-    /// fn(data, ptr, len)
-    ///
-    /// `into_*` consumes the `Bytes`, returning the respective value.
-    pub into_vec: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> Vec<u8>,
-    pub into_mut: unsafe fn(&AtomicPtr<()>, *const u8, usize) -> BytesMut,
-    /// fn(data)
-    pub is_unique: unsafe fn(&AtomicPtr<()>) -> bool,
-    /// fn(data, ptr, len)
-    pub drop: unsafe fn(&mut AtomicPtr<()>, *const u8, usize),
-}
+include!("bytes/bytes_record.rs");
+include!("bytes/vtable_record.rs");
 
 // ORIGINAL_FREEZE_BEGIN frozen_model
 #[cfg(all(creusot, bytes_original_freeze_gate))]
@@ -187,6 +87,26 @@ fn original_shared_vtable() -> &'static Vtable { unimplemented!() }
 // ORIGINAL_FREEZE_END frozen_model
 
 impl Bytes {
+    // ORIGINAL_SHARED_BEGIN bytes_cleanup
+    /// Releases this handle explicitly. The backing storage is reclaimed when
+    /// its last owner releases it.
+    ///
+    /// This calls the same destructor as `Drop`, exactly once.
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
+    pub fn cleanup(self) {
+        #[cfg(all(creusot, bytes_original_shared_gate))]
+        { original_shared_cleanup(self); }
+        #[cfg(not(all(creusot, bytes_original_shared_gate)))]
+        {
+            let mut this = ManuallyDrop::new(self);
+            let ptr = this.ptr;
+            let len = this.len;
+            let callback = this.vtable.drop;
+            unsafe { callback(&mut this.data, ptr, len) }
+        }
+    }
+    // ORIGINAL_SHARED_END bytes_cleanup
+
     /// Creates a new empty `Bytes`.
     ///
     /// This will not allocate and the returned `Bytes` handle will be empty.
@@ -741,18 +661,24 @@ impl Bytes {
     // private
 
 // ORIGINAL_FREEZE_BEGIN bytes_as_slice
+    // ORIGINAL_SHARED_BEGIN bytes_as_slice
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result@ == self.original_shared_bytes()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(self.original_frozen_valid()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result@ == self.original_frozen_bytes()))]
     #[inline]
     fn as_slice(&self) -> &[u8] {
+        #[cfg(all(creusot, bytes_original_shared_gate))]
+        { original_shared_as_slice(self) }
         #[cfg(all(creusot, bytes_original_freeze_gate))]
         {
             let proof = self.original_frozen.as_ref().unwrap();
             unsafe { raw_vec::borrow_bound(&proof.base, self.len, ghost! { &proof.capabilities.1 }) }
         }
-        #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+        #[cfg(not(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_shared_gate))))]
         unsafe { slice::from_raw_parts(self.ptr, self.len) }
     }
+    // ORIGINAL_SHARED_END bytes_as_slice
 // ORIGINAL_FREEZE_END bytes_as_slice
 
 // ORIGINAL_FREEZE_BEGIN bytes_inc_start
@@ -784,12 +710,21 @@ impl Drop for Bytes {
     }
 }
 
+// ORIGINAL_SHARED_BEGIN bytes_clone_impl
 impl Clone for Bytes {
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_bytes() == self.original_shared_bytes()))]
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.ptr == self.ptr && result.len == self.len))]
     #[inline]
     fn clone(&self) -> Bytes {
+        #[cfg(all(creusot, bytes_original_shared_gate))]
+        { original_shared_clone(self) }
+        #[cfg(not(all(creusot, bytes_original_shared_gate)))]
         unsafe { (self.vtable.clone)(&self.data, self.ptr, self.len) }
     }
 }
+// ORIGINAL_SHARED_END bytes_clone_impl
 
 impl Buf for Bytes {
     #[inline]
@@ -835,12 +770,16 @@ impl Deref for Bytes {
     }
 }
 
+// ORIGINAL_SHARED_BEGIN bytes_as_ref_impl
 impl AsRef<[u8]> for Bytes {
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result@ == self.original_shared_bytes()))]
     #[inline]
     fn as_ref(&self) -> &[u8] {
         self.as_slice()
     }
 }
+// ORIGINAL_SHARED_END bytes_as_ref_impl
 
 impl hash::Hash for Bytes {
     fn hash<H>(&self, state: &mut H)
@@ -1062,13 +1001,21 @@ impl From<&'static str> for Bytes {
     }
 }
 
+// ORIGINAL_SHARED_BEGIN bytes_from_vec_impl
 impl From<Vec<u8>> for Bytes {
 // ORIGINAL_FREEZE_BEGIN bytes_from_vec
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(vec@.len() < creusot_std::std::vec::capacity_model(vec)))]
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_bytes() == vec@))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(vec@.len() < creusot_std::std::vec::capacity_model(vec)))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_valid()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_bytes() == vec@))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_pointer() == creusot_std::std::vec::pointer_model(vec) as *const u8))]
     fn from(vec: Vec<u8>) -> Bytes {
+        #[cfg(all(creusot, bytes_original_shared_gate))]
+        { return original_shared_from_vec(vec); }
+        #[cfg(not(all(creusot, bytes_original_shared_gate)))]
+        {
         #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
         let mut vec = ManuallyDrop::new(vec);
         #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
@@ -1134,9 +1081,12 @@ impl From<Vec<u8>> for Bytes {
                 { &SHARED_VTABLE }
             },
         }
+        }
     }
 // ORIGINAL_FREEZE_END bytes_from_vec
 }
+
+// ORIGINAL_SHARED_END bytes_from_vec_impl
 
 impl From<Box<[u8]>> for Bytes {
     fn from(slice: Box<[u8]>) -> Bytes {
@@ -1505,6 +1455,7 @@ impl Drop for Shared {
 // This flag is set when the LSB is 0.
 const _: [(); 0 - mem::align_of::<Shared>() % 2] = []; // Assert that the alignment of `Shared` is divisible by 2.
 
+// ORIGINAL_SHARED_BEGIN shared_vtable
 static SHARED_VTABLE: Vtable = Vtable {
     clone: shared_clone,
     into_vec: shared_to_vec,
@@ -1512,15 +1463,26 @@ static SHARED_VTABLE: Vtable = Vtable {
     is_unique: shared_is_unique,
     drop: shared_drop,
 };
+// ORIGINAL_SHARED_END shared_vtable
+
+// ORIGINAL_SHARED_BEGIN shared_table_native
+// Closed native target for the generic proof-only Vtable reification boundary.
+#[allow(dead_code)]
+fn original_shared_table_native() -> &'static Vtable {
+    &SHARED_VTABLE
+}
+// ORIGINAL_SHARED_END shared_table_native
 
 const KIND_ARC: usize = 0b0;
 const KIND_VEC: usize = 0b1;
 const KIND_MASK: usize = 0b1;
 
+// ORIGINAL_SHARED_BEGIN shared_clone
 unsafe fn shared_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let shared = data.load(Ordering::Relaxed);
     shallow_clone_arc(shared as _, ptr, len)
 }
+// ORIGINAL_SHARED_END shared_clone
 
 unsafe fn shared_to_vec_impl(shared: *mut Shared, ptr: *const u8, len: usize) -> Vec<u8> {
     // Check that the ref_cnt is 1 (unique).
@@ -1600,12 +1562,15 @@ pub(crate) unsafe fn shared_is_unique(data: &AtomicPtr<()>) -> bool {
     ref_cnt == 1
 }
 
+// ORIGINAL_SHARED_BEGIN shared_drop
 unsafe fn shared_drop(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {
     data.with_mut(|shared| {
         release_shared(shared.cast());
     });
 }
+// ORIGINAL_SHARED_END shared_drop
 
+// ORIGINAL_SHARED_BEGIN shallow_clone_arc
 unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> Bytes {
     crate::ref_count_ops::increment(&(*shared).ref_cnt);
 
@@ -1620,6 +1585,7 @@ unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> 
         vtable: &SHARED_VTABLE,
     }
 }
+// ORIGINAL_SHARED_END shallow_clone_arc
 
 #[cold]
 unsafe fn shallow_clone_vec(
@@ -1727,7 +1693,6 @@ unsafe fn release_shared(ptr: *mut Shared) {
     // Explicit cleanup has the same payload/control effects as dropping the Box.
     free_shared(ptr);
 }
-
 // ORIGINAL_SHARED_END release_shared
 
 // ORIGINAL_SHARED_BEGIN free_shared

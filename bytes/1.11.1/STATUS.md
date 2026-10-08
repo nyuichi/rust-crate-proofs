@@ -36,6 +36,30 @@ live IDs. Do not infer eventual exactly-once final cleanup from conditional
 last-branch safety. Decision AD records the changed premise required to reopen.
 See `verification/probes/guarded-shared-protocol-2026-10-08/README.md`.
 
+## Selected actual public Shared bodies — 2026-10-08 UTC
+
+The selected actual-source gate proves 17 files / 267 actual prover leaves /
+zero nulls: Shared construction, actual Clone/AsRef bodies and their refinements,
+stored Vtable clone/drop dispatch, explicit public cleanup, initialized-byte reads,
+and Release/Acquire final-branch recovery/deallocation. The driver creates three
+clones from one borrowed source, retires a peer and the source, clones a survivor,
+reads exact input bytes through actual AsRef, and cleans up in mixed order.
+
+This is a selected body result: the invalid all-domain From<Vec> refinement is
+explicitly excluded and retained as failed evidence. The selected Bytes invariant
+covers Shared only. The client contract proves observed bytes, not eventual
+exactly-once final cleanup. Other representations and automatic Drop remain open.
+Generic Vtable ghost-erasure/source correspondence, field events, weak-memory
+publication and physical access remain explicit TCB. No bytes protocol law is
+trusted. Original architecture admission remains NOT ADMITTED (decision AD).
+
+Production adds authorized `Bytes::cleanup(self)` using ManuallyDrop and its
+actual stored destructor callback; native Bytes stays four fields. Default
+1,014 non-doc and 246 doc tests pass, including six Shared allocator lifecycle
+cases checking no early or duplicate deallocation. No-default library build
+passes. Native evidence is `verification/public-native-source-2026-10-08/`;
+formal evidence and exact exclusions are in the original-public-shared probe.
+
 ## Historical bounded Shared lifecycle increment — 2026-10-08 UTC
 
 The reclaimable physical-sharing protocol now proves77 files with zero null

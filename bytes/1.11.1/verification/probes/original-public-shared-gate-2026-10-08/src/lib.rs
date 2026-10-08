@@ -70,3 +70,40 @@ fn cannot_issue_on_refusal(at:&ModelAtomic,own:Ghost<Perm<ModelAtomic>>) {
         proof_assert!(*issued);
     }
 }
+
+#[cfg(feature="public_shared")]
+extern crate alloc;
+#[cfg(feature="public_shared")]
+use creusot_std::{ghost::lifetime_logic::{Lifetime,LifetimeToken},
+    logic::{FMap,Id,real::{PositiveReal,Real},ra::{RA,excl::Excl}},
+    std::sync::{atomic::ordering::{Acquire,Release,None as NoStore},view::HasTimestamp}};
+#[cfg(feature="public_shared")]
+#[path="../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs"] mod fraction_map;
+#[cfg(feature="public_shared")]
+#[path="../../shared-physical-lifecycle-2026-10-08/src/release.rs"] mod release;
+#[cfg(feature="public_shared")]
+#[path="../../guarded-shared-protocol-2026-10-08/src/lifecycle.rs"] mod lifecycle;
+#[cfg(feature="public_shared")]
+#[path="../../../../src/ownership_proof/owned_region.rs"] mod owned_region;
+#[cfg(feature="public_shared")]
+#[path="../../../../src/ownership_proof/raw_vec.rs"] mod raw_vec;
+#[cfg(feature="public_shared")]
+#[path="../../../../src/ownership_proof/boxed_alignment.rs"] mod boxed_alignment;
+#[cfg(feature="public_shared")]
+#[path="../../original-shared-lifecycle-2026-10-08/src/provenance_specs.rs"] mod provenance_specs;
+#[cfg(feature="public_shared")]
+#[path="../../original-shared-lifecycle-2026-10-08/src/pointer_event.rs"] mod pointer_event;
+#[cfg(feature="public_shared")]
+mod field_event;
+#[cfg(feature="public_shared")]
+mod physical_projection;
+#[cfg(all(feature="public_shared",not(creusot)))]
+mod loom {pub mod sync {pub mod atomic {pub use core::sync::atomic::*;}}}
+#[cfg(all(feature="public_shared",not(creusot)))]
+#[path="../../../../src/ref_count_ops.rs"] mod native_ref_count_ops;
+#[cfg(all(feature="public_shared",not(creusot)))]
+fn abort()->! {std::process::abort()}
+#[cfg(feature="public_shared")]
+mod erased_call;
+#[cfg(all(feature="public_shared",creusot))]
+mod public_shared;

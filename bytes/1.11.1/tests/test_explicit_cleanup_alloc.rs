@@ -341,3 +341,39 @@ fn bytes_shared_slice_remains_live_across_another_owners_release() {
     });
     assert_shared_allocations_freed_once(log, base, capacity);
 }
+
+/// Exercise repeated public clone from one borrowed source, then registration
+/// after an earlier release. This is native allocator evidence, not a proof.
+#[test]
+fn bytes_shared_registers_after_retirement_without_early_or_duplicate_free() {
+    for input in [&b""[..], &b"x"[..], &b"sparse owner lifecycle"[..]] {
+        for retired in [0, 2] {
+            let mut storage = Vec::with_capacity(input.len() + 8);
+            storage.extend_from_slice(input);
+            let base = storage.as_ptr() as usize;
+            let capacity = storage.capacity();
+            let log = capture_events(|| {
+                let source = Bytes::from(storage);
+                let a = source.clone();
+                let b = source.clone();
+                let c = source.clone();
+                let mut handles = [Some(source), Some(a), Some(b), Some(c), None];
+                handles[retired].take().unwrap().cleanup();
+                EVENTS.with(|events| assert_eq!(events.get().deallocation_count, 0));
+                handles[4] = Some(handles[1].as_ref().unwrap().clone());
+                let order = if retired == 0 { [1, 4, 3, 2] } else { [0, 4, 3, 1] };
+                for (step, index) in order.into_iter().enumerate() {
+                    for value in handles.iter().flatten() {
+                        assert_eq!(value.as_ptr() as usize, base);
+                        assert_eq!(value.as_ref(), input);
+                    }
+                    handles[index].take().unwrap().cleanup();
+                    if step < 3 {
+                        EVENTS.with(|events| assert_eq!(events.get().deallocation_count, 0));
+                    }
+                }
+            });
+            assert_shared_allocations_freed_once(log, base, capacity);
+        }
+    }
+}
