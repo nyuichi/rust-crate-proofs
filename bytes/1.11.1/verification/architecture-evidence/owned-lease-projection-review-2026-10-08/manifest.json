@@ -1,0 +1,15 @@
+{
+  "kind": "static contract review of unvalidated generic boundary draft",
+  "source": "verification/probes/original-shared-lifecycle-2026-10-08/src/field_event.rs",
+  "sha256": "db475bc7a3c4500017c88a48a497accd41a9f8824516d5f0e79e0c8914412b7f",
+  "proved": false,
+  "reviewers": [
+    "root",
+    "Luna xhigh"
+  ],
+  "issues": [
+    "logic-only TokenLease projection does not establish an owned or borrowed affine LifetimeToken; a snapshot can project past token metadata",
+    "callback must receive exactly the input affine resource, not arbitrary same-lifetime L; equality in consequent made universal precondition impossible"
+  ],
+  "replacement": "direct Ghost<&LifetimeToken> increment/acquire; direct owned Ghost<LifetimeToken> decrement with exact callback argument"
+}
