@@ -23,9 +23,16 @@ for archive in sorted((p/'evidence').glob('*.tar.gz')):
    assert len(coma)==len(proofs)>0 and n==0,archive
    logs=b'\n'.join(v for k,v in files.items() if k.endswith('.log'))
    assert f'Proved ({len(coma)} files)'.encode() in logs,archive
-  if archive.name=='positive-b-public-observations-77.tar.gz':
+  if archive.name=='positive-b-source-address-77.tar.gz':
    for f in (p/'src').glob('*.rs'):
     assert files[root+'src/'+f.name]==f.read_bytes(),f
    report[archive.name]['current_source_byte_identical']=True
+   for name in hashes:
+    if name.startswith('physical-source/'):
+     assert files[root+name]==(p.parents[2]/name.removeprefix('physical-source/')).read_bytes(),name
+    if name.startswith('std/'):
+     assert files[root+name]==(pathlib.Path('/workspace/bytes-proof-tools/bytes-proof-std')/name.removeprefix('std/')).read_bytes(),name
+   report[archive.name]['current_physical_dependencies_byte_identical']=True
+   report[archive.name]['current_archived_std_boundary_files_byte_identical']=True
 (p/'audit.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report,indent=2))

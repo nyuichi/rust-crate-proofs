@@ -102,7 +102,7 @@ and exact Std boundary snapshots. Earlier frontend diagnostics are preserved
 separately and do not count as proof VCs. Control and restored-positive outcomes
 are recorded in `RESULTS.json` once completed.
 
-The canonical source snapshot is `positive-b-public-observations-77.tar.gz`: engine
+The canonical source snapshot is `positive-b-source-address-77.tar.gz`: engine
 exit 0, 77 Coma files and 77 proof trees with zero null leaves, native two tests
 passing. The controls below retain their exact B74 source versions.
 The final missing-Acquire control fails one B recovery obligation and three
@@ -132,3 +132,11 @@ boundary, and relates the public atomic ward to the event trait's ward. The
 source adapter therefore need not unfold opaque Ticket/Retiring/Pending
 validity predicates. These facts expose existing exact capability relationships;
 they do not manufacture tokens, synchronization, or permissions.
+
+The final dependency refresh reruns the entire B77 gate after the unchanged
+`BoundPtr::as_ptr` body gained its precise numeric-address postcondition.
+`positive-b-source-address-77.tar.gz` captures that current canonical helper
+source; earlier B77 archives retain the earlier dependency version. The audit
+checks the current probe sources, every archived physical dependency, and the
+archived Std boundary files byte-for-byte. This remains a boundary-file check,
+not an assertion about identity of the complete patched Std package.
