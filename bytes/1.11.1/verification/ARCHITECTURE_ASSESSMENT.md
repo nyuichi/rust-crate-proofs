@@ -1,5 +1,16 @@
 # Architecture admission assessment — 2026-10-06 (Asia/Tokyo)
 
+## Current original-API assessment — 2026-10-08 UTC
+
+The original bytes 1.11.1 architecture remains NOT ADMITTED. Guarded native
+increments are implemented and published. Sparse lifecycle safety is body
+proved in the 37-file default gate; the default-off complete-client driver
+is not proved. Decision AD freezes the demonstrated complete-history gap and
+all-domain From refinement failure until their premises change. Selected
+actual-source public method proofs do not reduce the requested full target.
+Historical modified-variant admission below does not apply to this target.
+
+
 > Current policy (2026-10-07): the user authorized removal of the alternative API and high-rework representation. The original bytes API is the target; see `REMOVAL_2026-10-07_JA.md` and crate `AGENTS.md`. Earlier route-1 selection and its admission are historical. Local temporary trusted contracts must meet the stated removal condition; D04's blanket prohibition is superseded, while counterexamples remain valid.
 
 ## Current original-source progress — 2026-10-08 UTC

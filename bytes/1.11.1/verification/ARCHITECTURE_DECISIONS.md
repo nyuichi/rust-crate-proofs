@@ -665,3 +665,44 @@ do not count it as proof of this changed native increment. New sparse
 registration/retirement and actual public Bytes/Vtable integration remain
 separate body-proof obligations until their exact-source evidence is audited.
 The post-increment counterexample and earlier failed routes remain frozen.
+
+
+## D2026-10-08-AD — Separate sparse protocol safety from closed-client completion
+
+The guarded sparse lifecycle default core body proves quota-free registration,
+count = live-map cardinality, arbitrary-order retirement, live-peer nonlastness,
+and conditional typed recovery only after Release plus actual Acquire. Its
+current v24 capture proves 37 files / 207 actual prover leaves / zero nulls.
+No bytes ownership, refcount, lastness or recovery law is trusted.
+
+A distinguishing multi-clone/sparse-hole driver was translated and tried.
+Its exact failed VCs and source remain archived. The event boundary quantifies
+over every protocol state with the same immutable public descriptor; this
+permits additional live IDs. A local caller consequently cannot establish that
+its handles exhaust all issued tickets. Astra reviewed this information loss.
+Do not retry unconditional final recovery with assertions, exact expected IDs,
+a fixed quota, a trusted no-unknown-owner law, or a mutable parent registry.
+Reopen only with a body-proved complete issuance ledger, or a sound generic
+history/closure capability compatible with actual shared Clone and backed by
+an explicit native interpretation and standard-library analogue. Conditional
+final-branch safety and native allocator tests do not establish completion.
+
+The selected actual-source public integration also demonstrates a separate
+trait-domain obstruction: From<Vec> is unrestricted, so requiring len<capacity
+on its implementation violates refinement (Vec::new is a counterexample).
+Keep that failed refinement and the earlier mutual Fn-spec cycle immutable.
+Do not hide the failure by conditional postconditions or alter the native
+len==capacity allocation optimization solely to pass the proof. Reopen with
+a branch-aware Bytes model and strong contracts for Shared plus promotable,
+static and owned alternatives. Selected Shared constructor/Clone/AsRef/cleanup
+bodies are reusable components, not whole From, whole crate, or admission.
+
+Generic native-field event alignment, weak publication, pointer/region access,
+and closed Vtable ghost-erasure correspondence remain explicit TCB with strong
+interfaces and removal paths. Their adequacy is not proved by these clients.
+
+Next bounded work should introduce a representation-sum proof sidecar and a
+uniform content/view contract, then prove the existing len==capacity
+promotable/empty From branch. Preserve the existing Shared lifecycle interface
+and its strong constructor/Clone/read contracts. Do not migrate broad APIs
+before the branch-aware admission and complete-history capability are validated.

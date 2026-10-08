@@ -1,6 +1,42 @@
 # bytes 1.11.1 status
 
-## Shared lifecycle increment — 2026-10-08 UTC
+## Guarded native increment — 2026-10-08 UTC
+
+All three native increment paths now check the expected count before a
+Relaxed CAS/fetch_update store. Exact production guard arithmetic and the
+model-atomic retained-callback loop prove four files / 29 actual leaves /
+zero nulls. Generic native event/invariant correspondence and weak-memory
+release-sequence carry remain explicit TCB. Misuse controls reject wrong-field,
+double-commit, refusal-issuance, lost-publication and spurious Relaxed Acquire
+inferences. Source and archives were independently audited.
+
+Default 1,013 non-doc plus 246 doc tests, no-default library build, portable
+atomic boundary tests and both original Loom clone models pass. The retained
+atomic microbenchmark shows additional CAS cost; it is not whole-Bytes throughput.
+See `verification/probes/refcount-guard-performance-2026-10-08/README.md`
+and `verification/probes/original-public-shared-gate-2026-10-08/README.md`.
+
+The C44 evidence below matches the previous increment algorithm and is now
+historical. No prior archive is relabeled as evidence for changed source.
+
+## Guarded sparse protocol core — 2026-10-08 UTC
+
+The default strong lifecycle gate proves 37 files / 207 actual prover leaves /
+zero nulls. It combines quota-free borrowed-source registration, sparse live IDs,
+count-to-live-map equality, arbitrary-order Release retirement, preserved payload
+publication, actual Acquire before typed recovery, and absence of final recovery
+while a separately borrowed peer remains live. These bytes protocol laws are
+body proved. Generic event/weak-memory/resource boundaries remain explicit TCB.
+
+Canonical matching-source capture: `attempt-core-live-peer-v24.tar.gz`, with
+independent `ROOT_AUDIT_V24.json`. The multi-clone complete-client driver is
+default-off and unproved. Its retained failed VCs demonstrate lost issuance
+history at the opaque event interface: a caller cannot rule out additional
+live IDs. Do not infer eventual exactly-once final cleanup from conditional
+last-branch safety. Decision AD records the changed premise required to reopen.
+See `verification/probes/guarded-shared-protocol-2026-10-08/README.md`.
+
+## Historical bounded Shared lifecycle increment — 2026-10-08 UTC
 
 The reclaimable physical-sharing protocol now proves77 files with zero null
 proof leaves. It starts at count1, preserves the source ticket through one
