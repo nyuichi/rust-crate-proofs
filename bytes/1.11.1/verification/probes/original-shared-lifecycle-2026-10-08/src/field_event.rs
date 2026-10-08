@@ -6,9 +6,10 @@
 //! trusted relation is a generic native-field/model relation only. It states
 //! no bytes ownership, refcount, or reclamation law.
 
+use alloc::boxed::Box;
 use core::{marker::PhantomData, sync::atomic::{AtomicUsize as CoreAtomicUsize, Ordering}};
 use creusot_std::{
-    ghost::{FnGhost, Perm, invariant::Protocol},
+    ghost::{FnGhost, Perm, invariant::Protocol, lifetime_logic::{FullBorrow, LifetimeToken}},
     logic::FMap,
     prelude::*,
     std::sync::{
@@ -23,6 +24,55 @@ use creusot_std::ghost::Objective;
 pub trait EventProtocol: Protocol {
     #[logic]
     fn atomic(self) -> ModelAtomic;
+}
+
+/// Projection from a typed control allocation to its actual native count
+/// field. Implementations are ordinary Rust bodies and must prove the model
+/// projection contract; the lease TCB does not trust a bytes-specific field
+/// selector.
+pub(crate) trait AtomicField {
+    #[cfg_attr(creusot, ensures(atomic_model(result) == self.field_model()))]
+    fn atomic_field(&self) -> &CoreAtomicUsize;
+
+    #[cfg(creusot)]
+    #[logic]
+    fn field_model(&self) -> ModelAtomic;
+}
+
+/// Proof-only owner for one typed control allocation. This value lives in a
+/// `FullBorrow`; each event requires a matching live `LifetimeToken`. It does
+/// not alter the native control-block layout.
+pub(crate) struct OwnedControl<T: AtomicField> {
+    pub(crate) pointer: *const T,
+    pub(crate) owner: Ghost<Box<Perm<*const T>>>,
+}
+
+impl<T: AtomicField> OwnedControl<T> {
+    #[logic(open(crate))]
+    pub(crate) fn pointer(self) -> *const T { self.pointer }
+
+    #[logic(open(crate))]
+    pub(crate) fn model(self) -> ModelAtomic { self.owner.val().field_model() }
+
+    #[logic(open(crate), prophetic)]
+    pub(crate) fn wellformed(self) -> bool {
+        self.pointer == *self.owner.ward()
+    }
+}
+
+/// Turn the exact typed Box permission into a lease payload. The field model
+/// is always projected from the permission itself, so no second model value
+/// or bytes-specific pointer/counter axiom is introduced.
+#[check(ghost)]
+#[requires(*owner.ward() == pointer)]
+#[ensures(result.inner_logic().wellformed())]
+#[ensures(result.inner_logic().pointer() == pointer)]
+#[ensures(result.inner_logic().owner == owner)]
+pub(crate) fn own_control<T: AtomicField>(
+    pointer: *const T,
+    owner: Ghost<Box<Perm<*const T>>>,
+) -> Ghost<OwnedControl<T>> {
+    ghost! { OwnedControl { pointer, owner } }
 }
 
 /// Opaque model identity for one actual `core::sync::atomic::AtomicUsize`
@@ -78,12 +128,12 @@ impl<S: EventProtocol> FieldInvariant<S> {
     #[trusted]
     #[check(ghost)]
     #[requires(state.protocol() && state.atomic() == atomic_model(atomic))]
-    #[ensures(result.model() == atomic_model(atomic))]
-    #[ensures(result.public() == state.public())]
-    pub fn bind(atomic: &CoreAtomicUsize, state: Ghost<S>) -> Self {
+    #[ensures(result.inner_logic().model() == atomic_model(atomic))]
+    #[ensures(result.inner_logic().public() == state.public())]
+    pub fn bind(atomic: &CoreAtomicUsize, state: Ghost<S>) -> Ghost<Self> {
         // The body is ghost-erased; the trusted contract identifies the actual
         // native field passed here.
-        Self { state: PhantomData }
+        ghost! { Self { state: PhantomData } }
     }
 }
 
@@ -183,4 +233,133 @@ where
     F: FnGhost + FnOnce(&mut S, &Committer<ModelAtomic, usize, Acquire, NoStore>),
 {
     atomic.load(Ordering::Acquire)
+}
+
+/// Perform an event on the count field selected through a live typed control
+/// lease. The native reference exists only inside this operation. In the
+/// trusted interpretation, the FullBorrow/typed-Box permission justifies that
+/// dereference, `AtomicField` selects the actual field, the native/model
+/// identity is the one in `FieldInvariant`, and the operation's atomic model
+/// is the corresponding Committer event. The loan ends before the ghost
+/// callback runs, so the callback may consume the ticket token.
+///
+/// This boundary assumes no bytes ownership, refcount-to-ticket, last-owner,
+/// or reclamation fact. The selected `AtomicField` implementation and lease
+/// wellformedness must be body proved by the caller.
+#[trusted]
+#[requires(control.inner_logic().cur().wellformed())]
+#[requires(control.inner_logic().cur().pointer() == pointer)]
+#[requires(control.inner_logic().lft() == lease.inner_logic().lft())]
+#[requires(control.inner_logic().cur().model() == invariant.inner_logic().model())]
+#[requires(forall<s: &mut S, c: &mut Committer<ModelAtomic, usize, Relaxed, Relaxed>>
+    s.protocol() && s.public() == invariant.inner_logic().public() &&
+    s.atomic() == invariant.inner_logic().model() && inv(s) &&
+    !c.shot_store() && c.ward() == invariant.inner_logic().model() &&
+    (if c.val_load() == usize::MAX { c.val_store() == 0usize }
+     else { c.val_store()@ == c.val_load()@ + 1 }) ==>
+    f.precondition((s, c)) &&
+    (f.postcondition_once((s, c), ()) ==>
+        (^s).protocol() && (^s).public() == invariant.inner_logic().public() &&
+        (^s).atomic() == invariant.inner_logic().model() && (^c).shot_store()))]
+#[ensures(exists<s: &mut S, c: &mut Committer<ModelAtomic, usize, Relaxed, Relaxed>>
+    s.protocol() && s.public() == invariant.inner_logic().public() &&
+    s.atomic() == invariant.inner_logic().model() && inv(s) &&
+    !c.shot_store() && c.ward() == invariant.inner_logic().model() &&
+    (if c.val_load() == usize::MAX { c.val_store() == 0usize }
+     else { c.val_store()@ == c.val_load()@ + 1 }) &&
+    result == c.val_load() && f.postcondition_once((s, c), ()))]
+pub(crate) fn increment_owned<T, S, F>(
+    pointer: *const T,
+    control: Ghost<&FullBorrow<OwnedControl<T>>>,
+    lease: Ghost<&LifetimeToken>,
+    invariant: Ghost<&FieldInvariant<S>>,
+    f: Ghost<F>,
+) -> usize
+where
+    T: AtomicField,
+    S: EventProtocol,
+    F: FnGhost + FnOnce(&mut S, &mut Committer<ModelAtomic, usize, Relaxed, Relaxed>),
+{
+    unsafe { &*pointer }.atomic_field().fetch_add(1, Ordering::Relaxed)
+}
+
+/// Release decrement using the actual nested native field of the typed
+/// control allocation. This token-owning variant ends its scoped control
+/// borrow before giving the token to the protocol callback.
+#[trusted]
+#[requires(control.inner_logic().cur().wellformed())]
+#[requires(control.inner_logic().cur().pointer() == pointer)]
+#[requires(control.inner_logic().lft() == lease.inner_logic().lft())]
+#[requires(control.inner_logic().cur().model() == invariant.inner_logic().model())]
+#[requires(forall<s: &mut S, c: &mut Committer<ModelAtomic, usize, Relaxed, Release>>
+    s.protocol() && s.public() == invariant.inner_logic().public() &&
+    s.atomic() == invariant.inner_logic().model() && inv(s) &&
+    !c.shot_store() && c.ward() == invariant.inner_logic().model() &&
+    (if c.val_load() == 0usize { c.val_store() == usize::MAX }
+     else { c.val_store()@ + 1 == c.val_load()@ }) ==>
+    f.precondition((s, c, lease.inner_logic())) &&
+    (f.postcondition_once((s, c, lease.inner_logic()), ()) ==>
+        (^s).protocol() && (^s).public() == invariant.inner_logic().public() &&
+        (^s).atomic() == invariant.inner_logic().model() && (^c).shot_store()))]
+#[ensures(exists<s: &mut S, c: &mut Committer<ModelAtomic, usize, Relaxed, Release>>
+    s.protocol() && s.public() == invariant.inner_logic().public() &&
+    s.atomic() == invariant.inner_logic().model() && inv(s) &&
+    !c.shot_store() && c.ward() == invariant.inner_logic().model() &&
+    (if c.val_load() == 0usize { c.val_store() == usize::MAX }
+     else { c.val_store()@ + 1 == c.val_load()@ }) &&
+    result == c.val_load() &&
+    f.postcondition_once((s, c, lease.inner_logic()), ()))]
+pub(crate) fn decrement_owned<T, S, F>(
+    pointer: *const T,
+    control: Ghost<&FullBorrow<OwnedControl<T>>>,
+    lease: Ghost<LifetimeToken>,
+    invariant: Ghost<&FieldInvariant<S>>,
+    f: Ghost<F>,
+) -> usize
+where
+    T: AtomicField,
+    S: EventProtocol,
+    F: FnGhost + FnOnce(
+        &mut S,
+        &mut Committer<ModelAtomic, usize, Relaxed, Release>,
+        LifetimeToken,
+    ),
+{
+    unsafe { &*pointer }.atomic_field().fetch_sub(1, Ordering::Release)
+}
+
+/// Acquire load through a still-live full lifetime fraction after the Release
+/// decrement. The callback can synchronize the published payload, but this
+/// boundary itself makes no assertion about which decrement was last.
+#[trusted]
+#[requires(control.inner_logic().cur().wellformed())]
+#[requires(control.inner_logic().cur().pointer() == pointer)]
+#[requires(control.inner_logic().lft() == lease.inner_logic().lft())]
+#[requires(control.inner_logic().cur().model() == invariant.inner_logic().model())]
+#[requires(forall<s: &mut S, c: &Committer<ModelAtomic, usize, Acquire, NoStore>>
+    s.protocol() && s.public() == invariant.inner_logic().public() &&
+    s.atomic() == invariant.inner_logic().model() && inv(s) &&
+    !c.shot_store() && c.ward() == invariant.inner_logic().model() ==>
+    f.precondition((s, c)) &&
+    (f.postcondition_once((s, c), ()) ==>
+        (^s).protocol() && (^s).public() == invariant.inner_logic().public() &&
+        (^s).atomic() == invariant.inner_logic().model()))]
+#[ensures(exists<s: &mut S, c: &Committer<ModelAtomic, usize, Acquire, NoStore>>
+    s.protocol() && s.public() == invariant.inner_logic().public() &&
+    s.atomic() == invariant.inner_logic().model() && inv(s) &&
+    !c.shot_store() && c.ward() == invariant.inner_logic().model() &&
+    result == c.val_load() && f.postcondition_once((s, c), ()))]
+pub(crate) fn acquire_owned<T, S, F>(
+    pointer: *const T,
+    control: Ghost<&FullBorrow<OwnedControl<T>>>,
+    lease: Ghost<&LifetimeToken>,
+    invariant: Ghost<&FieldInvariant<S>>,
+    f: Ghost<F>,
+) -> usize
+where
+    T: AtomicField,
+    S: EventProtocol,
+    F: FnGhost + FnOnce(&mut S, &Committer<ModelAtomic, usize, Acquire, NoStore>),
+{
+    unsafe { &*pointer }.atomic_field().load(Ordering::Acquire)
 }

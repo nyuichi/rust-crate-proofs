@@ -3,9 +3,19 @@
 
 extern crate alloc;
 
+use creusot_std::{ghost::invariant::Protocol, prelude::*};
+
 pub mod field_event;
 
-#[path = "../../../../src/provenance_specs.rs"]
+pub(crate) use bytes_shared_physical_lifecycle::bounded as bounded;
+
+impl<T: bounded::RecoveryPayload> field_event::EventProtocol for bounded::State<T> {
+    #[logic]
+    fn atomic(self) -> creusot_std::std::sync::atomic::AtomicUsize {
+        self.public().0
+    }
+}
+
 mod provenance_specs;
 #[path = "../../../../src/ownership_proof/owned_region.rs"]
 mod owned_region;

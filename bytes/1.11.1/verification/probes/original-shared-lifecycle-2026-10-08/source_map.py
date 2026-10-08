@@ -19,7 +19,10 @@ SOURCE = ROOT / "src" / "bytes.rs"
 ATOMIC_ALIAS_SOURCE = ROOT / "src" / "loom.rs"
 BORROWED_CORE_SOURCE = ROOT / "src" / "ownership_proof" / "raw_vec.rs"
 BOX_HELPER_SOURCE = ROOT / "src" / "ownership_proof" / "boxed_alignment.rs"
+OWNED_REGION_SOURCE = ROOT / "src" / "ownership_proof" / "owned_region.rs"
+ALLOCATION_OPS_SOURCE = ROOT / "src" / "allocation_ops.rs"
 PROBE_DIR = Path(__file__).parent
+BOUNDED_PROBE_DIR = PROBE_DIR.parent / "shared-physical-lifecycle-2026-10-08"
 MANIFEST = Path(__file__).with_name("source_map.json")
 
 
@@ -96,6 +99,11 @@ def make_manifest() -> dict[str, object]:
         "#[cfg(not(feature = \"extra-platforms\"))]\n        pub(crate) use core::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};",
         "Ordering};",
     )
+    atomic_mut, atomic_mut_first, atomic_mut_last = line_block(
+        atomic_source,
+        "impl<T> AtomicMut<T> for AtomicPtr<T> {",
+        "\n            }\n        }\n    }\n}",
+    )
     result: dict[str, object] = {
         "source": "src/bytes.rs",
         "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
@@ -106,17 +114,47 @@ def make_manifest() -> dict[str, object]:
             "last_line": atomic_last,
             "sha256": hashlib.sha256(atomic_alias.encode()).hexdigest(),
         },
+        "selected_mutable_atomic_pointer_access": {
+            "source": "src/loom.rs",
+            "configuration": "not(all(test, loom)); not(feature = extra-platforms)",
+            "first_line": atomic_mut_first,
+            "last_line": atomic_mut_last,
+            "sha256": hashlib.sha256(atomic_mut.encode()).hexdigest(),
+            "native_operation": "AtomicMut::with_mut passes AtomicPtr::get_mut() to the closure",
+        },
         "blocks": {},
         "reviewed_files": {},
+        "bounded_protocol_dependency": {
+            "path": "../shared-physical-lifecycle-2026-10-08",
+            "source_files": {},
+        },
     }
     for name, path in {
         "src/ownership_proof/raw_vec.rs": BORROWED_CORE_SOURCE,
         "src/ownership_proof/boxed_alignment.rs": BOX_HELPER_SOURCE,
+        "src/ownership_proof/owned_region.rs": OWNED_REGION_SOURCE,
+        "src/allocation_ops.rs": ALLOCATION_OPS_SOURCE,
+        "probe/Cargo.toml": PROBE_DIR / "Cargo.toml",
+        "probe/Cargo.lock": PROBE_DIR / "Cargo.lock",
+        "probe/src/lib.rs": PROBE_DIR / "src" / "lib.rs",
+        "probe/src/provenance_specs.rs": PROBE_DIR / "src" / "provenance_specs.rs",
         "probe/src/field_event.rs": PROBE_DIR / "src" / "field_event.rs",
         "probe/src/pointer_event.rs": PROBE_DIR / "src" / "pointer_event.rs",
         "probe/src/source_adapter.rs": PROBE_DIR / "src" / "source_adapter.rs",
+        "probe/run-proof.sh": PROBE_DIR / "run-proof.sh",
     }.items():
         result["reviewed_files"][name] = hashlib.sha256(path.read_bytes()).hexdigest()
+    result["bounded_protocol_dependency"]["manifest_sha256"] = hashlib.sha256(
+        (BOUNDED_PROBE_DIR / "Cargo.toml").read_bytes()
+    ).hexdigest()
+    result["bounded_protocol_dependency"]["lock_sha256"] = hashlib.sha256(
+        (BOUNDED_PROBE_DIR / "Cargo.lock").read_bytes()
+    ).hexdigest()
+    for path in sorted((BOUNDED_PROBE_DIR / "src").rglob("*.rs")):
+        relative = path.relative_to(BOUNDED_PROBE_DIR).as_posix()
+        result["bounded_protocol_dependency"]["source_files"][relative] = hashlib.sha256(
+            path.read_bytes()
+        ).hexdigest()
     for name, (block, first, last) in blocks(source).items():
         result["blocks"][name] = {
             "first_line": first,

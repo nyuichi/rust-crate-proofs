@@ -16,4 +16,8 @@ if [[ "$feature_tree" == *'creusot-std feature "sc-drf"'* ]]; then
     printf 'sc-drf must be disabled\n' >&2
     exit 2
 fi
+python3 source_map.py
+rm -rf -- verif
+cargo clean -p bytes-shared-physical-lifecycle
+cargo creusot --only=coma
 exec cargo creusot --only=prove --why3find-arg=-j --why3find-arg=1

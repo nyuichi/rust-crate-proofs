@@ -85,3 +85,21 @@ pub(crate) fn load_relaxed(
 ) -> *mut () {
     field.load(Ordering::Relaxed)
 }
+
+/// Select the initialized pointer through the exact mutable core atomic field,
+/// matching `AtomicMut::with_mut` in the selected production `loom.rs` alias.
+/// The returned raw pointer is a value copy; no mutable reference escapes this
+/// generic bridge. This is used only when the source consumes a `Bytes` handle
+/// for cleanup and has exclusive access to `data`. This is the restricted
+/// read-only counterpart of Std 0.13's `AtomicPtr::into_inner`: that API
+/// consumes the unique permission and exposes the latest modeled pointer
+/// value. Here an immutable binding proves there were no stores, and Rust's
+/// exclusive borrow supports `get_mut`; the native-to-model interpretation
+/// remains a generic TCB.
+#[trusted]
+#[requires(pointer_model(field) == binding.inner_logic().model())]
+#[ensures(result == binding.inner_logic().value())]
+#[ensures(^field == *field)]
+pub(crate) fn get_mut(field: &mut CoreAtomicPtr<()>, binding: Ghost<&ReadOnlyPointer>) -> *mut () {
+    *field.get_mut()
+}

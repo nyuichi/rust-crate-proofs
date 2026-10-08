@@ -318,6 +318,7 @@ impl BoundPtr {
     /// an independent unsafe permission; this method grants none.
     #[ensures(!result.is_null_logic())]
     #[cfg_attr(creusot, ensures(result == self.raw_pointer()))]
+    #[cfg_attr(creusot, ensures(result.addr_logic()@ == self.current_address()))]
     pub(crate) fn as_ptr(&self) -> *mut u8 {
         self.pointer.as_ptr()
     }
