@@ -134,3 +134,13 @@ clone/control/data/vtable/任意last-thread回収/自動Dropはまだ未接続�
 原orderingとlayoutは保持。native1011/noStd/portable targeted2が通過したが、
 このコード変更のformal refcount接続は次の原Shared leaf gateで行う。
 純粋なfraction-map補題15 bodiesも保存した。詳しい証拠はSTATUSのリンク先。
+
+### 原Shared生成leaf: 実ref_cnt fieldとtyped control権限を接続
+
+len<capのFrom<Vec>分岐に対応するconstructorが34 files/110 leavesで通過。
+実core AtomicUsizeを生成し、そのままBox<Shared>へ移した後、そのfieldを
+atomic権限が指すことをbodyで証明。Box由来のtyped Permも同じcontrol allocationを
+指す。constructor単体の9 leavesも全通過。native/model object identityは
+明示的なgeneric TCBであり、bytesのrefcount/last-owner法則はtrustedにしていない。
+原Bytes.data/vtable、cloneから最後のcleanupまでの接続は引き続き作業中。
+証拠: probes/original-shared-lifecycle-2026-10-08、commit 3ba052a6。
