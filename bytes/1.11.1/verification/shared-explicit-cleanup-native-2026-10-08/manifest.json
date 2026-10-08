@@ -1,0 +1,27 @@
+{
+  "scope": "Native validation only of small bytes.rs final Shared cleanup change; ownership/refcount/finalizer body proof still pending integration. Native orderings/layouts preserved.",
+  "review": "Luna reviewed bytes::Shared allocation routes and scalar/atomic fields. Compile-time AtomicUsize no-drop guard prevents substituting an atomic destructor unnoticed. Shared::drop remains for other paths.",
+  "commands": [
+    {
+      "command": "cargo test --locked --lib --tests",
+      "exit_code": 0,
+      "passed": 1011
+    },
+    {
+      "command": "cargo check --locked --no-default-features --lib",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo test --locked --features extra-platforms --test test_explicit_cleanup_alloc bytes_shared -- --test-threads=1",
+      "exit_code": 0,
+      "passed": 2
+    }
+  ],
+  "source": "src/bytes.rs",
+  "source_sha256": "6acaa01d6a1d7b3ee656f286ee2b2ee0eeca1d4aae78396c50b0c3da280fdf67",
+  "logs": {
+    "bytes-original-shared-explicit-native.log": "8fac52e47fb11d6fea61f1c0f5be436f4fab82530e1849a8dc004183782d2a70",
+    "bytes-original-shared-explicit-no-std.log": "e80cb5d85d5a124c2c63fb4a4afe80178c4ce19852d2403d18529d9ee5a59d72",
+    "bytes-original-shared-explicit-portable.log": "ef69e7c02142a1e8cd3d1a2cfffe3456c6d147b1582d1a10ff78fe203dc20d02"
+  }
+}

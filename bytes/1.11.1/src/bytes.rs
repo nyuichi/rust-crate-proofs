@@ -1707,6 +1707,7 @@ unsafe fn shallow_clone_vec(
     }
 }
 
+// ORIGINAL_SHARED_BEGIN release_shared
 unsafe fn release_shared(ptr: *mut Shared) {
     // `Shared` storage... follow the drop steps from Arc.
     if (*ptr).ref_cnt.fetch_sub(1, Ordering::Release) != 1 {
@@ -1735,9 +1736,28 @@ unsafe fn release_shared(ptr: *mut Shared) {
     // instead.
     (*ptr).ref_cnt.load(Ordering::Acquire);
 
-    // Drop the data
-    drop(Box::from_raw(ptr));
+    // Explicit cleanup has the same payload/control effects as dropping the Box.
+    free_shared(ptr);
 }
+
+// ORIGINAL_SHARED_END release_shared
+
+// ORIGINAL_SHARED_BEGIN free_shared
+// The explicit final cleanup below bypasses Shared::drop. All of its fields
+// are non-owning scalar/atomic values; re-evaluate it if an owning field is added.
+// In particular a substituted atomic type must not carry destructor effects.
+const _: [(); 0] = [(); mem::needs_drop::<AtomicUsize>() as usize];
+
+unsafe fn free_shared(ptr: *mut Shared) {
+    // SAFETY: release_shared has recovered the sole reference after Acquire.
+    // The allocation was made by Box<Shared>; buf/cap describe its separate
+    // global-allocator byte allocation. Preserve the original destruction order.
+    let buf = (*ptr).buf;
+    let cap = (*ptr).cap;
+    dealloc(buf, Layout::from_size_align(cap, 1).unwrap());
+    dealloc(ptr.cast(), Layout::new::<Shared>());
+}
+// ORIGINAL_SHARED_END free_shared
 
 // Ideally we would always use this version of `ptr_map` since it is strict
 // provenance compatible, but it results in worse codegen. We will however still
