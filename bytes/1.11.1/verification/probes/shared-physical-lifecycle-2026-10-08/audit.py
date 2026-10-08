@@ -23,7 +23,7 @@ for archive in sorted((p/'evidence').glob('*.tar.gz')):
    assert len(coma)==len(proofs)>0 and n==0,archive
    logs=b'\n'.join(v for k,v in files.items() if k.endswith('.log'))
    assert f'Proved ({len(coma)} files)'.encode() in logs,archive
-  if archive.name=='positive-b-live-peer-public-75.tar.gz':
+  if archive.name=='positive-b-public-observations-77.tar.gz':
    for f in (p/'src').glob('*.rs'):
     assert files[root+'src/'+f.name]==f.read_bytes(),f
    report[archive.name]['current_source_byte_identical']=True

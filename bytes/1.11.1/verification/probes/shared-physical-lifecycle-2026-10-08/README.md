@@ -4,7 +4,7 @@ This isolated probe uses the current physical B1/B4/B3 primitives on a real Vec
 allocation. It is not a replacement public buffer API and does not yet prove
 original Bytes::clone or automatic Drop.
 
-The latest positive gate proves 75 files. The B caller starts the actual native
+The latest positive gate proves 77 files. The B caller starts the actual native
 counter at one, consumes a constructor-issued affine quota for one Relaxed clone,
 and reads the entire original sequence through both lifetime-gated descriptors.
 It supports both retirement orders. The Recovery/EndBorrow bundle stays in the
@@ -102,8 +102,8 @@ and exact Std boundary snapshots. Earlier frontend diagnostics are preserved
 separately and do not count as proof VCs. Control and restored-positive outcomes
 are recorded in `RESULTS.json` once completed.
 
-The canonical source snapshot is `positive-b-live-peer-public-75.tar.gz`: engine
-exit 0, 75 Coma files and 75 proof trees with zero null leaves, native two tests
+The canonical source snapshot is `positive-b-public-observations-77.tar.gz`: engine
+exit 0, 77 Coma files and 77 proof trees with zero null leaves, native two tests
 passing. The controls below retain their exact B74 source versions.
 The final missing-Acquire control fails one B recovery obligation and three
 historical A obligations. The corrected premature-recovery control fails only
@@ -126,3 +126,9 @@ adds no native operation and no trusted lastness law. Its proof-only peer
 argument belongs to the bounded diagnostic caller; it is not an extra argument
 to the original public bytes API. The initializer also states the exact public
 atomic-ward equality needed by a separate source adapter.
+
+B77 additionally exports body-proved token-lifetime observations at the module
+boundary, and relates the public atomic ward to the event trait's ward. The
+source adapter therefore need not unfold opaque Ticket/Retiring/Pending
+validity predicates. These facts expose existing exact capability relationships;
+they do not manufacture tokens, synchronization, or permissions.

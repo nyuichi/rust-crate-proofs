@@ -49,6 +49,7 @@ impl<T:RecoveryPayload> RetiringRest<T> {
 impl<T:RecoveryPayload> Retiring<T> {
     #[check(ghost)]
     #[ensures(result.inner_logic().1.paired(result.inner_logic().0)==*input)]
+    #[ensures(result.inner_logic().0.lft()==input.token.lft())]
     pub fn split_token(input:Ghost<Self>)->Ghost<(LifetimeToken,RetiringRest<T>)> {
         ghost! {let t=input.into_inner();(t.token,RetiringRest{id:t.id,fragment:t.fragment,sealed:t.sealed})}
     }
@@ -62,6 +63,15 @@ impl<T:RecoveryPayload> Pending<T> {
     #[check(ghost)]
     #[ensures(*result==self.token())]
     pub fn borrow_token(&self)->&LifetimeToken {&self.full}
+
+    /// Export exactly the live-token observation needed by external field access.
+    #[check(ghost)]
+    #[requires(self.valid(*p,*current))]
+    #[ensures(*result==self.token())]
+    #[ensures(result.lft()==p.3 && result.frac()==PositiveReal::from_int(1))]
+    pub fn borrow_token_for(&self,p:Snapshot<<State<T> as Protocol>::Public>,current:Snapshot<SyncView>)->&LifetimeToken {
+        &self.full
+    }
 
     #[logic(prophetic)] pub fn valid(self,p:<State<T> as Protocol>::Public,current:SyncView)->bool {pearlite! {
         self.sealed.val()!=None && self.sealed.val().unwrap_logic().wellformed() &&
@@ -95,6 +105,7 @@ impl Receipt {
 #[requires(ticket.valid(*p))]
 #[ensures(result.1.inner_logic().valid(*p,*result.0))]
 #[ensures(result.1.inner_logic().id()==ticket.id())]
+#[ensures(result.1.inner_logic().token.lft()==p.3)]
 pub fn prepare<T:RecoveryPayload>(ticket:Ghost<Ticket<T>>,p:Snapshot<<State<T> as Protocol>::Public>)
     ->(Ghost<SyncView>,Ghost<Retiring<T>>) {
     let (rest,payload)=ghost! {let t=ticket.into_inner();((t.id,(t.token,t.fragment)),t.recovery)}.split();
@@ -195,6 +206,13 @@ impl<T:RecoveryPayload> State<T> {
     #[logic]
     pub fn live_count(self)->Int {pearlite! {self.alive@.len()}}
 
+    /// Relate the public ward vocabulary to this crate's event trait.
+    #[check(ghost)]
+    #[ensures(s.atomic()==s.public().0)]
+    pub fn observe_atomic(s:Ghost<&Self>)->Ghost<()> {
+        ghost! { let s=s.into_inner(); proof_assert!(s.atomic()==s.public().0); }
+    }
+
     /// Body-proved bootstrap for an externally supplied actual atomic permission.
     #[check(ghost)]
     #[requires(payload.wellformed() && full.frac()==PositiveReal::from_int(1))]
@@ -203,6 +221,7 @@ impl<T:RecoveryPayload> State<T> {
     #[ensures(result.inner_logic().0.public().0==*own.ward())]
     #[ensures(result.inner_logic().0.public().3==full.lft() && result.inner_logic().0.public().4==payload.metadata())]
     #[ensures(result.inner_logic().1.0.valid(result.inner_logic().0.public()) && result.inner_logic().1.0.id()==0)]
+    #[ensures(result.inner_logic().1.0.token.lft()==result.inner_logic().0.public().3)]
     #[ensures(result.inner_logic().1.0.token.frac().to_real()+result.inner_logic().1.0.token.frac().to_real()==Real::from_int(1))]
     #[ensures(result.inner_logic().1.1.valid(result.inner_logic().0.public().2))]
     pub fn initialize(own:Ghost<Perm<ModelAtomic>>,current:Snapshot<SyncView>,payload:Ghost<T>,full:Ghost<LifetimeToken>)
@@ -244,6 +263,7 @@ impl<T:RecoveryPayload> State<T> {
     #[ensures((^s).protocol() && (^s).public()==s.public() && (^s).atomic()==s.atomic())]
     #[ensures((^c).shot_store() && c.hist_inv(^c))]
     #[ensures(c.val_load()==1usize && source.id()==0 && result.inner_logic().id()==1 && result.inner_logic().valid(s.public()))]
+    #[ensures(result.inner_logic().token.lft()==s.public().3)]
     #[ensures(**current<=^current)]
     pub fn on_clone(s:Ghost<&mut Self>,c:Ghost<&mut Committer<ModelAtomic,usize,Relaxed,Relaxed>>,
         source:Ghost<&Ticket<T>>,quota:Ghost<CloneQuota>,current:Ghost<&mut SyncView>,release:Ghost<ReleaseSyncView>)->Ghost<Ticket<T>> {
