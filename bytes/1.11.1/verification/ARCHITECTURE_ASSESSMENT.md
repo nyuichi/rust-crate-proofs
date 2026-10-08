@@ -2,6 +2,25 @@
 
 > Current policy (2026-10-07): the user authorized removal of the alternative API and high-rework representation. The original bytes API is the target; see `REMOVAL_2026-10-07_JA.md` and crate `AGENTS.md`. Earlier route-1 selection and its admission are historical. Local temporary trusted contracts must meet the stated removal condition; D04's blanket prohibition is superseded, while counterexamples remain valid.
 
+## Current original-source progress — 2026-10-08 UTC
+
+The retired modified architecture below is historical. The current original
+Shared route has a body-proved77-file protocol and captured44-file source leaf and driver:
+selected len<cap construction, non-consuming one-clone registration, physical
+reads across peer retirement, actual Release/Acquire authority recovery and exact
+explicit buffer/control cleanup. The protocol transports recovery without a
+parent owner or an extra post-cleanup atomic event. No bytes-specific ownership,
+refcount or lastness law is trusted; generic native/model and physical primitives
+remain explicit TCB. See `ARCHITECTURE_DECISIONS.md` D-X result and current
+`../STATUS.md` for exact evolving evidence.
+
+This improves the previously blocked selected Clone/cleanup connection, but
+full original architecture admission remains pending. Arbitrary clone/overflow
+interleavings, thread transport, actual public vtable dispatch and automatic Drop
+are outside the sequential bounded source leaf. Preserve the automatic-Drop,
+direct-region GhostShared and missing-Acquire counterexamples. Do not resume the
+removed modified API or broaden its historical admission into current coverage.
+
 Historical status: selected modified architecture ADMITTED for the bounded std/x86_64,
 normal-return, two-reader witness, under the explicit existing primitive/library
 TCB. The complete modified API/configuration target is NOT COMPLETE. Original

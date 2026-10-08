@@ -38,11 +38,38 @@ the restricted no-store analogue of Std 0.13's permission-consuming
 `AtomicPtr::into_inner`; exact native/model interpretation remains in the
 generic TCB.
 
-Native tests exercise both release orders, actual count and data fields,
-empty content and spare-capacity content, and a borrowed slice across peer
-cleanup. The latest clean serialized Creusot/Why3 run passes all 43 generated
-proof files, with zero recursively audited null VCs. Its exact source inputs,
-all Coma files, proof JSON, toolchain/configuration, and native/negative test
-logs are archived at `evidence/positive-original-shared-lifecycle-2026-10-08.tar.gz`.
-The earlier 15-null and four-null diagnostic snapshots remain archived for
-review and are not the current result.
+`source_lifecycle_driver` composes the selected constructor, borrowed-source
+clone, live slice across peer release, and final cleanup. Its `reverse` input
+selects whether the original or clone supplies the reader, so the native test
+exercises both handle orders with empty and nonempty byte prefixes and checks
+the complete returned sequence against the input. The separate
+`negative_source_no_acquire` feature is Creusot-only: native builds retain the
+Acquire operation, while its targeted verification omits that operation and
+its callback but still calls `Pending::recover`, which should fail the acquired
+guard.
+
+The final default serialized Creusot/Why3 run passes all 44 generated proof
+files, with 44 matching proof JSON files, 280 actual prover leaves, and zero
+recursively audited null leaves. Root independently verified the source
+hashes and Coma/JSON bijection. The native suite passes 2/2, covering both reader/peer orders. The
+separate negative borrow check produces Rust error E0505 at cleanup of the
+borrowed handle. The targeted no-Acquire negative control is archived at
+`evidence/negative-source-no-acquire-2026-10-08.tar.gz`; it discharges 29/30
+target goals and leaves only the acquired-view guard for `Pending::recover`
+unproved. The exact Why3 leaf formula is in
+`evidence/negative-source-no-acquire-leaf-2026-10-08.why`. The feature-mutated
+source is never run natively. The full current positive source and output
+snapshot is archived at
+`evidence/positive-original-shared-lifecycle-driver-2026-10-08.tar.gz`.
+
+The two production files imported by path from the bounded probe are supplied
+in `evidence/shared-source-input-completion-2026-10-08.tar.gz`. The installed
+Creusot Std overlay sources and crate manifest/lock are supplied separately in
+`evidence/shared-source-tool-inputs-2026-10-08.tar.gz`; they are not inside the
+positive source archive. Root's byte-audit receipts are
+`evidence/root-positive-source-driver-audit.json`,
+`evidence/root-source-input-completion-audit.json`, and
+`evidence/root-source-no-acquire-audit.json`.
+
+The earlier 43-file positive snapshot and 15-null/four-null diagnostic
+snapshots remain immutable historical evidence and are not the current result.

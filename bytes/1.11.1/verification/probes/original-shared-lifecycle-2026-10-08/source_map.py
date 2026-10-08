@@ -142,6 +142,8 @@ def make_manifest() -> dict[str, object]:
         "probe/src/pointer_event.rs": PROBE_DIR / "src" / "pointer_event.rs",
         "probe/src/source_adapter.rs": PROBE_DIR / "src" / "source_adapter.rs",
         "probe/run-proof.sh": PROBE_DIR / "run-proof.sh",
+        "probe/run-negative-no-acquire.sh": PROBE_DIR / "run-negative-no-acquire.sh",
+        "probe/Cargo.toml (negative mutant feature)": PROBE_DIR / "Cargo.toml",
     }.items():
         result["reviewed_files"][name] = hashlib.sha256(path.read_bytes()).hexdigest()
     result["bounded_protocol_dependency"]["manifest_sha256"] = hashlib.sha256(

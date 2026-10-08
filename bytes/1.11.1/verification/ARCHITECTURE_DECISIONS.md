@@ -493,7 +493,7 @@ or relabel these bounded results as the original public crate's verification.
 ## D2026-10-08-X result — selected native-field lifecycle accepted
 
 The bounded acceptance gate now has a matching-source positive: protocol77 and
-original-source leaf43/273 actual prover leaves, both with zero nulls and root
+original-source leaf44 including an end-to-end driver, both with zero nulls and root
 archive/source audits. Recovery is transported by the original ticket or its
 Release publication, not retained in a parent. Actual field identity, physical
 reads across peer retirement, both release orders, Acquire recovery and exact
@@ -508,3 +508,11 @@ behavior, real-thread Send/Sync transport, actual vtable/public dispatch and
 automatic Drop are outside the result. Existing D-T, D02 and frontend failures
 remain frozen unless their premises change. Preserve all failed source snapshots
 and distinguish semantic negative controls from frontend resource errors.
+
+The final driver44 run restores Acquire and proves both reader/release orders
+with exact input-sequence preservation. A fresh targeted source mutant omits
+Acquire and its callback: only Pending::recover's acquired-view guard fails,
+while its validity guard succeeds. Current borrowed-slice cleanup is rejected
+with E0505. These close the selected-path source controls, not the full original
+architecture admission gate; earlier socket/daemon interruptions are recorded
+as execution diagnostics and never counted as mathematical failures.

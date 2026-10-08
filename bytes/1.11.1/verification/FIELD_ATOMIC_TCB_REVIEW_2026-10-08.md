@@ -65,8 +65,9 @@ into_inner; it does not infer pointer identity from a number. BoundPtr::as_ptr
 exports a body-proved address observation only. Typed control deallocation
 consumes the recovered permission for the actual pointer and Layout::new<T>.
 
-The reviewed subset of creusot-std0.13 inputs is byte-compared in the source
-archive. The registry package and pinned Creusot source have different VCS SHAs;
+The reviewed creusot-std0.13 subset is byte-compared in the canonical B77
+dependency archive. The final source run additionally freezes the unchanged
+private Std overlay in shared-source-tool-inputs-2026-10-08.tar.gz. The registry package and pinned Creusot source have different VCS SHAs;
 no full-package identity or proof of native memory-model adequacy is claimed.
-The current43-file positive replaces the constructor-only coverage statement
+The final44-file positive and composition driver replaces the constructor-only coverage statement
 above for this selected source leaf, without extending to public vtable/Drop.

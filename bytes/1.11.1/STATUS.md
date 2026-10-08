@@ -13,13 +13,16 @@ The canonical matching-source archive is `positive-b-source-address-77.tar.gz`
 with an independent root receipt. Historical misuse controls retain their exact
 74-file sources; they are not relabeled as77 reruns.
 
-The original-source-correspondent Shared/Bytes leaf proves43 files (273 actual
-prover leaves, zero nulls). The selected `Vec` len<cap constructor creates the
+The original-source-correspondent Shared/Bytes leaf now proves44 files with
+zero nulls (280 actual prover leaves), including the end-to-end
+constructor/clone/read/cleanup driver.
+The selected `Vec` len<cap constructor creates the
 actual three-field Shared and four-field Bytes records. The proof follows actual
 `Bytes.data` to the control block, clones through `&self`, keeps a physical read
 valid across peer retirement, decrements the actual ref_cnt with Release, and
 recovers both payload and control permissions after actual Acquire. Explicit
 cleanup reads and frees the actual buffer/control pointers exactly once. The
+driver proves both reader/release orders preserve the exact input sequence. The
 source clone retains the native overflow-abort guard; the bounded clone quota
 proves this selected execution cannot overflow.
 
@@ -38,9 +41,16 @@ check and portable-atomic targeted2 tests passed for that production change.
 See [protocol proof scope](verification/probes/shared-physical-lifecycle-2026-10-08/README.md)
 and [native cleanup evidence](verification/shared-explicit-cleanup-native-2026-10-08/manifest.json).
 
+The fresh source-specific missing-Acquire control translates44 bodies and targets
+only the release body: it fails exactly the Pending::recover acquired-view
+prerequisite. Its validity/unwrap/cleanup obligations pass. A current live-slice
+cleanup control is rejected with E0505. Native tests cover empty and nonempty
+spare-capacity inputs and both reader/release orders. These controls are distinct
+from the historical74-file protocol controls; no native unsafe mutant was run.
+
 The earlier fixed-two41-file component kept recovery in the parent and included
 an extra diagnostic Acquire. It remains historical evidence; the77-file protocol
-and43-file source leaf supersede that architecture for this bounded path. The
+and44-file source leaf supersede that architecture for this bounded path. The
 finite fraction-map accounting component separately proves15 bodies.
 
 ## Historical registration increment — 2026-10-08 (Asia/Tokyo)

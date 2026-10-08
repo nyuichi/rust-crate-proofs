@@ -59,5 +59,11 @@ was made trusted and no address-to-provenance inverse was assumed.
 The matching-source43-file positive archive supersedes these failures for the
 selected path. Its273 actual prover leaves all succeed; the root audit compares
 compiled probe inputs, crate helpers and bounded-protocol inputs byte for byte.
-A caller-level driver and source-specific missing-Acquire control are recorded
-separately once their final clean runs complete.
+The later44-file driver positive additionally composes construction, clone,
+borrow-across-peer-release and final cleanup in both reader orders. Its matching
+archive is separate from the43-file predecessor. The completed source-specific
+missing-Acquire control targets only release_one_observed and fails exactly the
+acquired-view conjunct of Pending::recover, not validity or incidental unwrap.
+The printed task and root audit identify the precise null. Current live-slice
+cleanup rejects with E0505. Earlier zero-log/server interruptions are execution
+diagnostics; their partial proof trees are not semantic negative results.

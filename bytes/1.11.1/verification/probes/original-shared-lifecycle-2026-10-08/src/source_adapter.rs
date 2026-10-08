@@ -413,25 +413,31 @@ impl OriginalSharedHandle {
         );
 
         if old_count == 1 {
-            let acquire_lease = ghost! {
-                pending.as_ref().unwrap().borrow_token_for(public, snapshot!(*current))
-            };
-            field_event::acquire_owned::<Shared, bounded::State<Payload>, _>(
-                shared,
-                control_full,
-                acquire_lease,
-                invariant,
-                ghost! {|state: &mut bounded::State<Payload>,
-                         committer: &Committer<ModelAtomic, usize, Acquire, NoStore>| {
-                    let _ = bounded::State::observe_atomic(Ghost::new(&*state));
-                    bounded::State::on_acquire(
-                        Ghost::new(state),
-                        Ghost::new(committer),
-                        Ghost::new(pending.as_ref().unwrap()),
-                        current.borrow_mut(),
-                    );
-                }},
-            );
+            // For the negative semantic mutant, omit both the native Acquire
+            // and its event callback. Native code ignores this proof-only
+            // feature and always retains the production operation below.
+            #[cfg(any(not(creusot), not(feature = "negative_source_no_acquire")))]
+            {
+                let acquire_lease = ghost! {
+                    pending.as_ref().unwrap().borrow_token_for(public, snapshot!(*current))
+                };
+                field_event::acquire_owned::<Shared, bounded::State<Payload>, _>(
+                    shared,
+                    control_full,
+                    acquire_lease,
+                    invariant,
+                    ghost! {|state: &mut bounded::State<Payload>,
+                             committer: &Committer<ModelAtomic, usize, Acquire, NoStore>| {
+                        let _ = bounded::State::observe_atomic(Ghost::new(&*state));
+                        bounded::State::on_acquire(
+                            Ghost::new(state),
+                            Ghost::new(committer),
+                            Ghost::new(pending.as_ref().unwrap()),
+                            current.borrow_mut(),
+                        );
+                    }},
+                );
+            }
 
             let recovered = bounded::Pending::recover(
                 ghost! { pending.into_inner().unwrap() },
@@ -630,6 +636,30 @@ pub(crate) fn from_vec_spare_capacity(
     (handle, quota)
 }
 
+/// End-to-end bounded source path: selected From<Vec<u8>> construction, one
+/// non-consuming shallow clone, a borrowed read across the peer's nonfinal
+/// cleanup, then final Acquire recovery and explicit physical/control cleanup.
+/// `reverse` selects which of the original and clone supplies the live reader.
+#[requires(input@.len() < creusot_std::std::vec::capacity_model(input))]
+#[ensures(result@ == input@)]
+pub(crate) fn source_lifecycle_driver(
+    input: alloc::vec::Vec<u8>,
+    vtable: &'static Vtable,
+    reverse: bool,
+) -> alloc::vec::Vec<u8> {
+    let (source, quota) = from_vec_spare_capacity(
+        input,
+        vtable,
+        ghost! { SyncView::new().into_inner() },
+    );
+    let clone = source.shallow_clone_arc(quota);
+    if reverse {
+        borrow_across_peer_release(clone, source)
+    } else {
+        borrow_across_peer_release(source, clone)
+    }
+}
+
 #[cfg(all(test, not(creusot)))]
 mod native_tests {
     use super::*;
@@ -686,15 +716,14 @@ mod native_tests {
     #[test]
     fn borrowed_bytes_survive_peer_release_for_empty_and_spare_capacity() {
         for contents in [&[][..], &[21, 34, 55][..]] {
-            let (source, quota) = make(contents);
-            let clone = source.shallow_clone_arc(quota);
-            let result = borrow_across_peer_release(source, clone);
-            assert_eq!(result.as_slice(), contents);
-
-            let (source, quota) = make(contents);
-            let clone = source.shallow_clone_arc(quota);
-            let result = borrow_across_peer_release(clone, source);
-            assert_eq!(result.as_slice(), contents);
+            for reverse in [false, true] {
+                let mut input = alloc::vec::Vec::with_capacity(contents.len() + 9);
+                input.extend_from_slice(contents);
+                assert!(input.len() < input.capacity());
+                let expected = input.clone();
+                let result = source_lifecycle_driver(input, &VTABLE, reverse);
+                assert_eq!(result, expected);
+            }
         }
     }
 }
