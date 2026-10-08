@@ -1,5 +1,24 @@
 # bytes 1.11.1 status
 
+## Astra-guided complete issuance prerequisite — archived label 2026-10-09
+
+A fresh closed protocol client now body proves exhaustive issuance and final
+recovery using a separate erased affine observation cursor. It issues children,
+retires the root, issues from a survivor, and retires all returned tickets;
+there is no fixed quota or guessed numeric ID. Actual final Acquire is retained.
+The restored gate proves 38 files / 219 actual prover leaves / zero nulls with
+no exclusions, plus a native execution and fifteen structural controls.
+False map summary, missing Acquire and an extra unretired owner each reject one
+semantic leaf. Observation-to-State/Perm extraction rejects before VC generation.
+
+AH's generic TCB is exact serialized observation correspondence for this closed,
+noninterfering scope. The independent checker reconstructs the driver's effect
+trace and interface routes; generic facade/native erasure adequacy remains TCB.
+This is a protocol prerequisite, not actual Bytes admission, implicit Bytes Drop,
+arbitrary concurrent closure or whole-crate completion. Next connect the cursor's
+checked ghost channel to actual Shared constructor/Clone/cleanup bodies.
+See `verification/probes/scoped-issuance-cursor-2026-10-09/README.md`.
+
 ## Astra-guided generic Drop prerequisite — archived label 2026-10-09
 
 The user directed continuing by consulting Astra after each completed increment

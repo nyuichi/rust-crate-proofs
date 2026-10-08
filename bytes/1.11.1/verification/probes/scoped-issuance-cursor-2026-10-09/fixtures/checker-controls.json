@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "purpose": "Structural checker controls only. Mutations run in memory and never edit src/driver.rs or invoke a prover.",
+  "accepted_client": "closed_sparse_lifecycle",
+  "controls": [
+    {"id": "escaped_clone", "expected": "coverage_failure", "reason": "a clone escapes the sole cursor-threaded registration path"},
+    {"id": "unfinished_callback", "expected": "coverage_failure", "reason": "a callback hides a registration event and does not complete its cursor transition"},
+    {"id": "forgotten_live", "expected": "coverage_failure", "reason": "a live affine ticket is forgotten before retirement"},
+    {"id": "thread_escape", "expected": "coverage_failure", "reason": "a handle moves to an untracked thread"},
+    {"id": "raw_alias", "expected": "coverage_failure", "reason": "a raw pointer aliases the cursor or a live handle"},
+    {"id": "untracked_event", "expected": "coverage_failure", "reason": "an event call omits the local cursor"},
+    {"id": "fakecomment", "expected": "coverage_failure", "reason": "a comment-shaped event cannot replace an executable registration"},
+    {"id": "fakestring", "expected": "coverage_failure", "reason": "a string-shaped event cannot replace an executable registration"},
+    {"id": "wrong_target", "expected": "coverage_failure", "reason": "registration is attributed to a different source ticket"},
+    {"id": "wrong_order", "expected": "coverage_failure", "reason": "retirement events are reordered"},
+    {"id": "duplicate", "expected": "coverage_failure", "reason": "an extra issued ticket is not represented in the accepted transcript"},
+    {"id": "omitted", "expected": "coverage_failure", "reason": "a registration event is omitted"},
+    {"id": "import_override", "expected": "coverage_failure", "reason": "the driver shadows the crate's Registry import"},
+    {"id": "fake_fn", "expected": "coverage_failure", "reason": "a duplicate entrypoint is added to the caller module"},
+    {"id": "module_alias", "expected": "coverage_failure", "reason": "the crate root redirects the Registry module through an alias"}
+  ],
+  "semantic_boundary": "Driver-level event trace only. Generic facade callback bodies, support-module effects, ghost/spec-macro expansion, codegen and native interpretation are not correspondence-derived and remain reviewed TCB. There is no native MIR mapping claim, Registry event-contract proof, final-recovery theorem, actual Bytes coverage, or unwind claim."
+}

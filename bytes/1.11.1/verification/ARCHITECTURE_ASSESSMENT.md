@@ -1,5 +1,22 @@
 # Architecture admission assessment — 2026-10-06 (Asia/Tokyo)
 
+## Current Astra-guided prerequisites — archived label 2026-10-09
+
+Current original architecture remains NOT ADMITTED. AE's representation sum
+proves both unrestricted From constructors and exact reads (21/153/0). AG's
+normal-edge SetTrue/Toggle Drop elaboration proves a generic tool prerequisite
+(7/14/0), not Bytes destructor semantics. AH now supplies a genuinely changed
+closed-history premise: an erased affine pure-observation cursor and complete
+fresh protocol client prove final synchronized recovery (38/219/0). The old
+unscoped sparse driver remains unproved and its counterexample unchanged.
+
+AH's driver exclusion/interface checker and generic event/native interpretation
+are explicit TCB. Actual Shared constructor/Clone/cleanup ghost-channel mapping,
+real Bytes automatic Drop, promotable promotion/lifecycle and remaining API and
+configuration coverage are still open. None of these prerequisite witnesses
+silently reduces the original full verification target. Continue by consulting
+Astra after validated increments and implementing the next concrete step.
+
 ## Current original-API assessment — 2026-10-08 UTC
 
 The original bytes 1.11.1 architecture remains NOT ADMITTED. Guarded native

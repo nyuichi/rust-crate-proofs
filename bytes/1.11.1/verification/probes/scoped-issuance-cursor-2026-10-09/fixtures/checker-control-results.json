@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "status": "controls_pass",
+  "checker_sha256": "9af4fa5ed4184482cb65ea40bc414107007c61d27f9527a7c5041f4b57a14350",
+  "fixture_sha256": "51c96f123d4a5f988e19f2442cb1516fe3ac37895a6ed30ecd646f0b37bf75b9",
+  "source_sha256": "7fb89f6be9d11fe2f3fa0660a5e74ca7406f8df49cc727467ce3b457f940e03c",
+  "lib_source_sha256": "f066bb5cc2a11efd45bb7255472bfc1297c7dc7abc57fa19ffed998c6f038cd9",
+  "baseline": {
+    "status": "correspondence_pass",
+    "source_sha256": "7fb89f6be9d11fe2f3fa0660a5e74ca7406f8df49cc727467ce3b457f940e03c",
+    "support_identity": {
+      "lib_path": "src/lib.rs",
+      "crate_module_paths": {
+        "event": "src/event.rs",
+        "lifecycle": "src/lifecycle.rs",
+        "scoped": "src/scoped.rs",
+        "driver": "src/driver.rs",
+        "fraction_map": "../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs",
+        "ref_count_limit": "../../../../src/ref_count_limit.rs",
+        "relaxed": "../../original-public-shared-gate-2026-10-08/src/relaxed.rs",
+        "release": "../../shared-physical-lifecycle-2026-10-08/src/release.rs"
+      },
+      "facade_module_path": "mod scoped; -> src/scoped.rs",
+      "registry_facade_identity": "src/scoped.rs::Registry<T: RecoveryPayload>",
+      "registry_export": "pub use scoped::Registry",
+      "checked_facade_interface": "Registry::new returns a Ghost<ScopeCursor>; register/retire receive that cursor by Ghost<&mut ...>",
+      "lib_sha256": "f066bb5cc2a11efd45bb7255472bfc1297c7dc7abc57fa19ffed998c6f038cd9",
+      "scoped_sha256": "596c237ac78d7a6932c0c6fa6e778795e6d9999818462bdb5e1e01d191094b50",
+      "body_correspondence": "not derived for generic facade callbacks, codegen, or spec-macro expansion"
+    },
+    "events": [
+      {
+        "kind": "register",
+        "source": "first",
+        "ticket": "second"
+      },
+      {
+        "kind": "register",
+        "source": "first",
+        "ticket": "third"
+      },
+      {
+        "kind": "retire",
+        "ticket": "third"
+      },
+      {
+        "kind": "retire",
+        "ticket": "first"
+      },
+      {
+        "kind": "register",
+        "source": "second",
+        "ticket": "fourth"
+      },
+      {
+        "kind": "retire",
+        "ticket": "second"
+      },
+      {
+        "kind": "retire",
+        "ticket": "fourth"
+      }
+    ],
+    "live_tickets_at_normal_return": 0,
+    "ids_assumed": false
+  },
+  "controls": [
+    {
+      "id": "escaped_clone",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "unsupported callback/escape/concurrency effect: clone",
+      "prover_invoked": false
+    },
+    {
+      "id": "unfinished_callback",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "closures/callbacks are outside the closed client",
+      "prover_invoked": false
+    },
+    {
+      "id": "forgotten_live",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "unsupported callback/escape/concurrency effect: forget",
+      "prover_invoked": false
+    },
+    {
+      "id": "thread_escape",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "unsupported callback/escape/concurrency effect: spawn, thread",
+      "prover_invoked": false
+    },
+    {
+      "id": "raw_alias",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "raw-pointer alias is outside the closed client",
+      "prover_invoked": false
+    },
+    {
+      "id": "untracked_event",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "driver source is outside the reviewed closed-client grammar",
+      "prover_invoked": false
+    },
+    {
+      "id": "fakecomment",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "driver source is outside the reviewed closed-client grammar",
+      "prover_invoked": false
+    },
+    {
+      "id": "fakestring",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "driver source is outside the reviewed closed-client grammar",
+      "prover_invoked": false
+    },
+    {
+      "id": "wrong_target",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "driver source is outside the reviewed closed-client grammar",
+      "prover_invoked": false
+    },
+    {
+      "id": "wrong_order",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "driver source is outside the reviewed closed-client grammar",
+      "prover_invoked": false
+    },
+    {
+      "id": "duplicate",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "driver source is outside the reviewed closed-client grammar",
+      "prover_invoked": false
+    },
+    {
+      "id": "omitted",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "driver source is outside the reviewed closed-client grammar",
+      "prover_invoked": false
+    },
+    {
+      "id": "import_override",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "driver source is outside the reviewed closed-client grammar",
+      "prover_invoked": false
+    },
+    {
+      "id": "fake_fn",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "driver source is outside the reviewed closed-client grammar",
+      "prover_invoked": false
+    },
+    {
+      "id": "module_alias",
+      "expected": "coverage_failure",
+      "actual": "coverage_failure",
+      "pass": true,
+      "error": "src/lib.rs Registry export is not exactly scoped::Registry",
+      "prover_invoked": false
+    }
+  ],
+  "prover_invoked": false,
+  "semantic_boundary": "Driver-level event trace only. Generic facade callback bodies, support-module effects, ghost/spec-macro expansion, codegen and native interpretation are not correspondence-derived and remain reviewed TCB. There is no native MIR mapping claim, Registry event-contract proof, final-recovery theorem, actual Bytes coverage, or unwind claim."
+}

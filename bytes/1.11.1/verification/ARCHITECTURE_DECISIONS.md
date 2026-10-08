@@ -821,3 +821,48 @@ hidden trust and extra normal/cleanup successor statements. Exact set_true
 signature/attributes and shadow-wide trust/unsupported annotation rejection were
 added following Astra review. Accepted only in this bounded normal-return scope,
 with independent matching-source archive audit; full Bytes admission remains open.
+
+## D2026-10-09-AH — Scoped observation cursor distinguishing experiment
+
+Astra recommends reopening AD only with an erased affine scope cursor tied to
+all completed events in a fresh closed client. The changed premise is an explicit
+generic history/closure tool boundary, not an assertion that the caller owns all
+handles. `ScopedProtocol::Observation` contains only resource-free logical data;
+the sparse State projection is `(live_map, next_id)`. The cursor never returns a
+State, Perm, lifetime token, recovery payload, AtView or physical authority. The
+same initialized State is consumed once when binding the invariant and seeding
+the cursor. Event contracts retain the native model/field, weak ordering,
+Committer, protocol and callback obligations and add pre/post observation
+alignment. Bytes-specific map updates and final recovery remain body proved.
+
+The bounded experiment is `probes/scoped-issuance-cursor-2026-10-09`. First prove
+fresh initialization, shared-source registration, sparse retirement and complete
+final Acquire/recovery in the existing protocol, without quotas or guessed IDs.
+An independent closed-source checker must reject untracked events, escaped or
+forgotten handles, unknown/unfinished callbacks, threads and raw aliases. This
+protocol prerequisite is not actual Bytes admission. Actual-source follow-up
+must independently check constructor extra erased result and Clone/cleanup extra
+erased argument correspondence: native `From` returns Bytes and native Clone
+still takes `&self`; cursor stays in the shadow caller, never inside Bytes.
+
+This introduces generic closed-scope/history correspondence TCB. Std erased
+Ghost channels and operation-bound invariant callbacks are interface precedents,
+not a shipped complete-history theorem. Adequacy requires the closed-call and
+noninterference interpretation plus source/effect checker; no trusted bytes
+last-owner/destructor theorem or arbitrary global concurrent closure is allowed.
+Removal path: supported effect/history translation preserving these interfaces
+and all retained controls. AD/AF counterexamples remain frozen and preserved.
+Before any positive claim, capture exact tasks/sources/tool pins and distinguish
+checker rejection, type rejection and failed semantic VC. Apply the existing
+failure/restructuring budget; no unchanged retry after structural obstruction.
+
+AH protocol result: the final restored gate proves 38 files / 219
+actual prover leaves / zero nulls, without excluded targets. Singleton, fresh
+insert/removal, old native count/cardinality and full final recovery are body
+proved. Fifteen driver/interface structural controls pass. False summary,
+missing Acquire and an extra unretired owner each fail one semantic leaf; pure
+observation extraction as State or Perm is an E0308 type rejection. Native
+protocol client passes separately. Actual Bytes ghost-channel source mapping
+remain separate prerequisites; independent final2 archive audit passes all 762
+regular members, 38 tasks and 110 private Std inputs; do not turn
+this closed protocol witness into arbitrary concurrent/full-crate admission.
