@@ -1,6 +1,7 @@
-import pathlib,sys,shutil,hashlib,json,tarfile
+import pathlib,sys,shutil,hashlib,json,tarfile,os
 p=pathlib.Path(__file__).resolve().parent; out=p/'evidence'/sys.argv[1];out.mkdir(parents=True,exist_ok=False)
 for n in ['src','verif','generic-boundary-source']:
+ if n=='verif' and os.getenv('CAPTURE_NO_VERIF'):continue
  if (p/n).exists():shutil.copytree(p/n,out/n)
 for n in ['PLAN.md','README.md','RESULTS.json','audit.py','capture.py','Cargo.toml','Cargo.lock','run-proof.sh','why3find.json']:
  if (p/n).exists():shutil.copy2(p/n,out/n)

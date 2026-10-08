@@ -1,39 +1,55 @@
 {
-  "scope": "A: fixed initial two; exact-one normal-return cleanup; parent-held recovery; extra diagnostic Acquire observation; not original Clone or Drop",
+  "scope": "B: native constructor 1, one affine clone quota, both release orders, subjective recovery transported at actual Acquire, normal-return explicit B3; no original Clone/vtable/Drop admission",
   "positive": {
     "proof_exit": 0,
-    "files": 41,
+    "files": 73,
     "nulls": 0,
     "native_exit": 0,
-    "native_tests": 1,
-    "allocation_cases": 6,
-    "proof_log": "/tmp/shared-physical-final.log"
+    "native_tests": 2,
+    "allocation_cases": 18,
+    "b_allocation_cases": 12,
+    "proof_log": "/tmp/shared-physical-b-refactor-proof.log",
+    "archive": "positive-b-factored-73.tar.gz"
   },
-  "controls": {
-    "negative_no_acquire": {
-      "exit": 1,
-      "proof_files": 41,
-      "nulls": 3,
-      "failed_vc": "Coma.vc_retire_T",
-      "proven_leaves": "57/60"
+  "historical_A": {
+    "scope": "A: fixed initial two; exact-one normal-return cleanup; parent-held recovery; extra diagnostic Acquire observation; not original Clone or Drop",
+    "positive": {
+      "proof_exit": 0,
+      "files": 41,
+      "nulls": 0,
+      "native_exit": 0,
+      "native_tests": 1,
+      "allocation_cases": 6,
+      "proof_log": "/tmp/shared-physical-final.log"
     },
-    "negative_missing_ticket": {
-      "exit": 1,
-      "proof_files": 42,
-      "nulls": 1,
-      "failed_vc": "Coma.vc_premature_end",
-      "proven_leaves": "10/11"
+    "controls": {
+      "negative_no_acquire": {
+        "exit": 1,
+        "proof_files": 41,
+        "nulls": 3,
+        "failed_vc": "Coma.vc_retire_T",
+        "proven_leaves": "57/60"
+      },
+      "negative_missing_ticket": {
+        "exit": 1,
+        "proof_files": 42,
+        "nulls": 1,
+        "failed_vc": "Coma.vc_premature_end",
+        "proven_leaves": "10/11"
+      },
+      "negative_duplicate": {
+        "exit": 1,
+        "proof_files": 0,
+        "kind": "Rust E0382 moved LifetimeToken"
+      },
+      "negative_live_read": {
+        "exit": 1,
+        "proof_files": 0,
+        "kind": "Rust E0505 owner and lifetime token borrowed by still-used B4 slice"
+      }
     },
-    "negative_duplicate": {
-      "exit": 1,
-      "proof_files": 0,
-      "kind": "Rust E0382 moved LifetimeToken"
-    },
-    "negative_live_read": {
-      "exit": 1,
-      "proof_files": 0,
-      "kind": "Rust E0505 owner and lifetime token borrowed by still-used B4 slice"
-    }
+    "unselected_source": "fraction_map.rs is separately proved in sibling fraction-map probe; it is not selected by the A41 module graph"
   },
-  "unselected_source": "fraction_map.rs is separately proved in sibling fraction-map probe; it is not selected by the A41 module graph"
+  "controls_status": "B-specific controls pending; historical A controls remain preserved, not silently reclassified as B controls",
+  "integration": "State initialize/on_clone/on_release/on_acquire are body-proved Ghost-input/output helpers accepting supplied actual atomic Perm; Registry owning atomic is only isolated harness. Source integration must use existing Shared.ref_cnt and existing final Acquire."
 }

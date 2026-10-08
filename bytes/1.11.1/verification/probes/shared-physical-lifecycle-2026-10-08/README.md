@@ -4,24 +4,38 @@ This isolated probe uses the current physical B1/B4/B3 primitives on a real Vec
 allocation. It is not a replacement public buffer API and does not yet prove
 original Bytes::clone or automatic Drop.
 
-The latest positive gate proves 41 files. The caller reads the entire original
-sequence through two overlapping borrow descriptors, retires one reader, reads
-again through the other, and explicitly deallocates the same allocation after
-recovering its full physical authority. Empty readers retain lifetime tokens,
-including empty Vecs with allocated spare capacity. Per-side completion
-agreements connect each last flag to the actual Release RMW's old value; their
-body-proved invariant yields XOR. Consequently the caller's cleanup-completed
-result is formally true on normal return, not merely a native assertion.
+The latest positive gate proves 73 files. The B caller starts the actual native
+counter at one, consumes a constructor-issued affine quota for one Relaxed clone,
+and reads the entire original sequence through both lifetime-gated descriptors.
+It supports both retirement orders. The Recovery/EndBorrow bundle stays in the
+original ticket until that ticket retires; its Release publishes the bundle via
+AtView, and the last actual Acquire load makes that same bundle available for
+full-token recovery and explicit B3 deallocation. The formal cleanup result is
+true. Empty readers, including empty Vecs with allocated spare capacity, retain
+affine lifetime fractions.
 
-The current bounded constructor starts the native count at two. Dynamic clone
-from count one, arbitrary live counts, original control-block allocation and
-its cleanup, independent escaping handles, and automatic Drop remain separate
-obligations. Recovery/EndBorrow stay in the parent in this first component;
-transport of those subjective capabilities to an arbitrary last thread is not
-claimed. The caller makes an extra diagnostic Acquire observation to combine
-the two completion receipts. Original release integration must use its existing
-last-owner Acquire load for the final observation, or separately justify its
-proof interface; this extra observation is not silently attributed to Bytes.
+This is a bounded one-clone source-leaf premise, not arbitrary Clone admission.
+The quota proves cloning occurs before retirement; the Relaxed event therefore
+does not discard a prior retirement publication. There is no overflow or
+wrap-to-zero reclamation inference. Arbitrary counts, concurrent overflow/abort,
+original control-block cleanup, escaping handles, and automatic Drop remain
+separate obligations. The native B tests cover 12 allocation/order cases; the
+historical A test contributes another six cases.
+
+`bounded::State::{initialize,on_clone,on_release,on_acquire}` contain the single
+body-proved protocol implementation. They accept the supplied actual atomic
+permission and Ghost state/event arguments; an original-source adapter can bind
+them to Shared.ref_cnt without allocating a parallel counter. `Retiring` has a
+body-proved affine-token split/rejoin interface for scoped control-field access.
+The owning Registry in this probe is only the isolated execution harness.
+
+The caller still makes an extra diagnostic Acquire observation to combine two
+completion receipts and prove XOR. Original release integration must perform
+that observation inside its existing last-owner Acquire, or prove it from the
+returned affine receipt facts; the extra load is not attributed to Bytes.
+Historical A41 remains a fixed-two component with parent-held recovery and is
+preserved separately in its exact archives. B-specific rejection controls are
+pending; the A controls below retain their original scope.
 
 ## Reclaimable read authority
 
