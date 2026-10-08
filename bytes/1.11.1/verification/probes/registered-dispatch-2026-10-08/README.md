@@ -2,8 +2,9 @@
 
 This probe separates callable contracts from function-item reification. It does
 not verify original Bytes vtable dispatch, unsafe callbacks, or public Clone.
-The source's initial “No project trust” comment describes `through_trait` and
-`typed_callback`; the later registration getter **is new generic project TCB**.
+`through_trait` and `typed_callback` use shipped Std contracts; the later
+registration getter **is new generic project TCB**. The initial header was
+corrected after the negative capture; executable code is byte-identical.
 
 `through_trait` invokes a safe `fn(u32)->u32` through explicit `Fn::call`, requiring
 its shipped `FnExt::precondition` and ensuring its `postcondition`. The strong

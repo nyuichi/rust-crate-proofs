@@ -542,7 +542,7 @@ Original Shared and the selected lifecycle leaf now include one maintained
 three-field declaration from src/bytes/shared_record.rs. These remain distinct
 compiled types in distinct crates; the public Bytes layout/API is unchanged.
 The current source-correspondent 44-file gate has 280 actual prover leaves and
-zero nulls, plus native default1011/no-default1011/portable cleanup2 tests.
+zero nulls, plus native default1011 and portable cleanup2 tests, plus no-default library build.
 The common-declaration archive and root receipt are in the original-source probe.
 The external affine CloneQuota still prevents integrating Clone(&self); moving
 that quota to a receiver cannot make it movable through &self. A new
@@ -550,3 +550,30 @@ registration-only experiment must issue fresh affine tickets repeatedly using
 one shared source ticket and a residual lifetime-token pool, proving bytes
 registration bodies rather than assuming them. Full retirement/publication
 coexistence and overflow/interleaving admission remain separate obligations.
+
+## D2026-10-08-Z — Checked ghost effects inside registered erased callbacks
+
+Changed premise from D-Y's external forwarding: a closed macro skeleton emits
+one native target and a checked shim with exactly one call to that same target
+and all extra work inside a checked, terminating ghost block. The shim consumes
+an affine Resource<Excl<Int>>, applies the shipped ExclUpdate, preserves its
+resource identity and returns the native-result-related value. Native and shim
+bodies are checked. Generic erasure registration/invocation assume replay of
+that exact checked ghost execution; arbitrary pointer/shim pairs are not admitted.
+
+The final isolated gate proves six files/19 actual prover leaves, zero nulls.
+A wrong native/shim certificate fails exactly one admission guard; consumed-input
+duplication fails E0382 and writing a native result in ghost code is rejected.
+Complete archives, exact printed negative task and root source/hash audits are
+in unsafe-ghost-transform-dispatch-2026-10-08. Generic correspondence remains
+TCB and may be replaced by supported erased-call contracts while preserving
+the client interface; no bytes registration/refcount law is assumed.
+
+This result does not synchronize a ghost update with a native atomic event.
+Actual bytes integration must put its body-proved transition at the same single
+RMW through the operation-bound generic atomic interface and a checked field
+projection. Calling the native RMW and then performing another model adapter
+RMW would be a double increment and is rejected as an integration strategy.
+The actual five-field Vtable binding, Ghost source-ticket transport through
+Clone(&self), dynamic registration/retirement coexistence and suppression of
+a later automatic Drop after explicit cleanup remain obligations.

@@ -914,3 +914,10 @@ affine quota through &self are freshly rejected (E0277, ReifyFnPointer, E0507).
 The restored default gate and all controls have immutable source/configuration
 archives and root receipts. These are distinguishing tool-boundary experiments,
 not additional original public API coverage.
+
+The unsafe-ghost-transform-dispatch gate advances the callback boundary: six
+files/19 prover leaves, zero nulls, with a checked same-resource-ID ExclUpdate
+inside the shim. Wrong shim certificates, consumed-input reuse and ghost writes
+to native results are rejected. Erased-call correspondence remains generic TCB.
+The positive cannot substitute for proving bytes transitions or placing them
+at the actual single atomic event. See decision D-Z and the probe root receipt.
