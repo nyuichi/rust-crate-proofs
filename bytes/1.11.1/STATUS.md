@@ -921,3 +921,20 @@ inside the shim. Wrong shim certificates, consumed-input reuse and ghost writes
 to native results are rejected. Erased-call correspondence remains generic TCB.
 The positive cannot substitute for proving bytes transitions or placing them
 at the actual single atomic event. See decision D-Z and the probe root receipt.
+
+Quota-free registration is now body proved in an isolated strong protocol:
+23 files/113 actual prover leaves, zero nulls; native one-test passes. Repeated
+registrations borrow the same still-live source and return valid, distinct
+tickets, each with ID greater than the source. Fraction-map insertion and
+LifetimeToken splitting are checked bodies. The trusted generic EventAtomic
+remains unchanged. Final archive c707fc4f...37a26994/root receipts match all
+current inputs. This does not prove release/publication coexistence or public
+Bytes::Clone: the model has no retirement and uses a modulo count relation.
+
+A read-only pinned Rust/Std review and executable toy schedule reject inferring
+last-owner status from that modulo count under unrestricted pending increments.
+The guarded CAS proposal is unapplied; no native OS counterexample or formal
+overflow theorem is claimed. Decisions AA/AB freeze the unsupported inference
+and record concrete conditions for reopening. An intermediate positive archive
+was overwritten and is excluded; the final current-source proof is independently
+audited. Original public from_vec->Clone->read->explicit cleanup remains open.

@@ -1,0 +1,990 @@
+theory Task
+  
+  type int
+  
+  type real
+  
+  type string
+  
+  predicate (=) 'a 'a
+  
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  type bool =
+    | True
+    | False
+  
+  (* use why3.Bool.Bool *)
+  
+  type tuple0 =
+    | Tuple0
+  
+  (* use why3.Tuple0.Tuple01 *)
+  
+  type unit = unit
+  
+  (* use why3.Unit.Unit *)
+  
+  type (->) 'a 'b
+  
+  function (@) ('a -> 'b) 'a : 'b
+  
+  (* use why3.HighOrd.HighOrd *)
+  
+  type map 'a 'b = 'a -> 'b
+  
+  function get (f:'a -> 'b) (x:'a) : 'b = f @ x
+  
+  function set (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b =
+    fun (y:'a) -> if y = x then v else f @ y
+  
+  function ([]) (f:'a -> 'b) (x:'a) : 'b = f @ x
+  
+  function ([<-]) (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b = set f x v
+  
+  (* use map.Map *)
+  
+  function const (v:'b) : 'a -> 'b = fun (_:'a) -> v
+  
+  (* use map.Const *)
+  
+  constant zero : int = 0
+  
+  constant one : int = 1
+  
+  function (-_) int : int
+  
+  function (+) int int : int
+  
+  function ( * ) int int : int
+  
+  predicate (<) int int
+  
+  function (-) (x:int) (y:int) : int = x + (- y)
+  
+  predicate (>) (x:int) (y:int) = y < x
+  
+  predicate (<=) (x:int) (y:int) = x < y \/ x = y
+  
+  predicate (>=) (x:int) (y:int) = y <= x
+  
+  axiom Assoc : forall x:int, y:int, z:int. ((x + y) + z) = (x + (y + z))
+  
+  (* clone algebra.Assoc with type t = int, function op = (+),
+    prop Assoc1 = Assoc,  *)
+  
+  axiom Unit_def_l : forall x:int. (zero + x) = x
+  
+  axiom Unit_def_r : forall x:int. (x + zero) = x
+  
+  (* clone algebra.Monoid with type t1 = int, constant unit = zero,
+    function op1 = (+), prop Unit_def_r1 = Unit_def_r,
+    prop Unit_def_l1 = Unit_def_l, prop Assoc2 = Assoc,  *)
+  
+  axiom Inv_def_l : forall x:int. ((- x) + x) = zero
+  
+  axiom Inv_def_r : forall x:int. (x + (- x)) = zero
+  
+  (* clone algebra.Group with type t2 = int, function inv = (-_),
+    constant unit1 = zero, function op2 = (+), prop Inv_def_r1 = Inv_def_r,
+    prop Inv_def_l1 = Inv_def_l, prop Unit_def_r2 = Unit_def_r,
+    prop Unit_def_l2 = Unit_def_l, prop Assoc3 = Assoc,  *)
+  
+  axiom Comm : forall x:int, y:int. (x + y) = (y + x)
+  
+  (* clone algebra.Comm with type t3 = int, function op3 = (+),
+    prop Comm1 = Comm,  *)
+  
+  (* meta AC function (+) *)
+  
+  (* clone algebra.CommutativeGroup with type t4 = int, function inv1 = (-_),
+    constant unit2 = zero, function op4 = (+), prop Comm2 = Comm,
+    prop Inv_def_r2 = Inv_def_r, prop Inv_def_l2 = Inv_def_l,
+    prop Unit_def_r3 = Unit_def_r, prop Unit_def_l3 = Unit_def_l,
+    prop Assoc4 = Assoc,  *)
+  
+  axiom Assoc5 : forall x:int, y:int, z:int. ((x * y) * z) = (x * (y * z))
+  
+  (* clone algebra.Assoc with type t = int, function op = ( * ),
+    prop Assoc1 = Assoc5,  *)
+  
+  axiom Mul_distr_l :
+    forall x:int, y:int, z:int. (x * (y + z)) = ((x * y) + (x * z))
+  
+  axiom Mul_distr_r :
+    forall x:int, y:int, z:int. ((y + z) * x) = ((y * x) + (z * x))
+  
+  (* clone algebra.Ring with type t5 = int, function ( *') = ( * ),
+    function (-'_) = (-_), function (+') = (+), constant zero1 = zero,
+    prop Mul_distr_r1 = Mul_distr_r, prop Mul_distr_l1 = Mul_distr_l,
+    prop Assoc6 = Assoc5, prop Comm3 = Comm, prop Inv_def_r3 = Inv_def_r,
+    prop Inv_def_l3 = Inv_def_l, prop Unit_def_r4 = Unit_def_r,
+    prop Unit_def_l4 = Unit_def_l, prop Assoc7 = Assoc,  *)
+  
+  axiom Comm4 : forall x:int, y:int. (x * y) = (y * x)
+  
+  (* clone algebra.Comm with type t3 = int, function op3 = ( * ),
+    prop Comm1 = Comm4,  *)
+  
+  (* meta AC function ( * ) *)
+  
+  (* clone algebra.CommutativeRing with type t6 = int,
+    function ( *'') = ( * ), function (-''_) = (-_), function (+'') = (+),
+    constant zero2 = zero, prop Comm5 = Comm4,
+    prop Mul_distr_r2 = Mul_distr_r, prop Mul_distr_l2 = Mul_distr_l,
+    prop Assoc8 = Assoc5, prop Comm6 = Comm, prop Inv_def_r4 = Inv_def_r,
+    prop Inv_def_l4 = Inv_def_l, prop Unit_def_r5 = Unit_def_r,
+    prop Unit_def_l5 = Unit_def_l, prop Assoc9 = Assoc,  *)
+  
+  axiom Unitary : forall x:int. (one * x) = x
+  
+  axiom NonTrivialRing : not zero = one
+  
+  (* clone algebra.UnitaryCommutativeRing with type t7 = int,
+    constant one1 = one, function ( *''') = ( * ), function (-'''_) = (-_),
+    function (+''') = (+), constant zero3 = zero,
+    prop NonTrivialRing1 = NonTrivialRing, prop Unitary1 = Unitary,
+    prop Comm7 = Comm4, prop Mul_distr_r3 = Mul_distr_r,
+    prop Mul_distr_l3 = Mul_distr_l, prop Assoc10 = Assoc5,
+    prop Comm8 = Comm, prop Inv_def_r5 = Inv_def_r,
+    prop Inv_def_l5 = Inv_def_l, prop Unit_def_r6 = Unit_def_r,
+    prop Unit_def_l6 = Unit_def_l, prop Assoc11 = Assoc,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Refl : forall x:int. x <= x
+  
+  (* clone relations.Reflexive with type t9 = int, predicate rel1 = (<=),
+    prop Refl1 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Trans : forall x:int, y:int, z:int. x <= y -> y <= z -> x <= z
+  
+  (* clone relations.Transitive with type t10 = int, predicate rel2 = (<=),
+    prop Trans1 = Trans,  *)
+  
+  (* clone relations.PreOrder with type t11 = int, predicate rel3 = (<=),
+    prop Trans2 = Trans, prop Refl2 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Antisymm : forall x:int, y:int. x <= y -> y <= x -> x = y
+  
+  (* clone relations.Antisymmetric with type t12 = int,
+    predicate rel4 = (<=), prop Antisymm1 = Antisymm,  *)
+  
+  (* clone relations.PartialOrder with type t13 = int, predicate rel5 = (<=),
+    prop Antisymm2 = Antisymm, prop Trans3 = Trans, prop Refl3 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Total : forall x:int, y:int. x <= y \/ y <= x
+  
+  (* clone relations.Total with type t14 = int, predicate rel6 = (<=),
+    prop Total1 = Total,  *)
+  
+  (* clone relations.TotalOrder with type t15 = int, predicate rel7 = (<=),
+    prop Total2 = Total, prop Antisymm3 = Antisymm, prop Trans4 = Trans,
+    prop Refl4 = Refl,  *)
+  
+  axiom ZeroLessOne : zero <= one
+  
+  axiom CompatOrderAdd :
+    forall x:int, y:int, z:int. x <= y -> (x + z) <= (y + z)
+  
+  axiom CompatOrderMult :
+    forall x:int, y:int, z:int. x <= y -> zero <= z -> (x * z) <= (y * z)
+  
+  (* meta remove_unused:dependency prop CompatOrderMult, function ( * ) *)
+  
+  (* clone algebra.OrderedUnitaryCommutativeRing with type t16 = int,
+    predicate (<=') = (<=), constant one2 = one, function ( *'''') = ( * ),
+    function (-''''_) = (-_), function (+'''') = (+), constant zero4 = zero,
+    prop CompatOrderMult1 = CompatOrderMult,
+    prop CompatOrderAdd1 = CompatOrderAdd, prop ZeroLessOne1 = ZeroLessOne,
+    prop Total3 = Total, prop Antisymm4 = Antisymm, prop Trans5 = Trans,
+    prop Refl5 = Refl, prop NonTrivialRing2 = NonTrivialRing,
+    prop Unitary2 = Unitary, prop Comm9 = Comm4,
+    prop Mul_distr_r4 = Mul_distr_r, prop Mul_distr_l4 = Mul_distr_l,
+    prop Assoc12 = Assoc5, prop Comm10 = Comm, prop Inv_def_r6 = Inv_def_r,
+    prop Inv_def_l6 = Inv_def_l, prop Unit_def_r7 = Unit_def_r,
+    prop Unit_def_l7 = Unit_def_l, prop Assoc13 = Assoc,  *)
+  
+  (* meta remove_unused:keep function (+) *)
+  
+  (* meta remove_unused:keep function (-) *)
+  
+  (* meta remove_unused:keep function (-_) *)
+  
+  (* meta remove_unused:keep predicate (<) *)
+  
+  (* meta remove_unused:keep predicate (<=) *)
+  
+  (* meta remove_unused:keep predicate (>) *)
+  
+  (* meta remove_unused:keep predicate (>=) *)
+  
+  (* use int.Int *)
+  
+  function abs (x:int) : int = if x >= 0 then x else - x
+  
+  axiom Abs_le : forall x:int, y:int. abs x <= y <-> (- y) <= x /\ x <= y
+  
+  (* meta remove_unused:dependency prop Abs_le, function abs *)
+  
+  axiom Abs_pos : forall x:int. abs x >= 0
+  
+  (* meta remove_unused:dependency prop Abs_pos, function abs *)
+  
+  (* use int.Abs *)
+  
+  function div int int : int
+  
+  function mod int int : int
+  
+  axiom Div_mod :
+    forall x:int, y:int. not y = 0 -> x = ((y * div x y) + mod x y)
+  
+  (* meta remove_unused:dependency prop Div_mod, function div *)
+  
+  (* meta remove_unused:dependency prop Div_mod, function mod *)
+  
+  axiom Div_bound :
+    forall x:int, y:int. x >= 0 /\ y > 0 -> 0 <= div x y /\ div x y <= x
+  
+  (* meta remove_unused:dependency prop Div_bound, function div *)
+  
+  (* meta remove_unused:dependency prop Div_bound, function mod *)
+  
+  axiom Mod_bound :
+    forall x:int, y:int. not y = 0 -> (- abs y) < mod x y /\ mod x y < abs y
+  
+  (* meta remove_unused:dependency prop Mod_bound, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_bound, function mod *)
+  
+  axiom Div_sign_pos : forall x:int, y:int. x >= 0 /\ y > 0 -> div x y >= 0
+  
+  (* meta remove_unused:dependency prop Div_sign_pos, function div *)
+  
+  (* meta remove_unused:dependency prop Div_sign_pos, function mod *)
+  
+  axiom Div_sign_neg : forall x:int, y:int. x <= 0 /\ y > 0 -> div x y <= 0
+  
+  (* meta remove_unused:dependency prop Div_sign_neg, function div *)
+  
+  (* meta remove_unused:dependency prop Div_sign_neg, function mod *)
+  
+  axiom Mod_sign_pos :
+    forall x:int, y:int. x >= 0 /\ not y = 0 -> mod x y >= 0
+  
+  (* meta remove_unused:dependency prop Mod_sign_pos, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_sign_pos, function mod *)
+  
+  axiom Mod_sign_neg :
+    forall x:int, y:int. x <= 0 /\ not y = 0 -> mod x y <= 0
+  
+  (* meta remove_unused:dependency prop Mod_sign_neg, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_sign_neg, function mod *)
+  
+  axiom Rounds_toward_zero :
+    forall x:int, y:int. not y = 0 -> abs (div x y * y) <= abs x
+  
+  (* meta remove_unused:dependency prop Rounds_toward_zero, function div *)
+  
+  (* meta remove_unused:dependency prop Rounds_toward_zero, function mod *)
+  
+  axiom Div_1 : forall x:int. div x 1 = x
+  
+  (* meta remove_unused:dependency prop Div_1, function div *)
+  
+  (* meta remove_unused:dependency prop Div_1, function mod *)
+  
+  axiom Mod_1 : forall x:int. mod x 1 = 0
+  
+  (* meta remove_unused:dependency prop Mod_1, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_1, function mod *)
+  
+  axiom Div_inf : forall x:int, y:int. 0 <= x /\ x < y -> div x y = 0
+  
+  (* meta remove_unused:dependency prop Div_inf, function div *)
+  
+  (* meta remove_unused:dependency prop Div_inf, function mod *)
+  
+  axiom Mod_inf : forall x:int, y:int. 0 <= x /\ x < y -> mod x y = x
+  
+  (* meta remove_unused:dependency prop Mod_inf, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_inf, function mod *)
+  
+  axiom Div_mult :
+    forall x:int, y:int, z:int [div ((x * y) + z) x].
+     x > 0 /\ y >= 0 /\ z >= 0 -> div ((x * y) + z) x = (y + div z x)
+  
+  (* meta remove_unused:dependency prop Div_mult, function div *)
+  
+  (* meta remove_unused:dependency prop Div_mult, function mod *)
+  
+  axiom Mod_mult :
+    forall x:int, y:int, z:int [mod ((x * y) + z) x].
+     x > 0 /\ y >= 0 /\ z >= 0 -> mod ((x * y) + z) x = mod z x
+  
+  (* meta remove_unused:dependency prop Mod_mult, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_mult, function mod *)
+  
+  (* use int.ComputerDivision *)
+  
+  (* use mach.int.Int1 *)
+  
+  type t17 = <range 0 18446744073709551615>
+  
+  function t'int t17 : int
+  
+  constant t'maxInt : int = 18446744073709551615
+  
+  constant t'minInt : int = 0
+  
+  predicate t'eq (a:t17) (b:t17) = t'int a = t'int b
+  
+  axiom t'inj : forall a:t17, b:t17. t'eq a b -> a = b
+  
+  (* meta range_type type t17, function t'int *)
+  
+  (* meta model_projection function t'int *)
+  
+  (* meta remove_unused:dependency prop t'inj, predicate t'eq *)
+  
+  constant two_power_size : int = 0x10000000000000000
+  
+  axiom extensionality :
+    forall x:t17, y:t17 [t'int x, t'int y]. t'int x = t'int y -> x = y
+  
+  predicate in_bounds (n:int) = 0 <= n /\ n <= 0xFFFFFFFFFFFFFFFF
+  
+  function of_int int : t17
+  
+  axiom to_of_int :
+    forall x:int [of_int x]. in_bounds x -> t'int (of_int x) = x
+  
+  function add t17 t17 : t17
+  
+  axiom add_in_bounds :
+    forall x:t17, y:t17 [add x y].
+     in_bounds (t'int x + t'int y) -> t'int (add x y) = (t'int x + t'int y)
+  
+  axiom add_wrapping :
+    forall x:t17, y:t17 [add x y].
+     exists k:int.
+      t'int (add x y) = ((t'int x + t'int y) + (k * two_power_size))
+  
+  function sub t17 t17 : t17
+  
+  axiom sub_in_bounds :
+    forall x:t17, y:t17 [sub x y].
+     in_bounds (t'int x - t'int y) -> t'int (sub x y) = (t'int x - t'int y)
+  
+  axiom sub_wrapping :
+    forall x:t17, y:t17 [sub x y].
+     exists k:int.
+      t'int (sub x y) = ((t'int x - t'int y) + (k * two_power_size))
+  
+  function mul t17 t17 : t17
+  
+  axiom mul_in_bounds :
+    forall x:t17, y:t17 [mul x y].
+     in_bounds (t'int x * t'int y) -> t'int (mul x y) = (t'int x * t'int y)
+  
+  axiom mul_wrapping :
+    forall x:t17, y:t17 [mul x y].
+     exists k:int.
+      t'int (mul x y) = ((t'int x * t'int y) + (k * two_power_size))
+  
+  function neg t17 : t17
+  
+  axiom neg_zero : forall x:t17 [neg x]. t'int x = 0 -> t'int (neg x) = 0
+  
+  axiom neg_not_zero :
+    forall x:t17 [neg x].
+     0 < t'int x /\ t'int x <= 0xFFFFFFFFFFFFFFFF ->
+     t'int (neg x) = (two_power_size - t'int x)
+  
+  function of_bool (b:bool) : t17 = if b = True then (1:t17) else (0:t17)
+  
+  predicate le (a:t17) (b:t17) = t'int a <= t'int b
+  
+  predicate lt (a:t17) (b:t17) = t'int a < t'int b
+  
+  predicate ge (a:t17) (b:t17) = t'int a >= t'int b
+  
+  predicate gt (a:t17) (b:t17) = t'int a > t'int b
+  
+  function bw_and t17 t17 : t17
+  
+  function bw_or t17 t17 : t17
+  
+  function bw_xor t17 t17 : t17
+  
+  function bw_not t17 : t17
+  
+  function shl t17 t17 : t17
+  
+  function shr t17 t17 : t17
+  
+  function nth t17 int : bool
+  
+  type tuple2 'a 'a1 =
+    | Tuple2 'a 'a1
+  
+  (* use why3.Tuple2.Tuple21 *)
+  
+  function add_with_overflow (a:t17) (b:t17) : (t17, bool) = (add a b,
+    if not in_bounds (t'int a + t'int b) then True else False)
+  
+  function sub_with_overflow (a:t17) (b:t17) : (t17, bool) = (sub a b,
+    if not in_bounds (t'int a - t'int b) then True else False)
+  
+  function mul_with_overflow (a:t17) (b:t17) : (t17, bool) = (mul a b,
+    if not in_bounds (t'int a * t'int b) then True else False)
+  
+  (* use creusot.int.UInt64 *)
+  
+  function any_l 'a : 'b
+  
+  (* use creusot.prelude.Any *)
+  
+  type t_EventAtomic_State
+  
+  type t_Registry =
+    | T_Registry'mk (atomic:t_EventAtomic_State)
+  
+  (* meta model_record function atomic *)
+  
+  type t_LifetimeToken
+  
+  type t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+  
+  type t_Fragment_FMap_Int_Excl_PositiveReal =
+    | T_Fragment_FMap_Int_Excl_PositiveReal'mk (f0:
+        t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal)
+  
+  (* meta model_record function f0 *)
+  
+  type t_Ticket =
+    | T_Ticket'mk (id:int) (token:t_LifetimeToken) (fragment:
+        t_Fragment_FMap_Int_Excl_PositiveReal)
+  
+  (* meta model_record function fragment *)
+  
+  (* meta model_record function token *)
+  
+  (* meta model_record function id *)
+  
+  type tup2_Registry_Ghost_Ticket =
+    | Tup2_Registry_Ghost_Ticket'mk (f0'0:t_Registry) (f1'0:t_Ticket)
+  
+  (* meta model_record function f1'0 *)
+  
+  (* meta model_record function f0'0 *)
+  
+  predicate inv_LifetimeToken t_LifetimeToken
+  
+  predicate inv_Ticket t_Ticket
+  
+  axiom inv_axiom :
+    forall x:t_Ticket [inv_Ticket x].
+     inv_Ticket x <-> inv_LifetimeToken (x.token)
+  
+  predicate invariant_Ghost_Ticket (self:t_Ticket) = inv_Ticket self
+  
+  (* meta rewrite_def predicate invariant_Ghost_Ticket *)
+  
+  predicate inv_Ghost_Ticket (_1:t_Ticket) = invariant_Ghost_Ticket _1
+  
+  (* meta rewrite_def predicate inv_Ghost_Ticket *)
+  
+  predicate inv_tup2_Registry_Ghost_Ticket (_1:tup2_Registry_Ghost_Ticket) =
+    inv_Ghost_Ticket (_1.f1'0)
+  
+  (* meta rewrite_def predicate inv_tup2_Registry_Ghost_Ticket *)
+  
+  type t_AtomicUsize
+  
+  type t_Id
+  
+  type t_Lifetime
+  
+  type tup3_AtomicUsize_Id_Lifetime =
+    | Tup3_AtomicUsize_Id_Lifetime'mk (f0'1:t_AtomicUsize) (f1'1:t_Id) (f2'1:
+        t_Lifetime)
+  
+  (* meta model_record function f2'1 *)
+  
+  (* meta model_record function f1'1 *)
+  
+  (* meta model_record function f0'1 *)
+  
+  function public_State t_EventAtomic_State : tup3_AtomicUsize_Id_Lifetime
+  
+  function public (self:t_Registry) : tup3_AtomicUsize_Id_Lifetime =
+    public_State (self.atomic)
+  
+  function model_State t_EventAtomic_State : t_AtomicUsize
+  
+  predicate valid (self:t_Registry) =
+    (public self).f0'1 = model_State (self.atomic)
+  
+  function id_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal : t_Id
+  
+  function id_FMap_Int_Excl_PositiveReal (self:
+    t_Fragment_FMap_Int_Excl_PositiveReal) : t_Id =
+    id_View_AuthViewRel_FMap_Int_Excl_PositiveReal (self.f0)
+  
+  type t_FMap_Int_Excl_PositiveReal
+  
+  type t_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+  
+  type t_Option_FMap_Int_Excl_PositiveReal =
+    | None
+    | Some t_FMap_Int_Excl_PositiveReal
+  
+  type t_PositiveReal
+  
+  type t_Excl_PositiveReal =
+    | T_Excl_PositiveReal'mk (f0'2:t_PositiveReal)
+  
+  (* meta model_record function f0'2 *)
+  
+  type t_Option_Excl_PositiveReal =
+    | None'0
+    | Some'0 t_Excl_PositiveReal
+  
+  type t_Option_Option_Excl_PositiveReal =
+    | None'1
+    | Some'1 t_Option_Excl_PositiveReal
+  
+  type tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal =
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk (f0'3:
+        t_Option_Excl_PositiveReal) (f1'3:t_Option_Excl_PositiveReal)
+  
+  (* meta model_record function f1'3 *)
+  
+  (* meta model_record function f0'3 *)
+  
+  function map_Option_Excl_PositiveReal (self:t_Option_Excl_PositiveReal) (f:
+    t_Excl_PositiveReal -> t_Option_Excl_PositiveReal) :
+    t_Option_Option_Excl_PositiveReal =
+    match self with
+    | None'0 -> None'1
+    | Some'0 x -> Some'1 (get f x)
+    end
+  
+  function op_Excl_PositiveReal (self:t_Excl_PositiveReal) (_other:
+    t_Excl_PositiveReal) : t_Option_Excl_PositiveReal = None'0
+  
+  function commutative_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal : unit
+  
+  axiom commutative_Excl_PositiveReal_spec :
+    forall a:t_Excl_PositiveReal, b:t_Excl_PositiveReal.
+     op_Excl_PositiveReal a b = op_Excl_PositiveReal b a
+  
+  function op_Option_Excl_PositiveReal (self:t_Option_Excl_PositiveReal)
+    (other:t_Option_Excl_PositiveReal) : t_Option_Option_Excl_PositiveReal =
+    match Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk self
+          other with
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk None'0 _ ->
+        Some'1 other
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk _ None'0 ->
+        Some'1 self
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk (Some'0 x)
+        (Some'0 y) ->
+        map_Option_Excl_PositiveReal (op_Excl_PositiveReal x y)
+        (fun (z:t_Excl_PositiveReal) -> Some'0 z)
+    end
+  
+  function commutative_Option_Excl_PositiveReal t_Option_Excl_PositiveReal
+    t_Option_Excl_PositiveReal : unit
+  
+  axiom commutative_Option_Excl_PositiveReal_spec :
+    forall a:t_Option_Excl_PositiveReal, b:t_Option_Excl_PositiveReal.
+     op_Option_Excl_PositiveReal a b = op_Option_Excl_PositiveReal b a
+  
+  function to_mapping_Int t_FMap_Int_Excl_PositiveReal : int ->
+    t_Option_Excl_PositiveReal
+  
+  function get_Int (self:t_FMap_Int_Excl_PositiveReal) (k:int) :
+    t_Option_Excl_PositiveReal = get (to_mapping_Int self) k
+  
+  (* meta rewrite_def function get_Int *)
+  
+  function total_op_Int t_FMap_Int_Excl_PositiveReal
+    t_FMap_Int_Excl_PositiveReal : t_FMap_Int_Excl_PositiveReal
+  
+  axiom total_op_Int_spec :
+    forall self:t_FMap_Int_Excl_PositiveReal, other:
+     t_FMap_Int_Excl_PositiveReal [total_op_Int self other].
+     (forall k:int.
+       not op_Option_Excl_PositiveReal (get_Int self k) (get_Int other k) =
+           None'1) ->
+     (forall k:int.
+       Some'1 (get_Int (total_op_Int self other) k) =
+       op_Option_Excl_PositiveReal (get_Int self k) (get_Int other k))
+  
+  function op_FMap_Int_Excl_PositiveReal (self:t_FMap_Int_Excl_PositiveReal)
+    (other:t_FMap_Int_Excl_PositiveReal) :
+    t_Option_FMap_Int_Excl_PositiveReal =
+    if forall k:int.
+        not op_Option_Excl_PositiveReal (get_Int self k) (get_Int other k) =
+            None'1
+    then Some (total_op_Int self other) else None
+  
+  function commutative_FMap_Int_Excl_PositiveReal
+    t_FMap_Int_Excl_PositiveReal t_FMap_Int_Excl_PositiveReal : unit
+  
+  axiom commutative_FMap_Int_Excl_PositiveReal_spec :
+    forall a:t_FMap_Int_Excl_PositiveReal, b:t_FMap_Int_Excl_PositiveReal.
+     op_FMap_Int_Excl_PositiveReal a b = op_FMap_Int_Excl_PositiveReal b a
+  
+  predicate ge_log_Int (self:int) (other:int) = other <= self
+  
+  (* meta rewrite_def predicate ge_log_Int *)
+  
+  function len_Int t_FMap_Int_Excl_PositiveReal : int
+  
+  axiom len_Int_spec :
+    forall self:t_FMap_Int_Excl_PositiveReal [len_Int self].
+     ge_log_Int (len_Int self) 0
+  
+  constant empty_Int : t_FMap_Int_Excl_PositiveReal
+  
+  axiom empty_Int_spec : len_Int empty_Int = 0
+  
+  axiom empty_Int_spec'0 :
+    to_mapping_Int empty_Int =
+    (const None'0: int -> t_Option_Excl_PositiveReal)
+  
+  constant unit_FMap_Int_Excl_PositiveReal : t_FMap_Int_Excl_PositiveReal =
+    empty_Int
+  
+  axiom unit_FMap_Int_Excl_PositiveReal_spec :
+    forall x:t_FMap_Int_Excl_PositiveReal
+     [op_FMap_Int_Excl_PositiveReal x unit_FMap_Int_Excl_PositiveReal].
+     op_FMap_Int_Excl_PositiveReal x unit_FMap_Int_Excl_PositiveReal = Some x
+  
+  predicate incl_Excl_PositiveReal (self:t_Excl_PositiveReal) (other:
+    t_Excl_PositiveReal) = false
+  
+  axiom incl_Excl_PositiveReal_spec :
+    forall self:t_Excl_PositiveReal, other:t_Excl_PositiveReal
+     [incl_Excl_PositiveReal self other].
+     incl_Excl_PositiveReal self other <->
+     (exists factor:t_Excl_PositiveReal.
+       op_Excl_PositiveReal self factor = Some'0 other)
+  
+  function incl_transitive_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal t_Excl_PositiveReal : unit
+  
+  axiom incl_transitive_Excl_PositiveReal_spec :
+    forall a:t_Excl_PositiveReal, b:t_Excl_PositiveReal, c:
+     t_Excl_PositiveReal.
+     incl_Excl_PositiveReal a b ->
+     incl_Excl_PositiveReal b c -> incl_Excl_PositiveReal a c
+  
+  function associative_some_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal t_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal : unit
+  
+  axiom associative_some_Excl_PositiveReal_spec :
+    forall a:t_Excl_PositiveReal, b:t_Excl_PositiveReal, c:
+     t_Excl_PositiveReal, ab:t_Excl_PositiveReal, bc:t_Excl_PositiveReal.
+     op_Excl_PositiveReal a b = Some'0 ab ->
+     op_Excl_PositiveReal b c = Some'0 bc ->
+     op_Excl_PositiveReal a bc = op_Excl_PositiveReal ab c
+  
+  function associative_none_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal t_Excl_PositiveReal t_Excl_PositiveReal : unit
+  
+  axiom associative_none_Excl_PositiveReal_spec :
+    forall a:t_Excl_PositiveReal, b:t_Excl_PositiveReal, c:
+     t_Excl_PositiveReal, bc:t_Excl_PositiveReal.
+     op_Excl_PositiveReal a b = None'0 ->
+     op_Excl_PositiveReal b c = Some'0 bc ->
+     op_Excl_PositiveReal a bc = None'0
+  
+  function incl_op_Excl_PositiveReal t_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal : unit
+  
+  axiom incl_op_Excl_PositiveReal_spec :
+    forall self:t_Excl_PositiveReal, other:t_Excl_PositiveReal, comb:
+     t_Excl_PositiveReal.
+     op_Excl_PositiveReal self other = Some'0 comb ->
+     incl_Excl_PositiveReal self comb
+  
+  predicate eq_Excl_PositiveReal (self:t_Excl_PositiveReal) (other:
+    t_Excl_PositiveReal) = self = other
+  
+  (* meta rewrite_def predicate eq_Excl_PositiveReal *)
+  
+  axiom eq_Excl_PositiveReal_spec :
+    forall self:t_Excl_PositiveReal, other:t_Excl_PositiveReal
+     [eq_Excl_PositiveReal self other].
+     eq_Excl_PositiveReal self other <-> self = other
+  
+  predicate incl_eq_Excl_PositiveReal (self:t_Excl_PositiveReal) (other:
+    t_Excl_PositiveReal) =
+    eq_Excl_PositiveReal self other \/ incl_Excl_PositiveReal self other
+  
+  predicate incl_Option_Excl_PositiveReal (self:t_Option_Excl_PositiveReal)
+    (other:t_Option_Excl_PositiveReal) =
+    match Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk self
+          other with
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk None'0 _ ->
+        true
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk _ None'0 ->
+        false
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk (Some'0 x)
+        (Some'0 y) -> incl_eq_Excl_PositiveReal x y
+    end
+  
+  axiom incl_Option_Excl_PositiveReal_spec :
+    forall self:t_Option_Excl_PositiveReal, other:t_Option_Excl_PositiveReal
+     [incl_Option_Excl_PositiveReal self other].
+     incl_Option_Excl_PositiveReal self other <->
+     (exists factor:t_Option_Excl_PositiveReal.
+       op_Option_Excl_PositiveReal self factor = Some'1 other)
+  
+  predicate incl_FMap_Int_Excl_PositiveReal (self:
+    t_FMap_Int_Excl_PositiveReal) (other:t_FMap_Int_Excl_PositiveReal) =
+    let r =
+      (if forall k:int.
+           incl_Option_Excl_PositiveReal (get_Int self k) (get_Int other k)
+       then True else False)
+    in r = True
+  
+  axiom incl_FMap_Int_Excl_PositiveReal_spec :
+    forall self:t_FMap_Int_Excl_PositiveReal, other:
+     t_FMap_Int_Excl_PositiveReal
+     [incl_FMap_Int_Excl_PositiveReal self other].
+     incl_FMap_Int_Excl_PositiveReal self other <->
+     (exists factor:t_FMap_Int_Excl_PositiveReal.
+       op_FMap_Int_Excl_PositiveReal self factor = Some other)
+  
+  predicate rel_AuthViewRel_FMap_Int_Excl_PositiveReal (a:
+    t_Option_FMap_Int_Excl_PositiveReal) (f:t_FMap_Int_Excl_PositiveReal) =
+    match a with
+    | Some a'0 -> incl_FMap_Int_Excl_PositiveReal f a'0
+    | None -> true
+    end
+  
+  function rel_unit_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Option_FMap_Int_Excl_PositiveReal : unit
+  
+  axiom rel_unit_AuthViewRel_FMap_Int_Excl_PositiveReal_spec :
+    forall a:t_Option_FMap_Int_Excl_PositiveReal.
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal a
+     unit_FMap_Int_Excl_PositiveReal
+  
+  function rel_none_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Option_FMap_Int_Excl_PositiveReal t_FMap_Int_Excl_PositiveReal : unit
+  
+  axiom rel_none_AuthViewRel_FMap_Int_Excl_PositiveReal_spec :
+    forall a:t_Option_FMap_Int_Excl_PositiveReal, f:
+     t_FMap_Int_Excl_PositiveReal.
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal None f
+  
+  function rel_mono_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Option_FMap_Int_Excl_PositiveReal t_FMap_Int_Excl_PositiveReal
+    t_FMap_Int_Excl_PositiveReal : unit
+  
+  axiom rel_mono_AuthViewRel_FMap_Int_Excl_PositiveReal_spec :
+    forall a:t_Option_FMap_Int_Excl_PositiveReal, f1:
+     t_FMap_Int_Excl_PositiveReal, f2:t_FMap_Int_Excl_PositiveReal.
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal a f1 ->
+     incl_FMap_Int_Excl_PositiveReal f2 f1 ->
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal a f2
+  
+  function auth_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_View_AuthViewRel_FMap_Int_Excl_PositiveReal :
+    t_Option_FMap_Int_Excl_PositiveReal
+  
+  function frag_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_View_AuthViewRel_FMap_Int_Excl_PositiveReal :
+    t_FMap_Int_Excl_PositiveReal
+  
+  axiom frag_AuthViewRel_FMap_Int_Excl_PositiveReal_spec :
+    forall self:t_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+     [frag_AuthViewRel_FMap_Int_Excl_PositiveReal self].
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal
+     (auth_AuthViewRel_FMap_Int_Excl_PositiveReal self)
+     (frag_AuthViewRel_FMap_Int_Excl_PositiveReal self)
+  
+  function val_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal :
+    t_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+  
+  function view_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal (self:
+    t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal) :
+    t_View_AuthViewRel_FMap_Int_Excl_PositiveReal =
+    val_View_AuthViewRel_FMap_Int_Excl_PositiveReal self
+  
+  (* meta rewrite_def
+    function view_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal *)
+  
+  function view_Fragment_FMap_Int_Excl_PositiveReal (self:
+    t_Fragment_FMap_Int_Excl_PositiveReal) : t_FMap_Int_Excl_PositiveReal =
+    frag_AuthViewRel_FMap_Int_Excl_PositiveReal
+    (view_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal (self.f0))
+  
+  predicate contains_Int (self:t_FMap_Int_Excl_PositiveReal) (k:int) =
+    not get_Int self k = None'0
+  
+  (* meta rewrite_def predicate contains_Int *)
+  
+  function insert_Int t_FMap_Int_Excl_PositiveReal int t_Excl_PositiveReal :
+    t_FMap_Int_Excl_PositiveReal
+  
+  axiom insert_Int_spec :
+    forall self:t_FMap_Int_Excl_PositiveReal, k:int, v:t_Excl_PositiveReal
+     [insert_Int self k v].
+     to_mapping_Int (insert_Int self k v) =
+     set (to_mapping_Int self) k (Some'0 v)
+  
+  axiom insert_Int_spec'0 :
+    forall self:t_FMap_Int_Excl_PositiveReal, k:int, v:t_Excl_PositiveReal
+     [insert_Int self k v].
+     len_Int (insert_Int self k v) =
+     (if contains_Int self k then len_Int self else len_Int self + 1)
+  
+  function singleton_Int (k:int) (v:t_Excl_PositiveReal) :
+    t_FMap_Int_Excl_PositiveReal = insert_Int empty_Int k v
+  
+  function frac t_LifetimeToken : t_PositiveReal
+  
+  function lft t_LifetimeToken : t_Lifetime
+  
+  predicate valid'0 (self:t_Ticket) (public'0:tup3_AtomicUsize_Id_Lifetime) =
+    id_FMap_Int_Excl_PositiveReal (self.fragment) = public'0.f1'1 /\
+    view_Fragment_FMap_Int_Excl_PositiveReal (self.fragment) =
+    singleton_Int (self.id) (T_Excl_PositiveReal'mk (frac (self.token))) /\
+    lft (self.token) = public'0.f2'1
+  
+  predicate invariant_ref_Ghost_Ticket (self:t_Ticket) =
+    inv_Ghost_Ticket self
+  
+  (* meta rewrite_def predicate invariant_ref_Ghost_Ticket *)
+  
+  predicate inv_ref_Ghost_Ticket (_1:t_Ticket) =
+    invariant_ref_Ghost_Ticket _1
+  
+  (* meta rewrite_def predicate inv_ref_Ghost_Ticket *)
+  
+  predicate invariant_ref_Ticket (self:t_Ticket) = inv_Ticket self
+  
+  (* meta rewrite_def predicate invariant_ref_Ticket *)
+  
+  predicate inv_ref_Ticket (_1:t_Ticket) = invariant_ref_Ticket _1
+  
+  (* meta rewrite_def predicate inv_ref_Ticket *)
+  
+  predicate invariant_Ghost_ref_Ticket (self:t_Ticket) = inv_ref_Ticket self
+  
+  (* meta rewrite_def predicate invariant_Ghost_ref_Ticket *)
+  
+  predicate inv_Ghost_ref_Ticket (_1:t_Ticket) =
+    invariant_Ghost_ref_Ticket _1
+  
+  (* meta rewrite_def predicate inv_Ghost_ref_Ticket *)
+  
+  type tup2_usize_Ghost_Ticket =
+    | Tup2_usize_Ghost_Ticket'mk (f0'4:t17) (f1'4:t_Ticket)
+  
+  (* meta model_record function f1'4 *)
+  
+  (* meta model_record function f0'4 *)
+  
+  predicate inv_tup2_usize_Ghost_Ticket (_1:tup2_usize_Ghost_Ticket) =
+    inv_Ghost_Ticket (_1.f1'4)
+  
+  (* meta rewrite_def predicate inv_tup2_usize_Ghost_Ticket *)
+  
+  constant const_MAX : t17 = (18446744073709551615:t17)
+  
+  predicate resolve_LifetimeToken t_LifetimeToken
+  
+  predicate resolve_Ticket t_Ticket
+  
+  axiom resolve_axiom :
+    forall x:t_Ticket [resolve_Ticket x].
+     resolve_Ticket x <-> resolve_LifetimeToken (x.token)
+  
+  predicate resolve_Ghost_Ticket (self:t_Ticket) = resolve_Ticket self
+  
+  (* meta rewrite_def predicate resolve_Ghost_Ticket *)
+  
+  predicate resolve_Ghost_Ticket'0 (_1:t_Ticket) = resolve_Ghost_Ticket _1
+  
+  (* meta rewrite_def predicate resolve_Ghost_Ticket'0 *)
+  
+  type tup2_usize_usize =
+    | Tup2_usize_usize'mk (f0'5:t17) (f1'5:t17)
+  
+  (* meta model_record function f1'5 *)
+  
+  (* meta model_record function f0'5 *)
+  
+  (* meta compute_max_steps 1000000 *)
+  
+  (* meta select_lsinst "all" *)
+  
+  constant result : tup2_Registry_Ghost_Ticket
+  
+  axiom Assert :
+    inv_LifetimeToken ((result.f1'0).token) /\
+    valid (result.f0'0) /\
+    valid'0 (result.f1'0) (public (result.f0'0)) /\ (result.f1'0).id = 0
+  
+  axiom Assert1 : inv_LifetimeToken ((result.f1'0).token)
+  
+  constant result1 : tup2_usize_Ghost_Ticket
+  
+  axiom Assert2 :
+    inv_LifetimeToken ((result1.f1'4).token) /\
+    valid'0 (result1.f1'4) (public (result.f0'0)) /\
+    not (result1.f1'4).id = (result.f1'0).id /\
+    valid'0 (result.f1'0) (public (result.f0'0)) /\
+    t'int (result1.f0'4) <= div (t'int const_MAX) 2
+  
+  axiom Assert3 : resolve_LifetimeToken ((result1.f1'4).token)
+  
+  axiom Assert4 : resolve_LifetimeToken ((result.f1'0).token)
+  
+  axiom Assert5 : inv_LifetimeToken ((result.f1'0).token)
+  
+  constant result2 : tup2_usize_Ghost_Ticket
+  
+  axiom Assert6 :
+    inv_LifetimeToken ((result2.f1'4).token) /\
+    valid'0 (result2.f1'4) (public (result.f0'0)) /\
+    not (result2.f1'4).id = (result.f1'0).id /\
+    valid'0 (result.f1'0) (public (result.f0'0)) /\
+    t'int (result2.f0'4) <= div (t'int const_MAX) 2
+  
+  axiom Assert7 : resolve_LifetimeToken ((result2.f1'4).token)
+  
+  axiom Assert8 : (result.f1'0).id = 0
+  
+  goal vc_two_registrations_from_one_source :
+    (result1.f1'4).id = 1 /\ (result2.f1'4).id = 2
+  
+end
+

@@ -577,3 +577,60 @@ RMW would be a double increment and is rejected as an integration strategy.
 The actual five-field Vtable binding, Ghost source-ticket transport through
 Clone(&self), dynamic registration/retirement coexistence and suppression of
 a later automatic Drop after explicit cleanup remain obligations.
+
+## D2026-10-08-AA — Quota-free registration accepted in registration-only scope
+
+The changed premise is stock LifetimeToken residual splitting plus a checked
+fresh-key authority update, instead of the external one-use CloneQuota. The
+constructor and each registration body preserve the full fraction accounting,
+source fragment and actual Relaxed increment relation. One caller registers
+twice from the same borrowed source; a body-proved stock Fragment/Excl
+composition lemma proves the two new ticket IDs distinct. The public wrapper
+contract includes new_id > source_id. Final23 files/113 actual prover leaves
+close with zero nulls; native one-test observes1,2. Forgotten-map insertion
+leaves one state-preservation and three dependent callback goals unproved;
+owned-ticket duplication fails E0382. Root receipts verify all171 final archive
+members and seven current source/configuration inputs, plus the negative inputs.
+
+The registration invariant has exact live prefix and count modulo usize range.
+No removals, payload recovery or release-sequence carry are claimed. Replacing
+C's existing bounded State with it is invalid: that State has retirement,
+AtView recovery and completion credits absent from this model. The next protocol
+needs sparse live keys bounded by monotone next, pool/fraction conservation,
+matching nonwrapping native count and inherited release publication through
+Relaxed RMW, with actual Acquire before typed recovery. No bytes law may be
+assumed to bridge this mismatch. Exact IDs/old values1,2 are native observations,
+not a generic concurrent theorem.
+
+An intermediate positive archive (SHA prefix7ef78f00) was overwritten before root
+audit and is unrecoverable. It is explicitly excluded from evidence. The current
+immutable final archive is c707fc4f2e807fbeb3b3ad1635977528b86838cb52f22fa31b82a0f637a26994,
+independently audited against current source. Negative snapshots remain available.
+Future input changes require distinct evidence labels and must not overwrite
+existing captures.
+
+## D2026-10-08-AB — Post-increment overflow checks do not admit unbounded lastness
+
+Pinned Rust Arc's own source says its post-fetch_add check is not100%
+water-proof. Shipped Creusot Arc::clone assumes its functional value relation
+and does not body prove its native refcount. Copying that contract is not
+permission to assume bytes refcounts under the user policy.
+
+The executed toy scheduler demonstrates an abstract unbounded-concurrency
+wrap before pending abort checks run; a later normal-return clone can see0,
+then a release sees1 while other owners remain. This is not a native OS
+use-after-free demonstration. The current model has no justified physical bound
+on pending clones. Count modulo word range therefore cannot justify lastness.
+Do not retry the same inference or introduce an arbitrary bytes-specific bound.
+Reopen only with a justified execution-model bound, or a changed native algorithm.
+
+A guarded Relaxed CAS/fetch_update is the concrete small-code alternative:
+check the actual expected count before a successful increment; only success
+commits one affine registration transition, and failed/retried attempts do not
+create tickets. Retain predecessor release-sequence publication without Acquire
+or current-view publication; retain final Release decrement and actual Acquire.
+The proposal has explicit retry/starvation/hot-path/abort-timing differences,
+and has not been applied. All three native increment paths must be audited,
+not only selected Shared. Required generic adapter and controls are recorded in
+refcount-overflow-review-2026-10-08. This source review/toy experiment is not
+a formal protocol proof or complete original API verification.
