@@ -905,3 +905,12 @@ targets and safe shims are body proved. Generic registration and invocation are
 trusted; resource forwarding outside the callback is body proved. This does
 not yet prove a ghost-transforming callback or public Bytes::clone. Root archive
 and current-source correspondence audit is evidence/root-audit.json.
+
+The companion registered-dispatch safe-pointer gate proves four files/nine
+prover leaves with zero nulls through shipped FnExt. Exact-item reification is
+explicit generic TCB; the native target remains body proved. An incorrect x+2
+client fails one semantic VC, while unsafe Fn, native reification and moving
+affine quota through &self are freshly rejected (E0277, ReifyFnPointer, E0507).
+The restored default gate and all controls have immutable source/configuration
+archives and root receipts. These are distinguishing tool-boundary experiments,
+not additional original public API coverage.
