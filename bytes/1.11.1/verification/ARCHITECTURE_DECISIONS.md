@@ -423,3 +423,29 @@ Release/Acquire using actual Std AtView/Committer rules with corresponding negat
 controls, before broad original API integration. Preserve this interface as the
 replacement boundary for future generic tool support; local trust removal has not
 been demonstrated. See TRUSTED_ATOMIC_EVENT_2026-10-08_JA.md for exact evidence scope.
+
+## D2026-10-08-W — Token-gated immutable borrowing is recoverable
+
+Changed premise from D-T: permanently share FullBorrow<PhysicalRegion>, not the
+region itself. FullBorrow.borrow requires a live LifetimeToken. The separate
+EndBorrow recovers the region only after the full fraction ends the lifetime.
+GhostShared resolves the FullBorrow value, freezing its physical contents.
+Copies of the descriptor cannot obtain a region after the token lifetime ends.
+No new physical Objective/Sync law or bytes-specific protocol trust was added.
+
+Fixed-two A proves41 files with full input-byte equality at both overlapping
+reads, including after peer retirement; native Release decrements, actual
+Acquire load, affine token join/end and actual B3 cleanup. Per-side agreement
+receipts plus a diagnostic extra Acquire observation body-prove exactly-one
+normal-return final result. Missing Acquire fails3 VCs, premature half-token end
+fails1; duplicate tokens and still-live B4 read retirements are rejected by
+Rust E0382/E0505. The generic operation-bound native/model state rule and RMW
+release-sequence rule remain explicit trusted assumptions.
+
+Admit this reclaimable physical-sharing component only in its fixed2 scope.
+Subjective EndBorrow/Recovery stay in parent; final ownership transport to any
+last thread, original constructor1/dynamic Clone, control/data/vtable binding,
+overflow-abort and automatic Drop remain obligations. Preserve D-T direct-region
+GhostShared extraction rejection and D02 missing-Acquire counterexamples.
+Evidence: probes/shared-physical-lifecycle-2026-10-08/README.md, RESULTS.json and
+positive-final-41.tar.gz with independent root receipt.

@@ -27,7 +27,9 @@ impl Payload for LifetimeToken {
 /// first gate does not infer eventual cleanup from a native XOR assertion.
 #[ensures(input@.len()>0 ==> result.0==input@[0] && result.1==input@[0])]
 #[ensures(input@.len()==0 ==> result.0==0u8 && result.1==0u8)]
+#[ensures(result.2)]
 pub fn physical_roundtrip(input:Vec<u8>)->(u8,u8,bool) {
+    let contents=snapshot!(input@);
     let (base,len,capacity,caps)=bound_ptr::detach_bound_vec(input);
     let (owner,reader)=frozen::FrozenOwner::new(base,capacity,len,caps);
     let (left,right)=ghost! {reader.ticket.into_inner().split()}.split();
@@ -35,13 +37,16 @@ pub fn physical_roundtrip(input:Vec<u8>)->(u8,u8,bool) {
     let (machine,a,b)=SharedRetirement::new(expected);
     require_sync(&machine);
     let first=frozen::borrow_frozen(&owner.base,len,reader.shared,left.borrow());
+    proof_assert!(first@ == *contents);
     let a_byte=if len==0 {0} else {first[0]};
     let first_closed=machine.retire(a,left);
     // Explicit read after the peer retired, while this reader remains live.
     let second=frozen::borrow_frozen(&owner.base,len,reader.shared,right.borrow());
+    proof_assert!(second@ == *contents);
     let b_byte=if len==0 {0} else {second[0]};
     let second_closed=machine.retire(b,right);
-    let (done,tokens)=if first_closed.0 {first_closed} else {second_closed};
+    machine.finish(first_closed.0,first_closed.2,second_closed.0,second_closed.2);
+    let (done,tokens)=if first_closed.0 {(first_closed.0,first_closed.1)} else {(second_closed.0,second_closed.1)};
     if done {
         let full=ghost! {
             let (a,b)=tokens.into_inner().unwrap();
@@ -77,4 +82,14 @@ mod tests {
             assert_eq!(result,(if len==0 {0}else{37},if len==0 {0}else{37},true));
         }}
     }
+}
+
+#[cfg(feature="negative_live_read")]
+#[requires(input@.len()>0)]
+pub fn retire_while_read_borrow_live(input:Vec<u8>)->u8 {
+    let (base,len,cap,caps)=bound_ptr::detach_bound_vec(input);
+    let (owner,reader)=frozen::FrozenOwner::new(base,cap,len,caps);
+    let bytes=frozen::borrow_frozen(&owner.base,len,reader.shared,reader.ticket.borrow());
+    owner.reclaim(reader.ticket);
+    bytes[0]
 }

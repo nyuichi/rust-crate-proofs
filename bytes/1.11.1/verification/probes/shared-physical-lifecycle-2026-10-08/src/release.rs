@@ -18,4 +18,3 @@ use super::*;
 pub fn release_rmw(c:&mut Committer<ModelAtomic,usize,Relaxed,Release>,own:&mut Perm<ModelAtomic>,current:&mut SyncView)->Snapshot<SyncView> {
     panic!("ghost atomic semantics rule")
 }
-

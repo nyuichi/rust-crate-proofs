@@ -119,3 +119,18 @@ Committerの契約を参照し、別入口のないEventAtomicを明示TCBにし
 （最終8 files、native2 tests）。bytes固有の登録法則はtrustedにしていない。
 原Bytesへの接続、physical共有・回収・自動Dropは依然未完了。
 詳細: [trusted境界と証拠](TRUSTED_ATOMIC_EVENT_2026-10-08_JA.md)。
+
+### 回収可能な共有read component: fixed2でexactly-onceまで通過
+
+FullBorrow<PhysicalRegion>のdescriptorを共有し、別のEndBorrowを最後に回収する
+構成で41 filesが通過。二つの実readの全byte列がinputと一致し、peer退役後の
+readも保存。Release減算、実Acquire load、token全量のjoin/end、B3を接続した。
+各退役receiptと追加の診断Acquireで最後の結果がちょうど1回と証明した。
+Acquire省略・token不足はVC失敗、重複・live slice中の退役はRust型検査で拒否。
+parentがsubjective回収権限を保持するfixed2 componentであり、原count1からの
+clone/control/data/vtable/任意last-thread回収/自動Dropはまだ未接続。
+
+原release_sharedは最後のbuffer/control解放を小さなfree_sharedに明示化した。
+原orderingとlayoutは保持。native1011/noStd/portable targeted2が通過したが、
+このコード変更のformal refcount接続は次の原Shared leaf gateで行う。
+純粋なfraction-map補題15 bodiesも保存した。詳しい証拠はSTATUSのリンク先。

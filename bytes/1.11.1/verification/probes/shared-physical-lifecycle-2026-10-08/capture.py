@@ -2,7 +2,7 @@ import pathlib,sys,shutil,hashlib,json,tarfile
 p=pathlib.Path(__file__).resolve().parent; out=p/'evidence'/sys.argv[1];out.mkdir(parents=True,exist_ok=False)
 for n in ['src','verif','generic-boundary-source']:
  if (p/n).exists():shutil.copytree(p/n,out/n)
-for n in ['PLAN.md','README.md','capture.py','Cargo.toml','Cargo.lock','run-proof.sh','why3find.json']:
+for n in ['PLAN.md','README.md','RESULTS.json','audit.py','capture.py','Cargo.toml','Cargo.lock','run-proof.sh','why3find.json']:
  if (p/n).exists():shutil.copy2(p/n,out/n)
 for n in ['src/ownership_proof/raw_vec.rs','src/ownership_proof/bound_ptr.rs','src/ownership_proof/owned_region.rs','src/provenance_specs.rs','src/allocation_ops.rs']:
  q=out/'physical-source'/n;q.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p.parents[2]/n,q)

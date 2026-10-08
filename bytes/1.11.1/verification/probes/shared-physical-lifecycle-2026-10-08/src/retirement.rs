@@ -14,20 +14,30 @@ impl Ticket {
     #[logic]
     pub(crate) fn is_left(self)->bool { self.left }
 }
+pub struct Receipt { evidence:Fragment<Option<Ag<bool>>>, left:bool }
+impl Receipt { #[logic] pub fn is_left(self)->bool {self.left} }
 struct State<T:Payload> {
     own:Perm<ModelAtomic>, latest:Int, returned:Resource<Tickets>, expected:Snapshot<(T::Metadata,T::Metadata)>,
-    left:Option<AtView<T>>,right:Option<AtView<T>>,withdrawn:bool, publication:Authority<Publication<T>>,
+    left:Option<AtView<T>>,right:Option<AtView<T>>,withdrawn:bool, publication:Authority<Publication<T>>, completed_left:Authority<Option<Ag<bool>>>,completed_right:Authority<Option<Ag<bool>>>,
 }
 #[logic]
 fn count(r:Tickets)->usize { if r.0 == None {if r.1 == None {2usize} else {1usize}} else {if r.1 == None {1usize} else {0usize}} }
 impl<T:Payload> Protocol for State<T> {
-    type Public=(ModelAtomic,Id,(T::Metadata,T::Metadata),Id);
-    #[logic] fn public(self)->Self::Public { (*self.own.ward(),self.returned.id(),*self.expected,self.publication.id()) }
+    type Public=(ModelAtomic,Id,(T::Metadata,T::Metadata),Id,Id,Id);
+    #[logic] fn public(self)->Self::Public { (*self.own.ward(),self.returned.id(),*self.expected,self.publication.id(),self.completed_left.id(),self.completed_right.id()) }
     #[logic(prophetic)] fn protocol(self)->bool { pearlite! {
         self.own.val().get(self.latest) != None &&
         self.own.val().get(self.latest).unwrap_logic().0 == count(self.returned@) &&
         (forall<t:Int> self.own.val().get(t) != None ==> t <= self.latest) &&
-        (self.withdrawn ==> count(self.returned@) == 0usize) &&
+        (self.withdrawn == (count(self.returned@) == 0usize)) &&
+        ((self.completed_left@ == None) == (self.returned@.0 == None)) &&
+        ((self.completed_right@ == None) == (self.returned@.1 == None)) &&
+        (match (self.completed_left@,self.completed_right@) {
+            (Some(l),Some(r)) => l.0 != r.0,
+            (Some(l),None) => !l.0,
+            (None,Some(r)) => !r.0,
+            (None,None) => true
+        }) &&
         ((self.publication@ != None) == self.withdrawn) &&
         (self.publication@ != None ==> self.publication@.unwrap_logic().0.0 == self.latest &&
             self.publication@.unwrap_logic().0.1.view() == self.own.val().get(self.latest).unwrap_logic().1) &&
@@ -57,6 +67,10 @@ impl<T:Payload> SharedRetirement<T> {
         pearlite! { self.accepts(t) && payload.wellformed() && payload.metadata() == if t.is_left() {self.expected().0} else {self.expected().1} }
     }
 
+    #[logic] fn accepts_receipt(self,r:Receipt,last:bool)->bool {pearlite! {
+        r.evidence.id()==if r.left {self.atomic.public().4}else{self.atomic.public().5} &&
+        r.evidence@==Some(Ag(last))
+    }}
     #[ensures(result.0.valid() && result.0.accepts(result.1.inner_logic()) && result.0.accepts(result.2.inner_logic()))]
     #[ensures(result.0.expected() == *expected)]
     #[ensures(result.1.inner_logic().is_left() && !result.2.inner_logic().is_left())]
@@ -74,7 +88,7 @@ impl<T:Payload> SharedRetirement<T> {
         let state=ghost! {
             let latest:Snapshot<Int> = snapshot!(atomic.model().get_timestamp(*view));
             let state=State{own:own.into_inner(),latest:latest.into_ghost().into_inner(),
-                returned:returned.into_inner(),expected,left:None,right:None,withdrawn:false,publication:Authority::alloc().into_inner()};
+                returned:returned.into_inner(),expected,left:None,right:None,withdrawn:false,publication:Authority::alloc().into_inner(),completed_left:Authority::alloc().into_inner(),completed_right:Authority::alloc().into_inner()};
             state
         };
         (Self{atomic:EventAtomic::bind(atomic,state)},left,right)
@@ -84,9 +98,12 @@ impl<T:Payload> SharedRetirement<T> {
     #[ensures(result.0 == (result.1.inner_logic() != None))]
     #[ensures(result.0 ==> result.1.inner_logic().unwrap_logic().0.wellformed() && result.1.inner_logic().unwrap_logic().1.wellformed())]
     #[ensures(result.0 ==> (result.1.inner_logic().unwrap_logic().0.metadata(),result.1.inner_logic().unwrap_logic().1.metadata()) == self.expected())]
-    pub fn retire(&self,ticket:Ghost<Ticket>,resource:Ghost<T>)->(bool,Ghost<Option<(T,T)>>) {
+    #[ensures(self.accepts_receipt(result.2.inner_logic(),result.0))]
+    #[ensures(result.2.inner_logic().is_left()==ticket.inner_logic().is_left())]
+    pub fn retire(&self,ticket:Ghost<Ticket>,resource:Ghost<T>)->(bool,Ghost<Option<(T,T)>>,Ghost<Receipt>) {
         let (mut current,sealed)=AtView::new(resource).split();
         let mut collected:Ghost<Option<(AtView<T>,AtView<T>,Fragment<Publication<T>>)>>=ghost! {None};
+        let mut receipt:Ghost<Option<Receipt>>=ghost! {None};
         let old=self.atomic.decrement(ghost! {|state:&mut State<T>,c:&mut Committer<ModelAtomic,usize,Relaxed,Release>| {
                 let ticket=ticket.into_inner();
                 let before=snapshot!(state.returned@);
@@ -103,6 +120,10 @@ impl<T:Payload> SharedRetirement<T> {
                 state.latest=next.into_ghost().into_inner();
                 if ticket.left {state.left=Some(sealed.into_inner());} else {state.right=Some(sealed.into_inner());}
                 let last:Snapshot<bool> = snapshot!(c.val_load() == 1usize);
+                let evidence=if ticket.left {
+                    state.completed_left.add_fragment(snapshot!(Some(Ag(*last))))
+                } else {state.completed_right.add_fragment(snapshot!(Some(Ag(*last))))};
+                *receipt=Some(Receipt{evidence,left:ticket.left});
                 if last.into_ghost().into_inner() {
                     let mut left=state.left.take().unwrap();
                     let right=state.right.take().unwrap();
@@ -125,7 +146,27 @@ impl<T:Payload> SharedRetirement<T> {
             (true,ghost! {
                 let (left,right,_receipt)=collected.into_inner().unwrap();
                 Some((left.sync(*current),right.sync(*current)))
-            })
-        } else { (false,ghost! {None}) }
+            },ghost! {receipt.into_inner().unwrap()})
+        } else { (false,ghost! {None},ghost! {receipt.into_inner().unwrap()}) }
     }
+    /// Diagnostic completion observation; an additional native Acquire load.
+    #[requires(self.valid())]
+    #[requires(self.accepts_receipt(first.inner_logic(),first_last))]
+    #[requires(self.accepts_receipt(second.inner_logic(),second_last))]
+    #[requires(first.inner_logic().is_left()!=second.inner_logic().is_left())]
+    #[ensures(first_last != second_last)]
+    pub fn finish(&self,first_last:bool,first:Ghost<Receipt>,second_last:bool,second:Ghost<Receipt>) {
+        self.atomic.acquire(ghost! {|state:&mut State<T>,c:&Committer<ModelAtomic,usize,Acquire,NoStore>| {
+            let first=first.into_inner();let second=second.into_inner();
+            if first.left {
+                state.completed_left.frag_lemma(&first.evidence);
+                state.completed_right.frag_lemma(&second.evidence);
+            } else {
+                state.completed_right.frag_lemma(&first.evidence);
+                state.completed_left.frag_lemma(&second.evidence);
+            }
+            proof_assert!(first_last != second_last);
+        }});
+    }
+
 }

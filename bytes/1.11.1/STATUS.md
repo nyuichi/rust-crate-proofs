@@ -1,5 +1,23 @@
 # bytes 1.11.1 status
 
+## Shared lifecycle increment — 2026-10-08 UTC
+
+A reclaimable fixed-two physical-sharing component proves41 files: both readers
+observe the whole input, a remaining reader survives peer retirement, and the
+native Release/Acquire path returns full lifetime authority exactly once for B3
+cleanup. Misuse controls reject missing Acquire, premature lifetime end, duplicate
+tokens and retirement during a still-used physical borrow. This component keeps
+subjective recovery in the parent and uses an extra diagnostic Acquire observation;
+it does not prove original count1-to-clone or arbitrary last-thread ownership.
+The finite fraction-map accounting component separately proves15 bodies.
+
+The original final Shared release now uses explicit payload/control deallocation
+with unchanged orderings/layouts. Native default1011 tests, no-default library
+check and portable-atomic targeted2 tests pass. This small code change is native
+validated; its formal protocol connection is the ongoing next step, not complete.
+See [physical proof scope](verification/probes/shared-physical-lifecycle-2026-10-08/README.md)
+and [native cleanup evidence](verification/shared-explicit-cleanup-native-2026-10-08/manifest.json).
+
 ## Latest increment — 2026-10-08 (Asia/Tokyo)
 
 The user authorized a reviewed generic trusted synchronization boundary and a
