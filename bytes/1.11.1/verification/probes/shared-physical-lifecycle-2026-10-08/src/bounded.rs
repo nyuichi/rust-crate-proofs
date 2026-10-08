@@ -15,7 +15,9 @@ pub struct Ticket<T:RecoveryPayload> {
     pub token:LifetimeToken, pub(crate) id:Int, pub(crate) fragment:Fragment<LiveFractions>, pub(crate) recovery:Option<T>,
 }
 pub struct CloneQuota {resource:Resource<Option<Excl<()>>>}
-pub struct Receipt {fragment:Fragment<Option<Ag<bool>>>,left:bool}
+/// Bounded outcome credit: at most one nonlast and one last event in this
+/// one-clone probe. This diagnostic credit is separate from physical fractions.
+pub struct Receipt {fragment:Fragment<Option<Ag<bool>>>,left:bool,credit:Resource<Option<Excl<()>>>}
 impl Receipt {#[logic] pub fn left(self)->bool {self.left}}
 type Publication<T>=Option<Ag<(Int,AtView<Option<T>>)>>;
 
@@ -85,7 +87,8 @@ impl<T:RecoveryPayload> Pending<T> {
 }
 impl Receipt {
     #[logic] pub fn valid<T:RecoveryPayload>(self,p:<State<T> as Protocol>::Public,last:bool)->bool {pearlite! {
-        self.fragment.id()==if self.left {p.6}else{p.7} && self.fragment@==Some(Ag(last))
+        self.fragment.id()==if self.left {p.6}else{p.7} && self.fragment@==Some(Ag(last)) &&
+        self.credit.id()==if last {p.8}else{p.9} && self.credit@==Some(Excl(()))
     }}
 }
 #[requires(ticket.valid(*p))]
@@ -107,10 +110,11 @@ pub struct State<T:RecoveryPayload> {
     recovery:Option<AtView<Option<T>>>, withdrawn:bool,
     publication:Authority<Publication<T>>,
     left_done:Authority<Option<Ag<bool>>>,right_done:Authority<Option<Ag<bool>>>,
+    last_credit:Resource<Option<Excl<()>>>,nonlast_credit:Resource<Option<Excl<()>>>,
 }
 impl<T:RecoveryPayload> Protocol for State<T> {
-    type Public=(ModelAtomic,Id,Id,Lifetime,T::Metadata,Id,Id,Id);
-    #[logic] fn public(self)->Self::Public {(*self.own.ward(),self.alive.id(),self.quota.id(),self.lifetime,*self.expected,self.publication.id(),self.left_done.id(),self.right_done.id())}
+    type Public=(ModelAtomic,Id,Id,Lifetime,T::Metadata,Id,Id,Id,Id,Id);
+    #[logic] fn public(self)->Self::Public {(*self.own.ward(),self.alive.id(),self.quota.id(),self.lifetime,*self.expected,self.publication.id(),self.left_done.id(),self.right_done.id(),self.last_credit.id(),self.nonlast_credit.id())}
     #[logic(prophetic)] fn protocol(self)->bool {pearlite! {
         1<=self.next && self.next<=2 && fm::ids_bounded(self.alive@,self.next) &&
         self.alive@.len()<=self.next &&
@@ -121,6 +125,8 @@ impl<T:RecoveryPayload> Protocol for State<T> {
         (self.quota@ == if self.next==1 {None}else{Some(Excl(()))}) &&
         (self.withdrawn == (self.alive@.len()==0)) &&
         ((self.pool==None)==self.withdrawn) &&
+        self.last_credit@==(if self.withdrawn {None}else{Some(Excl(()))}) &&
+        self.nonlast_credit@==(if self.left_done@==Some(Ag(false)) || self.right_done@==Some(Ag(false)) {None}else{Some(Excl(()))}) &&
         (self.pool!=None ==> self.pool.unwrap_logic().lft()==self.lifetime &&
             self.pool.unwrap_logic().frac().to_real()+fm::sum_prefix(self.alive@,self.next)==Real::from_int(1)) &&
         ((self.left_done@==None)==self.alive@.contains(0)) &&
@@ -212,7 +218,9 @@ impl<T:RecoveryPayload> State<T> {
             let state=State{own,first:latest.into_ghost().into_inner(),latest:latest.into_ghost().into_inner(),
                 alive,next:Int::new(1).into_inner(),quota:empty,lifetime:lifetime.into_ghost().into_inner(),pool:Some(pool),expected,
                 recovery:None,withdrawn:false,publication:Authority::alloc().into_inner(),
-                left_done:Authority::alloc().into_inner(),right_done:Authority::alloc().into_inner()};
+                left_done:Authority::alloc().into_inner(),right_done:Authority::alloc().into_inner(),
+                last_credit:Resource::alloc(snapshot!(Some(Excl(())))).into_inner(),
+                nonlast_credit:Resource::alloc(snapshot!(Some(Excl(())))).into_inner()};
             (state,(ticket,CloneQuota{resource:quota}))
     
         
@@ -301,7 +309,8 @@ impl<T:RecoveryPayload> State<T> {
             let last:Snapshot<bool>=snapshot!(c.val_load()==1usize);
             let fragment=if id==Int::new(0).into_inner() {s.left_done.add_fragment(snapshot!(Some(Ag(*last))))}
                 else {s.right_done.add_fragment(snapshot!(Some(Ag(*last))))};
-            let receipt=Receipt{fragment,left:id==Int::new(0).into_inner()};
+            let credit=if last.into_ghost().into_inner() {s.last_credit.take()}else{s.nonlast_credit.take()};
+            let receipt=Receipt{fragment,left:id==Int::new(0).into_inner(),credit};
             if last.into_ghost().into_inner() {
                 proof_assert!({empty_live_map(s.alive@);true});
                 proof_assert!({fm::empty_prefix(s.next);true});
@@ -354,9 +363,8 @@ pub struct Registry<T:RecoveryPayload> {atomic:EventAtomic<State<T>>}
 impl<T:RecoveryPayload> Registry<T> {
     #[logic] pub fn public(self)-><State<T> as Protocol>::Public {self.atomic.public()}
     #[logic] fn valid(self)->bool {self.public().0==self.atomic.model()}
-    #[logic] fn receipt(self,r:Receipt,last:bool)->bool {pearlite! {
-        r.fragment.id()==if r.left {self.public().6}else{self.public().7} && r.fragment@==Some(Ag(last))
-    }}
+    #[logic] fn receipt(self,r:Receipt,last:bool)->bool {r.valid::<T>(self.public(),last)}
+
     #[requires(payload.wellformed())]
     #[requires(full.frac()==PositiveReal::from_int(1))]
     #[ensures(result.0.valid())]
@@ -413,11 +421,22 @@ impl<T:RecoveryPayload> Registry<T> {
     #[requires(a.left()!=b.left())]
     #[ensures(a_last!=b_last)]
     pub fn finish(&self,a_last:bool,a:Ghost<Receipt>,b_last:bool,b:Ghost<Receipt>) {
-        self.atomic.acquire(ghost! {|s:&mut State<T>,_:&Committer<ModelAtomic,usize,Acquire,NoStore>| {
-            let a=a.into_inner();let b=b.into_inner();
-            if a.left {s.left_done.frag_lemma(&a.fragment);s.right_done.frag_lemma(&b.fragment);}
-            else {s.right_done.frag_lemma(&a.fragment);s.left_done.frag_lemma(&b.fragment);}
-            proof_assert!(a_last!=b_last);
-        }});
+        reconcile::<T>(snapshot!(self.public()),a_last,a,b_last,b);
     }
+}
+
+/// Pure bounded reconciliation. No native load, field access, or capability
+/// recovery occurs here; the two affine outcome credits cannot have one class.
+#[check(ghost)]
+#[requires(a.valid::<T>(*public,a_last) && b.valid::<T>(*public,b_last))]
+#[ensures(a_last!=b_last)]
+pub fn reconcile<T:RecoveryPayload>(public:Snapshot<<State<T> as Protocol>::Public>,
+    a_last:bool,a:Ghost<Receipt>,b_last:bool,b:Ghost<Receipt>) {
+    let _checked=ghost! {
+        let mut a=a.into_inner();let b=b.into_inner();
+        if a_last==b_last {
+            a.credit.valid_op_lemma(&b.credit);
+            proof_assert!(false);
+        }
+    };
 }

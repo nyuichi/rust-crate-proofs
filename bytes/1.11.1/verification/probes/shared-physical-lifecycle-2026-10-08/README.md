@@ -4,7 +4,7 @@ This isolated probe uses the current physical B1/B4/B3 primitives on a real Vec
 allocation. It is not a replacement public buffer API and does not yet prove
 original Bytes::clone or automatic Drop.
 
-The latest positive gate proves 73 files. The B caller starts the actual native
+The latest positive gate proves 74 files. The B caller starts the actual native
 counter at one, consumes a constructor-issued affine quota for one Relaxed clone,
 and reads the entire original sequence through both lifetime-gated descriptors.
 It supports both retirement orders. The Recovery/EndBorrow bundle stays in the
@@ -29,13 +29,19 @@ them to Shared.ref_cnt without allocating a parallel counter. `Retiring` has a
 body-proved affine-token split/rejoin interface for scoped control-field access.
 The owning Registry in this probe is only the isolated execution harness.
 
-The caller still makes an extra diagnostic Acquire observation to combine two
-completion receipts and prove XOR. Original release integration must perform
-that observation inside its existing last-owner Acquire, or prove it from the
-returned affine receipt facts; the extra load is not attributed to Bytes.
-Historical A41 remains a fixed-two component with parent-held recovery and is
-preserved separately in its exact archives. B-specific rejection controls are
-pending; the A controls below retain their original scope.
+B's final receipt reconciliation is ghost-only and can run after control-block
+cleanup: the State owns one exclusive nonlast outcome credit and one exclusive
+last outcome credit. Each native Release hands out the credit matching its old
+value. Two actual receipts with equal last flags would hold incompatible credits
+at the same resource ID, so body-checked RA validity proves XOR. This finite
+credit pair belongs only to the one-clone experiment; arbitrary handle-count
+accounting remains a separate obligation. Physical recovery still requires the
+actual final Acquire and full lifetime fraction; credits grant no permissions.
+
+Historical A41 remains a fixed-two component with parent-held recovery and an
+extra diagnostic Acquire, preserved separately in its exact archives. B73's
+missing-Acquire control rejects the Pending recovery precondition. Final B74
+controls are pending; A controls below retain their original scope.
 
 ## Reclaimable read authority
 
