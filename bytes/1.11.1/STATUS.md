@@ -11,6 +11,19 @@ subjective recovery in the parent and uses an extra diagnostic Acquire observati
 it does not prove original count1-to-clone or arbitrary last-thread ownership.
 The finite fraction-map accounting component separately proves15 bodies.
 
+The bounded successor now proves74 files with zero null proof leaves. It starts
+at count1, preserves the source ticket through one borrowed-source Relaxed clone,
+then permits either Release order. Subjective physical recovery moves with the
+first ticket and its Release publication; the last owner obtains it only after
+actual Acquire. No recovery owner remains in the parent. Two affine outcome
+receipts prove exactly one last result without any extra native access after
+cleanup. Actual field integration remains in progress; this component is not
+public Clone, automatic Drop or an arbitrary threaded lifecycle proof.
+Final misuse controls reject one-reader-still-live full recovery at one fraction
+VC, missing Acquire at one bounded view VC (plus3 historical A view VCs), duplicate
+tickets/clone quota with E0382, and a still-used B4 slice retirement with E0505.
+See the exact-current74 archive and root audit in the physical proof directory.
+
 The original-shaped Shared/Bytes constructor now proves34 files (114 leaves,
 including13 for its selected len<cap body). It constructs the actual core ref_cnt field,
 moves that field into the real Box<Shared>, and proves its atomic permission and
