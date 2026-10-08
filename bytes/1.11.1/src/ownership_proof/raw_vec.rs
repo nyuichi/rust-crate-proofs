@@ -928,6 +928,93 @@ pub(crate) fn detach_vec(
     )
 }
 
+/// B1-BOX: consume a global-allocator boxed byte slice into the same sealed
+/// physical resources as B1. Its allocation size is exactly the slice length;
+/// every byte is initialized. The real Box::into_raw call is retained. B1-BOX
+/// binds its returned sealed namespace to precisely that consumed allocation.
+/// No pure pointer observer is attached to Box: Creusot models Box by its
+/// pointee, so equal logical contents must not imply equal native pointers.
+///
+/// Pinned Std's Vec::into_boxed_slice preserves the content model, while its
+/// Box::into_raw contract supplies no physical resource postcondition. Only
+/// that standard allocation/permission interpretation is trusted here. Handle
+/// representation, pointer tags, vtable choice and bytes ownership laws are
+/// obligations of callers. Replace this boundary with a supported Box raw-parts
+/// resource contract while preserving the exact pointer/contents interface.
+#[trusted]
+#[ensures(result.0.invariant())]
+#[ensures(result.1@ == input@.len())]
+#[cfg_attr(creusot, ensures(
+    result.0.capacity() == input@.len()
+))]
+#[ensures(result.0.capacity() == result.2.inner_logic().0.capacity())]
+#[ensures(result.0.capacity() == result.2.inner_logic().1.capacity())]
+#[ensures(result.0.capacity() >= input@.len())]
+#[ensures(result.2.inner_logic().0.invariant())]
+#[ensures(result.2.inner_logic().1.invariant())]
+#[ensures(result.2.inner_logic().0.namespace() == result.0.namespace())]
+#[ensures(result.2.inner_logic().1.namespace() == result.0.namespace())]
+#[ensures(result.2.inner_logic().0.namespace() == result.2.inner_logic().1.resource_id())]
+#[ensures(result.2.inner_logic().1.lo() == 0)]
+#[ensures(result.2.inner_logic().1.hi() == result.0.capacity())]
+#[ensures(forall<index: Int> 0 <= index && index < result.0.capacity() ==>
+    result.2.inner_logic().1.slot(index) ==
+        if index < input@.len() { Some(Some(input@[index])) } else { Some(None) })]
+pub(crate) fn detach_boxed_slice(
+    input: alloc::boxed::Box<[u8]>,
+) -> (RawAllocation, usize, Ghost<(Recovery, PhysicalRegion)>) {
+    let input_model = snapshot!(input@);
+    let len = input.len();
+    let capacity = len;
+    let base = alloc::boxed::Box::into_raw(input) as *mut u8;
+    // SAFETY: Box::into_raw returns a non-null pointer, including an empty
+    // boxed slice. No owner remains alongside the consumed physical authority.
+    let base = unsafe { NonNull::new_unchecked(base) };
+
+    // The logical constructor defines the exact model map; B1 is the sole
+    // physical interpretation connecting it to the allocation.
+    let slots_value: Snapshot<SlotMap> = snapshot! {
+        slots_from_vec(*input_model, capacity@)
+    };
+    let empty_slots: Snapshot<SlotMap> = snapshot!(FMap::empty());
+    let region_value: Snapshot<KernelRA> = snapshot!((None, *slots_value));
+    let recovery_value: Snapshot<KernelRA> = snapshot!((Some(Excl(())), FMap::empty()));
+    let allocation_value: Snapshot<KernelRA> = snapshot!((Some(Excl(())), *slots_value));
+    ghost! {
+        map_compose_eq(empty_slots, slots_value, slots_value);
+        proof_assert!((*recovery_value).op(*region_value) == Some(*allocation_value));
+        proof_assert!(KernelRA::incl_eq_op(*recovery_value, *region_value, *allocation_value));
+    };
+
+    let binding: Ghost<(Id, (Recovery, PhysicalRegion))> = ghost! {
+        let allocation = Resource::alloc(allocation_value).into_inner();
+        let (recovery_resource, region_resource) =
+            allocation.split(recovery_value, region_value);
+        let namespace = region_resource.id_ghost();
+        let capacity_int: Int = *Int::new(capacity as i128);
+        let descriptor = AllocationDesc { capacity: capacity_int, namespace };
+        let recovery = Recovery {
+            resource: recovery_resource,
+            descriptor,
+            _not_objective: NotObjective {},
+        };
+        let ledger = OwnedRegion::from_model_ledger(0int, capacity_int, region_resource);
+        let region = PhysicalRegion {
+            ledger,
+            descriptor,
+            _not_objective: NotObjective {},
+        };
+        (namespace, (recovery, region))
+    };
+    let (namespace, capabilities) = binding.split();
+
+    (
+        RawAllocation { base, capacity, namespace, _not_objective: NotObjective {} },
+        len,
+        capabilities,
+    )
+}
+
 /// Rebuild the original Vec from a complete physical region and its Recovery.
 ///
 /// # Safety

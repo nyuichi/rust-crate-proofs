@@ -1,5 +1,38 @@
 # bytes 1.11.1 status
 
+## Full-domain constructor experiment — archived label 2026-10-09
+
+The actual From<Vec<u8>> and From<Box<[u8]>> refinements now have no input
+precondition in the constructor gate. A Ghost representation sum covers Shared,
+PromotableRaw and Static with one exact-content model. The original len==capacity
+Vec-to-Box optimization, empty/static path and both pointer-parity branches are
+preserved. Actual constructor/read bodies and arbitrary-input callers prove
+21 files / 153 actual prover leaves / zero nulls, with both From refinements
+included and no constructor target excluded. This is a bounded changed-premise
+experiment under AE, not whole-crate admission or a disconnected API completion.
+
+B1-BOX is an explicit generic physical TCB for the consumed Box allocation,
+exact pointer/provenance, initialized contents and affine recovery/access
+resources. Tag/null/table reification and the native read adapter remain explicit
+TCB. No pure Box-content-to-pointer observer is admitted. The constructor sum
+has no promotable Clone, cleanup or automatic Drop theorem.
+
+The existing actual Shared gate was replayed against the changed proof-only
+source: 17 files / 189 prover leaves / zero nulls. Its new archive is separate
+from historical final6 (17/267/0); the leaf decomposition is not relabeled.
+Default 1,014 non-doc tests passed; the initial doc command could not start
+rustdoc, then the pinned rustdoc rerun passed all 246 doc tests. No-default
+library checking and three native B1-BOX tests pass. See the constructor probe
+README, its immutable archives and `verification/constructor-native-source-2026-10-09/`.
+Artifact labels retain 2026-10-09; execution occurred 2026-10-08 UTC.
+
+The complete target remains BLOCKED. AF's actual Std/example review found no
+sound complete issuance capability compatible with Clone(&self). All-known
+handles retired does not rule out an unseen live owner at the opaque event
+boundary. Automatic Drop still erases caller-visible effects in pinned Creusot.
+Promotion/Clone/cleanup for the representation sum and the remaining API are
+also not integrated. AD's frozen methods are not rerun without a changed premise.
+
 ## Guarded native increment — 2026-10-08 UTC
 
 All three native increment paths now check the expected count before a

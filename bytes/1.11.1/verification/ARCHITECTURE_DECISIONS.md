@@ -706,3 +706,67 @@ uniform content/view contract, then prove the existing len==capacity
 promotable/empty From branch. Preserve the existing Shared lifecycle interface
 and its strong constructor/Clone/read contracts. Do not migrate broad APIs
 before the branch-aware admission and complete-history capability are validated.
+
+
+## D2026-10-09-AE — Full-domain constructor representation sum
+
+Changed premise from AD's Shared-only From refinement: a proof-only sum carries
+the actual Shared, raw promotable, or static representation and one unconditional
+content/view contract. From<Vec<u8>> has no input precondition in this gate.
+The production len==capacity optimization and both pointer-parity branches
+remain intact. This is a bounded constructor/read experiment; it does not
+assert promotable Clone, issuance completeness, or architecture admission.
+
+The Shared constructor consumes the existing strong sparse protocol unchanged.
+The equal-capacity branch calls the actual Vec::into_boxed_slice, whose pinned
+Std contract preserves contents, before the actual Box::into_raw operation.
+B1-BOX in ownership_proof/raw_vec.rs supplies only the missing generic physical
+interpretation: exact consumed allocation, capacity equal to slice length, sealed
+affine Recovery and full initialized PhysicalRegion. Vtable choice, tag binding
+and representation validity remain body-proof obligations.
+
+Pinned Std analogue: std/ptr.rs Perm::from_box (lines557–565 in canonical
+public final6's private Std inputs) is trusted, check(terminates), erased to
+Box::into_raw, and returns a pointer paired with an owning Perm. Box::into_raw
+itself has no usable ownership postcondition; Box::from_raw requires false.
+B1-BOX may be replaced by supported boxed raw-parts contracts preserving its
+resource interface. Its allocator/provenance/layout/initialization adequacy
+remains an explicit physical TCB assumption, independent of caller proof.
+
+Astra's pre-proof review caught and removed a pure Box-to-pointer observer.
+The exact pinned Creusot backend/ty.rs lowers Box<T> to T, so equal logical
+contents would otherwise imply equal native addresses. The revised boundary
+pairs its returned native pointer with a fresh affine namespace instead.
+Namespace freshness never implies fresh numerical addresses. Empty boxes have
+no allocated block; capacity-zero physical cleanup must be a no-op. Preserve
+this counterexample and the distinction from opaque Vec's pointer observer.
+
+Acceptance: full From trait refinement is included; arbitrary-input and
+branch-specific representative callers prove exact reads, including empty
+Vec and empty spare-capacity inputs. Both parity-dependent constructors are
+proved symbolically. Missing ownership, wrong table/tag or wrong contents must
+be rejected by semantic controls. Capture exact source/tasks/configuration and
+private Std before reporting success. Positive constructor proof is 21 files / 153 prover leaves / zero nulls,
+including both unrestricted From refinements. Semantic controls and independent
+archive audit are recorded in the probe README; full architecture admission
+remains blocked. Use the existing two/three-failure restructuring budget.
+
+## D2026-10-09-AF — Closed-client capability review
+
+Read-only review of the actual pinned private Std and upstream examples supplies
+no changed premise for reopening AD's complete-client theorem. Auth fragments
+prove inclusion, not exhaustive issuance. LifetimeToken::end needs the full
+fraction; FullBorrow/EndBorrow do not derive that fraction from opaque events.
+Atomic::into_inner requires full Perm and bounds all timestamps, rather than
+recovering exclusive access from the caller's handle list. logically_atomic_faa
+retains one callback over CAS retries, not all intervening calls. Arc::clone
+assumes functional equality and does not prove native reclamation history.
+
+A generic closure/history boundary needs a concrete scope/effect or accessor
+discipline connecting every completed call to the complete event log, compatible
+with actual Clone(&self). A log lower bound or trusted close() claiming no unseen
+owners is insufficient. Before reopening, require a native interpretation, a
+Std/tool analogue or separately justified capability, and distinguishing escaped
+clone, unfinished callback and forgotten live-handle controls. No such primitive
+is implemented or admitted by this review; AD remains frozen. Automatic Drop
+effect lowering and the other full-target obligations also remain open.

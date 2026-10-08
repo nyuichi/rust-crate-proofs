@@ -1,18 +1,3 @@
-// ORIGINAL_SHARED_BEGIN bytes_clone_impl
-impl Clone for Bytes {
-    #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_bytes() == self.original_shared_bytes()))]
-    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.ptr == self.ptr && result.len == self.len))]
-    #[inline]
-    fn clone(&self) -> Bytes {
-        #[cfg(all(creusot, bytes_original_shared_gate))]
-        { original_shared_clone(self) }
-        #[cfg(not(all(creusot, bytes_original_shared_gate)))]
-        unsafe { (self.vtable.clone)(&self.data, self.ptr, self.len) }
-    }
-}
-// ORIGINAL_SHARED_END bytes_clone_impl
 // ORIGINAL_SHARED_BEGIN bytes_from_vec_impl
 impl From<Vec<u8>> for Bytes {
 // ORIGINAL_FREEZE_BEGIN bytes_from_vec
@@ -103,26 +88,109 @@ impl From<Vec<u8>> for Bytes {
 }
 
 // ORIGINAL_SHARED_END bytes_from_vec_impl
-impl Bytes {
-// ORIGINAL_SHARED_BEGIN bytes_cleanup
-    /// Releases this handle explicitly. The backing storage is reclaimed when
-    /// its last owner releases it.
-    ///
-    /// This calls the same destructor as `Drop`, exactly once.
-    #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
-    pub fn cleanup(self) {
-        #[cfg(all(creusot, bytes_original_shared_gate))]
-        { original_shared_cleanup(self); }
-        #[cfg(not(all(creusot, bytes_original_shared_gate)))]
+// ORIGINAL_CONSTRUCTOR_BEGIN bytes_from_box_impl
+impl From<Box<[u8]>> for Bytes {
+    #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(result.original_bytes_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(result.original_bytes_content() == slice@))]
+    fn from(slice: Box<[u8]>) -> Bytes {
+        #[cfg(all(creusot, bytes_original_constructor_gate))]
+        { return original_bytes_from_box(slice); }
+        #[cfg(not(all(creusot, bytes_original_constructor_gate)))]
         {
-            let mut this = ManuallyDrop::new(self);
-            let ptr = this.ptr;
-            let len = this.len;
-            let callback = this.vtable.drop;
-            unsafe { callback(&mut this.data, ptr, len) }
+        // Box<[u8]> doesn't contain a heap allocation for empty slices,
+        // so the pointer isn't aligned enough for the KIND_VEC stashing to
+        // work.
+        if slice.is_empty() {
+            return Bytes::new();
+        }
+
+        let len = slice.len();
+        let ptr = Box::into_raw(slice) as *mut u8;
+
+        if ptr as usize & 0x1 == 0 {
+            let data = ptr_map(ptr, |addr| addr | KIND_VEC);
+            Bytes {
+                #[cfg(all(creusot, bytes_original_freeze_gate))]
+                original_frozen: None,
+                ptr,
+                len,
+                data: AtomicPtr::new(data.cast()),
+                vtable: &PROMOTABLE_EVEN_VTABLE,
+            }
+        } else {
+            Bytes {
+                #[cfg(all(creusot, bytes_original_freeze_gate))]
+                original_frozen: None,
+                ptr,
+                len,
+                data: AtomicPtr::new(ptr.cast()),
+                vtable: &PROMOTABLE_ODD_VTABLE,
+            }
+        }
         }
     }
-    // ORIGINAL_SHARED_END bytes_cleanup
+}
+// ORIGINAL_CONSTRUCTOR_END bytes_from_box_impl
+impl Bytes {
+// ORIGINAL_CONSTRUCTOR_BEGIN bytes_new
+    #[inline]
+    #[cfg(not(any(all(loom, test), all(creusot, bytes_original_constructor_gate))))]
+    pub const fn new() -> Self {
+        // Make it a named const to work around
+        // "unsizing casts are not allowed in const fn"
+        const EMPTY: &[u8] = &[];
+        Bytes::from_static(EMPTY)
+    }
+
+    /// Creates a new empty `Bytes`.
+    #[cfg(all(loom, test, not(all(creusot, bytes_original_constructor_gate))))]
+    pub fn new() -> Self {
+        const EMPTY: &[u8] = &[];
+        Bytes::from_static(EMPTY)
+    }
+
+    #[cfg(all(creusot, bytes_original_constructor_gate))]
+    #[ensures(result.original_bytes_valid())]
+    #[ensures(result.original_bytes_content().len() == 0)]
+    pub fn new() -> Self {
+        const EMPTY: &[u8] = &[];
+        Bytes::from_static(EMPTY)
+    }
+    // ORIGINAL_CONSTRUCTOR_END bytes_new
+// ORIGINAL_CONSTRUCTOR_BEGIN bytes_from_static
+    #[inline]
+    #[cfg(not(any(all(loom, test), all(creusot, bytes_original_constructor_gate))))]
+    pub const fn from_static(bytes: &'static [u8]) -> Self {
+        Bytes {
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            original_frozen: None,
+            ptr: bytes.as_ptr(),
+            len: bytes.len(),
+            data: AtomicPtr::new(ptr::null_mut()),
+            vtable: &STATIC_VTABLE,
+        }
+    }
+
+    /// Creates a new `Bytes` from a static slice.
+    #[cfg(all(loom, test, not(all(creusot, bytes_original_constructor_gate))))]
+    pub fn from_static(bytes: &'static [u8]) -> Self {
+        Bytes {
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            original_frozen: None,
+            ptr: bytes.as_ptr(),
+            len: bytes.len(),
+            data: AtomicPtr::new(ptr::null_mut()),
+            vtable: &STATIC_VTABLE,
+        }
+    }
+
+    #[cfg(all(creusot, bytes_original_constructor_gate))]
+    #[ensures(result.original_bytes_valid())]
+    #[ensures(result.original_bytes_content() == bytes@)]
+    pub fn from_static(bytes: &'static [u8]) -> Self {
+        original_bytes_from_static(bytes)
+    }
+    // ORIGINAL_CONSTRUCTOR_END bytes_from_static
 // ORIGINAL_SHARED_BEGIN bytes_as_slice
     #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
     #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result@ == self.original_shared_bytes()))]

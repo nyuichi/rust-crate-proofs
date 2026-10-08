@@ -87,6 +87,8 @@ pub struct Bytes {
     vtable: &'static Vtable,
     #[cfg(all(creusot, bytes_original_freeze_gate))]
     original_frozen: Option<OriginalFrozenProof>,
+    #[cfg(all(creusot, bytes_original_constructor_gate))]
+    original_bytes: creusot_std::prelude::Ghost<OriginalBytesProof>,
     #[cfg(all(creusot, bytes_original_shared_gate))]
     original_shared: creusot_std::prelude::Ghost<OriginalSharedProof>,
 }
