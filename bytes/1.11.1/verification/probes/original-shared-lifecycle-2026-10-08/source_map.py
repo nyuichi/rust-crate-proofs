@@ -16,12 +16,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 SOURCE = ROOT / "src" / "bytes.rs"
+SHARED_RECORD_SOURCE = ROOT / "src" / "bytes" / "shared_record.rs"
 ATOMIC_ALIAS_SOURCE = ROOT / "src" / "loom.rs"
 BORROWED_CORE_SOURCE = ROOT / "src" / "ownership_proof" / "raw_vec.rs"
 BOX_HELPER_SOURCE = ROOT / "src" / "ownership_proof" / "boxed_alignment.rs"
 OWNED_REGION_SOURCE = ROOT / "src" / "ownership_proof" / "owned_region.rs"
 ALLOCATION_OPS_SOURCE = ROOT / "src" / "allocation_ops.rs"
 PROBE_DIR = Path(__file__).parent
+PROBE_ADAPTER_SOURCE = PROBE_DIR / "src" / "source_adapter.rs"
 BOUNDED_PROBE_DIR = PROBE_DIR.parent / "shared-physical-lifecycle-2026-10-08"
 MANIFEST = Path(__file__).with_name("source_map.json")
 
@@ -53,10 +55,10 @@ def blocks(source: str) -> dict[str, tuple[str, int, int]]:
             "pub struct Bytes {\n",
             "\n}\n\npub(crate) struct Vtable",
         ),
-        "shared_record": line_block(
+        "shared_record_production_include": line_block(
             source,
-            "struct Shared {\n",
-            "\n}\n\nimpl Drop for Shared",
+            'include!("bytes/shared_record.rs");',
+            "\n",
         ),
         "shared_drop": line_block(
             source,
@@ -93,6 +95,13 @@ def blocks(source: str) -> dict[str, tuple[str, int, int]]:
 
 def make_manifest() -> dict[str, object]:
     source = SOURCE.read_text()
+    shared_record = SHARED_RECORD_SOURCE.read_text()
+    probe_adapter = PROBE_ADAPTER_SOURCE.read_text()
+    probe_shared_record_include, probe_include_first, probe_include_last = line_block(
+        probe_adapter,
+        'include!("../../../../src/bytes/shared_record.rs");',
+        "\n",
+    )
     atomic_source = ATOMIC_ALIAS_SOURCE.read_text()
     atomic_alias, atomic_first, atomic_last = line_block(
         atomic_source,
@@ -107,6 +116,18 @@ def make_manifest() -> dict[str, object]:
     result: dict[str, object] = {
         "source": "src/bytes.rs",
         "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
+        "shared_record_source": {
+            "source": "src/bytes/shared_record.rs",
+            "first_line": 1,
+            "last_line": len(shared_record.splitlines()),
+            "sha256": hashlib.sha256(shared_record.encode()).hexdigest(),
+        },
+        "shared_record_probe_include": {
+            "source": "probe/src/source_adapter.rs",
+            "first_line": probe_include_first,
+            "last_line": probe_include_last,
+            "sha256": hashlib.sha256(probe_shared_record_include.encode()).hexdigest(),
+        },
         "selected_native_atomic_alias": {
             "source": "src/loom.rs",
             "configuration": "not(all(test, loom)); not(feature = extra-platforms)",
@@ -131,6 +152,7 @@ def make_manifest() -> dict[str, object]:
     }
     for name, path in {
         "src/ownership_proof/raw_vec.rs": BORROWED_CORE_SOURCE,
+        "src/bytes/shared_record.rs": SHARED_RECORD_SOURCE,
         "src/ownership_proof/boxed_alignment.rs": BOX_HELPER_SOURCE,
         "src/ownership_proof/owned_region.rs": OWNED_REGION_SOURCE,
         "src/allocation_ops.rs": ALLOCATION_OPS_SOURCE,
@@ -163,6 +185,12 @@ def make_manifest() -> dict[str, object]:
             "last_line": last,
             "sha256": hashlib.sha256(block.encode()).hexdigest(),
         }
+    result["blocks"]["shared_record_definition"] = {
+        "source": "src/bytes/shared_record.rs",
+        "first_line": 1,
+        "last_line": len(shared_record.splitlines()),
+        "sha256": hashlib.sha256(shared_record.encode()).hexdigest(),
+    }
     return result
 
 

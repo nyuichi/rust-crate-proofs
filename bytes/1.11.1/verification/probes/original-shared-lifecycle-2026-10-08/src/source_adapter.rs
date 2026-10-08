@@ -27,12 +27,7 @@ use creusot_std::{
 use crate::{boxed_alignment, bounded, field_event, pointer_event, raw_vec};
 use bounded::RecoveryPayload as _;
 
-/// Exact production field order and field types from bytes.rs::Shared.
-pub(crate) struct Shared {
-    pub(crate) buf: *mut u8,
-    pub(crate) cap: usize,
-    pub(crate) ref_cnt: AtomicUsize,
-}
+include!("../../../../src/bytes/shared_record.rs");
 
 impl field_event::AtomicField for Shared {
     #[cfg_attr(creusot, ensures(field_event::atomic_model(result) == self.field_model()))]

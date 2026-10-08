@@ -16,6 +16,10 @@ with an independent root receipt. Historical misuse controls retain their exact
 The original-source-correspondent Shared/Bytes leaf now proves44 files with
 zero nulls (280 actual prover leaves), including the end-to-end
 constructor/clone/read/cleanup driver.
+The concrete Shared declaration is now included from one production source
+file by both production and probe. The matching post-extraction run retains
+44 files/280 leaves/zero nulls; default1011/no-default-library/portable2 native
+checks pass. Its canonical archive is shared-record-source-positive-2026-10-08.tar.gz.
 The selected `Vec` len<cap constructor creates the
 actual three-field Shared and four-field Bytes records. The proof follows actual
 `Bytes.data` to the control block, clones through `&self`, keeps a physical read

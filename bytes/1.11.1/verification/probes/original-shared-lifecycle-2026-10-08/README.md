@@ -73,3 +73,18 @@ positive source archive. Root's byte-audit receipts are
 
 The earlier 43-file positive snapshot and 15-null/four-null diagnostic
 snapshots remain immutable historical evidence and are not the current result.
+
+## Shared declaration now comes from production source
+
+Both production bytes.rs and this adapter include src/bytes/shared_record.rs,
+so the concrete Shared declaration has one maintained source. Its fields/order
+and selected atomic alias are preserved; ref_cnt is crate-visible for the
+existing transparent field-model projection. The Drop bodies remain separate
+and unchanged. The adapter still has separate Bytes/Vtable scaffolding.
+
+The matching post-extraction proof remains44 files/280 leaves/zero nulls.
+Native default1011 tests, no-default library check and2 extra-platforms allocator
+tests pass. Current canonical evidence: evidence/shared-record-source-positive-2026-10-08.tar.gz
+and evidence/root-shared-record-source-audit.json. The earlier C44 driver and
+its controls remain immutable evidence for their exact pre-extraction source.
+This declaration reuse does not establish public Clone or automatic Drop.

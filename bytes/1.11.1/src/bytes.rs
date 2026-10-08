@@ -1494,12 +1494,7 @@ unsafe fn free_boxed_slice(buf: *mut u8, offset: *const u8, len: usize) {
 
 // ===== impl SharedVtable =====
 
-struct Shared {
-    // Holds arguments to dealloc upon Drop, but otherwise doesn't use them
-    buf: *mut u8,
-    cap: usize,
-    ref_cnt: AtomicUsize,
-}
+include!("bytes/shared_record.rs");
 
 impl Drop for Shared {
     fn drop(&mut self) {
