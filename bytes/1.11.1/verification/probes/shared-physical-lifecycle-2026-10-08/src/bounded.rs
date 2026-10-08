@@ -57,6 +57,7 @@ pub struct Pending<T:RecoveryPayload> {
     sealed:AtView<Option<T>>, full:LifetimeToken, fragment:Fragment<Publication<T>>,
 }
 impl<T:RecoveryPayload> Pending<T> {
+    #[logic] pub fn acquired(self,current:SyncView)->bool {self.sealed.view()<=current}
     #[logic] pub fn token(self)->LifetimeToken {self.full}
     #[check(ghost)]
     #[ensures(*result==self.token())]
@@ -71,7 +72,7 @@ impl<T:RecoveryPayload> Pending<T> {
         self.fragment@.unwrap_logic().0.0<=p.0.get_timestamp(current)
     }}
     #[check(ghost)]
-    #[requires(owned.valid(*p,*current) && owned.sealed.view()<=*current)]
+    #[requires(owned.valid(*p,*current) && owned.acquired(*current))]
     #[ensures(result.inner_logic().0.wellformed() && result.inner_logic().0.metadata()==p.4)]
     #[ensures(result.inner_logic().1.lft()==p.3 && result.inner_logic().1.frac()==PositiveReal::from_int(1))]
     pub fn recover(owned:Ghost<Self>,p:Snapshot<<State<T> as Protocol>::Public>,current:Ghost<SyncView>)->Ghost<(T,LifetimeToken)> {
@@ -93,7 +94,7 @@ impl Receipt {
 }
 #[requires(ticket.valid(*p))]
 #[ensures(result.1.inner_logic().valid(*p,*result.0))]
-#[ensures(result.1.inner_logic().id()==ticket.id)]
+#[ensures(result.1.inner_logic().id()==ticket.id())]
 pub fn prepare<T:RecoveryPayload>(ticket:Ghost<Ticket<T>>,p:Snapshot<<State<T> as Protocol>::Public>)
     ->(Ghost<SyncView>,Ghost<Retiring<T>>) {
     let (rest,payload)=ghost! {let t=ticket.into_inner();((t.id,(t.token,t.fragment)),t.recovery)}.split();
@@ -153,6 +154,7 @@ impl<T:RecoveryPayload> EventProtocol for State<T> {
     #[logic] fn atomic(self)->ModelAtomic {*self.own.ward()}
 }
 impl<T:RecoveryPayload> Ticket<T> {
+    #[logic(open(crate))] pub fn id(self)->Int {self.id}
     #[logic(open(crate),prophetic)] pub fn valid(self,public:<State<T> as Protocol>::Public)->bool {pearlite! {
         0<=self.id && self.id<2 && self.fragment.id()==public.1 &&
         self.fragment@==FMap::singleton(self.id,Excl(self.token.frac())) && self.token.lft()==public.3 &&
@@ -195,7 +197,8 @@ impl<T:RecoveryPayload> State<T> {
     #[requires(own.val()==FMap::singleton((*own.ward()).get_timestamp(*current),(1usize,*current)))]
     #[ensures(result.inner_logic().0.protocol() && result.inner_logic().0.atomic()==*own.ward())]
     #[ensures(result.inner_logic().0.public().3==full.lft() && result.inner_logic().0.public().4==payload.metadata())]
-    #[ensures(result.inner_logic().1.0.valid(result.inner_logic().0.public()) && result.inner_logic().1.0.id==0)]
+    #[ensures(result.inner_logic().1.0.valid(result.inner_logic().0.public()) && result.inner_logic().1.0.id()==0)]
+    #[ensures(result.inner_logic().1.0.token.frac().to_real()+result.inner_logic().1.0.token.frac().to_real()==Real::from_int(1))]
     #[ensures(result.inner_logic().1.1.valid(result.inner_logic().0.public().2))]
     pub fn initialize(own:Ghost<Perm<ModelAtomic>>,current:Snapshot<SyncView>,payload:Ghost<T>,full:Ghost<LifetimeToken>)
         ->Ghost<(Self,(Ticket<T>,CloneQuota))> {
@@ -235,7 +238,7 @@ impl<T:RecoveryPayload> State<T> {
     #[requires(if c.val_load()==usize::MAX {c.val_store()==0usize} else {c.val_store()@==c.val_load()@+1})]
     #[ensures((^s).protocol() && (^s).public()==s.public() && (^s).atomic()==s.atomic())]
     #[ensures((^c).shot_store() && c.hist_inv(^c))]
-    #[ensures(c.val_load()==1usize && source.id==0 && result.inner_logic().id==1 && result.inner_logic().valid(s.public()))]
+    #[ensures(c.val_load()==1usize && source.id()==0 && result.inner_logic().id()==1 && result.inner_logic().valid(s.public()))]
     #[ensures(**current<=^current)]
     pub fn on_clone(s:Ghost<&mut Self>,c:Ghost<&mut Committer<ModelAtomic,usize,Relaxed,Relaxed>>,
         source:Ghost<&Ticket<T>>,quota:Ghost<CloneQuota>,current:Ghost<&mut SyncView>,release:Ghost<ReleaseSyncView>)->Ghost<Ticket<T>> {
@@ -331,7 +334,7 @@ impl<T:RecoveryPayload> State<T> {
     #[requires(!c.shot_store() && c.ward()==s.atomic())]
     #[ensures((^s).protocol() && (^s).public()==s.public() && (^s).atomic()==s.atomic())]
     #[ensures(**current<=^current && pending.valid(s.public(),^current))]
-    #[ensures(pending.sealed.view()<=^current)]
+    #[ensures(pending.acquired(^current))]
     pub fn on_acquire(s:Ghost<&mut Self>,c:Ghost<&Committer<ModelAtomic,usize,Acquire,NoStore>>,
         pending:Ghost<&Pending<T>>,current:Ghost<&mut SyncView>)->Ghost<()> {
         ghost! {
@@ -370,6 +373,7 @@ impl<T:RecoveryPayload> Registry<T> {
     #[ensures(result.0.valid())]
     #[ensures(result.0.public().3==full.lft() && result.0.public().4==payload.metadata())]
     #[ensures(result.1.inner_logic().valid(result.0.public()))]
+    #[ensures(result.1.inner_logic().token.frac().to_real()+result.1.inner_logic().token.frac().to_real()==Real::from_int(1))]
     #[ensures(result.2.inner_logic().valid(result.0.public().2))]
     pub fn new(payload:Ghost<T>,full:Ghost<LifetimeToken>)->(Self,Ghost<Ticket<T>>,Ghost<CloneQuota>) {
         let mut current=ghost! {SyncView::new().into_inner()};
@@ -381,7 +385,7 @@ impl<T:RecoveryPayload> Registry<T> {
 
     #[requires(self.valid() && source.valid(self.public()) && quota.valid(self.public().2))]
     #[ensures(result.0==1usize && result.1.inner_logic().valid(self.public()))]
-    #[ensures(result.1.inner_logic().id==1 && source.id==0)]
+    #[ensures(result.1.inner_logic().id()==1 && source.id()==0)]
     pub fn clone_bounded(&self,source:Ghost<&Ticket<T>>,quota:Ghost<CloneQuota>)->(usize,Ghost<Ticket<T>>) {
         let mut current=ghost! {SyncView::new().into_inner()};
         let release=ghost! {ReleaseSyncView::new().into_inner()};
@@ -399,7 +403,7 @@ impl<T:RecoveryPayload> Registry<T> {
         result.1.inner_logic().unwrap_logic().1.lft()==self.public().3 &&
         result.1.inner_logic().unwrap_logic().1.frac()==PositiveReal::from_int(1))]
     #[ensures(self.receipt(result.2.inner_logic(),result.0))]
-    #[ensures(result.2.inner_logic().left()==(ticket.id==0))]
+    #[ensures(result.2.inner_logic().left()==(ticket.id()==0))]
     pub fn retire(&self,ticket:Ghost<Ticket<T>>)->(bool,Ghost<Option<(T,LifetimeToken)>>,Ghost<Receipt>) {
         let (mut current,input)=prepare(ticket,snapshot!(self.public()));
         let mut collected=ghost! {None::<Pending<T>>};
@@ -418,7 +422,6 @@ impl<T:RecoveryPayload> Registry<T> {
         } else {(false,ghost! {None},ghost! {receipt.into_inner().unwrap()})}
     }
     #[requires(self.valid() && self.receipt(a.inner_logic(),a_last) && self.receipt(b.inner_logic(),b_last))]
-    #[requires(a.left()!=b.left())]
     #[ensures(a_last!=b_last)]
     pub fn finish(&self,a_last:bool,a:Ghost<Receipt>,b_last:bool,b:Ghost<Receipt>) {
         reconcile::<T>(snapshot!(self.public()),a_last,a,b_last,b);
@@ -439,4 +442,14 @@ pub fn reconcile<T:RecoveryPayload>(public:Snapshot<<State<T> as Protocol>::Publ
             proof_assert!(false);
         }
     };
+}
+
+#[cfg(feature="negative_b_duplicate_ticket")]
+fn negative_duplicate_ticket<T:RecoveryPayload>(ticket:Ticket<T>)->(Ticket<T>,Ticket<T>) {(ticket,ticket)}
+
+#[cfg(feature="negative_b_quota_reuse")]
+#[requires(registry.valid() && source.valid(registry.public()) && quota.valid(registry.public().2))]
+fn negative_reuse_quota<T:RecoveryPayload>(registry:&Registry<T>,source:Ghost<Ticket<T>>,quota:Ghost<CloneQuota>) {
+    let _first=registry.clone_bounded(source.borrow(),quota);
+    let _second=registry.clone_bounded(source.borrow(),quota);
 }

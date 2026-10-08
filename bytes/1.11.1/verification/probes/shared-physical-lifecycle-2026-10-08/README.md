@@ -40,8 +40,9 @@ actual final Acquire and full lifetime fraction; credits grant no permissions.
 
 Historical A41 remains a fixed-two component with parent-held recovery and an
 extra diagnostic Acquire, preserved separately in its exact archives. B73's
-missing-Acquire control rejects the Pending recovery precondition. Final B74
-controls are pending; A controls below retain their original scope.
+missing-Acquire control rejects the Pending recovery precondition. The final
+current 74-file gate and controls are captured separately; A controls retain
+their original scope.
 
 ## Reclaimable read authority
 
@@ -88,9 +89,11 @@ algebras, FullBorrow/lifetime primitives, GhostShared, and AtView/Committer rule
 
 Run `./run-proof.sh` with elevated execution for Why3 sockets. It serializes on
 `/tmp/itoa-creusot-proof.lock`, rejects sc-drf, sets 1024 MiB, and uses one prover.
-Native: `cargo test --locked`. Controls use features `negative_no_acquire`,
-`negative_missing_ticket`, `negative_duplicate`, and `negative_live_read`; do not execute negative
-physical-recovery bodies natively.
+Native: `cargo test --locked`. B controls use `--features` with
+`negative_no_acquire`, `negative_b_premature`, `negative_b_duplicate_ticket`,
+`negative_b_quota_reuse`, or `negative_b_live_read`. Historical A controls use
+`negative_missing_ticket`, `negative_duplicate`, and `negative_live_read`.
+Do not execute negative physical-recovery bodies natively.
 
 `positive-conditional-40.tar.gz` is the earlier component with conditional
 cleanup only. `positive-exact-one-41.tar.gz` adds receipt-derived completion and
@@ -98,3 +101,18 @@ whole-slice equality. The latter captures all path-referenced physical sources
 and exact Std boundary snapshots. Earlier frontend diagnostics are preserved
 separately and do not count as proof VCs. Control and restored-positive outcomes
 are recorded in `RESULTS.json` once completed.
+
+The canonical source snapshot is `positive-b-current-74.tar.gz`: engine exit 0,
+74 Coma files and 74 proof trees with zero null leaves, native two tests passing.
+The final missing-Acquire control fails one B recovery obligation and three
+historical A obligations. The corrected premature-recovery control fails only
+the full-fraction requirement (32/33); its earlier two-null capture is retained
+as an interface diagnostic. Ticket duplication and quota reuse are Rust E0382
+frontend rejections. Retiring a ticket while its actual B4 slice remains used is
+a Rust E0505 rejection. These three frontend controls produce no Coma/VCs and
+are not counted as failed mathematical goals. Exact source versions, member
+hashes, and outcomes are recorded by `RESULTS.json` and `audit.py`.
+
+The archived Std files are exact boundary-source snapshots, not a claim that
+the complete private patched Std package is byte-identical to the upstream
+package. The reviewed generic rules remain explicit assumptions.

@@ -60,3 +60,42 @@ mod tests {
         }}}
     }
 }
+
+/// Expected VC failure: one actual cloned reader retires, but the remaining
+/// reader's half token cannot end the lifetime, including empty allocations.
+#[cfg(feature="negative_b_premature")]
+pub fn negative_one_reader_still_live(input:Vec<u8>) {
+    let (base,len,capacity,caps)=bound_ptr::detach_bound_vec(input);
+    let (recovery,region)=caps.split();
+    let lifetime=ghost! {LifetimeToken::new()};
+    let (full,end)=FullBorrow::new(region,snapshot!(lifetime.lft()));
+    let shared=ghost! {GhostShared::new(full).into_inner()};
+    let bundle=ghost! {Bundle{recovery:recovery.into_inner(),end:end.into_inner(),shared}};
+    let (registry,first,quota)=Registry::new(bundle,lifetime);
+    let (old,second)=registry.clone_bounded(first.borrow(),quota);
+    proof_assert!(old==1usize);
+    let _retired=registry.retire(second);
+    let (bundle,token)=ghost! {let t=first.into_inner();(t.recovery.unwrap(),t.token)}.split();
+    let dead=ghost! {token.into_inner().end()};
+    let (recovery,end)=ghost! {let b=bundle.into_inner();(b.recovery,b.end)}.split();
+    let region=ghost! {end.into_inner().get(dead.into_inner())};
+    unsafe {raw_vec::deallocate_bound_vec(base,capacity,ghost! {(recovery.into_inner(),region.into_inner())});}
+    // No native execution: the required full-fraction precondition must fail.
+}
+
+/// Expected borrow-check failure: a real B4 slice remains used after retirement.
+#[cfg(feature="negative_b_live_read")]
+pub fn negative_slice_outlives_ticket(input:Vec<u8>)->u8 {
+    let (base,len,capacity,caps)=bound_ptr::detach_bound_vec(input);
+    let (recovery,region)=caps.split();
+    let lifetime=ghost! {LifetimeToken::new()};
+    let (full,end)=FullBorrow::new(region,snapshot!(lifetime.lft()));
+    let shared=ghost! {GhostShared::new(full).into_inner()};
+    let bundle=ghost! {Bundle{recovery:recovery.into_inner(),end:end.into_inner(),shared}};
+    let (registry,first,quota)=Registry::new(bundle,lifetime);
+    let (old,second)=registry.clone_bounded(first.borrow(),quota);
+    proof_assert!(old==1usize);
+    let bytes=frozen::borrow_frozen(&base,len,shared,ghost! {&first.token});
+    let _retired=registry.retire(first);
+    if len==0 {bytes.len() as u8}else{bytes[0]}
+}
