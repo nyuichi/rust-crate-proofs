@@ -4,7 +4,7 @@ This isolated probe uses the current physical B1/B4/B3 primitives on a real Vec
 allocation. It is not a replacement public buffer API and does not yet prove
 original Bytes::clone or automatic Drop.
 
-The latest positive gate proves 74 files. The B caller starts the actual native
+The latest positive gate proves 75 files. The B caller starts the actual native
 counter at one, consumes a constructor-issued affine quota for one Relaxed clone,
 and reads the entire original sequence through both lifetime-gated descriptors.
 It supports both retirement orders. The Recovery/EndBorrow bundle stays in the
@@ -102,8 +102,9 @@ and exact Std boundary snapshots. Earlier frontend diagnostics are preserved
 separately and do not count as proof VCs. Control and restored-positive outcomes
 are recorded in `RESULTS.json` once completed.
 
-The canonical source snapshot is `positive-b-current-74.tar.gz`: engine exit 0,
-74 Coma files and 74 proof trees with zero null leaves, native two tests passing.
+The canonical source snapshot is `positive-b-live-peer-public-75.tar.gz`: engine
+exit 0, 75 Coma files and 75 proof trees with zero null leaves, native two tests
+passing. The controls below retain their exact B74 source versions.
 The final missing-Acquire control fails one B recovery obligation and three
 historical A obligations. The corrected premature-recovery control fails only
 the full-fraction requirement (32/33); its earlier two-null capture is retained
@@ -116,3 +117,12 @@ hashes, and outcomes are recorded by `RESULTS.json` and `audit.py`.
 The archived Std files are exact boundary-source snapshots, not a claim that
 the complete private patched Std package is byte-identical to the upstream
 package. The reviewed generic rules remain explicit assumptions.
+
+The B75 increment adds `State::on_release_with_live_peer`: an actual borrowed
+peer ticket is compared against the retiring ticket through stock fragment
+compatibility. Their distinct live registrations force count two. The helper
+delegates to `on_release` exactly once and proves this event is nonfinal. It
+adds no native operation and no trusted lastness law. Its proof-only peer
+argument belongs to the bounded diagnostic caller; it is not an extra argument
+to the original public bytes API. The initializer also states the exact public
+atomic-ward equality needed by a separate source adapter.

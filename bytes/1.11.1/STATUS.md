@@ -11,7 +11,7 @@ subjective recovery in the parent and uses an extra diagnostic Acquire observati
 it does not prove original count1-to-clone or arbitrary last-thread ownership.
 The finite fraction-map accounting component separately proves15 bodies.
 
-The bounded successor now proves74 files with zero null proof leaves. It starts
+The bounded successor now proves75 files with zero null proof leaves. It starts
 at count1, preserves the source ticket through one borrowed-source Relaxed clone,
 then permits either Release order. Subjective physical recovery moves with the
 first ticket and its Release publication; the last owner obtains it only after
@@ -22,7 +22,13 @@ public Clone, automatic Drop or an arbitrary threaded lifecycle proof.
 Final misuse controls reject one-reader-still-live full recovery at one fraction
 VC, missing Acquire at one bounded view VC (plus3 historical A view VCs), duplicate
 tickets/clone quota with E0382, and a still-used B4 slice retirement with E0505.
-See the exact-current74 archive and root audit in the physical proof directory.
+The body-proved live-peer strengthening uses actual compatible ticket fragments
+and map cardinality inside the same Release event to show count2/nonlast, then
+delegates the original transition once. No additional native event or protocol
+trust is introduced. The initializer explicitly exports the actual atomic/public
+ward relation for cross-crate callers. Final75 sources and independent audit are
+in the physical proof directory; the misuse controls retain their exact74 source
+versions and were not relabeled as75 reruns.
 
 The original-shaped Shared/Bytes constructor now proves34 files (114 leaves,
 including13 for its selected len<cap body). It constructs the actual core ref_cnt field,

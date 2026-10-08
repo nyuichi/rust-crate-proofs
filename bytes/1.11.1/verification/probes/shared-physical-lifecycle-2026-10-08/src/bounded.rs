@@ -191,11 +191,16 @@ fn remove(auth:&mut Authority<LiveFractions>,mut fragment:Fragment<LiveFractions
 }
 
 impl<T:RecoveryPayload> State<T> {
+    /// Current number of registered affine tickets; observation only.
+    #[logic]
+    pub fn live_count(self)->Int {pearlite! {self.alive@.len()}}
+
     /// Body-proved bootstrap for an externally supplied actual atomic permission.
     #[check(ghost)]
     #[requires(payload.wellformed() && full.frac()==PositiveReal::from_int(1))]
     #[requires(own.val()==FMap::singleton((*own.ward()).get_timestamp(*current),(1usize,*current)))]
     #[ensures(result.inner_logic().0.protocol() && result.inner_logic().0.atomic()==*own.ward())]
+    #[ensures(result.inner_logic().0.public().0==*own.ward())]
     #[ensures(result.inner_logic().0.public().3==full.lft() && result.inner_logic().0.public().4==payload.metadata())]
     #[ensures(result.inner_logic().1.0.valid(result.inner_logic().0.public()) && result.inner_logic().1.0.id()==0)]
     #[ensures(result.inner_logic().1.0.token.frac().to_real()+result.inner_logic().1.0.token.frac().to_real()==Real::from_int(1))]
@@ -281,6 +286,7 @@ impl<T:RecoveryPayload> State<T> {
     #[requires(if c.val_load()==0usize {c.val_store()==usize::MAX} else {c.val_store()@+1==c.val_load()@})]
     #[ensures((^s).protocol() && (^s).public()==s.public() && (^s).atomic()==s.atomic())]
     #[ensures((^c).shot_store() && c.hist_inv(^c) && c.val_load()>0usize)]
+    #[ensures(c.val_load()@==s.live_count())]
     #[ensures(**current<=^current)]
     #[ensures((result.inner_logic().0!=None)==(c.val_load()==1usize))]
     #[ensures(result.inner_logic().0!=None ==> result.inner_logic().0.unwrap_logic().valid(s.public(),^current))]
@@ -329,6 +335,42 @@ impl<T:RecoveryPayload> State<T> {
         
         }
     }
+    /// Observe another actually owned ticket during this same Release event.
+    /// This private diagnostic strengthening delegates the protocol transition;
+    /// it performs no additional native atomic event and grants no authority.
+    #[check(ghost)]
+    #[requires(s.protocol() && input.valid(s.public(),**current) && peer.valid(s.public()))]
+    #[requires(!c.shot_store() && c.ward()==s.atomic())]
+    #[requires(if c.val_load()==0usize {c.val_store()==usize::MAX} else {c.val_store()@+1==c.val_load()@})]
+    #[ensures((^s).protocol() && (^s).public()==s.public() && (^s).atomic()==s.atomic())]
+    #[ensures((^c).shot_store() && c.hist_inv(^c) && c.val_load()==2usize)]
+    #[ensures(**current<=^current)]
+    #[ensures(result.inner_logic().0==None)]
+    #[ensures(result.inner_logic().1.valid::<T>(s.public(),false) && result.inner_logic().1.left()==(input.id()==0))]
+    pub fn on_release_with_live_peer(s:Ghost<&mut Self>,c:Ghost<&mut Committer<ModelAtomic,usize,Relaxed,Release>>,
+        input:Ghost<Retiring<T>>,current:Ghost<&mut SyncView>,peer:Ghost<&Ticket<T>>)
+        ->Ghost<(Option<Pending<T>>,Receipt)> {
+        ghost! {
+            let s=s.into_inner();
+            let c=c.into_inner();
+            let mut input=input.into_inner();
+            let current=current.into_inner();
+            let peer=peer.into_inner();
+            s.alive.frag_lemma(&input.fragment);
+            s.alive.frag_lemma(&peer.fragment);
+            input.fragment.valid_op_lemma(&peer.fragment);
+            proof_assert!(input.id!=peer.id);
+            proof_assert!(s.alive@.contains(input.id) && s.alive@.contains(peer.id));
+            proof_assert!(s.alive@.remove(input.id).contains(peer.id));
+            proof_assert!(s.alive@.remove(input.id).remove(peer.id).len()>=0);
+            proof_assert!(s.live_count()==2);
+            let result=Self::on_release(Ghost::new(&mut *s),Ghost::new(&mut *c),
+                Ghost::new(input),Ghost::new(&mut *current)).into_inner();
+            proof_assert!(c.val_load()==2usize);
+            result
+        }
+    }
+
     #[check(ghost)]
     #[requires(s.protocol() && pending.valid(s.public(),**current))]
     #[requires(!c.shot_store() && c.ward()==s.atomic())]
