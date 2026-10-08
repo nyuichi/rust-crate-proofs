@@ -45,3 +45,27 @@ preserving previous Release publication.
 No bytes registration, count-to-handle, last-owner, exactly-once reclamation or
 destructor theorem is trusted here. Frozen rejected architectures remain frozen;
 this generic field boundary does not reopen them by itself.
+
+## Selected source integration review
+
+The scoped control-event interface now accepts the actual affine LifetimeToken,
+not a metadata-only lease projection. A typed FullBorrow protects the actual
+Shared allocation; its AtomicField implementation body proves that projection
+selects ref_cnt. A decrement receives the same owned token in the callback after
+the last native field access. No native reference escapes, and no alternate
+Snapshot materializes an atomic permission. This primitive remains generic TCB;
+its callers prove the bytes-specific registration and last-owner rules. The
+rejected TokenLease draft and corrected static review are preserved separately.
+
+The readonly AtomicPtr selector consumes its binding and copies the actual value
+through get_mut, matching the default native with_mut shim. Its no-store-history
+interpretation is generic TCB, analogous to permission-consuming Std AtomicPtr
+into_inner; it does not infer pointer identity from a number. BoundPtr::as_ptr
+exports a body-proved address observation only. Typed control deallocation
+consumes the recovered permission for the actual pointer and Layout::new<T>.
+
+The reviewed subset of creusot-std0.13 inputs is byte-compared in the source
+archive. The registry package and pinned Creusot source have different VCS SHAs;
+no full-package identity or proof of native memory-model adequacy is claimed.
+The current43-file positive replaces the constructor-only coverage statement
+above for this selected source leaf, without extending to public vtable/Drop.

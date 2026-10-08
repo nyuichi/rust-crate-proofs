@@ -489,3 +489,22 @@ Sequential bounded leaves do not pass full architecture admission: arbitrary
 Clone, overflow/abort interleavings, real-thread transport, public vtable dispatch
 and automatic Drop remain separate obligations. Do not expand disconnected APIs
 or relabel these bounded results as the original public crate's verification.
+
+## D2026-10-08-X result — selected native-field lifecycle accepted
+
+The bounded acceptance gate now has a matching-source positive: protocol77 and
+original-source leaf43/273 actual prover leaves, both with zero nulls and root
+archive/source audits. Recovery is transported by the original ticket or its
+Release publication, not retained in a parent. Actual field identity, physical
+reads across peer retirement, both release orders, Acquire recovery and exact
+buffer/control cleanup are connected in body-checked source-correspondent code.
+There is no shadow refcount, trusted bytes registration/lastness law or extra
+post-cleanup atomic observation. Source-interface repairs export only body-proved
+token/atomic/address observations; numerical addresses never grant provenance.
+
+This accepts the selected initial-owner/one-clone sequential leaf only. Full
+architecture admission remains pending: arbitrary Clone and overflow/interleaving
+behavior, real-thread Send/Sync transport, actual vtable/public dispatch and
+automatic Drop are outside the result. Existing D-T, D02 and frontend failures
+remain frozen unless their premises change. Preserve all failed source snapshots
+and distinguish semantic negative controls from frontend resource errors.

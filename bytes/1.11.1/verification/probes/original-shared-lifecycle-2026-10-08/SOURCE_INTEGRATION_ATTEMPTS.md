@@ -21,7 +21,8 @@ Concrete interface repairs identified from this run:
 - The trait field projection needed an explicit implementation postcondition;
   after adding it, its refinement body passes. No trusted bytes projection law.
 - Borrowed byte contents retain exact sequence equality. The range contract now
-  states `len <= capacity`; the remaining extensional equality must be proved.
+  states `len <= capacity`; exact extensional equality is proved in the later positive. The remaining
+  read failure was an opaque actual-token lifetime fact, not a byte-content gap.
 - Recovery metadata containing only a numeric control address cannot identify
   the exact pointer/provenance of its typed permission or native buffer. Carry
   exact control/base pointer observations; do not add address-to-pointer identity.
@@ -37,3 +38,26 @@ access and typed deallocation boundaries remain explicit generic TCB. Bytes
 registration, count-to-ticket, lastness and cleanup laws must remain body proved.
 No public vtable dispatch, arbitrary Clone/overflow, real-thread transport or
 automatic Drop conclusion follows from these bounded sequential leaf experiments.
+
+## Further clean replays and successful interface repair
+
+`integrated-source-leaf-2026-10-08-clean-run.tar.gz` retains43 Coma,46 JSON
+and15 null leaves, including3 explicitly dangling outputs. The clean-replay
+archive regenerates43 matching Coma/JSON files and retains those15 failures.
+The b77-run archive records the subsequent four failures. These are failed
+authoring snapshots, not additional verified coverage.
+
+After repeated failures, exact Why3 formulas were inspected using the installed
+Why3 API and Astra reviewed the modular interfaces. Actual LifetimeToken lifetime
+and State atomic/public-ward equalities were hidden by private definitions;
+body-proved exported observations closed those caller obligations. The typed
+control wrapper now preserves its exact moved owner in its contract. The last
+four failures needed a body-proved BoundPtr address observation and an explicit
+public-lifetime/payload-lifetime equality in Handle.valid. No bytes-specific law
+was made trusted and no address-to-provenance inverse was assumed.
+
+The matching-source43-file positive archive supersedes these failures for the
+selected path. Its273 actual prover leaves all succeed; the root audit compares
+compiled probe inputs, crate helpers and bounded-protocol inputs byte for byte.
+A caller-level driver and source-specific missing-Acquire control are recorded
+separately once their final clean runs complete.

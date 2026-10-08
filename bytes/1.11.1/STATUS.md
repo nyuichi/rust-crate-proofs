@@ -2,53 +2,48 @@
 
 ## Shared lifecycle increment — 2026-10-08 UTC
 
-A reclaimable fixed-two physical-sharing component proves41 files: both readers
-observe the whole input, a remaining reader survives peer retirement, and the
-native Release/Acquire path returns full lifetime authority exactly once for B3
-cleanup. Misuse controls reject missing Acquire, premature lifetime end, duplicate
-tokens and retirement during a still-used physical borrow. This component keeps
-subjective recovery in the parent and uses an extra diagnostic Acquire observation;
-it does not prove original count1-to-clone or arbitrary last-thread ownership.
-The finite fraction-map accounting component separately proves15 bodies.
+The reclaimable physical-sharing protocol now proves77 files with zero null
+proof leaves. It starts at count1, preserves the source ticket through one
+borrowed-source Relaxed clone, and permits either Release order. Subjective
+recovery travels with the original ticket and its Release publication; the last
+owner obtains full authority only after actual Acquire. Affine receipts prove
+exactly one last result without any native access after cleanup. Registration,
+count-to-ticket, lastness and recovery laws are body proved, not trusted.
+The canonical matching-source archive is `positive-b-source-address-77.tar.gz`
+with an independent root receipt. Historical misuse controls retain their exact
+74-file sources; they are not relabeled as77 reruns.
 
-The bounded successor now proves75 files with zero null proof leaves. It starts
-at count1, preserves the source ticket through one borrowed-source Relaxed clone,
-then permits either Release order. Subjective physical recovery moves with the
-first ticket and its Release publication; the last owner obtains it only after
-actual Acquire. No recovery owner remains in the parent. Two affine outcome
-receipts prove exactly one last result without any extra native access after
-cleanup. Actual field integration remains in progress; this component is not
-public Clone, automatic Drop or an arbitrary threaded lifecycle proof.
-Final misuse controls reject one-reader-still-live full recovery at one fraction
-VC, missing Acquire at one bounded view VC (plus3 historical A view VCs), duplicate
-tickets/clone quota with E0382, and a still-used B4 slice retirement with E0505.
-The body-proved live-peer strengthening uses actual compatible ticket fragments
-and map cardinality inside the same Release event to show count2/nonlast, then
-delegates the original transition once. No additional native event or protocol
-trust is introduced. The initializer explicitly exports the actual atomic/public
-ward relation for cross-crate callers. Final75 sources and independent audit are
-in the physical proof directory; the misuse controls retain their exact74 source
-versions and were not relabeled as75 reruns.
+The original-source-correspondent Shared/Bytes leaf proves43 files (273 actual
+prover leaves, zero nulls). The selected `Vec` len<cap constructor creates the
+actual three-field Shared and four-field Bytes records. The proof follows actual
+`Bytes.data` to the control block, clones through `&self`, keeps a physical read
+valid across peer retirement, decrements the actual ref_cnt with Release, and
+recovers both payload and control permissions after actual Acquire. Explicit
+cleanup reads and frees the actual buffer/control pointers exactly once. The
+source clone retains the native overflow-abort guard; the bounded clone quota
+proves this selected execution cannot overflow.
 
-The original-shaped Shared/Bytes constructor now proves34 files (114 leaves,
-including13 for its selected len<cap body). It constructs the actual core ref_cnt field,
-moves that field into the real Box<Shared>, and proves its atomic permission and
-typed control-allocation permission refer to that moved field/control block.
-The actual AtomicPtr Bytes.data field is initialized to that same control pointer
-and its readonly permission is matched after moving into Bytes. This constructor
-leaf uses explicit generic native/model TCB. Vtable remains an input, and actual
-SHARED_VTABLE dispatch, clone and final release are still being integrated.
-See [constructor evidence](verification/probes/original-shared-lifecycle-2026-10-08/README.md)
+This is a private sequential source-correspondent leaf, not verification of the
+whole public crate. Vtable is an opaque input, views start at offset0, and the
+scope is an initial owner plus one clone. Arbitrary clone counts and overflow
+interleavings, real-thread transport, public vtable dispatch and automatic Drop
+remain unverified. Generic physical access, native/model field-event correspondence,
+scoped actual-token access and typed deallocation remain explicit TCB; no bytes
+ownership/refcount law is trusted. See [source proof and exact evidence](verification/probes/original-shared-lifecycle-2026-10-08/README.md)
 and [generic field boundary review](verification/FIELD_ATOMIC_TCB_REVIEW_2026-10-08.md).
 
-The original final Shared release now uses explicit payload/control deallocation
-with unchanged orderings/layouts. Native default1011 tests, no-default library
-check and portable-atomic targeted2 tests pass. This small code change is native
-validated; its formal protocol connection is the ongoing next step, not complete.
-See [physical proof scope](verification/probes/shared-physical-lifecycle-2026-10-08/README.md)
+The original final Shared release uses explicit payload/control deallocation
+with preserved orderings/layouts. Native default1011 tests, no-default library
+check and portable-atomic targeted2 tests passed for that production change.
+See [protocol proof scope](verification/probes/shared-physical-lifecycle-2026-10-08/README.md)
 and [native cleanup evidence](verification/shared-explicit-cleanup-native-2026-10-08/manifest.json).
 
-## Latest increment — 2026-10-08 (Asia/Tokyo)
+The earlier fixed-two41-file component kept recovery in the parent and included
+an extra diagnostic Acquire. It remains historical evidence; the77-file protocol
+and43-file source leaf supersede that architecture for this bounded path. The
+finite fraction-map accounting component separately proves15 bodies.
+
+## Historical registration increment — 2026-10-08 (Asia/Tokyo)
 
 The user authorized a reviewed generic trusted synchronization boundary and a
 Std-analogue-first workflow. The isolated event-invariant probe proves registration
