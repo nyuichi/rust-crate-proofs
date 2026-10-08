@@ -57,8 +57,9 @@ Snapshot materializes an atomic permission. This primitive remains generic TCB;
 its callers prove the bytes-specific registration and last-owner rules. The
 rejected TokenLease draft and corrected static review are preserved separately.
 
-The readonly AtomicPtr selector consumes its binding and copies the actual value
-through get_mut, matching the default native with_mut shim. Its no-store-history
+The readonly AtomicPtr binding consumes the unique model write permission at
+bind_read_only; get_mut borrows that readonly descriptor and copies the actual
+value, matching the default native with_mut shim. Its no-store-history
 interpretation is generic TCB, analogous to permission-consuming Std AtomicPtr
 into_inner; it does not infer pointer identity from a number. BoundPtr::as_ptr
 exports a body-proved address observation only. Typed control deallocation
