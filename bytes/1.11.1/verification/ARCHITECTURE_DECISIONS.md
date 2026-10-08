@@ -449,3 +449,43 @@ overflow-abort and automatic Drop remain obligations. Preserve D-T direct-region
 GhostShared extraction rejection and D02 missing-Acquire counterexamples.
 Evidence: probes/shared-physical-lifecycle-2026-10-08/README.md, RESULTS.json and
 positive-final-41.tar.gz with independent root receipt.
+
+## D2026-10-08-X — Bind the reclaimable component to actual native fields
+
+Changed premise from D-W: construct the original Shared three-field record and
+the original Bytes four-field record, including actual core atomic fields,
+rather than retaining an independent EventAtomic in the caller. The body-proved
+constructor connects B1 buffer/capacity and the typed Box permission to that
+Shared, its ref_cnt permission to its moved actual field, and Bytes.data to the
+same control pointer. It proves34 files/114 leaves (selected constructor13) under
+explicit generic native/model atomic TCB. Vtable is an explicit input; the actual
+SHARED_VTABLE constant/indirect public call is not thereby verified.
+
+The same-number wrong-ref_cnt and wrong-Shared.buf isolated controls each fail
+exactly one constructor leaf; field identity is not inferred from count equality.
+Archive/root audit receipts are under original-shared-lifecycle-2026-10-08.
+
+The bounded next experiment is count1->one affine-quota clone->both retire orders
+with a single compatible token/map protocol and actual control/payload cleanup.
+Recovery is owned by the first ticket until its Release publication, then by the
+last observer only after actual Acquire. A body-proved ghost transition interface
+must be shared by the component and the source leaf; no duplicate shadow counter
+or bytes-specific trusted registration/lastness law is allowed.
+
+A scoped owned-lease generic atomic boundary is authorized for the control loan
+obstruction: a typed FullBorrow plus live token protects the same control block;
+a body-verified field projection selects its actual atomic; no native reference
+escapes the event; retirement receives the token after the last field access.
+The primitive models access/order/event state, not count-to-handle or lastness.
+Its adequacy remains explicit TCB, with replacement by tool/Std support preserving
+the same interface. Ordinary byte reads keep token-tied lifetimes.
+
+Positive acceptance requires genuine byte contents, both release orders, actual
+field/data identity, full authority recovery and matching explicit cleanup.
+Misuse acceptance requires missing-Acquire, live-read, wrong-field/pointer and
+duplicate-resource rejection. Review interfaces after two same-shaped failures;
+restructure after three. Preserve failed attempts and the D-T/D02 counterexamples.
+Sequential bounded leaves do not pass full architecture admission: arbitrary
+Clone, overflow/abort interleavings, real-thread transport, public vtable dispatch
+and automatic Drop remain separate obligations. Do not expand disconnected APIs
+or relabel these bounded results as the original public crate's verification.

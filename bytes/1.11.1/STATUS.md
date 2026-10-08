@@ -11,12 +11,14 @@ subjective recovery in the parent and uses an extra diagnostic Acquire observati
 it does not prove original count1-to-clone or arbitrary last-thread ownership.
 The finite fraction-map accounting component separately proves15 bodies.
 
-The original-shaped Shared constructor now proves34 files (110 leaves, including
-nine for its selected len<cap body). It constructs the actual core ref_cnt field,
+The original-shaped Shared/Bytes constructor now proves34 files (114 leaves,
+including13 for its selected len<cap body). It constructs the actual core ref_cnt field,
 moves that field into the real Box<Shared>, and proves its atomic permission and
 typed control-allocation permission refer to that moved field/control block.
-This source-correspondent constructor leaf uses the explicit generic native/model
-TCB; Bytes.data/vtable, clone and final release are still being integrated.
+The actual AtomicPtr Bytes.data field is initialized to that same control pointer
+and its readonly permission is matched after moving into Bytes. This constructor
+leaf uses explicit generic native/model TCB. Vtable remains an input, and actual
+SHARED_VTABLE dispatch, clone and final release are still being integrated.
 See [constructor evidence](verification/probes/original-shared-lifecycle-2026-10-08/README.md)
 and [generic field boundary review](verification/FIELD_ATOMIC_TCB_REVIEW_2026-10-08.md).
 

@@ -144,3 +144,9 @@ atomic権限が指すことをbodyで証明。Box由来のtyped Permも同じcon
 明示的なgeneric TCBであり、bytesのrefcount/last-owner法則はtrustedにしていない。
 原Bytes.data/vtable、cloneから最後のcleanupまでの接続は引き続き作業中。
 証拠: probes/original-shared-lifecycle-2026-10-08、commit 3ba052a6。
+
+Bytesも原4fieldsの形で構築し、実AtomicPtr dataが同じSharedを指すことまで
+接続した。最新constructor34 files/114 leaves、選択したbody13 leaves、全通過。
+vtableは明示的inputであり原SHARED_VTABLE constant/indirect dispatchは未証明。
+証拠: bytes-record-data-field-2026-10-08.tar.gz、commit e7dd8134。
+field/payloadすり替えnegativeは各1 leafを拒否し、commit 274bec20に保存。
