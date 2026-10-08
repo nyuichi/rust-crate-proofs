@@ -45,6 +45,11 @@ def blocks(source: str) -> dict[str, tuple[str, int, int]]:
             "impl From<Vec<u8>> for Bytes {\n// ORIGINAL_FREEZE_BEGIN bytes_from_vec",
             "// ORIGINAL_FREEZE_END bytes_from_vec\n}",
         ),
+        "bytes_record": line_block(
+            source,
+            "pub struct Bytes {\n",
+            "\n}\n\npub(crate) struct Vtable",
+        ),
         "shared_record": line_block(
             source,
             "struct Shared {\n",
@@ -108,6 +113,7 @@ def make_manifest() -> dict[str, object]:
         "src/ownership_proof/raw_vec.rs": BORROWED_CORE_SOURCE,
         "src/ownership_proof/boxed_alignment.rs": BOX_HELPER_SOURCE,
         "probe/src/field_event.rs": PROBE_DIR / "src" / "field_event.rs",
+        "probe/src/pointer_event.rs": PROBE_DIR / "src" / "pointer_event.rs",
         "probe/src/source_adapter.rs": PROBE_DIR / "src" / "source_adapter.rs",
     }.items():
         result["reviewed_files"][name] = hashlib.sha256(path.read_bytes()).hexdigest()

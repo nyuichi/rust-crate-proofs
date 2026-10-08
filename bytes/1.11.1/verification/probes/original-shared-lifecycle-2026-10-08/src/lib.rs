@@ -15,3 +15,4 @@ mod raw_vec;
 mod boxed_alignment;
 
 mod source_adapter;
+mod pointer_event;
