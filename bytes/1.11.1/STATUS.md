@@ -1,5 +1,36 @@
 # bytes 1.11.1 status
 
+## Astra-guided generic Drop prerequisite — archived label 2026-10-09
+
+The user directed continuing by consulting Astra after each completed increment
+and executing the next recommendation until full verification. Astra selected a
+small external normal-edge Drop elaborator as the next changed premise (AG).
+It preserves native source and supplies a checked proof shadow before Creusot's
+borrow/liveness analysis; no Creusot source patch is used. The shadow removes
+implicit Drop, copies the exact destructor body to a checked &mut helper, and
+inserts exactly one call at each supported native MIR normal Drop edge.
+
+The generic SetTrue/Toggle witnesses and helper-interface legal later-mutation
+control initially prove seven files / twelve actual prover leaves / zero nulls.
+Restored positive after controls is seven files / fourteen prover leaves / zero
+nulls; the extra leaves reflect finer helper proof decomposition. Independent
+native source/MIR/shadow correspondence checks all three supported scopes.
+Omission, duplicate execution, wrong target and wrong ordering controls fail
+correspondence and their caller VCs. The false-summary control separately checks
+that structural matching cannot substitute for the destructor body proof.
+
+This is a generic tool prerequisite under explicit compiler/checker/borrow
+correspondence TCB, not native Bytes destructor completion. Only fresh local
+guards, recognized straight-line normal-return bodies, known destructor targets
+and no independent field drop glue are supported. Unsupported calls, escapes,
+threads/moves/glue and exceptional completion are not silently admitted. Native
+scope-exit testing passes separately from the generated proof program.
+
+See `verification/probes/generic-drop-elaboration-2026-10-09/README.md` for
+canonical receipts, checker hardening and independent audit. Full verification
+remains open; the next Astra-guided step must connect real Bytes events rather
+than counting this generic witness as whole-crate admission.
+
 ## Full-domain constructor experiment — archived label 2026-10-09
 
 The actual From<Vec<u8>> and From<Box<[u8]>> refinements now have no input

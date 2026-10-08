@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "purpose": "Checker controls only; never proof evidence. Mutations are in-memory/temp copies and do not edit native.rs, MIR, shadow, or proof artifacts in the probe.",
+  "generator_diagnostics": [
+    {"feature": "omit_drop_call", "expected": "coverage_failure", "reason": "one native normal Drop edge has no shadow helper call"},
+    {"feature": "duplicate_drop_call", "expected": "coverage_failure", "reason": "one native normal Drop edge maps to two helper calls"},
+    {"feature": "wrong_drop_target", "expected": "coverage_failure", "reason": "helper argument does not name the MIR Drop local"},
+    {"feature": "early_drop_call", "expected": "coverage_failure", "reason": "toggle helper precedes the source write / normal scope exit"},
+    {"feature": "wrong_drop_summary", "expected": "correspondence_pass_semantic_vc_required", "reason": "call/body correspondence is unchanged; the body proof must reject the wrong summary"}
+  ],
+  "checker_mutations": [
+    {"id": "shadow_drop_body_tamper_receipt_refreshed", "mutation": "change the copied toggle helper body only and refresh shadow/helper mapping hashes/spans", "expected": "coverage_failure", "reason": "receipt hashes cannot replace token comparison with the native Drop body"},
+    {"id": "unknown_callback", "mutation": "replace copied set_true callback with unknown_callback", "expected": "coverage_failure", "reason": "unknown call is outside the closed source/destructor language"},
+    {"id": "guard_escape", "mutation": "add core::mem::forget(_guard) to shadow", "expected": "coverage_failure", "reason": "guard escape prevents exact scope-drop correspondence"},
+    {"id": "unsupported_field_drop", "mutation": "replace borrowed-bool tuple field with String", "expected": "coverage_failure", "reason": "field drop glue is outside the checker subset"},
+    {"id": "extra_drop_glue", "mutation": "add another Drop impl to the shadow", "expected": "coverage_failure", "reason": "shadow must have no Drop impl and no implicit double execution"},
+    {"id": "panic_only_normal_edge", "mutation": "swap normal and unwind successors in raw MIR", "expected": "coverage_failure", "reason": "effect is supported only on the plain normal-return successor"},
+    {"id": "thread_escape", "mutation": "add std::thread::spawn in a shadow scope", "expected": "coverage_failure", "reason": "thread/escape semantics are unsupported"},
+    {"id": "guard_move", "mutation": "move the guard local before its recorded Drop", "expected": "coverage_failure", "reason": "guard-local move/drop-flag control flow is unsupported"},
+    {"id": "extra_normal_successor_statement", "mutation": "insert an extra statement into bb1", "expected": "coverage_failure", "reason": "normal successor must be exactly StorageDead(_2); return"},
+    {"id": "extra_unwind_successor_statement", "mutation": "insert an extra statement into cleanup bb2", "expected": "coverage_failure", "reason": "unwind successor must be exactly resume and remains unclaimed"},
+    {"id": "set_true_trusted_false_summary", "mutation": "add trusted and a false postcondition to shadow set_true, refreshing shadow receipt", "expected": "coverage_failure", "reason": "selected callable attributes use an exact allowlist; a trusted false summary is not accepted"},
+    {"id": "commented_out_drop_call", "mutation": "replace the executable helper call with the same text in a line comment", "expected": "coverage_failure", "reason": "comment text must not count as an executable normal Drop effect"},
+    {"id": "string_literal_pretend_call", "mutation": "replace the helper call with a string containing call-shaped text", "expected": "coverage_failure", "reason": "string-literal text must not count as an executable normal Drop effect"},
+    {"id": "fake_fn_header_and_whitespace_real", "mutation": "prepend a fake commented scope header and split the real pub fn header across lines", "expected": "correspondence_pass", "reason": "masked header discovery must select the one executable scope despite harmless comment text and whitespace"},
+    {"id": "fake_drop_impl_header_ignored", "mutation": "insert a fake commented Drop impl before the two executable impls", "expected": "parser_control_pass", "reason": "native Drop discovery must only count executable impl headers"},
+    {"id": "comment_between_contract_and_function", "mutation": "insert a comment-only line between a caller contract and its function", "expected": "correspondence_pass", "reason": "attribute discovery must skip comment-only lines without losing the executable contract"},
+    {"id": "source_shadow_changed_without_new_native_mir", "mutation": "change native+shadow body formatting without regenerating erased Rustc input/MIR provenance", "expected": "coverage_failure", "reason": "editable source/mapping receipts alone do not establish alignment with compiled MIR"}
+  ],
+  "semantic_boundary": "No control invokes a prover. wrong_drop_summary is expected to pass structural correspondence and fail the helper body VC; the root-run proof result supplies that separate semantic check."
+}

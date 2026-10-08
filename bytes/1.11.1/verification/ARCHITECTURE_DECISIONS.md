@@ -770,3 +770,54 @@ Std/tool analogue or separately justified capability, and distinguishing escaped
 clone, unfinished callback and forgotten live-handle controls. No such primitive
 is implemented or admitted by this review; AD remains frozen. Automatic Drop
 effect lowering and the other full-target obligations also remain open.
+
+## D2026-10-09-AG — External normal-edge destructor effect elaboration
+
+The user authorized continued Astra-guided work until complete verification.
+Astra recommends a small generic normal-return Drop elaboration gate before
+complete issuance tracking. This is a changed premise from stock Drop-to-Goto,
+not a rerun of the frozen automatic-drop source with a stronger summary alone.
+No Creusot source change is required: exact pinned native MIR after ElaborateDrops
+is mapped to a generated proof-only shadow before borrow/liveness analysis.
+
+The shadow keeps guard fields/lifetimes, removes its Drop impl, copies the exact
+native destructor body into a normal &mut helper, and inserts one call at each
+supported normal Drop edge. Removing the trait implementation prevents double
+native execution in the shadow. An independent checker must establish source,
+destructor, place/type/target/order and exact-once correspondence; hashes alone
+are insufficient. First scope: fresh local guards, straight-line normal return,
+known monomorphic destructors, fields without independent drop glue, checked
+scalar operations/callees. Unknown calls, escapes, raw/unsafe access, threads,
+forgotten or unsupported moves/drop flags and additional field glue are rejected.
+Unwind edges are captured and explicitly outside the normal-return theorem.
+
+This source/MIR/shadow interpretation is NEW generic tool TCB; it is not a trusted
+destructor postcondition, not a bytes last-owner law, and not whole-crate admission.
+Actual destructor effects and caller postconditions remain body-proved. Std's
+mem::drop only ensures resolve(t), so it is not an existing effect analogue.
+Std's erased Ghost-channel thread contracts and the accepted closed-vtable
+checked shim are interface precedents, not proofs of this elaborator's adequacy.
+Removal condition: supported native MIR Drop/liveness effect translation that
+preserves the same body/caller contracts and passes the retained counterexamples.
+
+Initial nested-borrow diagnostic: updating *(^guard).0 alone does not preserve
+the old field's loan; caller propagation fails despite the helper proving. The
+body-proved frame `^(guard.0) == ^((^guard).0)` connects the original nested loan
+future to the returned one. Together the exact true/toggle value effect and frame
+prove the shadow helper and caller. An unconditional future value assertion is
+rejected because a caller may legally modify the guard after the helper returns.
+
+Acceptance requires SetTrue and non-idempotent Toggle normal-scope witnesses;
+omitted/duplicate/wrong-target/early Drop, mutated body and false summary controls;
+checker rejection of unsupported native effects. Preserve existing stock failures.
+Only after this gate is audited should the same correspondence discipline be
+extended to a fresh actual Bytes client and an erased generic ScopeCursor. AD's
+lost issuance information is not solved by this preliminary generic Drop result.
+Positive source/MIR/shadow checks cover all three supported scopes. The restored
+gate proves7files/14actualproverleaves/0nulls (historicalv1was7/12/0); omission,
+duplicate, wrong-target, early-order and false-summary controls reject3/2/2/1/5
+semantic leaves respectively. Twenty-two checker controls reject unknown effects,
+hidden trust and extra normal/cleanup successor statements. Exact set_true
+signature/attributes and shadow-wide trust/unsupported annotation rejection were
+added following Astra review. Accepted only in this bounded normal-return scope,
+with independent matching-source archive audit; full Bytes admission remains open.

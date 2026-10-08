@@ -1,0 +1,332 @@
+{
+  "effects": [
+    {
+      "injection": {
+        "active_diagnostic_features": [
+          "omit_drop_call"
+        ],
+        "effect_order": 0,
+        "expected_call": "set_true_drop_effect(&mut _guard);",
+        "expected_call_count": 0,
+        "generated_function_body_sha256": "c9e14979f86e86201dbb32b6eb8f36413a0622e4f9eadf9ff8d5530d1785783c",
+        "mode": "normal-return only; unwind edge recorded and not claimed",
+        "normal_edge": "bb1",
+        "observed_generated_calls": [],
+        "proof_only_binding_adjustment": {
+          "local": "_guard",
+          "native_binding_mutable": false,
+          "native_source_changed": false,
+          "shadow_binding_mutable": true
+        },
+        "unwind_edge": "bb2"
+      },
+      "native_mir": {
+        "body": "fn set_true_scope(_1: &mut bool) -> () {\n    debug flag => _1;\n    let mut _0: ();\n    let _2: SetTrueOnDrop<'_>;\n    let mut _3: &mut bool;\n    scope 1 {\n        debug _guard => _2;\n    }\n\n    bb0: {\n        StorageLive(_2);\n        StorageLive(_3);\n        _3 = &'_ mut (*_1);\n        _2 = SetTrueOnDrop::<'_>(move _3);\n        StorageDead(_3);\n        _0 = const ();\n        drop(_2) -> [return: bb1, unwind: bb2];\n    }\n\n    bb1: {\n        StorageDead(_2);\n        return;\n    }\n\n    bb2 (cleanup): {\n        resume;\n    }\n}",
+        "body_sha256": "1f03f69c5a9dbaa1eefb06a885fdfa480eae9606f89da6d90742beaa1c87822a",
+        "debug_local_source_name": "_guard",
+        "drop": {
+          "basic_block": "bb0",
+          "normal_target": "bb1",
+          "order_in_scope": 0,
+          "place": "_2",
+          "terminator": "drop(_2) -> [return: bb1, unwind: bb2];",
+          "type": "SetTrueOnDrop<'_>",
+          "unwind_interpretation": "recorded cleanup edge; not elaborated into a proof effect",
+          "unwind_target": "bb2"
+        },
+        "path": "native-mir/generic_drop_native.set_true_scope.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "12a4cdbbf13904655f541f440d1f36e03871c7188507d093f868314f80b99f64"
+      },
+      "order": 0,
+      "scope": "set_true_scope",
+      "shadow_helper": {
+        "body": "\n    set_true(guard.0);\n",
+        "body_sha256": "a9374f94363f2882ae2be0c1d7ecb1a0577f07293ffef842b4925d3fb8e9aa17",
+        "body_transformation": "substitute receiver self with helper parameter guard; no statement change",
+        "contracts": {
+          "frame": "#[ensures(^(guard.0) == ^((^guard).0))]",
+          "positive_value": "#[ensures(*(^guard).0 == true)]",
+          "value": "#[ensures(*(^guard).0 == true)]",
+          "wrong_summary_control": "old-value/no-effect summary; expected to fail helper body VC"
+        },
+        "copied_from_drop_body": "fn drop(&mut self) { set_true(self.0); }",
+        "item_sha256": "672f312ca1c3b427f3d20212625b4c4d012fbc056756e81eb7183109b215c435",
+        "name": "set_true_drop_effect",
+        "path": "generated/controls/omit_drop_call/shadow.rs",
+        "span_bytes": [
+          348,
+          444
+        ],
+        "span_lines": [
+          12,
+          14
+        ]
+      },
+      "source_destructor": {
+        "body": "\n    fn drop(&mut self) { set_true(self.0); }\n",
+        "body_sha256": "0caf0cded8e998d6d53e1538cfb75fd27d932e553e3fde7aa3f44094db01f2fa",
+        "impl_marker": "impl Drop for SetTrueOnDrop<'_>",
+        "method_body": "fn drop(&mut self) { set_true(self.0); }",
+        "method_body_sha256": "7a696880b5eda37ae231e0fd012f7eb4a87b657df517e69d09028e6d30d3e8d6",
+        "method_start_byte": 314,
+        "start_line": 10,
+        "type": "SetTrueOnDrop"
+      },
+      "source_scope": {
+        "body": "\n    let _guard = SetTrueOnDrop(flag);\n",
+        "body_sha256": "d3055d5964c495d1f6894573cda85893e244cf29c9bb2c5f7de901ae470eaa33",
+        "signature": "pub fn set_true_scope",
+        "source_binding": "_guard",
+        "start_line": 19
+      }
+    },
+    {
+      "injection": {
+        "active_diagnostic_features": [
+          "omit_drop_call"
+        ],
+        "effect_order": 0,
+        "expected_call": "toggle_drop_effect(&mut _guard);",
+        "expected_call_count": 0,
+        "generated_function_body_sha256": "36c39b20e9ec8094ba01628c81f323cbe5c179cdf82c07e14fe8eb614e992845",
+        "mode": "normal-return only; unwind edge recorded and not claimed",
+        "normal_edge": "bb1",
+        "observed_generated_calls": [],
+        "proof_only_binding_adjustment": {
+          "local": "_guard",
+          "native_binding_mutable": false,
+          "native_source_changed": false,
+          "shadow_binding_mutable": true
+        },
+        "unwind_edge": "bb2"
+      },
+      "native_mir": {
+        "body": "fn toggle_scope(_1: &mut bool) -> () {\n    debug flag => _1;\n    let mut _0: ();\n    let _2: ToggleOnDrop<'_>;\n    let mut _3: &mut bool;\n    scope 1 {\n        debug _guard => _2;\n    }\n\n    bb0: {\n        StorageLive(_2);\n        StorageLive(_3);\n        _3 = &'_ mut (*_1);\n        _2 = ToggleOnDrop::<'_>(move _3);\n        StorageDead(_3);\n        _0 = const ();\n        drop(_2) -> [return: bb1, unwind: bb2];\n    }\n\n    bb1: {\n        StorageDead(_2);\n        return;\n    }\n\n    bb2 (cleanup): {\n        resume;\n    }\n}",
+        "body_sha256": "a705e8e77d9ccdc54749b3f8b5651e9bcd770867c9b02b6c3eba4000f1df8526",
+        "debug_local_source_name": "_guard",
+        "drop": {
+          "basic_block": "bb0",
+          "normal_target": "bb1",
+          "order_in_scope": 0,
+          "place": "_2",
+          "terminator": "drop(_2) -> [return: bb1, unwind: bb2];",
+          "type": "ToggleOnDrop<'_>",
+          "unwind_interpretation": "recorded cleanup edge; not elaborated into a proof effect",
+          "unwind_target": "bb2"
+        },
+        "path": "native-mir/generic_drop_native.toggle_scope.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "dfe2bb425dd79f8f207eee88846b9f0d052a672cda56fe2606dd4dad4c9d425e"
+      },
+      "order": 1,
+      "scope": "toggle_scope",
+      "shadow_helper": {
+        "body": "\n    *guard.0 = !*guard.0;\n",
+        "body_sha256": "e00d559f2db2cb579dab4534b2abd887052be8e00a2b20be0635701412629dcf",
+        "body_transformation": "substitute receiver self with helper parameter guard; no statement change",
+        "contracts": {
+          "frame": "#[ensures(^(guard.0) == ^((^guard).0))]",
+          "positive_value": "#[ensures(*(^guard).0 == !*guard.0)]",
+          "value": "#[ensures(*(^guard).0 == !*guard.0)]",
+          "wrong_summary_control": "old-value/no-effect summary; expected to fail helper body VC"
+        },
+        "copied_from_drop_body": "fn drop(&mut self) { *self.0 = !*self.0; }",
+        "item_sha256": "81b37562366635b590ecc2b214e5464b976908e31d63c3a628f407673d3e0cc7",
+        "name": "toggle_drop_effect",
+        "path": "generated/controls/omit_drop_call/shadow.rs",
+        "span_bytes": [
+          523,
+          619
+        ],
+        "span_lines": [
+          18,
+          20
+        ]
+      },
+      "source_destructor": {
+        "body": "\n    fn drop(&mut self) { *self.0 = !*self.0; }\n",
+        "body_sha256": "d490c6a0dd8fbd22b41c9c165a9e5983ddb9e48bf1a327de1eb83e55c7d1faad",
+        "impl_marker": "impl Drop for ToggleOnDrop<'_>",
+        "method_body": "fn drop(&mut self) { *self.0 = !*self.0; }",
+        "method_body_sha256": "81183466a2e558231ce78927106db7f1cde2c08c6a3b1fd85223984485371bc3",
+        "method_start_byte": 394,
+        "start_line": 13,
+        "type": "ToggleOnDrop"
+      },
+      "source_scope": {
+        "body": "\n    let _guard = ToggleOnDrop(flag);\n",
+        "body_sha256": "4a5a550aa9329e5b168ffd835ccf10ed4df77419574dd312bcbf8ff876e53400",
+        "signature": "pub fn toggle_scope",
+        "source_binding": "_guard",
+        "start_line": 24
+      }
+    },
+    {
+      "injection": {
+        "active_diagnostic_features": [
+          "omit_drop_call"
+        ],
+        "effect_order": 0,
+        "expected_call": "toggle_drop_effect(&mut guard);",
+        "expected_call_count": 0,
+        "generated_function_body_sha256": "3885fa3c7d6077186e42a3a3e1dbeb51321b64efe6a378bf97cd37840ee79c10",
+        "mode": "normal-return only; unwind edge recorded and not claimed",
+        "normal_edge": "bb1",
+        "observed_generated_calls": [],
+        "proof_only_binding_adjustment": {
+          "local": "guard",
+          "native_binding_mutable": false,
+          "native_source_changed": false,
+          "shadow_binding_mutable": true
+        },
+        "unwind_edge": "bb2"
+      },
+      "native_mir": {
+        "body": "fn toggle_after_write(_1: &mut bool) -> () {\n    debug flag => _1;\n    let mut _0: ();\n    let _2: ToggleOnDrop<'_>;\n    let mut _3: &mut bool;\n    let mut _4: &mut bool;\n    scope 1 {\n        debug guard => _2;\n    }\n\n    bb0: {\n        StorageLive(_2);\n        StorageLive(_3);\n        _3 = &'_ mut (*_1);\n        _2 = ToggleOnDrop::<'_>(move _3);\n        StorageDead(_3);\n        _4 = deref_copy (_2.0: &mut bool);\n        (*_4) = const true;\n        _0 = const ();\n        drop(_2) -> [return: bb1, unwind: bb2];\n    }\n\n    bb1: {\n        StorageDead(_2);\n        return;\n    }\n\n    bb2 (cleanup): {\n        resume;\n    }\n}",
+        "body_sha256": "293c956caafd8dbf892f6899ef06155619b2878b8c072766825360288d2db360",
+        "debug_local_source_name": "guard",
+        "drop": {
+          "basic_block": "bb0",
+          "normal_target": "bb1",
+          "order_in_scope": 0,
+          "place": "_2",
+          "terminator": "drop(_2) -> [return: bb1, unwind: bb2];",
+          "type": "ToggleOnDrop<'_>",
+          "unwind_interpretation": "recorded cleanup edge; not elaborated into a proof effect",
+          "unwind_target": "bb2"
+        },
+        "path": "native-mir/generic_drop_native.toggle_after_write.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "0e752c3967ea1eac9fbd6e22b0ac3e63cb34ccac0597122c6fd81ab427115a5e"
+      },
+      "order": 2,
+      "scope": "toggle_after_write",
+      "shadow_helper": {
+        "body": "\n    *guard.0 = !*guard.0;\n",
+        "body_sha256": "e00d559f2db2cb579dab4534b2abd887052be8e00a2b20be0635701412629dcf",
+        "body_transformation": "substitute receiver self with helper parameter guard; no statement change",
+        "contracts": {
+          "frame": "#[ensures(^(guard.0) == ^((^guard).0))]",
+          "positive_value": "#[ensures(*(^guard).0 == !*guard.0)]",
+          "value": "#[ensures(*(^guard).0 == !*guard.0)]",
+          "wrong_summary_control": "old-value/no-effect summary; expected to fail helper body VC"
+        },
+        "copied_from_drop_body": "fn drop(&mut self) { *self.0 = !*self.0; }",
+        "item_sha256": "81b37562366635b590ecc2b214e5464b976908e31d63c3a628f407673d3e0cc7",
+        "name": "toggle_drop_effect",
+        "path": "generated/controls/omit_drop_call/shadow.rs",
+        "span_bytes": [
+          523,
+          619
+        ],
+        "span_lines": [
+          18,
+          20
+        ]
+      },
+      "source_destructor": {
+        "body": "\n    fn drop(&mut self) { *self.0 = !*self.0; }\n",
+        "body_sha256": "d490c6a0dd8fbd22b41c9c165a9e5983ddb9e48bf1a327de1eb83e55c7d1faad",
+        "impl_marker": "impl Drop for ToggleOnDrop<'_>",
+        "method_body": "fn drop(&mut self) { *self.0 = !*self.0; }",
+        "method_body_sha256": "81183466a2e558231ce78927106db7f1cde2c08c6a3b1fd85223984485371bc3",
+        "method_start_byte": 394,
+        "start_line": 13,
+        "type": "ToggleOnDrop"
+      },
+      "source_scope": {
+        "body": "\n    let guard = ToggleOnDrop(flag);\n    *guard.0 = true;\n",
+        "body_sha256": "1294de1c2d5b2bcec9061f562bfe0c583782cedba5a80ee919158ac0906c026d",
+        "signature": "pub fn toggle_after_write",
+        "source_binding": "guard",
+        "start_line": 29
+      }
+    }
+  ],
+  "generator": {
+    "path": "elaborate.py",
+    "scope": "closed source/MIR structural elaborator; not a proof of arbitrary Drop elaboration",
+    "sha256": "096d27043caf0a037462724e05c2fead9abbcfd5cd82b6ccf78fe1a433886aed"
+  },
+  "inputs": {
+    "native_mir_dir": "native-mir",
+    "native_rustc_input": {
+      "erased_spec_syntax": [
+        {
+          "line": 2,
+          "text": "use creusot_std::prelude::*;"
+        },
+        {
+          "line": 7,
+          "text": "#[ensures(^flag == true)]"
+        },
+        {
+          "line": 17,
+          "text": "#[requires(*flag == false)]"
+        },
+        {
+          "line": 18,
+          "text": "#[ensures(^flag == true)]"
+        },
+        {
+          "line": 23,
+          "text": "#[ensures(^flag == !*flag)]"
+        },
+        {
+          "line": 28,
+          "text": "#[ensures(^flag == false)]"
+        }
+      ],
+      "executable_source_preserved": true,
+      "rustc_input_path": "native-mir/native-rustc-input.rs",
+      "rustc_input_sha256": "ccc6f0139154672ea2fb6851c8a84c8c5fa364b124a9a82e1b5bae4de5952eda",
+      "source_path": "native.rs",
+      "source_sha256": "6aa972efab0974ff75e45beef8b13e7ed88cfbf21b497dcfee4b893fbd2566e7"
+    },
+    "source_path": "native.rs",
+    "source_sha256": "6aa972efab0974ff75e45beef8b13e7ed88cfbf21b497dcfee4b893fbd2566e7",
+    "verifier_syntax_erased_for_native_mir": [
+      {
+        "line": 2,
+        "text": "use creusot_std::prelude::*;"
+      },
+      {
+        "line": 7,
+        "text": "#[ensures(^flag == true)]"
+      },
+      {
+        "line": 17,
+        "text": "#[requires(*flag == false)]"
+      },
+      {
+        "line": 18,
+        "text": "#[ensures(^flag == true)]"
+      },
+      {
+        "line": 23,
+        "text": "#[ensures(^flag == !*flag)]"
+      },
+      {
+        "line": 28,
+        "text": "#[ensures(^flag == false)]"
+      }
+    ]
+  },
+  "normal_return_scope_only": true,
+  "schema_version": 1,
+  "toolchain": {
+    "mir_stage": "2-2-004.ElaborateDrops.after.mir",
+    "rustc_commit": "91fe22da8084a1c9e993d78d4a56f22ab8396236",
+    "rustc_flags": "--edition=2021 --crate-type=lib --crate-name=generic_drop_native --emit=link -Copt-level=0 -Cpanic=unwind -Zdump-mir=all -Zmir-opt-level=0 -Zidentify-regions=yes",
+    "rustc_version": "rustc 1.98.0-nightly (91fe22da8 2026-06-21)"
+  },
+  "trust_boundary": "external checker correspondence plus native MIR normal-edge injection; destructor/caller bodies remain ordinary proof bodies",
+  "unwind_edges_are_recorded_not_claimed": true,
+  "variant": {
+    "features": [
+      "omit_drop_call"
+    ],
+    "kind": "diagnostic-control",
+    "mapping_path": "generated/controls/omit_drop_call/mapping.json",
+    "shadow_path": "generated/controls/omit_drop_call/shadow.rs",
+    "shadow_sha256": "9c7792fec7e85380029f26058c9a37b5c818f80fd00976af10c20cde0e1ab108"
+  }
+}
