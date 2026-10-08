@@ -103,6 +103,8 @@ mod ownership_proof;
 mod endian_ops;
 mod fmt;
 mod loom;
+mod ref_count_limit;
+mod ref_count_ops;
 mod slice_mut_ops;
 mod slice_ops;
 mod slice_read_ops;

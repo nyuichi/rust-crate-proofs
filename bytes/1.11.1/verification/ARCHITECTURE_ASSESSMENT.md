@@ -4,6 +4,16 @@
 
 ## Current original-source progress — 2026-10-08 UTC
 
+Current native source now guards all three refcount increments before storing
+through Relaxed CAS/fetch_update (decision AC). The 44-file source evidence
+described below is historical for the previous increment algorithm; it cannot
+certify the changed source. Production guard arithmetic and a retained-callback
+model CAS loop are independently body proved in
+`probes/original-public-shared-gate-2026-10-08`. The native operation/invariant
+bridge and Relaxed release-sequence carry remain generic TCB. Sparse arbitrary
+registration plus retirement and actual public Bytes/Vtable integration are
+still pending until separately proved and audited.
+
 The retired modified architecture below is historical. The current original
 Shared route has a body-proved77-file protocol and captured44-file source leaf and driver:
 selected len<cap construction, non-consuming one-clone registration, physical

@@ -1272,10 +1272,7 @@ impl<T> Owned<T> {
 
 unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let owned = data.load(Ordering::Relaxed);
-    let old_cnt = (*owned.cast::<AtomicUsize>()).fetch_add(1, Ordering::Relaxed);
-    if old_cnt > usize::MAX >> 1 {
-        crate::abort();
-    }
+    crate::ref_count_ops::increment(&*owned.cast::<AtomicUsize>());
 
     Bytes {
 
@@ -1310,7 +1307,7 @@ unsafe fn owned_drop_impl<T>(owned: *mut ()) {
 
         let old_cnt = ref_cnt.fetch_sub(1, Ordering::Release);
         debug_assert!(
-            old_cnt > 0 && old_cnt <= usize::MAX >> 1,
+            old_cnt > 0 && old_cnt <= crate::ref_count_limit::MAX_REF_COUNT + 1,
             "expected non-zero refcount and no underflow"
         );
         if old_cnt != 1 {
@@ -1610,11 +1607,7 @@ unsafe fn shared_drop(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {
 }
 
 unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> Bytes {
-    let old_size = (*shared).ref_cnt.fetch_add(1, Ordering::Relaxed);
-
-    if old_size > usize::MAX >> 1 {
-        crate::abort();
-    }
+    crate::ref_count_ops::increment(&(*shared).ref_cnt);
 
     Bytes {
 

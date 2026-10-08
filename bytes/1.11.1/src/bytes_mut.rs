@@ -1637,11 +1637,7 @@ impl<'a> FromIterator<&'a u8> for BytesMut {
  */
 
 unsafe fn increment_shared(ptr: *mut Shared) {
-    let old_size = (*ptr).ref_count.fetch_add(1, Ordering::Relaxed);
-
-    if old_size > isize::MAX as usize {
-        crate::abort();
-    }
+    crate::ref_count_ops::increment(&(*ptr).ref_count);
 }
 
 unsafe fn release_shared(ptr: *mut Shared) {

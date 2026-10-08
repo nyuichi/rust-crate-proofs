@@ -629,8 +629,39 @@ check the actual expected count before a successful increment; only success
 commits one affine registration transition, and failed/retried attempts do not
 create tickets. Retain predecessor release-sequence publication without Acquire
 or current-view publication; retain final Release decrement and actual Acquire.
-The proposal has explicit retry/starvation/hot-path/abort-timing differences,
-and has not been applied. All three native increment paths must be audited,
+The proposal has explicit retry/starvation/hot-path/abort-timing differences.
+It was applied in D2026-10-08-AC below. All three native increment paths must be audited,
 not only selected Shared. Required generic adapter and controls are recorded in
 refcount-overflow-review-2026-10-08. This source review/toy experiment is not
 a formal protocol proof or complete original API verification.
+
+## D2026-10-08-AC — Guard before the actual increment
+
+The user authorized implementing AB's three-step plan. The changed premise is
+now native code: all three increment paths call `ref_count_ops::increment`,
+which uses Relaxed/Relaxed fetch_update with production `next_ref_count`.
+Its callback is pure arithmetic; refusal makes no store by this operation.
+Successful updates are bounded by MAX_REF_COUNT+1, strictly below usize::MAX.
+Owned decrement's debug bound now admits that already-allowed last success.
+Public API, native representation, Release decrements and final Acquire remain.
+
+The exact production arithmetic and a once-only model-atomic CAS loop are body
+proved in the new original-public-shared gate. The loop follows upstream
+logically_atomic_faa's retained affine callback across CAS failures. That
+upstream SC example does not justify Relaxed synchronization. Generic native
+operation/invariant alignment and precise Relaxed release-sequence carry are
+separate trusted boundaries; no bytes ownership law is thereby assumed.
+Relaxed carry must neither Acquire the predecessor nor publish the caller's
+current view. Removal requires supported operation-bound weak atomic/invariant
+contracts preserving these interfaces, not changing bytes protocol clients.
+
+Default native tests, no-default library build, portable atomic boundary tests
+and existing Loom clone models pass. The retained atomic microbenchmark shows
+additional cost; it is not a public-API throughput measurement and makes no
+fairness/termination claim. Evidence is in refcount-guard-performance-2026-10-08.
+
+Historical C44 source bridge still targets the previous post-fetch_add code;
+do not count it as proof of this changed native increment. New sparse
+registration/retirement and actual public Bytes/Vtable integration remain
+separate body-proof obligations until their exact-source evidence is audited.
+The post-increment counterexample and earlier failed routes remain frozen.
