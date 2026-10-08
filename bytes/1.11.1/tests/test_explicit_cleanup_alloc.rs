@@ -3,7 +3,7 @@
 //! These tests exercise public APIs and check the concrete allocator events.
 //! They do not establish a formal ownership or concurrency proof.
 
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
 
@@ -277,4 +277,67 @@ fn zero_capacity_unique_drop_does_not_free_a_dangling_pointer() {
     assert_eq!(buffer.capacity(), 0);
     let log = capture_events(|| drop(buffer));
     assert_unique_buffer_freed_once(log, 0, 0);
+}
+
+/// Select Bytes' existing len < capacity Shared constructor, then its actual
+/// SHARED_VTABLE clone and Release/Acquire destructor paths. Allocator observations
+/// complement the proof gate; they do not establish destructor verification.
+#[test]
+fn bytes_shared_clone_keeps_live_reads_and_frees_both_allocations_once() {
+    const ORDERS: [[usize; 3]; 6] = [
+        [0, 1, 2], [0, 2, 1], [1, 0, 2],
+        [1, 2, 0], [2, 0, 1], [2, 1, 0],
+    ];
+    for input in [&b""[..], &b"x"[..], &b"shared physical bytes"[..]] {
+        for order in ORDERS {
+            let mut storage = Vec::with_capacity(input.len() + 8);
+            storage.extend_from_slice(input);
+            let base = storage.as_ptr() as usize;
+            let capacity = storage.capacity();
+            assert!(storage.len() < capacity);
+            let log = capture_events(|| {
+                let first = Bytes::from(storage);
+                let second = first.clone();
+                let third = second.clone();
+                assert_eq!(first.as_ptr() as usize, base);
+                assert_eq!(second.as_ptr(), first.as_ptr());
+                assert_eq!(third.as_ptr(), first.as_ptr());
+                let mut handles = [Some(first), Some(second), Some(third)];
+                for (step, index) in order.into_iter().enumerate() {
+                    // Observe another live owner before each release.
+                    let observed = handles.iter().enumerate()
+                        .find(|(other, value)| *other != index && value.is_some())
+                        .map(|(_, value)| value.as_ref().unwrap().as_ref());
+                    if let Some(slice) = observed { assert_eq!(slice, input); }
+                    drop(handles[index].take().unwrap());
+                    if step < 2 {
+                        EVENTS.with(|events| assert_eq!(events.get().deallocation_count, 0));
+                        for remaining in handles.iter().flatten() {
+                            assert_eq!(remaining.as_ref(), input);
+                        }
+                    }
+                }
+            });
+            assert_shared_allocations_freed_once(log, base, capacity);
+        }
+    }
+}
+
+#[test]
+fn bytes_shared_slice_remains_live_across_another_owners_release() {
+    let input = b"retained slice";
+    let mut storage = Vec::with_capacity(input.len() + 8);
+    storage.extend_from_slice(input);
+    let base = storage.as_ptr() as usize;
+    let capacity = storage.capacity();
+    let log = capture_events(|| {
+        let source = Bytes::from(storage);
+        let other = source.clone();
+        let slice = source.as_ref();
+        drop(other);
+        EVENTS.with(|events| assert_eq!(events.get().deallocation_count, 0));
+        assert_eq!(slice, input);
+        drop(source);
+    });
+    assert_shared_allocations_freed_once(log, base, capacity);
 }
