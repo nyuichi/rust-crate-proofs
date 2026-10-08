@@ -895,3 +895,13 @@ lifecycle-invariant attempt is not claimed proved; valid-handle-only trait
 verification is being separated from the explicit-predicate lifecycle gate.
 Canonical reduced source/configuration and failed proof leaves are archived
 in open-invariant-borrow/rejected, without weakened invariants or new trust.
+
+### 2026-10-08 registered unsafe dispatch prerequisite
+
+The isolated unsafe-affine-dispatch-2026-10-08 gate proves six files/12 prover
+leaves with zero nulls; its wrong native/spec certificate fails exactly one
+registration condition and duplicated resources fail the Rust frontend. Both
+targets and safe shims are body proved. Generic registration and invocation are
+trusted; resource forwarding outside the callback is body proved. This does
+not yet prove a ghost-transforming callback or public Bytes::clone. Root archive
+and current-source correspondence audit is evidence/root-audit.json.

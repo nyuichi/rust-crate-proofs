@@ -516,3 +516,37 @@ while its validity guard succeeds. Current borrowed-slice cleanup is rejected
 with E0505. These close the selected-path source controls, not the full original
 architecture admission gate; earlier socket/daemon interruptions are recorded
 as execution diagnostics and never counted as mathematical failures.
+
+## D2026-10-08-Y — Shared declaration and registered indirect calls
+
+Changed premise from the frozen direct MIR FnPtr call: a safe erased pointer
+can invoke the shipped FnExt contract through explicit Fn::call. Named function
+reification remains unsupported, and unsafe pointers do not implement Fn.
+The isolated unsafe-affine-dispatch probe therefore generates a native target,
+a body-checked safe shim calling that exact target, and a private registration
+getter together. Generic registration and indirect invocation remain explicit
+trusted correspondence rules, with no arbitrary pointer/spec pairing or
+function-address identity assumption. Both native and shim bodies are checked.
+The accepted restricted result is six proof files/12 actual prover leaves, zero
+nulls; a mismatched certificate leaves exactly the registration guard unproved,
+and resource duplication fails E0382. Root source/archive audit is in the probe.
+
+Resource forwarding outside the callback is body checked, but callback-owned
+ghost transformations, actual SHARED_VTABLE selection and public Clone are
+not established. The next distinguishing experiment must transport ghost
+input/output inside the checked shim while preserving its native erasure.
+Do not count scalar dispatch as bytes ownership/refcount verification. Existing
+FnPtr, Drop, reentrancy and Acquire counterexamples remain frozen.
+
+Original Shared and the selected lifecycle leaf now include one maintained
+three-field declaration from src/bytes/shared_record.rs. These remain distinct
+compiled types in distinct crates; the public Bytes layout/API is unchanged.
+The current source-correspondent 44-file gate has 280 actual prover leaves and
+zero nulls, plus native default1011/no-default1011/portable cleanup2 tests.
+The common-declaration archive and root receipt are in the original-source probe.
+The external affine CloneQuota still prevents integrating Clone(&self); moving
+that quota to a receiver cannot make it movable through &self. A new
+registration-only experiment must issue fresh affine tickets repeatedly using
+one shared source ticket and a residual lifetime-token pool, proving bytes
+registration bodies rather than assuming them. Full retirement/publication
+coexistence and overflow/interleaving admission remain separate obligations.

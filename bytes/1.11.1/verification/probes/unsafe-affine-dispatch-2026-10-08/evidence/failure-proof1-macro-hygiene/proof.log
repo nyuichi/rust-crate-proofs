@@ -1,0 +1,106 @@
+     Removed 91 files, 9.1MiB total
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:21:40
+   |
+21 | pub fn capacity_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                        ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:32:36
+   |
+32 | pub fn base_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
+   |                                    ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+
+warning: unused variable: `vector`
+  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:42:39
+   |
+42 | pub fn pointer_model<T, A: Allocator>(vector: Vec<T, A>) -> *mut T {
+   |                                       ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
+
+warning: `creusot-std` (lib) generated 3 warnings (run `cargo fix --lib -p creusot-std` to apply 3 suggestions)
+    Checking bytes-unsafe-affine-dispatch-diagnostic v0.1.0 (/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/unsafe-affine-dispatch-2026-10-08)
+error[E0425]: cannot find value `result` in this scope
+  --> src/lib.rs:40:15
+   |
+40 |     #[ensures(result == x)]
+   |               ^^^^^^ not found in this scope
+   |
+help: an identifier with the same name is defined here, but is not accessible due to macro hygiene
+  --> src/lib.rs:20:11
+   |
+20 |           $(#[$contract])*
+   |             ^^^^^^^^^^^^
+...
+38 | / declare_registered!(
+39 | |     #[requires(x < u32::MAX)]
+40 | |     #[ensures(result == x)]
+41 | |     native_identity, identity_shim, identity_registration, (x: u32) -> u32 { x }
+42 | | );
+   | |_- in this macro invocation
+   = note: this error originates in the macro `declare_registered` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0425]: cannot find value `result` in this scope
+  --> src/lib.rs:40:15
+   |
+40 |     #[ensures(result == x)]
+   |               ^^^^^^ not found in this scope
+   |
+help: an identifier with the same name is defined here, but is not accessible due to macro hygiene
+  --> src/lib.rs:23:11
+   |
+23 |           $(#[$contract])*
+   |             ^^^^^^^^^^^^
+...
+38 | / declare_registered!(
+39 | |     #[requires(x < u32::MAX)]
+40 | |     #[ensures(result == x)]
+41 | |     native_identity, identity_shim, identity_registration, (x: u32) -> u32 { x }
+42 | | );
+   | |_- in this macro invocation
+   = note: this error originates in the macro `declare_registered` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0425]: cannot find value `result` in this scope
+  --> src/lib.rs:45:15
+   |
+45 |     #[ensures(result@ == x@ + 1)]
+   |               ^^^^^^ not found in this scope
+   |
+help: an identifier with the same name is defined here, but is not accessible due to macro hygiene
+  --> src/lib.rs:20:11
+   |
+20 |           $(#[$contract])*
+   |             ^^^^^^^^^^^^
+...
+43 | / declare_registered!(
+44 | |     #[requires(x < u32::MAX)]
+45 | |     #[ensures(result@ == x@ + 1)]
+46 | |     native_successor, successor_shim, successor_registration, (x: u32) -> u32 { x + 1 }
+47 | | );
+   | |_- in this macro invocation
+   = note: this error originates in the macro `declare_registered` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0425]: cannot find value `result` in this scope
+  --> src/lib.rs:45:15
+   |
+45 |     #[ensures(result@ == x@ + 1)]
+   |               ^^^^^^ not found in this scope
+   |
+help: an identifier with the same name is defined here, but is not accessible due to macro hygiene
+  --> src/lib.rs:23:11
+   |
+23 |           $(#[$contract])*
+   |             ^^^^^^^^^^^^
+...
+43 | / declare_registered!(
+44 | |     #[requires(x < u32::MAX)]
+45 | |     #[ensures(result@ == x@ + 1)]
+46 | |     native_successor, successor_shim, successor_registration, (x: u32) -> u32 { x + 1 }
+47 | | );
+   | |_- in this macro invocation
+   = note: this error originates in the macro `declare_registered` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `bytes-unsafe-affine-dispatch-diagnostic` (lib) due to 4 previous errors
+Error: Compilation failed
