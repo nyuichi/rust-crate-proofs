@@ -37,9 +37,9 @@ guarded native案は未適用。hot pathがload/CAS loopになり、retry、個�
 
 途中の正常系archive（SHA prefix `7ef78f00`）は同じ保存先への上書きで失われ、復元できない。どの完了判定にも使わない。上記current final archiveは別途独立監査済み。今後のsource変更には新しいcapture labelを使い、既存archiveを上書きしない。
 
-CLI認証切れを受け、接続済みGitHubで同一treeのcommitを作り、force:falseで更新してanonymous fetchで検査した。公開済みHEADは `f10680445e6fc80da5161f910bda4ae5e42306e6`。元のローカルcommitはcheckpoint branchに保存し、対応表も保存している。
+CLI認証切れを受けた前回の公開では、接続済みGitHubで同一treeのcommitを作り、force:falseで更新してanonymous fetchで検査した。対応する元のローカルcommitはcheckpoint branchに保存した。その後の`4163ad6e`初回公開時には、自動承認レビューがquota-free最終evidence manifestのblob uploadを「private source/proof artifactsの公開先への明示的許可がない」として一度拒否した。この時点ではtree/commit/refを更新せず、19個のblobだけがrefに接続されないremote objectとして残った。
 
-最新のcode/proof commit `4163ad6e` はローカル保存済みだが、現時点ではbranch未公開。自動承認レビューがfinal evidence manifestのuploadを「private source/proof artifactsの公開先への明示的許可がない」として拒否した。tree/commit/refは更新していない。公開可否の回答待ちであり、他の経路で回避しない。19個のblobはrefに接続されずremote objectとして存在する。
+この拒否をユーザーへ説明した後、ユーザーは「これまでは普通にpushしてたよね？何が違うんだ… 特に違いないならpushして。んで、次何するかもまとめて」と明示し、同一の公開先へ検証済みproof/source incrementを公開するよう再指示した。その指示後に以前拒否されたmanifestを含む全blob uploadが受理され、`4163ad6e`と`2f8eae30`を順に公開した。両treeはローカルtreeと一致し、各branch更新はforce:falseと現在のexpected SHAで行い、最後にanonymous fetchでparent chainを検査した。公開HEADは `732887b5c4bb168d4610374a0153e535c014c302`。ローカルbranchも同一treeのremote commitへconditional update済みで、元のローカルcommitはcheckpoint branchに保持した。全local→remote対応と過去の拒否・解決経緯は `verification/CONNECTOR_PUBLISH_FINAL_2026-10-08.json` に記録した。
 
 ## 再開時
 
