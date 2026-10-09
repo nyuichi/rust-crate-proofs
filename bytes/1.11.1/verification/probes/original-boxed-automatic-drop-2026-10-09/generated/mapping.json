@@ -1,0 +1,120 @@
+{
+  "stage": "before Creusot borrow/liveness; external consuming terminal-place",
+  "native_source": "native.rs",
+  "native_source_sha256": "40719622a91514d58776255a75f1b6ffdda7b379509d2776c6cb0a29f8a72a8d",
+  "native_capture": {
+    "stage": "2-2-004.ElaborateDrops.after.mir",
+    "native_source": "native.rs",
+    "native_source_sha256": "40719622a91514d58776255a75f1b6ffdda7b379509d2776c6cb0a29f8a72a8d",
+    "selected": [
+      {
+        "path": "native-mir/bytes_boxed_drop_native.boxed_read_then_drop.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "e79c660b0acb4e9b9b0d72056e9d54251c38933864f79ba4db329ff2f09cd78c"
+      },
+      {
+        "path": "native-mir/bytes.bytes-{impl#3}-drop.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "50f3f09f68d2c58edb8200370d82b140e78f06827112f4f86fbf1eb10a7c3594"
+      },
+      {
+        "path": "native-mir/bytes.bytes-static_drop.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "25573f03210e9377e6fb1131013c75342b13388ef27a8958eb5f7a654bda68b8"
+      },
+      {
+        "path": "native-mir/bytes.bytes-promotable_even_drop.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "df5b8232c6e577d0c62bf890e2036ad7b46a0b32d5c9aacb418fd71f94e91a50"
+      },
+      {
+        "path": "native-mir/bytes.bytes-promotable_even_drop-{closure#0}.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "7e81b2884c4ca0ff6be24005cd87892ccf83f9c0871040fce071b84dda95d2c9"
+      },
+      {
+        "path": "native-mir/bytes.bytes-promotable_even_drop-{closure#0}-{closure#0}.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "51652d0b88727f0e7a2a69a8ed9d51d804db0ec93d2f401cacdbb6ddbfd7a95a"
+      },
+      {
+        "path": "native-mir/bytes.bytes-promotable_odd_drop.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "c86fbbd98e95d7a29a1544d1efb9a6512596a022515c523320916711dbcd39bb"
+      },
+      {
+        "path": "native-mir/bytes.bytes-promotable_odd_drop-{closure#0}.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "d025a4d75d7704c47723275e2d7977053420c4f185d85eeba3a42031423fc788"
+      },
+      {
+        "path": "native-mir/bytes.bytes-free_boxed_slice.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "76df538a30f35d0d2e70a5550383069bdfcc1824ee0d2d0fbdfcb4a5fa6af7a7"
+      },
+      {
+        "path": "native-mir/bytes.bytes-ptr_map.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "3415ee18db30bc60b4ffe17aabdfd04d20a4fe691e7b73d85f171c58655c07f4"
+      },
+      {
+        "path": "native-mir/bytes.loom-sync-atomic-{impl#0}-with_mut.2-2-004.ElaborateDrops.after.mir",
+        "sha256": "bb7d61c4e2129237fed09d974f0e791a6f1543d04204e122f503a1c2ab3bada8"
+      }
+    ],
+    "commands": [
+      "cargo rustc --locked --offline --manifest-path generated/native-harness/Cargo.toml --lib -- -Zdump-mir=all -Zdump-mir-dir=<scratch/client> -Zmir-opt-level=0 -Zidentify-regions=yes",
+      "cargo rustc --locked --offline --manifest-path ../../../Cargo.toml --lib -- -Zdump-mir=all -Zdump-mir-dir=<scratch/production> -Zmir-opt-level=0 -Zidentify-regions=yes"
+    ],
+    "production_source": "../../../src/bytes.rs",
+    "production_source_sha256": "95789896965446187ecd5cc7bf52f447435fcdc40f4e19c0c49c5a59b22495fd"
+  },
+  "normal_edges": [
+    {
+      "block": "bb4",
+      "place": "_2",
+      "owner": "bytes",
+      "successor": "bb5",
+      "unwind": "bb9",
+      "helper": "bytes_terminal_drop",
+      "output": "completion"
+    }
+  ],
+  "return_evaluation": {
+    "block": "bb3",
+    "operation": "_0 = move _4"
+  },
+  "source_inputs": [
+    {
+      "path": "src/public_constructor.rs",
+      "sha256": "45b651eebbbbd6a2ca9b70b364fce8dac8256a10c6f4531a18e3230958150b38"
+    },
+    {
+      "path": "src/boxed_drop.rs",
+      "sha256": "4c00f7f4a29033a473a2415b234ed6ec9b7817a0dd409bfe370bdb7fe57f8897"
+    },
+    {
+      "path": "src/tag_specs.rs",
+      "sha256": "d58c28a3a0480362dd1189ceb7b665dd2aa1334b53b44b80912f473e2918d899"
+    },
+    {
+      "path": "driver-template.rs",
+      "sha256": "fbc113b94e2962f1e827360d2b71b59a96b0186da2c87fb08acf31d8b9e64518"
+    }
+  ],
+  "shadow": {
+    "path": "generated/boxed_client.rs",
+    "sha256": "fbc113b94e2962f1e827360d2b71b59a96b0186da2c87fb08acf31d8b9e64518"
+  },
+  "terminal_feature": "",
+  "representational_routes": [
+    "empty Static -> static_drop no allocation",
+    "nonempty even PromotableRaw -> clear low bit -> free_boxed_slice",
+    "nonempty odd PromotableRaw -> raw pointer -> free_boxed_slice"
+  ],
+  "unreachable_native_branch": "KIND_ARC -> release_shared retained in native source/MIR; readonly binding proves kind == KIND_VEC in each checked callback",
+  "exclusions": [
+    "unwind",
+    "Clone/promotion",
+    "arbitrary move/drop glue",
+    "non-default cfg",
+    "full-crate admission"
+  ],
+  "generic_tcb": [
+    "terminal-place address non-observation and no field glue",
+    "native source/MIR/shadow mapping and erasure",
+    "assumed exposed-provenance tag roundtrip",
+    "equal pointer distance",
+    "existing physical read/free and readonly atomic binding"
+  ]
+}

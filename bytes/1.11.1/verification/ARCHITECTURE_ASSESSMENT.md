@@ -24,7 +24,13 @@ rejections). Native source/MIR order, terminal-place address non-observation and
 field-drop profile are explicitly checked under generic compiler/erasure TCB.
 This is not a general Rust destructor interpretation or unwind proof.
 
-Promotable promotion/lifecycle, automatic Drop outside the exact Shared witness,
+AK now establishes unrestricted boxed construction/read/unpromoted normal
+terminal Drop (97/510/0), empty Static and both pointer parities, under explicit
+assumed exposed-provenance/physical/terminal compiler TCB. It has115 structural
+controls, seven semantic defects and three pre-VC type rejections; exact native
+capacity/ownership/effect bodies stay proved. No Clone/promotion or unwind claim.
+
+Promotable promotion/lifecycle, automatic Drop beyond these exact witnesses,
 arbitrary concurrent closure and remaining API/configuration coverage remain open. The original full
 target is unchanged. Continue consulting Astra after each audited/published
 increment and execute the next concrete step.

@@ -968,3 +968,42 @@ SHA256 a550b2564160823fe425157ed45dba90471577d3124e6677e7d101b2bacb55c9
 has1717 hashed members. Support-module literal-path checking was strengthened
 after independent audit found a concrete acceptance gap, with ten new mutations.
 No production API/source change or whole-crate admission follows.
+
+## D2026-10-09-AK — All-domain boxed normal automatic Drop
+
+After audited/published AJ f66edbd1, Astra directs unrestricted actual
+From<Box<[u8]>> -> AsRef/to_vec -> normal-return automatic Bytes Drop, empty
+Static and both unpromoted PromotableRaw branches. Native witness has no input
+or pointer parity preconditions and no explicit Drop. Reuse AE actual constructor
+ownership and AJ terminal-place interpretation, preserving return evaluation
+before the native Drop. Shared and original all-domain constructor gates stay
+unchanged. Proof must consume actual Recovery/full PhysicalRegion and return
+NoAllocation for static, exact namespace/pointer/size/alignment FreeReceipt for
+nonempty. Retain native free_boxed_slice offset_from+len computation: capacity
+and branch unreachability are body proved, not Bytes-specific trusted laws.
+If needed, only generic tag provenance roundtrip/equal-pointer distance boundaries
+may be added, with exact native interpretation/Std analogue/removal path. Source
+checker records original ARC branch and a proved unreachable no-promotion branch;
+readonly binding does not extend through Clone/promotion. Normal-only terminal
+receiver/data-address non-observation and no field-drop glue remain required.
+Controls cover missing Drop/free, duplicate free, missing tag removal, wrong
+pointer/layout, raw-as-static/ARC, early Drop, native target drift. Retain both
+parities symbolically even if native allocation observes only one. After two
+same failures reassess boundary; no third assertion-tuning repetition. Admission
+is only all-input boxed constructor/read/unpromoted normal automatic Drop.
+
+AK result: canonical no-feature/restored replay proves all97 files/510 actual
+prover leaves/zero nulls, explicit current client+mapping correspondence passes,
+and all115 independent structural controls reject. Seven semantic controls
+reject with recorded null counts1/1/1/2/6/1/1; duplicate free/Drop and early Drop
+reject before VC generation (E0382/E0382/E0505). Native11 selected MIR/five-case
+execution and field-profile compile check pass. Canonical SHA256
+04aa0ecfde6d47af4f9b250c39d6fbb74556958752a674d8552688612217acb5
+has2512 hashed members. Two body failures prompted interface restructuring to
+one generic tag symbol and body-proved bitvector lemmas, not a Bytes axiom.
+Astra reviewed default ptr_map only as an assumed generic exposed-provenance
+roundtrip; pinned native documentation context and removal path are explicit.
+Independent review exposed absolute harness path dependence, fixed with relative
+paths and regenerated native evidence. Imported sibling checker/support trees
+are captured and the archive restore layout is documented. No production/API
+change or full-crate admission follows. Consult Astra after audited publication.

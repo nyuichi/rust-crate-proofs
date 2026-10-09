@@ -1,5 +1,29 @@
 # bytes 1.11.1 status
 
+## Astra-guided unrestricted boxed normal automatic Drop — archived label 2026-10-09
+
+AK closes actual From<Box<[u8]>>, exact AsRef/to_vec contents, and automatic
+terminal normal Drop for every input: empty Static and both unpromoted raw
+pointer-tag branches. No nonempty/parity premise or explicit cleanup appears in
+the native witness. The original ARC callback branches remain checked and are
+proved unreachable from readonly raw bindings. Native capacity computation,
+branch choice and complete affine allocation consumption are body proved.
+
+The canonical gate proves 97 files / 510 actual prover leaves / zero nulls,
+all targets included, no defect features or terminal controls. All115 structural
+controls reject; seven semantic controls reject with actual null counts
+1/1/1/2/6/1/1, and three type controls reject before VC generation. Five native
+inputs and the no-drop field-profile compile check pass. Inputs/results and
+independent reconstruction are in
+`verification/probes/original-boxed-automatic-drop-2026-10-09/`.
+
+This is conditional on explicit generic TCB, including an assumed exposed-
+provenance tag roundtrip, equal-pointer distance, physical read/free, native
+terminal-place/source/MIR correspondence and erasure. It does not establish a
+strict-provenance theorem from address equality. Clone/promotion, unwind,
+arbitrary concurrent closure and remaining API/configuration coverage remain
+open. Original architecture is still NOT ADMITTED; full target is unchanged.
+
 ## Astra-guided actual Shared automatic Drop — archived label 2026-10-09
 
 AJ connects the native two-owner normal-return client to actual Bytes::drop,
