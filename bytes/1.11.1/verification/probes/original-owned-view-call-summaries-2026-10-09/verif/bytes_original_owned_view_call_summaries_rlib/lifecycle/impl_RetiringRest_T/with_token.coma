@@ -1,0 +1,129 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 76 4 79 27 *)
+
+(* lifecycle::RetiringRest<T> *)
+
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 201 22 201 26
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 201 4 203 17
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 199 14 199 29
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 179 15 179 16
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 179 4 181 17
+let%span sghost'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 177 14 177 26
+let%span sghost'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 112 8 112 18
+let%span slifecycle = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 81 23 81 40
+let%span slifecycle'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 83 23 83 41
+let%span slifecycle'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 80 8 88 9
+let%span slifecycle'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 77 8 77 12
+let%span slifecycle'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 78 8 78 13
+let%span slifecycle'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 79 9 79 27
+let%span slifecycle'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 75 14 75 57
+let%span slifecycle'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 71 8 71 85
+
+use creusot.prelude.Any
+
+type t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+
+type t_Fragment_FMap_Int_Excl_PositiveReal = { f0: t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal }
+
+type t_AtView_Option_T
+
+type t_RetiringRest_T = { id: int; fragment: t_Fragment_FMap_Int_Excl_PositiveReal; sealed: t_AtView_Option_T }
+
+predicate inv_AtView_Option_T (_1: t_AtView_Option_T)
+
+predicate inv_RetiringRest_T (_1: t_RetiringRest_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_RetiringRest_T [inv_RetiringRest_T x]. inv_RetiringRest_T x
+    = inv_AtView_Option_T x.sealed
+
+predicate invariant_Ghost_RetiringRest_T [@inline:trivial] (self: t_RetiringRest_T) =
+  [%#sghost'5] inv_RetiringRest_T self
+
+meta "rewrite_def" predicate invariant_Ghost_RetiringRest_T
+
+predicate inv_Ghost_RetiringRest_T [@inline:trivial] (_1: t_RetiringRest_T) = invariant_Ghost_RetiringRest_T _1
+
+meta "rewrite_def" predicate inv_Ghost_RetiringRest_T
+
+let into_inner_RetiringRest_T (self: t_RetiringRest_T) (return (x: t_RetiringRest_T)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost] inv_Ghost_RetiringRest_T self}
+  any
+  [ return (result: t_RetiringRest_T) ->
+  {[@stop_split] [@expl:into_inner_RetiringRest_T ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'0] inv_RetiringRest_T result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+type t_LifetimeToken
+
+predicate inv_LifetimeToken (_1: t_LifetimeToken)
+
+predicate invariant_Ghost_LifetimeToken [@inline:trivial] (self: t_LifetimeToken) = [%#sghost'5] inv_LifetimeToken self
+
+meta "rewrite_def" predicate invariant_Ghost_LifetimeToken
+
+predicate inv_Ghost_LifetimeToken [@inline:trivial] (_1: t_LifetimeToken) = invariant_Ghost_LifetimeToken _1
+
+meta "rewrite_def" predicate inv_Ghost_LifetimeToken
+
+let into_inner_LifetimeToken (self: t_LifetimeToken) (return (x: t_LifetimeToken)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost] inv_Ghost_LifetimeToken self}
+  any
+  [ return (result: t_LifetimeToken) ->
+  {[@stop_split] [@expl:into_inner_LifetimeToken ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'0] inv_LifetimeToken result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+type t_Retiring_T = {
+  token'0: t_LifetimeToken;
+  id'0: int;
+  fragment'0: t_Fragment_FMap_Int_Excl_PositiveReal;
+  sealed'0: t_AtView_Option_T }
+
+predicate inv_Retiring_T (_1: t_Retiring_T)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Retiring_T [inv_Retiring_T x]. inv_Retiring_T x
+    = (inv_LifetimeToken x.token'0 /\ inv_AtView_Option_T x.sealed'0)
+
+predicate invariant_Ghost_Retiring_T [@inline:trivial] (self: t_Retiring_T) = [%#sghost'5] inv_Retiring_T self
+
+meta "rewrite_def" predicate invariant_Ghost_Retiring_T
+
+predicate inv_Ghost_Retiring_T [@inline:trivial] (_1: t_Retiring_T) = invariant_Ghost_Retiring_T _1
+
+meta "rewrite_def" predicate inv_Ghost_Retiring_T
+
+let new_Retiring_T (x: t_Retiring_T) (return (x'0: t_Retiring_T)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'2] inv_Retiring_T x}
+  any
+  [ return (result: t_Retiring_T) ->
+  {[@stop_split] [@expl:new_Retiring_T ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'3] inv_Ghost_Retiring_T result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'4] result = x)}
+    (! return {result}) ]
+
+function paired_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 70 4 70 60] (self: t_RetiringRest_T) (token: t_LifetimeToken) : t_Retiring_T
+ = [%#slifecycle'6] { token'0 = token; id'0 = self.id; fragment'0 = self.fragment; sealed'0 = self.sealed }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let with_token_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/lifecycle.rs" 76 4 79 27]
+  (rest: t_RetiringRest_T) (token: t_LifetimeToken) (return (x: t_Retiring_T)) =
+{[@stop_split] [@expl:with_token_T requires] ([@stop_split] [@expl:with_token 'rest' type invariant] [%#slifecycle'2] inv_Ghost_RetiringRest_T rest)
+  /\ ([@stop_split] [@expl:with_token 'token' type invariant] [%#slifecycle'3] inv_Ghost_LifetimeToken token)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = into_inner_RetiringRest_T [%#slifecycle] {rest} (fun (_x: t_RetiringRest_T) -> [ &rest'0 <- _x ] s1)
+    | s1 = into_inner_LifetimeToken [%#slifecycle'0] {token} (fun (_x: t_LifetimeToken) -> [ &_9 <- _x ] s2)
+    | s2 = [ &_6 <- { token'0 = _9; id'0 = rest'0.id; fragment'0 = rest'0.fragment; sealed'0 = rest'0.sealed } ] s3
+    | s3 = new_Retiring_T [%#slifecycle'1] {_6} (fun (_x: t_Retiring_T) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Retiring_T = Any.any_l ()
+  | & rest: t_RetiringRest_T = rest
+  | & token: t_LifetimeToken = token
+  | & _6: t_Retiring_T = Any.any_l ()
+  | & rest'0: t_RetiringRest_T = Any.any_l ()
+  | & _9: t_LifetimeToken = Any.any_l () ])
+  [ return (result: t_Retiring_T) ->
+  {[@stop_split] [@expl:with_token_T ensures] ([@stop_split] [@expl:with_token result type invariant] [%#slifecycle'4] inv_Ghost_Retiring_T result)
+    /\ ([@stop_split] [@expl:with_token ensures] [%#slifecycle'5] result = paired_T rest token)}
+    (! return {result}) ]

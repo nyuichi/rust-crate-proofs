@@ -1,0 +1,109 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 330 4 330 51 *)
+
+(* raw_vec::BoundPtr *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span sraw_vec = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 330 31 330 35
+let%span sraw_vec'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 330 40 330 51
+let%span sraw_vec'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 328 14 328 32
+let%span sraw_vec'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 329 32 329 61
+let%span sraw_vec'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 300 20 300 33
+let%span sraw_vec'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 272 12 280 13
+let%span sraw_vec'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 255 12 262 13
+let%span sraw_vec'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 290 20 290 46
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 142 8 142 35
+
+use creusot.prelude.Any
+use creusot.int.Int64
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use creusot.prelude.Opaque
+use int.Int
+
+type t_NonNull_u8
+
+type t_Id
+
+type t_BoundPtrBinding = { namespace: t_Id; allocation_capacity: int; absolute_offset: int }
+
+type t_Option_BoundPtrBinding = None | Some t_BoundPtrBinding
+
+type t_BoundPtr = { pointer: t_NonNull_u8; binding: t_Option_BoundPtrBinding }
+
+type tup3_Id_Int_Int = { f0: t_Id; f1: int; f2: int }
+
+type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 253 4 253 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+ = [%#sraw_vec'5] match self.binding with
+    | None -> None'0
+    | Some binding'0 -> Some'0 { f0 = binding'0.namespace;
+                                 f1 = binding'0.allocation_capacity;
+                                 f2 = binding'0.absolute_offset }
+    end
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull'0] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+function current_address [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 289 4 289 39] (self: t_BoundPtr) : int
+ = [%#sraw_vec'6] UInt64.t'int (addr_NonNull_u8 self.pointer)
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 270 4 270 30] (self: t_BoundPtr) =
+  [%#sraw_vec'4] match view_BoundPtr self with
+    | None'0 -> true
+    | Some'0 {f1 = allocation_capacity'0; f2 = absolute_offset'0} -> 0 <= absolute_offset'0
+    /\ absolute_offset'0 <= allocation_capacity'0
+    /\ allocation_capacity'0 <= Int64.to_int const_MAX
+    /\ absolute_offset'0 < current_address self
+    /\ current_address self + allocation_capacity'0 - absolute_offset'0 <= UInt64.t'int const_MAX'0
+    end
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x
+    = (invariant_BoundPtr x /\ inv_NonNull_u8 x.pointer)
+
+predicate invariant_ref_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sinvariant] inv_BoundPtr self
+
+meta "rewrite_def" predicate invariant_ref_BoundPtr
+
+predicate inv_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_ref_BoundPtr _1
+
+meta "rewrite_def" predicate inv_ref_BoundPtr
+
+function raw_pointer [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 299 4 299 46] (self: t_BoundPtr) : Opaque.ptr
+ = [%#sraw_vec'3] view_NonNull_u8 self.pointer
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let as_non_null [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-call-summaries-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 330 4 330 51]
+  (self: t_BoundPtr) (return (x: t_NonNull_u8)) =
+{[@stop_split] [@expl:as_non_null 'self' type invariant] [%#sraw_vec] inv_ref_BoundPtr self}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self.pointer ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_NonNull_u8 = Any.any_l () | & self: t_BoundPtr = self ])
+  [ return (result: t_NonNull_u8) ->
+  {[@stop_split] [@expl:as_non_null ensures] ([@stop_split] [@expl:as_non_null result type invariant] [%#sraw_vec'0] inv_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:as_non_null ensures #0] [%#sraw_vec'1] invariant_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:as_non_null ensures #1] [%#sraw_vec'2] view_NonNull_u8 result = raw_pointer self)}
+    (! return {result}) ]

@@ -1,0 +1,53 @@
+// MIR for `clone_suffix` after ElaborateDrops
+
+fn clone_suffix(_1: &bytes::Bytes, _2: usize) -> bytes::Bytes {
+    debug source => _1;
+    debug amount => _2;
+    let mut _0: bytes::Bytes;
+    let mut _3: bytes::Bytes;
+    let mut _4: &bytes::Bytes;
+    let _5: ();
+    let mut _6: &mut bytes::Bytes;
+    let mut _7: usize;
+    scope 1 {
+        debug result => _3;
+    }
+
+    bb0: {
+        StorageLive(_3);
+        StorageLive(_4);
+        _4 = &'_ (*_1);
+        _3 = <bytes::Bytes as Clone>::clone(move _4) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_4);
+        StorageLive(_5);
+        StorageLive(_6);
+        _6 = &'_ mut _3;
+        StorageLive(_7);
+        _7 = copy _2;
+        _5 = <bytes::Bytes as Buf>::advance(move _6, move _7) -> [return: bb2, unwind: bb4];
+    }
+
+    bb2: {
+        StorageDead(_7);
+        StorageDead(_6);
+        StorageDead(_5);
+        _0 = move _3;
+        goto -> bb3;
+    }
+
+    bb3: {
+        StorageDead(_3);
+        return;
+    }
+
+    bb4 (cleanup): {
+        drop(_3) -> [return: bb5, unwind terminate(cleanup)];
+    }
+
+    bb5 (cleanup): {
+        resume;
+    }
+}

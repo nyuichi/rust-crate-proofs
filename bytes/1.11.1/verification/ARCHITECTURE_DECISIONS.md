@@ -1596,3 +1596,84 @@ The pertinent inherited bodies remain byte-identical in AT: event.rs8995c44ad7b3
 Native structural evidence separately checks actual Drop/deallocation routing; the45-control suite includes omitted assignment Drop, early-order Drop and Drop after installation with refreshed native capture/mapping receipts, binding bb9 stash+Drop to bb10 installation. Missing-free semantic controls concern generic resource-condition sensitivity and do not prove native free implementation adequacy. The native checker controls and canonical correspondence remain mandatory.
 
 Root declared proof/capture inputs idle and restored positive source b5790f53182c689186442dc54428693a0c5144bb46febdb1a0824e8ccffee945 before applying this update. The targeted replacement diagnostic has one selected target/56 prover leaves/one null leaf; duplicate_value is rejected with E0382. Five semantic controls retain16 exactly printed failed tasks in total. These outcomes remain sensitivity evidence; canonical audit is pending. Full original architecture remains NOT ADMITTED.
+
+## D2026-10-09-AU — Modular borrowed-input and owning-return summaries
+
+After independently audited AT publication e3a9b0f8003c1dd2eb5de55cd36695cc2e7f74e0,
+AU preserves the complete AT positive as an immutable source prefix. The changed
+premise is a checked direct function-call boundary: an ordinary native helper
+takes a borrowed Bytes, calls original Clone and advance, and returns an owning
+Bytes. The callee is body proved for arbitrary valid owned Shared views, including
+zero length; the caller uses its contract without inlining its implementation.
+This is scoped modular ownership return, not arbitrary untracked escape.
+
+The native clone_suffix(&Bytes, usize) -> Bytes ABI remains unchanged. Its proof
+counterpart adds only an erased mutable DetachedScope argument. Strong posts
+preserve the complete allocation, exact suffix/length/address shift, fresh actual
+ticket insertion, next-id progress, and acceptance of the unchanged borrowed
+source by the future cursor. No State, permission or ticket getter is introduced.
+The Rust helper contract is proved, never trusted. Existing generic field,
+pointer, callback-erasure and normal-Drop assumptions remain explicit.
+
+The external correspondence checker must bind a named native call to the exact
+body-proved shadow callee, its signature, contract, borrowed argument, returned
+owner place and erased scope loan. It checks the callee body/MIR separately,
+including its move return and absence of an unaccounted owner Drop. It must not
+silently accept indirect, unknown or changed effectful callees through a refreshed
+summary receipt. This source/compiler correspondence rule is a generic tool TCB;
+its replacement is checked compiler-level ghost erasure and effect elaboration.
+It provides no Bytes ownership or last-owner axiom.
+
+The native client starts with an owned sliced view and loops over arbitrary
+runtime steps. Each call clones a suffix with amount=min(step, remaining), then
+normal assignment Drop retires the previous value before installing the returned
+owner. The loop keeps the actual current-ticket singleton inventory, full
+allocation identity and the exact capped suffix through inherited consumed().
+Normal final Drop yields the existing two free receipts and an empty ledger.
+No fixed owner quota, assumed ids or constant ticket fractions are added.
+
+Keep all 155 inherited proof targets and prove the new callee and caller. Use
+one distinguishing refreshed-receipt structural control for the new named-call
+boundary; reuse unchanged ownership, assignment-Drop, Acquire and free controls.
+Any additional diagnostic requires a concrete unresolved gap and the smallest
+affected targets. Preserve failures; two failures of the same semantic interface
+require reassessment, not assertion tuning or weakened content/allocation posts.
+Root/general Static/custom-owner Clone, arbitrary escaped/concurrent ownership,
+unwind, BytesMut and remaining APIs/configurations remain open. Full original
+architecture remains NOT ADMITTED.
+
+### D-AU proof-result reuse for metadata-only admission
+
+The first complete AU proof run passes all157 targets/1447 prover leaves/zero
+null and structural leaves. Immutable diagnostic archive
+ffc00ffe50a408f971f2a56e1d58f7173d3d9856ebeb65e97c7a725d9e9393bd
+preserves the actual run, diagnostic status and skipped correspondence. Its
+status must not be rewritten into an admitting run.
+
+The user-directed proof-first budget permits reusing that complete proof result
+while performing the separate admission checks, instead of rerunning identical
+VCs. Before the metadata-only repair, record this changed validation premise:
+all157 Coma files and all157 proof.json files must match the immutable diagnostic
+archive byte-for-byte, as must every proof-relevant Rust source, Cargo/lock,
+private Std, configuration, imported module and tool input. Verify the complete
+target inventory, no exclusions/features, actual prover completion and zero
+failed/structural tasks; do not substitute count equality for content equality.
+Any proof-relevant mismatch invalidates reuse and requires the affected proof
+work and a complete consistent positive evidence set.
+
+The allowed changes are the source-item hash span metadata, its generator and
+independent correspondence/evidence code and documentation. Regeneration must
+leave active Rust/helper/client byte-identical. The repaired metadata binds the
+callee item itself rather than an unspecified rest-of-file suffix. The current
+extension contains only that callee, so the old suffix included its trailing
+newline; it did not contain the separately generated caller.
+
+Admission must newly check actual Cargo fingerprint/output/root-output/compiled
+record joins, all native/source/call-summary correspondence and the one new
+forged-summary control. It binds the fresh posttranslation callee Coma hash to
+the same proved module and exact body/contract. Canonical packaging records
+reused_full_proof explicitly, links the immutable diagnostic archive and its
+original run log, and records the fresh admitting checker/audit provenance.
+Fresh Cargo/input receipts alone are not proof evidence. Preserve both stages
+for independent archive-only reconstruction; do not imply a second solver run.
+This changes validation scheduling, not a theorem, ownership premise or TCB law.

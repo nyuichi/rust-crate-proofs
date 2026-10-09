@@ -1,5 +1,56 @@
 # bytes 1.11.1 status
 
+## Modular scoped owned-view call summaries (AU) — 2026-10-09
+
+AU proves an ordinary function boundary that accepts a borrowed owned Shared
+Bytes view and returns a fresh owned view. The native clone_suffix(&Bytes,usize)
+body calls Clone, advances by any amount<=len, and returns the result; complete
+advance retains Shared ownership at zero length. Its reusable body-proved
+summary preserves the source, original allocation and BoundPtr namespace/capacity,
+exports the exact shifted suffix and inserts a fresh actual lifetime ticket.
+The caller uses that summary across arbitrary finite capped runtime steps,
+with normal replacement Drop, exact singleton inventory and final recovery/free.
+
+The completed full body proof has 157 targets/1447 prover leaves/zero null and
+structural leaves. Admission reuses its exact 157 COMA and 157 proof files from
+immutable diagnostic SHA256 ffc00ffe50a408f971f2a56e1d58f7173d3d9856ebeb65e97c7a725d9e9393bd,
+with unchanged proof-relevant Rust/Cargo/Std/config inputs. No second solver run
+is claimed. Fresh actual Cargo four-artifact capture, full source/native/MIR and
+proved-summary correspondence audit, and one refreshed forged-callee registry
+control pass separately. Native capture passes 84 cases with 31 selected MIR
+bodies, including 29 unchanged production bodies and the actual helper/caller.
+Unchanged audited AT native 45 and ownership/Drop controls are reused, not rerun.
+
+The parameterized named_direct_call_v1 correspondence boundary independently
+binds source signatures, ordered retained arguments, erased Ghost reborrows,
+actual MIR callee/result, and the proved callee/caller COMA summaries. Its v1
+scope is two native arguments, trailing Ghost mutable reborrows, one direct
+call and normal moved return over audited source/type/MIR instances. Per-instance
+native body pins remain outside that generic rule. This is explicit generic
+compiler/correspondence TCB; no trusted Bytes summary or ownership law is added.
+
+Canonical admitted_reuse and independent immutable audit PASS: SHA256
+0924cfd015be3e7c7284c94b88dc4921ccdbf6e0c9821172774568ebe86ef701,
+1,670 members and all 314 origin/current/canonical COMA/proof hashes identical.
+The outer admission records fresh correspondence exit 0; the original target
+policy retains diagnostic=true and correspondence exit 2. The archived origin
+log records `Proved (157 files)`; its numeric process exit status is not recorded. No
+second solver run is claimed. Exact nested AT/source/control ancestry closes
+the diagnostic's sibling-import gap without outside data. The audit checks 61
+production source files, three Cargo manifests, 110 private Std files and seven
+tool/config inputs. Eight external executable hashes match the archived manifest;
+their payloads are not bundled. Cargo absolute paths remain location-bound,
+while archive-only replay uses captured artifacts without a live Cargo target.
+Native fixture-count and source-item trailing-newline errors remain separate
+preserved diagnostics; they changed no native/proof body.
+See verification/probes/original-owned-view-call-summaries-2026-10-09/evidence/AU_CANONICAL_AUDIT.md.
+
+Full original architecture remains NOT ADMITTED. This establishes scoped modular
+Shared owner return, not arbitrary untracked escape, general callgraphs/types,
+Root/general Static/custom-owner Clone, concurrency, cleanup/unwind, BytesMut
+or complete API/configuration coverage. After completed audited publication,
+ask Astra「次何するのがいい？」and execute the next recommendation.
+
 ## Astra-guided owned-zero Shared Clone closure — 2026-10-09
 
 AT proves reusable Shared Clone for valid owned views of any length, including
