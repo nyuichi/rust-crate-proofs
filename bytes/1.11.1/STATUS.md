@@ -1,5 +1,32 @@
 # bytes 1.11.1 status
 
+## Astra-guided first promotable Clone and closed cleanup — archived label 2026-10-09
+
+AL proves the nonempty boxed first-promotion client with both tag parities:
+construct original, clone child, explicitly clean child, read/copy original,
+explicitly clean original. An external affine PromotionScope transfers the
+actual raw Recovery/PhysicalRegion/root pointer permission into a Shared phase;
+native count two issues two distinct real tickets. The root retains updated
+old/new atomic history; only the separately initialized child is read-only.
+The actual final ledger is empty and both allocation receipts are recovered.
+
+Canonical default-std gate: 112 files / 808 prover leaves / zero nulls, all
+targets included, correspondence status zero and no defect features. Main
+structural controls reject25/25; native source/MIR controls reject24/24.
+Seven full semantic mutations leave1/1/2/1/2/2/2 nulls, including the older
+Shared targets affected by omission features. Five frontend captures are type
+rejections, not solver failures. Actual compiled OUT_DIR records and exact
+Cargo fingerprint/output receipts are bound to production reconstruction.
+Archive SHA25653a500c22c725a259f20377e4da56c9e82bb4fc695400397c55940bf28e8eed1
+and complete evidence are in
+`verification/probes/original-promotable-first-clone-2026-10-09/`.
+
+This is a bounded explicit-cleanup lifecycle under the documented generic
+physical, atomic/field, provenance, erased-call and compiler/source/MIR TCB.
+It does not admit concurrent CAS losers, arbitrary escaping clones, promotion
+automatic Drop, unwind, full API composition or remaining configurations.
+Original architecture remains NOT ADMITTED; continue the Astra-guided loop.
+
 ## Astra-guided unrestricted boxed normal automatic Drop — archived label 2026-10-09
 
 AK closes actual From<Box<[u8]>>, exact AsRef/to_vec contents, and automatic

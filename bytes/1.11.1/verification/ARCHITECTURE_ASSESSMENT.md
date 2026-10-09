@@ -30,8 +30,17 @@ assumed exposed-provenance/physical/terminal compiler TCB. It has115 structural
 controls, seven semantic defects and three pre-VC type rejections; exact native
 capacity/ownership/effect bodies stay proved. No Clone/promotion or unwind claim.
 
-Promotable promotion/lifecycle, automatic Drop beyond these exact witnesses,
-arbitrary concurrent closure and remaining API/configuration coverage remain open. The original full
+AL now establishes the closed nonempty-Box first promotion, child explicit
+retirement, root read and final explicit root retirement for both tag parities
+(112/808/0). Actual count-two pair issuance and closed strong-CAS success are
+body-proved. Root updated history remains owned; only fresh child history is
+readonly. The native/proof checker binds complete selected bodies/contracts,
+literal/build routes and actual compiled OUT_DIR record bytes. All25 main and
+24 native structural controls reject; seven semantic and five frontend inputs
+are separately archived/audited. Explicit generic TCB remains conditional.
+
+Promotion automatic Drop, arbitrary concurrent closure/escaping clones and
+remaining API/configuration coverage remain open. The original full
 target is unchanged. Continue consulting Astra after each audited/published
 increment and execute the next concrete step.
 

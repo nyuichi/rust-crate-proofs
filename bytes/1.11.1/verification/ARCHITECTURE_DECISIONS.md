@@ -1007,3 +1007,66 @@ Independent review exposed absolute harness path dependence, fixed with relative
 paths and regenerated native evidence. Imported sibling checker/support trees
 are captured and the archive restore layout is documented. No production/API
 change or full-crate admission follows. Consult Astra after audited publication.
+
+## D2026-10-09-AL — First promotable Clone and closed phase lifecycle
+
+After audited/published AK9fcd2954, Astra directs a nonempty-Box, both-parity,
+single-threaded first promotion witness: construct original, clone child,
+child.cleanup(), read/copy original, original.cleanup(). Scope is explicit
+cleanup, not promotion automatic Drop or concurrent CAS losers. The new affine
+PromotionScope is separate from observation-only ScopeCursor: Raw directly owns
+constructor Recovery/fullPhysicalRegion and unconsumed root AtomicPtr Perm;
+Shared owns root Shared core/cursor/updated root permission; Finished marks actual
+final cleanup. Bytes stores an immutable root descriptor; refinement is on the
+Bytes/scope pair, never a standalone root API using a weak Bytes invariant.
+Source checker rejects root/scope escape, unregistered writer/access, stale
+readonly binding and unmatched borrowed root access.
+
+First prove a generic actual-core-AtomicPtr/ownedPerm/Committer boundary with
+native Acquire load and strong CAS(AcqRel,Acquire), exact load==expected success
+and !=expected failure callbacks. Initial singleton history and closed owned
+permission body-prove no failure; no Bytes-specific success axiom. Keep the
+native failure branch and its proved-unreachable correspondence. Separately
+body-prove State::initialize_pair from the actual singleton2 counter permission,
+payload/fullLifetime to State/two distinct actual tickets, exact ledger and
+fraction/pool/cardinality preservation. Never initialize1+invented increment.
+Refactor only the new probe ownership core to separate root updated pointer
+permission from child immutable readonly binding. Both drop adapters reuse the
+same body-proved release/Acquire recovery/two physical frees; original retains
+promotable vtable and reaches ARC branch after publication. Only generic field/
+CAS/ghost-channel correspondence adds TCB; all phase/resource/count/effect laws
+remain body proved. Controls: count1, missing ticket, double raw transfer, wrong
+expected CAS, stale readonly history, root raw-drop after promotion, missing
+Acquire/free, root access withoutscope, extra writer. Two same VC failures trigger
+scope/ownership redesign, not logical State getter, trusted CAS success or weak
+conditional content post. Audit/publish full bounded AL then ask Astra again.
+
+AL development prerequisites on 2026-10-09: actual count-2 pair initialization
+passed diagnostic 76/450/0; owned strong AtomicPtr CAS passed 79/482/0; its
+post-store visible/latest history consequences and terminal owned-permission
+get_mut projection passed 83/507/0. All targets were translated and included.
+Correspondence status is deliberately not_run (2), so none is AL lifecycle
+admission. Root native AsRef contains no atomic operation; post-CAS Acquire
+helpers may be used only at actual Acquire sites. Terminal get_mut consumes
+the unique permission and returns only an exact history value/maximal timestamp
+projection of Std into_inner, without manufacturing a SyncView/Acquire event.
+The root retains the two-entry history, never a read-only re-sealing.
+Archives are immutable under original-promotable-first-clone-2026-10-09/evidence;
+independent pair/CAS prerequisite reports record the current bounded scope.
+
+
+AL canonical gate now passes112/808/0 with all112 targets, no features/exclusions,
+and source/native-shadow correspondence status0. Main controls25/25 and native
+MIR/source controls24/24 reject. The checker fail-closes on literal include
+redirects, unreviewed contracts/trust/effects/getters, build/extractor/Cargo route
+changes, and requires actual compiled record bytes plus exact Cargo receipts.
+Seven semantic controls leave1/1/2/1/2/2/2 real null leaves; omission features also
+exercise imported Shared functions. Five frontend snapshots distinguish initial
+E0507, owned-permission/physical/child E0382 and read-across-cleanup E0505/E0502.
+Missing free negative nulls arise at resource-resolution/false-conjure premises,
+not an independent receipt-absence theorem. All failed tasks/input snapshots
+are immutable and hash-bound. Canonical archive53a500c22c725a259f20377e4da56c9e82bb4fc695400397c55940bf28e8eed1
+captures4428 members including privateStd110 and exact compiled-record/build
+receipts. Independent audit gates publication. This bounded AL completion does
+not admit the full original architecture. After publication ask Astra exactly
+「次何するのがいい？」 and execute the next concrete recommendation.

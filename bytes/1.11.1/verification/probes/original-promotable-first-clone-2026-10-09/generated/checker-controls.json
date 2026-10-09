@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "scope": "in-memory adversarial controls for check_correspondence.py; no proof solver or Rust build",
+  "controls": [
+    {
+      "id": "typed_free_contradictory_contract",
+      "target": "free_effect",
+      "mutation": {"kind": "insert_before", "needle": "pub unsafe fn deallocate_typed_box", "text": "#[ensures(1int == 0int)]\n"},
+      "validator": {"kind": "module_tokens"}
+    },
+    {
+      "id": "physical_borrow_contradictory_contract",
+      "target": "physical_projection",
+      "mutation": {"kind": "insert_before", "needle": "pub unsafe fn borrow<'a>", "text": "#[ensures(1int == 0int)]\n"},
+      "validator": {"kind": "module_tokens"}
+    },
+    {
+      "id": "field_event_unreviewed_trust",
+      "target": "field_event",
+      "mutation": {"kind": "insert_before", "needle": "pub(crate) fn decrement_owned", "text": "#[cfg_attr(creusot, trusted)]\n"},
+      "validator": {"kind": "no_trust", "allowed": ["new", "model", "bind", "increment_owned", "decrement_owned", "acquire_owned"]}
+    },
+    {
+      "id": "qualified_trust_on_pair_initializer",
+      "target": "lifecycle",
+      "mutation": {"kind": "insert_before", "needle": "pub fn initialize_pair", "text": "#[creusot::trusted]\n"},
+      "validator": {"kind": "no_trust", "allowed": []}
+    },
+    {
+      "id": "cfg_attr_trust_on_body_proved_cas_adapter",
+      "target": "owned_pointer",
+      "mutation": {"kind": "insert_before", "needle": "pub(crate) fn exchange_singleton(", "text": "#[cfg_attr(creusot, trusted)]\n"},
+      "validator": {"kind": "no_trust", "allowed": ["load_acquire", "compare_exchange", "get_mut_finish"]}
+    },
+    {
+      "id": "extra_effect_in_shallow_promotion",
+      "target": "promotion",
+      "mutation": {"kind": "insert_function_start", "function": "shallow_clone_vec_checked", "text": "debug_assert!(true);"},
+      "validator": {"kind": "effect_body", "function": "shallow_clone_vec_checked"}
+    },
+    {
+      "id": "extra_effect_in_even_clone",
+      "target": "promotion",
+      "mutation": {"kind": "insert_function_start", "function": "even_clone_checked", "text": "debug_assert!(true);"},
+      "validator": {"kind": "effect_body", "function": "even_clone_checked"}
+    },
+    {
+      "id": "extra_effect_in_odd_clone",
+      "target": "promotion",
+      "mutation": {"kind": "insert_function_start", "function": "odd_clone_checked", "text": "debug_assert!(true);"},
+      "validator": {"kind": "effect_body", "function": "odd_clone_checked"}
+    },
+    {
+      "id": "extra_effect_in_release",
+      "target": "promotion",
+      "mutation": {"kind": "insert_function_start", "function": "release_core", "text": "debug_assert!(true);"},
+      "validator": {"kind": "effect_body", "function": "release_core"}
+    },
+    {
+      "id": "existing_projection_changed_to_resource_return",
+      "target": "promotion",
+      "mutation": {"kind": "replace_once", "old": "fn cursor_public(self)-><lifecycle::State<Payload> as Protocol>::Public", "new": "fn cursor_public(self)->Perm<ModelAtomic>"},
+      "validator": {"kind": "proof_state"}
+    },
+    {
+      "id": "new_scope_resource_getter",
+      "target": "promotion",
+      "mutation": {"kind": "insert_after", "needle": "impl PromotionScope {", "text": "\n    #[logic] fn leaked_resource(self)->Perm<ModelAtomic> { dead }"},
+      "validator": {"kind": "function_surface"}
+    },
+    {
+      "id": "alternate_owned_pointer_path",
+      "target": "lib",
+      "mutation": {"kind": "replace_once", "old": "#[cfg(creusot)] mod owned_pointer;", "new": "#[cfg(creusot)] #[path=\"./owned_pointer.rs\"] mod owned_pointer;"},
+      "validator": {"kind": "routes"}
+    },
+    {
+      "id": "alternate_provenance_same_filename_path",
+      "target": "lib",
+      "mutation": {"kind": "replace_once", "old": "mod provenance_specs;", "new": "#[path=\"./provenance_specs.rs\"] mod provenance_specs;"},
+      "validator": {"kind": "routes"}
+    },
+    {
+      "id": "same_file_pointer_route_string_normalization",
+      "target": "lib",
+      "mutation": {"kind": "replace_once", "old": "../../original-shared-lifecycle-2026-10-08/src/pointer_event.rs", "new": "../../original-shared-lifecycle-2026-10-08/src/./pointer_event.rs"},
+      "validator": {"kind": "routes"}
+    },
+    {
+      "id": "wrong_shared_scalar_field_binding",
+      "target": "promotion",
+      "mutation": {"kind": "replace_once", "old": "pub(crate) struct SharedCore {\n    shared:*mut Shared", "new": "pub(crate) struct SharedCore {\n    shared:usize"},
+      "validator": {"kind": "proof_state"}
+    },
+    {
+      "id": "wrong_child_drop_cursor_callback_binding",
+      "target": "promotion",
+      "mutation": {"kind": "replace_once", "old": "type ChildDropInput<'a>=(ChildProof,&'a mut Cursor,&'a mut Option<Completion>);", "new": "type ChildDropInput<'a>=(ChildProof,&'a mut Option<Completion>);"},
+      "validator": {"kind": "proof_state"}
+    },
+    {
+      "id": "wrong_even_clone_callback_table",
+      "target": "promotion",
+      "mutation": {"kind": "replace_once", "old": "#[ensures(result.0==even_table())]\n#[ensures(erased_call::registered3(result.0.clone", "new": "#[ensures(result.0==odd_table())]\n#[ensures(erased_call::registered3(result.0.clone"},
+      "validator": {"kind": "trust_boundary"}
+    },
+    {
+      "id": "unreviewed_event_cursor_resource_getter",
+      "target": "event",
+      "mutation": {"kind": "insert_before", "needle": "    #[logic(opaque)] pub fn observation(self) -> Snapshot<S::Observation> { dead }", "text": "    #[logic(opaque)] pub fn resource_view(self)->S::Observation { dead }\n"},
+      "validator": {"kind": "module_tokens"}
+    },
+    {
+      "id": "unreviewed_provenance_extern_spec",
+      "target": "provenance_specs",
+      "mutation": {"kind": "insert_before", "needle": "#[cfg(creusot)]\nuse creusot_std::prelude::*;", "text": "#[cfg(creusot)] extern_spec! { fn unrelated_std_escape(); }\n"},
+      "validator": {"kind": "module_tokens"}
+    },
+    {
+      "id": "shared_record_include_literal_redirect",
+      "target": "promotion",
+      "mutation": {"kind": "replace_once", "old": "include!(\"../../../../src/bytes/shared_record.rs\");", "new": "include!(\"not_the_selected_record.rs\");"},
+      "validator": {"kind": "include_routes"}
+    },
+    {
+      "id": "out_dir_environment_literal_redirect",
+      "target": "promotion",
+      "mutation": {"kind": "replace_once", "old": "env!(\"OUT_DIR\")", "new": "env!(\"UNREVIEWED_OUT_DIR\")"},
+      "validator": {"kind": "include_routes"}
+    },
+    {
+      "id": "public_records_filename_literal_redirect",
+      "target": "promotion",
+      "mutation": {"kind": "replace_once", "old": "\"/public_records.rs\"", "new": "\"/unreviewed_public_records.rs\""},
+      "validator": {"kind": "include_routes"}
+    },
+    {
+      "id": "build_rerun_input_route_redirect",
+      "target": "build",
+      "mutation": {"kind": "replace_once", "old": "cargo:rerun-if-changed=../../../src/bytes.rs", "new": "cargo:rerun-if-changed=../../../src/unreviewed.rs"},
+      "validator": {"kind": "build_source"}
+    },
+    {
+      "id": "extractor_generated_record_name_redirect",
+      "target": "extractor",
+      "mutation": {"kind": "replace_once", "old": "('public_records.rs',records)", "new": "('unreviewed_public_records.rs',records)"},
+      "validator": {"kind": "extractor_source"}
+    },
+    {
+      "id": "cargo_lib_entry_route_override",
+      "target": "probe_cargo",
+      "mutation": {"kind": "insert_before", "needle": "[features]", "text": "[lib]\npath = \"alternate.rs\"\n"},
+      "validator": {"kind": "cargo_routes"}
+    }
+  ]
+}

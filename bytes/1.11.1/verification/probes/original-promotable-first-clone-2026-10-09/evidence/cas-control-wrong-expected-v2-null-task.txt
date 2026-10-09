@@ -1,0 +1,508 @@
+theory Task
+  
+  type int
+  
+  type real
+  
+  type string
+  
+  predicate (=) 'a 'a
+  
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  type bool =
+    | True
+    | False
+  
+  (* use why3.Bool.Bool *)
+  
+  type tuple0 =
+    | Tuple0
+  
+  (* use why3.Tuple0.Tuple01 *)
+  
+  type unit = unit
+  
+  (* use why3.Unit.Unit *)
+  
+  type t 'a =
+    | T'mk (current:'a) (final:'a) (id:int)
+  
+  (* meta model_record function id *)
+  
+  (* meta model_record function final *)
+  
+  (* meta model_record function current *)
+  
+  function borrow_logic (cur:'a) (fin:'a) (id1:int) : t 'a = T'mk cur fin id1
+  
+  function get_id (x:t 'a) : int = x.id
+  
+  function inherit_id int int : int
+  
+  (* use creusot.prelude.MutBorrow *)
+  
+  type ptr
+  
+  function thin ptr : ptr
+  
+  type foreign
+  
+  (* use creusot.prelude.Opaque *)
+  
+  type (->) 'a 'b
+  
+  function (@) ('a -> 'b) 'a : 'b
+  
+  (* use why3.HighOrd.HighOrd *)
+  
+  type map 'a 'b = 'a -> 'b
+  
+  function get (f:'a -> 'b) (x:'a) : 'b = f @ x
+  
+  function set (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b =
+    fun (y:'a) -> if y = x then v else f @ y
+  
+  function ([]) (f:'a -> 'b) (x:'a) : 'b = f @ x
+  
+  function ([<-]) (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b = set f x v
+  
+  (* use map.Map *)
+  
+  function const (v:'b) : 'a -> 'b = fun (_:'a) -> v
+  
+  (* use map.Const *)
+  
+  function any_l 'a : 'b
+  
+  (* use creusot.prelude.Any *)
+  
+  constant zero : int = 0
+  
+  constant one : int = 1
+  
+  function (-_) int : int
+  
+  function (+) int int : int
+  
+  function ( * ) int int : int
+  
+  predicate (<) int int
+  
+  function (-) (x:int) (y:int) : int = x + (- y)
+  
+  predicate (>) (x:int) (y:int) = y < x
+  
+  predicate (<=) (x:int) (y:int) = x < y \/ x = y
+  
+  predicate (>=) (x:int) (y:int) = y <= x
+  
+  axiom Assoc : forall x:int, y:int, z:int. ((x + y) + z) = (x + (y + z))
+  
+  (* clone algebra.Assoc with type t1 = int, function op = (+),
+    prop Assoc1 = Assoc,  *)
+  
+  axiom Unit_def_l : forall x:int. (zero + x) = x
+  
+  axiom Unit_def_r : forall x:int. (x + zero) = x
+  
+  (* clone algebra.Monoid with type t2 = int, constant unit = zero,
+    function op1 = (+), prop Unit_def_r1 = Unit_def_r,
+    prop Unit_def_l1 = Unit_def_l, prop Assoc2 = Assoc,  *)
+  
+  axiom Inv_def_l : forall x:int. ((- x) + x) = zero
+  
+  axiom Inv_def_r : forall x:int. (x + (- x)) = zero
+  
+  (* clone algebra.Group with type t3 = int, function inv = (-_),
+    constant unit1 = zero, function op2 = (+), prop Inv_def_r1 = Inv_def_r,
+    prop Inv_def_l1 = Inv_def_l, prop Unit_def_r2 = Unit_def_r,
+    prop Unit_def_l2 = Unit_def_l, prop Assoc3 = Assoc,  *)
+  
+  axiom Comm : forall x:int, y:int. (x + y) = (y + x)
+  
+  (* clone algebra.Comm with type t4 = int, function op3 = (+),
+    prop Comm1 = Comm,  *)
+  
+  (* meta AC function (+) *)
+  
+  (* clone algebra.CommutativeGroup with type t5 = int, function inv1 = (-_),
+    constant unit2 = zero, function op4 = (+), prop Comm2 = Comm,
+    prop Inv_def_r2 = Inv_def_r, prop Inv_def_l2 = Inv_def_l,
+    prop Unit_def_r3 = Unit_def_r, prop Unit_def_l3 = Unit_def_l,
+    prop Assoc4 = Assoc,  *)
+  
+  axiom Assoc5 : forall x:int, y:int, z:int. ((x * y) * z) = (x * (y * z))
+  
+  (* clone algebra.Assoc with type t1 = int, function op = ( * ),
+    prop Assoc1 = Assoc5,  *)
+  
+  axiom Mul_distr_l :
+    forall x:int, y:int, z:int. (x * (y + z)) = ((x * y) + (x * z))
+  
+  axiom Mul_distr_r :
+    forall x:int, y:int, z:int. ((y + z) * x) = ((y * x) + (z * x))
+  
+  (* clone algebra.Ring with type t6 = int, function ( *') = ( * ),
+    function (-'_) = (-_), function (+') = (+), constant zero1 = zero,
+    prop Mul_distr_r1 = Mul_distr_r, prop Mul_distr_l1 = Mul_distr_l,
+    prop Assoc6 = Assoc5, prop Comm3 = Comm, prop Inv_def_r3 = Inv_def_r,
+    prop Inv_def_l3 = Inv_def_l, prop Unit_def_r4 = Unit_def_r,
+    prop Unit_def_l4 = Unit_def_l, prop Assoc7 = Assoc,  *)
+  
+  axiom Comm4 : forall x:int, y:int. (x * y) = (y * x)
+  
+  (* clone algebra.Comm with type t4 = int, function op3 = ( * ),
+    prop Comm1 = Comm4,  *)
+  
+  (* meta AC function ( * ) *)
+  
+  (* clone algebra.CommutativeRing with type t7 = int,
+    function ( *'') = ( * ), function (-''_) = (-_), function (+'') = (+),
+    constant zero2 = zero, prop Comm5 = Comm4,
+    prop Mul_distr_r2 = Mul_distr_r, prop Mul_distr_l2 = Mul_distr_l,
+    prop Assoc8 = Assoc5, prop Comm6 = Comm, prop Inv_def_r4 = Inv_def_r,
+    prop Inv_def_l4 = Inv_def_l, prop Unit_def_r5 = Unit_def_r,
+    prop Unit_def_l5 = Unit_def_l, prop Assoc9 = Assoc,  *)
+  
+  axiom Unitary : forall x:int. (one * x) = x
+  
+  axiom NonTrivialRing : not zero = one
+  
+  (* clone algebra.UnitaryCommutativeRing with type t8 = int,
+    constant one1 = one, function ( *''') = ( * ), function (-'''_) = (-_),
+    function (+''') = (+), constant zero3 = zero,
+    prop NonTrivialRing1 = NonTrivialRing, prop Unitary1 = Unitary,
+    prop Comm7 = Comm4, prop Mul_distr_r3 = Mul_distr_r,
+    prop Mul_distr_l3 = Mul_distr_l, prop Assoc10 = Assoc5,
+    prop Comm8 = Comm, prop Inv_def_r5 = Inv_def_r,
+    prop Inv_def_l5 = Inv_def_l, prop Unit_def_r6 = Unit_def_r,
+    prop Unit_def_l6 = Unit_def_l, prop Assoc11 = Assoc,  *)
+  
+  (* clone relations.EndoRelation with type t9 = int, predicate rel = (<=),
+     *)
+  
+  axiom Refl : forall x:int. x <= x
+  
+  (* clone relations.Reflexive with type t10 = int, predicate rel1 = (<=),
+    prop Refl1 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t9 = int, predicate rel = (<=),
+     *)
+  
+  axiom Trans : forall x:int, y:int, z:int. x <= y -> y <= z -> x <= z
+  
+  (* clone relations.Transitive with type t11 = int, predicate rel2 = (<=),
+    prop Trans1 = Trans,  *)
+  
+  (* clone relations.PreOrder with type t12 = int, predicate rel3 = (<=),
+    prop Trans2 = Trans, prop Refl2 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t9 = int, predicate rel = (<=),
+     *)
+  
+  axiom Antisymm : forall x:int, y:int. x <= y -> y <= x -> x = y
+  
+  (* clone relations.Antisymmetric with type t13 = int,
+    predicate rel4 = (<=), prop Antisymm1 = Antisymm,  *)
+  
+  (* clone relations.PartialOrder with type t14 = int, predicate rel5 = (<=),
+    prop Antisymm2 = Antisymm, prop Trans3 = Trans, prop Refl3 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t9 = int, predicate rel = (<=),
+     *)
+  
+  axiom Total : forall x:int, y:int. x <= y \/ y <= x
+  
+  (* clone relations.Total with type t15 = int, predicate rel6 = (<=),
+    prop Total1 = Total,  *)
+  
+  (* clone relations.TotalOrder with type t16 = int, predicate rel7 = (<=),
+    prop Total2 = Total, prop Antisymm3 = Antisymm, prop Trans4 = Trans,
+    prop Refl4 = Refl,  *)
+  
+  axiom ZeroLessOne : zero <= one
+  
+  axiom CompatOrderAdd :
+    forall x:int, y:int, z:int. x <= y -> (x + z) <= (y + z)
+  
+  axiom CompatOrderMult :
+    forall x:int, y:int, z:int. x <= y -> zero <= z -> (x * z) <= (y * z)
+  
+  (* meta remove_unused:dependency prop CompatOrderMult, function ( * ) *)
+  
+  (* clone algebra.OrderedUnitaryCommutativeRing with type t17 = int,
+    predicate (<=') = (<=), constant one2 = one, function ( *'''') = ( * ),
+    function (-''''_) = (-_), function (+'''') = (+), constant zero4 = zero,
+    prop CompatOrderMult1 = CompatOrderMult,
+    prop CompatOrderAdd1 = CompatOrderAdd, prop ZeroLessOne1 = ZeroLessOne,
+    prop Total3 = Total, prop Antisymm4 = Antisymm, prop Trans5 = Trans,
+    prop Refl5 = Refl, prop NonTrivialRing2 = NonTrivialRing,
+    prop Unitary2 = Unitary, prop Comm9 = Comm4,
+    prop Mul_distr_r4 = Mul_distr_r, prop Mul_distr_l4 = Mul_distr_l,
+    prop Assoc12 = Assoc5, prop Comm10 = Comm, prop Inv_def_r6 = Inv_def_r,
+    prop Inv_def_l6 = Inv_def_l, prop Unit_def_r7 = Unit_def_r,
+    prop Unit_def_l7 = Unit_def_l, prop Assoc13 = Assoc,  *)
+  
+  (* meta remove_unused:keep function (+) *)
+  
+  (* meta remove_unused:keep function (-) *)
+  
+  (* meta remove_unused:keep function (-_) *)
+  
+  (* meta remove_unused:keep predicate (<) *)
+  
+  (* meta remove_unused:keep predicate (<=) *)
+  
+  (* meta remove_unused:keep predicate (>) *)
+  
+  (* meta remove_unused:keep predicate (>=) *)
+  
+  (* use int.Int *)
+  
+  type t_SyncView
+  
+  type t_Atomic_ptr_unit
+  
+  type t_Perm_AtomicPtr_unit
+  
+  type tup2_Atomic_ptr_unit_Ghost_Perm_AtomicPtr_unit =
+    | Tup2_Atomic_ptr_unit_Ghost_Perm_AtomicPtr_unit'mk (f0:
+        t_Atomic_ptr_unit) (f1:t_Perm_AtomicPtr_unit)
+  
+  (* meta model_record function f1 *)
+  
+  (* meta model_record function f0 *)
+  
+  predicate inv_Atomic_ptr_unit t_Atomic_ptr_unit
+  
+  predicate inv_tup2_Atomic_ptr_unit_Ghost_Perm_AtomicPtr_unit (_1:
+    tup2_Atomic_ptr_unit_Ghost_Perm_AtomicPtr_unit) =
+    inv_Atomic_ptr_unit (_1.f0)
+  
+  (* meta rewrite_def
+    predicate inv_tup2_Atomic_ptr_unit_Ghost_Perm_AtomicPtr_unit *)
+  
+  type t_AtomicPtr_unit
+  
+  function ward_AtomicPtr_unit t_Perm_AtomicPtr_unit : t_AtomicPtr_unit
+  
+  function pointer_model t_Atomic_ptr_unit : t_AtomicPtr_unit
+  
+  predicate lt_log_SyncView t_SyncView t_SyncView
+  
+  predicate le_log_SyncView (self:t_SyncView) (other:t_SyncView) =
+    lt_log_SyncView self other \/ self = other
+  
+  (* meta rewrite_def predicate le_log_SyncView *)
+  
+  function le_lt_log_SyncView t_SyncView t_SyncView : unit
+  
+  axiom le_lt_log_SyncView_spec :
+    forall self:t_SyncView, other:t_SyncView.
+     le_log_SyncView self other <->
+     lt_log_SyncView self other \/ self = other
+  
+  function transitive_SyncView t_SyncView t_SyncView t_SyncView : unit
+  
+  axiom transitive_SyncView_spec :
+    forall x:t_SyncView, y:t_SyncView, z:t_SyncView.
+     lt_log_SyncView x y -> lt_log_SyncView y z -> lt_log_SyncView x z
+  
+  function irreflexive_SyncView t_SyncView : unit
+  
+  axiom irreflexive_SyncView_spec :
+    forall self:t_SyncView. not lt_log_SyncView self self
+  
+  function fin_Ghost_refmut_SyncView (self:t t_SyncView) : t_SyncView =
+    self.final
+  
+  (* meta rewrite_def function fin_Ghost_refmut_SyncView *)
+  
+  type t_FMap_Int_tup2_ptr_unit_SyncView
+  
+  function val_AtomicPtr_unit t_Perm_AtomicPtr_unit :
+    t_FMap_Int_tup2_ptr_unit_SyncView
+  
+  type tup2_ptr_unit_SyncView =
+    | Tup2_ptr_unit_SyncView'mk (f0'0:ptr) (f1'0:t_SyncView)
+  
+  (* meta model_record function f1'0 *)
+  
+  (* meta model_record function f0'0 *)
+  
+  type t_Option_tup2_ptr_unit_SyncView =
+    | None
+    | Some tup2_ptr_unit_SyncView
+  
+  function to_mapping_Int t_FMap_Int_tup2_ptr_unit_SyncView : int ->
+    t_Option_tup2_ptr_unit_SyncView
+  
+  predicate ge_log_Int (self:int) (other:int) = other <= self
+  
+  (* meta rewrite_def predicate ge_log_Int *)
+  
+  function len_Int t_FMap_Int_tup2_ptr_unit_SyncView : int
+  
+  axiom len_Int_spec :
+    forall self:t_FMap_Int_tup2_ptr_unit_SyncView [len_Int self].
+     ge_log_Int (len_Int self) 0
+  
+  function get_Int (self:t_FMap_Int_tup2_ptr_unit_SyncView) (k:int) :
+    t_Option_tup2_ptr_unit_SyncView = get (to_mapping_Int self) k
+  
+  (* meta rewrite_def function get_Int *)
+  
+  predicate contains_Int (self:t_FMap_Int_tup2_ptr_unit_SyncView) (k:int) =
+    not get_Int self k = None
+  
+  (* meta rewrite_def predicate contains_Int *)
+  
+  function insert_Int t_FMap_Int_tup2_ptr_unit_SyncView int
+    tup2_ptr_unit_SyncView : t_FMap_Int_tup2_ptr_unit_SyncView
+  
+  axiom insert_Int_spec :
+    forall self:t_FMap_Int_tup2_ptr_unit_SyncView, k:int, v:
+     tup2_ptr_unit_SyncView [insert_Int self k v].
+     to_mapping_Int (insert_Int self k v) =
+     set (to_mapping_Int self) k (Some v)
+  
+  axiom insert_Int_spec'0 :
+    forall self:t_FMap_Int_tup2_ptr_unit_SyncView, k:int, v:
+     tup2_ptr_unit_SyncView [insert_Int self k v].
+     len_Int (insert_Int self k v) =
+     (if contains_Int self k then len_Int self else len_Int self + 1)
+  
+  constant empty_Int : t_FMap_Int_tup2_ptr_unit_SyncView
+  
+  axiom empty_Int_spec : len_Int empty_Int = 0
+  
+  axiom empty_Int_spec'0 :
+    to_mapping_Int empty_Int =
+    (const None: int -> t_Option_tup2_ptr_unit_SyncView)
+  
+  function singleton_Int (k:int) (v:tup2_ptr_unit_SyncView) :
+    t_FMap_Int_tup2_ptr_unit_SyncView = insert_Int empty_Int k v
+  
+  function get_timestamp_AtomicPtr_unit t_AtomicPtr_unit t_SyncView : int
+  
+  function get_timestamp_monotonic_AtomicPtr_unit t_AtomicPtr_unit t_SyncView
+    t_SyncView : unit
+  
+  axiom get_timestamp_monotonic_AtomicPtr_unit_spec :
+    forall self:t_AtomicPtr_unit, x:t_SyncView, y:t_SyncView.
+     le_log_SyncView x y ->
+     get_timestamp_AtomicPtr_unit self x
+     <= get_timestamp_AtomicPtr_unit self y
+  
+  predicate resolve_Atomic_ptr_unit t_Atomic_ptr_unit
+  
+  type t_Result_ptr_unit_ptr_unit =
+    | Ok ptr
+    | Err ptr
+  
+  predicate invariant_ref_Atomic_ptr_unit (self:t_Atomic_ptr_unit) =
+    inv_Atomic_ptr_unit self
+  
+  (* meta rewrite_def predicate invariant_ref_Atomic_ptr_unit *)
+  
+  predicate inv_ref_Atomic_ptr_unit (_1:t_Atomic_ptr_unit) =
+    invariant_ref_Atomic_ptr_unit _1
+  
+  (* meta rewrite_def predicate inv_ref_Atomic_ptr_unit *)
+  
+  function fin_Ghost_refmut_Perm_AtomicPtr_unit (self:t
+    t_Perm_AtomicPtr_unit) : t_Perm_AtomicPtr_unit = self.final
+  
+  (* meta rewrite_def function fin_Ghost_refmut_Perm_AtomicPtr_unit *)
+  
+  constant any_tup2_ptr_unit_SyncView : tup2_ptr_unit_SyncView
+  
+  function unwrap_Option_tup2_ptr_unit_SyncView (self:
+    t_Option_tup2_ptr_unit_SyncView) : tup2_ptr_unit_SyncView =
+    match self with
+    | Some x -> x
+    | None -> any_tup2_ptr_unit_SyncView
+    end
+  
+  predicate latest_is (history:t_FMap_Int_tup2_ptr_unit_SyncView) (expected:
+    ptr) =
+    exists t:int.
+     not get_Int history t = None /\
+     (unwrap_Option_tup2_ptr_unit_SyncView (get_Int history t)).f0'0 =
+     expected /\ (forall u:int. not get_Int history u = None -> u <= t)
+  
+  predicate visible_is (history:t_FMap_Int_tup2_ptr_unit_SyncView) (lower:
+    int) (expected:ptr) =
+    forall t:int.
+     lower <= t /\ not get_Int history t = None ->
+     (unwrap_Option_tup2_ptr_unit_SyncView (get_Int history t)).f0'0 =
+     expected
+  
+  predicate gt_log_Int (self:int) (other:int) = other < self
+  
+  (* meta rewrite_def predicate gt_log_Int *)
+  
+  predicate resolve_FMap_Int_tup2_ptr_unit_SyncView (_1:
+    t_FMap_Int_tup2_ptr_unit_SyncView) = true
+  
+  (* meta rewrite_def predicate resolve_FMap_Int_tup2_ptr_unit_SyncView *)
+  
+  predicate resolve_Perm_AtomicPtr_unit (self:t_Perm_AtomicPtr_unit) =
+    resolve_FMap_Int_tup2_ptr_unit_SyncView (val_AtomicPtr_unit self)
+  
+  (* meta rewrite_def predicate resolve_Perm_AtomicPtr_unit *)
+  
+  predicate resolve_Perm_AtomicPtr_unit'0 t_Perm_AtomicPtr_unit
+  
+  axiom resolve_axiom :
+    forall x:t_Perm_AtomicPtr_unit [resolve_Perm_AtomicPtr_unit'0 x].
+     resolve_Perm_AtomicPtr_unit'0 x <-> resolve_Perm_AtomicPtr_unit x
+  
+  predicate resolve_Ghost_Perm_AtomicPtr_unit (self:t_Perm_AtomicPtr_unit) =
+    resolve_Perm_AtomicPtr_unit'0 self
+  
+  (* meta rewrite_def predicate resolve_Ghost_Perm_AtomicPtr_unit *)
+  
+  predicate resolve_Ghost_Perm_AtomicPtr_unit'0 (_1:t_Perm_AtomicPtr_unit) =
+    resolve_Ghost_Perm_AtomicPtr_unit _1
+  
+  (* meta rewrite_def predicate resolve_Ghost_Perm_AtomicPtr_unit'0 *)
+  
+  (* meta compute_max_steps 1000000 *)
+  
+  (* meta select_lsinst "all" *)
+  
+  constant initial : ptr
+  
+  constant wrong : ptr
+  
+  axiom Assert : not initial = wrong
+  
+  constant result : t_SyncView
+  
+  constant fin : t_SyncView
+  
+  constant result1 : tup2_Atomic_ptr_unit_Ghost_Perm_AtomicPtr_unit
+  
+  axiom H : inv_Atomic_ptr_unit (result1.f0)
+  
+  axiom H1 : ward_AtomicPtr_unit (result1.f1) = pointer_model (result1.f0)
+  
+  axiom H2 : lt_log_SyncView result fin \/ result = fin
+  
+  axiom H3 :
+    val_AtomicPtr_unit (result1.f1) =
+    singleton_Int
+    (get_timestamp_AtomicPtr_unit (pointer_model (result1.f0)) fin)
+    (Tup2_ptr_unit_SyncView'mk initial fin)
+  
+  axiom Assert1 : resolve_Atomic_ptr_unit (result1.f0)
+  
+  goal vc_wrong_expected :
+    exists t:int, published:t_SyncView.
+     val_AtomicPtr_unit (result1.f1) =
+     singleton_Int t (Tup2_ptr_unit_SyncView'mk wrong published)
+  
+end
+

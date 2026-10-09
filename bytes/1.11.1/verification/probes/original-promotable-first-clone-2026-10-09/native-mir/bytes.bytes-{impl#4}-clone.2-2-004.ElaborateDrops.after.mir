@@ -1,0 +1,36 @@
+// MIR for `bytes::<impl at src/bytes.rs:737:1: 737:21>::clone` after ElaborateDrops
+
+fn bytes::<impl at src/bytes.rs:737:1: 737:21>::clone(_1: &bytes::Bytes) -> bytes::Bytes {
+    debug self => _1;
+    let mut _0: bytes::Bytes;
+    let mut _2: for<'a> unsafe fn(&'a core::sync::atomic::Atomic<*mut ()>, *const u8, usize) -> bytes::Bytes;
+    let mut _3: &core::sync::atomic::Atomic<*mut ()>;
+    let _4: &core::sync::atomic::Atomic<*mut ()>;
+    let mut _5: *const u8;
+    let mut _6: usize;
+    let mut _7: &bytes::Vtable;
+
+    bb0: {
+        StorageLive(_2);
+        _7 = deref_copy ((*_1).3: &bytes::Vtable);
+        _2 = copy ((*_7).0: for<'a> unsafe fn(&'a core::sync::atomic::Atomic<*mut ()>, *const u8, usize) -> bytes::Bytes);
+        StorageLive(_3);
+        StorageLive(_4);
+        _4 = &'_ ((*_1).2: core::sync::atomic::Atomic<*mut ()>);
+        _3 = &'_ (*_4);
+        StorageLive(_5);
+        _5 = copy ((*_1).0: *const u8);
+        StorageLive(_6);
+        _6 = copy ((*_1).1: usize);
+        _0 = move _2(move _3, move _5, move _6) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_6);
+        StorageDead(_5);
+        StorageDead(_3);
+        StorageDead(_2);
+        StorageDead(_4);
+        return;
+    }
+}
