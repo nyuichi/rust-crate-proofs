@@ -1,0 +1,36 @@
+// MIR for `bytes::promotable_even_drop` after ElaborateDrops
+
+fn promotable_even_drop(_1: &mut Atomic<*mut ()>, _2: *const u8, _3: usize) -> () {
+    debug data => _1;
+    debug ptr => _2;
+    debug len => _3;
+    let mut _0: ();
+    let _4: ();
+    let mut _5: &mut core::sync::atomic::Atomic<*mut ()>;
+    let mut _6: {closure@src/bytes.rs:1413:19: 1413:27};
+    let mut _7: &*const u8;
+    let mut _8: &usize;
+
+    bb0: {
+        StorageLive(_4);
+        StorageLive(_5);
+        _5 = &'_ mut (*_1);
+        StorageLive(_6);
+        StorageLive(_7);
+        _7 = &'_ _2;
+        StorageLive(_8);
+        _8 = &'_ _3;
+        _6 = {closure@src/bytes.rs:1413:19: 1413:27} { ptr: move _7, len: move _8 };
+        StorageDead(_8);
+        StorageDead(_7);
+        _4 = <Atomic<*mut ()> as AtomicMut<()>>::with_mut::<{closure@src/bytes.rs:1413:19: 1413:27}, ()>(move _5, move _6) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_6);
+        StorageDead(_5);
+        StorageDead(_4);
+        _0 = const ();
+        return;
+    }
+}

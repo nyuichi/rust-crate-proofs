@@ -1,0 +1,59 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 19 4 19 40 *)
+
+(* <promotion::Shared as field_event::AtomicField> *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span sfield_event = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/field_event.rs" 33 21 33 25
+let%span sfield_event'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/field_event.rs" 33 30 33 46
+let%span sfield_event'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/field_event.rs" 32 32 32 74
+let%span spromotion = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 19 21 19 25
+let%span spromotion'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 19 28 19 40
+let%span spromotion'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 18 32 18 87
+let%span spromotion'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 21 40 21 80
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+
+type t_Atomic_usize
+
+type t_Shared = { buf: Opaque.ptr; cap: UInt64.t; ref_cnt: t_Atomic_usize }
+
+predicate inv_Atomic_usize (_1: t_Atomic_usize)
+
+predicate inv_Shared (_1: t_Shared)
+
+axiom inv_axiom [@rewrite]: forall x: t_Shared [inv_Shared x]. inv_Shared x = inv_Atomic_usize x.ref_cnt
+
+predicate invariant_ref_Shared [@inline:trivial] (self: t_Shared) = [%#sinvariant] inv_Shared self
+
+meta "rewrite_def" predicate invariant_ref_Shared
+
+predicate inv_ref_Shared [@inline:trivial] (_1: t_Shared) = invariant_ref_Shared _1
+
+meta "rewrite_def" predicate inv_ref_Shared
+
+predicate invariant_ref_Atomic_usize [@inline:trivial] (self: t_Atomic_usize) = [%#sinvariant] inv_Atomic_usize self
+
+meta "rewrite_def" predicate invariant_ref_Atomic_usize
+
+predicate inv_ref_Atomic_usize [@inline:trivial] (_1: t_Atomic_usize) = invariant_ref_Atomic_usize _1
+
+meta "rewrite_def" predicate inv_ref_Atomic_usize
+
+type t_AtomicUsize
+
+function atomic_model [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/field_event.rs" 81 0 81 60] (atomic: t_Atomic_usize) : t_AtomicUsize
+
+function field_model_Shared [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 21 4 21 38] (self: t_Shared) : t_AtomicUsize
+ = [%#spromotion'2] atomic_model self.ref_cnt
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self: t_Shared. ([%#sfield_event] inv_ref_Shared self)
+    -> ([%#spromotion] inv_ref_Shared self)
+    /\ (forall result: t_Atomic_usize. ([%#spromotion'0] inv_ref_Atomic_usize result)
+        /\ ([%#spromotion'1] atomic_model result = field_model_Shared self)
+      -> ([%#sfield_event'0] inv_ref_Atomic_usize result)
+      /\ ([%#sfield_event'1] atomic_model result = field_model_Shared self))

@@ -1,0 +1,151 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 157 9 157 14 *)
+
+(* <promotion::RootDescriptor as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span ssnapshot = "/workspace/bytes-proof-tools/bytes-proof-std/src/snapshot.rs" 65 14 65 29
+let%span ssnapshot'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/snapshot.rs" 66 4 66 27
+let%span sraw_vec = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 241 9 241 27
+let%span sraw_vec'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 272 12 280 13
+let%span snum = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/num.rs" 50 26 50 32
+let%span spromotion = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 159 4 159 27
+let%span spromotion'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 160 4 160 19
+let%span spromotion'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 161 4 161 31
+let%span spromotion'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 162 4 162 39
+let%span spromotion'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 157 9 157 14
+
+use creusot.int.UInt64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.Int64
+use creusot.prelude.Any
+use int.Int
+
+type t_BoundPtr
+
+type t_AtomicPtr_unit
+
+type t_RootDescriptor = { base: t_BoundPtr; capacity: UInt64.t; expected: Seq.seq UInt8.t; model: t_AtomicPtr_unit }
+
+type t_Id
+
+type tup3_Id_Int_Int = { f0: t_Id; f1: int; f2: int }
+
+type t_Option_tup3_Id_Int_Int = None | Some tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 253 4 253 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function current_address [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 289 4 289 39] (self: t_BoundPtr) : int
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 270 4 270 30] (self: t_BoundPtr) =
+  [%#sraw_vec'0] match view_BoundPtr self with
+    | None -> true
+    | Some {f1 = allocation_capacity; f2 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity
+    /\ allocation_capacity <= Int64.to_int const_MAX
+    /\ absolute_offset < current_address self
+    /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
+    end
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> invariant_BoundPtr x
+
+predicate invariant_ref_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sinvariant] inv_BoundPtr self
+
+meta "rewrite_def" predicate invariant_ref_BoundPtr
+
+predicate inv_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_ref_BoundPtr _1
+
+meta "rewrite_def" predicate inv_ref_BoundPtr
+
+let clone_BoundPtr (self: t_BoundPtr) (return (x: t_BoundPtr)) =
+{[@stop_split] [@expl:clone 'self' type invariant] [%#sraw_vec] inv_ref_BoundPtr self}
+  any
+  [ return (result: t_BoundPtr) -> {[@stop_split] [@expl:clone result type invariant] [%#sraw_vec] inv_BoundPtr result}
+    (! return {result}) ]
+
+let clone_usize (self_: UInt64.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:clone ensures] [%#snum] result = self_} (! return {result}) ]
+
+let clone_Snapshot_Seq_u8 (self: Seq.seq UInt8.t) (return (x: Seq.seq UInt8.t)) = any
+  [ return (result: Seq.seq UInt8.t) -> {[@stop_split] [@expl:clone ensures] [%#ssnapshot] result = self}
+    (! return {result}) ]
+
+let clone_Snapshot_AtomicPtr_unit (self: t_AtomicPtr_unit) (return (x: t_AtomicPtr_unit)) = any
+  [ return (result: t_AtomicPtr_unit) -> {[@stop_split] [@expl:clone ensures] [%#ssnapshot] result = self}
+    (! return {result}) ]
+
+predicate inv_RootDescriptor (_1: t_RootDescriptor)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_RootDescriptor [inv_RootDescriptor x]. inv_RootDescriptor x
+    = inv_BoundPtr x.base
+
+predicate invariant_ref_RootDescriptor [@inline:trivial] (self: t_RootDescriptor) =
+  [%#sinvariant] inv_RootDescriptor self
+
+meta "rewrite_def" predicate invariant_ref_RootDescriptor
+
+predicate inv_ref_RootDescriptor [@inline:trivial] (_1: t_RootDescriptor) = invariant_ref_RootDescriptor _1
+
+meta "rewrite_def" predicate inv_ref_RootDescriptor
+
+predicate postcondition_clone (self: ()) (args: t_BoundPtr) (result: t_BoundPtr) =
+  [%#sraw_vec] let self'0 = args in [%#sraw_vec] inv_BoundPtr result
+
+meta "rewrite_def" predicate postcondition_clone
+
+predicate postcondition_clone'0 (self: ()) (args: UInt64.t) (result: UInt64.t) =
+  let self_ = args in [%#snum] result = self_
+
+meta "rewrite_def" predicate postcondition_clone'0
+
+predicate postcondition_clone'1 (self: ()) (args: Seq.seq UInt8.t) (result: Seq.seq UInt8.t) =
+  [%#ssnapshot'0] let self'0 = args in [%#ssnapshot] result = self'0
+
+meta "rewrite_def" predicate postcondition_clone'1
+
+predicate postcondition_clone'2 (self: ()) (args: t_AtomicPtr_unit) (result: t_AtomicPtr_unit) =
+  [%#ssnapshot'0] let self'0 = args in [%#ssnapshot] result = self'0
+
+meta "rewrite_def" predicate postcondition_clone'2
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let clone_RootDescriptor [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-raw-suffix-drop-2026-10-09/src/promotion.rs" 157 9 157 14]
+  (self: t_RootDescriptor) (return (x: t_RootDescriptor)) =
+{[@stop_split] [@expl:clone 'self' type invariant] [%#spromotion'3] inv_ref_RootDescriptor self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_6 <- self.base ] s1
+    | s1 = clone_BoundPtr [%#spromotion] {_6} (fun (_x: t_BoundPtr) -> [ &_4 <- _x ] s2)
+    | s2 = [ &_9 <- self.capacity ] s3
+    | s3 = clone_usize [%#spromotion'0] {_9} (fun (_x: UInt64.t) -> [ &_7 <- _x ] s4)
+    | s4 = [ &_12 <- self.expected ] s5
+    | s5 = clone_Snapshot_Seq_u8 [%#spromotion'1] {_12} (fun (_x: Seq.seq UInt8.t) -> [ &_10 <- _x ] s6)
+    | s6 = [ &_15 <- self.model ] s7
+    | s7 = clone_Snapshot_AtomicPtr_unit [%#spromotion'2] {_15} (fun (_x: t_AtomicPtr_unit) -> [ &_13 <- _x ] s8)
+    | s8 = [ &_ret <- { base = _4; capacity = _7; expected = _10; model = _13 } ] s9
+    | s9 = return {_ret} ] ]
+  [ & _ret: t_RootDescriptor = Any.any_l ()
+  | & self: t_RootDescriptor = self
+  | & _4: t_BoundPtr = Any.any_l ()
+  | & _6: t_BoundPtr = Any.any_l ()
+  | & _7: UInt64.t = Any.any_l ()
+  | & _9: UInt64.t = Any.any_l ()
+  | & _10: Seq.seq UInt8.t = Any.any_l ()
+  | & _12: Seq.seq UInt8.t = Any.any_l ()
+  | & _13: t_AtomicPtr_unit = Any.any_l ()
+  | & _15: t_AtomicPtr_unit = Any.any_l () ])
+  [ return (result: t_RootDescriptor) ->
+  {[@stop_split] [@expl:clone_RootDescriptor ensures] ([@stop_split] [@expl:clone result type invariant] [%#spromotion'3] inv_RootDescriptor result)
+    /\ ([@stop_split] [@expl:clone ensures] [%#spromotion'3] postcondition_clone () self.base result.base
+    /\ postcondition_clone'0 () self.capacity result.capacity
+    /\ postcondition_clone'1 () self.expected result.expected /\ postcondition_clone'2 () self.model result.model)}
+    (! return {result}) ]
