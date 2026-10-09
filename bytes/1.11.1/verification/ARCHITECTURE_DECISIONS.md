@@ -1768,3 +1768,114 @@ pointer metadata inside Ghost and never a permission/resource or native value.
 No inherited boundary or Bytes ownership axiom is changed. SuffixScope creation
 needs no program observer: nonnull follows from the inherited positive base
 address invariant and Std's open is_null_logic address-zero definition.
+
+## D2026-10-09-AW-PACK — Shared immutable evidence closure transport
+
+Before any bootstrap experiment, adopt this bounded infrastructure increment
+following audited AV publication c16354c1a876642c01b1670d0294916afd09bb9d.
+Repeatedly embedding already published ancestor archives in both proof origins
+and admitting archives has caused multiplicative storage growth. The changed
+premise is a content-addressed logical evidence namespace with exact offline
+restoration, not a change to Rust, proof contracts, native correspondence, or
+admission criteria. No next semantic probe or ancestor clone is created here.
+The reusable implementation is
+`verification/tools/evidence_closure.py`; the public bootstrap manifest and
+small new objects belong under `verification/evidence-closures/av-admitted-v1`.
+Disposable hydrated trees and caches belong under `/workspace/work`.
+
+The generic `evidence-closure-v1` schema has an evidence-root identifier,
+version, a sorted logical file inventory mapping each relative regular-file
+path to its SHA-256 and byte size, a digest-keyed object table, and explicit
+typed provenance edges. Edge roles distinguish the original complete proof
+run, canonical admission, reused ancestor evidence, and diagnostic controls;
+references bind exact manifest or original archive digests and sizes. A
+transport locator is not evidence authority. Admission requires an externally supplied `--expected-root-sha256` equal to
+the SHA-256 of the complete raw root-manifest bytes, before parsing or resolving
+any transport. That pin covers every mount, logical file, transport and
+provenance edge; transitively referenced manifests require their own digest
+and size in the already pinned graph. The original AV canonical archive
+digest is a separate typed provenance reference and cannot substitute for the
+root-manifest pin: an attacker could otherwise retain the old archive while
+adding or redirecting other mounts/files. A mutable receipt that merely names
+its own digest is not an authenticity anchor. Validate all required edges. Unknown versions/roles and conflicting digest/size declarations fail
+closed. The generic resolver has no probe-name exceptions.
+
+An object transport is either a local content-addressed regular-file blob or
+an ordered list of published repository-relative regular-file parts. Every
+part has its exact size and SHA-256; the ordered concatenation must also match
+the object size and SHA-256. A single existing whole file is a valid one-part
+transport. Reuse AV's five published origin parts and ten published canonical
+parts, and older already published opaque ancestor archives or their parts.
+Do not upload a duplicate large blob merely to change its path. Only genuinely
+new small metadata objects need new local CAS files. If a required opaque
+ancestor has no existing exact published transport, stop and review a bounded
+generic resolver extension; do not add a probe-specific exception or silently
+embed another whole ancestor copy. No fetching or network access is required
+by the offline audit: provision required published files first.
+
+Existing compressed archives are opaque exact-byte objects. Never recompress
+an extracted archive and claim its old digest. Multiple logical paths may
+reference the same immutable object; new origin/admission manifests reference
+it rather than embedding it recursively. The manifest or eventual package
+cannot include its own bytes as an object; detached root digests avoid such
+self-reference. Reject dependency cycles, undeclared dependencies, duplicate
+or conflicting logical paths, absolute paths, traversal, symlinks and other
+non-regular members. Hydration must validate complete objects before exposing
+an audit-ready namespace, must not follow filesystem links out of its roots,
+and must restore all required names and contents exactly. Archive member
+reading is bounded by declared inventory/size and rejects ambiguous names;
+opaque preservation does not authorize unsafe extraction.
+
+The distinguishing bootstrap uses AV's complete audited 2,164-member logical
+inventory. Independently compare the complete hydrated path-to-size-and-hash
+mapping with the existing AV canonical archive, then replay the existing
+archived audit/checker over the restored namespace without weakening or
+replacing any admission check. Preserve all 334 current Coma/proof files and
+550 reused proof joins, source/native/Std/configuration/tool inputs, the fresh
+four Cargo artifact joins, exact proof-origin identity and provenance. These
+counts describe this bootstrap, not constants hardcoded into the reusable
+transport validator. No Rust translation or solver rerun is required: the
+proof and source bytes are unchanged. The old AV archive remains published
+and immutable; the new closure is an independently audited representation of
+its evidence inputs, not a replacement proof run.
+
+Use one fresh required-object corruption fixture to show rejection before
+checker execution. Small pure parser checks cover malformed paths, duplicate
+names, cycles and schema errors; no broad proof-negative batch is warranted.
+Report logical expanded bytes, unique object bytes, referenced published
+transport bytes and newly published bytes separately. Bootstrap may retain
+old nested duplication already present in immutable archives; do not claim
+retroactive elimination. Subsequent captures must reuse object identities
+rather than nest copies. Stop and redesign if byte-exact restoration or the
+unchanged independent audit cannot be maintained, or if per-probe special
+cases are needed. Packaging publication follows independent inventory and
+archive-only replay review. This increment adds no public API theorem or
+native ownership TCB rule. Full original bytes 1.11.1 remains NOT ADMITTED.
+After its audited publication and the next Astra consultation, the queued
+semantic candidate is raw suffix normal Drop without forced promotion.
+
+
+### D-AW-PACK generic archive-member transport review
+
+Before bootstrap, permit the reviewed schema's generic `archive_member` object
+transport alongside published parts and small local CAS blobs. It references
+a declared parent object by exact digest and one exact safe member path; the
+parent's complete bytes must verify before member lookup. Scan its member
+table to reject duplicate/ambiguous names and non-regular entries, then check
+the extracted object's declared size and SHA-256. Dependencies must form a
+finite acyclic graph with no undeclared or unused objects. This permits exact
+reuse of an opaque ancestor available only inside an existing published
+archive without a new large blob or archive recompression. It is the same
+resolver rule for every probe, not a privileged AV path.
+
+Explicit mounts may project a declared archive namespace using exact member
+and strip prefixes. The complete sorted logical file inventory binds each
+output path to its source object/member and expected size/hash. Derive the
+projected inventory independently from the verified member tables and require
+exact equality with that declaration; reject output collisions and unlisted
+projected files. Verify every reachable object and the full inventory in
+staging before publishing an audit-ready tree. The bootstrap admission must
+independently establish that this pinned projection equals AV's existing
+complete audited logical namespace. A successful generic hydration validates
+the declared evidence transport; it does not by itself establish that a
+caller selected sufficient inputs for a proof admission.
