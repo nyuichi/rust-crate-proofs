@@ -1,0 +1,451 @@
+{
+  "schema": "at-semantic-control-independent-audit-v1",
+  "scope": "Independent, read-only checks of immutable diagnostic archives and null-task derivations. No proof or build run by the auditor. These controls indicate proof sensitivity only; none is a native counterexample or admission claim.",
+  "controls": [
+    {
+      "feature": "zero_to_static",
+      "classification": "All nine null VCs are in vc_clone_owned_api. The bad zero-length branch produces a static/non-owned view; obligations fail for ownership, Empty variant/tag, bound/pointer preservation, shared-allocation relation, registration-table insertion, and owner count. This is proof-contract sensitivity, not a native memory counterexample.",
+      "label": "at-negative-zero-to-static-v1",
+      "archive_sha256": "b9dd35c05729175f921aa5c79aa63ff593c96a0047c535de132e9bf278c80b99",
+      "member_count": 1544,
+      "member_hashes_all_match": true,
+      "target_count": 155,
+      "coma_count": 155,
+      "proof_count": 155,
+      "statistics": {
+        "files": 155,
+        "prover": 1442,
+        "null": 9,
+        "structural": 0
+      },
+      "proof_leaf_counts_match": true,
+      "null_tasks": [
+        {
+          "goal": "vc_clone_owned_api",
+          "path": [
+            0,
+            8,
+            1,
+            1
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8",
+            "split_vc:1",
+            "split_vc:1"
+          ],
+          "task_sha256": "e47e40010ba651852b3006740eee2aaab3f65ef8b6dd40dccb924d88687354c4",
+          "excerpt": "  \n  axiom H6 :\n    match result.original_shared with\n    | Root x -> inv_RootDescriptor x\n    | Child x -> inv_ChildProof x\n    | View x x1 -> inv_ChildProof x /\\ inv_BoundPtr x1\n    | Empty x -> inv_EmptyViewProof x\n    | Vacant -> true\n    end\n  \n  axiom H7 : view_valid result\n  \n  axiom H8 : not view_owned result\n  \n  axiom H9 : view_content result = (empty: seq t18)\n  \n  axiom H10 : result.len = (0:t17)\n  \n  axiom H11 : addr_logic_u64 (result.ptr) = addr_logic_u64 (source.ptr)\n  \n  goal vc_clone_owned_api : view_owned result\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-a01473547a.coma\", line 893, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-a01473547a.coma\", line 1320, characters 56-60: unused variable self",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-a01473547a.coma\", line 1487, characters 30-36: unused variable data'0",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-a01473547a.coma\", line 1486, characters 57-61: unused variable self"
+          ]
+        },
+        {
+          "goal": "vc_clone_owned_api",
+          "path": [
+            0,
+            8,
+            2,
+            0,
+            2
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8",
+            "split_vc:2",
+            "split_vc:0",
+            "split_vc:2"
+          ],
+          "task_sha256": "53a3d2d28ee5cfebb4666bcfb3afc07e38d2bee2bc0572e89204795e523e353a",
+          "excerpt": "  axiom H6 :\n    match result.original_shared with\n    | Root x -> inv_RootDescriptor x\n    | Child x -> inv_ChildProof x\n    | View x x1 -> inv_ChildProof x /\\ inv_BoundPtr x1\n    | Empty x -> inv_EmptyViewProof x\n    | Vacant -> true\n    end\n  \n  axiom H7 : view_valid result\n  \n  axiom H8 : not view_owned result\n  \n  axiom H9 : view_content result = (empty: seq t18)\n  \n  axiom H10 : result.len = (0:t17)\n  \n  axiom H11 : addr_logic_u64 (result.ptr) = addr_logic_u64 (source.ptr)\n  \n  goal vc_clone_owned_api :\n    not (exists w:t_EmptyViewProof. result.original_shared = Empty w)\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-b6c2d0b0b4.coma\", line 893, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-b6c2d0b0b4.coma\", line 1320, characters 56-60: unused variable self",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-b6c2d0b0b4.coma\", line 1487, characters 30-36: unused variable data'0",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-b6c2d0b0b4.coma\", line 1486, characters 57-61: unused variable self"
+          ]
+        },
+        {
+          "goal": "vc_clone_owned_api",
+          "path": [
+            0,
+            8,
+            3,
+            0
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8",
+            "split_vc:3",
+            "split_vc:0"
+          ],
+          "task_sha256": "c506df8c69a068c87e844daf6a1122dfe1abffc0791da7e16e0ad2ce76e69119",
+          "excerpt": "  \n  axiom H6 :\n    match result.original_shared with\n    | Root x -> inv_RootDescriptor x\n    | Child x -> inv_ChildProof x\n    | View x x1 -> inv_ChildProof x /\\ inv_BoundPtr x1\n    | Empty x -> inv_EmptyViewProof x\n    | Vacant -> true\n    end\n  \n  axiom H7 : view_valid result\n  \n  axiom H8 : not view_owned result\n  \n  axiom H9 : view_content result = (empty: seq t18)\n  \n  axiom H10 : result.len = (0:t17)\n  \n  axiom H11 : addr_logic_u64 (result.ptr) = addr_logic_u64 (source.ptr)\n  \n  goal vc_clone_owned_api : view_bound result = view_bound source\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-776583a9d7.coma\", line 893, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-776583a9d7.coma\", line 1320, characters 56-60: unused variable self",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-776583a9d7.coma\", line 1487, characters 30-36: unused variable data'0",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-776583a9d7.coma\", line 1486, characters 57-61: unused variable self"
+          ]
+        },
+        {
+          "goal": "vc_clone_owned_api",
+          "path": [
+            0,
+            8,
+            3,
+            1
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8",
+            "split_vc:3",
+            "split_vc:1"
+          ],
+          "task_sha256": "15559198536e1b356bce5bec993da244c41026965963ac67b7c3bea1a60f72b1",
+          "excerpt": "  \n  axiom H6 :\n    match result.original_shared with\n    | Root x -> inv_RootDescriptor x\n    | Child x -> inv_ChildProof x\n    | View x x1 -> inv_ChildProof x /\\ inv_BoundPtr x1\n    | Empty x -> inv_EmptyViewProof x\n    | Vacant -> true\n    end\n  \n  axiom H7 : view_valid result\n  \n  axiom H8 : not view_owned result\n  \n  axiom H9 : view_content result = (empty: seq t18)\n  \n  axiom H10 : result.len = (0:t17)\n  \n  axiom H11 : addr_logic_u64 (result.ptr) = addr_logic_u64 (source.ptr)\n  \n  goal vc_clone_owned_api : result.ptr = source.ptr\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-2f215b9068.coma\", line 893, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-2f215b9068.coma\", line 1320, characters 56-60: unused variable self",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-2f215b9068.coma\", line 1487, characters 30-36: unused variable data'0",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-2f215b9068.coma\", line 1486, characters 57-61: unused variable self"
+          ]
+        },
+        {
+          "goal": "vc_clone_owned_api",
+          "path": [
+            0,
+            8,
+            4
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8",
+            "split_vc:4"
+          ],
+          "task_sha256": "016225a2ed48ec79ad2fc9c61f0f8b2056ec321f6f7abe4e7ce2e1caadc73b78",
+          "excerpt": "  constant result : t_Bytes\n  \n  axiom H2 :\n    inv_Atomic_ptr_unit (result.data) /\\\n    match result.original_shared with\n    | Root f0'17 -> inv_RootDescriptor f0'17\n    | Child f0'17 -> inv_ChildProof f0'17\n    | View f0'17 f1 -> inv_ChildProof f0'17 /\\ inv_BoundPtr f1\n    | Empty f0'17 -> inv_EmptyViewProof f0'17\n    | Vacant -> true\n    end\n  \n  axiom H3 :\n    view_valid result /\\\n    not view_owned result /\\ view_content result = (empty: seq t18)\n  \n  axiom H4 :\n    result.len = (0:t17) /\\\n    addr_logic_u64 (result.ptr) = addr_logic_u64 (source.ptr)\n  \n  goal vc_clone_owned_api : shares_view_allocation result source\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-03a37506ab.coma\", line 893, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-03a37506ab.coma\", line 1320, characters 56-60: unused variable self",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-03a37506ab.coma\", line 1487, characters 30-36: unused variable data'0",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-03a37506ab.coma\", line 1486, characters 57-61: unused variable self"
+          ]
+        },
+        {
+          "goal": "vc_clone_owned_api",
+          "path": [
+            0,
+            8,
+            5,
+            0
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8",
+            "split_vc:5",
+            "split_vc:0"
+          ],
+          "task_sha256": "5ba3715991120848b74f771cfdaf87c3c5099347c36909c74cf5b3f0681de20a",
+          "excerpt": "  \n  axiom H6 :\n    match result.original_shared with\n    | Root x -> inv_RootDescriptor x\n    | Child x -> inv_ChildProof x\n    | View x x1 -> inv_ChildProof x /\\ inv_BoundPtr x1\n    | Empty x -> inv_EmptyViewProof x\n    | Vacant -> true\n    end\n  \n  axiom H7 : view_valid result\n  \n  axiom H8 : not view_owned result\n  \n  axiom H9 : view_content result = (empty: seq t18)\n  \n  axiom H10 : result.len = (0:t17)\n  \n  axiom H11 : addr_logic_u64 (result.ptr) = addr_logic_u64 (source.ptr)\n  \n  goal vc_clone_owned_api : view_public result = view_public source\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-95b15f0102.coma\", line 893, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-95b15f0102.coma\", line 1320, characters 56-60: unused variable self",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-95b15f0102.coma\", line 1487, characters 30-36: unused variable data'0",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-95b15f0102.coma\", line 1486, characters 57-61: unused variable self"
+          ]
+        },
+        {
+          "goal": "vc_clone_owned_api",
+          "path": [
+            0,
+            8,
+            7
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8",
+            "split_vc:7"
+          ],
+          "task_sha256": "9e1bb828db71494ecc4cae3cda1c19b448ff5e11a1501f4e0969c72774be2fdc",
+          "excerpt": "  axiom H2 :\n    inv_Atomic_ptr_unit (result.data) /\\\n    match result.original_shared with\n    | Root f0'17 -> inv_RootDescriptor f0'17\n    | Child f0'17 -> inv_ChildProof f0'17\n    | View f0'17 f1 -> inv_ChildProof f0'17 /\\ inv_BoundPtr f1\n    | Empty f0'17 -> inv_EmptyViewProof f0'17\n    | Vacant -> true\n    end\n  \n  axiom H3 :\n    view_valid result /\\\n    not view_owned result /\\ view_content result = (empty: seq t18)\n  \n  axiom H4 :\n    result.len = (0:t17) /\\\n    addr_logic_u64 (result.ptr) = addr_logic_u64 (source.ptr)\n  \n  goal vc_clone_owned_api :\n    get1 (to_mapping_Int'0 ((observation (scope'.current)).f0'15))\n    (view_id result) = None'6\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-d56f4d2353.coma\", line 893, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-d56f4d2353.coma\", line 1320, characters 56-60: unused variable self",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-d56f4d2353.coma\", line 1487, characters 30-36: unused variable data'0",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-d56f4d2353.coma\", line 1486, characters 57-61: unused variable self"
+          ]
+        },
+        {
+          "goal": "vc_clone_owned_api",
+          "path": [
+            0,
+            8,
+            8
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8",
+            "split_vc:8"
+          ],
+          "task_sha256": "89b2bd1d9e078ffaf2713ffef050dca63436f96530c4b3c672339c2b044ef67b",
+          "excerpt": "    inv_Atomic_ptr_unit (result.data) /\\\n    match result.original_shared with\n    | Root f0'17 -> inv_RootDescriptor f0'17\n    | Child f0'17 -> inv_ChildProof f0'17\n    | View f0'17 f1 -> inv_ChildProof f0'17 /\\ inv_BoundPtr f1\n    | Empty f0'17 -> inv_EmptyViewProof f0'17\n    | Vacant -> true\n    end\n  \n  axiom H3 :\n    view_valid result /\\\n    not view_owned result /\\ view_content result = (empty: seq t18)\n  \n  axiom H4 :\n    result.len = (0:t17) /\\\n    addr_logic_u64 (result.ptr) = addr_logic_u64 (source.ptr)\n  \n  goal vc_clone_owned_api :\n    (observation (scope'.final)).f0'15 =\n    insert_Int ((observation (scope'.current)).f0'15) (view_id result)\n    (T_Excl_PositiveReal'mk (view_fraction result))\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-b0b04b1c56.coma\", line 893, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-b0b04b1c56.coma\", line 1320, characters 56-60: unused variable self",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-b0b04b1c56.coma\", line 1487, characters 30-36: unused variable data'0",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-b0b04b1c56.coma\", line 1486, characters 57-61: unused variable self"
+          ]
+        },
+        {
+          "goal": "vc_clone_owned_api",
+          "path": [
+            0,
+            8,
+            9
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8",
+            "split_vc:9"
+          ],
+          "task_sha256": "8f896db3ae299d9409f5200341b07df52183b8f00b96754b60b3ea7d524eb733",
+          "excerpt": "  axiom H2 :\n    inv_Atomic_ptr_unit (result.data) /\\\n    match result.original_shared with\n    | Root f0'17 -> inv_RootDescriptor f0'17\n    | Child f0'17 -> inv_ChildProof f0'17\n    | View f0'17 f1 -> inv_ChildProof f0'17 /\\ inv_BoundPtr f1\n    | Empty f0'17 -> inv_EmptyViewProof f0'17\n    | Vacant -> true\n    end\n  \n  axiom H3 :\n    view_valid result /\\\n    not view_owned result /\\ view_content result = (empty: seq t18)\n  \n  axiom H4 :\n    result.len = (0:t17) /\\\n    addr_logic_u64 (result.ptr) = addr_logic_u64 (source.ptr)\n  \n  goal vc_clone_owned_api :\n    (observation (scope'.final)).f1'15 =\n    ((observation (scope'.current)).f1'15 + 1)\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-f02fa4326b.coma\", line 893, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-f02fa4326b.coma\", line 1320, characters 56-60: unused variable self",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-f02fa4326b.coma\", line 1487, characters 30-36: unused variable data'0",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-zero-to-static-v1-f02fa4326b.coma\", line 1486, characters 57-61: unused variable self"
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "missing_registration",
+      "classification": "The single null VC asks the returned OwnedView to satisfy its well-formedness invariants. Removing the Shared registration means the constructed result lacks the expected bound/control/physical/invariant/ticket/recovery components; the task does not establish a native runtime counterexample.",
+      "label": "at-negative-missing-registration-v1",
+      "archive_sha256": "460c027f012dde49f46e87eea5c519efa1eb5652bd8e2c447c892638907b53bf",
+      "member_count": 1544,
+      "member_hashes_all_match": true,
+      "target_count": 155,
+      "coma_count": 155,
+      "proof_count": 155,
+      "statistics": {
+        "files": 155,
+        "prover": 1405,
+        "null": 1,
+        "structural": 0
+      },
+      "proof_leaf_counts_match": true,
+      "null_tasks": [
+        {
+          "goal": "vc_shallow_clone_owned_view_checked",
+          "path": [
+            0,
+            8
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:8"
+          ],
+          "task_sha256": "dc7877e81eb301470d6a54758be9147e26ab7e5dc091e8e319b72847e85d850d",
+          "excerpt": "    invariant_GhostShared_ScopedFieldInvariant_State_Payload\n    ((result.f0'1).invariant''0) /\\\n    inv_LifetimeToken (((result.f0'1).ticket'0).token'0) /\\\n    match ((result.f0'1).ticket'0).recovery'0 with\n    | None -> true\n    | Some f0'31 -> inv_Payload f0'31\n    end\n  \n  goal vc_shallow_clone_owned_view_checked :\n    not (inv_BoundPtr ((result.f0'1).bound'0) /\\\n         invariant_GhostShared_FullBorrow_OwnedControl_Shared\n         ((result.f0'1).control'0) /\\\n         invariant_GhostShared_FullBorrow_PhysicalRegion\n         ((result.f0'1).physical'0) /\\\n         invariant_GhostShared_ScopedFieldInvariant_State_Payload\n         ((result.f0'1).invariant''0) /\\\n         inv_LifetimeToken (((result.f0'1).ticket'0).token'0) /\\\n         match ((result.f0'1).ticket'0).recovery'0 with\n         | None -> true\n         | Some f0'31 -> inv_Payload f0'31\n         end)\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-missing-registration-v1-b15cfbd618.coma\", line 1168, characters 6-36: axiom incl_op_Excl_PositiveReal_spec does not contain any local abstract symbol (contains: (=), t_Excl_PositiveReal, t_Option_Excl_PositiveReal, Some'8, op_Excl_PositiveReal, incl_Excl_PositiveReal)",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-missing-registration-v1-b15cfbd618.coma\", line 1177, characters 6-31: axiom eq_Excl_PositiveReal_spec does not contain any local abstract symbol (contains: (=), t_Excl_PositiveReal, eq_Excl_PositiveReal)",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-missing-registration-v1-b15cfbd618.coma\", line 1191, characters 6-40: axiom incl_Option_Excl_PositiveReal_spec does not contain any local abstract symbol (contains: (=), t_Option_Excl_PositiveReal, t_Option_Option_Excl_PositiveReal, Some'9, op_Option_Excl_PositiveReal, incl_Option_Excl_PositiveReal)",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-missing-registration-v1-b15cfbd618.coma\", line 1216, characters 9-10: unused variable a"
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "wrong_offset",
+      "classification": "The three null VCs ask for valid view construction, preservation of the input view bound, and the input-content slice at the expected offset. The perturbed offset breaks those clone correspondence obligations.",
+      "label": "at-negative-wrong-offset-v1",
+      "archive_sha256": "6c59b62100553cd4ed01b0b4656f44de8806c046481c1add6d5db7bdef6ecf01",
+      "member_count": 1544,
+      "member_hashes_all_match": true,
+      "target_count": 155,
+      "coma_count": 155,
+      "proof_count": 155,
+      "statistics": {
+        "files": 155,
+        "prover": 1452,
+        "null": 3,
+        "structural": 0
+      },
+      "proof_leaf_counts_match": true,
+      "null_tasks": [
+        {
+          "goal": "vc_shallow_clone_owned_view_checked",
+          "path": [
+            0,
+            27,
+            1,
+            0
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:27",
+            "split_vc:1",
+            "split_vc:0"
+          ],
+          "task_sha256": "0582a8440a9b6b5971706728b8e4cb49329f954d49ed896f148d790a67063eed",
+          "excerpt": "  \n  axiom H124 : inv_LifetimeToken (result9.token'0)\n  \n  axiom H125 :\n    match result9.recovery'0 with\n    | None -> true\n    | Some x -> inv_Payload x\n    end\n  \n  axiom H126 : inv_BoundPtr ((result.f0'1).bound'0)\n  \n  goal vc_shallow_clone_owned_view_checked :\n    api_view_valid\n    (T_Bytes'mk ptr len'1 (result7.f0'16) shared_table\n     (View\n      (T_ChildProof'mk\n       (T_SharedCore'mk ((result.f0'1).shared'0) ((result.f0'1).bound'0)\n        ((result.f0'1).capacity'0) ((result.f0'1).control'0)\n        ((result.f0'1).physical'0) ((result.f0'1).invariant''0) result9)\n       result8)\n      ((result.f0'1).bound'0)))\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-78b59c745d.coma\", line 1115, characters 6-40: axiom incl_Option_Excl_PositiveReal_spec does not contain any local abstract symbol (contains: (=), t_Option_Excl_PositiveReal, t_Option_Option_Excl_PositiveReal, Some'4, op_Option_Excl_PositiveReal, incl_Option_Excl_PositiveReal)",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-78b59c745d.coma\", line 1140, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-78b59c745d.coma\", line 1540, characters 30-32: unused variable x2",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-78b59c745d.coma\", line 1540, characters 39-41: unused variable x3"
+          ]
+        },
+        {
+          "goal": "vc_shallow_clone_owned_view_checked",
+          "path": [
+            0,
+            27,
+            2
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:27",
+            "split_vc:2"
+          ],
+          "task_sha256": "ff77c73a526bd3514bdf9325ac0b021b9bdf20e5ba485d78bc637abf03887b21",
+          "excerpt": "  axiom H91 : inv_LifetimeToken (result8.token'0)\n  \n  axiom H92 :\n    match result8.recovery'0 with\n    | None -> true\n    | Some x -> inv_Payload x\n    end\n  \n  axiom H93 : inv_BoundPtr ((result.f0'1).bound'0)\n  \n  goal vc_shallow_clone_owned_view_checked :\n    view_bound\n    (T_Bytes'mk ptr len'1 (result6.f0'16) shared_table\n     (View\n      (T_ChildProof'mk\n       (T_SharedCore'mk ((result.f0'1).shared'0) ((result.f0'1).bound'0)\n        ((result.f0'1).capacity'0) ((result.f0'1).control'0)\n        ((result.f0'1).physical'0) ((result.f0'1).invariant''0) result8)\n       result7)\n      ((result.f0'1).bound'0))) =\n    input.f1'0\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-e9c5657cfb.coma\", line 1115, characters 6-40: axiom incl_Option_Excl_PositiveReal_spec does not contain any local abstract symbol (contains: (=), t_Option_Excl_PositiveReal, t_Option_Option_Excl_PositiveReal, Some'4, op_Option_Excl_PositiveReal, incl_Option_Excl_PositiveReal)",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-e9c5657cfb.coma\", line 1140, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-e9c5657cfb.coma\", line 1540, characters 30-32: unused variable x2",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-e9c5657cfb.coma\", line 1540, characters 39-41: unused variable x3"
+          ]
+        },
+        {
+          "goal": "vc_shallow_clone_owned_view_checked",
+          "path": [
+            0,
+            27,
+            4
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:27",
+            "split_vc:4"
+          ],
+          "task_sha256": "711e15391ae69545c8041276e9bc1f293fd2e68b1b3f3a2e6f42af82b771bb50",
+          "excerpt": "    | Some x -> inv_Payload x\n    end\n  \n  axiom H93 : inv_BoundPtr ((result.f0'1).bound'0)\n  \n  goal vc_shallow_clone_owned_view_checked :\n    view_content\n    (T_Bytes'mk ptr len'1 (result6.f0'16) shared_table\n     (View\n      (T_ChildProof'mk\n       (T_SharedCore'mk ((result.f0'1).shared'0) ((result.f0'1).bound'0)\n        ((result.f0'1).capacity'0) ((result.f0'1).control'0)\n        ((result.f0'1).physical'0) ((result.f0'1).invariant''0) result8)\n       result7)\n      ((result.f0'1).bound'0))) =\n    (content (input.f0'0))[(unwrap_Option_tup3_Id_Int_Int\n                            (view_BoundPtr (input.f1'0))).f2'2..((unwrap_Option_tup3_Id_Int_Int\n                                                                  (view_BoundPtr\n                                                                   (input.f1'0))).f2'2\n                                                                 + t'int\n                                                                   len'1)]\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-c5a3aeb740.coma\", line 1115, characters 6-40: axiom incl_Option_Excl_PositiveReal_spec does not contain any local abstract symbol (contains: (=), t_Option_Excl_PositiveReal, t_Option_Option_Excl_PositiveReal, Some'4, op_Option_Excl_PositiveReal, incl_Option_Excl_PositiveReal)",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-c5a3aeb740.coma\", line 1140, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-c5a3aeb740.coma\", line 1540, characters 30-32: unused variable x2",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-offset-v1-c5a3aeb740.coma\", line 1540, characters 39-41: unused variable x3"
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "wrong_capacity",
+      "classification": "The two null VCs ask for view validity and that the resulting view has an allocation corresponding to the input. The perturbed capacity breaks those representation/allocation obligations.",
+      "label": "at-negative-wrong-capacity-v1",
+      "archive_sha256": "9ddf95911d6a22fec9e24acbe585e68e696d05a5a07c66c3aa01dc671b43d32f",
+      "member_count": 1544,
+      "member_hashes_all_match": true,
+      "target_count": 155,
+      "coma_count": 155,
+      "proof_count": 155,
+      "statistics": {
+        "files": 155,
+        "prover": 1453,
+        "null": 2,
+        "structural": 0
+      },
+      "proof_leaf_counts_match": true,
+      "null_tasks": [
+        {
+          "goal": "vc_shallow_clone_owned_view_checked",
+          "path": [
+            0,
+            26,
+            1,
+            0
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:26",
+            "split_vc:1",
+            "split_vc:0"
+          ],
+          "task_sha256": "1193933b6b1aff081d454a7a689794f2679c1026598cb9a2c76a73eac33973bb",
+          "excerpt": "  \n  axiom H112 : inv_LifetimeToken (result9.token'0)\n  \n  axiom H113 :\n    match result9.recovery'0 with\n    | None -> true\n    | Some x -> inv_Payload x\n    end\n  \n  axiom H114 : inv_BoundPtr (result.f1'1)\n  \n  goal vc_shallow_clone_owned_view_checked :\n    api_view_valid\n    (T_Bytes'mk ptr len'1 (result7.f0'16) shared_table\n     (View\n      (T_ChildProof'mk\n       (T_SharedCore'mk ((result.f0'1).shared'0) ((result.f0'1).bound'0)\n        len'1 ((result.f0'1).control'0) ((result.f0'1).physical'0)\n        ((result.f0'1).invariant''0) result9)\n       result8)\n      (result.f1'1)))\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-capacity-v1-a8768ada06.coma\", line 1114, characters 6-40: axiom incl_Option_Excl_PositiveReal_spec does not contain any local abstract symbol (contains: (=), t_Option_Excl_PositiveReal, t_Option_Option_Excl_PositiveReal, Some'4, op_Option_Excl_PositiveReal, incl_Option_Excl_PositiveReal)",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-capacity-v1-a8768ada06.coma\", line 1139, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-capacity-v1-a8768ada06.coma\", line 1539, characters 30-32: unused variable x2",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-capacity-v1-a8768ada06.coma\", line 1539, characters 39-41: unused variable x3"
+          ]
+        },
+        {
+          "goal": "vc_shallow_clone_owned_view_checked",
+          "path": [
+            0,
+            26,
+            10
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:26",
+            "split_vc:10"
+          ],
+          "task_sha256": "d90f32981b4eddc825af46aec4afe0634fd52a9ef94746c6dab2329e6d7f2327",
+          "excerpt": "  axiom H79 : inv_LifetimeToken (result8.token'0)\n  \n  axiom H80 :\n    match result8.recovery'0 with\n    | None -> true\n    | Some x -> inv_Payload x\n    end\n  \n  axiom H81 : inv_BoundPtr (result.f1'1)\n  \n  goal vc_shallow_clone_owned_view_checked :\n    has_allocation\n    (T_Bytes'mk ptr len'1 (result6.f0'16) shared_table\n     (View\n      (T_ChildProof'mk\n       (T_SharedCore'mk ((result.f0'1).shared'0) ((result.f0'1).bound'0)\n        len'1 ((result.f0'1).control'0) ((result.f0'1).physical'0)\n        ((result.f0'1).invariant''0) result8)\n       result7)\n      (result.f1'1)))\n    (input.f0'0)\n  \nend\n",
+          "stderr_tail": [
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-capacity-v1-fc35c22682.coma\", line 1114, characters 6-40: axiom incl_Option_Excl_PositiveReal_spec does not contain any local abstract symbol (contains: (=), t_Option_Excl_PositiveReal, t_Option_Option_Excl_PositiveReal, Some'4, op_Option_Excl_PositiveReal, incl_Option_Excl_PositiveReal)",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-capacity-v1-fc35c22682.coma\", line 1139, characters 9-10: unused variable a",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-capacity-v1-fc35c22682.coma\", line 1539, characters 30-32: unused variable x2",
+            "Warning, file \"/tmp/at-archive-audit-pxz9jee4/at-negative-wrong-capacity-v1-fc35c22682.coma\", line 1539, characters 39-41: unused variable x3"
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "omit_replacement_drop",
+      "label": "at-negative-omit-replacement-drop-targeted-v1",
+      "archive_sha256": "bab63d10b6b2fbdd7fa2e06a9eeeed9fa22452c82f743fd6b3489cc87a915f72",
+      "member_count": 1390,
+      "member_hashes_all_match": true,
+      "translated_inventory_count": 155,
+      "translated_inventory_hashes_all_match": true,
+      "included_targets": 1,
+      "excluded_targets": 154,
+      "statistics": {
+        "files": 1,
+        "prover": 56,
+        "null": 1,
+        "structural": 0
+      },
+      "correspondence_exit_status": 2,
+      "diagnostic": true,
+      "terminal_feature": "omit_replacement_drop",
+      "classification": "The null VC is the selected client completion obligation: it requires that the final owner-scoped observation reflect registration of the replacement view (fresh view id maps to None in the prior map, then inserted with its fraction; the aggregate owner count increments). This is proof sensitivity for omitting replacement Drop/registration in that selected scope. The capture intentionally translates only 1 of 155 obligations (154 excluded), is diagnostic with correspondence status 2, and is not canonical admission.",
+      "null_tasks": [
+        {
+          "goal": "vc_owned_view_clone_scope",
+          "path": [
+            0,
+            23
+          ],
+          "trail": [
+            "compute_specified:0",
+            "split_vc:23"
+          ],
+          "stdout_sha256": "2b61fc9a0cfd27aa20c7f420d1f9f0733f1932af73b6cd403e9e9f7fa7b1edac",
+          "excerpt": "         | _ -> false\n         end /\\\n         (view_bound result4 = view_bound value'01 /\\\n          result4.ptr = value'01.ptr /\\ result4.len = value'01.len) /\\\n         shares_view_allocation result4 value'01 /\\\n         (view_public result4 = view_public value'01 /\\\n          view_accepts result4 (T_DetachedScope'mk fin8) /\\\n          view_accepts value'01 (T_DetachedScope'mk fin8)) /\\\n         (model'1 (T_DetachedScope'mk fin8) =\n          model'1 (T_DetachedScope'mk detached1) /\\\n          public'0 (T_DetachedScope'mk fin8) =\n          public'0 (T_DetachedScope'mk detached1)) /\\\n         get1\n         (to_mapping_Int'1\n          ((observation'0 (T_DetachedScope'mk detached1)).f0'14))\n         (view_id result4) = None'8 /\\\n         (observation'0 (T_DetachedScope'mk fin8)).f0'14 =\n         insert_Int'0 ((observation'0 (T_DetachedScope'mk detached1)).f0'14)\n         (view_id result4) (T_Excl_PositiveReal'mk (view_fraction result4)) /\\\n         (observation'0 (T_DetachedScope'mk fin8)).f1'14 =\n         ((observation'0 (T_DetachedScope'mk detached1)).f1'14 + 1))\n  \nend\n"
+        }
+      ]
+    }
+  ]
+}

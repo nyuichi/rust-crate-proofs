@@ -1,0 +1,3683 @@
+theory Task
+  
+  type int
+  
+  type real
+  
+  type string
+  
+  predicate (=) 'a 'a
+  
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  type bool =
+    | True
+    | False
+  
+  (* use why3.Bool.Bool *)
+  
+  type tuple0 =
+    | Tuple0
+  
+  (* use why3.Tuple0.Tuple01 *)
+  
+  type unit = unit
+  
+  (* use why3.Unit.Unit *)
+  
+  constant zero : int = 0
+  
+  constant one : int = 1
+  
+  function (-_) int : int
+  
+  function (+) int int : int
+  
+  function ( * ) int int : int
+  
+  predicate (<) int int
+  
+  function (-) (x:int) (y:int) : int = x + (- y)
+  
+  predicate (>) (x:int) (y:int) = y < x
+  
+  predicate (<=) (x:int) (y:int) = x < y \/ x = y
+  
+  predicate (>=) (x:int) (y:int) = y <= x
+  
+  axiom Assoc : forall x:int, y:int, z:int. ((x + y) + z) = (x + (y + z))
+  
+  (* clone algebra.Assoc with type t = int, function op = (+),
+    prop Assoc1 = Assoc,  *)
+  
+  axiom Unit_def_l : forall x:int. (zero + x) = x
+  
+  axiom Unit_def_r : forall x:int. (x + zero) = x
+  
+  (* clone algebra.Monoid with type t1 = int, constant unit = zero,
+    function op1 = (+), prop Unit_def_r1 = Unit_def_r,
+    prop Unit_def_l1 = Unit_def_l, prop Assoc2 = Assoc,  *)
+  
+  axiom Inv_def_l : forall x:int. ((- x) + x) = zero
+  
+  axiom Inv_def_r : forall x:int. (x + (- x)) = zero
+  
+  (* clone algebra.Group with type t2 = int, function inv = (-_),
+    constant unit1 = zero, function op2 = (+), prop Inv_def_r1 = Inv_def_r,
+    prop Inv_def_l1 = Inv_def_l, prop Unit_def_r2 = Unit_def_r,
+    prop Unit_def_l2 = Unit_def_l, prop Assoc3 = Assoc,  *)
+  
+  axiom Comm : forall x:int, y:int. (x + y) = (y + x)
+  
+  (* clone algebra.Comm with type t3 = int, function op3 = (+),
+    prop Comm1 = Comm,  *)
+  
+  (* meta AC function (+) *)
+  
+  (* clone algebra.CommutativeGroup with type t4 = int, function inv1 = (-_),
+    constant unit2 = zero, function op4 = (+), prop Comm2 = Comm,
+    prop Inv_def_r2 = Inv_def_r, prop Inv_def_l2 = Inv_def_l,
+    prop Unit_def_r3 = Unit_def_r, prop Unit_def_l3 = Unit_def_l,
+    prop Assoc4 = Assoc,  *)
+  
+  axiom Assoc5 : forall x:int, y:int, z:int. ((x * y) * z) = (x * (y * z))
+  
+  (* clone algebra.Assoc with type t = int, function op = ( * ),
+    prop Assoc1 = Assoc5,  *)
+  
+  axiom Mul_distr_l :
+    forall x:int, y:int, z:int. (x * (y + z)) = ((x * y) + (x * z))
+  
+  axiom Mul_distr_r :
+    forall x:int, y:int, z:int. ((y + z) * x) = ((y * x) + (z * x))
+  
+  (* clone algebra.Ring with type t5 = int, function ( *') = ( * ),
+    function (-'_) = (-_), function (+') = (+), constant zero1 = zero,
+    prop Mul_distr_r1 = Mul_distr_r, prop Mul_distr_l1 = Mul_distr_l,
+    prop Assoc6 = Assoc5, prop Comm3 = Comm, prop Inv_def_r3 = Inv_def_r,
+    prop Inv_def_l3 = Inv_def_l, prop Unit_def_r4 = Unit_def_r,
+    prop Unit_def_l4 = Unit_def_l, prop Assoc7 = Assoc,  *)
+  
+  axiom Comm4 : forall x:int, y:int. (x * y) = (y * x)
+  
+  (* clone algebra.Comm with type t3 = int, function op3 = ( * ),
+    prop Comm1 = Comm4,  *)
+  
+  (* meta AC function ( * ) *)
+  
+  (* clone algebra.CommutativeRing with type t6 = int,
+    function ( *'') = ( * ), function (-''_) = (-_), function (+'') = (+),
+    constant zero2 = zero, prop Comm5 = Comm4,
+    prop Mul_distr_r2 = Mul_distr_r, prop Mul_distr_l2 = Mul_distr_l,
+    prop Assoc8 = Assoc5, prop Comm6 = Comm, prop Inv_def_r4 = Inv_def_r,
+    prop Inv_def_l4 = Inv_def_l, prop Unit_def_r5 = Unit_def_r,
+    prop Unit_def_l5 = Unit_def_l, prop Assoc9 = Assoc,  *)
+  
+  axiom Unitary : forall x:int. (one * x) = x
+  
+  axiom NonTrivialRing : not zero = one
+  
+  (* clone algebra.UnitaryCommutativeRing with type t7 = int,
+    constant one1 = one, function ( *''') = ( * ), function (-'''_) = (-_),
+    function (+''') = (+), constant zero3 = zero,
+    prop NonTrivialRing1 = NonTrivialRing, prop Unitary1 = Unitary,
+    prop Comm7 = Comm4, prop Mul_distr_r3 = Mul_distr_r,
+    prop Mul_distr_l3 = Mul_distr_l, prop Assoc10 = Assoc5,
+    prop Comm8 = Comm, prop Inv_def_r5 = Inv_def_r,
+    prop Inv_def_l5 = Inv_def_l, prop Unit_def_r6 = Unit_def_r,
+    prop Unit_def_l6 = Unit_def_l, prop Assoc11 = Assoc,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Refl : forall x:int. x <= x
+  
+  (* clone relations.Reflexive with type t9 = int, predicate rel1 = (<=),
+    prop Refl1 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Trans : forall x:int, y:int, z:int. x <= y -> y <= z -> x <= z
+  
+  (* clone relations.Transitive with type t10 = int, predicate rel2 = (<=),
+    prop Trans1 = Trans,  *)
+  
+  (* clone relations.PreOrder with type t11 = int, predicate rel3 = (<=),
+    prop Trans2 = Trans, prop Refl2 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Antisymm : forall x:int, y:int. x <= y -> y <= x -> x = y
+  
+  (* clone relations.Antisymmetric with type t12 = int,
+    predicate rel4 = (<=), prop Antisymm1 = Antisymm,  *)
+  
+  (* clone relations.PartialOrder with type t13 = int, predicate rel5 = (<=),
+    prop Antisymm2 = Antisymm, prop Trans3 = Trans, prop Refl3 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Total : forall x:int, y:int. x <= y \/ y <= x
+  
+  (* clone relations.Total with type t14 = int, predicate rel6 = (<=),
+    prop Total1 = Total,  *)
+  
+  (* clone relations.TotalOrder with type t15 = int, predicate rel7 = (<=),
+    prop Total2 = Total, prop Antisymm3 = Antisymm, prop Trans4 = Trans,
+    prop Refl4 = Refl,  *)
+  
+  axiom ZeroLessOne : zero <= one
+  
+  axiom CompatOrderAdd :
+    forall x:int, y:int, z:int. x <= y -> (x + z) <= (y + z)
+  
+  axiom CompatOrderMult :
+    forall x:int, y:int, z:int. x <= y -> zero <= z -> (x * z) <= (y * z)
+  
+  (* meta remove_unused:dependency prop CompatOrderMult, function ( * ) *)
+  
+  (* clone algebra.OrderedUnitaryCommutativeRing with type t16 = int,
+    predicate (<=') = (<=), constant one2 = one, function ( *'''') = ( * ),
+    function (-''''_) = (-_), function (+'''') = (+), constant zero4 = zero,
+    prop CompatOrderMult1 = CompatOrderMult,
+    prop CompatOrderAdd1 = CompatOrderAdd, prop ZeroLessOne1 = ZeroLessOne,
+    prop Total3 = Total, prop Antisymm4 = Antisymm, prop Trans5 = Trans,
+    prop Refl5 = Refl, prop NonTrivialRing2 = NonTrivialRing,
+    prop Unitary2 = Unitary, prop Comm9 = Comm4,
+    prop Mul_distr_r4 = Mul_distr_r, prop Mul_distr_l4 = Mul_distr_l,
+    prop Assoc12 = Assoc5, prop Comm10 = Comm, prop Inv_def_r6 = Inv_def_r,
+    prop Inv_def_l6 = Inv_def_l, prop Unit_def_r7 = Unit_def_r,
+    prop Unit_def_l7 = Unit_def_l, prop Assoc13 = Assoc,  *)
+  
+  (* meta remove_unused:keep function (+) *)
+  
+  (* meta remove_unused:keep function (-) *)
+  
+  (* meta remove_unused:keep function (-_) *)
+  
+  (* meta remove_unused:keep predicate (<) *)
+  
+  (* meta remove_unused:keep predicate (<=) *)
+  
+  (* meta remove_unused:keep predicate (>) *)
+  
+  (* meta remove_unused:keep predicate (>=) *)
+  
+  (* use int.Int *)
+  
+  type seq 'a
+  
+  (* meta infinite_type type seq *)
+  
+  function length (seq 'a) : int
+  
+  axiom length_nonnegative : forall s:seq 'a. 0 <= length s
+  
+  (* meta remove_unused:dependency prop length_nonnegative,
+    function length *)
+  
+  function get (seq 'a) int : 'a
+  
+  function ([]) (s:seq 'a) (i:int) : 'a = get s i
+  
+  predicate (==) (seq 'a) (seq 'a)
+  
+  axiom (==)'spec'0 :
+    forall s1:seq 'a, s2:seq 'a.
+     s1 == s2 <->
+     length s1 = length s2 &&
+     (forall i:int. 0 <= i /\ i < length s1 -> s1[i] = s2[i])
+  
+  axiom (==)'spec : forall s1:seq 'a, s2:seq 'a. s1 == s2 -> s1 = s2
+  
+  (* meta remove_unused:dependency prop (==)'spec'0, predicate (==) *)
+  
+  (* meta remove_unused:dependency prop (==)'spec, predicate (==) *)
+  
+  (* meta extensionality predicate (==) *)
+  
+  type (->) 'a 'b
+  
+  function (@) ('a -> 'b) 'a : 'b
+  
+  (* use why3.HighOrd.HighOrd *)
+  
+  function create int (int -> 'a) : seq 'a
+  
+  axiom create'spec'0 :
+    forall len:int, f:int -> 'a. 0 <= len -> length (create len f) = len
+  
+  axiom create'spec :
+    forall len:int, f:int -> 'a.
+     0 <= len ->
+     (forall i:int. 0 <= i /\ i < len -> (create len f)[i] = (f @ i))
+  
+  (* meta remove_unused:dependency prop create'spec'0, function create *)
+  
+  (* meta remove_unused:dependency prop create'spec, function create *)
+  
+  constant empty : seq 'a
+  
+  axiom empty'def : length (empty: seq 'a) = 0
+  
+  (* meta remove_unused:dependency prop empty'def, constant empty *)
+  
+  function set (seq 'a) int 'a : seq 'a
+  
+  axiom set'def :
+    forall s:seq 'a, i:int, v:'a.
+     0 <= i /\ i < length s ->
+     set s i v = create (length s) (fun (j:int) -> if j = i then v else s[j])
+  
+  axiom set'spec'1 :
+    forall s:seq 'a, i:int, v:'a.
+     0 <= i /\ i < length s -> length (set s i v) = length s
+  
+  axiom set'spec'0 :
+    forall s:seq 'a, i:int, v:'a.
+     0 <= i /\ i < length s -> (set s i v)[i] = v
+  
+  axiom set'spec :
+    forall s:seq 'a, i:int, v:'a.
+     0 <= i /\ i < length s ->
+     (forall j:int.
+       (0 <= j /\ j < length s) /\ not j = i -> (set s i v)[j] = s[j])
+  
+  (* meta remove_unused:dependency prop set'def, function set *)
+  
+  (* meta remove_unused:dependency prop set'spec'1, function set *)
+  
+  (* meta remove_unused:dependency prop set'spec'0, function set *)
+  
+  (* meta remove_unused:dependency prop set'spec, function set *)
+  
+  function ([<-]) (seq 'a) int 'a : seq 'a
+  
+  axiom ([<-])'def :
+    forall s:seq 'a, i:int, v:'a.
+     0 <= i /\ i < length s -> s[i <- v] = set s i v
+  
+  (* meta remove_unused:dependency prop ([<-])'def, function ([<-]) *)
+  
+  function singleton (v:'a) : seq 'a = create 1 (fun (_:int) -> v)
+  
+  axiom singleton'spec'0 : forall v:'a. length (singleton v) = 1
+  
+  axiom singleton'spec : forall v:'a. (singleton v)[0] = v
+  
+  (* meta remove_unused:dependency prop singleton'spec'0,
+    function singleton *)
+  
+  (* meta remove_unused:dependency prop singleton'spec, function singleton *)
+  
+  function cons (x:'a) (s:seq 'a) : seq 'a =
+    create (1 + length s) (fun (i:int) -> if i = 0 then x else s[i - 1])
+  
+  axiom cons'spec'1 :
+    forall x:'a, s:seq 'a. length (cons x s) = (1 + length s)
+  
+  axiom cons'spec'0 : forall x:'a, s:seq 'a. (cons x s)[0] = x
+  
+  axiom cons'spec :
+    forall x:'a, s:seq 'a.
+     forall i:int. 0 < i /\ i <= length s -> (cons x s)[i] = s[i - 1]
+  
+  (* meta remove_unused:dependency prop cons'spec'1, function cons *)
+  
+  (* meta remove_unused:dependency prop cons'spec'0, function cons *)
+  
+  (* meta remove_unused:dependency prop cons'spec, function cons *)
+  
+  function snoc (s:seq 'a) (x:'a) : seq 'a =
+    create (1 + length s) (fun (i:int) -> if i = length s then x else s[i])
+  
+  axiom snoc'spec'1 :
+    forall s:seq 'a, x:'a. length (snoc s x) = (1 + length s)
+  
+  axiom snoc'spec'0 : forall s:seq 'a, x:'a. (snoc s x)[length s] = x
+  
+  axiom snoc'spec :
+    forall s:seq 'a, x:'a.
+     forall i:int. 0 <= i /\ i < length s -> (snoc s x)[i] = s[i]
+  
+  (* meta remove_unused:dependency prop snoc'spec'1, function snoc *)
+  
+  (* meta remove_unused:dependency prop snoc'spec'0, function snoc *)
+  
+  (* meta remove_unused:dependency prop snoc'spec, function snoc *)
+  
+  function ([..]) (seq 'a) int int : seq 'a
+  
+  axiom ([..])'def :
+    forall s:seq 'a, i:int, j:int.
+     0 <= i /\ i <= j /\ j <= length s ->
+     s[i..j] = create (j - i) (fun (k:int) -> s[i + k])
+  
+  axiom ([..])'spec'0 :
+    forall s:seq 'a, i:int, j:int.
+     0 <= i /\ i <= j /\ j <= length s -> length s[i..j] = (j - i)
+  
+  axiom ([..])'spec :
+    forall s:seq 'a, i:int, j:int.
+     0 <= i /\ i <= j /\ j <= length s ->
+     (forall k:int. 0 <= k /\ k < (j - i) -> s[i..j][k] = s[i + k])
+  
+  (* meta remove_unused:dependency prop ([..])'def, function ([..]) *)
+  
+  (* meta remove_unused:dependency prop ([..])'spec'0, function ([..]) *)
+  
+  (* meta remove_unused:dependency prop ([..])'spec, function ([..]) *)
+  
+  function ([_..]) (seq 'a) int : seq 'a
+  
+  axiom ([_..])'def :
+    forall s:seq 'a, i:int.
+     0 <= i /\ i <= length s -> s[i..] = s[i..length s]
+  
+  (* meta remove_unused:dependency prop ([_..])'def, function ([_..]) *)
+  
+  function ([.._]) (seq 'a) int : seq 'a
+  
+  axiom ([.._])'def :
+    forall s:seq 'a, j:int. 0 <= j /\ j <= length s -> s[..j] = s[0..j]
+  
+  (* meta remove_unused:dependency prop ([.._])'def, function ([.._]) *)
+  
+  function (++) (s1:seq 'a) (s2:seq 'a) : seq 'a =
+    let l = length s1 in
+    create (l + length s2)
+    (fun (i:int) -> if i < l then s1[i] else s2[i - l])
+  
+  axiom (++)'spec'1 :
+    forall s1:seq 'a, s2:seq 'a. length (s1 ++ s2) = (length s1 + length s2)
+  
+  axiom (++)'spec'0 :
+    forall s1:seq 'a, s2:seq 'a.
+     forall i:int. 0 <= i /\ i < length s1 -> (s1 ++ s2)[i] = s1[i]
+  
+  axiom (++)'spec :
+    forall s1:seq 'a, s2:seq 'a.
+     forall i:int.
+      length s1 <= i /\ i < length (s1 ++ s2) ->
+      (s1 ++ s2)[i] = s2[i - length s1]
+  
+  (* meta remove_unused:dependency prop (++)'spec'1, function (++) *)
+  
+  (* meta remove_unused:dependency prop (++)'spec'0, function (++) *)
+  
+  (* meta remove_unused:dependency prop (++)'spec, function (++) *)
+  
+  (* use seq.Seq *)
+  
+  function abs (x:int) : int = if x >= 0 then x else - x
+  
+  axiom Abs_le : forall x:int, y:int. abs x <= y <-> (- y) <= x /\ x <= y
+  
+  (* meta remove_unused:dependency prop Abs_le, function abs *)
+  
+  axiom Abs_pos : forall x:int. abs x >= 0
+  
+  (* meta remove_unused:dependency prop Abs_pos, function abs *)
+  
+  (* use int.Abs *)
+  
+  function div int int : int
+  
+  function mod int int : int
+  
+  axiom Div_mod :
+    forall x:int, y:int. not y = 0 -> x = ((y * div x y) + mod x y)
+  
+  (* meta remove_unused:dependency prop Div_mod, function div *)
+  
+  (* meta remove_unused:dependency prop Div_mod, function mod *)
+  
+  axiom Div_bound :
+    forall x:int, y:int. x >= 0 /\ y > 0 -> 0 <= div x y /\ div x y <= x
+  
+  (* meta remove_unused:dependency prop Div_bound, function div *)
+  
+  (* meta remove_unused:dependency prop Div_bound, function mod *)
+  
+  axiom Mod_bound :
+    forall x:int, y:int. not y = 0 -> (- abs y) < mod x y /\ mod x y < abs y
+  
+  (* meta remove_unused:dependency prop Mod_bound, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_bound, function mod *)
+  
+  axiom Div_sign_pos : forall x:int, y:int. x >= 0 /\ y > 0 -> div x y >= 0
+  
+  (* meta remove_unused:dependency prop Div_sign_pos, function div *)
+  
+  (* meta remove_unused:dependency prop Div_sign_pos, function mod *)
+  
+  axiom Div_sign_neg : forall x:int, y:int. x <= 0 /\ y > 0 -> div x y <= 0
+  
+  (* meta remove_unused:dependency prop Div_sign_neg, function div *)
+  
+  (* meta remove_unused:dependency prop Div_sign_neg, function mod *)
+  
+  axiom Mod_sign_pos :
+    forall x:int, y:int. x >= 0 /\ not y = 0 -> mod x y >= 0
+  
+  (* meta remove_unused:dependency prop Mod_sign_pos, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_sign_pos, function mod *)
+  
+  axiom Mod_sign_neg :
+    forall x:int, y:int. x <= 0 /\ not y = 0 -> mod x y <= 0
+  
+  (* meta remove_unused:dependency prop Mod_sign_neg, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_sign_neg, function mod *)
+  
+  axiom Rounds_toward_zero :
+    forall x:int, y:int. not y = 0 -> abs (div x y * y) <= abs x
+  
+  (* meta remove_unused:dependency prop Rounds_toward_zero, function div *)
+  
+  (* meta remove_unused:dependency prop Rounds_toward_zero, function mod *)
+  
+  axiom Div_1 : forall x:int. div x 1 = x
+  
+  (* meta remove_unused:dependency prop Div_1, function div *)
+  
+  (* meta remove_unused:dependency prop Div_1, function mod *)
+  
+  axiom Mod_1 : forall x:int. mod x 1 = 0
+  
+  (* meta remove_unused:dependency prop Mod_1, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_1, function mod *)
+  
+  axiom Div_inf : forall x:int, y:int. 0 <= x /\ x < y -> div x y = 0
+  
+  (* meta remove_unused:dependency prop Div_inf, function div *)
+  
+  (* meta remove_unused:dependency prop Div_inf, function mod *)
+  
+  axiom Mod_inf : forall x:int, y:int. 0 <= x /\ x < y -> mod x y = x
+  
+  (* meta remove_unused:dependency prop Mod_inf, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_inf, function mod *)
+  
+  axiom Div_mult :
+    forall x:int, y:int, z:int [div ((x * y) + z) x].
+     x > 0 /\ y >= 0 /\ z >= 0 -> div ((x * y) + z) x = (y + div z x)
+  
+  (* meta remove_unused:dependency prop Div_mult, function div *)
+  
+  (* meta remove_unused:dependency prop Div_mult, function mod *)
+  
+  axiom Mod_mult :
+    forall x:int, y:int, z:int [mod ((x * y) + z) x].
+     x > 0 /\ y >= 0 /\ z >= 0 -> mod ((x * y) + z) x = mod z x
+  
+  (* meta remove_unused:dependency prop Mod_mult, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_mult, function mod *)
+  
+  (* use int.ComputerDivision *)
+  
+  (* use mach.int.Int1 *)
+  
+  type t17 = <range 0 18446744073709551615>
+  
+  function t'int t17 : int
+  
+  constant t'maxInt : int = 18446744073709551615
+  
+  constant t'minInt : int = 0
+  
+  predicate t'eq (a:t17) (b:t17) = t'int a = t'int b
+  
+  axiom t'inj : forall a:t17, b:t17. t'eq a b -> a = b
+  
+  (* meta range_type type t17, function t'int *)
+  
+  (* meta model_projection function t'int *)
+  
+  (* meta remove_unused:dependency prop t'inj, predicate t'eq *)
+  
+  constant two_power_size : int = 0x10000000000000000
+  
+  axiom extensionality :
+    forall x:t17, y:t17 [t'int x, t'int y]. t'int x = t'int y -> x = y
+  
+  predicate in_bounds (n:int) = 0 <= n /\ n <= 0xFFFFFFFFFFFFFFFF
+  
+  function of_int int : t17
+  
+  axiom to_of_int :
+    forall x:int [of_int x]. in_bounds x -> t'int (of_int x) = x
+  
+  function add t17 t17 : t17
+  
+  axiom add_in_bounds :
+    forall x:t17, y:t17 [add x y].
+     in_bounds (t'int x + t'int y) -> t'int (add x y) = (t'int x + t'int y)
+  
+  axiom add_wrapping :
+    forall x:t17, y:t17 [add x y].
+     exists k:int.
+      t'int (add x y) = ((t'int x + t'int y) + (k * two_power_size))
+  
+  function sub t17 t17 : t17
+  
+  axiom sub_in_bounds :
+    forall x:t17, y:t17 [sub x y].
+     in_bounds (t'int x - t'int y) -> t'int (sub x y) = (t'int x - t'int y)
+  
+  axiom sub_wrapping :
+    forall x:t17, y:t17 [sub x y].
+     exists k:int.
+      t'int (sub x y) = ((t'int x - t'int y) + (k * two_power_size))
+  
+  function mul t17 t17 : t17
+  
+  axiom mul_in_bounds :
+    forall x:t17, y:t17 [mul x y].
+     in_bounds (t'int x * t'int y) -> t'int (mul x y) = (t'int x * t'int y)
+  
+  axiom mul_wrapping :
+    forall x:t17, y:t17 [mul x y].
+     exists k:int.
+      t'int (mul x y) = ((t'int x * t'int y) + (k * two_power_size))
+  
+  function neg t17 : t17
+  
+  axiom neg_zero : forall x:t17 [neg x]. t'int x = 0 -> t'int (neg x) = 0
+  
+  axiom neg_not_zero :
+    forall x:t17 [neg x].
+     0 < t'int x /\ t'int x <= 0xFFFFFFFFFFFFFFFF ->
+     t'int (neg x) = (two_power_size - t'int x)
+  
+  function of_bool (b:bool) : t17 = if b = True then (1:t17) else (0:t17)
+  
+  predicate le (a:t17) (b:t17) = t'int a <= t'int b
+  
+  predicate lt (a:t17) (b:t17) = t'int a < t'int b
+  
+  predicate ge (a:t17) (b:t17) = t'int a >= t'int b
+  
+  predicate gt (a:t17) (b:t17) = t'int a > t'int b
+  
+  function bw_and t17 t17 : t17
+  
+  function bw_or t17 t17 : t17
+  
+  function bw_xor t17 t17 : t17
+  
+  function bw_not t17 : t17
+  
+  function shl t17 t17 : t17
+  
+  function shr t17 t17 : t17
+  
+  function nth t17 int : bool
+  
+  type tuple2 'a 'a1 =
+    | Tuple2 'a 'a1
+  
+  (* use why3.Tuple2.Tuple21 *)
+  
+  function add_with_overflow (a:t17) (b:t17) : (t17, bool) = (add a b,
+    if not in_bounds (t'int a + t'int b) then True else False)
+  
+  function sub_with_overflow (a:t17) (b:t17) : (t17, bool) = (sub a b,
+    if not in_bounds (t'int a - t'int b) then True else False)
+  
+  function mul_with_overflow (a:t17) (b:t17) : (t17, bool) = (mul a b,
+    if not in_bounds (t'int a * t'int b) then True else False)
+  
+  (* use creusot.int.UInt64 *)
+  
+  type ptr
+  
+  function thin ptr : ptr
+  
+  type foreign
+  
+  (* use creusot.prelude.Opaque *)
+  
+  type slice 'a
+  
+  function elts (slice 'a) : seq 'a
+  
+  axiom slice'invariant :
+    forall self:slice 'a [self.elts]. in_bounds (length (self.elts))
+  
+  predicate slice'eq (a:slice 'a) (b:slice 'a) = a.elts = b.elts
+  
+  axiom slice'inj : forall a:slice 'a, b:slice 'a. slice'eq a b -> a = b
+  
+  (* meta remove_unused:dependency prop slice'inj, predicate slice'eq *)
+  
+  (* meta model_record function elts *)
+  
+  axiom slice_ext : forall x:slice 'a, y:slice 'a. x.elts = y.elts -> x = y
+  
+  type array 'a = slice 'a
+  
+  function view (s:slice 'a) : seq 'a = s.elts
+  
+  function length1 (slice 'a) : t17
+  
+  axiom length_spec : forall s:slice 'a. t'int (length1 s) = length (s.elts)
+  
+  function slice_ptr_len ptr : t17
+  
+  (* use creusot.slice.Slice64 *)
+  
+  type t18 = <range 0 255>
+  
+  function t'int1 t18 : int
+  
+  constant t'maxInt1 : int = 255
+  
+  constant t'minInt1 : int = 0
+  
+  predicate t'eq1 (a:t18) (b:t18) = t'int1 a = t'int1 b
+  
+  axiom t'inj1 : forall a:t18, b:t18. t'eq1 a b -> a = b
+  
+  (* meta range_type type t18, function t'int1 *)
+  
+  (* meta model_projection function t'int1 *)
+  
+  (* meta remove_unused:dependency prop t'inj1, predicate t'eq1 *)
+  
+  constant two_power_size1 : int = 0x100
+  
+  axiom extensionality1 :
+    forall x:t18, y:t18 [t'int1 x, t'int1 y]. t'int1 x = t'int1 y -> x = y
+  
+  predicate in_bounds1 (n:int) = 0 <= n /\ n <= 0xFF
+  
+  function of_int1 int : t18
+  
+  axiom to_of_int1 :
+    forall x:int [of_int1 x]. in_bounds1 x -> t'int1 (of_int1 x) = x
+  
+  function add1 t18 t18 : t18
+  
+  axiom add_in_bounds1 :
+    forall x:t18, y:t18 [add1 x y].
+     in_bounds1 (t'int1 x + t'int1 y) ->
+     t'int1 (add1 x y) = (t'int1 x + t'int1 y)
+  
+  axiom add_wrapping1 :
+    forall x:t18, y:t18 [add1 x y].
+     exists k:int.
+      t'int1 (add1 x y) = ((t'int1 x + t'int1 y) + (k * two_power_size1))
+  
+  function sub1 t18 t18 : t18
+  
+  axiom sub_in_bounds1 :
+    forall x:t18, y:t18 [sub1 x y].
+     in_bounds1 (t'int1 x - t'int1 y) ->
+     t'int1 (sub1 x y) = (t'int1 x - t'int1 y)
+  
+  axiom sub_wrapping1 :
+    forall x:t18, y:t18 [sub1 x y].
+     exists k:int.
+      t'int1 (sub1 x y) = ((t'int1 x - t'int1 y) + (k * two_power_size1))
+  
+  function mul1 t18 t18 : t18
+  
+  axiom mul_in_bounds1 :
+    forall x:t18, y:t18 [mul1 x y].
+     in_bounds1 (t'int1 x * t'int1 y) ->
+     t'int1 (mul1 x y) = (t'int1 x * t'int1 y)
+  
+  axiom mul_wrapping1 :
+    forall x:t18, y:t18 [mul1 x y].
+     exists k:int.
+      t'int1 (mul1 x y) = ((t'int1 x * t'int1 y) + (k * two_power_size1))
+  
+  function neg1 t18 : t18
+  
+  axiom neg_zero1 :
+    forall x:t18 [neg1 x]. t'int1 x = 0 -> t'int1 (neg1 x) = 0
+  
+  axiom neg_not_zero1 :
+    forall x:t18 [neg1 x].
+     0 < t'int1 x /\ t'int1 x <= 0xFF ->
+     t'int1 (neg1 x) = (two_power_size1 - t'int1 x)
+  
+  function of_bool1 (b:bool) : t18 = if b = True then (1:t18) else (0:t18)
+  
+  predicate le1 (a:t18) (b:t18) = t'int1 a <= t'int1 b
+  
+  predicate lt1 (a:t18) (b:t18) = t'int1 a < t'int1 b
+  
+  predicate ge1 (a:t18) (b:t18) = t'int1 a >= t'int1 b
+  
+  predicate gt1 (a:t18) (b:t18) = t'int1 a > t'int1 b
+  
+  function bw_and1 t18 t18 : t18
+  
+  function bw_or1 t18 t18 : t18
+  
+  function bw_xor1 t18 t18 : t18
+  
+  function bw_not1 t18 : t18
+  
+  function shl1 t18 t18 : t18
+  
+  function shr1 t18 t18 : t18
+  
+  function nth1 t18 int : bool
+  
+  function add_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (add1 a b,
+    if not in_bounds1 (t'int1 a + t'int1 b) then True else False)
+  
+  function sub_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (sub1 a b,
+    if not in_bounds1 (t'int1 a - t'int1 b) then True else False)
+  
+  function mul_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (mul1 a b,
+    if not in_bounds1 (t'int1 a * t'int1 b) then True else False)
+  
+  (* use creusot.int.UInt8 *)
+  
+  type t19 = <range -9223372036854775808 9223372036854775807>
+  
+  function t'int2 t19 : int
+  
+  constant t'maxInt2 : int = 9223372036854775807
+  
+  constant t'minInt2 : int = (- 9223372036854775808)
+  
+  predicate t'eq2 (a:t19) (b:t19) = t'int2 a = t'int2 b
+  
+  axiom t'inj2 : forall a:t19, b:t19. t'eq2 a b -> a = b
+  
+  (* meta range_type type t19, function t'int2 *)
+  
+  (* meta model_projection function t'int2 *)
+  
+  (* meta remove_unused:dependency prop t'inj2, predicate t'eq2 *)
+  
+  constant min_int : int = (- 0x8000000000000000)
+  
+  constant max_int : int = 0x7FFFFFFFFFFFFFFF
+  
+  constant two_power_size2 : int = 0x10000000000000000
+  
+  predicate in_bounds2 (n:int) = min_int <= n /\ n <= max_int
+  
+  function to_int (x:t19) : int = t'int2 x
+  
+  axiom extensionality2 :
+    forall x:t19, y:t19 [to_int x, to_int y]. to_int x = to_int y -> x = y
+  
+  function of_int2 int : t19
+  
+  axiom to_of_int2 :
+    forall x:int [of_int2 x]. in_bounds2 x -> to_int (of_int2 x) = x
+  
+  function add2 t19 t19 : t19
+  
+  axiom add_in_bounds2 :
+    forall x:t19, y:t19 [add2 x y].
+     in_bounds2 (to_int x + to_int y) ->
+     to_int (add2 x y) = (to_int x + to_int y)
+  
+  axiom add_wrapping2 :
+    forall x:t19, y:t19 [add2 x y].
+     exists k:int.
+      to_int (add2 x y) = ((to_int x + to_int y) + (k * two_power_size2))
+  
+  function sub2 t19 t19 : t19
+  
+  axiom sub_in_bounds2 :
+    forall x:t19, y:t19 [sub2 x y].
+     in_bounds2 (to_int x - to_int y) ->
+     to_int (sub2 x y) = (to_int x - to_int y)
+  
+  axiom sub_wrapping2 :
+    forall x:t19, y:t19 [sub2 x y].
+     exists k:int.
+      to_int (sub2 x y) = ((to_int x - to_int y) + (k * two_power_size2))
+  
+  function mul2 t19 t19 : t19
+  
+  axiom mul_in_bounds2 :
+    forall x:t19, y:t19 [mul2 x y].
+     in_bounds2 (to_int x * to_int y) ->
+     to_int (mul2 x y) = (to_int x * to_int y)
+  
+  axiom mul_wrapping2 :
+    forall x:t19, y:t19 [mul2 x y].
+     exists k:int.
+      to_int (mul2 x y) = ((to_int x * to_int y) + (k * two_power_size2))
+  
+  function neg2 t19 : t19
+  
+  axiom neg_in_bounds :
+    forall x:t19 [neg2 x].
+     min_int < to_int x /\ to_int x <= max_int ->
+     to_int (neg2 x) = (- to_int x)
+  
+  axiom neg_wrapping :
+    forall x:t19 [neg2 x]. to_int x = min_int -> to_int (neg2 x) = min_int
+  
+  function of_bool2 (b:bool) : t19 = if b = True then (1:t19) else (0:t19)
+  
+  predicate le2 (a:t19) (b:t19) = to_int a <= to_int b
+  
+  predicate lt2 (a:t19) (b:t19) = to_int a < to_int b
+  
+  predicate ge2 (a:t19) (b:t19) = to_int a >= to_int b
+  
+  predicate gt2 (a:t19) (b:t19) = to_int a > to_int b
+  
+  function bw_and2 t19 t19 : t19
+  
+  function bw_or2 t19 t19 : t19
+  
+  function bw_xor2 t19 t19 : t19
+  
+  function bw_not2 t19 : t19
+  
+  function shl2 t19 t19 : t19
+  
+  function shr2 t19 t19 : t19
+  
+  function add_with_overflow2 (a:t19) (b:t19) : (t19, bool) = (add2 a b,
+    if not in_bounds2 (t'int2 a + t'int2 b) then True else False)
+  
+  function sub_with_overflow2 (a:t19) (b:t19) : (t19, bool) = (sub2 a b,
+    if not in_bounds2 (t'int2 a - t'int2 b) then True else False)
+  
+  function mul_with_overflow2 (a:t19) (b:t19) : (t19, bool) = (mul2 a b,
+    if not in_bounds2 (t'int2 a * t'int2 b) then True else False)
+  
+  (* use creusot.int.Int64 *)
+  
+  type t20 = <range 0 65535>
+  
+  function t'int3 t20 : int
+  
+  constant t'maxInt3 : int = 65535
+  
+  constant t'minInt3 : int = 0
+  
+  predicate t'eq3 (a:t20) (b:t20) = t'int3 a = t'int3 b
+  
+  axiom t'inj3 : forall a:t20, b:t20. t'eq3 a b -> a = b
+  
+  (* meta range_type type t20, function t'int3 *)
+  
+  (* meta model_projection function t'int3 *)
+  
+  (* meta remove_unused:dependency prop t'inj3, predicate t'eq3 *)
+  
+  constant two_power_size3 : int = 0x10000
+  
+  axiom extensionality3 :
+    forall x:t20, y:t20 [t'int3 x, t'int3 y]. t'int3 x = t'int3 y -> x = y
+  
+  predicate in_bounds3 (n:int) = 0 <= n /\ n <= 0xFFFF
+  
+  function of_int3 int : t20
+  
+  axiom to_of_int3 :
+    forall x:int [of_int3 x]. in_bounds3 x -> t'int3 (of_int3 x) = x
+  
+  function add3 t20 t20 : t20
+  
+  axiom add_in_bounds3 :
+    forall x:t20, y:t20 [add3 x y].
+     in_bounds3 (t'int3 x + t'int3 y) ->
+     t'int3 (add3 x y) = (t'int3 x + t'int3 y)
+  
+  axiom add_wrapping3 :
+    forall x:t20, y:t20 [add3 x y].
+     exists k:int.
+      t'int3 (add3 x y) = ((t'int3 x + t'int3 y) + (k * two_power_size3))
+  
+  function sub3 t20 t20 : t20
+  
+  axiom sub_in_bounds3 :
+    forall x:t20, y:t20 [sub3 x y].
+     in_bounds3 (t'int3 x - t'int3 y) ->
+     t'int3 (sub3 x y) = (t'int3 x - t'int3 y)
+  
+  axiom sub_wrapping3 :
+    forall x:t20, y:t20 [sub3 x y].
+     exists k:int.
+      t'int3 (sub3 x y) = ((t'int3 x - t'int3 y) + (k * two_power_size3))
+  
+  function mul3 t20 t20 : t20
+  
+  axiom mul_in_bounds3 :
+    forall x:t20, y:t20 [mul3 x y].
+     in_bounds3 (t'int3 x * t'int3 y) ->
+     t'int3 (mul3 x y) = (t'int3 x * t'int3 y)
+  
+  axiom mul_wrapping3 :
+    forall x:t20, y:t20 [mul3 x y].
+     exists k:int.
+      t'int3 (mul3 x y) = ((t'int3 x * t'int3 y) + (k * two_power_size3))
+  
+  function neg3 t20 : t20
+  
+  axiom neg_zero2 :
+    forall x:t20 [neg3 x]. t'int3 x = 0 -> t'int3 (neg3 x) = 0
+  
+  axiom neg_not_zero2 :
+    forall x:t20 [neg3 x].
+     0 < t'int3 x /\ t'int3 x <= 0xFFFF ->
+     t'int3 (neg3 x) = (two_power_size3 - t'int3 x)
+  
+  function of_bool3 (b:bool) : t20 = if b = True then (1:t20) else (0:t20)
+  
+  predicate le3 (a:t20) (b:t20) = t'int3 a <= t'int3 b
+  
+  predicate lt3 (a:t20) (b:t20) = t'int3 a < t'int3 b
+  
+  predicate ge3 (a:t20) (b:t20) = t'int3 a >= t'int3 b
+  
+  predicate gt3 (a:t20) (b:t20) = t'int3 a > t'int3 b
+  
+  function bw_and3 t20 t20 : t20
+  
+  function bw_or3 t20 t20 : t20
+  
+  function bw_xor3 t20 t20 : t20
+  
+  function bw_not3 t20 : t20
+  
+  function shl3 t20 t20 : t20
+  
+  function shr3 t20 t20 : t20
+  
+  function nth2 t20 int : bool
+  
+  function add_with_overflow3 (a:t20) (b:t20) : (t20, bool) = (add3 a b,
+    if not in_bounds3 (t'int3 a + t'int3 b) then True else False)
+  
+  function sub_with_overflow3 (a:t20) (b:t20) : (t20, bool) = (sub3 a b,
+    if not in_bounds3 (t'int3 a - t'int3 b) then True else False)
+  
+  function mul_with_overflow3 (a:t20) (b:t20) : (t20, bool) = (mul3 a b,
+    if not in_bounds3 (t'int3 a * t'int3 b) then True else False)
+  
+  (* use creusot.int.UInt16 *)
+  
+  type t21 = <range 0 4294967295>
+  
+  function t'int4 t21 : int
+  
+  constant t'maxInt4 : int = 4294967295
+  
+  constant t'minInt4 : int = 0
+  
+  predicate t'eq4 (a:t21) (b:t21) = t'int4 a = t'int4 b
+  
+  axiom t'inj4 : forall a:t21, b:t21. t'eq4 a b -> a = b
+  
+  (* meta range_type type t21, function t'int4 *)
+  
+  (* meta model_projection function t'int4 *)
+  
+  (* meta remove_unused:dependency prop t'inj4, predicate t'eq4 *)
+  
+  constant two_power_size4 : int = 0x100000000
+  
+  axiom extensionality4 :
+    forall x:t21, y:t21 [t'int4 x, t'int4 y]. t'int4 x = t'int4 y -> x = y
+  
+  predicate in_bounds4 (n:int) = 0 <= n /\ n <= 0xFFFFFFFF
+  
+  function of_int4 int : t21
+  
+  axiom to_of_int4 :
+    forall x:int [of_int4 x]. in_bounds4 x -> t'int4 (of_int4 x) = x
+  
+  function add4 t21 t21 : t21
+  
+  axiom add_in_bounds4 :
+    forall x:t21, y:t21 [add4 x y].
+     in_bounds4 (t'int4 x + t'int4 y) ->
+     t'int4 (add4 x y) = (t'int4 x + t'int4 y)
+  
+  axiom add_wrapping4 :
+    forall x:t21, y:t21 [add4 x y].
+     exists k:int.
+      t'int4 (add4 x y) = ((t'int4 x + t'int4 y) + (k * two_power_size4))
+  
+  function sub4 t21 t21 : t21
+  
+  axiom sub_in_bounds4 :
+    forall x:t21, y:t21 [sub4 x y].
+     in_bounds4 (t'int4 x - t'int4 y) ->
+     t'int4 (sub4 x y) = (t'int4 x - t'int4 y)
+  
+  axiom sub_wrapping4 :
+    forall x:t21, y:t21 [sub4 x y].
+     exists k:int.
+      t'int4 (sub4 x y) = ((t'int4 x - t'int4 y) + (k * two_power_size4))
+  
+  function mul4 t21 t21 : t21
+  
+  axiom mul_in_bounds4 :
+    forall x:t21, y:t21 [mul4 x y].
+     in_bounds4 (t'int4 x * t'int4 y) ->
+     t'int4 (mul4 x y) = (t'int4 x * t'int4 y)
+  
+  axiom mul_wrapping4 :
+    forall x:t21, y:t21 [mul4 x y].
+     exists k:int.
+      t'int4 (mul4 x y) = ((t'int4 x * t'int4 y) + (k * two_power_size4))
+  
+  function neg4 t21 : t21
+  
+  axiom neg_zero3 :
+    forall x:t21 [neg4 x]. t'int4 x = 0 -> t'int4 (neg4 x) = 0
+  
+  axiom neg_not_zero3 :
+    forall x:t21 [neg4 x].
+     0 < t'int4 x /\ t'int4 x <= 0xFFFFFFFF ->
+     t'int4 (neg4 x) = (two_power_size4 - t'int4 x)
+  
+  function of_bool4 (b:bool) : t21 = if b = True then (1:t21) else (0:t21)
+  
+  predicate le4 (a:t21) (b:t21) = t'int4 a <= t'int4 b
+  
+  predicate lt4 (a:t21) (b:t21) = t'int4 a < t'int4 b
+  
+  predicate ge4 (a:t21) (b:t21) = t'int4 a >= t'int4 b
+  
+  predicate gt4 (a:t21) (b:t21) = t'int4 a > t'int4 b
+  
+  function bw_and4 t21 t21 : t21
+  
+  function bw_or4 t21 t21 : t21
+  
+  function bw_xor4 t21 t21 : t21
+  
+  function bw_not4 t21 : t21
+  
+  function shl4 t21 t21 : t21
+  
+  function shr4 t21 t21 : t21
+  
+  function nth3 t21 int : bool
+  
+  function add_with_overflow4 (a:t21) (b:t21) : (t21, bool) = (add4 a b,
+    if not in_bounds4 (t'int4 a + t'int4 b) then True else False)
+  
+  function sub_with_overflow4 (a:t21) (b:t21) : (t21, bool) = (sub4 a b,
+    if not in_bounds4 (t'int4 a - t'int4 b) then True else False)
+  
+  function mul_with_overflow4 (a:t21) (b:t21) : (t21, bool) = (mul4 a b,
+    if not in_bounds4 (t'int4 a * t'int4 b) then True else False)
+  
+  (* use creusot.int.UInt32 *)
+  
+  function addr_logic_u16 ptr : t20
+  
+  axiom addr_logic_u16_thin :
+    forall p:ptr. addr_logic_u16 (thin p) = addr_logic_u16 p
+  
+  function addr_logic_u32 ptr : t21
+  
+  axiom addr_logic_u32_thin :
+    forall p:ptr. addr_logic_u32 (thin p) = addr_logic_u32 p
+  
+  function addr_logic_u64 ptr : t17
+  
+  axiom addr_logic_u64_thin :
+    forall p:ptr. addr_logic_u64 (thin p) = addr_logic_u64 p
+  
+  (* use creusot.prelude.Ptr *)
+  
+  type map 'a 'b = 'a -> 'b
+  
+  function get1 (f:'a -> 'b) (x:'a) : 'b = f @ x
+  
+  function set1 (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b =
+    fun (y:'a) -> if y = x then v else f @ y
+  
+  function ([]') (f:'a -> 'b) (x:'a) : 'b = f @ x
+  
+  function ([<-]') (f:'a -> 'b) (x:'a) (v:'b) : 'a -> 'b = set1 f x v
+  
+  (* use map.Map *)
+  
+  function const (v:'b) : 'a -> 'b = fun (_:'a) -> v
+  
+  (* use map.Const *)
+  
+  type t22 'a =
+    | T'mk (current:'a) (final:'a) (id:int)
+  
+  (* meta model_record function id *)
+  
+  (* meta model_record function final *)
+  
+  (* meta model_record function current *)
+  
+  function borrow_logic (cur:'a) (fin:'a) (id1:int) : t22 'a =
+    T'mk cur fin id1
+  
+  function get_id (x:t22 'a) : int = x.id
+  
+  function inherit_id int int : int
+  
+  (* use creusot.prelude.MutBorrow *)
+  
+  function any_l 'a : 'b
+  
+  (* use creusot.prelude.Any *)
+  
+  function view_Box_slice_u8_Global (self:slice t18) : seq t18 = view self
+  
+  (* meta rewrite_def function view_Box_slice_u8_Global *)
+  
+  type t_Atomic_ptr_unit
+  
+  type t_Vtable =
+    | T_Vtable'mk (clone':ptr) (into_vec:ptr) (into_mut:ptr) (is_unique:ptr)
+        (drop:ptr)
+  
+  (* meta model_record function drop *)
+  
+  (* meta model_record function is_unique *)
+  
+  (* meta model_record function into_mut *)
+  
+  (* meta model_record function into_vec *)
+  
+  (* meta model_record function clone' *)
+  
+  type t_BoundPtr
+  
+  type t_AtomicPtr_unit
+  
+  type t_RootDescriptor =
+    | T_RootDescriptor'mk (base:t_BoundPtr) (capacity:t17) (expected:seq t18)
+        (model:t_AtomicPtr_unit)
+  
+  (* meta model_record function model *)
+  
+  (* meta model_record function expected *)
+  
+  (* meta model_record function capacity *)
+  
+  (* meta model_record function base *)
+  
+  type t_FullBorrow_OwnedControl_Shared
+  
+  type t_FullBorrow_PhysicalRegion
+  
+  type t_ScopedFieldInvariant_State_Payload
+  
+  type t_LifetimeToken
+  
+  type t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+  
+  type t_Fragment_FMap_Int_Excl_PositiveReal =
+    | T_Fragment_FMap_Int_Excl_PositiveReal'mk (f0:
+        t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal)
+  
+  (* meta model_record function f0 *)
+  
+  type t_Recovery
+  
+  type t_EndBorrow_PhysicalRegion
+  
+  type t_EndBorrow_OwnedControl_Shared
+  
+  type t_Payload =
+    | T_Payload'mk (recovery'0:t_Recovery) (physical_end'0:
+        t_EndBorrow_PhysicalRegion) (control_end'0:
+        t_EndBorrow_OwnedControl_Shared) (physical'0:
+        t_FullBorrow_PhysicalRegion) (control'0:
+        t_FullBorrow_OwnedControl_Shared) (base'0:t_BoundPtr) (capacity'0:
+        t17) (len'0:t17) (expected'0:seq t18)
+  
+  (* meta model_record function expected'0 *)
+  
+  (* meta model_record function len'0 *)
+  
+  (* meta model_record function capacity'0 *)
+  
+  (* meta model_record function base'0 *)
+  
+  (* meta model_record function control'0 *)
+  
+  (* meta model_record function physical'0 *)
+  
+  (* meta model_record function control_end'0 *)
+  
+  (* meta model_record function physical_end'0 *)
+  
+  (* meta model_record function recovery'0 *)
+  
+  type t_Option_Payload =
+    | None
+    | Some t_Payload
+  
+  type t_Ticket_Payload =
+    | T_Ticket_Payload'mk (token:t_LifetimeToken) (id1:int) (fragment:
+        t_Fragment_FMap_Int_Excl_PositiveReal) (recovery:t_Option_Payload)
+  
+  (* meta model_record function recovery *)
+  
+  (* meta model_record function fragment *)
+  
+  (* meta model_record function id1 *)
+  
+  (* meta model_record function token *)
+  
+  type t_SharedCore =
+    | T_SharedCore'mk (shared'1:ptr) (bound'1:t_BoundPtr) (capacity'1:t17)
+        (control'1:t_FullBorrow_OwnedControl_Shared) (physical'1:
+        t_FullBorrow_PhysicalRegion) (invariant''1:
+        t_ScopedFieldInvariant_State_Payload) (ticket'1:t_Ticket_Payload)
+  
+  (* meta model_record function ticket'1 *)
+  
+  (* meta model_record function invariant''1 *)
+  
+  (* meta model_record function physical'1 *)
+  
+  (* meta model_record function control'1 *)
+  
+  (* meta model_record function capacity'1 *)
+  
+  (* meta model_record function bound'1 *)
+  
+  (* meta model_record function shared'1 *)
+  
+  type t_ReadOnlyPointer
+  
+  type t_ChildProof =
+    | T_ChildProof'mk (core:t_SharedCore) (binding:t_ReadOnlyPointer)
+  
+  (* meta model_record function binding *)
+  
+  (* meta model_record function core *)
+  
+  type t_EmptyViewProof =
+    | T_EmptyViewProof'mk (bound'0:t_BoundPtr) (binding'0:t_ReadOnlyPointer)
+  
+  (* meta model_record function binding'0 *)
+  
+  (* meta model_record function bound'0 *)
+  
+  type t_OriginalSharedProof =
+    | Root t_RootDescriptor
+    | Child t_ChildProof
+    | View t_ChildProof t_BoundPtr
+    | Empty t_EmptyViewProof
+    | Vacant
+  
+  type t_Bytes =
+    | T_Bytes'mk (ptr:ptr) (len:t17) (data:t_Atomic_ptr_unit) (vtable:
+        t_Vtable) (original_shared:t_OriginalSharedProof)
+  
+  (* meta model_record function original_shared *)
+  
+  (* meta model_record function vtable *)
+  
+  (* meta model_record function data *)
+  
+  (* meta model_record function len *)
+  
+  (* meta model_record function ptr *)
+  
+  type t_PhysicalRegion
+  
+  type t_Perm_AtomicPtr_unit
+  
+  type t_SyncView
+  
+  type t_RawPhase =
+    | T_RawPhase'mk (recovery'2:t_Recovery) (physical'2:t_PhysicalRegion)
+        (own'2:t_Perm_AtomicPtr_unit) (current''2:t_SyncView)
+  
+  (* meta model_record function current''2 *)
+  
+  (* meta model_record function own'2 *)
+  
+  (* meta model_record function physical'2 *)
+  
+  (* meta model_record function recovery'2 *)
+  
+  type t_ScopeCursor_State_Payload
+  
+  type t_SharedPhase =
+    | T_SharedPhase'mk (root:t_SharedCore) (cursor:
+        t_ScopeCursor_State_Payload) (own:t_Perm_AtomicPtr_unit) (current':
+        t_SyncView)
+  
+  (* meta model_record function current' *)
+  
+  (* meta model_record function own *)
+  
+  (* meta model_record function cursor *)
+  
+  (* meta model_record function root *)
+  
+  type t_Phase =
+    | Raw t_RawPhase
+    | Shared t_SharedPhase
+  
+  type t_Option_Phase =
+    | None'0
+    | Some'0 t_Phase
+  
+  type t_PromotionScope =
+    | T_PromotionScope'mk (descriptor:t_RootDescriptor) (phase:
+        t_Option_Phase)
+  
+  (* meta model_record function phase *)
+  
+  (* meta model_record function descriptor *)
+  
+  type tup2_Bytes_Ghost_PromotionScope =
+    | Tup2_Bytes_Ghost_PromotionScope'mk (f0'0:t_Bytes) (f1'0:
+        t_PromotionScope)
+  
+  (* meta model_record function f1'0 *)
+  
+  (* meta model_record function f0'0 *)
+  
+  predicate gt_log_Int (self:int) (other:int) = other < self
+  
+  (* meta rewrite_def predicate gt_log_Int *)
+  
+  predicate inv_Atomic_ptr_unit t_Atomic_ptr_unit
+  
+  type t_Id
+  
+  type tup3_Id_Int_Int =
+    | Tup3_Id_Int_Int'mk (f0'1:t_Id) (f1'1:int) (f2'1:int)
+  
+  (* meta model_record function f2'1 *)
+  
+  (* meta model_record function f1'1 *)
+  
+  (* meta model_record function f0'1 *)
+  
+  type t_Option_tup3_Id_Int_Int =
+    | None'1
+    | Some'1 tup3_Id_Int_Int
+  
+  function view_BoundPtr t_BoundPtr : t_Option_tup3_Id_Int_Int
+  
+  constant const_MAX : t19 = (9223372036854775807:t19)
+  
+  function current_address t_BoundPtr : int
+  
+  constant const_MAX'0 : t17 = (18446744073709551615:t17)
+  
+  predicate invariant_BoundPtr (self:t_BoundPtr) =
+    match view_BoundPtr self with
+    | None'1 -> true
+    | Some'1 (Tup3_Id_Int_Int'mk _ allocation_capacity absolute_offset) ->
+        0 <= absolute_offset /\
+        absolute_offset <= allocation_capacity /\
+        allocation_capacity <= to_int const_MAX /\
+        absolute_offset < current_address self /\
+        ((current_address self + allocation_capacity) - absolute_offset)
+        <= t'int const_MAX'0
+    end
+  
+  predicate inv_BoundPtr t_BoundPtr
+  
+  axiom inv_axiom :
+    forall x:t_BoundPtr [inv_BoundPtr x].
+     inv_BoundPtr x -> invariant_BoundPtr x
+  
+  predicate inv_RootDescriptor t_RootDescriptor
+  
+  axiom inv_axiom'0 :
+    forall x:t_RootDescriptor [inv_RootDescriptor x].
+     inv_RootDescriptor x <-> inv_BoundPtr (x.base)
+  
+  type t_Perm_ptr_Shared
+  
+  type t_OwnedControl_Shared =
+    | T_OwnedControl_Shared'mk (pointer:ptr) (owner:t_Perm_ptr_Shared)
+  
+  (* meta model_record function owner *)
+  
+  (* meta model_record function pointer *)
+  
+  function cur_OwnedControl_Shared t_FullBorrow_OwnedControl_Shared :
+    t_OwnedControl_Shared
+  
+  function fin_FullBorrow_OwnedControl_Shared
+    t_FullBorrow_OwnedControl_Shared : t_OwnedControl_Shared
+  
+  predicate resolve_FullBorrow_OwnedControl_Shared (self:
+    t_FullBorrow_OwnedControl_Shared) =
+    cur_OwnedControl_Shared self = fin_FullBorrow_OwnedControl_Shared self
+  
+  predicate resolve_FullBorrow_OwnedControl_Shared'0
+    t_FullBorrow_OwnedControl_Shared
+  
+  axiom resolve_axiom :
+    forall x:t_FullBorrow_OwnedControl_Shared
+     [resolve_FullBorrow_OwnedControl_Shared'0 x].
+     resolve_FullBorrow_OwnedControl_Shared'0 x <->
+     resolve_FullBorrow_OwnedControl_Shared x
+  
+  predicate is_null_ptr_Shared (self:ptr) = addr_logic_u64 self = (0:t17)
+  
+  function ward_ptr_Shared t_Perm_ptr_Shared : ptr
+  
+  type t_Atomic_usize
+  
+  type t_Shared =
+    | T_Shared'mk (buf:ptr) (cap:t17) (ref_cnt:t_Atomic_usize)
+  
+  (* meta model_record function ref_cnt *)
+  
+  (* meta model_record function cap *)
+  
+  (* meta model_record function buf *)
+  
+  predicate metadata_matches_Shared (_value:t_Shared) (_metadata:unit) = true
+  
+  (* meta rewrite_def predicate metadata_matches_Shared *)
+  
+  function val_ptr_Shared t_Perm_ptr_Shared : t_Shared
+  
+  function metadata_Shared ptr : unit
+  
+  predicate inv_Atomic_usize t_Atomic_usize
+  
+  predicate inv_Shared t_Shared
+  
+  axiom inv_axiom'1 :
+    forall x:t_Shared [inv_Shared x].
+     inv_Shared x <-> inv_Atomic_usize (x.ref_cnt)
+  
+  predicate invariant_ref_Shared (self:t_Shared) = inv_Shared self
+  
+  (* meta rewrite_def predicate invariant_ref_Shared *)
+  
+  predicate inv_ref_Shared (_1:t_Shared) = invariant_ref_Shared _1
+  
+  (* meta rewrite_def predicate inv_ref_Shared *)
+  
+  predicate invariant_Perm_ptr_Shared (self:t_Perm_ptr_Shared) =
+    not is_null_ptr_Shared (ward_ptr_Shared self) /\
+    metadata_matches_Shared (val_ptr_Shared self)
+    (metadata_Shared (ward_ptr_Shared self)) /\
+    inv_ref_Shared (val_ptr_Shared self)
+  
+  predicate inv_Perm_ptr_Shared t_Perm_ptr_Shared
+  
+  axiom inv_axiom'2 :
+    forall x:t_Perm_ptr_Shared [inv_Perm_ptr_Shared x].
+     inv_Perm_ptr_Shared x <-> invariant_Perm_ptr_Shared x
+  
+  predicate invariant_Box_Perm_ptr_Shared_Global (self:t_Perm_ptr_Shared) =
+    inv_Perm_ptr_Shared self
+  
+  predicate inv_Box_Perm_ptr_Shared_Global (_1:t_Perm_ptr_Shared) =
+    invariant_Box_Perm_ptr_Shared_Global _1
+  
+  (* meta rewrite_def predicate inv_Box_Perm_ptr_Shared_Global *)
+  
+  predicate invariant_Ghost_Box_Perm_ptr_Shared_Global (self:
+    t_Perm_ptr_Shared) = inv_Box_Perm_ptr_Shared_Global self
+  
+  (* meta rewrite_def predicate invariant_Ghost_Box_Perm_ptr_Shared_Global *)
+  
+  predicate inv_Ghost_Box_Perm_ptr_Shared_Global (_1:t_Perm_ptr_Shared) =
+    invariant_Ghost_Box_Perm_ptr_Shared_Global _1
+  
+  (* meta rewrite_def predicate inv_Ghost_Box_Perm_ptr_Shared_Global *)
+  
+  predicate inv_OwnedControl_Shared t_OwnedControl_Shared
+  
+  axiom inv_axiom'3 :
+    forall x:t_OwnedControl_Shared [inv_OwnedControl_Shared x].
+     inv_OwnedControl_Shared x <->
+     inv_Ghost_Box_Perm_ptr_Shared_Global (x.owner)
+  
+  predicate invariant_FullBorrow_OwnedControl_Shared (self:
+    t_FullBorrow_OwnedControl_Shared) =
+    inv_OwnedControl_Shared (cur_OwnedControl_Shared self) /\
+    inv_OwnedControl_Shared (fin_FullBorrow_OwnedControl_Shared self)
+  
+  (* meta rewrite_def predicate invariant_FullBorrow_OwnedControl_Shared *)
+  
+  predicate inv_FullBorrow_OwnedControl_Shared
+    t_FullBorrow_OwnedControl_Shared
+  
+  axiom inv_axiom'4 :
+    forall x:t_FullBorrow_OwnedControl_Shared
+     [inv_FullBorrow_OwnedControl_Shared x].
+     inv_FullBorrow_OwnedControl_Shared x <->
+     invariant_FullBorrow_OwnedControl_Shared x
+  
+  predicate invariant_GhostShared_FullBorrow_OwnedControl_Shared (self:
+    t_FullBorrow_OwnedControl_Shared) =
+    resolve_FullBorrow_OwnedControl_Shared'0 self /\
+    inv_FullBorrow_OwnedControl_Shared self
+  
+  predicate inv_GhostShared_FullBorrow_OwnedControl_Shared (_1:
+    t_FullBorrow_OwnedControl_Shared) =
+    invariant_GhostShared_FullBorrow_OwnedControl_Shared _1
+  
+  (* meta rewrite_def
+    predicate inv_GhostShared_FullBorrow_OwnedControl_Shared *)
+  
+  predicate invariant_Ghost_GhostShared_FullBorrow_OwnedControl_Shared (self:
+    t_FullBorrow_OwnedControl_Shared) =
+    inv_GhostShared_FullBorrow_OwnedControl_Shared self
+  
+  (* meta rewrite_def
+    predicate invariant_Ghost_GhostShared_FullBorrow_OwnedControl_Shared *)
+  
+  predicate inv_Ghost_GhostShared_FullBorrow_OwnedControl_Shared (_1:
+    t_FullBorrow_OwnedControl_Shared) =
+    invariant_Ghost_GhostShared_FullBorrow_OwnedControl_Shared _1
+  
+  (* meta rewrite_def
+    predicate inv_Ghost_GhostShared_FullBorrow_OwnedControl_Shared *)
+  
+  function cur_PhysicalRegion t_FullBorrow_PhysicalRegion : t_PhysicalRegion
+  
+  function fin_FullBorrow_PhysicalRegion t_FullBorrow_PhysicalRegion :
+    t_PhysicalRegion
+  
+  predicate resolve_FullBorrow_PhysicalRegion (self:
+    t_FullBorrow_PhysicalRegion) =
+    cur_PhysicalRegion self = fin_FullBorrow_PhysicalRegion self
+  
+  predicate resolve_FullBorrow_PhysicalRegion'0 t_FullBorrow_PhysicalRegion
+  
+  axiom resolve_axiom'0 :
+    forall x:t_FullBorrow_PhysicalRegion
+     [resolve_FullBorrow_PhysicalRegion'0 x].
+     resolve_FullBorrow_PhysicalRegion'0 x <->
+     resolve_FullBorrow_PhysicalRegion x
+  
+  predicate invariant_PhysicalRegion t_PhysicalRegion
+  
+  predicate inv_PhysicalRegion t_PhysicalRegion
+  
+  axiom inv_axiom'5 :
+    forall x:t_PhysicalRegion [inv_PhysicalRegion x].
+     inv_PhysicalRegion x -> invariant_PhysicalRegion x
+  
+  predicate invariant_FullBorrow_PhysicalRegion (self:
+    t_FullBorrow_PhysicalRegion) =
+    inv_PhysicalRegion (cur_PhysicalRegion self) /\
+    inv_PhysicalRegion (fin_FullBorrow_PhysicalRegion self)
+  
+  (* meta rewrite_def predicate invariant_FullBorrow_PhysicalRegion *)
+  
+  predicate inv_FullBorrow_PhysicalRegion t_FullBorrow_PhysicalRegion
+  
+  axiom inv_axiom'6 :
+    forall x:t_FullBorrow_PhysicalRegion [inv_FullBorrow_PhysicalRegion x].
+     inv_FullBorrow_PhysicalRegion x <->
+     invariant_FullBorrow_PhysicalRegion x
+  
+  predicate invariant_GhostShared_FullBorrow_PhysicalRegion (self:
+    t_FullBorrow_PhysicalRegion) =
+    resolve_FullBorrow_PhysicalRegion'0 self /\
+    inv_FullBorrow_PhysicalRegion self
+  
+  predicate inv_GhostShared_FullBorrow_PhysicalRegion (_1:
+    t_FullBorrow_PhysicalRegion) =
+    invariant_GhostShared_FullBorrow_PhysicalRegion _1
+  
+  (* meta rewrite_def predicate inv_GhostShared_FullBorrow_PhysicalRegion *)
+  
+  predicate invariant_Ghost_GhostShared_FullBorrow_PhysicalRegion (self:
+    t_FullBorrow_PhysicalRegion) =
+    inv_GhostShared_FullBorrow_PhysicalRegion self
+  
+  (* meta rewrite_def
+    predicate invariant_Ghost_GhostShared_FullBorrow_PhysicalRegion *)
+  
+  predicate inv_Ghost_GhostShared_FullBorrow_PhysicalRegion (_1:
+    t_FullBorrow_PhysicalRegion) =
+    invariant_Ghost_GhostShared_FullBorrow_PhysicalRegion _1
+  
+  (* meta rewrite_def
+    predicate inv_Ghost_GhostShared_FullBorrow_PhysicalRegion *)
+  
+  predicate resolve_ScopedFieldInvariant_State_Payload (_1:
+    t_ScopedFieldInvariant_State_Payload) = true
+  
+  (* meta rewrite_def predicate resolve_ScopedFieldInvariant_State_Payload *)
+  
+  predicate inv_ScopedFieldInvariant_State_Payload (_1:
+    t_ScopedFieldInvariant_State_Payload) = true
+  
+  (* meta rewrite_def predicate inv_ScopedFieldInvariant_State_Payload *)
+  
+  predicate invariant_GhostShared_ScopedFieldInvariant_State_Payload (self:
+    t_ScopedFieldInvariant_State_Payload) =
+    resolve_ScopedFieldInvariant_State_Payload self /\
+    inv_ScopedFieldInvariant_State_Payload self
+  
+  predicate inv_GhostShared_ScopedFieldInvariant_State_Payload (_1:
+    t_ScopedFieldInvariant_State_Payload) =
+    invariant_GhostShared_ScopedFieldInvariant_State_Payload _1
+  
+  (* meta rewrite_def
+    predicate inv_GhostShared_ScopedFieldInvariant_State_Payload *)
+  
+  predicate invariant_Ghost_GhostShared_ScopedFieldInvariant_State_Payload
+    (self:t_ScopedFieldInvariant_State_Payload) =
+    inv_GhostShared_ScopedFieldInvariant_State_Payload self
+  
+  (* meta rewrite_def
+    predicate invariant_Ghost_GhostShared_ScopedFieldInvariant_State_Payload *)
+  
+  predicate inv_Ghost_GhostShared_ScopedFieldInvariant_State_Payload (_1:
+    t_ScopedFieldInvariant_State_Payload) =
+    invariant_Ghost_GhostShared_ScopedFieldInvariant_State_Payload _1
+  
+  (* meta rewrite_def
+    predicate inv_Ghost_GhostShared_ScopedFieldInvariant_State_Payload *)
+  
+  predicate inv_LifetimeToken t_LifetimeToken
+  
+  predicate inv_Recovery t_Recovery
+  
+  predicate inv_Payload t_Payload
+  
+  axiom inv_axiom'7 :
+    forall x:t_Payload [inv_Payload x].
+     inv_Payload x <->
+     inv_Recovery (x.recovery'0) /\
+     inv_Ghost_GhostShared_FullBorrow_PhysicalRegion (x.physical'0) /\
+     inv_Ghost_GhostShared_FullBorrow_OwnedControl_Shared (x.control'0) /\
+     inv_BoundPtr (x.base'0)
+  
+  predicate inv_Option_Payload t_Option_Payload
+  
+  axiom inv_axiom'8 :
+    forall x:t_Option_Payload [inv_Option_Payload x].
+     inv_Option_Payload x <->
+     match x with
+     | None -> true
+     | Some f0'2 -> inv_Payload f0'2
+     end
+  
+  predicate inv_Ticket_Payload t_Ticket_Payload
+  
+  axiom inv_axiom'9 :
+    forall x:t_Ticket_Payload [inv_Ticket_Payload x].
+     inv_Ticket_Payload x <->
+     inv_LifetimeToken (x.token) /\ inv_Option_Payload (x.recovery)
+  
+  predicate invariant_Ghost_Ticket_Payload (self:t_Ticket_Payload) =
+    inv_Ticket_Payload self
+  
+  (* meta rewrite_def predicate invariant_Ghost_Ticket_Payload *)
+  
+  predicate inv_Ghost_Ticket_Payload (_1:t_Ticket_Payload) =
+    invariant_Ghost_Ticket_Payload _1
+  
+  (* meta rewrite_def predicate inv_Ghost_Ticket_Payload *)
+  
+  predicate inv_SharedCore t_SharedCore
+  
+  axiom inv_axiom'10 :
+    forall x:t_SharedCore [inv_SharedCore x].
+     inv_SharedCore x <->
+     inv_BoundPtr (x.bound'1) /\
+     inv_Ghost_GhostShared_FullBorrow_OwnedControl_Shared (x.control'1) /\
+     inv_Ghost_GhostShared_FullBorrow_PhysicalRegion (x.physical'1) /\
+     inv_Ghost_GhostShared_ScopedFieldInvariant_State_Payload
+     (x.invariant''1) /\ inv_Ghost_Ticket_Payload (x.ticket'1)
+  
+  predicate inv_ChildProof t_ChildProof
+  
+  axiom inv_axiom'11 :
+    forall x:t_ChildProof [inv_ChildProof x].
+     inv_ChildProof x <-> inv_SharedCore (x.core)
+  
+  predicate inv_EmptyViewProof t_EmptyViewProof
+  
+  axiom inv_axiom'12 :
+    forall x:t_EmptyViewProof [inv_EmptyViewProof x].
+     inv_EmptyViewProof x <-> inv_BoundPtr (x.bound'0)
+  
+  predicate inv_OriginalSharedProof t_OriginalSharedProof
+  
+  axiom inv_axiom'13 :
+    forall x:t_OriginalSharedProof [inv_OriginalSharedProof x].
+     inv_OriginalSharedProof x <->
+     match x with
+     | Root f0'2 -> inv_RootDescriptor f0'2
+     | Child f0'2 -> inv_ChildProof f0'2
+     | View f0'2 f1 -> inv_ChildProof f0'2 /\ inv_BoundPtr f1
+     | Empty f0'2 -> inv_EmptyViewProof f0'2
+     | Vacant -> true
+     end
+  
+  predicate invariant_Ghost_OriginalSharedProof (self:
+    t_OriginalSharedProof) = inv_OriginalSharedProof self
+  
+  (* meta rewrite_def predicate invariant_Ghost_OriginalSharedProof *)
+  
+  predicate inv_Ghost_OriginalSharedProof (_1:t_OriginalSharedProof) =
+    invariant_Ghost_OriginalSharedProof _1
+  
+  (* meta rewrite_def predicate inv_Ghost_OriginalSharedProof *)
+  
+  predicate inv_Bytes t_Bytes
+  
+  axiom inv_axiom'14 :
+    forall x:t_Bytes [inv_Bytes x].
+     inv_Bytes x <->
+     inv_Atomic_ptr_unit (x.data) /\
+     inv_Ghost_OriginalSharedProof (x.original_shared)
+  
+  predicate inv_RawPhase t_RawPhase
+  
+  axiom inv_axiom'15 :
+    forall x:t_RawPhase [inv_RawPhase x].
+     inv_RawPhase x <->
+     inv_Recovery (x.recovery'2) /\ inv_PhysicalRegion (x.physical'2)
+  
+  predicate inv_SharedPhase t_SharedPhase
+  
+  axiom inv_axiom'16 :
+    forall x:t_SharedPhase [inv_SharedPhase x].
+     inv_SharedPhase x <-> inv_SharedCore (x.root)
+  
+  predicate inv_Phase t_Phase
+  
+  axiom inv_axiom'17 :
+    forall x:t_Phase [inv_Phase x].
+     inv_Phase x <->
+     match x with
+     | Raw f0'2 -> inv_RawPhase f0'2
+     | Shared f0'2 -> inv_SharedPhase f0'2
+     end
+  
+  predicate inv_Option_Phase t_Option_Phase
+  
+  axiom inv_axiom'18 :
+    forall x:t_Option_Phase [inv_Option_Phase x].
+     inv_Option_Phase x <->
+     match x with
+     | None'0 -> true
+     | Some'0 f0'2 -> inv_Phase f0'2
+     end
+  
+  predicate inv_PromotionScope t_PromotionScope
+  
+  axiom inv_axiom'19 :
+    forall x:t_PromotionScope [inv_PromotionScope x].
+     inv_PromotionScope x <->
+     inv_RootDescriptor (x.descriptor) /\ inv_Option_Phase (x.phase)
+  
+  predicate invariant_Ghost_PromotionScope (self:t_PromotionScope) =
+    inv_PromotionScope self
+  
+  (* meta rewrite_def predicate invariant_Ghost_PromotionScope *)
+  
+  predicate inv_Ghost_PromotionScope (_1:t_PromotionScope) =
+    invariant_Ghost_PromotionScope _1
+  
+  (* meta rewrite_def predicate inv_Ghost_PromotionScope *)
+  
+  predicate inv_tup2_Bytes_Ghost_PromotionScope (_1:
+    tup2_Bytes_Ghost_PromotionScope) =
+    inv_Bytes (_1.f0'0) /\ inv_Ghost_PromotionScope (_1.f1'0)
+  
+  (* meta rewrite_def predicate inv_tup2_Bytes_Ghost_PromotionScope *)
+  
+  function raw_pointer t_BoundPtr : ptr
+  
+  constant any_tup3_Id_Int_Int : tup3_Id_Int_Int
+  
+  function unwrap_Option_tup3_Id_Int_Int (self:t_Option_tup3_Id_Int_Int) :
+    tup3_Id_Int_Int =
+    match self with
+    | Some'1 x -> x
+    | None'1 -> any_tup3_Id_Int_Int
+    end
+  
+  predicate gt_log_usize (self:t17) (other:t17) = lt other self
+  
+  (* meta rewrite_def predicate gt_log_usize *)
+  
+  function tagged_data ptr : ptr
+  
+  function word (self:t_RootDescriptor) : ptr =
+    if bw_and (addr_logic_u64 (raw_pointer (self.base))) (1:t17) = (0:t17)
+    then tagged_data (raw_pointer (self.base)) else raw_pointer (self.base)
+  
+  predicate valid (self:t_RootDescriptor) =
+    invariant_BoundPtr (self.base) /\
+    not view_BoundPtr (self.base) = None'1 /\
+    current_address (self.base) =
+    t'int (addr_logic_u64 (raw_pointer (self.base))) /\
+    (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (self.base))).f1'1 =
+    t'int (self.capacity) /\
+    (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (self.base))).f2'1 = 0 /\
+    gt_log_usize (self.capacity) (0:t17) /\
+    length (self.expected) = t'int (self.capacity) /\
+    bw_and (addr_logic_u64 (word self)) (1:t17) = (1:t17)
+  
+  type t_Excl_unit =
+    | T_Excl_unit'mk (f0'2:unit)
+  
+  (* meta model_record function f0'2 *)
+  
+  type t_Option_Excl_unit =
+    | None'2
+    | Some'2 t_Excl_unit
+  
+  type t_FMap_Int_Excl_Option_u8
+  
+  type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 =
+    | Tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8'mk (f0'3:
+        t_Option_Excl_unit) (f1'3:t_FMap_Int_Excl_Option_u8)
+  
+  (* meta model_record function f1'3 *)
+  
+  (* meta model_record function f0'3 *)
+  
+  type tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id =
+    | Tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id'mk (f0'4:
+        tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8) (f1'4:int) (f2'4:t_Id)
+        (f3'4:t_Id)
+  
+  (* meta model_record function f3'4 *)
+  
+  (* meta model_record function f2'4 *)
+  
+  (* meta model_record function f1'4 *)
+  
+  (* meta model_record function f0'4 *)
+  
+  function view_Recovery t_Recovery :
+    tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id
+  
+  type t_Option_u8 =
+    | None'3
+    | Some'3 t18
+  
+  type t_Excl_Option_u8 =
+    | T_Excl_Option_u8'mk (f0'5:t_Option_u8)
+  
+  (* meta model_record function f0'5 *)
+  
+  type t_Option_Excl_Option_u8 =
+    | None'4
+    | Some'4 t_Excl_Option_u8
+  
+  function to_mapping_Int t_FMap_Int_Excl_Option_u8 : int ->
+    t_Option_Excl_Option_u8
+  
+  function get_Int (self:t_FMap_Int_Excl_Option_u8) (k:int) :
+    t_Option_Excl_Option_u8 = get1 (to_mapping_Int self) k
+  
+  (* meta rewrite_def function get_Int *)
+  
+  predicate ext_eq_Int (self:t_FMap_Int_Excl_Option_u8) (other:
+    t_FMap_Int_Excl_Option_u8) =
+    forall k:int. get_Int self k = get_Int other k
+  
+  axiom ext_eq_Int_spec :
+    forall self:t_FMap_Int_Excl_Option_u8, other:t_FMap_Int_Excl_Option_u8
+     [self = other]. ext_eq_Int self other <-> self = other
+  
+  predicate ge_log_Int (self:int) (other:int) = other <= self
+  
+  (* meta rewrite_def predicate ge_log_Int *)
+  
+  function len_Int t_FMap_Int_Excl_Option_u8 : int
+  
+  axiom len_Int_spec :
+    forall self:t_FMap_Int_Excl_Option_u8 [len_Int self].
+     ge_log_Int (len_Int self) 0
+  
+  constant empty_Int : t_FMap_Int_Excl_Option_u8
+  
+  axiom empty_Int_spec : len_Int empty_Int = 0
+  
+  axiom empty_Int_spec'0 :
+    to_mapping_Int empty_Int = (const None'4: int -> t_Option_Excl_Option_u8)
+  
+  predicate is_empty_Int (self:t_FMap_Int_Excl_Option_u8) =
+    ext_eq_Int self empty_Int
+  
+  predicate invariant' (self:t_Recovery) =
+    ((view_Recovery self).f0'4).f0'3 = Some'2 (T_Excl_unit'mk ()) /\
+    is_empty_Int (((view_Recovery self).f0'4).f1'3) /\
+    (view_Recovery self).f2'4 = (view_Recovery self).f3'4
+  
+  function namespace (self:t_Recovery) : t_Id = (view_Recovery self).f2'4
+  
+  function capacity'2 (self:t_Recovery) : int = (view_Recovery self).f1'4
+  
+  type t_OwnedRegion
+  
+  type tup3_OwnedRegion_Int_Id =
+    | Tup3_OwnedRegion_Int_Id'mk (f0'6:t_OwnedRegion) (f1'6:int) (f2'6:t_Id)
+  
+  (* meta model_record function f2'6 *)
+  
+  (* meta model_record function f1'6 *)
+  
+  (* meta model_record function f0'6 *)
+  
+  function view_PhysicalRegion t_PhysicalRegion : tup3_OwnedRegion_Int_Id
+  
+  function capacity'3 (self:t_PhysicalRegion) : int =
+    (view_PhysicalRegion self).f1'6
+  
+  function namespace'0 (self:t_PhysicalRegion) : t_Id =
+    (view_PhysicalRegion self).f2'6
+  
+  type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 =
+    | Tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8'mk (f0'7:
+        int) (f1'7:int) (f2'7:t_Id) (f3'7:
+        tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8)
+  
+  (* meta model_record function f3'7 *)
+  
+  (* meta model_record function f2'7 *)
+  
+  (* meta model_record function f1'7 *)
+  
+  (* meta model_record function f0'7 *)
+  
+  function view_OwnedRegion t_OwnedRegion :
+    tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+  
+  function resource_id (self:t_PhysicalRegion) : t_Id =
+    (view_OwnedRegion ((view_PhysicalRegion self).f0'6)).f2'7
+  
+  function lo (self:t_PhysicalRegion) : int =
+    (view_OwnedRegion ((view_PhysicalRegion self).f0'6)).f0'7
+  
+  function hi (self:t_PhysicalRegion) : int =
+    (view_OwnedRegion ((view_PhysicalRegion self).f0'6)).f1'7
+  
+  type t_Option_Option_u8 =
+    | None'5
+    | Some'5 t_Option_u8
+  
+  function slot (self:t_PhysicalRegion) (index:int) : t_Option_Option_u8 =
+    match get_Int
+          (((view_OwnedRegion ((view_PhysicalRegion self).f0'6)).f3'7).f1'3)
+          index with
+    | None'4 -> None'5
+    | Some'4 (T_Excl_Option_u8'mk value) -> Some'5 value
+    end
+  
+  function ward_AtomicPtr_unit t_Perm_AtomicPtr_unit : t_AtomicPtr_unit
+  
+  type t_FMap_Int_tup2_ptr_unit_SyncView
+  
+  function val_AtomicPtr_unit t_Perm_AtomicPtr_unit :
+    t_FMap_Int_tup2_ptr_unit_SyncView
+  
+  type tup2_ptr_unit_SyncView =
+    | Tup2_ptr_unit_SyncView'mk (f0'8:ptr) (f1'8:t_SyncView)
+  
+  (* meta model_record function f1'8 *)
+  
+  (* meta model_record function f0'8 *)
+  
+  type t_Option_tup2_ptr_unit_SyncView =
+    | None'6
+    | Some'6 tup2_ptr_unit_SyncView
+  
+  function to_mapping_Int'0 t_FMap_Int_tup2_ptr_unit_SyncView : int ->
+    t_Option_tup2_ptr_unit_SyncView
+  
+  function len_Int'0 t_FMap_Int_tup2_ptr_unit_SyncView : int
+  
+  axiom len_Int_spec'0 :
+    forall self:t_FMap_Int_tup2_ptr_unit_SyncView [len_Int'0 self].
+     ge_log_Int (len_Int'0 self) 0
+  
+  function get_Int'0 (self:t_FMap_Int_tup2_ptr_unit_SyncView) (k:int) :
+    t_Option_tup2_ptr_unit_SyncView = get1 (to_mapping_Int'0 self) k
+  
+  (* meta rewrite_def function get_Int'0 *)
+  
+  predicate contains_Int (self:t_FMap_Int_tup2_ptr_unit_SyncView) (k:int) =
+    not get_Int'0 self k = None'6
+  
+  (* meta rewrite_def predicate contains_Int *)
+  
+  function insert_Int t_FMap_Int_tup2_ptr_unit_SyncView int
+    tup2_ptr_unit_SyncView : t_FMap_Int_tup2_ptr_unit_SyncView
+  
+  axiom insert_Int_spec :
+    forall self:t_FMap_Int_tup2_ptr_unit_SyncView, k:int, v:
+     tup2_ptr_unit_SyncView [insert_Int self k v].
+     to_mapping_Int'0 (insert_Int self k v) =
+     set1 (to_mapping_Int'0 self) k (Some'6 v)
+  
+  axiom insert_Int_spec'0 :
+    forall self:t_FMap_Int_tup2_ptr_unit_SyncView, k:int, v:
+     tup2_ptr_unit_SyncView [insert_Int self k v].
+     len_Int'0 (insert_Int self k v) =
+     (if contains_Int self k then len_Int'0 self else len_Int'0 self + 1)
+  
+  constant empty_Int'0 : t_FMap_Int_tup2_ptr_unit_SyncView
+  
+  axiom empty_Int_spec'1 : len_Int'0 empty_Int'0 = 0
+  
+  axiom empty_Int_spec'2 :
+    to_mapping_Int'0 empty_Int'0 =
+    (const None'6: int -> t_Option_tup2_ptr_unit_SyncView)
+  
+  function singleton_Int (k:int) (v:tup2_ptr_unit_SyncView) :
+    t_FMap_Int_tup2_ptr_unit_SyncView = insert_Int empty_Int'0 k v
+  
+  predicate valid'0 (self:t_RawPhase) (d:t_RootDescriptor) =
+    valid d /\
+    invariant' (self.recovery'2) /\
+    invariant_PhysicalRegion (self.physical'2) /\
+    view_BoundPtr (d.base) =
+    Some'1
+    (Tup3_Id_Int_Int'mk (namespace (self.recovery'2)) (t'int (d.capacity)) 0) /\
+    capacity'2 (self.recovery'2) = t'int (d.capacity) /\
+    capacity'3 (self.physical'2) = t'int (d.capacity) /\
+    namespace'0 (self.physical'2) = namespace (self.recovery'2) /\
+    resource_id (self.physical'2) = namespace (self.recovery'2) /\
+    lo (self.physical'2) = 0 /\
+    hi (self.physical'2) = t'int (d.capacity) /\
+    (forall i:int.
+      0 <= i /\ i < t'int (d.capacity) ->
+      slot (self.physical'2) i = Some'5 (Some'3 (get (d.expected) i))) /\
+    ward_AtomicPtr_unit (self.own'2) = d.model /\
+    (exists t:int, published:t_SyncView.
+      val_AtomicPtr_unit (self.own'2) =
+      singleton_Int t (Tup2_ptr_unit_SyncView'mk (word d) published))
+  
+  type t_AtomicUsize
+  
+  type t_Lifetime
+  
+  type tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8 =
+    | Tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8'mk (f0'9:t_Lifetime)
+        (f1'9:t_Id) (f2'9:int) (f3'9:seq t18) (f4'9:int) (f5'9:ptr) (f6'9:
+        ptr)
+  
+  (* meta model_record function f6'9 *)
+  
+  (* meta model_record function f5'9 *)
+  
+  (* meta model_record function f4'9 *)
+  
+  (* meta model_record function f3'9 *)
+  
+  (* meta model_record function f2'9 *)
+  
+  (* meta model_record function f1'9 *)
+  
+  (* meta model_record function f0'9 *)
+  
+  type tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id =
+    | Tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id'mk
+        (f0'10:t_AtomicUsize) (f1'10:t_Id) (f2'10:t_Lifetime) (f3'10:
+        tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8) (f4'10:t_Id)
+  
+  (* meta model_record function f4'10 *)
+  
+  (* meta model_record function f3'10 *)
+  
+  (* meta model_record function f2'10 *)
+  
+  (* meta model_record function f1'10 *)
+  
+  (* meta model_record function f0'10 *)
+  
+  function public_State_Payload t_ScopedFieldInvariant_State_Payload :
+    tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+  
+  function pointer_Shared (self:t_OwnedControl_Shared) : ptr = self.pointer
+  
+  function lft_OwnedControl_Shared t_FullBorrow_OwnedControl_Shared :
+    t_Lifetime
+  
+  function lft_PhysicalRegion t_FullBorrow_PhysicalRegion : t_Lifetime
+  
+  predicate wellformed_Shared (self:t_OwnedControl_Shared) =
+    self.pointer = ward_ptr_Shared (self.owner)
+  
+  function atomic_model t_Atomic_usize : t_AtomicUsize
+  
+  function field_model_Shared (self:t_Shared) : t_AtomicUsize =
+    atomic_model (self.ref_cnt)
+  
+  function model_Shared (self:t_OwnedControl_Shared) : t_AtomicUsize =
+    field_model_Shared (val_ptr_Shared (self.owner))
+  
+  function model_State_Payload t_ScopedFieldInvariant_State_Payload :
+    t_AtomicUsize
+  
+  function lft t_LifetimeToken : t_Lifetime
+  
+  function id_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal : t_Id
+  
+  function id_FMap_Int_Excl_PositiveReal (self:
+    t_Fragment_FMap_Int_Excl_PositiveReal) : t_Id =
+    id_View_AuthViewRel_FMap_Int_Excl_PositiveReal (self.f0)
+  
+  type t_FMap_Int_Excl_PositiveReal
+  
+  type t_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+  
+  type t_Option_FMap_Int_Excl_PositiveReal =
+    | None'7
+    | Some'7 t_FMap_Int_Excl_PositiveReal
+  
+  type t_PositiveReal
+  
+  type t_Excl_PositiveReal =
+    | T_Excl_PositiveReal'mk (f0'11:t_PositiveReal)
+  
+  (* meta model_record function f0'11 *)
+  
+  type t_Option_Excl_PositiveReal =
+    | None'8
+    | Some'8 t_Excl_PositiveReal
+  
+  type t_Option_Option_Excl_PositiveReal =
+    | None'9
+    | Some'9 t_Option_Excl_PositiveReal
+  
+  type tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal =
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk (f0'12:
+        t_Option_Excl_PositiveReal) (f1'12:t_Option_Excl_PositiveReal)
+  
+  (* meta model_record function f1'12 *)
+  
+  (* meta model_record function f0'12 *)
+  
+  function map_Option_Excl_PositiveReal (self:t_Option_Excl_PositiveReal) (f:
+    t_Excl_PositiveReal -> t_Option_Excl_PositiveReal) :
+    t_Option_Option_Excl_PositiveReal =
+    match self with
+    | None'8 -> None'9
+    | Some'8 x -> Some'9 (get1 f x)
+    end
+  
+  function op_Excl_PositiveReal (self:t_Excl_PositiveReal) (_other:
+    t_Excl_PositiveReal) : t_Option_Excl_PositiveReal = None'8
+  
+  function commutative_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal : unit
+  
+  axiom commutative_Excl_PositiveReal_spec :
+    forall a:t_Excl_PositiveReal, b:t_Excl_PositiveReal.
+     op_Excl_PositiveReal a b = op_Excl_PositiveReal b a
+  
+  function op_Option_Excl_PositiveReal (self:t_Option_Excl_PositiveReal)
+    (other:t_Option_Excl_PositiveReal) : t_Option_Option_Excl_PositiveReal =
+    match Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk self
+          other with
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk None'8 _ ->
+        Some'9 other
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk _ None'8 ->
+        Some'9 self
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk (Some'8 x)
+        (Some'8 y) ->
+        map_Option_Excl_PositiveReal (op_Excl_PositiveReal x y)
+        (fun (z:t_Excl_PositiveReal) -> Some'8 z)
+    end
+  
+  function commutative_Option_Excl_PositiveReal t_Option_Excl_PositiveReal
+    t_Option_Excl_PositiveReal : unit
+  
+  axiom commutative_Option_Excl_PositiveReal_spec :
+    forall a:t_Option_Excl_PositiveReal, b:t_Option_Excl_PositiveReal.
+     op_Option_Excl_PositiveReal a b = op_Option_Excl_PositiveReal b a
+  
+  function to_mapping_Int'1 t_FMap_Int_Excl_PositiveReal : int ->
+    t_Option_Excl_PositiveReal
+  
+  function get_Int'1 (self:t_FMap_Int_Excl_PositiveReal) (k:int) :
+    t_Option_Excl_PositiveReal = get1 (to_mapping_Int'1 self) k
+  
+  (* meta rewrite_def function get_Int'1 *)
+  
+  function total_op_Int t_FMap_Int_Excl_PositiveReal
+    t_FMap_Int_Excl_PositiveReal : t_FMap_Int_Excl_PositiveReal
+  
+  axiom total_op_Int_spec :
+    forall self:t_FMap_Int_Excl_PositiveReal, other:
+     t_FMap_Int_Excl_PositiveReal [total_op_Int self other].
+     (forall k:int.
+       not op_Option_Excl_PositiveReal (get_Int'1 self k) (get_Int'1 other k) =
+           None'9) ->
+     (forall k:int.
+       Some'9 (get_Int'1 (total_op_Int self other) k) =
+       op_Option_Excl_PositiveReal (get_Int'1 self k) (get_Int'1 other k))
+  
+  function op_FMap_Int_Excl_PositiveReal (self:t_FMap_Int_Excl_PositiveReal)
+    (other:t_FMap_Int_Excl_PositiveReal) :
+    t_Option_FMap_Int_Excl_PositiveReal =
+    if forall k:int.
+        not op_Option_Excl_PositiveReal (get_Int'1 self k)
+            (get_Int'1 other k) = None'9
+    then Some'7 (total_op_Int self other) else None'7
+  
+  function commutative_FMap_Int_Excl_PositiveReal
+    t_FMap_Int_Excl_PositiveReal t_FMap_Int_Excl_PositiveReal : unit
+  
+  axiom commutative_FMap_Int_Excl_PositiveReal_spec :
+    forall a:t_FMap_Int_Excl_PositiveReal, b:t_FMap_Int_Excl_PositiveReal.
+     op_FMap_Int_Excl_PositiveReal a b = op_FMap_Int_Excl_PositiveReal b a
+  
+  function len_Int'1 t_FMap_Int_Excl_PositiveReal : int
+  
+  axiom len_Int_spec'1 :
+    forall self:t_FMap_Int_Excl_PositiveReal [len_Int'1 self].
+     ge_log_Int (len_Int'1 self) 0
+  
+  constant empty_Int'1 : t_FMap_Int_Excl_PositiveReal
+  
+  axiom empty_Int_spec'3 : len_Int'1 empty_Int'1 = 0
+  
+  axiom empty_Int_spec'4 :
+    to_mapping_Int'1 empty_Int'1 =
+    (const None'8: int -> t_Option_Excl_PositiveReal)
+  
+  constant unit_FMap_Int_Excl_PositiveReal : t_FMap_Int_Excl_PositiveReal =
+    empty_Int'1
+  
+  axiom unit_FMap_Int_Excl_PositiveReal_spec :
+    forall x:t_FMap_Int_Excl_PositiveReal
+     [op_FMap_Int_Excl_PositiveReal x unit_FMap_Int_Excl_PositiveReal].
+     op_FMap_Int_Excl_PositiveReal x unit_FMap_Int_Excl_PositiveReal =
+     Some'7 x
+  
+  predicate incl_Excl_PositiveReal (self:t_Excl_PositiveReal) (other:
+    t_Excl_PositiveReal) = false
+  
+  axiom incl_Excl_PositiveReal_spec :
+    forall self:t_Excl_PositiveReal, other:t_Excl_PositiveReal
+     [incl_Excl_PositiveReal self other].
+     incl_Excl_PositiveReal self other <->
+     (exists factor:t_Excl_PositiveReal.
+       op_Excl_PositiveReal self factor = Some'8 other)
+  
+  function incl_transitive_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal t_Excl_PositiveReal : unit
+  
+  axiom incl_transitive_Excl_PositiveReal_spec :
+    forall a:t_Excl_PositiveReal, b:t_Excl_PositiveReal, c:
+     t_Excl_PositiveReal.
+     incl_Excl_PositiveReal a b ->
+     incl_Excl_PositiveReal b c -> incl_Excl_PositiveReal a c
+  
+  function associative_some_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal t_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal : unit
+  
+  axiom associative_some_Excl_PositiveReal_spec :
+    forall a:t_Excl_PositiveReal, b:t_Excl_PositiveReal, c:
+     t_Excl_PositiveReal, ab:t_Excl_PositiveReal, bc:t_Excl_PositiveReal.
+     op_Excl_PositiveReal a b = Some'8 ab ->
+     op_Excl_PositiveReal b c = Some'8 bc ->
+     op_Excl_PositiveReal a bc = op_Excl_PositiveReal ab c
+  
+  function associative_none_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal t_Excl_PositiveReal t_Excl_PositiveReal : unit
+  
+  axiom associative_none_Excl_PositiveReal_spec :
+    forall a:t_Excl_PositiveReal, b:t_Excl_PositiveReal, c:
+     t_Excl_PositiveReal, bc:t_Excl_PositiveReal.
+     op_Excl_PositiveReal a b = None'8 ->
+     op_Excl_PositiveReal b c = Some'8 bc ->
+     op_Excl_PositiveReal a bc = None'8
+  
+  function incl_op_Excl_PositiveReal t_Excl_PositiveReal t_Excl_PositiveReal
+    t_Excl_PositiveReal : unit
+  
+  axiom incl_op_Excl_PositiveReal_spec :
+    forall self:t_Excl_PositiveReal, other:t_Excl_PositiveReal, comb:
+     t_Excl_PositiveReal.
+     op_Excl_PositiveReal self other = Some'8 comb ->
+     incl_Excl_PositiveReal self comb
+  
+  predicate eq_Excl_PositiveReal (self:t_Excl_PositiveReal) (other:
+    t_Excl_PositiveReal) = self = other
+  
+  (* meta rewrite_def predicate eq_Excl_PositiveReal *)
+  
+  axiom eq_Excl_PositiveReal_spec :
+    forall self:t_Excl_PositiveReal, other:t_Excl_PositiveReal
+     [eq_Excl_PositiveReal self other].
+     eq_Excl_PositiveReal self other <-> self = other
+  
+  predicate incl_eq_Excl_PositiveReal (self:t_Excl_PositiveReal) (other:
+    t_Excl_PositiveReal) =
+    eq_Excl_PositiveReal self other \/ incl_Excl_PositiveReal self other
+  
+  predicate incl_Option_Excl_PositiveReal (self:t_Option_Excl_PositiveReal)
+    (other:t_Option_Excl_PositiveReal) =
+    match Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk self
+          other with
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk None'8 _ ->
+        true
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk _ None'8 ->
+        false
+    | Tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal'mk (Some'8 x)
+        (Some'8 y) -> incl_eq_Excl_PositiveReal x y
+    end
+  
+  axiom incl_Option_Excl_PositiveReal_spec :
+    forall self:t_Option_Excl_PositiveReal, other:t_Option_Excl_PositiveReal
+     [incl_Option_Excl_PositiveReal self other].
+     incl_Option_Excl_PositiveReal self other <->
+     (exists factor:t_Option_Excl_PositiveReal.
+       op_Option_Excl_PositiveReal self factor = Some'9 other)
+  
+  predicate incl_FMap_Int_Excl_PositiveReal (self:
+    t_FMap_Int_Excl_PositiveReal) (other:t_FMap_Int_Excl_PositiveReal) =
+    let r =
+      (if forall k:int.
+           incl_Option_Excl_PositiveReal (get_Int'1 self k)
+           (get_Int'1 other k)
+       then True else False)
+    in r = True
+  
+  axiom incl_FMap_Int_Excl_PositiveReal_spec :
+    forall self:t_FMap_Int_Excl_PositiveReal, other:
+     t_FMap_Int_Excl_PositiveReal
+     [incl_FMap_Int_Excl_PositiveReal self other].
+     incl_FMap_Int_Excl_PositiveReal self other <->
+     (exists factor:t_FMap_Int_Excl_PositiveReal.
+       op_FMap_Int_Excl_PositiveReal self factor = Some'7 other)
+  
+  predicate rel_AuthViewRel_FMap_Int_Excl_PositiveReal (a:
+    t_Option_FMap_Int_Excl_PositiveReal) (f:t_FMap_Int_Excl_PositiveReal) =
+    match a with
+    | Some'7 a'0 -> incl_FMap_Int_Excl_PositiveReal f a'0
+    | None'7 -> true
+    end
+  
+  function rel_unit_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Option_FMap_Int_Excl_PositiveReal : unit
+  
+  axiom rel_unit_AuthViewRel_FMap_Int_Excl_PositiveReal_spec :
+    forall a:t_Option_FMap_Int_Excl_PositiveReal.
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal a
+     unit_FMap_Int_Excl_PositiveReal
+  
+  function rel_none_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Option_FMap_Int_Excl_PositiveReal t_FMap_Int_Excl_PositiveReal : unit
+  
+  axiom rel_none_AuthViewRel_FMap_Int_Excl_PositiveReal_spec :
+    forall a:t_Option_FMap_Int_Excl_PositiveReal, f:
+     t_FMap_Int_Excl_PositiveReal.
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal None'7 f
+  
+  function rel_mono_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Option_FMap_Int_Excl_PositiveReal t_FMap_Int_Excl_PositiveReal
+    t_FMap_Int_Excl_PositiveReal : unit
+  
+  axiom rel_mono_AuthViewRel_FMap_Int_Excl_PositiveReal_spec :
+    forall a:t_Option_FMap_Int_Excl_PositiveReal, f1:
+     t_FMap_Int_Excl_PositiveReal, f2:t_FMap_Int_Excl_PositiveReal.
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal a f1 ->
+     incl_FMap_Int_Excl_PositiveReal f2 f1 ->
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal a f2
+  
+  function auth_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_View_AuthViewRel_FMap_Int_Excl_PositiveReal :
+    t_Option_FMap_Int_Excl_PositiveReal
+  
+  function frag_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_View_AuthViewRel_FMap_Int_Excl_PositiveReal :
+    t_FMap_Int_Excl_PositiveReal
+  
+  axiom frag_AuthViewRel_FMap_Int_Excl_PositiveReal_spec :
+    forall self:t_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+     [frag_AuthViewRel_FMap_Int_Excl_PositiveReal self].
+     rel_AuthViewRel_FMap_Int_Excl_PositiveReal
+     (auth_AuthViewRel_FMap_Int_Excl_PositiveReal self)
+     (frag_AuthViewRel_FMap_Int_Excl_PositiveReal self)
+  
+  function val_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+    t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal :
+    t_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+  
+  function view_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal (self:
+    t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal) :
+    t_View_AuthViewRel_FMap_Int_Excl_PositiveReal =
+    val_View_AuthViewRel_FMap_Int_Excl_PositiveReal self
+  
+  (* meta rewrite_def
+    function view_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal *)
+  
+  function view_Fragment_FMap_Int_Excl_PositiveReal (self:
+    t_Fragment_FMap_Int_Excl_PositiveReal) : t_FMap_Int_Excl_PositiveReal =
+    frag_AuthViewRel_FMap_Int_Excl_PositiveReal
+    (view_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal (self.f0))
+  
+  predicate contains_Int'0 (self:t_FMap_Int_Excl_PositiveReal) (k:int) =
+    not get_Int'1 self k = None'8
+  
+  (* meta rewrite_def predicate contains_Int'0 *)
+  
+  function insert_Int'0 t_FMap_Int_Excl_PositiveReal int
+    t_Excl_PositiveReal : t_FMap_Int_Excl_PositiveReal
+  
+  axiom insert_Int_spec'1 :
+    forall self:t_FMap_Int_Excl_PositiveReal, k:int, v:t_Excl_PositiveReal
+     [insert_Int'0 self k v].
+     to_mapping_Int'1 (insert_Int'0 self k v) =
+     set1 (to_mapping_Int'1 self) k (Some'8 v)
+  
+  axiom insert_Int_spec'2 :
+    forall self:t_FMap_Int_Excl_PositiveReal, k:int, v:t_Excl_PositiveReal
+     [insert_Int'0 self k v].
+     len_Int'1 (insert_Int'0 self k v) =
+     (if contains_Int'0 self k then len_Int'1 self else len_Int'1 self + 1)
+  
+  function singleton_Int'0 (k:int) (v:t_Excl_PositiveReal) :
+    t_FMap_Int_Excl_PositiveReal = insert_Int'0 empty_Int'1 k v
+  
+  function frac t_LifetimeToken : t_PositiveReal
+  
+  function lft_PhysicalRegion'0 t_EndBorrow_PhysicalRegion : t_Lifetime
+  
+  function fin_EndBorrow_PhysicalRegion t_EndBorrow_PhysicalRegion :
+    t_PhysicalRegion
+  
+  function lft_OwnedControl_Shared'0 t_EndBorrow_OwnedControl_Shared :
+    t_Lifetime
+  
+  function fin_EndBorrow_OwnedControl_Shared
+    t_EndBorrow_OwnedControl_Shared : t_OwnedControl_Shared
+  
+  predicate wellformed_Payload (self:t_Payload) =
+    invariant' (self.recovery'0) /\
+    invariant_BoundPtr (self.base'0) /\
+    view_BoundPtr (self.base'0) =
+    Some'1
+    (Tup3_Id_Int_Int'mk (namespace (self.recovery'0))
+     (capacity'2 (self.recovery'0)) 0) /\
+    t'int (self.capacity'0) = capacity'2 (self.recovery'0) /\
+    t'int (self.len'0) = length (self.expected'0) /\
+    gt_log_Int (t'int (self.capacity'0)) 0 /\
+    t'int (self.len'0) <= t'int (self.capacity'0) /\
+    lft_PhysicalRegion'0 (self.physical_end'0) =
+    lft_PhysicalRegion (self.physical'0) /\
+    lft_PhysicalRegion (self.physical'0) =
+    lft_OwnedControl_Shared (self.control'0) /\
+    fin_EndBorrow_PhysicalRegion (self.physical_end'0) =
+    cur_PhysicalRegion (self.physical'0) /\
+    invariant_PhysicalRegion (cur_PhysicalRegion (self.physical'0)) /\
+    namespace'0 (cur_PhysicalRegion (self.physical'0)) =
+    namespace (self.recovery'0) /\
+    capacity'3 (cur_PhysicalRegion (self.physical'0)) =
+    capacity'2 (self.recovery'0) /\
+    resource_id (cur_PhysicalRegion (self.physical'0)) =
+    namespace (self.recovery'0) /\
+    lo (cur_PhysicalRegion (self.physical'0)) = 0 /\
+    hi (cur_PhysicalRegion (self.physical'0)) = capacity'2 (self.recovery'0) /\
+    lft_OwnedControl_Shared'0 (self.control_end'0) =
+    lft_OwnedControl_Shared (self.control'0) /\
+    fin_EndBorrow_OwnedControl_Shared (self.control_end'0) =
+    cur_OwnedControl_Shared (self.control'0) /\
+    wellformed_Shared (cur_OwnedControl_Shared (self.control'0)) /\
+    (val_ptr_Shared ((cur_OwnedControl_Shared (self.control'0)).owner)).buf =
+    raw_pointer (self.base'0) /\
+    t'int
+    ((val_ptr_Shared ((cur_OwnedControl_Shared (self.control'0)).owner)).cap) =
+    capacity'2 (self.recovery'0) /\
+    model_Shared (cur_OwnedControl_Shared (self.control'0)) =
+    atomic_model
+    ((val_ptr_Shared ((cur_OwnedControl_Shared (self.control'0)).owner)).ref_cnt) /\
+    (forall i:int.
+      0 <= i /\ i < t'int (self.len'0) ->
+      slot (cur_PhysicalRegion (self.physical'0)) i =
+      Some'5 (Some'3 (get (self.expected'0) i)))
+  
+  constant any_Payload : t_Payload
+  
+  function unwrap_Option_Payload (self:t_Option_Payload) : t_Payload =
+    match self with
+    | Some x -> x
+    | None -> any_Payload
+    end
+  
+  function metadata_Payload (self:t_Payload) :
+    tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8 =
+    Tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8'mk
+    (lft_OwnedControl_Shared (self.control'0)) (namespace (self.recovery'0))
+    (capacity'2 (self.recovery'0)) (self.expected'0)
+    (t'int
+     (addr_logic_u64
+      (pointer_Shared (cur_OwnedControl_Shared (self.control'0)))))
+    (pointer_Shared (cur_OwnedControl_Shared (self.control'0)))
+    (raw_pointer (self.base'0))
+  
+  predicate valid_Payload (self:t_Ticket_Payload) (public:
+    tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id) =
+    0 <= self.id1 /\
+    id_FMap_Int_Excl_PositiveReal (self.fragment) = public.f1'10 /\
+    view_Fragment_FMap_Int_Excl_PositiveReal (self.fragment) =
+    singleton_Int'0 (self.id1) (T_Excl_PositiveReal'mk (frac (self.token))) /\
+    lft (self.token) = public.f2'10 /\
+    (if self.id1 = 0
+     then not self.recovery = None /\
+          wellformed_Payload (unwrap_Option_Payload (self.recovery)) /\
+          metadata_Payload (unwrap_Option_Payload (self.recovery)) =
+          public.f3'10
+     else self.recovery = None)
+  
+  predicate valid_for (self:t_SharedCore) (ptr'0:ptr) (len'1:t17) =
+    let p = self in
+    invariant_BoundPtr (p.bound'1) /\
+    view_BoundPtr (p.bound'1) =
+    Some'1
+    (Tup3_Id_Int_Int'mk
+     (((public_State_Payload (p.invariant''1)).f3'10).f1'9)
+     (t'int (p.capacity'1)) 0) /\
+    t'int (p.capacity'1) =
+    ((public_State_Payload (p.invariant''1)).f3'10).f2'9 /\
+    t'int len'1 =
+    length (((public_State_Payload (p.invariant''1)).f3'10).f3'9) /\
+    gt_log_Int (t'int (p.capacity'1)) 0 /\
+    t'int len'1 <= t'int (p.capacity'1) /\
+    ptr'0 = raw_pointer (p.bound'1) /\
+    current_address (p.bound'1) = t'int (addr_logic_u64 ptr'0) /\
+    p.shared'1 = pointer_Shared (cur_OwnedControl_Shared (p.control'1)) /\
+    ((public_State_Payload (p.invariant''1)).f3'10).f5'9 = p.shared'1 /\
+    ((public_State_Payload (p.invariant''1)).f3'10).f6'9 =
+    raw_pointer (p.bound'1) /\
+    ((public_State_Payload (p.invariant''1)).f3'10).f0'9 =
+    (public_State_Payload (p.invariant''1)).f2'10 /\
+    lft_OwnedControl_Shared (p.control'1) =
+    (public_State_Payload (p.invariant''1)).f2'10 /\
+    lft_PhysicalRegion (p.physical'1) =
+    (public_State_Payload (p.invariant''1)).f2'10 /\
+    wellformed_Shared (cur_OwnedControl_Shared (p.control'1)) /\
+    model_Shared (cur_OwnedControl_Shared (p.control'1)) =
+    model_State_Payload (p.invariant''1) /\
+    (val_ptr_Shared ((cur_OwnedControl_Shared (p.control'1)).owner)).buf =
+    raw_pointer (p.bound'1) /\
+    t'int
+    ((val_ptr_Shared ((cur_OwnedControl_Shared (p.control'1)).owner)).cap) =
+    t'int (p.capacity'1) /\
+    invariant_PhysicalRegion (cur_PhysicalRegion (p.physical'1)) /\
+    namespace'0 (cur_PhysicalRegion (p.physical'1)) =
+    (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (p.bound'1))).f0'1 /\
+    capacity'3 (cur_PhysicalRegion (p.physical'1)) = t'int (p.capacity'1) /\
+    resource_id (cur_PhysicalRegion (p.physical'1)) =
+    (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (p.bound'1))).f0'1 /\
+    lo (cur_PhysicalRegion (p.physical'1)) = 0 /\
+    hi (cur_PhysicalRegion (p.physical'1)) = t'int (p.capacity'1) /\
+    (forall i:int.
+      0 <= i /\ i < t'int len'1 ->
+      slot (cur_PhysicalRegion (p.physical'1)) i =
+      Some'5
+      (Some'3 (get (((public_State_Payload (p.invariant''1)).f3'10).f3'9) i))) /\
+    lft ((p.ticket'1).token) = (public_State_Payload (p.invariant''1)).f2'10 /\
+    valid_Payload (p.ticket'1) (public_State_Payload (p.invariant''1))
+  
+  predicate valid'1 (self:t_SharedCore) =
+    valid_for self (raw_pointer (self.bound'1)) (self.capacity'1)
+  
+  function model_State_Payload'0 t_ScopeCursor_State_Payload : t_AtomicUsize
+  
+  function public_State_Payload'0 t_ScopeCursor_State_Payload :
+    tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+  
+  function public (self:t_SharedCore) :
+    tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id =
+    public_State_Payload (self.invariant''1)
+  
+  predicate accepts (self:t_SharedCore) (cursor'0:
+    t_ScopeCursor_State_Payload) =
+    model_State_Payload'0 cursor'0 = model_State_Payload (self.invariant''1) /\
+    public_State_Payload'0 cursor'0 = public self
+  
+  function content (self:t_SharedCore) : seq t18 =
+    ((public_State_Payload (self.invariant''1)).f3'10).f3'9
+  
+  constant any_tup2_ptr_unit_SyncView : tup2_ptr_unit_SyncView
+  
+  function unwrap_Option_tup2_ptr_unit_SyncView (self:
+    t_Option_tup2_ptr_unit_SyncView) : tup2_ptr_unit_SyncView =
+    match self with
+    | Some'6 x -> x
+    | None'6 -> any_tup2_ptr_unit_SyncView
+    end
+  
+  predicate latest_is (history:t_FMap_Int_tup2_ptr_unit_SyncView)
+    (expected'1:ptr) =
+    exists t:int.
+     not get_Int'0 history t = None'6 /\
+     (unwrap_Option_tup2_ptr_unit_SyncView (get_Int'0 history t)).f0'8 =
+     expected'1 /\ (forall u:int. not get_Int'0 history u = None'6 -> u <= t)
+  
+  predicate visible_is (history:t_FMap_Int_tup2_ptr_unit_SyncView) (lower:
+    int) (expected'1:ptr) =
+    forall t:int.
+     lower <= t /\ not get_Int'0 history t = None'6 ->
+     (unwrap_Option_tup2_ptr_unit_SyncView (get_Int'0 history t)).f0'8 =
+     expected'1
+  
+  predicate lt_log_SyncView t_SyncView t_SyncView
+  
+  predicate le_log_SyncView (self:t_SyncView) (other:t_SyncView) =
+    lt_log_SyncView self other \/ self = other
+  
+  (* meta rewrite_def predicate le_log_SyncView *)
+  
+  function le_lt_log_SyncView t_SyncView t_SyncView : unit
+  
+  axiom le_lt_log_SyncView_spec :
+    forall self:t_SyncView, other:t_SyncView.
+     le_log_SyncView self other <->
+     lt_log_SyncView self other \/ self = other
+  
+  function transitive_SyncView t_SyncView t_SyncView t_SyncView : unit
+  
+  axiom transitive_SyncView_spec :
+    forall x:t_SyncView, y:t_SyncView, z:t_SyncView.
+     lt_log_SyncView x y -> lt_log_SyncView y z -> lt_log_SyncView x z
+  
+  function irreflexive_SyncView t_SyncView : unit
+  
+  axiom irreflexive_SyncView_spec :
+    forall self:t_SyncView. not lt_log_SyncView self self
+  
+  function get_timestamp_AtomicPtr_unit t_AtomicPtr_unit t_SyncView : int
+  
+  function get_timestamp_monotonic_AtomicPtr_unit t_AtomicPtr_unit t_SyncView
+    t_SyncView : unit
+  
+  axiom get_timestamp_monotonic_AtomicPtr_unit_spec :
+    forall self:t_AtomicPtr_unit, x:t_SyncView, y:t_SyncView.
+     le_log_SyncView x y ->
+     get_timestamp_AtomicPtr_unit self x
+     <= get_timestamp_AtomicPtr_unit self y
+  
+  predicate valid'2 (self:t_SharedPhase) (d:t_RootDescriptor) =
+    valid d /\
+    valid'1 (self.root) /\
+    accepts (self.root) (self.cursor) /\
+    (self.root).bound'1 = d.base /\
+    (self.root).capacity'1 = d.capacity /\
+    content (self.root) = d.expected /\
+    bw_and (addr_logic_u64 ((self.root).shared'1)) (1:t17) = (0:t17) /\
+    ward_AtomicPtr_unit (self.own) = d.model /\
+    latest_is (val_AtomicPtr_unit (self.own)) ((self.root).shared'1) /\
+    visible_is (val_AtomicPtr_unit (self.own))
+    (get_timestamp_AtomicPtr_unit (d.model) (self.current'))
+    ((self.root).shared'1)
+  
+  predicate valid'3 (self:t_PromotionScope) =
+    match self.phase with
+    | Some'0 (Raw raw) -> valid'0 raw (self.descriptor)
+    | Some'0 (Shared shared) -> valid'2 shared (self.descriptor)
+    | None'0 -> valid (self.descriptor)
+    end
+  
+  constant even_table : t_Vtable
+  
+  constant odd_table : t_Vtable
+  
+  function table (self:t_RootDescriptor) : t_Vtable =
+    if bw_and (addr_logic_u64 (raw_pointer (self.base))) (1:t17) = (0:t17)
+    then even_table else odd_table
+  
+  predicate matches (self:t_RootDescriptor) (ptr'0:ptr) (len'1:t17) (data'0:
+    t_AtomicPtr_unit) (table'0:t_Vtable) =
+    valid self /\
+    ptr'0 = raw_pointer (self.base) /\
+    len'1 = self.capacity /\ data'0 = self.model /\ table'0 = table self
+  
+  function pointer_model t_Atomic_ptr_unit : t_AtomicPtr_unit
+  
+  predicate root_valid (self:t_PromotionScope) (value:t_Bytes) =
+    valid'3 self /\
+    not self.phase = None'0 /\
+    match value.original_shared with
+    | Root d ->
+        d = self.descriptor /\
+        matches d (value.ptr) (value.len) (pointer_model (value.data))
+        (value.vtable)
+    | _ -> false
+    end
+  
+  predicate is_raw (self:t_PromotionScope) =
+    match self.phase with
+    | Some'0 (Raw _) -> true
+    | _ -> false
+    end
+  
+  predicate invariant_refmut_Ghost_PromotionScope (self:t22
+    t_PromotionScope) =
+    inv_Ghost_PromotionScope (self.current) /\
+    inv_Ghost_PromotionScope (self.final)
+  
+  (* meta rewrite_def predicate invariant_refmut_Ghost_PromotionScope *)
+  
+  predicate inv_refmut_Ghost_PromotionScope (_1:t22 t_PromotionScope) =
+    invariant_refmut_Ghost_PromotionScope _1
+  
+  (* meta rewrite_def predicate inv_refmut_Ghost_PromotionScope *)
+  
+  predicate invariant_refmut_PromotionScope (self:t22 t_PromotionScope) =
+    inv_PromotionScope (self.current) /\ inv_PromotionScope (self.final)
+  
+  (* meta rewrite_def predicate invariant_refmut_PromotionScope *)
+  
+  predicate inv_refmut_PromotionScope (_1:t22 t_PromotionScope) =
+    invariant_refmut_PromotionScope _1
+  
+  (* meta rewrite_def predicate inv_refmut_PromotionScope *)
+  
+  predicate invariant_Ghost_refmut_PromotionScope (self:t22
+    t_PromotionScope) = inv_refmut_PromotionScope self
+  
+  (* meta rewrite_def predicate invariant_Ghost_refmut_PromotionScope *)
+  
+  predicate inv_Ghost_refmut_PromotionScope (_1:t22 t_PromotionScope) =
+    invariant_Ghost_refmut_PromotionScope _1
+  
+  (* meta rewrite_def predicate inv_Ghost_refmut_PromotionScope *)
+  
+  predicate invariant_ref_Bytes (self:t_Bytes) = inv_Bytes self
+  
+  (* meta rewrite_def predicate invariant_ref_Bytes *)
+  
+  predicate inv_ref_Bytes (_1:t_Bytes) = invariant_ref_Bytes _1
+  
+  (* meta rewrite_def predicate inv_ref_Bytes *)
+  
+  function fin_Ghost_refmut_PromotionScope (self:t22 t_PromotionScope) :
+    t_PromotionScope = self.final
+  
+  (* meta rewrite_def function fin_Ghost_refmut_PromotionScope *)
+  
+  predicate is_shared (self:t_PromotionScope) =
+    match self.phase with
+    | Some'0 (Shared _) -> true
+    | _ -> false
+    end
+  
+  constant shared_table : t_Vtable
+  
+  function model'0 t_ReadOnlyPointer : t_AtomicPtr_unit
+  
+  function value t_ReadOnlyPointer : ptr
+  
+  predicate child_valid (self:t_Bytes) =
+    match self.original_shared with
+    | Child p ->
+        valid'1 (p.core) /\
+        self.ptr = raw_pointer ((p.core).bound'1) /\
+        self.len = (p.core).capacity'1 /\
+        self.vtable = shared_table /\
+        model'0 (p.binding) = pointer_model (self.data) /\
+        value (p.binding) = (p.core).shared'1
+    | _ -> false
+    end
+  
+  predicate is_child (self:t_Bytes) =
+    match self.original_shared with
+    | Child _ -> true
+    | _ -> false
+    end
+  
+  constant any_Seq_u8 : seq t18
+  
+  function child_content (self:t_Bytes) : seq t18 =
+    match self.original_shared with
+    | Child p -> content (p.core)
+    | _ -> any_Seq_u8
+    end
+  
+  type tup2_OriginalSharedProof_Option_Phase =
+    | Tup2_OriginalSharedProof_Option_Phase'mk (f0'13:t_OriginalSharedProof)
+        (f1'13:t_Option_Phase)
+  
+  (* meta model_record function f1'13 *)
+  
+  (* meta model_record function f0'13 *)
+  
+  predicate child_accepts (self:t_Bytes) (scope':t_PromotionScope) =
+    match Tup2_OriginalSharedProof_Option_Phase'mk (self.original_shared)
+          (scope'.phase) with
+    | Tup2_OriginalSharedProof_Option_Phase'mk (Child p) (Some'0 (Shared
+        s)) -> accepts (p.core) (s.cursor)
+    | _ -> false
+    end
+  
+  type tup2_FMap_Int_Excl_PositiveReal_Int =
+    | Tup2_FMap_Int_Excl_PositiveReal_Int'mk (f0'14:
+        t_FMap_Int_Excl_PositiveReal) (f1'14:int)
+  
+  (* meta model_record function f1'14 *)
+  
+  (* meta model_record function f0'14 *)
+  
+  function observation_State_Payload t_ScopeCursor_State_Payload :
+    tup2_FMap_Int_Excl_PositiveReal_Int
+  
+  constant any_Snapshot_tup2_FMap_Int_Excl_PositiveReal_Int :
+    tup2_FMap_Int_Excl_PositiveReal_Int
+  
+  function observation (self:t_PromotionScope) :
+    tup2_FMap_Int_Excl_PositiveReal_Int =
+    match self.phase with
+    | Some'0 (Shared s) -> observation_State_Payload (s.cursor)
+    | _ -> any_Snapshot_tup2_FMap_Int_Excl_PositiveReal_Int
+    end
+  
+  function id_Payload (self:t_Ticket_Payload) : int = self.id1
+  
+  constant any_Int : int
+  
+  function root_id (self:t_PromotionScope) : int =
+    match self.phase with
+    | Some'0 (Shared s) -> id_Payload ((s.root).ticket'1)
+    | _ -> any_Int
+    end
+  
+  function fraction_Payload (self:t_Ticket_Payload) : t_PositiveReal =
+    frac (self.token)
+  
+  constant any_PositiveReal : t_PositiveReal
+  
+  function root_fraction (self:t_PromotionScope) : t_PositiveReal =
+    match self.phase with
+    | Some'0 (Shared s) -> fraction_Payload ((s.root).ticket'1)
+    | _ -> any_PositiveReal
+    end
+  
+  function child_id (self:t_Bytes) : int =
+    match self.original_shared with
+    | Child p -> id_Payload ((p.core).ticket'1)
+    | _ -> any_Int
+    end
+  
+  function child_fraction (self:t_Bytes) : t_PositiveReal =
+    match self.original_shared with
+    | Child p -> fraction_Payload ((p.core).ticket'1)
+    | _ -> any_PositiveReal
+    end
+  
+  predicate clone_result (d:t_RootDescriptor) (s:t_PromotionScope) (result:
+    t_Bytes) =
+    valid'3 s /\
+    is_shared s /\
+    s.descriptor = d /\
+    child_valid result /\
+    result.ptr = raw_pointer (d.base) /\
+    result.len = d.capacity /\
+    child_content result = d.expected /\
+    child_accepts result s /\
+    (observation s).f0'14 =
+    insert_Int'0
+    (singleton_Int'0 (root_id s) (T_Excl_PositiveReal'mk (root_fraction s)))
+    (child_id result) (T_Excl_PositiveReal'mk (child_fraction result)) /\
+    not root_id s = child_id result
+  
+  constant any_tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id :
+    tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+  
+  function child_public (self:t_Bytes) :
+    tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id =
+    match self.original_shared with
+    | Child p -> public (p.core)
+    | _ ->
+        any_tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+    end
+  
+  type t_DetachedScope =
+    | T_DetachedScope'mk (cursor'0:t_ScopeCursor_State_Payload)
+  
+  (* meta model_record function cursor'0 *)
+  
+  type t_Option_DetachedScope =
+    | None'10
+    | Some'10 t_DetachedScope
+  
+  type t_FreeReceipt
+  
+  type t_TypedFreeReceipt_Shared
+  
+  type t_Completion =
+    | KeptAlive
+    | Reclaimed t_FreeReceipt t_TypedFreeReceipt_Shared
+  
+  type t_Option_Completion =
+    | None'11
+    | Some'11 t_Completion
+  
+  function fin_Ghost_refmut_Option_DetachedScope (self:t22
+    t_Option_DetachedScope) : t_Option_DetachedScope = self.final
+  
+  (* meta rewrite_def function fin_Ghost_refmut_Option_DetachedScope *)
+  
+  function model'1 (self:t_DetachedScope) : t_AtomicUsize =
+    model_State_Payload'0 (self.cursor'0)
+  
+  constant any_DetachedScope : t_DetachedScope
+  
+  function unwrap_Option_DetachedScope (self:t_Option_DetachedScope) :
+    t_DetachedScope =
+    match self with
+    | Some'10 x -> x
+    | None'10 -> any_DetachedScope
+    end
+  
+  constant any_AtomicUsize : t_AtomicUsize
+  
+  function cursor_model (self:t_PromotionScope) : t_AtomicUsize =
+    match self.phase with
+    | Some'0 (Shared s) -> model_State_Payload'0 (s.cursor)
+    | _ -> any_AtomicUsize
+    end
+  
+  function public'0 (self:t_DetachedScope) :
+    tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id =
+    public_State_Payload'0 (self.cursor'0)
+  
+  function cursor_public (self:t_PromotionScope) :
+    tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id =
+    match self.phase with
+    | Some'0 (Shared s) -> public_State_Payload'0 (s.cursor)
+    | _ ->
+        any_tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+    end
+  
+  function observation'0 (self:t_DetachedScope) :
+    tup2_FMap_Int_Excl_PositiveReal_Int =
+    observation_State_Payload (self.cursor'0)
+  
+  function remove_Int t_FMap_Int_Excl_PositiveReal int :
+    t_FMap_Int_Excl_PositiveReal
+  
+  axiom remove_Int_spec :
+    forall self:t_FMap_Int_Excl_PositiveReal, k:int [remove_Int self k].
+     to_mapping_Int'1 (remove_Int self k) =
+     set1 (to_mapping_Int'1 self) k None'8
+  
+  axiom remove_Int_spec'0 :
+    forall self:t_FMap_Int_Excl_PositiveReal, k:int [remove_Int self k].
+     len_Int'1 (remove_Int self k) =
+     (if contains_Int'0 self k then len_Int'1 self - 1 else len_Int'1 self)
+  
+  function fin_Ghost_refmut_Option_Completion (self:t22
+    t_Option_Completion) : t_Option_Completion = self.final
+  
+  (* meta rewrite_def function fin_Ghost_refmut_Option_Completion *)
+  
+  predicate reclaimed (self:t_Completion) =
+    match self with
+    | KeptAlive -> false
+    | Reclaimed _ _ -> true
+    end
+  
+  constant any_Completion : t_Completion
+  
+  function unwrap_Option_Completion (self:t_Option_Completion) :
+    t_Completion =
+    match self with
+    | Some'11 x -> x
+    | None'11 -> any_Completion
+    end
+  
+  function namespace'1 t_FreeReceipt : t_Id
+  
+  function pointer'0 t_FreeReceipt : ptr
+  
+  function size t_FreeReceipt : int
+  
+  function align t_FreeReceipt : int
+  
+  predicate allocated t_FreeReceipt
+  
+  function pointer_Shared'0 t_TypedFreeReceipt_Shared : ptr
+  
+  function size_Shared t_TypedFreeReceipt_Shared : int
+  
+  constant size_of_Shared : int = 24
+  
+  (* meta rewrite_def constant size_of_Shared *)
+  
+  axiom size_of_Shared_spec : 0 <= size_of_Shared
+  
+  function align_Shared t_TypedFreeReceipt_Shared : t17
+  
+  constant align_of_Shared : t17 = (8:t17)
+  
+  (* meta rewrite_def constant align_of_Shared *)
+  
+  axiom align_of_Shared_spec :
+    not (0:t17) = align_of_Shared /\
+    bw_and align_of_Shared (sub align_of_Shared (1:t17)) = (0:t17)
+  
+  axiom align_of_Shared_spec'0 :
+    mod size_of_Shared (t'int align_of_Shared) = 0
+  
+  predicate allocated_Shared t_TypedFreeReceipt_Shared
+  
+  predicate valid'4 (self:t_Completion) (metadata:
+    tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8) =
+    match self with
+    | KeptAlive -> true
+    | Reclaimed buffer control ->
+        namespace'1 buffer = metadata.f1'9 /\
+        pointer'0 buffer = metadata.f6'9 /\
+        size buffer = metadata.f2'9 /\
+        align buffer = 1 /\
+        allocated buffer /\
+        pointer_Shared'0 control = metadata.f5'9 /\
+        size_Shared control = size_of_Shared /\
+        align_Shared control = align_of_Shared /\ allocated_Shared control
+    end
+  
+  constant any_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8 :
+    tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8
+  
+  function root_metadata (self:t_PromotionScope) :
+    tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8 =
+    match self.phase with
+    | Some'0 (Shared s) -> (public (s.root)).f3'10
+    | _ -> any_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8
+    end
+  
+  type t_Range_usize =
+    | T_Range_usize'mk (start:t17) (end':t17)
+  
+  (* meta model_record function end' *)
+  
+  (* meta model_record function start *)
+  
+  predicate is_null_ptr_u8 (self:ptr) = addr_logic_u64 self = (0:t17)
+  
+  predicate bounded_view (core'0:t_SharedCore) (bound:t_BoundPtr) (ptr'0:ptr)
+    (len'1:t17) =
+    valid'1 core'0 /\
+    invariant_BoundPtr bound /\
+    not view_BoundPtr bound = None'1 /\
+    (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f0'1 =
+    (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (core'0.bound'1))).f0'1 /\
+    (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f1'1 =
+    t'int (core'0.capacity'1) /\
+    0 <= (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f2'1 /\
+    ((unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f2'1 + t'int len'1)
+    <= t'int (core'0.capacity'1) /\
+    ptr'0 = raw_pointer bound /\
+    current_address bound = t'int (addr_logic_u64 ptr'0) /\
+    current_address bound =
+    (current_address (core'0.bound'1)
+     + (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f2'1)
+  
+  constant static_view_table : t_Vtable
+  
+  constant null_word : ptr
+  
+  predicate view_valid (self:t_Bytes) =
+    not is_null_ptr_u8 (self.ptr) /\
+    match self.original_shared with
+    | Child _ -> child_valid self
+    | View p b ->
+        bounded_view (p.core) b (self.ptr) (self.len) /\
+        gt_log_usize (self.len) (0:t17) /\
+        self.vtable = shared_table /\
+        model'0 (p.binding) = pointer_model (self.data) /\
+        value (p.binding) = (p.core).shared'1
+    | Empty p ->
+        self.len = (0:t17) /\
+        self.vtable = static_view_table /\
+        invariant_BoundPtr (p.bound'0) /\
+        view_BoundPtr (p.bound'0) = None'1 /\
+        self.ptr = raw_pointer (p.bound'0) /\
+        model'0 (p.binding'0) = pointer_model (self.data) /\
+        value (p.binding'0) = null_word
+    | _ -> false
+    end
+  
+  predicate view_accepts (self:t_Bytes) (scope':t_DetachedScope) =
+    match self.original_shared with
+    | Child p | View p _ -> accepts (p.core) (scope'.cursor'0)
+    | Empty _ -> true
+    | _ -> false
+    end
+  
+  predicate api_view_valid (self:t_Bytes) =
+    not is_null_ptr_u8 (self.ptr) /\
+    match self.original_shared with
+    | Child _ -> child_valid self
+    | View p b ->
+        bounded_view (p.core) b (self.ptr) (self.len) /\
+        self.vtable = shared_table /\
+        model'0 (p.binding) = pointer_model (self.data) /\
+        value (p.binding) = (p.core).shared'1
+    | Empty _ -> view_valid self
+    | _ -> false
+    end
+  
+  function view_content (self:t_Bytes) : seq t18 =
+    match self.original_shared with
+    | Child p -> content (p.core)
+    | View p b ->
+        (content (p.core))[(unwrap_Option_tup3_Id_Int_Int (view_BoundPtr b)).f2'1..(
+        (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr b)).f2'1
+        + t'int (self.len))]
+    | Empty _ -> empty: seq t18
+    | _ -> any_Seq_u8
+    end
+  
+  predicate view_owned (self:t_Bytes) =
+    match self.original_shared with
+    | Child _ | View _ _ -> true
+    | _ -> false
+    end
+  
+  function fin_Ghost_refmut_DetachedScope (self:t22 t_DetachedScope) :
+    t_DetachedScope = self.final
+  
+  (* meta rewrite_def function fin_Ghost_refmut_DetachedScope *)
+  
+  function view_public (self:t_Bytes) :
+    tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id =
+    match self.original_shared with
+    | Child p | View p _ -> public (p.core)
+    | _ ->
+        any_tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+    end
+  
+  function view_id (self:t_Bytes) : int =
+    match self.original_shared with
+    | Child p | View p _ -> id_Payload ((p.core).ticket'1)
+    | _ -> any_Int
+    end
+  
+  function view_fraction (self:t_Bytes) : t_PositiveReal =
+    match self.original_shared with
+    | Child p | View p _ -> fraction_Payload ((p.core).ticket'1)
+    | _ -> any_PositiveReal
+    end
+  
+  type t_ViewEffect =
+    | Static'0
+    | Shared'0 t_Completion
+  
+  type t_Option_ViewEffect =
+    | None'12
+    | Some'12 t_ViewEffect
+  
+  function fin_Ghost_refmut_Option_ViewEffect (self:t22
+    t_Option_ViewEffect) : t_Option_ViewEffect = self.final
+  
+  (* meta rewrite_def function fin_Ghost_refmut_Option_ViewEffect *)
+  
+  predicate valid'5 (self:t_ViewEffect) (metadata:
+    tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8) =
+    match self with
+    | Static'0 -> true
+    | Shared'0 c -> valid'4 c metadata
+    end
+  
+  constant any_ViewEffect : t_ViewEffect
+  
+  function unwrap_Option_ViewEffect (self:t_Option_ViewEffect) :
+    t_ViewEffect =
+    match self with
+    | Some'12 x -> x
+    | None'12 -> any_ViewEffect
+    end
+  
+  predicate was_static (self:t_ViewEffect) =
+    match self with
+    | Static'0 -> true
+    | _ -> false
+    end
+  
+  predicate reclaimed'0 (self:t_ViewEffect) =
+    match self with
+    | Static'0 -> false
+    | Shared'0 c -> reclaimed c
+    end
+  
+  predicate invariant_refmut_Bytes (self:t22 t_Bytes) =
+    inv_Bytes (self.current) /\ inv_Bytes (self.final)
+  
+  (* meta rewrite_def predicate invariant_refmut_Bytes *)
+  
+  predicate inv_refmut_Bytes (_1:t22 t_Bytes) = invariant_refmut_Bytes _1
+  
+  (* meta rewrite_def predicate inv_refmut_Bytes *)
+  
+  type tup2_OriginalSharedProof_OriginalSharedProof =
+    | Tup2_OriginalSharedProof_OriginalSharedProof'mk (f0'15:
+        t_OriginalSharedProof) (f1'15:t_OriginalSharedProof)
+  
+  (* meta model_record function f1'15 *)
+  
+  (* meta model_record function f0'15 *)
+  
+  predicate same_api_owner (self:t_Bytes) (before:t_Bytes) =
+    match Tup2_OriginalSharedProof_OriginalSharedProof'mk
+          (before.original_shared) (self.original_shared) with
+    | Tup2_OriginalSharedProof_OriginalSharedProof'mk (Child a) (View b
+        _) | Tup2_OriginalSharedProof_OriginalSharedProof'mk (View a _) (View
+        b _) -> a = b
+    | Tup2_OriginalSharedProof_OriginalSharedProof'mk (Empty a) (Empty b) ->
+        a.binding'0 = b.binding'0
+    | _ -> false
+    end
+  
+  predicate resolve_refmut_Bytes (_1:t22 t_Bytes) = _1.final = _1.current
+  
+  (* meta rewrite_def predicate resolve_refmut_Bytes *)
+  
+  constant any_BoundPtr : t_BoundPtr
+  
+  function view_bound (self:t_Bytes) : t_BoundPtr =
+    match self.original_shared with
+    | Child p -> (p.core).bound'1
+    | View _ b -> b
+    | Empty p -> p.bound'0
+    | _ -> any_BoundPtr
+    end
+  
+  predicate well_founded_relation_Int (self:int) (other:int) =
+    ge_log_Int self 0 /\ gt_log_Int self other
+  
+  (* meta rewrite_def predicate well_founded_relation_Int *)
+  
+  predicate same_allocation (self:t_SharedCore) (other:t_SharedCore) =
+    self.shared'1 = other.shared'1 /\
+    self.bound'1 = other.bound'1 /\
+    self.capacity'1 = other.capacity'1 /\
+    self.control'1 = other.control'1 /\
+    self.physical'1 = other.physical'1 /\
+    self.invariant''1 = other.invariant''1
+  
+  predicate has_allocation (self:t_Bytes) (core'0:t_SharedCore) =
+    match self.original_shared with
+    | Child p | View p _ -> same_allocation (p.core) core'0
+    | _ -> false
+    end
+  
+  predicate shares_view_allocation (self:t_Bytes) (source:t_Bytes) =
+    match source.original_shared with
+    | Child p | View p _ -> has_allocation self (p.core)
+    | _ -> false
+    end
+  
+  type t_Vec_u8_Global
+  
+  function view_Vec_u8_Global t_Vec_u8_Global : seq t18
+  
+  axiom view_Vec_u8_Global_spec :
+    forall self:t_Vec_u8_Global [view_Vec_u8_Global self].
+     length (view_Vec_u8_Global self) <= t'int const_MAX'0
+  
+  predicate postcondition_clone (self:unit) (args:t18) (result:t18) =
+    let self_ = args in result = self_
+  
+  (* meta rewrite_def predicate postcondition_clone *)
+  
+  (* meta compute_max_steps 1000000 *)
+  
+  (* meta select_lsinst "all" *)
+  
+  constant input : slice t18
+  
+  constant a : t17
+  
+  constant b : t17
+  
+  constant advance_by : t17
+  
+  constant rounds : t17
+  
+  axiom Assert :
+    0 < length (view input) /\
+    lt a b /\
+    t'int b <= length (view input) /\ t'int advance_by <= (t'int b - t'int a)
+  
+  constant expected'1 : seq t18
+  
+  constant original : t_Bytes
+  
+  constant scope' : t_PromotionScope
+  
+  constant _23 : tup2_Bytes_Ghost_PromotionScope
+  
+  constant owner'0 : t_Bytes
+  
+  constant _27 : t_Bytes
+  
+  constant _28 : t22 t_PromotionScope
+  
+  constant _29 : t22 t_PromotionScope
+  
+  constant root_id'0 : int
+  
+  constant owner_id : int
+  
+  constant before : t_FMap_Int_Excl_PositiveReal
+  
+  constant metadata : tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8
+  
+  constant detached_output : t_Option_DetachedScope
+  
+  constant _43 : t_Option_DetachedScope
+  
+  constant root_receipt : t_Option_Completion
+  
+  constant _45 : t_Option_Completion
+  
+  constant _49 : t22 t_Option_DetachedScope
+  
+  constant _50 : t22 t_Option_DetachedScope
+  
+  constant _51 : t22 t_Option_Completion
+  
+  constant _52 : t22 t_Option_Completion
+  
+  constant detached : t_ScopeCursor_State_Payload
+  
+  constant _57 : t_ScopeCursor_State_Payload
+  
+  constant _58 : t_Option_DetachedScope
+  
+  constant value'0 : t_Bytes
+  
+  constant _71 : t_Bytes
+  
+  constant _72 : t_Range_usize
+  
+  constant _75 : t22 t_DetachedScope
+  
+  constant _76 : t22 t_DetachedScope
+  
+  constant owner_receipt : t_Option_ViewEffect
+  
+  constant _78 : t_Option_ViewEffect
+  
+  constant _81 : t22 t_DetachedScope
+  
+  constant _82 : t22 t_DetachedScope
+  
+  constant _83 : t22 t_Option_ViewEffect
+  
+  constant _84 : t22 t_Option_ViewEffect
+  
+  constant _92 : t22 t_Bytes
+  
+  constant _93 : t22 t_Bytes
+  
+  constant allocation : t_Bytes
+  
+  constant bound : t_BoundPtr
+  
+  constant ptr'0 : ptr
+  
+  constant i : t17
+  
+  constant _137 : bool
+  
+  constant variant_old_bb27 : int
+  
+  constant result : tup2_Bytes_Ghost_PromotionScope
+  
+  axiom Assert1 :
+    ((inv_Atomic_ptr_unit ((result.f0'0).data) /\
+      match (result.f0'0).original_shared with
+      | Root f0'21 -> inv_RootDescriptor f0'21
+      | Child f0'21 -> inv_ChildProof f0'21
+      | View f0'21 f1 -> inv_ChildProof f0'21 /\ inv_BoundPtr f1
+      | Empty f0'21 -> inv_EmptyViewProof f0'21
+      | Vacant -> true
+      end) /\
+     inv_BoundPtr (((result.f1'0).descriptor).base) /\
+     match (result.f1'0).phase with
+     | None'0 -> true
+     | Some'0 f0'21 -> inv_Phase f0'21
+     end) /\
+    (root_valid (result.f1'0) (result.f0'0) /\ is_raw (result.f1'0)) /\
+    ((result.f1'0).descriptor).expected = view input
+  
+  constant fin : t_PromotionScope
+  
+  axiom Assert2 :
+    inv_BoundPtr ((fin.descriptor).base) /\
+    match fin.phase with
+    | None'0 -> true
+    | Some'0 f0'21 -> inv_Phase f0'21
+    end
+  
+  axiom Assert3 :
+    (inv_BoundPtr (((result.f1'0).descriptor).base) /\
+     match (result.f1'0).phase with
+     | None'0 -> true
+     | Some'0 f0'21 -> inv_Phase f0'21
+     end) /\
+    inv_BoundPtr ((fin.descriptor).base) /\
+    match fin.phase with
+    | None'0 -> true
+    | Some'0 f0'21 -> inv_Phase f0'21
+    end
+  
+  constant result1 : t_Bytes
+  
+  axiom Assert4 :
+    (inv_Atomic_ptr_unit (result1.data) /\
+     match result1.original_shared with
+     | Root f0'21 -> inv_RootDescriptor f0'21
+     | Child f0'21 -> inv_ChildProof f0'21
+     | View f0'21 f1 -> inv_ChildProof f0'21 /\ inv_BoundPtr f1
+     | Empty f0'21 -> inv_EmptyViewProof f0'21
+     | Vacant -> true
+     end) /\
+    root_valid fin (result.f0'0) /\
+    clone_result ((result.f1'0).descriptor) fin result1
+  
+  constant fin1 : t_Option_DetachedScope
+  
+  constant fin2 : t_Option_Completion
+  
+  axiom Assert5 :
+    not fin1 = None'10 /\
+    model'1 (unwrap_Option_DetachedScope fin1) = cursor_model fin /\
+    public'0 (unwrap_Option_DetachedScope fin1) = cursor_public fin /\
+    (observation'0 (unwrap_Option_DetachedScope fin1)).f0'14 =
+    remove_Int ((observation fin).f0'14) (root_id fin) /\
+    (observation'0 (unwrap_Option_DetachedScope fin1)).f1'14 =
+    (observation fin).f1'14 /\
+    (not fin2 = None'11 /\ not reclaimed (unwrap_Option_Completion fin2)) /\
+    valid'4 (unwrap_Option_Completion fin2) (root_metadata fin)
+  
+  axiom Assert6 :
+    not fin2 = None'11 /\ not reclaimed (unwrap_Option_Completion fin2)
+  
+  constant result2 : t_ScopeCursor_State_Payload
+  
+  axiom Assert7 : Some'10 (T_DetachedScope'mk result2) = fin1
+  
+  axiom Assert8 :
+    (observation'0 (T_DetachedScope'mk result2)).f0'14 =
+    remove_Int ((observation fin).f0'14) (root_id fin)
+  
+  axiom Assert9 :
+    len_Int'1 ((observation'0 (T_DetachedScope'mk result2)).f0'14) = 1 /\
+    not get1
+        (to_mapping_Int'1
+         ((observation'0 (T_DetachedScope'mk result2)).f0'14))
+        (child_id result1) = None'8
+  
+  constant fin3 : t_ScopeCursor_State_Payload
+  
+  constant id2 : int
+  
+  constant result3 : t_Bytes
+  
+  axiom Assert10 :
+    (inv_Atomic_ptr_unit (result3.data) /\
+     match result3.original_shared with
+     | Root f0'21 -> inv_RootDescriptor f0'21
+     | Child f0'21 -> inv_ChildProof f0'21
+     | View f0'21 f1 -> inv_ChildProof f0'21 /\ inv_BoundPtr f1
+     | Empty f0'21 -> inv_EmptyViewProof f0'21
+     | Vacant -> true
+     end) /\
+    api_view_valid result3 /\
+    (view_valid result3 /\
+     view_content result3 = (view_content result1)[t'int a..t'int b]) /\
+    (t'int (result3.len) = (t'int b - t'int a) /\
+     (view_owned result3 <-> lt a b)) /\
+    view_accepts result3 (T_DetachedScope'mk fin3) /\
+    (view_owned result3 -> view_public result3 = view_public result1) /\
+    (model'1 (T_DetachedScope'mk fin3) = model'1 (T_DetachedScope'mk result2) /\
+     public'0 (T_DetachedScope'mk fin3) =
+     public'0 (T_DetachedScope'mk result2)) /\
+    (if view_owned result3
+     then not contains_Int'0
+              ((observation'0 (T_DetachedScope'mk result2)).f0'14)
+              (view_id result3) /\
+          (observation'0
+           (fin_Ghost_refmut_DetachedScope
+            (T'mk (T_DetachedScope'mk result2) (T_DetachedScope'mk fin3) id2))).f0'14 =
+          insert_Int'0 ((observation'0 (T_DetachedScope'mk result2)).f0'14)
+          (view_id result3) (T_Excl_PositiveReal'mk (view_fraction result3)) /\
+          (observation'0
+           (fin_Ghost_refmut_DetachedScope
+            (T'mk (T_DetachedScope'mk result2) (T_DetachedScope'mk fin3) id2))).f1'14 =
+          ((observation'0 (T_DetachedScope'mk result2)).f1'14 + 1)
+     else observation'0
+          (fin_Ghost_refmut_DetachedScope
+           (T'mk (T_DetachedScope'mk result2) (T_DetachedScope'mk fin3) id2)) =
+          observation'0 (T_DetachedScope'mk result2))
+  
+  constant fin4 : t_ScopeCursor_State_Payload
+  
+  constant id3 : int
+  
+  constant fin5 : t_Option_ViewEffect
+  
+  axiom Assert11 :
+    (model'1 (T_DetachedScope'mk fin4) = model'1 (T_DetachedScope'mk fin3) /\
+     public'0 (T_DetachedScope'mk fin4) = public'0 (T_DetachedScope'mk fin3)) /\
+    (observation'0 (T_DetachedScope'mk fin4)).f1'14 =
+    (observation'0 (T_DetachedScope'mk fin3)).f1'14 /\
+    (if view_owned result1
+     then (observation'0
+           (fin_Ghost_refmut_DetachedScope
+            (T'mk (T_DetachedScope'mk fin3) (T_DetachedScope'mk fin4) id3))).f0'14 =
+          remove_Int ((observation'0 (T_DetachedScope'mk fin3)).f0'14)
+          (view_id result1)
+     else (observation'0
+           (fin_Ghost_refmut_DetachedScope
+            (T'mk (T_DetachedScope'mk fin3) (T_DetachedScope'mk fin4) id3))).f0'14 =
+          (observation'0 (T_DetachedScope'mk fin3)).f0'14) /\
+    (not fin5 = None'12 /\
+     valid'5 (unwrap_Option_ViewEffect fin5)
+     ((public'0 (T_DetachedScope'mk fin3)).f3'10)) /\
+    (was_static (unwrap_Option_ViewEffect fin5) <-> not view_owned result1) /\
+    (reclaimed'0 (unwrap_Option_ViewEffect fin5) <->
+     view_owned result1 /\
+     len_Int'1 ((observation'0 (T_DetachedScope'mk fin3)).f0'14) = 1)
+  
+  axiom Assert12 :
+    not fin5 = None'12 /\ not reclaimed'0 (unwrap_Option_ViewEffect fin5)
+  
+  axiom Assert13 :
+    len_Int'1 ((observation'0 (T_DetachedScope'mk fin4)).f0'14) = 1
+  
+  constant fin6 : t_Bytes
+  
+  axiom Assert14 :
+    inv_Atomic_ptr_unit (fin6.data) /\
+    match fin6.original_shared with
+    | Root f0'21 -> inv_RootDescriptor f0'21
+    | Child f0'21 -> inv_ChildProof f0'21
+    | View f0'21 f1 -> inv_ChildProof f0'21 /\ inv_BoundPtr f1
+    | Empty f0'21 -> inv_EmptyViewProof f0'21
+    | Vacant -> true
+    end
+  
+  constant fin7 : t_Bytes
+  
+  axiom Assert15 :
+    inv_Atomic_ptr_unit (fin7.data) /\
+    match fin7.original_shared with
+    | Root f0'21 -> inv_RootDescriptor f0'21
+    | Child f0'21 -> inv_ChildProof f0'21
+    | View f0'21 f1 -> inv_ChildProof f0'21 /\ inv_BoundPtr f1
+    | Empty f0'21 -> inv_EmptyViewProof f0'21
+    | Vacant -> true
+    end
+  
+  axiom Assert16 :
+    (api_view_valid fin7 /\ same_api_owner fin7 result3) /\
+    (fin7.data = result3.data /\ fin7.vtable = result3.vtable) /\
+    t'int (fin7.len) = (t'int (result3.len) - t'int advance_by) /\
+    t'int (addr_logic_u64 (fin7.ptr)) =
+    (t'int (addr_logic_u64 (result3.ptr)) + t'int advance_by) /\
+    view_content fin7 =
+    (view_content result3)[t'int advance_by..t'int (result3.len)] /\
+    (view_owned fin7 <-> view_owned result3) /\
+    (view_owned result3 ->
+     view_id fin7 = view_id result3 /\
+     view_fraction fin7 = view_fraction result3 /\
+     view_public fin7 = view_public result3)
+  
+  axiom Assert17 : fin6 = fin7
+  
+  axiom Assert18 :
+    inv_Atomic_ptr_unit (fin6.data) /\
+    match fin6.original_shared with
+    | Root f0'21 -> inv_RootDescriptor f0'21
+    | Child f0'21 -> inv_ChildProof f0'21
+    | View f0'21 f1 -> inv_ChildProof f0'21 /\ inv_BoundPtr f1
+    | Empty f0'21 -> inv_EmptyViewProof f0'21
+    | Vacant -> true
+    end
+  
+  axiom Assert19 : le (0:t17) rounds
+  
+  axiom Assert20 :
+    api_view_valid fin6 /\
+    view_owned fin6 /\ view_accepts fin6 (T_DetachedScope'mk fin4)
+  
+  axiom Assert21 :
+    shares_view_allocation fin6 fin6 /\
+    (view_public fin6).f3'10 = (child_public result1).f3'10
+  
+  axiom Assert22 :
+    t'int (fin6.len) = ((t'int b - t'int a) - t'int advance_by)
+  
+  axiom Assert23 :
+    view_content fin6 = (view input)[(t'int a + t'int advance_by)..t'int b]
+  
+  goal vc_owned_view_clone_scope :
+    (observation'0 (T_DetachedScope'mk fin4)).f0'14 =
+    singleton_Int'0 (view_id fin6)
+    (T_Excl_PositiveReal'mk (view_fraction fin6))
+  
+end
+

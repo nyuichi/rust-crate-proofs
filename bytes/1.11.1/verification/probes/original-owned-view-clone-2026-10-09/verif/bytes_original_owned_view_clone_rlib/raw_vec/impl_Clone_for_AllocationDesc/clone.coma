@@ -1,0 +1,19 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 33 9 33 27 *)
+
+(* <raw_vec::AllocationDesc as std::clone::Clone> *)
+
+use creusot.prelude.Any
+
+type t_Id
+
+type t_AllocationDesc = { capacity: int; namespace: t_Id }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let clone_AllocationDesc [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 33 9 33 27]
+  (self: t_AllocationDesc) (return (x: t_AllocationDesc)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_AllocationDesc = Any.any_l () | & self: t_AllocationDesc = self ])
+  [ return (result: t_AllocationDesc) -> (! return {result}) ]

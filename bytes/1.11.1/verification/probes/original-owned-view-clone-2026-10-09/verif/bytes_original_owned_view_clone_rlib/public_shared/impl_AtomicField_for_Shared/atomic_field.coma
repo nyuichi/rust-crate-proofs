@@ -1,0 +1,61 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/public_shared.rs" 16 4 16 40 *)
+
+(* <public_shared::Shared as field_event::AtomicField> *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span spublic_shared = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/public_shared.rs" 16 21 16 25
+let%span spublic_shared'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/public_shared.rs" 16 28 16 40
+let%span spublic_shared'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/public_shared.rs" 15 32 15 87
+let%span spublic_shared'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/public_shared.rs" 18 40 18 80
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_Atomic_usize
+
+type t_Shared = { buf: Opaque.ptr; cap: UInt64.t; ref_cnt: t_Atomic_usize }
+
+predicate inv_Atomic_usize (_1: t_Atomic_usize)
+
+predicate inv_Shared (_1: t_Shared)
+
+axiom inv_axiom [@rewrite]: forall x: t_Shared [inv_Shared x]. inv_Shared x = inv_Atomic_usize x.ref_cnt
+
+predicate invariant_ref_Shared [@inline:trivial] (self: t_Shared) = [%#sinvariant] inv_Shared self
+
+meta "rewrite_def" predicate invariant_ref_Shared
+
+predicate inv_ref_Shared [@inline:trivial] (_1: t_Shared) = invariant_ref_Shared _1
+
+meta "rewrite_def" predicate inv_ref_Shared
+
+predicate invariant_ref_Atomic_usize [@inline:trivial] (self: t_Atomic_usize) = [%#sinvariant] inv_Atomic_usize self
+
+meta "rewrite_def" predicate invariant_ref_Atomic_usize
+
+predicate inv_ref_Atomic_usize [@inline:trivial] (_1: t_Atomic_usize) = invariant_ref_Atomic_usize _1
+
+meta "rewrite_def" predicate inv_ref_Atomic_usize
+
+type t_AtomicUsize
+
+function atomic_model [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/field_event.rs" 81 0 81 60] (atomic: t_Atomic_usize) : t_AtomicUsize
+
+function field_model_Shared [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/public_shared.rs" 18 4 18 38] (self: t_Shared) : t_AtomicUsize
+ = [%#spublic_shared'2] atomic_model self.ref_cnt
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let atomic_field_Shared [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-owned-view-clone-2026-10-09/src/public_shared.rs" 16 4 16 40]
+  (self: t_Shared) (return (x: t_Atomic_usize)) =
+{[@stop_split] [@expl:atomic_field 'self' type invariant] [%#spublic_shared] inv_ref_Shared self}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_4 <- self.ref_cnt ] s1 | s1 = [ &_ret <- _4 ] s2 | s2 = return {_ret} ] ]
+  [ & _ret: t_Atomic_usize = Any.any_l () | & self: t_Shared = self | & _4: t_Atomic_usize = Any.any_l () ])
+  [ return (result: t_Atomic_usize) ->
+  {[@stop_split] [@expl:atomic_field_Shared ensures] ([@stop_split] [@expl:atomic_field result type invariant] [%#spublic_shared'0] inv_ref_Atomic_usize result)
+    /\ ([@stop_split] [@expl:atomic_field ensures] [%#spublic_shared'1] atomic_model result = field_model_Shared self)}
+    (! return {result}) ]

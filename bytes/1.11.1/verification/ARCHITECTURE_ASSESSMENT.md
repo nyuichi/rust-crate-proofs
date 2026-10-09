@@ -455,3 +455,44 @@ Full original architecture remains NOT ADMITTED. Owned-zero Shared Clone,
 Root/general Static/custom-owner methods, arbitrary escaping/concurrent owners,
 unwind, BytesMut and remaining APIs/configurations stay open. Ask Astra
 「次何するのがいい？」after publication and execute the next recommendation.
+
+## Astra-guided owned-zero Shared Clone closure — 2026-10-09
+
+AT proves reusable Shared Clone for valid owned views of any length, including
+zero after complete advance. It preserves the borrowed source, exact suffix,
+pointer/length and original allocation metadata while issuing a fresh actual
+ticket. The native client performs any finite runtime number of Clone and
+replacement operations. Each normal assignment Drop retires the previous owner
+before installation; the singleton ticket/fraction inventory and final recovery
+and free of the original allocation are proved. No positive quota on rounds or
+constant fraction/atomic identity is assumed.
+
+Canonical v2 proves all155 targets/1417 prover leaves/zero null and structural
+leaves, correspondence0, features[], exclusions{}, diagnosticfalse. Independent
+immutable reconstruction checks1544 members, production63, privateStd110, six
+configs, eight tool rows and four actual Cargo artifacts, then replays main52/native45 controls
+without a live target directory. The one-prover/1024MiB/sc-drf-off budget and
+location-bound native Cargo joins remain explicit. Native capture contains145
+cases,30 MIR bodies and29 production bodies.
+
+Five semantic controls retain16 independently reprinted failed tasks; the
+replacement-Drop control proves only its affected whole-function target and
+records154 exclusions. Duplicate reuse is rejected with E0382. Unchanged audited
+Acquire/free/final-Drop mechanism controls are hash-linked rather than rerun.
+These are proof/type/correspondence sensitivity observations, not native
+counterexamples or proofs of generic boundary adequacy.
+
+The two initial singleton-map failures are preserved. A body-proved ordinary
+insert/remove algebra lemma uses existing Std ext_eq and adds no trust. The only
+new generic trusted function is the ghost-only exact callback registration
+instance. Inherited physical, compiler, erased-scope and weak-memory assumptions
+remain. Three control-fixture errors and canonical-v1's stale launcher-text
+check are preserved tool/packaging diagnostics; repaired metadata leaves all
+155 COMA/proof hashes unchanged.
+
+Canonical SHA256958ed73642e1b305b12c6f9269f38de0ee4559e014d83ca58616ff37bc33bc8d.
+See verification/probes/original-owned-view-clone-2026-10-09/evidence/AT_CANONICAL_AUDIT.md.
+Full original architecture remains NOT ADMITTED. Modular returned owners,
+Root/general Static/custom-owner methods, arbitrary escaping/concurrent owners,
+unwind, BytesMut and remaining APIs/configurations remain open. Ask Astra
+「次何するのがいい？」after audited publication and execute the recommendation.

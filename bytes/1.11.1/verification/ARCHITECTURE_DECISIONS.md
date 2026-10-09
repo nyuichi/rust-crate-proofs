@@ -1484,6 +1484,65 @@ publication. The repair alone does not establish Root/general Static mutation,
 owned-empty Clone, arbitrary escaping concurrency, unwind or complete API and
 configuration coverage. Full original architecture remains NOT ADMITTED.
 
+## D2026-10-09 — Proof-first validation budget (user direction)
+
+The user asked whether frequent negative experiments were necessary, then
+explicitly requested that the agreed policy be recorded for future sessions.
+The default work loop is strong contracts → implementation proofs → next
+coverage gap. Negative controls are reserved for changed trusted boundaries,
+ownership mechanisms, source/compiler correspondence checks, or a specific
+suspected omission. An unchanged, audited negative result is reusable; adding
+contracts does not itself require another broad negative suite.
+
+Each new negative experiment must identify its purpose and smallest affected
+target set. Diagnostic target exclusions must be recorded and never counted as
+full verification. Reproving every inherited target for each negative case is
+unnecessary. The complete applicable positive proof and source correspondence
+remain required for a validated increment; rerun only after a relevant change
+or unresolved concern. Preserve failures and distinguish frontend rejection,
+proof failure and tool failure. Negative rejection is supplementary evidence,
+not a proof of specification adequacy or tool soundness. This direction
+supersedes earlier per-probe plans for exhaustive repeated negative suites.
+
+## D2026-10-09-AT — Shared Clone over owned empty views
+
+After audited AS publication at 2e3525dfa642c809c4d8612efd8a2cecb0067500,
+AT appends new body-proved helpers to the byte-identical complete AS positive.
+The distinguishing premise is an owned Shared view of arbitrary valid length,
+including zero after complete advance. Native Shared Clone still increments
+the reference count and issues an owner; an empty byte view is not Static.
+No published source, production body, inherited predicate or contract changes.
+
+clone_owned_api keeps the original Clone(&self) native dispatch and requires
+api_view_valid, owned representation and the external affine scope acceptance.
+Its exact result retains pointer, length, view offset/content and complete
+allocation metadata, gets a fresh actual ticket, and preserves acceptance of
+the borrowed source. Actual Relaxed load and guarded Relaxed increment remain.
+The only new trusted interface is the same generic ghost-only callback
+registration with exact ordinary helper pre/post equivalence; no Bytes effect
+or resource-getter axiom is added.
+
+The native witness slices a nonempty range, advances any valid amount, then
+clones and replaces its current view an arbitrary runtime number of times.
+Each replacement must correspond to the actual normal MIR Drop of the old
+value before installing next. The loop inventory is exactly the singleton of
+the current dynamic ticket/fraction. State::on_register splits its residual
+pool and leaves the source ticket unchanged; replacement fractions and atomic
+model identities are not assumed equal across iterations. The original
+allocation and exact suffix contents remain fixed. The live-count bound is
+body-derived, not a quota on iteration count or a last-owner axiom.
+
+Controls distinguish empty-to-Static substitution, omitted issuance, wrong
+offset/capacity, omitted replacement/final Drop, duplicate consumption and
+early destruction, plus inherited final Acquire/free defects. Report actual
+frontend and semantic outcomes separately. Preserve all inherited targets,
+native/source/Cargo/MIR correspondence, diagnostics and exact tasks. Two failures
+of one semantic interface require recorded reassessment rather than weakened
+content/allocation/frame contracts or assertion retries. Canonical verification
+and independent immutable audit gate publication. Arbitrary escaping/concurrent
+Clone, Root/general Static paths, unwind, BytesMut and full API/configuration
+coverage remain open; full original architecture remains NOT ADMITTED.
+
 ### D-AS audited outcome
 
 The first actual source experiment and the normal admitting gate both pass all
@@ -1498,3 +1557,42 @@ construction errors are preserved separately and do not count as interface
 failures. No frontend ownership control is newly claimed by AS; inherited AR
 evidence remains scoped to AR. Full original architecture remains NOT ADMITTED.
 Continue the user-directed Astra consultation/execution loop after publication.
+
+### D-AT first diagnostic and interface correction
+
+The first AT body gate has154 targets/1459 prover leaves/two nulls. Every new
+Clone helper passes; the two client tasks require exact singleton map equality
+at loop initialization and after replacement. The tasks already contain the
+exact register insertion, Drop removal and final mutable-loan frame. They lack
+the relevant FMap extensional-equality interface instance, not an ownership
+effect. Archive6c4fe014298a7d89a5e3da6f27ff83da3ab771c69ea57f947805d3cafd898940
+and both printed tasks remain immutable.
+
+The first correction adds one ordinary logical algebra lemma: inserting a
+distinct new key into a singleton and removing the old key yields the new
+singleton. Its body proves pointwise equality and calls existing Std ext_eq;
+it adds no trust or Bytes/resource law. Client calls use actual captured
+root/owner/current ids and fractions after each corresponding Drop. Complete
+allocation/content contracts and the exact singleton loop invariant remain
+unchanged. This is the first captured failure of this interface; a repeated
+failure requires recorded reassessment rather than assertion tuning.
+
+### D-AT selective validation and inherited evidence reuse
+
+The user-directed proof-first budget supersedes the initial AT broad control plan. New semantic controls are limited to owned-zero representation, actual fresh registration, and the newly integrated assignment Drop boundary. Already completed zero_to_static, missing_registration, wrong_offset and wrong_capacity diagnostics remain immutable evidence; the last two were already running before the budget change took effect. The Python supervisor was paused separately from its active child, then intentionally terminated after child completion and complete capture. This stop is not a proof failure.
+
+The remaining replacement-Drop omission diagnostic translates all155 targets but proves only the whole-function promotion::owned_view_clone_scope target. Its receipt records the selected target, all translated hashes and154 explicit exclusions, diagnostic=true and correspondence status2. Report its exact observed failed goal, whether singleton inventory or receipt obligation, without claiming a native counterexample. One duplicate_value frontend control tests affine reuse. Do not repeat early-drop, inherited final-Drop or Acquire/free semantic controls. The restored positive canonical must include all155 targets with no exclusions and normal correspondence admission.
+
+Unchanged inherited control evidence is reused, not represented as fresh AT experiments. AR_SEMANTIC_CONTROL_AUDIT.json SHA25604b892cef8c1f56d140ec7a7c9f0f35f740458f90e6a0c1cacd0bd490660d752 (Markdown b5a70911ca242d0c90e06bbb38462cf4fd4a4b9b675cf3689b41eb79d6f65a8b) independently audits these archives:
+
+- missing Acquire:48e923735641a9c82a40413d364234500d5c1411c672dc4edec9e7c3ad6d38a8; two acquired_Payload postconditions, proof sensitivity only.
+- missing payload free:42b35e72f9baf7c200c97beaef7013c37bc698a6eb522acbe98ca5eaf5e5721a.
+- missing control free:847cfae798a8f813857552992f9d7f98539299147e500885eb122cb30c27f097.
+- omitted final owned-view Drop in AR cursor client (omit_value):7ccc7d0f0b665e9b4669a81528c618f3290a73c1da90769bb174c01acaf74be7; one cursor_scope task. This is inherited shared mechanism evidence, not a negative test of AT's different final client body.
+- omitted owner Drop (omit_owner):980648fead1253d455594813dec360e76eda1a1fc7336b062bcb2b74c96b3b9f; one cursor_scope task.
+
+The pertinent inherited bodies remain byte-identical in AT: event.rs8995c44ad7b38c712939fad6ec4f776fbb11597a83945f14784ac83e32658a6c, free_effect.rse5b122395896d9a71aea525ee05636770f38c30e449963f0b28ce6bcb6b46873, lifecycle.rs0f7bd81742b7af4d0637ac1c7f9e1292792d513a7d1a4763e7fe8385f4378680, public_shared.rs2898c269bd83ab383db1f81fabd9807d9c52133a6792c5ad0c767555a5bb807a, cursor_extension.rsfc4a8c4db529f2100c61faabb82d6863d5c40048c49cf39e8816bc40465b8ab0. The full positive gate nevertheless reproves all inherited and new callers.
+
+Native structural evidence separately checks actual Drop/deallocation routing; the45-control suite includes omitted assignment Drop, early-order Drop and Drop after installation with refreshed native capture/mapping receipts, binding bb9 stash+Drop to bb10 installation. Missing-free semantic controls concern generic resource-condition sensitivity and do not prove native free implementation adequacy. The native checker controls and canonical correspondence remain mandatory.
+
+Root declared proof/capture inputs idle and restored positive source b5790f53182c689186442dc54428693a0c5144bb46febdb1a0824e8ccffee945 before applying this update. The targeted replacement diagnostic has one selected target/56 prover leaves/one null leaf; duplicate_value is rejected with E0382. Five semantic controls retain16 exactly printed failed tasks in total. These outcomes remain sensitivity evidence; canonical audit is pending. Full original architecture remains NOT ADMITTED.
