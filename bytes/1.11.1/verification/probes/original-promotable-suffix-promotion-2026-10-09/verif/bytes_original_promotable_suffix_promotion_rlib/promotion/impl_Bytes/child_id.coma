@@ -1,0 +1,118 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../generated/active.rs" 275 4 275 26 *)
+
+(* promotion::Bytes *)
+
+let%span slifecycle = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/lifecycle.rs" 250 51 250 58
+let%span sactive = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../generated/active.rs" 274 24 274 39
+let%span sactive'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../generated/active.rs" 273 38 273 125
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.int.UInt8
+use seq.Seq
+
+type t_Atomic_ptr_unit
+
+type t_Vtable = {
+  clone': Opaque.ptr;
+  into_vec: Opaque.ptr;
+  into_mut: Opaque.ptr;
+  is_unique: Opaque.ptr;
+  drop: Opaque.ptr }
+
+type t_BoundPtr
+
+type t_AtomicPtr_unit
+
+type t_RootDescriptor = { base: t_BoundPtr; capacity: UInt64.t; expected: Seq.seq UInt8.t; model: t_AtomicPtr_unit }
+
+type t_FullBorrow_OwnedControl_Shared
+
+type t_FullBorrow_PhysicalRegion
+
+type t_ScopedFieldInvariant_State_Payload
+
+type t_LifetimeToken
+
+type t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+
+type t_Fragment_FMap_Int_Excl_PositiveReal = { f0: t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal }
+
+type t_Recovery
+
+type t_EndBorrow_PhysicalRegion
+
+type t_EndBorrow_OwnedControl_Shared
+
+type t_Payload = {
+  recovery'0: t_Recovery;
+  physical_end'0: t_EndBorrow_PhysicalRegion;
+  control_end'0: t_EndBorrow_OwnedControl_Shared;
+  physical'0: t_FullBorrow_PhysicalRegion;
+  control'0: t_FullBorrow_OwnedControl_Shared;
+  base'0: t_BoundPtr;
+  capacity'0: UInt64.t;
+  len'0: UInt64.t;
+  expected'0: Seq.seq UInt8.t }
+
+type t_Option_Payload = None | Some t_Payload
+
+type t_Ticket_Payload = {
+  token: t_LifetimeToken;
+  id: int;
+  fragment: t_Fragment_FMap_Int_Excl_PositiveReal;
+  recovery: t_Option_Payload }
+
+type t_SharedCore = {
+  shared'1: Opaque.ptr;
+  bound'1: t_BoundPtr;
+  capacity'1: UInt64.t;
+  control'1: t_FullBorrow_OwnedControl_Shared;
+  physical'1: t_FullBorrow_PhysicalRegion;
+  invariant''1: t_ScopedFieldInvariant_State_Payload;
+  ticket'1: t_Ticket_Payload }
+
+type t_ReadOnlyPointer
+
+type t_ChildProof = { core: t_SharedCore; binding: t_ReadOnlyPointer }
+
+type t_EmptyViewProof = { bound'0: t_BoundPtr; binding'0: t_ReadOnlyPointer }
+
+type t_OriginalSharedProof =
+  | Root t_RootDescriptor
+  | Child t_ChildProof
+  | View t_ChildProof t_BoundPtr
+  | Empty t_EmptyViewProof
+  | Vacant
+
+type t_Bytes = {
+  ptr: Opaque.ptr;
+  len: UInt64.t;
+  data: t_Atomic_ptr_unit;
+  vtable: t_Vtable;
+  original_shared: t_OriginalSharedProof }
+
+predicate is_child [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../generated/active.rs" 273 13 273 36] (self: t_Bytes) =
+  [%#sactive'0] match self.original_shared with
+    | Child _ -> true
+    | _ -> false
+    end
+
+function id_Payload [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/lifecycle.rs" 250 26 250 48] (self: t_Ticket_Payload) : int
+ = [%#slifecycle] self.id
+
+constant any_Int : int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_Bytes
+
+function child_id [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../generated/active.rs" 275 4 275 26] (self: t_Bytes) : int
+
+goal vc_child_id: ([%#sactive] is_child self)
+  -> match self.original_shared with
+    | Child p -> true
+    | _ -> true
+    end

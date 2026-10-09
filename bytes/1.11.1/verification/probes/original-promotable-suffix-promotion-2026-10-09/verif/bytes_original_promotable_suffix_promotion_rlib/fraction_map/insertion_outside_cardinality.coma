@@ -1,0 +1,117 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 81 0 86 1 *)
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 34 8 34 21
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 22 8 22 20
+let%span sfraction_map = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 80 10 80 14
+let%span sfraction_map'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 78 11 78 34
+let%span sfraction_map'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 79 10 79 101
+let%span sfraction_map'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 45 10 45 14
+let%span sfraction_map'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 44 11 44 20
+let%span sfraction_map'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 47 4 51 5
+let%span sfraction_map'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 27 4 27 44
+let%span swell_founded = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/well_founded.rs" 43 8 43 33
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 62 14 62 70
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 63 14 63 88
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 88 8 88 32
+
+use map.Map
+use int.Int
+
+type t_FMap_Int_Excl_PositiveReal
+
+type t_PositiveReal
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+type t_Excl_PositiveReal = { f0: t_PositiveReal }
+
+type t_Option_Excl_PositiveReal = None | Some t_Excl_PositiveReal
+
+function to_mapping_Int (self: t_FMap_Int_Excl_PositiveReal) : Map.map int t_Option_Excl_PositiveReal
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) : t_Option_Excl_PositiveReal =
+  [%#sfmap'3] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+function ticket_cardinality [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 26 0 26 62] [@inline:trivial] (live: t_FMap_Int_Excl_PositiveReal) (id: int) : int
+ = [%#sfraction_map'5] if get_Int live id = None then 0 else 1
+
+meta "rewrite_def" function ticket_cardinality
+
+function cardinality_prefix [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 46 0 46 64] (live: t_FMap_Int_Excl_PositiveReal) (next: int) : int
+
+axiom cardinality_prefix_def:
+  forall live: t_FMap_Int_Excl_PositiveReal, next: int [cardinality_prefix live next]. ([%#sfraction_map'3] ge_log_Int next 0)
+    -> cardinality_prefix live next
+    = ([%#sfraction_map'4] if next = 0 then
+      0
+    else
+      ticket_cardinality live (next - 1) + cardinality_prefix live (next - 1)
+    )
+
+function len_Int (self: t_FMap_Int_Excl_PositiveReal) : int
+
+axiom len_Int_spec: forall self: t_FMap_Int_Excl_PositiveReal [len_Int self]. [%#sfmap'1] ge_log_Int (len_Int self) 0
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) =
+  [%#sfmap'2] get_Int self k <> None
+
+meta "rewrite_def" predicate contains_Int
+
+function insert_Int (self: t_FMap_Int_Excl_PositiveReal) (k: int) (v: t_Excl_PositiveReal) : t_FMap_Int_Excl_PositiveReal
+
+axiom insert_Int_spec:
+  forall self: t_FMap_Int_Excl_PositiveReal, k: int, v: t_Excl_PositiveReal [insert_Int self k v]. [%#sfmap] to_mapping_Int (insert_Int self k v)
+    = Map.set (to_mapping_Int self) k (Some v)
+
+axiom insert_Int_spec'0:
+  forall self: t_FMap_Int_Excl_PositiveReal, k: int, v: t_Excl_PositiveReal [insert_Int self k v]. [%#sfmap'0] len_Int (insert_Int self k v)
+    = (if contains_Int self k then len_Int self else len_Int self + 1)
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] ge_log_Int self 0 /\ gt_log_Int self other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant live : t_FMap_Int_Excl_PositiveReal
+
+constant id : int
+
+constant fraction : t_PositiveReal
+
+constant next : int
+
+function insertion_outside_cardinality [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 81 0 86 1] (live: t_FMap_Int_Excl_PositiveReal) (id: int) (fraction: t_PositiveReal) (next: int) : ()
+
+goal vc_insertion_outside_cardinality: ([%#sfraction_map'0] ge_log_Int next 0 /\ next <= id)
+  -> (if gt_log_Int next 0 then
+    let last = next
+    - 1 in ([@stop_split] [@expl:insert ensures] ([@stop_split] [@expl:insert ensures #0] [%#sfmap] to_mapping_Int (insert_Int live id { f0 = fraction })
+        = Map.set (to_mapping_Int live) id (Some { f0 = fraction }))
+      /\ ([@stop_split] [@expl:insert ensures #1] [%#sfmap'0] len_Int (insert_Int live id { f0 = fraction })
+      = (if contains_Int live id then len_Int live else len_Int live + 1)))
+    -> get_Int (insert_Int live id { f0 = fraction }) last = get_Int live last
+    && (([@stop_split] [@expl:insertion_outside_cardinality requires] [%#sfraction_map'0] ge_log_Int last 0
+        /\ last <= id)
+      /\ ([@expl:variant decreases] well_founded_relation_Int ([%#sfraction_map] next) ([%#sfraction_map] last)))
+    /\ (([@stop_split] [@expl:insertion_outside_cardinality ensures] [%#sfraction_map'1] cardinality_prefix (insert_Int live id { f0 = fraction }) last
+      = cardinality_prefix live last)
+    -> (let _ = insertion_outside_cardinality live id fraction last in [@stop_split] [@expl:insertion_outside_cardinality ensures] [%#sfraction_map'1] cardinality_prefix (insert_Int live id { f0 = fraction }) next
+    = cardinality_prefix live next))
+  else
+    [@stop_split] [@expl:insertion_outside_cardinality ensures] [%#sfraction_map'1] cardinality_prefix (insert_Int live id { f0 = fraction }) next
+    = cardinality_prefix live next
+  )

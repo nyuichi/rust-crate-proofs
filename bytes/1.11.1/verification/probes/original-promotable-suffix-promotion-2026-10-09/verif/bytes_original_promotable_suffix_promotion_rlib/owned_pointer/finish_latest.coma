@@ -1,0 +1,135 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 216 0 218 12 *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 93 20 93 44
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 88 8 88 32
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 852 15 852 27
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 854 8 857 9
+let%span sowned_pointer = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 219 39 219 65
+let%span sowned_pointer'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 217 4 217 9
+let%span sowned_pointer'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 212 11 212 46
+let%span sowned_pointer'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 213 11 213 41
+let%span sowned_pointer'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 214 10 214 28
+let%span sowned_pointer'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 215 10 215 26
+let%span sowned_pointer'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 202 4 202 9
+let%span sowned_pointer'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 192 11 192 46
+let%span sowned_pointer'7 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 193 10 195 1
+let%span sowned_pointer'8 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 196 10 199 1
+let%span sowned_pointer'9 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 200 10 200 26
+let%span sowned_pointer'10 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 129 16 131 56
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Opaque
+use map.Map
+use creusot.prelude.Any
+use int.Int
+
+type t_Atomic_ptr_unit
+
+predicate inv_Atomic_ptr_unit (_1: t_Atomic_ptr_unit)
+
+type t_Perm_AtomicPtr_unit
+
+type tup2_ptr_unit_Snapshot_Int = { f0: Opaque.ptr; f1: int }
+
+predicate invariant_refmut_Atomic_ptr_unit [@inline:trivial] (self: MutBorrow.t t_Atomic_ptr_unit) =
+  [%#sinvariant] inv_Atomic_ptr_unit self.current /\ inv_Atomic_ptr_unit self.final
+
+meta "rewrite_def" predicate invariant_refmut_Atomic_ptr_unit
+
+predicate inv_refmut_Atomic_ptr_unit [@inline:trivial] (_1: MutBorrow.t t_Atomic_ptr_unit) =
+  invariant_refmut_Atomic_ptr_unit _1
+
+meta "rewrite_def" predicate inv_refmut_Atomic_ptr_unit
+
+type t_AtomicPtr_unit
+
+function ward_AtomicPtr_unit (self: t_Perm_AtomicPtr_unit) : t_AtomicPtr_unit
+
+function pointer_model [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../original-shared-lifecycle-2026-10-08/src/pointer_event.rs" 21 0 21 76] (field: t_Atomic_ptr_unit) : t_AtomicPtr_unit
+
+type t_SyncView
+
+type tup2_ptr_unit_SyncView = { f0'0: Opaque.ptr; f1'0: t_SyncView }
+
+type t_Option_tup2_ptr_unit_SyncView = None | Some tup2_ptr_unit_SyncView
+
+type t_FMap_Int_tup2_ptr_unit_SyncView
+
+function to_mapping_Int (self: t_FMap_Int_tup2_ptr_unit_SyncView) : Map.map int t_Option_tup2_ptr_unit_SyncView
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_tup2_ptr_unit_SyncView) (k: int) : t_Option_tup2_ptr_unit_SyncView
+ = [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+function val_AtomicPtr_unit (self: t_Perm_AtomicPtr_unit) : t_FMap_Int_tup2_ptr_unit_SyncView
+
+let get_mut_finish (field: MutBorrow.t t_Atomic_ptr_unit) (own: t_Perm_AtomicPtr_unit)
+  (return (x: tup2_ptr_unit_Snapshot_Int)) =
+{[@stop_split] [@expl:get_mut_finish requires] ([@stop_split] [@expl:get_mut_finish 'field' type invariant] [%#sowned_pointer'5] inv_refmut_Atomic_ptr_unit field)
+  /\ ([@stop_split] [@expl:get_mut_finish requires] [%#sowned_pointer'6] ward_AtomicPtr_unit own
+  = pointer_model field.current)}
+  any
+  [ return (result: tup2_ptr_unit_Snapshot_Int) ->
+  {[@stop_split] [@expl:get_mut_finish ensures] ([@stop_split] [@expl:get_mut_finish ensures #0] [%#sowned_pointer'7] match get_Int (val_AtomicPtr_unit own) result.f1 with
+        | Some {f0'0 = value} -> result.f0 = value
+        | None -> false
+        end)
+    /\ ([@stop_split] [@expl:get_mut_finish ensures #1] [%#sowned_pointer'8] forall t: int. match get_Int (val_AtomicPtr_unit own) t with
+          | Some _ -> t <= result.f1
+          | None -> true
+          end)
+    /\ ([@stop_split] [@expl:get_mut_finish ensures #2] [%#sowned_pointer'9] field.final = field.current)}
+    (! return {result}) ]
+
+predicate resolve_refmut_Atomic_ptr_unit [@inline:trivial] (_1: MutBorrow.t t_Atomic_ptr_unit) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Atomic_ptr_unit
+
+constant any_tup2_ptr_unit_SyncView : tup2_ptr_unit_SyncView
+
+function unwrap_Option_tup2_ptr_unit_SyncView (self: t_Option_tup2_ptr_unit_SyncView) : tup2_ptr_unit_SyncView =
+  [%#soption'0] match self with
+    | Some x -> x
+    | None -> any_tup2_ptr_unit_SyncView
+    end
+
+predicate latest_is [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 128 0 128 91] (history: t_FMap_Int_tup2_ptr_unit_SyncView) (expected: Opaque.ptr) =
+  [%#sowned_pointer'10] exists t: int. get_Int history t <> None
+    /\ (unwrap_Option_tup2_ptr_unit_SyncView (get_Int history t)).f0'0 = expected
+    /\ (forall u: int. get_Int history u <> None -> u <= t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let finish_latest [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/owned_pointer.rs" 216 0 218 12]
+  (field: MutBorrow.t t_Atomic_ptr_unit) (expected: Opaque.ptr) (own: t_Perm_AtomicPtr_unit) (return (x: Opaque.ptr)) =
+{[@stop_split] [@expl:finish_latest requires] ([@stop_split] [@expl:finish_latest 'field' type invariant] [%#sowned_pointer'0] inv_refmut_Atomic_ptr_unit field)
+  /\ ([@stop_split] [@expl:finish_latest requires #0] [%#sowned_pointer'1] ward_AtomicPtr_unit own
+    = pointer_model field.current)
+  /\ ([@stop_split] [@expl:finish_latest requires #1] [%#sowned_pointer'2] latest_is (val_AtomicPtr_unit own) expected)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_Atomic_ptr_unit> {field.current} {MutBorrow.get_id field}
+        (fun (_bor: MutBorrow.t t_Atomic_ptr_unit) ->
+          [ &_17 <- _bor ] -{inv_Atomic_ptr_unit _bor.final}-
+          [ &field <- { field with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_Atomic_ptr_unit field.current} any) ]
+    | s1 = get_mut_finish [%#sowned_pointer] {_17} {own} (fun (_x: tup2_ptr_unit_Snapshot_Int) -> [ &_16 <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_Atomic_ptr_unit field} any) ]
+    | s3 = -{resolve_refmut_Atomic_ptr_unit field}- s4
+    | s4 = [ &value <- _16.f0 ] s5
+    | s5 = [ &_ret <- value ] s6
+    | s6 = return {_ret} ] ]
+  [ & _ret: Opaque.ptr = Any.any_l ()
+  | & field: MutBorrow.t t_Atomic_ptr_unit = field
+  | & own: t_Perm_AtomicPtr_unit = own
+  | & value: Opaque.ptr = Any.any_l ()
+  | & _16: tup2_ptr_unit_Snapshot_Int = Any.any_l ()
+  | & _17: MutBorrow.t t_Atomic_ptr_unit = Any.any_l () ])
+  [ return (result: Opaque.ptr) ->
+  {[@stop_split] [@expl:finish_latest ensures] ([@stop_split] [@expl:finish_latest ensures #0] [%#sowned_pointer'3] result
+      = expected)
+    /\ ([@stop_split] [@expl:finish_latest ensures #1] [%#sowned_pointer'4] field.final = field.current)}
+    (! return {result}) ]

@@ -1,0 +1,46 @@
+// MIR for `ref_count_ops::increment` after ElaborateDrops
+
+fn increment(_1: &Atomic<usize>) -> () {
+    debug counter => _1;
+    let mut _0: ();
+    let mut _2: bool;
+    let mut _3: &core::result::Result<usize, usize>;
+    let _4: core::result::Result<usize, usize>;
+    let mut _5: &core::sync::atomic::Atomic<usize>;
+    let mut _6: !;
+    let _7: !;
+
+    bb0: {
+        StorageLive(_2);
+        StorageLive(_3);
+        StorageLive(_4);
+        StorageLive(_5);
+        _5 = &'_ (*_1);
+        _4 = try_increment(move _5) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        _3 = &'_ _4;
+        StorageDead(_5);
+        _2 = Result::<usize, usize>::is_err(move _3) -> [return: bb2, unwind continue];
+    }
+
+    bb2: {
+        switchInt(move _2) -> [0: bb4, otherwise: bb3];
+    }
+
+    bb3: {
+        StorageDead(_4);
+        StorageDead(_3);
+        StorageLive(_7);
+        _7 = abort() -> unwind continue;
+    }
+
+    bb4: {
+        StorageDead(_4);
+        StorageDead(_3);
+        _0 = const ();
+        StorageDead(_2);
+        return;
+    }
+}

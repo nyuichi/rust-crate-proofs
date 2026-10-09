@@ -1677,3 +1677,94 @@ original run log, and records the fresh admitting checker/audit provenance.
 Fresh Cargo/input receipts alone are not proof evidence. Preserve both stages
 for independent archive-only reconstruction; do not imply a second solver run.
 This changes validation scheduling, not a theorem, ownership premise or TCB law.
+
+
+## D2026-10-09-AV — Promotable suffix preservation before first Clone
+
+After audited AU publication 60d70b215fd29150adf149a9ac793eb7f52b7a1d,
+AV preserves the complete AU positive and existing ownership protocol. The
+changed premise is an unpromoted native Root whose pointer has advanced before
+first Clone. Native shallow_clone_vec reconstructs allocation capacity as
+ptr.offset_from(base) + len; the prior equal-pointer special case does not cover
+this public API composition. Native truncate explicitly preserves this invariant
+by promoting before shortening the tail. Raw suffix validity therefore requires
+view_offset + view_len == original allocation capacity, including an owned empty
+suffix at the one-past pointer.
+
+A proof-only SuffixScope wraps the single existing PromotionScope and one pure
+BoundPtr for the current view. It neither duplicates the affine State/resources
+nor changes the original Bytes layout/API or proof-sidecar enum. The descriptor
+still names the original base, full capacity, pointer model and complete contents.
+An appended original advance/inc_start proof updates only the actual ptr/len and
+view metadata. First promotion transfers the original Recovery and whole physical
+region exactly once into the existing private lifecycle. Its ghost Payload len
+remains the full initialized allocation length; the returned existing View proof
+carries the suffix extent. The original root retains its promotable vtable and
+owned pointer permission until normal Drop after promotion; only the existing
+DetachedScope leaves that Drop, and the surviving child's last Drop recovers and
+frees the original whole allocation/control block.
+
+The new generic suffix_pointer::distance boundary executes actual offset_from.
+It requires a live positive-capacity physical region, exact pointer bindings to
+two same-allocation BoundPtr descriptors, base offset zero, a view offset in
+[0,capacity], matching namespace/capacity and exact nonwrapping address relation.
+Both pointers are nonnull; the existing BoundPtr invariant bounds capacity by
+isize::MAX. Its only result law is result == view_offset, with no resource result
+or Bytes capacity axiom. One-past is included. The caller body proves that the
+native cast and addition reconstruct capacity. Numerical address equality alone
+is insufficient. This explicitly assumed native-pointer TCB follows the existing
+Perm exact-pointer and allocation-aware add adapters; the pinned Std lacks this
+allocation-aware offset_from contract. Replace it with an equivalent supported
+pointer/Std model when available. Existing equal_pointer_distance is unchanged.
+
+Proof callback selection must use immutable base/table identity in Ghost. After
+advance, the visible ptr parity can differ from the original base parity while
+the native vtable remains unchanged. Use exact ghost-only callback registrations
+and one actual stored-vtable call; never branch native execution on ghost data or
+reuse the old offset-zero selector on the advanced ptr.
+
+The native witness constructs nonempty Box-backed Bytes, advances any amount up
+to its original length, clones it, exits the root's lexical scope, then reads and
+drops the surviving child. Exact return is the input suffix; amount zero, one and
+full length and both symbolic tag parities are covered. Keep all157 inherited
+positive targets. One targeted cap=len mutation in the new promotion helper may
+check the new capacity obligation; reuse unchanged prior controls. Preserve exact
+failures and reassess after two failures of one semantic interface. No builds or
+proofs precede this decision. Raw suffix Drop without promotion, concurrent CAS
+losers, general representations/escaped owners, unwind, BytesMut and remaining
+APIs/configurations remain open. Full original architecture is NOT ADMITTED.
+
+
+### D-AV staged proof budget and unchanged-proof admission
+
+Before the first body experiment, adopt the user-directed staged budget:
+translate every target, then develop only the new or affected whole-function
+VC targets. The 157 byte-identical inherited source targets remain explicit
+excluded diagnostic targets, not newly proved claims. Record their exact target
+inventory and the selected targets after each translation. A source/interface
+change affecting an inherited target requires including that target as well.
+Do not run negative controls before the new positive bodies pass.
+
+Once the new bodies pass, perform one complete applicable positive proof with
+no exclusions. If correspondence metadata is not ready, preserve that run as an
+immutable diagnostic proof origin. A later admission may reuse its exact full
+Coma/proof bytes under the D-AU identity and fresh-Cargo/correspondence/audit rules;
+never relabel the original skipped-checker diagnostic or imply a second solver
+run. Metadata-only repairs do not justify repeating identical full proofs. The
+initial native v1 ENOSPC failure is infrastructure evidence, not a failed VC:
+workspace inodes were exhausted, and only disposable full-MIR scratch directories
+were removed before the fresh v2 capture. Published evidence was preserved.
+
+
+### D-AV frontend mode correction
+
+The first two AV frontend diagnostics are preserved separately before changes;
+neither reached Coma/prover tasks. The first required Pearlite wrappers around
+logical expressions. The second rejected BoundPtr::as_ptr in Ghost code. The
+corrected selectors use snapshot!(descriptor.base.raw_pointer()).into_ghost()
+through pinned Std's existing Plain implementation for raw pointers (ghost.rs),
+then the existing check(ghost) pointer_addr observer. This materializes only
+pointer metadata inside Ghost and never a permission/resource or native value.
+No inherited boundary or Bytes ownership axiom is changed. SuffixScope creation
+needs no program observer: nonnull follows from the inherited positive base
+address invariant and Std's open is_null_logic address-zero definition.

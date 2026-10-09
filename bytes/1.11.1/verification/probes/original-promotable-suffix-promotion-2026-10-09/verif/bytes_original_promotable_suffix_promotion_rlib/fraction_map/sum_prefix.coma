@@ -1,0 +1,78 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 34 0 34 57 *)
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 34 8 34 21
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 22 8 22 20
+let%span sfraction_map = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 33 10 33 14
+let%span sfraction_map'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 32 11 32 20
+let%span sfraction_map'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 18 4 21 5
+let%span swell_founded = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/well_founded.rs" 43 8 43 33
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 88 8 88 32
+let%span sreal = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/real.rs" 136 14 136 40
+
+use real.Real
+use real.FromInt
+use map.Map
+use int.Int
+
+type t_FMap_Int_Excl_PositiveReal
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+type t_PositiveReal
+
+type t_Excl_PositiveReal = { f0: t_PositiveReal }
+
+type t_Option_Excl_PositiveReal = None | Some t_Excl_PositiveReal
+
+function to_mapping_Int (self: t_FMap_Int_Excl_PositiveReal) : Map.map int t_Option_Excl_PositiveReal
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) : t_Option_Excl_PositiveReal =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate gt_log_Real [@inline:trivial] (self: Real.real) (other: Real.real) = [%#sord'0] Real.(<) other self
+
+meta "rewrite_def" predicate gt_log_Real
+
+function to_real (self: t_PositiveReal) : Real.real
+
+axiom to_real_spec:
+  forall self: t_PositiveReal [to_real self]. [%#sreal] gt_log_Real (to_real self) (FromInt.from_int 0)
+
+function ticket_fraction [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 17 0 17 60] [@inline:trivial] (live: t_FMap_Int_Excl_PositiveReal) (id: int) : Real.real
+ = [%#sfraction_map'1] match get_Int live id with
+    | None -> FromInt.from_int 0
+    | Some {f0 = fraction} -> to_real fraction
+    end
+
+meta "rewrite_def" function ticket_fraction
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] ge_log_Int self 0 /\ gt_log_Int self other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant live : t_FMap_Int_Excl_PositiveReal
+
+constant next : int
+
+function sum_prefix [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-suffix-promotion-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 34 0 34 57] (live: t_FMap_Int_Excl_PositiveReal) (next: int) : Real.real
+
+goal vc_sum_prefix: ([%#sfraction_map'0] ge_log_Int next 0)
+  -> (if next = 0 then
+    true
+  else
+    ([@stop_split] [@expl:sum_prefix requires] [%#sfraction_map'0] ge_log_Int (next - 1) 0)
+    /\ ([@expl:variant decreases] well_founded_relation_Int ([%#sfraction_map] next) ([%#sfraction_map] next - 1))
+  )
