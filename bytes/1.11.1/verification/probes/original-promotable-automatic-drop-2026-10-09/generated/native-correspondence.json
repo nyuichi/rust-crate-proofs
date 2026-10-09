@@ -1,0 +1,99 @@
+{
+  "status": "pass",
+  "checker_scope": "closed default-native witness/source/MIR correspondence; no mathematical proof claim",
+  "paths_and_capture": {
+    "resolved_receipt_inputs": {
+      "native_source": "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-automatic-drop-2026-10-09/native.rs",
+      "capture_script": "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-automatic-drop-2026-10-09/capture-native.sh",
+      "native_manifest": "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-automatic-drop-2026-10-09/native-test/Cargo.toml",
+      "native_lock": "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-automatic-drop-2026-10-09/native-test/Cargo.lock",
+      "native_test_source": "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-automatic-drop-2026-10-09/native-test/tests/clone_witness.rs",
+      "production_manifest": "/workspace/bytes-work/bytes/1.11.1/Cargo.toml",
+      "production_source": "/workspace/bytes-work/bytes/1.11.1/src/bytes.rs",
+      "native_test_log": "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-promotable-automatic-drop-2026-10-09/native-test/native-run.log"
+    },
+    "selected_mir_count": 19,
+    "selected_production_mir_count": 18,
+    "toolchain_pinned": true,
+    "manifest_literal_routes_pinned": true
+  },
+  "reviewed_production_inputs": {
+    "manifest_sha256": "e27b9f64634af27cc52497e08e2875228bda50ca36096dceca4d2c4c5f184306",
+    "base_commit": "361c7cd261507ac0a705b3b836f73240070891c6",
+    "source_files": 61,
+    "manifest_and_lock_pinned": true,
+    "global_import_macro_and_include_bindings_frozen": true
+  },
+  "client": {
+    "native_client_source_closed": true,
+    "normal_trace": [
+      "Bytes::from(Box<[u8]>)",
+      "Clone::clone(original)",
+      "inner-scope child Drop",
+      "AsRef(original).to_vec()",
+      "evaluate return Vec",
+      "root normal Drop",
+      "return"
+    ],
+    "nonempty_input_tested": true,
+    "normal_implicit_handle_drop": true,
+    "normal_edges": [
+      {
+        "block": "bb2",
+        "place": "_5",
+        "owner": "child",
+        "successor": "bb3",
+        "unwind": "bb9"
+      },
+      {
+        "block": "bb6",
+        "place": "_2",
+        "owner": "original",
+        "successor": "bb7",
+        "unwind": "bb11"
+      }
+    ],
+    "return_evaluation": {
+      "block": "bb5",
+      "statement": "_0 = move _7;"
+    },
+    "exceptional_unwind_drops_retained": 1,
+    "unwind_proved": false
+  },
+  "production_source": {
+    "constructor_clone_cleanup_read_source_exact": true,
+    "even_odd_clone_and_drop_sources_exact": true,
+    "shared_arc_promotion_and_cleanup_sources_exact": true,
+    "shared_fields_and_drop_guard_checked": true,
+    "native_atomic_mut_and_refcount_increment_sources_exact": true
+  },
+  "native_mir": {
+    "native_client_mir_order_exact": true,
+    "selected_definition_header_count": 19,
+    "selected_definition_headers_unique": true,
+    "selected_mir_count_including_client": 19,
+    "selected_production_mir_count": 18,
+    "new_shared_count_two_precedes_strong_CAS": true,
+    "CAS_success_and_loser_blocks_and_edges_checked": true,
+    "release_acquire_free_path_checked": true,
+    "promotable_drop_arc_paths_retained_in_source_and_outer_MIR": true
+  },
+  "terminal_field_profile": {
+    "exact_native_Bytes_field_profile_checked": true,
+    "default_native_fields": [
+      "*const u8",
+      "usize",
+      "AtomicPtr<()>",
+      "&'static Vtable"
+    ],
+    "compile_time_no_independent_field_drop_glue": true,
+    "cfg_only_proof_Ghost_fields_erased": true,
+    "reference_no_drop_for_any_referent_is_generic_language_boundary": true
+  },
+  "limitations": [
+    "native output tests are execution corroboration, not a bytes proof",
+    "no claim that test allocations exercise both address parity branches",
+    "the nested promotable-drop closure bodies are source-checked; selected MIR records the outer AtomicMut closure invocation",
+    "compiler/MIR adequacy, Rust memory model, allocator behavior, and pointer provenance remain outside this checker"
+  ]
+}

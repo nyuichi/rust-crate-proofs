@@ -39,7 +39,16 @@ literal/build routes and actual compiled OUT_DIR record bytes. All25 main and
 24 native structural controls reject; seven semantic and five frontend inputs
 are separately archived/audited. Explicit generic TCB remains conditional.
 
-Promotion automatic Drop, arbitrary concurrent closure/escaping clones and
+AM now connects this first promotion to inner-scope child normal Drop and
+terminal root normal Drop after saved return (115/824/0). AL core remains fixed;
+new wrappers are body-proved and exact native places/borrow endings are checked.
+Complete generated-client tokens prevent assertion-macro shadowing; whole
+reviewed production sources prevent record/import alias substitutions. Main45
+and native32 structural controls reject, with six semantic/four type captures.
+These are explicitly conditional generic terminal/compiler/physical boundaries,
+not a standalone arbitrary Bytes Drop interpretation.
+
+Repeated/promoted-root cloning, arbitrary concurrent closure/escaping clones and
 remaining API/configuration coverage remain open. The original full
 target is unchanged. Continue consulting Astra after each audited/published
 increment and execute the next concrete step.

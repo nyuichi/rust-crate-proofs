@@ -1,0 +1,104 @@
+// MIR for `promoted_automatic_scope` after ElaborateDrops
+
+fn promoted_automatic_scope(_1: Box<[u8]>) -> Vec<u8> {
+    debug input => _1;
+    let mut _0: std::vec::Vec<u8>;
+    let _2: bytes::Bytes;
+    let mut _3: std::boxed::Box<[u8]>;
+    let _4: ();
+    let mut _6: &bytes::Bytes;
+    let mut _8: &[u8];
+    let _9: &[u8];
+    let mut _10: &bytes::Bytes;
+    let _11: &bytes::Bytes;
+    scope 1 {
+        debug original => _2;
+        let _5: bytes::Bytes;
+        let _7: std::vec::Vec<u8>;
+        scope 2 {
+            debug child => _5;
+        }
+        scope 3 {
+            debug observed => _7;
+        }
+    }
+
+    bb0: {
+        StorageLive(_2);
+        StorageLive(_3);
+        _3 = move _1;
+        _2 = <bytes::Bytes as From<Box<[u8]>>>::from(move _3) -> [return: bb1, unwind: bb10];
+    }
+
+    bb1: {
+        StorageDead(_3);
+        StorageLive(_4);
+        StorageLive(_5);
+        StorageLive(_6);
+        _6 = &'_ _2;
+        _5 = <bytes::Bytes as Clone>::clone(move _6) -> [return: bb2, unwind: bb9];
+    }
+
+    bb2: {
+        StorageDead(_6);
+        _4 = const ();
+        drop(_5) -> [return: bb3, unwind: bb9];
+    }
+
+    bb3: {
+        StorageDead(_5);
+        StorageDead(_4);
+        StorageLive(_7);
+        StorageLive(_8);
+        StorageLive(_9);
+        StorageLive(_10);
+        StorageLive(_11);
+        _11 = &'_ _2;
+        _10 = &'_ (*_11);
+        _9 = <bytes::Bytes as AsRef<[u8]>>::as_ref(move _10) -> [return: bb4, unwind: bb9];
+    }
+
+    bb4: {
+        _8 = &'_ (*_9);
+        StorageDead(_10);
+        _7 = slice::<impl [u8]>::to_vec(move _8) -> [return: bb5, unwind: bb9];
+    }
+
+    bb5: {
+        StorageDead(_8);
+        StorageDead(_11);
+        StorageDead(_9);
+        _0 = move _7;
+        goto -> bb6;
+    }
+
+    bb6: {
+        StorageDead(_7);
+        drop(_2) -> [return: bb7, unwind: bb11];
+    }
+
+    bb7: {
+        StorageDead(_2);
+        goto -> bb8;
+    }
+
+    bb8: {
+        return;
+    }
+
+    bb9 (cleanup): {
+        drop(_2) -> [return: bb11, unwind terminate(cleanup)];
+    }
+
+    bb10 (cleanup): {
+        goto -> bb11;
+    }
+
+    bb11 (cleanup): {
+        goto -> bb12;
+    }
+
+    bb12 (cleanup): {
+        resume;
+    }
+}

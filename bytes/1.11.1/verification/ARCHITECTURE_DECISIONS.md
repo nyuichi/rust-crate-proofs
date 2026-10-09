@@ -1070,3 +1070,53 @@ captures4428 members including privateStd110 and exact compiled-record/build
 receipts. Independent audit gates publication. This bounded AL completion does
 not admit the full original architecture. After publication ask Astra exactly
 「次何するのがいい？」 and execute the next concrete recommendation.
+
+
+## D2026-10-09-AM — First promotion, lexical and return automatic Drop
+
+After audited/published AL361c7cd2, asked Astra「次何するのがいい？」.
+Astra directs actual native nonempty-Box first promotion with inner-scope child
+Drop, root read/to_vec, return evaluation and terminal root Drop. Changed
+premise is AL's closed actual Raw-to-Shared ownership transition combined with
+AJ/AG's normal terminal-MIR elaboration, not an unchanged public Drop attempt.
+Freeze AL ownership helpers/contracts byte-for-byte; add two nontrusted consuming
+child/root terminal adapters that forward existing cleanup with erased scope and
+completion loans. Preserve child root/pointer frame and KeptAlive completion;
+client establishes actual singleton ledger before final root adapter, paired
+receipts and real zero-ledger completion. Generate calls only at certified native
+normal Drop edges; never execute native Bytes::drop as well in proof artifact.
+Check actual places/normal successors and inner Drop before root last read;
+return evaluation precedes root Drop. Exact callback mapping, no receiver/data
+field address observation/escape and no independent field-drop glue remain
+explicit generic terminal/compiler/erasure TCB. Root consumes updated owned
+history, never reseals readonly. Controls omit either effect, swap adapters/
+places, duplicate consumption, early root drop across read, mutate lexical MIR
+edge, introduce receiver escape/field glue, omit Acquire or either free.
+All-target feature-free restored gate, independent source/MIR/generated/compiled
+record correspondence, native witness and archive-only audit gate publication.
+Unwind remains excluded. Two same semantic interface failures trigger redesign,
+not weakened validity/receipts/content or new Bytes destructor trust. Full
+original architecture remains NOT ADMITTED; after AM publication consult again.
+
+
+AM final canonical gate passes115/824/0, complete115 targets, no defect features,
+no excluded targets, full source/native/generated/actualcompiled correspondence0.
+Two body-forward wrappers preserve AL contracts and sourcebyteexact core, while
+actual native lexical/return Drop places/order are independently checked. Native
+field-profile compile assertions and anchoredAL361c7cd production manifest bind
+61source files+Cargo/lock and exclude hidden record/import/drop-glue changes.
+Review found concrete accepted proof_assert macro shadowing and production
+record/import redirects; complete client-token and native-baseline input gates
+now reject the exact defects with refreshed receipts. Main45/45 and native32/32
+controls pass. Six semantic controls produce1/1/3/2/2/2 real nulls; four type
+snapshots give threeE0382 and E0505/E0502 with noComa. Exact nulls are retained;
+omitted effects yield resource/content resolution sensitivity, and missing free
+GhostConjure paths are not direct native receipt-absence theorems. Feature
+omissions also fail retained public_shared bodies; no doublecountedAMcoverage.
+Canonicalarchive7db16b230e56cd75c9cffb34620a2a4593af23ff68bbc03ed8d5913050b4424e
+has6281 members including actualcompiledrecords/buildreceipts/privateStd110 and
+all proof/source/config inputs. Independentarchive audit gates publication.
+Normal completion only; allocator/to_vec unwind, abort, generaltermination,
+concurrent losers, escaping/generalClone and otherAPIs/configurations remain
+open. Full original architecture is NOT ADMITTED. Asked Astra again exactly
+「次何するのがいい？」 after canonical work; nextimplementation followspublication.

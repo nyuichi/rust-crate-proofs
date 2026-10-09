@@ -1,5 +1,33 @@
 # bytes 1.11.1 status
 
+## Astra-guided first promotion normal automatic Drop — archived label 2026-10-09
+
+AM connects AL's actual first-promotion ownership transition to normal native
+Drop edges: inner child Drop, root read/to_vec, return evaluation, root Drop.
+Two nontrusted consuming wrappers preserve exact AL cleanup contracts; root
+still consumes updated AtomicPtr history, then actual release/Acquire and both
+free receipts. AL proof modules remain byte-identical apart from the explicitly
+checked generated-module route. No Bytes destructor law is trusted.
+
+Canonical gate:115 files/824 prover leaves/zero null, all targets included,
+no defect/terminal features, source correspondence status0. Main controls45/45
+and native controls32/32 reject. Whole generated-client tokens close macro
+shadowing; an independently anchored61-source+Cargo/lock manifest closes global
+production record/import redirects with refreshed capture hashes. Actual AM
+compiled record and Cargo output/fingerprint receipts are independently bound.
+Six semantic controls leave1/1/3/2/2/2 nulls; four type controls fail before VC.
+Exact goal interpretations distinguish content/resource sensitivity and generic
+free/receipt prerequisites from direct native deallocation theorems.
+
+Canonical archive SHA2567db16b230e56cd75c9cffb34620a2a4593af23ff68bbc03ed8d5913050b4424e
+has6281 hashed members; evidence and independent audits are under
+`verification/probes/original-promotable-automatic-drop-2026-10-09/`.
+This is nonempty Box, one first clone, both tag parities and exact normal Drop
+places under explicit generic physical/atomic/provenance/erasure/compiler TCB.
+Arbitrary promoted-root cloning/escaping owners, concurrency/losers, unwind,
+general API/configuration coverage remain open. Full original architecture is
+NOT ADMITTED. Continue Astra's recommendations after each audited publication.
+
 ## Astra-guided first promotable Clone and closed cleanup — archived label 2026-10-09
 
 AL proves the nonempty boxed first-promotion client with both tag parities:
