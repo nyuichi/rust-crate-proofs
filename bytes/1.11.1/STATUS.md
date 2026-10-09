@@ -1,3 +1,7 @@
+## AZ: repeated Root Clone with capped cursor steps
+
+For nonempty Box input and arbitrary finite usize steps, the scoped normal-return client produces the exact capped suffix, preserves owned-zero and reclaims the remaining root after lexical peer retirement. Common Clone covers Raw and Shared normal-return branches with strong allocation/ledger framing; the witness maintains singleton ownership without a step quota. ONE complete positive run is 191 functions / 2,207 prover leaves / 0 null / 0 structural. Fresh Cargo four-artifact and current source/native correspondence gates pass. Independent origin and outer reuse audits PASS/GO; outer raw pin `6060282d047f65eea2999acd2ce49e0bbaf9b69c72f8db0c0e162245011581e7`, 419 proof/source identities and 1,353 frozen input slots. Full original architecture remains NOT ADMITTED. [Scope and evidence](verification/probes/original-root-phase-clone-2026-10-09/README.md).
+
 # bytes 1.11.1 status
 
 ## Common Root lifecycle across optional promotion (AY) — 2026-10-09

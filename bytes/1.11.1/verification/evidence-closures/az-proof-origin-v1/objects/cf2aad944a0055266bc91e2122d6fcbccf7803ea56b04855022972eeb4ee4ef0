@@ -1,0 +1,729 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2673 0 2674 77 *)
+
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 243 25 243 29
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 243 12 243 52
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 241 26 241 36
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 136 19 136 23
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 136 4 136 37
+let%span sghost'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 135 14 135 32
+let%span sghost'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 83 14 83 18
+let%span sghost'6 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 83 4 83 36
+let%span sghost'7 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 81 14 81 31
+let%span sghost'8 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 179 15 179 16
+let%span sghost'9 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 179 4 181 17
+let%span sghost'10 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 177 14 177 26
+let%span sghost'11 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 201 22 201 26
+let%span sghost'12 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 201 4 203 17
+let%span sghost'13 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 199 14 199 29
+let%span sghost'14 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 112 8 112 18
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 22 8 22 20
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 34 8 34 21
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 108 8 108 34
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 168 40 168 65
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 171 12 171 41
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 46 14 46 55
+let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 54 14 54 25
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 852 15 852 27
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 854 8 857 9
+let%span sraw_vec = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 272 12 280 13
+let%span sraw_vec'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 521 12 523 30
+let%span sraw_vec'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 510 20 510 27
+let%span sraw_vec'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 515 20 515 27
+let%span sraw_vec'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 574 20 574 27
+let%span sraw_vec'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 584 20 584 30
+let%span sraw_vec'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 579 20 579 27
+let%span sraw_vec'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 564 20 564 30
+let%span sraw_vec'7 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 569 20 569 30
+let%span sraw_vec'8 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 590 12 593 13
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 142 8 142 35
+let%span sphysical_projection = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 59 56 59 61
+let%span sphysical_projection'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 60 4 60 16
+let%span sphysical_projection'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 45 11 45 42
+let%span sphysical_projection'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 46 11 46 55
+let%span sphysical_projection'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 47 11 47 95
+let%span sphysical_projection'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 48 11 48 98
+let%span sphysical_projection'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 49 11 49 63
+let%span sphysical_projection'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 50 11 50 63
+let%span sphysical_projection'7 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 51 11 51 95
+let%span sphysical_projection'8 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 52 11 52 97
+let%span sphysical_projection'9 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 53 11 53 99
+let%span sphysical_projection'10 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 54 11 54 28
+let%span sphysical_projection'11 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 55 10 55 86
+let%span sphysical_projection'12 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 56 10 56 51
+let%span sphysical_projection'13 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 57 10 57 87
+let%span sphysical_projection'14 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 58 10 58 42
+let%span spromotion = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2675 44 2675 57
+let%span spromotion'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2677 21 2677 34
+let%span spromotion'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2677 44 2677 59
+let%span spromotion'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2677 35 2677 60
+let%span spromotion'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2677 61 2677 78
+let%span spromotion'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2676 25 2677 79
+let%span spromotion'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2678 17 2678 38
+let%span spromotion'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2679 18 2679 47
+let%span spromotion'7 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2681 30 2681 45
+let%span spromotion'8 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2681 22 2681 46
+let%span spromotion'9 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2681 56 2681 77
+let%span spromotion'10 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2681 78 2681 99
+let%span spromotion'11 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2681 47 2681 101
+let%span spromotion'12 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2680 12 2681 102
+let%span spromotion'13 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2674 4 2674 9
+let%span spromotion'14 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2649 11 2649 40
+let%span spromotion'15 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2650 11 2650 76
+let%span spromotion'16 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2651 11 2651 96
+let%span spromotion'17 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2652 11 2652 83
+let%span spromotion'18 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2653 11 2653 88
+let%span spromotion'19 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2654 11 2654 68
+let%span spromotion'20 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2655 11 2655 57
+let%span spromotion'21 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2656 11 2656 60
+let%span spromotion'22 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2657 11 2657 73
+let%span spromotion'23 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2658 11 2658 75
+let%span spromotion'24 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2659 11 2659 136
+let%span spromotion'25 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2660 11 2660 81
+let%span spromotion'26 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2661 11 2661 90
+let%span spromotion'27 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2662 11 2662 76
+let%span spromotion'28 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2663 11 2663 79
+let%span spromotion'29 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2664 11 2664 81
+let%span spromotion'30 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2665 11 2665 76
+let%span spromotion'31 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2666 11 2666 103
+let%span spromotion'32 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2667 11 2668 83
+let%span spromotion'33 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2669 10 2669 88
+let%span spromotion'34 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2670 10 2670 46
+let%span spromotion'35 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2671 10 2671 70
+let%span spromotion'36 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2672 10 2672 77
+let%span spromotion'37 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 174 19 178 55
+let%span spromotion'38 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 166 8 168 53
+let%span ssuffix_pointer = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 21 54 21 58
+let%span ssuffix_pointer'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 22 4 22 10
+let%span ssuffix_pointer'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 22 28 22 34
+let%span ssuffix_pointer'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 7 11 7 77
+let%span ssuffix_pointer'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 8 11 8 67
+let%span ssuffix_pointer'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 9 11 9 80
+let%span ssuffix_pointer'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 10 11 10 101
+let%span ssuffix_pointer'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 11 11 11 111
+let%span ssuffix_pointer'7 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 12 11 12 81
+let%span ssuffix_pointer'8 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 13 11 13 80
+let%span ssuffix_pointer'9 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 14 11 14 109
+let%span ssuffix_pointer'10 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 15 11 15 60
+let%span ssuffix_pointer'11 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 16 11 16 70
+let%span ssuffix_pointer'12 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 17 11 17 69
+let%span ssuffix_pointer'13 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 18 11 18 124
+let%span ssuffix_pointer'14 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 19 10 19 55
+let%span ssuffix_pointer'15 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/suffix_pointer.rs" 20 10 20 64
+
+use creusot.int.UInt64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.Int64
+use creusot.prelude.Opaque
+use creusot.prelude.Ptr
+use map.Map
+use map.Const
+use creusot.prelude.Any
+use int.Int
+
+type t_BoundPtr
+
+type t_AtomicPtr_unit
+
+type t_RootDescriptor = { base: t_BoundPtr; capacity: UInt64.t; expected: Seq.seq UInt8.t; model: t_AtomicPtr_unit }
+
+type t_Recovery
+
+type t_PhysicalRegion
+
+type tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion = {
+  f0: t_RootDescriptor;
+  f1: t_BoundPtr;
+  f2: t_Recovery;
+  f3: t_PhysicalRegion }
+
+type tup4_Ghost_RootDescriptor_Ghost_BoundPtr_Ghost_Recovery_Ghost_PhysicalRegion = {
+  f0'0: t_RootDescriptor;
+  f1'0: t_BoundPtr;
+  f2'0: t_Recovery;
+  f3'0: t_PhysicalRegion }
+
+type t_Id
+
+type tup3_Id_Int_Int = { f0'1: t_Id; f1'1: int; f2'1: int }
+
+type t_Option_tup3_Id_Int_Int = None | Some tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 253 4 253 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function current_address [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 289 4 289 39] (self: t_BoundPtr) : int
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 270 4 270 30] (self: t_BoundPtr) =
+  [%#sraw_vec] match view_BoundPtr self with
+    | None -> true
+    | Some {f1'1 = allocation_capacity; f2'1 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity
+    /\ allocation_capacity <= Int64.to_int const_MAX
+    /\ absolute_offset < current_address self
+    /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
+    end
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> invariant_BoundPtr x
+
+predicate inv_RootDescriptor (_1: t_RootDescriptor)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_RootDescriptor [inv_RootDescriptor x]. inv_RootDescriptor x
+    = inv_BoundPtr x.base
+
+predicate inv_Recovery (_1: t_Recovery)
+
+predicate invariant_PhysicalRegion [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 550 4 550 30] (self: t_PhysicalRegion)
+
+predicate inv_PhysicalRegion (_1: t_PhysicalRegion)
+
+axiom inv_axiom'1: forall x: t_PhysicalRegion [inv_PhysicalRegion x]. inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate inv_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion [@inline:trivial] (_1: tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion) =
+  inv_RootDescriptor _1.f0 /\ inv_BoundPtr _1.f1 /\ inv_Recovery _1.f2 /\ inv_PhysicalRegion _1.f3
+
+meta "rewrite_def" predicate inv_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion
+
+predicate invariant_Ghost_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion [@inline:trivial] (self: tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion) =
+  [%#sghost'14] inv_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion
+
+predicate inv_Ghost_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion [@inline:trivial] (_1: tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion) =
+  invariant_Ghost_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion
+
+predicate invariant_Ghost_RootDescriptor [@inline:trivial] (self: t_RootDescriptor) =
+  [%#sghost'14] inv_RootDescriptor self
+
+meta "rewrite_def" predicate invariant_Ghost_RootDescriptor
+
+predicate inv_Ghost_RootDescriptor [@inline:trivial] (_1: t_RootDescriptor) = invariant_Ghost_RootDescriptor _1
+
+meta "rewrite_def" predicate inv_Ghost_RootDescriptor
+
+predicate invariant_Ghost_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sghost'14] inv_BoundPtr self
+
+meta "rewrite_def" predicate invariant_Ghost_BoundPtr
+
+predicate inv_Ghost_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_Ghost_BoundPtr _1
+
+meta "rewrite_def" predicate inv_Ghost_BoundPtr
+
+predicate invariant_Ghost_Recovery [@inline:trivial] (self: t_Recovery) = [%#sghost'14] inv_Recovery self
+
+meta "rewrite_def" predicate invariant_Ghost_Recovery
+
+predicate inv_Ghost_Recovery [@inline:trivial] (_1: t_Recovery) = invariant_Ghost_Recovery _1
+
+meta "rewrite_def" predicate inv_Ghost_Recovery
+
+predicate invariant_Ghost_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sghost'14] inv_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_PhysicalRegion
+
+predicate inv_Ghost_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_Ghost_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_PhysicalRegion
+
+predicate inv_tup4_Ghost_RootDescriptor_Ghost_BoundPtr_Ghost_Recovery_Ghost_PhysicalRegion [@inline:trivial] (_1: tup4_Ghost_RootDescriptor_Ghost_BoundPtr_Ghost_Recovery_Ghost_PhysicalRegion) =
+  inv_Ghost_RootDescriptor _1.f0'0
+  /\ inv_Ghost_BoundPtr _1.f1'0 /\ inv_Ghost_Recovery _1.f2'0 /\ inv_Ghost_PhysicalRegion _1.f3'0
+
+meta "rewrite_def" predicate inv_tup4_Ghost_RootDescriptor_Ghost_BoundPtr_Ghost_Recovery_Ghost_PhysicalRegion
+
+let split_RootDescriptor (self: tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion)
+  (return (x: tup4_Ghost_RootDescriptor_Ghost_BoundPtr_Ghost_Recovery_Ghost_PhysicalRegion)) =
+{[@stop_split] [@expl:split 'self' type invariant] [%#sghost] inv_Ghost_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion self}
+  any
+  [ return (result: tup4_Ghost_RootDescriptor_Ghost_BoundPtr_Ghost_Recovery_Ghost_PhysicalRegion) ->
+  {[@stop_split] [@expl:split_RootDescriptor ensures] ([@stop_split] [@expl:split result type invariant] [%#sghost'0] inv_tup4_Ghost_RootDescriptor_Ghost_BoundPtr_Ghost_Recovery_Ghost_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:split ensures #0] [%#sghost'1] self.f0 = result.f0'0)
+    /\ ([@stop_split] [@expl:split ensures #1] [%#sghost'1] self.f1 = result.f1'0)
+    /\ ([@stop_split] [@expl:split ensures #2] [%#sghost'1] self.f2 = result.f2'0)
+    /\ ([@stop_split] [@expl:split ensures #3] [%#sghost'1] self.f3 = result.f3'0)}
+    (! return {result}) ]
+
+predicate invariant_ref_Ghost_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sinvariant] inv_Ghost_BoundPtr self
+
+meta "rewrite_def" predicate invariant_ref_Ghost_BoundPtr
+
+predicate inv_ref_Ghost_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_ref_Ghost_BoundPtr _1
+
+meta "rewrite_def" predicate inv_ref_Ghost_BoundPtr
+
+predicate invariant_ref_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sinvariant] inv_BoundPtr self
+
+meta "rewrite_def" predicate invariant_ref_BoundPtr
+
+predicate inv_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_ref_BoundPtr _1
+
+meta "rewrite_def" predicate inv_ref_BoundPtr
+
+predicate invariant_Ghost_ref_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sghost'14] inv_ref_BoundPtr self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_BoundPtr
+
+predicate inv_Ghost_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_Ghost_ref_BoundPtr _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_BoundPtr
+
+let borrow_BoundPtr (self: t_BoundPtr) (return (x: t_BoundPtr)) =
+{[@stop_split] [@expl:borrow 'self' type invariant] [%#sghost'2] inv_ref_Ghost_BoundPtr self}
+  any
+  [ return (result: t_BoundPtr) ->
+  {[@stop_split] [@expl:borrow_BoundPtr ensures] ([@stop_split] [@expl:borrow result type invariant] [%#sghost'3] inv_Ghost_ref_BoundPtr result)
+    /\ ([@stop_split] [@expl:borrow ensures] [%#sghost'4] result = self)}
+    (! return {result}) ]
+
+predicate invariant_ref_Ghost_RootDescriptor [@inline:trivial] (self: t_RootDescriptor) =
+  [%#sinvariant] inv_Ghost_RootDescriptor self
+
+meta "rewrite_def" predicate invariant_ref_Ghost_RootDescriptor
+
+predicate inv_ref_Ghost_RootDescriptor [@inline:trivial] (_1: t_RootDescriptor) = invariant_ref_Ghost_RootDescriptor _1
+
+meta "rewrite_def" predicate inv_ref_Ghost_RootDescriptor
+
+predicate invariant_ref_RootDescriptor [@inline:trivial] (self: t_RootDescriptor) =
+  [%#sinvariant] inv_RootDescriptor self
+
+meta "rewrite_def" predicate invariant_ref_RootDescriptor
+
+predicate inv_ref_RootDescriptor [@inline:trivial] (_1: t_RootDescriptor) = invariant_ref_RootDescriptor _1
+
+meta "rewrite_def" predicate inv_ref_RootDescriptor
+
+let deref_Ghost_RootDescriptor (self: t_RootDescriptor) (return (x: t_RootDescriptor)) =
+{[@stop_split] [@expl:deref 'self' type invariant] [%#sghost'5] inv_ref_Ghost_RootDescriptor self}
+  any
+  [ return (result: t_RootDescriptor) ->
+  {[@stop_split] [@expl:deref_Ghost_RootDescriptor ensures] ([@stop_split] [@expl:deref result type invariant] [%#sghost'6] inv_ref_RootDescriptor result)
+    /\ ([@stop_split] [@expl:deref ensures] [%#sghost'7] result = self)}
+    (! return {result}) ]
+
+let new_ref_BoundPtr (x: t_BoundPtr) (return (x'0: t_BoundPtr)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'8] inv_ref_BoundPtr x}
+  any
+  [ return (result: t_BoundPtr) ->
+  {[@stop_split] [@expl:new_ref_BoundPtr ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'9] inv_Ghost_ref_BoundPtr result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'10] result = x)}
+    (! return {result}) ]
+
+predicate invariant_ref_Ghost_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sinvariant] inv_Ghost_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_ref_Ghost_PhysicalRegion
+
+predicate inv_ref_Ghost_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_ref_Ghost_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_ref_Ghost_PhysicalRegion
+
+predicate invariant_ref_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sinvariant] inv_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_ref_PhysicalRegion
+
+predicate inv_ref_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_ref_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_ref_PhysicalRegion
+
+predicate invariant_Ghost_ref_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sghost'14] inv_ref_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_PhysicalRegion
+
+predicate inv_Ghost_ref_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_Ghost_ref_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_PhysicalRegion
+
+let borrow_PhysicalRegion (self: t_PhysicalRegion) (return (x: t_PhysicalRegion)) =
+{[@stop_split] [@expl:borrow 'self' type invariant] [%#sghost'2] inv_ref_Ghost_PhysicalRegion self}
+  any
+  [ return (result: t_PhysicalRegion) ->
+  {[@stop_split] [@expl:borrow_PhysicalRegion ensures] ([@stop_split] [@expl:borrow result type invariant] [%#sghost'3] inv_Ghost_ref_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:borrow ensures] [%#sghost'4] result = self)}
+    (! return {result}) ]
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+type t_OwnedRegion
+
+type tup3_OwnedRegion_Int_Id = { f0'2: t_OwnedRegion; f1'2: int; f2'2: t_Id }
+
+function view_PhysicalRegion [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 541 4 541 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+function capacity'0 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 578 4 578 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'5] (view_PhysicalRegion self).f1'2
+
+type t_Excl_unit = { f0'3: () }
+
+type t_Option_Excl_unit = None'0 | Some'0 t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'4: t_Option_Excl_unit; f1'4: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'5: int;
+  f1'5: int;
+  f2'5: t_Id;
+  f3'5: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function lo [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 563 4 563 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'6] (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5
+
+function hi [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 568 4 568 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'7] (view_OwnedRegion (view_PhysicalRegion self).f0'2).f1'5
+
+function namespace [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 573 4 573 39] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'3] (view_PhysicalRegion self).f2'2
+
+constant any_tup3_Id_Int_Int : tup3_Id_Int_Int
+
+function unwrap_Option_tup3_Id_Int_Int (self: t_Option_tup3_Id_Int_Int) : tup3_Id_Int_Int =
+  [%#soption'0] match self with
+    | Some x -> x
+    | None -> any_tup3_Id_Int_Int
+    end
+
+function raw_pointer [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 299 4 299 46] (self: t_BoundPtr) : Opaque.ptr
+
+predicate is_null_ptr_u8 (self: Opaque.ptr) = [%#sptr] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+predicate is_null_ptr_u8'0 (self: Opaque.ptr) = [%#sptr] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+let distance (pointer: Opaque.ptr) (base'0: Opaque.ptr) (view: t_BoundPtr) (origin: t_BoundPtr)
+  (region: t_PhysicalRegion) (return (x: Int64.t)) =
+{[@stop_split] [@expl:distance requires] ([@stop_split] [@expl:distance 'view' type invariant] [%#ssuffix_pointer] inv_Ghost_ref_BoundPtr view)
+  /\ ([@stop_split] [@expl:distance 'origin' type invariant] [%#ssuffix_pointer'0] inv_Ghost_ref_BoundPtr origin)
+  /\ ([@stop_split] [@expl:distance 'region' type invariant] [%#ssuffix_pointer'1] inv_Ghost_ref_PhysicalRegion region)
+  /\ ([@stop_split] [@expl:distance requires #0] [%#ssuffix_pointer'2] invariant_ref_BoundPtr view
+    /\ invariant_ref_BoundPtr origin)
+  /\ ([@stop_split] [@expl:distance requires #1] [%#ssuffix_pointer'3] view_BoundPtr view <> None
+    /\ view_BoundPtr origin <> None)
+  /\ ([@stop_split] [@expl:distance requires #2] [%#ssuffix_pointer'4] invariant_ref_PhysicalRegion region
+    /\ gt_log_Int (capacity'0 region) 0)
+  /\ ([@stop_split] [@expl:distance requires #3] [%#ssuffix_pointer'5] lo region = 0 /\ hi region = capacity'0 region)
+  /\ ([@stop_split] [@expl:distance requires #4] [%#ssuffix_pointer'6] view_BoundPtr origin
+    = Some { f0'1 = namespace region; f1'1 = capacity'0 region; f2'1 = 0 })
+  /\ ([@stop_split] [@expl:distance requires #5] [%#ssuffix_pointer'7] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr view)).f0'1
+    = namespace region)
+  /\ ([@stop_split] [@expl:distance requires #6] [%#ssuffix_pointer'8] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr view)).f1'1
+    = capacity'0 region)
+  /\ ([@stop_split] [@expl:distance requires #7] [%#ssuffix_pointer'9] pointer = raw_pointer view
+    /\ base'0 = raw_pointer origin)
+  /\ ([@stop_split] [@expl:distance requires #8] [%#ssuffix_pointer'10] not is_null_ptr_u8 pointer
+    /\ not is_null_ptr_u8'0 base'0)
+  /\ ([@stop_split] [@expl:distance requires #9] [%#ssuffix_pointer'11] current_address view
+    = UInt64.t'int (Ptr.addr_logic_u64 pointer))
+  /\ ([@stop_split] [@expl:distance requires #10] [%#ssuffix_pointer'12] current_address origin
+    = UInt64.t'int (Ptr.addr_logic_u64 base'0))
+  /\ ([@stop_split] [@expl:distance requires #11] [%#ssuffix_pointer'13] current_address view
+  = current_address origin + (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr view)).f2'1)}
+  any
+  [ return (result: Int64.t) ->
+  {[@stop_split] [@expl:distance ensures] ([@stop_split] [@expl:distance ensures #0] [%#ssuffix_pointer'14] Int64.to_int result
+      = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr view)).f2'1)
+    /\ ([@stop_split] [@expl:distance ensures #1] [%#ssuffix_pointer'15] 0 <= Int64.to_int result
+    /\ Int64.to_int result <= capacity'0 region)}
+    (! return {result}) ]
+
+let new_BoundPtr (x: t_BoundPtr) (return (x'0: t_BoundPtr)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'8] inv_BoundPtr x}
+  any
+  [ return (result: t_BoundPtr) ->
+  {[@stop_split] [@expl:new_BoundPtr ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'9] inv_Ghost_BoundPtr result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'10] result = x)}
+    (! return {result}) ]
+
+let into_inner_Recovery (self: t_Recovery) (return (x: t_Recovery)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost'11] inv_Ghost_Recovery self}
+  any
+  [ return (result: t_Recovery) ->
+  {[@stop_split] [@expl:into_inner_Recovery ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'12] inv_Recovery result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'13] result = self)}
+    (! return {result}) ]
+
+let into_inner_PhysicalRegion (self: t_PhysicalRegion) (return (x: t_PhysicalRegion)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost'11] inv_Ghost_PhysicalRegion self}
+  any
+  [ return (result: t_PhysicalRegion) ->
+  {[@stop_split] [@expl:into_inner_PhysicalRegion ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'12] inv_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'13] result = self)}
+    (! return {result}) ]
+
+type tup2_Recovery_PhysicalRegion = { f0'6: t_Recovery; f1'6: t_PhysicalRegion }
+
+predicate inv_tup2_Recovery_PhysicalRegion [@inline:trivial] (_1: tup2_Recovery_PhysicalRegion) =
+  inv_Recovery _1.f0'6 /\ inv_PhysicalRegion _1.f1'6
+
+meta "rewrite_def" predicate inv_tup2_Recovery_PhysicalRegion
+
+predicate invariant_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial] (self: tup2_Recovery_PhysicalRegion) =
+  [%#sghost'14] inv_tup2_Recovery_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_tup2_Recovery_PhysicalRegion
+
+predicate inv_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial] (_1: tup2_Recovery_PhysicalRegion) =
+  invariant_Ghost_tup2_Recovery_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_tup2_Recovery_PhysicalRegion
+
+let new_tup2_Recovery_PhysicalRegion (x: tup2_Recovery_PhysicalRegion) (return (x'0: tup2_Recovery_PhysicalRegion)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'8] inv_tup2_Recovery_PhysicalRegion x}
+  any
+  [ return (result: tup2_Recovery_PhysicalRegion) ->
+  {[@stop_split] [@expl:new_tup2_Recovery_PhysicalRegion ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'9] inv_Ghost_tup2_Recovery_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'10] result = x)}
+    (! return {result}) ]
+
+type t_FreeReceipt
+
+type tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id = {
+  f0'7: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8;
+  f1'7: int;
+  f2'7: t_Id;
+  f3'7: t_Id }
+
+function view_Recovery [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 499 4 499 33] (self: t_Recovery) : tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id
+
+type t_Option_u8 = None'1 | Some'1 UInt8.t
+
+type t_Excl_Option_u8 = { f0'8: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'2 | Some'2 t_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap'0] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate ext_eq_Int (self: t_FMap_Int_Excl_Option_u8) (other: t_FMap_Int_Excl_Option_u8) =
+  [%#sfmap'2] forall k: int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec: forall self: t_FMap_Int_Excl_Option_u8, other: t_FMap_Int_Excl_Option_u8 [self
+    = other]. [%#sfmap'1] ext_eq_Int self other = (self = other)
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_Option_u8) : int
+
+axiom len_Int_spec: forall self: t_FMap_Int_Excl_Option_u8 [len_Int self]. [%#sfmap'5] ge_log_Int (len_Int self) 0
+
+constant empty_Int : t_FMap_Int_Excl_Option_u8
+
+axiom empty_Int_spec: [%#sfmap'3] len_Int empty_Int = 0
+
+axiom empty_Int_spec'0: [%#sfmap'4] to_mapping_Int empty_Int = Const.const (None'2)
+
+predicate is_empty_Int (self: t_FMap_Int_Excl_Option_u8) = [%#sfmap] ext_eq_Int self empty_Int
+
+predicate invariant' [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 519 4 519 41] (self: t_Recovery) =
+  [%#sraw_vec'0] (view_Recovery self).f0'7.f0'4 = Some'0 { f0'3 = () }
+  /\ is_empty_Int (view_Recovery self).f0'7.f1'4 /\ (view_Recovery self).f2'7 = (view_Recovery self).f3'7
+
+function namespace'0 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 509 4 509 39] (self: t_Recovery) : t_Id
+ = [%#sraw_vec'1] (view_Recovery self).f2'7
+
+function capacity'1 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 514 4 514 39] (self: t_Recovery) : int
+ = [%#sraw_vec'2] (view_Recovery self).f1'7
+
+function resource_id [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 583 4 583 41] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'4] (view_OwnedRegion (view_PhysicalRegion self).f0'2).f2'5
+
+predicate gt_log_usize [@inline:trivial] (self: UInt64.t) (other: UInt64.t) = [%#sord] UInt64.lt other self
+
+meta "rewrite_def" predicate gt_log_usize
+
+function namespace'1 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 37 21 37 49] (self: t_FreeReceipt) : t_Id
+
+function pointer [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 38 21 38 52] (self: t_FreeReceipt) : Opaque.ptr
+
+function size [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 39 21 39 45] (self: t_FreeReceipt) : int
+
+function align [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 40 21 40 46] (self: t_FreeReceipt) : int
+
+predicate allocated [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/physical_projection.rs" 41 21 41 51] (self: t_FreeReceipt)
+
+let deallocate (pointer'0: Opaque.ptr) (capacity'2: UInt64.t) (bound: t_BoundPtr)
+  (capabilities: tup2_Recovery_PhysicalRegion) (return (x: t_FreeReceipt)) =
+{[@stop_split] [@expl:deallocate requires] ([@stop_split] [@expl:deallocate 'bound' type invariant] [%#sphysical_projection] inv_Ghost_BoundPtr bound)
+  /\ ([@stop_split] [@expl:deallocate 'capabilities' type invariant] [%#sphysical_projection'0] inv_Ghost_tup2_Recovery_PhysicalRegion capabilities)
+  /\ ([@stop_split] [@expl:deallocate requires #0] [%#sphysical_projection'1] invariant_BoundPtr bound)
+  /\ ([@stop_split] [@expl:deallocate requires #1] [%#sphysical_projection'2] pointer'0 = raw_pointer bound)
+  /\ ([@stop_split] [@expl:deallocate requires #2] [%#sphysical_projection'3] invariant' capabilities.f0'6
+    /\ invariant_PhysicalRegion capabilities.f1'6)
+  /\ ([@stop_split] [@expl:deallocate requires #3] [%#sphysical_projection'4] view_BoundPtr bound
+    = Some { f0'1 = namespace'0 capabilities.f0'6; f1'1 = UInt64.t'int capacity'2; f2'1 = 0 })
+  /\ ([@stop_split] [@expl:deallocate requires #4] [%#sphysical_projection'5] capacity'1 capabilities.f0'6
+    = UInt64.t'int capacity'2)
+  /\ ([@stop_split] [@expl:deallocate requires #5] [%#sphysical_projection'6] capacity'0 capabilities.f1'6
+    = UInt64.t'int capacity'2)
+  /\ ([@stop_split] [@expl:deallocate requires #6] [%#sphysical_projection'7] namespace capabilities.f1'6
+    = namespace'0 capabilities.f0'6)
+  /\ ([@stop_split] [@expl:deallocate requires #7] [%#sphysical_projection'8] resource_id capabilities.f1'6
+    = namespace'0 capabilities.f0'6)
+  /\ ([@stop_split] [@expl:deallocate requires #8] [%#sphysical_projection'9] lo capabilities.f1'6 = 0
+    /\ hi capabilities.f1'6 = UInt64.t'int capacity'2)
+  /\ ([@stop_split] [@expl:deallocate requires #9] [%#sphysical_projection'10] gt_log_usize capacity'2 (0: UInt64.t))}
+  any
+  [ return (result: t_FreeReceipt) ->
+  {[@stop_split] [@expl:deallocate ensures] ([@stop_split] [@expl:deallocate ensures #0] [%#sphysical_projection'11] namespace'1 result
+      = namespace'0 capabilities.f0'6)
+    /\ ([@stop_split] [@expl:deallocate ensures #1] [%#sphysical_projection'12] pointer result = pointer'0)
+    /\ ([@stop_split] [@expl:deallocate ensures #2] [%#sphysical_projection'13] size result = UInt64.t'int capacity'2
+      /\ align result = 1)
+    /\ ([@stop_split] [@expl:deallocate ensures #3] [%#sphysical_projection'14] allocated result)}
+    (! return {result}) ]
+
+function tagged_data [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../original-boxed-automatic-drop-2026-10-09/src/tag_specs.rs" 9 17 9 61] (pointer'0: Opaque.ptr) : Opaque.ptr
+
+function word [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 165 13 165 35] (self: t_RootDescriptor) : Opaque.ptr
+ = [%#spromotion'38] if UInt64.bw_and (Ptr.addr_logic_u64 (raw_pointer self.base)) (1: UInt64.t) = (0: UInt64.t) then
+    tagged_data (raw_pointer self.base)
+  else
+    raw_pointer self.base
+
+
+predicate valid [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 173 13 173 33] (self: t_RootDescriptor) =
+  [%#spromotion'37] invariant_BoundPtr self.base
+  /\ view_BoundPtr self.base <> None
+  /\ current_address self.base = UInt64.t'int (Ptr.addr_logic_u64 (raw_pointer self.base))
+  /\ (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self.base)).f1'1 = UInt64.t'int self.capacity
+  /\ (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self.base)).f2'1 = 0
+  /\ gt_log_usize self.capacity (0: UInt64.t)
+  /\ Seq.length self.expected = UInt64.t'int self.capacity
+  /\ UInt64.bw_and (Ptr.addr_logic_u64 (word self)) (1: UInt64.t) = (1: UInt64.t)
+
+type t_Option_Option_u8 = None'3 | Some'3 t_Option_u8
+
+function slot [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 588 4 588 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+ = [%#sraw_vec'8] match get_Int (view_OwnedRegion (view_PhysicalRegion self).f0'2).f3'5.f1'4 index with
+    | None'2 -> None'3
+    | Some'2 {f0'8 = value} -> Some'3 value
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let free_raw_suffix_checked [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 2673 0 2674 77]
+  (base'0: Opaque.ptr) (pointer'0: Opaque.ptr) (len: UInt64.t)
+  (input: tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion) (return (x: t_FreeReceipt)) =
+{[@stop_split] [@expl:free_raw_suffix_checked requires] ([@stop_split] [@expl:free_raw_suffix_checked 'input' type invariant] [%#spromotion'13] inv_Ghost_tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion input)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #0] [%#spromotion'14] valid input.f0)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #1] [%#spromotion'15] invariant_BoundPtr input.f1
+    /\ view_BoundPtr input.f1 <> None)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #2] [%#spromotion'16] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr input.f1)).f0'1
+    = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr input.f0.base)).f0'1)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #3] [%#spromotion'17] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr input.f1)).f1'1
+    = UInt64.t'int input.f0.capacity)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #4] [%#spromotion'18] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr input.f1)).f2'1
+      + UInt64.t'int len
+    = UInt64.t'int input.f0.capacity)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #5] [%#spromotion'19] pointer'0 = raw_pointer input.f1)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #6] [%#spromotion'20] base'0 = raw_pointer input.f0.base)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #7] [%#spromotion'21] not is_null_ptr_u8 pointer'0
+    /\ not is_null_ptr_u8'0 base'0)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #8] [%#spromotion'22] current_address input.f1
+    = UInt64.t'int (Ptr.addr_logic_u64 pointer'0))
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #9] [%#spromotion'23] current_address input.f0.base
+    = UInt64.t'int (Ptr.addr_logic_u64 base'0))
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #10] [%#spromotion'24] current_address input.f1
+    = current_address input.f0.base + (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr input.f1)).f2'1)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #11] [%#spromotion'25] invariant' input.f2
+    /\ invariant_PhysicalRegion input.f3)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #12] [%#spromotion'26] namespace'0 input.f2
+    = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr input.f0.base)).f0'1)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #13] [%#spromotion'27] capacity'1 input.f2
+    = UInt64.t'int input.f0.capacity)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #14] [%#spromotion'28] namespace input.f3
+    = namespace'0 input.f2)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #15] [%#spromotion'29] resource_id input.f3
+    = namespace'0 input.f2)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #16] [%#spromotion'30] capacity'0 input.f3
+    = UInt64.t'int input.f0.capacity)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #17] [%#spromotion'31] lo input.f3 = 0
+    /\ hi input.f3 = UInt64.t'int input.f0.capacity)
+  /\ ([@stop_split] [@expl:free_raw_suffix_checked requires #18] [%#spromotion'32] forall i: int. 0 <= i
+      /\ i < UInt64.t'int input.f0.capacity -> slot input.f3 i = Some'3 (Some'1 (Seq.get input.f0.expected i)))}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = split_RootDescriptor [%#spromotion] {input}
+        (fun (_x: tup4_Ghost_RootDescriptor_Ghost_BoundPtr_Ghost_Recovery_Ghost_PhysicalRegion) -> [ &_60 <- _x ] s1)
+    | s1 = [ &descriptor <- _60.f0'0 ] s2
+    | s2 = [ &view <- _60.f1'0 ] s3
+    | s3 = [ &recovery <- _60.f2'0 ] s4
+    | s4 = [ &physical <- _60.f3'0 ] s5
+    | s5 = borrow_BoundPtr [%#spromotion'0] {view} (fun (_x: t_BoundPtr) -> [ &_65 <- _x ] s6)
+    | s6 = deref_Ghost_RootDescriptor [%#spromotion'1] {descriptor} (fun (_x: t_RootDescriptor) -> [ &_70 <- _x ] s7)
+    | s7 = [ &_69 <- _70.base ] s8
+    | s8 = new_ref_BoundPtr [%#spromotion'2] {_69} (fun (_x: t_BoundPtr) -> [ &_67 <- _x ] s9)
+    | s9 = borrow_PhysicalRegion [%#spromotion'3] {physical} (fun (_x: t_PhysicalRegion) -> [ &_72 <- _x ] s10)
+    | s10 = distance [%#spromotion'4] {pointer'0} {base'0} {_65} {_67} {_72}
+        (fun (_x: Int64.t) -> [ &distance'0 <- _x ] s11)
+    | s11 = [ &_75 <- UInt64.of_int (Int64.to_int distance'0) ] s12
+    | s12 = UInt64.add [%#spromotion'5] {_75} {len} (fun (_x: UInt64.t) -> [ &capacity'2 <- _x ] s13)
+    | s13 = {[@expl:assertion] [%#spromotion'6] capacity'2 = descriptor.capacity} s14
+    | s14 = deref_Ghost_RootDescriptor [%#spromotion'7] {descriptor} (fun (_x: t_RootDescriptor) -> [ &_86 <- _x ] s15)
+    | s15 = new_BoundPtr [%#spromotion'8] {_86.base} (fun (_x: t_BoundPtr) -> [ &_84 <- _x ] s16)
+    | s16 = into_inner_Recovery [%#spromotion'9] {recovery} (fun (_x: t_Recovery) -> [ &_90 <- _x ] s17)
+    | s17 = into_inner_PhysicalRegion [%#spromotion'10] {physical} (fun (_x: t_PhysicalRegion) -> [ &_92 <- _x ] s18)
+    | s18 = [ &_89 <- { f0'6 = _90; f1'6 = _92 } ] s19
+    | s19 = new_tup2_Recovery_PhysicalRegion [%#spromotion'11] {_89}
+        (fun (_x: tup2_Recovery_PhysicalRegion) -> [ &_88 <- _x ] s20)
+    | s20 = deallocate [%#spromotion'12] {base'0} {capacity'2} {_84} {_88}
+        (fun (_x: t_FreeReceipt) -> [ &_ret <- _x ] s21)
+    | s21 = return {_ret} ] ]
+  [ & _ret: t_FreeReceipt = Any.any_l ()
+  | & base'0: Opaque.ptr = base'0
+  | & pointer'0: Opaque.ptr = pointer'0
+  | & len: UInt64.t = len
+  | & input: tup4_RootDescriptor_BoundPtr_Recovery_PhysicalRegion = input
+  | & descriptor: t_RootDescriptor = Any.any_l ()
+  | & view: t_BoundPtr = Any.any_l ()
+  | & recovery: t_Recovery = Any.any_l ()
+  | & physical: t_PhysicalRegion = Any.any_l ()
+  | & _60: tup4_Ghost_RootDescriptor_Ghost_BoundPtr_Ghost_Recovery_Ghost_PhysicalRegion = Any.any_l ()
+  | & distance'0: Int64.t = Any.any_l ()
+  | & _65: t_BoundPtr = Any.any_l ()
+  | & _67: t_BoundPtr = Any.any_l ()
+  | & _69: t_BoundPtr = Any.any_l ()
+  | & _70: t_RootDescriptor = Any.any_l ()
+  | & _72: t_PhysicalRegion = Any.any_l ()
+  | & capacity'2: UInt64.t = Any.any_l ()
+  | & _75: UInt64.t = Any.any_l ()
+  | & _84: t_BoundPtr = Any.any_l ()
+  | & _86: t_RootDescriptor = Any.any_l ()
+  | & _88: tup2_Recovery_PhysicalRegion = Any.any_l ()
+  | & _89: tup2_Recovery_PhysicalRegion = Any.any_l ()
+  | & _90: t_Recovery = Any.any_l ()
+  | & _92: t_PhysicalRegion = Any.any_l () ])
+  [ return (result: t_FreeReceipt) ->
+  {[@stop_split] [@expl:free_raw_suffix_checked ensures] ([@stop_split] [@expl:free_raw_suffix_checked ensures #0] [%#spromotion'33] namespace'1 result
+      = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr input.f0.base)).f0'1)
+    /\ ([@stop_split] [@expl:free_raw_suffix_checked ensures #1] [%#spromotion'34] pointer result = base'0)
+    /\ ([@stop_split] [@expl:free_raw_suffix_checked ensures #2] [%#spromotion'35] size result
+      = UInt64.t'int input.f0.capacity)
+    /\ ([@stop_split] [@expl:free_raw_suffix_checked ensures #3] [%#spromotion'36] align result = 1
+    /\ allocated result)}
+    (! return {result}) ]

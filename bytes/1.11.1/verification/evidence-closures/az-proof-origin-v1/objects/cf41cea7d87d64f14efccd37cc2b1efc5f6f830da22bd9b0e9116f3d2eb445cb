@@ -1,0 +1,84 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 738 0 738 38 *)
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 34 8 34 21
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 77 14 77 67
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 78 14 78 84
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 46 14 46 55
+let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 168 40 168 65
+let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'6 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'7 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 171 12 171 41
+let%span slifecycle = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 736 11 736 26
+let%span slifecycle'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 737 10 737 40
+
+use map.Map
+use map.Const
+use int.Int
+
+type t_FMap_Int_Excl_PositiveReal
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_PositiveReal) : int
+
+axiom len_Int_spec: forall self: t_FMap_Int_Excl_PositiveReal [len_Int self]. [%#sfmap'1] ge_log_Int (len_Int self) 0
+
+type t_PositiveReal
+
+type t_Excl_PositiveReal = { f0: t_PositiveReal }
+
+type t_Option_Excl_PositiveReal = None | Some t_Excl_PositiveReal
+
+function to_mapping_Int (self: t_FMap_Int_Excl_PositiveReal) : Map.map int t_Option_Excl_PositiveReal
+
+constant empty_Int : t_FMap_Int_Excl_PositiveReal
+
+axiom empty_Int_spec: [%#sfmap'2] len_Int empty_Int = 0
+
+axiom empty_Int_spec'0: [%#sfmap'3] to_mapping_Int empty_Int = Const.const (None)
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) : t_Option_Excl_PositiveReal =
+  [%#sfmap'6] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) =
+  [%#sfmap'5] get_Int self k <> None
+
+meta "rewrite_def" predicate contains_Int
+
+function remove_Int (self: t_FMap_Int_Excl_PositiveReal) (k: int) : t_FMap_Int_Excl_PositiveReal
+
+axiom remove_Int_spec:
+  forall self: t_FMap_Int_Excl_PositiveReal, k: int [remove_Int self k]. [%#sfmap] to_mapping_Int (remove_Int self k)
+    = Map.set (to_mapping_Int self) k (None)
+
+axiom remove_Int_spec'0:
+  forall self: t_FMap_Int_Excl_PositiveReal, k: int [remove_Int self k]. [%#sfmap'0] len_Int (remove_Int self k)
+    = (if contains_Int self k then len_Int self - 1 else len_Int self)
+
+predicate ext_eq_Int (self: t_FMap_Int_Excl_PositiveReal) (other: t_FMap_Int_Excl_PositiveReal) =
+  [%#sfmap'7] forall k: int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec: forall self: t_FMap_Int_Excl_PositiveReal, other: t_FMap_Int_Excl_PositiveReal [self
+    = other]. [%#sfmap'4] ext_eq_Int self other = (self = other)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant live : t_FMap_Int_Excl_PositiveReal
+
+function empty_live_map [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 738 0 738 38] (live: t_FMap_Int_Excl_PositiveReal) : ()
+
+goal vc_empty_live_map: ([%#slifecycle] len_Int live = 0)
+  -> (forall id: int. ge_log_Int (len_Int (remove_Int live id)) 0)
+  && (forall id: int. get_Int live id = None)
+  && (([@stop_split] [@expl:empty ensures] ([@stop_split] [@expl:empty ensures #0] [%#sfmap'2] len_Int empty_Int = 0)
+    /\ ([@stop_split] [@expl:empty ensures #1] [%#sfmap'3] to_mapping_Int empty_Int = Const.const (None)))
+  -> ([@stop_split] [@expl:ext_eq ensures] [%#sfmap'4] ext_eq_Int live empty_Int = (live = empty_Int))
+  -> ext_eq_Int live empty_Int && ([@stop_split] [@expl:empty_live_map ensures] [%#slifecycle'0] live = empty_Int))

@@ -1,0 +1,75 @@
+use crate::{
+    logic::{ra::RA, real::PositiveReal},
+    prelude::*,
+};
+
+impl RA for PositiveReal {
+    #[logic(open, inline)]
+    fn op(self, other: Self) -> Option<PositiveReal> {
+        Some(self + other)
+    }
+
+    #[logic(open)]
+    #[ensures(result == (exists<factor> self.op(factor) == Some(other)))]
+    fn incl(self, other: Self) -> bool {
+        let _ = Self::ext_eq;
+        let r = self.to_real() < other.to_real();
+        proof_assert!(r ==> self.op(Self::new(other.to_real() - self.to_real())) == Some(other));
+        r
+    }
+
+    #[logic(open, inline)]
+    #[ensures(#[trigger(self == other)] result == (self == other))]
+    fn eq(self, other: Self) -> bool {
+        self.ext_eq(other)
+    }
+
+    #[logic(law)]
+    #[ensures(a.op(b) == b.op(a))]
+    fn commutative(a: Self, b: Self) {
+        let _ = PositiveReal::ext_eq;
+    }
+
+    #[logic]
+    #[ensures(a.op(b).and_then_logic(|ab: Self| ab.op(c)) == b.op(c).and_then_logic(|bc| a.op(bc)))]
+    fn associative(a: Self, b: Self, c: Self) {
+        let _ = PositiveReal::ext_eq;
+
+        let ab = a.op(b).unwrap_logic();
+        let bc = b.op(c).unwrap_logic();
+        let ab_c = ab.op(c).unwrap_logic();
+        let a_bc = a.op(bc).unwrap_logic();
+        proof_assert!(ab_c == a_bc)
+    }
+
+    #[logic(open, inline)]
+    fn core(self) -> Option<Self> {
+        None
+    }
+
+    #[logic]
+    #[requires(self.core() != None)]
+    #[ensures({
+        let c = self.core().unwrap_logic();
+        c.op(c) == Some(c)
+    })]
+    #[ensures(self.core().unwrap_logic().op(self) == Some(self))]
+    fn core_idemp(self) {}
+
+    #[logic]
+    #[requires(i.op(i) == Some(i))]
+    #[requires(i.op(self) == Some(self))]
+    #[ensures(match self.core() {
+        Some(c) => i.incl(c),
+        None => false,
+    })]
+    fn core_is_maximal_idemp(self, i: Self) {}
+
+    #[logic(open)]
+    #[ensures(result == (forall<x, y> self.op(x) != None ==>
+        self.op(x) == self.op(y) ==> x == y))]
+    fn cancelable(self) -> bool {
+        let _ = PositiveReal::ext_eq;
+        true
+    }
+}

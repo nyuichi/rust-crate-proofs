@@ -1,0 +1,312 @@
+use crate::prelude::*;
+use core::iter::*;
+
+mod chain;
+mod cloned;
+mod copied;
+mod empty;
+mod enumerate;
+mod filter;
+mod filter_map;
+mod fuse;
+mod map;
+mod map_inv;
+mod once;
+mod range;
+mod repeat;
+mod rev;
+mod skip;
+mod take;
+mod zip;
+
+pub use chain::ChainExt;
+pub use cloned::ClonedExt;
+pub use copied::CopiedExt;
+pub use enumerate::EnumerateExt;
+pub use filter::FilterExt;
+pub use filter_map::FilterMapExt;
+pub use fuse::FusedIteratorSpec;
+pub use map::MapExt;
+pub use map_inv::MapInv;
+pub use rev::RevExt;
+pub use skip::SkipExt;
+pub use take::TakeExt;
+pub use zip::ZipExt;
+
+pub trait IteratorSpec: Iterator {
+    #[logic(prophetic)]
+    fn produces(self, visited: Seq<Self::Item>, o: Self) -> bool;
+
+    #[logic(prophetic)]
+    fn completed(&mut self) -> bool;
+
+    #[logic(law, prophetic)]
+    #[ensures(self.produces(Seq::empty(), self))]
+    fn produces_refl(self);
+
+    #[logic(law, prophetic)]
+    #[requires(a.produces(ab, b))]
+    #[requires(b.produces(bc, c))]
+    #[ensures(a.produces(ab.concat(bc), c))]
+    fn produces_trans(a: Self, ab: Seq<Self::Item>, b: Self, bc: Seq<Self::Item>, c: Self);
+
+    #[check(ghost)]
+    #[requires(forall<e, i2> self.produces(Seq::singleton(e), i2) && inv(e) ==>
+                    func.precondition((e, Snapshot::new(Seq::empty()))))]
+    #[requires(MapInv::<Self, F>::reinitialize())]
+    #[requires(MapInv::<Self, F>::preservation(self, func))]
+    #[ensures(result == MapInv { iter: self, func, produced: Snapshot::new(Seq::empty())})]
+    fn map_inv<B, F>(self, func: F) -> MapInv<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(Self::Item, Snapshot<Seq<Self::Item>>) -> B,
+    {
+        MapInv { iter: self, func, produced: snapshot! {Seq::empty()} }
+    }
+}
+
+pub trait ExactSizeIteratorSpec: ExactSizeIterator + IteratorSpec {
+    #[logic(law)]
+    #[requires(Self::size_hint.postcondition((self,), r))]
+    #[ensures(r.1 == Some(r.0))]
+    #[allow(unused_variables)]
+    fn size_hint_exact(&self, r: (usize, Option<usize>));
+}
+
+extern_spec! {
+    impl FromIterator<()> for () {
+        #[requires(T::into_iter.precondition((iter,)))]
+        #[ensures(exists<into_iter: T::IntoIter, prod: Seq<()>, done: &mut T::IntoIter>
+            T::into_iter.postcondition((iter,), into_iter) &&
+            into_iter.produces(prod, *done) && done.completed() && resolve(^done))]
+        fn from_iter<T: IntoIterator<Item = (), IntoIter: IteratorSpec>>(iter: T);
+    }
+}
+
+pub trait DoubleEndedIteratorSpec: DoubleEndedIterator + IteratorSpec {
+    #[logic(prophetic)]
+    fn produces_back(self, visited: Seq<Self::Item>, o: Self) -> bool;
+
+    #[logic(prophetic)]
+    fn completed_back(&mut self) -> bool;
+
+    #[logic(law, prophetic)]
+    #[ensures(self.produces_back(Seq::empty(), self))]
+    fn produces_back_refl(self);
+
+    #[logic(law, prophetic)]
+    #[requires(a.produces_back(ab, b))]
+    #[requires(b.produces_back(bc, c))]
+    #[ensures(a.produces_back(ab.concat(bc), c))]
+    fn produces_back_trans(a: Self, ab: Seq<Self::Item>, b: Self, bc: Seq<Self::Item>, c: Self);
+
+    #[logic(law)]
+    #[requires(Self::size_hint.postcondition((self,), r))]
+    #[ensures(forall<s: Seq<Self::Item>, i: &mut Self>
+        self.produces_back(s, *i) && i.completed_back() ==> r.0@ <= s.len())]
+    #[ensures(match r.1 {
+        Some(r) => {
+            forall<s: Seq<Self::Item>, i: Self> self.produces_back(s, i) ==> s.len() <= r@
+        }
+        None => true
+    })]
+    fn size_hint_back_spec(&self, r: (usize, Option<usize>));
+}
+
+extern_spec! {
+    mod core {
+        mod iter {
+            trait Iterator: IteratorSpec {
+                #[ensures(match result {
+                    None => self.completed(),
+                    Some(v) => (*self).produces(Seq::singleton(v), ^self)
+                })]
+                fn next(&mut self) -> Option<Self::Item>;
+
+                #[check(ghost)]
+                #[ensures(result.iter() == self && result.n() == n)]
+                fn skip(self, n: usize) -> Skip<Self>
+                    where Self: Sized;
+
+                #[check(ghost)]
+                #[ensures(result.iter() == self && result.n() == n)]
+                fn take(self, n: usize) -> Take<Self>
+                    where Self: Sized;
+
+                #[check(ghost)]
+                #[requires(U::into_iter.precondition((other,)))]
+                #[ensures(result.iter_a() == Some(self))]
+                #[ensures(match result.iter_b() {
+                    Some(b) => U::into_iter.postcondition((other,), b),
+                    None => false
+                })]
+                fn chain<U: IntoIterator<Item = Self::Item>>(self, other: U) -> Chain<Self, U::IntoIter>
+                    where Self: Sized;
+
+                #[check(ghost)]
+                #[ensures(result.iter() == self)]
+                fn cloned<'a, T: 'a + Clone>(self) -> Cloned<Self>
+                    where Self: Sized + Iterator<Item = &'a T>;
+
+                #[check(ghost)]
+                #[ensures(result.iter() == self)]
+                fn copied<'a, T: 'a + Copy>(self) -> Copied<Self>
+                    where Self: Sized + Iterator<Item = &'a T>;
+
+                #[check(ghost)]
+                #[requires(forall<e, i2> self.produces(Seq::singleton(e), i2) && inv(e) ==>
+                                f.precondition((e,)))]
+                #[requires(map::reinitialize::<Self, B, F>())]
+                #[requires(map::preservation::<Self, B, F>(self, f))]
+                #[ensures(result.iter() == self && result.func() == f)]
+                fn map<B, F: FnMut(Self::Item) -> B>(self, f: F) -> Map<Self, F>
+                    where Self: Sized;
+
+                #[check(ghost)]
+                #[requires(filter::immutable(f))]
+                #[requires(filter::no_precondition(f))]
+                #[requires(filter::precise(f))]
+                #[ensures(result.iter() == self && result.func() == f)]
+                fn filter<P: for<'a> FnMut(&Self::Item) -> bool>(self, f: P) -> Filter<Self, P>
+                    where Self: Sized;
+
+                #[check(ghost)]
+                #[requires(filter_map::immutable(f))]
+                #[requires(filter_map::no_precondition(f))]
+                #[requires(filter_map::precise(f))]
+                #[ensures(result.iter() == self && result.func() == f)]
+                fn filter_map<B, F: for<'a> FnMut(Self::Item) -> Option<B>>(self, f: F) -> FilterMap<Self, F>
+                    where Self: Sized;
+
+                #[check(ghost)]
+                // These two requirements are here only to prove the absence of overflows
+                #[requires(forall<i: &mut Self> i.completed() ==> (*i).produces(Seq::empty(), ^i))]
+                #[requires(forall<s: Seq<Self::Item>, i: Self> self.produces(s, i) ==> s.len() < core::usize::MAX@)]
+                #[ensures(result.iter() == self && result.n()@ == 0)]
+                fn enumerate(self) -> Enumerate<Self>
+                    where Self: Sized;
+
+                #[check(ghost)]
+                #[ensures(result@ == Some(self))]
+                fn fuse(self) -> Fuse<Self>
+                    where Self: Sized;
+
+                #[check(ghost)]
+                #[requires(U::into_iter.precondition((other,)))]
+                #[ensures(result.iter_a() == self)]
+                #[ensures(U::into_iter.postcondition((other,), result.iter_b()))]
+                fn zip<U: IntoIterator>(self, other: U) -> Zip<Self, U::IntoIter>
+                    where Self: Sized;
+
+                #[requires(B::from_iter.precondition((self,)))]
+                #[ensures(B::from_iter.postcondition((self,), result))]
+                fn collect<B: FromIterator<Self::Item>>(self) -> B
+                    where Self: Sized
+                {
+                    FromIterator::from_iter(self)
+                }
+
+                #[check(ghost)]
+                #[ensures(result.iter() == self)]
+                fn rev(self) -> Rev<Self>
+                    where Self: Sized + DoubleEndedIteratorSpec;
+
+                #[ensures(forall<s: Seq<Self::Item>, i: &mut Self>
+                    self.produces(s, *i) && i.completed() ==> result.0@ <= s.len())]
+                #[ensures(match result.1 {
+                    Some(r) => {
+                        forall<s: Seq<Self::Item>, i: Self> self.produces(s, i) ==> s.len() <= r@
+                    }
+                    None => true
+                })]
+                fn size_hint(&self) -> (usize, Option<usize>) {
+                    (0, None)
+                }
+            }
+
+            trait FromIterator<A>: Sized {
+                #[requires(T::into_iter.precondition((iter,)))]
+                fn from_iter<T>(iter: T) -> Self
+                    where T: IntoIterator<Item = A>;
+            }
+
+            trait ExactSizeIterator: ExactSizeIteratorSpec {
+                #[ensures(Self::size_hint.postcondition((self,), (result, Some(result))))]
+                fn len(&self) -> usize {
+                    snapshot!(Self::size_hint_exact);
+                    let (lower, upper) = self.size_hint();
+                    assert_eq!(upper, Some(lower));
+                    lower
+                }
+
+                #[ensures(exists<l> Self::size_hint.postcondition((self,), (l, Some(l))) && result == (l == 0usize))]
+                fn is_empty(&self) -> bool {
+                    self.len() == 0
+                }
+            }
+
+            #[check(ghost)]
+            fn empty<T>() -> Empty<T>;
+
+            #[check(ghost)]
+            #[ensures(result@ == Some(value))]
+            fn once<T>(value: T) -> Once<T>;
+
+            #[check(ghost)]
+            #[ensures(result@ == elt)]
+            fn repeat<T: Clone>(elt: T) -> Repeat<T>;
+
+            trait DoubleEndedIterator: DoubleEndedIteratorSpec {
+                #[ensures(match result {
+                    None => self.completed_back(),
+                    Some(v) => (*self).produces_back(Seq::singleton(v), ^self)
+                })]
+                fn next_back(&mut self) -> Option<Self::Item>;
+            }
+        }
+    }
+
+    impl<I: Iterator> IntoIterator for I {
+        #[check(ghost)]
+        #[ensures(result == self)]
+        fn into_iter(self) -> I;
+    }
+}
+
+impl<I: IteratorSpec + ?Sized> IteratorSpec for &mut I {
+    #[logic(open, prophetic)]
+    fn produces(self, visited: Seq<Self::Item>, o: Self) -> bool {
+        pearlite! { (*self).produces(visited, *o) && ^self == ^o }
+    }
+
+    #[logic(open, prophetic)]
+    fn completed(&mut self) -> bool {
+        pearlite! { (*self).completed() && ^*self == ^^self }
+    }
+
+    #[logic(law)]
+    #[ensures(self.produces(Seq::empty(), self))]
+    fn produces_refl(self) {}
+
+    #[logic(law)]
+    #[requires(a.produces(ab, b))]
+    #[requires(b.produces(bc, c))]
+    #[ensures(a.produces(ab.concat(bc), c))]
+    fn produces_trans(a: Self, ab: Seq<Self::Item>, b: Self, bc: Seq<Self::Item>, c: Self) {}
+}
+
+extern_spec! {
+    impl<I: Iterator + ?Sized> Iterator for &mut I {
+        #[ensures(I::size_hint.postcondition((&*self,), result))]
+        fn size_hint(&self) -> (usize, Option<usize>);
+    }
+}
+
+impl<I: ExactSizeIteratorSpec + ?Sized> ExactSizeIteratorSpec for &mut I {
+    #[logic(law)]
+    #[requires(Self::size_hint.postcondition((self,), r))]
+    #[ensures(r.1 == Some(r.0))]
+    fn size_hint_exact(&self, r: (usize, Option<usize>)) {
+        (**self).size_hint_exact(r)
+    }
+}

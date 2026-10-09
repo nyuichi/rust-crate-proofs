@@ -1,0 +1,115 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 253 4 253 40 *)
+
+(* promotion::PromotionScope *)
+
+let%span slifecycle = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 251 66 251 83
+let%span spromotion = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 252 24 252 40
+let%span spromotion'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 227 39 227 95
+
+use creusot.int.UInt64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Opaque
+
+type t_BoundPtr
+
+type t_AtomicPtr_unit
+
+type t_RootDescriptor = { base: t_BoundPtr; capacity: UInt64.t; expected: Seq.seq UInt8.t; model: t_AtomicPtr_unit }
+
+type t_Recovery
+
+type t_PhysicalRegion
+
+type t_Perm_AtomicPtr_unit
+
+type t_SyncView
+
+type t_RawPhase = { recovery: t_Recovery; physical: t_PhysicalRegion; own: t_Perm_AtomicPtr_unit; current': t_SyncView }
+
+type t_FullBorrow_OwnedControl_Shared
+
+type t_FullBorrow_PhysicalRegion
+
+type t_ScopedFieldInvariant_State_Payload
+
+type t_LifetimeToken
+
+type t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+
+type t_Fragment_FMap_Int_Excl_PositiveReal = { f0: t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal }
+
+type t_EndBorrow_PhysicalRegion
+
+type t_EndBorrow_OwnedControl_Shared
+
+type t_Payload = {
+  recovery'0: t_Recovery;
+  physical_end'0: t_EndBorrow_PhysicalRegion;
+  control_end'0: t_EndBorrow_OwnedControl_Shared;
+  physical'0: t_FullBorrow_PhysicalRegion;
+  control'0: t_FullBorrow_OwnedControl_Shared;
+  base'0: t_BoundPtr;
+  capacity'0: UInt64.t;
+  len'0: UInt64.t;
+  expected'0: Seq.seq UInt8.t }
+
+type t_Option_Payload = None | Some t_Payload
+
+type t_Ticket_Payload = {
+  token'1: t_LifetimeToken;
+  id'1: int;
+  fragment'1: t_Fragment_FMap_Int_Excl_PositiveReal;
+  recovery'1: t_Option_Payload }
+
+type t_SharedCore = {
+  shared'1: Opaque.ptr;
+  bound'1: t_BoundPtr;
+  capacity'1: UInt64.t;
+  control'1: t_FullBorrow_OwnedControl_Shared;
+  physical'1: t_FullBorrow_PhysicalRegion;
+  invariant''1: t_ScopedFieldInvariant_State_Payload;
+  ticket'1: t_Ticket_Payload }
+
+type t_ScopeCursor_State_Payload
+
+type t_SharedPhase = {
+  root'0: t_SharedCore;
+  cursor'0: t_ScopeCursor_State_Payload;
+  own'0: t_Perm_AtomicPtr_unit;
+  current''0: t_SyncView }
+
+type t_Phase = Raw t_RawPhase | Shared t_SharedPhase
+
+type t_Option_Phase = None'0 | Some'0 t_Phase
+
+type t_PromotionScope = { descriptor: t_RootDescriptor; phase: t_Option_Phase }
+
+type t_PositiveReal
+
+predicate is_shared [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 227 13 227 37] (self: t_PromotionScope) =
+  [%#spromotion'0] match self.phase with
+    | Some'0 (Shared _) -> true
+    | _ -> false
+    end
+
+function frac (self: t_LifetimeToken) : t_PositiveReal
+
+function fraction_Payload [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 251 26 251 63] (self: t_Ticket_Payload) : t_PositiveReal
+ = [%#slifecycle] frac self.token'1
+
+constant any_PositiveReal : t_PositiveReal
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_PromotionScope
+
+function root_fraction [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 253 4 253 40] (self: t_PromotionScope) : t_PositiveReal
+
+goal vc_root_fraction: ([%#spromotion] is_shared self)
+  -> match self.phase with
+    | Some'0 (Shared s) -> true
+    | _ -> true
+    end

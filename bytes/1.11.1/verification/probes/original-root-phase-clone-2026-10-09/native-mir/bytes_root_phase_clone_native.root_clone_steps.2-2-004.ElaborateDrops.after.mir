@@ -1,0 +1,201 @@
+// MIR for `root_clone_steps` after ElaborateDrops
+
+fn root_clone_steps(_1: Box<[u8]>, _2: &[usize]) -> Vec<u8> {
+    debug input => _1;
+    debug steps => _2;
+    let mut _0: std::vec::Vec<u8>;
+    let mut _3: bytes::Bytes;
+    let mut _4: std::boxed::Box<[u8]>;
+    let _6: ();
+    let mut _7: ();
+    let mut _8: bool;
+    let mut _9: usize;
+    let mut _10: usize;
+    let mut _11: &[usize];
+    let mut _13: usize;
+    let _14: usize;
+    let mut _15: usize;
+    let mut _16: bool;
+    let mut _17: usize;
+    let mut _18: &bytes::Bytes;
+    let _19: ();
+    let mut _20: &mut bytes::Bytes;
+    let mut _21: usize;
+    let _22: ();
+    let mut _24: &bytes::Bytes;
+    let mut _25: (usize, bool);
+    let mut _26: !;
+    let _27: ();
+    let mut _28: !;
+    let mut _29: &[u8];
+    let _30: &[u8];
+    let mut _31: &bytes::Bytes;
+    scope 1 {
+        debug value => _3;
+        let mut _5: usize;
+        scope 2 {
+            debug index => _5;
+            let _12: usize;
+            scope 3 {
+                debug amount => _12;
+                let _23: bytes::Bytes;
+                scope 4 {
+                    debug _peer => _23;
+                }
+            }
+        }
+    }
+
+    bb0: {
+        StorageLive(_3);
+        StorageLive(_4);
+        _4 = move _1;
+        _3 = <bytes::Bytes as From<Box<[u8]>>>::from(move _4) -> [return: bb1, unwind: bb18];
+    }
+
+    bb1: {
+        StorageDead(_4);
+        StorageLive(_5);
+        _5 = const 0_usize;
+        StorageLive(_6);
+        goto -> bb2;
+    }
+
+    bb2: {
+        StorageLive(_8);
+        StorageLive(_9);
+        _9 = copy _5;
+        StorageLive(_10);
+        StorageLive(_11);
+        _11 = &'_ (*_2);
+        _10 = core::slice::<impl [usize]>::len(move _11) -> [return: bb3, unwind: bb17];
+    }
+
+    bb3: {
+        StorageDead(_11);
+        _8 = Lt(move _9, move _10);
+        switchInt(move _8) -> [0: bb12, otherwise: bb4];
+    }
+
+    bb4: {
+        StorageDead(_10);
+        StorageDead(_9);
+        StorageLive(_12);
+        StorageLive(_13);
+        StorageLive(_14);
+        _14 = copy _5;
+        _15 = PtrMetadata(copy _2);
+        _16 = Lt(copy _14, copy _15);
+        assert(move _16, "index out of bounds: the length is {} but the index is {}", move _15, copy _14) -> [success: bb5, unwind: bb17];
+    }
+
+    bb5: {
+        _13 = copy (*_2)[_14];
+        StorageLive(_17);
+        StorageLive(_18);
+        _18 = &'_ _3;
+        _17 = bytes::Bytes::len(move _18) -> [return: bb6, unwind: bb17];
+    }
+
+    bb6: {
+        StorageDead(_18);
+        _12 = std::cmp::min::<usize>(move _13, move _17) -> [return: bb7, unwind: bb17];
+    }
+
+    bb7: {
+        StorageDead(_17);
+        StorageDead(_13);
+        StorageDead(_14);
+        StorageLive(_19);
+        StorageLive(_20);
+        _20 = &'_ mut _3;
+        StorageLive(_21);
+        _21 = copy _12;
+        _19 = <bytes::Bytes as Buf>::advance(move _20, move _21) -> [return: bb8, unwind: bb17];
+    }
+
+    bb8: {
+        StorageDead(_21);
+        StorageDead(_20);
+        StorageDead(_19);
+        StorageLive(_22);
+        StorageLive(_23);
+        StorageLive(_24);
+        _24 = &'_ _3;
+        _23 = <bytes::Bytes as Clone>::clone(move _24) -> [return: bb9, unwind: bb17];
+    }
+
+    bb9: {
+        StorageDead(_24);
+        _22 = const ();
+        drop(_23) -> [return: bb10, unwind: bb17];
+    }
+
+    bb10: {
+        StorageDead(_23);
+        StorageDead(_22);
+        _25 = AddWithOverflow(copy _5, const 1_usize);
+        assert(!move (_25.1: bool), "attempt to compute `{} + {}`, which would overflow", copy _5, const 1_usize) -> [success: bb11, unwind: bb17];
+    }
+
+    bb11: {
+        _5 = move (_25.0: usize);
+        _7 = const ();
+        StorageDead(_12);
+        StorageDead(_8);
+        goto -> bb2;
+    }
+
+    bb12: {
+        StorageDead(_10);
+        StorageDead(_9);
+        StorageLive(_27);
+        _6 = const ();
+        StorageDead(_27);
+        StorageDead(_8);
+        StorageDead(_6);
+        StorageLive(_29);
+        StorageLive(_30);
+        StorageLive(_31);
+        _31 = &'_ _3;
+        _30 = <bytes::Bytes as Buf>::chunk(move _31) -> [return: bb13, unwind: bb17];
+    }
+
+    bb13: {
+        _29 = &'_ (*_30);
+        StorageDead(_31);
+        _0 = std::slice::<impl [u8]>::to_vec(move _29) -> [return: bb14, unwind: bb17];
+    }
+
+    bb14: {
+        StorageDead(_29);
+        StorageDead(_5);
+        drop(_3) -> [return: bb15, unwind: bb19];
+    }
+
+    bb15: {
+        StorageDead(_3);
+        StorageDead(_30);
+        goto -> bb16;
+    }
+
+    bb16: {
+        return;
+    }
+
+    bb17 (cleanup): {
+        drop(_3) -> [return: bb19, unwind terminate(cleanup)];
+    }
+
+    bb18 (cleanup): {
+        goto -> bb19;
+    }
+
+    bb19 (cleanup): {
+        goto -> bb20;
+    }
+
+    bb20 (cleanup): {
+        resume;
+    }
+}

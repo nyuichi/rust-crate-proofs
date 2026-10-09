@@ -1,0 +1,142 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 279 4 279 35 *)
+
+(* promotion::Bytes *)
+
+let%span spromotion = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 278 24 278 39
+let%span spromotion'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 273 38 273 125
+let%span spromotion'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 414 4 414 12
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.int.UInt8
+use seq.Seq
+
+type t_Atomic_ptr_unit
+
+type t_Vtable = {
+  clone': Opaque.ptr;
+  into_vec: Opaque.ptr;
+  into_mut: Opaque.ptr;
+  is_unique: Opaque.ptr;
+  drop: Opaque.ptr }
+
+type t_BoundPtr
+
+type t_AtomicPtr_unit
+
+type t_RootDescriptor = { base: t_BoundPtr; capacity: UInt64.t; expected: Seq.seq UInt8.t; model: t_AtomicPtr_unit }
+
+type t_FullBorrow_OwnedControl_Shared
+
+type t_FullBorrow_PhysicalRegion
+
+type t_ScopedFieldInvariant_State_Payload
+
+type t_LifetimeToken
+
+type t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+
+type t_Fragment_FMap_Int_Excl_PositiveReal = { f0: t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal }
+
+type t_Recovery
+
+type t_EndBorrow_PhysicalRegion
+
+type t_EndBorrow_OwnedControl_Shared
+
+type t_Payload = {
+  recovery'0: t_Recovery;
+  physical_end'0: t_EndBorrow_PhysicalRegion;
+  control_end'0: t_EndBorrow_OwnedControl_Shared;
+  physical'0: t_FullBorrow_PhysicalRegion;
+  control'0: t_FullBorrow_OwnedControl_Shared;
+  base'0: t_BoundPtr;
+  capacity'0: UInt64.t;
+  len'0: UInt64.t;
+  expected'0: Seq.seq UInt8.t }
+
+type t_Option_Payload = None | Some t_Payload
+
+type t_Ticket_Payload = {
+  token: t_LifetimeToken;
+  id: int;
+  fragment: t_Fragment_FMap_Int_Excl_PositiveReal;
+  recovery: t_Option_Payload }
+
+type t_SharedCore = {
+  shared'1: Opaque.ptr;
+  bound'1: t_BoundPtr;
+  capacity'1: UInt64.t;
+  control'1: t_FullBorrow_OwnedControl_Shared;
+  physical'1: t_FullBorrow_PhysicalRegion;
+  invariant''1: t_ScopedFieldInvariant_State_Payload;
+  ticket'1: t_Ticket_Payload }
+
+type t_ReadOnlyPointer
+
+type t_ChildProof = { core: t_SharedCore; binding: t_ReadOnlyPointer }
+
+type t_EmptyViewProof = { bound'0: t_BoundPtr; binding'0: t_ReadOnlyPointer }
+
+type t_OriginalSharedProof =
+  | Root t_RootDescriptor
+  | Child t_ChildProof
+  | View t_ChildProof t_BoundPtr
+  | Empty t_EmptyViewProof
+  | Vacant
+
+type t_Bytes = {
+  ptr: Opaque.ptr;
+  len: UInt64.t;
+  data: t_Atomic_ptr_unit;
+  vtable: t_Vtable;
+  original_shared: t_OriginalSharedProof }
+
+predicate is_child [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 273 13 273 36] (self: t_Bytes) =
+  [%#spromotion'0] match self.original_shared with
+    | Child _ -> true
+    | _ -> false
+    end
+
+type t_AtomicUsize
+
+type t_Id
+
+type t_Lifetime
+
+type tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8 = {
+  f0'0: t_Lifetime;
+  f1'0: t_Id;
+  f2'0: int;
+  f3'0: Seq.seq UInt8.t;
+  f4'0: int;
+  f5'0: Opaque.ptr;
+  f6'0: Opaque.ptr }
+
+type tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id = {
+  f0'1: t_AtomicUsize;
+  f1'1: t_Id;
+  f2'1: t_Lifetime;
+  f3'1: tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8;
+  f4'1: t_Id }
+
+function public_State_Payload [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/field_event.rs" 120 4 120 37] (self: t_ScopedFieldInvariant_State_Payload) : tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+
+function content [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 414 13 414 38] (self: t_SharedCore) : Seq.seq UInt8.t
+ = [%#spromotion'1] (public_State_Payload self.invariant''1).f3'1.f3'0
+
+constant any_Seq_u8 : Seq.seq UInt8.t
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_Bytes
+
+function child_content [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/promotion.rs" 279 4 279 35] (self: t_Bytes) : Seq.seq UInt8.t
+
+goal vc_child_content: ([%#spromotion] is_child self)
+  -> match self.original_shared with
+    | Child p -> true
+    | _ -> true
+    end

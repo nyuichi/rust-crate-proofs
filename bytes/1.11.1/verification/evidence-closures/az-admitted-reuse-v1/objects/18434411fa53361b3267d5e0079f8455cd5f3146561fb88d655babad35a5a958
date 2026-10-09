@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""Build small AZ admitting metadata around the exact audited proof origin."""
+import argparse,hashlib,json
+parser=argparse.ArgumentParser();parser.add_argument("--audit-json-sha256",required=True);parser.add_argument("--audit-md-sha256",required=True);args=parser.parse_args()
+from pathlib import Path
+
+REPO=Path('/workspace/bytes-work');VERIFY=REPO/'bytes/1.11.1/verification';PROBE=VERIFY/'probes/original-root-phase-clone-2026-10-09';ORIGIN=VERIFY/'evidence-closures/az-proof-origin-v1';STAGE=Path('/workspace/work/az-admission-source-v1');RECIPE=Path('/workspace/work/az-admission-recipe-v1.json')
+ORIGIN_PIN='6bfe965371c3a7ec3c91e0c1a8429de9e1f48810afd61a0fb6adabfcd86a0772'
+AUDIT_JSON_PIN=args.audit_json_sha256;AUDIT_MD_PIN=args.audit_md_sha256
+def sha(raw):return hashlib.sha256(raw).hexdigest()
+def encoded(value):return (json.dumps(value,sort_keys=True,indent=2)+'\n').encode()
+def read(path,pin=None):
+ assert path.is_file() and not path.is_symlink(),str(path)
+ raw=path.read_bytes()
+ if pin:assert sha(raw)==pin,str(path)
+ return raw
+assert not STAGE.exists() and not RECIPE.exists()
+origin_raw=read(ORIGIN/'manifest.json',ORIGIN_PIN);origin=json.loads(origin_raw)
+audit_raw=read(ORIGIN/'reports/AZ_ORIGIN_CLOSURE_AUDIT.json',AUDIT_JSON_PIN);audit=json.loads(audit_raw)
+read(ORIGIN/'reports/AZ_ORIGIN_CLOSURE_AUDIT.md',AUDIT_MD_PIN)
+assert audit['status']=='PASS' and audit['full_original_admitted'] is False and audit['origin_policy_diagnostic'] is True and audit['origin_correspondence_exit']==2
+full_raw=read(PROBE/'evidence/AZ_FULL_PROOF_RUN.json','0a29aa31e5593200f18b15c2e66b9411e2c46faca0ed71f28ed88de48286a012');full=json.loads(full_raw)
+assert full['statistics']==dict(files=191,prover=2207,null=0,structural=0)
+assert full['prover_process_exit']==0 and full['policy_diagnostic'] and full['policy_correspondence_exit']==2
+# Verify actual live proof-critical identities, without executing any checker.
+critical=full['proof_file_identity']+full['probe_input_identity'];assert len(critical)==419
+for row in critical:
+ raw=read(PROBE/row['path']);assert (sha(raw),len(raw))==(row['sha256'],row['size']),row['path']
+files={row['path']:row for row in origin['files']}
+def origin_ref(path):
+ row=files[path];return dict(path='ancestors/az-origin/'+path,sha256=row['sha256'],size=row['size'])
+source_profile=origin_ref('az/evidence/AZ_INPUT_BINDINGS.json');assert source_profile['sha256']=='f89d6bf961b7fc3d98e16e18e4352f7f55453788da884da940644ad45b598193'
+corr=json.loads(read(PROBE/'generated/correspondence.json'));cargo=json.loads(read(PROBE/'generated/compiled-capture-summary.json'))
+assert corr['status']==cargo['status']=='pass' and corr['full_original_admitted'] is False
+current={name:origin_ref('az/probe/'+path) for name,path in [('correspondence','generated/correspondence.json'),('fresh_Cargo4','generated/compiled-capture-summary.json'),('native_capture','native-mir/capture.json'),('full_proof_origin','evidence/AZ_FULL_PROOF_RUN.json')]}
+for name,path in [('correspondence','generated/correspondence.json'),('fresh_Cargo4','generated/compiled-capture-summary.json'),('native_capture','native-mir/capture.json')]:assert sha(read(PROBE/path))==current[name]['sha256']
+profile=dict(schema='az-admission-reuse-profile-v1',version=1,origin_raw_manifest_sha256=ORIGIN_PIN,complete_frozen_input_binding_profile=source_profile,frozen_required_inventory=origin_ref('az/evidence/AZ_REQUIRED_INPUTS.json'),frozen_required_slots=1353,current_proof_critical_identity_count=419,current_proof_critical_identity_sha256=sha(encoded(critical)),current_proof_critical_identities_unchanged=True,current_gates=current,source_checker_sha256=sha(read(PROBE/'check_correspondence.py')),prover_reexecuted=False,original_diagnostic_policy_exit=2,editorial_scope='1353 means exact origin-staged slots; current editorial publication documents are separate.',full_original_admitted=False)
+record=dict(schema='az-admission-reuse-record-v1',status='admitted_reuse',disposition='bounded admitting candidate; independent outer audit remains pending',full_original_admitted=False,scope='Nonempty Box and arbitrary finite steps slice; each loop caps indexed step at current visible length, advances common Root view, clones and lexically drops one peer before backedge; exact folded consumed suffix and phase-independent final normal Root Drop',statistics=full['statistics'],full_proof_origin=current['full_proof_origin'],full_prover_process_exit=0,original_policy_diagnostic=True,original_policy_correspondence_exit=2,prover_reexecuted=False,current_correspondence_exit=0,current_gates=current,origin_raw_manifest_sha256=ORIGIN_PIN,origin_independent_audit=dict(status='pass',json_sha256=AUDIT_JSON_PIN,markdown_sha256=AUDIT_MD_PIN),proof_critical_identity_preserved=True,source_sha256=sha(read(PROBE/'src/promotion.rs')),native_cases=90,selected_native_mir=31,production_native_mir=30,control='ZERO new negatives; published AY peer Drop/Acquire/registration/owned-zero controls reused',external_tool_binary_payloads_bundled=False,exclusions=['whole original API/architecture','empty Box/static path','other representations','escaping Root Clone histories','escaping/concurrent owners','promotion losers','panic/unwind','BytesMut/remaining APIs/configurations'])
+local=[('AZ_ADMISSION_REUSE.json',encoded(record)),('AZ_ADMISSION_REUSE_PROFILE.json',encoded(profile)),('az_prepare_admission_reuse.py',read(Path(__file__)))]
+STAGE.mkdir(parents=True)
+sources=[];mounts=[]
+for index,(name,raw) in enumerate(local):
+ relative='metadata/'+name;path=STAGE/relative;path.parent.mkdir(exist_ok=True)
+ with path.open('xb') as out:out.write(raw)
+ ident=f'admission-{index}';sources.append(dict(id=ident,kind='local_file',path=relative));mounts.append(dict(id=ident,source_id=ident,path_prefix='az-admission/'+name,role='canonical_admission'))
+# Existing origin-side reports are referenced in place, not republished as CAS.
+for path in sorted((ORIGIN/'reports').iterdir()):
+ if path.is_file() and not path.is_symlink():
+  ident='origin-report-'+str(len(sources));sources.append(dict(id=ident,kind='published_parts',media='blob',parts=[path.relative_to(REPO).as_posix()]));mounts.append(dict(id=ident,source_id=ident,path_prefix='az-admission/origin-audit/'+path.name,role='canonical_admission'))
+path=ORIGIN/'capture-report.json';ident='origin-capture-report';sources.append(dict(id=ident,kind='published_parts',media='blob',parts=[path.relative_to(REPO).as_posix()]));mounts.append(dict(id=ident,source_id=ident,path_prefix='az-admission/origin-capture-report.json',role='canonical_admission'))
+provenance={edge['id']:edge for edge in origin['provenance']}
+imports=[dict(id='az-origin',manifest_path=(ORIGIN/'manifest.json').relative_to(REPO).as_posix(),manifest_sha256=ORIGIN_PIN,cas_root=(ORIGIN/'objects').relative_to(REPO).as_posix(),mounts=[dict(source_mount_id=m['id'],path_prefix='ancestors/az-origin/'+m['path_prefix'],role=provenance[m['provenance_id']]['role']) for m in origin['mounts']])]
+recipe=dict(schema='evidence-capture-recipe-v1',version=1,root_id='bytes-original-root-phase-clone-az-admitted-reuse',required_roles=sorted({m['role'] for m in imports[0]['mounts']}|{'canonical_admission'}),sources=sources,mounts=mounts,imports=imports)
+with RECIPE.open('xb') as out:out.write(encoded(recipe))
+print(json.dumps(dict(source_root=str(STAGE),repository_root=str(REPO),recipe=str(RECIPE),recipe_sha256=sha(encoded(recipe)),record_sha256=sha(encoded(record)),profile_sha256=sha(encoded(profile)),builder_sha256=sha(read(Path(__file__))),local_metadata_files=len(local),referenced_origin_reports=len(sources)-len(local),imported_mounts=len(imports[0]['mounts']),status='outer candidate staged; actual compose and independent outer audit pending'),indent=2))

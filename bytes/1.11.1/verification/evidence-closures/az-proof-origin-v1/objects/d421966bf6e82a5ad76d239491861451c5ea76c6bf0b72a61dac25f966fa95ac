@@ -1,0 +1,847 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 694 4 699 18 *)
+
+(* lifecycle::State<T> *)
+
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 201 22 201 26
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 201 4 203 17
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 199 14 199 29
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 177 14 177 26
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 104 20 104 27
+let%span sghost'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 112 8 112 18
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 28 20 28 49
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 34 8 34 21
+let%span sord'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 22 8 22 20
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span sfraction_map = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 58 8 59 69
+let%span sfraction_map'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 33 10 33 14
+let%span sfraction_map'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 32 11 32 20
+let%span sfraction_map'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 35 4 39 5
+let%span sfraction_map'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 18 4 21 5
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 245 8 245 24
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 96 8 96 34
+let%span sreal = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/real.rs" 136 14 136 40
+let%span sreal'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/real.rs" 157 8 157 36
+let%span sreal'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/real.rs" 142 15 142 36
+let%span sreal'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/real.rs" 143 14 143 35
+let%span sauth = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/resource/auth.rs" 153 23 153 27
+let%span sauth'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/resource/auth.rs" 151 15 151 37
+let%span sauth'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/resource/auth.rs" 152 14 152 31
+let%span sauth'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/resource/auth.rs" 162 8 162 19
+let%span sauth'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/resource/auth.rs" 51 20 51 34
+let%span sauth'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 32 8 35 9
+let%span sauth'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 39 15 39 31
+let%span sauth'6 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 40 15 40 26
+let%span sauth'7 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 41 14 41 30
+let%span sauth'8 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 45 14 45 32
+let%span sauth'9 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 49 14 49 37
+let%span sra = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 92 8 92 42
+let%span sra'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 86 15 86 43
+let%span sra'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 87 14 87 29
+let%span sra'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 153 15 153 30
+let%span sra'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 154 15 154 34
+let%span sra'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 155 14 155 30
+let%span sra'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 165 15 165 34
+let%span sra'6 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 166 15 166 34
+let%span sra'7 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 167 14 167 34
+let%span sra'8 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 174 15 174 24
+let%span sra'9 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 175 15 175 24
+let%span sra'10 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 176 14 176 23
+let%span sra'11 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 50 14 50 39
+let%span sra'12 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 52 8 52 21
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 22 14 22 71
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 24 8 28 9
+let%span soption'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 852 15 852 27
+let%span soption'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 854 8 857 9
+let%span soption'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 42 14 42 32
+let%span soption'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 14 8 18 9
+let%span soption'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 870 8 873 9
+let%span soption'6 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 112 14 112 78
+let%span soption'7 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 114 8 114 12
+let%span slifecycle = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 701 24 701 42
+let%span slifecycle'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 702 28 702 50
+let%span slifecycle'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 703 26 703 46
+let%span slifecycle'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 704 26 704 46
+let%span slifecycle'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 705 12 705 59
+let%span slifecycle'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 706 12 706 53
+let%span slifecycle'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 707 26 707 63
+let%span slifecycle'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 700 8 708 9
+let%span slifecycle'7 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 695 8 695 13
+let%span slifecycle'8 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 697 8 697 15
+let%span slifecycle'9 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 687 15 687 75
+let%span slifecycle'10 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 688 15 688 76
+let%span slifecycle'11 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 689 14 689 72
+let%span slifecycle'12 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 690 14 690 49
+let%span slifecycle'13 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 691 14 691 78
+let%span slifecycle'14 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 692 14 692 40
+let%span slifecycle'15 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 693 14 693 51
+let%span slifecycle'16 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 211 12 235 93
+let%span slifecycle'17 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 129 12 134 80
+let%span slifecycle'18 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 204 8 205 34
+let%span slifecycle'19 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 241 46 241 62
+let%span slifecycle'20 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 118 64 118 93
+let%span slifecycle'21 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 246 66 246 99
+let%span slifecycle'22 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 18 37 18 38
+let%span slifecycle'23 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 18 24 18 38
+let%span slifecycle'24 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 18 24 18 34
+let%span slifecycle'25 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 18 41 18 42
+let%span slifecycle'26 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 18 24 18 42
+let%span slifecycle'27 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 315 66 315 77
+let%span slifecycle'28 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 316 56 316 65
+let%span sview = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 67 14 67 28
+let%span sview'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 72 15 72 20
+let%span sview'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 73 15 73 20
+let%span sview'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 74 14 74 19
+let%span sview'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 79 14 79 64
+let%span sview'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/view.rs" 81 14 81 41
+let%span sresource = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/resource.rs" 59 12 59 22
+let%span satomic = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/atomic.rs" 77 23 77 29
+let%span satomic'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/atomic.rs" 78 22 78 68
+let%span sagree = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/agree.rs" 12 8 12 57
+let%span sagree'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/agree.rs" 22 14 22 32
+let%span sagree'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/agree.rs" 16 14 16 71
+let%span sagree'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/agree.rs" 18 8 18 25
+let%span scommitter = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/committer.rs" 95 15 95 33
+let%span scommitter'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/committer.rs" 96 15 96 44
+let%span scommitter'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/committer.rs" 97 14 97 38
+let%span scommitter'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/committer.rs" 98 14 98 71
+let%span scommitter'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/committer.rs" 99 14 99 71
+let%span scommitter'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/committer.rs" 100 14 103 5
+
+use creusot.prelude.MutBorrow
+use map.Map
+use creusot.int.UInt64
+use creusot.prelude.Any
+use real.Real
+use real.FromInt
+use int.Int
+
+type t_Perm_AtomicUsize
+
+type t_Authority_FMap_Int_Excl_PositiveReal
+
+type t_Lifetime
+
+type t_LifetimeToken
+
+type t_Option_LifetimeToken = None | Some t_LifetimeToken
+
+type t_Metadata
+
+type t_AtView_Option_T
+
+type t_Option_AtView_Option_T = None'0 | Some'0 t_AtView_Option_T
+
+type t_Authority_Option_Ag_tup2_Int_AtView_Option_T
+
+type t_State_T = {
+  own: t_Perm_AtomicUsize;
+  first: int;
+  latest: int;
+  alive: t_Authority_FMap_Int_Excl_PositiveReal;
+  next: int;
+  lifetime: t_Lifetime;
+  pool: t_Option_LifetimeToken;
+  expected: t_Metadata;
+  recovery: t_Option_AtView_Option_T;
+  withdrawn: bool;
+  publication: t_Authority_Option_Ag_tup2_Int_AtView_Option_T }
+
+predicate invariant_Authority_FMap_Int_Excl_PositiveReal (self: t_Authority_FMap_Int_Excl_PositiveReal)
+
+predicate inv_Authority_FMap_Int_Excl_PositiveReal (_1: t_Authority_FMap_Int_Excl_PositiveReal)
+
+axiom inv_axiom:
+  forall x: t_Authority_FMap_Int_Excl_PositiveReal [inv_Authority_FMap_Int_Excl_PositiveReal x]. inv_Authority_FMap_Int_Excl_PositiveReal x
+    -> invariant_Authority_FMap_Int_Excl_PositiveReal x
+
+predicate inv_Lifetime (_1: t_Lifetime)
+
+predicate inv_LifetimeToken (_1: t_LifetimeToken)
+
+predicate inv_Option_LifetimeToken (_1: t_Option_LifetimeToken)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Option_LifetimeToken [inv_Option_LifetimeToken x]. inv_Option_LifetimeToken x
+    = match x with
+      | None -> true
+      | Some f0 -> inv_LifetimeToken f0
+      end
+
+predicate inv_AtView_Option_T (_1: t_AtView_Option_T)
+
+predicate inv_Option_AtView_Option_T (_1: t_Option_AtView_Option_T)
+
+axiom inv_axiom'1 [@rewrite]:
+  forall x: t_Option_AtView_Option_T [inv_Option_AtView_Option_T x]. inv_Option_AtView_Option_T x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0 -> inv_AtView_Option_T f0
+      end
+
+predicate invariant_Authority_Option_Ag_tup2_Int_AtView_Option_T (self: t_Authority_Option_Ag_tup2_Int_AtView_Option_T)
+
+predicate inv_Authority_Option_Ag_tup2_Int_AtView_Option_T (_1: t_Authority_Option_Ag_tup2_Int_AtView_Option_T)
+
+axiom inv_axiom'2:
+  forall x: t_Authority_Option_Ag_tup2_Int_AtView_Option_T [inv_Authority_Option_Ag_tup2_Int_AtView_Option_T x]. inv_Authority_Option_Ag_tup2_Int_AtView_Option_T x
+    -> invariant_Authority_Option_Ag_tup2_Int_AtView_Option_T x
+
+predicate inv_State_T (_1: t_State_T)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_State_T [inv_State_T x]. inv_State_T x
+    = (inv_Authority_FMap_Int_Excl_PositiveReal x.alive
+    /\ inv_Lifetime x.lifetime
+    /\ inv_Option_LifetimeToken x.pool
+    /\ inv_Option_AtView_Option_T x.recovery /\ inv_Authority_Option_Ag_tup2_Int_AtView_Option_T x.publication)
+
+predicate invariant_refmut_State_T [@inline:trivial] (self: MutBorrow.t t_State_T) =
+  [%#sinvariant] inv_State_T self.current /\ inv_State_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_State_T
+
+predicate inv_refmut_State_T [@inline:trivial] (_1: MutBorrow.t t_State_T) = invariant_refmut_State_T _1
+
+meta "rewrite_def" predicate inv_refmut_State_T
+
+predicate invariant_Ghost_refmut_State_T [@inline:trivial] (self: MutBorrow.t t_State_T) =
+  [%#sghost'4] inv_refmut_State_T self
+
+meta "rewrite_def" predicate invariant_Ghost_refmut_State_T
+
+predicate inv_Ghost_refmut_State_T [@inline:trivial] (_1: MutBorrow.t t_State_T) = invariant_Ghost_refmut_State_T _1
+
+meta "rewrite_def" predicate inv_Ghost_refmut_State_T
+
+let into_inner_refmut_State_T (self: MutBorrow.t t_State_T) (return (x: MutBorrow.t t_State_T)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost] inv_Ghost_refmut_State_T self}
+  any
+  [ return (result: MutBorrow.t t_State_T) ->
+  {[@stop_split] [@expl:into_inner_refmut_State_T ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'0] inv_refmut_State_T result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+type t_Committer_AtomicUsize_usize_Acquire_None
+
+let into_inner_ref_Committer_AtomicUsize_usize_Acquire_None (self: t_Committer_AtomicUsize_usize_Acquire_None)
+  (return (x: t_Committer_AtomicUsize_usize_Acquire_None)) = any
+  [ return (result: t_Committer_AtomicUsize_usize_Acquire_None) ->
+  {[@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self}
+    (! return {result}) ]
+
+type t_Resource_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T
+
+type t_Fragment_Option_Ag_tup2_Int_AtView_Option_T = {
+  f0: t_Resource_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T }
+
+type t_Pending_T = {
+  sealed: t_AtView_Option_T;
+  full: t_LifetimeToken;
+  fragment: t_Fragment_Option_Ag_tup2_Int_AtView_Option_T }
+
+predicate inv_Pending_T (_1: t_Pending_T)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_Pending_T [inv_Pending_T x]. inv_Pending_T x
+    = (inv_AtView_Option_T x.sealed /\ inv_LifetimeToken x.full)
+
+predicate invariant_ref_Pending_T [@inline:trivial] (self: t_Pending_T) = [%#sinvariant'0] inv_Pending_T self
+
+meta "rewrite_def" predicate invariant_ref_Pending_T
+
+predicate inv_ref_Pending_T [@inline:trivial] (_1: t_Pending_T) = invariant_ref_Pending_T _1
+
+meta "rewrite_def" predicate inv_ref_Pending_T
+
+predicate invariant_Ghost_ref_Pending_T [@inline:trivial] (self: t_Pending_T) = [%#sghost'4] inv_ref_Pending_T self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_Pending_T
+
+predicate inv_Ghost_ref_Pending_T [@inline:trivial] (_1: t_Pending_T) = invariant_Ghost_ref_Pending_T _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_Pending_T
+
+let into_inner_ref_Pending_T (self: t_Pending_T) (return (x: t_Pending_T)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost] inv_Ghost_ref_Pending_T self}
+  any
+  [ return (result: t_Pending_T) ->
+  {[@stop_split] [@expl:into_inner_ref_Pending_T ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'0] inv_ref_Pending_T result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+type t_SyncView
+
+let into_inner_refmut_SyncView (self: MutBorrow.t t_SyncView) (return (x: MutBorrow.t t_SyncView)) = any
+  [ return (result: MutBorrow.t t_SyncView) -> {[@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self}
+    (! return {result}) ]
+
+predicate invariant_ref_Authority_Option_Ag_tup2_Int_AtView_Option_T [@inline:trivial] (self: t_Authority_Option_Ag_tup2_Int_AtView_Option_T) =
+  [%#sinvariant'0] inv_Authority_Option_Ag_tup2_Int_AtView_Option_T self
+
+meta "rewrite_def" predicate invariant_ref_Authority_Option_Ag_tup2_Int_AtView_Option_T
+
+predicate inv_ref_Authority_Option_Ag_tup2_Int_AtView_Option_T [@inline:trivial] (_1: t_Authority_Option_Ag_tup2_Int_AtView_Option_T) =
+  invariant_ref_Authority_Option_Ag_tup2_Int_AtView_Option_T _1
+
+meta "rewrite_def" predicate inv_ref_Authority_Option_Ag_tup2_Int_AtView_Option_T
+
+type t_Id
+
+function id_Option_Ag_tup2_Int_AtView_Option_T (self: t_Authority_Option_Ag_tup2_Int_AtView_Option_T) : t_Id
+
+function id_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (self: t_Resource_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T) : t_Id
+
+function id_Option_Ag_tup2_Int_AtView_Option_T'0 (self: t_Fragment_Option_Ag_tup2_Int_AtView_Option_T) : t_Id =
+  [%#sauth'2] id_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T self.f0
+
+type tup2_Int_AtView_Option_T = { f0'0: int; f1'0: t_AtView_Option_T }
+
+type t_Ag_tup2_Int_AtView_Option_T = { f0'1: tup2_Int_AtView_Option_T }
+
+type t_Option_Ag_tup2_Int_AtView_Option_T = None'1 | Some'1 t_Ag_tup2_Int_AtView_Option_T
+
+type t_Option_Option_Ag_tup2_Int_AtView_Option_T = None'2 | Some'2 t_Option_Ag_tup2_Int_AtView_Option_T
+
+type tup2_Option_Ag_tup2_Int_AtView_Option_T_Option_Ag_tup2_Int_AtView_Option_T = {
+  f0'2: t_Option_Ag_tup2_Int_AtView_Option_T;
+  f1'2: t_Option_Ag_tup2_Int_AtView_Option_T }
+
+function map_Option_Ag_tup2_Int_AtView_Option_T (self: t_Option_Ag_tup2_Int_AtView_Option_T) (f: Map.map t_Ag_tup2_Int_AtView_Option_T t_Option_Ag_tup2_Int_AtView_Option_T) : t_Option_Option_Ag_tup2_Int_AtView_Option_T
+ = [%#soption'5] match self with
+    | None'1 -> None'2
+    | Some'1 x -> Some'2 (Map.get f x)
+    end
+
+function op_Ag_tup2_Int_AtView_Option_T (self: t_Ag_tup2_Int_AtView_Option_T) (other: t_Ag_tup2_Int_AtView_Option_T) : t_Option_Ag_tup2_Int_AtView_Option_T
+ = [%#sagree] if self.f0'1 = other.f0'1 then Some'1 self else None'1
+
+function commutative_Ag_tup2_Int_AtView_Option_T (a: t_Ag_tup2_Int_AtView_Option_T) (b: t_Ag_tup2_Int_AtView_Option_T) : ()
+
+axiom commutative_Ag_tup2_Int_AtView_Option_T_spec:
+  forall a: t_Ag_tup2_Int_AtView_Option_T, b: t_Ag_tup2_Int_AtView_Option_T. [%#sagree'0] op_Ag_tup2_Int_AtView_Option_T a b
+    = op_Ag_tup2_Int_AtView_Option_T b a
+
+function op_Option_Ag_tup2_Int_AtView_Option_T (self: t_Option_Ag_tup2_Int_AtView_Option_T) (other: t_Option_Ag_tup2_Int_AtView_Option_T) : t_Option_Option_Ag_tup2_Int_AtView_Option_T
+ = [%#soption'4] match { f0'2 = self; f1'2 = other } with
+    | {f0'2 = None'1} -> Some'2 other
+    | {f1'2 = None'1} -> Some'2 self
+    | {f0'2 = Some'1 x; f1'2 = Some'1 y} -> map_Option_Ag_tup2_Int_AtView_Option_T (op_Ag_tup2_Int_AtView_Option_T x y) (fun (z: t_Ag_tup2_Int_AtView_Option_T) -> Some'1 z)
+    end
+
+function commutative_Option_Ag_tup2_Int_AtView_Option_T (a: t_Option_Ag_tup2_Int_AtView_Option_T) (b: t_Option_Ag_tup2_Int_AtView_Option_T) : ()
+
+axiom commutative_Option_Ag_tup2_Int_AtView_Option_T_spec:
+  forall a: t_Option_Ag_tup2_Int_AtView_Option_T, b: t_Option_Ag_tup2_Int_AtView_Option_T. [%#soption'3] op_Option_Ag_tup2_Int_AtView_Option_T a b
+    = op_Option_Ag_tup2_Int_AtView_Option_T b a
+
+predicate incl_Ag_tup2_Int_AtView_Option_T (self: t_Ag_tup2_Int_AtView_Option_T) (other: t_Ag_tup2_Int_AtView_Option_T) =
+  [%#sagree'2] self.f0'1 = other.f0'1
+
+axiom incl_Ag_tup2_Int_AtView_Option_T_spec:
+  forall self: t_Ag_tup2_Int_AtView_Option_T, other: t_Ag_tup2_Int_AtView_Option_T [incl_Ag_tup2_Int_AtView_Option_T self other]. [%#sagree'1] incl_Ag_tup2_Int_AtView_Option_T self other
+    = (exists factor: t_Ag_tup2_Int_AtView_Option_T. op_Ag_tup2_Int_AtView_Option_T self factor = Some'1 other)
+
+function incl_transitive_Ag_tup2_Int_AtView_Option_T (a: t_Ag_tup2_Int_AtView_Option_T) (b: t_Ag_tup2_Int_AtView_Option_T) (c: t_Ag_tup2_Int_AtView_Option_T) : ()
+
+axiom incl_transitive_Ag_tup2_Int_AtView_Option_T_spec:
+  forall a: t_Ag_tup2_Int_AtView_Option_T, b: t_Ag_tup2_Int_AtView_Option_T, c: t_Ag_tup2_Int_AtView_Option_T. ([%#sra'8] incl_Ag_tup2_Int_AtView_Option_T a b)
+    -> ([%#sra'9] incl_Ag_tup2_Int_AtView_Option_T b c) -> ([%#sra'10] incl_Ag_tup2_Int_AtView_Option_T a c)
+
+function associative_some_Ag_tup2_Int_AtView_Option_T (a: t_Ag_tup2_Int_AtView_Option_T) (b: t_Ag_tup2_Int_AtView_Option_T) (c: t_Ag_tup2_Int_AtView_Option_T) (ab: t_Ag_tup2_Int_AtView_Option_T) (bc: t_Ag_tup2_Int_AtView_Option_T) : ()
+
+axiom associative_some_Ag_tup2_Int_AtView_Option_T_spec:
+  forall a: t_Ag_tup2_Int_AtView_Option_T, b: t_Ag_tup2_Int_AtView_Option_T, c: t_Ag_tup2_Int_AtView_Option_T, ab: t_Ag_tup2_Int_AtView_Option_T, bc: t_Ag_tup2_Int_AtView_Option_T. ([%#sra'5] op_Ag_tup2_Int_AtView_Option_T a b
+      = Some'1 ab)
+    -> ([%#sra'6] op_Ag_tup2_Int_AtView_Option_T b c = Some'1 bc)
+    -> ([%#sra'7] op_Ag_tup2_Int_AtView_Option_T a bc = op_Ag_tup2_Int_AtView_Option_T ab c)
+
+function associative_none_Ag_tup2_Int_AtView_Option_T (a: t_Ag_tup2_Int_AtView_Option_T) (b: t_Ag_tup2_Int_AtView_Option_T) (c: t_Ag_tup2_Int_AtView_Option_T) (bc: t_Ag_tup2_Int_AtView_Option_T) : ()
+
+axiom associative_none_Ag_tup2_Int_AtView_Option_T_spec:
+  forall a: t_Ag_tup2_Int_AtView_Option_T, b: t_Ag_tup2_Int_AtView_Option_T, c: t_Ag_tup2_Int_AtView_Option_T, bc: t_Ag_tup2_Int_AtView_Option_T. ([%#sra'2] op_Ag_tup2_Int_AtView_Option_T a b
+      = None'1)
+    -> ([%#sra'3] op_Ag_tup2_Int_AtView_Option_T b c = Some'1 bc)
+    -> ([%#sra'4] op_Ag_tup2_Int_AtView_Option_T a bc = None'1)
+
+function incl_op_Ag_tup2_Int_AtView_Option_T (self: t_Ag_tup2_Int_AtView_Option_T) (other: t_Ag_tup2_Int_AtView_Option_T) (comb: t_Ag_tup2_Int_AtView_Option_T) : ()
+
+axiom incl_op_Ag_tup2_Int_AtView_Option_T_spec:
+  forall self: t_Ag_tup2_Int_AtView_Option_T, other: t_Ag_tup2_Int_AtView_Option_T, comb: t_Ag_tup2_Int_AtView_Option_T. ([%#sra'0] op_Ag_tup2_Int_AtView_Option_T self other
+      = Some'1 comb) -> ([%#sra'1] incl_Ag_tup2_Int_AtView_Option_T self comb)
+
+predicate eq_Ag_tup2_Int_AtView_Option_T [@inline:trivial] (self: t_Ag_tup2_Int_AtView_Option_T) (other: t_Ag_tup2_Int_AtView_Option_T) =
+  [%#sra'12] self = other
+
+meta "rewrite_def" predicate eq_Ag_tup2_Int_AtView_Option_T
+
+axiom eq_Ag_tup2_Int_AtView_Option_T_spec:
+  forall self: t_Ag_tup2_Int_AtView_Option_T, other: t_Ag_tup2_Int_AtView_Option_T [eq_Ag_tup2_Int_AtView_Option_T self other]. [%#sra'11] eq_Ag_tup2_Int_AtView_Option_T self other
+    = (self = other)
+
+predicate incl_eq_Ag_tup2_Int_AtView_Option_T (self: t_Ag_tup2_Int_AtView_Option_T) (other: t_Ag_tup2_Int_AtView_Option_T) =
+  [%#sra] eq_Ag_tup2_Int_AtView_Option_T self other \/ incl_Ag_tup2_Int_AtView_Option_T self other
+
+predicate incl_Option_Ag_tup2_Int_AtView_Option_T (self: t_Option_Ag_tup2_Int_AtView_Option_T) (other: t_Option_Ag_tup2_Int_AtView_Option_T) =
+  [%#soption'0] match { f0'2 = self; f1'2 = other } with
+    | {f0'2 = None'1} -> true
+    | {f1'2 = None'1} -> false
+    | {f0'2 = Some'1 x; f1'2 = Some'1 y} -> incl_eq_Ag_tup2_Int_AtView_Option_T x y
+    end
+
+axiom incl_Option_Ag_tup2_Int_AtView_Option_T_spec:
+  forall self: t_Option_Ag_tup2_Int_AtView_Option_T, other: t_Option_Ag_tup2_Int_AtView_Option_T [incl_Option_Ag_tup2_Int_AtView_Option_T self other]. [%#soption] incl_Option_Ag_tup2_Int_AtView_Option_T self other
+    = (exists factor: t_Option_Ag_tup2_Int_AtView_Option_T. op_Option_Ag_tup2_Int_AtView_Option_T self factor
+      = Some'2 other)
+
+type t_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T
+
+constant unit_Option_Ag_tup2_Int_AtView_Option_T: t_Option_Ag_tup2_Int_AtView_Option_T = [%#soption'7] None'1
+
+axiom unit_Option_Ag_tup2_Int_AtView_Option_T_spec:
+  [%#soption'6] forall x: t_Option_Ag_tup2_Int_AtView_Option_T [op_Option_Ag_tup2_Int_AtView_Option_T x unit_Option_Ag_tup2_Int_AtView_Option_T]. op_Option_Ag_tup2_Int_AtView_Option_T x unit_Option_Ag_tup2_Int_AtView_Option_T
+    = Some'2 x
+
+predicate rel_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (a: t_Option_Option_Ag_tup2_Int_AtView_Option_T) (f: t_Option_Ag_tup2_Int_AtView_Option_T) =
+  [%#sauth'4] match a with
+    | Some'2 a'0 -> incl_Option_Ag_tup2_Int_AtView_Option_T f a'0
+    | None'2 -> true
+    end
+
+function rel_unit_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (a: t_Option_Option_Ag_tup2_Int_AtView_Option_T) : ()
+
+axiom rel_unit_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T_spec:
+  forall a: t_Option_Option_Ag_tup2_Int_AtView_Option_T. [%#sauth'9] rel_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T a unit_Option_Ag_tup2_Int_AtView_Option_T
+
+function rel_none_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (a: t_Option_Option_Ag_tup2_Int_AtView_Option_T) (f: t_Option_Ag_tup2_Int_AtView_Option_T) : ()
+
+axiom rel_none_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T_spec:
+  forall a: t_Option_Option_Ag_tup2_Int_AtView_Option_T, f: t_Option_Ag_tup2_Int_AtView_Option_T. [%#sauth'8] rel_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (None'2) f
+
+function rel_mono_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (a: t_Option_Option_Ag_tup2_Int_AtView_Option_T) (f1: t_Option_Ag_tup2_Int_AtView_Option_T) (f2: t_Option_Ag_tup2_Int_AtView_Option_T) : ()
+
+axiom rel_mono_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T_spec:
+  forall a: t_Option_Option_Ag_tup2_Int_AtView_Option_T, f1: t_Option_Ag_tup2_Int_AtView_Option_T, f2: t_Option_Ag_tup2_Int_AtView_Option_T. ([%#sauth'5] rel_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T a f1)
+    -> ([%#sauth'6] incl_Option_Ag_tup2_Int_AtView_Option_T f2 f1)
+    -> ([%#sauth'7] rel_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T a f2)
+
+function auth_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (self: t_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T) : t_Option_Option_Ag_tup2_Int_AtView_Option_T
+
+function frag_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (self: t_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T) : t_Option_Ag_tup2_Int_AtView_Option_T
+
+axiom frag_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T_spec:
+  forall self: t_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T [frag_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T self]. [%#sview'4] rel_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (auth_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T self) (frag_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T self)
+
+function val_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (self: t_Resource_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T) : t_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T
+
+function view_Resource_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T [@inline:trivial] (self: t_Resource_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T) : t_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T
+ = [%#sresource] val_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T self
+
+meta "rewrite_def" function view_Resource_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T
+
+function view_Fragment_Option_Ag_tup2_Int_AtView_Option_T (self: t_Fragment_Option_Ag_tup2_Int_AtView_Option_T) : t_Option_Ag_tup2_Int_AtView_Option_T
+ =
+  [%#sauth'3] frag_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T (view_Resource_View_AuthViewRel_Option_Ag_tup2_Int_AtView_Option_T self.f0)
+
+function view_Authority_Option_Ag_tup2_Int_AtView_Option_T (self: t_Authority_Option_Ag_tup2_Int_AtView_Option_T) : t_Option_Ag_tup2_Int_AtView_Option_T
+
+let frag_lemma_Option_Ag_tup2_Int_AtView_Option_T (self: t_Authority_Option_Ag_tup2_Int_AtView_Option_T)
+  (frag: t_Fragment_Option_Ag_tup2_Int_AtView_Option_T) (return (x: ())) =
+{[@stop_split] [@expl:frag_lemma_Option_Ag_tup2_Int_AtView_Option_T requires] ([@stop_split] [@expl:frag_lemma 'self' type invariant] [%#sauth] inv_ref_Authority_Option_Ag_tup2_Int_AtView_Option_T self)
+  /\ ([@stop_split] [@expl:frag_lemma requires] [%#sauth'0] id_Option_Ag_tup2_Int_AtView_Option_T self
+  = id_Option_Ag_tup2_Int_AtView_Option_T'0 frag)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:frag_lemma ensures] [%#sauth'1] incl_Option_Ag_tup2_Int_AtView_Option_T (view_Fragment_Option_Ag_tup2_Int_AtView_Option_T frag) (view_Authority_Option_Ag_tup2_Int_AtView_Option_T self)}
+    (! return {result}) ]
+
+predicate resolve_refmut_State_T [@inline:trivial] (_1: MutBorrow.t t_State_T) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_State_T
+
+predicate shot_store_AtomicUsize (self: t_Committer_AtomicUsize_usize_Acquire_None)
+
+type t_AtomicUsize
+
+function ward_AtomicUsize (self: t_Committer_AtomicUsize_usize_Acquire_None) : t_AtomicUsize
+
+function ward_AtomicUsize'0 (self: t_Perm_AtomicUsize) : t_AtomicUsize
+
+predicate lt_log_SyncView (self: t_SyncView) (_2: t_SyncView)
+
+predicate le_log_SyncView [@inline:trivial] (self: t_SyncView) (other: t_SyncView) =
+  [%#sord] lt_log_SyncView self other \/ self = other
+
+meta "rewrite_def" predicate le_log_SyncView
+
+function le_lt_log_SyncView (self: t_SyncView) (other: t_SyncView) : ()
+
+axiom le_lt_log_SyncView_spec: forall self: t_SyncView, other: t_SyncView. [%#sview'3] le_log_SyncView self other
+    = (lt_log_SyncView self other \/ self = other)
+
+function transitive_SyncView (x: t_SyncView) (y: t_SyncView) (z: t_SyncView) : ()
+
+axiom transitive_SyncView_spec: forall x: t_SyncView, y: t_SyncView, z: t_SyncView. ([%#sview'0] lt_log_SyncView x y)
+    -> ([%#sview'1] lt_log_SyncView y z) -> ([%#sview'2] lt_log_SyncView x z)
+
+function irreflexive_SyncView (self: t_SyncView) : ()
+
+axiom irreflexive_SyncView_spec: forall self: t_SyncView. [%#sview] not lt_log_SyncView self self
+
+function get_timestamp_AtomicUsize (self: t_AtomicUsize) (_2: t_SyncView) : int
+
+function get_timestamp_monotonic_AtomicUsize (self: t_AtomicUsize) (x: t_SyncView) (y: t_SyncView) : ()
+
+axiom get_timestamp_monotonic_AtomicUsize_spec:
+  forall self: t_AtomicUsize, x: t_SyncView, y: t_SyncView. ([%#satomic] le_log_SyncView x y)
+    -> ([%#satomic'0] get_timestamp_AtomicUsize self x <= get_timestamp_AtomicUsize self y)
+
+function timestamp_AtomicUsize (self: t_Committer_AtomicUsize_usize_Acquire_None) : int
+
+type tup2_usize_SyncView = { f0'3: UInt64.t; f1'3: t_SyncView }
+
+type t_Option_tup2_usize_SyncView = None'3 | Some'3 tup2_usize_SyncView
+
+type t_FMap_Int_tup2_usize_SyncView
+
+function to_mapping_Int (self: t_FMap_Int_tup2_usize_SyncView) : Map.map int t_Option_tup2_usize_SyncView
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_tup2_usize_SyncView) (k: int) : t_Option_tup2_usize_SyncView =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+function val_AtomicUsize (self: t_Perm_AtomicUsize) : t_FMap_Int_tup2_usize_SyncView
+
+function val_load_AtomicUsize (self: t_Committer_AtomicUsize_usize_Acquire_None) : UInt64.t
+
+let shoot_load_AtomicUsize (self: t_Committer_AtomicUsize_usize_Acquire_None) (own'0: t_Perm_AtomicUsize)
+  (sync_view: MutBorrow.t t_SyncView) (return (x: ())) =
+{[@stop_split] [@expl:shoot_load_AtomicUsize requires] ([@stop_split] [@expl:shoot_load requires #0] [%#scommitter] not shot_store_AtomicUsize self)
+  /\ ([@stop_split] [@expl:shoot_load requires #1] [%#scommitter'0] ward_AtomicUsize self = ward_AtomicUsize'0 own'0)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:shoot_load_AtomicUsize ensures] ([@stop_split] [@expl:shoot_load ensures #0] [%#scommitter'1] le_log_SyncView sync_view.current sync_view.final)
+    /\ ([@stop_split] [@expl:shoot_load ensures #1] [%#scommitter'2] get_timestamp_AtomicUsize (ward_AtomicUsize self) sync_view.current
+      <= timestamp_AtomicUsize self)
+    /\ ([@stop_split] [@expl:shoot_load ensures #2] [%#scommitter'3] timestamp_AtomicUsize self
+      <= get_timestamp_AtomicUsize (ward_AtomicUsize self) sync_view.final)
+    /\ ([@stop_split] [@expl:shoot_load ensures #3] [%#scommitter'4] match get_Int (val_AtomicUsize own'0) (timestamp_AtomicUsize self) with
+      | Some'3 {f0'3 = v; f1'3 = v_view} -> v = val_load_AtomicUsize self /\ le_log_SyncView v_view sync_view.final
+      | None'3 -> false
+      end)}
+    (! return {result}) ]
+
+predicate resolve_refmut_SyncView [@inline:trivial] (_1: MutBorrow.t t_SyncView) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_SyncView
+
+let new_unit (x: ()) (return (x'0: ())) = any
+  [ return (result: ()) -> {[@stop_split] [@expl:new ensures] [%#sghost'2] result = x} (! return {result}) ]
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+type t_FMap_Int_Excl_PositiveReal
+
+type t_PositiveReal
+
+type t_Excl_PositiveReal = { f0'4: t_PositiveReal }
+
+type t_Option_Excl_PositiveReal = None'4 | Some'4 t_Excl_PositiveReal
+
+function to_mapping_Int'0 (self: t_FMap_Int_Excl_PositiveReal) : Map.map int t_Option_Excl_PositiveReal
+
+function get_Int'0 [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) : t_Option_Excl_PositiveReal =
+  [%#sfmap] Map.get (to_mapping_Int'0 self) k
+
+meta "rewrite_def" function get_Int'0
+
+predicate ids_bounded [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 56 0 56 58] (live: t_FMap_Int_Excl_PositiveReal) (next'0: int) =
+  [%#sfraction_map] ge_log_Int next'0 0 /\ (forall id: int. get_Int'0 live id <> None'4 -> 0 <= id /\ id < next'0)
+
+function view_Authority_FMap_Int_Excl_PositiveReal (self: t_Authority_FMap_Int_Excl_PositiveReal) : t_FMap_Int_Excl_PositiveReal
+
+constant any_tup2_usize_SyncView : tup2_usize_SyncView
+
+function unwrap_Option_tup2_usize_SyncView (self: t_Option_tup2_usize_SyncView) : tup2_usize_SyncView =
+  [%#soption'2] match self with
+    | Some'3 x -> x
+    | None'3 -> any_tup2_usize_SyncView
+    end
+
+function lookup_Int [@inline:trivial] (self: t_FMap_Int_tup2_usize_SyncView) (k: int) : tup2_usize_SyncView =
+  [%#sfmap'3] unwrap_Option_tup2_usize_SyncView (get_Int self k)
+
+meta "rewrite_def" function lookup_Int
+
+function index_FMap_Int_tup2_usize_SyncView [@inline:trivial] (self: t_FMap_Int_tup2_usize_SyncView) (key: int) : tup2_usize_SyncView
+ = [%#sfmap'0] lookup_Int self key
+
+meta "rewrite_def" function index_FMap_Int_tup2_usize_SyncView
+
+function len_Int (self: t_FMap_Int_Excl_PositiveReal) : int
+
+axiom len_Int_spec: forall self: t_FMap_Int_Excl_PositiveReal [len_Int self]. [%#sfmap'1] ge_log_Int (len_Int self) 0
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+type tup2_usize_bool = { f0'5: UInt64.t; f1'5: bool }
+
+constant const_MAX_LIVE [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 18 0 18 21] : UInt64.t
+
+let set_MAX_LIVE (return) = bb0
+  [ bb0 = s0
+    [ s0 = [ &_2 <- ([%#slifecycle'22] (2: UInt64.t)) = ([%#slifecycle'23] (0: UInt64.t)) ] s1
+    | s1 = {[@expl:division by zero] [%#slifecycle'23] not _2} s2
+    | s2 = UInt64.div [%#slifecycle'23] {[%#slifecycle'24] const_MAX} {[%#slifecycle'22] (2: UInt64.t)}
+        (fun (_x: UInt64.t) -> [ &_1 <- _x ] s3)
+    | s3 = [ &_3 <- let (_fst, _snd) = UInt64.add_with_overflow _1 ([%#slifecycle'25] (1: UInt64.t)) in { f0'5 = _fst;
+                                                                                                          f1'5 = _snd } ]
+      s4
+    | s4 = {[@expl:Add overflow] [%#slifecycle'26] not _3.f1'5} s5
+    | s5 = [ &_ret <- _3.f0'5 ] s6
+    | s6 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l ()
+  | & _1: UInt64.t = Any.any_l ()
+  | & _2: bool = Any.any_l ()
+  | & _3: tup2_usize_bool = Any.any_l () ] [ return (_const: UInt64.t) -> -{const_MAX_LIVE = _const}- return ]
+
+function lft (self: t_LifetimeToken) : t_Lifetime
+
+constant any_LifetimeToken : t_LifetimeToken
+
+function unwrap_Option_LifetimeToken (self: t_Option_LifetimeToken) : t_LifetimeToken = [%#soption'2] match self with
+    | Some x -> x
+    | None -> any_LifetimeToken
+    end
+
+predicate gt_log_Real [@inline:trivial] (self: Real.real) (other: Real.real) = [%#sord'1] Real.(<) other self
+
+meta "rewrite_def" predicate gt_log_Real
+
+function to_real (self: t_PositiveReal) : Real.real
+
+axiom to_real_spec:
+  forall self: t_PositiveReal [to_real self]. [%#sreal] gt_log_Real (to_real self) (FromInt.from_int 0)
+
+function frac (self: t_LifetimeToken) : t_PositiveReal
+
+function ticket_fraction [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 17 0 17 60] [@inline:trivial] (live: t_FMap_Int_Excl_PositiveReal) (id: int) : Real.real
+ = [%#sfraction_map'3] match get_Int'0 live id with
+    | None'4 -> FromInt.from_int 0
+    | Some'4 {f0'4 = fraction} -> to_real fraction
+    end
+
+meta "rewrite_def" function ticket_fraction
+
+function sum_prefix [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 34 0 34 57] (live: t_FMap_Int_Excl_PositiveReal) (next'0: int) : Real.real
+
+axiom sum_prefix_def:
+  forall live: t_FMap_Int_Excl_PositiveReal, next'0: int [sum_prefix live next'0]. ([%#sfraction_map'1] ge_log_Int next'0 0)
+    -> sum_prefix live next'0
+    = ([%#sfraction_map'2] if next'0 = 0 then
+      FromInt.from_int 0
+    else
+      Real.(+) (ticket_fraction live (next'0 - 1)) (sum_prefix live (next'0 - 1))
+    )
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) =
+  [%#sfmap'2] get_Int'0 self k <> None'4
+
+meta "rewrite_def" predicate contains_Int
+
+type t_T
+
+type t_Option_T = None'5 | Some'5 t_T
+
+function val_Option_T (self: t_AtView_Option_T) : t_Option_T
+
+constant any_AtView_Option_T : t_AtView_Option_T
+
+function unwrap_Option_AtView_Option_T (self: t_Option_AtView_Option_T) : t_AtView_Option_T =
+  [%#soption'2] match self with
+    | Some'0 x -> x
+    | None'0 -> any_AtView_Option_T
+    end
+
+predicate wellformed_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 23 24 23 52] (self: t_T)
+
+constant any_T : t_T
+
+function unwrap_Option_T (self: t_Option_T) : t_T = [%#soption'2] match self with
+    | Some'5 x -> x
+    | None'5 -> any_T
+    end
+
+function metadata_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 22 13 22 49] (self: t_T) : t_Metadata
+
+function view_Option_T (self: t_AtView_Option_T) : t_SyncView
+
+constant any_Ag_tup2_Int_AtView_Option_T : t_Ag_tup2_Int_AtView_Option_T
+
+function unwrap_Option_Ag_tup2_Int_AtView_Option_T (self: t_Option_Ag_tup2_Int_AtView_Option_T) : t_Ag_tup2_Int_AtView_Option_T
+ = [%#soption'2] match self with
+    | Some'1 x -> x
+    | None'1 -> any_Ag_tup2_Int_AtView_Option_T
+    end
+
+predicate protocol_State_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 209 4 209 29] (self: t_State_T) =
+  [%#slifecycle'16] ge_log_Int self.next 1
+  /\ ids_bounded (view_Authority_FMap_Int_Excl_PositiveReal self.alive) self.next
+  /\ get_Int (val_AtomicUsize self.own) self.latest <> None'3
+  /\ UInt64.t'int (index_FMap_Int_tup2_usize_SyncView (val_AtomicUsize self.own) self.latest).f0'3
+    = len_Int (view_Authority_FMap_Int_Excl_PositiveReal self.alive)
+  /\ len_Int (view_Authority_FMap_Int_Excl_PositiveReal self.alive) <= UInt64.t'int const_MAX_LIVE
+  /\ self.first <= self.latest
+  /\ (forall t: int. (get_Int (val_AtomicUsize self.own) t <> None'3) = (self.first <= t /\ t <= self.latest))
+  /\ self.withdrawn = (len_Int (view_Authority_FMap_Int_Excl_PositiveReal self.alive) = 0)
+  /\ (self.pool = None) = self.withdrawn
+  /\ (self.pool <> None
+    -> lft (unwrap_Option_LifetimeToken self.pool) = self.lifetime
+    /\ Real.(+) (to_real (frac (unwrap_Option_LifetimeToken self.pool))) (sum_prefix (view_Authority_FMap_Int_Excl_PositiveReal self.alive) self.next)
+    = FromInt.from_int 1)
+  /\ (if self.withdrawn then
+      self.recovery = None'0
+    else
+      (self.recovery = None'0) = contains_Int (view_Authority_FMap_Int_Excl_PositiveReal self.alive) 0
+      /\ (self.recovery <> None'0
+      -> val_Option_T (unwrap_Option_AtView_Option_T self.recovery) <> None'5
+      /\ wellformed_T (unwrap_Option_T (val_Option_T (unwrap_Option_AtView_Option_T self.recovery)))
+      /\ metadata_T (unwrap_Option_T (val_Option_T (unwrap_Option_AtView_Option_T self.recovery))) = self.expected
+      /\ le_log_SyncView (view_Option_T (unwrap_Option_AtView_Option_T self.recovery)) (index_FMap_Int_tup2_usize_SyncView (val_AtomicUsize self.own) self.latest).f1'3)
+    )
+  /\ (view_Authority_Option_Ag_tup2_Int_AtView_Option_T self.publication <> None'1) = self.withdrawn
+  /\ (view_Authority_Option_Ag_tup2_Int_AtView_Option_T self.publication <> None'1
+  -> (unwrap_Option_Ag_tup2_Int_AtView_Option_T (view_Authority_Option_Ag_tup2_Int_AtView_Option_T self.publication)).f0'1.f0'0
+    = self.latest
+  /\ view_Option_T (unwrap_Option_Ag_tup2_Int_AtView_Option_T (view_Authority_Option_Ag_tup2_Int_AtView_Option_T self.publication)).f0'1.f1'0
+  = (index_FMap_Int_tup2_usize_SyncView (val_AtomicUsize self.own) self.latest).f1'3)
+
+type tup5_AtomicUsize_Id_Lifetime_Metadata_Id = {
+  f0'6: t_AtomicUsize;
+  f1'6: t_Id;
+  f2'6: t_Lifetime;
+  f3'6: t_Metadata;
+  f4'6: t_Id }
+
+function new (n: Real.real) : t_PositiveReal
+
+axiom new_spec: forall n: Real.real [new n]. ([%#sreal'1] gt_log_Real n (FromInt.from_int 0))
+    -> ([%#sreal'2] to_real (new n) = n)
+
+function from_int [@inline:trivial] (i: int) : t_PositiveReal = [%#sreal'0] new (FromInt.from_int i)
+
+meta "rewrite_def" function from_int
+
+predicate valid_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 127 4 127 89] (self: t_Pending_T) (public: tup5_AtomicUsize_Id_Lifetime_Metadata_Id) (current': t_SyncView) =
+  [%#slifecycle'17] val_Option_T self.sealed <> None'5
+  /\ wellformed_T (unwrap_Option_T (val_Option_T self.sealed))
+  /\ metadata_T (unwrap_Option_T (val_Option_T self.sealed)) = public.f3'6
+  /\ lft self.full = public.f2'6
+  /\ frac self.full = from_int 1
+  /\ id_Option_Ag_tup2_Int_AtView_Option_T'0 self.fragment = public.f4'6
+  /\ view_Fragment_Option_Ag_tup2_Int_AtView_Option_T self.fragment <> None'1
+  /\ (unwrap_Option_Ag_tup2_Int_AtView_Option_T (view_Fragment_Option_Ag_tup2_Int_AtView_Option_T self.fragment)).f0'1.f1'0
+    = self.sealed
+  /\ (unwrap_Option_Ag_tup2_Int_AtView_Option_T (view_Fragment_Option_Ag_tup2_Int_AtView_Option_T self.fragment)).f0'1.f0'0
+  <= get_timestamp_AtomicUsize public.f0'6 current'
+
+function id_FMap_Int_Excl_PositiveReal (self: t_Authority_FMap_Int_Excl_PositiveReal) : t_Id
+
+function public_State_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 203 4 203 35] (self: t_State_T) : tup5_AtomicUsize_Id_Lifetime_Metadata_Id
+ = [%#slifecycle'18] { f0'6 = ward_AtomicUsize'0 self.own;
+                       f1'6 = id_FMap_Int_Excl_PositiveReal self.alive;
+                       f2'6 = self.lifetime;
+                       f3'6 = self.expected;
+                       f4'6 = id_Option_Ag_tup2_Int_AtView_Option_T self.publication }
+
+function atomic_State_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 241 13 241 43] (self: t_State_T) : t_AtomicUsize
+ = [%#slifecycle'19] ward_AtomicUsize'0 self.own
+
+function fin_Ghost_refmut_State_T [@inline:trivial] (self: MutBorrow.t t_State_T) : t_State_T = [%#sghost'3] self.final
+
+meta "rewrite_def" function fin_Ghost_refmut_State_T
+
+function fin_Ghost_refmut_SyncView [@inline:trivial] (self: MutBorrow.t t_SyncView) : t_SyncView =
+  [%#sghost'3] self.final
+
+meta "rewrite_def" function fin_Ghost_refmut_SyncView
+
+predicate acquired_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 118 13 118 61] (self: t_Pending_T) (current': t_SyncView) =
+  [%#slifecycle'20] le_log_SyncView (view_Option_T self.sealed) current'
+
+type tup2_FMap_Int_Excl_PositiveReal_Int = { f0'7: t_FMap_Int_Excl_PositiveReal; f1'7: int }
+
+function live_map_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 315 13 315 51] (self: t_State_T) : t_FMap_Int_Excl_PositiveReal
+ = [%#slifecycle'27] view_Authority_FMap_Int_Excl_PositiveReal self.alive
+
+function next_id_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 316 26 316 53] (self: t_State_T) : int
+ = [%#slifecycle'28] self.next
+
+function observe_State_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 246 26 246 63] (self: t_State_T) : tup2_FMap_Int_Excl_PositiveReal_Int
+ = [%#slifecycle'21] { f0'7 = live_map_T self; f1'7 = next_id_T self }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let on_acquire_T [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-clone-2026-10-09/src/lifecycle.rs" 694 4 699 18]
+  (state: MutBorrow.t t_State_T) (committer: t_Committer_AtomicUsize_usize_Acquire_None) (pending: t_Pending_T)
+  (current': MutBorrow.t t_SyncView) (return (x: ())) =
+{[@stop_split] [@expl:on_acquire_T requires] ([@stop_split] [@expl:on_acquire 'state' type invariant] [%#slifecycle'7] inv_Ghost_refmut_State_T state)
+  /\ ([@stop_split] [@expl:on_acquire 'pending' type invariant] [%#slifecycle'8] inv_Ghost_ref_Pending_T pending)
+  /\ ([@stop_split] [@expl:on_acquire requires #0] [%#slifecycle'9] protocol_State_T state.current
+    /\ valid_T pending (public_State_T state.current) current'.current)
+  /\ ([@stop_split] [@expl:on_acquire requires #1] [%#slifecycle'10] not shot_store_AtomicUsize committer
+  /\ ward_AtomicUsize committer = atomic_State_T state.current)}
+  (! set_MAX_LIVE
+    (bb0
+    [ bb0 = s0
+      [ s0 = into_inner_refmut_State_T [%#slifecycle] {state} (fun (_x: MutBorrow.t t_State_T) -> [ &state'0 <- _x ] s1)
+      | s1 = into_inner_ref_Committer_AtomicUsize_usize_Acquire_None [%#slifecycle'0] {committer}
+          (fun (_x: t_Committer_AtomicUsize_usize_Acquire_None) -> [ &committer'0 <- _x ] s2)
+      | s2 = into_inner_ref_Pending_T [%#slifecycle'1] {pending} (fun (_x: t_Pending_T) -> [ &pending'0 <- _x ] s3)
+      | s3 = into_inner_refmut_SyncView [%#slifecycle'2] {current'}
+          (fun (_x: MutBorrow.t t_SyncView) -> [ &current''0 <- _x ] s4)
+      | s4 = [ &_37 <- pending'0.fragment ] s5
+      | s5 = frag_lemma_Option_Ag_tup2_Int_AtView_Option_T [%#slifecycle'3] {state'0.current.publication} {_37}
+          (fun (_x: ()) -> [ &_34 <- _x ] s6)
+      | s6 = s7 [ _ck -> (! {[@expl:type invariant] inv_refmut_State_T state'0} any) ]
+      | s7 = -{resolve_refmut_State_T state'0}- s8
+      | s8 = [ &_41 <- state'0.current.own ] s9
+      | s9 = MutBorrow.borrow_final <t_SyncView> {current''0.current} {MutBorrow.get_id current''0}
+          (fun (_bor: MutBorrow.t t_SyncView) ->
+            [ &_42 <- _bor ] [ &current''0 <- { current''0 with current = _bor.final } ] s10)
+      | s10 = shoot_load_AtomicUsize [%#slifecycle'4] {committer'0} {_41} {_42} (fun (_x: ()) -> [ &_38 <- _x ] s11)
+      | s11 = -{resolve_refmut_SyncView current''0}- s12
+      | s12 = {[@expl:assertion] [%#slifecycle'5] timestamp_AtomicUsize committer'0 = state'0.current.latest} s13
+      | s13 = new_unit [%#slifecycle'6] {_25} (fun (_x: ()) -> [ &_ret <- _x ] s14)
+      | s14 = return {_ret} ] ]
+    [ & _ret: () = Any.any_l ()
+    | & state: MutBorrow.t t_State_T = state
+    | & committer: t_Committer_AtomicUsize_usize_Acquire_None = committer
+    | & pending: t_Pending_T = pending
+    | & current': MutBorrow.t t_SyncView = current'
+    | & _25: () = Any.any_l ()
+    | & state'0: MutBorrow.t t_State_T = Any.any_l ()
+    | & committer'0: t_Committer_AtomicUsize_usize_Acquire_None = Any.any_l ()
+    | & pending'0: t_Pending_T = Any.any_l ()
+    | & current''0: MutBorrow.t t_SyncView = Any.any_l ()
+    | & _34: () = Any.any_l ()
+    | & _37: t_Fragment_Option_Ag_tup2_Int_AtView_Option_T = Any.any_l ()
+    | & _38: () = Any.any_l ()
+    | & _41: t_Perm_AtomicUsize = Any.any_l ()
+    | & _42: MutBorrow.t t_SyncView = Any.any_l () ]))
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:on_acquire_T ensures] ([@stop_split] [@expl:on_acquire ensures #0] [%#slifecycle'11] protocol_State_T (fin_Ghost_refmut_State_T state)
+      /\ public_State_T (fin_Ghost_refmut_State_T state) = public_State_T state.current)
+    /\ ([@stop_split] [@expl:on_acquire ensures #1] [%#slifecycle'12] atomic_State_T (fin_Ghost_refmut_State_T state)
+      = atomic_State_T state.current)
+    /\ ([@stop_split] [@expl:on_acquire ensures #2] [%#slifecycle'13] le_log_SyncView current'.current (fin_Ghost_refmut_SyncView current')
+      /\ valid_T pending (public_State_T state.current) (fin_Ghost_refmut_SyncView current'))
+    /\ ([@stop_split] [@expl:on_acquire ensures #3] [%#slifecycle'14] acquired_T pending (fin_Ghost_refmut_SyncView current'))
+    /\ ([@stop_split] [@expl:on_acquire ensures #4] [%#slifecycle'15] observe_State_T (fin_Ghost_refmut_State_T state)
+    = observe_State_T state.current)}
+    (! return {result}) ]
