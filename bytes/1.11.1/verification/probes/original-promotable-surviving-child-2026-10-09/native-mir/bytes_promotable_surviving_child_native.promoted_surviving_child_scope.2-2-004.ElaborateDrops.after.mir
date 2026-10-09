@@ -1,0 +1,104 @@
+// MIR for `promoted_surviving_child_scope` after ElaborateDrops
+
+fn promoted_surviving_child_scope(_1: Box<[u8]>) -> Vec<u8> {
+    debug input => _1;
+    let mut _0: std::vec::Vec<u8>;
+    let _2: bytes::Bytes;
+    let _3: bytes::Bytes;
+    let mut _4: std::boxed::Box<[u8]>;
+    let mut _5: &bytes::Bytes;
+    let mut _7: &[u8];
+    let _8: &[u8];
+    let mut _9: &bytes::Bytes;
+    let _10: &bytes::Bytes;
+    scope 1 {
+        debug survivor => _2;
+        let _6: std::vec::Vec<u8>;
+        scope 3 {
+            debug observed => _6;
+        }
+    }
+    scope 2 {
+        debug original => _3;
+    }
+
+    bb0: {
+        StorageLive(_2);
+        StorageLive(_3);
+        StorageLive(_4);
+        _4 = move _1;
+        _3 = <bytes::Bytes as From<Box<[u8]>>>::from(move _4) -> [return: bb1, unwind: bb11];
+    }
+
+    bb1: {
+        StorageDead(_4);
+        StorageLive(_5);
+        _5 = &'_ _3;
+        _2 = <bytes::Bytes as Clone>::clone(move _5) -> [return: bb2, unwind: bb10];
+    }
+
+    bb2: {
+        StorageDead(_5);
+        drop(_3) -> [return: bb3, unwind: bb12];
+    }
+
+    bb3: {
+        StorageDead(_3);
+        StorageLive(_6);
+        StorageLive(_7);
+        StorageLive(_8);
+        StorageLive(_9);
+        StorageLive(_10);
+        _10 = &'_ _2;
+        _9 = &'_ (*_10);
+        _8 = <bytes::Bytes as AsRef<[u8]>>::as_ref(move _9) -> [return: bb4, unwind: bb9];
+    }
+
+    bb4: {
+        _7 = &'_ (*_8);
+        StorageDead(_9);
+        _6 = slice::<impl [u8]>::to_vec(move _7) -> [return: bb5, unwind: bb9];
+    }
+
+    bb5: {
+        StorageDead(_7);
+        StorageDead(_10);
+        StorageDead(_8);
+        _0 = move _6;
+        goto -> bb6;
+    }
+
+    bb6: {
+        StorageDead(_6);
+        drop(_2) -> [return: bb7, unwind: bb12];
+    }
+
+    bb7: {
+        StorageDead(_2);
+        goto -> bb8;
+    }
+
+    bb8: {
+        return;
+    }
+
+    bb9 (cleanup): {
+        drop(_2) -> [return: bb12, unwind terminate(cleanup)];
+    }
+
+    bb10 (cleanup): {
+        drop(_3) -> [return: bb12, unwind terminate(cleanup)];
+    }
+
+    bb11 (cleanup): {
+        goto -> bb12;
+    }
+
+    bb12 (cleanup): {
+        goto -> bb13;
+    }
+
+    bb13 (cleanup): {
+        resume;
+    }
+}

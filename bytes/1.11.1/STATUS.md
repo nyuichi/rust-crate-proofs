@@ -1,5 +1,35 @@
 # bytes 1.11.1 status
 
+## Astra-guided surviving promoted child after original Drop — 2026-10-09
+
+AO proves first promotion of a nonempty Box, original owner normal Drop,
+surviving child read, saved return and final child normal Drop for both parities.
+The whole original scope and owned pointer history are consumed. Only an affine
+cursor remains; actual root recovery is sealed by State::on_release and recovered
+by the final child's Acquire/release bodies. Both allocation receipts stay strong.
+
+The restored canonical gate passes125 files/983 prover leaves/zero null and
+structural leaves, all targets included, correspondence0, no features/exclusions/
+diagnostic/source controls. Main31/native52 structural mutations reject. Seven
+semantic defects leave2/1/1/5/2/2/2 nulls, with15 exact archived null-task sidecars;
+five frontend controls reject E0382, E0502/E0505 and E0061 as observed. These are
+proof sensitivity/type observations, not direct native event-absence theorems.
+
+Astra's concrete inherited-source, Cargo-routing and pre-import checker gaps
+are closed and independently rechecked. Independent archive reconstruction
+replays both checkers and all31/52 controls, all968 member hashes, source63,
+privateStd110, eight external tools and four actual compiled Cargo artifacts.
+The five frontend captures contain no proof tasks or solver caches.
+Canonical SHA2565cf0ffb4ae25dd3d8cb757677a5a43032e926c0eac4dbe3822a9c482206238b9;
+evidence is in verification/probes/original-promotable-surviving-child-2026-10-09.
+
+This is a closed outer normal-return client, not arbitrary escaping ownership,
+concurrency, unwind or whole original API/configuration admission. Full original
+architecture remains NOT ADMITTED. Asked Astra「次何するのがいい？」;
+next is runtime-variable finite sharing through actual Vec push/pop loops,
+inductive real-ticket inventory and cyclic native Drop correspondence.
+
+
 ## Astra-guided promoted-root re-clone and three normal Drops — 2026-10-09
 
 AN connects a second actual Clone of the original promotable Bytes to the

@@ -59,6 +59,19 @@ draft checker gaps. Immutable earlier frontend cache metadata discrepancies
 are disclosed; corrected v2 snapshots exclude caches. Full arbitrary ownership
 architecture is not admitted by this closed three-owner client.
 
+AO now proves original root retirement before a surviving promoted child:
+root resources and owned pointer history are consumed, only an affine cursor
+escapes the inner scope, and the final child recovers actual sealed authority
+and performs both frees (125/983/0). The feature-free source/native gate passes;
+main31/native52 checker controls reject, seven semantic defects leave actual
+nulls and five compiler inputs reject. Inherited modules are anchored beyond
+mutable-copy equality; exact Cargo tables and pre-import transitive checker
+pins close reviewed route holes. Canonical archive5cf0ffb4ae25dd3d8cb757677a5a43032e926c0eac4dbe3822a9c482206238b9
+captures968members,110privateStd files and actual compiled Cargo inputs.
+Independent archive reconstruction confirms all member/input pins and both
+checkers with31/52 controls. This is normal completion
+of a closed outer client, not general escaping/concurrent/unwind admission.
+
 Arbitrary promoted-root cloning, concurrent closure/escaping clones and
 remaining API/configuration coverage remain open. The original full
 target is unchanged. Continue consulting Astra after each audited/published

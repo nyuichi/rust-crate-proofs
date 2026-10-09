@@ -1182,3 +1182,61 @@ Normal-only closed3owner scope, explicit genericTCB and fullNOTADMITTED remain.
 Asked Astra again exactly「次何するのがいい？」 after canonical completion;
 nextimplementation follows independent audit and publication, never a silent
 reduction of original API/configuration/concurrency/unwind obligations.
+
+## D2026-10-09-AO — Original retires before its surviving child
+
+After AN publication at 5f3d20a3005b727ace827685d0601d791d180f78,
+Astra directs original-promotable-surviving-child-2026-10-09. AN's complete
+positive source is the byte-exact inherited prefix; AL/AM/AN remain unchanged.
+The nonempty Box native client moves its first clone out of an inner scope,
+normally drops the original there, reads the surviving child, saves the return
+Vec, then normally drops the child. This changes recovery ownership, rather
+than merely adding another bounded owner.
+
+The root terminal adapter consumes PromotionScope, including its updated owned
+pointer history and root core. Its erased output contains only the affine
+ScopeCursor in DetachedScope, plus a nonfinal completion. No root ticket,
+physical recovery, pointer Perm or State is retained in that detached object.
+Existing body-proved State::on_release publishes the original ticket's sealed
+recovery into private protocol State; the final child's real release and
+Acquire obtain Pending and recover it. The surviving child reads through its
+own ticket and physical lease. No resource-returning logical getter or new
+Bytes-specific trusted recovery/destructor law is introduced.
+
+New callback registrations are exact instances of the existing generic erased
+vtable-call boundary. Native terminal place/normal-edge mapping, address
+nonobservation, absence of independent field drop glue, source/compiled-record
+identity and closed outer-scope completeness remain explicit tool TCB. The
+survivor escapes an inner lexical scope only, not the checked outer client.
+The new root callback consumes its input, so no destroyed root invariant is
+restored. Existing strong payload/control receipts and map-removal contracts
+remain required.
+
+Controls omit root recovery publication, either Drop, cursor handoff, final
+Acquire or either free; attempt duplicate root/scope consumption and early
+child Drop across its read; and reject retaining root resources in DetachedScope
+or changing actual normal edges/places/source routes. Publication requires a
+restored feature-free all-target gate, complete source/MIR/compiled-input
+correspondence, native witness and independently audited immutable evidence.
+Two failures of the same semantic interface require reassessment. Unwind,
+arbitrary concurrent/escaping lifetimes and the remaining original API/config
+coverage remain open. Full original architecture is NOT ADMITTED; this decision
+precedes the experiment and makes no proof claim.
+
+
+AO restored canonical125/983/0 includes all125 targets with correspondence0,
+no flags/features/exclusions/source controls. Seven actual defects yield nulls
+2/1/1/5/2/2/2;15 exact archive-derived tasks are independently printed. Five
+frontend defects reject threeE0382, live-borrowE0502/E0505 and wrong-adapterE0061.
+Main31/native52 controls reject. Astra found inherited mutable-copy equality,
+extraCargo routes and transitive import timing holes; fixed manifest anchoring,
+exactCargo and pre-import checker pins reject10 independent attacks.
+Canonical5cf0ffb4ae25dd3d8cb757677a5a43032e926c0eac4dbe3822a9c482206238b9
+has968members/privateStd110/fouractualCargoinputs. Independent reconstructed
+archive replay confirms both checkers/all31+52controls/production63/eighttools;
+frontend5exclude caches/tasks. Allpreviousprobes/production remain unchanged.
+Strong body ownership/recovery contracts and genericTCB stay explicit;
+normal-only closed scope and fullNOTADMITTED persist. Asked Astra again
+「次何するのがいい？」; recommendation AP changes premise to inductive
+runtime-variable finite owners in actual Vec loops, not bounded unrolling.
+Implementation follows this increment's audit and publication.
