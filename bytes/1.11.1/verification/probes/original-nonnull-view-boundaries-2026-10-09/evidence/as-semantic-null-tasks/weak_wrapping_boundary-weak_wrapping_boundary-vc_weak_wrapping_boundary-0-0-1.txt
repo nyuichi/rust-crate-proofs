@@ -1,0 +1,915 @@
+theory Task
+  
+  type int
+  
+  type real
+  
+  type string
+  
+  predicate (=) 'a 'a
+  
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  type bool =
+    | True
+    | False
+  
+  (* use why3.Bool.Bool *)
+  
+  type tuple0 =
+    | Tuple0
+  
+  (* use why3.Tuple0.Tuple01 *)
+  
+  type unit = unit
+  
+  (* use why3.Unit.Unit *)
+  
+  type ptr
+  
+  function thin ptr : ptr
+  
+  type foreign
+  
+  (* use creusot.prelude.Opaque *)
+  
+  constant zero : int = 0
+  
+  constant one : int = 1
+  
+  function (-_) int : int
+  
+  function (+) int int : int
+  
+  function ( * ) int int : int
+  
+  predicate (<) int int
+  
+  function (-) (x:int) (y:int) : int = x + (- y)
+  
+  predicate (>) (x:int) (y:int) = y < x
+  
+  predicate (<=) (x:int) (y:int) = x < y \/ x = y
+  
+  predicate (>=) (x:int) (y:int) = y <= x
+  
+  axiom Assoc : forall x:int, y:int, z:int. ((x + y) + z) = (x + (y + z))
+  
+  (* clone algebra.Assoc with type t = int, function op = (+),
+    prop Assoc1 = Assoc,  *)
+  
+  axiom Unit_def_l : forall x:int. (zero + x) = x
+  
+  axiom Unit_def_r : forall x:int. (x + zero) = x
+  
+  (* clone algebra.Monoid with type t1 = int, constant unit = zero,
+    function op1 = (+), prop Unit_def_r1 = Unit_def_r,
+    prop Unit_def_l1 = Unit_def_l, prop Assoc2 = Assoc,  *)
+  
+  axiom Inv_def_l : forall x:int. ((- x) + x) = zero
+  
+  axiom Inv_def_r : forall x:int. (x + (- x)) = zero
+  
+  (* clone algebra.Group with type t2 = int, function inv = (-_),
+    constant unit1 = zero, function op2 = (+), prop Inv_def_r1 = Inv_def_r,
+    prop Inv_def_l1 = Inv_def_l, prop Unit_def_r2 = Unit_def_r,
+    prop Unit_def_l2 = Unit_def_l, prop Assoc3 = Assoc,  *)
+  
+  axiom Comm : forall x:int, y:int. (x + y) = (y + x)
+  
+  (* clone algebra.Comm with type t3 = int, function op3 = (+),
+    prop Comm1 = Comm,  *)
+  
+  (* meta AC function (+) *)
+  
+  (* clone algebra.CommutativeGroup with type t4 = int, function inv1 = (-_),
+    constant unit2 = zero, function op4 = (+), prop Comm2 = Comm,
+    prop Inv_def_r2 = Inv_def_r, prop Inv_def_l2 = Inv_def_l,
+    prop Unit_def_r3 = Unit_def_r, prop Unit_def_l3 = Unit_def_l,
+    prop Assoc4 = Assoc,  *)
+  
+  axiom Assoc5 : forall x:int, y:int, z:int. ((x * y) * z) = (x * (y * z))
+  
+  (* clone algebra.Assoc with type t = int, function op = ( * ),
+    prop Assoc1 = Assoc5,  *)
+  
+  axiom Mul_distr_l :
+    forall x:int, y:int, z:int. (x * (y + z)) = ((x * y) + (x * z))
+  
+  axiom Mul_distr_r :
+    forall x:int, y:int, z:int. ((y + z) * x) = ((y * x) + (z * x))
+  
+  (* clone algebra.Ring with type t5 = int, function ( *') = ( * ),
+    function (-'_) = (-_), function (+') = (+), constant zero1 = zero,
+    prop Mul_distr_r1 = Mul_distr_r, prop Mul_distr_l1 = Mul_distr_l,
+    prop Assoc6 = Assoc5, prop Comm3 = Comm, prop Inv_def_r3 = Inv_def_r,
+    prop Inv_def_l3 = Inv_def_l, prop Unit_def_r4 = Unit_def_r,
+    prop Unit_def_l4 = Unit_def_l, prop Assoc7 = Assoc,  *)
+  
+  axiom Comm4 : forall x:int, y:int. (x * y) = (y * x)
+  
+  (* clone algebra.Comm with type t3 = int, function op3 = ( * ),
+    prop Comm1 = Comm4,  *)
+  
+  (* meta AC function ( * ) *)
+  
+  (* clone algebra.CommutativeRing with type t6 = int,
+    function ( *'') = ( * ), function (-''_) = (-_), function (+'') = (+),
+    constant zero2 = zero, prop Comm5 = Comm4,
+    prop Mul_distr_r2 = Mul_distr_r, prop Mul_distr_l2 = Mul_distr_l,
+    prop Assoc8 = Assoc5, prop Comm6 = Comm, prop Inv_def_r4 = Inv_def_r,
+    prop Inv_def_l4 = Inv_def_l, prop Unit_def_r5 = Unit_def_r,
+    prop Unit_def_l5 = Unit_def_l, prop Assoc9 = Assoc,  *)
+  
+  axiom Unitary : forall x:int. (one * x) = x
+  
+  axiom NonTrivialRing : not zero = one
+  
+  (* clone algebra.UnitaryCommutativeRing with type t7 = int,
+    constant one1 = one, function ( *''') = ( * ), function (-'''_) = (-_),
+    function (+''') = (+), constant zero3 = zero,
+    prop NonTrivialRing1 = NonTrivialRing, prop Unitary1 = Unitary,
+    prop Comm7 = Comm4, prop Mul_distr_r3 = Mul_distr_r,
+    prop Mul_distr_l3 = Mul_distr_l, prop Assoc10 = Assoc5,
+    prop Comm8 = Comm, prop Inv_def_r5 = Inv_def_r,
+    prop Inv_def_l5 = Inv_def_l, prop Unit_def_r6 = Unit_def_r,
+    prop Unit_def_l6 = Unit_def_l, prop Assoc11 = Assoc,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Refl : forall x:int. x <= x
+  
+  (* clone relations.Reflexive with type t9 = int, predicate rel1 = (<=),
+    prop Refl1 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Trans : forall x:int, y:int, z:int. x <= y -> y <= z -> x <= z
+  
+  (* clone relations.Transitive with type t10 = int, predicate rel2 = (<=),
+    prop Trans1 = Trans,  *)
+  
+  (* clone relations.PreOrder with type t11 = int, predicate rel3 = (<=),
+    prop Trans2 = Trans, prop Refl2 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Antisymm : forall x:int, y:int. x <= y -> y <= x -> x = y
+  
+  (* clone relations.Antisymmetric with type t12 = int,
+    predicate rel4 = (<=), prop Antisymm1 = Antisymm,  *)
+  
+  (* clone relations.PartialOrder with type t13 = int, predicate rel5 = (<=),
+    prop Antisymm2 = Antisymm, prop Trans3 = Trans, prop Refl3 = Refl,  *)
+  
+  (* clone relations.EndoRelation with type t8 = int, predicate rel = (<=),
+     *)
+  
+  axiom Total : forall x:int, y:int. x <= y \/ y <= x
+  
+  (* clone relations.Total with type t14 = int, predicate rel6 = (<=),
+    prop Total1 = Total,  *)
+  
+  (* clone relations.TotalOrder with type t15 = int, predicate rel7 = (<=),
+    prop Total2 = Total, prop Antisymm3 = Antisymm, prop Trans4 = Trans,
+    prop Refl4 = Refl,  *)
+  
+  axiom ZeroLessOne : zero <= one
+  
+  axiom CompatOrderAdd :
+    forall x:int, y:int, z:int. x <= y -> (x + z) <= (y + z)
+  
+  axiom CompatOrderMult :
+    forall x:int, y:int, z:int. x <= y -> zero <= z -> (x * z) <= (y * z)
+  
+  (* meta remove_unused:dependency prop CompatOrderMult, function ( * ) *)
+  
+  (* clone algebra.OrderedUnitaryCommutativeRing with type t16 = int,
+    predicate (<=') = (<=), constant one2 = one, function ( *'''') = ( * ),
+    function (-''''_) = (-_), function (+'''') = (+), constant zero4 = zero,
+    prop CompatOrderMult1 = CompatOrderMult,
+    prop CompatOrderAdd1 = CompatOrderAdd, prop ZeroLessOne1 = ZeroLessOne,
+    prop Total3 = Total, prop Antisymm4 = Antisymm, prop Trans5 = Trans,
+    prop Refl5 = Refl, prop NonTrivialRing2 = NonTrivialRing,
+    prop Unitary2 = Unitary, prop Comm9 = Comm4,
+    prop Mul_distr_r4 = Mul_distr_r, prop Mul_distr_l4 = Mul_distr_l,
+    prop Assoc12 = Assoc5, prop Comm10 = Comm, prop Inv_def_r6 = Inv_def_r,
+    prop Inv_def_l6 = Inv_def_l, prop Unit_def_r7 = Unit_def_r,
+    prop Unit_def_l7 = Unit_def_l, prop Assoc13 = Assoc,  *)
+  
+  (* meta remove_unused:keep function (+) *)
+  
+  (* meta remove_unused:keep function (-) *)
+  
+  (* meta remove_unused:keep function (-_) *)
+  
+  (* meta remove_unused:keep predicate (<) *)
+  
+  (* meta remove_unused:keep predicate (<=) *)
+  
+  (* meta remove_unused:keep predicate (>) *)
+  
+  (* meta remove_unused:keep predicate (>=) *)
+  
+  (* use int.Int *)
+  
+  function abs (x:int) : int = if x >= 0 then x else - x
+  
+  axiom Abs_le : forall x:int, y:int. abs x <= y <-> (- y) <= x /\ x <= y
+  
+  (* meta remove_unused:dependency prop Abs_le, function abs *)
+  
+  axiom Abs_pos : forall x:int. abs x >= 0
+  
+  (* meta remove_unused:dependency prop Abs_pos, function abs *)
+  
+  (* use int.Abs *)
+  
+  function div int int : int
+  
+  function mod int int : int
+  
+  axiom Div_mod :
+    forall x:int, y:int. not y = 0 -> x = ((y * div x y) + mod x y)
+  
+  (* meta remove_unused:dependency prop Div_mod, function div *)
+  
+  (* meta remove_unused:dependency prop Div_mod, function mod *)
+  
+  axiom Div_bound :
+    forall x:int, y:int. x >= 0 /\ y > 0 -> 0 <= div x y /\ div x y <= x
+  
+  (* meta remove_unused:dependency prop Div_bound, function div *)
+  
+  (* meta remove_unused:dependency prop Div_bound, function mod *)
+  
+  axiom Mod_bound :
+    forall x:int, y:int. not y = 0 -> (- abs y) < mod x y /\ mod x y < abs y
+  
+  (* meta remove_unused:dependency prop Mod_bound, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_bound, function mod *)
+  
+  axiom Div_sign_pos : forall x:int, y:int. x >= 0 /\ y > 0 -> div x y >= 0
+  
+  (* meta remove_unused:dependency prop Div_sign_pos, function div *)
+  
+  (* meta remove_unused:dependency prop Div_sign_pos, function mod *)
+  
+  axiom Div_sign_neg : forall x:int, y:int. x <= 0 /\ y > 0 -> div x y <= 0
+  
+  (* meta remove_unused:dependency prop Div_sign_neg, function div *)
+  
+  (* meta remove_unused:dependency prop Div_sign_neg, function mod *)
+  
+  axiom Mod_sign_pos :
+    forall x:int, y:int. x >= 0 /\ not y = 0 -> mod x y >= 0
+  
+  (* meta remove_unused:dependency prop Mod_sign_pos, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_sign_pos, function mod *)
+  
+  axiom Mod_sign_neg :
+    forall x:int, y:int. x <= 0 /\ not y = 0 -> mod x y <= 0
+  
+  (* meta remove_unused:dependency prop Mod_sign_neg, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_sign_neg, function mod *)
+  
+  axiom Rounds_toward_zero :
+    forall x:int, y:int. not y = 0 -> abs (div x y * y) <= abs x
+  
+  (* meta remove_unused:dependency prop Rounds_toward_zero, function div *)
+  
+  (* meta remove_unused:dependency prop Rounds_toward_zero, function mod *)
+  
+  axiom Div_1 : forall x:int. div x 1 = x
+  
+  (* meta remove_unused:dependency prop Div_1, function div *)
+  
+  (* meta remove_unused:dependency prop Div_1, function mod *)
+  
+  axiom Mod_1 : forall x:int. mod x 1 = 0
+  
+  (* meta remove_unused:dependency prop Mod_1, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_1, function mod *)
+  
+  axiom Div_inf : forall x:int, y:int. 0 <= x /\ x < y -> div x y = 0
+  
+  (* meta remove_unused:dependency prop Div_inf, function div *)
+  
+  (* meta remove_unused:dependency prop Div_inf, function mod *)
+  
+  axiom Mod_inf : forall x:int, y:int. 0 <= x /\ x < y -> mod x y = x
+  
+  (* meta remove_unused:dependency prop Mod_inf, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_inf, function mod *)
+  
+  axiom Div_mult :
+    forall x:int, y:int, z:int [div ((x * y) + z) x].
+     x > 0 /\ y >= 0 /\ z >= 0 -> div ((x * y) + z) x = (y + div z x)
+  
+  (* meta remove_unused:dependency prop Div_mult, function div *)
+  
+  (* meta remove_unused:dependency prop Div_mult, function mod *)
+  
+  axiom Mod_mult :
+    forall x:int, y:int, z:int [mod ((x * y) + z) x].
+     x > 0 /\ y >= 0 /\ z >= 0 -> mod ((x * y) + z) x = mod z x
+  
+  (* meta remove_unused:dependency prop Mod_mult, function div *)
+  
+  (* meta remove_unused:dependency prop Mod_mult, function mod *)
+  
+  (* use int.ComputerDivision *)
+  
+  (* use mach.int.Int1 *)
+  
+  type t17 = <range 0 18446744073709551615>
+  
+  function t'int t17 : int
+  
+  constant t'maxInt : int = 18446744073709551615
+  
+  constant t'minInt : int = 0
+  
+  predicate t'eq (a:t17) (b:t17) = t'int a = t'int b
+  
+  axiom t'inj : forall a:t17, b:t17. t'eq a b -> a = b
+  
+  (* meta range_type type t17, function t'int *)
+  
+  (* meta model_projection function t'int *)
+  
+  (* meta remove_unused:dependency prop t'inj, predicate t'eq *)
+  
+  constant two_power_size : int = 0x10000000000000000
+  
+  axiom extensionality :
+    forall x:t17, y:t17 [t'int x, t'int y]. t'int x = t'int y -> x = y
+  
+  predicate in_bounds (n:int) = 0 <= n /\ n <= 0xFFFFFFFFFFFFFFFF
+  
+  function of_int int : t17
+  
+  axiom to_of_int :
+    forall x:int [of_int x]. in_bounds x -> t'int (of_int x) = x
+  
+  function add t17 t17 : t17
+  
+  axiom add_in_bounds :
+    forall x:t17, y:t17 [add x y].
+     in_bounds (t'int x + t'int y) -> t'int (add x y) = (t'int x + t'int y)
+  
+  axiom add_wrapping :
+    forall x:t17, y:t17 [add x y].
+     exists k:int.
+      t'int (add x y) = ((t'int x + t'int y) + (k * two_power_size))
+  
+  function sub t17 t17 : t17
+  
+  axiom sub_in_bounds :
+    forall x:t17, y:t17 [sub x y].
+     in_bounds (t'int x - t'int y) -> t'int (sub x y) = (t'int x - t'int y)
+  
+  axiom sub_wrapping :
+    forall x:t17, y:t17 [sub x y].
+     exists k:int.
+      t'int (sub x y) = ((t'int x - t'int y) + (k * two_power_size))
+  
+  function mul t17 t17 : t17
+  
+  axiom mul_in_bounds :
+    forall x:t17, y:t17 [mul x y].
+     in_bounds (t'int x * t'int y) -> t'int (mul x y) = (t'int x * t'int y)
+  
+  axiom mul_wrapping :
+    forall x:t17, y:t17 [mul x y].
+     exists k:int.
+      t'int (mul x y) = ((t'int x * t'int y) + (k * two_power_size))
+  
+  function neg t17 : t17
+  
+  axiom neg_zero : forall x:t17 [neg x]. t'int x = 0 -> t'int (neg x) = 0
+  
+  axiom neg_not_zero :
+    forall x:t17 [neg x].
+     0 < t'int x /\ t'int x <= 0xFFFFFFFFFFFFFFFF ->
+     t'int (neg x) = (two_power_size - t'int x)
+  
+  function of_bool (b:bool) : t17 = if b = True then (1:t17) else (0:t17)
+  
+  predicate le (a:t17) (b:t17) = t'int a <= t'int b
+  
+  predicate lt (a:t17) (b:t17) = t'int a < t'int b
+  
+  predicate ge (a:t17) (b:t17) = t'int a >= t'int b
+  
+  predicate gt (a:t17) (b:t17) = t'int a > t'int b
+  
+  function bw_and t17 t17 : t17
+  
+  function bw_or t17 t17 : t17
+  
+  function bw_xor t17 t17 : t17
+  
+  function bw_not t17 : t17
+  
+  function shl t17 t17 : t17
+  
+  function shr t17 t17 : t17
+  
+  function nth t17 int : bool
+  
+  type tuple2 'a 'a1 =
+    | Tuple2 'a 'a1
+  
+  (* use why3.Tuple2.Tuple21 *)
+  
+  function add_with_overflow (a:t17) (b:t17) : (t17, bool) = (add a b,
+    if not in_bounds (t'int a + t'int b) then True else False)
+  
+  function sub_with_overflow (a:t17) (b:t17) : (t17, bool) = (sub a b,
+    if not in_bounds (t'int a - t'int b) then True else False)
+  
+  function mul_with_overflow (a:t17) (b:t17) : (t17, bool) = (mul a b,
+    if not in_bounds (t'int a * t'int b) then True else False)
+  
+  (* use creusot.int.UInt64 *)
+  
+  type t18 = <range -9223372036854775808 9223372036854775807>
+  
+  function t'int1 t18 : int
+  
+  constant t'maxInt1 : int = 9223372036854775807
+  
+  constant t'minInt1 : int = (- 9223372036854775808)
+  
+  predicate t'eq1 (a:t18) (b:t18) = t'int1 a = t'int1 b
+  
+  axiom t'inj1 : forall a:t18, b:t18. t'eq1 a b -> a = b
+  
+  (* meta range_type type t18, function t'int1 *)
+  
+  (* meta model_projection function t'int1 *)
+  
+  (* meta remove_unused:dependency prop t'inj1, predicate t'eq1 *)
+  
+  constant min_int : int = (- 0x8000000000000000)
+  
+  constant max_int : int = 0x7FFFFFFFFFFFFFFF
+  
+  constant two_power_size1 : int = 0x10000000000000000
+  
+  predicate in_bounds1 (n:int) = min_int <= n /\ n <= max_int
+  
+  function to_int (x:t18) : int = t'int1 x
+  
+  axiom extensionality1 :
+    forall x:t18, y:t18 [to_int x, to_int y]. to_int x = to_int y -> x = y
+  
+  function of_int1 int : t18
+  
+  axiom to_of_int1 :
+    forall x:int [of_int1 x]. in_bounds1 x -> to_int (of_int1 x) = x
+  
+  function add1 t18 t18 : t18
+  
+  axiom add_in_bounds1 :
+    forall x:t18, y:t18 [add1 x y].
+     in_bounds1 (to_int x + to_int y) ->
+     to_int (add1 x y) = (to_int x + to_int y)
+  
+  axiom add_wrapping1 :
+    forall x:t18, y:t18 [add1 x y].
+     exists k:int.
+      to_int (add1 x y) = ((to_int x + to_int y) + (k * two_power_size1))
+  
+  function sub1 t18 t18 : t18
+  
+  axiom sub_in_bounds1 :
+    forall x:t18, y:t18 [sub1 x y].
+     in_bounds1 (to_int x - to_int y) ->
+     to_int (sub1 x y) = (to_int x - to_int y)
+  
+  axiom sub_wrapping1 :
+    forall x:t18, y:t18 [sub1 x y].
+     exists k:int.
+      to_int (sub1 x y) = ((to_int x - to_int y) + (k * two_power_size1))
+  
+  function mul1 t18 t18 : t18
+  
+  axiom mul_in_bounds1 :
+    forall x:t18, y:t18 [mul1 x y].
+     in_bounds1 (to_int x * to_int y) ->
+     to_int (mul1 x y) = (to_int x * to_int y)
+  
+  axiom mul_wrapping1 :
+    forall x:t18, y:t18 [mul1 x y].
+     exists k:int.
+      to_int (mul1 x y) = ((to_int x * to_int y) + (k * two_power_size1))
+  
+  function neg1 t18 : t18
+  
+  axiom neg_in_bounds :
+    forall x:t18 [neg1 x].
+     min_int < to_int x /\ to_int x <= max_int ->
+     to_int (neg1 x) = (- to_int x)
+  
+  axiom neg_wrapping :
+    forall x:t18 [neg1 x]. to_int x = min_int -> to_int (neg1 x) = min_int
+  
+  function of_bool1 (b:bool) : t18 = if b = True then (1:t18) else (0:t18)
+  
+  predicate le1 (a:t18) (b:t18) = to_int a <= to_int b
+  
+  predicate lt1 (a:t18) (b:t18) = to_int a < to_int b
+  
+  predicate ge1 (a:t18) (b:t18) = to_int a >= to_int b
+  
+  predicate gt1 (a:t18) (b:t18) = to_int a > to_int b
+  
+  function bw_and1 t18 t18 : t18
+  
+  function bw_or1 t18 t18 : t18
+  
+  function bw_xor1 t18 t18 : t18
+  
+  function bw_not1 t18 : t18
+  
+  function shl1 t18 t18 : t18
+  
+  function shr1 t18 t18 : t18
+  
+  function add_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (add1 a b,
+    if not in_bounds1 (t'int1 a + t'int1 b) then True else False)
+  
+  function sub_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (sub1 a b,
+    if not in_bounds1 (t'int1 a - t'int1 b) then True else False)
+  
+  function mul_with_overflow1 (a:t18) (b:t18) : (t18, bool) = (mul1 a b,
+    if not in_bounds1 (t'int1 a * t'int1 b) then True else False)
+  
+  (* use creusot.int.Int64 *)
+  
+  type t19 = <range 0 65535>
+  
+  function t'int2 t19 : int
+  
+  constant t'maxInt2 : int = 65535
+  
+  constant t'minInt2 : int = 0
+  
+  predicate t'eq2 (a:t19) (b:t19) = t'int2 a = t'int2 b
+  
+  axiom t'inj2 : forall a:t19, b:t19. t'eq2 a b -> a = b
+  
+  (* meta range_type type t19, function t'int2 *)
+  
+  (* meta model_projection function t'int2 *)
+  
+  (* meta remove_unused:dependency prop t'inj2, predicate t'eq2 *)
+  
+  constant two_power_size2 : int = 0x10000
+  
+  axiom extensionality2 :
+    forall x:t19, y:t19 [t'int2 x, t'int2 y]. t'int2 x = t'int2 y -> x = y
+  
+  predicate in_bounds2 (n:int) = 0 <= n /\ n <= 0xFFFF
+  
+  function of_int2 int : t19
+  
+  axiom to_of_int2 :
+    forall x:int [of_int2 x]. in_bounds2 x -> t'int2 (of_int2 x) = x
+  
+  function add2 t19 t19 : t19
+  
+  axiom add_in_bounds2 :
+    forall x:t19, y:t19 [add2 x y].
+     in_bounds2 (t'int2 x + t'int2 y) ->
+     t'int2 (add2 x y) = (t'int2 x + t'int2 y)
+  
+  axiom add_wrapping2 :
+    forall x:t19, y:t19 [add2 x y].
+     exists k:int.
+      t'int2 (add2 x y) = ((t'int2 x + t'int2 y) + (k * two_power_size2))
+  
+  function sub2 t19 t19 : t19
+  
+  axiom sub_in_bounds2 :
+    forall x:t19, y:t19 [sub2 x y].
+     in_bounds2 (t'int2 x - t'int2 y) ->
+     t'int2 (sub2 x y) = (t'int2 x - t'int2 y)
+  
+  axiom sub_wrapping2 :
+    forall x:t19, y:t19 [sub2 x y].
+     exists k:int.
+      t'int2 (sub2 x y) = ((t'int2 x - t'int2 y) + (k * two_power_size2))
+  
+  function mul2 t19 t19 : t19
+  
+  axiom mul_in_bounds2 :
+    forall x:t19, y:t19 [mul2 x y].
+     in_bounds2 (t'int2 x * t'int2 y) ->
+     t'int2 (mul2 x y) = (t'int2 x * t'int2 y)
+  
+  axiom mul_wrapping2 :
+    forall x:t19, y:t19 [mul2 x y].
+     exists k:int.
+      t'int2 (mul2 x y) = ((t'int2 x * t'int2 y) + (k * two_power_size2))
+  
+  function neg2 t19 : t19
+  
+  axiom neg_zero1 :
+    forall x:t19 [neg2 x]. t'int2 x = 0 -> t'int2 (neg2 x) = 0
+  
+  axiom neg_not_zero1 :
+    forall x:t19 [neg2 x].
+     0 < t'int2 x /\ t'int2 x <= 0xFFFF ->
+     t'int2 (neg2 x) = (two_power_size2 - t'int2 x)
+  
+  function of_bool2 (b:bool) : t19 = if b = True then (1:t19) else (0:t19)
+  
+  predicate le2 (a:t19) (b:t19) = t'int2 a <= t'int2 b
+  
+  predicate lt2 (a:t19) (b:t19) = t'int2 a < t'int2 b
+  
+  predicate ge2 (a:t19) (b:t19) = t'int2 a >= t'int2 b
+  
+  predicate gt2 (a:t19) (b:t19) = t'int2 a > t'int2 b
+  
+  function bw_and2 t19 t19 : t19
+  
+  function bw_or2 t19 t19 : t19
+  
+  function bw_xor2 t19 t19 : t19
+  
+  function bw_not2 t19 : t19
+  
+  function shl2 t19 t19 : t19
+  
+  function shr2 t19 t19 : t19
+  
+  function nth1 t19 int : bool
+  
+  function add_with_overflow2 (a:t19) (b:t19) : (t19, bool) = (add2 a b,
+    if not in_bounds2 (t'int2 a + t'int2 b) then True else False)
+  
+  function sub_with_overflow2 (a:t19) (b:t19) : (t19, bool) = (sub2 a b,
+    if not in_bounds2 (t'int2 a - t'int2 b) then True else False)
+  
+  function mul_with_overflow2 (a:t19) (b:t19) : (t19, bool) = (mul2 a b,
+    if not in_bounds2 (t'int2 a * t'int2 b) then True else False)
+  
+  (* use creusot.int.UInt16 *)
+  
+  type t20 = <range 0 4294967295>
+  
+  function t'int3 t20 : int
+  
+  constant t'maxInt3 : int = 4294967295
+  
+  constant t'minInt3 : int = 0
+  
+  predicate t'eq3 (a:t20) (b:t20) = t'int3 a = t'int3 b
+  
+  axiom t'inj3 : forall a:t20, b:t20. t'eq3 a b -> a = b
+  
+  (* meta range_type type t20, function t'int3 *)
+  
+  (* meta model_projection function t'int3 *)
+  
+  (* meta remove_unused:dependency prop t'inj3, predicate t'eq3 *)
+  
+  constant two_power_size3 : int = 0x100000000
+  
+  axiom extensionality3 :
+    forall x:t20, y:t20 [t'int3 x, t'int3 y]. t'int3 x = t'int3 y -> x = y
+  
+  predicate in_bounds3 (n:int) = 0 <= n /\ n <= 0xFFFFFFFF
+  
+  function of_int3 int : t20
+  
+  axiom to_of_int3 :
+    forall x:int [of_int3 x]. in_bounds3 x -> t'int3 (of_int3 x) = x
+  
+  function add3 t20 t20 : t20
+  
+  axiom add_in_bounds3 :
+    forall x:t20, y:t20 [add3 x y].
+     in_bounds3 (t'int3 x + t'int3 y) ->
+     t'int3 (add3 x y) = (t'int3 x + t'int3 y)
+  
+  axiom add_wrapping3 :
+    forall x:t20, y:t20 [add3 x y].
+     exists k:int.
+      t'int3 (add3 x y) = ((t'int3 x + t'int3 y) + (k * two_power_size3))
+  
+  function sub3 t20 t20 : t20
+  
+  axiom sub_in_bounds3 :
+    forall x:t20, y:t20 [sub3 x y].
+     in_bounds3 (t'int3 x - t'int3 y) ->
+     t'int3 (sub3 x y) = (t'int3 x - t'int3 y)
+  
+  axiom sub_wrapping3 :
+    forall x:t20, y:t20 [sub3 x y].
+     exists k:int.
+      t'int3 (sub3 x y) = ((t'int3 x - t'int3 y) + (k * two_power_size3))
+  
+  function mul3 t20 t20 : t20
+  
+  axiom mul_in_bounds3 :
+    forall x:t20, y:t20 [mul3 x y].
+     in_bounds3 (t'int3 x * t'int3 y) ->
+     t'int3 (mul3 x y) = (t'int3 x * t'int3 y)
+  
+  axiom mul_wrapping3 :
+    forall x:t20, y:t20 [mul3 x y].
+     exists k:int.
+      t'int3 (mul3 x y) = ((t'int3 x * t'int3 y) + (k * two_power_size3))
+  
+  function neg3 t20 : t20
+  
+  axiom neg_zero2 :
+    forall x:t20 [neg3 x]. t'int3 x = 0 -> t'int3 (neg3 x) = 0
+  
+  axiom neg_not_zero2 :
+    forall x:t20 [neg3 x].
+     0 < t'int3 x /\ t'int3 x <= 0xFFFFFFFF ->
+     t'int3 (neg3 x) = (two_power_size3 - t'int3 x)
+  
+  function of_bool3 (b:bool) : t20 = if b = True then (1:t20) else (0:t20)
+  
+  predicate le3 (a:t20) (b:t20) = t'int3 a <= t'int3 b
+  
+  predicate lt3 (a:t20) (b:t20) = t'int3 a < t'int3 b
+  
+  predicate ge3 (a:t20) (b:t20) = t'int3 a >= t'int3 b
+  
+  predicate gt3 (a:t20) (b:t20) = t'int3 a > t'int3 b
+  
+  function bw_and3 t20 t20 : t20
+  
+  function bw_or3 t20 t20 : t20
+  
+  function bw_xor3 t20 t20 : t20
+  
+  function bw_not3 t20 : t20
+  
+  function shl3 t20 t20 : t20
+  
+  function shr3 t20 t20 : t20
+  
+  function nth2 t20 int : bool
+  
+  function add_with_overflow3 (a:t20) (b:t20) : (t20, bool) = (add3 a b,
+    if not in_bounds3 (t'int3 a + t'int3 b) then True else False)
+  
+  function sub_with_overflow3 (a:t20) (b:t20) : (t20, bool) = (sub3 a b,
+    if not in_bounds3 (t'int3 a - t'int3 b) then True else False)
+  
+  function mul_with_overflow3 (a:t20) (b:t20) : (t20, bool) = (mul3 a b,
+    if not in_bounds3 (t'int3 a * t'int3 b) then True else False)
+  
+  (* use creusot.int.UInt32 *)
+  
+  function addr_logic_u16 ptr : t19
+  
+  axiom addr_logic_u16_thin :
+    forall p:ptr. addr_logic_u16 (thin p) = addr_logic_u16 p
+  
+  function addr_logic_u32 ptr : t20
+  
+  axiom addr_logic_u32_thin :
+    forall p:ptr. addr_logic_u32 (thin p) = addr_logic_u32 p
+  
+  function addr_logic_u64 ptr : t17
+  
+  axiom addr_logic_u64_thin :
+    forall p:ptr. addr_logic_u64 (thin p) = addr_logic_u64 p
+  
+  (* use creusot.prelude.Ptr *)
+  
+  function any_l 'a : 'b
+  
+  (* use creusot.prelude.Any *)
+  
+  type t_BoundPtr
+  
+  type tup2_ptr_u8_Ghost_BoundPtr =
+    | Tup2_ptr_u8_Ghost_BoundPtr'mk (f0:ptr) (f1:t_BoundPtr)
+  
+  (* meta model_record function f1 *)
+  
+  (* meta model_record function f0 *)
+  
+  type t_Id
+  
+  type tup3_Id_Int_Int =
+    | Tup3_Id_Int_Int'mk (f0'0:t_Id) (f1'0:int) (f2'0:int)
+  
+  (* meta model_record function f2'0 *)
+  
+  (* meta model_record function f1'0 *)
+  
+  (* meta model_record function f0'0 *)
+  
+  type t_Option_tup3_Id_Int_Int =
+    | None
+    | Some tup3_Id_Int_Int
+  
+  function view_BoundPtr t_BoundPtr : t_Option_tup3_Id_Int_Int
+  
+  constant const_MAX : t18 = (9223372036854775807:t18)
+  
+  function current_address t_BoundPtr : int
+  
+  constant const_MAX'0 : t17 = (18446744073709551615:t17)
+  
+  predicate invariant_BoundPtr (self:t_BoundPtr) =
+    match view_BoundPtr self with
+    | None -> true
+    | Some (Tup3_Id_Int_Int'mk _ allocation_capacity absolute_offset) ->
+        0 <= absolute_offset /\
+        absolute_offset <= allocation_capacity /\
+        allocation_capacity <= to_int const_MAX /\
+        absolute_offset < current_address self /\
+        ((current_address self + allocation_capacity) - absolute_offset)
+        <= t'int const_MAX'0
+    end
+  
+  predicate inv_BoundPtr t_BoundPtr
+  
+  axiom inv_axiom :
+    forall x:t_BoundPtr [inv_BoundPtr x].
+     inv_BoundPtr x -> invariant_BoundPtr x
+  
+  predicate invariant_ref_BoundPtr (self:t_BoundPtr) = inv_BoundPtr self
+  
+  (* meta rewrite_def predicate invariant_ref_BoundPtr *)
+  
+  predicate inv_ref_BoundPtr (_1:t_BoundPtr) = invariant_ref_BoundPtr _1
+  
+  (* meta rewrite_def predicate inv_ref_BoundPtr *)
+  
+  predicate invariant_Ghost_ref_BoundPtr (self:t_BoundPtr) =
+    inv_ref_BoundPtr self
+  
+  (* meta rewrite_def predicate invariant_Ghost_ref_BoundPtr *)
+  
+  predicate inv_Ghost_ref_BoundPtr (_1:t_BoundPtr) =
+    invariant_Ghost_ref_BoundPtr _1
+  
+  (* meta rewrite_def predicate inv_Ghost_ref_BoundPtr *)
+  
+  predicate is_null_ptr_u8 (self:ptr) = addr_logic_u64 self = (0:t17)
+  
+  function raw_pointer t_BoundPtr : ptr
+  
+  predicate invariant_Ghost_BoundPtr (self:t_BoundPtr) = inv_BoundPtr self
+  
+  (* meta rewrite_def predicate invariant_Ghost_BoundPtr *)
+  
+  predicate inv_Ghost_BoundPtr (_1:t_BoundPtr) = invariant_Ghost_BoundPtr _1
+  
+  (* meta rewrite_def predicate inv_Ghost_BoundPtr *)
+  
+  predicate inv_tup2_ptr_u8_Ghost_BoundPtr (_1:tup2_ptr_u8_Ghost_BoundPtr) =
+    inv_Ghost_BoundPtr (_1.f1)
+  
+  (* meta rewrite_def predicate inv_tup2_ptr_u8_Ghost_BoundPtr *)
+  
+  predicate shifted (before:t_BoundPtr) (after:t_BoundPtr) (count:int) =
+    invariant_BoundPtr after /\
+    current_address after = (current_address before + count) /\
+    match view_BoundPtr before with
+    | Some (Tup3_Id_Int_Int'mk ns cap offset) ->
+        view_BoundPtr after =
+        Some (Tup3_Id_Int_Int'mk ns cap (offset + count))
+    | None -> count = 0 /\ view_BoundPtr after = None
+    end
+  
+  (* meta compute_max_steps 1000000 *)
+  
+  (* meta select_lsinst "all" *)
+  
+  constant pointer : ptr
+  
+  constant bound : t_BoundPtr
+  
+  axiom H : inv_BoundPtr bound
+  
+  axiom H1 : inv_BoundPtr bound /\ view_BoundPtr bound = None
+  
+  axiom H2 : pointer = raw_pointer bound
+  
+  goal vc_weak_wrapping_boundary : not is_null_ptr_u8 pointer
+  
+end
+

@@ -1,5 +1,35 @@
 # bytes 1.11.1 status
 
+## Astra-guided explicit nonnull view boundaries — 2026-10-09
+
+AS closes the inherited nonnull-export gap by exactly three source changes:
+actual nonnull preconditions on borrow_empty and wrapping_bounded, and a global
+nonnull conjunct on the complete AR view_valid predicate. All17 other entries
+of the20-file Rust inventory are unchanged; every native body, production and
+private Std input is preserved. No new trusted function, pointer axiom or
+Bytes-specific ownership law is introduced.
+
+Canonical v1 proves all150 inherited targets /1328 prover leaves /zero null or
+structural leaves, correspondence0, features[], exclusions{}, diagnosticfalse.
+Independent archive reconstruction verifies1421 members, AR/AQ/AP lineage,
+source63, Std110 and the actual four Cargo artifacts, then replays main36/native76
+controls without a live Cargo target. The original absolute Cargo joins and
+external toolchain remain location-bound; all eight current binaries separately
+match the captured manifest. One prover/1024MiB/sc-drf-off settings are checked.
+
+Three semantic controls retain five independently reprinted failed tasks, each
+an exact nonnull goal. These expose missing generic guarantees, not reachable
+native null metadata: BoundPtr contains real Std NonNull. Initial stale launcher
+routing and a nonunique checker-control anchor remain distinct preserved tool/
+fixture diagnostics. The first actual source experiment passed without repair.
+
+Canonical SHA256969a1a0406e10677c1849200284881e043aae9c9bdf29c9b15609783c91a9f74.
+See verification/probes/original-nonnull-view-boundaries-2026-10-09/evidence/AS_CANONICAL_AUDIT.md.
+Full original architecture remains NOT ADMITTED. Owned-zero Shared Clone,
+Root/general Static/custom-owner methods, arbitrary escaping/concurrent owners,
+unwind, BytesMut and remaining APIs/configurations stay open. Ask Astra
+「次何するのがいい？」after publication and execute the next recommendation.
+
 ## Astra-guided ownership-preserving cursor closure — 2026-10-09
 
 AR proves reusable read/remaining/chunk/advance contracts for actual Shared and

@@ -1451,3 +1451,50 @@ count-zero nonnull export gap as well as borrow_empty. BoundPtr physically
 contains NonNull<u8>; no reachable native null defect is inferred. Next repair
 must export this real field/Std fact or add explicit nonnull premises, not
 assume a new pointer axiom. Reprove all inherited callers in a new copied gate.
+
+## D2026-10-09-AS — Explicit nonnull view boundaries
+
+After AR publication at ccca44a694d6553226149f089996bf16943c9f25,
+AS copies the complete AR positive into a new probe and declares exactly three
+initial proof-interface transformations: require the actual pointer to be
+nonnull in physical_projection::borrow_empty and view_pointer::wrapping_bounded,
+and conjoin nonnull to the inherited view_valid predicate. All native bodies,
+other proof contracts, private Std, production and published ancestors remain
+unchanged. Exact source transformation receipts and complete module/Cargo
+closure must be checked; these changes are not a broad ancestry exemption.
+
+The new premise states the native safety requirement explicitly. BoundPtr
+physically contains NonNull<u8>, whose private Std invariant is nonnull, but
+the unbound metadata invariant alone does not export that fact. No new pointer
+axiom or ownership authority is introduced. new_empty_view already requires
+nonnull and without_provenance exports it. The body gate must reprove all
+inherited targets, including older universal view reads, slice construction,
+and AR standalone methods. No additional fixed-count client is needed.
+
+Controls restore the weaker view predicate or call the repaired generic
+boundaries with only the old metadata premises. A control that succeeds must
+be reported honestly: it may expose a real derivable NonNull fact and is not
+automatically a rejected counterexample. Structural controls must reject
+restoring either old trusted contract. Preserve every diagnostic and exact
+failed task. After a second failure of the same semantic interface, reassess
+the interface; any necessary metadata export must be body-proved from the
+actual field and Std contract, not assumed. Canonical all-target verification,
+native/source/compiled-input correspondence and independent archive audit gate
+publication. The repair alone does not establish Root/general Static mutation,
+owned-empty Clone, arbitrary escaping concurrency, unwind or complete API and
+configuration coverage. Full original architecture remains NOT ADMITTED.
+
+### D-AS audited outcome
+
+The first actual source experiment and the normal admitting gate both pass all
+150 inherited targets /1328 prover leaves /0 null and structural leaves. No
+additional metadata lemma, nonnull axiom, weakened contract or source repair
+was needed. Exact3 source transforms and17 other modules preserve all native
+bodies. Independent canonical-v1 reconstruction checks1421 members, source63,
+Std110 and four actual Cargo inputs; main36/native76 replay from captured inputs.
+Three semantic controls yield five exactly reprinted nonnull goals, not native
+reachable-null counterexamples. Launcher package routing and fixture anchor
+construction errors are preserved separately and do not count as interface
+failures. No frontend ownership control is newly claimed by AS; inherited AR
+evidence remains scoped to AR. Full original architecture remains NOT ADMITTED.
+Continue the user-directed Astra consultation/execution loop after publication.
