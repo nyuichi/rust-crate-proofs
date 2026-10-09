@@ -917,3 +917,54 @@ source remain unchanged; historical narrowed From refinement is not used here.
 Canonical evidence/audit in the probe directory records immutable source/task/
 private-Std/config/native-log inputs. Automatic Drop and the original full target
 remain open. Next ask Astra and continue; do not relabel this as full admission.
+
+## D2026-10-09-AJ — Actual normal-edge terminal Bytes Drop
+
+After AI is audited and published at 9313e190, Astra directs a new exact two-owner
+normal-return automatic-Drop witness. The native client constructs first, clones
+second, copies second's AsRef view into an owned Vec and returns it; it contains
+no explicit cleanup/drop call. Pinned after-ElaborateDrops MIR has terminal
+normal edges dropping second then first, with unwind successors separately
+recorded. Production Bytes::drop remains unchanged.
+
+Changed premise for the frozen stock Drop-to-Goto route: AG's external normal
+edge elaboration now joins AI's body-proved actual Shared cleanup/cursor/free
+receipts. Before Creusot borrow/liveness, a proof-only artifact with no Bytes Drop
+impl consumes each certified terminal place through an ordinary body-proved
+bytes_terminal_drop(Bytes, Ghost<&mut Cursor>, Ghost<&mut Option<Completion>>).
+It can reuse AI's checked implementation/contract but cannot be trusted or demand
+restoration of a live &mut Bytes invariant after freeing its allocation. Return
+expression is evaluated first, then effects in native MIR order, then the saved
+output is returned. Prove contents, second KeptAlive, first valid Reclaimed and
+empty cursor map; retain per-owner removal facts to distinguish swapped places.
+
+This consuming shadow requires a NEW explicit generic terminal-place premise:
+selected destructor/target closure must not observe or escape the address of
+Bytes or its data field. Only stored pointer/length/vtable values and get_mut
+value copying are relevant. Check the actual callback closure, normal core
+AtomicMut alias/body, and native MIR projection/calls. No independent native
+Bytes field-drop glue is allowed; keep AI's Shared field/destructor checks.
+Neither this premise nor a helper named cleanup establishes arbitrary destructor
+move equivalence. Source/MIR/shadow/loan adequacy remains generic tool TCB with a
+removal path through native destructor-effect support; bytes laws stay body proved.
+
+Probe original-shared-automatic-drop-2026-10-09 joins immutable native client,
+actual production destructor/target MIR, generated helper/client, exact normal
+places/successors/order/count and recorded excluded unwind edges. Controls omit
+either effect, duplicate/swapped/wrong place, early effect before last read,
+changed/missing native Drop edge, changed destructor/vtable, field glue,
+receiver/data-address observation/escape and hidden calls. Keep missing Acquire
+and both missing-free controls. Native execution is corroboration only. No
+production source/API change, native cursor or whole-crate admission. Start with
+this straight-line normal path; apply the existing two/three-failure redesign
+budget, archive exact failed inputs and consult Astra after the audited increment.
+
+AJ result: canonical replay proves all77 files/445 actual prover leaves/zero
+nulls, checker passes explicit active source/mapping, and independent structural
+replay rejects all62 controls. Six semantic development defects leave one null
+each; three ordinary affine/loan controls reject before VC generation. Native
+five-case execution and field-profile compile assertion pass. Canonical archive
+SHA256 a550b2564160823fe425157ed45dba90471577d3124e6677e7d101b2bacb55c9
+has1717 hashed members. Support-module literal-path checking was strengthened
+after independent audit found a concrete acceptance gap, with ten new mutations.
+No production API/source change or whole-crate admission follows.

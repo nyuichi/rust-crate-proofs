@@ -1,0 +1,250 @@
+{
+  "status": "correspondence_pass",
+  "native_client": {
+    "source_sha256": "3b2924018a350b3a20810a9f73ad91f5bbd55744ae7e6a15f7d3a52a579f0f69",
+    "entrypoint": "shared_automatic_scope",
+    "client_protocol": [
+      "From(first)",
+      "Clone(second)",
+      "AsRef(second)",
+      "to_vec",
+      "normal return"
+    ],
+    "explicit_cleanup_or_drop_calls": 0,
+    "closed_source": true
+  },
+  "production_drop_sources": {
+    "ai_native_chain": {
+      "production_source": "src/bytes.rs",
+      "production_marker_spans": {
+        "bytes_cleanup": "867ba71e2ae145bb47a41af111b7873416f1cb5f78f8a6d6506654235f4ee72f",
+        "bytes_clone_impl": "fa8fd27bc61b60a0a35ae79bd39790f7cef10e4003ad049deea9ca92c0160655",
+        "bytes_from_vec_impl": "ca1fff4da8d36a61c9cb7e9173136bb7f7d6defd61adf89ef48ef20289b2ba8c",
+        "bytes_as_slice": "87286e2f619ee3cc099103bbfa38f50c4fb281d6a6ad1196456ee83254786b25",
+        "bytes_as_ref_impl": "6356186b672d60deb393f956385a5fc23d2e12cc767eeb8d9071b838ab9f2338",
+        "shared_vtable": "14c6fd6f0deca8a64f8890b55118e4988c5f1a8d0bb017bf3402226406c0bc92",
+        "shared_table_native": "f2f90ebbae37bec5bedd494a2281205ee8bd9026f15bae8d878602720ae23199",
+        "shared_clone": "e18d3e143241212ef3a302f4544f53f1090919a719dcfc50d4bb8098987009a3",
+        "shared_drop": "4a0a2623a16bff61659a671aec0c995582a2c74c2072e942cb2b28624cd71f4f",
+        "shallow_clone_arc": "590c1db5cd2b99ada77229234efa834fe5b75d2fb7dd69c3d1d96e8e73fedee7",
+        "release_shared": "4eef45f895175a1f56f5a69212343415d91e2a1723960f24adf40f37a537332b",
+        "free_shared": "e25ca42e4395b0267ceb403b66f9124be73c53d762c4747f2e7763a8139f4363"
+      },
+      "native_clone_target": "SHARED_VTABLE.clone -> shared_clone -> shallow_clone_arc -> ref_count_ops::increment",
+      "native_cleanup_target": "SHARED_VTABLE.drop -> shared_drop -> release_shared -> free_shared",
+      "native_release_order": [
+        "fetch_sub(Release)",
+        "load(Acquire)",
+        "free_shared"
+      ],
+      "payload_and_control_frees": 2,
+      "production_shared_fields": [
+        "buf: *mut u8",
+        "cap: usize",
+        "ref_cnt: AtomicUsize"
+      ],
+      "shared_drop_body_matches_buffer_deallocation": true,
+      "free_shared_directly_bypasses_shared_drop_and_field_glue": true,
+      "atomic_needs_drop_guard": true,
+      "public_trait_signatures_preserved": true,
+      "native_from_unrestricted": true,
+      "creusot_only_historical_from_requires": 2,
+      "exact_native_callchain_markers": [
+        "bytes_as_ref_impl",
+        "bytes_as_slice",
+        "bytes_cleanup",
+        "bytes_clone_impl",
+        "free_shared",
+        "release_shared",
+        "shallow_clone_arc",
+        "shared_clone",
+        "shared_drop",
+        "shared_table_native",
+        "shared_vtable"
+      ],
+      "exact_native_constructor_body": true,
+      "exact_guarded_refcount_helper_bodies": [
+        "try_increment",
+        "increment"
+      ]
+    },
+    "bytes_drop_body_exact": true,
+    "bytes_native_fields_exact": true,
+    "loom_native_atomicmut_exact": true,
+    "drop_body_operation": "(self.vtable.drop)(&mut self.data, self.ptr, self.len)",
+    "selected_with_mut_operation": "f(self.get_mut())",
+    "selected_shared_drop_closure_source": "checked through the exact SHARED_VTABLE -> shared_drop -> release_shared source chain"
+  },
+  "native_mir": {
+    "mir_sha256": {
+      "bytes_automatic_drop_native.shared_automatic_scope.2-2-004.ElaborateDrops.after.mir": "992149b659698232ec92eff4b04ca27f119dab8392c814a9afdeb0487896ca73",
+      "bytes.bytes-{impl#3}-drop.2-2-004.ElaborateDrops.after.mir": "50f3f09f68d2c58edb8200370d82b140e78f06827112f4f86fbf1eb10a7c3594",
+      "bytes.bytes-shared_drop.2-2-004.ElaborateDrops.after.mir": "fe67a58c872b33e16ea77a15a3f1aacedf50d9f81a33a7ff4b28ca378827f398",
+      "bytes.bytes-shared_drop-{closure#0}.2-2-004.ElaborateDrops.after.mir": "d3f00387b3422dcd46e81ed27e76f39157ee878d4fd11e199639d990a96b2e72",
+      "bytes.bytes-release_shared.2-2-004.ElaborateDrops.after.mir": "7c512f07e67b255306da9f320097cf70a9595ea769606f69b8ae8b8d8ae2aaab",
+      "bytes.bytes-free_shared.2-2-004.ElaborateDrops.after.mir": "e53703381f9a08dccabfaa2f2a3a7a8dd5b144fff3fe04094e9371873ffe9226",
+      "bytes.loom-sync-atomic-{impl#0}-with_mut.2-2-004.ElaborateDrops.after.mir": "bb7d61c4e2129237fed09d974f0e791a6f1543d04204e122f503a1c2ab3bada8",
+      "bytes.bytes-{impl#49}-drop.2-2-004.ElaborateDrops.after.mir": "d4255739a8e6475ef46114816b1ccdc56d15da50c10dbeeb8e6455a1b6fbcf37"
+    },
+    "scope_entry": "shared_automatic_scope",
+    "output_saved_before_terminal_drops": {
+      "block": "bb4",
+      "place": "_0",
+      "source": "_6"
+    },
+    "normal_terminal_drops": [
+      {
+        "place": "_4",
+        "debug_name": "second",
+        "block": "bb5",
+        "normal_successor": "bb6",
+        "unwind_successor": "bb10"
+      },
+      {
+        "place": "_2",
+        "debug_name": "first",
+        "block": "bb6",
+        "normal_successor": "bb7",
+        "unwind_successor": "bb12"
+      }
+    ],
+    "unwind_cleanup_edges_excluded": [
+      {
+        "block": "bb9",
+        "drop": "_4",
+        "normal_successor": "bb10",
+        "unwind": "terminate(cleanup)"
+      },
+      {
+        "block": "bb10",
+        "drop": "_2",
+        "normal_successor": "bb12",
+        "unwind": "terminate(cleanup)"
+      },
+      {
+        "block": "bb11",
+        "normal_successor": "bb12"
+      },
+      {
+        "block": "bb12",
+        "normal_successor": "bb13"
+      },
+      {
+        "block": "bb13",
+        "terminator": "resume"
+      }
+    ],
+    "actual_bytes_drop": {
+      "vtable_field_index": 4,
+      "arguments": [
+        "&mut self.data",
+        "self.ptr",
+        "self.len"
+      ]
+    },
+    "shared_drop_callback": "AtomicMut::with_mut -> closure copies contained Shared pointer -> release_shared",
+    "release_shared_mir_chain": [
+      "Release fetch_sub",
+      "if final owner: Acquire load",
+      "free_shared"
+    ],
+    "free_shared_mir_effects": [
+      "payload dealloc",
+      "Shared control dealloc"
+    ],
+    "atomicmut_with_mut_mir": "AtomicPtr::get_mut -> FnOnce(&mut *mut T)",
+    "normal_return_only": true
+  },
+  "mir_capture": {
+    "capture_sha256": "94d76d2d6666074e05328ab5dd2413da37f676a7060bbb1560a6280ba7f9a1cd",
+    "selected_mir_count": 8,
+    "source_and_mir_hashes_rederived": true,
+    "command_recorded": true
+  },
+  "native_toolchain_and_harness": {
+    "rustc_version_sha256": "e0b97124a4fc4c898b71dbb0551a97dcc1d72d6048e07db9de695e05f64d268a",
+    "cargo_version_sha256": "4826c878db482bc0f4a633aaf41777b1356754262dc37901b5503b570a81181c",
+    "native_manifest_sha256": "8b41040c9b90f7fb1703db9862442f310514664b5d0ffd73b406d879af11131e",
+    "native_lock_sha256": "64fbd767fd0fd2ec83a73824f85cd1d899d7f052cd0d3ad94e4c581f41300218",
+    "native_harness_source_sha256": "1c02c456ff90eaa1ef0f35435db84e8b8c5f0e578d0f81e4023ae8ea44c8f21f",
+    "proof_crate_root_sha256": "402bfa1d5594a48c0931f666250d171cd87222e7fb709c657b2da0d0ed22f048",
+    "native_run_log_sha256": "8cbf403b3222ee2c40b8e193c563423f4789f23251fbce571025605bea2f732b",
+    "selected_native_library": "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-shared-automatic-drop-2026-10-09/native.rs",
+    "selected_production_dependency": "/workspace/bytes-work/bytes/1.11.1",
+    "native_field_profile_no_drop_witness": true,
+    "native_harness_inputs": [
+      0,
+      1,
+      7,
+      63,
+      1024
+    ],
+    "creusot_module_route": "src/lib.rs -> generated/active.rs",
+    "toolchain_and_dependency_identity_pinned": true,
+    "native_run_is_correspondence_corroboration_only": true
+  },
+  "proof_shadow": {
+    "active_source_sha256": "4e8946dc69a4eb3172bc08b049bf9b677065255a73864801199343b29405aadf",
+    "audited_ai_prefix_sha256": "2898c269bd83ab383db1f81fabd9807d9c52133a6792c5ad0c767555a5bb807a",
+    "ai_prefix_token_count": 7306,
+    "terminal_helper_token_count": 270,
+    "elaborated_client_token_count": 376,
+    "helper_name": "bytes_terminal_drop",
+    "helper_contract_reused_from": "original_shared_cleanup",
+    "terminal_owner_order": [
+      "second",
+      "first"
+    ],
+    "terminal_output_bindings": [
+      {
+        "owner": "second",
+        "cursor": "cursor",
+        "output": "second_receipt"
+      },
+      {
+        "owner": "first",
+        "cursor": "cursor",
+        "output": "first_receipt"
+      }
+    ],
+    "return_saved_before_terminal_effects": true,
+    "second_kept_alive_then_first_reclaimed": true,
+    "final_ticket_map_empty": true,
+    "terminal_shadow_extra_trust": false,
+    "bytes_drop_impl_in_shadow": false
+  },
+  "generated_mapping": {
+    "mapping_sha256": "94002f795a647d748cb86dd3b7693d1e48919339fd6d7be0f31cb2859d0602e2",
+    "mapping_path": "generated/mapping.json",
+    "facts_match_independent_reconstruction": true,
+    "normal_edges_rederived": [
+      {
+        "block": "bb5",
+        "place": "_4",
+        "owner": "second",
+        "successor": "bb6",
+        "unwind": "bb10",
+        "cursor": "cursor",
+        "output": "second_receipt"
+      },
+      {
+        "block": "bb6",
+        "place": "_2",
+        "owner": "first",
+        "successor": "bb7",
+        "unwind": "bb12",
+        "cursor": "cursor",
+        "output": "first_receipt"
+      }
+    ]
+  },
+  "claim_boundary": [
+    "selected default-std normal-return path only; unwind edges are explicitly excluded",
+    "no arbitrary Bytes representation, concurrency, panic, allocator, or other cfg claim",
+    "native Bytes field-category no-drop witness uses the selected default core AtomicPtr; generic borrowed-reference no-drop behavior remains compiler/library TCB",
+    "compiler, Cargo lock, native harness, and proof module route are pinned provenance, not a proof of compiler correctness",
+    "normal Drop-to-consuming-terminal-helper equivalence is a generic MIR/codegen TCB premise",
+    "trusted event/cursor/free/invoke3 adequacy and helper contracts remain separately scoped TCB",
+    "native run is corroboration; this audit is structural source/MIR correspondence, not proof"
+  ]
+}

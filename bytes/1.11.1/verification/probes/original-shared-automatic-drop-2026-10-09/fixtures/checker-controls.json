@@ -1,0 +1,317 @@
+{
+  "schema_version": 1,
+  "positive": "native.rs + fresh after-ElaborateDrops MIR + generated active proof shadow",
+  "controls": [
+    {
+      "name": "native_explicit_drop_call",
+      "class": "closed native client",
+      "mutates": "add explicit drop instead of relying on terminal scope drops"
+    },
+    {
+      "name": "native_extra_clone",
+      "class": "closed native client",
+      "mutates": "add a third Bytes owner"
+    },
+    {
+      "name": "native_wrong_drop_order_source",
+      "class": "closed native client",
+      "mutates": "alter the native owner construction witness"
+    },
+    {
+      "name": "omit_second_terminal_drop",
+      "class": "terminal helper omission",
+      "mutates": "omit second terminal place consumption"
+    },
+    {
+      "name": "omit_first_terminal_drop",
+      "class": "terminal helper omission",
+      "mutates": "omit first terminal place consumption"
+    },
+    {
+      "name": "duplicate_second_terminal_drop",
+      "class": "terminal helper duplication",
+      "mutates": "consume second place twice"
+    },
+    {
+      "name": "swap_terminal_drop_places",
+      "class": "terminal place order",
+      "mutates": "swap second and first terminal-place arguments"
+    },
+    {
+      "name": "wrong_terminal_drop_place",
+      "class": "terminal place identity",
+      "mutates": "consume first at second place edge"
+    },
+    {
+      "name": "early_terminal_drop_before_last_read",
+      "class": "borrow/read order",
+      "mutates": "consume second before copying its borrowed slice"
+    },
+    {
+      "name": "return_saved_after_drop",
+      "class": "return evaluation order",
+      "mutates": "evaluate owned return after terminal effects"
+    },
+    {
+      "name": "wrong_terminal_cursor",
+      "class": "affine cursor channel",
+      "mutates": "pass a different cursor"
+    },
+    {
+      "name": "wrong_receipt_output",
+      "class": "terminal receipt channel",
+      "mutates": "write second completion into first receipt"
+    },
+    {
+      "name": "terminal_helper_wrong_callback",
+      "class": "terminal helper target",
+      "mutates": "forward to an unknown native callback"
+    },
+    {
+      "name": "terminal_helper_observes_bytes_address",
+      "class": "terminal place premise",
+      "mutates": "observe address of consumed Bytes value"
+    },
+    {
+      "name": "terminal_helper_escapes_data_address",
+      "class": "terminal place premise",
+      "mutates": "observe and escape address of the data field"
+    },
+    {
+      "name": "terminal_helper_false_trusted_summary",
+      "class": "proof escape",
+      "mutates": "inject trusted false summary on terminal helper"
+    },
+    {
+      "name": "terminal_shadow_hidden_drop_impl",
+      "class": "shadow destructor glue",
+      "mutates": "add independent Bytes Drop implementation to proof shadow"
+    },
+    {
+      "name": "terminal_shadow_hidden_native_call",
+      "class": "hidden callback",
+      "mutates": "insert unknown native callback into shadow caller"
+    },
+    {
+      "name": "terminal_shadow_false_precondition",
+      "class": "driver admission summary",
+      "mutates": "replace len less than capacity premise with false"
+    },
+    {
+      "name": "terminal_shadow_move_or_dropflag",
+      "class": "unsupported control flow",
+      "mutates": "introduce a branch and explicit drop in shadow caller"
+    },
+    {
+      "name": "mir_changed_terminal_edge",
+      "class": "native MIR terminal edge",
+      "mutates": "change normal successor of second Drop"
+    },
+    {
+      "name": "mir_omitted_terminal_drop",
+      "class": "native MIR terminal effect",
+      "mutates": "remove second normal Drop terminator"
+    },
+    {
+      "name": "mir_swapped_terminal_drop_places",
+      "class": "native MIR place identity",
+      "mutates": "replace second place with first at first edge"
+    },
+    {
+      "name": "mir_changed_drop_unwind_successor",
+      "class": "native MIR unwind edge",
+      "mutates": "change unwind successor of first Drop"
+    },
+    {
+      "name": "mir_added_branch_dropflag",
+      "class": "native MIR unsupported shape",
+      "mutates": "add a branch/dropflag before terminal effects"
+    },
+    {
+      "name": "mir_wrong_bytes_vtable_slot",
+      "class": "production Drop MIR mapping",
+      "mutates": "change selected vtable field index"
+    },
+    {
+      "name": "mir_wrong_bytes_drop_argument",
+      "class": "production Drop MIR mapping",
+      "mutates": "substitute len for data pointer"
+    },
+    {
+      "name": "mir_shared_closure_wrong_target",
+      "class": "production closure mapping",
+      "mutates": "retarget selected closure away from release_shared"
+    },
+    {
+      "name": "mir_shared_closure_observes_data_address",
+      "class": "production closure premise",
+      "mutates": "copy the AtomicPtr address instead of contained Shared pointer"
+    },
+    {
+      "name": "production_bytes_drop_wrong_vtable_field",
+      "class": "production Bytes destructor",
+      "mutates": "dispatch through Clone rather than vtable Drop"
+    },
+    {
+      "name": "production_bytes_drop_observes_self_address",
+      "class": "terminal place premise",
+      "mutates": "observe the Bytes destructor receiver address"
+    },
+    {
+      "name": "production_vtable_field_order_changed",
+      "class": "native vtable layout",
+      "mutates": "add/reorder a vtable slot field"
+    },
+    {
+      "name": "production_native_vtable_drop_target_changed",
+      "class": "production Drop target",
+      "mutates": "retarget SHARED_VTABLE.drop"
+    },
+    {
+      "name": "production_bytes_added_field_glue",
+      "class": "Bytes field drop profile",
+      "mutates": "add an independently dropping Bytes field"
+    },
+    {
+      "name": "production_shared_added_field_glue",
+      "class": "Shared field drop profile",
+      "mutates": "add an independently dropping Shared field"
+    },
+    {
+      "name": "production_loom_callback_sees_atomic_address",
+      "class": "AtomicMut projection",
+      "mutates": "change selected with_mut projection body"
+    },
+    {
+      "name": "production_shared_callback_extra_effect",
+      "class": "hidden native callback",
+      "mutates": "invoke shared release callback twice"
+    },
+    {
+      "name": "mapping_wrong_terminal_place",
+      "class": "mapping integrity",
+      "mutates": "rewrite the mapped normal terminal place"
+    },
+    {
+      "name": "mapping_wrong_unwind_successor",
+      "class": "mapping integrity",
+      "mutates": "rewrite mapped unwind successor"
+    },
+    {
+      "name": "mapping_stale_mir_hash",
+      "class": "mapping integrity",
+      "mutates": "replace a selected MIR hash"
+    },
+    {
+      "name": "mapping_omitted_tcb_premise",
+      "class": "TCB boundary disclosure",
+      "mutates": "remove terminal-place non-observation premise"
+    },
+    {
+      "name": "provenance_changed_rustc_toolchain",
+      "class": "compiler provenance",
+      "mutates": "change the recorded rustc build identity"
+    },
+    {
+      "name": "provenance_native_manifest_wrong_target",
+      "class": "native harness manifest",
+      "mutates": "select a different native.rs library source"
+    },
+    {
+      "name": "provenance_native_lock_changed_std_version",
+      "class": "native harness lock",
+      "mutates": "change the pinned creusot-std version"
+    },
+    {
+      "name": "provenance_native_lock_changed_registry_checksum",
+      "class": "native harness lock",
+      "mutates": "change a pinned registry checksum"
+    },
+    {
+      "name": "provenance_harness_wrong_atomic_profile",
+      "class": "native field-profile witness",
+      "mutates": "replace the Bytes AtomicPtr field category with AtomicUsize"
+    },
+    {
+      "name": "provenance_module_wrong_active_route",
+      "class": "proof module route",
+      "mutates": "point the compiled proof module away from generated/active.rs"
+    },
+    {
+      "name": "provenance_module_added_route_attribute",
+      "class": "proof module route",
+      "mutates": "add an alternate cfg-selected module path attribute"
+    },
+    {
+      "name": "provenance_native_log_missing_execution",
+      "class": "native run provenance",
+      "mutates": "remove the five-input success record"
+    },
+    {
+      "name": "provenance_changed_cargo_toolchain",
+      "class": "compiler provenance",
+      "mutates": "change the recorded cargo build identity"
+    },
+    {
+      "name": "provenance_native_manifest_added_feature",
+      "class": "native harness manifest",
+      "mutates": "add an alternate native feature surface"
+    },
+    {
+      "name": "provenance_native_lock_changed_bytes_version",
+      "class": "native harness lock",
+      "mutates": "change the locked bytes production crate version"
+    },
+    {
+      "name": "provenance_support_path_relaxed",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for relaxed"
+    },
+    {
+      "name": "provenance_support_path_ref_count_limit",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for ref_count_limit"
+    },
+    {
+      "name": "provenance_support_path_fraction_map",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for fraction_map"
+    },
+    {
+      "name": "provenance_support_path_release",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for release"
+    },
+    {
+      "name": "provenance_support_path_lifecycle",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for lifecycle"
+    },
+    {
+      "name": "provenance_support_path_owned_region",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for owned_region"
+    },
+    {
+      "name": "provenance_support_path_raw_vec",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for raw_vec"
+    },
+    {
+      "name": "provenance_support_path_boxed_alignment",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for boxed_alignment"
+    },
+    {
+      "name": "provenance_support_path_pointer_event",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for pointer_event"
+    },
+    {
+      "name": "provenance_support_path_native_ref_count_ops",
+      "class": "support module source path",
+      "mutates": "change the literal #[path] selected for native_ref_count_ops"
+    }
+  ],
+  "boundary": "The checker independently compares the fixed two-owner client, eight complete normalized post-ElaborateDrops MIR inputs, derived normal and unwind edges, actual Bytes Drop MIR/source, vtable layout, Shared callback/release/free chain, default native AtomicMut shim, AI proof-source prefix, exact terminal helper/caller tokens, and generator mapping fields/hashes. It establishes structural correspondence only for the selected default-std normal-return path. It does not prove MIR/compiler or move/drop-glue correspondence, unwind correctness, arbitrary representations/concurrency, helper contract truth, generic event/cursor/receipt adequacy, or whole-crate verification. Native executions are corroboration; prover semantic controls are archived separately. Toolchain/version, native harness manifest and complete lock package/checksum set, source route, field-profile no-drop const witness, and recorded five-input native execution are now exact source/provenance checks; the generic borrowed-reference no-drop property remains compiler/library TCB. Structural negative controls independently mutate each of the ten explicit support-module #[path] string literals, including the lifecycle and native refcount sources."
+}

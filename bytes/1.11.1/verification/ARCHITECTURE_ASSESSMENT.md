@@ -18,8 +18,14 @@ execution passes five inputs; exact source/native-shadow correspondence and
 physical/event/erasure primitives remain explicit generic TCB. This is selected
 normal-return len<capacity evidence, not a new unrestricted trait refinement.
 
-Actual Bytes automatic Drop, promotable promotion/lifecycle, arbitrary concurrent
-closure and remaining API/configuration coverage remain open. The original full
+AJ now establishes exact Shared two-owner terminal automatic Drop on normal
+return (77/445/0, 62 structural controls, six semantic defects and three type
+rejections). Native source/MIR order, terminal-place address non-observation and
+field-drop profile are explicitly checked under generic compiler/erasure TCB.
+This is not a general Rust destructor interpretation or unwind proof.
+
+Promotable promotion/lifecycle, automatic Drop outside the exact Shared witness,
+arbitrary concurrent closure and remaining API/configuration coverage remain open. The original full
 target is unchanged. Continue consulting Astra after each audited/published
 increment and execute the next concrete step.
 

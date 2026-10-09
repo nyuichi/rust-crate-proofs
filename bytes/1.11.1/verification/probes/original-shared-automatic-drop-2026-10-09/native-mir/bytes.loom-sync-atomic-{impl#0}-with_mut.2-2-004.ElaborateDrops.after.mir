@@ -1,0 +1,67 @@
+// MIR for `loom::sync::atomic::<impl at src/loom.rs:15:9: 15:46>::with_mut` after ElaborateDrops
+
+fn loom::sync::atomic::<impl at src/loom.rs:15:9: 15:46>::with_mut(_1: &mut Atomic<*mut T>, _2: F) -> R {
+    debug self => _1;
+    debug f => _2;
+    let mut _0: R;
+    let mut _3: F;
+    let mut _4: (&mut *mut T,);
+    let mut _5: &mut *mut T;
+    let mut _6: &mut *mut T;
+    let mut _7: &mut core::sync::atomic::Atomic<*mut T>;
+    let mut _8: bool;
+
+    bb0: {
+        _8 = const false;
+        StorageLive(_3);
+        _8 = const true;
+        _3 = move _2;
+        StorageLive(_4);
+        StorageLive(_5);
+        StorageLive(_6);
+        StorageLive(_7);
+        _7 = &'_ mut (*_1);
+        _6 = Atomic::<*mut T>::get_mut(move _7) -> [return: bb1, unwind: bb4];
+    }
+
+    bb1: {
+        _5 = &'_ mut (*_6);
+        StorageDead(_7);
+        _4 = (move _5,);
+        _8 = const false;
+        _0 = <F as FnOnce<(&mut *mut T,)>>::call_once(move _3, move _4) -> [return: bb2, unwind: bb4];
+    }
+
+    bb2: {
+        StorageDead(_5);
+        StorageDead(_4);
+        _8 = const false;
+        StorageDead(_3);
+        StorageDead(_6);
+        goto -> bb3;
+    }
+
+    bb3: {
+        return;
+    }
+
+    bb4 (cleanup): {
+        goto -> bb8;
+    }
+
+    bb5 (cleanup): {
+        goto -> bb6;
+    }
+
+    bb6 (cleanup): {
+        resume;
+    }
+
+    bb7 (cleanup): {
+        drop(_3) -> [return: bb5, unwind terminate(cleanup)];
+    }
+
+    bb8 (cleanup): {
+        switchInt(copy _8) -> [0: bb5, otherwise: bb7];
+    }
+}

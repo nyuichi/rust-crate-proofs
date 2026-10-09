@@ -1,5 +1,28 @@
 # bytes 1.11.1 status
 
+## Astra-guided actual Shared automatic Drop — archived label 2026-10-09
+
+AJ connects the native two-owner normal-return client to actual Bytes::drop,
+its selected vtable/Shared release, and both final frees. Pinned native MIR drops
+second then first after saving the returned slice copy. An external terminal-place
+elaboration consumes those exact places through an ordinary body-proved helper;
+no trusted Bytes destructor or restored live &mut Bytes invariant is introduced.
+The selected target closure must neither observe nor escape the handle/data-field
+address, and no independent field-drop glue is allowed. These correspondences,
+compiler interpretation and generic physical/erasure primitives remain explicit TCB.
+
+The canonical gate proves 77 files / 445 actual prover leaves / zero nulls,
+with no excluded targets or enabled defect features. All 62 structural controls
+reject; six semantic defects each leave one null; three affine/loan controls
+reject before VC generation (E0382, E0382, E0505). The native client passes five
+inputs. Exact receipt and independent source/archive checks are recorded in
+`verification/probes/original-shared-automatic-drop-2026-10-09/`.
+
+This admits only this default-std Shared, len<capacity, straight-line normal
+return. Unwind, other representations, arbitrary moves/concurrent closure and
+remaining API/configuration coverage stay open. Original architecture remains
+NOT ADMITTED; the full target is unchanged.
+
 ## Astra-guided actual Shared closed client — archived label 2026-10-09
 
 AI connects AH's affine observation cursor to actual Shared Bytes fields,
