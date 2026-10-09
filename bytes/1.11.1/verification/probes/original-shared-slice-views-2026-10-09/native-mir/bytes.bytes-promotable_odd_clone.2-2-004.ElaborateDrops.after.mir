@@ -1,0 +1,227 @@
+// MIR for `bytes::promotable_odd_clone` after ElaborateDrops
+
+fn promotable_odd_clone(_1: &Atomic<*mut ()>, _2: *const u8, _3: usize) -> bytes::Bytes {
+    debug data => _1;
+    debug ptr => _2;
+    debug len => _3;
+    let mut _0: bytes::Bytes;
+    let _4: *mut ();
+    let mut _5: &core::sync::atomic::Atomic<*mut ()>;
+    let mut _6: core::sync::atomic::Ordering;
+    let mut _8: usize;
+    let mut _9: *mut ();
+    let mut _10: bool;
+    let mut _11: usize;
+    let mut _12: *mut bytes::Shared;
+    let mut _13: *mut bytes::Shared;
+    let mut _14: *mut ();
+    let mut _15: *const u8;
+    let mut _16: usize;
+    let _17: ();
+    let mut _18: bool;
+    let _19: ();
+    let mut _20: (&usize, &usize);
+    let mut _21: &usize;
+    let mut _22: &usize;
+    let _23: usize;
+    let mut _26: bool;
+    let mut _27: usize;
+    let mut _28: usize;
+    let mut _29: !;
+    let _31: !;
+    let mut _32: core::panicking::AssertKind;
+    let mut _33: &usize;
+    let _34: &usize;
+    let mut _35: &usize;
+    let _36: &usize;
+    let mut _37: core::option::Option<core::fmt::Arguments<'_>>;
+    let mut _38: &core::sync::atomic::Atomic<*mut ()>;
+    let mut _39: *const ();
+    let mut _40: *mut ();
+    let mut _41: *mut u8;
+    let mut _42: *mut ();
+    let mut _43: *const u8;
+    let mut _44: usize;
+    scope 1 {
+        debug shared => _4;
+        let _7: usize;
+        scope 2 {
+            debug kind => _7;
+            let _24: &usize;
+            let _25: &usize;
+            let mut _45: &usize;
+            scope 3 {
+                debug left_val => _24;
+                debug right_val => _25;
+                let _30: core::panicking::AssertKind;
+                scope 4 {
+                    debug kind => _30;
+                }
+            }
+        }
+    }
+
+    bb0: {
+        StorageLive(_4);
+        StorageLive(_5);
+        _5 = &'_ (*_1);
+        StorageLive(_6);
+        _6 = core::sync::atomic::Ordering::Acquire;
+        _4 = Atomic::<*mut ()>::load(move _5, move _6) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_6);
+        StorageDead(_5);
+        StorageLive(_7);
+        StorageLive(_8);
+        StorageLive(_9);
+        _9 = copy _4;
+        _8 = move _9 as usize (PointerExposeProvenance);
+        StorageDead(_9);
+        _7 = BitAnd(move _8, const bytes::KIND_MASK);
+        StorageDead(_8);
+        StorageLive(_10);
+        StorageLive(_11);
+        _11 = copy _7;
+        _10 = Eq(move _11, const bytes::KIND_ARC);
+        switchInt(move _10) -> [0: bb4, otherwise: bb2];
+    }
+
+    bb2: {
+        StorageDead(_11);
+        StorageLive(_12);
+        StorageLive(_13);
+        StorageLive(_14);
+        _14 = copy _4;
+        _13 = move _14 as *mut bytes::Shared (PtrToPtr);
+        _12 = copy _13;
+        StorageDead(_14);
+        StorageLive(_15);
+        _15 = copy _2;
+        StorageLive(_16);
+        _16 = copy _3;
+        _0 = shallow_clone_arc(move _12, move _15, move _16) -> [return: bb3, unwind continue];
+    }
+
+    bb3: {
+        StorageDead(_16);
+        StorageDead(_15);
+        StorageDead(_12);
+        StorageDead(_13);
+        goto -> bb12;
+    }
+
+    bb4: {
+        StorageDead(_11);
+        StorageLive(_17);
+        StorageLive(_18);
+        _18 = const true;
+        switchInt(move _18) -> [0: bb8, otherwise: bb5];
+    }
+
+    bb5: {
+        StorageLive(_19);
+        StorageLive(_20);
+        StorageLive(_21);
+        _21 = &'_ _7;
+        StorageLive(_22);
+        _45 = const bytes::promotable_odd_clone::promoted[0];
+        _22 = &'_ (*_45);
+        _20 = (move _21, move _22);
+        StorageDead(_22);
+        StorageDead(_21);
+        PlaceMention(_20);
+        StorageLive(_24);
+        _24 = copy (_20.0: &usize);
+        StorageLive(_25);
+        _25 = copy (_20.1: &usize);
+        StorageLive(_26);
+        StorageLive(_27);
+        _27 = copy (*_24);
+        StorageLive(_28);
+        _28 = copy (*_25);
+        _26 = Eq(move _27, move _28);
+        switchInt(move _26) -> [0: bb7, otherwise: bb6];
+    }
+
+    bb6: {
+        StorageDead(_28);
+        StorageDead(_27);
+        _19 = const ();
+        StorageDead(_26);
+        StorageDead(_25);
+        StorageDead(_24);
+        StorageDead(_20);
+        StorageDead(_19);
+        _17 = const ();
+        goto -> bb9;
+    }
+
+    bb7: {
+        StorageDead(_28);
+        StorageDead(_27);
+        StorageLive(_30);
+        _30 = core::panicking::AssertKind::Eq;
+        StorageLive(_31);
+        StorageLive(_32);
+        _32 = move _30;
+        StorageLive(_33);
+        StorageLive(_34);
+        _34 = &'_ (*_24);
+        _33 = &'_ (*_34);
+        StorageLive(_35);
+        StorageLive(_36);
+        _36 = &'_ (*_25);
+        _35 = &'_ (*_36);
+        StorageLive(_37);
+        _37 = Option::<Arguments<'_>>::None;
+        _31 = core::panicking::assert_failed::<usize, usize>(move _32, move _33, move _35, move _37) -> unwind continue;
+    }
+
+    bb8: {
+        _17 = const ();
+        goto -> bb9;
+    }
+
+    bb9: {
+        StorageDead(_18);
+        StorageDead(_17);
+        StorageLive(_38);
+        _38 = &'_ (*_1);
+        StorageLive(_39);
+        StorageLive(_40);
+        _40 = copy _4;
+        _39 = move _40 as *const () (PtrToPtr);
+        StorageDead(_40);
+        StorageLive(_41);
+        StorageLive(_42);
+        _42 = copy _4;
+        _41 = core::ptr::mut_ptr::<impl *mut ()>::cast::<u8>(move _42) -> [return: bb10, unwind continue];
+    }
+
+    bb10: {
+        StorageDead(_42);
+        StorageLive(_43);
+        _43 = copy _2;
+        StorageLive(_44);
+        _44 = copy _3;
+        _0 = shallow_clone_vec(move _38, move _39, move _41, move _43, move _44) -> [return: bb11, unwind continue];
+    }
+
+    bb11: {
+        StorageDead(_44);
+        StorageDead(_43);
+        StorageDead(_41);
+        StorageDead(_39);
+        StorageDead(_38);
+        goto -> bb12;
+    }
+
+    bb12: {
+        StorageDead(_10);
+        StorageDead(_7);
+        StorageDead(_4);
+        return;
+    }
+}

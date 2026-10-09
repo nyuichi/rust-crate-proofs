@@ -1299,3 +1299,76 @@ The Snapshot-only inventory lemma is body proved and extracts no owner resource.
 No quota, weaker inventory or native/API change was introduced. Canonical SHA256
 a62cfcc22afa2756c56fea1230c3d6845ec3bdf66eaa20bf1779d26da12761d1. Full original architecture remains NOT ADMITTED.
 Astra recommends nested public Range slices, including empty results, next.
+
+## D2026-10-09-AQ — Public nested slice views and empty detachment
+
+After AP publication at 1191e1c3752182f63793e30c3644971b7b8fa0ea,
+Astra directs original-shared-slice-views-2026-10-09. Public slice with concrete
+Range<usize> is applied twice with runtime valid bounds, including empty
+endpoints. Sources retire before the selected result is read and dropped.
+The exact result is the nested subsequence; either the final owned view recovers
+the original allocation, or an empty Static view reads after prior owner recovery.
+
+The changed representation premise preserves strong full-allocation SharedCore,
+Recovery and original capacity/base free laws while adding a bounded view
+position. In the copied complete AP positive prefix, exactly the proof-only
+OriginalSharedProof enum declaration gains View(ChildProof, BoundPtr) and
+Empty(EmptyViewProof); Root and Child remain unchanged. All other prefix bytes
+remain exact and all inherited targets must be rerun. The declaration transform
+is separately pinned and is not described as an unchanged prefix. Ancestors and
+production remain immutable. A View owns the existing actual child ticket;
+its shifted BoundPtr is metadata only. No weak conditional content guarantee
+or State/Perm/ticket getter is introduced.
+
+Source inspection corrects the preliminary plan: new_empty_with_ptr explicitly
+calls without_provenance, implemented as null::<u8>().wrapping_add(address).
+Empty therefore retains UNBOUND non-null metadata (BoundPtr view None) for the
+new provenance-free pointer, not a sealed allocation namespace. It has no
+lifetime ticket, physical access capability or recovery authority. Its null
+atomic data field is constructed through the existing generic pointer model.
+Zero-length reads need no allocation liveness and Static Drop has no owner effect.
+Pinned Std ptr.rs467–472 exposes nullness through is_null_logic, which
+is address-zero. As in AE, a generic exact native null-word reifier additionally
+binds the readonly AtomicPtr value to an opaque null symbol; its native body is
+core::ptr::null_mut(), and it grants no ownership or memory access authority.
+
+Small explicit generic pointer adapters distinguish real ptr.add on a live
+bounded allocation from wrapping_add and the address-preserving
+without-provenance construction. They return only pointer metadata and preserve
+exact native operations; they do not assume Bytes content or ownership laws.
+The nonempty path body proves clone issuance, length subtraction, offset
+composition and initialized subsequence projection. Empty skips cloning and
+preserves the ledger. Existing release_core recovers/frees original allocation
+metadata, never the view pointer or length. New callback registrations remain
+exact generic erasure contracts, with Bytes laws body proved.
+
+Selected theorem preconditions are nonempty input and valid nested Range bounds;
+it includes zero-length and one-past endpoints. Native bound matches/assertions
+remain. Invalid-range panic, arbitrary downstream RangeBounds callbacks,
+unwind, concurrency and remaining API/configuration obligations stay open.
+Controls must distinguish offset/content/base/capacity substitution, missing
+nonempty registration, phantom empty tickets or frees, omitted Drops, final
+Acquire/frees, duplicate proof and early borrowed-view destruction. Native
+source/MIR must pin add versus wrapping_add/without_provenance, table selection,
+source destruction before view read, and exact normal terminal ordering.
+Two failures of the same interface require reassessment, not a nonempty-only
+fallback or weaker view validity. Final all-target proof, correspondence,
+controls and independent immutable archive audit gate publication. Full original
+architecture remains NOT ADMITTED; no result is claimed by this decision.
+
+### D-AQ audited outcome
+
+The restored feature-free full gate proves139/1202/0, structural0 and
+correspondence0, all targets included. Independent immutable reconstruction
+checks1178 members, source63, Std110, eight tools, six configs and four actual
+location-bound Cargo inputs, then replays main76/native47 controls. Twelve
+semantic defects yield20 exact null sidecars; three frontend controls reject.
+First139/1261/3 failures remain archived: generic shifted metadata was opaque
+and Clone's body-proved post did not distinguish its actual View result.
+Opening that pure definition, exporting exact generic pointer address facts
+and proving the precise return variant repairs the interface without weaker
+allocation/content or trusted Resolve. Native begin is explicitly alpha-renamed.
+Fresh-hash detached-OUT_DIR capture and stale extractor/control-dispatch issues
+are corrected only in AQ; ancestors and production remain unchanged.
+Canonical SHA256 41e8e9c164a1110c7f611bb1726f490e111c6b10a77af6b57bfc707ce49ceba5. Full original architecture remains NOT ADMITTED.
+The next Astra recommendation is being prepared under the user's ongoing loop.

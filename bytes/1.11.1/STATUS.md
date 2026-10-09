@@ -1,5 +1,39 @@
 # bytes 1.11.1 status
 
+## Astra-guided nested public Range slices and empty views — 2026-10-09
+
+AQ proves actual public built-in Range slicing twice after original owner Drop,
+including nonzero offsets and empty/one-past endpoints. Shared views retain
+original complete allocation authority and exact subsequence content. Empty
+uses the actual provenance-removal/Static path with no ticket or allocation
+liveness. Exactly one original payload/control recovery occurs at owner Drop
+for selected Empty, or selected Drop for nonempty View, before/after the read
+as required by the actual native ordering.
+
+A single explicit proof-only enum declaration transforms the complete AP
+positive prefix; Root/Child payloads and all other prefix bytes are unchanged.
+All inherited targets are reproved. The first three semantic failures are
+archived and repaired by exposing pure metadata and strengthening the exact
+returned variant, without weaker ownership/content or a Resolve axiom.
+
+Canonical gate passes 139 targets / 1202 prover leaves / zero null or structural
+leaves, all targets included, correspondence zero and no features/exclusions/
+diagnostic/source controls. Independent audit checks 1178 members, production63,
+privateStd110, eight tools, six configs and four actual Cargo artifacts, then
+replays main76/native47 controls. Twelve semantic defects produce20 exact null
+sidecars; three frontend defects reject E0382, E0502/E0505 and E0277 as observed.
+These are formal proof-task/type sensitivity observations, not native counterexamples.
+
+Canonical SHA256 41e8e9c164a1110c7f611bb1726f490e111c6b10a77af6b57bfc707ce49ceba5.
+See verification/probes/original-shared-slice-views-2026-10-09/evidence/AQ_CANONICAL_AUDIT.md.
+Cargo root-output/toolchain are location-bound; no artifact is rewritten for
+portable replay. Generic physical/provenance/compiler assumptions remain TCB.
+
+Full original architecture remains NOT ADMITTED. Other representations/range
+implementations, panic/unwind, concurrency, arbitrary escaping ownership and
+remaining APIs/configurations are open. Asked Astra「次何するのがいい？」again;
+continue its next concrete recommendation after this audited publication.
+
 ## Astra-guided runtime-variable finite Shared owners — 2026-10-09
 
 AP proves actual Vec creation/drain loops for a runtime owner count after the
