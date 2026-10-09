@@ -1240,3 +1240,62 @@ normal-only closed scope and fullNOTADMITTED persist. Asked Astra again
 「次何するのがいい？」; recommendation AP changes premise to inductive
 runtime-variable finite owners in actual Vec loops, not bounded unrolling.
 Implementation follows this increment's audit and publication.
+
+## D2026-10-09-AP — Runtime-variable finite sequential sharing
+
+After AO publication at 48cf2a0e365dd00b20bf88b93bec8d75a7dde5ca,
+Astra directs original-shared-finite-owners-2026-10-09. AO's complete positive
+source is the immutable inherited prefix. The selected nonempty Box native
+client retires its original owner, clones the surviving Shared-vtable child a
+runtime number of times into an actual Vec<Bytes>, drains it by pop and lexical
+peer Drop, reads the survivor, saves the return and finally drops the survivor.
+No finite unrolling, chosen ticket IDs or owner quota replaces these loops.
+
+The changed premise is a body-proved exact inventory linking every actual
+vector element's ticket to the cursor map, plus inductive preservation across
+native push/pop and normal terminal edges. Shared child Clone uses the actual
+Relaxed pointer load and existing Relaxed refcount increment, not the
+promotable original's Acquire path. It has a reusable strong contract exporting
+fresh returned-ticket insertion and final-cursor acceptance. The source keeps
+its immutable pointer binding; only a new child's own initialized field receives
+its fresh readonly binding. No State/Perm/ticket getter, trusted completeness
+law or trusted Bytes clone/lastness/destructor law is added.
+
+Pinned private Std Vec push/pop sequence contracts and Resolve over actual
+elements support the affine inventory proof. The external effect checker must
+preserve the cyclic CFG, pop-Some payload move, one peer Drop per successful
+iteration, loop backedges and saved-return/final-Drop ordering. At the actual
+Vec destructor edge the proof must establish its contents are empty. The native
+Vec destructor still deallocates container storage; generic Std/Rust empty
+container destruction remains TCB and supplies no Bytes recovery receipt.
+The two Bytes receipts concern the payload and Shared control allocation.
+
+The theorem concerns normal returns. The existing guarded MAX_REF_COUNT
+refusal/abort path and Vec allocation failure/unwind remain native and do not
+establish normal completion; no arbitrary count quota is imposed. Creation
+arithmetic uses made<count to prove increment cannot overflow. Neither total
+successful execution for all counts nor unwind cleanup is claimed.
+
+Controls omit registration, a peer effect, complete draining, final Acquire or
+one free; attempt forget, duplicate/early consumption or invalid empty-container
+cleanup; change a backedge, Some move/drop edge, clone callback or source/import
+route. The exact inventory must be proved from body contracts, never assumed.
+Two failures of the same semantic interface trigger recorded reassessment,
+not weaker contracts or bounded unrolling. Publication requires all feature-free
+targets, native loop/effect correspondence, decisive controls, exact compiled
+input receipts and independent immutable archive audit. General concurrent or
+escaping ownership, unwind and remaining APIs/configurations are still open.
+Full original architecture remains NOT ADMITTED. This records the changed
+premise before the experiment and makes no proof claim.
+
+### D-AP audited outcome
+
+The restored canonical run proves 130/1040/0, all targets included, with zero
+structural leaves and correspondence status zero. Independent reconstruction
+checks 1065 members and replays main35/native76 controls, preserving the four
+actual Cargo artifacts and location-bound root-output. Nine semantic defects
+produce 15 exact null sidecars; four frontend defects reject as recorded.
+The Snapshot-only inventory lemma is body proved and extracts no owner resource.
+No quota, weaker inventory or native/API change was introduced. Canonical SHA256
+a62cfcc22afa2756c56fea1230c3d6845ec3bdf66eaa20bf1779d26da12761d1. Full original architecture remains NOT ADMITTED.
+Astra recommends nested public Range slices, including empty results, next.

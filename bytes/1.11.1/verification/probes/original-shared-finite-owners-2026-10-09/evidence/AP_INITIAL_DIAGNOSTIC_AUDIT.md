@@ -1,0 +1,9 @@
+# AP initial diagnostic archive audit
+
+Archive `ap-positive-diagnostic-v1.tar.gz` has SHA-256 `a954417718b7de5ec7d4cb96dcf582d0b7029f6238f38b1a73aa48b15f23410f`. I verified all 1,054 regular-file members against the captured manifest, plus all 129 unique target Coma/proof hashes. Recounting the archived proof trees yields 1,075 prover leaves, one null leaf, and zero structural leaves, matching the receipt. The target policy has no exclusions or features, but marks this run `diagnostic=true` and correspondence exit status 2; it is not an admitted correspondence or canonical gate.
+
+The sole null is `vc_finite_shared_scope` in `promotion/finite_shared_scope.coma`, tree path `[0,20]`. I extracted that Coma and proof JSON directly from the immutable archive and independently printed leaf 20 (the leading tree child 0 is the `compute_specified` wrapper). The printer exited 0. The exact input, proof JSON, printed task, stderr, and hashes are saved in `evidence/ap-initial-null-tasks/`.
+
+The task is the creation-loop inventory-preservation obligation: it starts from the old Vec inventory and `made < count`; the callback result is valid/accepted and inserted into the cursor map; Std Vec push gives the new sequence by appending that result; and the counter advances. The goal is that the resulting Vec and updated cursor still satisfy `finite_inventory`. This is one unsolved verifier task, not a solver counterexample or observed runtime failure. Printer stderr contains Why3 plugin Dynlink and parser/axiom warnings, but the printer exit was 0 and the task output is nonempty.
+
+The archive predates canonical correspondence and checker admission. This report establishes its captured contents and null-task provenance only; it does not claim that the diagnostic archive proves the AP gate or corresponds to later source changes.

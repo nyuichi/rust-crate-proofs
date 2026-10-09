@@ -325,3 +325,28 @@ scoped sharing, then exclusive mutation/freeze, API composition and retained
 configuration coverage. This admission does not prove arbitrary counts,
 independently escaping original Clone, panic/unwind/allocator behavior or adequacy
 of the generic TCB. Previous frozen methods and counterexamples remain frozen.
+
+## Astra-guided runtime-variable finite Shared owners — 2026-10-09
+
+AP proves actual Vec creation/drain loops for a runtime owner count after the
+original owner drops. A complete affine ticket inventory supports survivor
+reads and exactly one final payload/control recovery, without a fixed quota.
+The guarded native refcount abort remains; the theorem concerns normal returns.
+
+Canonical evidence passes 130 targets / 1040 prover leaves / zero null or
+structural leaves, all targets included and correspondence zero. Independent
+archive audit checks 1065 members, source63, private Std110, eight tools, four
+actual compiled Cargo artifacts, and replays main35/native76 mutation controls.
+Nine semantic defects produce 15 archived null tasks; four frontend defects
+reject with E0382, E0502/E0505 or the Snapshot Plain-bound E0277. These are
+proof-sensitivity and typing observations, not direct native counterexamples.
+
+Canonical SHA256 a62cfcc22afa2756c56fea1230c3d6845ec3bdf66eaa20bf1779d26da12761d1.
+See verification/probes/original-shared-finite-owners-2026-10-09/evidence/AP_CANONICAL_AUDIT.md.
+Cargo root-output is location-bound to the original external target directory;
+the audit preserves its bytes and does not claim a portable self-contained build.
+Vec storage destruction remains generic Std TCB; the receipts cover Bytes only.
+
+Full original architecture remains NOT ADMITTED. Concurrent/escaping ownership,
+unwind and remaining APIs/configurations are open. Asked Astra「次何するのがいい？」;
+next is actual public Range slicing, nested interior views and empty endpoints.
