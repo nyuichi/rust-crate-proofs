@@ -1,5 +1,46 @@
 # bytes 1.11.1 status
 
+## Astra-guided ownership-preserving cursor closure — 2026-10-09
+
+AR proves reusable read/remaining/chunk/advance contracts for actual Shared and
+Static slice-created Bytes views, without an external ScopeCursor on the access
+or mutation methods. Arbitrary finite valid advances preserve the original
+complete allocation, actual lifetime ticket, identity/fraction, binding and
+native data/vtable. Zero length does not erase Shared ownership: the forced
+final drain still uses the actual Shared vtable Drop, final Acquire and both
+frees. A Static Empty has no ticket and its earlier owner Drop recovers instead.
+
+The complete AQ positive prefix is retained with exactly one private transient
+Vacant declaration; all valid predicates exclude it. All inherited targets are
+reproved. New generic pointer metadata/ghost registration boundaries and an
+exact missing Std slice::is_empty contract are explicit TCB, not Bytes effects.
+
+Canonical v2 passes150 targets /1328 prover leaves /zero null or structural
+leaves, all included, no features/exclusions/diagnostic/source controls, and
+correspondence0. Independent audit checks1312 archive members, production63,
+privateStd110 and eight installed tools; archived main45/native76 controls and
+the four actual Cargo artifacts replay without a live target directory. The
+single-prover1024MiB/sc-drf-off budget and derived configuration are captured.
+Sixteen semantic controls retain61 exactly reprinted failed tasks; three
+frontend controls reject E0382, E0502 and E0277. Free GhostConjure controls show
+resource-condition sensitivity; separate native MIR controls omit each actual
+dealloc call and reject at the exact pinned lineage gate. These are proof/type
+and correspondence sensitivity observations, not executed native counterexamples.
+
+Canonical SHA256 b55677701700979a2b160d1ad7c10a1fe1db2c9b82655520753ac3d1d8b6ccd7.
+See verification/probes/original-bytes-cursor-closure-2026-10-09/evidence/AR_CANONICAL_AUDIT.md.
+V1's missing required AQ Markdown/receipt is preserved as a packaging diagnostic;
+v2 adds the ancestry documents with unchanged150 COMA/proof hashes. The exact
+absolute Cargo root-output remains location-bound; no artifact is rewritten.
+
+Full original architecture remains NOT ADMITTED. Inherited borrow_empty and wrapping_bounded need explicit nonnull premises
+or body-proved exports of the actual NonNull field, with rechecked callers;
+every new AR API caller already requires actual nonnull. This is an interface
+export gap, not evidence of reachable native null metadata. Root cursor
+mutation, general Static/custom-owner representations, general Clone, escaping
+and concurrent ownership, unwind and remaining APIs/configurations remain open.
+Continue the user-directed Astra recommendation/execution loop after publication.
+
 ## Astra-guided nested public Range slices and empty views — 2026-10-09
 
 AQ proves actual public built-in Range slicing twice after original owner Drop,

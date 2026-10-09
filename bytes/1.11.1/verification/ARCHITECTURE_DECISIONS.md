@@ -1372,3 +1372,82 @@ Fresh-hash detached-OUT_DIR capture and stale extractor/control-dispatch issues
 are corrected only in AQ; ancestors and production remain unchanged.
 Canonical SHA256 41e8e9c164a1110c7f611bb1726f490e111c6b10a77af6b57bfc707ce49ceba5. Full original architecture remains NOT ADMITTED.
 The next Astra recommendation is being prepared under the user's ongoing loop.
+
+## D2026-10-09-AR — Ownership-preserving cursor closure
+
+After independently audited AQ publication at
+8449794d8115286c26fda1ff115c7c222e62e660, Astra recommends
+original-bytes-cursor-closure-2026-10-09. The distinguishing premise is that
+actual Buf::advance(remaining()) keeps the Shared vtable and lifetime ticket
+while producing a zero-length one-past view. AQ's slice-created Static Empty
+and selected len-based terminal wrapper must not be generalized to that state.
+
+AR adds a strong API-view predicate allowing owned zero-length Shared views,
+while retaining the complete original allocation/core and all published AQ
+predicates/contracts. Standalone read, remaining and advance contracts use the
+actual ticket/physical borrow and an exact ownership/field frame; they do not
+need a ScopeCursor argument. A runtime-variable sequence of clamped public
+advances demonstrates method composition, and final drain plus Drop must retain
+and retire the real owner even at length zero. Both owned and Static outcomes
+must preserve exact content and account for exactly one original recovery.
+
+In a new copied complete AQ positive prefix, exactly one proof-only enum gains
+a private Vacant variant. Every valid predicate excludes Vacant. Ghost
+mem::replace within an exclusive borrow may temporarily park this variant while
+moving, never copying, the actual affine Child/View proof and reinstalling it.
+No fake Root/Empty resource is used. All inherited targets remain included;
+source correspondence pins this one-declaration transformation explicitly.
+Published ancestors and production remain immutable.
+
+The first bounded frontend prerequisite checks Ghost-only selection between
+same-signature callback specifications. New check(ghost) generic registration
+functions return only a Ghost function specification with exact registered3
+identity and body-proved callback-contract equivalence. Native terminal Drop
+still calls the stored vtable callback exactly once with the original three
+arguments. No length classification, Ghost-to-native branching, assumed Bytes
+Drop effect, resource getter or invented vtable-distinctness law is permitted.
+
+Pointer advancement uses exact native ptr.add. A new cursor_pointer module
+may extend the generic metadata boundary to a zero-offset/non-null case without
+allocation authority, alongside the existing live PhysicalRegion case. Zero
+length does not erase an owned ticket. Atomic orderings, recovery, final Acquire
+and both actual frees remain their body-proved inherited paths. Generic pointer,
+registration, scoped-history and compiler/terminal interpretations remain
+explicit TCB; their adequacy is not proved by Bytes caller VCs.
+
+Capture the frontend prerequisite before full integration. After one captured
+semantic interface failure, make only a concrete strong interface correction
+justified by its exact task. A second failure of that same interface requires
+recorded reassessment, not assertion tuning, weaker allocation/content laws,
+nonempty-only fallback, fixed IDs or a trusted ownership effect. Native MIR,
+source/build/compiled-input correspondence, distinguishing semantic/type controls
+and independent final archive replay gate publication. Root/promotable cursor
+mutation, general Clone/escaping concurrency/unwind, other APIs and configuration
+coverage remain open. Full original architecture remains NOT ADMITTED.
+
+AR first full diagnostic proves all ownership, frame, pointer, read and advance
+body targets (150 targets, 1373 proved leaves, one null). The sole client null
+is the impossible precondition generated for native slice::is_empty, absent
+from the pinned Std external contracts. Preserve that exact native call and
+add a probe-local generic extern_spec: result iff the slice model length is
+zero, with the same check(ghost) discipline as Std's adjacent slice::len.
+This is an explicit standard-library specification boundary, not a Bytes law;
+remove the local declaration when the pinned Std provides the equivalent
+contract. The original diagnostic, source and exact failed task remain
+immutable. No ownership/content/frame postcondition is weakened.
+
+AR completed audit result: canonical v2 all150 targets/1328 prover leaves/0 null
+and structural leaves, main45/native76 controls, semantic16 with61 exact tasks
+and frontend3 E0382/E0502/E0277, independently replayed. Actual Cargo four-file
+record join and full inherited source closure are admitting gates. V1 packaging
+omitted the required AQ audit Markdown and archive receipt; immutable v2 adds
+these without changing any COMA/proof hashes. The nested-tactic task-printer and
+control-construction/routing errors remain distinct diagnostic histories.
+Inherited borrow_empty nonnull adequacy remains a full-admission obligation;
+new AR callers explicitly satisfy it. Full original architecture NOT ADMITTED.
+
+Post-audit read-only review records wrapping_bounded's corresponding unbound/
+count-zero nonnull export gap as well as borrow_empty. BoundPtr physically
+contains NonNull<u8>; no reachable native null defect is inferred. Next repair
+must export this real field/Std fact or add explicit nonnull premises, not
+assume a new pointer axiom. Reprove all inherited callers in a new copied gate.
