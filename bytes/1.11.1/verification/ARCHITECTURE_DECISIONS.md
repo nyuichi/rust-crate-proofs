@@ -1120,3 +1120,65 @@ Normal completion only; allocator/to_vec unwind, abort, generaltermination,
 concurrent losers, escaping/generalClone and otherAPIs/configurations remain
 open. Full original architecture is NOT ADMITTED. Asked Astra again exactly
 「次何するのがいい？」 after canonical work; nextimplementation followspublication.
+
+## D2026-10-09-AN — Reclone the already-promoted original handle
+
+After AM publication at ae7b7e5124c064d2e686ad1a9fb20d52e5c2b795,
+Astra directs a separate original-promotable-reclone-2026-10-09 probe. AL and
+AM remain unchanged. The selected nonempty Box client creates the original,
+first clones it through Raw-to-Shared promotion, then clones the same original
+through the native promotable callback's existing-ARC branch. Lexical scope
+exit drops the second then first child, reads the surviving original, saves
+the return Vec, and normally drops the original.
+
+The changed premise is a paired Shared phase retaining the root's actual
+AtomicPtr owned history and post-publication view. A body-proved Acquire helper
+takes an erased Snapshot expected value; no Ghost pointer is converted to a
+native argument. Its visible-history precondition rules out reading the old
+tagged word. The subsequent actual Relaxed increment uses the existing scoped
+field event and body-proved State::on_register. The contract exports fresh
+returned-ticket insertion into the complete ledger, without fixed IDs or a
+ticket quota. The second clone performs no control allocation or pointer CAS.
+Only its new child pointer field receives a readonly binding. The original
+retains the promotable vtable and its owned old/new pointer history.
+
+The root's current view may advance at Acquire. A new Boolean frame preserves
+the owned history and expresses monotone current; it does not reuse the old
+same_pointer_owner predicate requiring current equality, or return a resource.
+Root core, descriptor, strong content/physical invariant and cursor identities
+remain preserved. The two Shared-phase callback registrations are new instances
+of the existing source-checked generic erasure boundary; no bytes ownership,
+successful increment or last-owner law becomes trusted.
+
+Required controls distinguish raw-branch misuse, discarded publication view,
+missing registration/store or ledger insertion, stale readonly resealing,
+omitted child retirement, duplicate/early terminal consumption, final Acquire
+and both frees. The main checker must close complete source surfaces, literal
+routes and compiled input receipts, including the reviewed production input
+manifest established in AM. Normal completion only; overflow abort, unwind,
+concurrent promotion losers, arbitrary concurrent closure and the rest of the
+API remain outside this increment. Two failures of the same semantic interface
+require reassessment, not weakened contracts. Full original architecture is
+NOT ADMITTED; no proof claim is made by this pre-experiment decision.
+
+
+AN restored canonical gate passes120/914/0 with complete120 target inventory,
+no features/exclusions/diagnostic and independent correspondence0. Initial
+body failure120/988/2 exposed missing child-cursor model identity export;
+adding body-proved child.accepts(finalcursor) fixed it without weaker posts or
+new trust. Wrong branch/reset view/omitted registration/three omitted Drops/
+swapped child identity/missing Acquire/two missing frees produce real nulls
+2/4/2/1/1/1/1/2/2/2; paired retained Shared targets are not independent defects.
+Five compiler controls give threeE0382, E0505/E0502 and owned extractionE0507.
+All inputs/exact tasks are archived. Main49/native52 controls reject, including
+external pointer-event false contracts and macro override with refreshed hashes.
+Ten support imports and reviewed checker source digests are pinned;
+actual generated record, fingerprint, output and root-output bytes are captured.
+Frontendv1 cached-status metadata flaw inherited fromAM is preserved/disclosed;
+newv2 archives exclude actual.why3find caches and have no stale solver artifacts.
+Canonicalarchive7181ae4c07997888e1af1dfad41fdb109a489b4ca101e1dd972c9b6d4d13843e
+has875 members inclprivateStd110; independent archive audit gates publication.
+Normal-only closed3owner scope, explicit genericTCB and fullNOTADMITTED remain.
+Asked Astra again exactly「次何するのがいい？」 after canonical completion;
+nextimplementation follows independent audit and publication, never a silent
+reduction of original API/configuration/concurrency/unwind obligations.

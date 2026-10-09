@@ -48,7 +48,18 @@ and native32 structural controls reject, with six semantic/four type captures.
 These are explicitly conditional generic terminal/compiler/physical boundaries,
 not a standalone arbitrary Bytes Drop interpretation.
 
-Repeated/promoted-root cloning, arbitrary concurrent closure/escaping clones and
+AN now establishes one promoted-root re-clone through the actual existing ARC
+branch, fresh Relaxed registration and three normal terminal Drops (120/914/0).
+Snapshot expected values stay erased; owned root history is preserved with a
+monotone view. Strong child-final-cursor acceptance closes the actual first
+interface failure. Main49/native52 controls, ten semantic and five frontend
+captures distinguish exact selected behavior. Imported-proof-source pinning,
+pre-import checker digests and actual four-file Cargo captures close concrete
+draft checker gaps. Immutable earlier frontend cache metadata discrepancies
+are disclosed; corrected v2 snapshots exclude caches. Full arbitrary ownership
+architecture is not admitted by this closed three-owner client.
+
+Arbitrary promoted-root cloning, concurrent closure/escaping clones and
 remaining API/configuration coverage remain open. The original full
 target is unchanged. Continue consulting Astra after each audited/published
 increment and execute the next concrete step.

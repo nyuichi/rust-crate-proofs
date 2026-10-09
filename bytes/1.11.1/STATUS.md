@@ -1,5 +1,40 @@
 # bytes 1.11.1 status
 
+## Astra-guided promoted-root re-clone and three normal Drops — 2026-10-09
+
+AN connects a second actual Clone of the original promotable Bytes to the
+existing Shared branch. A body-proved Snapshot-based helper observes the
+native Acquire load; guarded Relaxed increment/on_register issues a fresh
+actual ledger ticket. The root retains its owned pointer history while its
+current view may advance. Second child, first child and root retire at exact
+normal lexical/return Drop places, with a readable root and saved Vec return.
+
+Canonical gate passes120 files/914 prover leaves/zero null or structural leaves,
+all120 targets included, no defect features/exclusions/diagnostic, independent
+correspondence0. Main49/49 and native52/52 structural controls reject; ten
+semantic controls leave2/4/2/1/1/1/1/2/2/2 nulls, and five frontend controls
+reject duplicate/live-borrow/owned-permission extraction before proof. Failed
+interfaces and exact archived null tasks remain preserved. The only strong
+interface fix exports the actual returned child's final-cursor acceptance;
+no ownership/refcount/last-owner/destructor law was newly trusted.
+
+Review closed draft external-proof-contract and compiled-input-capture holes.
+Ten imported modules and reviewed checker digests are pinned, and all four
+actual Cargo build artifacts are archived. Frontend v2 snapshots exclude old
+solver caches; the inherited AN/AM v1 cache-exclusion metadata discrepancy is
+recorded without modifying their immutable archives.
+
+Canonical archive SHA2567181ae4c07997888e1af1dfad41fdb109a489b4ca101e1dd972c9b6d4d13843e
+has875 hashed members, including privateStd110, actual compiled inputs and all
+120 proof trees. Evidence is in
+`verification/probes/original-promotable-reclone-2026-10-09/`.
+Independent archive audit gates publication. This is a closed three-owner,
+nonempty Box, both-parity, normal-return prerequisite under explicit generic
+TCB. Arbitrary clone trees/escaping owners, concurrency, unwind and remaining
+APIs/configurations stay open; full original architecture is NOT ADMITTED.
+Asked Astra「次何するのがいい？」; implement the next recommendation after
+this increment's audit and publication.
+
 ## Astra-guided first promotion normal automatic Drop — archived label 2026-10-09
 
 AM connects AL's actual first-promotion ownership transition to normal native

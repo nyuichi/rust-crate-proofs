@@ -1,0 +1,103 @@
+{
+  "schema": "an-diagnostic-archive-audit-v1",
+  "auditor_scope": "Read-only archive closure, proof-tree statistics and null-task sidecar replay; no prover/build or source edits.",
+  "archives": {
+    "an-positive-infrastructure-v1": {
+      "sha256": "006013372c3bfb33a0e0f6208aea0494ffc569d927dbbcf377059ff984625965",
+      "members_verified": 6239,
+      "proof_statistics": {
+        "files": 0,
+        "prover": 0,
+        "null": 0,
+        "structural": 0
+      },
+      "target_coma_count": 120,
+      "missing_proof_targets": 120,
+      "root_probe_why3find_json_in_archive": false,
+      "classification": "Infrastructure failure before any proof goal: captured log shows compilation completed, then why3find exited because the probe-root why3find.json was missing. This is not evidence of a body-level proof failure."
+    },
+    "an-positive-diagnostic-v2": {
+      "sha256": "d15bc8cf1a1195fb3dc45d8a0afa0e98fb7671a1a03b6999fc71057dfcc20c5f",
+      "members_verified": 7227,
+      "proof_statistics": {
+        "files": 120,
+        "prover": 988,
+        "null": 2,
+        "structural": 0
+      },
+      "target_coma_count": 120,
+      "missing_proof_targets": 0,
+      "target_policy": {
+        "included_all_120_captured_coma": true,
+        "excluded": {},
+        "features": [],
+        "terminal_feature": "",
+        "diagnostic": true,
+        "correspondence_exit_status": 2
+      },
+      "run_log_goal_summaries": [
+        "vc_even_reclone_checked: 38/39; one null leaf",
+        "vc_odd_reclone_checked: 38/39; one null leaf",
+        "2 unproved files"
+      ],
+      "null_paths": {
+        "vc_even_reclone_checked": {
+          "proof_tree": [
+            0,
+            17,
+            1
+          ],
+          "printer_cli_path": "17,1"
+        },
+        "vc_odd_reclone_checked": {
+          "proof_tree": [
+            0,
+            17,
+            1
+          ],
+          "printer_cli_path": "17,1"
+        }
+      },
+      "interpretation": "Both leaves belong to the full reclone_result goal following shallow_clone_arc_checked. The helper contract proved child validity/content/public and cursor model/public preservation and updated observation, but omitted the relation that the returned Child proof accepts the final cursor; this is the missing link needed by result.child_accepts(after). These are two proof obligations showing that interface gap, not a global bytes theorem counterexample."
+    },
+    "an-positive-diagnostic-v3-comparison": {
+      "sha256": "af4b16fd872cbcb7ded107dfd13f2a4d033e7022a621e728953ccd69eafbeeb3",
+      "members_verified": 7236,
+      "proof_statistics": {
+        "files": 120,
+        "prover": 914,
+        "null": 0,
+        "structural": 0
+      },
+      "target_policy": {
+        "features": [],
+        "excluded": {},
+        "terminal_feature": "",
+        "diagnostic": true,
+        "correspondence_exit_status": 2
+      },
+      "positive_proof_source_difference_from_v2": "The v2->v3 diff of generated/active.rs and src/reclone_extension.rs adds only this postcondition to shallow_clone_arc_checked: match returned original_shared; for Child(p), p.core.accepts(^input cursor), otherwise false. The generator/script also adds a readonly_reseal negative feature; it is not enabled by the positive policy. No resource getter was introduced and no new generic TCB body was added by the positive fix.",
+      "classification": "Separate diagnostic: all 120 target files have no nulls, but correspondence remains status 2/NotRun; not an admitted gate."
+    }
+  },
+  "null_sidecars": {
+    "metadata_sha256": "635c3705109fa2337d80961512b3531bf9292709aa74868bd2e2cacf720c8618",
+    "bound_archive_sha256": "d15bc8cf1a1195fb3dc45d8a0afa0e98fb7671a1a03b6999fc71057dfcc20c5f",
+    "sidecar_hashes_verified": 4,
+    "printer_source_sha256": "114ef792a57af1c20b88236a03a1a7b70468c2f667ef2dea59f9c95d3c70eca6",
+    "printer_binary_sha256": "0c8e66088fb35a583755480ffa7e271307b3b1f4838851d3d5a40b80a7718a52",
+    "archive_coma_replay": {
+      "command_goal_path": "17,1 (the proof-tree path includes compute_specified at index 0; printer receives only subsequent split indices)",
+      "even_stdout_matches_sidecar": true,
+      "even_stdout_sha256": "a74b81f780c8f60cced8f824d59bbf655b8522b1a4a054e99b3dd61599cc0a9e",
+      "odd_stdout_matches_sidecar": true,
+      "odd_stdout_sha256": "33ed6eb0c91ad51f38d8dd2a6c8e2dbf141b14f5fbd5757b5ed5881eebd2ddc1",
+      "exit_status_each": 0,
+      "stderr_note": "Why3 plugin dynamic-load warnings were present, but printer exit status was 0 and both stdout byte streams matched exactly."
+    }
+  },
+  "limitations": [
+    "v2 and v3 remain diagnostic captures; checker correspondence status 2 prevents admission.",
+    "No solver/prover or native build was invoked during this audit."
+  ]
+}
