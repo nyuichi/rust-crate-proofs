@@ -1,5 +1,30 @@
 # bytes 1.11.1 status
 
+## Astra-guided actual Shared closed client — archived label 2026-10-09
+
+AI connects AH's affine observation cursor to actual Shared Bytes fields,
+selected native construction, Clone(&self), vtable callbacks, a borrowed slice
+held across peer cleanup, and final explicit consuming cleanup. The cursor stays
+outside the Bytes proof sidecar and uses the unchanged three-native-argument
+erasure interface. Cleanup returns an erased KeptAlive/Reclaimed channel; genuine
+Reclaimed evidence contains separate buffer/control free receipts. Bytes-specific
+issuance, release, lastness, Acquire recovery and completion remain body proved.
+
+The restored positive gate proves 75 files / 433 actual prover leaves /
+zero nulls, no excluded targets or features. The exact native public client
+passes five input cases. 72 independent structural controls reject.
+Missing Acquire, missing either free and an additional unretired owner each
+reject one semantic leaf; failed inputs/results and printed tasks are retained.
+Independent archive/source/checker audit and canonical receipts are recorded in
+`verification/probes/original-shared-scoped-client-2026-10-09/`.
+
+This is one normal-return, noninterfering Shared client with a len<capacity input
+premise, not automatic Bytes Drop, arbitrary concurrent closure, promotable
+lifecycle or whole-crate completion. Native From remains unrestricted; the
+separate all-domain constructor gate remains intact. Existing generic field,
+physical effect and callback/ghost correspondence TCB is explicit. The original
+architecture remains NOT ADMITTED until the remaining boundaries are handled.
+
 ## Astra-guided complete issuance prerequisite — archived label 2026-10-09
 
 A fresh closed protocol client now body proves exhaustive issuance and final

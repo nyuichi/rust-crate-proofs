@@ -10,12 +10,18 @@ closed-history premise: an erased affine pure-observation cursor and complete
 fresh protocol client prove final synchronized recovery (38/219/0). The old
 unscoped sparse driver remains unproved and its counterexample unchanged.
 
-AH's driver exclusion/interface checker and generic event/native interpretation
-are explicit TCB. Actual Shared constructor/Clone/cleanup ghost-channel mapping,
-real Bytes automatic Drop, promotable promotion/lifecycle and remaining API and
-configuration coverage are still open. None of these prerequisite witnesses
-silently reduces the original full verification target. Continue by consulting
-Astra after validated increments and implementing the next concrete step.
+AI now connects the closed cursor to one actual Shared construction/Clone/read/
+explicit-cleanup client, including a live slice across peer retirement and two
+actual final frees. The restored gate proves 75/433/0, all72 structural controls
+reject, and four semantic defect controls each leave one unproved leaf. Native
+execution passes five inputs; exact source/native-shadow correspondence and
+physical/event/erasure primitives remain explicit generic TCB. This is selected
+normal-return len<capacity evidence, not a new unrestricted trait refinement.
+
+Actual Bytes automatic Drop, promotable promotion/lifecycle, arbitrary concurrent
+closure and remaining API/configuration coverage remain open. The original full
+target is unchanged. Continue consulting Astra after each audited/published
+increment and execute the next concrete step.
 
 ## Current original-API assessment — 2026-10-08 UTC
 

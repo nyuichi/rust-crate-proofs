@@ -866,3 +866,54 @@ protocol client passes separately. Actual Bytes ghost-channel source mapping
 remain separate prerequisites; independent final2 archive audit passes all 762
 regular members, 38 tasks and 110 private Std inputs; do not turn
 this closed protocol witness into arbitrary concurrent/full-crate admission.
+
+## D2026-10-09-AI — Actual Shared closed-client ghost channel
+
+After independently audited/published AH (4d809085), Astra recommends applying
+that cursor to one actual Shared Bytes normal-return client. Native From and
+Clone(&self) remain unchanged. The checked constructor shadow returns Bytes plus
+an erased cursor, consuming its single initialized State at a distinct scoped
+field binding. Only the invariant descriptor remains inside the proof sidecar.
+Clone and cleanup thread the separate cursor through the existing three-native-
+argument vtable erasure interface, bundling extra Ghost inputs; no new native
+callback result ABI is introduced. Existing unscoped adapters cannot accept the
+new scoped descriptor. The client alone requires len<capacity; the unrestricted
+From refinements and representation-sum constructor gate remain untouched.
+
+A cleanup output channel starts None and returns KeptAlive or Reclaimed. A genuine
+deallocation receipt cannot be a ghost flag that survives omission of a free.
+Copied generic physical/typed-free boundaries return opaque affine receipts with
+precise allocation/pointer/layout identification; typed zero-sized disposal is
+distinct from a real allocation free. Their primitive adequacy remains physical
+TCB. Body-proved free_recovered calls both boundaries and returns their pair;
+Reclaimed contains that pair. No bytes-specific last-owner, completion or
+recovery law is trusted. Release, actual Acquire, full token recovery and both
+frees remain body/source obligations.
+
+Experiment `probes/original-shared-scoped-client-2026-10-09` must prove content,
+exhaustive returned-ticket updates, sparse parent-early retirement and exactly
+one reclamation receipt. Independently reconstruct actual constructor/trait/
+vtable targets, cursor/result channels, native operation order and free/drop
+suppression correspondence. Reject escape, forgotten/unretired owners, unknown
+callbacks, threads/raw aliases and unscoped events. Retain wrong cursor, omitted
+event/Acquire/free and duplicate cleanup controls, distinguishing typing,
+correspondence and VC failures. Actual automatic Bytes Drop is outside this
+increment and must later connect to AG's native MIR effect elaboration. No broad
+API expansion before this actual-source admission succeeds. Preserve failed
+artifacts and the existing two/three-failure restructuring budget.
+
+AI result: restored canonical replay proves 75 files / 433 actual prover leaves / zero nulls, no excluded targets/features. Exact native public client passes five inputs.
+The independently reconstructed source/helper/native-harness correspondence and
+72 structural controls pass, including exact selected constructor branch,
+Shared destructor/no-drop field profile, full native/helper operation bodies,
+wrong/omitted cursor and effects, extra owner/events, hidden trusted false summary
+and false driver premise. Missing Acquire, each missing free, and an unretired
+owner each reject one semantic leaf; exact failed captures and normalized tasks
+are retained. The buffer-free control normalizes its false receipt-construction
+precondition to not inv_Atomic_usize; record rejection sensitivity rather than a
+separate buffer-receipt theorem. Generic typed receipt means raw storage ownership
+consumption, not execution of T::drop. Native helper signatures and production
+source remain unchanged; historical narrowed From refinement is not used here.
+Canonical evidence/audit in the probe directory records immutable source/task/
+private-Std/config/native-log inputs. Automatic Drop and the original full target
+remain open. Next ask Astra and continue; do not relabel this as full admission.

@@ -1,0 +1,122 @@
+{
+  "audit_status": "PASS for the archived, scoped Shared-client evidence; this is not full Bytes admission",
+  "audit_mode": "read-only archive/source audit; no proof solver or native test was rerun",
+  "canonical_archive": {
+    "label": "shared-positive-final1-2026-10-09",
+    "sha256": "d6805a6df563c5e1fad30dcac0519d46f6e8a0d24d3ad4de215ce6381b0e89ba",
+    "members": 995,
+    "all_member_paths_unique": true,
+    "all_member_hashes_verified": true,
+    "all_995_members_match_captured_current_inputs": true,
+    "member_groups": {
+      "probe": 788,
+      "repository_inputs": 90,
+      "private_std": 110,
+      "tool_inputs": 6,
+      "proof_run_log": 1
+    },
+    "required_private_std_cargo_patch_tool_config_activation_manifests_and_native_log_present": true
+  },
+  "proof_receipt": {
+    "status": "proved",
+    "selected_files": 75,
+    "prover_leaves": 433,
+    "null_leaves": 0,
+    "structural_leaves": 0,
+    "excluded_targets": {},
+    "features": [],
+    "correspondence_exit_status": 0,
+    "diagnostic": false,
+    "all_coma_and_proof_hashes_verified": true,
+    "run_log_ends": "Proved (75 files)"
+  },
+  "independent_correspondence_replay": {
+    "checker_sha256": "decb502490fdd1c534e02b5ac0798b070eeb8ed7be4d6aa1779e05cee5e08bb7",
+    "status": "correspondence_pass",
+    "proof_shadow_source_sha256": "2898c269bd83ab383db1f81fabd9807d9c52133a6792c5ad0c767555a5bb807a",
+    "selected_helper_body_matches": [
+      "original_shared_from_vec",
+      "original_shared_as_slice",
+      "shared_clone_checked",
+      "shared_drop_checked",
+      "free_recovered"
+    ],
+    "archived_positive_v1_source_body_comparison": "all five reviewed helper token bodies and the full public_shared.rs SHA match immutable diagnostic-v1 source",
+    "portable_replay": "reconstructed repository-relative tree from archive and remapped only temporary native harness absolute paths per README; checker passed",
+    "checker_controls": {
+      "status": "controls_pass",
+      "count": 72,
+      "all_rejected": true,
+      "prover_invoked": false
+    }
+  },
+  "native_capture": {
+    "rustc": "1.98.0-nightly (91fe22da8 2026-06-21)",
+    "cargo": "1.98.0-nightly (a595d0da2 2026-06-20)",
+    "result": "actual public Shared native client: 5 inputs passed",
+    "lengths": [
+      0,
+      1,
+      7,
+      63,
+      1024
+    ],
+    "input_capacity_slack": 19,
+    "observed": "output bytes equal the input for each case",
+    "note": "Captured run log was hashed and inspected; this audit did not rerun the native harness."
+  },
+  "source_correspondence_review": {
+    "native_client": "Bytes::from(Vec), two Clone calls, explicit cleanup, AsRef slice borrow, peer cleanup while borrowed, copy to Vec, final cleanup; all handles retired on normal return",
+    "constructor": "exact production From<Vec> body binds spare-capacity branch to Shared fields, initial refcount 1, and SHARED_VTABLE; proof helper body is fixed by the archived token fixture",
+    "clone_cleanup": "selected vtable/helper chain and exact production source bodies checked; Release decrement then Acquire load then cleanup",
+    "free": "two raw frees (payload then control); Shared fields and Shared::drop body are exact-checked, with AtomicUsize needs_drop guard and no extra Shared drop glue",
+    "actual_allocation": "proof constructor uses Box<Shared> and its pointer, with ghost permission sidecars; not a separate pure Box observer",
+    "scope": "one closed len < capacity client, explicit cleanup, normal return"
+  },
+  "trusted_boundaries": [
+    "private Std and pinned proof toolchain semantics",
+    "generic scoped atomic-field model/bind/event correspondence and no untracked interference/reentrancy",
+    "pointer/provenance, RawVec physical capability, Box alignment and slice/free projection adapters",
+    "generic typed storage-free receipt; it consumes allocation ownership and does not execute T::drop",
+    "generic registered three-argument native callback reification and Ghost erasure",
+    "the two Bytes-specific trusted registrations linking the selected SHARED_VTABLE callbacks to proof shims"
+  ],
+  "scope_limits": [
+    "conditional on Vec length being less than capacity; unrestricted From refinement remains separate",
+    "does not prove arbitrary client traces or concurrent histories",
+    "does not prove implicit Bytes::drop, unwinding, or all Bytes representations",
+    "does not prove native MIR/codegen or Ghost-erasure correspondence beyond the explicit TCB",
+    "not a complete crate-wide Bytes verification"
+  ],
+  "semantic_negative_sidecars": {
+    "separate_from_positive_archive": true,
+    "archive_hashes_and_single_null_paths_verified": true,
+    "missing_acquire": {
+      "archive_sha256": "44fc9f9a56fa35ee60c809b290d5ab263e73f0139d97f9e5f94702df37da3e95",
+      "counts": "75/460/1",
+      "null": "public_shared/shared_drop_checked::vc_shared_drop_checked"
+    },
+    "missing_payload_free": {
+      "archive_sha256": "b4cc1b3a7fadf1a0aebdea83f184437ff47d6916393949bb94598ccdb668b7ba",
+      "counts": "75/439/1",
+      "null": "public_shared/free_recovered::vc_free_recovered",
+      "caveat": "printed null goal is not inv_Atomic_usize(Shared.ref_cnt), not a direct FreeReceipt predicate"
+    },
+    "missing_control_free": {
+      "archive_sha256": "e7cd27a73e0a1d88bf8e56669c92f44c8c7e5b20ee997c8682c1bc96dea6fde6",
+      "counts": "75/441/1",
+      "null": "public_shared/free_recovered::vc_free_recovered",
+      "caveat": "archived correspondence.json is empty; checker exited 1 during interface mismatch, so no structured correspondence rejection is claimed"
+    },
+    "unretired_extra_owner": {
+      "archive_sha256": "7867ac38dc08096eac4a12d563ccaabda05cc470e8bba0f42c1c4aff2fbab504",
+      "counts": "75/449/1",
+      "null": "public_shared/actual_public_shared_driver::vc_actual_public_shared_driver"
+    }
+  },
+  "reproduction_notes": [
+    "The archive omits generated .proof-config/creusot/why3.conf; run-proof.sh derives it from the captured Why3 config and sets the 1024 MiB limit.",
+    "Tool binaries are not embedded; the archive captures installation versions, source revisions and binary hashes. Restore the pinned tool environment to rerun proofs.",
+    "The Cargo patch and activation scripts use /workspace paths; README describes remapping these paths for a different replay root."
+  ]
+}
