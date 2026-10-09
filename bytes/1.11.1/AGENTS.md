@@ -58,3 +58,29 @@ permission extraction for weak atomics) remain rejected. Bytes-specific clone,
 refcount, last-owner or destructor laws remain body-proof obligations. This
 changed premise permits a new restricted generic interface; it does not reopen
 unchanged failed routes or authorize replacement public buffer APIs.
+
+## Proof-first validation budget — user direction 2026-10-09
+
+The user also directed that handoff and orchestration use Sol. Use the Sol
+model family for those duties; consult Astra for difficult architecture choices
+and the next-step recommendation after a completed increment. Carry both this
+routing and the validation budget into every handoff.
+
+The user explicitly requested recording this workflow to prevent repeated,
+expensive negative-case experimentation from displacing proof implementation.
+Normally write strong contracts, prove the implementation, and continue.
+Negative controls are selective checks for a new trusted boundary, ownership
+mechanism, source/compiler correspondence checker, or a concrete suspected
+specification gap; they are not mandatory for every contract or proof change.
+
+Before adding a negative control, state the specific gap it tests and check
+whether unchanged archived evidence already covers it. Run only affected proof
+targets for diagnostic controls; record any excluded targets explicitly and
+never present that run as full verification. Reuse unchanged audited controls.
+Do not repeatedly prove all inherited targets for each negative case. Run the
+complete applicable positive proof for a validated increment, and repeat it only
+after a relevant change or unresolved failure. Preserve source correspondence,
+strong ownership/content contracts, exact failure evidence and honest TCB scope.
+Negative-case rejection supplements these proofs; it does not establish their
+soundness or replace the positive proof. This user direction supersedes older
+probe-specific plans requiring broad negative suites on every increment.
