@@ -1,0 +1,56 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 1845 0 1845 57 *)
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 34 8 34 21
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 22 8 22 20
+let%span swell_founded = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/well_founded.rs" 43 8 43 33
+let%span spromotion = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 1844 10 1844 15
+let%span spromotion'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 1842 11 1842 56
+let%span spromotion'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 1843 10 1843 39
+
+use creusot.int.UInt64
+use seq.Seq
+use int.Int
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] ge_log_Int self 0 /\ gt_log_Int self other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant steps : Seq.seq UInt64.t
+
+constant count : int
+
+constant capacity : int
+
+function consumed [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 1845 0 1845 57] (steps: Seq.seq UInt64.t) (count: int) (capacity: int) : int
+
+goal vc_consumed: ([%#spromotion'0] 0 <= count /\ count <= Seq.length steps /\ 0 <= capacity)
+  -> (if count = 0 then
+    let result = 0 in [@stop_split] [@expl:consumed ensures] [%#spromotion'1] 0 <= result /\ result <= capacity
+  else
+    (([@stop_split] [@expl:consumed requires] [%#spromotion'0] 0 <= count - 1
+        /\ count - 1 <= Seq.length steps /\ 0 <= capacity)
+      /\ ([@expl:variant decreases] well_founded_relation_Int ([%#spromotion] count) ([%#spromotion] count - 1)))
+    /\ (([@stop_split] [@expl:consumed ensures] [%#spromotion'1] 0 <= consumed steps (count - 1) capacity
+      /\ consumed steps (count - 1) capacity <= capacity)
+    -> (let previous = consumed steps (count - 1) capacity in if previous + UInt64.t'int (Seq.get steps (count - 1))
+    <= capacity then
+      let result = previous
+      + UInt64.t'int (Seq.get steps (count - 1)) in [@stop_split] [@expl:consumed ensures] [%#spromotion'1] 0 <= result
+      /\ result <= capacity
+    else
+      let result = capacity in [@stop_split] [@expl:consumed ensures] [%#spromotion'1] 0 <= result /\ result <= capacity
+    ))
+  )

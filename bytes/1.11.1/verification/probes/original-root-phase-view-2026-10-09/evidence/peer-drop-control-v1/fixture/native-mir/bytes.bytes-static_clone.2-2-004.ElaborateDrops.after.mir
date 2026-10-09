@@ -1,0 +1,37 @@
+// MIR for `bytes::static_clone` after ElaborateDrops
+
+fn static_clone(_1: &Atomic<*mut ()>, _2: *const u8, _3: usize) -> bytes::Bytes {
+    debug ptr => _2;
+    debug len => _3;
+    let mut _0: bytes::Bytes;
+    let _4: &[u8];
+    let mut _5: *const u8;
+    let mut _6: usize;
+    let mut _7: &[u8];
+    scope 1 {
+        debug slice => _4;
+    }
+
+    bb0: {
+        StorageLive(_4);
+        StorageLive(_5);
+        _5 = copy _2;
+        StorageLive(_6);
+        _6 = copy _3;
+        _4 = core::slice::from_raw_parts::<'_, u8>(move _5, move _6) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_6);
+        StorageDead(_5);
+        StorageLive(_7);
+        _7 = &'_ (*_4);
+        _0 = bytes::Bytes::from_static(move _7) -> [return: bb2, unwind continue];
+    }
+
+    bb2: {
+        StorageDead(_7);
+        StorageDead(_4);
+        return;
+    }
+}

@@ -1,0 +1,272 @@
+#[cfg(feature = "nightly")]
+use crate::logic::ops::IndexLogic;
+#[cfg(creusot)]
+use crate::{invariant::inv, resolve::structural_resolve};
+use crate::{prelude::*, std::iter::ExactSizeIteratorSpec};
+
+#[cfg(feature = "nightly")]
+use std::alloc::Allocator;
+#[cfg(feature = "nightly")]
+use std::collections::VecDeque;
+use std::collections::vec_deque::Iter;
+#[cfg(creusot)]
+use std::ops::{Index, IndexMut};
+
+#[cfg(feature = "nightly")]
+impl<T, A: Allocator> View for VecDeque<T, A> {
+    type ViewTy = Seq<T>;
+
+    #[trusted]
+    #[logic(opaque)]
+    #[ensures(result.len() <= usize::MAX@)]
+    fn view(self) -> Seq<T> {
+        dead
+    }
+}
+
+#[cfg(feature = "nightly")]
+impl<T: DeepModel, A: Allocator> DeepModel for VecDeque<T, A> {
+    type DeepModelTy = Seq<T::DeepModelTy>;
+
+    #[trusted]
+    #[logic(opaque)]
+    #[ensures(self.view().len() == result.len())]
+    #[ensures(forall<i> 0 <= i && i < self.view().len()
+              ==> result[i] == self[i].deep_model())]
+    fn deep_model(self) -> Self::DeepModelTy {
+        dead
+    }
+}
+
+#[cfg(feature = "nightly")]
+impl<T, A: Allocator> IndexLogic<Int> for VecDeque<T, A> {
+    type Item = T;
+
+    #[logic(open, inline)]
+    fn index_logic(self, ix: Int) -> Self::Item {
+        pearlite! { self@[ix] }
+    }
+}
+
+#[cfg(feature = "nightly")]
+impl<T, A: Allocator> IndexLogic<usize> for VecDeque<T, A> {
+    type Item = T;
+
+    #[logic(open, inline)]
+    fn index_logic(self, ix: usize) -> Self::Item {
+        pearlite! { self@[ix@] }
+    }
+}
+
+#[cfg(feature = "nightly")]
+impl<T, A: Allocator> Resolve for VecDeque<T, A> {
+    #[logic(open, prophetic, inline)]
+    #[creusot::trusted_trivial_if_param_trivial]
+    fn resolve(self) -> bool {
+        pearlite! { forall<i> 0 <= i && i < self@.len() ==> resolve(self[i]) }
+    }
+
+    #[trusted]
+    #[logic(prophetic)]
+    #[requires(structural_resolve(self))]
+    #[ensures(self.resolve())]
+    fn resolve_coherence(self) {}
+}
+
+#[cfg(feature = "nightly")]
+impl<T, A: Allocator> Invariant for VecDeque<T, A> {
+    #[logic(open, prophetic)]
+    #[creusot::trusted_trivial_if_param_trivial]
+    fn invariant(self) -> bool {
+        pearlite! { inv(self@) }
+    }
+}
+
+extern_spec! {
+    impl<T> VecDeque<T> {
+        #[check(ghost)]
+        #[ensures(result@.len() == 0)]
+        fn new() -> Self;
+
+        #[check(terminates)] // can OOM
+        #[ensures(result@.len() == 0)]
+        fn with_capacity(capacity: usize) -> Self;
+    }
+
+    impl<T, A: Allocator> VecDeque<T, A> {
+        #[check(ghost)]
+        #[ensures(result@ == self@.len())]
+        fn len(&self) -> usize;
+
+        #[check(ghost)]
+        #[ensures(result == (self@.len() == 0))]
+        fn is_empty(&self) -> bool;
+
+        #[check(ghost)]
+        #[ensures((^self)@.len() == 0)]
+        fn clear(&mut self);
+
+        #[check(ghost)]
+        #[ensures(match result {
+            Some(t) =>
+                (^self)@ == self@.subsequence(1, self@.len()) &&
+                self@ == (^self)@.push_front(t),
+            None => *self == ^self && self@.len() == 0
+        })]
+        fn pop_front(&mut self) -> Option<T>;
+
+        #[check(ghost)]
+        #[ensures(match result {
+            Some(t) =>
+                (^self)@ == self@.subsequence(0, self@.len() - 1) &&
+                self@ == (^self)@.push_back(t),
+            None => *self == ^self && self@.len() == 0
+        })]
+        fn pop_back(&mut self) -> Option<T>;
+
+        #[check(terminates)] // can OOM
+        #[ensures((^self)@.len() == self@.len() + 1)]
+        #[ensures((^self)@ == self@.push_front(value))]
+        fn push_front(&mut self, value: T);
+
+        #[check(terminates)] // can OOM
+        #[ensures((^self)@ == self@.push_back(value))]
+        fn push_back(&mut self, value: T);
+    }
+
+    impl<T, A: Allocator> Index<usize> for VecDeque<T, A> {
+        #[check(ghost)]
+        #[ensures(*result == self@[i@])]
+        fn index(&self, i: usize) -> &T;
+    }
+
+    impl<T, A: Allocator> IndexMut<usize> for VecDeque<T, A> {
+        #[check(ghost)]
+        #[ensures(*result == (*self)@[i@])]
+        #[ensures(^result == (^self)@[i@])]
+        fn index_mut(&mut self, i: usize) -> &mut T;
+    }
+
+    impl<'a, T, A: Allocator> IntoIterator for &'a VecDeque<T, A> {
+        #[check(ghost)]
+        #[ensures(self@ == result@.to_owned_seq())]
+        fn into_iter(self) -> Iter<'a, T>;
+    }
+}
+
+impl<'a, T> View for Iter<'a, T> {
+    type ViewTy = Seq<&'a T>;
+
+    #[logic(opaque)]
+    fn view(self) -> Self::ViewTy {
+        dead
+    }
+}
+
+impl<'a, T> IteratorSpec for Iter<'a, T> {
+    #[logic(open, prophetic)]
+    fn completed(&mut self) -> bool {
+        pearlite! { resolve(self) && self@ == Seq::empty() }
+    }
+
+    #[logic(open)]
+    fn produces(self, visited: Seq<Self::Item>, tl: Self) -> bool {
+        pearlite! {
+            self@ == visited.concat(tl@)
+        }
+    }
+
+    #[logic(law)]
+    #[ensures(self.produces(Seq::empty(), self))]
+    fn produces_refl(self) {
+        let _ = Seq::<Self::Item>::concat_empty;
+    }
+
+    #[logic(law)]
+    #[requires(a.produces(ab, b))]
+    #[requires(b.produces(bc, c))]
+    #[ensures(a.produces(ab.concat(bc), c))]
+    fn produces_trans(a: Self, ab: Seq<Self::Item>, b: Self, bc: Seq<Self::Item>, c: Self) {
+        let _ = Seq::<Self::Item>::concat_assoc;
+    }
+}
+
+extern_spec! {
+    impl<'a, T> Iterator for Iter<'a, T> {
+        #[ensures(result.0@ == self@.len())]
+        #[ensures(result.1 == Some(result.0))]
+        fn size_hint(&self) -> (usize, Option<usize>);
+    }
+}
+
+impl<'a, T> ExactSizeIteratorSpec for Iter<'a, T> {
+    #[logic(law)]
+    #[requires(Self::size_hint.postcondition((self,), r))]
+    #[ensures(r.1 == Some(r.0))]
+    #[allow(unused_variables)]
+    fn size_hint_exact(&self, r: (usize, Option<usize>)) {}
+}
+
+impl<'a, T> DoubleEndedIteratorSpec for Iter<'a, T> {
+    #[logic(open)]
+    fn produces_back(self, visited: Seq<Self::Item>, tl: Self) -> bool {
+        pearlite! {
+          self@ == tl@.concat(visited.reverse())
+        }
+    }
+
+    #[logic(open, prophetic)]
+    fn completed_back(&mut self) -> bool {
+        self.completed()
+    }
+
+    #[logic(law)]
+    #[ensures(self.produces_back(Seq::empty(), self))]
+    fn produces_back_refl(self) {
+        let _ = Seq::<Self::Item>::reverse_empty();
+        let _ = Seq::<Self::Item>::concat_empty;
+    }
+
+    #[logic(law)]
+    #[requires(a.produces_back(ab, b))]
+    #[requires(b.produces_back(bc, c))]
+    #[ensures(a.produces_back(ab.concat(bc), c))]
+    fn produces_back_trans(a: Self, ab: Seq<Self::Item>, b: Self, bc: Seq<Self::Item>, c: Self) {
+        let _ = ab.reverse_concat(bc);
+        let _ = Seq::<Self::Item>::concat_assoc;
+    }
+
+    #[logic(law)]
+    #[requires(Self::size_hint.postcondition((self,), r))]
+    #[ensures(forall<s: Seq<Self::Item>, i: &mut Self>
+        self.produces_back(s, *i) && i.completed_back() ==> r.0@ <= s.len())]
+    #[ensures(match r.1 {
+        Some(r) => {
+            forall<s: Seq<Self::Item>, i: Self> self.produces_back(s, i) ==> s.len() <= r@
+        }
+        None => true
+    })]
+    fn size_hint_back_spec(&self, r: (usize, Option<usize>)) {}
+}
+
+/// Dummy impls that don't use the unstable trait Allocator
+#[cfg(not(feature = "nightly"))]
+mod impls {
+    use crate::{logic::ops::IndexLogic, prelude::*};
+    use std::collections::VecDeque;
+
+    impl<T> Resolve for VecDeque<T> {}
+    impl<T> Invariant for VecDeque<T> {}
+    impl<T> View for VecDeque<T> {
+        type ViewTy = Seq<T>;
+    }
+    impl<T: DeepModel> DeepModel for VecDeque<T> {
+        type DeepModelTy = Seq<T::DeepModelTy>;
+    }
+    impl<T> IndexLogic<Int> for VecDeque<T> {
+        type Item = T;
+    }
+    impl<T> IndexLogic<usize> for VecDeque<T> {
+        type Item = T;
+    }
+}

@@ -1,0 +1,63 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 46 0 46 64 *)
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 34 8 34 21
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 22 8 22 20
+let%span sfraction_map = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 45 10 45 14
+let%span sfraction_map'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 44 11 44 20
+let%span sfraction_map'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 27 4 27 44
+let%span swell_founded = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/well_founded.rs" 43 8 43 33
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 88 8 88 32
+
+use map.Map
+use int.Int
+
+type t_FMap_Int_Excl_PositiveReal
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+type t_PositiveReal
+
+type t_Excl_PositiveReal = { f0: t_PositiveReal }
+
+type t_Option_Excl_PositiveReal = None | Some t_Excl_PositiveReal
+
+function to_mapping_Int (self: t_FMap_Int_Excl_PositiveReal) : Map.map int t_Option_Excl_PositiveReal
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) : t_Option_Excl_PositiveReal =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+function ticket_cardinality [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 26 0 26 62] [@inline:trivial] (live: t_FMap_Int_Excl_PositiveReal) (id: int) : int
+ = [%#sfraction_map'1] if get_Int live id = None then 0 else 1
+
+meta "rewrite_def" function ticket_cardinality
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] ge_log_Int self 0 /\ gt_log_Int self other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant live : t_FMap_Int_Excl_PositiveReal
+
+constant next : int
+
+function cardinality_prefix [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../shared-physical-lifecycle-2026-10-08/src/fraction_map.rs" 46 0 46 64] (live: t_FMap_Int_Excl_PositiveReal) (next: int) : int
+
+goal vc_cardinality_prefix: ([%#sfraction_map'0] ge_log_Int next 0)
+  -> (if next = 0 then
+    true
+  else
+    ([@stop_split] [@expl:cardinality_prefix requires] [%#sfraction_map'0] ge_log_Int (next - 1) 0)
+    /\ ([@expl:variant decreases] well_founded_relation_Int ([%#sfraction_map] next) ([%#sfraction_map] next - 1))
+  )

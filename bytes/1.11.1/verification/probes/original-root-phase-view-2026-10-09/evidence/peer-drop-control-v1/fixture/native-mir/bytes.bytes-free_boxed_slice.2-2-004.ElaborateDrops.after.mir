@@ -1,0 +1,78 @@
+// MIR for `bytes::free_boxed_slice` after ElaborateDrops
+
+fn free_boxed_slice(_1: *mut u8, _2: *const u8, _3: usize) -> () {
+    debug buf => _1;
+    debug offset => _2;
+    debug len => _3;
+    let mut _0: ();
+    let _4: usize;
+    let mut _5: usize;
+    let mut _6: isize;
+    let mut _7: *const u8;
+    let mut _8: *const u8;
+    let mut _9: *mut u8;
+    let mut _10: usize;
+    let mut _11: (usize, bool);
+    let mut _12: *mut u8;
+    let mut _13: core::alloc::Layout;
+    let mut _14: core::result::Result<core::alloc::Layout, core::alloc::LayoutError>;
+    let mut _15: usize;
+    scope 1 {
+        debug cap => _4;
+    }
+
+    bb0: {
+        StorageLive(_4);
+        StorageLive(_5);
+        StorageLive(_6);
+        StorageLive(_7);
+        _7 = copy _2;
+        StorageLive(_8);
+        StorageLive(_9);
+        _9 = copy _1;
+        _8 = move _9 as *const u8 (PtrToPtr);
+        StorageDead(_9);
+        _6 = core::ptr::const_ptr::<impl *const u8>::offset_from(move _7, move _8) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        StorageDead(_8);
+        StorageDead(_7);
+        _5 = move _6 as usize (IntToInt);
+        StorageDead(_6);
+        StorageLive(_10);
+        _10 = copy _3;
+        _11 = AddWithOverflow(copy _5, copy _10);
+        assert(!move (_11.1: bool), "attempt to compute `{} + {}`, which would overflow", move _5, move _10) -> [success: bb2, unwind continue];
+    }
+
+    bb2: {
+        _4 = move (_11.0: usize);
+        StorageDead(_10);
+        StorageDead(_5);
+        StorageLive(_12);
+        _12 = copy _1;
+        StorageLive(_13);
+        StorageLive(_14);
+        StorageLive(_15);
+        _15 = copy _4;
+        _14 = Layout::from_size_align(move _15, const 1_usize) -> [return: bb3, unwind continue];
+    }
+
+    bb3: {
+        StorageDead(_15);
+        _13 = Result::<Layout, LayoutError>::unwrap(move _14) -> [return: bb4, unwind continue];
+    }
+
+    bb4: {
+        StorageDead(_14);
+        _0 = std::alloc::dealloc(move _12, move _13) -> [return: bb5, unwind continue];
+    }
+
+    bb5: {
+        StorageDead(_13);
+        StorageDead(_12);
+        StorageDead(_4);
+        return;
+    }
+}

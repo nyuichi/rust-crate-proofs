@@ -1,0 +1,1664 @@
+(* #"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 696 0 696 75 *)
+
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 83 14 83 18
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 83 4 83 36
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 81 14 81 31
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 179 15 179 16
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 179 4 181 17
+let%span sghost'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 177 14 177 26
+let%span sghost'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 112 8 112 18
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 22 8 22 20
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 28 20 28 49
+let%span sord'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 34 8 34 21
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 71 8 71 34
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 108 8 108 34
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 62 14 62 70
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 63 14 63 88
+let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 46 14 46 55
+let%span sfmap'6 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 168 40 168 65
+let%span sfmap'7 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 171 12 171 41
+let%span sfmap'8 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'9 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'10 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/fmap.rs" 24 14 24 71
+let%span sfmap'11 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/fmap.rs" 27 12 27 64
+let%span sfmap'12 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/fmap.rs" 137 14 137 78
+let%span sfmap'13 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/fmap.rs" 139 8 139 83
+let%span sfmap'14 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/fmap.rs" 56 14 56 32
+let%span sfmap'15 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/fmap.rs" 15 12 19 13
+let%span sfmap'16 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/fmap.rs" 162 15 162 64
+let%span sfmap'17 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/fmap.rs" 163 14 163 78
+let%span sauth = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/resource/auth.rs" 162 8 162 19
+let%span sauth'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/resource/auth.rs" 51 20 51 34
+let%span sauth'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 32 8 35 9
+let%span sauth'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 39 15 39 31
+let%span sauth'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 40 15 40 26
+let%span sauth'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 41 14 41 30
+let%span sauth'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 45 14 45 32
+let%span sauth'6 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/auth.rs" 49 14 49 37
+let%span sra = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 92 8 92 42
+let%span sra'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 86 15 86 43
+let%span sra'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 87 14 87 29
+let%span sra'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 153 15 153 30
+let%span sra'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 154 15 154 34
+let%span sra'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 155 14 155 30
+let%span sra'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 165 15 165 34
+let%span sra'6 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 166 15 166 34
+let%span sra'7 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 167 14 167 34
+let%span sra'8 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 174 15 174 24
+let%span sra'9 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 175 15 175 24
+let%span sra'10 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 176 14 176 23
+let%span sra'11 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 50 14 50 39
+let%span sra'12 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra.rs" 52 8 52 21
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 74 19 74 23
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 70 18 70 50
+let%span soption'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 72 12 72 81
+let%span soption'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 139 18 139 22
+let%span soption'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 137 19 137 23
+let%span soption'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 138 34 138 38
+let%span soption'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 852 15 852 27
+let%span soption'6 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 854 8 857 9
+let%span soption'7 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 22 14 22 71
+let%span soption'8 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 24 8 28 9
+let%span soption'9 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 14 8 18 9
+let%span soption'10 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/option.rs" 42 14 42 32
+let%span soption'11 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 870 8 873 9
+let%span sexcl = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/excl.rs" 16 8 16 12
+let%span sexcl'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/excl.rs" 26 14 26 32
+let%span sexcl'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/excl.rs" 20 14 20 71
+let%span sexcl'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/excl.rs" 22 8 22 13
+let%span slifecycle = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/lifecycle.rs" 256 12 263 45
+let%span sview = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 67 14 67 28
+let%span sview'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 72 15 72 20
+let%span sview'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 73 15 73 20
+let%span sview'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 74 14 74 19
+let%span sview'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/view.rs" 79 14 79 64
+let%span sview'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ra/view.rs" 81 14 81 41
+let%span sresource = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/resource.rs" 59 12 59 22
+let%span satomic = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/atomic.rs" 77 23 77 29
+let%span satomic'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/sync/atomic.rs" 78 22 78 68
+let%span slifetime_logic = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/lifetime_logic.rs" 280 26 280 30
+let%span slifetime_logic'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/lifetime_logic.rs" 280 32 280 37
+let%span slifetime_logic'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/lifetime_logic.rs" 277 15 277 40
+let%span slifetime_logic'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/lifetime_logic.rs" 280 4 280 66
+let%span slifetime_logic'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/lifetime_logic.rs" 278 14 278 35
+let%span slifetime_logic'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/lifetime_logic.rs" 212 20 212 39
+let%span slifetime_logic'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/lifetime_logic.rs" 227 20 227 49
+let%span sraw_vec = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 574 20 574 27
+let%span sraw_vec'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 579 20 579 27
+let%span sraw_vec'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 564 20 564 30
+let%span sraw_vec'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 569 20 569 30
+let%span sraw_vec'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 1193 4 1193 52
+let%span sraw_vec'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 590 12 593 13
+let%span sraw_vec'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 521 12 523 30
+let%span sraw_vec'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 510 20 510 27
+let%span sraw_vec'7 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 515 20 515 27
+let%span sraw_vec'8 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 584 20 584 30
+let%span sraw_vec'9 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 272 12 280 13
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 537 12 539 34
+let%span sptr'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 142 8 142 35
+let%span sfield_event = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/field_event.rs" 50 46 50 58
+let%span sfield_event'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/field_event.rs" 57 8 57 42
+let%span sfield_event'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/field_event.rs" 53 47 53 77
+let%span sboxed = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/boxed.rs" 49 8 49 18
+let%span sshared = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/shared.rs" 63 22 63 26
+let%span sshared'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/shared.rs" 63 4 63 36
+let%span sshared'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/shared.rs" 62 14 62 35
+let%span sshared'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost/shared.rs" 26 8 26 46
+let%span sphysical_projection = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 20 4 20 9
+let%span sphysical_projection'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 20 30 20 36
+let%span sphysical_projection'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 7 11 7 74
+let%span sphysical_projection'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 8 11 8 68
+let%span sphysical_projection'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 9 11 9 43
+let%span sphysical_projection'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 10 11 10 84
+let%span sphysical_projection'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 11 11 11 83
+let%span sphysical_projection'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 12 11 12 77
+let%span sphysical_projection'7 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 13 11 13 84
+let%span sphysical_projection'8 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 14 11 15 91
+let%span sphysical_projection'9 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 16 10 16 31
+let%span sphysical_projection'10 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/physical_projection.rs" 17 10 18 96
+let%span sowned_pointer = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/owned_pointer.rs" 129 16 131 56
+let%span sowned_pointer'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/owned_pointer.rs" 136 16 137 51
+let%span spromotion = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 697 27 697 38
+let%span spromotion'0 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 697 27 697 47
+let%span spromotion'1 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 697 27 697 56
+let%span spromotion'2 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 697 102 697 107
+let%span spromotion'3 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 697 13 697 120
+let%span spromotion'4 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 699 56 699 69
+let%span spromotion'5 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 699 54 699 70
+let%span spromotion'6 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 699 54 699 79
+let%span spromotion'7 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 700 21 700 32
+let%span spromotion'8 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 700 21 700 38
+let%span spromotion'9 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 700 8 700 39
+let%span spromotion'10 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 698 15 701 5
+let%span spromotion'11 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 702 69 702 79
+let%span spromotion'12 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 702 60 702 80
+let%span spromotion'13 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 702 12 702 88
+let%span spromotion'14 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 696 17 696 22
+let%span spromotion'15 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 696 33 696 38
+let%span spromotion'16 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 694 11 694 84
+let%span spromotion'17 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 695 10 695 59
+let%span spromotion'18 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 234 8 238 9
+let%span spromotion'19 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 227 39 227 95
+let%span spromotion'20 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 228 46 232 5
+let%span spromotion'21 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 181 8 182 52
+let%span spromotion'22 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 196 19 204 102
+let%span spromotion'23 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 215 19 220 120
+let%span spromotion'24 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 174 19 178 55
+let%span spromotion'25 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 171 8 171 104
+let%span spromotion'26 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 166 8 168 53
+let%span spromotion'27 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 412 8 412 75
+let%span spromotion'28 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 419 8 419 100
+let%span spromotion'29 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 414 4 414 12
+let%span spromotion'30 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 119 8 119 21
+let%span spromotion'31 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 416 8 416 51
+let%span spromotion'32 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 21 40 21 80
+let%span spromotion'33 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 56 12 78 85
+let%span spromotion'34 = "/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 42 8 50 9
+
+use creusot.int.UInt64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Opaque
+use creusot.int.Int64
+use creusot.prelude.Ptr
+use creusot.slice.Slice64
+use map.Map
+use creusot.prelude.Any
+use map.Const
+use int.Int
+
+type t_BoundPtr
+
+type t_AtomicPtr_unit
+
+type t_RootDescriptor = { base: t_BoundPtr; capacity: UInt64.t; expected: Seq.seq UInt8.t; model: t_AtomicPtr_unit }
+
+type t_Recovery
+
+type t_PhysicalRegion
+
+type t_Perm_AtomicPtr_unit
+
+type t_SyncView
+
+type t_RawPhase = { recovery: t_Recovery; physical: t_PhysicalRegion; own: t_Perm_AtomicPtr_unit; current': t_SyncView }
+
+type t_FullBorrow_OwnedControl_Shared
+
+type t_FullBorrow_PhysicalRegion
+
+type t_ScopedFieldInvariant_State_Payload
+
+type t_LifetimeToken
+
+type t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+
+type t_Fragment_FMap_Int_Excl_PositiveReal = { f0: t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal }
+
+type t_EndBorrow_PhysicalRegion
+
+type t_EndBorrow_OwnedControl_Shared
+
+type t_Payload = {
+  recovery'0: t_Recovery;
+  physical_end'0: t_EndBorrow_PhysicalRegion;
+  control_end'0: t_EndBorrow_OwnedControl_Shared;
+  physical'0: t_FullBorrow_PhysicalRegion;
+  control'0: t_FullBorrow_OwnedControl_Shared;
+  base'0: t_BoundPtr;
+  capacity'0: UInt64.t;
+  len'0: UInt64.t;
+  expected'0: Seq.seq UInt8.t }
+
+type t_Option_Payload = None | Some t_Payload
+
+type t_Ticket_Payload = {
+  token'1: t_LifetimeToken;
+  id'1: int;
+  fragment'1: t_Fragment_FMap_Int_Excl_PositiveReal;
+  recovery'1: t_Option_Payload }
+
+type t_SharedCore = {
+  shared'1: Opaque.ptr;
+  bound'1: t_BoundPtr;
+  capacity'1: UInt64.t;
+  control'1: t_FullBorrow_OwnedControl_Shared;
+  physical'1: t_FullBorrow_PhysicalRegion;
+  invariant''1: t_ScopedFieldInvariant_State_Payload;
+  ticket'1: t_Ticket_Payload }
+
+type t_ScopeCursor_State_Payload
+
+type t_SharedPhase = {
+  root'0: t_SharedCore;
+  cursor'0: t_ScopeCursor_State_Payload;
+  own'0: t_Perm_AtomicPtr_unit;
+  current''0: t_SyncView }
+
+type t_Phase = Raw t_RawPhase | Shared t_SharedPhase
+
+type t_Option_Phase = None'0 | Some'0 t_Phase
+
+type t_PromotionScope = { descriptor: t_RootDescriptor; phase: t_Option_Phase }
+
+type t_Id
+
+type tup3_Id_Int_Int = { f0'0: t_Id; f1'0: int; f2'0: int }
+
+type t_Option_tup3_Id_Int_Int = None'1 | Some'1 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 253 4 253 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function current_address [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 289 4 289 39] (self: t_BoundPtr) : int
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 270 4 270 30] (self: t_BoundPtr) =
+  [%#sraw_vec'9] match view_BoundPtr self with
+    | None'1 -> true
+    | Some'1 {f1'0 = allocation_capacity; f2'0 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity
+    /\ allocation_capacity <= Int64.to_int const_MAX
+    /\ absolute_offset < current_address self
+    /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
+    end
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> invariant_BoundPtr x
+
+predicate inv_RootDescriptor (_1: t_RootDescriptor)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_RootDescriptor [inv_RootDescriptor x]. inv_RootDescriptor x
+    = inv_BoundPtr x.base
+
+predicate inv_Recovery (_1: t_Recovery)
+
+predicate invariant_PhysicalRegion [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 550 4 550 30] (self: t_PhysicalRegion)
+
+predicate inv_PhysicalRegion (_1: t_PhysicalRegion)
+
+axiom inv_axiom'1: forall x: t_PhysicalRegion [inv_PhysicalRegion x]. inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate inv_RawPhase (_1: t_RawPhase)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_RawPhase [inv_RawPhase x]. inv_RawPhase x
+    = (inv_Recovery x.recovery /\ inv_PhysicalRegion x.physical)
+
+type t_Perm_ptr_Shared
+
+type t_OwnedControl_Shared = { pointer: Opaque.ptr; owner: t_Perm_ptr_Shared }
+
+function cur_OwnedControl_Shared (self: t_FullBorrow_OwnedControl_Shared) : t_OwnedControl_Shared
+
+function fin_FullBorrow_OwnedControl_Shared (self: t_FullBorrow_OwnedControl_Shared) : t_OwnedControl_Shared
+
+predicate resolve_FullBorrow_OwnedControl_Shared (self: t_FullBorrow_OwnedControl_Shared) =
+  [%#slifetime_logic'4] cur_OwnedControl_Shared self = fin_FullBorrow_OwnedControl_Shared self
+
+predicate resolve_FullBorrow_OwnedControl_Shared'0 (_1: t_FullBorrow_OwnedControl_Shared)
+
+axiom resolve_axiom [@rewrite]:
+  forall x: t_FullBorrow_OwnedControl_Shared [resolve_FullBorrow_OwnedControl_Shared'0 x]. resolve_FullBorrow_OwnedControl_Shared'0 x
+    = resolve_FullBorrow_OwnedControl_Shared x
+
+predicate is_null_ptr_Shared (self: Opaque.ptr) = [%#sptr'0] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+function ward_ptr_Shared (self: t_Perm_ptr_Shared) : Opaque.ptr
+
+type t_Atomic_usize
+
+type t_Shared = { buf: Opaque.ptr; cap: UInt64.t; ref_cnt: t_Atomic_usize }
+
+predicate metadata_matches_Shared [@inline:trivial] (_value: t_Shared) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_Shared
+
+function val_ptr_Shared (self: t_Perm_ptr_Shared) : t_Shared
+
+function metadata_Shared (_1: Opaque.ptr) : ()
+
+predicate inv_Atomic_usize (_1: t_Atomic_usize)
+
+predicate inv_Shared (_1: t_Shared)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_Shared [inv_Shared x]. inv_Shared x = inv_Atomic_usize x.ref_cnt
+
+predicate invariant_ref_Shared [@inline:trivial] (self: t_Shared) = [%#sinvariant] inv_Shared self
+
+meta "rewrite_def" predicate invariant_ref_Shared
+
+predicate inv_ref_Shared [@inline:trivial] (_1: t_Shared) = invariant_ref_Shared _1
+
+meta "rewrite_def" predicate inv_ref_Shared
+
+predicate invariant_Perm_ptr_Shared (self: t_Perm_ptr_Shared) =
+  [%#sptr] not is_null_ptr_Shared (ward_ptr_Shared self)
+  /\ metadata_matches_Shared (val_ptr_Shared self) (metadata_Shared (ward_ptr_Shared self))
+  /\ inv_ref_Shared (val_ptr_Shared self)
+
+predicate inv_Perm_ptr_Shared (_1: t_Perm_ptr_Shared)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_Perm_ptr_Shared [inv_Perm_ptr_Shared x]. inv_Perm_ptr_Shared x
+    = invariant_Perm_ptr_Shared x
+
+predicate invariant_Box_Perm_ptr_Shared_Global (self: t_Perm_ptr_Shared) = [%#sboxed] inv_Perm_ptr_Shared self
+
+predicate inv_Box_Perm_ptr_Shared_Global [@inline:trivial] (_1: t_Perm_ptr_Shared) =
+  invariant_Box_Perm_ptr_Shared_Global _1
+
+meta "rewrite_def" predicate inv_Box_Perm_ptr_Shared_Global
+
+predicate invariant_Ghost_Box_Perm_ptr_Shared_Global [@inline:trivial] (self: t_Perm_ptr_Shared) =
+  [%#sghost'5] inv_Box_Perm_ptr_Shared_Global self
+
+meta "rewrite_def" predicate invariant_Ghost_Box_Perm_ptr_Shared_Global
+
+predicate inv_Ghost_Box_Perm_ptr_Shared_Global [@inline:trivial] (_1: t_Perm_ptr_Shared) =
+  invariant_Ghost_Box_Perm_ptr_Shared_Global _1
+
+meta "rewrite_def" predicate inv_Ghost_Box_Perm_ptr_Shared_Global
+
+predicate inv_OwnedControl_Shared (_1: t_OwnedControl_Shared)
+
+axiom inv_axiom'5 [@rewrite]: forall x: t_OwnedControl_Shared [inv_OwnedControl_Shared x]. inv_OwnedControl_Shared x
+    = inv_Ghost_Box_Perm_ptr_Shared_Global x.owner
+
+predicate invariant_FullBorrow_OwnedControl_Shared [@inline:trivial] (self: t_FullBorrow_OwnedControl_Shared) =
+  [%#slifetime_logic'5] inv_OwnedControl_Shared (cur_OwnedControl_Shared self)
+  /\ inv_OwnedControl_Shared (fin_FullBorrow_OwnedControl_Shared self)
+
+meta "rewrite_def" predicate invariant_FullBorrow_OwnedControl_Shared
+
+predicate inv_FullBorrow_OwnedControl_Shared (_1: t_FullBorrow_OwnedControl_Shared)
+
+axiom inv_axiom'6 [@rewrite]:
+  forall x: t_FullBorrow_OwnedControl_Shared [inv_FullBorrow_OwnedControl_Shared x]. inv_FullBorrow_OwnedControl_Shared x
+    = invariant_FullBorrow_OwnedControl_Shared x
+
+predicate invariant_GhostShared_FullBorrow_OwnedControl_Shared (self: t_FullBorrow_OwnedControl_Shared) =
+  [%#sshared'2] resolve_FullBorrow_OwnedControl_Shared'0 self /\ inv_FullBorrow_OwnedControl_Shared self
+
+predicate inv_GhostShared_FullBorrow_OwnedControl_Shared [@inline:trivial] (_1: t_FullBorrow_OwnedControl_Shared) =
+  invariant_GhostShared_FullBorrow_OwnedControl_Shared _1
+
+meta "rewrite_def" predicate inv_GhostShared_FullBorrow_OwnedControl_Shared
+
+predicate invariant_Ghost_GhostShared_FullBorrow_OwnedControl_Shared [@inline:trivial] (self: t_FullBorrow_OwnedControl_Shared) =
+  [%#sghost'5] inv_GhostShared_FullBorrow_OwnedControl_Shared self
+
+meta "rewrite_def" predicate invariant_Ghost_GhostShared_FullBorrow_OwnedControl_Shared
+
+predicate inv_Ghost_GhostShared_FullBorrow_OwnedControl_Shared [@inline:trivial] (_1: t_FullBorrow_OwnedControl_Shared) =
+  invariant_Ghost_GhostShared_FullBorrow_OwnedControl_Shared _1
+
+meta "rewrite_def" predicate inv_Ghost_GhostShared_FullBorrow_OwnedControl_Shared
+
+function cur_PhysicalRegion (self: t_FullBorrow_PhysicalRegion) : t_PhysicalRegion
+
+function fin_FullBorrow_PhysicalRegion (self: t_FullBorrow_PhysicalRegion) : t_PhysicalRegion
+
+predicate resolve_FullBorrow_PhysicalRegion (self: t_FullBorrow_PhysicalRegion) =
+  [%#slifetime_logic'4] cur_PhysicalRegion self = fin_FullBorrow_PhysicalRegion self
+
+predicate resolve_FullBorrow_PhysicalRegion'0 (_1: t_FullBorrow_PhysicalRegion)
+
+axiom resolve_axiom'0 [@rewrite]:
+  forall x: t_FullBorrow_PhysicalRegion [resolve_FullBorrow_PhysicalRegion'0 x]. resolve_FullBorrow_PhysicalRegion'0 x
+    = resolve_FullBorrow_PhysicalRegion x
+
+predicate invariant_FullBorrow_PhysicalRegion [@inline:trivial] (self: t_FullBorrow_PhysicalRegion) =
+  [%#slifetime_logic'5] inv_PhysicalRegion (cur_PhysicalRegion self)
+  /\ inv_PhysicalRegion (fin_FullBorrow_PhysicalRegion self)
+
+meta "rewrite_def" predicate invariant_FullBorrow_PhysicalRegion
+
+predicate inv_FullBorrow_PhysicalRegion (_1: t_FullBorrow_PhysicalRegion)
+
+axiom inv_axiom'7 [@rewrite]:
+  forall x: t_FullBorrow_PhysicalRegion [inv_FullBorrow_PhysicalRegion x]. inv_FullBorrow_PhysicalRegion x
+    = invariant_FullBorrow_PhysicalRegion x
+
+predicate invariant_GhostShared_FullBorrow_PhysicalRegion (self: t_FullBorrow_PhysicalRegion) =
+  [%#sshared'2] resolve_FullBorrow_PhysicalRegion'0 self /\ inv_FullBorrow_PhysicalRegion self
+
+predicate inv_GhostShared_FullBorrow_PhysicalRegion [@inline:trivial] (_1: t_FullBorrow_PhysicalRegion) =
+  invariant_GhostShared_FullBorrow_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_GhostShared_FullBorrow_PhysicalRegion
+
+predicate invariant_Ghost_GhostShared_FullBorrow_PhysicalRegion [@inline:trivial] (self: t_FullBorrow_PhysicalRegion) =
+  [%#sghost'5] inv_GhostShared_FullBorrow_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_GhostShared_FullBorrow_PhysicalRegion
+
+predicate inv_Ghost_GhostShared_FullBorrow_PhysicalRegion [@inline:trivial] (_1: t_FullBorrow_PhysicalRegion) =
+  invariant_Ghost_GhostShared_FullBorrow_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_GhostShared_FullBorrow_PhysicalRegion
+
+predicate resolve_ScopedFieldInvariant_State_Payload [@inline:trivial] (_1: t_ScopedFieldInvariant_State_Payload) = true
+
+meta "rewrite_def" predicate resolve_ScopedFieldInvariant_State_Payload
+
+predicate inv_ScopedFieldInvariant_State_Payload [@inline:trivial] (_1: t_ScopedFieldInvariant_State_Payload) = true
+
+meta "rewrite_def" predicate inv_ScopedFieldInvariant_State_Payload
+
+predicate invariant_GhostShared_ScopedFieldInvariant_State_Payload (self: t_ScopedFieldInvariant_State_Payload) =
+  [%#sshared'2] resolve_ScopedFieldInvariant_State_Payload self /\ inv_ScopedFieldInvariant_State_Payload self
+
+predicate inv_GhostShared_ScopedFieldInvariant_State_Payload [@inline:trivial] (_1: t_ScopedFieldInvariant_State_Payload) =
+  invariant_GhostShared_ScopedFieldInvariant_State_Payload _1
+
+meta "rewrite_def" predicate inv_GhostShared_ScopedFieldInvariant_State_Payload
+
+predicate invariant_Ghost_GhostShared_ScopedFieldInvariant_State_Payload [@inline:trivial] (self: t_ScopedFieldInvariant_State_Payload) =
+  [%#sghost'5] inv_GhostShared_ScopedFieldInvariant_State_Payload self
+
+meta "rewrite_def" predicate invariant_Ghost_GhostShared_ScopedFieldInvariant_State_Payload
+
+predicate inv_Ghost_GhostShared_ScopedFieldInvariant_State_Payload [@inline:trivial] (_1: t_ScopedFieldInvariant_State_Payload) =
+  invariant_Ghost_GhostShared_ScopedFieldInvariant_State_Payload _1
+
+meta "rewrite_def" predicate inv_Ghost_GhostShared_ScopedFieldInvariant_State_Payload
+
+predicate inv_LifetimeToken (_1: t_LifetimeToken)
+
+predicate inv_Payload (_1: t_Payload)
+
+axiom inv_axiom'8 [@rewrite]: forall x: t_Payload [inv_Payload x]. inv_Payload x
+    = (inv_Recovery x.recovery'0
+    /\ inv_Ghost_GhostShared_FullBorrow_PhysicalRegion x.physical'0
+    /\ inv_Ghost_GhostShared_FullBorrow_OwnedControl_Shared x.control'0 /\ inv_BoundPtr x.base'0)
+
+predicate inv_Option_Payload (_1: t_Option_Payload)
+
+axiom inv_axiom'9 [@rewrite]: forall x: t_Option_Payload [inv_Option_Payload x]. inv_Option_Payload x
+    = match x with
+      | None -> true
+      | Some f0'1 -> inv_Payload f0'1
+      end
+
+predicate inv_Ticket_Payload (_1: t_Ticket_Payload)
+
+axiom inv_axiom'10 [@rewrite]: forall x: t_Ticket_Payload [inv_Ticket_Payload x]. inv_Ticket_Payload x
+    = (inv_LifetimeToken x.token'1 /\ inv_Option_Payload x.recovery'1)
+
+predicate invariant_Ghost_Ticket_Payload [@inline:trivial] (self: t_Ticket_Payload) =
+  [%#sghost'5] inv_Ticket_Payload self
+
+meta "rewrite_def" predicate invariant_Ghost_Ticket_Payload
+
+predicate inv_Ghost_Ticket_Payload [@inline:trivial] (_1: t_Ticket_Payload) = invariant_Ghost_Ticket_Payload _1
+
+meta "rewrite_def" predicate inv_Ghost_Ticket_Payload
+
+predicate inv_SharedCore (_1: t_SharedCore)
+
+axiom inv_axiom'11 [@rewrite]: forall x: t_SharedCore [inv_SharedCore x]. inv_SharedCore x
+    = (inv_BoundPtr x.bound'1
+    /\ inv_Ghost_GhostShared_FullBorrow_OwnedControl_Shared x.control'1
+    /\ inv_Ghost_GhostShared_FullBorrow_PhysicalRegion x.physical'1
+    /\ inv_Ghost_GhostShared_ScopedFieldInvariant_State_Payload x.invariant''1 /\ inv_Ghost_Ticket_Payload x.ticket'1)
+
+predicate inv_SharedPhase (_1: t_SharedPhase)
+
+axiom inv_axiom'12 [@rewrite]: forall x: t_SharedPhase [inv_SharedPhase x]. inv_SharedPhase x = inv_SharedCore x.root'0
+
+predicate inv_Phase (_1: t_Phase)
+
+axiom inv_axiom'13 [@rewrite]: forall x: t_Phase [inv_Phase x]. inv_Phase x
+    = match x with
+      | Raw f0'1 -> inv_RawPhase f0'1
+      | Shared f0'1 -> inv_SharedPhase f0'1
+      end
+
+predicate inv_Option_Phase (_1: t_Option_Phase)
+
+axiom inv_axiom'14 [@rewrite]: forall x: t_Option_Phase [inv_Option_Phase x]. inv_Option_Phase x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0'1 -> inv_Phase f0'1
+      end
+
+predicate inv_PromotionScope (_1: t_PromotionScope)
+
+axiom inv_axiom'15 [@rewrite]: forall x: t_PromotionScope [inv_PromotionScope x]. inv_PromotionScope x
+    = (inv_RootDescriptor x.descriptor /\ inv_Option_Phase x.phase)
+
+predicate invariant_ref_PromotionScope [@inline:trivial] (self: t_PromotionScope) =
+  [%#sinvariant] inv_PromotionScope self
+
+meta "rewrite_def" predicate invariant_ref_PromotionScope
+
+predicate inv_ref_PromotionScope [@inline:trivial] (_1: t_PromotionScope) = invariant_ref_PromotionScope _1
+
+meta "rewrite_def" predicate inv_ref_PromotionScope
+
+predicate invariant_Ghost_ref_PromotionScope [@inline:trivial] (self: t_PromotionScope) =
+  [%#sghost'5] inv_ref_PromotionScope self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_PromotionScope
+
+predicate inv_Ghost_ref_PromotionScope [@inline:trivial] (_1: t_PromotionScope) = invariant_Ghost_ref_PromotionScope _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_PromotionScope
+
+predicate invariant_ref_Ghost_ref_PromotionScope [@inline:trivial] (self: t_PromotionScope) =
+  [%#sinvariant] inv_Ghost_ref_PromotionScope self
+
+meta "rewrite_def" predicate invariant_ref_Ghost_ref_PromotionScope
+
+predicate inv_ref_Ghost_ref_PromotionScope [@inline:trivial] (_1: t_PromotionScope) =
+  invariant_ref_Ghost_ref_PromotionScope _1
+
+meta "rewrite_def" predicate inv_ref_Ghost_ref_PromotionScope
+
+predicate invariant_ref_ref_PromotionScope [@inline:trivial] (self: t_PromotionScope) =
+  [%#sinvariant] inv_ref_PromotionScope self
+
+meta "rewrite_def" predicate invariant_ref_ref_PromotionScope
+
+predicate inv_ref_ref_PromotionScope [@inline:trivial] (_1: t_PromotionScope) = invariant_ref_ref_PromotionScope _1
+
+meta "rewrite_def" predicate inv_ref_ref_PromotionScope
+
+let deref_Ghost_ref_PromotionScope (self: t_PromotionScope) (return (x: t_PromotionScope)) =
+{[@stop_split] [@expl:deref 'self' type invariant] [%#sghost] inv_ref_Ghost_ref_PromotionScope self}
+  any
+  [ return (result: t_PromotionScope) ->
+  {[@stop_split] [@expl:deref_Ghost_ref_PromotionScope ensures] ([@stop_split] [@expl:deref result type invariant] [%#sghost'0] inv_ref_ref_PromotionScope result)
+    /\ ([@stop_split] [@expl:deref ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+type t_Option_ref_Phase = None'2 | Some'2 t_Phase
+
+predicate invariant_ref_Option_Phase [@inline:trivial] (self: t_Option_Phase) = [%#sinvariant] inv_Option_Phase self
+
+meta "rewrite_def" predicate invariant_ref_Option_Phase
+
+predicate inv_ref_Option_Phase [@inline:trivial] (_1: t_Option_Phase) = invariant_ref_Option_Phase _1
+
+meta "rewrite_def" predicate inv_ref_Option_Phase
+
+predicate invariant_ref_Phase [@inline:trivial] (self: t_Phase) = [%#sinvariant] inv_Phase self
+
+meta "rewrite_def" predicate invariant_ref_Phase
+
+predicate inv_ref_Phase [@inline:trivial] (_1: t_Phase) = invariant_ref_Phase _1
+
+meta "rewrite_def" predicate inv_ref_Phase
+
+predicate inv_Option_ref_Phase (_1: t_Option_ref_Phase)
+
+axiom inv_axiom'16 [@rewrite]: forall x: t_Option_ref_Phase [inv_Option_ref_Phase x]. inv_Option_ref_Phase x
+    = match x with
+      | None'2 -> true
+      | Some'2 f0'1 -> inv_ref_Phase f0'1
+      end
+
+let as_ref_Phase (self_: t_Option_Phase) (return (x: t_Option_ref_Phase)) =
+{[@stop_split] [@expl:as_ref 'self_' type invariant] [%#soption] inv_ref_Option_Phase self_}
+  any
+  [ return (result: t_Option_ref_Phase) ->
+  {[@stop_split] [@expl:as_ref_Phase ensures] ([@stop_split] [@expl:as_ref result type invariant] inv_Option_ref_Phase result)
+    /\ ([@stop_split] [@expl:as_ref ensures #0] [%#soption'0] self_ = None'0 -> result = None'2)
+    /\ ([@stop_split] [@expl:as_ref ensures #1] [%#soption'1] self_ = None'0
+    \/ (exists r: t_Phase. result = Some'2 r /\ self_ = Some'0 r))}
+    (! return {result}) ]
+
+let unwrap_ref_Phase (self_: t_Option_ref_Phase) (return (x: t_Phase)) =
+{[@stop_split] [@expl:unwrap_ref_Phase requires] ([@stop_split] [@expl:unwrap 'self_' type invariant] [%#soption'2] inv_Option_ref_Phase self_)
+  /\ ([@stop_split] [@expl:unwrap requires] [%#soption'3] self_ <> None'2)}
+  any
+  [ return (result: t_Phase) ->
+  {[@stop_split] [@expl:unwrap_ref_Phase ensures] ([@stop_split] [@expl:unwrap result type invariant] inv_ref_Phase result)
+    /\ ([@stop_split] [@expl:unwrap ensures] [%#soption'4] Some'2 result = self_)}
+    (! return {result}) ]
+
+let elim_Shared (_x: t_Phase) (return (f0'1: t_SharedPhase)) = any
+  [ _k (f0'1: t_SharedPhase) -> {Shared f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Shared] match _x with
+      | Shared _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate invariant_ref_SharedCore [@inline:trivial] (self: t_SharedCore) = [%#sinvariant] inv_SharedCore self
+
+meta "rewrite_def" predicate invariant_ref_SharedCore
+
+predicate inv_ref_SharedCore [@inline:trivial] (_1: t_SharedCore) = invariant_ref_SharedCore _1
+
+meta "rewrite_def" predicate inv_ref_SharedCore
+
+predicate invariant_Ghost_ref_SharedCore [@inline:trivial] (self: t_SharedCore) = [%#sghost'5] inv_ref_SharedCore self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_SharedCore
+
+predicate inv_Ghost_ref_SharedCore [@inline:trivial] (_1: t_SharedCore) = invariant_Ghost_ref_SharedCore _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_SharedCore
+
+let new_ref_SharedCore (x: t_SharedCore) (return (x'0: t_SharedCore)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'2] inv_ref_SharedCore x}
+  any
+  [ return (result: t_SharedCore) ->
+  {[@stop_split] [@expl:new_ref_SharedCore ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'3] inv_Ghost_ref_SharedCore result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'4] result = x)}
+    (! return {result}) ]
+
+predicate invariant_ref_Ghost_ref_SharedCore [@inline:trivial] (self: t_SharedCore) =
+  [%#sinvariant] inv_Ghost_ref_SharedCore self
+
+meta "rewrite_def" predicate invariant_ref_Ghost_ref_SharedCore
+
+predicate inv_ref_Ghost_ref_SharedCore [@inline:trivial] (_1: t_SharedCore) = invariant_ref_Ghost_ref_SharedCore _1
+
+meta "rewrite_def" predicate inv_ref_Ghost_ref_SharedCore
+
+predicate invariant_ref_ref_SharedCore [@inline:trivial] (self: t_SharedCore) = [%#sinvariant] inv_ref_SharedCore self
+
+meta "rewrite_def" predicate invariant_ref_ref_SharedCore
+
+predicate inv_ref_ref_SharedCore [@inline:trivial] (_1: t_SharedCore) = invariant_ref_ref_SharedCore _1
+
+meta "rewrite_def" predicate inv_ref_ref_SharedCore
+
+let deref_Ghost_ref_SharedCore (self: t_SharedCore) (return (x: t_SharedCore)) =
+{[@stop_split] [@expl:deref 'self' type invariant] [%#sghost] inv_ref_Ghost_ref_SharedCore self}
+  any
+  [ return (result: t_SharedCore) ->
+  {[@stop_split] [@expl:deref_Ghost_ref_SharedCore ensures] ([@stop_split] [@expl:deref result type invariant] [%#sghost'0] inv_ref_ref_SharedCore result)
+    /\ ([@stop_split] [@expl:deref ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+predicate invariant_ref_Ghost_GhostShared_FullBorrow_PhysicalRegion [@inline:trivial] (self: t_FullBorrow_PhysicalRegion) =
+  [%#sinvariant] inv_Ghost_GhostShared_FullBorrow_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_ref_Ghost_GhostShared_FullBorrow_PhysicalRegion
+
+predicate inv_ref_Ghost_GhostShared_FullBorrow_PhysicalRegion [@inline:trivial] (_1: t_FullBorrow_PhysicalRegion) =
+  invariant_ref_Ghost_GhostShared_FullBorrow_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_ref_Ghost_GhostShared_FullBorrow_PhysicalRegion
+
+predicate invariant_ref_GhostShared_FullBorrow_PhysicalRegion [@inline:trivial] (self: t_FullBorrow_PhysicalRegion) =
+  [%#sinvariant] inv_GhostShared_FullBorrow_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_ref_GhostShared_FullBorrow_PhysicalRegion
+
+predicate inv_ref_GhostShared_FullBorrow_PhysicalRegion [@inline:trivial] (_1: t_FullBorrow_PhysicalRegion) =
+  invariant_ref_GhostShared_FullBorrow_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_ref_GhostShared_FullBorrow_PhysicalRegion
+
+let deref_Ghost_GhostShared_FullBorrow_PhysicalRegion (self: t_FullBorrow_PhysicalRegion)
+  (return (x: t_FullBorrow_PhysicalRegion)) =
+{[@stop_split] [@expl:deref 'self' type invariant] [%#sghost] inv_ref_Ghost_GhostShared_FullBorrow_PhysicalRegion self}
+  any
+  [ return (result: t_FullBorrow_PhysicalRegion) ->
+  {[@stop_split] [@expl:deref_Ghost_GhostShared_FullBorrow_PhysicalRegion ensures] ([@stop_split] [@expl:deref result type invariant] [%#sghost'0] inv_ref_GhostShared_FullBorrow_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:deref ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+predicate invariant_ref_FullBorrow_PhysicalRegion [@inline:trivial] (self: t_FullBorrow_PhysicalRegion) =
+  [%#sinvariant] inv_FullBorrow_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_ref_FullBorrow_PhysicalRegion
+
+predicate inv_ref_FullBorrow_PhysicalRegion [@inline:trivial] (_1: t_FullBorrow_PhysicalRegion) =
+  invariant_ref_FullBorrow_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_ref_FullBorrow_PhysicalRegion
+
+let to_ref_FullBorrow_PhysicalRegion (self: t_FullBorrow_PhysicalRegion) (return (x: t_FullBorrow_PhysicalRegion)) =
+{[@stop_split] [@expl:to_ref 'self' type invariant] [%#sshared] inv_GhostShared_FullBorrow_PhysicalRegion self}
+  any
+  [ return (result: t_FullBorrow_PhysicalRegion) ->
+  {[@stop_split] [@expl:to_ref_FullBorrow_PhysicalRegion ensures] ([@stop_split] [@expl:to_ref result type invariant] [%#sshared'0] inv_ref_FullBorrow_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:to_ref ensures] [%#sshared'1] result = self)}
+    (! return {result}) ]
+
+predicate invariant_ref_Ghost_Ticket_Payload [@inline:trivial] (self: t_Ticket_Payload) =
+  [%#sinvariant] inv_Ghost_Ticket_Payload self
+
+meta "rewrite_def" predicate invariant_ref_Ghost_Ticket_Payload
+
+predicate inv_ref_Ghost_Ticket_Payload [@inline:trivial] (_1: t_Ticket_Payload) = invariant_ref_Ghost_Ticket_Payload _1
+
+meta "rewrite_def" predicate inv_ref_Ghost_Ticket_Payload
+
+predicate invariant_ref_Ticket_Payload [@inline:trivial] (self: t_Ticket_Payload) =
+  [%#sinvariant] inv_Ticket_Payload self
+
+meta "rewrite_def" predicate invariant_ref_Ticket_Payload
+
+predicate inv_ref_Ticket_Payload [@inline:trivial] (_1: t_Ticket_Payload) = invariant_ref_Ticket_Payload _1
+
+meta "rewrite_def" predicate inv_ref_Ticket_Payload
+
+let deref_Ghost_Ticket_Payload (self: t_Ticket_Payload) (return (x: t_Ticket_Payload)) =
+{[@stop_split] [@expl:deref 'self' type invariant] [%#sghost] inv_ref_Ghost_Ticket_Payload self}
+  any
+  [ return (result: t_Ticket_Payload) ->
+  {[@stop_split] [@expl:deref_Ghost_Ticket_Payload ensures] ([@stop_split] [@expl:deref result type invariant] [%#sghost'0] inv_ref_Ticket_Payload result)
+    /\ ([@stop_split] [@expl:deref ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+predicate invariant_ref_LifetimeToken [@inline:trivial] (self: t_LifetimeToken) = [%#sinvariant] inv_LifetimeToken self
+
+meta "rewrite_def" predicate invariant_ref_LifetimeToken
+
+predicate inv_ref_LifetimeToken [@inline:trivial] (_1: t_LifetimeToken) = invariant_ref_LifetimeToken _1
+
+meta "rewrite_def" predicate inv_ref_LifetimeToken
+
+type t_Lifetime
+
+function lft_PhysicalRegion (self: t_FullBorrow_PhysicalRegion) : t_Lifetime
+
+function lft (self: t_LifetimeToken) : t_Lifetime
+
+predicate invariant_ref_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sinvariant] inv_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_ref_PhysicalRegion
+
+predicate inv_ref_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_ref_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_ref_PhysicalRegion
+
+let borrow_PhysicalRegion (self: t_FullBorrow_PhysicalRegion) (token: t_LifetimeToken) (return (x: t_PhysicalRegion)) =
+{[@stop_split] [@expl:borrow_PhysicalRegion requires] ([@stop_split] [@expl:borrow 'self' type invariant] [%#slifetime_logic] inv_ref_FullBorrow_PhysicalRegion self)
+  /\ ([@stop_split] [@expl:borrow 'token' type invariant] [%#slifetime_logic'0] inv_ref_LifetimeToken token)
+  /\ ([@stop_split] [@expl:borrow requires] [%#slifetime_logic'1] lft_PhysicalRegion self = lft token)}
+  any
+  [ return (result: t_PhysicalRegion) ->
+  {[@stop_split] [@expl:borrow_PhysicalRegion ensures] ([@stop_split] [@expl:borrow result type invariant] [%#slifetime_logic'2] inv_ref_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:borrow ensures] [%#slifetime_logic'3] result = cur_PhysicalRegion self)}
+    (! return {result}) ]
+
+predicate invariant_Ghost_ref_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sghost'5] inv_ref_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_PhysicalRegion
+
+predicate inv_Ghost_ref_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_Ghost_ref_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_PhysicalRegion
+
+let new_ref_PhysicalRegion (x: t_PhysicalRegion) (return (x'0: t_PhysicalRegion)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'2] inv_ref_PhysicalRegion x}
+  any
+  [ return (result: t_PhysicalRegion) ->
+  {[@stop_split] [@expl:new_ref_PhysicalRegion ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'3] inv_Ghost_ref_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'4] result = x)}
+    (! return {result}) ]
+
+predicate invariant_ref_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sinvariant] inv_BoundPtr self
+
+meta "rewrite_def" predicate invariant_ref_BoundPtr
+
+predicate inv_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_ref_BoundPtr _1
+
+meta "rewrite_def" predicate inv_ref_BoundPtr
+
+predicate invariant_Ghost_ref_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sghost'5] inv_ref_BoundPtr self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_BoundPtr
+
+predicate inv_Ghost_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_Ghost_ref_BoundPtr _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_BoundPtr
+
+let new_ref_BoundPtr (x: t_BoundPtr) (return (x'0: t_BoundPtr)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'2] inv_ref_BoundPtr x}
+  any
+  [ return (result: t_BoundPtr) ->
+  {[@stop_split] [@expl:new_ref_BoundPtr ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'3] inv_Ghost_ref_BoundPtr result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'4] result = x)}
+    (! return {result}) ]
+
+type t_Atomic_ptr_unit
+
+type t_Vtable = {
+  clone': Opaque.ptr;
+  into_vec: Opaque.ptr;
+  into_mut: Opaque.ptr;
+  is_unique: Opaque.ptr;
+  drop: Opaque.ptr }
+
+type t_ReadOnlyPointer
+
+type t_ChildProof = { core: t_SharedCore; binding: t_ReadOnlyPointer }
+
+type t_EmptyViewProof = { bound'0: t_BoundPtr; binding'0: t_ReadOnlyPointer }
+
+type t_OriginalSharedProof =
+  | Root t_RootDescriptor
+  | Child t_ChildProof
+  | View t_ChildProof t_BoundPtr
+  | Empty t_EmptyViewProof
+  | Vacant
+
+type t_Bytes = {
+  ptr: Opaque.ptr;
+  len: UInt64.t;
+  data: t_Atomic_ptr_unit;
+  vtable: t_Vtable;
+  original_shared: t_OriginalSharedProof }
+
+function raw_pointer [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 299 4 299 46] (self: t_BoundPtr) : Opaque.ptr
+
+constant any_tup3_Id_Int_Int : tup3_Id_Int_Int
+
+function unwrap_Option_tup3_Id_Int_Int (self: t_Option_tup3_Id_Int_Int) : tup3_Id_Int_Int =
+  [%#soption'6] match self with
+    | Some'1 x -> x
+    | None'1 -> any_tup3_Id_Int_Int
+    end
+
+type t_OwnedRegion
+
+type tup3_OwnedRegion_Int_Id = { f0'1: t_OwnedRegion; f1'1: int; f2'1: t_Id }
+
+function view_PhysicalRegion [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 541 4 541 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+function namespace [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 573 4 573 39] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec] (view_PhysicalRegion self).f2'1
+
+function capacity'2 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 578 4 578 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'0] (view_PhysicalRegion self).f1'1
+
+type t_Excl_unit = { f0'2: () }
+
+type t_Option_Excl_unit = None'3 | Some'3 t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'3: t_Option_Excl_unit; f1'3: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'4: int;
+  f1'4: int;
+  f2'4: t_Id;
+  f3'4: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function lo [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 563 4 563 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'1] (view_OwnedRegion (view_PhysicalRegion self).f0'1).f0'4
+
+function hi [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 568 4 568 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'2] (view_OwnedRegion (view_PhysicalRegion self).f0'1).f1'4
+
+type t_Option_u8 = None'4 | Some'4 UInt8.t
+
+type t_Option_Option_u8 = None'5 | Some'5 t_Option_u8
+
+predicate slot_known [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 1192 0 1192 58] (slot: t_Option_Option_u8) =
+  [%#sraw_vec'3] match slot with
+    | Some'5 (Some'4 _) -> true
+    | _ -> false
+    end
+
+type t_Excl_Option_u8 = { f0'5: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'6 | Some'6 t_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+function slot [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 588 4 588 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+ = [%#sraw_vec'4] match get_Int (view_OwnedRegion (view_PhysicalRegion self).f0'1).f3'4.f1'3 index with
+    | None'6 -> None'5
+    | Some'6 {f0'5 = value} -> Some'5 value
+    end
+
+let borrow (pointer'0: Opaque.ptr) (len'1: UInt64.t) (bound: t_BoundPtr) (region: t_PhysicalRegion)
+  (return (x: Slice64.slice UInt8.t)) =
+{[@stop_split] [@expl:borrow requires] ([@stop_split] [@expl:borrow 'bound' type invariant] [%#sphysical_projection] inv_Ghost_ref_BoundPtr bound)
+  /\ ([@stop_split] [@expl:borrow 'region' type invariant] [%#sphysical_projection'0] inv_Ghost_ref_PhysicalRegion region)
+  /\ ([@stop_split] [@expl:borrow requires #0] [%#sphysical_projection'1] invariant_ref_BoundPtr bound
+    /\ view_BoundPtr bound <> None'1)
+  /\ ([@stop_split] [@expl:borrow requires #1] [%#sphysical_projection'2] pointer'0 = raw_pointer bound)
+  /\ ([@stop_split] [@expl:borrow requires #2] [%#sphysical_projection'3] invariant_ref_PhysicalRegion region)
+  /\ ([@stop_split] [@expl:borrow requires #3] [%#sphysical_projection'4] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f0'0
+    = namespace region)
+  /\ ([@stop_split] [@expl:borrow requires #4] [%#sphysical_projection'5] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f1'0
+    = capacity'2 region)
+  /\ ([@stop_split] [@expl:borrow requires #5] [%#sphysical_projection'6] lo region
+    <= (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f2'0)
+  /\ ([@stop_split] [@expl:borrow requires #6] [%#sphysical_projection'7] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f2'0
+      + UInt64.t'int len'1
+    <= hi region)
+  /\ ([@stop_split] [@expl:borrow requires #7] [%#sphysical_projection'8] forall i: int. 0 <= i
+      /\ i < UInt64.t'int len'1
+    -> slot_known (slot region ((unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f2'0 + i)))}
+  any
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:borrow ensures] ([@stop_split] [@expl:borrow ensures #0] [%#sphysical_projection'9] Seq.length (Slice64.view result)
+      = UInt64.t'int len'1)
+    /\ ([@stop_split] [@expl:borrow ensures #1] [%#sphysical_projection'10] forall i: int. 0 <= i
+        /\ i < UInt64.t'int len'1
+      -> slot region ((unwrap_Option_tup3_Id_Int_Int (view_BoundPtr bound)).f2'0 + i)
+      = Some'5 (Some'4 (Seq.get (Slice64.view result) i)))}
+    (! return {result}) ]
+
+predicate inv_Atomic_ptr_unit (_1: t_Atomic_ptr_unit)
+
+predicate inv_ChildProof (_1: t_ChildProof)
+
+axiom inv_axiom'17 [@rewrite]: forall x: t_ChildProof [inv_ChildProof x]. inv_ChildProof x = inv_SharedCore x.core
+
+predicate inv_EmptyViewProof (_1: t_EmptyViewProof)
+
+axiom inv_axiom'18 [@rewrite]: forall x: t_EmptyViewProof [inv_EmptyViewProof x]. inv_EmptyViewProof x
+    = inv_BoundPtr x.bound'0
+
+predicate inv_OriginalSharedProof (_1: t_OriginalSharedProof)
+
+axiom inv_axiom'19 [@rewrite]: forall x: t_OriginalSharedProof [inv_OriginalSharedProof x]. inv_OriginalSharedProof x
+    = match x with
+      | Root f0'6 -> inv_RootDescriptor f0'6
+      | Child f0'6 -> inv_ChildProof f0'6
+      | View f0'6 f1 -> inv_ChildProof f0'6 /\ inv_BoundPtr f1
+      | Empty f0'6 -> inv_EmptyViewProof f0'6
+      | Vacant -> true
+      end
+
+predicate invariant_Ghost_OriginalSharedProof [@inline:trivial] (self: t_OriginalSharedProof) =
+  [%#sghost'5] inv_OriginalSharedProof self
+
+meta "rewrite_def" predicate invariant_Ghost_OriginalSharedProof
+
+predicate inv_Ghost_OriginalSharedProof [@inline:trivial] (_1: t_OriginalSharedProof) =
+  invariant_Ghost_OriginalSharedProof _1
+
+meta "rewrite_def" predicate inv_Ghost_OriginalSharedProof
+
+predicate inv_Bytes (_1: t_Bytes)
+
+axiom inv_axiom'20 [@rewrite]: forall x: t_Bytes [inv_Bytes x]. inv_Bytes x
+    = (inv_Atomic_ptr_unit x.data /\ inv_Ghost_OriginalSharedProof x.original_shared)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+predicate gt_log_usize [@inline:trivial] (self: UInt64.t) (other: UInt64.t) = [%#sord] UInt64.lt other self
+
+meta "rewrite_def" predicate gt_log_usize
+
+function tagged_data [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../original-boxed-automatic-drop-2026-10-09/src/tag_specs.rs" 9 17 9 61] (pointer'0: Opaque.ptr) : Opaque.ptr
+
+function word [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 165 13 165 35] (self: t_RootDescriptor) : Opaque.ptr
+ = [%#spromotion'26] if UInt64.bw_and (Ptr.addr_logic_u64 (raw_pointer self.base)) (1: UInt64.t) = (0: UInt64.t) then
+    tagged_data (raw_pointer self.base)
+  else
+    raw_pointer self.base
+
+
+predicate valid [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 173 13 173 33] (self: t_RootDescriptor) =
+  [%#spromotion'24] invariant_BoundPtr self.base
+  /\ view_BoundPtr self.base <> None'1
+  /\ current_address self.base = UInt64.t'int (Ptr.addr_logic_u64 (raw_pointer self.base))
+  /\ (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self.base)).f1'0 = UInt64.t'int self.capacity
+  /\ (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self.base)).f2'0 = 0
+  /\ gt_log_usize self.capacity (0: UInt64.t)
+  /\ Seq.length self.expected = UInt64.t'int self.capacity
+  /\ UInt64.bw_and (Ptr.addr_logic_u64 (word self)) (1: UInt64.t) = (1: UInt64.t)
+
+type tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id = {
+  f0'6: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8;
+  f1'6: int;
+  f2'6: t_Id;
+  f3'6: t_Id }
+
+function view_Recovery [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 499 4 499 33] (self: t_Recovery) : tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id
+
+predicate ext_eq_Int (self: t_FMap_Int_Excl_Option_u8) (other: t_FMap_Int_Excl_Option_u8) =
+  [%#sfmap'7] forall k: int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec: forall self: t_FMap_Int_Excl_Option_u8, other: t_FMap_Int_Excl_Option_u8 [self
+    = other]. [%#sfmap'6] ext_eq_Int self other = (self = other)
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'1] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_Option_u8) : int
+
+axiom len_Int_spec: forall self: t_FMap_Int_Excl_Option_u8 [len_Int self]. [%#sfmap'8] ge_log_Int (len_Int self) 0
+
+constant empty_Int : t_FMap_Int_Excl_Option_u8
+
+axiom empty_Int_spec: [%#sfmap'4] len_Int empty_Int = 0
+
+axiom empty_Int_spec'0: [%#sfmap'5] to_mapping_Int empty_Int = Const.const (None'6)
+
+predicate is_empty_Int (self: t_FMap_Int_Excl_Option_u8) = [%#sfmap'1] ext_eq_Int self empty_Int
+
+predicate invariant' [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 519 4 519 41] (self: t_Recovery) =
+  [%#sraw_vec'5] (view_Recovery self).f0'6.f0'3 = Some'3 { f0'2 = () }
+  /\ is_empty_Int (view_Recovery self).f0'6.f1'3 /\ (view_Recovery self).f2'6 = (view_Recovery self).f3'6
+
+function namespace'0 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 509 4 509 39] (self: t_Recovery) : t_Id
+ = [%#sraw_vec'6] (view_Recovery self).f2'6
+
+function capacity'3 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 514 4 514 39] (self: t_Recovery) : int
+ = [%#sraw_vec'7] (view_Recovery self).f1'6
+
+function resource_id [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../../../src/ownership_proof/raw_vec.rs" 583 4 583 41] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'8] (view_OwnedRegion (view_PhysicalRegion self).f0'1).f2'4
+
+function ward_AtomicPtr_unit (self: t_Perm_AtomicPtr_unit) : t_AtomicPtr_unit
+
+type t_FMap_Int_tup2_ptr_unit_SyncView
+
+function val_AtomicPtr_unit (self: t_Perm_AtomicPtr_unit) : t_FMap_Int_tup2_ptr_unit_SyncView
+
+type tup2_ptr_unit_SyncView = { f0'7: Opaque.ptr; f1'7: t_SyncView }
+
+type t_Option_tup2_ptr_unit_SyncView = None'7 | Some'7 tup2_ptr_unit_SyncView
+
+function to_mapping_Int'0 (self: t_FMap_Int_tup2_ptr_unit_SyncView) : Map.map int t_Option_tup2_ptr_unit_SyncView
+
+function len_Int'0 (self: t_FMap_Int_tup2_ptr_unit_SyncView) : int
+
+axiom len_Int_spec'0:
+  forall self: t_FMap_Int_tup2_ptr_unit_SyncView [len_Int'0 self]. [%#sfmap'8] ge_log_Int (len_Int'0 self) 0
+
+function get_Int'0 [@inline:trivial] (self: t_FMap_Int_tup2_ptr_unit_SyncView) (k: int) : t_Option_tup2_ptr_unit_SyncView
+ = [%#sfmap] Map.get (to_mapping_Int'0 self) k
+
+meta "rewrite_def" function get_Int'0
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_tup2_ptr_unit_SyncView) (k: int) =
+  [%#sfmap'9] get_Int'0 self k <> None'7
+
+meta "rewrite_def" predicate contains_Int
+
+function insert_Int (self: t_FMap_Int_tup2_ptr_unit_SyncView) (k: int) (v: tup2_ptr_unit_SyncView) : t_FMap_Int_tup2_ptr_unit_SyncView
+
+axiom insert_Int_spec:
+  forall self: t_FMap_Int_tup2_ptr_unit_SyncView, k: int, v: tup2_ptr_unit_SyncView [insert_Int self k v]. [%#sfmap'2] to_mapping_Int'0 (insert_Int self k v)
+    = Map.set (to_mapping_Int'0 self) k (Some'7 v)
+
+axiom insert_Int_spec'0:
+  forall self: t_FMap_Int_tup2_ptr_unit_SyncView, k: int, v: tup2_ptr_unit_SyncView [insert_Int self k v]. [%#sfmap'3] len_Int'0 (insert_Int self k v)
+    = (if contains_Int self k then len_Int'0 self else len_Int'0 self + 1)
+
+constant empty_Int'0 : t_FMap_Int_tup2_ptr_unit_SyncView
+
+axiom empty_Int_spec'1: [%#sfmap'4] len_Int'0 empty_Int'0 = 0
+
+axiom empty_Int_spec'2: [%#sfmap'5] to_mapping_Int'0 empty_Int'0 = Const.const (None'7)
+
+function singleton_Int (k: int) (v: tup2_ptr_unit_SyncView) : t_FMap_Int_tup2_ptr_unit_SyncView =
+  [%#sfmap'0] insert_Int empty_Int'0 k v
+
+predicate valid'0 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 195 24 195 61] (self: t_RawPhase) (d: t_RootDescriptor) =
+  [%#spromotion'22] valid d
+  /\ invariant' self.recovery
+  /\ invariant_PhysicalRegion self.physical
+  /\ view_BoundPtr d.base = Some'1 { f0'0 = namespace'0 self.recovery; f1'0 = UInt64.t'int d.capacity; f2'0 = 0 }
+  /\ capacity'3 self.recovery = UInt64.t'int d.capacity
+  /\ capacity'2 self.physical = UInt64.t'int d.capacity
+  /\ namespace self.physical = namespace'0 self.recovery
+  /\ resource_id self.physical = namespace'0 self.recovery
+  /\ lo self.physical = 0
+  /\ hi self.physical = UInt64.t'int d.capacity
+  /\ (forall i: int. 0 <= i /\ i < UInt64.t'int d.capacity
+      -> slot self.physical i = Some'5 (Some'4 (Seq.get d.expected i)))
+  /\ ward_AtomicPtr_unit self.own = d.model
+  /\ (exists t: int, published: t_SyncView. val_AtomicPtr_unit self.own
+    = singleton_Int t { f0'7 = word d; f1'7 = published })
+
+type t_AtomicUsize
+
+type tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8 = {
+  f0'8: t_Lifetime;
+  f1'8: t_Id;
+  f2'8: int;
+  f3'8: Seq.seq UInt8.t;
+  f4'8: int;
+  f5'8: Opaque.ptr;
+  f6'8: Opaque.ptr }
+
+type tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id = {
+  f0'9: t_AtomicUsize;
+  f1'9: t_Id;
+  f2'9: t_Lifetime;
+  f3'9: tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8;
+  f4'9: t_Id }
+
+function public_State_Payload [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/field_event.rs" 120 4 120 37] (self: t_ScopedFieldInvariant_State_Payload) : tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+function pointer_Shared [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/field_event.rs" 50 4 50 43] (self: t_OwnedControl_Shared) : Opaque.ptr
+ = [%#sfield_event] self.pointer
+
+function lft_OwnedControl_Shared (self: t_FullBorrow_OwnedControl_Shared) : t_Lifetime
+
+predicate wellformed_Shared [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/field_event.rs" 56 4 56 42] (self: t_OwnedControl_Shared) =
+  [%#sfield_event'0] self.pointer = ward_ptr_Shared self.owner
+
+function atomic_model [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/field_event.rs" 81 0 81 60] (atomic: t_Atomic_usize) : t_AtomicUsize
+
+function field_model_Shared [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 21 4 21 38] (self: t_Shared) : t_AtomicUsize
+ = [%#spromotion'32] atomic_model self.ref_cnt
+
+function model_Shared [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/field_event.rs" 53 4 53 44] (self: t_OwnedControl_Shared) : t_AtomicUsize
+ = [%#sfield_event'1] field_model_Shared (val_ptr_Shared self.owner)
+
+function model_State_Payload [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/field_event.rs" 115 4 115 38] (self: t_ScopedFieldInvariant_State_Payload) : t_AtomicUsize
+
+function id_View_AuthViewRel_FMap_Int_Excl_PositiveReal (self: t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal) : t_Id
+
+function id_FMap_Int_Excl_PositiveReal (self: t_Fragment_FMap_Int_Excl_PositiveReal) : t_Id =
+  [%#sauth] id_View_AuthViewRel_FMap_Int_Excl_PositiveReal self.f0
+
+type t_FMap_Int_Excl_PositiveReal
+
+type t_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+
+type t_Option_FMap_Int_Excl_PositiveReal = None'8 | Some'8 t_FMap_Int_Excl_PositiveReal
+
+type t_PositiveReal
+
+type t_Excl_PositiveReal = { f0'10: t_PositiveReal }
+
+type t_Option_Excl_PositiveReal = None'9 | Some'9 t_Excl_PositiveReal
+
+type t_Option_Option_Excl_PositiveReal = None'10 | Some'10 t_Option_Excl_PositiveReal
+
+type tup2_Option_Excl_PositiveReal_Option_Excl_PositiveReal = {
+  f0'11: t_Option_Excl_PositiveReal;
+  f1'11: t_Option_Excl_PositiveReal }
+
+function map_Option_Excl_PositiveReal (self: t_Option_Excl_PositiveReal) (f: Map.map t_Excl_PositiveReal t_Option_Excl_PositiveReal) : t_Option_Option_Excl_PositiveReal
+ = [%#soption'11] match self with
+    | None'9 -> None'10
+    | Some'9 x -> Some'10 (Map.get f x)
+    end
+
+function op_Excl_PositiveReal (self: t_Excl_PositiveReal) (_other: t_Excl_PositiveReal) : t_Option_Excl_PositiveReal =
+  [%#sexcl] None'9
+
+function commutative_Excl_PositiveReal (a: t_Excl_PositiveReal) (b: t_Excl_PositiveReal) : ()
+
+axiom commutative_Excl_PositiveReal_spec:
+  forall a: t_Excl_PositiveReal, b: t_Excl_PositiveReal. [%#sexcl'0] op_Excl_PositiveReal a b = op_Excl_PositiveReal b a
+
+function op_Option_Excl_PositiveReal (self: t_Option_Excl_PositiveReal) (other: t_Option_Excl_PositiveReal) : t_Option_Option_Excl_PositiveReal
+ = [%#soption'9] match { f0'11 = self; f1'11 = other } with
+    | {f0'11 = None'9} -> Some'10 other
+    | {f1'11 = None'9} -> Some'10 self
+    | {f0'11 = Some'9 x; f1'11 = Some'9 y} -> map_Option_Excl_PositiveReal (op_Excl_PositiveReal x y) (fun (z: t_Excl_PositiveReal) -> Some'9 z)
+    end
+
+function commutative_Option_Excl_PositiveReal (a: t_Option_Excl_PositiveReal) (b: t_Option_Excl_PositiveReal) : ()
+
+axiom commutative_Option_Excl_PositiveReal_spec:
+  forall a: t_Option_Excl_PositiveReal, b: t_Option_Excl_PositiveReal. [%#soption'10] op_Option_Excl_PositiveReal a b
+    = op_Option_Excl_PositiveReal b a
+
+function to_mapping_Int'1 (self: t_FMap_Int_Excl_PositiveReal) : Map.map int t_Option_Excl_PositiveReal
+
+function get_Int'1 [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) : t_Option_Excl_PositiveReal =
+  [%#sfmap] Map.get (to_mapping_Int'1 self) k
+
+meta "rewrite_def" function get_Int'1
+
+function total_op_Int (self: t_FMap_Int_Excl_PositiveReal) (other: t_FMap_Int_Excl_PositiveReal) : t_FMap_Int_Excl_PositiveReal
+
+axiom total_op_Int_spec:
+  forall self: t_FMap_Int_Excl_PositiveReal, other: t_FMap_Int_Excl_PositiveReal [total_op_Int self other]. ([%#sfmap'16] forall k: int. op_Option_Excl_PositiveReal (get_Int'1 self k) (get_Int'1 other k)
+        <> None'10)
+    -> ([%#sfmap'17] forall k: int. Some'10 (get_Int'1 (total_op_Int self other) k)
+      = op_Option_Excl_PositiveReal (get_Int'1 self k) (get_Int'1 other k))
+
+function op_FMap_Int_Excl_PositiveReal (self: t_FMap_Int_Excl_PositiveReal) (other: t_FMap_Int_Excl_PositiveReal) : t_Option_FMap_Int_Excl_PositiveReal
+ = [%#sfmap'15] if forall k: int. op_Option_Excl_PositiveReal (get_Int'1 self k) (get_Int'1 other k) <> None'10 then
+    Some'8 (total_op_Int self other)
+  else
+    None'8
+
+
+function commutative_FMap_Int_Excl_PositiveReal (a: t_FMap_Int_Excl_PositiveReal) (b: t_FMap_Int_Excl_PositiveReal) : ()
+
+axiom commutative_FMap_Int_Excl_PositiveReal_spec:
+  forall a: t_FMap_Int_Excl_PositiveReal, b: t_FMap_Int_Excl_PositiveReal. [%#sfmap'14] op_FMap_Int_Excl_PositiveReal a b
+    = op_FMap_Int_Excl_PositiveReal b a
+
+function len_Int'1 (self: t_FMap_Int_Excl_PositiveReal) : int
+
+axiom len_Int_spec'1:
+  forall self: t_FMap_Int_Excl_PositiveReal [len_Int'1 self]. [%#sfmap'8] ge_log_Int (len_Int'1 self) 0
+
+constant empty_Int'1 : t_FMap_Int_Excl_PositiveReal
+
+axiom empty_Int_spec'3: [%#sfmap'4] len_Int'1 empty_Int'1 = 0
+
+axiom empty_Int_spec'4: [%#sfmap'5] to_mapping_Int'1 empty_Int'1 = Const.const (None'9)
+
+constant unit_FMap_Int_Excl_PositiveReal: t_FMap_Int_Excl_PositiveReal = [%#sfmap'13] empty_Int'1
+
+axiom unit_FMap_Int_Excl_PositiveReal_spec:
+  [%#sfmap'12] forall x: t_FMap_Int_Excl_PositiveReal [op_FMap_Int_Excl_PositiveReal x unit_FMap_Int_Excl_PositiveReal]. op_FMap_Int_Excl_PositiveReal x unit_FMap_Int_Excl_PositiveReal
+    = Some'8 x
+
+predicate incl_Excl_PositiveReal (self: t_Excl_PositiveReal) (other: t_Excl_PositiveReal) = [%#sexcl'2] false
+
+axiom incl_Excl_PositiveReal_spec:
+  forall self: t_Excl_PositiveReal, other: t_Excl_PositiveReal [incl_Excl_PositiveReal self other]. [%#sexcl'1] incl_Excl_PositiveReal self other
+    = (exists factor: t_Excl_PositiveReal. op_Excl_PositiveReal self factor = Some'9 other)
+
+function incl_transitive_Excl_PositiveReal (a: t_Excl_PositiveReal) (b: t_Excl_PositiveReal) (c: t_Excl_PositiveReal) : ()
+
+axiom incl_transitive_Excl_PositiveReal_spec:
+  forall a: t_Excl_PositiveReal, b: t_Excl_PositiveReal, c: t_Excl_PositiveReal. ([%#sra'8] incl_Excl_PositiveReal a b)
+    -> ([%#sra'9] incl_Excl_PositiveReal b c) -> ([%#sra'10] incl_Excl_PositiveReal a c)
+
+function associative_some_Excl_PositiveReal (a: t_Excl_PositiveReal) (b: t_Excl_PositiveReal) (c: t_Excl_PositiveReal) (ab: t_Excl_PositiveReal) (bc: t_Excl_PositiveReal) : ()
+
+axiom associative_some_Excl_PositiveReal_spec:
+  forall a: t_Excl_PositiveReal, b: t_Excl_PositiveReal, c: t_Excl_PositiveReal, ab: t_Excl_PositiveReal, bc: t_Excl_PositiveReal. ([%#sra'5] op_Excl_PositiveReal a b
+      = Some'9 ab)
+    -> ([%#sra'6] op_Excl_PositiveReal b c = Some'9 bc)
+    -> ([%#sra'7] op_Excl_PositiveReal a bc = op_Excl_PositiveReal ab c)
+
+function associative_none_Excl_PositiveReal (a: t_Excl_PositiveReal) (b: t_Excl_PositiveReal) (c: t_Excl_PositiveReal) (bc: t_Excl_PositiveReal) : ()
+
+axiom associative_none_Excl_PositiveReal_spec:
+  forall a: t_Excl_PositiveReal, b: t_Excl_PositiveReal, c: t_Excl_PositiveReal, bc: t_Excl_PositiveReal. ([%#sra'2] op_Excl_PositiveReal a b
+      = None'9) -> ([%#sra'3] op_Excl_PositiveReal b c = Some'9 bc) -> ([%#sra'4] op_Excl_PositiveReal a bc = None'9)
+
+function incl_op_Excl_PositiveReal (self: t_Excl_PositiveReal) (other: t_Excl_PositiveReal) (comb: t_Excl_PositiveReal) : ()
+
+axiom incl_op_Excl_PositiveReal_spec:
+  forall self: t_Excl_PositiveReal, other: t_Excl_PositiveReal, comb: t_Excl_PositiveReal. ([%#sra'0] op_Excl_PositiveReal self other
+      = Some'9 comb) -> ([%#sra'1] incl_Excl_PositiveReal self comb)
+
+predicate eq_Excl_PositiveReal [@inline:trivial] (self: t_Excl_PositiveReal) (other: t_Excl_PositiveReal) =
+  [%#sra'12] self = other
+
+meta "rewrite_def" predicate eq_Excl_PositiveReal
+
+axiom eq_Excl_PositiveReal_spec:
+  forall self: t_Excl_PositiveReal, other: t_Excl_PositiveReal [eq_Excl_PositiveReal self other]. [%#sra'11] eq_Excl_PositiveReal self other
+    = (self = other)
+
+predicate incl_eq_Excl_PositiveReal (self: t_Excl_PositiveReal) (other: t_Excl_PositiveReal) =
+  [%#sra] eq_Excl_PositiveReal self other \/ incl_Excl_PositiveReal self other
+
+predicate incl_Option_Excl_PositiveReal (self: t_Option_Excl_PositiveReal) (other: t_Option_Excl_PositiveReal) =
+  [%#soption'8] match { f0'11 = self; f1'11 = other } with
+    | {f0'11 = None'9} -> true
+    | {f1'11 = None'9} -> false
+    | {f0'11 = Some'9 x; f1'11 = Some'9 y} -> incl_eq_Excl_PositiveReal x y
+    end
+
+axiom incl_Option_Excl_PositiveReal_spec:
+  forall self: t_Option_Excl_PositiveReal, other: t_Option_Excl_PositiveReal [incl_Option_Excl_PositiveReal self other]. [%#soption'7] incl_Option_Excl_PositiveReal self other
+    = (exists factor: t_Option_Excl_PositiveReal. op_Option_Excl_PositiveReal self factor = Some'10 other)
+
+predicate incl_FMap_Int_Excl_PositiveReal (self: t_FMap_Int_Excl_PositiveReal) (other: t_FMap_Int_Excl_PositiveReal) =
+  [%#sfmap'11] let r = forall k: int. incl_Option_Excl_PositiveReal (get_Int'1 self k) (get_Int'1 other k) in r
+
+axiom incl_FMap_Int_Excl_PositiveReal_spec:
+  forall self: t_FMap_Int_Excl_PositiveReal, other: t_FMap_Int_Excl_PositiveReal [incl_FMap_Int_Excl_PositiveReal self other]. [%#sfmap'10] incl_FMap_Int_Excl_PositiveReal self other
+    = (exists factor: t_FMap_Int_Excl_PositiveReal. op_FMap_Int_Excl_PositiveReal self factor = Some'8 other)
+
+predicate rel_AuthViewRel_FMap_Int_Excl_PositiveReal (a: t_Option_FMap_Int_Excl_PositiveReal) (f: t_FMap_Int_Excl_PositiveReal) =
+  [%#sauth'1] match a with
+    | Some'8 a'0 -> incl_FMap_Int_Excl_PositiveReal f a'0
+    | None'8 -> true
+    end
+
+function rel_unit_AuthViewRel_FMap_Int_Excl_PositiveReal (a: t_Option_FMap_Int_Excl_PositiveReal) : ()
+
+axiom rel_unit_AuthViewRel_FMap_Int_Excl_PositiveReal_spec:
+  forall a: t_Option_FMap_Int_Excl_PositiveReal. [%#sauth'6] rel_AuthViewRel_FMap_Int_Excl_PositiveReal a unit_FMap_Int_Excl_PositiveReal
+
+function rel_none_AuthViewRel_FMap_Int_Excl_PositiveReal (a: t_Option_FMap_Int_Excl_PositiveReal) (f: t_FMap_Int_Excl_PositiveReal) : ()
+
+axiom rel_none_AuthViewRel_FMap_Int_Excl_PositiveReal_spec:
+  forall a: t_Option_FMap_Int_Excl_PositiveReal, f: t_FMap_Int_Excl_PositiveReal. [%#sauth'5] rel_AuthViewRel_FMap_Int_Excl_PositiveReal (None'8) f
+
+function rel_mono_AuthViewRel_FMap_Int_Excl_PositiveReal (a: t_Option_FMap_Int_Excl_PositiveReal) (f1: t_FMap_Int_Excl_PositiveReal) (f2: t_FMap_Int_Excl_PositiveReal) : ()
+
+axiom rel_mono_AuthViewRel_FMap_Int_Excl_PositiveReal_spec:
+  forall a: t_Option_FMap_Int_Excl_PositiveReal, f1: t_FMap_Int_Excl_PositiveReal, f2: t_FMap_Int_Excl_PositiveReal. ([%#sauth'2] rel_AuthViewRel_FMap_Int_Excl_PositiveReal a f1)
+    -> ([%#sauth'3] incl_FMap_Int_Excl_PositiveReal f2 f1)
+    -> ([%#sauth'4] rel_AuthViewRel_FMap_Int_Excl_PositiveReal a f2)
+
+function auth_AuthViewRel_FMap_Int_Excl_PositiveReal (self: t_View_AuthViewRel_FMap_Int_Excl_PositiveReal) : t_Option_FMap_Int_Excl_PositiveReal
+
+function frag_AuthViewRel_FMap_Int_Excl_PositiveReal (self: t_View_AuthViewRel_FMap_Int_Excl_PositiveReal) : t_FMap_Int_Excl_PositiveReal
+
+axiom frag_AuthViewRel_FMap_Int_Excl_PositiveReal_spec:
+  forall self: t_View_AuthViewRel_FMap_Int_Excl_PositiveReal [frag_AuthViewRel_FMap_Int_Excl_PositiveReal self]. [%#sview'4] rel_AuthViewRel_FMap_Int_Excl_PositiveReal (auth_AuthViewRel_FMap_Int_Excl_PositiveReal self) (frag_AuthViewRel_FMap_Int_Excl_PositiveReal self)
+
+function val_View_AuthViewRel_FMap_Int_Excl_PositiveReal (self: t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal) : t_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+
+function view_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal [@inline:trivial] (self: t_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal) : t_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+ = [%#sresource] val_View_AuthViewRel_FMap_Int_Excl_PositiveReal self
+
+meta "rewrite_def" function view_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal
+
+function view_Fragment_FMap_Int_Excl_PositiveReal (self: t_Fragment_FMap_Int_Excl_PositiveReal) : t_FMap_Int_Excl_PositiveReal
+ =
+  [%#sauth'0] frag_AuthViewRel_FMap_Int_Excl_PositiveReal (view_Resource_View_AuthViewRel_FMap_Int_Excl_PositiveReal self.f0)
+
+predicate contains_Int'0 [@inline:trivial] (self: t_FMap_Int_Excl_PositiveReal) (k: int) =
+  [%#sfmap'9] get_Int'1 self k <> None'9
+
+meta "rewrite_def" predicate contains_Int'0
+
+function insert_Int'0 (self: t_FMap_Int_Excl_PositiveReal) (k: int) (v: t_Excl_PositiveReal) : t_FMap_Int_Excl_PositiveReal
+
+axiom insert_Int_spec'1:
+  forall self: t_FMap_Int_Excl_PositiveReal, k: int, v: t_Excl_PositiveReal [insert_Int'0 self k v]. [%#sfmap'2] to_mapping_Int'1 (insert_Int'0 self k v)
+    = Map.set (to_mapping_Int'1 self) k (Some'9 v)
+
+axiom insert_Int_spec'2:
+  forall self: t_FMap_Int_Excl_PositiveReal, k: int, v: t_Excl_PositiveReal [insert_Int'0 self k v]. [%#sfmap'3] len_Int'1 (insert_Int'0 self k v)
+    = (if contains_Int'0 self k then len_Int'1 self else len_Int'1 self + 1)
+
+function singleton_Int'0 (k: int) (v: t_Excl_PositiveReal) : t_FMap_Int_Excl_PositiveReal =
+  [%#sfmap'0] insert_Int'0 empty_Int'1 k v
+
+function frac (self: t_LifetimeToken) : t_PositiveReal
+
+function lft_PhysicalRegion'0 (self: t_EndBorrow_PhysicalRegion) : t_Lifetime
+
+function fin_EndBorrow_PhysicalRegion (self: t_EndBorrow_PhysicalRegion) : t_PhysicalRegion
+
+function lft_OwnedControl_Shared'0 (self: t_EndBorrow_OwnedControl_Shared) : t_Lifetime
+
+function fin_EndBorrow_OwnedControl_Shared (self: t_EndBorrow_OwnedControl_Shared) : t_OwnedControl_Shared
+
+predicate wellformed_Payload [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 54 4 54 31] (self: t_Payload) =
+  [%#spromotion'33] invariant' self.recovery'0
+  /\ invariant_BoundPtr self.base'0
+  /\ view_BoundPtr self.base'0
+    = Some'1 { f0'0 = namespace'0 self.recovery'0; f1'0 = capacity'3 self.recovery'0; f2'0 = 0 }
+  /\ UInt64.t'int self.capacity'0 = capacity'3 self.recovery'0
+  /\ UInt64.t'int self.len'0 = Seq.length self.expected'0
+  /\ gt_log_Int (UInt64.t'int self.capacity'0) 0
+  /\ UInt64.t'int self.len'0 <= UInt64.t'int self.capacity'0
+  /\ lft_PhysicalRegion'0 self.physical_end'0 = lft_PhysicalRegion self.physical'0
+  /\ lft_PhysicalRegion self.physical'0 = lft_OwnedControl_Shared self.control'0
+  /\ fin_EndBorrow_PhysicalRegion self.physical_end'0 = cur_PhysicalRegion self.physical'0
+  /\ invariant_PhysicalRegion (cur_PhysicalRegion self.physical'0)
+  /\ namespace (cur_PhysicalRegion self.physical'0) = namespace'0 self.recovery'0
+  /\ capacity'2 (cur_PhysicalRegion self.physical'0) = capacity'3 self.recovery'0
+  /\ resource_id (cur_PhysicalRegion self.physical'0) = namespace'0 self.recovery'0
+  /\ lo (cur_PhysicalRegion self.physical'0) = 0
+  /\ hi (cur_PhysicalRegion self.physical'0) = capacity'3 self.recovery'0
+  /\ lft_OwnedControl_Shared'0 self.control_end'0 = lft_OwnedControl_Shared self.control'0
+  /\ fin_EndBorrow_OwnedControl_Shared self.control_end'0 = cur_OwnedControl_Shared self.control'0
+  /\ wellformed_Shared (cur_OwnedControl_Shared self.control'0)
+  /\ (val_ptr_Shared (cur_OwnedControl_Shared self.control'0).owner).buf = raw_pointer self.base'0
+  /\ UInt64.t'int (val_ptr_Shared (cur_OwnedControl_Shared self.control'0).owner).cap = capacity'3 self.recovery'0
+  /\ model_Shared (cur_OwnedControl_Shared self.control'0)
+    = atomic_model (val_ptr_Shared (cur_OwnedControl_Shared self.control'0).owner).ref_cnt
+  /\ (forall i: int. 0 <= i /\ i < UInt64.t'int self.len'0
+    -> slot (cur_PhysicalRegion self.physical'0) i = Some'5 (Some'4 (Seq.get self.expected'0 i)))
+
+constant any_Payload : t_Payload
+
+function unwrap_Option_Payload (self: t_Option_Payload) : t_Payload = [%#soption'6] match self with
+    | Some x -> x
+    | None -> any_Payload
+    end
+
+function metadata_Payload [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 41 4 41 39] (self: t_Payload) : tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8
+ = [%#spromotion'34] { f0'8 = lft_OwnedControl_Shared self.control'0;
+                       f1'8 = namespace'0 self.recovery'0;
+                       f2'8 = capacity'3 self.recovery'0;
+                       f3'8 = self.expected'0;
+                       f4'8 = UInt64.t'int (Ptr.addr_logic_u64 (pointer_Shared (cur_OwnedControl_Shared self.control'0)));
+                       f5'8 = pointer_Shared (cur_OwnedControl_Shared self.control'0);
+                       f6'8 = raw_pointer self.base'0 }
+
+predicate valid_Payload [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/lifecycle.rs" 254 4 254 70] (self: t_Ticket_Payload) (public: tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id) =
+  [%#slifecycle] 0 <= self.id'1
+  /\ id_FMap_Int_Excl_PositiveReal self.fragment'1 = public.f1'9
+  /\ view_Fragment_FMap_Int_Excl_PositiveReal self.fragment'1 = singleton_Int'0 self.id'1 { f0'10 = frac self.token'1 }
+  /\ lft self.token'1 = public.f2'9
+  /\ (if self.id'1 = 0 then
+    self.recovery'1 <> None
+    /\ wellformed_Payload (unwrap_Option_Payload self.recovery'1)
+    /\ metadata_Payload (unwrap_Option_Payload self.recovery'1) = public.f3'9
+  else
+    self.recovery'1 = None
+  )
+
+predicate valid_for [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 118 4 118 63] (self: t_SharedCore) (ptr'0: Opaque.ptr) (len'1: UInt64.t) =
+  [%#spromotion'30] let p = self in invariant_BoundPtr p.bound'1
+  /\ view_BoundPtr p.bound'1
+    = Some'1 { f0'0 = (public_State_Payload p.invariant''1).f3'9.f1'8; f1'0 = UInt64.t'int p.capacity'1; f2'0 = 0 }
+  /\ UInt64.t'int p.capacity'1 = (public_State_Payload p.invariant''1).f3'9.f2'8
+  /\ UInt64.t'int len'1 = Seq.length (public_State_Payload p.invariant''1).f3'9.f3'8
+  /\ gt_log_Int (UInt64.t'int p.capacity'1) 0
+  /\ UInt64.t'int len'1 <= UInt64.t'int p.capacity'1
+  /\ ptr'0 = raw_pointer p.bound'1
+  /\ current_address p.bound'1 = UInt64.t'int (Ptr.addr_logic_u64 ptr'0)
+  /\ p.shared'1 = pointer_Shared (cur_OwnedControl_Shared p.control'1)
+  /\ (public_State_Payload p.invariant''1).f3'9.f5'8 = p.shared'1
+  /\ (public_State_Payload p.invariant''1).f3'9.f6'8 = raw_pointer p.bound'1
+  /\ (public_State_Payload p.invariant''1).f3'9.f0'8 = (public_State_Payload p.invariant''1).f2'9
+  /\ lft_OwnedControl_Shared p.control'1 = (public_State_Payload p.invariant''1).f2'9
+  /\ lft_PhysicalRegion p.physical'1 = (public_State_Payload p.invariant''1).f2'9
+  /\ wellformed_Shared (cur_OwnedControl_Shared p.control'1)
+  /\ model_Shared (cur_OwnedControl_Shared p.control'1) = model_State_Payload p.invariant''1
+  /\ (val_ptr_Shared (cur_OwnedControl_Shared p.control'1).owner).buf = raw_pointer p.bound'1
+  /\ UInt64.t'int (val_ptr_Shared (cur_OwnedControl_Shared p.control'1).owner).cap = UInt64.t'int p.capacity'1
+  /\ invariant_PhysicalRegion (cur_PhysicalRegion p.physical'1)
+  /\ namespace (cur_PhysicalRegion p.physical'1) = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr p.bound'1)).f0'0
+  /\ capacity'2 (cur_PhysicalRegion p.physical'1) = UInt64.t'int p.capacity'1
+  /\ resource_id (cur_PhysicalRegion p.physical'1) = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr p.bound'1)).f0'0
+  /\ lo (cur_PhysicalRegion p.physical'1) = 0
+  /\ hi (cur_PhysicalRegion p.physical'1) = UInt64.t'int p.capacity'1
+  /\ (forall i: int. 0 <= i /\ i < UInt64.t'int len'1
+      -> slot (cur_PhysicalRegion p.physical'1) i
+      = Some'5 (Some'4 (Seq.get (public_State_Payload p.invariant''1).f3'9.f3'8 i)))
+  /\ lft p.ticket'1.token'1 = (public_State_Payload p.invariant''1).f2'9
+  /\ valid_Payload p.ticket'1 (public_State_Payload p.invariant''1)
+
+predicate valid'1 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 411 24 411 44] (self: t_SharedCore) =
+  [%#spromotion'27] valid_for self (raw_pointer self.bound'1) self.capacity'1
+
+function model_State_Payload'0 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/event.rs" 25 21 25 54] (self: t_ScopeCursor_State_Payload) : t_AtomicUsize
+
+function public_State_Payload'0 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/event.rs" 26 21 26 53] (self: t_ScopeCursor_State_Payload) : tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+
+function public [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 415 13 415 77] (self: t_SharedCore) : tup5_AtomicUsize_Id_Lifetime_tup7_Lifetime_Id_Int_Seq_u8_Int_ptr_Shared_ptr_u8_Id
+ = [%#spromotion'31] public_State_Payload self.invariant''1
+
+predicate accepts [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 418 13 418 49] (self: t_SharedCore) (cursor: t_ScopeCursor_State_Payload) =
+  [%#spromotion'28] model_State_Payload'0 cursor = model_State_Payload self.invariant''1
+  /\ public_State_Payload'0 cursor = public self
+
+function content [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 414 13 414 38] (self: t_SharedCore) : Seq.seq UInt8.t
+ = [%#spromotion'29] (public_State_Payload self.invariant''1).f3'9.f3'8
+
+constant any_tup2_ptr_unit_SyncView : tup2_ptr_unit_SyncView
+
+function unwrap_Option_tup2_ptr_unit_SyncView (self: t_Option_tup2_ptr_unit_SyncView) : tup2_ptr_unit_SyncView =
+  [%#soption'6] match self with
+    | Some'7 x -> x
+    | None'7 -> any_tup2_ptr_unit_SyncView
+    end
+
+predicate latest_is [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/owned_pointer.rs" 128 0 128 91] (history: t_FMap_Int_tup2_ptr_unit_SyncView) (expected'1: Opaque.ptr) =
+  [%#sowned_pointer] exists t: int. get_Int'0 history t <> None'7
+    /\ (unwrap_Option_tup2_ptr_unit_SyncView (get_Int'0 history t)).f0'7 = expected'1
+    /\ (forall u: int. get_Int'0 history u <> None'7 -> u <= t)
+
+predicate visible_is [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/owned_pointer.rs" 135 0 135 104] (history: t_FMap_Int_tup2_ptr_unit_SyncView) (lower: int) (expected'1: Opaque.ptr) =
+  [%#sowned_pointer'0] forall t: int. lower <= t /\ get_Int'0 history t <> None'7
+    -> (unwrap_Option_tup2_ptr_unit_SyncView (get_Int'0 history t)).f0'7 = expected'1
+
+predicate lt_log_SyncView (self: t_SyncView) (_2: t_SyncView)
+
+predicate le_log_SyncView [@inline:trivial] (self: t_SyncView) (other: t_SyncView) =
+  [%#sord'0] lt_log_SyncView self other \/ self = other
+
+meta "rewrite_def" predicate le_log_SyncView
+
+function le_lt_log_SyncView (self: t_SyncView) (other: t_SyncView) : ()
+
+axiom le_lt_log_SyncView_spec: forall self: t_SyncView, other: t_SyncView. [%#sview'3] le_log_SyncView self other
+    = (lt_log_SyncView self other \/ self = other)
+
+function transitive_SyncView (x: t_SyncView) (y: t_SyncView) (z: t_SyncView) : ()
+
+axiom transitive_SyncView_spec: forall x: t_SyncView, y: t_SyncView, z: t_SyncView. ([%#sview'0] lt_log_SyncView x y)
+    -> ([%#sview'1] lt_log_SyncView y z) -> ([%#sview'2] lt_log_SyncView x z)
+
+function irreflexive_SyncView (self: t_SyncView) : ()
+
+axiom irreflexive_SyncView_spec: forall self: t_SyncView. [%#sview] not lt_log_SyncView self self
+
+function get_timestamp_AtomicPtr_unit (self: t_AtomicPtr_unit) (_2: t_SyncView) : int
+
+function get_timestamp_monotonic_AtomicPtr_unit (self: t_AtomicPtr_unit) (x: t_SyncView) (y: t_SyncView) : ()
+
+axiom get_timestamp_monotonic_AtomicPtr_unit_spec:
+  forall self: t_AtomicPtr_unit, x: t_SyncView, y: t_SyncView. ([%#satomic] le_log_SyncView x y)
+    -> ([%#satomic'0] get_timestamp_AtomicPtr_unit self x <= get_timestamp_AtomicPtr_unit self y)
+
+predicate valid'2 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 214 24 214 61] (self: t_SharedPhase) (d: t_RootDescriptor) =
+  [%#spromotion'23] valid d
+  /\ valid'1 self.root'0
+  /\ accepts self.root'0 self.cursor'0
+  /\ self.root'0.bound'1 = d.base
+  /\ self.root'0.capacity'1 = d.capacity
+  /\ content self.root'0 = d.expected
+  /\ UInt64.bw_and (Ptr.addr_logic_u64 self.root'0.shared'1) (1: UInt64.t) = (0: UInt64.t)
+  /\ ward_AtomicPtr_unit self.own'0 = d.model
+  /\ latest_is (val_AtomicPtr_unit self.own'0) self.root'0.shared'1
+  /\ visible_is (val_AtomicPtr_unit self.own'0) (get_timestamp_AtomicPtr_unit d.model self.current''0) self.root'0.shared'1
+
+predicate valid'3 [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 228 24 228 44] (self: t_PromotionScope) =
+  [%#spromotion'20] match self.phase with
+    | Some'0 (Raw raw) -> valid'0 raw self.descriptor
+    | Some'0 (Shared shared) -> valid'2 shared self.descriptor
+    | None'0 -> valid self.descriptor
+    end
+
+constant even_table [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 289 17 289 49] : t_Vtable
+
+constant odd_table [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 290 17 290 48] : t_Vtable
+
+function table [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 170 13 170 44] (self: t_RootDescriptor) : t_Vtable
+ = [%#spromotion'25] if UInt64.bw_and (Ptr.addr_logic_u64 (raw_pointer self.base)) (1: UInt64.t) = (0: UInt64.t) then
+    even_table
+  else
+    odd_table
+
+
+predicate matches [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 180 13 180 105] (self: t_RootDescriptor) (ptr'0: Opaque.ptr) (len'1: UInt64.t) (data'0: t_AtomicPtr_unit) (table'0: t_Vtable) =
+  [%#spromotion'21] valid self
+  /\ ptr'0 = raw_pointer self.base /\ len'1 = self.capacity /\ data'0 = self.model /\ table'0 = table self
+
+function pointer_model [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/../../original-shared-lifecycle-2026-10-08/src/pointer_event.rs" 21 0 21 76] (field: t_Atomic_ptr_unit) : t_AtomicPtr_unit
+
+predicate root_valid [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 233 24 233 61] (self: t_PromotionScope) (value: t_Bytes) =
+  [%#spromotion'18] valid'3 self
+  /\ self.phase <> None'0
+  /\ match value.original_shared with
+    | Root d -> d = self.descriptor /\ matches d value.ptr value.len (pointer_model value.data) value.vtable
+    | _ -> false
+    end
+
+predicate is_shared [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 227 13 227 37] (self: t_PromotionScope) =
+  [%#spromotion'19] match self.phase with
+    | Some'0 (Shared _) -> true
+    | _ -> false
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let read_root [#"/workspace/bytes-work/bytes/1.11.1/verification/probes/original-root-phase-view-2026-10-09/src/promotion.rs" 696 0 696 75]
+  (value: t_Bytes) (scope': t_PromotionScope) (return (x: Slice64.slice UInt8.t)) =
+{[@stop_split] [@expl:read_root requires] ([@stop_split] [@expl:read_root 'value' type invariant] [%#spromotion'14] inv_ref_Bytes value)
+  /\ ([@stop_split] [@expl:read_root 'scope' type invariant] [%#spromotion'15] inv_Ghost_ref_PromotionScope scope')
+  /\ ([@stop_split] [@expl:read_root requires] [%#spromotion'16] root_valid scope' value /\ is_shared scope')}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = deref_Ghost_ref_PromotionScope [%#spromotion] {scope'} (fun (_x: t_PromotionScope) -> [ &_13 <- _x ] s1)
+    | s1 = as_ref_Phase [%#spromotion'0] {_13.phase} (fun (_x: t_Option_ref_Phase) -> [ &_11 <- _x ] s2)
+    | s2 = unwrap_ref_Phase [%#spromotion'1] {_11} (fun (_x: t_Phase) -> [ &_10 <- _x ] s3)
+    | s3 = any
+      [ br0 (x0: t_RawPhase) -> {_10 = Raw x0} (! bb4) | br1 (x0: t_SharedPhase) -> {_10 = Shared x0} (! bb6) ] ]
+  | bb4 = s0 [ s0 = {[@expl:assertion] [%#spromotion'2] false} s1 | s1 = {false} any ]
+  | bb6 = s0
+    [ s0 = elim_Shared {_10} (fun (r0: t_SharedPhase) -> [ &s <- r0 ] s1)
+    | s1 = new_ref_SharedCore [%#spromotion'3] {s.root'0} (fun (_x: t_SharedCore) -> [ &root <- _x ] s2)
+    | s2 = deref_Ghost_ref_SharedCore [%#spromotion'4] {root} (fun (_x: t_SharedCore) -> [ &_27 <- _x ] s3)
+    | s3 = deref_Ghost_GhostShared_FullBorrow_PhysicalRegion [%#spromotion'5] {_27.physical'1}
+        (fun (_x: t_FullBorrow_PhysicalRegion) -> [ &_25 <- _x ] s4)
+    | s4 = to_ref_FullBorrow_PhysicalRegion [%#spromotion'6] {_25}
+        (fun (_x: t_FullBorrow_PhysicalRegion) -> [ &_23 <- _x ] s5)
+    | s5 = [ &full <- _23 ] s6
+    | s6 = deref_Ghost_ref_SharedCore [%#spromotion'7] {root} (fun (_x: t_SharedCore) -> [ &_34 <- _x ] s7)
+    | s7 = deref_Ghost_Ticket_Payload [%#spromotion'8] {_34.ticket'1} (fun (_x: t_Ticket_Payload) -> [ &_32 <- _x ] s8)
+    | s8 = [ &_31 <- _32.token'1 ] s9
+    | s9 = borrow_PhysicalRegion [%#spromotion'9] {full} {_31} (fun (_x: t_PhysicalRegion) -> [ &_21 <- _x ] s10)
+    | s10 = new_ref_PhysicalRegion [%#spromotion'10] {_21} (fun (_x: t_PhysicalRegion) -> [ &region <- _x ] s11)
+    | s11 = deref_Ghost_ref_SharedCore [%#spromotion'11] {root} (fun (_x: t_SharedCore) -> [ &_42 <- _x ] s12)
+    | s12 = [ &_41 <- _42.bound'1 ] s13
+    | s13 = new_ref_BoundPtr [%#spromotion'12] {_41} (fun (_x: t_BoundPtr) -> [ &_39 <- _x ] s14)
+    | s14 = borrow [%#spromotion'13] {value.ptr} {value.len} {_39} {region}
+        (fun (_x: Slice64.slice UInt8.t) -> [ &_36 <- _x ] s15)
+    | s15 = [ &_ret <- _36 ] s16
+    | s16 = return {_ret} ] ]
+  [ & _ret: Slice64.slice UInt8.t = Any.any_l ()
+  | & value: t_Bytes = value
+  | & scope': t_PromotionScope = scope'
+  | & root: t_SharedCore = Any.any_l ()
+  | & _10: t_Phase = Any.any_l ()
+  | & _11: t_Option_ref_Phase = Any.any_l ()
+  | & _13: t_PromotionScope = Any.any_l ()
+  | & s: t_SharedPhase = Any.any_l ()
+  | & region: t_PhysicalRegion = Any.any_l ()
+  | & _21: t_PhysicalRegion = Any.any_l ()
+  | & full: t_FullBorrow_PhysicalRegion = Any.any_l ()
+  | & _23: t_FullBorrow_PhysicalRegion = Any.any_l ()
+  | & _25: t_FullBorrow_PhysicalRegion = Any.any_l ()
+  | & _27: t_SharedCore = Any.any_l ()
+  | & _31: t_LifetimeToken = Any.any_l ()
+  | & _32: t_Ticket_Payload = Any.any_l ()
+  | & _34: t_SharedCore = Any.any_l ()
+  | & _36: Slice64.slice UInt8.t = Any.any_l ()
+  | & _39: t_BoundPtr = Any.any_l ()
+  | & _41: t_BoundPtr = Any.any_l ()
+  | & _42: t_SharedCore = Any.any_l () ])
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:read_root ensures] [%#spromotion'17] Slice64.view result = scope'.descriptor.expected}
+    (! return {result}) ]

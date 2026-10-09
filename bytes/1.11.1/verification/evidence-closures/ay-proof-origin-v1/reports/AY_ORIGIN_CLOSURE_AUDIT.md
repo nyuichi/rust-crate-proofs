@@ -1,0 +1,7 @@
+# AY immutable origin audit
+
+PASS / GO for the diagnostic proof origin. Externally pinned raw manifest: `fa26279c75516fb66d4d7b419f2a54cbac4bb85ab164c6de376f515e6a622c3e`. Full original bytes 1.11.1 remains NOT ADMITTED.
+
+Independent reconstruction establishes all 1,394 required input slots, including 372 actual proof outputs, 36 complete source/proof inputs, 117 environment inputs, current native/Cargo/correspondence evidence and the one peer-Drop control. All 599 ancestor aliases match the exact published AX authority; all 795 local bindings match frozen staging bytes. Safe offline hydration verifies every one of the 13,739 logical file identities and the closed object graph. All 372 current/origin proof files match; independent statistics are 186 files / 1,955 prover leaves / zero null / zero structural.
+
+Original diagnostic policy remains exit 2 and nonadmitted; separately captured current correspondence passes and fresh four Cargo artifacts pass. The peer-Drop fixture changes only bb4 Drop to goto; refreshed integrity passes and the exact operation check rejects. No compiler, normal checker, ancestor audit or solver was rerun in this audit. All eight external executable hashes match; their payloads remain unbundled. Cargo absolute paths remain historical location-bound snapshots. Captured ASSESSMENT bytes retain their historical identity; later editorial changes are separate.

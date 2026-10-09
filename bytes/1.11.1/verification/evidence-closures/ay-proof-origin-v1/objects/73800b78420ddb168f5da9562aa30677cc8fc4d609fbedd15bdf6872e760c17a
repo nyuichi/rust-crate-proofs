@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Small selected-run diagnostic snapshot; no archives, builds or provers."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+p=argparse.ArgumentParser();p.add_argument('--probe',type=Path,required=True);p.add_argument('--log',type=Path,required=True);p.add_argument('--exit-status',type=int,required=True);p.add_argument('--destination',type=Path,required=True);a=p.parse_args()
+root=a.probe.resolve(strict=True);dest=a.destination.absolute();assert not dest.exists()
+policy_raw=(root/'generated/proof-targets.json').read_bytes();policy=json.loads(policy_raw)
+assert policy['diagnostic'] and policy['correspondence_exit_status']==2 and not policy['features'] and not policy['terminal_feature'] and not policy['source_control']
+assert len(policy['excluded'])==177 and set(policy['included']).isdisjoint(policy['excluded']) and set(policy['included'])|set(policy['excluded'])==set(policy['translated'])
+assert len(policy['included'])==len(set(policy['included']))
+inputs={}
+def collect(relative):
+ path=root/relative;assert path.is_file() and not path.is_symlink();assert relative not in inputs;inputs[relative]=path.read_bytes()
+for path in sorted((root/'src').glob('*.rs')):collect(path.relative_to(root).as_posix())
+for name in ('Cargo.toml','Cargo.lock','build.rs','elaborate.py','run-proof.sh','extract_public.py','why3find.json','inherited-targets.json','AY_SCAFFOLD.json','native.rs','check_native.py','check_correspondence.py','reviewed-production-inputs.json','prepare_capture.py'):collect(name)
+for name in ('mapping.json','proof-targets.json','correspondence.json','source-map.json','public_records.rs','public_traits.rs','native_bindings.rs','native_view_bindings.rs','native_cursor_bindings.rs'):collect('generated/'+name)
+proofs=[]
+for coma in policy['included']:
+ collect(coma);proof=coma[:-5]+'/proof.json';collect(proof);proofs.append(json.loads(inputs[proof]))
+stats=dict(files=len(proofs),prover=0,null=0,structural=0)
+def visit(node):
+ if node is None:stats['null']+=1
+ elif isinstance(node,dict) and 'children' in node:
+  children=node['children'];assert isinstance(children,list)
+  if not children:stats['structural']+=1
+  for child in children:visit(child)
+ elif isinstance(node,dict) and 'prover' in node:stats['prover']+=1
+ else:raise RuntimeError('unknown proof tree node')
+for proof in proofs:
+ coma=proof['proofs']['Coma'];assert isinstance(coma,dict)
+ for node in coma.values():visit(node)
+log=a.log.read_bytes()
+rows=[dict(path=path,sha256=hashlib.sha256(raw).hexdigest(),size=len(raw)) for path,raw in sorted(inputs.items())]
+receipt=dict(status='selected_diagnostic_positive' if a.exit_status==0 and stats['null']==stats['structural']==0 else 'selected_diagnostic_failure',process_exit=a.exit_status,statistics=stats,translated=len(policy['translated']),excluded=len(policy['excluded']),excluded_target_paths=sorted(policy['excluded']),included_whole_function_targets=policy['included'],source_correspondence='deliberately skipped; policy exit2 retained',ancestor_outer_manifest_sha256='05cca18b78627f28340e01f86abc52c7e75669734f1143389b832d7a1db5e8a5',ancestor_full_proof_receipt_sha256='9499ae885e6339eaca9897bce69ea46c3fd133c9ef28357ffc77ca63cf9a54fd',native_capture_sha256=hashlib.sha256((root/'native-mir/capture.json').read_bytes()).hexdigest(),log_sha256=hashlib.sha256(log).hexdigest(),members=rows,full_original_admitted=False)
+# Verify the entire live inventory a second time before exposing the snapshot.
+assert all((root/path).read_bytes()==raw for path,raw in inputs.items()) and a.log.read_bytes()==log
+assert dest.is_relative_to(root/'evidence') or dest.is_relative_to(Path('/workspace/work'))
+dest.mkdir(parents=True)
+for path,raw in inputs.items():
+ target=dest/'inputs'/path;target.parent.mkdir(parents=True,exist_ok=True)
+ with target.open('xb') as out:out.write(raw)
+with (dest/'run.log').open('xb') as out:out.write(log)
+with (dest/'receipt.json').open('x') as out:json.dump(receipt,out,indent=2);out.write('\n')
+print(json.dumps(dict(destination=str(dest),status=receipt['status'],statistics=stats,translated=receipt['translated'],excluded=177,input_files=len(rows),receipt_sha256=hashlib.sha256((dest/'receipt.json').read_bytes()).hexdigest()),indent=2))
