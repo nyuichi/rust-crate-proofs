@@ -15,3 +15,10 @@ later accepted correspondence retain their distinct recorded dispositions.
 The current archive was extracted from the SHA-256-pinned origin at Git commit
 `e5f127fb`; its original digest and reuse digest remain in `current.json`.
 Full original bytes/API verification remains incomplete.
+
+`components.zip` retains historical component contracts, sources, proof tasks and
+results (including substantive TCB notes), deduplicated with the same flat format.
+Its paths identify original files/archive members; they do not imply current
+coverage or that every retained partial record is a completed proof. It is not
+read by the daily check. No nested archive hydration or old audit execution is
+required. Failed-experiment suites and process metadata remain only in Git history.

@@ -1,1 +1,0 @@
-This archive preserves an observed isolated candidate translation failure. It is diagnostic evidence and not a semantic counterexample. It includes exact source/configuration/log fingerprints and the private Std tree used.

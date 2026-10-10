@@ -10,7 +10,8 @@ Public APIs and runtime behavior are preserved.
 ## Running proofs
 
 Each crate's exact proved surface, remaining boundaries, feature matrix, and
-reproduction command are recorded in its `PROVENANCE.md`. Run the proofs with:
+reproduction command are recorded in its `PROVENANCE.md` (for bytes, `README.md`).
+Run the proofs with:
 
 ```sh
 ./adler2/2.0.0/verify-all.bash

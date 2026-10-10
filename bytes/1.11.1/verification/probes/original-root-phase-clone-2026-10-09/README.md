@@ -1,14 +1,12 @@
-# Scoped Root Clone over repeated cursor steps
+# Current Root lifecycle proof
 
-For a nonempty `Box<[u8]>` and any finite slice of `usize` steps, the verified client advances by the smaller of each step and the remaining length, clones the current `Bytes`, and drops that peer before the next step. Its normal return is exactly the unconsumed suffix of the original input. Complete consumption retains an owned empty view; it does not change the view into a Static empty value. Zero steps also preserve the original input.
+Nonempty Box input, arbitrary finite capped cursor steps, Clone with lexical
+peer Drop each iteration, exact remaining suffix and final normal Root Drop.
+Raw and Shared phases retain the original allocation and owned-empty views.
+The saved complete positive has 191 functions and 2,207 prover leaves.
 
-The common Root Clone body handles both the initial promotable representation and its Shared representation while preserving the original allocation, current view and surviving root ownership. Its reusable contract describes normal return under the native reference-count guard. The client maintains a singleton ledger before each Clone, so its finite number of iterations needs no fixed clone quota. Final normal Drop consumes the remaining owner and establishes the corresponding reclamation receipt.
-
-These guarantees depend on the recorded generic pointer, physical ownership, atomic and native/shadow correspondence boundaries. They cover the audited sequential source trace and normal returns. They do not establish the complete original `bytes` API, arbitrary concurrent access, unwind paths, Static/custom-owner construction or `BytesMut`.
-
-The complete positive run proves 191 function targets with 2,207 prover leaves and no unproved or structurally empty proof files. The 90 native test patterns are execution samples; the theorem admits arbitrary finite step slices. Original diagnostic proof policy remains unchanged, and subsequent correspondence/Cargo evidence is recorded separately. The immutable origin and outer bounded reuse closure have independent audit PASS/GO. The original diagnostic policy remains diagnostic; the outer disposition binds the unchanged proof outputs to the later successful correspondence and Cargo snapshots. Full original architecture admission remains false.
-
-
-Evidence: [full proof receipt](evidence/AZ_FULL_PROOF_RUN.json), [origin audit](../../evidence-closures/az-proof-origin-v1/reports/AZ_ORIGIN_CLOSURE_AUDIT.md), and [bounded reuse audit](../../evidence-closures/az-admitted-reuse-v1/reports/AZ_ADMISSION_AUDIT.md). Externally pinned raw manifests are origin `6bfe965371c3a7ec3c91e0c1a8429de9e1f48810afd61a0fb6adabfcd86a0772` and outer `6060282d047f65eea2999acd2ce49e0bbaf9b69c72f8db0c0e162245011581e7`. The outer closure binds 1,353 exact origin-staged input slots; current editorial publication documents are separate. The failed disk-full outer setup produced no admitted closure and is preserved separately.
-
-Run proof commands with `bash run-proof.sh`. Published historical payloads are referenced by exact hash rather than copied into new CAS. Provision those repository objects before offline closure validation; externally pin the complete raw manifest before hydration.
+The exact current sources remain here and in five external Rust support files;
+old experiments and chained checkers have been removed. Run
+`../../../verify-all.bash` from here, or use `--check` for retained proof reuse.
+See the [crate overview](../../../README.md), [TCB](TCB.md) and
+[results](../../results/README.md). Full API verification remains incomplete.

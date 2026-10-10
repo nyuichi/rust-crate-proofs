@@ -1,9 +1,20 @@
-# Assumptions and applicability
+# Current assumptions and applicability
 
-AZ adds no Bytes-specific Clone, count, ownership or free axiom. Ordinary bodies prove both native kind branches and preserve the original full allocation, root frame and exact current view. The stronger raw helper retains the audited operational body and proves its additional initialization/allocation facts.
+The proof contains no new bytes-specific ownership/refcount/free axiom. Bodies
+prove both native kind branches, allocation/root framing and exact current views.
+It relies on generic physical allocation/free and read permissions, pointer
+provenance/distance, atomic/weak-memory contracts, callback registration, and the
+reviewed native/shadow source correspondence. These are not proofs of the Rust
+compiler, memory model or a general erasure transformation. Exact primitive
+source contracts and private Std inputs are retained in results/current.zip.
 
-The results depend on existing generic physical allocation/deallocation and read permissions, pointer provenance/distance, atomic and weak-memory contracts, exact callback registration and native/shadow source correspondence. Their identities and installation are recorded in the closure. These boundaries establish the selected native operational interpretation; this is not a general Rust erasure verifier.
+Clone describes normal return under the native count guard. Exhaustion may abort;
+the finite-step witness restores a singleton before each Clone and has no step
+quota. The result is scoped, sequential and starts with nonempty Box storage.
+Unwind, arbitrary concurrent/escaping owners, other construction paths and the
+remaining BytesMut/API surface are not established by this result.
 
-The generic Clone contract describes normal return. The native count guard may abort outside that domain; the public finite-step witness maintains a singleton before each Clone. The proof has no finite-step quota. Only sequential scoped nonempty Box construction, capped cursor advances, lexical peer Drop and final normal Root Drop are covered here. Unwind, arbitrary concurrent or escaping owners, Static/custom-owner construction, remaining methods and BytesMut remain open.
-
-The original full proof policy remains diagnostic with correspondence exit 2. Later current correspondence and four actual Cargo artifacts are separate successful gates in the independently audited outer reuse disposition. No solver was rerun for that metadata admission. Existing audited negative cases are reused; AZ adds zero new negative experiments. The 1,353 input slots describe exact staged origin bytes, not a claim that later editorial files equal those historical bytes.
+The original positive solver run had diagnostic correspondence status 2. The
+later successful native/source/Cargo correspondence is a separate retained record;
+reuse of both under identical source is not a new solver or general equivalence
+proof. Historical assumptions for other components remain in components.zip.

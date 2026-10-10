@@ -1,9 +1,0 @@
-124-proof source correspondence
-
-The preserved generated extraction and verifier tree are from the successful 124-file actual-unique-reserve run. Its original terminal stdout was not redirected to a file at run time; the recorded result was `Proved (124 files) ✔`. The proof tree contains 124 `.coma` files and 124 `proof.json` files.
-
-The complete `src/bytes_mut.rs` file hash from the proof invocation was not retained. The source snapshot here is the exact file present when this evidence capture began. Since the generated extraction was created, the current source acquired two ghost-only assertions inside the `reserve` fragment (`HandleRegistration::singleton_is_sole` and `scalable_tickets::pending_cardinality`). Regenerating from the captured current source shows these are the only differences in `actual_split.rs`.
-
-The selected growth fragments are unchanged: `resize` has fragment hash `92f94ba48da3ef36`, `extend_from_slice` has `ad72fb5b36d93657`, and `split_proof_methods` has `3cf7740fe236dfcb`. Those values match the preserved proof-time `source_fragments.txt` and a fresh extraction from the captured current source.
-
-For a static correspondence check, `source/bytes_mut.extraction-replay.rs` is the captured current full source with only those two later reserve-only assertions removed. Running the captured `build.rs` against that replay source reproduced both preserved `actual_split.rs` and `source_fragments.txt` byte for byte. This is an extraction replay only; it is not a new translation or proof run, and the replay file is not represented as the original full-source snapshot.

@@ -27,8 +27,8 @@ def digest(raw):
 def library_config(data):
     # Tests, benches, dev dependencies and publication metadata do not participate
     # in the captured default non-test library. Features and normal deps do.
-    keys = ("features", "lib", "dependencies", "build-dependencies", "target")
-    config = {k: data[k] for k in keys if k in data}
+    ignored = {"test", "bench", "dev-dependencies", "lints"}
+    config = {k: v for k, v in data.items() if k not in ignored}
     if "target" in config:
         config["target"] = {
             k: {name: value for name, value in v.items() if name != "dev-dependencies"}
@@ -37,11 +37,10 @@ def library_config(data):
         }
         if not config["target"]:
             del config["target"]
-    config["package"] = {
-        k: data["package"][k]
-        for k in ("name", "version", "edition", "build", "autolib", "autobins", "autoexamples", "links")
-        if k in data["package"]
-    }
+    editorial = {"authors", "description", "readme", "keywords", "categories",
+                 "license", "license-file", "repository", "homepage", "documentation",
+                 "metadata", "publish", "include", "exclude", "autotests", "autobenches"}
+    config["package"] = {k: v for k, v in data["package"].items() if k not in editorial}
     return config
 
 
@@ -110,6 +109,17 @@ def check(crate, fresh=False):
         require(metadata["source_sha256"] == expected_sources, "live source inventory differs from archived inputs")
         original_config = library_config(tomllib.loads(read("production/Cargo.toml").decode()))
         require(config == original_config, "library configuration differs from captured production")
+        # Removing the upstream serde test dependency is the only lockfile
+        # projection admitted by this migration; normal dependency versions stay.
+        def lock_config(raw):
+            data = tomllib.loads(raw)
+            data["package"] = [p for p in data["package"] if p["name"] != "serde_test"]
+            for entry in data["package"]:
+                if entry["name"] == "bytes":
+                    entry["dependencies"] = [d for d in entry.get("dependencies", []) if d != "serde_test"]
+            return data
+        require(lock_config((crate / "Cargo.lock").read_text()) ==
+                lock_config(read("production/Cargo.lock").decode()), "production dependency lock changed")
         receipt = json.loads(read("record/evidence/AZ_FULL_PROOF_RUN.json"))
         require(receipt["prover_process_exit"] == 0 and receipt["features"] == []
                 and receipt["excluded"] == {}, "incomplete proof run")
@@ -133,9 +143,13 @@ def check(crate, fresh=False):
                             "fresh translation differs; review before replacing retained proof")
             else:
                 require(row["path"].endswith("/proof.json"), "unexpected proof output")
+                archived_proof = json.loads(raw)
                 if fresh:
                     raw = (probe / row["path"]).read_bytes()
-                proofs.append(json.loads(raw))
+                proof = json.loads(raw)
+                require(set(proof.get("proofs", {}).get("Coma", {})) ==
+                        set(archived_proof["proofs"]["Coma"]), "proof goal inventory differs")
+                proofs.append(proof)
         stats = proof_statistics(proofs)
         require(stats["files"] == metadata["statistics"]["files"] == len(expected_coma), "target set changed")
         if fresh:

@@ -1,1 +1,0 @@
-Rust translation rejects moving left into proof_release while a later use of its as_slice reference keeps the shared borrow live (E0505). This is compiler borrow-check evidence, not a Why3 VC rejection or an automatic Drop proof. Feature: negative_read_after_release.
