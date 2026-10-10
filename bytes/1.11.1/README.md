@@ -1,17 +1,25 @@
 # bytes 1.11.1 runtime verification
 
-Under the verification cfg, `BytesMut::truncate` with `unique_valid` shortens
-the logical length to `min(requested, old_len)` and preserves the old prefix,
-pointer, capacity, storage tag and capacity slots. `set_len` with `unique_valid`
-may expose initialized bytes up to capacity; it preserves the pointer, capacity,
-storage tag and capacity slots. `len` returns the modeled length without a
-`unique_valid` precondition. These are proofs from the original crate source,
-including the local ownership and provenance helper bodies in their call cone.
+Under the verification cfg, `BytesMut::from_vec` consumes a `Vec<u8>` and
+returns an offset-zero `unique_valid` state with the Vec's pointer, length,
+capacity and initialized contents. Its spare-capacity slots are modeled as
+unknown. `BytesMut::with_capacity(n)` uses this path and returns length zero,
+empty contents and capacity at least `n`.
 
-The proofs do not establish that constructors or other public methods always
-establish `unique_valid`, and do not cover Shared-backed or nonzero-offset
-states, immutable peers, concurrency, escaping owners or unwind behavior. They
-are not full API verification. See the [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md)
+`BytesMut::len` returns the modeled length without a `unique_valid`
+precondition. For a `unique_valid` state, `truncate(n)` sets the length to
+`min(n, old_len)` and preserves the initialized prefix, pointer, capacity,
+storage tag and all capacity slots. Unsafe `set_len(n)` requires `n <=
+capacity` and known initialized slots for any growth; it changes only the
+logical length and preserves the pointer, capacity, storage tag and all
+capacity slots. The original-source proofs include the local ownership,
+provenance and capacity-representation helper bodies in their call cone.
+
+These guarantees cover the selected offset-zero Vec path and normal-return,
+sequential behavior. They do not establish `unique_valid` for other
+constructors or transitions, and do not cover Shared-backed or nonzero-offset
+states, immutable peers, lifecycle operations, concurrency or unwind behavior.
+See the [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md)
 and [generic Std overlay](verification/std-support/README.md) assumptions.
 
 `./verify-all.bash` translates the live crate source and runs fresh, no-cache

@@ -9,9 +9,9 @@ let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 38 8 38 32
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 142 8 142 35
-let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 272 12 280 13
-let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 156 12 157 56
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 555 12 559 33
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 361 12 369 13
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 245 12 246 56
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 644 12 648 33
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 112 8 112 18
 
 use creusot.int.UInt64
@@ -65,15 +65,15 @@ type tup3_Id_Int_Int = { f0'0: t_Id; f1'0: int; f2'0: int }
 
 type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
 
-function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 253 4 253 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 342 4 342 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
 
 constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
 
-function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 289 4 289 39] (self: t_BoundPtr) : int
+function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 378 4 378 39] (self: t_BoundPtr) : int
 
 constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
 
-predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 270 4 270 30] (self: t_BoundPtr) =
+predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 359 4 359 30] (self: t_BoundPtr) =
   [%#sraw_vec] match view_BoundPtr self with
     | None'0 -> true
     | Some'0 {f1'0 = allocation_capacity; f2'0 = absolute_offset} -> 0 <= absolute_offset
@@ -89,11 +89,11 @@ axiom inv_axiom'0: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> inva
 
 type tup2_Int_Id = { f0'1: int; f1'1: t_Id }
 
-function view_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 147 4 147 33] (self: t_RawAllocation) : tup2_Int_Id
+function view_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 236 4 236 33] (self: t_RawAllocation) : tup2_Int_Id
 
-function base_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 169 4 169 36] (self: t_RawAllocation) : int
+function base_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 258 4 258 36] (self: t_RawAllocation) : int
 
-predicate invariant_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 154 4 154 30] (self: t_RawAllocation) =
+predicate invariant_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 243 4 243 30] (self: t_RawAllocation) =
   [%#sraw_vec'0] 0 <= (view_RawAllocation self).f0'1
   /\ (view_RawAllocation self).f0'1 <= Int64.to_int const_MAX
   /\ base_address self + (view_RawAllocation self).f0'1 <= UInt64.t'int const_MAX'0
@@ -110,7 +110,7 @@ predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src
 
 type tup3_OwnedRegion_Int_Id = { f0'2: t_OwnedRegion; f1'2: int; f2'2: t_Id }
 
-function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 541 4 541 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 630 4 630 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
 
 type t_Excl_unit = { f0'3: () }
 
@@ -128,7 +128,7 @@ type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
 
 function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
 
-predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 553 4 553 30] (self: t_PhysicalRegion) =
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 642 4 642 30] (self: t_PhysicalRegion) =
   [%#sraw_vec'1] invariant_OwnedRegion (view_PhysicalRegion self).f0'2
   /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5
   /\ (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f1'5

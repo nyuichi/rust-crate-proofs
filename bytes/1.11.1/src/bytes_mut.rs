@@ -20,7 +20,7 @@ use crate::bytes::Vtable;
 #[allow(unused)]
 use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
-use crate::vec_storage::VecStorage;
+use crate::vec_storage::{VecRawParts, VecStorage};
 use crate::{Buf, BufMut, Bytes, TryGetError};
 
 // Creusot-only exclusions below cover unrelated Shared/refcount/recovery and adapter bodies.
@@ -1107,18 +1107,25 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int> 0 <= i && i < vec@.len() ==> result.unique_slot(i) == Some(Some(vec@[i]))))]
     #[inline]
     pub(crate) fn from_vec(vec: Vec<u8>) -> BytesMut {
-        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
-        let (ptr, len, cap) = {
-            let mut vec = ManuallyDrop::new(vec);
-            (vptr(vec.as_mut_ptr()), vec.len(), vec.capacity())
-        };
+        let parts = VecRawParts::take(vec);
+        let native_ptr = parts.native_ptr();
+        let len = parts.logical_len();
+        let cap = parts.logical_capacity();
         #[cfg(all(creusot, bytes_original_unique_gate))]
-        let (ptr, len, cap, unique_proof) = {
-            // B1 consumes precisely the Vec hidden by native ManuallyDrop.
-            let (raw, len, capabilities) = raw_vec::detach_vec(vec);
-            let (base, cap) = raw.bound_ptr_at_zero();
-            let ptr = base.as_non_null();
-            (ptr, len, cap, Some(OriginalUniqueProof { base, raw, capabilities }))
+        let (raw, capabilities) = parts.into_proof_authority();
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        parts.discard_unmodeled();
+        let ptr = vptr(native_ptr.as_ptr());
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let unique_proof = {
+            // The B1 descriptor is bound to the native pointer returned by
+            // the same VecRawParts extraction used in production builds.
+            let (base, _) = raw.bound_ptr_at_zero();
+            Some(OriginalUniqueProof {
+                base,
+                raw,
+                capabilities,
+            })
         };
 
         let original_capacity_repr = original_capacity_to_repr(cap);
@@ -1759,7 +1766,32 @@ impl Shared {
     }
 }
 
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result <= 7usize))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), bitwise_proof)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ <= 7))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (result@ == 0) == (cap@ < 1024)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (result@ == 1) == (1024 <= cap@ && cap@ < 2048)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (result@ == 2) == (2048 <= cap@ && cap@ < 4096)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (result@ == 3) == (4096 <= cap@ && cap@ < 8192)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (result@ == 4) == (8192 <= cap@ && cap@ < 16384)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (result@ == 5) == (16384 <= cap@ && cap@ < 32768)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (result@ == 6) == (32768 <= cap@ && cap@ < 65536)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (result@ == 7) == (65536 <= cap@)
+))]
 #[inline]
 fn original_capacity_to_repr(cap: usize) -> usize {
     let width = PTR_WIDTH - ((cap >> MIN_ORIGINAL_CAPACITY_WIDTH).leading_zeros() as usize);
@@ -1769,6 +1801,14 @@ fn original_capacity_to_repr(cap: usize) -> usize {
     )
 }
 
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(repr@ <= 7))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), bitwise_proof)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (repr@ == 0) == (result@ == 0)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    repr@ > 0 ==> result@ == (1usize << ((repr as usize) + 9usize))@
+))]
 fn original_capacity_from_repr(repr: usize) -> usize {
     if repr == 0 {
         return 0;

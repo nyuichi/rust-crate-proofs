@@ -1,9 +1,10 @@
 //! Sealed B1/B2 bridge between a `Vec<u8>` and a physical slot ledger.
 //!
-//! The only constructors for [`RawAllocation`], [`Recovery`], and
-//! [`PhysicalRegion`] are the detach/resume path below. Resource and region
-//! values cross ordinary Rust call boundaries only through `Ghost`. The raw
-//! pointer and capacity are metadata; they do not grant access by themselves.
+//! Constructors for [`RawAllocation`], [`Recovery`], and [`PhysicalRegion`]
+//! are sealed B1 entry points below, including the shared-storage path in
+//! `VecRawParts::take`. Resource and region values cross ordinary Rust call
+//! boundaries only through `Ghost`. The raw pointer and capacity are
+//! metadata; they do not grant access by themselves.
 //!
 //! The trusted B1 interpretation binds the sealed namespace to the exact
 //! global-allocator base pointer, capacity, layout, and allocation consumed
@@ -27,6 +28,8 @@ use creusot_std::{
 };
 
 use super::owned_region::{KernelRA, OwnedRegion, SlotMap, map_compose_eq, map_op_get};
+#[cfg(all(creusot, bytes_original_unique_gate))]
+use crate::vec_storage::VecPartsWitness;
 
 /// Logical identity shared by the recovery token and every region from B1.
 /// It is not an address and carries no physical access authority.
@@ -59,6 +62,28 @@ fn slots_from_vec(contents: Seq<u8>, capacity: Int) -> SlotMap {
                 None
             }))
     }
+}
+
+/// Expose a pointwise slot fact from the canonical Vec slot map.
+#[check(ghost)]
+#[requires(0 <= capacity@)]
+#[ensures(forall<index: Int> 0 <= index && index < capacity@ ==>
+    slots_from_vec(*contents, capacity@).get(index) == Some(Excl(
+        if index < (*contents).len() { Some((*contents)[index]) } else { None }
+    )))]
+pub(crate) fn slots_from_vec_values(contents: Snapshot<Seq<u8>>, capacity: usize) {
+    proof_assert!(forall<index: Int> 0 <= index && index < capacity@ ==>
+        slots_from_vec(*contents, capacity@).get(index) == Some(Excl(
+            if index < (*contents).len() { Some((*contents)[index]) } else { None }
+        ))
+    );
+}
+
+/// Preserve the mathematical value when converting native usize metadata.
+#[check(ghost)]
+#[ensures(*result == value@)]
+pub(crate) fn int_from_usize(value: usize) -> Ghost<Int> {
+    Int::new(value as i128)
 }
 
 /// Preserve every old slot while extending the allocation with Unknown slots.
@@ -127,7 +152,7 @@ pub(crate) unsafe fn reallocate_bound(base: BoundPtr, old_capacity: usize, capac
     (raw.into_bound_ptr_at_zero().0, capabilities)
 }
 
-/// Native pointer metadata minted only by [`detach_vec`].
+/// Native pointer metadata minted only by the sealed Vec-consuming B1 bridge.
 ///
 /// This wrapper has no destructor and is intentionally not cloneable or
 /// constructible outside this module. The `Ghost<Id>` is erased at runtime;
@@ -138,6 +163,70 @@ pub(crate) struct RawAllocation {
     capacity: usize,
     namespace: Ghost<Id>,
     _not_objective: NotObjective,
+}
+
+/// Build B1's logical recovery and slot resources from the sealed, one-use
+/// witness created while consuming a Vec. The witness cannot be constructed
+/// from arbitrary pointer metadata. Physical interpretation is supplied only
+/// by the consuming `VecRawParts::take` boundary.
+#[requires(witness.invariant())]
+#[ensures(result.0.invariant())]
+#[ensures(result.0.raw_pointer() == witness.pointer())]
+#[ensures(result.0.capacity() == witness.capacity())]
+#[ensures(result.1.inner_logic().0.invariant())]
+#[ensures(result.1.inner_logic().1.invariant())]
+#[ensures(result.1.inner_logic().0.capacity() == witness.capacity())]
+#[ensures(result.1.inner_logic().1.capacity() == witness.capacity())]
+#[ensures(result.1.inner_logic().0.namespace() == result.0.namespace())]
+#[ensures(result.1.inner_logic().1.namespace() == result.0.namespace())]
+#[ensures(result.1.inner_logic().1.resource_id() == result.0.namespace())]
+#[ensures(result.1.inner_logic().1.lo() == 0)]
+#[ensures(result.1.inner_logic().1.hi() == witness.capacity())]
+#[ensures(forall<index: Int> 0 <= index && index < witness.capacity() ==>
+    result.1.inner_logic().1.slot(index) ==
+        if index < witness.length() { Some(Some(witness.contents()[index])) } else { Some(None) })]
+pub(crate) fn bind_consumed_vec(
+    witness: VecPartsWitness,
+) -> (RawAllocation, Ghost<(Recovery, PhysicalRegion)>) {
+    let (base, _len, capacity) = witness.native_parts();
+    let contents = witness.contents_snapshot();
+    let slots_value: Snapshot<SlotMap> = snapshot! {
+        slots_from_vec(*contents, capacity@)
+    };
+    ghost! { slots_from_vec_values(contents, capacity); };
+    let empty_slots: Snapshot<SlotMap> = snapshot!(FMap::empty());
+    let region_value: Snapshot<KernelRA> = snapshot!((None, *slots_value));
+    let recovery_value: Snapshot<KernelRA> = snapshot!((Some(Excl(())), FMap::empty()));
+    let allocation_value: Snapshot<KernelRA> = snapshot!((Some(Excl(())), *slots_value));
+    ghost! {
+        map_compose_eq(empty_slots, slots_value, slots_value);
+        proof_assert!((*recovery_value).op(*region_value) == Some(*allocation_value));
+        proof_assert!(KernelRA::incl_eq_op(*recovery_value, *region_value, *allocation_value));
+    };
+
+    let binding: Ghost<(Id, (Recovery, PhysicalRegion))> = ghost! {
+        let allocation = Resource::alloc(allocation_value).into_inner();
+        let (recovery_resource, region_resource) =
+            allocation.split(recovery_value, region_value);
+        let namespace = region_resource.id_ghost();
+        let capacity_int: Int = int_from_usize(capacity).into_inner();
+        let descriptor = AllocationDesc { capacity: capacity_int, namespace };
+        let recovery = Recovery {
+            resource: recovery_resource,
+            descriptor,
+            _not_objective: NotObjective {},
+        };
+        let ledger = OwnedRegion::from_model_ledger(0int, capacity_int, region_resource);
+        let region = PhysicalRegion {
+            ledger,
+            descriptor,
+            _not_objective: NotObjective {},
+        };
+        (namespace, (recovery, region))
+    };
+    let (namespace, capabilities) = binding.split();
+    let raw = RawAllocation { base, capacity, namespace, _not_objective: NotObjective {} };
+    (raw, capabilities)
 }
 
 impl View for RawAllocation {
@@ -484,7 +573,7 @@ impl RawAllocation {
 }
 
 /// The unique allocation-recovery token. This value is only ever returned
-/// inside `Ghost` and can only be minted by `detach_vec`.
+/// inside `Ghost` and can only be minted by a sealed B1 entry point.
 #[allow(missing_debug_implementations)]
 pub(crate) struct Recovery {
     resource: Resource<KernelRA>,
@@ -537,7 +626,7 @@ pub(crate) struct PhysicalRegion {
 impl View for PhysicalRegion {
     type ViewTy = (OwnedRegion, Int, Id);
 
-    #[logic]
+    #[logic(open(self))]
     fn view(self) -> Self::ViewTy {
         pearlite! {
             (self.ledger, self.descriptor.capacity, self.descriptor.namespace)
@@ -587,14 +676,10 @@ impl PhysicalRegion {
         pearlite! { self@.0@.2 }
     }
 
-    #[logic(open)]
+    #[logic(open(self))]
+    #[ensures(result == self@.0.slot(index))]
     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
-        pearlite! {
-            match self@.0@.3.1.get(index) {
-                None => None,
-                Some(Excl(value)) => Some(value),
-            }
-        }
+        pearlite! { self.ledger.slot(index) }
     }
 
     /// Split only the ledger. The allocation binding and non-objective marker
