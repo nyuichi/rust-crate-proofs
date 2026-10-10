@@ -280,20 +280,7 @@ condition are recorded in the crate's `PROVENANCE.md`.
 
 ### bytes 1.11.1
 
-`bytes` 1.11.1 has a structural length/capacity model for `Bytes` and
-`BytesMut`. Empty construction, length/capacity observation, splitting,
-truncation, clearing, resizing, freezing, and the core cursor laws are proved
-in a Creusot-facing state machine. The matrix covers no-default-features,
-default `std`, and all features.
-
-This is not a byte-content or raw-memory proof. The published implementation's
-type-erased vtables, raw pointers, atomics, reference counting, uninitialized
-storage, complete `Buf`/`BufMut` API, and serde adapters remain outside proof
-translation because the pinned Creusot reaches an internal compiler error in a
-generic `Vec<T>` adapter. Runtime builds keep the upstream implementation and
-API. Two small `std` conversion helpers are additionally trusted because
-`usize::try_from(u64)` lacks a pinned-library contract. Full boundary and
-removal-condition details are in `PROVENANCE.md`.
+[Runtime verification scope, evidence and commands](bytes/1.11.1/README.md).
 
 ### slab 0.4.12
 

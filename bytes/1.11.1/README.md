@@ -1,73 +1,41 @@
-# Bytes
+# bytes 1.11.1 runtime verification
 
-A utility library for working with bytes.
+This branch verifies selected paths of the actual bytes implementation using
+body proofs and audited native/proof-source correspondence. It does not establish
+complete verification of the original API. The old length/capacity replacement
+model is historical and is not counted as runtime verification.
 
-[![Crates.io][crates-badge]][crates-url]
-[![Build Status][ci-badge]][ci-url]
+The latest result (AZ) covers a nonempty `Box<[u8]>`, arbitrary finite capped
+cursor steps, a Clone and lexical peer Drop after each step, exact suffix output,
+and final normal Root Drop with allocation reclamation. Raw and Shared phases
+are covered under the recorded generic physical, pointer, atomic, callback and
+compiler/source-correspondence assumptions. Arbitrary concurrent/escaping owners,
+unwinding, other constructors and the complete BytesMut/API surface remain open.
+See the [precise guarantee](verification/probes/original-root-phase-clone-2026-10-09/README.md)
+and its [trusted boundaries](verification/probes/original-root-phase-clone-2026-10-09/TCB.md).
 
-[crates-badge]: https://img.shields.io/crates/v/bytes.svg
-[crates-url]: https://crates.io/crates/bytes
-[ci-badge]: https://github.com/tokio-rs/bytes/workflows/CI/badge.svg
-[ci-url]: https://github.com/tokio-rs/bytes/actions
+The archived positive proof has 191 function targets, 2,207 prover leaves and
+zero unproved leaves. Its original diagnostic status and later successful source
+correspondence are separate: [origin audit](verification/evidence-closures/az-proof-origin-v1/reports/AZ_ORIGIN_CLOSURE_AUDIT.md),
+[reuse audit](verification/evidence-closures/az-admitted-reuse-v1/reports/AZ_ADMISSION_AUDIT.md).
+This is retained evidence, not a claim that the cleanup reran the prover.
 
-[Documentation](https://docs.rs/bytes)
+Work on default `std`, x86_64 and native atomic orderings; no feature matrix or
+`sc-drf`. Use [tool setup](TOOLCHAIN_DECISION.md) and the affected probe's
+`run-proof.sh`. `./verify-all.bash` targets the whole runtime and remains a
+blocked integration diagnostic, not the successful AZ proof entrypoint.
+Do not rerun that unchanged blocker or historical negative suites per iteration.
 
-## Usage
+Keep source/contract/proof inputs, counterexamples and immutable evidence intact.
+The reviewed production manifest is hash-bound: deleting its tests or benches
+requires a separate capture/correspondence update. For new architecture work,
+read [decisions](verification/ARCHITECTURE_DECISIONS.md); update this overview only
+when its guarantee or scope changes. Detailed assumptions and helper mappings
+remain in [TRUSTED_BASE.md](TRUSTED_BASE.md) and
+[SOURCE_CORRESPONDENCE.md](SOURCE_CORRESPONDENCE.md).
 
-To use `bytes`, first add this to your `Cargo.toml`:
-
-```toml
-[dependencies]
-bytes = "1"
-```
-
-Next, add this to your crate:
-
-```rust
-use bytes::{Bytes, BytesMut, Buf, BufMut};
-```
-
-## no_std support
-
-To use `bytes` with no_std environment, disable the (enabled by default) `std` feature.
-
-```toml
-[dependencies]
-bytes = { version = "1", default-features = false }
-```
-
-To use `bytes` with no_std environment without atomic CAS, such as thumbv6m, you also need to enable
-the `extra-platforms` feature. See the [documentation for the `portable-atomic`
-crate](https://docs.rs/portable-atomic) for more information.
-
-The MSRV when `extra-platforms` feature is enabled depends on the MSRV of `portable-atomic`.
-
-## Serde support
-
-Serde support is optional and disabled by default. To enable use the feature `serde`.
-
-```toml
-[dependencies]
-bytes = { version = "1", features = ["serde"] }
-```
-
-The MSRV when `serde` feature is enabled depends on the MSRV of `serde`.
-
-## Building documentation
-
-When building the `bytes` documentation the `docsrs` option should be used, otherwise
-feature gates will not be shown. This requires a nightly toolchain:
-
-```
-RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc
-```
-
-## License
-
-This project is licensed under the [MIT license](LICENSE).
-
-### Contribution
-
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in `bytes` by you, shall be licensed as MIT, without any additional
-terms or conditions.
+Source is crates.io bytes 1.11.1, archive SHA-256
+`1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33`,
+upstream revision `417dccdeff249e0c011327de7d92e0d6fbe7cc43`. Runtime changes retain
+the original API and representation, including the Vec reverse-comparison fix.
+[MIT license](LICENSE). Older iteration narratives remain in Git history.

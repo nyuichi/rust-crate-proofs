@@ -1,86 +1,41 @@
-# bytes 1.11.1: current target policy
+# bytes 1.11.1 working rules
 
-The user changed the target on 2026-10-07 and authorized removal of the
-modified `bytes::verified` API and high-rework alternatives identified by the
-inventory. Restore the upstream 1.11.1 API and representation while retaining
-the genuine Vec reverse-comparison bug fix. This instruction supersedes the
-2026-10-06 route-1 target recorded in the historical architecture documents.
+Only this crate is in scope. Preserve the original public API and representation,
+the genuine Vec reverse-comparison fix, and actual implementation verification.
+Small source changes for verification are allowed. The retired `bytes::verified`
+API and old length/capacity model are not current implementation coverage.
+Commit/push validated increments to `origin bytes-runtime-verification`, never
+main or force-push.
 
-Do not claim the retired modified-variant proof gates as current verification.
-Keep their archived evidence for historical review. Temporary local trusted
-contracts are authorized only with precise assumptions, a reviewed strong
-contract, and a concrete path to remove trust with few changes to other code.
-They remain open proof obligations; never count assumed bytes-specific
-ownership/refcount/last-owner/destructor laws as complete verification. Generic
-physical/library TCB remains separately documented. Small trust removal for
-actual Clone/automatic Drop is not yet established. Do not remove archival
-counterexamples or imply a small tool patch solves these boundaries.
+Start with README.md. Before changing architecture or starting a new proof
+experiment, read verification/ARCHITECTURE_DECISIONS.md. Keep the actual frozen
+counterexamples and prior component evidence. Reopening a failed route requires
+a changed premise and one bounded distinguishing experiment; extra assertions,
+wrappers, timeouts or agents alone are not a changed premise.
 
-# bytes 1.11.1: architecture decisions
+Use strong contracts and prove the actual bodies. Temporary local trust requires
+precise assumptions, a reviewed strong contract and a concrete removal path;
+bytes-specific ownership/refcount/last-owner/destructor laws remain obligations.
+Reviewed generic physical/synchronization/tool primitives may stay trusted while
+callers are proved. When blocked, consult pinned creusot-std and upstream examples;
+record the analogue, native interpretation, assumptions and replacement interface.
+Never count caller proof as primitive adequacy or disconnected gates as full API
+verification. Reentrant invariant opening and SC permission rules for weak
+atomics remain rejected.
 
-Before changing verification architecture or launching a new proof experiment,
-read `verification/ARCHITECTURE_DECISIONS.md` and
-`verification/ARCHITECTURE_ASSESSMENT.md` when present. These record user-approved
-no-repeat decisions; the user's current instructions take precedence.
+Use the affected proof wrapper, shared lock, one prover, 1024 MiB and elevated
+Why3 execution. Work on default std with native Ordering and sc-drf disabled.
+Prove a complete applicable positive once per proof increment. Reuse unchanged
+audited controls; add selective negatives only for changed trust, ownership,
+correspondence or a specific suspected specification gap. Identify diagnostic
+exclusions. Do not rerun an unchanged whole-crate frontend blocker.
 
-Do not retry a frozen method just with new assertions, wrappers, timeouts,
-models/agents, or cosmetic source changes. Reopening requires a recorded changed
-premise, supporting evidence, a bounded distinguishing experiment, and an update
-to the applicable decision. Never discard the previous counterexample.
+Preserve source/capture correspondence and immutable evidence, including failures.
+Cargo.toml, Cargo.lock and production sources are hash-bound by current checkers;
+changes require updated correspondence, not merely changing expected hashes.
+Editorial-only changes need no solver rerun or recapture of frozen documentation.
+Update one current guarantee/scope overview, not multiple milestone histories.
+Do not append per-iteration handoff reports or replay ancestor audits by default.
 
-Until the architecture admission gate passes, do not add disconnected API gates
-as progress toward complete verification. Preserve prior component evidence.
-Evidence maintenance and genuinely distinguishing architecture experiments are
-allowed. A blocked target is not a completed or implicitly reduced target.
-
-Only bytes 1.11.1 is in scope. Commit/push validated increments to
-`origin bytes-runtime-verification`; never main or force-push. Existing proof
-serialization, elevated Why3 execution, and evidence-audit rules still apply.
-
-## Generic trusted boundaries — user direction 2026-10-08
-
-The user explicitly directed adopting a trusted generic boundary for the
-shared-update/tool-support gap, and checking how creusot-std handles analogous
-cases whenever verification becomes blocked. Consult both shipped contracts and
-relevant upstream examples; record the exact analogue and what it assumes.
-Do not infer that a missing shipped adapter means the operation cannot be modeled.
-
-A reviewed generic synchronization/resource primitive may remain trusted while
-its bytes callers and protocol transitions are body proved. Give it a strong,
-precise contract, a documented native interpretation and assumptions, and a
-replacement path preserving that interface when tool/Std support arrives.
-Do not require proving the new primitive's implementation before trying its
-callers: the user has authorized the explicit TCB boundary. Record its trust
-honestly; caller proof does not prove primitive adequacy.
-
-Known unsound rules (including alternate-entry invariant reentrancy and SC
-permission extraction for weak atomics) remain rejected. Bytes-specific clone,
-refcount, last-owner or destructor laws remain body-proof obligations. This
-changed premise permits a new restricted generic interface; it does not reopen
-unchanged failed routes or authorize replacement public buffer APIs.
-
-## Proof-first validation budget — user direction 2026-10-09
-
-The user also directed that handoff and orchestration use Sol. Use the Sol
-model family for those duties; consult Astra for difficult architecture choices
-and the next-step recommendation after a completed increment. Carry both this
-routing and the validation budget into every handoff.
-
-The user explicitly requested recording this workflow to prevent repeated,
-expensive negative-case experimentation from displacing proof implementation.
-Normally write strong contracts, prove the implementation, and continue.
-Negative controls are selective checks for a new trusted boundary, ownership
-mechanism, source/compiler correspondence checker, or a concrete suspected
-specification gap; they are not mandatory for every contract or proof change.
-
-Before adding a negative control, state the specific gap it tests and check
-whether unchanged archived evidence already covers it. Run only affected proof
-targets for diagnostic controls; record any excluded targets explicitly and
-never present that run as full verification. Reuse unchanged audited controls.
-Do not repeatedly prove all inherited targets for each negative case. Run the
-complete applicable positive proof for a validated increment, and repeat it only
-after a relevant change or unresolved failure. Preserve source correspondence,
-strong ownership/content contracts, exact failure evidence and honest TCB scope.
-Negative-case rejection supplements these proofs; it does not establish their
-soundness or replace the positive proof. This user direction supersedes older
-probe-specific plans requiring broad negative suites on every increment.
+No mandatory model routing or separate Astra consultation is needed.
+A blocked or partial target is not complete verification.
