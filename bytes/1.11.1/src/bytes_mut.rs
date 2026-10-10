@@ -538,12 +538,33 @@ impl BytesMut {
     /// buf.truncate(5);
     /// assert_eq!(buf, b"hello"[..]);
     /// ```
+// ORIGINAL_UNIQUE_BEGIN truncate
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() ==
+        if len@ <= self.unique_length() { len@ } else { self.unique_length() }))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer() &&
+        (^self).unique_capacity() == self.unique_capacity() &&
+        (^self).unique_tag_pointer() == self.unique_tag_pointer()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).unique_proof.unwrap_logic().raw.namespace() ==
+            self.unique_proof.unwrap_logic().raw.namespace() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < self.unique_capacity() ==> (^self).unique_slot(i) == self.unique_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() ==
+        self.unique_bytes().subsequence(0,
+            if len@ <= self.unique_length() { len@ } else { self.unique_length() })))]
     pub fn truncate(&mut self, len: usize) {
         if len <= self.len() {
             // SAFETY: Shrinking the buffer cannot expose uninitialized bytes.
             unsafe { self.set_len(len) };
         }
     }
+// ORIGINAL_UNIQUE_END truncate
 
     /// Clears the buffer, removing all data. Existing capacity is preserved.
     ///
@@ -631,11 +652,33 @@ impl BytesMut {
     ///
     /// assert_eq!(&b[..], b"hello world");
     /// ```
+// ORIGINAL_UNIQUE_BEGIN set_len
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(len@ <= self.unique_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(forall<i:Int>
+        self.unique_length() <= i && i < len@ ==> slot_known(self.unique_slot(i))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer() &&
+        (^self).unique_capacity() == self.unique_capacity() &&
+        (^self).unique_tag_pointer() == self.unique_tag_pointer()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).unique_proof.unwrap_logic().raw.namespace() ==
+            self.unique_proof.unwrap_logic().raw.namespace() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < self.unique_capacity() ==> (^self).unique_slot(i) == self.unique_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() ==
+        Seq::create(len@, |i:Int| self.unique_slot(i).unwrap_logic().unwrap_logic())))]
     #[inline]
     pub unsafe fn set_len(&mut self, len: usize) {
         debug_assert!(len <= self.cap, "set_len out of bounds");
         self.len = len;
     }
+// ORIGINAL_UNIQUE_END set_len
 
     /// Reserves capacity for at least `additional` more bytes to be inserted
     /// into the given `BytesMut`.

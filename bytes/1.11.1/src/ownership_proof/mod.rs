@@ -7,3 +7,4 @@ pub(crate) mod boxed_alignment;
 
 pub(crate) mod vec_capacity;
 pub(crate) mod unique_reclaim;
+pub(crate) mod view_region;

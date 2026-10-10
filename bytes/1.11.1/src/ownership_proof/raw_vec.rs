@@ -546,7 +546,10 @@ impl View for PhysicalRegion {
 }
 
 impl Invariant for PhysicalRegion {
-    #[logic(prophetic)]
+    // Keep the exact physical interval bounds available to callers: offset
+    // proofs need `lo <= hi <= capacity` from a valid region without adding a
+    // separate caller-side capacity assumption.
+    #[logic(open, prophetic)]
     fn invariant(self) -> bool {
         pearlite! {
             self@.0.invariant() &&

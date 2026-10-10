@@ -1,0 +1,199 @@
+(* #"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytesmut-len-api-proof-9de8c903a0818be5/out/bytes_mut_api.rs" 86 4 86 30 *)
+
+(* BytesMut *)
+
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 142 8 142 35
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 112 8 112 18
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 272 12 280 13
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 156 12 157 56
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 555 12 559 33
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span sbytes_mut_api = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytesmut-len-api-proof-9de8c903a0818be5/out/bytes_mut_api.rs" 86 16 86 20
+let%span sbytes_mut_api'0 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytesmut-len-api-proof-9de8c903a0818be5/out/bytes_mut_api.rs" 84 65 84 96
+let%span sbytes_mut_api'1 = "/workspace/bytes-proof-tools/targets/bytes/debug/build/bytesmut-len-api-proof-9de8c903a0818be5/out/bytes_mut_api.rs" 29 59 29 68
+
+use creusot.int.UInt64
+use creusot.prelude.Opaque
+use creusot.prelude.Any
+use creusot.prelude.Ptr
+use creusot.int.Int64
+use int.Int
+
+type t_NonNull_u8
+
+type t_BoundPtr
+
+type t_RawAllocation
+
+type t_Recovery
+
+type t_PhysicalRegion
+
+type tup2_Recovery_PhysicalRegion = { f0: t_Recovery; f1: t_PhysicalRegion }
+
+type t_OriginalUniqueProof = { base: t_BoundPtr; raw: t_RawAllocation; capabilities: tup2_Recovery_PhysicalRegion }
+
+type t_Option_OriginalUniqueProof = None | Some t_OriginalUniqueProof
+
+type t_BytesMut = {
+  ptr: t_NonNull_u8;
+  len: UInt64.t;
+  cap: UInt64.t;
+  data: Opaque.ptr;
+  unique_proof: t_Option_OriginalUniqueProof }
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull'0] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+type t_Id
+
+type tup3_Id_Int_Int = { f0'0: t_Id; f1'0: int; f2'0: int }
+
+type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 253 4 253 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 289 4 289 39] (self: t_BoundPtr) : int
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 270 4 270 30] (self: t_BoundPtr) =
+  [%#sraw_vec] match view_BoundPtr self with
+    | None'0 -> true
+    | Some'0 {f1'0 = allocation_capacity; f2'0 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity
+    /\ allocation_capacity <= Int64.to_int const_MAX
+    /\ absolute_offset < current_address self
+    /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
+    end
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom'0: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> invariant_BoundPtr x
+
+type tup2_Int_Id = { f0'1: int; f1'1: t_Id }
+
+function view_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 147 4 147 33] (self: t_RawAllocation) : tup2_Int_Id
+
+function base_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 169 4 169 36] (self: t_RawAllocation) : int
+
+predicate invariant_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 154 4 154 30] (self: t_RawAllocation) =
+  [%#sraw_vec'0] 0 <= (view_RawAllocation self).f0'1
+  /\ (view_RawAllocation self).f0'1 <= Int64.to_int const_MAX
+  /\ base_address self + (view_RawAllocation self).f0'1 <= UInt64.t'int const_MAX'0
+
+predicate inv_RawAllocation (_1: t_RawAllocation)
+
+axiom inv_axiom'1: forall x: t_RawAllocation [inv_RawAllocation x]. inv_RawAllocation x -> invariant_RawAllocation x
+
+predicate inv_Recovery (_1: t_Recovery)
+
+type t_OwnedRegion
+
+predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/owned_region.rs" 83 4 83 30] (self: t_OwnedRegion)
+
+type tup3_OwnedRegion_Int_Id = { f0'2: t_OwnedRegion; f1'2: int; f2'2: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 541 4 541 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+type t_Excl_unit = { f0'3: () }
+
+type t_Option_Excl_unit = None'1 | Some'1 t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'4: t_Option_Excl_unit; f1'4: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'5: int;
+  f1'5: int;
+  f2'5: t_Id;
+  f3'5: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/verification/probes/bytesmut-len-api/src/../../../../src/ownership_proof/raw_vec.rs" 553 4 553 30] (self: t_PhysicalRegion) =
+  [%#sraw_vec'1] invariant_OwnedRegion (view_PhysicalRegion self).f0'2
+  /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f1'5
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'2).f1'5 <= (view_PhysicalRegion self).f1'2
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'2).f2'5 = (view_PhysicalRegion self).f2'2
+
+predicate inv_PhysicalRegion (_1: t_PhysicalRegion)
+
+axiom inv_axiom'2: forall x: t_PhysicalRegion [inv_PhysicalRegion x]. inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate inv_tup2_Recovery_PhysicalRegion [@inline:trivial] (_1: tup2_Recovery_PhysicalRegion) =
+  inv_Recovery _1.f0 /\ inv_PhysicalRegion _1.f1
+
+meta "rewrite_def" predicate inv_tup2_Recovery_PhysicalRegion
+
+predicate invariant_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial] (self: tup2_Recovery_PhysicalRegion) =
+  [%#sghost] inv_tup2_Recovery_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_tup2_Recovery_PhysicalRegion
+
+predicate inv_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial] (_1: tup2_Recovery_PhysicalRegion) =
+  invariant_Ghost_tup2_Recovery_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_tup2_Recovery_PhysicalRegion
+
+predicate inv_OriginalUniqueProof (_1: t_OriginalUniqueProof)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_OriginalUniqueProof [inv_OriginalUniqueProof x]. inv_OriginalUniqueProof x
+    = (inv_BoundPtr x.base /\ inv_RawAllocation x.raw /\ inv_Ghost_tup2_Recovery_PhysicalRegion x.capabilities)
+
+predicate inv_Option_OriginalUniqueProof (_1: t_Option_OriginalUniqueProof)
+
+axiom inv_axiom'4 [@rewrite]:
+  forall x: t_Option_OriginalUniqueProof [inv_Option_OriginalUniqueProof x]. inv_Option_OriginalUniqueProof x
+    = match x with
+      | None -> true
+      | Some f0'6 -> inv_OriginalUniqueProof f0'6
+      end
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+axiom inv_axiom'5 [@rewrite]: forall x: t_BytesMut [inv_BytesMut x]. inv_BytesMut x
+    = (inv_NonNull_u8 x.ptr /\ inv_Option_OriginalUniqueProof x.unique_proof)
+
+predicate invariant_ref_BytesMut [@inline:trivial] (self: t_BytesMut) = [%#sinvariant] inv_BytesMut self
+
+meta "rewrite_def" predicate invariant_ref_BytesMut
+
+predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_BytesMut _1
+
+meta "rewrite_def" predicate inv_ref_BytesMut
+
+function unique_length [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytesmut-len-api-proof-9de8c903a0818be5/out/bytes_mut_api.rs" 29 4 29 44] (self: t_BytesMut) : int
+ = [%#sbytes_mut_api'1] UInt64.t'int self.len
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let len'0 [#"/workspace/bytes-proof-tools/targets/bytes/debug/build/bytesmut-len-api-proof-9de8c903a0818be5/out/bytes_mut_api.rs" 86 4 86 30]
+  (self: t_BytesMut) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:len 'self' type invariant] [%#sbytes_mut_api] inv_ref_BytesMut self}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self.len ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & self: t_BytesMut = self ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sbytes_mut_api'0] UInt64.t'int result
+    = unique_length self}
+    (! return {result}) ]

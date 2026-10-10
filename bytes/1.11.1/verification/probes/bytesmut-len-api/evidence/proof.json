@@ -1,0 +1,136 @@
+{
+  "status": "proved",
+  "scope": "actual extracted BytesMut::len, truncate, and set_len method bodies under the existing full-allocation, offset-zero Vec invariant, plus a spatial view-split helper and body-proved split dependencies",
+  "api_complete": false,
+  "representation": "BytesMut unique_proof; no BytesMut or Shared runtime field changes",
+  "source_correspondence": {
+    "kind": "exact source extraction",
+    "source": "src/bytes_mut.rs",
+    "full_source_sha256": "a9d26a8602e3cbe7fa4255f6b859315a111ca8b83cfd7486856b719696fd1398",
+    "extracted_components": [
+      "mutable_shared_record",
+      "bytes_mut_record",
+      "unique_model",
+      "len",
+      "truncate",
+      "set_len"
+    ],
+    "component_sha256": {
+      "mutable_shared_record": "2f0fb68bad904740e17e85422d0ea127b58400f695bbb39ee5f5025cb7740b5d",
+      "bytes_mut_record": "95bb40ae8c2d0079a07880e323d3d9eb129301e7b925542012238995a70a79d9",
+      "unique_model": "7efa70e2b8d9e2f1254f492f40108d98b14d70afc538db3fdefc8e7627d77ef3",
+      "len": "329a796220e658d3a4019a14e2f1a21517d80ffd3540ca7fa6e80d7d425e3763",
+      "truncate": "daa18d55073ed5d39463f028ff156cc2f502ba3b1a5302f64c5754aca9c2038b",
+      "set_len": "dc765206b6703506c916fc67abaf631b6e8244323a88111a3433965dcf1962a0"
+    },
+    "generated_rust_sha256": "ea23ed0e5616215e0ed30556aec4254c5ba482cf06fd9362eccef4237c12113c"
+  },
+  "targets": {
+    "len": {
+      "coma": "evidence/coma/len.coma",
+      "coma_sha256": "c4b2f1494ea7f2416b47404b3345449fb6349f1ef663cb3939a9e435946cc860",
+      "proof_results": "evidence/proof-results/len.json",
+      "proof_results_sha256": "a040dda354e75796d42add87b89052393a4676c06fb16672303cd27c495f269d",
+      "result": "proved"
+    },
+    "truncate": {
+      "coma": "evidence/coma/truncate.coma",
+      "coma_sha256": "276e284e8283f36d7a2553193a1f87eec35373cdaf983ebcf0a8fe7abfcef675",
+      "proof_results": "evidence/proof-results/truncate.json",
+      "proof_results_sha256": "3e625c5e97b23ccc3a39cafc7d9cb7804ab9ae2aa30f53451dbab7da732707fa",
+      "result": "proved"
+    },
+    "set_len": {
+      "coma": "evidence/coma/set_len.coma",
+      "coma_sha256": "13da9b4110763c84a81ae70c383ae4cd29cfe93b7eef6cba4cf15f5668a49d7e",
+      "proof_results": "evidence/proof-results/set_len.json",
+      "proof_results_sha256": "82a5731bde4e6523206a11dd1794868d165a80903eb500b2b69a9e86ae60377b",
+      "result": "proved"
+    },
+    "split_view_region": {
+      "coma": "evidence/coma/split_view_region.coma",
+      "coma_sha256": "e32844bf0f8a8a1f0577bf1b114abf5a1d1e96479e1306282d0653d070e7c130",
+      "proof_results": "evidence/proof-results/split_view_region.json",
+      "proof_results_sha256": "1bf911e5403a90e9561bdef8b9c1bd5b6f6a654fb1f6af76cfb8f5c2d5b16c28",
+      "result": "proved"
+    },
+    "advance_within": {
+      "coma": "evidence/coma/advance_within.coma",
+      "coma_sha256": "89e0e3b52ad5cbe5bfcd778cd379845963d7cece19093cd55a45915a39a9ffef",
+      "proof_results": "evidence/proof-results/advance_within.json",
+      "proof_results_sha256": "f28402861701355ae8c8f10488797bdbdcd7731055cd800012eca16d3c86618b",
+      "result": "proved"
+    },
+    "physical_region_split_at": {
+      "coma": "evidence/coma/physical_region_split_at.coma",
+      "coma_sha256": "347f0332fd8a2febcac218b27468b0fd7df90acd67c4a5439761ffc32227cab1",
+      "proof_results": "evidence/proof-results/physical_region_split_at.json",
+      "proof_results_sha256": "8ab3246913e43bf0fd7ee7f0c3bb27f3015537548c2077f8702237a4bec7e87c",
+      "result": "proved"
+    },
+    "owned_region_split_at": {
+      "coma": "evidence/coma/owned_region_split_at.coma",
+      "coma_sha256": "9dcda98dac94d23c637f6d52f15cc5028a6bf9213039c0621539696524618ed8",
+      "proof_results": "evidence/proof-results/owned_region_split_at.json",
+      "proof_results_sha256": "d897ae997495153ee772cb5c56563cc9df3f9b9e6d63e4109259db710f5ff04c",
+      "result": "proved"
+    }
+  },
+  "established_guarantees": [
+    "len returns the handle's stored length",
+    "truncate sets length to min(requested, old length), leaves every capacity slot unchanged, and preserves pointer, capacity, tag, allocation namespace, recovery namespace, and physical resource identity",
+    "set_len supports shrinking and growing when target length is within capacity and each newly exposed slot is Known; it preserves every capacity slot and the same allocation identities",
+    "the method bodies have no panic path under their stated contracts, including set_len's bounds assertion",
+    "split_view_region partitions one valid PhysicalRegion at an in-bounds relative cut, returns shifted pointer metadata, and preserves spatial resource identity and slot maps",
+    "BoundPtr::advance_within, PhysicalRegion::split_at, and OwnedRegion::split_at actual bodies are separately selected proof targets"
+  ],
+  "solver": "Why3, one worker, no proof cache",
+  "toolchain": {
+    "rust_toolchain": "nightly-2026-06-22",
+    "creusot_sha": "318615be3b8bbc60d1f6d52469ba5c0bdebed4f1",
+    "why3_sha": "54c92f96bb0711d6e991c18f10bfbc08d90d028b",
+    "why3find_sha": "eab37557d3e24e1913a3c4f44bc5528ef497c6c9",
+    "installation_manifest_sha256": "eaae626f0dc765c6734de1d246f21d917a26eda9887cb3e8eabf2c9f5805db02",
+    "binary_sha256": {
+      "creusot-rustc": "e7f669c55b2409b9c429ef84fcd0c98ffd5cdf431208fbd5566d08fdc98a239d",
+      "cargo-creusot": "7f20cfcc03bc2d99816e396e6f642e15d3d0914c1a3b714212149670a1e7ec7b",
+      "why3": "5204331909db2eafef9e674ed5d23e343745c99d960fd334aeef62d1401b67da",
+      "why3find": "9eb742d21f4dc4ee5b383a514bf0b1193792f6abb6736e76b1db7f8805e5a793",
+      "alt-ergo": "bdc4e487f2bdfd421011c82f545df3f50530aee6d6e406b1e847d433650ca3c1",
+      "z3": "80ee070b8ffc2fa964b0b879250b2110c47f84c1256a1f9ab76fc7cf95e46292",
+      "cvc4": "d38a79cf984592785eda41ec888d94ca107ac1f13058740238041e28c8472e51",
+      "cvc5": "88e0445c1e30739e356aacb34bf664956efaf31c96f4a428e12b78b22a65da6e"
+    },
+    "std_overlay_tree_sha256": "4c254d026e7fa57d45558621e4eaccff58bdeeca101666e2c6d0ad090ea76613",
+    "std_overlay_manifest_sha256": "36797e86e2aee5e9f40ecf43dde2ea201b16dffdaf711ab9eab63d42be93d589"
+  },
+  "verified_inputs_sha256": {
+    "src/bytes_mut.rs": "a9d26a8602e3cbe7fa4255f6b859315a111ca8b83cfd7486856b719696fd1398",
+    "src/ownership_proof/raw_vec.rs": "533fe1acdb2349017de6c33f0b04e1ed37f402110cf580bb9e0c70df75e3c3da",
+    "src/ownership_proof/owned_region.rs": "ffa44756e4866e05d9b02bfac7db2631b030eb42a45709974700edefd0b06b83",
+    "src/ownership_proof/view_region.rs": "bbc0806047e9b564d56195d85a95f2324eb13265762cfdc59cad2cd21cd712d9",
+    "src/provenance_specs.rs": "8383154b0d6438f7150ea381b3b1cdffa95f90a93f19860df3334be4d8f9a0b8",
+    "verification/probes/bytesmut-len-api/Cargo.toml": "4ac16a9e7d2290ff581d4b465d801180910d740b63d90f1878b3a3ea009d7ff1",
+    "verification/probes/bytesmut-len-api/Cargo.lock": "b6c7e0f20373a8bbc5c5181a5227152160e6e8400f81ca99074ff7385f250db4",
+    "verification/probes/bytesmut-len-api/build.rs": "d570972fad68237bd6e8e41ef0137a572912967a300f014b0e0eb924a1d54d62",
+    "verification/probes/bytesmut-len-api/extract_bytes_mut.py": "c81463d4d7510fe512ff367820bbf460456cfa36366294f44cbe8cfabb23f20c",
+    "verification/probes/bytesmut-len-api/src/lib.rs": "66088e30f611639f5ec9478e2fbb21f21e2bd3e4b28b4c52db8898de605a94e2",
+    "verification/probes/bytesmut-len-api/verify.sh": "dd74c8f79f9eb84aad234cba5393d0b6aea3464fd8e98aba52ff0d3c306f085b",
+    "verification/probes/bytesmut-len-api/save_evidence.py": "dc56363abee8a5d72e3ac9deaf930f16fdb2f7ff61e3d151ee509bff0bfd26cb",
+    "verification/probes/bytesmut-len-api/README.md": "9b86bf2693ab990665374c25734a21e02af2181b72cda2aac7022a9bc4aeaeb0",
+    "verification/probes/bytesmut-len-api/why3find.json": "80e22e33d612aa049f17b9d72e641873a6887e31371e3556d3f5dfc9e3c98c2b",
+    ".cargo/config.toml": "39893f50dce2b7672cd30d7487286ad1a227d43dfd71a14176db7eddacc3d347",
+    "scripts/prepare-proof-std.py": "7e7b835541b44c46e36ee367274a83a7fd46b1ac0d8c34f3e728165248e92b7c",
+    "verification/std-support/manifest.json": "36797e86e2aee5e9f40ecf43dde2ea201b16dffdaf711ab9eab63d42be93d589",
+    "verification/std-support/alloc-capacity.patch": "9eead572270996da05b5472b65ed61f1199b702e4723e88431e146edeaa80f13",
+    "verification/std-support/address-model.patch": "52eacb4f4905fb7b9f49e07df1f9e34f4a90c04926a01ea7f4a619948490e975",
+    "verification/std-support/pointer-model.patch": "3a15f89fa1c7ce9e14ed48f0ae5f13c3e37fa77b144ffebd10a385d13d5281e5"
+  },
+  "limitations": [
+    "unique_valid supports only the original whole-allocation Vec representation at offset zero",
+    "the constructor/transition that establishes this invariant is not body-proved here",
+    "Shared-backed, split, nonzero-offset, and Bytes-owned states are not covered by the length-method result",
+    "the spatial helper establishes interval partitioning only; it does not prove Shared lifetime, refcount, or immutable-overlap authority",
+    "the crate's retained current.json/current.zip snapshot is separate and stale for changed inputs"
+  ]
+}
