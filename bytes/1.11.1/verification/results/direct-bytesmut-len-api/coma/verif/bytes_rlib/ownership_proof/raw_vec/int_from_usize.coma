@@ -1,0 +1,26 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 85 0 85 56 *)
+
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 86 4 86 27
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 84 10 84 27
+let%span sint = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/int.rs" 238 14 238 31
+
+use creusot.int.UInt64
+use creusot.int.Int128
+use creusot.prelude.Any
+
+let new (value: Int128.t) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:new ensures] [%#sint] result = Int128.to_int value}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let int_from_usize [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 85 0 85 56]
+  (value: UInt64.t) (return (x: int)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- Int128.of_int (UInt64.t'int value) ] s1
+    | s1 = new [%#sraw_vec] {_4} (fun (_x: int) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ] [ & _ret: int = Any.any_l () | & value: UInt64.t = value | & _4: Int128.t = Any.any_l () ])
+  [ return (result: int) -> {[@stop_split] [@expl:int_from_usize ensures] [%#sraw_vec'0] result = UInt64.t'int value}
+    (! return {result}) ]

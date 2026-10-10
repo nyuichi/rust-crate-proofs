@@ -17,6 +17,10 @@ the sealed witness. The selected `from_vec` and `with_capacity` bodies,
 capacity encoder and decoder, and local ownership/provenance helpers are
 checked against the original crate source. No trusted Bytes-specific
 ownership, refcount or destructor law is used in this call cone.
+The replacement path is to verify Vec, allocator and `ManuallyDrop`
+representation/transfer contracts that derive this exact native-tuple to
+affine-allocation binding; proving only `bind_consumed_vec` would not remove
+this trust.
 
 `len` is proved without a precondition. `truncate` and unsafe `set_len` require
 `unique_valid`, the whole-allocation, offset-zero Vec-backed state. `set_len`

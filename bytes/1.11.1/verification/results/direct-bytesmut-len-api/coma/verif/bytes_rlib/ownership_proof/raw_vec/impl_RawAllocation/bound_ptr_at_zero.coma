@@ -1,0 +1,216 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 287 4 287 63 *)
+
+(* ownership_proof::raw_vec::RawAllocation *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 142 8 142 35
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 290 28 290 55
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 291 44 291 75
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 291 43 291 75
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 292 49 292 54
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 292 40 292 55
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 292 39 292 55
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 289 22 298 9
+let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 287 37 287 41
+let%span sraw_vec'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 281 15 281 31
+let%span sraw_vec'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 287 46 287 63
+let%span sraw_vec'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 282 14 282 34
+let%span sraw_vec'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 283 14 283 74
+let%span sraw_vec'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 284 14 284 63
+let%span sraw_vec'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 285 32 285 76
+let%span sraw_vec'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 286 14 286 42
+let%span sraw_vec'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 361 12 369 13
+let%span sraw_vec'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 344 12 351 13
+let%span sraw_vec'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 271 20 271 27
+let%span sraw_vec'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 265 20 265 27
+let%span sraw_vec'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 379 20 379 46
+let%span sraw_vec'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 259 20 259 43
+let%span sraw_vec'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 389 20 389 33
+let%span sraw_vec'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 254 61 254 71
+let%span sraw_vec'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 237 20 237 66
+let%span sraw_vec'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 245 12 246 56
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 199 14 199 29
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 81 14 81 31
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 177 14 177 26
+let%span sint = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/int.rs" 238 14 238 31
+
+use creusot.int.UInt64
+use creusot.int.Int128
+use creusot.prelude.Any
+use creusot.int.Int64
+use creusot.prelude.Ptr
+use creusot.prelude.Opaque
+use int.Int
+
+type t_Id
+
+type t_NonNull_u8
+
+type t_RawAllocation = { base: t_NonNull_u8; capacity: UInt64.t; namespace: t_Id; _not_objective: () }
+
+let into_inner_Id (self: t_Id) (return (x: t_Id)) = any
+  [ return (result: t_Id) -> {[@stop_split] [@expl:into_inner ensures] [%#sghost] result = self} (! return {result}) ]
+
+let new (value: Int128.t) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:new ensures] [%#sint] result = Int128.to_int value}
+    (! return {result}) ]
+
+let deref_Ghost_Int (self: int) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:deref ensures] [%#sghost'0] result = self} (! return {result}) ]
+
+type t_BoundPtrBinding = { namespace'0: t_Id; allocation_capacity'0: int; absolute_offset'0: int }
+
+type t_Option_BoundPtrBinding = None | Some t_BoundPtrBinding
+
+let new_Option_BoundPtrBinding (x: t_Option_BoundPtrBinding) (return (x'0: t_Option_BoundPtrBinding)) = any
+  [ return (result: t_Option_BoundPtrBinding) -> {[@stop_split] [@expl:new ensures] [%#sghost'1] result = x}
+    (! return {result}) ]
+
+type t_BoundPtr = { pointer: t_NonNull_u8; binding: t_Option_BoundPtrBinding }
+
+type tup2_BoundPtr_usize = { f0: t_BoundPtr; f1: UInt64.t }
+
+type tup2_Int_Id = { f0'0: int; f1'0: t_Id }
+
+function view_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 236 4 236 33] (self: t_RawAllocation) : tup2_Int_Id
+ = [%#sraw_vec'22] { f0'0 = UInt64.t'int self.capacity; f1'0 = self.namespace }
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+function base_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 258 4 258 36] (self: t_RawAllocation) : int
+ = [%#sraw_vec'19] UInt64.t'int (addr_NonNull_u8 self.base)
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 243 4 243 30] (self: t_RawAllocation) =
+  [%#sraw_vec'23] 0 <= (view_RawAllocation self).f0'0
+  /\ (view_RawAllocation self).f0'0 <= Int64.to_int const_MAX
+  /\ base_address self + (view_RawAllocation self).f0'0 <= UInt64.t'int const_MAX'0
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull'0] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+predicate inv_RawAllocation (_1: t_RawAllocation)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_RawAllocation [inv_RawAllocation x]. inv_RawAllocation x
+    = (invariant_RawAllocation x /\ inv_NonNull_u8 x.base)
+
+predicate invariant_ref_RawAllocation [@inline:trivial] (self: t_RawAllocation) = [%#sinvariant] inv_RawAllocation self
+
+meta "rewrite_def" predicate invariant_ref_RawAllocation
+
+predicate inv_ref_RawAllocation [@inline:trivial] (_1: t_RawAllocation) = invariant_ref_RawAllocation _1
+
+meta "rewrite_def" predicate inv_ref_RawAllocation
+
+type tup3_Id_Int_Int = { f0'1: t_Id; f1'1: int; f2'1: int }
+
+type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 342 4 342 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+ = [%#sraw_vec'15] match self.binding with
+    | None -> None'0
+    | Some binding'0 -> Some'0 { f0'1 = binding'0.namespace'0;
+                                 f1'1 = binding'0.allocation_capacity'0;
+                                 f2'1 = binding'0.absolute_offset'0 }
+    end
+
+function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 378 4 378 39] (self: t_BoundPtr) : int
+ = [%#sraw_vec'18] UInt64.t'int (addr_NonNull_u8 self.pointer)
+
+predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 359 4 359 30] (self: t_BoundPtr) =
+  [%#sraw_vec'14] match view_BoundPtr self with
+    | None'0 -> true
+    | Some'0 {f1'1 = allocation_capacity; f2'1 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity
+    /\ allocation_capacity <= Int64.to_int const_MAX
+    /\ absolute_offset < current_address self
+    /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
+    end
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x
+    = (invariant_BoundPtr x /\ inv_NonNull_u8 x.pointer)
+
+predicate inv_tup2_BoundPtr_usize [@inline:trivial] (_1: tup2_BoundPtr_usize) = inv_BoundPtr _1.f0
+
+meta "rewrite_def" predicate inv_tup2_BoundPtr_usize
+
+function namespace'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 270 4 270 39] (self: t_RawAllocation) : t_Id
+ = [%#sraw_vec'16] (view_RawAllocation self).f1'0
+
+function capacity'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 264 4 264 39] (self: t_RawAllocation) : int
+ = [%#sraw_vec'17] (view_RawAllocation self).f0'0
+
+function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 388 4 388 46] (self: t_BoundPtr) : Opaque.ptr
+ = [%#sraw_vec'20] view_NonNull_u8 self.pointer
+
+function raw_pointer'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 254 4 254 46] (self: t_RawAllocation) : Opaque.ptr
+ = [%#sraw_vec'21] view_NonNull_u8 self.base
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let bound_ptr_at_zero [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 287 4 287 63]
+  (self: t_RawAllocation) (return (x: tup2_BoundPtr_usize)) =
+{[@stop_split] [@expl:bound_ptr_at_zero requires] ([@stop_split] [@expl:bound_ptr_at_zero 'self' type invariant] [%#sraw_vec'6] inv_ref_RawAllocation self)
+  /\ ([@stop_split] [@expl:bound_ptr_at_zero requires] [%#sraw_vec'7] invariant_ref_RawAllocation self)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = into_inner_Id [%#sraw_vec] {self.namespace} (fun (_x: t_Id) -> [ &namespace'2 <- _x ] s1)
+    | s1 = [ &_21 <- Int128.of_int (UInt64.t'int self.capacity) ] s2
+    | s2 = new [%#sraw_vec'0] {_21} (fun (_x: int) -> [ &_20 <- _x ] s3)
+    | s3 = deref_Ghost_Int [%#sraw_vec'1] {_20} (fun (_x: int) -> [ &_18 <- _x ] s4)
+    | s4 = [ &allocation_capacity <- _18 ] s5
+    | s5 = new [%#sraw_vec'3] {[%#sraw_vec'2] (0: Int128.t)} (fun (_x: int) -> [ &_26 <- _x ] s6)
+    | s6 = deref_Ghost_Int [%#sraw_vec'4] {_26} (fun (_x: int) -> [ &_24 <- _x ] s7)
+    | s7 = [ &absolute_offset <- _24 ] s8
+    | s8 = [ &_27 <- { namespace'0 = namespace'2;
+                       allocation_capacity'0 = allocation_capacity;
+                       absolute_offset'0 = absolute_offset } ] s9
+    | s9 = [ &_14 <- Some _27 ] s10
+    | s10 = new_Option_BoundPtrBinding [%#sraw_vec'5] {_14}
+        (fun (_x: t_Option_BoundPtrBinding) -> [ &binding'0 <- _x ] s11)
+    | s11 = [ &bound <- { pointer = self.base; binding = binding'0 } ] s12
+    | s12 = [ &_ret <- { f0 = bound; f1 = self.capacity } ] s13
+    | s13 = return {_ret} ] ]
+  [ & _ret: tup2_BoundPtr_usize = Any.any_l ()
+  | & self: t_RawAllocation = self
+  | & binding'0: t_Option_BoundPtrBinding = Any.any_l ()
+  | & _14: t_Option_BoundPtrBinding = Any.any_l ()
+  | & namespace'2: t_Id = Any.any_l ()
+  | & allocation_capacity: int = Any.any_l ()
+  | & _18: int = Any.any_l ()
+  | & _20: int = Any.any_l ()
+  | & _21: Int128.t = Any.any_l ()
+  | & absolute_offset: int = Any.any_l ()
+  | & _24: int = Any.any_l ()
+  | & _26: int = Any.any_l ()
+  | & _27: t_BoundPtrBinding = Any.any_l ()
+  | & bound: t_BoundPtr = Any.any_l () ])
+  [ return (result: tup2_BoundPtr_usize) ->
+  {[@stop_split] [@expl:bound_ptr_at_zero ensures] ([@stop_split] [@expl:bound_ptr_at_zero result type invariant] [%#sraw_vec'8] inv_tup2_BoundPtr_usize result)
+    /\ ([@stop_split] [@expl:bound_ptr_at_zero ensures #0] [%#sraw_vec'9] invariant_BoundPtr result.f0)
+    /\ ([@stop_split] [@expl:bound_ptr_at_zero ensures #1] [%#sraw_vec'10] view_BoundPtr result.f0
+      = Some'0 { f0'1 = namespace'1 self; f1'1 = capacity'0 self; f2'1 = 0 })
+    /\ ([@stop_split] [@expl:bound_ptr_at_zero ensures #2] [%#sraw_vec'11] current_address result.f0
+      = base_address self)
+    /\ ([@stop_split] [@expl:bound_ptr_at_zero ensures #3] [%#sraw_vec'12] raw_pointer result.f0 = raw_pointer'0 self)
+    /\ ([@stop_split] [@expl:bound_ptr_at_zero ensures #4] [%#sraw_vec'13] UInt64.t'int result.f1 = capacity'0 self)}
+    (! return {result}) ]

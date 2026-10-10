@@ -1,0 +1,104 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2146 0 2146 36 *)
+
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 129 18 129 22
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 127 19 127 23
+let%span soption'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/option.rs" 128 34 128 38
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2147 7 2147 29
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2148 8 2148 25
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2148 33 2148 65
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2148 8 2148 66
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2150 17 2150 44
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2143 62 2143 82
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2146 25 2146 36
+let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2144 61 2144 75
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 67 18 70 9
+let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 63 19 63 39
+let%span snonnull'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 64 18 64 32
+let%span snonnull'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span snonnull'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 142 8 142 35
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+
+type t_NonNull_u8
+
+type t_Option_NonNull_u8 = None | Some t_NonNull_u8
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull'3] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull'2] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+predicate inv_Option_NonNull_u8 (_1: t_Option_NonNull_u8)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Option_NonNull_u8 [inv_Option_NonNull_u8 x]. inv_Option_NonNull_u8 x
+    = match x with
+      | None -> true
+      | Some f0 -> inv_NonNull_u8 f0
+      end
+
+predicate is_null_ptr_u8 (self: Opaque.ptr) = [%#sptr] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+let new_u8 (ptr: Opaque.ptr) (return (x: t_Option_NonNull_u8)) = any
+  [ return (result: t_Option_NonNull_u8) ->
+  {[@stop_split] [@expl:new_u8 ensures] ([@stop_split] [@expl:new result type invariant] inv_Option_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:new ensures] [%#snonnull] match result with
+      | None -> is_null_ptr_u8 ptr
+      | Some res -> view_NonNull_u8 res = ptr
+      end)}
+    (! return {result}) ]
+
+let expect_NonNull_u8 (self_: t_Option_NonNull_u8) (msg: string) (return (x: t_NonNull_u8)) =
+{[@stop_split] [@expl:expect_NonNull_u8 requires] ([@stop_split] [@expl:expect 'self_' type invariant] [%#soption] inv_Option_NonNull_u8 self_)
+  /\ ([@stop_split] [@expl:expect requires] [%#soption'0] self_ <> None)}
+  any
+  [ return (result: t_NonNull_u8) ->
+  {[@stop_split] [@expl:expect_NonNull_u8 ensures] ([@stop_split] [@expl:expect result type invariant] inv_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:expect ensures] [%#soption'1] Some result = self_)}
+    (! return {result}) ]
+
+let new_unchecked_u8 (ptr: Opaque.ptr) (return (x: t_NonNull_u8)) =
+{[@stop_split] [@expl:new_unchecked requires] [%#snonnull'0] not is_null_ptr_u8 ptr}
+  any
+  [ return (result: t_NonNull_u8) ->
+  {[@stop_split] [@expl:new_unchecked_u8 ensures] ([@stop_split] [@expl:new_unchecked result type invariant] inv_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:new_unchecked ensures] [%#snonnull'1] view_NonNull_u8 result = ptr)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let vptr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2146 0 2146 36] (ptr: Opaque.ptr)
+  (return (x: t_NonNull_u8)) = {[@stop_split] [@expl:vptr requires] [%#sbytes_mut'4] not is_null_ptr_u8 ptr}
+  (! bb0
+  [ bb0 = any [ br0 -> {false} (! bb4) | br1 -> (! bb1) ]
+  | bb1 = s0
+    [ s0 = new_u8 [%#sbytes_mut'0] {ptr} (fun (_x: t_Option_NonNull_u8) -> [ &_7 <- _x ] s1)
+    | s1 = [ &_10 <- [%#sbytes_mut'1] "Vec pointer should be non-null" ] s2
+    | s2 = expect_NonNull_u8 [%#sbytes_mut'2] {_7} {_10} (fun (_x: t_NonNull_u8) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ]
+  | bb4 = s0
+    [ s0 = new_unchecked_u8 [%#sbytes_mut'3] {ptr} (fun (_x: t_NonNull_u8) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ]
+  [ & _ret: t_NonNull_u8 = Any.any_l ()
+  | & ptr: Opaque.ptr = ptr
+  | & _7: t_Option_NonNull_u8 = Any.any_l ()
+  | & _10: string = Any.any_l () ])
+  [ return (result: t_NonNull_u8) ->
+  {[@stop_split] [@expl:vptr ensures] ([@stop_split] [@expl:vptr result type invariant] [%#sbytes_mut'5] inv_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:vptr ensures] [%#sbytes_mut'6] view_NonNull_u8 result = ptr)}
+    (! return {result}) ]

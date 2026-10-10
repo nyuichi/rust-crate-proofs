@@ -1,0 +1,304 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 234 4 234 45 *)
+
+(* vec_storage::VecRawParts *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 34 8 34 21
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 142 8 142 35
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 245 12 246 56
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 265 20 265 27
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 610 12 612 30
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 644 12 648 33
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 604 20 604 27
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 671 20 671 27
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 599 20 599 27
+let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 271 20 271 27
+let%span sraw_vec'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 666 20 666 27
+let%span sraw_vec'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 676 20 676 30
+let%span sraw_vec'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 656 20 656 30
+let%span sraw_vec'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 661 20 661 30
+let%span sraw_vec'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 680 14 680 43
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 108 8 108 34
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 168 40 168 65
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 171 12 171 41
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 46 14 46 55
+let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/fmap.rs" 54 14 54 25
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std/src/ghost.rs" 112 8 112 18
+let%span svec_storage = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 234 31 234 35
+let%span svec_storage'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 233 65 233 99
+let%span svec_storage'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 276 20 276 29
+let%span svec_storage'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 42 12 59 86
+let%span svec_storage'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 270 20 270 29
+let%span svec_storage'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 282 20 282 29
+let%span svec_storage'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 372 20 372 65
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use creusot.int.Int64
+use creusot.prelude.Opaque
+use creusot.prelude.Ptr
+use creusot.int.UInt8
+use map.Map
+use map.Const
+use int.Int
+
+type t_NonNull_u8
+
+type t_RawAllocation
+
+type t_Recovery
+
+type t_PhysicalRegion
+
+type tup2_Recovery_PhysicalRegion = { f0: t_Recovery; f1: t_PhysicalRegion }
+
+type t_VecRawParts = {
+  ptr: t_NonNull_u8;
+  len: UInt64.t;
+  cap: UInt64.t;
+  raw: t_RawAllocation;
+  capabilities: tup2_Recovery_PhysicalRegion }
+
+type t_Id
+
+type tup2_Int_Id = { f0'0: int; f1'0: t_Id }
+
+function view_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 236 4 236 33] (self: t_RawAllocation) : tup2_Int_Id
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function base_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 258 4 258 36] (self: t_RawAllocation) : int
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 243 4 243 30] (self: t_RawAllocation) =
+  [%#sraw_vec] 0 <= (view_RawAllocation self).f0'0
+  /\ (view_RawAllocation self).f0'0 <= Int64.to_int const_MAX
+  /\ base_address self + (view_RawAllocation self).f0'0 <= UInt64.t'int const_MAX'0
+
+function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 254 4 254 46] (self: t_RawAllocation) : Opaque.ptr
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function native_ptr_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 269 4 269 51] (self: t_VecRawParts) : Opaque.ptr
+ = [%#svec_storage'3] view_NonNull_u8 self.ptr
+
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 264 4 264 39] (self: t_RawAllocation) : int
+ = [%#sraw_vec'0] (view_RawAllocation self).f0'0
+
+function native_capacity_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 281 4 281 52] (self: t_VecRawParts) : int
+ = [%#svec_storage'4] UInt64.t'int self.cap
+
+function native_len_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 275 4 275 47] (self: t_VecRawParts) : int
+ = [%#svec_storage'1] UInt64.t'int self.len
+
+type t_Excl_unit = { f0'1: () }
+
+type t_Option_Excl_unit = None | Some t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'2: t_Option_Excl_unit; f1'2: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id = {
+  f0'3: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8;
+  f1'3: int;
+  f2'3: t_Id;
+  f3'3: t_Id }
+
+function view_Recovery [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 588 4 588 33] (self: t_Recovery) : tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id
+
+type t_Option_u8 = None'0 | Some'0 UInt8.t
+
+type t_Excl_Option_u8 = { f0'4: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'1 | Some'1 t_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap'4] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate ext_eq_Int (self: t_FMap_Int_Excl_Option_u8) (other: t_FMap_Int_Excl_Option_u8) =
+  [%#sfmap'1] forall k: int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec: forall self: t_FMap_Int_Excl_Option_u8, other: t_FMap_Int_Excl_Option_u8 [self
+    = other]. [%#sfmap'0] ext_eq_Int self other = (self = other)
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_Option_u8) : int
+
+axiom len_Int_spec: forall self: t_FMap_Int_Excl_Option_u8 [len_Int self]. [%#sfmap'5] ge_log_Int (len_Int self) 0
+
+constant empty_Int : t_FMap_Int_Excl_Option_u8
+
+axiom empty_Int_spec: [%#sfmap'2] len_Int empty_Int = 0
+
+axiom empty_Int_spec'0: [%#sfmap'3] to_mapping_Int empty_Int = Const.const (None'1)
+
+predicate is_empty_Int (self: t_FMap_Int_Excl_Option_u8) = [%#sfmap] ext_eq_Int self empty_Int
+
+predicate invariant' [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 608 4 608 41] (self: t_Recovery) =
+  [%#sraw_vec'1] (view_Recovery self).f0'3.f0'2 = Some { f0'1 = () }
+  /\ is_empty_Int (view_Recovery self).f0'3.f1'2 /\ (view_Recovery self).f2'3 = (view_Recovery self).f3'3
+
+type t_OwnedRegion
+
+predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 83 4 83 30] (self: t_OwnedRegion)
+
+type tup3_OwnedRegion_Int_Id = { f0'5: t_OwnedRegion; f1'5: int; f2'5: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 630 4 630 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'6: int;
+  f1'6: int;
+  f2'6: t_Id;
+  f3'6: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 642 4 642 30] (self: t_PhysicalRegion) =
+  [%#sraw_vec'2] invariant_OwnedRegion (view_PhysicalRegion self).f0'5
+  /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'5).f0'6
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'5).f0'6 <= (view_OwnedRegion (view_PhysicalRegion self).f0'5).f1'6
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'5).f1'6 <= (view_PhysicalRegion self).f1'5
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'5).f2'6 = (view_PhysicalRegion self).f2'5
+
+function capacity'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 603 4 603 39] (self: t_Recovery) : int
+ = [%#sraw_vec'3] (view_Recovery self).f1'3
+
+function capacity'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 670 4 670 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'4] (view_PhysicalRegion self).f1'5
+
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 598 4 598 39] (self: t_Recovery) : t_Id
+ = [%#sraw_vec'5] (view_Recovery self).f2'3
+
+function namespace'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 270 4 270 39] (self: t_RawAllocation) : t_Id
+ = [%#sraw_vec'6] (view_RawAllocation self).f1'0
+
+function namespace'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 665 4 665 39] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'7] (view_PhysicalRegion self).f2'5
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 675 4 675 41] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'8] (view_OwnedRegion (view_PhysicalRegion self).f0'5).f2'6
+
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 655 4 655 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'9] (view_OwnedRegion (view_PhysicalRegion self).f0'5).f0'6
+
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 660 4 660 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'10] (view_OwnedRegion (view_PhysicalRegion self).f0'5).f1'6
+
+type t_Option_Option_u8 = None'2 | Some'2 t_Option_u8
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#sowned_region] slot self index
+    = match get_Int (view_OwnedRegion self).f3'6.f1'2 index with
+      | None'1 -> None'2
+      | Some'1 {f0'4 = value} -> Some'2 value
+      end
+
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 681 4 681 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'11] slot'0 self index
+    = slot (view_PhysicalRegion self).f0'5 index
+
+function region_slot_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 371 4 371 75] (self: t_VecRawParts) (index: int) : t_Option_Option_u8
+ = [%#svec_storage'5] slot'0 self.capabilities.f1 index
+
+predicate invariant_VecRawParts [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 40 4 40 30] (self: t_VecRawParts) =
+  [%#svec_storage'2] invariant_RawAllocation self.raw
+  /\ raw_pointer self.raw = native_ptr_model self
+  /\ base_address self.raw = UInt64.t'int (Ptr.addr_logic_u64 (native_ptr_model self))
+  /\ capacity self.raw = native_capacity_model self
+  /\ native_len_model self <= native_capacity_model self
+  /\ native_capacity_model self <= Int64.to_int const_MAX
+  /\ base_address self.raw + native_capacity_model self <= UInt64.t'int const_MAX'0
+  /\ invariant' self.capabilities.f0
+  /\ invariant_PhysicalRegion self.capabilities.f1
+  /\ capacity'0 self.capabilities.f0 = native_capacity_model self
+  /\ capacity'1 self.capabilities.f1 = native_capacity_model self
+  /\ namespace self.capabilities.f0 = namespace'0 self.raw
+  /\ namespace'1 self.capabilities.f1 = namespace'0 self.raw
+  /\ resource_id self.capabilities.f1 = namespace'0 self.raw
+  /\ lo self.capabilities.f1 = 0
+  /\ hi self.capabilities.f1 = native_capacity_model self
+  /\ (forall i: int. 0 <= i /\ i < native_capacity_model self
+    -> slot'0 self.capabilities.f1 i = region_slot_model self i)
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull'0] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+predicate inv_RawAllocation (_1: t_RawAllocation)
+
+axiom inv_axiom'0: forall x: t_RawAllocation [inv_RawAllocation x]. inv_RawAllocation x -> invariant_RawAllocation x
+
+predicate inv_Recovery (_1: t_Recovery)
+
+predicate inv_PhysicalRegion (_1: t_PhysicalRegion)
+
+axiom inv_axiom'1: forall x: t_PhysicalRegion [inv_PhysicalRegion x]. inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate inv_tup2_Recovery_PhysicalRegion [@inline:trivial] (_1: tup2_Recovery_PhysicalRegion) =
+  inv_Recovery _1.f0 /\ inv_PhysicalRegion _1.f1
+
+meta "rewrite_def" predicate inv_tup2_Recovery_PhysicalRegion
+
+predicate invariant_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial] (self: tup2_Recovery_PhysicalRegion) =
+  [%#sghost] inv_tup2_Recovery_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_tup2_Recovery_PhysicalRegion
+
+predicate inv_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial] (_1: tup2_Recovery_PhysicalRegion) =
+  invariant_Ghost_tup2_Recovery_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_tup2_Recovery_PhysicalRegion
+
+predicate inv_VecRawParts (_1: t_VecRawParts)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_VecRawParts [inv_VecRawParts x]. inv_VecRawParts x
+    = (invariant_VecRawParts x
+    /\ inv_NonNull_u8 x.ptr /\ inv_RawAllocation x.raw /\ inv_Ghost_tup2_Recovery_PhysicalRegion x.capabilities)
+
+predicate invariant_ref_VecRawParts [@inline:trivial] (self: t_VecRawParts) = [%#sinvariant] inv_VecRawParts self
+
+meta "rewrite_def" predicate invariant_ref_VecRawParts
+
+predicate inv_ref_VecRawParts [@inline:trivial] (_1: t_VecRawParts) = invariant_ref_VecRawParts _1
+
+meta "rewrite_def" predicate inv_ref_VecRawParts
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let logical_len [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 234 4 234 45] (self: t_VecRawParts)
+  (return (x: UInt64.t)) =
+{[@stop_split] [@expl:logical_len 'self' type invariant] [%#svec_storage] inv_ref_VecRawParts self}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self.len ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & self: t_VecRawParts = self ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:logical_len ensures] [%#svec_storage'0] UInt64.t'int result
+    = native_len_model self}
+    (! return {result}) ]

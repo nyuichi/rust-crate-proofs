@@ -1,0 +1,57 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1812 0 1812 52 *)
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std/src/logic/ord.rs" 22 8 22 20
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1813 15 1813 16
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1814 15 1814 16
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1817 48 1817 49
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1817 18 1817 45
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1817 17 1817 50
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1817 9 1817 51
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1817 4 1817 5
+let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1817 4 1817 51
+let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1804 62 1804 72
+let%span sbytes_mut'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1807 4 1807 34
+let%span sbytes_mut'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1810 4 1810 68
+let%span sbytes_mut'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1812 0 1812 52
+
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+use int.Int
+
+constant const_MIN_ORIGINAL_CAPACITY_WIDTH: UInt64BW.t = [%#sbytes_mut'10] (10: UInt64BW.t)
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let original_capacity_from_repr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1812 0 1812 52]
+  (repr: UInt64BW.t) (return (x: UInt64BW.t)) =
+{[@stop_split] [@expl:original_capacity_from_repr requires] [%#sbytes_mut'7] UInt64BW.t'int repr <= 7}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_9 <- repr = ([%#sbytes_mut] (0: UInt64BW.t)) ] s1
+    | s1 = any [ br0 -> {_9 = false} (! bb2) | br1 -> {_9} (! bb1) ] ]
+  | bb1 = s0 [ s0 = [ &_ret <- [%#sbytes_mut'0] (0: UInt64BW.t) ] s1 | s1 = return {_ret} ]
+  | bb2 = s0
+    [ s0 = UInt64BW.sub [%#sbytes_mut'3] {[%#sbytes_mut'2] const_MIN_ORIGINAL_CAPACITY_WIDTH}
+        {[%#sbytes_mut'1] (1: UInt64BW.t)} (fun (_x: UInt64BW.t) -> [ &_14 <- _x ] s1)
+    | s1 = UInt64BW.add [%#sbytes_mut'4] {repr} {_14} (fun (_x: UInt64BW.t) -> [ &_12 <- _x ] s2)
+    | s2 = UInt64BW.shl [%#sbytes_mut'6] {[%#sbytes_mut'5] (1: UInt64BW.t)} {UInt64BW.to_BV256 _12}
+        (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ]
+  [ & _ret: UInt64BW.t = Any.any_l ()
+  | & repr: UInt64BW.t = repr
+  | & _9: bool = Any.any_l ()
+  | & _12: UInt64BW.t = Any.any_l ()
+  | & _14: UInt64BW.t = Any.any_l () ])
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:original_capacity_from_repr ensures] ([@stop_split] [@expl:original_capacity_from_repr ensures #0] [%#sbytes_mut'8] (UInt64BW.t'int repr
+        = 0)
+      = (UInt64BW.t'int result = 0))
+    /\ ([@stop_split] [@expl:original_capacity_from_repr ensures #1] [%#sbytes_mut'9] gt_log_Int (UInt64BW.t'int repr) 0
+    -> UInt64BW.t'int result = UInt64BW.t'int (UInt64BW.shl (1: UInt64BW.t) (UInt64BW.add repr (9: UInt64BW.t))))}
+    (! return {result}) ]

@@ -1,0 +1,95 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 113 4 113 63 *)
+
+(* vec_storage::VecPartsWitness *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std/src/invariant.rs" 85 8 85 18
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std/src/std/ptr.rs" 142 8 142 35
+let%span svec_storage = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 113 37 113 41
+let%span svec_storage'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 111 15 111 31
+let%span svec_storage'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 110 14 110 40
+let%span svec_storage'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 112 14 112 46
+let%span svec_storage'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 95 20 95 34
+let%span svec_storage'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 85 20 85 29
+let%span svec_storage'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 123 12 127 67
+let%span svec_storage'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 90 20 90 29
+
+use creusot.int.UInt64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+use creusot.int.Int64
+use creusot.prelude.Ptr
+use creusot.prelude.Opaque
+use int.Int
+
+type t_NonNull_u8
+
+type t_VecPartsWitness = { ptr: t_NonNull_u8; len: UInt64.t; cap: UInt64.t; contents: Seq.seq UInt8.t }
+
+function length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 84 4 84 37] (self: t_VecPartsWitness) : int
+ = [%#svec_storage'4] UInt64.t'int self.len
+
+function contents'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 94 4 94 43] (self: t_VecPartsWitness) : Seq.seq UInt8.t
+ = [%#svec_storage'3] self.contents
+
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 89 4 89 39] (self: t_VecPartsWitness) : int
+ = [%#svec_storage'6] UInt64.t'int self.cap
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_VecPartsWitness [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 121 4 121 30] (self: t_VecPartsWitness) =
+  [%#svec_storage'5] 0 <= length self
+  /\ length self = Seq.length (contents'0 self)
+  /\ length self <= capacity self
+  /\ capacity self <= Int64.to_int const_MAX
+  /\ UInt64.t'int (addr_NonNull_u8 self.ptr) + capacity self <= UInt64.t'int const_MAX'0
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull'0] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+predicate inv_VecPartsWitness (_1: t_VecPartsWitness)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_VecPartsWitness [inv_VecPartsWitness x]. inv_VecPartsWitness x
+    = (invariant_VecPartsWitness x /\ inv_NonNull_u8 x.ptr)
+
+predicate invariant_ref_VecPartsWitness [@inline:trivial] (self: t_VecPartsWitness) =
+  [%#sinvariant] inv_VecPartsWitness self
+
+meta "rewrite_def" predicate invariant_ref_VecPartsWitness
+
+predicate inv_ref_VecPartsWitness [@inline:trivial] (_1: t_VecPartsWitness) = invariant_ref_VecPartsWitness _1
+
+meta "rewrite_def" predicate inv_ref_VecPartsWitness
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let contents_snapshot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 113 4 113 63]
+  (self: t_VecPartsWitness) (return (x: Seq.seq UInt8.t)) =
+{[@stop_split] [@expl:contents_snapshot requires] ([@stop_split] [@expl:contents_snapshot 'self' type invariant] [%#svec_storage] inv_ref_VecPartsWitness self)
+  /\ ([@stop_split] [@expl:contents_snapshot requires] [%#svec_storage'0] invariant_ref_VecPartsWitness self)}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self.contents ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: Seq.seq UInt8.t = Any.any_l () | & self: t_VecPartsWitness = self ])
+  [ return (result: Seq.seq UInt8.t) ->
+  {[@stop_split] [@expl:contents_snapshot ensures] ([@stop_split] [@expl:contents_snapshot ensures #0] [%#svec_storage'1] result
+      = contents'0 self)
+    /\ ([@stop_split] [@expl:contents_snapshot ensures #1] [%#svec_storage'2] length self = Seq.length result)}
+    (! return {result}) ]
