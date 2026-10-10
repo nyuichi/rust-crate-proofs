@@ -6,4 +6,4 @@ cd "$script_dir"
 
 export CARGO_NET_OFFLINE=true
 
-cargo creusot --simple-triggers=false prove -- --no-default-features
+cargo creusot --no-cache -- --no-default-features
