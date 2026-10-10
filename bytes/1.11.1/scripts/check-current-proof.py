@@ -1,179 +1,339 @@
 #!/usr/bin/env python3
-"""Check the retained positive proof against current inputs, without old checkers.
-
-This reuses the recorded, reviewed native/shadow correspondence for identical
-source. It is not a general equivalence checker or a fresh solver execution.
-"""
+"""Save/check direct-source proof evidence without invoking a solver."""
 from __future__ import annotations
 
-import argparse
 import hashlib
 import json
-from pathlib import Path
+import os
+from pathlib import Path, PurePosixPath
+import re
+import shutil
+import subprocess
 import sys
-import tomllib
-import zipfile
+
+TARGETS = (
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/len.coma",
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/truncate.coma",
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_len.coma",
+    "verif/bytes_rlib/ownership_proof/view_region/split_view_region.coma",
+    "verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/advance_within.coma",
+    "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/split_at.coma",
+    "verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/split_at.coma",
+    "verif/bytes_rlib/ownership_proof/owned_region/map_compose_eq.coma",
+    "verif/bytes_rlib/provenance_specs/wrapping_offset.coma",
+)
+EVIDENCE = "verification/results/direct-bytesmut-len-api"
+PINNED = {
+    "creusot_sha": "318615be3b8bbc60d1f6d52469ba5c0bdebed4f1",
+    "why3_sha": "54c92f96bb0711d6e991c18f10bfbc08d90d028b",
+    "why3find_sha": "eab37557d3e24e1913a3c4f44bc5528ef497c6c9",
+}
+PROVERS = {"alt-ergo", "z3", "cvc4", "cvc5"}
+SPAN = re.compile(r'"(?P<file>/[^"\n]+\.rs)"\s+(?P<start>\d+)\s+\d+\s+(?P<end>\d+)\s+\d+')
+WARNING = re.compile(r"no contract|contractless|unsupported|unimplemented|no specification|unproved external", re.I)
 
 
-def require(ok, message):
-    if not ok:
+class ReuseMiss(ValueError):
+    pass
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
         raise ValueError(message)
 
 
-def digest(raw):
-    return hashlib.sha256(raw).hexdigest()
+def path(root: Path, name: str) -> Path:
+    relative = PurePosixPath(name)
+    require(not relative.is_absolute() and ".." not in relative.parts,
+            f"evidence path escapes crate: {name}")
+    return root.joinpath(*relative.parts)
 
 
-def library_config(data):
-    # Tests, benches, dev dependencies and publication metadata do not participate
-    # in the captured default non-test library. Features and normal deps do.
-    ignored = {"test", "bench", "dev-dependencies", "lints"}
-    config = {k: v for k, v in data.items() if k not in ignored}
-    if "target" in config:
-        config["target"] = {
-            k: {name: value for name, value in v.items() if name != "dev-dependencies"}
-            for k, v in config["target"].items()
-            if any(name != "dev-dependencies" for name in v)
-        }
-        if not config["target"]:
-            del config["target"]
-    editorial = {"authors", "description", "readme", "keywords", "categories",
-                 "license", "license-file", "repository", "homepage", "documentation",
-                 "metadata", "publish", "include", "exclude", "autotests", "autobenches"}
-    config["package"] = {k: v for k, v in data["package"].items() if k not in editorial}
-    return config
-
-
-def proof_statistics(proofs):
-    stats = dict(files=len(proofs), prover=0, null=0, structural=0)
-
-    def visit(node):
-        if node is None:
-            stats["null"] += 1
-        elif isinstance(node, dict) and "children" in node:
-            require(isinstance(node["children"], list), "invalid proof children")
-            if not node["children"]:
-                stats["structural"] += 1
-            for child in node["children"]:
-                visit(child)
-        elif isinstance(node, dict) and isinstance(node.get("prover"), str):
-            stats["prover"] += 1
-        else:
-            raise ValueError("unknown proof node")
-
-    for proof in proofs:
-        goals = proof.get("proofs", {}).get("Coma")
-        require(isinstance(goals, dict) and goals, "empty proof")
-        for node in goals.values():
-            visit(node)
-    require(stats["null"] == stats["structural"] == 0, "unproved or empty goals")
-    return stats
-
-
-def check(crate, fresh=False):
-    results = crate / "verification/results"
-    metadata = json.loads((results / "current.json").read_bytes())
-    require(metadata["schema"] == 1 and metadata["full_original_admitted"] is False,
-            "unsupported scope")
-    for name, expected in metadata["source_sha256"].items():
-        path = crate / name
-        require(path.is_file() and digest(path.read_bytes()) == expected,
-                "proof/source input changed: " + name)
-    config = library_config(tomllib.loads((crate / "Cargo.toml").read_text()))
-    require(config == metadata["production_lib_config"], "production library configuration changed")
-    archive = results / "current.zip"
-    require(digest(archive.read_bytes()) == metadata["archive_sha256"], "proof archive changed")
-    with zipfile.ZipFile(archive) as package:
-        names = package.namelist()
-        require(len(names) == len(set(names)), "duplicate archive entries")
-        files = json.loads(package.read("files.json"))
-
-        def read(name):
-            expected = files[name]
-            raw = package.read("objects/" + expected)
-            require(digest(raw) == expected, "archived input changed: " + name)
-            return raw
-
-        # Validate all retained current inputs, including the exact private Std
-        # assumptions. No archive members are extracted or executed here.
-        for name in files:
-            read(name)
-        expected_sources = {}
-        for name, expected in files.items():
-            if name.startswith("source/"):
-                expected_sources[name[len("source/"):]] = expected
-            elif name.startswith("production/src/"):
-                expected_sources[name[len("production/"):]] = expected
-        for name in ("build.rs", "extract_public.py", "Cargo.toml", "Cargo.lock", "why3find.json"):
-            expected_sources[metadata["probe"] + "/" + name] = files["inputs/" + name]
-        require(metadata["source_sha256"] == expected_sources, "live source inventory differs from archived inputs")
-        original_config = library_config(tomllib.loads(read("production/Cargo.toml").decode()))
-        require(config == original_config, "library configuration differs from captured production")
-        # Removing the upstream serde test dependency is the only lockfile
-        # projection admitted by this migration; normal dependency versions stay.
-        def lock_config(raw):
-            data = tomllib.loads(raw)
-            data["package"] = [p for p in data["package"] if p["name"] != "serde_test"]
-            for entry in data["package"]:
-                if entry["name"] == "bytes":
-                    entry["dependencies"] = [d for d in entry.get("dependencies", []) if d != "serde_test"]
-            return data
-        require(lock_config((crate / "Cargo.lock").read_text()) ==
-                lock_config(read("production/Cargo.lock").decode()), "production dependency lock changed")
-        receipt = json.loads(read("record/evidence/AZ_FULL_PROOF_RUN.json"))
-        require(receipt["prover_process_exit"] == 0 and receipt["features"] == []
-                and receipt["excluded"] == {}, "incomplete proof run")
-        require(receipt["policy_diagnostic"] is True and receipt["policy_correspondence_exit"] == 2,
-                "original diagnostic disposition was rewritten")
-        correspondence = json.loads(read("record/generated/correspondence.json"))
-        require(correspondence["status"] == "pass" and
-                correspondence["Cargo_snapshot"]["status"] == "pass" and
-                correspondence["full_original_admitted"] is False,
-                "missing successful, separately recorded correspondence")
-        proofs = []
-        expected_coma = set()
-        probe = crate / metadata["probe"]
-        for row in receipt["proof_file_identity"]:
-            raw = read(row["path"])
-            require((digest(raw), len(raw)) == (row["sha256"], row["size"]), "proof differs from origin")
-            if row["path"].endswith(".coma"):
-                expected_coma.add(row["path"])
-                if fresh:
-                    require((probe / row["path"]).read_bytes() == raw,
-                            "fresh translation differs; review before replacing retained proof")
-            else:
-                require(row["path"].endswith("/proof.json"), "unexpected proof output")
-                archived_proof = json.loads(raw)
-                if fresh:
-                    raw = (probe / row["path"]).read_bytes()
-                proof = json.loads(raw)
-                require(set(proof.get("proofs", {}).get("Coma", {})) ==
-                        set(archived_proof["proofs"]["Coma"]), "proof goal inventory differs")
-                proofs.append(proof)
-        stats = proof_statistics(proofs)
-        require(stats["files"] == metadata["statistics"]["files"] == len(expected_coma), "target set changed")
-        if fresh:
-            actual = {p.relative_to(probe).as_posix() for p in (probe / "verif").rglob("*.coma")}
-            require(actual == expected_coma, "fresh proof target inventory differs")
-        else:
-            require(stats == receipt["statistics"] == metadata["statistics"], "proof statistics differ")
-    return dict(status="pass", mode="fresh-output-check" if fresh else "retained-proof-reuse",
-                statistics=stats, source_inputs=len(metadata["source_sha256"]),
-                correspondence="recorded review reused for identical source",
-                solver_execution="not performed by this checker", full_original_admitted=False)
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--crate", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--fresh", action="store_true")
-    args = parser.parse_args()
+def inputs(crate: Path) -> dict[str, str]:
+    fixed = (
+        "Cargo.lock", "Cargo.toml", "why3find.json",
+        "scripts/check-current-proof.py", "scripts/prepare-proof-std.py",
+        "scripts/verify-current.bash",
+        "verification/std-support/README.md",
+        "verification/std-support/address-model.patch",
+        "verification/std-support/alloc-capacity.patch",
+        "verification/std-support/manifest.json",
+        "verification/std-support/pointer-model.patch",
+    )
+    names = sorted((*fixed, *(p.relative_to(crate).as_posix()
+                              for p in (crate / "src").rglob("*.rs"))))
     try:
-        print(json.dumps(check(args.crate.resolve(), args.fresh), indent=2))
-        return 0
-    except (ValueError, OSError, KeyError, zipfile.BadZipFile) as error:
-        print("proof check failed: " + str(error), file=sys.stderr)
+        return {name: digest(path(crate, name).read_bytes()) for name in names}
+    except OSError as error:
+        raise ReuseMiss(f"proof input is missing: {error.filename}") from None
+
+
+def proof_leaves(node: object) -> int:
+    if isinstance(node, dict) and "prover" in node:
+        require(node.get("prover") in PROVERS and isinstance(node.get("time"), (int, float))
+                and node["time"] >= 0, "proof result contains a failed/malformed prover leaf")
         return 1
+    if isinstance(node, dict) and isinstance(node.get("children"), list):
+        children = node["children"]
+        require(bool(children), "proof result contains an empty goal")
+        return sum(proof_leaves(child) for child in children)
+    raise ValueError("proof result contains an unproved or unknown goal")
+
+
+def check_result(data: bytes) -> int:
+    try:
+        goals = json.loads(data)["proofs"]["Coma"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        raise ValueError("target has no valid COMA proof result") from None
+    require(isinstance(goals, dict) and bool(goals), "target has no proved COMA goals")
+    return sum(proof_leaves(goal) for goal in goals.values())
+
+
+def verify_feature_tree(data: bytes) -> None:
+    text = data.decode("utf-8", errors="replace")
+    require("creusot-std" in text, "Cargo feature tree omits creusot-std")
+    require('bytes feature "default" (command-line)' in text
+            and 'bytes feature "std"' in text, "proof did not use default std features")
+    require("sc-drf" not in text, "sc-drf must stay disabled")
+
+
+def target_cone_warnings(crate: Path, log: bytes, comas: list[bytes]) -> list[str]:
+    spans: dict[str, list[tuple[int, int]]] = {}
+    for data in comas:
+        for match in SPAN.finditer(data.decode("utf-8", errors="replace")):
+            try:
+                filename = Path(match["file"]).resolve().relative_to(crate.resolve()).as_posix()
+            except ValueError:
+                continue
+            spans.setdefault(filename, []).append((int(match["start"]), int(match["end"])))
+    warnings = []
+    for block in re.split(r"(?m)(?=^warning: )", log.decode("utf-8", errors="replace")):
+        if not WARNING.search(block):
+            continue
+        location = re.search(r"(?:^|[/\s])(src/[\w./-]+\.rs):(\d+):", block)
+        if not location:
+            continue
+        filename, line = location.group(1), int(location.group(2))
+        if any(start <= line <= end for start, end in spans.get(filename, [])):
+            warnings.append(f"{filename}:{line}: {block.splitlines()[0]}")
+    return warnings
+
+
+def check(crate: Path) -> dict:
+    receipt_path = crate / EVIDENCE / "proof.json"
+    try:
+        receipt = json.loads(receipt_path.read_bytes())
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"cannot read direct proof receipt: {error}") from None
+    require(isinstance(receipt, dict) and receipt.get("schema_version") == 1
+            and receipt.get("status") == "proved", "direct proof receipt is missing/malformed")
+    if receipt.get("targets") != list(TARGETS):
+        raise ReuseMiss("saved target inventory differs from the direct runner")
+    if receipt.get("verified_inputs_sha256") != inputs(crate):
+        raise ReuseMiss("a direct source, contract, configuration, or Std input changed")
+    require(receipt.get("configuration") == {
+        "crate": "bytes 1.11.1", "target": "x86_64-unknown-linux-gnu",
+        "features": ["default", "std"], "rustflags": "--cfg bytes_original_unique_gate",
+        "sc_drf": "disabled",
+    }, "saved proof used a different direct-source configuration")
+
+    tree = receipt.get("feature_tree", {})
+    log = receipt.get("translation_diagnostics", {})
+    saved_log = None
+    for record, field in ((tree, "feature tree"), (log, "translation log")):
+        try:
+            data = path(crate, record["file"]).read_bytes()
+        except (OSError, KeyError, TypeError):
+            raise ReuseMiss(f"saved {field} is missing") from None
+        if digest(data) != record.get("sha256"):
+            raise ReuseMiss(f"saved {field} changed")
+        if field == "feature tree":
+            verify_feature_tree(data)
+        else:
+            saved_log = data
+
+    tool = receipt.get("toolchain", {})
+    require(tool.get("rust_toolchain") == "nightly-2026-06-22"
+            and tool.get("host") == "x86_64-unknown-linux-gnu"
+            and tool.get("pinned_revisions") == PINNED,
+            "receipt omits the pinned Creusot/Why3 identities")
+    hashes = tool.get("binary_sha256", {})
+    names = {"creusot-rustc", "cargo-creusot", "why3", "why3find",
+             "alt-ergo", "z3", "cvc4", "cvc5"}
+    require(set(hashes) == names and all(re.fullmatch(r"[0-9a-f]{64}", str(v))
+                                         for v in hashes.values()),
+            "receipt has incomplete tool binary identities")
+
+    std = receipt.get("std_overlay", {})
+    manifest = path(crate, "verification/std-support/manifest.json").read_bytes()
+    std_manifest = json.loads(manifest)
+    require(std == {"manifest_sha256": digest(manifest),
+                    "candidate_tree_sha256": std_manifest["candidate_tree"]["sha256"]},
+            "receipt omits the current canonical Std overlay identity")
+
+    evidence = receipt.get("target_evidence", {})
+    require(set(evidence) == set(TARGETS), "receipt omits direct target evidence")
+    leaves, coma_blobs = 0, []
+    for target, record in evidence.items():
+        require(isinstance(record, dict), f"malformed evidence for {target}")
+        expected_coma = f"{EVIDENCE}/coma/{target}"
+        expected_proof = f"{EVIDENCE}/results/{Path(target).with_suffix('')}/proof.json"
+        require(record.get("coma") == expected_coma and record.get("proof") == expected_proof,
+                f"unexpected evidence path for {target}")
+        for field in ("coma", "proof"):
+            relative, expected = record.get(field), record.get(f"{field}_sha256")
+            require(isinstance(relative, str) and re.fullmatch(r"[0-9a-f]{64}", str(expected)),
+                    f"malformed {field} identity for {target}")
+            try:
+                data = path(crate, relative).read_bytes()
+            except OSError:
+                raise ReuseMiss(f"saved target evidence is missing: {relative}") from None
+            if digest(data) != expected:
+                raise ReuseMiss(f"saved target evidence changed: {relative}")
+            if field == "coma":
+                require(bool(data.strip()), f"{target} has an empty COMA body")
+                coma_blobs.append(data)
+            else:
+                leaves += check_result(data)
+    warnings = target_cone_warnings(crate, saved_log, coma_blobs)
+    require(log.get("target_cone_unsupported_calls") == warnings,
+            "saved target-cone diagnostic record differs from COMA spans and translation log")
+    require(not warnings, "selected targets have unsupported/contractless call diagnostics")
+    return {"status": "pass", "mode": "direct-source-reuse", "targets": len(TARGETS),
+            "prover_leaves": leaves, "solver_execution": "not performed",
+            "full_api_coverage": False}
+
+
+def tool_identity() -> dict:
+    manifest = Path(os.environ.get("BYTES_TOOL_ROOT", "/workspace/bytes-proof-tools")) \
+        / "installation-manifest.json"
+    try:
+        value = json.loads(manifest.read_bytes())
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"cannot read installed tool identities: {error}") from None
+    revisions = {name: value.get(name) for name in PINNED}
+    require(revisions == PINNED, "installed tools differ from the pinned setup")
+    binaries = value.get("binaries", {})
+    names = ("creusot-rustc", "cargo-creusot", "why3", "why3find",
+             "alt-ergo", "z3", "cvc4", "cvc5")
+    hashes = {name: binaries.get(name, {}).get("sha256") for name in names}
+    for name, expected in hashes.items():
+        try:
+            binary = Path(binaries[name]["path"])
+        except (KeyError, TypeError):
+            raise ValueError(f"installed tool manifest omits binary: {name}") from None
+        require(re.fullmatch(r"[0-9a-f]{64}", str(expected))
+                and digest(binary.read_bytes()) == expected,
+                f"installed tool binary differs from its pinned identity: {name}")
+    rust_toolchain = os.environ.get("RUSTUP_TOOLCHAIN")
+    require(rust_toolchain == "nightly-2026-06-22", "unexpected Rust toolchain")
+    version = subprocess.run(["rustc", "-vV"], check=True, capture_output=True, text=True).stdout
+    host = re.search(r"(?m)^host: (\S+)$", version)
+    require(host is not None and host.group(1) == "x86_64-unknown-linux-gnu",
+            "proof must target x86_64-unknown-linux-gnu")
+    require(os.environ.get("RUSTFLAGS") == "--cfg bytes_original_unique_gate"
+            and not os.environ.get("CARGO_ENCODED_RUSTFLAGS")
+            and not os.environ.get("CARGO_BUILD_TARGET")
+            and not any(name.startswith("CARGO_TARGET_") and name.endswith("_RUSTFLAGS")
+                        for name in os.environ),
+            "unexpected proof cfg or additional Rust flags")
+    return {"rust_toolchain": rust_toolchain, "host": host.group(1),
+            "pinned_revisions": revisions, "binary_sha256": hashes}
+
+
+def save(crate: Path, feature_file: Path, log_file: Path, snapshot_file: Path) -> dict:
+    try:
+        receipt_inputs = json.loads(snapshot_file.read_bytes())
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"cannot read pre-translation source snapshot: {error}") from None
+    require(isinstance(receipt_inputs, dict) and receipt_inputs == inputs(crate),
+            "proof inputs changed during translation or proving; refusing stale evidence")
+    feature_data, log_data = feature_file.read_bytes(), log_file.read_bytes()
+    verify_feature_tree(feature_data)
+    require(bool(log_data), "direct translation log is empty")
+    evidence, leaves, coma_blobs = {}, 0, []
+    for target in TARGETS:
+        coma = path(crate, target)
+        result = coma.with_suffix("") / "proof.json"
+        try:
+            coma_data, proof_data = coma.read_bytes(), result.read_bytes()
+        except OSError:
+            raise ValueError(f"missing direct output for {target}") from None
+        require(bool(coma_data.strip()), f"{target} has an empty COMA body")
+        coma_blobs.append(coma_data)
+        leaves += check_result(proof_data)
+        coma_dst = f"{EVIDENCE}/coma/{target}"
+        proof_dst = f"{EVIDENCE}/results/{Path(target).with_suffix('')}/proof.json"
+        evidence[target] = {"coma": coma_dst, "coma_sha256": digest(coma_data),
+                            "proof": proof_dst, "proof_sha256": digest(proof_data)}
+
+    warnings = target_cone_warnings(crate, log_data, coma_blobs)
+    require(not warnings, "selected target call cone has unsupported diagnostics: "
+            + "; ".join(warnings))
+    tool = tool_identity()
+    shutil.rmtree(path(crate, f"{EVIDENCE}/coma"), ignore_errors=True)
+    shutil.rmtree(path(crate, f"{EVIDENCE}/results"), ignore_errors=True)
+
+    for target, record in evidence.items():
+        source = path(crate, target)
+        for src, dst in ((source, record["coma"]),
+                         (source.with_suffix("") / "proof.json", record["proof"])):
+            output = path(crate, dst)
+            output.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, output)
+    feature_dst, log_dst = f"{EVIDENCE}/feature-tree.txt", f"{EVIDENCE}/translation.log"
+    path(crate, feature_dst).write_bytes(feature_data)
+    path(crate, log_dst).write_bytes(log_data)
+    receipt = {
+        "schema_version": 1, "status": "proved", "verified_inputs_sha256": receipt_inputs,
+        "configuration": {"crate": "bytes 1.11.1", "target": "x86_64-unknown-linux-gnu",
+                          "features": ["default", "std"], "rustflags": "--cfg bytes_original_unique_gate",
+                          "sc_drf": "disabled"},
+        "toolchain": tool,
+        "std_overlay": {
+            "manifest_sha256": digest(path(crate, "verification/std-support/manifest.json").read_bytes()),
+            "candidate_tree_sha256": json.loads(path(crate, "verification/std-support/manifest.json").read_bytes())["candidate_tree"]["sha256"],
+        },
+        "feature_tree": {"file": feature_dst, "sha256": digest(feature_data)},
+        "translation_diagnostics": {"file": log_dst, "sha256": digest(log_data),
+                                    "target_cone_unsupported_calls": warnings},
+        "targets": list(TARGETS), "target_evidence": evidence,
+    }
+    output = crate / EVIDENCE / "proof.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(receipt, indent=2) + "\n")
+    return {"status": "saved", "targets": len(TARGETS), "prover_leaves": leaves,
+            "evidence": output.relative_to(crate).as_posix()}
+
+
+def main() -> int:
+    if sys.argv[1:] == ["--targets"]:
+        print("\n".join(TARGETS))
+        return 0
+    crate = Path(__file__).resolve().parents[1]
+    try:
+        if sys.argv[1:] == ["--snapshot"]:
+            print(json.dumps(inputs(crate), sort_keys=True))
+            return 0
+        if len(sys.argv) == 5 and sys.argv[1] == "--save":
+            result = save(crate, Path(sys.argv[2]), Path(sys.argv[3]), Path(sys.argv[4]))
+        elif sys.argv[1:] in ([], ["--check"]):
+            result = check(crate)
+        else:
+            print("usage: check-current-proof.py [--targets | --snapshot | --check | --save FEATURE_TREE TRANSLATION_LOG INPUT_SNAPSHOT]",
+                  file=sys.stderr)
+            return 2
+        print(json.dumps(result, indent=2))
+        return 0
+    except ReuseMiss as error:
+        print("proof reuse miss: " + str(error), file=sys.stderr)
+    except (OSError, TypeError, ValueError) as error:
+        print("proof check failed: " + str(error), file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

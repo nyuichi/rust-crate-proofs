@@ -237,6 +237,7 @@ where
     }
 }
 
+#[cfg(not(creusot))]
 impl<T, U> IntoIterator for Chain<T, U>
 where
     T: Buf,

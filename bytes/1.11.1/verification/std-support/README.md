@@ -32,14 +32,7 @@ destination, candidate tree, or conflicting Cargo override. It never replaces
 an existing private package. The manifest records the exact reviewed candidate
 tree and the complete stock-tree digest.
 
-The former `copy-slot.patch` and three-patch manifest are preserved in
-`verification/retired-support/` as historical evidence for the retired
-modified API. They are not part of this installer or the active overlay.
-
-The generic pointer observer direction was reviewed with Astra and checked in
-`probes/vec-pointer-correspondence-2026-10-08`: the getter caller proves, while
-a different-Vec pointer claim fails. The library observation contracts and B1/B2
-physical interpretation remain explicit TCB, not bytes ownership proofs.
-The previous exact private std tree is retained locally as
-`bytes-proof-std-before-pointer-2026-10-08`; archived earlier proof receipts
-continue to refer to their old source/tree hashes.
+The generic Vec observation contracts and B1/B2 physical interpretation remain
+explicit TCB assumptions; they do not prove bytes ownership or lifecycle laws.
+The selected direct-source proof uses the overlay identity recorded in its
+receipt. Historical receipts retain their own source and overlay hashes.

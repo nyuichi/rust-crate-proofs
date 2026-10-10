@@ -1,9 +1,7 @@
-// ORIGINAL_FREEZE_BEGIN bytes_imports
 #[cfg(all(creusot, bytes_original_freeze_gate))]
 use creusot_std::{prelude::*, ghost::perm::Perm};
 #[cfg(all(creusot, bytes_original_freeze_gate))]
 use crate::ownership_proof::{raw_vec::{self, BoundPtr, Recovery, PhysicalRegion, slot_known}, boxed_alignment};
-// ORIGINAL_FREEZE_END bytes_imports
 #[cfg(all(creusot, bytes_original_shared_gate))]
 use creusot_std::prelude::*;
 use core::mem::{self, ManuallyDrop};
@@ -25,10 +23,13 @@ use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
 use crate::{Buf, BytesMut};
 
+// Creusot-only exclusions below cover unrelated vtable/lifecycle, pointer-range, and generic
+// adapter bodies. Their native APIs remain present; no Bytes-specific trusted contract replaces
+// any excluded implementation.
+
 include!("bytes/bytes_record.rs");
 include!("bytes/vtable_record.rs");
 
-// ORIGINAL_FREEZE_BEGIN frozen_model
 #[cfg(all(creusot, bytes_original_freeze_gate))]
 struct OriginalFrozenProof {
     base: BoundPtr,
@@ -84,15 +85,14 @@ fn original_atomic_ptr_new<T>(_value: *mut T) -> AtomicPtr<T> { unimplemented!()
 #[trusted]
 #[ensures(true)]
 fn original_shared_vtable() -> &'static Vtable { unimplemented!() }
-// ORIGINAL_FREEZE_END frozen_model
 
 impl Bytes {
-    // ORIGINAL_SHARED_BEGIN bytes_cleanup
     /// Releases this handle explicitly. The backing storage is reclaimed when
     /// its last owner releases it.
     ///
     /// This calls the same destructor as `Drop`, exactly once.
     #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
+    #[cfg_attr(creusot, creusot::no_translate)]
     pub fn cleanup(self) {
         #[cfg(all(creusot, bytes_original_shared_gate))]
         { original_shared_cleanup(self); }
@@ -105,7 +105,6 @@ impl Bytes {
             unsafe { callback(&mut this.data, ptr, len) }
         }
     }
-    // ORIGINAL_SHARED_END bytes_cleanup
 
     /// Creates a new empty `Bytes`.
     ///
@@ -119,7 +118,6 @@ impl Bytes {
     /// let b = Bytes::new();
     /// assert_eq!(&b[..], b"");
     /// ```
-    // ORIGINAL_CONSTRUCTOR_BEGIN bytes_new
     #[inline]
     #[cfg(not(any(all(loom, test), all(creusot, bytes_original_constructor_gate))))]
     pub const fn new() -> Self {
@@ -143,7 +141,6 @@ impl Bytes {
         const EMPTY: &[u8] = &[];
         Bytes::from_static(EMPTY)
     }
-    // ORIGINAL_CONSTRUCTOR_END bytes_new
 
     /// Creates a new `Bytes` from a static slice.
     ///
@@ -158,7 +155,6 @@ impl Bytes {
     /// let b = Bytes::from_static(b"hello");
     /// assert_eq!(&b[..], b"hello");
     /// ```
-    // ORIGINAL_CONSTRUCTOR_BEGIN bytes_from_static
     #[inline]
     #[cfg(not(any(all(loom, test), all(creusot, bytes_original_constructor_gate))))]
     pub const fn from_static(bytes: &'static [u8]) -> Self {
@@ -191,9 +187,9 @@ impl Bytes {
     pub fn from_static(bytes: &'static [u8]) -> Self {
         original_bytes_from_static(bytes)
     }
-    // ORIGINAL_CONSTRUCTOR_END bytes_from_static
 
     /// Creates a new `Bytes` with length zero and the given pointer as the address.
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn new_empty_with_ptr(ptr: *const u8) -> Self {
         debug_assert!(!ptr.is_null());
 
@@ -260,6 +256,7 @@ impl Bytes {
     ///
     /// Note that converting [Bytes] constructed from an owner into a [BytesMut]
     /// will always create a deep copy of the buffer into newly allocated memory.
+    #[cfg_attr(creusot, creusot::no_translate)]
     pub fn from_owner<T>(owner: T) -> Self
     where
         T: AsRef<[u8]> + Send + 'static,
@@ -310,13 +307,11 @@ impl Bytes {
     /// let b = Bytes::from(&b"hello"[..]);
     /// assert_eq!(b.len(), 5);
     /// ```
-// ORIGINAL_FREEZE_BEGIN bytes_len
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result == self.len))]
     #[inline]
     pub const fn len(&self) -> usize {
         self.len
     }
-// ORIGINAL_FREEZE_END bytes_len
 
     /// Returns true if the `Bytes` has a length of 0.
     ///
@@ -353,6 +348,7 @@ impl Bytes {
     /// let b = a.clone();
     /// assert!(!a.is_unique());
     /// ```
+    #[cfg_attr(creusot, creusot::no_translate)]
     pub fn is_unique(&self) -> bool {
         unsafe { (self.vtable.is_unique)(&self.data) }
     }
@@ -384,6 +380,7 @@ impl Bytes {
     ///
     /// Requires that `begin <= end` and `end <= self.len()`, otherwise slicing
     /// will panic.
+    #[cfg_attr(creusot, creusot::no_translate)]
     pub fn slice(&self, range: impl RangeBounds<usize>) -> Self {
         use core::ops::Bound;
 
@@ -451,6 +448,7 @@ impl Bytes {
     ///
     /// Requires that the given `sub` slice is in fact contained within the
     /// `Bytes` buffer; otherwise this function will panic.
+    #[cfg_attr(creusot, creusot::no_translate)]
     pub fn slice_ref(&self, subset: &[u8]) -> Self {
         // Empty slice and empty Bytes may have their pointers reset
         // so explicitly allow empty slice to be a subslice of any slice.
@@ -603,6 +601,7 @@ impl Bytes {
     /// assert_eq!(buf, b"hello"[..]);
     /// ```
     #[inline]
+    #[cfg_attr(creusot, creusot::no_translate)]
     pub fn truncate(&mut self, len: usize) {
         if len < self.len {
             // The Vec "promotable" vtables do not store the capacity,
@@ -679,8 +678,6 @@ impl Bytes {
 
     // private
 
-// ORIGINAL_FREEZE_BEGIN bytes_as_slice
-    // ORIGINAL_SHARED_BEGIN bytes_as_slice
     #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
     #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result@ == self.original_shared_bytes()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(self.original_frozen_valid()))]
@@ -701,10 +698,7 @@ impl Bytes {
         #[cfg(not(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_shared_gate), all(creusot, bytes_original_constructor_gate))))]
         unsafe { slice::from_raw_parts(self.ptr, self.len) }
     }
-    // ORIGINAL_SHARED_END bytes_as_slice
-// ORIGINAL_FREEZE_END bytes_as_slice
 
-// ORIGINAL_FREEZE_BEGIN bytes_inc_start
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(self.original_frozen_valid()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(by == 0usize))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(^self == *self))]
@@ -719,27 +713,29 @@ impl Bytes {
         #[cfg(all(creusot, bytes_original_freeze_gate))]
         { proof_assert!(by == 0usize); }
     }
-// ORIGINAL_FREEZE_END bytes_inc_start
 }
 
 // Vtable must enforce this behavior
+#[cfg(not(creusot))]
 unsafe impl Send for Bytes {}
+#[cfg(not(creusot))]
 unsafe impl Sync for Bytes {}
 
 impl Drop for Bytes {
     #[inline]
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn drop(&mut self) {
         unsafe { (self.vtable.drop)(&mut self.data, self.ptr, self.len) }
     }
 }
 
-// ORIGINAL_SHARED_BEGIN bytes_clone_impl
 impl Clone for Bytes {
     #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
     #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_valid()))]
     #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_bytes() == self.original_shared_bytes()))]
     #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.ptr == self.ptr && result.len == self.len))]
     #[inline]
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn clone(&self) -> Bytes {
         #[cfg(all(creusot, bytes_original_shared_gate))]
         { original_shared_clone(self) }
@@ -747,7 +743,6 @@ impl Clone for Bytes {
         unsafe { (self.vtable.clone)(&self.data, self.ptr, self.len) }
     }
 }
-// ORIGINAL_SHARED_END bytes_clone_impl
 
 impl Buf for Bytes {
     #[inline]
@@ -760,7 +755,6 @@ impl Buf for Bytes {
         self.as_slice()
     }
 
-// ORIGINAL_FREEZE_BEGIN bytes_advance
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(self.original_frozen_valid()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(cnt == 0usize))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(^self == *self))]
@@ -777,7 +771,6 @@ impl Buf for Bytes {
             self.inc_start(cnt);
         }
     }
-// ORIGINAL_FREEZE_END bytes_advance
 
     fn copy_to_bytes(&mut self, len: usize) -> Self {
         self.split_to(len)
@@ -788,12 +781,13 @@ impl Deref for Bytes {
     type Target = [u8];
 
     #[inline]
+    #[cfg_attr(creusot, creusot_std::prelude::check(ghost))]
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn deref(&self) -> &[u8] {
         self.as_slice()
     }
 }
 
-// ORIGINAL_SHARED_BEGIN bytes_as_ref_impl
 impl AsRef<[u8]> for Bytes {
     #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(self.original_shared_valid()))]
     #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result@ == self.original_shared_bytes()))]
@@ -803,7 +797,6 @@ impl AsRef<[u8]> for Bytes {
         self.as_slice()
     }
 }
-// ORIGINAL_SHARED_END bytes_as_ref_impl
 
 impl hash::Hash for Bytes {
     fn hash<H>(&self, state: &mut H)
@@ -814,12 +807,14 @@ impl hash::Hash for Bytes {
     }
 }
 
+#[cfg(not(creusot))]
 impl Borrow<[u8]> for Bytes {
     fn borrow(&self) -> &[u8] {
         self.as_slice()
     }
 }
 
+#[cfg(not(creusot))]
 impl IntoIterator for Bytes {
     type Item = u8;
     type IntoIter = IntoIter<Bytes>;
@@ -839,6 +834,7 @@ impl<'a> IntoIterator for &'a Bytes {
 }
 
 impl FromIterator<u8> for Bytes {
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn from_iter<T: IntoIterator<Item = u8>>(into_iter: T) -> Self {
         Vec::from_iter(into_iter).into()
     }
@@ -846,146 +842,171 @@ impl FromIterator<u8> for Bytes {
 
 // impl Eq
 
+#[cfg(not(creusot))]
 impl PartialEq for Bytes {
     fn eq(&self, other: &Bytes) -> bool {
         self.as_slice() == other.as_slice()
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd for Bytes {
     fn partial_cmp(&self, other: &Bytes) -> Option<cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
+#[cfg(not(creusot))]
 impl Ord for Bytes {
     fn cmp(&self, other: &Bytes) -> cmp::Ordering {
         self.as_slice().cmp(other.as_slice())
     }
 }
 
+#[cfg(not(creusot))]
 impl Eq for Bytes {}
 
+#[cfg(not(creusot))]
 impl PartialEq<[u8]> for Bytes {
     fn eq(&self, other: &[u8]) -> bool {
         self.as_slice() == other
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<[u8]> for Bytes {
     fn partial_cmp(&self, other: &[u8]) -> Option<cmp::Ordering> {
         self.as_slice().partial_cmp(other)
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialEq<Bytes> for [u8] {
     fn eq(&self, other: &Bytes) -> bool {
         *other == *self
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<Bytes> for [u8] {
     fn partial_cmp(&self, other: &Bytes) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialEq<str> for Bytes {
     fn eq(&self, other: &str) -> bool {
         self.as_slice() == other.as_bytes()
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<str> for Bytes {
     fn partial_cmp(&self, other: &str) -> Option<cmp::Ordering> {
         self.as_slice().partial_cmp(other.as_bytes())
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialEq<Bytes> for str {
     fn eq(&self, other: &Bytes) -> bool {
         *other == *self
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<Bytes> for str {
     fn partial_cmp(&self, other: &Bytes) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self.as_bytes(), other)
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialEq<Vec<u8>> for Bytes {
     fn eq(&self, other: &Vec<u8>) -> bool {
         *self == other[..]
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<Vec<u8>> for Bytes {
     fn partial_cmp(&self, other: &Vec<u8>) -> Option<cmp::Ordering> {
         self.as_slice().partial_cmp(&other[..])
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialEq<Bytes> for Vec<u8> {
     fn eq(&self, other: &Bytes) -> bool {
         *other == *self
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<Bytes> for Vec<u8> {
     fn partial_cmp(&self, other: &Bytes) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialEq<String> for Bytes {
     fn eq(&self, other: &String) -> bool {
         *self == other[..]
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<String> for Bytes {
     fn partial_cmp(&self, other: &String) -> Option<cmp::Ordering> {
         self.as_slice().partial_cmp(other.as_bytes())
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialEq<Bytes> for String {
     fn eq(&self, other: &Bytes) -> bool {
         *other == *self
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<Bytes> for String {
     fn partial_cmp(&self, other: &Bytes) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self.as_bytes(), other)
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialEq<Bytes> for &[u8] {
     fn eq(&self, other: &Bytes) -> bool {
         *other == *self
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<Bytes> for &[u8] {
     fn partial_cmp(&self, other: &Bytes) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialEq<Bytes> for &str {
     fn eq(&self, other: &Bytes) -> bool {
         *other == *self
     }
 }
 
+#[cfg(not(creusot))]
 impl PartialOrd<Bytes> for &str {
     fn partial_cmp(&self, other: &Bytes) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self.as_bytes(), other)
     }
 }
 
+#[cfg(not(creusot))]
 impl<'a, T: ?Sized> PartialEq<&'a T> for Bytes
 where
     Bytes: PartialEq<T>,
@@ -995,6 +1016,7 @@ where
     }
 }
 
+#[cfg(not(creusot))]
 impl<'a, T: ?Sized> PartialOrd<&'a T> for Bytes
 where
     Bytes: PartialOrd<T>,
@@ -1025,9 +1047,7 @@ impl From<&'static str> for Bytes {
     }
 }
 
-// ORIGINAL_SHARED_BEGIN bytes_from_vec_impl
 impl From<Vec<u8>> for Bytes {
-// ORIGINAL_FREEZE_BEGIN bytes_from_vec
     #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(vec@.len() < creusot_std::std::vec::capacity_model(vec)))]
     #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_valid()))]
     #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_bytes() == vec@))]
@@ -1037,6 +1057,7 @@ impl From<Vec<u8>> for Bytes {
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_pointer() == creusot_std::std::vec::pointer_model(vec) as *const u8))]
     #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(result.original_bytes_valid()))]
     #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(result.original_bytes_content() == vec@))]
+        #[cfg_attr(creusot, creusot::no_translate)]
     fn from(vec: Vec<u8>) -> Bytes {
         #[cfg(all(creusot, bytes_original_constructor_gate))]
         { return original_bytes_from_vec(vec); }
@@ -1111,13 +1132,11 @@ impl From<Vec<u8>> for Bytes {
         }
         }
     }
-// ORIGINAL_FREEZE_END bytes_from_vec
 }
 
-// ORIGINAL_SHARED_END bytes_from_vec_impl
 
-// ORIGINAL_CONSTRUCTOR_BEGIN bytes_from_box_impl
 impl From<Box<[u8]>> for Bytes {
+    #[cfg_attr(creusot, creusot::no_translate)]
     #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(result.original_bytes_valid()))]
     #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(result.original_bytes_content() == slice@))]
     fn from(slice: Box<[u8]>) -> Bytes {
@@ -1158,7 +1177,6 @@ impl From<Box<[u8]>> for Bytes {
         }
     }
 }
-// ORIGINAL_CONSTRUCTOR_END bytes_from_box_impl
 
 impl From<Bytes> for BytesMut {
     /// Convert self into `BytesMut`.
@@ -1176,6 +1194,7 @@ impl From<Bytes> for BytesMut {
     /// let bytes = Bytes::from(b"hello".to_vec());
     /// assert_eq!(BytesMut::from(bytes), BytesMut::from(&b"hello"[..]));
     /// ```
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn from(bytes: Bytes) -> Self {
         let bytes = ManuallyDrop::new(bytes);
         unsafe { (bytes.vtable.into_mut)(&bytes.data, bytes.ptr, bytes.len) }
@@ -1189,6 +1208,7 @@ impl From<String> for Bytes {
 }
 
 impl From<Bytes> for Vec<u8> {
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn from(bytes: Bytes) -> Vec<u8> {
         let bytes = ManuallyDrop::new(bytes);
         unsafe { (bytes.vtable.into_vec)(&bytes.data, bytes.ptr, bytes.len) }
@@ -1198,6 +1218,7 @@ impl From<Bytes> for Vec<u8> {
 // ===== impl Vtable =====
 
 impl fmt::Debug for Vtable {
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Vtable")
             .field("clone", &(self.clone as *const ()))
@@ -1216,6 +1237,7 @@ const STATIC_VTABLE: Vtable = Vtable {
     drop: static_drop,
 };
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn static_clone(_: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let slice = slice::from_raw_parts(ptr, len);
     Bytes::from_static(slice)
@@ -1257,6 +1279,7 @@ impl<T> Owned<T> {
     };
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let owned = data.load(Ordering::Relaxed);
     crate::ref_count_ops::increment(&*owned.cast::<AtomicUsize>());
@@ -1273,6 +1296,7 @@ unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> By
     }
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn owned_to_vec<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {
     let slice = slice::from_raw_parts(ptr, len);
     let vec = slice.to_vec();
@@ -1280,14 +1304,17 @@ unsafe fn owned_to_vec<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> V
     vec
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn owned_to_mut<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {
     BytesMut::from_vec(owned_to_vec::<T>(data, ptr, len))
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn owned_is_unique(_data: &AtomicPtr<()>) -> bool {
     false
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn owned_drop_impl<T>(owned: *mut ()) {
     {
         let ref_cnt = &*owned.cast::<AtomicUsize>();
@@ -1306,6 +1333,7 @@ unsafe fn owned_drop_impl<T>(owned: *mut ()) {
     drop(Box::<Owned<T>>::from_raw(owned.cast()));
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn owned_drop<T>(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {
     let owned = data.load(Ordering::Relaxed);
     owned_drop_impl::<T>(owned);
@@ -1313,6 +1341,7 @@ unsafe fn owned_drop<T>(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) 
 
 // ===== impl PromotableVtable =====
 
+#[cfg(not(creusot))]
 static PROMOTABLE_EVEN_VTABLE: Vtable = Vtable {
     clone: promotable_even_clone,
     into_vec: promotable_even_to_vec,
@@ -1321,6 +1350,18 @@ static PROMOTABLE_EVEN_VTABLE: Vtable = Vtable {
     drop: promotable_even_drop,
 };
 
+// Creusot cannot translate address-bearing static vtables. In verification builds only, use
+// equivalent constant values; all methods that inspect their identity are explicitly excluded.
+#[cfg(creusot)]
+const PROMOTABLE_EVEN_VTABLE: Vtable = Vtable {
+    clone: promotable_even_clone,
+    into_vec: promotable_even_to_vec,
+    into_mut: promotable_even_to_mut,
+    is_unique: promotable_is_unique,
+    drop: promotable_even_drop,
+};
+
+#[cfg(not(creusot))]
 static PROMOTABLE_ODD_VTABLE: Vtable = Vtable {
     clone: promotable_odd_clone,
     into_vec: promotable_odd_to_vec,
@@ -1329,6 +1370,16 @@ static PROMOTABLE_ODD_VTABLE: Vtable = Vtable {
     drop: promotable_odd_drop,
 };
 
+#[cfg(creusot)]
+const PROMOTABLE_ODD_VTABLE: Vtable = Vtable {
+    clone: promotable_odd_clone,
+    into_vec: promotable_odd_to_vec,
+    into_mut: promotable_odd_to_mut,
+    is_unique: promotable_is_unique,
+    drop: promotable_odd_drop,
+};
+
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_even_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let shared = data.load(Ordering::Acquire);
     let kind = shared as usize & KIND_MASK;
@@ -1342,6 +1393,7 @@ unsafe fn promotable_even_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize
     }
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_to_vec(
     data: &AtomicPtr<()>,
     ptr: *const u8,
@@ -1368,6 +1420,7 @@ unsafe fn promotable_to_vec(
     }
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_to_mut(
     data: &AtomicPtr<()>,
     ptr: *const u8,
@@ -1397,18 +1450,21 @@ unsafe fn promotable_to_mut(
     }
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_even_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {
     promotable_to_vec(data, ptr, len, |shared| {
         ptr_map(shared.cast(), |addr| addr & !KIND_MASK)
     })
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_even_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {
     promotable_to_mut(data, ptr, len, |shared| {
         ptr_map(shared.cast(), |addr| addr & !KIND_MASK)
     })
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_even_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usize) {
     data.with_mut(|shared| {
         let shared = *shared;
@@ -1424,6 +1480,7 @@ unsafe fn promotable_even_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: us
     });
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_odd_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let shared = data.load(Ordering::Acquire);
     let kind = shared as usize & KIND_MASK;
@@ -1436,14 +1493,17 @@ unsafe fn promotable_odd_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize)
     }
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_odd_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {
     promotable_to_vec(data, ptr, len, |shared| shared.cast())
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_odd_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {
     promotable_to_mut(data, ptr, len, |shared| shared.cast())
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_odd_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usize) {
     data.with_mut(|shared| {
         let shared = *shared;
@@ -1459,6 +1519,7 @@ unsafe fn promotable_odd_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usi
     });
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_is_unique(data: &AtomicPtr<()>) -> bool {
     let shared = data.load(Ordering::Acquire);
     let kind = shared as usize & KIND_MASK;
@@ -1471,6 +1532,7 @@ unsafe fn promotable_is_unique(data: &AtomicPtr<()>) -> bool {
     }
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn free_boxed_slice(buf: *mut u8, offset: *const u8, len: usize) {
     let cap = offset.offset_from(buf) as usize + len;
     dealloc(buf, Layout::from_size_align(cap, 1).unwrap())
@@ -1481,6 +1543,7 @@ unsafe fn free_boxed_slice(buf: *mut u8, offset: *const u8, len: usize) {
 include!("bytes/shared_record.rs");
 
 impl Drop for Shared {
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn drop(&mut self) {
         unsafe { dealloc(self.buf, Layout::from_size_align(self.cap, 1).unwrap()) }
     }
@@ -1492,7 +1555,7 @@ impl Drop for Shared {
 // This flag is set when the LSB is 0.
 const _: [(); 0 - mem::align_of::<Shared>() % 2] = []; // Assert that the alignment of `Shared` is divisible by 2.
 
-// ORIGINAL_SHARED_BEGIN shared_vtable
+#[cfg(not(creusot))]
 static SHARED_VTABLE: Vtable = Vtable {
     clone: shared_clone,
     into_vec: shared_to_vec,
@@ -1500,27 +1563,28 @@ static SHARED_VTABLE: Vtable = Vtable {
     is_unique: shared_is_unique,
     drop: shared_drop,
 };
-// ORIGINAL_SHARED_END shared_vtable
-
-// ORIGINAL_SHARED_BEGIN shared_table_native
-// Closed native target for the generic proof-only Vtable reification boundary.
-#[allow(dead_code)]
-fn original_shared_table_native() -> &'static Vtable {
-    &SHARED_VTABLE
-}
-// ORIGINAL_SHARED_END shared_table_native
+// The actual static identity and every Bytes Shared transition remain in the excluded
+// lifecycle cone; this constant exists only so unrelated Rust typechecking can finish.
+#[cfg(creusot)]
+const SHARED_VTABLE: Vtable = Vtable {
+    clone: shared_clone,
+    into_vec: shared_to_vec,
+    into_mut: shared_to_mut,
+    is_unique: shared_is_unique,
+    drop: shared_drop,
+};
 
 const KIND_ARC: usize = 0b0;
 const KIND_VEC: usize = 0b1;
 const KIND_MASK: usize = 0b1;
 
-// ORIGINAL_SHARED_BEGIN shared_clone
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shared_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let shared = data.load(Ordering::Relaxed);
     shallow_clone_arc(shared as _, ptr, len)
 }
-// ORIGINAL_SHARED_END shared_clone
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shared_to_vec_impl(shared: *mut Shared, ptr: *const u8, len: usize) -> Vec<u8> {
     // Check that the ref_cnt is 1 (unique).
     //
@@ -1550,10 +1614,12 @@ unsafe fn shared_to_vec_impl(shared: *mut Shared, ptr: *const u8, len: usize) ->
     }
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shared_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {
     shared_to_vec_impl(data.load(Ordering::Relaxed).cast(), ptr, len)
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shared_to_mut_impl(shared: *mut Shared, ptr: *const u8, len: usize) -> BytesMut {
     // The goal is to check if the current handle is the only handle
     // that currently has access to the buffer. This is done by
@@ -1589,25 +1655,26 @@ unsafe fn shared_to_mut_impl(shared: *mut Shared, ptr: *const u8, len: usize) ->
     }
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shared_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {
     shared_to_mut_impl(data.load(Ordering::Relaxed).cast(), ptr, len)
 }
 
+#[cfg_attr(creusot, creusot::no_translate)]
 pub(crate) unsafe fn shared_is_unique(data: &AtomicPtr<()>) -> bool {
     let shared = data.load(Ordering::Acquire);
     let ref_cnt = (*shared.cast::<Shared>()).ref_cnt.load(Ordering::Relaxed);
     ref_cnt == 1
 }
 
-// ORIGINAL_SHARED_BEGIN shared_drop
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shared_drop(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {
     data.with_mut(|shared| {
         release_shared(shared.cast());
     });
 }
-// ORIGINAL_SHARED_END shared_drop
 
-// ORIGINAL_SHARED_BEGIN shallow_clone_arc
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> Bytes {
     crate::ref_count_ops::increment(&(*shared).ref_cnt);
 
@@ -1622,9 +1689,9 @@ unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> 
         vtable: &SHARED_VTABLE,
     }
 }
-// ORIGINAL_SHARED_END shallow_clone_arc
 
 #[cold]
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shallow_clone_vec(
     atom: &AtomicPtr<()>,
     ptr: *const (),
@@ -1698,7 +1765,7 @@ unsafe fn shallow_clone_vec(
     }
 }
 
-// ORIGINAL_SHARED_BEGIN release_shared
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn release_shared(ptr: *mut Shared) {
     // `Shared` storage... follow the drop steps from Arc.
     if (*ptr).ref_cnt.fetch_sub(1, Ordering::Release) != 1 {
@@ -1730,14 +1797,13 @@ unsafe fn release_shared(ptr: *mut Shared) {
     // Explicit cleanup has the same payload/control effects as dropping the Box.
     free_shared(ptr);
 }
-// ORIGINAL_SHARED_END release_shared
 
-// ORIGINAL_SHARED_BEGIN free_shared
 // The explicit final cleanup below bypasses Shared::drop. All of its fields
 // are non-owning scalar/atomic values; re-evaluate it if an owning field is added.
 // In particular a substituted atomic type must not carry destructor effects.
 const _: [(); 0] = [(); mem::needs_drop::<AtomicUsize>() as usize];
 
+#[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn free_shared(ptr: *mut Shared) {
     // SAFETY: release_shared has recovered the sole reference after Acquire.
     // The allocation was made by Box<Shared>; buf/cap describe its separate
@@ -1747,7 +1813,6 @@ unsafe fn free_shared(ptr: *mut Shared) {
     dealloc(buf, Layout::from_size_align(cap, 1).unwrap());
     dealloc(ptr.cast(), Layout::new::<Shared>());
 }
-// ORIGINAL_SHARED_END free_shared
 
 // Ideally we would always use this version of `ptr_map` since it is strict
 // provenance compatible, but it results in worse codegen. We will however still
@@ -1756,6 +1821,7 @@ unsafe fn free_shared(ptr: *mut Shared) {
 //
 // See https://github.com/tokio-rs/bytes/pull/545 for more info.
 #[cfg(miri)]
+#[cfg_attr(creusot, creusot::no_translate)]
 fn ptr_map<F>(ptr: *mut u8, f: F) -> *mut u8
 where
     F: FnOnce(usize) -> usize,
@@ -1767,6 +1833,7 @@ where
 }
 
 #[cfg(not(miri))]
+#[cfg_attr(creusot, creusot::no_translate)]
 fn ptr_map<F>(ptr: *mut u8, f: F) -> *mut u8
 where
     F: FnOnce(usize) -> usize,

@@ -95,6 +95,7 @@ mod bytes;
 mod bytes_mut;
 mod capacity_ops;
 mod storage_ops;
+mod vec_storage;
 mod chain_ops;
 mod comparison_ops;
 mod provenance_specs;
@@ -153,7 +154,8 @@ mod cursor_ops;
 /// bytes in the buffer while attempting
 /// to get a value from a [`Buf`] with one
 /// of the `try_get_` methods.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
+#[cfg_attr(not(creusot), derive(PartialEq, Eq))]
 pub struct TryGetError {
     /// The number of bytes necessary to get the value
     pub requested: usize,

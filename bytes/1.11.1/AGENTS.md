@@ -15,8 +15,14 @@ Reviewed generic physical/library/tool boundaries may be trusted with strong
 contracts, native interpretation and a replacement path. Consult pinned Std and
 upstream examples when blocked. A separate model is not implementation coverage.
 
-Current source correspondence reuses a reviewed relation for exact source bytes.
-Do not update expected hashes alone after changing implementation or proof inputs.
+The current runner translates the original crate source directly with the
+verification-only `bytes_original_unique_gate`. Do not update saved input hashes
+alone after changing implementation, contracts, configuration or proof inputs;
+run a fresh proof and replace the direct-source evidence.
+
+`verification/results/direct-bytesmut-len-api` is the current selected proof
+evidence and TCB. The archived `current.zip` and `components.zip` are historical
+only; neither is evidence for the current source.
 Do not claim complete API coverage from this selected sequential normal-return
 witness. Important rejected reasoning remains in verification/ARCHITECTURE_DECISIONS.md.
 
