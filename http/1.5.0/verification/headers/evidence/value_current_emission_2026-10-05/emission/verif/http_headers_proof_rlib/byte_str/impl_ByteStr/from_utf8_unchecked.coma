@@ -1,0 +1,249 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 126 4 126 62 *)
+
+(* byte_str::ByteStr *)
+
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span sstring = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 233 22 240 13
+let%span sstring'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 14 16 14 76
+let%span sstring'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 290 14 290 24
+let%span sstring'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 291 14 291 60
+let%span sstring'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 294 12 298 13
+let%span sstring'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 67 10 67 67
+let%span sstring'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 68 10 68 66
+let%span sstring'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 69 10 69 39
+let%span sstring'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 70 10 73 1
+let%span schar = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span sbyte_str = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 127 11 127 33
+let%span sbyte_str'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 129 31 129 37
+let%span sbyte_str'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 129 16 129 38
+let%span sbyte_str'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 129 16 129 46
+let%span sbyte_str'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 130 16 130 67
+let%span sbyte_str'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 126 38 126 43
+let%span sbyte_str'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 124 15 124 63
+let%span sbyte_str'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 126 55 126 62
+let%span sbyte_str'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 125 14 125 61
+let%span sbyte_str'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 42 8 42 49
+let%span sbyte_str'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 49 20 49 37
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 99 18 99 22
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 98 18 98 45
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sresult = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/result.rs" 21 18 21 22
+let%span sresult'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/result.rs" 20 18 20 55
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Char
+use map.Map
+use int.ComputerDivision
+use creusot.prelude.Any
+use int.Int
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec deref_Bytes (self_: t_Bytes) (return (x: Slice64.slice UInt8.t)) =
+  {[@stop_split] [@expl:deref 'self_' type invariant] [%#sbytes] inv_ref_Bytes self_}
+  any
+  [ return (result: Slice64.slice UInt8.t) -> {[@stop_split] [@expl:deref ensures] [%#sbytes'0] Slice64.view result
+    = bytes_seq self_}
+    (! return {result}) ]
+
+type t_Utf8Error
+
+type t_Result_ref_str_Utf8Error = Ok string | Err t_Utf8Error
+
+predicate inv_Utf8Error (_1: t_Utf8Error)
+
+predicate inv_Result_ref_str_Utf8Error (_1: t_Result_ref_str_Utf8Error)
+
+axiom inv_axiom [@rewrite]:
+  forall x: t_Result_ref_str_Utf8Error [inv_Result_ref_str_Utf8Error x]. inv_Result_ref_str_Utf8Error x
+    = match x with
+      | Ok f0 -> true
+      | Err f0 -> inv_Utf8Error f0
+      end
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'1] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'0] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t
+
+axiom to_bytes_def: forall self: Seq.seq Char.t. to_bytes self
+    = ([%#sstring'3] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (to_utf8_char (Seq.get self 0)) (to_bytes (tail_char self))
+    )
+
+axiom to_bytes_spec: forall self: Seq.seq Char.t. [%#sstring'2] to_bytes self
+    = flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+function view_str (self: string) : Seq.seq Char.t
+
+type t_Option_Int = None | Some int
+
+predicate valid_utf8 (bytes: Seq.seq UInt8.t) =
+  [%#sstring'0] exists characters: Seq.seq Char.t. to_bytes characters = bytes
+
+predicate utf8_error_matches (bytes: Seq.seq UInt8.t) (valid_up_to: int) (error_len: t_Option_Int)
+
+axiom utf8_error_matches_spec:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'4] utf8_error_matches bytes valid_up_to error_len
+    -> 0 <= valid_up_to /\ valid_up_to <= Seq.length bytes
+
+axiom utf8_error_matches_spec'0:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'5] utf8_error_matches bytes valid_up_to error_len
+    -> valid_utf8 (Seq.([..]) bytes 0 valid_up_to)
+
+axiom utf8_error_matches_spec'1:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'6] utf8_error_matches bytes valid_up_to error_len
+    -> not valid_utf8 bytes
+
+axiom utf8_error_matches_spec'2:
+  forall bytes: Seq.seq UInt8.t, valid_up_to: int, error_len: t_Option_Int. [%#sstring'7] utf8_error_matches bytes valid_up_to error_len
+    -> match error_len with
+      | Some length -> 1 <= length /\ length <= 3 /\ valid_up_to + length <= Seq.length bytes
+      | None -> valid_up_to < Seq.length bytes /\ Seq.length bytes - valid_up_to < 4
+      end
+
+function valid_up_to_Utf8Error (self: t_Utf8Error) : int
+
+function error_len_Utf8Error (self: t_Utf8Error) : t_Option_Int
+
+let rec from_utf8 (bytes: Slice64.slice UInt8.t) (return (x: t_Result_ref_str_Utf8Error)) = any
+  [ return (result: t_Result_ref_str_Utf8Error) ->
+  {[@stop_split] [@expl:from_utf8 ensures] ([@stop_split] [@expl:from_utf8 result type invariant] inv_Result_ref_str_Utf8Error result)
+    /\ ([@stop_split] [@expl:from_utf8 ensures] [%#sstring] match result with
+      | Ok value -> to_bytes (view_str value) = Slice64.view bytes
+      | Err error -> utf8_error_matches (Slice64.view bytes) (valid_up_to_Utf8Error error) (error_len_Utf8Error error)
+      end)}
+    (! return {result}) ]
+
+predicate invariant_ref_Result_ref_str_Utf8Error [@inline:trivial] (self: t_Result_ref_str_Utf8Error) =
+  [%#sinvariant] inv_Result_ref_str_Utf8Error self
+
+meta "rewrite_def" predicate invariant_ref_Result_ref_str_Utf8Error
+
+predicate inv_ref_Result_ref_str_Utf8Error [@inline:trivial] (_1: t_Result_ref_str_Utf8Error) =
+  invariant_ref_Result_ref_str_Utf8Error _1
+
+meta "rewrite_def" predicate inv_ref_Result_ref_str_Utf8Error
+
+let rec is_ok_ref_str (self_: t_Result_ref_str_Utf8Error) (return (x: bool)) =
+  {[@stop_split] [@expl:is_ok 'self_' type invariant] [%#sresult] inv_ref_Result_ref_str_Utf8Error self_}
+  any
+  [ return (result: bool) -> {[@stop_split] [@expl:is_ok ensures] [%#sresult'0] result
+    = (exists t: string. self_ = Ok t)}
+    (! return {result}) ]
+
+predicate resolve_Bytes (_1: t_Bytes)
+
+type t_Arguments
+
+predicate inv_Arguments (_1: t_Arguments)
+
+let rec from_str (s: string) (return (x: t_Arguments)) = any
+  [ return (result: t_Arguments) -> {[@stop_split] [@expl:from_str result type invariant] inv_Arguments result}
+    (! return {result}) ]
+
+type t_ByteStr = { bytes: t_Bytes }
+
+function view_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 41 4 41 33] (self: t_ByteStr) : Seq.seq UInt8.t
+ = [%#sbyte_str'8] bytes_seq self.bytes
+
+predicate invariant_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 48 4 48 30] (self: t_ByteStr) =
+  [%#sbyte_str'9] valid_utf8 (view_ByteStr self)
+
+predicate inv_ByteStr (_1: t_ByteStr)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_ByteStr [inv_ByteStr x]. inv_ByteStr x
+    = (invariant_ByteStr x /\ inv_Bytes x.bytes)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_utf8_unchecked
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/byte_str.rs" 126 4 126 62]
+  (bytes'0: t_Bytes) (return (x: t_ByteStr)) =
+  {[@stop_split] [@expl:from_utf8_unchecked requires] ([@stop_split] [@expl:from_utf8_unchecked 'bytes' type invariant] [%#sbyte_str'4] inv_Bytes bytes'0)
+  /\ ([@stop_split] [@expl:from_utf8_unchecked requires] [%#sbyte_str'5] valid_utf8 (bytes_seq bytes'0))}
+  (! bb0
+  [ bb0 = any [ br0 -> {false} (! bb9) | br1 -> (! bb1) ]
+  | bb1 = s0
+    [ s0 = [ &_15 <- bytes'0 ] s1
+    | s1 = deref_Bytes [%#sbyte_str'0] {_15} (fun (_x: Slice64.slice UInt8.t) -> [ &_13 <- _x ] s2)
+    | s2 = from_utf8 [%#sbyte_str'1] {_13} (fun (_x: t_Result_ref_str_Utf8Error) -> [ &_11 <- _x ] s3)
+    | s3 = is_ok_ref_str [%#sbyte_str'2] {_11} (fun (_x: bool) -> [ &_9 <- _x ] s4)
+    | s4 = any [ br0 -> {_9 = false} (! bb6) | br1 -> {_9} (! bb9) ] ]
+  | bb6 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_Bytes bytes'0} any) ]
+    | s1 = -{resolve_Bytes bytes'0}- s2
+    | s2 = from_str {[%#sbyte_str'3] "ByteStr::from_utf8_unchecked() with invalid bytes"}
+        (fun (_x: t_Arguments) -> [ &_18 <- _x ] s3)
+    | s3 = {false} any ]
+  | bb9 = s0 [ s0 = [ &_ret <- { bytes = bytes'0 } ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_ByteStr = Any.any_l ()
+  | & bytes'0: t_Bytes = bytes'0
+  | & _9: bool = Any.any_l ()
+  | & _11: t_Result_ref_str_Utf8Error = Any.any_l ()
+  | & _13: Slice64.slice UInt8.t = Any.any_l ()
+  | & _15: t_Bytes = Any.any_l ()
+  | & _18: t_Arguments = Any.any_l () ])
+  [ return (result: t_ByteStr) ->
+  {[@stop_split] [@expl:from_utf8_unchecked ensures] ([@stop_split] [@expl:from_utf8_unchecked result type invariant] [%#sbyte_str'6] inv_ByteStr result)
+    /\ ([@stop_split] [@expl:from_utf8_unchecked ensures] [%#sbyte_str'7] view_ByteStr result = bytes_seq bytes'0)}
+    (! return {result}) ]

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "captured_at_utc_date": "2026-10-05",
+  "task": "Bounded HeaderMap capacity-constructor proof after MAX_SIZE bitwise lemma extraction",
+  "status": "passed under the named leaf harness; the normal HTTP library check also passes",
+  "profile": {
+    "name": "http_map_api_leaf",
+    "rustflags": "--cfg http_map_api_leaf",
+    "crate": "verification/header-map-api",
+    "cargo_target_dir": "/workspace/rust-crate-proofs/target/http"
+  },
+  "frontend": {
+    "exit_code": 0,
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_map_api_leaf' && export CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http && cargo creusot --check -- --features http_map_api_leaf --locked --offline"
+  },
+  "native_check": {
+    "exit_code": 0,
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' && export RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' && cargo check --locked --offline --lib",
+    "scope": "HTTP 1.5.0 library normal profile; no tests run"
+  },
+  "emission": {
+    "exit_code": 0,
+    "package_clean": "cargo clean -p http-header-map-api-proof",
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_map_api_leaf' && export CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http && cargo creusot --simple-triggers=false -- --features http_map_api_leaf --locked --offline"
+  },
+  "proof": {
+    "exit_code": 0,
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_map_api_leaf' && export CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http && ../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache verif/http_header_map_api_proof_rlib/header/map/max_size_is_power_of_two.coma verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/try_with_capacity.coma -- --features http_map_api_leaf --locked --offline",
+    "wrapper": "scripts/run-proof.sh; shared proof lock; jobs=1; 1024 MiB per prover; no cache",
+    "targets": [
+      {
+        "name": "max_size_is_power_of_two",
+        "own_goal": "vc_max_size_is_power_of_two",
+        "own_successful_terminal_leaves": 1,
+        "support_leaves": 0,
+        "total_terminal_leaves": 1
+      },
+      {
+        "name": "HeaderMap::try_with_capacity",
+        "own_goal": "vc_try_with_capacity_T",
+        "own_successful_terminal_leaves": 13,
+        "support_leaves": 16,
+        "total_terminal_leaves": 29
+      }
+    ],
+    "combined_total_successful_terminal_leaves": 30,
+    "prover": "z3@4.15.3",
+    "proof_json_audit": "Both selected JSON trees are complete and contain no null/failed terminals. The helper has one direct own leaf; try_with_capacity owns the vc_try_with_capacity_T tree and its remaining 16 top-level keys are call/spec support."
+  },
+  "source_fingerprints": {
+    "sources/http/1.5.0/src/header/map.rs": "3674330785d50484e166140887b971ee0e817c74467782f459a50e9718f00bdb",
+    "sources/http/1.5.0/src/header/map_capacity.rs": "5ac573862258a4493a50052708f50961cf2509793b774c6ae60141e7cfabb3f1",
+    "sources/http/1.5.0/src/header/map_index.rs": "86500e8601d3a15ec6beeb0deaafa6cf1ab848182911e3596be5bc2cbe343fa8",
+    "sources/creusot-libs/creusot-std/src/std/num.rs": "6d26f51e06dc202213f2b622d35dbf9adb4883b0bce3faf377ee10675476526e",
+    "sources/creusot-libs/creusot-std/src/std/vec.rs": "597db7fb360b320e0809843a73ac9f6208e6acae61d578d9c3ef0d421069e2ed",
+    "sources/http/1.5.0/verification/header-map-api/src/lib.rs": "b3a41c0c243aaa33c2d85ebc7a092bc4f2f3170049fcc50f67d133c787e36f1d",
+    "sources/http/1.5.0/verification/header-map-api/src/header.rs": "7736a09379eecf2f8a8126cd65d15cef707f9d4b2551f85375b9a24d5ca2e7a7",
+    "sources/http/1.5.0/verification/header-map-api/Cargo.toml": "373290058054353c15bbf6857b012da1dc876cfbf21bee620f430ba6d6d16aa1",
+    "sources/http/1.5.0/verification/header-map-api/Cargo.lock": "f3656ba9be1ca4501916286a20c7ad252892d4ac963100f903abe1267b3590d6",
+    "sources/http/1.5.0/scripts/run-proof.sh": "aa6fd76fb82706452bb94f67e8bd895c011373a8f4c1fc5504df86b3c91dd456"
+  },
+  "artifacts_sha256": {
+    "artifacts/max_size_is_power_of_two.coma": "b1216aa801f7999ca3f09d6bfc34e0b5f17a117dc37a6188f78035f957ba1eb4",
+    "artifacts/max_size_is_power_of_two.proof.json": "c65e30e47370bee2bc75dc89c15a06f8bc6133829066c98d8f7c1492c9415c3d",
+    "artifacts/try_with_capacity.coma": "3758bce0ad239a2f60b64c81adcfc77d8e9d087d6f440c48b82b58237a777c53",
+    "artifacts/try_with_capacity.proof.json": "fbeb9dff9e7ee3fbdc7397b094356597d9a3bbc292eb3c102149cca03603042d"
+  },
+  "scope_limits": [
+    "The method proofs are from the actual HTTP source selected by a named leaf harness, not a full integrated map proof.",
+    "creusot-std checked_next_power_of_two is an external standard-library contract; this does not prove the Rust standard-library implementation.",
+    "No native regression check is attached yet.",
+    "HeaderMap lookup, insertion, growth/reservation, raw removal, and public iterator sequence invariants remain separate work."
+  ]
+}

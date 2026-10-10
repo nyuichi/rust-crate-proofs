@@ -1,0 +1,8 @@
+case	result	meaning
+positive	PASS	normal and proof audit agree; parameterized invariant is lowered through initializer, each store, and every load; effective AVX2/SSE4.2 session and cfg values are false
+wrong-signature	REJECTED	narrow non-generic fn(u8, bool, bool) -> bool signature is required
+wrong-profile	REJECTED	unknown static atomic profile is rejected
+wrong-target-features	REJECTED	explicit -C target-feature=+avx2 is rejected
+manual-target-feature-cfg	REJECTED	manual --cfg target_feature=avx2 is rejected by target audit after cap-lints allows rustc to continue
+encoded-target-feature-cfg	REJECTED	CARGO_ENCODED_RUSTFLAGS target_feature=sse4.2 is rejected after Cargo expands it to rustc argv
+caller-capability-path	REJECTED	manifest cannot choose a capability symbol

@@ -1,0 +1,43 @@
+  3989	        /// Creates a native endian integer value from its memory representation
+  3990	        /// as a byte array in native endianness.
+  3991	        ///
+  3992	        /// As the target platform's native endianness is used, portable code
+  3993	        /// likely wants to use [`from_be_bytes`] or [`from_le_bytes`], as
+  3994	        /// appropriate instead.
+  3995	        ///
+  3996	        /// [`from_be_bytes`]: Self::from_be_bytes
+  3997	        /// [`from_le_bytes`]: Self::from_le_bytes
+  3998	        ///
+  3999	        #[doc = $from_xe_bytes_doc]
+  4000	        ///
+  4001	        /// # Examples
+  4002	        ///
+  4003	        /// ```
+  4004	        #[doc = concat!("let value = ", stringify!($SelfT), "::from_ne_bytes(if cfg!(target_endian = \"big\") {")]
+  4005	        #[doc = concat!("    ", $be_bytes, "")]
+  4006	        /// } else {
+  4007	        #[doc = concat!("    ", $le_bytes, "")]
+  4008	        /// });
+  4009	        #[doc = concat!("assert_eq!(value, ", $swap_op, ");")]
+  4010	        /// ```
+  4011	        ///
+  4012	        /// When starting from a slice rather than an array, fallible conversion APIs can be used:
+  4013	        ///
+  4014	        /// ```
+  4015	        #[doc = concat!("fn read_ne_", stringify!($SelfT), "(input: &mut &[u8]) -> ", stringify!($SelfT), " {")]
+  4016	        #[doc = concat!("    let (int_bytes, rest) = input.split_at(size_of::<", stringify!($SelfT), ">());")]
+  4017	        ///     *input = rest;
+  4018	        #[doc = concat!("    ", stringify!($SelfT), "::from_ne_bytes(int_bytes.try_into().unwrap())")]
+  4019	        /// }
+  4020	        /// ```
+  4021	        #[stable(feature = "int_to_from_bytes", since = "1.32.0")]
+  4022	        #[rustc_const_stable(feature = "const_int_conversion", since = "1.44.0")]
+  4023	        #[allow(unnecessary_transmutes)]
+  4024	        #[must_use]
+  4025	        // SAFETY: const sound because integers are plain old datatypes so we can always
+  4026	        // transmute to them
+  4027	        #[inline]
+  4028	        pub const fn from_ne_bytes(bytes: [u8; size_of::<Self>()]) -> Self {
+  4029	            // SAFETY: integers are plain old datatypes so we can always transmute to them
+  4030	            unsafe { mem::transmute(bytes) }
+  4031	        }

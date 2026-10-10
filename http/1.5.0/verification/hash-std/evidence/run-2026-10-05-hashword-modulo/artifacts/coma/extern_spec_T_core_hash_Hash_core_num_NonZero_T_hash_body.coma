@@ -1,0 +1,133 @@
+(* #"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 143 0 152 1 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 173 15 173 19
+let%span snum'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 171 18 171 47
+let%span snum'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 172 18 172 35
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 149 12 149 22
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 149 12 149 34
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 148 40 148 44
+let%span shash'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 148 46 148 51
+let%span shash'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 147 18 147 29
+let%span shash'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 36 65 40
+let%span shash'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 42 65 47
+let%span shash'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 64 26 64 37
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_NonZero_T
+
+type t_T
+
+predicate inv_NonZero_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_NonZero_T)
+
+predicate inv_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_T)
+
+function nonzero_value_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 154 0 154 82] (_value: t_NonZero_T) : t_T
+
+predicate is_zero_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 140 4 140 29] (self: t_T)
+
+let rec get_T (self_: t_NonZero_T) (return (x: t_T)) =
+  {[@stop_split] [@expl:get 'self_' type invariant] [%#snum] inv_NonZero_T self_}
+  any
+  [ return (result: t_T) ->
+  {[@stop_split] [@expl:get_T ensures] ([@stop_split] [@expl:get result type invariant] inv_T result)
+    /\ ([@stop_split] [@expl:get ensures #0] [%#snum'0] result = nonzero_value_T self_)
+    /\ ([@stop_split] [@expl:get ensures #1] [%#snum'1] not is_zero_T result)}
+    (! return {result}) ]
+
+type t_H
+
+predicate inv_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_H)
+
+type tup2_ref_T_refmut_H = { f0: t_T; f1: MutBorrow.t t_H }
+
+predicate invariant_ref_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: t_T) =
+  [%#sinvariant'0] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: t_T) =
+  invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate invariant_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 92 4 92 30] [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: MutBorrow.t t_H) =
+  invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+predicate precondition_hash [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 96 4 96 45] (self: ()) (args: tup2_ref_T_refmut_H)
+
+axiom precondition_fndef:
+  forall args: tup2_ref_T_refmut_H [precondition_hash () args]. (let {f0 = self_; f1 = state} = args in ([%#shash'4] inv_ref_T self_)
+      /\ ([%#shash'5] inv_refmut_H state)) -> precondition_hash () args
+
+predicate postcondition_once_hash [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 103 4 103 73] (self: ()) (args: tup2_ref_T_refmut_H) (result: ())
+
+axiom postcondition_fndef:
+  forall args: tup2_ref_T_refmut_H, res: () [postcondition_once_hash () args res]. postcondition_once_hash () args res
+    -> (let {f0 = self_; f1 = state} = args in [%#shash'6] inv_H state.final)
+
+let rec hash_T (self_: t_T) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash requires] precondition_hash () { f0 = self_; f1 = state }}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] postcondition_once_hash () { f0 = self_;
+                                                                                            f1 = state } result}
+    (! return {result}) ]
+
+predicate resolve_refmut_H [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/resolve.rs" 11 0 11 39] [@inline:trivial] (_1: MutBorrow.t t_H) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_H
+
+predicate invariant_ref_NonZero_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 84 4 84 30] [@inline:trivial] (self: t_NonZero_T) =
+  [%#sinvariant'0] inv_NonZero_T self
+
+meta "rewrite_def" predicate invariant_ref_NonZero_T
+
+predicate inv_ref_NonZero_T [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: t_NonZero_T) =
+  invariant_ref_NonZero_T _1
+
+meta "rewrite_def" predicate inv_ref_NonZero_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec extern_spec_T_core_hash_Hash_core_num_NonZero_T_hash_body_T
+  [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 143 0 152 1] (self_: t_NonZero_T)
+  (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:extern_spec_T_core_hash_Hash_core_num_NonZero_T_hash_body_T requires] ([@stop_split] [@expl:extern_spec_T_core_hash_Hash_core_num_NonZero_T_hash_body 'self_' type invariant] [%#shash'1] inv_ref_NonZero_T self_)
+  /\ ([@stop_split] [@expl:extern_spec_T_core_hash_Hash_core_num_NonZero_T_hash_body 'state' type invariant] [%#shash'2] inv_refmut_H state)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = get_T [%#shash] {self_} (fun (_x: t_T) -> [ &_6 <- _x ] s1)
+    | s1 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_8 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s2 = hash_T [%#shash'0] {_6} {_8} (fun (_x: ()) -> [ &_ret <- _x ] s3)
+    | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s4 = -{resolve_refmut_H state}- s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self_: t_NonZero_T = self_
+  | & state: MutBorrow.t t_H = state
+  | & _6: t_T = Any.any_l ()
+  | & _8: MutBorrow.t t_H = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:extern_spec_T_core_hash_Hash_core_num_NonZero_T_hash_body ensures] [%#shash'3] inv_H state.final}
+    (! return {result}) ]

@@ -1,0 +1,69 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 180 4 180 38 *)
+
+(* <status::StatusCode as std::cmp::PartialEq> *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 180 11 180 15
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 180 17 180 22
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 179 32 179 59
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 141 20 141 39
+let%span sstatus'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 160 20 160 25
+let%span sstatus'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 167 20 167 48
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 187 20 187 40
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 19 23 19 27
+let%span scmp'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 19 29 19 32
+let%span scmp'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 18 26 18 80
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span spartial_eq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 21 20 21 31
+
+use creusot.int.UInt16
+use int.Int
+
+type t_NonZero_u16
+
+type t_StatusCode = { f0: t_NonZero_u16 }
+
+function nonzero_value_u16 (_value: t_NonZero_u16) : UInt16.t
+
+function deep_model_NonZero_u16 (self: t_NonZero_u16) : int = [%#snum] UInt16.t'int (nonzero_value_u16 self)
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+ = [%#sstatus'2] deep_model_NonZero_u16 self.f0
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'4] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_NonZero_u16 (_1: t_NonZero_u16)
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom [@rewrite]: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x
+    = (invariant_StatusCode x /\ inv_NonZero_u16 x.f0)
+
+predicate invariant_ref_StatusCode [@inline:trivial] (self: t_StatusCode) = [%#sinvariant] inv_StatusCode self
+
+meta "rewrite_def" predicate invariant_ref_StatusCode
+
+predicate inv_ref_StatusCode [@inline:trivial] (_1: t_StatusCode) = invariant_ref_StatusCode _1
+
+meta "rewrite_def" predicate inv_ref_StatusCode
+
+predicate eq_model_Int (self: int) (rhs: int) = [%#spartial_eq] self = rhs
+
+function deep_model_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 159 4 159 44] (self: t_StatusCode) : int
+ = [%#sstatus'3] view_StatusCode self
+
+function deep_model_ref_StatusCode [@inline:trivial] (self: t_StatusCode) : int = [%#smodel] deep_model_StatusCode self
+
+meta "rewrite_def" function deep_model_ref_StatusCode
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_StatusCode. forall rhs: t_StatusCode. ([%#scmp] inv_ref_StatusCode self_)
+        /\ ([%#scmp'0] inv_ref_StatusCode rhs)
+      -> ([%#sstatus] inv_ref_StatusCode self_)
+      /\ ([%#sstatus'0] inv_ref_StatusCode rhs)
+      /\ (forall result: bool. ([%#sstatus'1] result = (view_StatusCode self_ = view_StatusCode rhs))
+        -> ([%#scmp'1] result = eq_model_Int (deep_model_ref_StatusCode self_) (deep_model_ref_StatusCode rhs)))

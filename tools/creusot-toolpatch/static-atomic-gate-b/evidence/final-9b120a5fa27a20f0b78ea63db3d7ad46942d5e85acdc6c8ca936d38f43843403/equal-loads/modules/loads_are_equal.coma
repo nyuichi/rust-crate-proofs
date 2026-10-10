@@ -1,0 +1,35 @@
+(* #"/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 79 0 79 24 *)
+
+let%span slib = "/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 82 4 82 28
+let%span slib'0 = "/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 36 16 36 42
+
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+predicate value_invariant [#"/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 35 0 35 41] [@inline:trivial] (value: UInt8.t) =
+  [%#slib'0] UInt8.t'int value = 0 \/ UInt8.t'int value = 1
+
+meta "rewrite_def" predicate value_invariant
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec loads_are_equal
+  [#"/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 79 0 79 24]
+  (return (x: ())) = (! bb0
+  [ bb0 = s0
+    [ s0 = any
+      [ any_ (static_atomic_observation: UInt8.t) -> (! -{value_invariant static_atomic_observation}-
+        [ &first <- static_atomic_observation ] s1) ]
+    | s1 = any
+      [ any_ (static_atomic_observation: UInt8.t) -> (! -{value_invariant static_atomic_observation}-
+        [ &second <- static_atomic_observation ] s2) ]
+    | s2 = [ &_10 <- first = second ] s3
+    | s3 = any [ br0 -> {_10 = false} (! bb4) | br1 -> {_10} (! bb3) ] ]
+  | bb3 = return {_ret}
+  | bb4 = {[%#slib] false} any ]
+  [ & _ret: () = Any.any_l ()
+  | & first: UInt8.t = Any.any_l ()
+  | & second: UInt8.t = Any.any_l ()
+  | & _10: bool = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

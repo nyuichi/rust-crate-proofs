@@ -1,0 +1,122 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 198 4 198 53 *)
+
+(* <status::StatusCode as std::cmp::Ord> *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 198 12 198 16
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 198 18 198 23
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 197 32 197 63
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 141 20 141 39
+let%span sstatus'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 160 20 160 25
+let%span sstatus'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 167 20 167 48
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 187 20 187 40
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 255 8 261 9
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 95 24 95 28
+let%span scmp'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 95 30 95 33
+let%span scmp'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 94 26 94 85
+
+use creusot.int.UInt16
+use int.Int
+
+type t_NonZero_u16
+
+type t_StatusCode = { f0: t_NonZero_u16 }
+
+function nonzero_value_u16 (_value: t_NonZero_u16) : UInt16.t
+
+function deep_model_NonZero_u16 (self: t_NonZero_u16) : int = [%#snum] UInt16.t'int (nonzero_value_u16 self)
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+ = [%#sstatus'2] deep_model_NonZero_u16 self.f0
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'4] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_NonZero_u16 (_1: t_NonZero_u16)
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom [@rewrite]: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x
+    = (invariant_StatusCode x /\ inv_NonZero_u16 x.f0)
+
+predicate invariant_ref_StatusCode [@inline:trivial] (self: t_StatusCode) = [%#sinvariant] inv_StatusCode self
+
+meta "rewrite_def" predicate invariant_ref_StatusCode
+
+predicate inv_ref_StatusCode [@inline:trivial] (_1: t_StatusCode) = invariant_ref_StatusCode _1
+
+meta "rewrite_def" predicate inv_ref_StatusCode
+
+type t_Ordering = Less | Equal | Greater
+
+function cmp_log_Int (self: int) (o: int) : t_Ordering = [%#sord] if self < o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_Int (x: int) (y: int) : ()
+
+axiom eq_cmp_Int_spec: forall x: int, y: int. [%#sord'12] (x = y) = (cmp_log_Int x y = Equal)
+
+function antisym2_Int (x: int) (y: int) : ()
+
+axiom antisym2_Int_spec: forall x: int, y: int. ([%#sord'10] cmp_log_Int x y = Greater)
+    -> ([%#sord'11] cmp_log_Int y x = Less)
+
+function antisym1_Int (x: int) (y: int) : ()
+
+axiom antisym1_Int_spec: forall x: int, y: int. ([%#sord'8] cmp_log_Int x y = Less)
+    -> ([%#sord'9] cmp_log_Int y x = Greater)
+
+function trans_Int (x: int) (y: int) (z: int) (o: t_Ordering) : ()
+
+axiom trans_Int_spec: forall x: int, y: int, z: int, o: t_Ordering. ([%#sord'5] cmp_log_Int x y = o)
+    -> ([%#sord'6] cmp_log_Int y z = o) -> ([%#sord'7] cmp_log_Int x z = o)
+
+function refl_Int (x: int) : ()
+
+axiom refl_Int_spec: forall x: int. [%#sord'4] cmp_log_Int x x = Equal
+
+function cmp_gt_log_Int (x: int) (y: int) : ()
+
+axiom cmp_gt_log_Int_spec: forall x: int, y: int. [%#sord'3] (x > y) = (cmp_log_Int x y = Greater)
+
+function cmp_ge_log_Int (x: int) (y: int) : ()
+
+axiom cmp_ge_log_Int_spec: forall x: int, y: int. [%#sord'2] (x >= y) = (cmp_log_Int x y <> Less)
+
+function cmp_lt_log_Int (x: int) (y: int) : ()
+
+axiom cmp_lt_log_Int_spec: forall x: int, y: int. [%#sord'1] (x < y) = (cmp_log_Int x y = Less)
+
+function cmp_le_log_Int (x: int) (y: int) : ()
+
+axiom cmp_le_log_Int_spec: forall x: int, y: int. [%#sord'0] (x <= y) = (cmp_log_Int x y <> Greater)
+
+function deep_model_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 159 4 159 44] (self: t_StatusCode) : int
+ = [%#sstatus'3] view_StatusCode self
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_StatusCode. forall rhs: t_StatusCode. ([%#scmp] inv_ref_StatusCode self_)
+        /\ ([%#scmp'0] inv_ref_StatusCode rhs)
+      -> ([%#sstatus] inv_ref_StatusCode self_)
+      /\ ([%#sstatus'0] inv_ref_StatusCode rhs)
+      /\ (forall result: t_Ordering. ([%#sstatus'1] result = cmp_log_Int (view_StatusCode self_) (view_StatusCode rhs))
+        -> ([%#scmp'1] result = cmp_log_Int (deep_model_StatusCode self_) (deep_model_StatusCode rhs)))

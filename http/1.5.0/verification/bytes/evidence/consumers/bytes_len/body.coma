@@ -1,0 +1,47 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 75 0 75 40 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 76 4 76 15
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 75 17 75 22
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 74 10 74 44
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 64 16 64 20
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 63 18 63 51
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+
+use creusot.int.UInt64
+use seq.Seq
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec len (self_: t_Bytes) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:len 'self_' type invariant] [%#sbytes] inv_ref_Bytes self_}
+  any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sbytes'0] UInt64.t'int result
+    = Seq.length (bytes_seq self_)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec bytes_len [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 75 0 75 40] (value: t_Bytes)
+  (return (x: UInt64.t)) = {[@stop_split] [@expl:bytes_len 'value' type invariant] [%#slib'0] inv_ref_Bytes value}
+  (! bb0
+  [ bb0 = s0 [ s0 = len [%#slib] {value} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & value: t_Bytes = value ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:bytes_len ensures] [%#slib'1] UInt64.t'int result
+    = Seq.length (bytes_seq value)}
+    (! return {result}) ]

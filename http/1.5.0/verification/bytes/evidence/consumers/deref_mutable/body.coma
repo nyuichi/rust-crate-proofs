@@ -1,0 +1,53 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 178 0 178 48 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 179 4 179 24
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 178 21 178 27
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 177 10 177 43
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 184 18 184 22
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 183 18 183 49
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_BytesMut
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+predicate invariant_ref_BytesMut [@inline:trivial] (self: t_BytesMut) = [%#sinvariant] inv_BytesMut self
+
+meta "rewrite_def" predicate invariant_ref_BytesMut
+
+predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_BytesMut _1
+
+meta "rewrite_def" predicate inv_ref_BytesMut
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+let rec deref_BytesMut (self_: t_BytesMut) (return (x: Slice64.slice UInt8.t)) =
+  {[@stop_split] [@expl:deref 'self_' type invariant] [%#sbytes] inv_ref_BytesMut self_}
+  any
+  [ return (result: Slice64.slice UInt8.t) -> {[@stop_split] [@expl:deref ensures] [%#sbytes'0] Slice64.view result
+    = bytes_mut_seq self_}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec deref_mutable [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 178 0 178 48]
+  (source: t_BytesMut) (return (x: Slice64.slice UInt8.t)) =
+  {[@stop_split] [@expl:deref_mutable 'source' type invariant] [%#slib'0] inv_ref_BytesMut source}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = deref_BytesMut [%#slib] {source} (fun (_x: Slice64.slice UInt8.t) -> [ &_4 <- _x ] s1)
+    | s1 = [ &_ret <- _4 ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: Slice64.slice UInt8.t = Any.any_l ()
+  | & source: t_BytesMut = source
+  | & _4: Slice64.slice UInt8.t = Any.any_l () ])
+  [ return (result: Slice64.slice UInt8.t) ->
+  {[@stop_split] [@expl:deref_mutable ensures] [%#slib'1] Slice64.view result = bytes_mut_seq source}
+    (! return {result}) ]

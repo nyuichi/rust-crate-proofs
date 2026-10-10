@@ -1,0 +1,85 @@
+{
+  "record_type": "http-native-checkpoint-test-results",
+  "crate": "http 1.5.0",
+  "captured_at_utc": "2026-10-05T08:07:18Z",
+  "source_snapshot": {
+    "manifest": "verification/runtime-check/evidence/http-native-checkpoint-source-2026-10-05T08-03-09Z.json",
+    "archive": "verification/runtime-check/evidence/http-native-checkpoint-source-2026-10-05T08-03-09Z.tar.gz",
+    "archive_sha256": "a64883b4a7b459dc7439615477941e3f6eab3364706690b424b4f60047a7c5a1",
+    "captured_at_utc": "2026-10-05T08:03:09Z",
+    "file_count": 172,
+    "hash_map_sha256": "21ea257c2a1705ba00d19f44900ec0b56b075cf2e79eb7a9baeab175bf3a8411",
+    "post_run_manifest": "verification/runtime-check/evidence/http-native-checkpoint-after-runs-2026-10-05.json",
+    "post_run_hash_map_sha256": "21ea257c2a1705ba00d19f44900ec0b56b075cf2e79eb7a9baeab175bf3a8411",
+    "changed_paths_after_tests": [],
+    "stable_across_recorded_runs": true
+  },
+  "environment": {
+    "working_directory": "/workspace/rust-crate-proofs/http/1.5.0",
+    "target_directory": "/workspace/rust-crate-proofs/target/http",
+    "locked_offline": true,
+    "rustflags": "-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)",
+    "rustdocflags": "-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)",
+    "no_lint_caps": true,
+    "source_edits_by_test_runner": false
+  },
+  "runs": [
+    {
+      "name": "all-features full unit/integration/doc suite",
+      "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --all-features --locked --offline",
+      "exit_code": 0,
+      "passed": {
+        "unit": 144,
+        "header_map_integration": 35,
+        "header_map_fuzz_integration": 1,
+        "status_code_integration": 8,
+        "doctest": 228,
+        "total": 416
+      }
+    },
+    {
+      "name": "all-features summary rerun for untruncated target counts",
+      "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --all-features --locked --offline --quiet",
+      "exit_code": 0,
+      "summary_output": "verification/runtime-check/evidence/http-native-allfeatures-summary-2026-10-05.txt",
+      "summary_output_sha256": "8e7de4bc923305eb0329968a9b6f88ef4f4914576764215760c8efbfc11eecb8",
+      "passed": {
+        "unit": 144,
+        "header_map_integration": 35,
+        "header_map_fuzz_integration": 1,
+        "status_code_integration": 8,
+        "doctest": 228,
+        "total": 416
+      }
+    },
+    {
+      "name": "default cargo check",
+      "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo check --locked --offline",
+      "exit_code": 0
+    },
+    {
+      "name": "focused HeaderName library module",
+      "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --lib header::name --locked --offline",
+      "exit_code": 0,
+      "passed": 25,
+      "filtered": 119,
+      "included_test": "header::name::tests::header_name_hash_matches_original_derived_trace"
+    },
+    {
+      "name": "focused HeaderName runtime-check integration targets",
+      "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --manifest-path verification/runtime-check/Cargo.toml --test header_name_anomalies --test header_name_boundaries --locked --offline",
+      "exit_code": 0,
+      "passed": {
+        "header_name_anomalies": 1,
+        "header_name_boundaries": 1
+      }
+    }
+  ],
+  "resolved_precheckpoint_attempt": {
+    "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --all-features --locked --offline",
+    "exit_code": 101,
+    "diagnostic": "src/uri/mod.rs imported creusot_std::prelude::inv without cfg(creusot), causing E0432 in a native build.",
+    "resolution": "URI owner gated the proof-only inv import with cfg(creusot); no runtime statement changed. The successful runs above use the corrected source snapshot."
+  },
+  "warnings": "Builds emitted pre-existing dead-code/unstable-feature/unused-variable warnings from creusot-std and itoa; no warning caps were used."
+}

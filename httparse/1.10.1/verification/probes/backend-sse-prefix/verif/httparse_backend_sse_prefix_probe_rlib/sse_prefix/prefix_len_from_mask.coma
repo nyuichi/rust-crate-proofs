@@ -1,0 +1,149 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 232 4 232 47 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 234 8 234 48
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 235 22 235 47
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 236 8 236 54
+let%span slib'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 228 14 228 27
+let%span slib'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 229 14 229 70
+let%span slib'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 230 14 230 53
+let%span slib'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 66 14 67 48
+let%span slib'6 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 201 15 201 52
+let%span slib'7 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 202 14 202 26
+let%span slib'8 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 203 14 203 71
+let%span slib'9 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 204 14 204 51
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 331 30 331 67
+let%span snum'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 290 22 290 43
+let%span snum'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 291 22 291 120
+let%span snum'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 292 22 292 64
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 296 16 302 17
+
+use creusot.int.UInt16BW
+use creusot.int.UInt32BW
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+use int.Int
+
+let rec mask_complement_preserves_low_bits (value: UInt16BW.t) (return (x: ())) = any
+  [ return (result: ()) -> {[@stop_split] [@expl:mask_complement_preserves_low_bits ensures] [%#slib'5] forall i: int. 0
+          <= i
+        /\ i < 16 -> UInt16BW.nth (UInt16BW.bw_not value) i = (not UInt16BW.nth value i)}
+    (! return {result}) ]
+
+type t_Ordering = Less | Equal | Greater
+
+function cmp_log_u32 (self: UInt32BW.t) (o: UInt32BW.t) : t_Ordering = [%#sord'12] if UInt32BW.lt self o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom eq_cmp_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord'11] (x = y) = (cmp_log_u32 x y = Equal)
+
+function antisym2_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom antisym2_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. ([%#sord'9] cmp_log_u32 x y = Greater)
+    -> ([%#sord'10] cmp_log_u32 y x = Less)
+
+function antisym1_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom antisym1_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. ([%#sord'7] cmp_log_u32 x y = Less)
+    -> ([%#sord'8] cmp_log_u32 y x = Greater)
+
+function trans_u32 (x: UInt32BW.t) (y: UInt32BW.t) (z: UInt32BW.t) (o: t_Ordering) : ()
+
+axiom trans_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t, z: UInt32BW.t, o: t_Ordering. ([%#sord'4] cmp_log_u32 x y
+      = o) -> ([%#sord'5] cmp_log_u32 y z = o) -> ([%#sord'6] cmp_log_u32 x z = o)
+
+function refl_u32 (x: UInt32BW.t) : ()
+
+axiom refl_u32_spec: forall x: UInt32BW.t. [%#sord'3] cmp_log_u32 x x = Equal
+
+function cmp_gt_log_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom cmp_gt_log_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord'2] UInt32BW.gt x y = (cmp_log_u32 x y = Greater)
+
+function cmp_ge_log_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom cmp_ge_log_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord'1] UInt32BW.ge x y = (cmp_log_u32 x y <> Less)
+
+function cmp_lt_log_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom cmp_lt_log_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord'0] UInt32BW.lt x y = (cmp_log_u32 x y = Less)
+
+function cmp_le_log_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom cmp_le_log_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord] UInt32BW.le x y = (cmp_log_u32 x y <> Greater)
+
+constant const_BITS: UInt32BW.t = (16: UInt32BW.t)
+
+function trailing_zeros_u16 (self: UInt16BW.t) : UInt32BW.t
+
+axiom trailing_zeros_u16_spec: forall self: UInt16BW.t. [%#snum'0] UInt32BW.le (trailing_zeros_u16 self) const_BITS
+
+axiom trailing_zeros_u16_spec'0: forall self: UInt16BW.t. [%#snum'1] (trailing_zeros_u16 self <> const_BITS)
+    = (UInt16BW.shl self (UInt16BW.of_BV256 (UInt32BW.to_BV256 (UInt32BW.sub (UInt32BW.sub const_BITS (trailing_zeros_u16 self)) (1: UInt32BW.t))))
+    = UInt16BW.shl (1: UInt16BW.t) (UInt16BW.of_BV256 (UInt32BW.to_BV256 (UInt32BW.sub const_BITS (1: UInt32BW.t)))))
+
+axiom trailing_zeros_u16_spec'1: forall self: UInt16BW.t. [%#snum'2] (trailing_zeros_u16 self = const_BITS)
+    = (self = (0: UInt16BW.t))
+
+let rec trailing_zeros (self_: UInt16BW.t) (return (x: UInt32BW.t)) = any
+  [ return (result: UInt32BW.t) -> {[@stop_split] [@expl:trailing_zeros ensures] [%#snum] result
+    = trailing_zeros_u16 self_}
+    (! return {result}) ]
+
+let rec trailing_zeros_shift_to_nth (value: UInt16BW.t) (count: UInt32BW.t) (return (x: ())) =
+  {[@stop_split] [@expl:trailing_zeros_shift_to_nth requires] [%#slib'6] count = trailing_zeros_u16 value}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:trailing_zeros_shift_to_nth ensures] ([@stop_split] [@expl:trailing_zeros_shift_to_nth ensures #0] [%#slib'7] UInt32BW.t'int count
+      <= 16)
+    /\ ([@stop_split] [@expl:trailing_zeros_shift_to_nth ensures #1] [%#slib'8] forall i: int. 0 <= i
+          /\ i < UInt32BW.t'int count -> not UInt16BW.nth value i)
+    /\ ([@stop_split] [@expl:trailing_zeros_shift_to_nth ensures #2] [%#slib'9] UInt32BW.t'int count = 16
+    \/ UInt16BW.nth value (UInt32BW.t'int count))}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec prefix_len_from_mask
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 232 4 232 47]
+  (mask: UInt16BW.t) (return (x: UInt64BW.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &inverted <- UInt16BW.bw_not mask ] s1
+    | s1 = mask_complement_preserves_low_bits [%#slib] {mask} (fun (_x: ()) -> [ &_9 <- _x ] s2)
+    | s2 = trailing_zeros [%#slib'0] {inverted} (fun (_x: UInt32BW.t) -> [ &advance <- _x ] s3)
+    | s3 = trailing_zeros_shift_to_nth [%#slib'1] {inverted} {advance} (fun (_x: ()) -> [ &_13 <- _x ] s4)
+    | s4 = UInt64BW.of_BV256 {UInt32BW.to_BV256 advance} (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s5)
+    | s5 = return {_ret} ] ]
+  [ & _ret: UInt64BW.t = Any.any_l ()
+  | & mask: UInt16BW.t = mask
+  | & inverted: UInt16BW.t = Any.any_l ()
+  | & _9: () = Any.any_l ()
+  | & advance: UInt32BW.t = Any.any_l ()
+  | & _13: () = Any.any_l () ])
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:prefix_len_from_mask ensures] ([@stop_split] [@expl:prefix_len_from_mask ensures #0] [%#slib'2] UInt64BW.t'int result
+      <= 16)
+    /\ ([@stop_split] [@expl:prefix_len_from_mask ensures #1] [%#slib'3] forall i: int. 0 <= i
+          /\ i < UInt64BW.t'int result -> UInt16BW.nth mask i)
+    /\ ([@stop_split] [@expl:prefix_len_from_mask ensures #2] [%#slib'4] UInt64BW.t'int result < 16
+    -> not UInt16BW.nth mask (UInt64BW.t'int result))}
+    (! return {result}) ]

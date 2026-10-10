@@ -1,0 +1,22 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 37 0 37 29 *)
+
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 11 0 11 32
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 36 10 36 74
+
+use creusot.prelude.Any
+use creusot.int.UInt64BW
+
+constant const_MAX_SIZE: UInt64BW.t = [%#smap_index] (32768: UInt64BW.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec max_size_is_power_of_two
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 37 0 37 29]
+  (return (x: ())) = (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) -> {[@stop_split] [@expl:max_size_is_power_of_two ensures] [%#smap] const_MAX_SIZE
+      <> (0: UInt64BW.t)
+    /\ UInt64BW.bw_and const_MAX_SIZE (UInt64BW.sub const_MAX_SIZE (1: UInt64BW.t)) = (0: UInt64BW.t)}
+    (! return {result}) ]

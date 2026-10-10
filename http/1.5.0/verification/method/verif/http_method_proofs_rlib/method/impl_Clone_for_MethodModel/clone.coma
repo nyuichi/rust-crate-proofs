@@ -1,0 +1,32 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 257 15 257 20 *)
+
+(* <method::MethodModel as std::clone::Clone> *)
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_MethodModel =
+  | Options
+  | Get
+  | Post
+  | Put
+  | Delete
+  | Head
+  | Trace
+  | Connect
+  | Patch
+  | Query
+  | ExtensionInline (Seq.seq UInt8.t) int
+  | ExtensionAllocated (Seq.seq UInt8.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_MethodModel
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 257 15 257 20]
+  (self: t_MethodModel) (return (x: t_MethodModel)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_MethodModel = Any.any_l () | & self: t_MethodModel = self ])
+  [ return (result: t_MethodModel) -> (! return {result}) ]

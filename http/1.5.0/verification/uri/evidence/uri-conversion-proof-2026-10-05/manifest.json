@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "evidence_id": "uri-conversion-proof-2026-10-05",
+  "captured_at_utc": "2026-10-05T14:52:37Z",
+  "scope": "Fresh bounded proof of the actual From<Authority> for Uri and From<PathAndQuery> for Uri bodies and refinement posts.",
+  "semantic_posts": {
+    "From<Authority> for Uri": "Result uses SchemeModel::None, preserves the input Authority view, and has empty PathAndQuery byte/query models.",
+    "From<PathAndQuery> for Uri": "Result uses SchemeModel::None, has an empty Authority view, and preserves the input PathAndQuery view."
+  },
+  "profile": {
+    "harness": "http/1.5.0/verification/uri",
+    "cfg": [
+      "http_uri_compare_leaf",
+      "http_uri_authority_compare_leaf",
+      "http_uri_authority_scanner_leaf",
+      "http_uri_host_leaf",
+      "http_uri_leaf",
+      "http_uri_builder_leaf"
+    ],
+    "rustflags": "--cfg http_uri_compare_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_authority_scanner_leaf --cfg http_uri_host_leaf --cfg http_uri_leaf --cfg http_uri_builder_leaf",
+    "cargo_target_dir": "/workspace/proof-tools/targets/http-uri-conversion-evidence",
+    "why3_version": "Why3 1.8.2+git",
+    "solver": "z3@4.15.3",
+    "proof_wrapper": "scripts/run-proof.sh",
+    "proof_settings": {
+      "no_cache": true,
+      "preprocess": "split_vc",
+      "jobs": 1,
+      "memory_mib_per_prover": 1024
+    }
+  },
+  "frontend": {
+    "command": "frontend/command.txt",
+    "log": "frontend/check.log",
+    "exit_status_file": "frontend/exit-status.txt",
+    "exit_code": 0,
+    "scope": "Corrected current-source/profile Creusot frontend check; no prover."
+  },
+  "emission": {
+    "command": "emission/command.txt",
+    "log": "emission/clean-and-emit.log",
+    "exit_status_file": "emission/exit-status.txt",
+    "exit_code": 0,
+    "target_dir": "/workspace/proof-tools/targets/http-uri-conversion-evidence",
+    "exact_coma_comparison": "emission/coma-hash-comparison.json",
+    "four_of_four_proof_inputs_match_fresh_clean_emission": true,
+    "artifacts": {
+      "comas/from_authority_for_uri.coma": "f53275da048c72f737a21dd6a3101e49d8c23d2d1b0612835b9f938599f6be63",
+      "comas/from_authority_for_uri__refines.coma": "a4acc89f6f8394844a414421b395cc0af1d1b1dea386e1559f833523af46f723",
+      "comas/from_path_and_query_for_uri.coma": "0e5b212e254e4e47f4ece5b9f359ad13e47cec4b8fc807b626f71f92e84b3e83",
+      "comas/from_path_and_query_for_uri__refines.coma": "a7b7da95d01e54be72201ed258128052b9468b1ab6eacba53229724b2b864d68"
+    }
+  },
+  "proof_run": {
+    "command_file": "proof-command.txt",
+    "raw_log": "proof-run.log",
+    "exit_status_file": "proof-exit-status.txt",
+    "exit_code": 0,
+    "result": "All six owned terminal VCs passed; no open leaves. Four support helper roots are local definitions and are trivially discharged before a prover call.",
+    "owned_terminal_prover_leaves": 6,
+    "local_support_helper_roots": 4,
+    "support_terminal_prover_leaves": 0,
+    "targets": [
+      {
+        "target": "From<Authority> for Uri body",
+        "source_span": "http/1.5.0/src/uri/mod.rs: From<Authority> implementation",
+        "coma": "comas/from_authority_for_uri.coma",
+        "proof": "proofs/from_authority_for_uri.json",
+        "own_root": "vc_from_Uri",
+        "own_children": 1,
+        "support_roots": [
+          {
+            "vc": "vc_empty",
+            "helper": "Scheme::empty",
+            "children": 0,
+            "defined_in_same_coma": true,
+            "classification": "local support root simplified to solidtrue; no prover leaf"
+          },
+          {
+            "vc": "vc_empty'0",
+            "helper": "PathAndQuery::empty",
+            "children": 0,
+            "defined_in_same_coma": true,
+            "classification": "local support root simplified to solidtrue; no prover leaf"
+          }
+        ],
+        "task_files": [
+          "arity/tasks/authority-body-vc_from_Uri.why"
+        ],
+        "coma_sha256": "f53275da048c72f737a21dd6a3101e49d8c23d2d1b0612835b9f938599f6be63",
+        "proof_json_sha256": "5518b3a4594ee4f23d9f8427398bec43113f93c86abc2b0855c25749f0d8296f",
+        "proof_json_child_counts": {
+          "vc_empty": 0,
+          "vc_empty'0": 0,
+          "vc_from_Uri": 1
+        },
+        "own_terminal_prover_leaves": 1,
+        "independent_task_hashes": {
+          "arity/tasks/authority-body-vc_from_Uri.why": "6c88bf508901aac11c6c99767e56ed6bab01700f60e4ba31954419ccb7cd25cb"
+        }
+      },
+      {
+        "target": "From<Authority> for Uri refinement",
+        "source_span": "http/1.5.0/src/uri/mod.rs: From<Authority> refinement contract",
+        "coma": "comas/from_authority_for_uri__refines.coma",
+        "proof": "proofs/from_authority_for_uri__refines.json",
+        "own_root": "refines",
+        "own_children": 2,
+        "support_roots": [],
+        "task_files": [
+          "arity/tasks/authority-refines-refines.why",
+          "arity/tasks/authority-refines-refines1.why"
+        ],
+        "coma_sha256": "a4acc89f6f8394844a414421b395cc0af1d1b1dea386e1559f833523af46f723",
+        "proof_json_sha256": "41a79535a7c1f6718885c40931f3aaea384d66e41744f06ba0c00d34f15df8b1",
+        "proof_json_child_counts": {
+          "refines": 2
+        },
+        "own_terminal_prover_leaves": 2,
+        "independent_task_hashes": {
+          "arity/tasks/authority-refines-refines.why": "2392c51852d1c34a7891a1c54cd508c6f9384bf2c6e974d34f7564942427f7ce",
+          "arity/tasks/authority-refines-refines1.why": "6bfd7bb1a0ba7eccc2c8da49d41d46a16250483f59e98bf229ec4a0012dfd93d"
+        }
+      },
+      {
+        "target": "From<PathAndQuery> for Uri body",
+        "source_span": "http/1.5.0/src/uri/mod.rs: From<PathAndQuery> implementation",
+        "coma": "comas/from_path_and_query_for_uri.coma",
+        "proof": "proofs/from_path_and_query_for_uri.json",
+        "own_root": "vc_from_Uri",
+        "own_children": 1,
+        "support_roots": [
+          {
+            "vc": "vc_empty",
+            "helper": "Scheme::empty",
+            "children": 0,
+            "defined_in_same_coma": true,
+            "classification": "local support root simplified to solidtrue; no prover leaf"
+          },
+          {
+            "vc": "vc_empty'0",
+            "helper": "Authority::empty",
+            "children": 0,
+            "defined_in_same_coma": true,
+            "classification": "local support root simplified to solidtrue; no prover leaf"
+          }
+        ],
+        "task_files": [
+          "arity/tasks/path-body-vc_from_Uri.why"
+        ],
+        "coma_sha256": "0e5b212e254e4e47f4ece5b9f359ad13e47cec4b8fc807b626f71f92e84b3e83",
+        "proof_json_sha256": "8ea95c18314798e94e25486afc8b66e511228261ef85f7fa02978ef3c87ebfe3",
+        "proof_json_child_counts": {
+          "vc_empty": 0,
+          "vc_empty'0": 0,
+          "vc_from_Uri": 1
+        },
+        "own_terminal_prover_leaves": 1,
+        "independent_task_hashes": {
+          "arity/tasks/path-body-vc_from_Uri.why": "02049b654d2bdbc7d42e80540efdd966c0ed19105adfe23e6c08e281eb0463ad"
+        }
+      },
+      {
+        "target": "From<PathAndQuery> for Uri refinement",
+        "source_span": "http/1.5.0/src/uri/mod.rs: From<PathAndQuery> refinement contract",
+        "coma": "comas/from_path_and_query_for_uri__refines.coma",
+        "proof": "proofs/from_path_and_query_for_uri__refines.json",
+        "own_root": "refines",
+        "own_children": 2,
+        "support_roots": [],
+        "task_files": [
+          "arity/tasks/path-refines-refines.why",
+          "arity/tasks/path-refines-refines1.why"
+        ],
+        "coma_sha256": "a7b7da95d01e54be72201ed258128052b9468b1ab6eacba53229724b2b864d68",
+        "proof_json_sha256": "4ce2dbfdb04789fe2064dae9f2bc824cc10192aef4939077c9547147a9f8da1b",
+        "proof_json_child_counts": {
+          "refines": 2
+        },
+        "own_terminal_prover_leaves": 2,
+        "independent_task_hashes": {
+          "arity/tasks/path-refines-refines.why": "0df71c816fbbc93b4baa80ea19dd2907685c0e64034ab3c4660186d9a98b9832",
+          "arity/tasks/path-refines-refines1.why": "34f7687da1cca38ec361820ed33d6215decb5dcb0925aa23e50396b7c6b7aacb"
+        }
+      }
+    ],
+    "proof_json_artifacts": {
+      "proofs/from_authority_for_uri.json": "5518b3a4594ee4f23d9f8427398bec43113f93c86abc2b0855c25749f0d8296f",
+      "proofs/from_authority_for_uri__refines.json": "41a79535a7c1f6718885c40931f3aaea384d66e41744f06ba0c00d34f15df8b1",
+      "proofs/from_path_and_query_for_uri.json": "8ea95c18314798e94e25486afc8b66e511228261ef85f7fa02978ef3c87ebfe3",
+      "proofs/from_path_and_query_for_uri__refines.json": "4ce2dbfdb04789fe2064dae9f2bc824cc10192aef4939077c9547147a9f8da1b"
+    }
+  },
+  "arity_audit": {
+    "file": "arity/audit.json",
+    "sha256": "dc8140719a41f04aed7ae06150f8d429a46405aef0d8430708f5f51c944309d5",
+    "solver_free": true,
+    "expected_tasks": 6,
+    "printed_tasks": 6,
+    "task_artifacts": {
+      "arity/tasks/authority-body-vc_from_Uri.why": "6c88bf508901aac11c6c99767e56ed6bab01700f60e4ba31954419ccb7cd25cb",
+      "arity/tasks/authority-refines-refines.why": "2392c51852d1c34a7891a1c54cd508c6f9384bf2c6e974d34f7564942427f7ce",
+      "arity/tasks/authority-refines-refines1.why": "6bfd7bb1a0ba7eccc2c8da49d41d46a16250483f59e98bf229ec4a0012dfd93d",
+      "arity/tasks/path-body-vc_from_Uri.why": "02049b654d2bdbc7d42e80540efdd966c0ed19105adfe23e6c08e281eb0463ad",
+      "arity/tasks/path-refines-refines.why": "0df71c816fbbc93b4baa80ea19dd2907685c0e64034ab3c4660186d9a98b9832",
+      "arity/tasks/path-refines-refines1.why": "34f7687da1cca38ec361820ed33d6215decb5dcb0925aa23e50396b7c6b7aacb"
+    },
+    "classification": "The four helper roots are local empty-function definitions in the body COMAs, not imported solidtrue assumptions. Their proof.json child arrays are empty and independent split_vc printing emits no .why file for them. Each of the six owned body/refinement roots prints exactly one task for each successful Z3 child."
+  },
+  "native_tests": {
+    "command": "native-tests/command.txt",
+    "log": "native-tests/run.log",
+    "exit_status_file": "native-tests/exit-status.txt",
+    "exit_code": 0,
+    "test_source_repo_path": "http/1.5.0/verification/uri/tests/uri_surface.rs",
+    "test_source_archive": "native-tests/uri_surface.rs",
+    "test_source_sha256": "4e9583d71119da781dac9daaa0897b9fe922a1da4bdb376154851f50e06470a4",
+    "tests": 4,
+    "result": "4 passed; 0 failed; native runtime checks only, not Creusot proof."
+  },
+  "source_snapshot": {
+    "captured_utc": "2026-10-05T14:52:37Z",
+    "hash_manifest": "source-hashes.sha256",
+    "hash_manifest_sha256": "4e992930bc9c4f68ef4d614a5e829c5d7a341e921519e20ac75de33d93a443b8",
+    "repo_relative_files": {
+      "http/1.5.0/src/ascii.rs": "6620f3a38389cb067789f025507f5743ebfa9a8b56cd186dd07f1502e4bf4e47",
+      "http/1.5.0/src/byte_str.rs": "ccffe62cc16a3789160cfadad831d03b9ada717c7acc5062fafec6a35cea9245",
+      "http/1.5.0/src/bytes_model.rs": "130965c4ee8e269e76b8a5a7462aa95877daba56583ecffca2c137453ff0e145",
+      "http/1.5.0/src/error/core.rs": "3ea66eb8889dcf1b8dc5845cc1a39744ee53e29f0788f8b42403a9dbaa4fcc42",
+      "http/1.5.0/src/uri/VERIFICATION.md": "22c09fdcaefb0e4d3974fb00ccf2de564c8e8c5e36b09d9804a6b58efbb58ad2",
+      "http/1.5.0/src/uri/authority.rs": "1938f62492a54b438b56a6ddf4cbd5cec4c5d91636643ab2c6b396aad4a14bb7",
+      "http/1.5.0/src/uri/authority_chars.rs": "2685a6221da7b2136d7cd99874d05589e7298d7ed73d8a33aeca766cdc3cab76",
+      "http/1.5.0/src/uri/builder.rs": "0f6c3aba94809baf2ca0008c7bbca9a56ac39c7bfbcbcf2ad8df6337778d0dbf",
+      "http/1.5.0/src/uri/error.rs": "f20ad5af84d0f6853c308244a0a91e9e9c0f5d9f83c92db61199ffd5b4b2dd43",
+      "http/1.5.0/src/uri/limits.rs": "699dfb12d2b7a58b6181accfbda9e98ee84b444d075c453927fce568e88dccd7",
+      "http/1.5.0/src/uri/mod.rs": "09fb5ee4f72940f5603745c812d4343efae154e13711691d506cf88544febd5d",
+      "http/1.5.0/src/uri/path.rs": "93b5d4f6631472f5710030cf60e6767c7e084a33a100f628e5798480d1cec972",
+      "http/1.5.0/src/uri/path_class.rs": "c73264a7dc66c0823e781eed73ab5fe44dff5ac7431a1fe59ee45c537f171dd8",
+      "http/1.5.0/src/uri/path_scan.rs": "0c8223ddcb52bfd59ff97c13164f1af1647c13e03adeb41d2e194c23b05a6e7b",
+      "http/1.5.0/src/uri/path_static_domain.rs": "e170e39717bbe67843bdaf42d619b742ba80ff9f204eadd134b8c4f4ec721c84",
+      "http/1.5.0/src/uri/port.rs": "4a16b3c7f78d44f4bbc4568d703fa21b70fa75b0dd0eb1d0410e3231f16c750e",
+      "http/1.5.0/src/uri/scheme/fixed.rs": "5f012d4614a3200ee573c08261ebff42fa4be6c0fb10a2592ec01407ccf564e5",
+      "http/1.5.0/src/uri/scheme/protocol.rs": "1439d355fcae43853e8390adc48adfca3acc8871f9ab35ddeff0c1d8470b87c9",
+      "http/1.5.0/src/uri/scheme/types.rs": "ed66d9067b739ae4ea0dd3e2ea39b2024c0c96738774d2a9a503beb992aa3991",
+      "http/1.5.0/src/uri/scheme.rs": "7023a209cdba02f75a141ca690214792a824fa30cc05db5dc10978afe8f17001",
+      "http/1.5.0/src/uri/tests.rs": "61f88b73490c2442ec12cb0829aa1ddd28f1bce874b4fc6dd7a544c80280aeb1",
+      "http/1.5.0/verification/runtime-http/Cargo.lock": "109b4934906d271c629d8511df2289683f7e4a15ef2eb6a5cb597aa8d14c1799",
+      "http/1.5.0/verification/runtime-http/Cargo.toml": "a949b1afc8b7fe334e9f6038b88d987e6a83b41b10cc852ad11dad1ead3c296d",
+      "http/1.5.0/verification/runtime-http/README.md": "b5bf3d27deab5741b4563ea0c42e34c86a35ae1a67cf1f0c771c80d3b0725118",
+      "http/1.5.0/verification/runtime-http/src/byte_str.rs": "267b2525d4ce4c6c2f0779cb924c781bdb4b7febc4c7fe2657c0b1afaa143d7e",
+      "http/1.5.0/verification/runtime-http/src/convert.rs": "648ef74bc21184c960ee21e43033584390d1900d107cdae8c1d9a4a35f9a3fc7",
+      "http/1.5.0/verification/runtime-http/src/error.rs": "0c440312522af28ce9d09cc74693c9cf43cc94ee48bb342f161dc002c2e39dae",
+      "http/1.5.0/verification/runtime-http/src/extensions.rs": "091c287545a3bcb2e874310ea0023a1d962795aae4d4970c77703f1fdc8f3c97",
+      "http/1.5.0/verification/runtime-http/src/header/map.rs": "fff2c8490382c7e739e0b2d0ac344c2acc33e8d47f80643c85742b57950da648",
+      "http/1.5.0/verification/runtime-http/src/header/mod.rs": "26109659d73db5fd66bda033daf2b9eebc1eac7af22c48323f808af09da599b5",
+      "http/1.5.0/verification/runtime-http/src/header/name.rs": "3aa66c4f7d5579b9dcfa2745325cea381e13cf27ee7e41ac773cfad8df66c685",
+      "http/1.5.0/verification/runtime-http/src/header/value.rs": "83466b516356257b48c55a7a34061d40f589f9e560ed9081fcbff0e188a19fd6",
+      "http/1.5.0/verification/runtime-http/src/lib.rs": "2c085126666e668fce40f30e5bd6f890bf3f94c0911ac59d531b4f1fbfc780d8",
+      "http/1.5.0/verification/runtime-http/src/method.rs": "15d9b60484ab412cf955c8cda3ce498ca9d0a2339494c1aed5134a7d2385b36c",
+      "http/1.5.0/verification/runtime-http/src/request.rs": "b7c17b4c43d9078a13151d86ec8c4add03b3ec2a0e73f0422369a701fdd22eb1",
+      "http/1.5.0/verification/runtime-http/src/response.rs": "5f139b9419d77dab44fbb471c349bd1e9ae6f53db87426352482b9122e31e484",
+      "http/1.5.0/verification/runtime-http/src/status.rs": "d01b4288900f9418325328f76f96cc2b1d73c008d1cad31bcd827153e46d4754",
+      "http/1.5.0/verification/runtime-http/src/uri/authority.rs": "5f4214714bcfe8db10f6806f02f7cdde673323a797ca7d31814e761f8d1ee646",
+      "http/1.5.0/verification/runtime-http/src/uri/builder.rs": "c37c0de531d0a71f4bc46ab2870f5d096ab64f986d35f9b76ace4ea4c8553f44",
+      "http/1.5.0/verification/runtime-http/src/uri/mod.rs": "adf4235a0d72b03ca71582f4acab50fff8a146f2b92517a227806d372300186b",
+      "http/1.5.0/verification/runtime-http/src/uri/path.rs": "d69c30a915c83bb99f956da92d9a3cc16b754da43d1e940bd750676e9a7a5c7f",
+      "http/1.5.0/verification/runtime-http/src/uri/port.rs": "14b44d8d72681e74268b82674c5578943e77535eb5bf376cfe2d2b5a7d3681e0",
+      "http/1.5.0/verification/runtime-http/src/uri/scheme.rs": "092ea3e74b5847be0f9cfb738e63f733643330421a1d657fbd7a35de5e0caebd",
+      "http/1.5.0/verification/runtime-http/src/uri/tests.rs": "61f88b73490c2442ec12cb0829aa1ddd28f1bce874b4fc6dd7a544c80280aeb1",
+      "http/1.5.0/verification/runtime-http/src/version.rs": "623ef60a450203b051f3457e2f095508b66aaaa799b1447fb1b34d92cb2e7d62",
+      "http/1.5.0/verification/runtime-http/tests/header_map.rs": "5db45b086b15b51bb601c7d2aeb6d47a6bb53644a631fa4e9c55896972f1233e",
+      "http/1.5.0/verification/runtime-http/tests/header_map_fuzz.rs": "a1d3b3c6998f69113fe9288a71e1179077aca91e56bf3b215891695942936676",
+      "http/1.5.0/verification/runtime-http/tests/status_code.rs": "165cfa22544de42c9ce708be0921a445cd2b75f042192b7d677501fff79cb641",
+      "http/1.5.0/verification/uri/Cargo.lock": "b6b21e88d0a1ae07c447163b75638cfc74bfee609624a7796ac1a51c1b4751e1",
+      "http/1.5.0/verification/uri/Cargo.toml": "9d6651aa1137bcbfde024b958faa6dc7d68b29ea8ae9d1e0f94eafcab658f166",
+      "http/1.5.0/verification/uri/src/lib.rs": "cbcc755c033ce4cf87dffedc17142925cd4cd2ba1acd31c324c422066ec4d9b9",
+      "creusot-libs/creusot-std/Cargo.toml": "b46846933e75040159932a285b06acea26b659917c070e6cd2020538a43f9c64",
+      "creusot-libs/creusot-std/src/lib.rs": "5a2b41e4b98149f860b91e518c8bf425be820251e94d482654db785cc44861bd",
+      "creusot-libs/creusot-std/src/model.rs": "a774d52a986692f9b52d543f7b6e238a18d1c4c04b667242b06630df8f6f54ad",
+      "creusot-libs/creusot-std/src/std/bytes.rs": "6f3aaae39bab2c5888b8ffe7a33fc773ac668ca5f9afb953e58ab8bb8ef8ceb2",
+      "creusot-libs/creusot-std/src/std/convert.rs": "a74830cdae42660ed03533d4d33c77c5b9244605fa9cb0d2a9941ced395a0061",
+      "creusot-libs/creusot-std/src/std/fmt.rs": "45a68d77d9987e6adc8ecbc32ba2ed3838decdd562a463d211216ee342afeb84",
+      "creusot-libs/creusot-std/src/std/hash.rs": "a24a1bc06a5f7ffee1e7512bf5aea3b1fdc0791c3caebd79be5bc1eeacfd8fed",
+      "creusot-libs/creusot-std/src/std/partial_eq.rs": "efe3e792d9deea9dfa89ba2c4adf0b55c7c4fb0709c48b8e791753ee487c5756",
+      "creusot-libs/creusot-std/src/std/partial_ord.rs": "8d1fbfd3b1189be19874efdef9aba5b4f58fd9c3bb545d061052e95dd9266a26",
+      "creusot-libs/creusot-std/src/std/seq_ord.rs": "5604d675006d0830cc9c74d461826b2f07ef4c8c94781e5c64b66a7b5050fef8",
+      "creusot-libs/creusot-std/src/std/string.rs": "3dec1d56ca9863212738ef21c83ca87a5f6d079008bc25e1bbebe32575f77dfc",
+      "creusot-libs/creusot-std/src/std.rs": "6a53fdb248abc38b060aed3612ccb7b450eb8630334b8a25181738878d4f553d"
+    },
+    "creusot_std_direct_source_hashes": {
+      "creusot-libs/creusot-std/Cargo.toml": "b46846933e75040159932a285b06acea26b659917c070e6cd2020538a43f9c64",
+      "creusot-libs/creusot-std/src/lib.rs": "5a2b41e4b98149f860b91e518c8bf425be820251e94d482654db785cc44861bd",
+      "creusot-libs/creusot-std/src/std.rs": "6a53fdb248abc38b060aed3612ccb7b450eb8630334b8a25181738878d4f553d",
+      "creusot-libs/creusot-std/src/model.rs": "a774d52a986692f9b52d543f7b6e238a18d1c4c04b667242b06630df8f6f54ad",
+      "creusot-libs/creusot-std/src/std/convert.rs": "a74830cdae42660ed03533d4d33c77c5b9244605fa9cb0d2a9941ced395a0061",
+      "creusot-libs/creusot-std/src/std/string.rs": "3dec1d56ca9863212738ef21c83ca87a5f6d079008bc25e1bbebe32575f77dfc",
+      "creusot-libs/creusot-std/src/std/partial_eq.rs": "efe3e792d9deea9dfa89ba2c4adf0b55c7c4fb0709c48b8e791753ee487c5756",
+      "creusot-libs/creusot-std/src/std/partial_ord.rs": "8d1fbfd3b1189be19874efdef9aba5b4f58fd9c3bb545d061052e95dd9266a26",
+      "creusot-libs/creusot-std/src/std/hash.rs": "a24a1bc06a5f7ffee1e7512bf5aea3b1fdc0791c3caebd79be5bc1eeacfd8fed",
+      "creusot-libs/creusot-std/src/std/bytes.rs": "6f3aaae39bab2c5888b8ffe7a33fc773ac668ca5f9afb953e58ab8bb8ef8ceb2",
+      "creusot-libs/creusot-std/src/std/fmt.rs": "45a68d77d9987e6adc8ecbc32ba2ed3838decdd562a463d211216ee342afeb84",
+      "creusot-libs/creusot-std/src/std/seq_ord.rs": "5604d675006d0830cc9c74d461826b2f07ef4c8c94781e5c64b66a7b5050fef8"
+    },
+    "sourcefreeze_reference": {
+      "manifest": "http/1.5.0/verification/uri/evidence/parts-authority-comparison-2026-10-05/manifest.json",
+      "manifest_sha256": "6480ba3fab0381d3409357a9848d508ae231699ea775cab1b735d0a1ec7e1c1a",
+      "unchanged_modules_match_prior_accepted_sourcefreeze": true
+    },
+    "proof_input_binding": "All four archived proof COMAs match byte-for-byte with the fresh clean emission COMAs."
+  },
+  "dependencies": {
+    "bytes": {
+      "version": "1.11.1",
+      "cargo_lock_checksum": "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33",
+      "verification_manifest": "dependencies/bytes-evidence-manifest.json",
+      "verification_manifest_sha256": "f0c83031095036d16709195d69fd86422950d89fce9f2a2fc58ee3f891c2b0f1",
+      "status": "Covered by user-provided completed-bytes premise; not reproved in this URI batch."
+    },
+    "creusot_std": {
+      "repo_path": "creusot-libs/creusot-std",
+      "direct_source_files_archived": true,
+      "source_hashes": {
+        "creusot-libs/creusot-std/Cargo.toml": "b46846933e75040159932a285b06acea26b659917c070e6cd2020538a43f9c64",
+        "creusot-libs/creusot-std/src/lib.rs": "5a2b41e4b98149f860b91e518c8bf425be820251e94d482654db785cc44861bd",
+        "creusot-libs/creusot-std/src/std.rs": "6a53fdb248abc38b060aed3612ccb7b450eb8630334b8a25181738878d4f553d",
+        "creusot-libs/creusot-std/src/model.rs": "a774d52a986692f9b52d543f7b6e238a18d1c4c04b667242b06630df8f6f54ad",
+        "creusot-libs/creusot-std/src/std/convert.rs": "a74830cdae42660ed03533d4d33c77c5b9244605fa9cb0d2a9941ced395a0061",
+        "creusot-libs/creusot-std/src/std/string.rs": "3dec1d56ca9863212738ef21c83ca87a5f6d079008bc25e1bbebe32575f77dfc",
+        "creusot-libs/creusot-std/src/std/partial_eq.rs": "efe3e792d9deea9dfa89ba2c4adf0b55c7c4fb0709c48b8e791753ee487c5756",
+        "creusot-libs/creusot-std/src/std/partial_ord.rs": "8d1fbfd3b1189be19874efdef9aba5b4f58fd9c3bb545d061052e95dd9266a26",
+        "creusot-libs/creusot-std/src/std/hash.rs": "a24a1bc06a5f7ffee1e7512bf5aea3b1fdc0791c3caebd79be5bc1eeacfd8fed",
+        "creusot-libs/creusot-std/src/std/bytes.rs": "6f3aaae39bab2c5888b8ffe7a33fc773ac668ca5f9afb953e58ab8bb8ef8ceb2",
+        "creusot-libs/creusot-std/src/std/fmt.rs": "45a68d77d9987e6adc8ecbc32ba2ed3838decdd562a463d211216ee342afeb84",
+        "creusot-libs/creusot-std/src/std/seq_ord.rs": "5604d675006d0830cc9c74d461826b2f07ef4c8c94781e5c64b66a7b5050fef8"
+      }
+    },
+    "runtime_http": {
+      "repo_path": "http/1.5.0/verification/runtime-http",
+      "source_files_archived": true
+    }
+  },
+  "evidence_artifact_sha256": {
+    "proof-command.txt": "86db0c5fb99c1639afdee77ac085f39edad5cb62cbc11c87e002a38e3ebe77f7",
+    "proof-run.log": "074f15a8fa5316031bb8e92df8cd8af9e9af212511c2af269898dfe8e2deae7b",
+    "proof-exit-status.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "frontend/command.txt": "e5bb9dd703512ea21675bb3cdde3c5ab20573e224e06e58462fb6dff95f56aff",
+    "frontend/check.log": "7a3174734713b76f20c131f3c57f644ba0393ba56b091bdc5163afcfe04bd2bd",
+    "frontend/exit-status.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "emission/command.txt": "4ee46a8e68214969d967e2036bb2c45316f97e78abb118994a993657aa75b309",
+    "emission/clean-and-emit.log": "17894fcdd122f0862ee67b90c233d1139c64f9e91c5cc5cf006f620080b2b2f7",
+    "emission/exit-status.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "emission/coma-hash-comparison.json": "29f6994bf88c488df84aca10976936f06d051d288b11adae1485412c1eb377f6",
+    "arity/command.txt": "434a248a6ebcf2f77f37ceac8c2c17d25cf7249caa4c43085c7441fe178bc692",
+    "arity/audit.json": "dc8140719a41f04aed7ae06150f8d429a46405aef0d8430708f5f51c944309d5",
+    "native-tests/command.txt": "d448a4f41f26a117c0627a95028f22076f8822c47193e6e91b73a316fd993886",
+    "native-tests/run.log": "2dc214c7c134139f1b3f14dfba36ecaba03a099ce0bfb01249e5a72ab58900f5",
+    "native-tests/exit-status.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "native-tests/uri_surface.rs": "4e9583d71119da781dac9daaa0897b9fe922a1da4bdb376154851f50e06470a4",
+    "source-hashes.sha256": "4e992930bc9c4f68ef4d614a5e829c5d7a341e921519e20ac75de33d93a443b8",
+    "dependencies/bytes-evidence-manifest.json": "f0c83031095036d16709195d69fd86422950d89fce9f2a2fc58ee3f891c2b0f1",
+    "dependencies/uri-sourcefreeze-reference-manifest.json": "6480ba3fab0381d3409357a9848d508ae231699ea775cab1b735d0a1ec7e1c1a",
+    "comas/from_authority_for_uri.coma": "f53275da048c72f737a21dd6a3101e49d8c23d2d1b0612835b9f938599f6be63",
+    "comas/from_authority_for_uri__refines.coma": "a4acc89f6f8394844a414421b395cc0af1d1b1dea386e1559f833523af46f723",
+    "comas/from_path_and_query_for_uri.coma": "0e5b212e254e4e47f4ece5b9f359ad13e47cec4b8fc807b626f71f92e84b3e83",
+    "comas/from_path_and_query_for_uri__refines.coma": "a7b7da95d01e54be72201ed258128052b9468b1ab6eacba53229724b2b864d68",
+    "proofs/from_authority_for_uri.json": "5518b3a4594ee4f23d9f8427398bec43113f93c86abc2b0855c25749f0d8296f",
+    "proofs/from_authority_for_uri__refines.json": "41a79535a7c1f6718885c40931f3aaea384d66e41744f06ba0c00d34f15df8b1",
+    "proofs/from_path_and_query_for_uri.json": "8ea95c18314798e94e25486afc8b66e511228261ef85f7fa02978ef3c87ebfe3",
+    "proofs/from_path_and_query_for_uri__refines.json": "4ce2dbfdb04789fe2064dae9f2bc824cc10192aef4939077c9547147a9f8da1b",
+    "arity/tasks/authority-body-vc_from_Uri.why": "6c88bf508901aac11c6c99767e56ed6bab01700f60e4ba31954419ccb7cd25cb",
+    "arity/tasks/authority-refines-refines.why": "2392c51852d1c34a7891a1c54cd508c6f9384bf2c6e974d34f7564942427f7ce",
+    "arity/tasks/authority-refines-refines1.why": "6bfd7bb1a0ba7eccc2c8da49d41d46a16250483f59e98bf229ec4a0012dfd93d",
+    "arity/tasks/path-body-vc_from_Uri.why": "02049b654d2bdbc7d42e80540efdd966c0ed19105adfe23e6c08e281eb0463ad",
+    "arity/tasks/path-refines-refines.why": "0df71c816fbbc93b4baa80ea19dd2907685c0e64034ab3c4660186d9a98b9832",
+    "arity/tasks/path-refines-refines1.why": "34f7687da1cca38ec361820ed33d6215decb5dcb0925aa23e50396b7c6b7aacb"
+  },
+  "limitations": "Only the two named conversion bodies and their refinement posts are covered under this named URI leaf harness. URI formatter, comparison, hash, and parser targets are separately scoped."
+}

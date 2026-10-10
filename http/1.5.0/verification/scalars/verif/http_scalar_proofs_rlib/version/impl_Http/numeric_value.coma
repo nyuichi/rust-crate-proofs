@@ -1,0 +1,52 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 133 4 133 33 *)
+
+(* version::Http *)
+
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 140 37 140 40
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 139 24 139 26
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 138 24 138 26
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 137 28 137 30
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 136 28 136 30
+let%span sversion'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 135 28 135 29
+let%span sversion'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 132 32 132 60
+let%span sversion'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 178 12 185 13
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'6] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec numeric_value
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 133 4 133 33]
+  (self: t_Http) (return (x: UInt16.t)) = (! bb0
+  [ bb0 = any
+    [ br0 -> {self = Http09} (! bb12)
+    | br1 -> {self = Http10} (! bb11)
+    | br2 -> {self = Http11} (! bb10)
+    | br3 -> {self = H2} (! bb9)
+    | br4 -> {self = H3} (! bb8)
+    | br5 -> {self = C___NonExhaustive} (! bb7) ]
+  | bb7 = s0 [ s0 = [ &_ret <- [%#sversion] (255: UInt16.t) ] s1 | s1 = return {_ret} ]
+  | bb8 = s0 [ s0 = [ &_ret <- [%#sversion'0] (30: UInt16.t) ] s1 | s1 = return {_ret} ]
+  | bb9 = s0 [ s0 = [ &_ret <- [%#sversion'1] (20: UInt16.t) ] s1 | s1 = return {_ret} ]
+  | bb10 = s0 [ s0 = [ &_ret <- [%#sversion'2] (11: UInt16.t) ] s1 | s1 = return {_ret} ]
+  | bb11 = s0 [ s0 = [ &_ret <- [%#sversion'3] (10: UInt16.t) ] s1 | s1 = return {_ret} ]
+  | bb12 = s0 [ s0 = [ &_ret <- [%#sversion'4] (9: UInt16.t) ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: UInt16.t = Any.any_l () | & self: t_Http = self ])
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:numeric_value ensures] [%#sversion'5] UInt16.t'int result
+    = deep_model_Http self}
+    (! return {result}) ]

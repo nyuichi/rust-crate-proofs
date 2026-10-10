@@ -1,0 +1,130 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 233 4 233 76 *)
+
+(* status::StatusCode *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 234 15 234 24
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 235 32 235 52
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 239 12 239 36
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 233 39 233 76
+let%span sstatus'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 228 32 231 5
+let%span sstatus'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 141 20 141 39
+let%span sstatus'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 167 20 167 48
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 161 18 164 9
+let%span snum'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 165 18 168 30
+let%span snum'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 147 20 147 30
+let%span snum'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 187 20 187 40
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+use int.Int
+
+type t_NonZero_u16
+
+type t_Option_NonZero_u16 = None | Some t_NonZero_u16
+
+predicate inv_NonZero_u16 (_1: t_NonZero_u16)
+
+predicate inv_Option_NonZero_u16 (_1: t_Option_NonZero_u16)
+
+axiom inv_axiom [@rewrite]: forall x: t_Option_NonZero_u16 [inv_Option_NonZero_u16 x]. inv_Option_NonZero_u16 x
+    = match x with
+      | None -> true
+      | Some f0 -> inv_NonZero_u16 f0
+      end
+
+predicate is_zero_u16 (self: UInt16.t) = [%#snum'1] UInt16.t'int self = 0
+
+function nonzero_value_u16 (_value: t_NonZero_u16) : UInt16.t
+
+let rec new_u16 (value: UInt16.t) (return (x: t_Option_NonZero_u16)) = any
+  [ return (result: t_Option_NonZero_u16) ->
+  {[@stop_split] [@expl:new_u16 ensures] ([@stop_split] [@expl:new result type invariant] inv_Option_NonZero_u16 result)
+    /\ ([@stop_split] [@expl:new ensures #0] [%#snum] match result with
+        | Some wrapped -> not is_zero_u16 value /\ nonzero_value_u16 wrapped = value
+        | None -> is_zero_u16 value
+        end)
+    /\ ([@stop_split] [@expl:new ensures #1] [%#snum'0] match result with
+        | Some _ -> true
+        | None -> false
+        end
+    = (not is_zero_u16 value))}
+    (! return {result}) ]
+
+let rec elim_Some (_x: t_Option_NonZero_u16) (return (f0: t_NonZero_u16)) = any
+  [ _k (f0: t_NonZero_u16) -> {Some f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_StatusCode = { f0: t_NonZero_u16 }
+
+type t_InvalidStatusCode = { _priv: () }
+
+type t_Result_StatusCode_InvalidStatusCode = Ok t_StatusCode | Err t_InvalidStatusCode
+
+let rec new (return (x: t_InvalidStatusCode)) = any [ return (result: t_InvalidStatusCode) -> (! return {result}) ]
+
+function deep_model_NonZero_u16 (self: t_NonZero_u16) : int = [%#snum'2] UInt16.t'int (nonzero_value_u16 self)
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+ = [%#sstatus'4] deep_model_NonZero_u16 self.f0
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'5] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x
+    = (invariant_StatusCode x /\ inv_NonZero_u16 x.f0)
+
+predicate inv_Result_StatusCode_InvalidStatusCode (_1: t_Result_StatusCode_InvalidStatusCode)
+
+axiom inv_axiom'1 [@rewrite]:
+  forall x: t_Result_StatusCode_InvalidStatusCode [inv_Result_StatusCode_InvalidStatusCode x]. inv_Result_StatusCode_InvalidStatusCode x
+    = match x with
+      | Ok f0'0 -> inv_StatusCode f0'0
+      | Err f0'0 -> true
+      end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_u16
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 233 4 233 76]
+  (src: UInt16.t) (return (x: t_Result_StatusCode_InvalidStatusCode)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_5 <- UInt16.le ([%#sstatus] (100: UInt16.t)) src ] s1
+    | s1 = any [ br0 -> {_5 = false} (! bb9) | br1 -> {_5} (! bb2) ] ]
+  | bb2 = s0
+    [ s0 = [ &_6 <- UInt16.le src ([%#sstatus] (999: UInt16.t)) ] s1
+    | s1 = any [ br0 -> {_6 = false} (! bb9) | br1 -> {_6} (! bb3) ] ]
+  | bb3 = s0
+    [ s0 = new_u16 [%#sstatus'0] {src} (fun (_x: t_Option_NonZero_u16) -> [ &_7 <- _x ] s1)
+    | s1 = any [ br0 -> {_7 = None} (! bb9) | br1 (x0: t_NonZero_u16) -> {_7 = Some x0} (! bb6) ] ]
+  | bb6 = s0
+    [ s0 = elim_Some {_7} (fun (r0: t_NonZero_u16) -> [ &code <- r0 ] s1)
+    | s1 = [ &_12 <- { f0 = code } ] s2
+    | s2 = [ &_ret <- Ok _12 ] s3
+    | s3 = return {_ret} ]
+  | bb9 = s0
+    [ s0 = new [%#sstatus'1] (fun (_x: t_InvalidStatusCode) -> [ &_14 <- _x ] s1)
+    | s1 = [ &_ret <- Err _14 ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: t_Result_StatusCode_InvalidStatusCode = Any.any_l ()
+  | & src: UInt16.t = src
+  | & _5: bool = Any.any_l ()
+  | & _6: bool = Any.any_l ()
+  | & _7: t_Option_NonZero_u16 = Any.any_l ()
+  | & code: t_NonZero_u16 = Any.any_l ()
+  | & _12: t_StatusCode = Any.any_l ()
+  | & _14: t_InvalidStatusCode = Any.any_l () ])
+  [ return (result: t_Result_StatusCode_InvalidStatusCode) ->
+  {[@stop_split] [@expl:from_u16 ensures] ([@stop_split] [@expl:from_u16 result type invariant] [%#sstatus'2] inv_Result_StatusCode_InvalidStatusCode result)
+    /\ ([@stop_split] [@expl:from_u16 ensures] [%#sstatus'3] match result with
+      | Ok code -> view_StatusCode code = UInt16.t'int src /\ invariant_StatusCode code
+      | Err _ -> UInt16.t'int src < 100 \/ UInt16.t'int src > 999
+      end)}
+    (! return {result}) ]

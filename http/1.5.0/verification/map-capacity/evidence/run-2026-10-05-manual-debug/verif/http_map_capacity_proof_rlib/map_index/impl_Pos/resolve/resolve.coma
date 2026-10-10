@@ -1,0 +1,54 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 110 4 110 62 *)
+
+(* map_index::Pos *)
+
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 111 11 111 25
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 105 14 109 5
+let%span smap_index'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 93 14 93 48
+
+use creusot.int.UInt16
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+constant const_MAX: UInt16.t = (65535: UInt16.t)
+
+let rec is_some (self: t_Pos) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:is_some ensures] [%#smap_index'1] result = (self.index <> const_MAX)}
+    (! return {result}) ]
+
+type tup2_usize_HashValue = { f0'0: UInt64.t; f1'0: t_HashValue }
+
+type t_Option_tup2_usize_HashValue = None | Some tup2_usize_HashValue
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec resolve
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_index.rs" 110 4 110 62]
+  (self: t_Pos) (return (x: t_Option_tup2_usize_HashValue)) = (! bb0
+  [ bb0 = s0
+    [ s0 = is_some [%#smap_index] {self} (fun (_x: bool) -> [ &_4 <- _x ] s1)
+    | s1 = any [ br0 -> {_4 = false} (! bb3) | br1 -> {_4} (! bb2) ] ]
+  | bb2 = s0
+    [ s0 = UInt64.of_int {UInt16.t'int self.index} (fun (_x: UInt64.t) -> [ &_7 <- _x ] s1)
+    | s1 = [ &_6 <- { f0'0 = _7; f1'0 = self.hash } ] s2
+    | s2 = [ &_ret <- Some _6 ] s3
+    | s3 = return {_ret} ]
+  | bb3 = s0 [ s0 = [ &_ret <- None ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Option_tup2_usize_HashValue = Any.any_l ()
+  | & self: t_Pos = self
+  | & _4: bool = Any.any_l ()
+  | & _6: tup2_usize_HashValue = Any.any_l ()
+  | & _7: UInt64.t = Any.any_l () ])
+  [ return (result: t_Option_tup2_usize_HashValue) ->
+  {[@stop_split] [@expl:resolve ensures] [%#smap_index'0] match result with
+      | Some {f0'0 = index'0; f1'0 = hash'0} -> self.index <> const_MAX
+      /\ UInt64.t'int index'0 = UInt16.t'int self.index /\ hash'0 = self.hash
+      | None -> self.index = const_MAX
+      end}
+    (! return {result}) ]

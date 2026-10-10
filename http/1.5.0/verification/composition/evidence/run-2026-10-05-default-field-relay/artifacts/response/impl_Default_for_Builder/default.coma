@@ -1,0 +1,192 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 1062 4 1062 27 *)
+
+(* <response::Builder as std::default::Default> *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/status.rs" 160 20 160 25
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/status.rs" 167 20 167 48
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 45 20 45 25
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 53 12 54 45
+let%span sresponse = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 1064 22 1064 34
+let%span sresponse'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 1062 20 1062 27
+let%span sresponse'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 1058 32 1058 66
+let%span sresponse'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 1060 8 1060 57
+let%span sresponse'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 699 16 699 21
+let%span sresponse'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 694 8 694 41
+let%span sresponse'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 697 8 697 41
+let%span sresponse'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 236 4 239 5
+let%span sresponse'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 248 8 251 9
+let%span sresponse'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 324 4 327 5
+
+use creusot.prelude.Any
+use int.Int
+
+type t_StatusCode
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  status: t_StatusCode;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'0] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x -> invariant_StatusCode x
+
+function view_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 35 4 35 33] (self: t_Version) : int
+
+predicate invariant_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 51 4 51 30] (self: t_Version) =
+  [%#sversion'0] view_Version self = 9
+  \/ view_Version self = 10 \/ view_Version self = 11 \/ view_Version self = 20 \/ view_Version self = 30
+
+predicate inv_Version (_1: t_Version)
+
+axiom inv_axiom'0: forall x: t_Version [inv_Version x]. inv_Version x -> invariant_Version x
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_StatusCode x.status
+    /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+function deep_model_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/status.rs" 159 4 159 44] (self: t_StatusCode) : int
+ = [%#sstatus] view_StatusCode self
+
+function deep_model_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/version.rs" 44 4 44 44] (self: t_Version) : int
+ = [%#sversion] view_Version self
+
+let rec new (return (x: t_Parts)) = any
+  [ return (result: t_Parts) ->
+  {[@stop_split] [@expl:new ensures] ([@stop_split] [@expl:new result type invariant] [%#sresponse'3] inv_Parts result)
+    /\ ([@stop_split] [@expl:new ensures #0] [%#sresponse'4] deep_model_StatusCode result.status = 200)
+    /\ ([@stop_split] [@expl:new ensures #1] [%#sresponse'5] deep_model_Version result.version = 11)}
+    (! return {result}) ]
+
+type t_InvalidStatusCode
+
+type t_InvalidMethod
+
+type t_InvalidUri
+
+type t_InvalidUriParts = { f0: t_InvalidUri }
+
+type t_InvalidHeaderName
+
+type t_InvalidHeaderValue
+
+type t_MaxSizeReached
+
+type t_ErrorKind =
+  | StatusCode t_InvalidStatusCode
+  | Method t_InvalidMethod
+  | Uri t_InvalidUri
+  | UriParts t_InvalidUriParts
+  | HeaderName t_InvalidHeaderName
+  | HeaderValue t_InvalidHeaderValue
+  | MaxSizeReached t_MaxSizeReached
+
+type t_Error = { inner: t_ErrorKind }
+
+type t_Result_Parts_Error = Ok t_Parts | Err t_Error
+
+type t_Builder = { inner'0: t_Result_Parts_Error }
+
+predicate inv_InvalidStatusCode (_1: t_InvalidStatusCode)
+
+predicate inv_InvalidMethod (_1: t_InvalidMethod)
+
+predicate inv_InvalidUri (_1: t_InvalidUri)
+
+predicate inv_InvalidUriParts (_1: t_InvalidUriParts)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_InvalidUriParts [inv_InvalidUriParts x]. inv_InvalidUriParts x
+    = inv_InvalidUri x.f0
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+predicate inv_InvalidHeaderValue (_1: t_InvalidHeaderValue)
+
+predicate inv_MaxSizeReached (_1: t_MaxSizeReached)
+
+predicate inv_ErrorKind (_1: t_ErrorKind)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_ErrorKind [inv_ErrorKind x]. inv_ErrorKind x
+    = match x with
+      | StatusCode f0'0 -> inv_InvalidStatusCode f0'0
+      | Method f0'0 -> inv_InvalidMethod f0'0
+      | Uri f0'0 -> inv_InvalidUri f0'0
+      | UriParts f0'0 -> inv_InvalidUriParts f0'0
+      | HeaderName f0'0 -> inv_InvalidHeaderName f0'0
+      | HeaderValue f0'0 -> inv_InvalidHeaderValue f0'0
+      | MaxSizeReached f0'0 -> inv_MaxSizeReached f0'0
+      end
+
+predicate inv_Error (_1: t_Error)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_Error [inv_Error x]. inv_Error x = inv_ErrorKind x.inner
+
+predicate inv_Result_Parts_Error (_1: t_Result_Parts_Error)
+
+axiom inv_axiom'5 [@rewrite]: forall x: t_Result_Parts_Error [inv_Result_Parts_Error x]. inv_Result_Parts_Error x
+    = match x with
+      | Ok f0'0 -> inv_Parts f0'0
+      | Err f0'0 -> inv_Error f0'0
+      end
+
+predicate inv_Builder (_1: t_Builder)
+
+axiom inv_axiom'6 [@rewrite]: forall x: t_Builder [inv_Builder x]. inv_Builder x = inv_Result_Parts_Error x.inner'0
+
+predicate response_builder_is_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 235 0 235 59] (builder: t_Builder) =
+  [%#sresponse'6] match builder.inner'0 with
+    | Ok _ -> true
+    | Err _ -> false
+    end
+
+type t_Option_ref_Parts = None | Some t_Parts
+
+function response_builder_parts [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 323 0 323 76] (builder: t_Builder) : t_Option_ref_Parts
+ = [%#sresponse'8] match builder.inner'0 with
+    | Ok head -> Some head
+    | Err _ -> None
+    end
+
+predicate response_builder_has_default_core_fields [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 246 0 246 74] (builder: t_Builder) =
+  [%#sresponse'7] match response_builder_parts builder with
+    | Some parts -> deep_model_StatusCode parts.status = 200 /\ deep_model_Version parts.version = 11
+    | None -> false
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec default_Builder
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 1062 4 1062 27]
+  (return (x: t_Builder)) = (! bb0
+  [ bb0 = s0
+    [ s0 = new [%#sresponse] (fun (_x: t_Parts) -> [ &_4 <- _x ] s1)
+    | s1 = [ &_3 <- Ok _4 ] s2
+    | s2 = [ &_ret <- { inner'0 = _3 } ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: t_Builder = Any.any_l () | & _3: t_Result_Parts_Error = Any.any_l () | & _4: t_Parts = Any.any_l () ])
+  [ return (result: t_Builder) ->
+  {[@stop_split] [@expl:default_Builder ensures] ([@stop_split] [@expl:default result type invariant] [%#sresponse'0] inv_Builder result)
+    /\ ([@stop_split] [@expl:default ensures #0] [%#sresponse'1] response_builder_is_valid result)
+    /\ ([@stop_split] [@expl:default ensures #1] [%#sresponse'2] response_builder_has_default_core_fields result)}
+    (! return {result}) ]

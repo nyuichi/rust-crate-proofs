@@ -1,0 +1,160 @@
+{
+  "artifacts": {
+    "coma": {
+      "path": "artifacts/try_insert_entry.coma",
+      "sha256": "f8c893904b736e98a9a4c687e3dc2c3abde1e4cab3babbd41e1fa74e548aa2b5"
+    },
+    "commands_log": {
+      "path": "commands.log",
+      "sha256": "33d9052e5a58b44fb86aed78fa5464c395293708444fe96e5be386ab315192be"
+    },
+    "proof_json": {
+      "path": "artifacts/try_insert_entry.proof.json",
+      "sha256": "5eaf2e91c8e5bc2b91e33ea287a9ff16184a5843e6cde0edafcd6c1bdd12ce87"
+    },
+    "proof_results": {
+      "path": "proof-results.txt",
+      "sha256": "70e8a228340e7a4ab8dc1741fcda5c1d1b14f81e1bb17e3022df9990ab82e95a"
+    },
+    "solver_free_direct_task_extraction": {
+      "expected_root_keys": [
+        "vc_len_Bucket_T",
+        "vc_new",
+        "vc_push_Bucket_T",
+        "vc_try_insert_entry_T"
+      ],
+      "method": "Why3 driver emits the untransformed direct COMA goals with no prover selected; task-name set is compared exactly with proof JSON root keys.",
+      "observed_root_keys": [
+        "vc_len_Bucket_T",
+        "vc_new",
+        "vc_push_Bucket_T",
+        "vc_try_insert_entry_T"
+      ],
+      "result": "PASS: 4 untransformed direct task files match all four proof JSON roots.",
+      "tasks": [
+        {
+          "path": "arity/tasks/try_insert_entry-Coma-vc_len_Bucket_T.why",
+          "sha256": "3c157edab49703ac3ded652f94742d27c5a0f556df2b40d4fd0bc19659f29adc"
+        },
+        {
+          "path": "arity/tasks/try_insert_entry-Coma-vc_new.why",
+          "sha256": "943a180e3652da87c4b7c44d29529e4513c86bd45a54a782f53a1b3cfd8a4cfd"
+        },
+        {
+          "path": "arity/tasks/try_insert_entry-Coma-vc_push_Bucket_T.why",
+          "sha256": "33848873d28904dd83836d37a0feb12981e176fcbd5b8bca251dde0250ca0ed4"
+        },
+        {
+          "path": "arity/tasks/try_insert_entry-Coma-vc_try_insert_entry_T.why",
+          "sha256": "0152847ed0b094a46b0de8f66827ba3065cb6d9bf03046b723ee384b5f1fa624"
+        }
+      ]
+    }
+  },
+  "contract_boundary": "On Err, keys length stays unchanged and the initial length is at least MAX_SIZE. On Ok, initial length is below MAX_SIZE, exactly one Bucket is appended with supplied hash/key/value and links=None, and the method preserves mask, indices, extra_values, and danger. This is a one-helper contract; no map occupancy, lookup, or graph invariant is claimed.",
+  "crate": "http 1.5.0",
+  "profile": {
+    "cargo_features": [
+      "http_map_api_leaf",
+      "http_map_entry_api_leaf"
+    ],
+    "harness": "verification/header-map-api",
+    "offline_locked": true,
+    "rustflags": [
+      "--cfg http_map_api_leaf"
+    ]
+  },
+  "proof_run": {
+    "all_roots_direct_success": true,
+    "command": "source /workspace/proof-tools/activate.sh && export CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http && ../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache verif/http_header_map_api_proof_rlib/header/map/impl_HeaderMap_T/try_insert_entry.coma -- --features http_map_api_leaf,http_map_entry_api_leaf --locked --offline",
+    "elevated": true,
+    "exit_code": 0,
+    "own_successful_leaves": 1,
+    "own_target_key": "vc_try_insert_entry_T",
+    "preprocess": "none",
+    "proof_json_direct_root_count": 4,
+    "proof_result": "Theory verif.http_header_map_api_proof_rlib.header.map.impl_HeaderMap_T.try_insert_entry.Coma: \u2714 (4)",
+    "support_successful_leaves": 3,
+    "support_target_keys": [
+      "vc_len_Bucket_T",
+      "vc_new",
+      "vc_push_Bucket_T"
+    ],
+    "total_successful_leaves": 4,
+    "wrapper": "http/1.5.0/scripts/run-proof.sh"
+  },
+  "snapshot": "http-header-map-api-try-insert-entry-2026-10-05",
+  "source_scope": "Actual private HeaderMap::try_insert_entry source body included by the named harness; no runtime replacement or proof-only source body.",
+  "sources": [
+    {
+      "archived_path": "sources/http/1.5.0/src/header/map.rs",
+      "path": "http/1.5.0/src/header/map.rs",
+      "sha256": "44b55c1d50f44ebd6f1728cd7b711ee7c51b53ae3b063aab9646725788a1b126"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/src/header/map_index.rs",
+      "path": "http/1.5.0/src/header/map_index.rs",
+      "sha256": "86500e8601d3a15ec6beeb0deaafa6cf1ab848182911e3596be5bc2cbe343fa8"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/invariant.rs",
+      "path": "creusot-libs/creusot-std/src/invariant.rs",
+      "sha256": "70eb036a7ab0c43d3af877f7ffcf8346148edc1e64224b296ab5de93ef7e990f"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/logic/seq.rs",
+      "path": "creusot-libs/creusot-std/src/logic/seq.rs",
+      "sha256": "7eb7c51ac84cc7be2ab87a384979dd7aa50063d47fecc5b5cfcc5b434a11c70f"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/std/boxed.rs",
+      "path": "creusot-libs/creusot-std/src/std/boxed.rs",
+      "sha256": "f1bbfe3129618d679011e106a4a05b0ba176b4d228de389ab38d0e9144fb5812"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/std/vec.rs",
+      "path": "creusot-libs/creusot-std/src/std/vec.rs",
+      "sha256": "597db7fb360b320e0809843a73ac9f6208e6acae61d578d9c3ef0d421069e2ed"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/Cargo.toml",
+      "path": "http/1.5.0/verification/header-map-api/Cargo.toml",
+      "sha256": "f45ea2abcd8b1de34ca9f5c62510ed576bde23b4b3638a0c8d7c5def43b01d8f"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/Cargo.lock",
+      "path": "http/1.5.0/verification/header-map-api/Cargo.lock",
+      "sha256": "f3656ba9be1ca4501916286a20c7ad252892d4ac963100f903abe1267b3590d6"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/src/lib.rs",
+      "path": "http/1.5.0/verification/header-map-api/src/lib.rs",
+      "sha256": "b3a41c0c243aaa33c2d85ebc7a092bc4f2f3170049fcc50f67d133c787e36f1d"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/src/header.rs",
+      "path": "http/1.5.0/verification/header-map-api/src/header.rs",
+      "sha256": "7736a09379eecf2f8a8126cd65d15cef707f9d4b2551f85375b9a24d5ca2e7a7"
+    },
+    {
+      "archived_path": "sources/http/1.5.0/verification/header-map-api/why3find.json",
+      "path": "http/1.5.0/verification/header-map-api/why3find.json",
+      "sha256": "c7014603e8a4f00384e112d1c626b3c0ed1a6fdf54425d25ee2d6e3bfcdd685d"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/Cargo.toml",
+      "path": "creusot-libs/creusot-std/Cargo.toml",
+      "sha256": "b46846933e75040159932a285b06acea26b659917c070e6cd2020538a43f9c64"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/lib.rs",
+      "path": "creusot-libs/creusot-std/src/lib.rs",
+      "sha256": "5a2b41e4b98149f860b91e518c8bf425be820251e94d482654db785cc44861bd"
+    },
+    {
+      "archived_path": "sources/creusot-libs/creusot-std/src/std.rs",
+      "path": "creusot-libs/creusot-std/src/std.rs",
+      "sha256": "6a53fdb248abc38b060aed3612ccb7b450eb8630334b8a25181738878d4f553d"
+    }
+  ]
+}

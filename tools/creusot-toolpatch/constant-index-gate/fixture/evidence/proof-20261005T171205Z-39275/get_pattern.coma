@@ -1,0 +1,48 @@
+(* #"/workspace/httparse-cloud-resume/tools/creusot-toolpatch/constant-index-gate/fixture/src/lib.rs" 8 0 8 42 *)
+
+let%span slib = "/workspace/httparse-cloud-resume/tools/creusot-toolpatch/constant-index-gate/fixture/src/lib.rs" 8 19 8 24
+let%span slib'0 = "/workspace/httparse-cloud-resume/tools/creusot-toolpatch/constant-index-gate/fixture/src/lib.rs" 7 10 7 98
+let%span sarray = "/workspace/httparse-tool-rebuild/string-model/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+
+use creusot.int.UInt64
+use creusot.int.UInt8
+use creusot.slice.Slice64
+use creusot.prelude.Any
+use seq.Seq
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_4 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (4: UInt64.t)
+
+predicate inv_array_u8_4 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_4 _1
+
+meta "rewrite_def" predicate inv_array_u8_4
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec get_pattern
+  [#"/workspace/httparse-cloud-resume/tools/creusot-toolpatch/constant-index-gate/fixture/src/lib.rs" 8 0 8 42]
+  (bytes: Slice64.array UInt8.t) (return (x: bool)) =
+  {[@stop_split] [@expl:get_pattern 'bytes' type invariant] [%#slib] inv_array_u8_4 bytes}
+  (! bb0
+  [ bb0 = Slice64.get <UInt8.t> {bytes} {(0: UInt64.t)}
+      (fun (r: UInt8.t) -> any [ br0 -> {r = (71: UInt8.t)} (! bb2) | default -> -{r <> (71: UInt8.t)}- (! bb1) ])
+  | bb2 = Slice64.get <UInt8.t> {bytes} {(1: UInt64.t)}
+      (fun (r: UInt8.t) -> any [ br0 -> {r = (69: UInt8.t)} (! bb3) | default -> -{r <> (69: UInt8.t)}- (! bb1) ])
+  | bb3 = Slice64.get <UInt8.t> {bytes} {(2: UInt64.t)}
+      (fun (r: UInt8.t) -> any [ br0 -> {r = (84: UInt8.t)} (! bb4) | default -> -{r <> (84: UInt8.t)}- (! bb1) ])
+  | bb4 = Slice64.get <UInt8.t> {bytes} {(3: UInt64.t)}
+      (fun (r: UInt8.t) -> any [ br0 -> {r = (32: UInt8.t)} (! bb6) | default -> -{r <> (32: UInt8.t)}- (! bb1) ])
+  | bb1 = s0 [ s0 = [ &_ret <- false ] s1 | s1 = return {_ret} ]
+  | bb6 = s0 [ s0 = [ &_ret <- true ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & bytes: Slice64.array UInt8.t = bytes ])
+  [ return (result: bool) -> {[@stop_split] [@expl:get_pattern ensures] [%#slib'0] result
+    = (UInt8.t'int (Seq.get (Slice64.view bytes) 0) = 71
+    /\ UInt8.t'int (Seq.get (Slice64.view bytes) 1) = 69
+    /\ UInt8.t'int (Seq.get (Slice64.view bytes) 2) = 84 /\ UInt8.t'int (Seq.get (Slice64.view bytes) 3) = 32)}
+    (! return {result}) ]

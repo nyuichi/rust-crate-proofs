@@ -1,0 +1,59 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 15 28 20 *)
+
+(* <version::Version as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 15 28 20
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 15 28 20
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 53 12 54 45
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 36 20 36 39
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 178 12 185 13
+
+use creusot.prelude.Any
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+type t_Version = { f0: t_Http }
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'3] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+function view_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 35 4 35 33] (self: t_Version) : int
+ = [%#sversion'2] deep_model_Http self.f0
+
+predicate invariant_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 51 4 51 30] (self: t_Version) =
+  [%#sversion'1] view_Version self = 9
+  \/ view_Version self = 10 \/ view_Version self = 11 \/ view_Version self = 20 \/ view_Version self = 30
+
+predicate inv_Version (_1: t_Version)
+
+axiom inv_axiom [@rewrite]: forall x: t_Version [inv_Version x]. inv_Version x = invariant_Version x
+
+predicate invariant_ref_Version [@inline:trivial] (self: t_Version) = [%#sinvariant] inv_Version self
+
+meta "rewrite_def" predicate invariant_ref_Version
+
+predicate inv_ref_Version [@inline:trivial] (_1: t_Version) = invariant_ref_Version _1
+
+meta "rewrite_def" predicate inv_ref_Version
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_Version
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 15 28 20]
+  (self: t_Version) (return (x: t_Version)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#sversion] inv_ref_Version self}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Version = Any.any_l () | & self: t_Version = self ])
+  [ return (result: t_Version) -> {[@stop_split] [@expl:clone result type invariant] [%#sversion'0] inv_Version result}
+    (! return {result}) ]

@@ -1,0 +1,57 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 554 4 554 52 *)
+
+(* <status::StatusCode as std::convert::TryFrom<u16>> *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 554 27 554 52
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 550 32 553 5
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 141 20 141 39
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 167 20 167 48
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 187 20 187 40
+
+use creusot.int.UInt16
+use int.Int
+
+type t_NonZero_u16
+
+type t_StatusCode = { f0: t_NonZero_u16 }
+
+type t_InvalidStatusCode = { _priv: () }
+
+type t_Result_StatusCode_InvalidStatusCode = Ok t_StatusCode | Err t_InvalidStatusCode
+
+function nonzero_value_u16 (_value: t_NonZero_u16) : UInt16.t
+
+function deep_model_NonZero_u16 (self: t_NonZero_u16) : int = [%#snum] UInt16.t'int (nonzero_value_u16 self)
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+ = [%#sstatus'1] deep_model_NonZero_u16 self.f0
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'2] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_NonZero_u16 (_1: t_NonZero_u16)
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom [@rewrite]: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x
+    = (invariant_StatusCode x /\ inv_NonZero_u16 x.f0)
+
+predicate inv_Result_StatusCode_InvalidStatusCode (_1: t_Result_StatusCode_InvalidStatusCode)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_Result_StatusCode_InvalidStatusCode [inv_Result_StatusCode_InvalidStatusCode x]. inv_Result_StatusCode_InvalidStatusCode x
+    = match x with
+      | Ok f0'0 -> inv_StatusCode f0'0
+      | Err f0'0 -> true
+      end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall value: UInt16.t. forall result: t_Result_StatusCode_InvalidStatusCode. ([%#sstatus] inv_Result_StatusCode_InvalidStatusCode result)
+        /\ ([%#sstatus'0] match result with
+          | Ok code -> view_StatusCode code = UInt16.t'int value /\ invariant_StatusCode code
+          | Err _ -> UInt16.t'int value < 100 \/ UInt16.t'int value > 999
+          end) -> inv_Result_StatusCode_InvalidStatusCode result

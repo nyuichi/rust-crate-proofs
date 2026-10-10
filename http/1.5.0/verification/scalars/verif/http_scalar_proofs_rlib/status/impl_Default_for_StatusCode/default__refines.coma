@@ -1,0 +1,40 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 462 4 462 30 *)
+
+(* <status::StatusCode as std::default::Default> *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 462 20 462 30
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 461 32 461 68
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 141 20 141 39
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 167 20 167 48
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 187 20 187 40
+
+use creusot.int.UInt16
+use int.Int
+
+type t_NonZero_u16
+
+type t_StatusCode = { f0: t_NonZero_u16 }
+
+function nonzero_value_u16 (_value: t_NonZero_u16) : UInt16.t
+
+function deep_model_NonZero_u16 (self: t_NonZero_u16) : int = [%#snum] UInt16.t'int (nonzero_value_u16 self)
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+ = [%#sstatus'1] deep_model_NonZero_u16 self.f0
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'2] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_NonZero_u16 (_1: t_NonZero_u16)
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom [@rewrite]: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x
+    = (invariant_StatusCode x /\ inv_NonZero_u16 x.f0)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall result: t_StatusCode. ([%#sstatus] inv_StatusCode result)
+      /\ ([%#sstatus'0] view_StatusCode result = 200 /\ invariant_StatusCode result) -> inv_StatusCode result

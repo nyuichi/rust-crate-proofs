@@ -1,0 +1,48 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 410 0 415 1 *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 400 11 400 47
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 401 11 401 47
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 402 11 402 52
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 403 11 403 52
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 404 11 404 74
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 405 11 405 74
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 407 4 408 69
+let%span smethod'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 416 4 419 5
+let%span smethod'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1232 8 1232 28
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use int.Int
+
+constant const_MAX: UInt64.t = [%#smethod'7] (15: UInt64.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant data1 : Seq.seq UInt8.t
+
+constant len1 : int
+
+constant data2 : Seq.seq UInt8.t
+
+constant len2 : int
+
+function equal_canonical_inline_storage [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 410 0 415 1] (data1: Seq.seq UInt8.t) (len1: int) (data2: Seq.seq UInt8.t) (len2: int) : ()
+
+goal vc_equal_canonical_inline_storage: ([%#smethod] Seq.length data1 = UInt64.t'int const_MAX)
+  -> ([%#smethod'0] Seq.length data2 = UInt64.t'int const_MAX)
+  -> ([%#smethod'1] 0 < len1 /\ len1 <= UInt64.t'int const_MAX)
+  -> ([%#smethod'2] 0 < len2 /\ len2 <= UInt64.t'int const_MAX)
+  -> ([%#smethod'3] forall i: int. len1 <= i /\ i < Seq.length data1 -> Seq.get data1 i = (0: UInt8.t))
+  -> ([%#smethod'4] forall i: int. len2 <= i /\ i < Seq.length data2 -> Seq.get data2 i = (0: UInt8.t))
+  -> (if data1 = data2 then
+    (len1 = len2) = (Seq.([..]) data1 0 len1 = Seq.([..]) data2 0 len2)
+    && ([@stop_split] [@expl:equal_canonical_inline_storage ensures] [%#smethod'5] (data1 = data2 /\ len1 = len2)
+    = (Seq.([..]) data1 0 len1 = Seq.([..]) data2 0 len2))
+  else
+    false = (Seq.([..]) data1 0 len1 = Seq.([..]) data2 0 len2)
+    && ([@stop_split] [@expl:equal_canonical_inline_storage ensures] [%#smethod'5] (data1 = data2 /\ len1 = len2)
+    = (Seq.([..]) data1 0 len1 = Seq.([..]) data2 0 len2))
+  )

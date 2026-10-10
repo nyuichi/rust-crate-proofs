@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "task": "HTTP 1.5.0 PathAndQuery Display proof checkpoint",
+  "captured_at_utc": "2026-10-05",
+  "status": "PathAndQuery Display body and refinement proved",
+  "profile": {
+    "working_directory": "verification/uri",
+    "rustflags": "--cfg http_uri_authority_scanner_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf",
+    "cargo_target_dir": "/workspace/proof-tools/targets/http-uri",
+    "proof_settings": {
+      "wrapper": "scripts/run-proof.sh",
+      "sandbox_permissions": "require_escalated",
+      "no_cache": true,
+      "preprocess": "split_vc",
+      "prover_jobs": 1,
+      "memory_mib_per_prover": 1024
+    }
+  },
+  "source_hashes_at_emission": {
+    "src/uri/path.rs": "e5da89ec18bf3f194fc994d795b02f1b18ff16ba47c2bd984a3a5d8f928220dc",
+    "src/uri/path_class.rs": "c73264a7dc66c0823e781eed73ab5fe44dff5ac7431a1fe59ee45c537f171dd8",
+    "src/uri/path_static_domain.rs": "e170e39717bbe67843bdaf42d619b742ba80ff9f204eadd134b8c4f4ec721c84",
+    "src/uri/mod.rs": "ff37e82376904703c236461f1d2ac83afc00382ab54be46e633bdf5745a8957e",
+    "verification/uri/src/lib.rs": "150ccbe27f993f9d7e45ebfa7f91244c19b848ec8eef333d8aa218c80afb4cd0",
+    "verification/uri/Cargo.toml": "f3be031015fb1f12f41be00ad1b1baabf15c407fee16f8108ceb489e2152899a",
+    "verification/uri/Cargo.lock": "92e620abcf12279a7d3d4359a320d5a569b70906204fb8e0cc1e71b5e61aa7fc"
+  },
+  "standard_library_hashes_at_emission": {
+    "creusot-std/src/std/convert.rs": "a74830cdae42660ed03533d4d33c77c5b9244605fa9cb0d2a9941ced395a0061",
+    "creusot-std/src/std/string.rs": "3dec1d56ca9863212738ef21c83ca87a5f6d079008bc25e1bbebe32575f77dfc",
+    "creusot-std/src/std/partial_eq.rs": "efe3e792d9deea9dfa89ba2c4adf0b55c7c4fb0709c48b8e791753ee487c5756",
+    "creusot-std/src/std/partial_ord.rs": "8d1fbfd3b1189be19874efdef9aba5b4f58fd9c3bb545d061052e95dd9266a26",
+    "creusot-std/src/std/hash.rs": "a24a1bc06a5f7ffee1e7512bf5aea3b1fdc0791c3caebd79be5bc1eeacfd8fed",
+    "creusot-std/src/std/bytes.rs": "6f3aaae39bab2c5888b8ffe7a33fc773ac668ca5f9afb953e58ab8bb8ef8ceb2",
+    "creusot-std/src/std/fmt.rs": "45a68d77d9987e6adc8ecbc32ba2ed3838decdd562a463d211216ee342afeb84",
+    "creusot-std/src/std/seq_ord.rs": "5604d675006d0830cc9c74d461826b2f07ef4c8c94781e5c64b66a7b5050fef8"
+  },
+  "frontend": {
+    "exit_code": 0,
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_uri_authority_scanner_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && cargo creusot --check -- --locked --offline",
+    "notes": "The two unused pearlite imports in path_class.rs and path_static_domain.rs were removed. The check still reports non-fatal warnings for the existing raw Authority comparison calls and unused harness helper functions."
+  },
+  "emission": {
+    "exit_code": 0,
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_uri_authority_scanner_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && ../../scripts/run-proof.sh bash -c 'cargo clean -p http-uri-proof && cargo creusot --simple-triggers=false -- --locked --offline'"
+  },
+  "proof": {
+    "exit_code": 0,
+    "own_leaf_summary": "31/31: Display body 25/25, Display refinement 3/3, formatter transitivity helper 3/3",
+    "command": "source /workspace/proof-tools/activate.sh && export DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find' && export RUSTFLAGS='--cfg http_uri_authority_scanner_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && ../../scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always verif/http_uri_proof_rlib/uri/path/impl_Display_for_PathAndQuery/fmt.coma verif/http_uri_proof_rlib/uri/path/impl_Display_for_PathAndQuery/fmt__refines.coma verif/http_uri_proof_rlib/uri/path/path_formatter_extends_transitive.coma",
+    "artifacts": {
+      "comas/path-display.coma": "6a301b500ad4a6a0b86ed07d58c12d386ecae1932747448dfcd69ac69ce613f3",
+      "comas/path-display.proof.json": "0817ae4eac6917f68a0c27edbc6b1a961edab4285199e6c34f7f85ee98ff7685",
+      "comas/path-display-refines.coma": "ccb20eedf7ea452522e41a100aa62715712d8d7700a8809d16f60e2b3bc80134",
+      "comas/path-display-refines.proof.json": "4555c029c03690c1cf62609db4757e94d28de83b9d39b5a6304799a38e36f4da",
+      "comas/formatter-transitive.coma": "1f328f32c0ad0e160665f88e3be006f6a1a71baf7c55af52bb32bc18f7eff781",
+      "comas/formatter-transitive.proof.json": "51a07f7ecd2e4e6a251a06ee905a17e7c4d321ce3ee7c70492394dea89c33e22"
+    }
+  },
+  "scope_note": "The underlying fix replaces the equivalent runtime condition `!data.is_empty()` with `data.len() != 0`, allowing Creusot to use the existing string length contract. URI verification as a whole remains open."
+}

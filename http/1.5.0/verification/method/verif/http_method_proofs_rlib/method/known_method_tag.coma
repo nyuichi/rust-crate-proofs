@@ -1,0 +1,266 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 141 0 141 37 *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 142 10 142 19
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 148 13 148 14
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 147 13 147 36
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 146 13 146 36
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 145 13 145 36
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 144 13 144 36
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 143 13 143 36
+let%span smethod'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 135 28 135 41
+let%span smethod'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 136 28 136 73
+let%span smethod'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 137 28 139 39
+let%span smethod'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 216 29 216 44
+let%span smethod'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 217 28 217 73
+let%span smethod'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 218 28 220 39
+let%span smethod'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 202 29 202 44
+let%span smethod'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 203 28 203 73
+let%span smethod'14 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 204 28 206 39
+let%span smethod'15 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 184 29 184 44
+let%span smethod'16 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 185 28 185 73
+let%span smethod'17 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 186 28 188 39
+let%span smethod'18 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 168 29 168 44
+let%span smethod'19 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 169 28 169 73
+let%span smethod'20 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 170 28 172 39
+let%span smethod'21 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 152 29 152 44
+let%span smethod'22 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 153 28 153 73
+let%span smethod'23 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 154 28 156 39
+let%span smethod'24 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 328 8 345 9
+let%span smethod'25 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 299 8 300 78
+let%span smethod'26 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 310 8 320 29
+let%span smethod'27 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'28 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 277 8 290 9
+let%span smethod'29 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+let rec len_u8 (self_: Slice64.slice UInt8.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+predicate method_text_matches [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 297 0 297 65] (left: Seq.seq UInt8.t) (right: Seq.seq UInt8.t) =
+  [%#smethod'25] Seq.length left = Seq.length right
+  /\ (forall i: int. 0 <= i /\ i < Seq.length left -> Seq.get left i = Seq.get right i)
+
+type t_MethodModel =
+  | Options
+  | Get
+  | Post
+  | Put
+  | Delete
+  | Head
+  | Trace
+  | Connect
+  | Patch
+  | Query
+  | ExtensionInline (Seq.seq UInt8.t) int
+  | ExtensionAllocated (Seq.seq UInt8.t)
+
+function method_model_text [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 275 0 275 56] (method: t_MethodModel) : Seq.seq UInt8.t
+ = [%#smethod'28] match method with
+    | Options -> Seq.create 7 [|(79: UInt8.t);(80: UInt8.t);(84: UInt8.t);(73: UInt8.t);(79: UInt8.t);(78: UInt8.t);(83: UInt8.t)|]
+    | Get -> Seq.create 3 [|(71: UInt8.t);(69: UInt8.t);(84: UInt8.t)|]
+    | Post -> Seq.create 4 [|(80: UInt8.t);(79: UInt8.t);(83: UInt8.t);(84: UInt8.t)|]
+    | Put -> Seq.create 3 [|(80: UInt8.t);(85: UInt8.t);(84: UInt8.t)|]
+    | Delete -> Seq.create 6 [|(68: UInt8.t);(69: UInt8.t);(76: UInt8.t);(69: UInt8.t);(84: UInt8.t);(69: UInt8.t)|]
+    | Head -> Seq.create 4 [|(72: UInt8.t);(69: UInt8.t);(65: UInt8.t);(68: UInt8.t)|]
+    | Trace -> Seq.create 5 [|(84: UInt8.t);(82: UInt8.t);(65: UInt8.t);(67: UInt8.t);(69: UInt8.t)|]
+    | Connect -> Seq.create 7 [|(67: UInt8.t);(79: UInt8.t);(78: UInt8.t);(78: UInt8.t);(69: UInt8.t);(67: UInt8.t);(84: UInt8.t)|]
+    | Patch -> Seq.create 5 [|(80: UInt8.t);(65: UInt8.t);(84: UInt8.t);(67: UInt8.t);(72: UInt8.t)|]
+    | Query -> Seq.create 5 [|(81: UInt8.t);(85: UInt8.t);(69: UInt8.t);(82: UInt8.t);(89: UInt8.t)|]
+    | ExtensionInline data len -> Seq.([..]) data 0 len
+    | ExtensionAllocated data -> data
+    end
+
+predicate is_known_method_text [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 326 0 326 51] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'24] if Seq.length bytes = 3 then
+    method_text_matches bytes (method_model_text (Get)) \/ method_text_matches bytes (method_model_text (Put))
+  else
+    if Seq.length bytes = 4 then
+      method_text_matches bytes (method_model_text (Post)) \/ method_text_matches bytes (method_model_text (Head))
+    else
+      if Seq.length bytes = 5 then
+        method_text_matches bytes (method_model_text (Patch))
+        \/ method_text_matches bytes (method_model_text (Trace))
+        \/ method_text_matches bytes (method_model_text (Query))
+      else
+        if Seq.length bytes = 6 then
+          method_text_matches bytes (method_model_text (Delete))
+        else
+          if Seq.length bytes = 7 then
+            method_text_matches bytes (method_model_text (Options))
+            \/ method_text_matches bytes (method_model_text (Connect))
+          else
+            false
+        
+      
+    
+  
+
+
+function known_method_tag_text [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 308 0 308 49] (tag: int) : Seq.seq UInt8.t
+ = [%#smethod'26] if tag = 1 then
+    method_model_text (Options)
+  else
+    if tag = 2 then
+      method_model_text (Get)
+    else
+      if tag = 3 then
+        method_model_text (Post)
+      else
+        if tag = 4 then
+          method_model_text (Put)
+        else
+          if tag = 5 then
+            method_model_text (Delete)
+          else
+            if tag = 6 then
+              method_model_text (Head)
+            else
+              if tag = 7 then
+                method_model_text (Trace)
+              else
+                if tag = 8 then
+                  method_model_text (Connect)
+                else
+                  if tag = 9 then
+                    method_model_text (Patch)
+                  else
+                    if tag = 10 then method_model_text (Query) else Seq.empty: Seq.seq UInt8.t
+                
+              
+            
+          
+        
+      
+    
+  
+
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'29] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'27] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+let rec known_method_tag_7 (src: Slice64.slice UInt8.t) (return (x: UInt8.t)) =
+  {[@stop_split] [@expl:known_method_tag_7 requires] [%#smethod'9] Seq.length (Slice64.view src) = 7}
+  any
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:known_method_tag_7 ensures] ([@stop_split] [@expl:known_method_tag_7 ensures #0] [%#smethod'10] (UInt8.t'int result
+        = 0)
+      = (not is_known_method_text (Slice64.view src)))
+    /\ ([@stop_split] [@expl:known_method_tag_7 ensures #1] [%#smethod'11] UInt8.t'int result > 0
+    -> method_text_matches (Slice64.view src) (known_method_tag_text (UInt8.t'int result))
+    /\ all_method_chars_valid (Slice64.view src))}
+    (! return {result}) ]
+
+let rec known_method_tag_6 (src: Slice64.slice UInt8.t) (return (x: UInt8.t)) =
+  {[@stop_split] [@expl:known_method_tag_6 requires] [%#smethod'12] Seq.length (Slice64.view src) = 6}
+  any
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:known_method_tag_6 ensures] ([@stop_split] [@expl:known_method_tag_6 ensures #0] [%#smethod'13] (UInt8.t'int result
+        = 0)
+      = (not is_known_method_text (Slice64.view src)))
+    /\ ([@stop_split] [@expl:known_method_tag_6 ensures #1] [%#smethod'14] UInt8.t'int result > 0
+    -> method_text_matches (Slice64.view src) (known_method_tag_text (UInt8.t'int result))
+    /\ all_method_chars_valid (Slice64.view src))}
+    (! return {result}) ]
+
+let rec known_method_tag_5 (src: Slice64.slice UInt8.t) (return (x: UInt8.t)) =
+  {[@stop_split] [@expl:known_method_tag_5 requires] [%#smethod'15] Seq.length (Slice64.view src) = 5}
+  any
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:known_method_tag_5 ensures] ([@stop_split] [@expl:known_method_tag_5 ensures #0] [%#smethod'16] (UInt8.t'int result
+        = 0)
+      = (not is_known_method_text (Slice64.view src)))
+    /\ ([@stop_split] [@expl:known_method_tag_5 ensures #1] [%#smethod'17] UInt8.t'int result > 0
+    -> method_text_matches (Slice64.view src) (known_method_tag_text (UInt8.t'int result))
+    /\ all_method_chars_valid (Slice64.view src))}
+    (! return {result}) ]
+
+let rec known_method_tag_4 (src: Slice64.slice UInt8.t) (return (x: UInt8.t)) =
+  {[@stop_split] [@expl:known_method_tag_4 requires] [%#smethod'18] Seq.length (Slice64.view src) = 4}
+  any
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:known_method_tag_4 ensures] ([@stop_split] [@expl:known_method_tag_4 ensures #0] [%#smethod'19] (UInt8.t'int result
+        = 0)
+      = (not is_known_method_text (Slice64.view src)))
+    /\ ([@stop_split] [@expl:known_method_tag_4 ensures #1] [%#smethod'20] UInt8.t'int result > 0
+    -> method_text_matches (Slice64.view src) (known_method_tag_text (UInt8.t'int result))
+    /\ all_method_chars_valid (Slice64.view src))}
+    (! return {result}) ]
+
+let rec known_method_tag_3 (src: Slice64.slice UInt8.t) (return (x: UInt8.t)) =
+  {[@stop_split] [@expl:known_method_tag_3 requires] [%#smethod'21] Seq.length (Slice64.view src) = 3}
+  any
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:known_method_tag_3 ensures] ([@stop_split] [@expl:known_method_tag_3 ensures #0] [%#smethod'22] (UInt8.t'int result
+        = 0)
+      = (not is_known_method_text (Slice64.view src)))
+    /\ ([@stop_split] [@expl:known_method_tag_3 ensures #1] [%#smethod'23] UInt8.t'int result > 0
+    -> method_text_matches (Slice64.view src) (known_method_tag_text (UInt8.t'int result))
+    /\ all_method_chars_valid (Slice64.view src))}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec known_method_tag
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 141 0 141 37]
+  (src: Slice64.slice UInt8.t) (return (x: UInt8.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = len_u8 [%#smethod] {src} (fun (_x: UInt64.t) -> [ &_7 <- _x ] s1)
+    | s1 = any
+      [ br0 -> {_7 = (3: UInt64.t)} (! bb12)
+      | br1 -> {_7 = (4: UInt64.t)} (! bb11)
+      | br2 -> {_7 = (5: UInt64.t)} (! bb10)
+      | br3 -> {_7 = (6: UInt64.t)} (! bb9)
+      | br4 -> {_7 = (7: UInt64.t)} (! bb8)
+      | default -> -{_7 <> (3: UInt64.t)
+        /\ _7 <> (4: UInt64.t) /\ _7 <> (5: UInt64.t) /\ _7 <> (6: UInt64.t) /\ _7 <> (7: UInt64.t)}-
+        (! bb2) ] ]
+  | bb2 = s0 [ s0 = [ &_ret <- [%#smethod'0] (0: UInt8.t) ] s1 | s1 = return {_ret} ]
+  | bb8 = s0
+    [ s0 = known_method_tag_7 [%#smethod'1] {src} (fun (_x: UInt8.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb9 = s0
+    [ s0 = known_method_tag_6 [%#smethod'2] {src} (fun (_x: UInt8.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb10 = s0
+    [ s0 = known_method_tag_5 [%#smethod'3] {src} (fun (_x: UInt8.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb11 = s0
+    [ s0 = known_method_tag_4 [%#smethod'4] {src} (fun (_x: UInt8.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ]
+  | bb12 = s0
+    [ s0 = known_method_tag_3 [%#smethod'5] {src} (fun (_x: UInt8.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: UInt8.t = Any.any_l () | & src: Slice64.slice UInt8.t = src | & _7: UInt64.t = Any.any_l () ])
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:known_method_tag ensures] ([@stop_split] [@expl:known_method_tag ensures #0] [%#smethod'6] UInt8.t'int result
+      <= 10)
+    /\ ([@stop_split] [@expl:known_method_tag ensures #1] [%#smethod'7] (UInt8.t'int result = 0)
+      = (not is_known_method_text (Slice64.view src)))
+    /\ ([@stop_split] [@expl:known_method_tag ensures #2] [%#smethod'8] UInt8.t'int result > 0
+    -> method_text_matches (Slice64.view src) (known_method_tag_text (UInt8.t'int result))
+    /\ all_method_chars_valid (Slice64.view src))}
+    (! return {result}) ]

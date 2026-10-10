@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "task": "HTTP 1.5.0 Authority ASCII-folded comparison model and implementation proofs",
+  "captured_at_utc": "2026-10-05",
+  "status": "Fresh URI leaf-harness translation and proofs passed for Authority comparison helpers, all seven Eq directions, and all seven PartialOrd directions.",
+  "semantic_scope": {
+    "view": "Authority View remains exact stored bytes.",
+    "deep_model": "AuthorityCompareModel stores ASCII-folded bytes for comparison.",
+    "runtime": "The bytewise comparator preserves existing ASCII-case-insensitive behavior; non-ASCII UTF-8 bytes are unchanged.",
+    "not_verified": "This is the named URI proof harness profile; it does not establish that the full production crate passes its integrated Creusot gate."
+  },
+  "profile": {
+    "working_directory": "verification/uri",
+    "rustflags": "--cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf",
+    "cargo_target_dir": "/workspace/proof-tools/targets/http-uri",
+    "proof_settings": {
+      "wrapper": "scripts/run-proof.sh",
+      "sandbox_permissions": "require_escalated",
+      "why3_no_cache": true,
+      "preprocess": "split_vc",
+      "jobs": 1,
+      "memory_mib_per_prover": 1024
+    }
+  },
+  "source_hashes_at_emission": {
+    "src/uri/authority.rs": "5b5698cb74cfc68c84f234481e6291c1112b1e80cbcf7fdd56d573b750b5ac5d",
+    "src/uri/mod.rs": "ff37e82376904703c236461f1d2ac83afc00382ab54be46e633bdf5745a8957e",
+    "src/uri/path.rs": "e5da89ec18bf3f194fc994d795b02f1b18ff16ba47c2bd984a3a5d8f928220dc",
+    "src/uri/path_class.rs": "c73264a7dc66c0823e781eed73ab5fe44dff5ac7431a1fe59ee45c537f171dd8",
+    "src/uri/path_static_domain.rs": "e170e39717bbe67843bdaf42d619b742ba80ff9f204eadd134b8c4f4ec721c84",
+    "verification/uri/src/lib.rs": "150ccbe27f993f9d7e45ebfa7f91244c19b848ec8eef333d8aa218c80afb4cd0",
+    "verification/uri/Cargo.toml": "f3be031015fb1f12f41be00ad1b1baabf15c407fee16f8108ceb489e2152899a",
+    "verification/uri/Cargo.lock": "92e620abcf12279a7d3d4359a320d5a569b70906204fb8e0cc1e71b5e61aa7fc"
+  },
+  "standard_library_hashes_at_emission": {
+    "../../creusot-libs/creusot-std/src/std/convert.rs": "a74830cdae42660ed03533d4d33c77c5b9244605fa9cb0d2a9941ced395a0061",
+    "../../creusot-libs/creusot-std/src/std/string.rs": "3dec1d56ca9863212738ef21c83ca87a5f6d079008bc25e1bbebe32575f77dfc",
+    "../../creusot-libs/creusot-std/src/std/partial_eq.rs": "efe3e792d9deea9dfa89ba2c4adf0b55c7c4fb0709c48b8e791753ee487c5756",
+    "../../creusot-libs/creusot-std/src/std/partial_ord.rs": "8d1fbfd3b1189be19874efdef9aba5b4f58fd9c3bb545d061052e95dd9266a26",
+    "../../creusot-libs/creusot-std/src/std/bytes.rs": "6f3aaae39bab2c5888b8ffe7a33fc773ac668ca5f9afb953e58ab8bb8ef8ceb2",
+    "../../creusot-libs/creusot-std/src/std/fmt.rs": "45a68d77d9987e6adc8ecbc32ba2ed3838decdd562a463d211216ee342afeb84",
+    "../../creusot-libs/creusot-std/src/std/hash.rs": "a24a1bc06a5f7ffee1e7512bf5aea3b1fdc0791c3caebd79be5bc1eeacfd8fed",
+    "../../creusot-libs/creusot-std/src/std/seq_ord.rs": "5604d675006d0830cc9c74d461826b2f07ef4c8c94781e5c64b66a7b5050fef8"
+  },
+  "frontend": {
+    "scope": "URI leaf harness, not full production",
+    "exit_code": 0,
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && cargo creusot --check -- --locked --offline"
+  },
+  "emission": {
+    "exit_code": 0,
+    "command": "source /workspace/proof-tools/activate.sh && export RUSTFLAGS='--cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && ../../scripts/run-proof.sh bash -c 'cargo clean -p http-uri-proof && cargo creusot --simple-triggers=false -- --locked --offline'"
+  },
+  "proof_batches": [
+    {
+      "name": "comparison_helpers",
+      "exit_code": 0,
+      "own_terminal_leaves": 44,
+      "target_counts": {
+        "authority_ascii_lowercase_byte": 5,
+        "authority_folded_cmp_from": 2,
+        "authority_ascii_case_eq": 22,
+        "authority_ascii_case_cmp": 15
+      },
+      "command": "source /workspace/proof-tools/activate.sh && export DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find' && export RUSTFLAGS='--cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && ../../scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always verif/http_uri_proof_rlib/uri/authority/authority_ascii_lowercase_byte.coma verif/http_uri_proof_rlib/uri/authority/authority_folded_cmp_from.coma verif/http_uri_proof_rlib/uri/authority/authority_ascii_case_eq.coma verif/http_uri_proof_rlib/uri/authority/authority_ascii_case_cmp.coma"
+    },
+    {
+      "name": "PartialEq bodies and refinements",
+      "exit_code": 0,
+      "own_terminal_leaves": 41,
+      "target_counts": {
+        "impl_PartialEq_for_Authority/eq": 3,
+        "impl_PartialEq_for_Authority/eq__refines": 4,
+        "impl_PartialEq_for_Authority_0/eq": 2,
+        "impl_PartialEq_for_Authority_0/eq__refines": 3,
+        "impl_PartialEq_for_Authority_1/eq": 2,
+        "impl_PartialEq_for_Authority_1/eq__refines": 3,
+        "impl_PartialEq_for_Authority_2/eq": 3,
+        "impl_PartialEq_for_Authority_2/eq__refines": 4,
+        "impl_PartialEq_for_str/eq": 2,
+        "impl_PartialEq_for_str/eq__refines": 3,
+        "impl_PartialEq_for_ref_str/eq": 2,
+        "impl_PartialEq_for_ref_str/eq__refines": 3,
+        "impl_PartialEq_for_String/eq": 3,
+        "impl_PartialEq_for_String/eq__refines": 4
+      },
+      "command": "source /workspace/proof-tools/activate.sh && export DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find' && export RUSTFLAGS='--cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && ../../scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_Authority/eq.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_Authority/eq__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_Authority_0/eq.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_Authority_0/eq__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_Authority_1/eq.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_Authority_1/eq__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_Authority_2/eq.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_Authority_2/eq__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_str/eq.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_str/eq__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_ref_str/eq.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_ref_str/eq__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_String/eq.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialEq_for_String/eq__refines.coma"
+    },
+    {
+      "name": "PartialOrd bodies and refinements",
+      "exit_code": 0,
+      "own_terminal_leaves": 34,
+      "target_counts": {
+        "impl_PartialOrd_for_Authority/partial_cmp": 3,
+        "impl_PartialOrd_for_Authority/partial_cmp__refines": 3,
+        "impl_PartialOrd_for_Authority_0/partial_cmp": 2,
+        "impl_PartialOrd_for_Authority_0/partial_cmp__refines": 2,
+        "impl_PartialOrd_for_Authority_1/partial_cmp": 2,
+        "impl_PartialOrd_for_Authority_1/partial_cmp__refines": 2,
+        "impl_PartialOrd_for_Authority_2/partial_cmp": 3,
+        "impl_PartialOrd_for_Authority_2/partial_cmp__refines": 3,
+        "impl_PartialOrd_for_str/partial_cmp": 2,
+        "impl_PartialOrd_for_str/partial_cmp__refines": 2,
+        "impl_PartialOrd_for_ref_str/partial_cmp": 2,
+        "impl_PartialOrd_for_ref_str/partial_cmp__refines": 2,
+        "impl_PartialOrd_for_String/partial_cmp": 3,
+        "impl_PartialOrd_for_String/partial_cmp__refines": 3
+      },
+      "command": "source /workspace/proof-tools/activate.sh && export DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find' && export RUSTFLAGS='--cfg http_uri_authority_scanner_leaf --cfg http_uri_authority_compare_leaf --cfg http_uri_scheme_leaf --cfg http_uri_leaf --cfg http_uri_host_leaf --cfg http_uri_default_leaf' && export CARGO_TARGET_DIR=/workspace/proof-tools/targets/http-uri && ../../scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_Authority/partial_cmp.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_Authority/partial_cmp__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_Authority_0/partial_cmp.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_Authority_0/partial_cmp__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_Authority_1/partial_cmp.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_Authority_1/partial_cmp__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_Authority_2/partial_cmp.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_Authority_2/partial_cmp__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_str/partial_cmp.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_str/partial_cmp__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_ref_str/partial_cmp.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_ref_str/partial_cmp__refines.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_String/partial_cmp.coma verif/http_uri_proof_rlib/uri/authority/impl_PartialOrd_for_String/partial_cmp__refines.coma"
+    }
+  ],
+  "total_own_terminal_leaves": 119,
+  "native_regression": {
+    "exit_code": 0,
+    "tests_passed": 1,
+    "tests_failed": 0,
+    "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --locked --offline --lib comparison_folds_ascii_and_preserves_non_ascii_bytes"
+  },
+  "artifacts_sha256": {
+    "comas/eq/impl_PartialEq_for_Authority/eq/proof.json": "94cfe4ac41138e864a041edc34c1469a65870115bd44441d3d447296c85e4e74",
+    "comas/eq/impl_PartialEq_for_Authority/eq.coma": "c8e10282e68caa4ef83f32c829be97598eb71c155d52c1949bfb3e9947e0f00d",
+    "comas/eq/impl_PartialEq_for_Authority/eq__refines/proof.json": "dc06732b50eedf1fb5ef325df93119edecca2d86d3508d1dfd26fd8e5e82ee00",
+    "comas/eq/impl_PartialEq_for_Authority/eq__refines.coma": "389ab06f88b1981a89236c126930fd2a61bbbc8e9b405ccc2f1d15ec9599e2f3",
+    "comas/eq/impl_PartialEq_for_Authority_0/eq/proof.json": "14e0bf2b40863d2a7df049f92d69e65f06ae7186c02c7e982f715971f004ea7d",
+    "comas/eq/impl_PartialEq_for_Authority_0/eq.coma": "2478c3b74bfce15121a83ae49d4400e074384144028c046b94aa20e4d6ec8e57",
+    "comas/eq/impl_PartialEq_for_Authority_0/eq__refines/proof.json": "737c04419a7e21cdab7f8c78d9411256d71358e15f17c4609ea25ec3d340338c",
+    "comas/eq/impl_PartialEq_for_Authority_0/eq__refines.coma": "91e81953a6c16a8a3cc024a16584cc14925099f500180433289aaa324b2de180",
+    "comas/eq/impl_PartialEq_for_Authority_1/eq/proof.json": "7c7681842b35450c0bac5d205acb7fdcb124016a514c16cca156e79ac81df266",
+    "comas/eq/impl_PartialEq_for_Authority_1/eq.coma": "5e6125ace97a1dd16a6c45f903ac4f5e7b640bdb56987c544f738f48be83f53a",
+    "comas/eq/impl_PartialEq_for_Authority_1/eq__refines/proof.json": "5c7ce9f667cd1c25c3dae030e3607b9491fe9cc5858ccc79b525a056bd3b14bc",
+    "comas/eq/impl_PartialEq_for_Authority_1/eq__refines.coma": "a094471265d6331b61859f98d21252c1c695a5a895bc0f8f1fe03c5236053546",
+    "comas/eq/impl_PartialEq_for_Authority_2/eq/proof.json": "c56efbe1c81c7ce1f1599aae643a4abaed69689de8113058dcbf805bee58a4c1",
+    "comas/eq/impl_PartialEq_for_Authority_2/eq.coma": "eff921a204938b0e3440f4b01e561eb1b691220a460bb995f8d50c41e21e0705",
+    "comas/eq/impl_PartialEq_for_Authority_2/eq__refines/proof.json": "08080d9f9f6777cde7b5e02b412838fbbd8911d3e7fe0a1b081dd93b949797ea",
+    "comas/eq/impl_PartialEq_for_Authority_2/eq__refines.coma": "2f02101d16ad72c852ea3721598969ed59f01b0bdbb04f6164e73185b5c1ba2c",
+    "comas/eq/impl_PartialEq_for_String/eq/proof.json": "e7c98c3e81694a3a011054d4800cd72e9453f6b21a509ee0dbc648cdb1e9e332",
+    "comas/eq/impl_PartialEq_for_String/eq.coma": "e8bd09ec3c8143f04dc332ca947f8b7f96bce11ab5ba168209cd9f727190eeff",
+    "comas/eq/impl_PartialEq_for_String/eq__refines/proof.json": "4b9b82920812924a3ef00298b0d130b50b35d2aebc8b10c71db8aecd9852e9df",
+    "comas/eq/impl_PartialEq_for_String/eq__refines.coma": "65acff6a907dc03bcefe61f69c6e5f261d991226045e3b16398d52684a4016e4",
+    "comas/eq/impl_PartialEq_for_ref_str/eq/proof.json": "a17be48b9cf2d4cdcb1d57b1733b3a7930436bd6c55738cc31bff762c97d3ff6",
+    "comas/eq/impl_PartialEq_for_ref_str/eq.coma": "2874825b60895cbc404080879c83af3e5c773c1461a2eb7b961e2695a063813a",
+    "comas/eq/impl_PartialEq_for_ref_str/eq__refines/proof.json": "8b69cde0bfc60fc5c40a21be8833968cf5c2b249a8a18b6889881c7a4b65a859",
+    "comas/eq/impl_PartialEq_for_ref_str/eq__refines.coma": "fd51703378e2ef14d29758bd82121836a995579333571b7462cc6331f87cdddb",
+    "comas/eq/impl_PartialEq_for_str/eq/proof.json": "062008e88a2f3619d6b8ac6bdaaf32c651c85b35c2eb36fee251680a868785a0",
+    "comas/eq/impl_PartialEq_for_str/eq.coma": "107826cd1e6c5a2f7b4f2aeebf66c9008e9673f1cd50a6a1a4e79668e1d44692",
+    "comas/eq/impl_PartialEq_for_str/eq__refines/proof.json": "3711e935cc3b3cedd3c10858aa45f38bac17f969d7866b2ccd2d3569f0ff14e2",
+    "comas/eq/impl_PartialEq_for_str/eq__refines.coma": "470835eefdc207caaae7ca6336fbb898b68c374d937374d632f68030980ef3a3",
+    "comas/helpers/authority_ascii_case_cmp.coma": "ddbaa493b3fe5d1bc21cb8ceb8142a215af9b5dcbb490a5a5757a0f849632c6a",
+    "comas/helpers/authority_ascii_case_cmp.proof.json": "5199eab68856808b8addaa131459ad613c073dac149ad7cceaf728803d62efdc",
+    "comas/helpers/authority_ascii_case_eq.coma": "ac6dc50aabbfda0f96641211b305816483d9ef0a45bbf5ed1d64b5664d5b6247",
+    "comas/helpers/authority_ascii_case_eq.proof.json": "31a9c2d9aa0e6e70074b3c851bde84be3da0d1ccb67f9725f487a3d0acd67751",
+    "comas/helpers/authority_ascii_lowercase_byte.coma": "f7510cdf77845376450e7712b2c490117846157cb31979e68a6ab9a66aa05b7e",
+    "comas/helpers/authority_ascii_lowercase_byte.proof.json": "b3f59f1a9a280b97830294a555f8a84bc8238f17bb39a86ed6e57ffc5984b27f",
+    "comas/helpers/authority_folded_cmp_from.coma": "10392e1a673e7f6d134291d8ed7db7c7eecfc135477327aac6272ea8957c1838",
+    "comas/helpers/authority_folded_cmp_from.proof.json": "90dec0e7cdcb6cf355d0eff4e9ce239b45bf1d20cd510d9a6e577d11b5a768b1",
+    "comas/ord/impl_PartialOrd_for_Authority/partial_cmp/proof.json": "d7537c6eca5884a1853acd5d74ad6b24145131cf5e4b0fda3afff5d02ecfc3ab",
+    "comas/ord/impl_PartialOrd_for_Authority/partial_cmp.coma": "f7e3b9965e9eec37eff5cdcd60b83308701669c4d223a1e06cd3d9802f251caa",
+    "comas/ord/impl_PartialOrd_for_Authority/partial_cmp__refines/proof.json": "8040844c491766b192a21b14ee75558fcf98f5d0abb366299f1d067f1d402e6d",
+    "comas/ord/impl_PartialOrd_for_Authority/partial_cmp__refines.coma": "8377c9db6e17f8776fb85d8d08aef3341503f160fdc411947365eb6966257bf5",
+    "comas/ord/impl_PartialOrd_for_Authority_0/partial_cmp/proof.json": "97c21c87148d0709a588f5666f9b9bd710edd038df1735c403fd40bae1d96424",
+    "comas/ord/impl_PartialOrd_for_Authority_0/partial_cmp.coma": "6ebae38b72899237e1ef8f94707941f413045d341588361ce7d80d643ec453f8",
+    "comas/ord/impl_PartialOrd_for_Authority_0/partial_cmp__refines/proof.json": "55c7a7715ffe498f38a2a40d959582e40b351911f9a327183c713b6f05610534",
+    "comas/ord/impl_PartialOrd_for_Authority_0/partial_cmp__refines.coma": "255719aab39cdf09251c90afba06fb94620f20e96bb726dc4edff9aab9c02c08",
+    "comas/ord/impl_PartialOrd_for_Authority_1/partial_cmp/proof.json": "2d39701aa4dedb444edac8c4ddc0ce916f00e5b3abdd718d2a4e25179148768c",
+    "comas/ord/impl_PartialOrd_for_Authority_1/partial_cmp.coma": "81c34d4bd4c720bdff04cb6b5f39b4d0bb9f4e12b29d9d817fd22ae5cd364ca5",
+    "comas/ord/impl_PartialOrd_for_Authority_1/partial_cmp__refines/proof.json": "5b5888167be96e271f88ed299962767fdacaaed9ebc614907f766f732c673065",
+    "comas/ord/impl_PartialOrd_for_Authority_1/partial_cmp__refines.coma": "a763a135f836dd5ff3849401859b5b5e75b613b4e29a4c4ffdd97e461dfdf73d",
+    "comas/ord/impl_PartialOrd_for_Authority_2/partial_cmp/proof.json": "386fa678338015b77eae111016f76e2aca3c1a8f2d6c8f070da31ba788d47ff8",
+    "comas/ord/impl_PartialOrd_for_Authority_2/partial_cmp.coma": "e10277a5b7fddf3e1c61d8c307095591035c842ecf11acdf2f39af39809f6108",
+    "comas/ord/impl_PartialOrd_for_Authority_2/partial_cmp__refines/proof.json": "3e89bc17a04f06a2ba28552c75224a1a2ddb9903dd7ba98487a86b15c9718e08",
+    "comas/ord/impl_PartialOrd_for_Authority_2/partial_cmp__refines.coma": "9af732de45111566923c10ebc614f5f0aac765502968a9ca23292440c6a19da8",
+    "comas/ord/impl_PartialOrd_for_String/partial_cmp/proof.json": "e7f70037ac75c3bf51723454c9082ae412b256f9ec8d6f7dcbf6ab8d21dd1ffd",
+    "comas/ord/impl_PartialOrd_for_String/partial_cmp.coma": "b8030d38565d6ca77c3485962e5b7a9e4bdababdafa4160ca70e889a6baa6b6a",
+    "comas/ord/impl_PartialOrd_for_String/partial_cmp__refines/proof.json": "8bec17715d7ed92d92b1386d88a7de64e88f8b108ee65661267c94c99070e0f8",
+    "comas/ord/impl_PartialOrd_for_String/partial_cmp__refines.coma": "33a693abafe8bb46137b90ba0198b9668ff5fd42cbd6165346994f1f89be6d9e",
+    "comas/ord/impl_PartialOrd_for_ref_str/partial_cmp/proof.json": "cd2e893edf47d124b7aef96103f5972fae2b844ba3a4079668b2af2ef4d2d67c",
+    "comas/ord/impl_PartialOrd_for_ref_str/partial_cmp.coma": "604728a94eb11a404aa189941a316700d2ca23f37f0f54be94a96a7a026c230c",
+    "comas/ord/impl_PartialOrd_for_ref_str/partial_cmp__refines/proof.json": "1715d3b8d968540afc7d73c05489a4e4018ea09f107943f743c0e385186b5baf",
+    "comas/ord/impl_PartialOrd_for_ref_str/partial_cmp__refines.coma": "f084a1b23fcf7abe97fe95d1f769b850d024129eb2d498ae5292261edbe1089c",
+    "comas/ord/impl_PartialOrd_for_str/partial_cmp/proof.json": "cb2eac36d9af09189383d5472e3fabc838d035c39d821e1bbbacfee354d21b33",
+    "comas/ord/impl_PartialOrd_for_str/partial_cmp.coma": "528617e4b9546b9042d3de8205828f8b5c9c9b5ecb4200dd71353bbe288d1525",
+    "comas/ord/impl_PartialOrd_for_str/partial_cmp__refines/proof.json": "aa7c58460e08da13fcbb78bcdc3321ae5403721ae14ec44c492eff655f4e062d",
+    "comas/ord/impl_PartialOrd_for_str/partial_cmp__refines.coma": "e8bcca25fd353498739b804e69c66b5090af939a723549df8ec9e0935b3f1a8f"
+  },
+  "proof_logs": {
+    "logs/http-authority-eq-proof.log": "388f592e77f4721304fe806f2b18bc5b5f0abd2c3cfef90879c520613884ea13",
+    "logs/http-authority-helpers-proof.log": "30778d3ce31af27baa53a1f2eb33e7cad33ee4871e0e730dd08fcd036bb19bac",
+    "logs/http-authority-ord-proof.log": "06b510a8da5b06c88edb6e9ce661927400178d70d557cdbfe60bf9fe5969e6aa"
+  },
+  "post_emission_source_deltas": [
+    {
+      "path": "src/uri/authority.rs",
+      "sha256_at_emission": "5b5698cb74cfc68c84f234481e6291c1112b1e80cbcf7fdd56d573b750b5ac5d",
+      "sha256_current": "fd3f129ab0683ba62f747a18f6e43106888bdb6224d4f7e4477e389ef913828f",
+      "change": "Authority::hash now uses authority_ascii_lowercase_byte instead of u8::to_ascii_lowercase; a runtime regression checks equal authorities yield equal DefaultHasher digests. The regression passes, while proof of the changed Hash body is pending the next URI source emission.",
+      "pre_edit_source_archive": "sources-at-emission/src/uri/authority.rs"
+    },
+    {
+      "path": "src/uri/mod.rs",
+      "sha256_at_emission": "ff37e82376904703c236461f1d2ac83afc00382ab54be46e633bdf5745a8957e",
+      "sha256_current": "10d311404805d3626c8ba3212affce7637cb0409de7a3c2bb2c9361bfbbfaef3",
+      "change": "Parts::default is now an explicit behavior-equivalent implementation with an exact all-None model postcondition; this is prepared for a later Parts proof.",
+      "pre_edit_source_archive": "sources-at-emission/src/uri/mod.rs"
+    }
+  ],
+  "source_snapshots_sha256": {
+    "sources-at-emission/src/uri/authority.rs": "5b5698cb74cfc68c84f234481e6291c1112b1e80cbcf7fdd56d573b750b5ac5d",
+    "sources-at-emission/src/uri/mod.rs": "ff37e82376904703c236461f1d2ac83afc00382ab54be46e633bdf5745a8957e"
+  },
+  "post_emission_native_regression": {
+    "exit_code": 0,
+    "tests_passed": 1,
+    "tests_failed": 0,
+    "command": "source /workspace/proof-tools/activate.sh && CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http RUSTFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' RUSTDOCFLAGS='-Zcrate-attr=feature(stmt_expr_attributes,proc_macro_hygiene)' cargo test --locked --offline --lib uri::authority::tests::hashing_matches_case_insensitive_equality"
+  }
+}

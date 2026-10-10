@@ -1,0 +1,29 @@
+{
+  "evidence_id": "uri-conversion-api-2026-10-05",
+  "scope": "Frontend-only check for exact model posts on the actual From<Authority> for Uri and From<PathAndQuery> for Uri implementations.",
+  "profile": {
+    "harness": "verification/uri",
+    "cfg": [
+      "http_uri_parts_leaf",
+      "http_uri_scheme_leaf",
+      "http_uri_leaf",
+      "http_uri_authority_scanner_leaf",
+      "http_uri_authority_compare_leaf",
+      "http_uri_host_leaf"
+    ],
+    "target_dir": "/workspace/proof-tools/targets/http-uri-conversion-check"
+  },
+  "check": {
+    "command": "correct-leaf-profile/command.txt",
+    "exit_code": 0,
+    "log": "correct-leaf-profile/check.log",
+    "source_hashes_before": "correct-leaf-profile/source-before.sha256",
+    "source_hashes_after": "correct-leaf-profile/source-after.sha256",
+    "result_scope": "Creusot frontend check only; no clean emission and no Why3 proof was run."
+  },
+  "source_contracts": {
+    "src/uri/mod.rs": "54b908c33a051087b1c03a5d8c91e06bf802b8fc28b3c15d664083e149348644",
+    "authority_conversion": "Result preserves the input Authority view, uses SchemeModel::None, and stores an empty PathAndQuery byte/query model.",
+    "path_and_query_conversion": "Result uses SchemeModel::None and an empty Authority view, and preserves the input PathAndQuery view."
+  }
+}

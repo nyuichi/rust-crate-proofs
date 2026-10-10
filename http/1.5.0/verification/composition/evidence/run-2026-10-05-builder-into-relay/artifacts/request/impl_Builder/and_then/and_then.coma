@@ -1,0 +1,225 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 1366 4 1368 42 *)
+
+(* request::Builder *)
+
+let%span srequest = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 1371 24 1371 34
+let%span srequest'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 1366 19 1366 23
+let%span srequest'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 1366 25 1366 29
+let%span srequest'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 1358 15 1361 5
+let%span srequest'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 1366 37 1366 41
+let%span srequest'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 1362 14 1365 5
+let%span srequest'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 229 4 232 5
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 180 29 180 33
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 180 35 180 38
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 178 27 178 49
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 179 26 179 62
+
+use creusot.prelude.Any
+
+type t_Method
+
+type t_Uri
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  method: t_Method;
+  uri: t_Uri;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+type t_InvalidStatusCode
+
+type t_InvalidMethod
+
+type t_InvalidUri
+
+type t_InvalidUriParts
+
+type t_InvalidHeaderName
+
+type t_InvalidHeaderValue
+
+type t_MaxSizeReached
+
+type t_ErrorKind =
+  | StatusCode t_InvalidStatusCode
+  | Method t_InvalidMethod
+  | Uri t_InvalidUri
+  | UriParts t_InvalidUriParts
+  | HeaderName t_InvalidHeaderName
+  | HeaderValue t_InvalidHeaderValue
+  | MaxSizeReached t_MaxSizeReached
+
+type t_Error = { inner: t_ErrorKind }
+
+type t_Result_Parts_Error = Ok t_Parts | Err t_Error
+
+type t_Builder = { inner'0: t_Result_Parts_Error }
+
+type t_F
+
+predicate inv_F (_1: t_F)
+
+predicate resolve_F (_1: t_F)
+
+let rec elim_Err (_x: t_Result_Parts_Error) (return (f0: t_Error)) = any
+  [ _k (f0: t_Error) -> {Err f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Err] match _x with
+      | Err _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+let rec elim_Ok (_x: t_Result_Parts_Error) (return (f0: t_Parts)) = any
+  [ _k (f0: t_Parts) -> {Ok f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Ok] match _x with
+      | Ok _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate inv_Method (_1: t_Method)
+
+predicate inv_Uri (_1: t_Uri)
+
+predicate inv_Version (_1: t_Version)
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_Method x.method
+    /\ inv_Uri x.uri /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+predicate inv_tup1_Parts [@inline:trivial] (_1: t_Parts) = inv_Parts _1
+
+meta "rewrite_def" predicate inv_tup1_Parts
+
+predicate precondition_F (self: t_F) (args: t_Parts)
+
+predicate inv_InvalidStatusCode (_1: t_InvalidStatusCode)
+
+predicate inv_InvalidMethod (_1: t_InvalidMethod)
+
+predicate inv_InvalidUri (_1: t_InvalidUri)
+
+predicate inv_InvalidUriParts (_1: t_InvalidUriParts)
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+predicate inv_InvalidHeaderValue (_1: t_InvalidHeaderValue)
+
+predicate inv_MaxSizeReached (_1: t_MaxSizeReached)
+
+predicate inv_ErrorKind (_1: t_ErrorKind)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_ErrorKind [inv_ErrorKind x]. inv_ErrorKind x
+    = match x with
+      | StatusCode f0 -> inv_InvalidStatusCode f0
+      | Method f0 -> inv_InvalidMethod f0
+      | Uri f0 -> inv_InvalidUri f0
+      | UriParts f0 -> inv_InvalidUriParts f0
+      | HeaderName f0 -> inv_InvalidHeaderName f0
+      | HeaderValue f0 -> inv_InvalidHeaderValue f0
+      | MaxSizeReached f0 -> inv_MaxSizeReached f0
+      end
+
+predicate inv_Error (_1: t_Error)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Error [inv_Error x]. inv_Error x = inv_ErrorKind x.inner
+
+predicate inv_Result_Parts_Error (_1: t_Result_Parts_Error)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_Result_Parts_Error [inv_Result_Parts_Error x]. inv_Result_Parts_Error x
+    = match x with
+      | Ok f0 -> inv_Parts f0
+      | Err f0 -> inv_Error f0
+      end
+
+predicate postcondition_once_F (self: t_F) (args: t_Parts) (result: t_Result_Parts_Error)
+
+let rec call_once_F (self_: t_F) (arg: t_Parts) (return (x: t_Result_Parts_Error)) =
+  {[@stop_split] [@expl:call_once_F requires] ([@stop_split] [@expl:call_once 'self_' type invariant] [%#sops] inv_F self_)
+  /\ ([@stop_split] [@expl:call_once 'arg' type invariant] [%#sops'0] inv_tup1_Parts arg)
+  /\ ([@stop_split] [@expl:call_once requires] [%#sops'1] precondition_F self_ arg)}
+  any
+  [ return (result: t_Result_Parts_Error) ->
+  {[@stop_split] [@expl:call_once_F ensures] ([@stop_split] [@expl:call_once result type invariant] inv_Result_Parts_Error result)
+    /\ ([@stop_split] [@expl:call_once ensures] [%#sops'2] postcondition_once_F self_ arg result)}
+    (! return {result}) ]
+
+predicate inv_Builder (_1: t_Builder)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_Builder [inv_Builder x]. inv_Builder x = inv_Result_Parts_Error x.inner'0
+
+type t_ErrorModelRef =
+  | StatusCode'0 t_InvalidStatusCode
+  | Method'0 t_InvalidMethod
+  | Uri'0 t_InvalidUri
+  | UriParts'0 t_InvalidUriParts
+  | HeaderName'0 t_InvalidHeaderName
+  | HeaderValue'0 t_InvalidHeaderValue
+  | MaxSizeReached'0 t_MaxSizeReached
+
+type t_Option_ErrorModelRef = None | Some t_ErrorModelRef
+
+function error_model_ref [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/error/core.rs" 87 0 87 65] (error: t_Error) : t_ErrorModelRef
+
+function request_builder_error [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 228 0 228 90] (builder: t_Builder) : t_Option_ErrorModelRef
+ = [%#srequest'5] match builder.inner'0 with
+    | Ok _ -> None
+    | Err error -> Some (error_model_ref error)
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec and_then_F
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 1366 4 1368 42]
+  (self: t_Builder) (func: t_F) (return (x: t_Builder)) =
+  {[@stop_split] [@expl:and_then_F requires] ([@stop_split] [@expl:and_then 'self' type invariant] [%#srequest'0] inv_Builder self)
+  /\ ([@stop_split] [@expl:and_then 'func' type invariant] [%#srequest'1] inv_F func)
+  /\ ([@stop_split] [@expl:and_then requires] [%#srequest'2] match self.inner'0 with
+    | Ok head -> precondition_F func head
+    | Err _ -> true
+    end)}
+  (! bb0
+  [ bb0 = any
+    [ br0 (x0: t_Parts) -> {self.inner'0 = Ok x0} (! bb4) | br1 (x0: t_Error) -> {self.inner'0 = Err x0} (! bb3) ]
+  | bb3 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_F func} any) ]
+    | s1 = -{resolve_F func}- s2
+    | s2 = elim_Err {self.inner'0} (fun (r0: t_Error) -> [ &error <- r0 ] s3)
+    | s3 = [ &inner'1 <- Err error ] s4
+    | s4 = bb8 ]
+  | bb4 = s0
+    [ s0 = elim_Ok {self.inner'0} (fun (r0: t_Parts) -> [ &head <- r0 ] s1)
+    | s1 = [ &_13 <- head ] s2
+    | s2 = call_once_F [%#srequest] {func} {_13} (fun (_x: t_Result_Parts_Error) -> [ &inner'1 <- _x ] s3)
+    | s3 = bb8 ]
+  | bb8 = s0 [ s0 = [ &_ret <- { inner'0 = inner'1 } ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Builder = Any.any_l ()
+  | & self: t_Builder = self
+  | & func: t_F = func
+  | & inner'1: t_Result_Parts_Error = Any.any_l ()
+  | & head: t_Parts = Any.any_l ()
+  | & _13: t_Parts = Any.any_l ()
+  | & error: t_Error = Any.any_l () ])
+  [ return (result: t_Builder) ->
+  {[@stop_split] [@expl:and_then_F ensures] ([@stop_split] [@expl:and_then result type invariant] [%#srequest'3] inv_Builder result)
+    /\ ([@stop_split] [@expl:and_then ensures] [%#srequest'4] match self.inner'0 with
+      | Ok head -> postcondition_once_F func head result.inner'0
+      | Err _ -> request_builder_error result = request_builder_error self
+      end)}
+    (! return {result}) ]

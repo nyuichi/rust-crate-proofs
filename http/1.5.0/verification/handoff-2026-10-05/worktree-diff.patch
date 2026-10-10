@@ -1,0 +1,2005 @@
+diff --git a/http/1.5.0/IMPLEMENTATION_INVENTORY.md b/http/1.5.0/IMPLEMENTATION_INVENTORY.md
+index 9c4414c..a5d4fbc 100644
+--- a/http/1.5.0/IMPLEMENTATION_INVENTORY.md
++++ b/http/1.5.0/IMPLEMENTATION_INVENTORY.md
+@@ -18,17 +18,17 @@ integrated run.
+ | [`src/extensions.rs`](src/extensions.rs) | Insert/get/remove/clear/extend/clone, type tags, erased ownership and downcasts | `dyn Any` / `AnyClone` translation gate; sound typed-existential and clone/frame contracts required |
+ | [`src/header/mod.rs`](src/header/mod.rs) | Header exports, standard constants, and module-level helpers | API inventory is source-backed; full integration pending |
+ | [`src/header/name.rs`](src/header/name.rs) | Parsing, normalization, standard-name tables, hashing/comparison, case conversion, `MaybeUninit` initialization helpers | Two source-linked checkpoints cover 34 targets / 280 own leaves, then `parse_hdr` (39), `HdrName` Debug (10), and its refinement (3) on a later source snapshot. Native cfg(test) parity passes 1/1 after a test-only delta. The full source remains open; see the Name snapshot manifests and do not infer 195-target closure. |
+-| [`src/header/value.rs`](src/header/value.rs) | Constructors, byte/string views, formatting, equality/order/hash, integer conversion, unchecked constructors | Current source-linked `From<u16>` body/refinement and `hex_digit` group: 3 targets / 12 own leaves; other integer `From` bodies and the remaining constructors/accessors/formatting paths are open. The dependency byte model remains a stated premise. Historical v7 evidence is kept separate. |
++| [`src/header/value.rs`](src/header/value.rs) | Constructors, byte/string views, formatting, equality/order/hash, integer conversion, unchecked constructors | Source-linked numeric checkpoints cover `From<u16>` + `hex_digit` (3 targets / 12 own leaves) and, separately, `From<u32>`, `From<i32>`, and `From<&HeaderValue>` body/refinement pairs (6 targets / 20 own leaves). Other numeric conversions and remaining constructors/accessors/formatting paths are open. The dependency byte model remains a stated premise; historical v7 evidence is kept separate. |
+ | [`src/header/value_validation.rs`](src/header/value_validation.rs) | `is_valid` and `is_visible_ascii` predicates | Both actual-source bodies proved, one VC each; public callers and integrated use remain open |
+ | [`src/header/map_capacity.rs`](src/header/map_capacity.rs) | Checked capacity arithmetic and usable-capacity calculation | Both actual-source bodies proved, three VCs total; callers and map invariant remain open |
+-| [`src/header/map.rs`](src/header/map.rs) | Hashing, bucket insertion/rehash, duplicate-value links, entry APIs, reserve/remove/retain, iterators, drain, `IntoIter`, drop guards | Selected actual-source leaves now cover capacity arithmetic/constructors, seven `HeaderMap` methods with two open generic `len` layout leaves, six conditional Entry accessors (6 own + 4 Vec-index support leaves), and conditional `IterMut::next_unsafe` (79 own + 33 support leaves). Lookup/reserve/growth/removal, map graph validity, public Iterator refinement, Drain, raw-pointer field ownership, and exact-drop behavior remain open. See the named manifests; these are not an integrated HeaderMap proof. |
+-| [`src/method.rs`](src/method.rs) | Token parse, inline/heap representation, byte/string views, classifications, equality/order/hash, unchecked UTF-8 | No whole-body proof; exact bytes and UTF-8 facts required |
+-| [`src/request.rs`](src/request.rs) | Generic body construction/map/parts conversion, field access/mutation, builder state/error handling, trait impls | Pending field-wise model and ownership/frame proofs |
+-| [`src/response.rs`](src/response.rs) | Generic body construction/map/parts conversion, field access/mutation, builder state/error handling, trait impls | Pending field-wise model and ownership/frame proofs |
++| [`src/header/map.rs`](src/header/map.rs) | Hashing, bucket insertion/rehash, duplicate-value links, entry APIs, reserve/remove/retain, iterators, drain, `IntoIter`, drop guards | Selected actual-source leaves cover capacity arithmetic/constructors, seven `HeaderMap` methods with two open generic `len` layout leaves, six conditional Entry accessors (6 own + 4 Vec-index support), actual `try_insert_entry` (1 own + 3 support), and conditional `IterMut::next_unsafe` (79 own + 33 support). A fresh `find_with_hash` body proof has 1 own leaf + 8 call/spec support leaves. A later partial lookup/getter batch passed seven actual `HeaderMap` body goals (`find`, `find_with_hash`, `get`, `get2`, `get_mut`, `get_all`, `contains_key`: 7 own + 23 support leaves); its actual `AsHeaderName::Sealed::find` bodies/refinements retain six open own leaves. An independent nested-arity audit confirms 24 own terminal obligations (18 pass, 6 open) and 30 passing support leaves with all children accounted for. The current source adds per-impl ready-map/index-range contracts and an exact append helper field/frame contract; the named-profile frontend passes, but these edits await fresh emission and proof. The `header_map_find_ready` premise is not established by constructors/mutations; lookup absence completeness/key-hash coherence, reserve/growth/removal, map graph validity, public Iterator refinement, Drain, raw-pointer field ownership, and exact-drop behavior remain open. See the named manifests; these are not an integrated HeaderMap proof. |
++| [`src/method.rs`](src/method.rs) | Token parse, inline/heap representation, byte/string views, classifications, equality/order/hash, unchecked UTF-8 | Selected scalar/Method evidence includes nine actual `Method::builder_*` constructors, each with one exact model/invariant body proof, in the separate 35-target composition batch. The full Method body closure, exact bytes and UTF-8 facts remain open; see the Method snapshot manifests. |
++| [`src/request.rs`](src/request.rs) | Generic body construction/map/parts conversion, field access/mutation, builder state/error handling, trait impls | Selected actual-source APIs and conditional Builder relay/shortcut bodies are covered by separate sealed leaf snapshots (the 49-target Request/Response structure/Clone/Debug batch; the 35-target Builder relay/fixed-method batch; and the 15-target defaults batch). The 35-target batch has 116 own leaves and 164 call/spec support leaves across Request, Response, and Method sources; its source task formulas were reconciled to the later source map. Header/extension mutation setters, unlisted bodies, and full field-wise/integrated ownership and state proof remain open. |
++| [`src/response.rs`](src/response.rs) | Generic body construction/map/parts conversion, field access/mutation, builder state/error handling, trait impls | Selected actual-source APIs and conditional Builder relay bodies are covered by the same separate Request/Response leaf snapshots noted above. The 35-target batch is not additive to the 49-target or 15-target snapshots and relies on imported component/callback contracts; header/extension mutation setters, unlisted bodies, and full field-wise/integrated ownership and state proof remain open. |
+ | [`src/status.rs`](src/status.rs) | `NonZeroU16` construction/access, byte parsing, numeric conversion/classification, constants, formatting, unsafe construction | `from_u16`, `from_bytes`, `as_u16`, and five classifications proved in the scalar leaf harness; constants, formatting, unsafe construction, and integrated use remain open. The standard-library model boundary is tracked in [`DEPENDENCY_CONTRACTS.md`](DEPENDENCY_CONTRACTS.md) |
+ | [`src/version.rs`](src/version.rs) | Closed enum view, default, equality/order/hash, debug formatting | `Default` body/refinement proved as a leaf; integrated run and remaining methods open |
+-| [`src/uri/mod.rs`](src/uri/mod.rs) | URI parse dispatch, accessors, conversions, formatting, equality/hash, parts/builders, unsafe UTF-8 sites | New scheme-prefix leaves proved; full parsing/conversion remains open; downcast macro gate applies |
+-| [`src/uri/authority.rs`](src/uri/authority.rs) | Authority validation, host/port scans, constructors, formatting/comparison/hash, UTF-8 conversion | Pending exact-byte, scanner, and downcast contracts |
++| [`src/uri/mod.rs`](src/uri/mod.rs) | URI parse dispatch, accessors, conversions, formatting, equality/hash, parts/builders, unsafe UTF-8 sites | Fresh named leaf batch proves selected Parts/default/conversion bodies (55 own leaves) with Authority-related comparisons; full parsing/API remains open and the downcast macro gate applies |
++| [`src/uri/authority.rs`](src/uri/authority.rs) | Authority validation, host/port scans, constructors, formatting/comparison/hash, UTF-8 conversion | Current named leaf checkpoint proves fold/case helpers (42), Hash body/refinement (22), PartialEq (41), and PartialOrd (34) own leaves on its archived source snapshot. Other parsing/UTF-8 and integrated use remain open. |
+ | [`src/uri/builder.rs`](src/uri/builder.rs) | Builder state changes, error retention, build validation and parts conversion | Pending |
+ | [`src/uri/path.rs`](src/uri/path.rs) | Path/query scans, offsets/fragments, constructors, conversions, UTF-8 conversion | Pending exact-byte and downcast contracts |
+ | [`src/uri/port.rs`](src/uri/port.rs) | Port parse, numeric/text view, `From`, `AsRef`, equality and formatting | `as_u16`, numeric `From`, and three `PartialEq` bodies/refinements proved in actual-source harnesses; other methods and integrated use remain open |
+diff --git a/http/1.5.0/PROVENANCE.md b/http/1.5.0/PROVENANCE.md
+index 03d5f4d..2279bc6 100644
+--- a/http/1.5.0/PROVENANCE.md
++++ b/http/1.5.0/PROVENANCE.md
+@@ -115,9 +115,15 @@ Current proof evidence:
+ | `header::value::is_valid` | yes | yes, 1 VC | no | no; actual-source leaf harness only |
+ | `header::value::is_visible_ascii` | yes | yes, 1 VC | no | no; actual-source leaf harness only |
+ | `HeaderValue::from(u16)` / `hex_digit` | yes | yes, 3 targets / 12 own leaves (From body 7, refinement 1, helper 4) | no HTTP body trusted; Bytes remains a stated dependency premise | no; source-linked named leaf snapshot only; the other integer conversions remain open |
++| `HeaderValue::from(u32)`, `from(i32)`, and `from(&HeaderValue)` | yes | yes, 6 targets / 20 own leaves (each body and refinement) in the later `value_numeric_conversions_v1` snapshot | no HTTP body trusted; Bytes remains a stated dependency premise | no; source-linked named leaf snapshot only; numeric conversions not listed remain open |
+ | `HeaderName` / `HdrName` increment | yes, for selected targets | yes, 3 targets / 52 own leaves (`parse_hdr` 39, `HdrName` Debug body 10, refinement 3) on source SHA `3f68bc7c…`; cfg(test)-only parity regression 1/1 on `b8075444…` | no | no; source-linked partial increment only; the 195 emitted Comas are task-comparison inputs, not a 195-target closure |
+ | `VacantEntry::{key,into_key}` and `OccupiedEntry::{key,get,get_mut,into_mut}` | yes, with conditional in-range premise for occupied accessors | yes, 6 own leaves and 4 Vec-index support leaves | no | no; actual-source named leaf harness only; does not prove occupancy or reachability |
+-| URI Parts/default/conversion partial batch | yes, selected contracts | 48 of 55 expected own terminal leaves passed; 7 remain unresolved | no | no; named URI leaf harness only |
++| `HeaderMap::find_with_hash` | yes, conditional on the storage/table predicate and nonempty key table | yes, 1 own body leaf + 8 call/specification support leaves; independent no-preprocess task print matches all 9 proof roots | no HTTP body trusted | no; actual-source named lookup leaf only. `Some` proves index/hash/key relations; `None` and caller establishment of the map premise remain open |
++| `HeaderMap::{find,get,get2,get_mut,get_all,contains_key}` (lookup/getter batch) | yes, conditional on `header_map_find_ready`; `Sealed::find` result contract only bounds a returned index | Partial batch: seven actual `HeaderMap` body goals passed (7 own + 23 call/spec leaves), while three concrete `Sealed::find` bodies and three refinements have 6 open own leaves. The 13-target direct printer produced 43 roots matching proof JSON. Independent per-parent replay confirmed all nested arities: 24 own terminal obligations (18 pass, 6 open) plus 30 passing support leaves. | no HTTP body trusted | no; run exited 1. Proof source `map.rs` SHA `914cfd8a7f3050bc0fb8e4c1a78f0408501cc4d1077c6d444e4b9dec5e0103d7`. Explicit matching per-impl contracts and an `append_value` field/frame contract were added afterward; current `map.rs` SHA `ca22bfb5673eba84281bf3b1738e831a15b94cfcb99b0f8e16cab4fa46f9ce6e` passes the named-profile frontend but awaits fresh emission/proof. The native HTTP library check passed on `cb609fc3…`; later executable statements are unchanged. Neither batch establishes `None` iff absent, all key/hash coherence, nor the map predicate from constructors/mutations. |
++| URI Parts/default/conversions + Authority helpers/Hash/PartialEq/PartialOrd | yes, selected actual-source contracts | yes; fresh 45-target checkpoint, 194 own terminal leaves (Parts/default/conversions 55, Authority helpers 42, Hash 22, PartialEq 41, PartialOrd 34) | no | no; named URI leaf harness only, no parser/full-crate claim |
++| Request/Response selected constructors/defaults | yes, selected body/postcondition scopes | yes; 15 targets / 41 leaves (15 own, 26 call/spec support) with exact run-log and direct-goal arities | no HTTP body trusted; imported HeaderMap/Extensions defaults remain support contracts | no; named composition profile only; distinct source snapshot, not additive to the 49-target archive |
++| Request/Response Builder relays and fixed-method shortcuts | yes, selected conditional callback/error relays and exact fixed-method result models | yes; 35 targets / 280 terminal leaves (116 own, 164 call/spec support), with all task roots and nested splits audited | no HTTP body trusted; imported URI/Status/Version contracts and callback support remain explicit premises | no; named composition profile only. Current task formulas were reconciled to source-map SHA `3ea66eb8889dcf1b8dc5845cc1a39744ee53e29f0788f8b42403a9dbaa4fcc42`; not additive to the 49-target or 15-target snapshots |
++| `HeaderMap::try_insert_entry` private helper | yes, exact success/error branch plus explicit field frame | yes; 1 own leaf and 3 Vec/error-constructor support leaves, with no-preprocess printer roots matching all four proof JSON keys | no | no; named actual-source map leaf profile; caller table-index update/lookup not proved |
+ | `uri::Port<T>::as_u16`, conversion, and three `PartialEq` bodies | yes | yes; 5 bodies/7 VCs, plus 4 refinements/8 VCs | no | no; actual-source leaf harness only |
+ | URI HTTP/HTTPS prefix helpers | yes | yes; 2 bodies, 4 VCs | no | no; actual-source leaf harness only |
+ | `header::map_capacity::{checked_raw_capacity,usable_capacity}` | yes | yes, 3 VCs | no | no; actual-source leaf harness only |
+@@ -125,6 +131,13 @@ Current proof evidence:
+ | `StatusCode::{from_u16,from_bytes,as_u16}` and five classifications | yes | yes; 8 + 6 + 12 = 26 VCs | no HTTP body trusted; explicit std `NonZero<T>` TCB | no; actual-source leaf harness with documented partial exclusions |
+ | public `http` API | in progress | no | no | no |
+ 
++The captured whole-production frontend checks are not integrated proof runs:
++the archived default and all-features profiles each stop at 19 dyn/experimental
++diagnostics, with zero other errors, on stable 159-path source map SHA
++`cc2009b2192b237b893e0ecae63eed6395e89aba13ab28321e002cfbaefce433`. They
++emit no COMA and run no Why3 prover. Later Map lookup source work is outside
++that captured map.
++
+ These are production-source leaf results through isolated harnesses; none is
+ an integrated `http` proof. Their evidence and commands are recorded in the
+ component verification notes: [`verification/headers/README.md`](verification/headers/README.md),
+diff --git a/http/1.5.0/src/header/map.rs b/http/1.5.0/src/header/map.rs
+index f337d67..80a2927 100644
+--- a/http/1.5.0/src/header/map.rs
++++ b/http/1.5.0/src/header/map.rs
+@@ -1,10 +1,14 @@
+ #![allow(unexpected_cfgs)]
+ 
+ use std::collections::hash_map::RandomState;
++#[cfg(not(http_composition_header_leaf))]
+ use std::collections::HashMap;
++#[cfg(not(http_composition_header_leaf))]
+ use std::convert::TryFrom;
+ use std::hash::{BuildHasher, Hash, Hasher};
+-use std::iter::{FromIterator, FusedIterator};
++#[cfg(not(http_composition_header_leaf))]
++use std::iter::FromIterator;
++use std::iter::FusedIterator;
+ use std::marker::PhantomData;
+ use std::{fmt, mem, ops, ptr, vec};
+ use creusot_std::ghost::{perm::Perm, Ghost};
+@@ -21,6 +25,7 @@ use creusot_std::std::ptr::SizedPointerExt;
+ use creusot_std::prelude::Invariant;
+ #[cfg(creusot)]
+ use creusot_std::std::mem::size_of_logic;
++#[cfg(not(http_composition_header_leaf))]
+ use crate::Error;
+ 
+ use super::name::{HdrName, HeaderName, InvalidHeaderName};
+@@ -749,6 +754,19 @@ enum Link {
+     Extra(usize),
+ }
+ 
++#[cfg(creusot)]
++impl DeepModel for Link {
++    type DeepModelTy = (bool, usize);
++
++    #[logic(open, inline)]
++    fn deep_model(self) -> Self::DeepModelTy {
++        match self {
++            Link::Entry(index) => (false, index),
++            Link::Extra(index) => (true, index),
++        }
++    }
++}
++
+ /// Tracks the header map danger level! This relates to the adaptive hashing
+ /// algorithm. A HeaderMap starts in the "green" state, when a large number of
+ /// collisions are detected, it transitions to the yellow state. At this point,
+@@ -1231,7 +1249,8 @@ impl<T> HeaderMap<T> {
+     /// map.append(HOST, "world".parse().unwrap());
+     /// assert_eq!(map.get("host").unwrap(), &"hello");
+     /// ```
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     pub fn get<K>(&self, key: K) -> Option<&T>
+     where
+         K: AsHeaderName,
+@@ -1239,6 +1258,8 @@ impl<T> HeaderMap<T> {
+         self.get2(&key)
+     }
+ 
++    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     fn get2<K>(&self, key: &K) -> Option<&T>
+     where
+         K: AsHeaderName,
+@@ -1269,7 +1290,8 @@ impl<T> HeaderMap<T> {
+     ///
+     /// assert_eq!(map.get(HOST).unwrap(), &"hello-world");
+     /// ```
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     pub fn get_mut<K>(&mut self, key: K) -> Option<&mut T>
+     where
+         K: AsHeaderName,
+@@ -1308,7 +1330,8 @@ impl<T> HeaderMap<T> {
+     /// assert_eq!(&"goodbye", iter.next().unwrap());
+     /// assert!(iter.next().is_none());
+     /// ```
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     pub fn get_all<K>(&self, key: K) -> GetAll<'_, T>
+     where
+         K: AsHeaderName,
+@@ -1332,7 +1355,8 @@ impl<T> HeaderMap<T> {
+     /// map.insert(HOST, "world".parse().unwrap());
+     /// assert!(map.contains_key("host"));
+     /// ```
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     pub fn contains_key<K>(&self, key: K) -> bool
+     where
+         K: AsHeaderName,
+@@ -1673,7 +1697,7 @@ impl<T> HeaderMap<T> {
+         })
+     }
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(all(not(creusot), not(feature = "http_map_api_leaf")))]
+     fn try_entry2<K>(&mut self, key: K) -> Result<Entry<'_, T>, MaxSizeReached>
+     where
+         K: Hash + Into<HeaderName>,
+@@ -1711,6 +1735,45 @@ impl<T> HeaderMap<T> {
+         ))
+     }
+ 
++    #[cfg(all(creusot, not(feature = "http_map_api_leaf")))]
++    fn try_entry2<K>(&mut self, key: K) -> Result<Entry<'_, T>, MaxSizeReached>
++    where
++        K: Hash + Into<HeaderName> + DeepModel,
++        HeaderName: PartialEq<K>,
++        <HeaderName as DeepModel>::DeepModelTy:
++            creusot_std::std::partial_eq::PartialEqModel<<K as DeepModel>::DeepModelTy>,
++    {
++        self.try_reserve_one()?;
++
++        Ok(insert_phase_one!(
++            self,
++            key,
++            probe,
++            pos,
++            hash,
++            danger,
++            Entry::Vacant(VacantEntry {
++                map: self,
++                hash,
++                key: key.into(),
++                probe,
++                danger,
++            }),
++            Entry::Occupied(OccupiedEntry {
++                map: self,
++                index: pos,
++                probe,
++            }),
++            Entry::Vacant(VacantEntry {
++                map: self,
++                hash,
++                key: key.into(),
++                probe,
++                danger,
++            })
++        ))
++    }
++
+     /// Inserts a key-value pair into the map.
+     ///
+     /// If the map did not previously have this key present, then `None` is
+@@ -1790,7 +1853,7 @@ impl<T> HeaderMap<T> {
+     }
+ 
+     #[inline]
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(all(not(creusot), not(feature = "http_map_api_leaf")))]
+     fn try_insert2<K>(&mut self, key: K, value: T) -> Result<Option<T>, MaxSizeReached>
+     where
+         K: Hash + Into<HeaderName>,
+@@ -1823,6 +1886,42 @@ impl<T> HeaderMap<T> {
+         ))
+     }
+ 
++    #[inline]
++    #[cfg(all(creusot, not(feature = "http_map_api_leaf")))]
++    fn try_insert2<K>(&mut self, key: K, value: T) -> Result<Option<T>, MaxSizeReached>
++    where
++        K: Hash + Into<HeaderName> + DeepModel,
++        HeaderName: PartialEq<K>,
++        <HeaderName as DeepModel>::DeepModelTy:
++            creusot_std::std::partial_eq::PartialEqModel<<K as DeepModel>::DeepModelTy>,
++    {
++        self.try_reserve_one()?;
++
++        Ok(insert_phase_one!(
++            self,
++            key,
++            probe,
++            pos,
++            hash,
++            danger,
++            // Vacant
++            {
++                let _ = danger;
++                let index = self.entries.len();
++                self.try_insert_entry(hash, key.into(), value)?;
++                self.indices[probe] = Pos::new(index, hash);
++                None
++            },
++            // Occupied
++            Some(self.insert_occupied(pos, value)),
++            // Robinhood
++            {
++                self.try_insert_phase_two(key.into(), value, hash, probe, danger)?;
++                None
++            }
++        ))
++    }
++
+     /// Set an occupied bucket to the given value
+     #[inline]
+     #[cfg(not(feature = "http_map_api_leaf"))]
+@@ -1938,7 +2037,7 @@ impl<T> HeaderMap<T> {
+     }
+ 
+     #[inline]
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(all(not(creusot), not(feature = "http_map_api_leaf")))]
+     fn try_append2<K>(&mut self, key: K, value: T) -> Result<bool, MaxSizeReached>
+     where
+         K: Hash + Into<HeaderName>,
+@@ -1975,6 +2074,45 @@ impl<T> HeaderMap<T> {
+         ))
+     }
+ 
++    #[inline]
++    #[cfg(all(creusot, not(feature = "http_map_api_leaf")))]
++    fn try_append2<K>(&mut self, key: K, value: T) -> Result<bool, MaxSizeReached>
++    where
++        K: Hash + Into<HeaderName> + DeepModel,
++        HeaderName: PartialEq<K>,
++        <HeaderName as DeepModel>::DeepModelTy:
++            creusot_std::std::partial_eq::PartialEqModel<<K as DeepModel>::DeepModelTy>,
++    {
++        self.try_reserve_one()?;
++
++        Ok(insert_phase_one!(
++            self,
++            key,
++            probe,
++            pos,
++            hash,
++            danger,
++            // Vacant
++            {
++                let _ = danger;
++                let index = self.entries.len();
++                self.try_insert_entry(hash, key.into(), value)?;
++                self.indices[probe] = Pos::new(index, hash);
++                false
++            },
++            // Occupied
++            {
++                append_value(pos, &mut self.entries[pos], &mut self.extra_values, value);
++                true
++            },
++            // Robinhood
++            {
++                self.try_insert_phase_two(key.into(), value, hash, probe, danger)?;
++                false
++            }
++        ))
++    }
++
+     #[cfg(all(not(creusot), any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
+     #[inline]
+     #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
+@@ -2659,7 +2797,7 @@ impl<T> IntoIterator for HeaderMap<T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<T> FromIterator<(HeaderName, T)> for HeaderMap<T> {
+     fn from_iter<I>(iter: I) -> Self
+     where
+@@ -2686,7 +2824,7 @@ impl<T> FromIterator<(HeaderName, T)> for HeaderMap<T> {
+ /// let headers: HeaderMap = (&map).try_into().expect("valid headers");
+ /// assert_eq!(headers["X-Custom-Header"], "my value");
+ /// ```
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, K, V, S, T> TryFrom<&'a HashMap<K, V, S>> for HeaderMap<T>
+ where
+     K: Eq + Hash,
+@@ -2708,7 +2846,7 @@ where
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<T> Extend<(Option<HeaderName>, T)> for HeaderMap<T> {
+     /// Extend a `HeaderMap` with the contents of another `HeaderMap`.
+     ///
+@@ -2806,7 +2944,7 @@ impl<T> Extend<(Option<HeaderName>, T)> for HeaderMap<T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<T> Extend<(HeaderName, T)> for HeaderMap<T> {
+     fn extend<I: IntoIterator<Item = (HeaderName, T)>>(&mut self, iter: I) {
+         // Keys may be already present or show multiple times in the iterator.
+@@ -2855,7 +2993,9 @@ impl<T: fmt::Debug> fmt::Debug for HeaderMap<T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++// The composition header leaf targets Builder::header -> HeaderMap::try_append;
++// the index operator and its formatted panic path are unrelated to that body.
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<K, T> ops::Index<K> for HeaderMap<T>
+ where
+     K: AsHeaderName,
+@@ -2896,6 +3036,46 @@ fn do_insert_phase_two(indices: &mut [Pos], mut probe: usize, mut old_pos: Pos)
+ }
+ 
+ #[inline]
++#[cfg_attr(creusot, requires(match entry.links {
++    Some(links) => links.tail@ < extra@.len(),
++    None => true,
++}))]
++#[cfg_attr(creusot, ensures((^extra)@.len() == extra@.len() + 1))]
++#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].value == value))]
++#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].prev.deep_model().0
++    == match entry.links {
++        Some(_) => true,
++        None => false,
++    }))]
++#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].prev.deep_model().1@
++    == match entry.links {
++        Some(links) => links.tail@,
++        None => entry_idx@,
++    }))]
++#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].next.deep_model().0 == false))]
++#[cfg_attr(creusot, ensures((^extra)@[extra@.len()].next.deep_model().1@ == entry_idx@))]
++#[cfg_attr(creusot, ensures((^entry).hash == entry.hash))]
++#[cfg_attr(creusot, ensures((^entry).key == entry.key))]
++#[cfg_attr(creusot, ensures((^entry).value == entry.value))]
++#[cfg_attr(creusot, ensures(match (entry.links, (^entry).links) {
++    (Some(old), Some(new)) => new.next == old.next && new.tail@ == extra@.len(),
++    (None, Some(new)) => new.next@ == extra@.len() && new.tail@ == extra@.len(),
++    (_, None) => false,
++}))]
++#[cfg_attr(creusot, ensures(forall<i: Int>
++    0 <= i && i < extra@.len() ==>
++        (^extra)@[i].value == extra@[i].value
++            && (^extra)@[i].prev == extra@[i].prev
++            && match entry.links {
++                Some(links) =>
++                    (i == links.tail@ ==>
++                        (^extra)@[i].next.deep_model().0 == true
++                            && (^extra)@[i].next.deep_model().1@ == extra@.len())
++                        && (i != links.tail@ ==>
++                            (^extra)@[i].next.deep_model() == extra@[i].next.deep_model()),
++                None => (^extra)@[i].next.deep_model() == extra@[i].next.deep_model(),
++            }
++))]
+ fn append_value<T>(
+     entry_idx: usize,
+     entry: &mut Bucket<T>,
+@@ -3162,7 +3342,7 @@ impl<'a, T> FusedIterator for Keys<'a, T> {}
+ 
+ // ===== impl Values ====
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T> Iterator for Values<'a, T> {
+     type Item = &'a T;
+ 
+@@ -3175,12 +3355,12 @@ impl<'a, T> Iterator for Values<'a, T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T> FusedIterator for Values<'a, T> {}
+ 
+ // ===== impl ValuesMut ====
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T> Iterator for ValuesMut<'a, T> {
+     type Item = &'a mut T;
+ 
+@@ -3193,12 +3373,12 @@ impl<'a, T> Iterator for ValuesMut<'a, T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T> FusedIterator for ValuesMut<'a, T> {}
+ 
+ // ===== impl Drain =====
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T> Iterator for Drain<'a, T> {
+     type Item = (Option<HeaderName>, T);
+ 
+@@ -3249,10 +3429,10 @@ impl<'a, T> Iterator for Drain<'a, T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T> FusedIterator for Drain<'a, T> {}
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T> Drop for Drain<'a, T> {
+     fn drop(&mut self) {
+         for _ in self {}
+@@ -3658,7 +3838,7 @@ impl<'a, 'b: 'a, T> IntoIterator for &'b GetAll<'a, T> {
+ 
+ // ===== impl ValueIter =====
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T: 'a> Iterator for ValueIter<'a, T> {
+     type Item = &'a T;
+ 
+@@ -3715,7 +3895,7 @@ impl<'a, T: 'a> Iterator for ValueIter<'a, T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T: 'a> DoubleEndedIterator for ValueIter<'a, T> {
+     fn next_back(&mut self) -> Option<Self::Item> {
+         use self::Cursor::*;
+@@ -3746,12 +3926,12 @@ impl<'a, T: 'a> DoubleEndedIterator for ValueIter<'a, T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T> FusedIterator for ValueIter<'a, T> {}
+ 
+ // ===== impl ValueIterMut =====
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T: 'a> Iterator for ValueIterMut<'a, T> {
+     type Item = &'a mut T;
+ 
+@@ -3807,7 +3987,7 @@ impl<'a, T: 'a> Iterator for ValueIterMut<'a, T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T: 'a> DoubleEndedIterator for ValueIterMut<'a, T> {
+     fn next_back(&mut self) -> Option<Self::Item> {
+         use self::Cursor::*;
+@@ -3849,7 +4029,7 @@ impl<'a, T: 'a> DoubleEndedIterator for ValueIterMut<'a, T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<'a, T> FusedIterator for ValueIterMut<'a, T> {}
+ 
+ unsafe impl<'a, T: Sync> Sync for ValueIterMut<'a, T> {}
+@@ -3857,7 +4037,7 @@ unsafe impl<'a, T: Send> Send for ValueIterMut<'a, T> {}
+ 
+ // ===== impl IntoIter =====
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<T> Iterator for IntoIter<T> {
+     type Item = (Option<HeaderName>, T);
+ 
+@@ -3893,10 +4073,10 @@ impl<T> Iterator for IntoIter<T> {
+     }
+ }
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<T> FusedIterator for IntoIter<T> {}
+ 
+-#[cfg(not(feature = "http_map_api_leaf"))]
++#[cfg(all(not(feature = "http_map_api_leaf"), not(http_composition_header_leaf)))]
+ impl<T> Drop for IntoIter<T> {
+     fn drop(&mut self) {
+         struct Guard<'a, T>(&'a mut IntoIter<T>);
+@@ -4566,6 +4746,8 @@ mod into_header_name {
+ 
+ mod as_header_name {
+     use super::{Entry, HdrName, HeaderMap, HeaderName, InvalidHeaderName, MaxSizeReached};
++    #[cfg(creusot)]
++    use creusot_std::prelude::{ensures, requires};
+ 
+     /// A marker trait used to identify values that can be used as search keys
+     /// to a `HeaderMap`.
+@@ -4600,9 +4782,15 @@ mod as_header_name {
+     // without breaking any external crate.
+     pub trait Sealed {
+         #[doc(hidden)]
++        #[cfg(not(feature = "http_map_find_api_leaf"))]
+         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError>;
+ 
+         #[doc(hidden)]
++        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
++        #[cfg_attr(creusot, ensures(match result {
++            Some((_, index)) => index@ < super::header_map_keys_len(*map),
++            None => true,
++        }))]
+         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)>;
+ 
+         #[doc(hidden)]
+@@ -4611,14 +4799,20 @@ mod as_header_name {
+ 
+     // ==== impls ====
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl Sealed for HeaderName {
++        #[cfg(not(feature = "http_map_find_api_leaf"))]
+         #[inline]
+         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
+             Ok(map.try_entry2(self)?)
+         }
+ 
+         #[inline]
++        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
++        #[cfg_attr(creusot, ensures(match result {
++            Some((_, index)) => index@ < super::header_map_keys_len(*map),
++            None => true,
++        }))]
+         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
+             map.find(self)
+         }
+@@ -4628,17 +4822,23 @@ mod as_header_name {
+         }
+     }
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl AsHeaderName for HeaderName {}
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl Sealed for &HeaderName {
++        #[cfg(not(feature = "http_map_find_api_leaf"))]
+         #[inline]
+         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
+             Ok(map.try_entry2(self)?)
+         }
+ 
+         #[inline]
++        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
++        #[cfg_attr(creusot, ensures(match result {
++            Some((_, index)) => index@ < super::header_map_keys_len(*map),
++            None => true,
++        }))]
+         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
+             map.find(*self)
+         }
+@@ -4648,11 +4848,12 @@ mod as_header_name {
+         }
+     }
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl AsHeaderName for &HeaderName {}
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl Sealed for &str {
++        #[cfg(not(feature = "http_map_find_api_leaf"))]
+         #[inline]
+         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
+             Ok(HdrName::from_bytes(self.as_bytes(), move |hdr| {
+@@ -4661,6 +4862,11 @@ mod as_header_name {
+         }
+ 
+         #[inline]
++        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
++        #[cfg_attr(creusot, ensures(match result {
++            Some((_, index)) => index@ < super::header_map_keys_len(*map),
++            None => true,
++        }))]
+         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
+             HdrName::from_bytes(self.as_bytes(), move |hdr| map.find(&hdr)).unwrap_or(None)
+         }
+@@ -4670,17 +4876,23 @@ mod as_header_name {
+         }
+     }
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl AsHeaderName for &str {}
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl Sealed for String {
++        #[cfg(not(feature = "http_map_find_api_leaf"))]
+         #[inline]
+         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
+             self.as_str().try_entry(map)
+         }
+ 
+         #[inline]
++        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
++        #[cfg_attr(creusot, ensures(match result {
++            Some((_, index)) => index@ < super::header_map_keys_len(*map),
++            None => true,
++        }))]
+         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
+             Sealed::find(&self.as_str(), map)
+         }
+@@ -4690,17 +4902,23 @@ mod as_header_name {
+         }
+     }
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl AsHeaderName for String {}
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl Sealed for &String {
++        #[cfg(not(feature = "http_map_find_api_leaf"))]
+         #[inline]
+         fn try_entry<T>(self, map: &mut HeaderMap<T>) -> Result<Entry<'_, T>, TryEntryError> {
+             self.as_str().try_entry(map)
+         }
+ 
+         #[inline]
++        #[cfg_attr(creusot, requires(super::header_map_find_ready(*map)))]
++        #[cfg_attr(creusot, ensures(match result {
++            Some((_, index)) => index@ < super::header_map_keys_len(*map),
++            None => true,
++        }))]
+         fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)> {
+             Sealed::find(*self, map)
+         }
+@@ -4710,7 +4928,7 @@ mod as_header_name {
+         }
+     }
+ 
+-    #[cfg(not(feature = "http_map_api_leaf"))]
++    #[cfg(any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf"))]
+     impl AsHeaderName for &String {}
+ }
+ 
+diff --git a/http/1.5.0/src/header/name.rs b/http/1.5.0/src/header/name.rs
+index 55efa12..72cd2ba 100644
+--- a/http/1.5.0/src/header/name.rs
++++ b/http/1.5.0/src/header/name.rs
+@@ -21,7 +21,7 @@ use creusot_std::std::cmp::PartialEq;
+ #[cfg(creusot)]
+ use creusot_std::std::partial_eq::PartialEqModel;
+ #[cfg(creusot)]
+-use creusot_std::std::ops::FnOnceExt as _;
++use creusot_std::std::ops::{FnExt as _, FnOnceExt as _};
+ 
+ /// Represents an HTTP header field name
+ ///
+@@ -319,7 +319,8 @@ macro_rules! standard_headers {
+ 
+             #[cfg_attr(creusot, ensures(match result {
+                 Some(header) => name_bytes@ == header.byte_view(),
+-                None => true,
++                None => forall<header: StandardHeader>
++                    name_bytes@ != header.byte_view(),
+             }))]
+             const fn from_bytes(name_bytes: &[u8]) -> Option<StandardHeader> {
+                 $(
+@@ -2200,6 +2201,14 @@ impl<T> From<Repr<T>> for Bytes
+ where
+     T: Into<Bytes>,
+ {
++    #[cfg_attr(creusot, requires(match repr {
++        Repr::Standard(_) => true,
++        Repr::Custom(value) => <T as Into<Bytes>>::into.precondition((value,)),
++    }))]
++    #[cfg_attr(creusot, ensures(match repr {
++        Repr::Standard(header) => crate::bytes_model::bytes_seq(result) == header.deep_model().byte_view(),
++        Repr::Custom(value) => <T as Into<Bytes>>::into.postcondition((value,), result),
++    }))]
+     fn from(repr: Repr<T>) -> Bytes {
+         match repr {
+             Repr::Standard(header) => Bytes::from_static(header.as_str().as_bytes()),
+diff --git a/http/1.5.0/src/header/value.rs b/http/1.5.0/src/header/value.rs
+index f1354e5..3ee8b57 100644
+--- a/http/1.5.0/src/header/value.rs
++++ b/http/1.5.0/src/header/value.rs
+@@ -10,7 +10,7 @@ use std::{cmp, fmt, str};
+ #[cfg(creusot)]
+ #[allow(unused_imports)]
+ use creusot_std::prelude::{
+-    DeepModel, Seq, View, ensures, ghost, invariant, logic, pearlite, proof_assert, requires,
++    DeepModel, Int, Seq, View, ensures, ghost, invariant, logic, pearlite, proof_assert, requires,
+     variant,
+ };
+ #[cfg(creusot)]
+@@ -174,7 +174,6 @@ pub struct InvalidHeaderValue {
+ ///
+ /// Header field values may contain opaque bytes, in which case it is not
+ /// possible to represent the value as a string.
+-#[cfg_attr(not(http_header_value_leaf), derive(Debug))]
+ pub struct ToStrError {
+     _priv: (),
+ }
+@@ -555,6 +554,10 @@ impl AsRef<[u8]> for HeaderValue {
+ 
+ #[cfg(not(http_header_value_leaf))]
+ impl fmt::Debug for HeaderValue {
++    #[cfg_attr(creusot, ensures(creusot_std::std::fmt::formatter_extends(
++        f.deep_model(),
++        (^f).deep_model()
++    )))]
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         if self.is_sensitive {
+             f.write_str("Sensitive")
+@@ -562,31 +565,88 @@ impl fmt::Debug for HeaderValue {
+             f.write_str("\"")?;
+             let mut from = 0;
+             let bytes = self.as_bytes();
+-            for (i, &b) in bytes.iter().enumerate() {
++            let mut i = 0;
++
++            #[cfg_attr(creusot, invariant(i@ <= bytes@.len()))]
++            #[cfg_attr(creusot, invariant(from@ <= i@))]
++            #[cfg_attr(creusot, invariant(forall<j: Int>
++                from@ <= j && j < i@ ==> bytes@[j]@ < 128))]
++            #[cfg_attr(creusot, variant(bytes@.len() - i@))]
++            while i < bytes.len() {
++                let b = bytes[i];
+                 if !is_visible_ascii(b) || b == b'"' {
+                     if from != i {
+-                        f.write_str(unsafe { str::from_utf8_unchecked(&bytes[from..i]) })?;
+-                    }
+-                    if b == b'"' {
+-                        f.write_str("\\\"")?;
+-                    } else {
+-                        f.write_str("\\x")?;
+-                        let high = b / 16;
+-                        if high != 0 {
+-                            f.write_str(hex_digit(high))?;
+-                        }
+-                        f.write_str(hex_digit(b % 16))?;
++                        write_ascii_run(bytes, from, i, f)?;
+                     }
++
++                    write_escaped_byte(b, f)?;
+                     from = i + 1;
+                 }
++
++                i += 1;
+             }
+ 
+-            f.write_str(unsafe { str::from_utf8_unchecked(&bytes[from..]) })?;
++            if from != i {
++                write_ascii_run(bytes, from, i, f)?;
++            }
+             f.write_str("\"")
+         }
+     }
+ }
+ 
++/// Write a slice whose bytes have been proved to be ASCII.
++#[cfg(not(http_header_value_leaf))]
++#[cfg_attr(creusot, requires(
++    from@ <= end@ && end@ <= bytes@.len()
++        && forall<i: Int> from@ <= i && i < end@ ==> bytes@[i]@ < 128
++))]
++#[cfg_attr(creusot, ensures(creusot_std::std::fmt::formatter_extends(
++    f.deep_model(),
++    (^f).deep_model()
++)))]
++fn write_ascii_run(
++    bytes: &[u8],
++    from: usize,
++    end: usize,
++    f: &mut fmt::Formatter<'_>,
++) -> fmt::Result {
++    let run = &bytes[from..end];
++
++    #[cfg(creusot)]
++    proof_assert! {
++        run@ == bytes@.subsequence(from@, end@);
++        forall<i: Int> 0 <= i && i < run@.len() ==> run@[i]@ < 128;
++        crate::ascii::ascii_bytes_are_valid_utf8(run@);
++        creusot_std::std::string::valid_utf8(run@)
++    };
++
++    // Every byte in this run is ASCII, so this conversion is valid UTF-8.
++    unsafe { f.write_str(str::from_utf8_unchecked(run)) }
++}
++
++/// Write one quoted or non-visible byte using HeaderValue's existing escape
++/// spelling. The high hex digit remains omitted when it is zero.
++#[cfg(not(http_header_value_leaf))]
++#[cfg_attr(creusot, requires(
++    !(byte@ >= 32 && byte@ < 127 || byte@ == 9) || byte@ == 34
++))]
++#[cfg_attr(creusot, ensures(creusot_std::std::fmt::formatter_extends(
++    f.deep_model(),
++    (^f).deep_model()
++)))]
++fn write_escaped_byte(byte: u8, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++    if byte == b'"' {
++        f.write_str("\\\"")
++    } else {
++        f.write_str("\\x")?;
++        let high = byte / 16;
++        if high != 0 {
++            f.write_str(hex_digit(high))?;
++        }
++        f.write_str(hex_digit(byte % 16))
++    }
++}
++
+ #[cfg(not(http_header_value_leaf))]
+ impl From<HeaderName> for HeaderValue {
+     #[inline]
+@@ -801,6 +861,10 @@ mod try_from_header_name_tests {
+ 
+ #[cfg(not(http_header_value_leaf))]
+ impl fmt::Debug for InvalidHeaderValue {
++    #[cfg_attr(creusot, ensures(creusot_std::std::fmt::formatter_extends(
++        f.deep_model(),
++        (^f).deep_model()
++    )))]
+     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+         f.debug_struct("InvalidHeaderValue")
+             // skip _priv noise
+@@ -808,7 +872,24 @@ impl fmt::Debug for InvalidHeaderValue {
+     }
+ }
+ 
++#[cfg(not(http_header_value_leaf))]
++impl fmt::Debug for ToStrError {
++    #[cfg_attr(creusot, ensures(creusot_std::std::fmt::formatter_extends(
++        f.deep_model(),
++        (^f).deep_model()
++    )))]
++    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++        f.debug_struct("ToStrError")
++            .field("_priv", &self._priv)
++            .finish()
++    }
++}
++
+ impl fmt::Display for InvalidHeaderValue {
++    #[cfg_attr(creusot, ensures(creusot_std::std::fmt::formatter_extends(
++        f.deep_model(),
++        (^f).deep_model()
++    )))]
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         f.write_str("failed to parse header value")
+     }
+@@ -818,6 +899,10 @@ impl fmt::Display for InvalidHeaderValue {
+ impl Error for InvalidHeaderValue {}
+ 
+ impl fmt::Display for ToStrError {
++    #[cfg_attr(creusot, ensures(creusot_std::std::fmt::formatter_extends(
++        f.deep_model(),
++        (^f).deep_model()
++    )))]
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         f.write_str("failed to convert header to a str")
+     }
+@@ -1178,6 +1263,11 @@ fn test_try_from() {
+ 
+ #[test]
+ fn test_debug() {
++    assert_eq!(
++        format!("{:?}", ToStrError { _priv: () }),
++        "ToStrError { _priv: () }"
++    );
++
+     let cases = &[
+         ("hello", "\"hello\""),
+         ("hello \"world\"", "\"hello \\\"world\\\"\""),
+@@ -1201,6 +1291,24 @@ fn test_debug() {
+     assert_eq!(format!("{:.1?}", escaped), expected);
+     assert_eq!(format!("{:#?}", escaped), expected);
+ 
++    for byte in 0..=u8::MAX {
++        if byte < 32 && byte != b'\t' || byte == 127 {
++            continue;
++        }
++        let value = HeaderValue::from_bytes(&[byte]).unwrap();
++        let expected = if byte == b'"' {
++            "\"\\\"\"".to_owned()
++        } else if byte == b'\t' || (32..127).contains(&byte) {
++            format!("\"{}\"", byte as char)
++        } else {
++            format!("\"{:?}\"", LegacyEscapedByte(byte))
++        };
++        assert_eq!(format!("{:?}", value), expected, "byte={byte}");
++        assert_eq!(format!("{:>24?}", value), expected, "byte={byte}");
++        assert_eq!(format!("{:.1?}", value), expected, "byte={byte}");
++        assert_eq!(format!("{:#?}", value), expected, "byte={byte}");
++    }
++
+     for byte in 0..=u8::MAX {
+         assert_eq!(
+             format!("{:?}", LegacyEscapedByte(byte)),
+diff --git a/http/1.5.0/src/uri/authority.rs b/http/1.5.0/src/uri/authority.rs
+index f410b2e..5925e10 100644
+--- a/http/1.5.0/src/uri/authority.rs
++++ b/http/1.5.0/src/uri/authority.rs
+@@ -807,11 +807,19 @@ enum AuthorityError {
+ }
+ 
+ /// Represents the authority component of a URI.
+-#[derive(Clone)]
+ pub struct Authority {
+     pub(super) data: ByteStr,
+ }
+ 
++impl Clone for Authority {
++    #[cfg_attr(creusot, ensures(result@ == self@))]
++    fn clone(&self) -> Self {
++        Authority {
++            data: self.data.clone(),
++        }
++    }
++}
++
+ #[cfg(creusot)]
+ impl View for Authority {
+     type ViewTy = Seq<u8>;
+@@ -933,7 +941,7 @@ impl creusot_std::std::partial_ord::PartialOrdModel<AuthorityCompareModel> for S
+ }
+ 
+ #[cfg_attr(creusot, ensures(result@ == authority_fold_ascii_byte(byte@)))]
+-fn authority_ascii_lowercase_byte(byte: u8) -> u8 {
++pub(super) fn authority_ascii_lowercase_byte(byte: u8) -> u8 {
+     if byte >= b'A' && byte <= b'Z' {
+         byte + (b'a' - b'A')
+     } else {
+@@ -944,7 +952,7 @@ fn authority_ascii_lowercase_byte(byte: u8) -> u8 {
+ #[cfg_attr(creusot, ensures(result == (
+     authority_folded_bytes(left@) == authority_folded_bytes(right@)
+ )))]
+-fn authority_ascii_case_eq(left: &[u8], right: &[u8]) -> bool {
++pub(super) fn authority_ascii_case_eq(left: &[u8], right: &[u8]) -> bool {
+     if left.len() != right.len() {
+         #[cfg(creusot)]
+         proof_assert! {
+@@ -1582,6 +1590,14 @@ impl FromStr for Authority {
+ }
+ 
+ impl fmt::Debug for Authority {
++    #[cfg_attr(creusot, ensures(match result {
++        Ok(_) => (^f).deep_model() == f.deep_model().concat(
++            self@.map(|byte: u8| byte@),
++        ),
++        Err(_) => super::uri_formatter_output_is_prefix(
++            f.deep_model(), (^f).deep_model(), self@.map(|byte: u8| byte@),
++        ),
++    }))]
+     #[cfg_attr(
+         creusot,
+         ensures(creusot_std::std::fmt::formatter_extends(
+@@ -1595,6 +1611,14 @@ impl fmt::Debug for Authority {
+ }
+ 
+ impl fmt::Display for Authority {
++    #[cfg_attr(creusot, ensures(match result {
++        Ok(_) => (^f).deep_model() == f.deep_model().concat(
++            self@.map(|byte: u8| byte@),
++        ),
++        Err(_) => super::uri_formatter_output_is_prefix(
++            f.deep_model(), (^f).deep_model(), self@.map(|byte: u8| byte@),
++        ),
++    }))]
+     #[cfg_attr(
+         creusot,
+         ensures(creusot_std::std::fmt::formatter_extends(
+diff --git a/http/1.5.0/src/uri/mod.rs b/http/1.5.0/src/uri/mod.rs
+index 9e62c20..a9f5702 100644
+--- a/http/1.5.0/src/uri/mod.rs
++++ b/http/1.5.0/src/uri/mod.rs
+@@ -72,6 +72,28 @@ pub struct UriModel {
+     pub path_and_query: PathAndQueryModel,
+ }
+ 
++/// Canonical model used by `Uri`'s same-type equality. The public `View` stays
++/// raw; these fields reflect the equality relation exposed by the runtime.
++#[cfg(creusot)]
++#[doc(hidden)]
++#[allow(missing_debug_implementations)]
++pub struct UriCompareModel {
++    pub scheme: UriSchemeCompareModel,
++    pub authority: Seq<Int>,
++    pub path: Seq<u8>,
++    pub query: Option<Seq<u8>>,
++}
++
++#[cfg(creusot)]
++#[doc(hidden)]
++#[allow(missing_debug_implementations)]
++pub enum UriSchemeCompareModel {
++    None,
++    Http,
++    Https,
++    Other(Seq<Int>),
++}
++
+ /// Proof-visible optional field model of `Parts`.
+ #[cfg(creusot)]
+ #[doc(hidden)]
+@@ -98,6 +120,27 @@ impl View for Uri {
+     }
+ }
+ 
++#[cfg(creusot)]
++impl DeepModel for Uri {
++    type DeepModelTy = UriCompareModel;
++
++    #[logic]
++    fn deep_model(self) -> Self::DeepModelTy {
++        pearlite! { uri_comparison_model(self@) }
++    }
++}
++
++impl Clone for Uri {
++    #[cfg_attr(creusot, ensures(result@ == self@))]
++    fn clone(&self) -> Self {
++        Uri {
++            scheme: self.scheme.clone(),
++            authority: self.authority.clone(),
++            path_and_query: self.path_and_query.clone(),
++        }
++    }
++}
++
+ #[cfg(creusot)]
+ impl View for Parts {
+     type ViewTy = PartsModel;
+@@ -155,6 +198,309 @@ pub fn uri_is_default(model: UriModel) -> bool {
+     }
+ }
+ 
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_ascii_fold_bytes(bytes: Seq<u8>) -> Seq<Int> {
++    pearlite! { authority::authority_folded_bytes(bytes) }
++}
++
++/// Model `Scheme::eq`: standard variants stay distinct from custom spellings,
++/// while two custom spellings compare with ASCII case folding.
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_scheme_models_equal(left: SchemeModel, right: SchemeModel) -> bool {
++    pearlite! { match (left, right) {
++        (SchemeModel::None, SchemeModel::None) => true,
++        (SchemeModel::Http, SchemeModel::Http) => true,
++        (SchemeModel::Https, SchemeModel::Https) => true,
++        (SchemeModel::Other(left), SchemeModel::Other(right)) =>
++            uri_ascii_fold_bytes(left) == uri_ascii_fold_bytes(right),
++        _ => false,
++    } }
++}
++
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_scheme_comparison_model(scheme: SchemeModel) -> UriSchemeCompareModel {
++    pearlite! { match scheme {
++        SchemeModel::None => UriSchemeCompareModel::None,
++        SchemeModel::Http => UriSchemeCompareModel::Http,
++        SchemeModel::Https => UriSchemeCompareModel::Https,
++        SchemeModel::Other(bytes) =>
++            UriSchemeCompareModel::Other(uri_ascii_fold_bytes(bytes)),
++    } }
++}
++
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_comparison_model(model: UriModel) -> UriCompareModel {
++    pearlite! {
++        UriCompareModel {
++            scheme: uri_scheme_comparison_model(model.scheme),
++            authority: uri_ascii_fold_bytes(model.authority),
++            path: if uri_model_has_path(model) {
++                path::path_component_bytes(model.path_and_query)
++            } else {
++                Seq::<u8>::empty()
++            },
++            query: match model.path_and_query.query {
++                None => None,
++                Some(offset) => Some(model.path_and_query.bytes.subsequence(
++                    offset + 1, model.path_and_query.bytes.len(),
++                )),
++            },
++        }
++    }
++}
++
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_scheme_comparison_text(scheme: UriSchemeCompareModel) -> Option<Seq<Int>> {
++    pearlite! { match scheme {
++        UriSchemeCompareModel::None => None,
++        UriSchemeCompareModel::Http => Some(
++            seq![104u8, 116u8, 116u8, 112u8].map(|byte: u8| byte@)
++        ),
++        UriSchemeCompareModel::Https => Some(
++            seq![104u8, 116u8, 116u8, 112u8, 115u8].map(|byte: u8| byte@)
++        ),
++        UriSchemeCompareModel::Other(bytes) => Some(bytes),
++    } }
++}
++
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_scheme_comparison_matches_text(
++    scheme: UriSchemeCompareModel,
++    text: Seq<char>,
++) -> bool {
++    pearlite! { match uri_scheme_comparison_text(scheme) {
++        None => false,
++        Some(expected) =>
++            uri_ascii_fold_bytes(text.to_bytes()) == expected,
++    } }
++}
++
++#[cfg(creusot)]
++impl creusot_std::std::partial_eq::PartialEqModel<Seq<char>>
++    for UriSchemeCompareModel
++{
++    #[logic(open)]
++    fn eq_model(self, rhs: Seq<char>) -> bool {
++        pearlite! { uri_scheme_comparison_matches_text(self, rhs) }
++    }
++}
++
++#[cfg(creusot)]
++impl creusot_std::std::partial_eq::PartialEqModel<UriSchemeCompareModel>
++    for Seq<char>
++{
++    #[logic(open)]
++    fn eq_model(self, rhs: UriSchemeCompareModel) -> bool {
++        pearlite! { uri_scheme_comparison_matches_text(rhs, self) }
++    }
++}
++
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_folded_bytes_match_at(
++    bytes: Seq<u8>,
++    start: Int,
++    expected: Seq<Int>,
++) -> bool {
++    pearlite! {
++        0 <= start && start + expected.len() <= bytes.len()
++            && uri_ascii_fold_bytes(
++                bytes.subsequence(start, start + expected.len())
++            ) == expected
++    }
++}
++
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_exact_bytes_match_at(
++    bytes: Seq<u8>,
++    start: Int,
++    expected: Seq<u8>,
++) -> bool {
++    pearlite! {
++        0 <= start && start + expected.len() <= bytes.len()
++            && bytes.subsequence(start, start + expected.len()) == expected
++    }
++}
++
++/// Compare a canonical URI model with UTF-8 text using the byte-prefix rules
++/// in `Uri::eq(str)`, including an omitted absolute `/` and ignored fragments.
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_compare_model_matches_text(
++    model: UriCompareModel,
++    text: Seq<char>,
++) -> bool {
++    pearlite! {
++        let bytes = text.to_bytes();
++        let scheme_text = uri_scheme_comparison_text(model.scheme);
++        let scheme_present = match scheme_text {
++            None => false,
++            Some(_) => true,
++        };
++        let scheme_ok = match scheme_text {
++            None => true,
++            Some(scheme_bytes) =>
++                0 <= scheme_bytes.len() + 3
++                    && scheme_bytes.len() + 3 <= bytes.len()
++                    && uri_folded_bytes_match_at(bytes, 0, scheme_bytes)
++                    && bytes.subsequence(
++                        scheme_bytes.len(), scheme_bytes.len() + 3,
++                    ) == seq![58u8, 47u8, 47u8],
++        };
++        let after_scheme = match scheme_text {
++            None => 0,
++            Some(scheme_bytes) => scheme_bytes.len() + 3,
++        };
++        let authority_present = model.authority.len() > 0;
++        let authority_ok = !authority_present
++            || uri_folded_bytes_match_at(bytes, after_scheme, model.authority);
++        let after_authority = after_scheme + model.authority.len();
++        let absolute = scheme_present || authority_present;
++        let path_start = if scheme_ok && authority_ok { after_authority } else { 0 };
++        let path_matches = uri_exact_bytes_match_at(bytes, path_start, model.path);
++        let omitted_absolute_slash = absolute && model.path == seq![47u8];
++        let path_ok = path_matches || omitted_absolute_slash;
++        let after_path = if path_matches {
++            path_start + model.path.len()
++        } else {
++            path_start
++        };
++        let query_ok = match model.query {
++            None => true,
++            Some(query_bytes) => {
++                if after_path == bytes.len() {
++                    query_bytes.len() == 0
++                } else {
++                    after_path < bytes.len()
++                        && bytes[after_path]@ == 63
++                        && uri_exact_bytes_match_at(
++                            bytes, after_path + 1, query_bytes,
++                        )
++                }
++            }
++        };
++        let after_query = match model.query {
++            None => after_path,
++            Some(query_bytes) => {
++                if after_path == bytes.len() {
++                    after_path
++                } else {
++                    after_path + 1 + query_bytes.len()
++                }
++            }
++        };
++        scheme_ok && authority_ok && path_ok && query_ok
++            && (after_query == bytes.len()
++                || (0 <= after_query && after_query < bytes.len()
++                    && bytes[after_query]@ == 35))
++    }
++}
++
++#[cfg(creusot)]
++impl creusot_std::std::partial_eq::PartialEqModel<Seq<char>> for UriCompareModel {
++    #[logic(open)]
++    fn eq_model(self, rhs: Seq<char>) -> bool {
++        pearlite! { uri_compare_model_matches_text(self, rhs) }
++    }
++}
++
++#[cfg(creusot)]
++impl creusot_std::std::partial_eq::PartialEqModel<UriCompareModel> for Seq<char> {
++    #[logic(open)]
++    fn eq_model(self, rhs: UriCompareModel) -> bool {
++        pearlite! { uri_compare_model_matches_text(rhs, self) }
++    }
++}
++
++/// Exact component equality used by `Uri::eq`. This follows the public
++/// accessors: an empty relative path stays empty, an empty absolute path is
++/// exposed as `/`, and a present empty query differs from no query.
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_models_equal(left: UriModel, right: UriModel) -> bool {
++    pearlite! {
++        uri_comparison_model(left) == uri_comparison_model(right)
++    }
++}
++
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_scheme_display_bytes(scheme: SchemeModel) -> Seq<u8> {
++    pearlite! { match scheme {
++        SchemeModel::None => Seq::<u8>::empty(),
++        SchemeModel::Http => seq![104u8, 116u8, 116u8, 112u8],
++        SchemeModel::Https => seq![104u8, 116u8, 116u8, 112u8, 115u8],
++        SchemeModel::Other(bytes) => bytes,
++    } }
++}
++
++/// The exact byte text produced by `Uri`'s Display implementation, converted
++/// to the formatter's integer-byte model.
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++#[requires(path_query_boundaries(model.path_and_query))]
++pub fn uri_display_text(model: UriModel) -> Seq<Int> {
++    pearlite! {
++        let has_path = uri_model_has_path(model);
++        let scheme_text = if uri_scheme_is_none(model.scheme) {
++            Seq::<u8>::empty()
++        } else {
++            uri_scheme_display_bytes(model.scheme).concat(seq![58u8, 47u8, 47u8])
++        };
++        let authority_text = model.authority;
++        let path_text = if has_path {
++            path::path_component_bytes(model.path_and_query)
++        } else {
++            Seq::<u8>::empty()
++        };
++        let query_text = match model.path_and_query.query {
++            None => Seq::<u8>::empty(),
++            Some(offset) => seq![63u8].concat(
++                model.path_and_query.bytes.subsequence(
++                    offset + 1, model.path_and_query.bytes.len(),
++                )
++            ),
++        };
++        scheme_text.concat(authority_text).concat(path_text)
++            .concat(query_text).map(|byte: u8| byte@)
++    }
++}
++
++/// Whether the formatter has written a prefix of the complete URI display
++/// text. `Formatter::write_str` may fail after writing a prefix of its input.
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn uri_formatter_output_is_prefix(
++    before: Seq<Int>,
++    after: Seq<Int>,
++    text: Seq<Int>,
++) -> bool {
++    pearlite! {
++        exists<end: Int> 0 <= end && end <= text.len()
++            && after == before.concat(text.subsequence(0, end))
++    }
++}
++
+ #[cfg(creusot)]
+ #[doc(hidden)]
+ #[logic(open)]
+@@ -338,7 +684,6 @@ pub use self::builder::{
+ /// assert_eq!(uri.host(), Some("www.rust-lang.org"));
+ /// assert_eq!(uri.path(), "/install.html");
+ /// ```
+-#[derive(Clone)]
+ pub struct Uri {
+     scheme: Scheme,
+     authority: Authority,
+@@ -618,7 +963,7 @@ impl Uri {
+     /// assert_eq!(uri.host().unwrap(), "example.com");
+     /// assert_eq!(uri.path(), "/foo");
+     /// ```
+-    #[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
++    #[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf, http_uri_compare_leaf)))]
+     pub fn from_static(src: &'static str) -> Self {
+         let s = Bytes::from_static(src.as_bytes());
+         match Uri::from_shared(s) {
+@@ -1094,6 +1439,10 @@ impl TryFrom<&Uri> for Uri {
+     type Error = crate::Error;
+ 
+     #[inline]
++    #[cfg_attr(creusot, ensures(match result {
++        Ok(uri) => uri@ == src@,
++        Err(_) => false,
++    }))]
+     fn try_from(src: &Uri) -> Result<Self, Self::Error> {
+         Ok(src.clone())
+     }
+@@ -1101,6 +1450,10 @@ impl TryFrom<&Uri> for Uri {
+ 
+ /// Convert an `Authority` into a `Uri`.
+ impl From<Authority> for Uri {
++    #[cfg_attr(creusot, ensures(result@.scheme == SchemeModel::None
++        && result@.authority == authority@
++        && result@.path_and_query.bytes == Seq::<u8>::empty()
++        && result@.path_and_query.query == None))]
+     fn from(authority: Authority) -> Self {
+         Self {
+             scheme: Scheme::empty(),
+@@ -1112,6 +1465,9 @@ impl From<Authority> for Uri {
+ 
+ /// Convert a `PathAndQuery` into a `Uri`.
+ impl From<PathAndQuery> for Uri {
++    #[cfg_attr(creusot, ensures(result@.scheme == SchemeModel::None
++        && result@.authority == Seq::<u8>::empty()
++        && result@.path_and_query == path_and_query@))]
+     fn from(path_and_query: PathAndQuery) -> Self {
+         Self {
+             scheme: Scheme::empty(),
+@@ -1233,6 +1589,7 @@ impl FromStr for Uri {
+ 
+ #[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
+ impl PartialEq for Uri {
++    #[cfg_attr(creusot, ensures(result == uri_models_equal(self@, other@)))]
+     fn eq(&self, other: &Uri) -> bool {
+         if self.scheme() != other.scheme() {
+             return false;
+@@ -1242,11 +1599,16 @@ impl PartialEq for Uri {
+             return false;
+         }
+ 
+-        if self.path() != other.path() {
++        if self.path().as_bytes() != other.path().as_bytes() {
+             return false;
+         }
+ 
+-        if self.query() != other.query() {
++        let query_matches = match (self.query(), other.query()) {
++            (None, None) => true,
++            (Some(left), Some(right)) => left.as_bytes() == right.as_bytes(),
++            _ => false,
++        };
++        if !query_matches {
+             return false;
+         }
+ 
+@@ -1256,6 +1618,9 @@ impl PartialEq for Uri {
+ 
+ #[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
+ impl PartialEq<str> for Uri {
++    #[cfg_attr(creusot, ensures(result ==
++        uri_compare_model_matches_text(self.deep_model(), other@)
++    ))]
+     fn eq(&self, other: &str) -> bool {
+         let mut other = other.as_bytes();
+         let mut absolute = false;
+@@ -1268,13 +1633,16 @@ impl PartialEq<str> for Uri {
+                 return false;
+             }
+ 
+-            if !scheme.eq_ignore_ascii_case(&other[..scheme.len()]) {
++            if !authority::authority_ascii_case_eq(
++                scheme,
++                &other[..scheme.len()],
++            ) {
+                 return false;
+             }
+ 
+             other = &other[scheme.len()..];
+ 
+-            if &other[..3] != b"://" {
++            if other[0] != 58 || other[1] != 47 || other[2] != 47 {
+                 return false;
+             }
+ 
+@@ -1289,7 +1657,10 @@ impl PartialEq<str> for Uri {
+                 return false;
+             }
+ 
+-            if !auth.data.as_bytes().eq_ignore_ascii_case(&other[..len]) {
++            if !authority::authority_ascii_case_eq(
++                auth.data.as_bytes(),
++                &other[..len],
++            ) {
+                 return false;
+             }
+ 
+@@ -1299,7 +1670,7 @@ impl PartialEq<str> for Uri {
+         let path = self.path();
+ 
+         if other.len() < path.len() || path.as_bytes() != &other[..path.len()] {
+-            if absolute && path == "/" {
++            if absolute && path.len() == 1 && path.as_bytes()[0] == 47 {
+                 // PathAndQuery can be omitted, fall through
+             } else {
+                 return false;
+@@ -1310,7 +1681,7 @@ impl PartialEq<str> for Uri {
+ 
+         if let Some(query) = self.query() {
+             if other.is_empty() {
+-                return query.is_empty();
++                return query.len() == 0;
+             }
+ 
+             if other[0] != b'?' {
+@@ -1330,12 +1701,15 @@ impl PartialEq<str> for Uri {
+             other = &other[query.len()..];
+         }
+ 
+-        other.is_empty() || other[0] == b'#'
++        other.len() == 0 || other[0] == b'#'
+     }
+ }
+ 
+ #[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
+ impl PartialEq<Uri> for str {
++    #[cfg_attr(creusot, ensures(result ==
++        uri_compare_model_matches_text(uri.deep_model(), self@)
++    ))]
+     fn eq(&self, uri: &Uri) -> bool {
+         uri == self
+     }
+@@ -1343,6 +1717,9 @@ impl PartialEq<Uri> for str {
+ 
+ #[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
+ impl PartialEq<&str> for Uri {
++    #[cfg_attr(creusot, ensures(result ==
++        uri_compare_model_matches_text(self.deep_model(), (*other)@)
++    ))]
+     fn eq(&self, other: &&str) -> bool {
+         self == *other
+     }
+@@ -1350,6 +1727,9 @@ impl PartialEq<&str> for Uri {
+ 
+ #[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
+ impl PartialEq<Uri> for &str {
++    #[cfg_attr(creusot, ensures(result ==
++        uri_compare_model_matches_text(uri.deep_model(), (*self)@)
++    ))]
+     fn eq(&self, uri: &Uri) -> bool {
+         uri == *self
+     }
+@@ -1373,6 +1753,19 @@ impl Default for Uri {
+ 
+ #[cfg(not(http_uri_parts_leaf))]
+ impl fmt::Display for Uri {
++    #[cfg_attr(creusot, ensures(match result {
++        Ok(_) => (^f).deep_model() == f.deep_model().concat(uri_display_text(self@)),
++        Err(_) => uri_formatter_output_is_prefix(
++            f.deep_model(), (^f).deep_model(), uri_display_text(self@),
++        ),
++    }))]
++    #[cfg_attr(
++        creusot,
++        ensures(creusot_std::std::fmt::formatter_extends(
++            f.deep_model(),
++            (^f).deep_model()
++        ))
++    )]
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         if let Some(scheme) = self.scheme() {
+             f.write_str(scheme.as_str())?;
+@@ -1396,6 +1789,19 @@ impl fmt::Display for Uri {
+ 
+ #[cfg(not(http_uri_parts_leaf))]
+ impl fmt::Debug for Uri {
++    #[cfg_attr(creusot, ensures(match result {
++        Ok(_) => (^f).deep_model() == f.deep_model().concat(uri_display_text(self@)),
++        Err(_) => uri_formatter_output_is_prefix(
++            f.deep_model(), (^f).deep_model(), uri_display_text(self@),
++        ),
++    }))]
++    #[cfg_attr(
++        creusot,
++        ensures(creusot_std::std::fmt::formatter_extends(
++            f.deep_model(),
++            (^f).deep_model()
++        ))
++    )]
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         fmt::Display::fmt(self, f)
+     }
+diff --git a/http/1.5.0/src/uri/path.rs b/http/1.5.0/src/uri/path.rs
+index 736f6c5..d651e96 100644
+--- a/http/1.5.0/src/uri/path.rs
++++ b/http/1.5.0/src/uri/path.rs
+@@ -12,7 +12,7 @@ use self::path_scan::{scan_path_and_query, Scanned};
+ 
+ #[allow(unused_imports)]
+ use creusot_std::prelude::{
+-    ensures, logic, pearlite, proof_assert, requires, DeepModel, Int, Seq, View,
++    ensures, logic, pearlite, proof_assert, requires, DeepModel, Int, Invariant, Seq, View,
+ };
+ #[cfg(creusot)]
+ use creusot_std::logic::OrdLogic as _;
+@@ -50,6 +50,14 @@ impl View for PathAndQuery {
+     }
+ }
+ 
++#[cfg(creusot)]
++impl Invariant for PathAndQuery {
++    #[logic(open)]
++    fn invariant(self) -> bool {
++        pearlite! { path_query_boundaries(self@) }
++    }
++}
++
+ #[cfg(creusot)]
+ impl DeepModel for PathAndQuery {
+     type DeepModelTy = PathAndQueryCompareModel;
+@@ -76,6 +84,15 @@ pub fn path_and_query_rendered_bytes(raw: Seq<u8>) -> Seq<u8> {
+     pearlite! { if raw.len() == 0 { Seq::singleton(47u8) } else { raw } }
+ }
+ 
++#[cfg(creusot)]
++#[doc(hidden)]
++#[logic(open)]
++pub fn path_and_query_display_text(model: PathAndQueryModel) -> Seq<Int> {
++    pearlite! {
++        path_and_query_rendered_bytes(model.bytes).map(|byte: u8| byte@)
++    }
++}
++
+ #[cfg(creusot)]
+ impl creusot_std::std::partial_eq::PartialEqModel<Seq<Int>>
+     for PathAndQueryCompareModel
+@@ -283,12 +300,21 @@ fn star_str() -> &'static str {
+ }
+ 
+ /// Represents the path component of a URI
+-#[derive(Clone)]
+ pub struct PathAndQuery {
+     pub(super) data: ByteStr,
+     pub(super) query: u16,
+ }
+ 
++impl Clone for PathAndQuery {
++    #[cfg_attr(creusot, ensures(result@ == self@))]
++    fn clone(&self) -> Self {
++        PathAndQuery {
++            data: self.data.clone(),
++            query: self.query,
++        }
++    }
++}
++
+ const NONE: u16 = u16::MAX;
+ 
+ impl PathAndQuery {
+@@ -669,6 +695,13 @@ impl FromStr for PathAndQuery {
+ }
+ 
+ impl fmt::Debug for PathAndQuery {
++    #[cfg_attr(creusot, ensures(match result {
++        Ok(_) => (^f).deep_model() ==
++            f.deep_model().concat(path_and_query_display_text(self@)),
++        Err(_) => super::uri_formatter_output_is_prefix(
++            f.deep_model(), (^f).deep_model(), path_and_query_display_text(self@),
++        ),
++    }))]
+     #[cfg_attr(
+         creusot,
+         ensures(creusot_std::std::fmt::formatter_extends(
+@@ -682,6 +715,13 @@ impl fmt::Debug for PathAndQuery {
+ }
+ 
+ impl fmt::Display for PathAndQuery {
++    #[cfg_attr(creusot, ensures(match result {
++        Ok(_) => (^fmt).deep_model() ==
++            fmt.deep_model().concat(path_and_query_display_text(self@)),
++        Err(_) => super::uri_formatter_output_is_prefix(
++            fmt.deep_model(), (^fmt).deep_model(), path_and_query_display_text(self@),
++        ),
++    }))]
+     #[cfg_attr(
+         creusot,
+         ensures(creusot_std::std::fmt::formatter_extends(
+diff --git a/http/1.5.0/src/uri/scheme.rs b/http/1.5.0/src/uri/scheme.rs
+index de12dbf..82d8d2a 100644
+--- a/http/1.5.0/src/uri/scheme.rs
++++ b/http/1.5.0/src/uri/scheme.rs
+@@ -30,11 +30,22 @@ pub(super) type Scheme2<T = Box<ByteStr>> = types::Scheme2<T>;
+ mod fixed;
+ 
+ /// Represents the scheme component of a URI
+-#[derive(Clone)]
+ pub struct Scheme {
+     pub(super) inner: Scheme2,
+ }
+ 
++impl Clone for Scheme {
++    #[cfg_attr(creusot, ensures(result@ == self@))]
++    fn clone(&self) -> Self {
++        let inner = match &self.inner {
++            Scheme2::None => Scheme2::None,
++            Scheme2::Standard(protocol) => Scheme2::Standard(*protocol),
++            Scheme2::Other(bytes) => Scheme2::Other(Box::new((**bytes).clone())),
++        };
++        Scheme { inner }
++    }
++}
++
+ /// Proof-visible distinction between protocol constants and preserved custom
+ /// scheme spellings. This model is absent from ordinary Rust builds.
+ #[cfg(creusot)]
+@@ -92,6 +103,16 @@ impl View for Scheme {
+     }
+ }
+ 
++#[cfg(creusot)]
++impl DeepModel for Scheme {
++    type DeepModelTy = super::UriSchemeCompareModel;
++
++    #[logic]
++    fn deep_model(self) -> Self::DeepModelTy {
++        pearlite! { super::uri_scheme_comparison_model(self@) }
++    }
++}
++
+ impl Scheme {
+     /// HTTP protocol scheme
+     pub const HTTP: Scheme = Scheme {
+@@ -287,6 +308,16 @@ impl fmt::Debug for Scheme {
+ 
+ impl fmt::Display for Scheme {
+     #[cfg_attr(creusot, requires(self@ != SchemeModel::None))]
++    #[cfg_attr(creusot, ensures(match result {
++        Ok(_) => (^f).deep_model() == f.deep_model().concat(
++            super::uri_scheme_display_bytes(self@).map(|byte: u8| byte@),
++        ),
++        Err(_) => super::uri_formatter_output_is_prefix(
++            f.deep_model(),
++            (^f).deep_model(),
++            super::uri_scheme_display_bytes(self@).map(|byte: u8| byte@),
++        ),
++    }))]
+     #[cfg_attr(
+         creusot,
+         ensures(creusot_std::std::fmt::formatter_extends(
+@@ -313,6 +344,11 @@ impl AsRef<str> for Scheme {
+ // harness until the case-folded ByteStr model is available there.
+ #[cfg(not(http_uri_scheme_leaf))]
+ impl PartialEq for Scheme {
++    #[cfg_attr(creusot, requires(self@ != SchemeModel::None
++        && other@ != SchemeModel::None))]
++    #[cfg_attr(creusot, ensures(result ==
++        super::uri_scheme_models_equal(self@, other@)
++    ))]
+     fn eq(&self, other: &Scheme) -> bool {
+         use self::types::Scheme2::*;
+         use self::Protocol::*;
+@@ -320,7 +356,8 @@ impl PartialEq for Scheme {
+         match (&self.inner, &other.inner) {
+             (&Standard(Http), &Standard(Http)) => true,
+             (&Standard(Https), &Standard(Https)) => true,
+-            (Other(a), Other(b)) => a.eq_ignore_ascii_case(b),
++            (Other(a), Other(b)) =>
++                super::authority::authority_ascii_case_eq(a.as_bytes(), b.as_bytes()),
+             (&None, _) | (_, &None) => unreachable!(),
+             _ => false,
+         }
+@@ -341,16 +378,30 @@ impl Eq for Scheme {}
+ /// ```
+ #[cfg(not(http_uri_scheme_leaf))]
+ impl PartialEq<str> for Scheme {
++    #[cfg_attr(creusot, requires(self@ != SchemeModel::None))]
++    #[cfg_attr(creusot, ensures(result ==
++        super::uri_scheme_comparison_matches_text(self.deep_model(), other@)
++    ))]
+     fn eq(&self, other: &str) -> bool {
+-        self.as_str().eq_ignore_ascii_case(other)
++        super::authority::authority_ascii_case_eq(
++            self.as_str().as_bytes(),
++            other.as_bytes(),
++        )
+     }
+ }
+ 
+ /// Case-insensitive equality
+ #[cfg(not(http_uri_scheme_leaf))]
+ impl PartialEq<Scheme> for str {
++    #[cfg_attr(creusot, requires(other@ != SchemeModel::None))]
++    #[cfg_attr(creusot, ensures(result ==
++        super::uri_scheme_comparison_matches_text(other.deep_model(), self@)
++    ))]
+     fn eq(&self, other: &Scheme) -> bool {
+-        self.eq_ignore_ascii_case(other.as_str())
++        super::authority::authority_ascii_case_eq(
++            self.as_bytes(),
++            other.as_str().as_bytes(),
++        )
+     }
+ }
+ 
+@@ -368,7 +419,7 @@ impl Hash for Scheme {
+             Scheme2::Other(ref other) => {
+                 other.len().hash(state);
+                 for &b in other.as_bytes() {
+-                    state.write_u8(b.to_ascii_lowercase());
++                    state.write_u8(super::authority::authority_ascii_lowercase_byte(b));
+                 }
+             }
+         }
+diff --git a/http/1.5.0/verification/CHECKPOINT_2026-10-05.md b/http/1.5.0/verification/CHECKPOINT_2026-10-05.md
+index 639e2e9..1597d66 100644
+--- a/http/1.5.0/verification/CHECKPOINT_2026-10-05.md
++++ b/http/1.5.0/verification/CHECKPOINT_2026-10-05.md
+@@ -36,7 +36,10 @@ stand-ins.
+ | HeaderMap capacity/index helpers | The map-capacity manifest records 15 source targets and 30 successful leaves, including `desired_pos` and `probe_distance`. | The private callers' power-of-two, mask, and range invariants are not proved at all HeaderMap call sites. This does not prove insertion, lookup, growth, removal, or the map as a whole. |
+ | HeaderMap capacity constructors | The curated [two-target archive](header-map-api/evidence/run-2026-10-05-capacity-constructor-lemma/manifest.json) proves `max_size_is_power_of_two` (1 own leaf) and actual-source `HeaderMap::try_with_capacity` (13 own + 16 call/spec leaves). Its named-profile frontend and normal HTTP library `cargo check` both pass. | This proves the selected constructor under the named leaf profile; the `usize::checked_next_power_of_two` standard-library contract is a TCB premise. It does not prove the integrated HeaderMap invariant or all capacity/reservation APIs. |
+ | HeaderMap actual-source leaves | The named `http_map_api_leaf` snapshot records `new`, `default`, `len`, `keys_len`, `is_empty`, `clear`, and `capacity`, plus allocation-bound/Vec probes: 47/49 total leaves pass. The [Entry accessor archive](header-map-api/evidence/run-2026-10-05-entry-accessors/manifest.json) proves 6 bodies / 6 own leaves plus 4 Vec-index support leaves. The [try-insert helper archive](header-map-api/evidence/run-2026-10-05-try-insert-entry/manifest.json) proves the actual private `try_insert_entry` body: 1 own leaf and 3 Vec/error-constructor support leaves; the no-preprocess printer roots match all four proof JSON roots. The conditional `IterMut::next_unsafe` run has 79 own leaves and 33 supporting leaves (112 total); its 70 first-level tasks and nine selected two-child splits were checked against the archived tree. | Entry proofs require only `index < entries.len`; the insertion helper proves its bounded append/error branch and explicit field frame, not occupancy, lookup reachability, caller index updates, or the global map invariant. `len` still has two open generic layout leaves. `next_unsafe` assumes storage/cursor-ready preconditions; map graph validity, cross-entry non-revisiting, and public Iterator refinement are not established. Drain and raw removal remain open. |
++| HeaderMap lookup helper | The fresh [`find_with_hash` archive](header-map-api/evidence/run-2026-10-05-find-with-hash/manifest.json) proves 1 own body leaf and 8 call/specification support leaves. A solver-free no-preprocess Why3 print independently matches all 9 proof JSON roots. | The actual helper requires `header_map_find_ready(*self)` and a nonempty key table. Its `Some` postcondition establishes probe/index bounds and matching input, bucket, and table hashes plus key equality under the existing model relation. `None` is unconstrained. Public lookup callers, premise establishment, absence completeness, and the whole Robin Hood invariant remain open. |
++| HeaderMap lookup/getter partial batch | The [13-target archive](header-map-api/evidence/run-2026-10-05-map-lookup-getters/manifest.json) has 43 direct no-preprocess roots; the printer root names match every proof JSON. Seven actual `HeaderMap` body targets (`find`, `find_with_hash`, `get`, `get2`, `get_mut`, `get_all`, `contains_key`) passed: 7 own leaves + 23 call/spec support leaves. The independent nested-task audit confirms 24 own terminal obligations (18 pass, 6 open) and 30 passing support leaves, with all expected children present. | The run exited 1 on the actual `AsHeaderName::Sealed::find` bodies/refinements. The six open own leaves are precisely recorded in the [nested arity audit](header-map-api/evidence/run-2026-10-05-map-lookup-getters/independent-nested-arity-audit.json); the audit confirms completeness, not success. All selected bodies require `header_map_find_ready`; the sealed trait post is only an in-range index guarantee, not key/hash coherence or absence completeness. After the run, matching per-impl pre/post clauses and a `cfg(creusot)` field/frame contract for actual `append_value` were added; current `map.rs` SHA `ca22bfb5673eba84281bf3b1738e831a15b94cfcb99b0f8e16cab4fa46f9ce6e` passes the named-profile frontend check but has not been re-emitted/proved. The native HTTP library check passed on the immediately previous `cb609fc3…` source; the added executable code is unchanged. The proof source SHA was `914cfd8a7f3050bc0fb8e4c1a78f0408501cc4d1077c6d444e4b9dec5e0103d7`. |
+ | Request/Response composition | The fresh sealed archive records 49 targets with 107 terminal leaves: 65 own and 42 call/spec support leaves. All 49 proof JSON trees match the run-log arities. It includes 30 structural API bodies, three Builder version bodies, Parts Clone, generic Request/Response Clone bodies and refinements, and four Debug bodies/refinements. | The manifest is bound to source-map SHA `54d174cd6a830a50e101d376ab95209a2aad258d1b7f19d78d2e26a8e5bb1efd` and records source stability during proof. Parts Clone relies on imported field Clone contracts, especially HeaderMap/Extensions. Debug proves append preservation, not exact rendered bytes. Builder header/extension methods and `Error::is`, `get_ref`, and `source` remain outside the named profile because their respective dependencies are unresolved or trait-object translation is unsupported. |
++| Request/Response Builder relays and fixed-method shortcuts | The later [`current-builder-relays-and-shortcuts`](composition/evidence/run-2026-10-05-current-builder-relays-and-shortcuts/manifest.json) batch contains 35 targets / 280 terminal leaves: 116 own leaves from 35 HTTP body roots and 164 support leaves. All 35 target task roots match proof JSON; nested nodes were audited. It covers selected Builder method/body/URI relays, fixed-method Request shortcuts, and actual `Method::builder_*` constructors. | Current source-map SHA `3ea66eb8889dcf1b8dc5845cc1a39744ee53e29f0788f8b42403a9dbaa4fcc42`. The post-emission `Error::is_empty_uri` source edit was reconciled by fresh translation and byte-identical logical task formulas (source-span bindings removed). This is a separate bounded snapshot, not additive to the 49-target or 15-target runs. Runtime URI/Status/Version imports and abstract callback/specification leaves remain support premises; header/extension mutation setters remain open. |
+ | Request/Response constructors and defaults | The later [`current-default-constructors-fixed-models`](composition/evidence/run-2026-10-05-current-default-constructors-fixed-models/manifest.json) snapshot proves 15 targets / 41 leaves (15 own, 26 support), with all trees matching the run-log arity and direct Why3 goal counts. It covers selected component defaults, `Parts::new`, `Builder::{new,default}`, `Request/Response::builder`, and generic request/response constructors/defaults. | Source-map SHA `9291932624e16e6a3a4c2a938c26c1e5b7c157fb47d60fd23c2b5f59675454ee`; the exact target/source snapshot is distinct from the 49-target run, so these counts are not additive. `Parts::new` support calls use imported `HeaderMap` and `Extensions` defaults; this does not prove those dependency bodies or every field's exact default state. |
+ | URI | The URI path API checkpoint records selected actual-source groups. `PathAndQuery` Display closes the body, refinement, and transitive formatter helper: 31 own leaves (25 + 3 + 3). Its comparison checkpoint has 28 targets and 125 terminal leaves, with first-level and nested task arities checked. The fresh [Parts and Authority checkpoint](uri/evidence/parts-authority-comparison-2026-10-05/manifest.json) records 45 targets / 194 own leaves, all passed and independently arity-audited: Parts/default/conversions 55, Authority fold/case helpers 42, Hash 22, PartialEq 41, and PartialOrd 34. | These are named URI leaf-harness results, not a full URI API proof. The earlier 119-leaf Authority and 48/55 Parts records refer to older source/model snapshots; the 45-target/194-leaf checkpoint is the current bounded result and subsumes overlapping targets. URI parsing and other API closures remain profile-scoped; no `Ord` implementation is claimed. |
+ 
+@@ -81,10 +84,15 @@ after this snapshot is not included in its source map.
+ ## Pending work and current non-claims
+ 
+ - The broader HeaderMap lookup and reserve/growth family remains open. The
+-  successful capacity-constructor pilot above does not prove those operations
+-  or the map's global table invariant. The `try_insert_entry` result is a
+-  local append/error contract and does not establish its callers' table-index
+-  updates. The standard-library
++  `find_with_hash` and getter-body results above are conditional on an
++  unestablished storage predicate. The partial batch does not establish that
++  `None` means a key is absent, that each sealed key type preserves lookup
++  equality/hash semantics, or that constructors and mutations establish the
++  table predicate. Its concrete sealed-implementation open leaves are tracked
++  in the manifest; current per-impl contract edits have only passed a frontend
++  check so far. The capacity-constructor pilot does not prove the global table
++  invariant. The `try_insert_entry` result is a local append/error contract
++  and does not establish its callers' table-index updates. The standard-library
+   `checked_next_power_of_two` declaration is a TCB contract, not a proof of the
+   Rust standard-library body.
+ - `HeaderMap::len` still has the two generic layout obligations above. The
+diff --git a/http/1.5.0/verification/composition/src/lib.rs b/http/1.5.0/verification/composition/src/lib.rs
+index f4e2c00..cca4376 100644
+--- a/http/1.5.0/verification/composition/src/lib.rs
++++ b/http/1.5.0/verification/composition/src/lib.rs
+@@ -13,13 +13,20 @@ pub use http_runtime::{StatusCode, Version};
+ #[path = "../../../src/ascii.rs"]
+ pub(crate) mod ascii;
+ 
+-#[cfg(http_composition_uri_defaults_leaf)]
++#[cfg(any(http_composition_uri_defaults_leaf, http_composition_header_leaf))]
+ #[path = "../../../src/byte_str.rs"]
+ pub(crate) mod byte_str;
+-#[cfg(http_composition_uri_defaults_leaf)]
++#[cfg(any(http_composition_uri_defaults_leaf, http_composition_header_leaf))]
+ #[path = "../../../src/bytes_model.rs"]
+ pub(crate) mod bytes_model;
+ 
++// The named header-setter leaf replaces the opaque published HeaderMap and
++// HeaderName with the checked-in HTTP source modules. HeaderValue remains the
++// pinned runtime value type, as in the standalone HeaderMap harness.
++#[cfg(http_composition_header_leaf)]
++#[path = "header.rs"]
++pub mod header;
++#[cfg(not(http_composition_header_leaf))]
+ pub mod header {
+     pub use http_runtime::header::{HeaderMap, HeaderName, HeaderValue, InvalidHeaderName, InvalidHeaderValue, MaxSizeReached};
+ }
+diff --git a/http/1.5.0/verification/header-map-api/README.md b/http/1.5.0/verification/header-map-api/README.md
+index e80bc55..bd8cb00 100644
+--- a/http/1.5.0/verification/header-map-api/README.md
++++ b/http/1.5.0/verification/header-map-api/README.md
+@@ -89,6 +89,65 @@ Robin Hood table invariant. The archive uses the named actual-source
+ below reproduce the seven-method run; use the exact commands in the manifest
+ for this separate helper snapshot.
+ 
++## Lookup-loop helper checkpoint
++
++The fresh actual-source proof for [`HeaderMap::find_with_hash`] records one
++own body leaf and eight call/specification support leaves, all successful, in
++[`evidence/run-2026-10-05-find-with-hash/manifest.json`](evidence/run-2026-10-05-find-with-hash/manifest.json).
++Its preconditions require the map's storage/table representation predicate
++`header_map_find_ready` and a nonempty map. A found result carries a bounded
++probe and bucket index, matching bucket/slot/input hashes, and the actual
++`HeaderName`/query `PartialEqModel` relation. `None` remains unconstrained.
++
++This is a one-helper result. It does not prove that constructors or mutations
++establish `header_map_find_ready`, lookup's absent-key completeness, or the
++public `get`/`get_mut`/`get_all`/`contains_key` wrappers. Those remain separate
++lookup and map-invariant work. The Creusot definition retains the native
++generic equality body and adds only the model type bounds needed to translate
++that existing comparison; the normal build keeps its original generic
++signature. The named `http_map_find_api_leaf` profile excludes unrelated
++map families only in the verification harness.
++
++## Lookup/getter proof attempt
++
++The partial fresh run is recorded in
++[`evidence/run-2026-10-05-map-lookup-getters/manifest.json`](evidence/run-2026-10-05-map-lookup-getters/manifest.json).
++It emitted the actual `HeaderMap::{find,find_with_hash,get,get_mut,get_all,contains_key}`
++bodies and actual `AsHeaderName::Sealed::find` implementations for
++`HeaderName`, `&HeaderName`, and `&str` under the named profile. A no-preprocess
++Why3 print found 43 direct roots across the 13 selected COMAs, with every
++proof JSON root set matching that print. The proof run exited 1: all seven
++`HeaderMap` body targets passed (7 own leaves and 23 call/spec support leaves),
++while the three sealed-key implementations and their three refinements have six
++open own leaves. The proof JSON trees report 18 successful own leaves and 30
++successful support leaves overall. Astra independently replayed the selected
++nested `split_vc` parents without a solver: all 13 archived COMAs and printer
++streams match, all 43 initial roots match the JSON roots, and every nested
++child arity matches. The audit records 24 own terminal obligations (18 passed,
++6 open) and 30 passed support leaves. This confirms tree completeness; it does
++not close the six open obligations. The durable details are in
++[`independent-nested-arity-audit.json`](evidence/run-2026-10-05-map-lookup-getters/independent-nested-arity-audit.json).
++
++The concrete sealed implementations failed because the trait's ready-map
++precondition was not inherited by implementation bodies. After this run,
++matching `requires(header_map_find_ready(*map))` and in-range `Some` posts were
++added to each implementation. The current source (`map.rs` SHA
++`ca22bfb5673eba84281bf3b1738e831a15b94cfcb99b0f8e16cab4fa46f9ce6e`) passes
++the named map-profile frontend check; it has not been freshly emitted or
++proved. The current edit also adds a `cfg(creusot)` exact append-node and frame
++contract to the actual `append_value` helper. The native HTTP library check
++passed on the immediately preceding `cb609fc3…` source; the subsequent change
++is contract-only and does not alter executable statements. The partial proof
++above is source-linked to its earlier `map.rs` SHA
++`914cfd8a7f3050bc0fb8e4c1a78f0408501cc4d1077c6d444e4b9dec5e0103d7`.
++
++All these bodies require the caller premise `header_map_find_ready`. The
++`AsHeaderName::Sealed` contract currently establishes only that a returned
++index is in range. This does not prove key/hash coherence for every input type,
++`None` iff absent, or that constructors and mutations establish the map
++predicate. The named profile removes only its private `try_entry` method from
++the sealed trait surface; the published/default trait API remains unchanged.
++
+ ## Reproduce
+ 
+ From this directory, emit current Coma after a package-scoped clean, then prove
+diff --git a/http/1.5.0/verification/probes/Cargo.toml b/http/1.5.0/verification/probes/Cargo.toml
+index 7cfd5f0..e87da40 100644
+--- a/http/1.5.0/verification/probes/Cargo.toml
++++ b/http/1.5.0/verification/probes/Cargo.toml
+@@ -26,3 +26,15 @@ path = "src/bin/type_id.rs"
+ [[bin]]
+ name = "dyn-error"
+ path = "src/bin/dyn_error.rs"
++
++[[bin]]
++name = "perm-slice-index"
++path = "src/bin/perm_slice_index.rs"
++
++[[bin]]
++name = "perm-bucket-fields"
++path = "src/bin/perm_bucket_fields.rs"
++
++[[bin]]
++name = "perm-two-yields"
++path = "src/bin/perm_two_yields.rs"
+diff --git a/http/1.5.0/verification/uri/src/lib.rs b/http/1.5.0/verification/uri/src/lib.rs
+index 4ebd809..12c2073 100644
+--- a/http/1.5.0/verification/uri/src/lib.rs
++++ b/http/1.5.0/verification/uri/src/lib.rs
+@@ -13,10 +13,10 @@ mod bytes_model;
+ 
+ // The URI support module includes the exact production error and scheme
+ // modules. No replacement error or byte-string types are used here.
+-#[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf)))]
++#[cfg(not(any(http_uri_parts_leaf, http_uri_default_leaf, http_uri_compare_leaf)))]
+ #[path = "scheme_support.rs"]
+ pub mod uri;
+-#[cfg(any(http_uri_parts_leaf, http_uri_default_leaf))]
++#[cfg(any(http_uri_parts_leaf, http_uri_default_leaf, http_uri_compare_leaf))]
+ #[path = "../../../src/uri/mod.rs"]
+ pub mod uri;
+ 

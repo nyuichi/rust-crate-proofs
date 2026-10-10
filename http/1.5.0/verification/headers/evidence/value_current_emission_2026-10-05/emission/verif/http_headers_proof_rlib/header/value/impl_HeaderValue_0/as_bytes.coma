@@ -1,0 +1,66 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 480 4 480 35 *)
+
+(* header::value::HeaderValue *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 481 8 481 21
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 480 21 480 25
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 479 32 479 48
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 552 15 552 19
+let%span svalue'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 551 32 551 48
+let%span svalue'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 52 8 52 49
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_Bytes
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+predicate invariant_ref_HeaderValue [@inline:trivial] (self: t_HeaderValue) = [%#sinvariant] inv_HeaderValue self
+
+meta "rewrite_def" predicate invariant_ref_HeaderValue
+
+predicate inv_ref_HeaderValue [@inline:trivial] (_1: t_HeaderValue) = invariant_ref_HeaderValue _1
+
+meta "rewrite_def" predicate inv_ref_HeaderValue
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function view_HeaderValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 51 4 51 33] (self: t_HeaderValue) : Seq.seq UInt8.t
+ = [%#svalue'4] bytes_seq self.inner
+
+let rec as_ref_HeaderValue (self: t_HeaderValue) (return (x: Slice64.slice UInt8.t)) =
+  {[@stop_split] [@expl:as_ref 'self' type invariant] [%#svalue'2] inv_ref_HeaderValue self}
+  any
+  [ return (result: Slice64.slice UInt8.t) -> {[@stop_split] [@expl:as_ref ensures] [%#svalue'3] Slice64.view result
+    = view_HeaderValue self}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec as_bytes
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 480 4 480 35]
+  (self: t_HeaderValue) (return (x: Slice64.slice UInt8.t)) =
+  {[@stop_split] [@expl:as_bytes 'self' type invariant] [%#svalue'0] inv_ref_HeaderValue self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = as_ref_HeaderValue [%#svalue] {self} (fun (_x: Slice64.slice UInt8.t) -> [ &_4 <- _x ] s1)
+    | s1 = [ &_ret <- _4 ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: Slice64.slice UInt8.t = Any.any_l ()
+  | & self: t_HeaderValue = self
+  | & _4: Slice64.slice UInt8.t = Any.any_l () ])
+  [ return (result: Slice64.slice UInt8.t) -> {[@stop_split] [@expl:as_bytes ensures] [%#svalue'1] Slice64.view result
+    = view_HeaderValue self}
+    (! return {result}) ]

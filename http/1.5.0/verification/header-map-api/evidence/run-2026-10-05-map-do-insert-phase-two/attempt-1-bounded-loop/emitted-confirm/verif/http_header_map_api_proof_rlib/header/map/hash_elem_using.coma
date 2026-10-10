@@ -1,0 +1,149 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4863 0 4865 21 *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 36 65 40
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 64 26 64 37
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4878 24 4878 40
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4879 12 4879 26
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4880 12 4880 22
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4884 22 4884 26
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4872 24 4872 45
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4863 22 4863 28
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4863 39 4863 40
+let%span smap'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4867 4 4867 19
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.int.UInt16
+use creusot.prelude.Any
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+type t_FnvHasher = { f0: UInt64.t }
+
+let rec new (return (x: t_FnvHasher)) = any [ return (result: t_FnvHasher) -> (! return {result}) ]
+
+type t_K
+
+type tup2_ref_K_refmut_FnvHasher = { f0'0: t_K; f1'0: MutBorrow.t t_FnvHasher }
+
+predicate inv_K (_1: t_K)
+
+predicate invariant_ref_K [@inline:trivial] (self: t_K) = [%#sinvariant] inv_K self
+
+meta "rewrite_def" predicate invariant_ref_K
+
+predicate inv_ref_K [@inline:trivial] (_1: t_K) = invariant_ref_K _1
+
+meta "rewrite_def" predicate inv_ref_K
+
+predicate precondition_hash (self: ()) (args: tup2_ref_K_refmut_FnvHasher)
+
+axiom precondition_fndef:
+  forall args: tup2_ref_K_refmut_FnvHasher [precondition_hash () args]. (let {f0'0 = self_; f1'0 = state} = args in [%#shash] inv_ref_K self_)
+    -> precondition_hash () args
+
+predicate inv_FnvHasher [@inline:trivial] (_1: t_FnvHasher) = true
+
+meta "rewrite_def" predicate inv_FnvHasher
+
+predicate postcondition_once_hash (self: ()) (args: tup2_ref_K_refmut_FnvHasher) (result: ())
+
+axiom postcondition_fndef:
+  forall args: tup2_ref_K_refmut_FnvHasher, res: () [postcondition_once_hash () args res]. postcondition_once_hash () args res
+    -> (let {f0'0 = self_; f1'0 = state} = args in [%#shash'0] inv_FnvHasher state.final)
+
+let rec hash_K (self_: t_K) (state: MutBorrow.t t_FnvHasher) (return (x: ())) =
+  {[@stop_split] [@expl:hash requires] precondition_hash () { f0'0 = self_; f1'0 = state }}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] postcondition_once_hash () { f0'0 = self_;
+                                                                                            f1'0 = state } result}
+    (! return {result}) ]
+
+predicate resolve_refmut_FnvHasher [@inline:trivial] (_1: MutBorrow.t t_FnvHasher) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_FnvHasher
+
+let rec finish_FnvHasher (self: t_FnvHasher) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> (! return {result}) ]
+
+constant const_MASK: UInt64.t = [%#smap'6] (32767: UInt64.t)
+
+type t_HashValue = { f0'1: UInt16.t }
+
+let rec elim_Red (_x: t_Danger) (return (f0'2: t_RandomState)) = any
+  [ _k (f0'2: t_RandomState) -> {Red f0'2 = _x} (! return {f0'2})
+  | _chk -> (! {[@expl:elim Red] match _x with
+      | Red _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_DefaultHasher
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0'2 -> inv_RandomState f0'2
+      end
+
+predicate invariant_ref_Danger [@inline:trivial] (self: t_Danger) = [%#sinvariant] inv_Danger self
+
+meta "rewrite_def" predicate invariant_ref_Danger
+
+predicate inv_ref_Danger [@inline:trivial] (_1: t_Danger) = invariant_ref_Danger _1
+
+meta "rewrite_def" predicate inv_ref_Danger
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec hash_elem_using_K
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4863 0 4865 21]
+  (danger: t_Danger) (k: t_K) (return (x: t_HashValue)) =
+  {[@stop_split] [@expl:hash_elem_using_K requires] ([@stop_split] [@expl:hash_elem_using 'danger' type invariant] [%#smap'4] inv_ref_Danger danger)
+  /\ ([@stop_split] [@expl:hash_elem_using 'k' type invariant] [%#smap'5] inv_ref_K k)}
+  (! bb0
+  [ bb0 = any
+    [ br0 -> {danger = Green} (! bb1)
+    | br1 -> {danger = Yellow} (! bb1)
+    | br2 (x0: t_RandomState) -> {danger = Red x0} (! bb3) ]
+  | bb1 = s0
+    [ s0 = new [%#smap] (fun (_x: t_FnvHasher) -> [ &h'0 <- _x ] s1)
+    | s1 = MutBorrow.borrow_mut <t_FnvHasher> {h'0}
+        (fun (_bor: MutBorrow.t t_FnvHasher) -> [ &_17 <- _bor ] [ &h'0 <- _bor.final ] s2)
+    | s2 = MutBorrow.borrow_final <t_FnvHasher> {_17.current} {MutBorrow.get_id _17}
+        (fun (_bor: MutBorrow.t t_FnvHasher) -> [ &_16 <- _bor ] [ &_17 <- { _17 with current = _bor.final } ] s3)
+    | s3 = hash_K [%#smap'0] {k} {_16} (fun (_x: ()) -> [ &_14 <- _x ] s4)
+    | s4 = -{resolve_refmut_FnvHasher _17}- s5
+    | s5 = finish_FnvHasher [%#smap'1] {h'0} (fun (_x: UInt64.t) -> [ &hash <- _x ] s6)
+    | s6 = [ &_20 <- UInt64.bw_and hash ([%#smap'2] const_MASK) ] s7
+    | s7 = UInt16.of_int {UInt64.t'int _20} (fun (_x: UInt16.t) -> [ &_19 <- _x ] s8)
+    | s8 = [ &_ret <- { f0'1 = _19 } ] s9
+    | s9 = return {_ret} ]
+  | bb3 = s0
+    [ s0 = elim_Red {danger} (fun (r0: t_RandomState) -> [ &hasher <- r0 ] s1) | s1 = {[%#smap'3] false} any ] ]
+  [ & _ret: t_HashValue = Any.any_l ()
+  | & danger: t_Danger = danger
+  | & k: t_K = k
+  | & hash: UInt64.t = Any.any_l ()
+  | & hasher: t_RandomState = Any.any_l ()
+  | & h: t_DefaultHasher = Any.any_l ()
+  | & _8: () = Any.any_l ()
+  | & _9: t_K = Any.any_l ()
+  | & _10: MutBorrow.t t_DefaultHasher = Any.any_l ()
+  | & _11: MutBorrow.t t_DefaultHasher = Any.any_l ()
+  | & h'0: t_FnvHasher = Any.any_l ()
+  | & _14: () = Any.any_l ()
+  | & _16: MutBorrow.t t_FnvHasher = Any.any_l ()
+  | & _17: MutBorrow.t t_FnvHasher = Any.any_l ()
+  | & _19: UInt16.t = Any.any_l ()
+  | & _20: UInt64.t = Any.any_l () ]) [ return (result: t_HashValue) -> (! return {result}) ]

@@ -1,0 +1,191 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 81 16 81 21 *)
+
+(* <header::name::Repr<T> as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 85 11 85 12
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 84 13 84 27
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 81 16 81 21
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 81 16 81 21
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+
+use creusot.prelude.Any
+
+type t_StandardHeader =
+  | Accept
+  | AcceptCharset
+  | AcceptEncoding
+  | AcceptLanguage
+  | AcceptRanges
+  | AccessControlAllowCredentials
+  | AccessControlAllowHeaders
+  | AccessControlAllowMethods
+  | AccessControlAllowOrigin
+  | AccessControlExposeHeaders
+  | AccessControlMaxAge
+  | AccessControlRequestHeaders
+  | AccessControlRequestMethod
+  | Age
+  | Allow
+  | AltSvc
+  | Authorization
+  | CacheControl
+  | CacheStatus
+  | CdnCacheControl
+  | Connection
+  | ContentDisposition
+  | ContentEncoding
+  | ContentLanguage
+  | ContentLength
+  | ContentLocation
+  | ContentRange
+  | ContentSecurityPolicy
+  | ContentSecurityPolicyReportOnly
+  | ContentType
+  | Cookie
+  | Dnt
+  | Date
+  | Etag
+  | Expect
+  | Expires
+  | Forwarded
+  | From
+  | Host
+  | IfMatch
+  | IfModifiedSince
+  | IfNoneMatch
+  | IfRange
+  | IfUnmodifiedSince
+  | LastModified
+  | Link
+  | Location
+  | MaxForwards
+  | Origin
+  | Pragma
+  | ProxyAuthenticate
+  | ProxyAuthorization
+  | PublicKeyPins
+  | PublicKeyPinsReportOnly
+  | Range
+  | Referer
+  | ReferrerPolicy
+  | Refresh
+  | RetryAfter
+  | SecWebSocketAccept
+  | SecWebSocketExtensions
+  | SecWebSocketKey
+  | SecWebSocketProtocol
+  | SecWebSocketVersion
+  | Server
+  | SetCookie
+  | StrictTransportSecurity
+  | Te
+  | Trailer
+  | TransferEncoding
+  | UserAgent
+  | Upgrade
+  | UpgradeInsecureRequests
+  | Vary
+  | Via
+  | Warning
+  | WwwAuthenticate
+  | XContentTypeOptions
+  | XDnsPrefetchControl
+  | XFrameOptions
+  | XXssProtection
+
+type t_T
+
+type t_Repr_T = Standard t_StandardHeader | Custom t_T
+
+let rec elim_Custom (_x: t_Repr_T) (return (f0: t_T)) = any
+  [ _k (f0: t_T) -> {Custom f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Custom] match _x with
+      | Custom _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate precondition_clone (self: ()) (args: t_T)
+
+axiom precondition_fndef:
+  forall args: t_T [precondition_clone () args]. (let self_ = args in [%#sclone] inv_ref_T self_)
+    -> precondition_clone () args
+
+predicate postcondition_once_clone (self: ()) (args: t_T) (result: t_T)
+
+axiom postcondition_fndef:
+  forall args: t_T, res: t_T [postcondition_once_clone () args res]. postcondition_once_clone () args res
+    -> (let self_ = args in inv_T res)
+
+let rec clone_T (self_: t_T) (return (x: t_T)) = {[@stop_split] [@expl:clone requires] precondition_clone () self_}
+  any
+  [ return (result: t_T) -> {[@stop_split] [@expl:clone ensures] postcondition_once_clone () self_ result}
+    (! return {result}) ]
+
+let rec elim_Standard (_x: t_Repr_T) (return (f0: t_StandardHeader)) = any
+  [ _k (f0: t_StandardHeader) -> {Standard f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Standard] match _x with
+      | Standard _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+let rec clone_StandardHeader (self: t_StandardHeader) (return (x: t_StandardHeader)) = any
+  [ return (result: t_StandardHeader) -> (! return {result}) ]
+
+predicate inv_Repr_T (_1: t_Repr_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Repr_T [inv_Repr_T x]. inv_Repr_T x
+    = match x with
+      | Standard f0 -> true
+      | Custom f0 -> inv_T f0
+      end
+
+predicate invariant_ref_Repr_T [@inline:trivial] (self: t_Repr_T) = [%#sinvariant] inv_Repr_T self
+
+meta "rewrite_def" predicate invariant_ref_Repr_T
+
+predicate inv_ref_Repr_T [@inline:trivial] (_1: t_Repr_T) = invariant_ref_Repr_T _1
+
+meta "rewrite_def" predicate inv_ref_Repr_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_Repr_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 81 16 81 21]
+  (self: t_Repr_T) (return (x: t_Repr_T)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#sname'1] inv_ref_Repr_T self}
+  (! bb0
+  [ bb0 = any
+    [ br0 (x0: t_StandardHeader) -> {self = Standard x0} (! bb4) | br1 (x0: t_T) -> {self = Custom x0} (! bb3) ]
+  | bb3 = s0
+    [ s0 = elim_Custom {self} (fun (r0: t_T) -> [ &__self_0'0 <- r0 ] s1)
+    | s1 = clone_T [%#sname] {__self_0'0} (fun (_x: t_T) -> [ &_7 <- _x ] s2)
+    | s2 = [ &_ret <- Custom _7 ] s3
+    | s3 = return {_ret} ]
+  | bb4 = s0
+    [ s0 = elim_Standard {self} (fun (r0: t_StandardHeader) -> [ &__self_0 <- r0 ] s1)
+    | s1 = clone_StandardHeader [%#sname'0] {__self_0} (fun (_x: t_StandardHeader) -> [ &_4 <- _x ] s2)
+    | s2 = [ &_ret <- Standard _4 ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: t_Repr_T = Any.any_l ()
+  | & self: t_Repr_T = self
+  | & __self_0: t_StandardHeader = Any.any_l ()
+  | & _4: t_StandardHeader = Any.any_l ()
+  | & __self_0'0: t_T = Any.any_l ()
+  | & _7: t_T = Any.any_l () ])
+  [ return (result: t_Repr_T) -> {[@stop_split] [@expl:clone result type invariant] [%#sname'2] inv_Repr_T result}
+    (! return {result}) ]

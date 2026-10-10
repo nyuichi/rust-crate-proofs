@@ -1,0 +1,152 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 219 0 219 74 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 222 4 222 26
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 219 20 219 26
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 216 11 216 79
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 217 10 217 26
+let%span slib'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 218 10 218 83
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 202 26 202 30
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 199 19 199 86
+let%span sbytes'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 200 18 200 34
+let%span sbytes'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 201 18 201 88
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sstring = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 286 14 286 24
+let%span sstring'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 287 14 287 60
+let%span sstring'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 290 12 294 13
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span schar = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.int.UInt8
+use creusot.prelude.Char
+use map.Map
+use int.ComputerDivision
+use creusot.int.Int64
+use creusot.prelude.Any
+use int.Int
+
+type t_BytesMut
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+type t_Result_unit_Error = Ok () | Err ()
+
+predicate invariant_refmut_BytesMut [@inline:trivial] (self: MutBorrow.t t_BytesMut) =
+  [%#sinvariant] inv_BytesMut self.current /\ inv_BytesMut self.final
+
+meta "rewrite_def" predicate invariant_refmut_BytesMut
+
+predicate inv_refmut_BytesMut [@inline:trivial] (_1: MutBorrow.t t_BytesMut) = invariant_refmut_BytesMut _1
+
+meta "rewrite_def" predicate inv_refmut_BytesMut
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'1] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'0] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t
+
+axiom to_bytes_def: forall self: Seq.seq Char.t. to_bytes self
+    = ([%#sstring'1] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (to_utf8_char (Seq.get self 0)) (to_bytes (tail_char self))
+    )
+
+axiom to_bytes_spec: forall self: Seq.seq Char.t. [%#sstring'0] to_bytes self
+    = flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+function view_str (self: string) : Seq.seq Char.t
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+let rec write_str_BytesMut (self_: MutBorrow.t t_BytesMut) (value: string) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:write_str_BytesMut requires] ([@stop_split] [@expl:write_str 'self_' type invariant] [%#sbytes] inv_refmut_BytesMut self_)
+  /\ ([@stop_split] [@expl:write_str requires] [%#sbytes'0] Seq.length (bytes_mut_seq self_.current)
+    + Seq.length (to_bytes (view_str value))
+  <= Int64.to_int const_MAX)}
+  any
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:write_str_BytesMut ensures] ([@stop_split] [@expl:write_str ensures #0] [%#sbytes'1] result
+      = Ok ())
+    /\ ([@stop_split] [@expl:write_str ensures #1] [%#sbytes'2] bytes_mut_seq self_.final
+    = Seq.(++) (bytes_mut_seq self_.current) (to_bytes (view_str value)))}
+    (! return {result}) ]
+
+predicate resolve_refmut_BytesMut [@inline:trivial] (_1: MutBorrow.t t_BytesMut) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_BytesMut
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec write_string [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 219 0 219 74]
+  (output: MutBorrow.t t_BytesMut) (data: string) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:write_string requires] ([@stop_split] [@expl:write_string 'output' type invariant] [%#slib'0] inv_refmut_BytesMut output)
+  /\ ([@stop_split] [@expl:write_string requires] [%#slib'1] Seq.length (bytes_mut_seq output.current)
+    + Seq.length (to_bytes (view_str data))
+  <= Int64.to_int const_MAX)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_BytesMut> {output.current} {MutBorrow.get_id output}
+        (fun (_bor: MutBorrow.t t_BytesMut) ->
+          [ &_10 <- _bor ] -{inv_BytesMut _bor.final}-
+          [ &output <- { output with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_BytesMut output.current} any) ]
+    | s1 = write_str_BytesMut [%#slib] {_10} {data} (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_BytesMut output} any) ]
+    | s3 = -{resolve_refmut_BytesMut output}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & output: MutBorrow.t t_BytesMut = output
+  | & data: string = data
+  | & _10: MutBorrow.t t_BytesMut = Any.any_l () ])
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:write_string ensures] ([@stop_split] [@expl:write_string ensures #0] [%#slib'2] result = Ok ())
+    /\ ([@stop_split] [@expl:write_string ensures #1] [%#slib'3] bytes_mut_seq output.final
+    = Seq.(++) (bytes_mut_seq output.current) (to_bytes (view_str data)))}
+    (! return {result}) ]

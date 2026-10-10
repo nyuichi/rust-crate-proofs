@@ -1,0 +1,16 @@
+--- archived map
++++ invocation map
+@@ -1292,6 +1292,13 @@
+     #[cfg(all(creusot, any(not(feature = "http_map_api_leaf"), feature = "http_map_find_api_leaf")))]
+     #[inline]
+     #[cfg_attr(creusot, requires(header_map_find_ready(*self)))]
++    #[cfg_attr(creusot, ensures(match result {
++        Some(value) => exists<index: Int>
++            0 <= index && index < header_map_keys_len(*self)
++                && *value == header_map_value_at(*self, index)
++                && key.matches_header(header_map_key_at(*self, index)),
++        None => true,
++    }))]
+     pub fn get<K>(&self, key: K) -> Option<&T>
+     where
+         K: AsHeaderName,

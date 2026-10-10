@@ -1,0 +1,51 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 22 0 22 43 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 23 4 23 18
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 22 19 22 25
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 22 38 22 43
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 21 10 21 49
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 100 18 100 22
+let%span sbytes'0 = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes.rs" 689 4 689 28
+let%span sbytes'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 99 18 99 55
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate invariant_ref_Bytes [@inline:trivial] (self: t_Bytes) = [%#sinvariant] inv_Bytes self
+
+meta "rewrite_def" predicate invariant_ref_Bytes
+
+predicate inv_ref_Bytes [@inline:trivial] (_1: t_Bytes) = invariant_ref_Bytes _1
+
+meta "rewrite_def" predicate inv_ref_Bytes
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec clone_Bytes (self_: t_Bytes) (return (x: t_Bytes)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#sbytes] inv_ref_Bytes self_}
+  any
+  [ return (result: t_Bytes) ->
+  {[@stop_split] [@expl:clone_Bytes ensures] ([@stop_split] [@expl:clone result type invariant] [%#sbytes'0] inv_Bytes result)
+    /\ ([@stop_split] [@expl:clone ensures] [%#sbytes'1] bytes_seq result = bytes_seq self_)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_bytes [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 22 0 22 43]
+  (source: t_Bytes) (return (x: t_Bytes)) =
+  {[@stop_split] [@expl:clone_bytes 'source' type invariant] [%#slib'0] inv_ref_Bytes source}
+  (! bb0
+  [ bb0 = s0 [ s0 = clone_Bytes [%#slib] {source} (fun (_x: t_Bytes) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_Bytes = Any.any_l () | & source: t_Bytes = source ])
+  [ return (result: t_Bytes) ->
+  {[@stop_split] [@expl:clone_bytes ensures] ([@stop_split] [@expl:clone_bytes result type invariant] [%#slib'1] inv_Bytes result)
+    /\ ([@stop_split] [@expl:clone_bytes ensures] [%#slib'2] bytes_seq result = bytes_seq source)}
+    (! return {result}) ]

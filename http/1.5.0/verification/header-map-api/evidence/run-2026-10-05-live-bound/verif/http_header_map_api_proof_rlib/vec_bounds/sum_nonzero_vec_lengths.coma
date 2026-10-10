@@ -1,0 +1,123 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 17 0 17 73 *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 115 16 115 20
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 114 18 114 40
+let%span svec'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span svec'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 89 20 89 30
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 141 38 141 44
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 139 11 139 35
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 140 10 140 38
+let%span smem = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/mem.rs" 131 10 131 21
+let%span svec_bounds = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 18 4 18 50
+let%span svec_bounds'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 19 4 19 51
+let%span svec_bounds'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 20 4 20 14
+let%span svec_bounds'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 20 17 20 28
+let%span svec_bounds'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 20 4 20 28
+let%span svec_bounds'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 17 34 17 38
+let%span svec_bounds'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 17 49 17 54
+let%span svec_bounds'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 15 11 15 35
+let%span svec_bounds'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 16 10 16 47
+
+use seq.Seq
+use creusot.int.UInt64
+use creusot.int.Int64
+use creusot.prelude.Any
+use int.Int
+
+type t_Vec_T_Global
+
+type t_T
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate invariant_Seq_T [@inline:trivial] (self: Seq.seq t_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_T
+
+predicate inv_Seq_T [@inline:trivial] (_1: Seq.seq t_T) = invariant_Seq_T _1
+
+meta "rewrite_def" predicate inv_Seq_T
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_T_Global (self: t_Vec_T_Global) : Seq.seq t_T
+
+axiom view_Vec_T_Global_spec: forall self: t_Vec_T_Global. [%#svec'1] Seq.length (view_Vec_T_Global self)
+    <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_T_Global (self: t_Vec_T_Global) = [%#svec'2] inv_Seq_T (view_Vec_T_Global self)
+
+predicate inv_Vec_T_Global (_1: t_Vec_T_Global)
+
+axiom inv_axiom: forall x: t_Vec_T_Global [inv_Vec_T_Global x]. inv_Vec_T_Global x -> invariant_Vec_T_Global x
+
+predicate invariant_ref_Vec_T_Global [@inline:trivial] (self: t_Vec_T_Global) = [%#sinvariant] inv_Vec_T_Global self
+
+meta "rewrite_def" predicate invariant_ref_Vec_T_Global
+
+predicate inv_ref_Vec_T_Global [@inline:trivial] (_1: t_Vec_T_Global) = invariant_ref_Vec_T_Global _1
+
+meta "rewrite_def" predicate inv_ref_Vec_T_Global
+
+constant size_of_T : int
+
+axiom size_of_T_spec: [%#smem] 0 <= size_of_T
+
+constant const_MAX'0: Int64.t = (9223372036854775807: Int64.t)
+
+let rec allocation_len_bound_T (values: t_Vec_T_Global) (return (x: ())) =
+  {[@stop_split] [@expl:allocation_len_bound_T requires] ([@stop_split] [@expl:allocation_len_bound 'values' type invariant] [%#smap] inv_ref_Vec_T_Global values)
+  /\ ([@stop_split] [@expl:allocation_len_bound requires] [%#smap'0] size_of_T > 0)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:allocation_len_bound ensures] [%#smap'1] Seq.length (view_Vec_T_Global values)
+    <= Int64.to_int const_MAX'0}
+    (! return {result}) ]
+
+let rec len_T (self_: t_Vec_T_Global) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:len 'self_' type invariant] [%#svec] inv_ref_Vec_T_Global self_}
+  any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#svec'0] UInt64.t'int result
+    = Seq.length (view_Vec_T_Global self_)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec sum_nonzero_vec_lengths_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 17 0 17 73]
+  (left: t_Vec_T_Global) (right: t_Vec_T_Global) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:sum_nonzero_vec_lengths_T requires] ([@stop_split] [@expl:sum_nonzero_vec_lengths 'left' type invariant] [%#svec_bounds'4] inv_ref_Vec_T_Global left)
+  /\ ([@stop_split] [@expl:sum_nonzero_vec_lengths 'right' type invariant] [%#svec_bounds'5] inv_ref_Vec_T_Global right)
+  /\ ([@stop_split] [@expl:sum_nonzero_vec_lengths requires] [%#svec_bounds'6] size_of_T > 0)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = allocation_len_bound_T [%#svec_bounds] {left} (fun (_x: ()) -> [ &_7 <- _x ] s1)
+    | s1 = allocation_len_bound_T [%#svec_bounds'0] {right} (fun (_x: ()) -> [ &_9 <- _x ] s2)
+    | s2 = len_T [%#svec_bounds'1] {left} (fun (_x: UInt64.t) -> [ &_11 <- _x ] s3)
+    | s3 = len_T [%#svec_bounds'2] {right} (fun (_x: UInt64.t) -> [ &_13 <- _x ] s4)
+    | s4 = UInt64.add [%#svec_bounds'3] {_11} {_13} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s5)
+    | s5 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l ()
+  | & left: t_Vec_T_Global = left
+  | & right: t_Vec_T_Global = right
+  | & _7: () = Any.any_l ()
+  | & _9: () = Any.any_l ()
+  | & _11: UInt64.t = Any.any_l ()
+  | & _13: UInt64.t = Any.any_l () ])
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:sum_nonzero_vec_lengths ensures] [%#svec_bounds'7] UInt64.t'int result
+    = Seq.length (view_Vec_T_Global left) + Seq.length (view_Vec_T_Global right)}
+    (! return {result}) ]

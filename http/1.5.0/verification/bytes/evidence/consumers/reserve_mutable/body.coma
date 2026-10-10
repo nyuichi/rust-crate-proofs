@@ -1,0 +1,86 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 153 0 153 63 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 154 4 154 29
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 153 23 153 28
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 150 11 150 67
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 151 10 151 56
+let%span slib'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 152 10 152 81
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 159 24 159 28
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 156 19 156 74
+let%span sbytes'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 157 18 157 62
+let%span sbytes'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 158 18 158 87
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use creusot.int.Int64
+use seq.Seq
+use creusot.int.UInt8
+use creusot.prelude.Any
+use int.Int
+
+type t_BytesMut
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+predicate invariant_refmut_BytesMut [@inline:trivial] (self: MutBorrow.t t_BytesMut) =
+  [%#sinvariant] inv_BytesMut self.current /\ inv_BytesMut self.final
+
+meta "rewrite_def" predicate invariant_refmut_BytesMut
+
+predicate inv_refmut_BytesMut [@inline:trivial] (_1: MutBorrow.t t_BytesMut) = invariant_refmut_BytesMut _1
+
+meta "rewrite_def" predicate inv_refmut_BytesMut
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+function bytes_mut_capacity (_value: t_BytesMut) : int
+
+let rec reserve (self_: MutBorrow.t t_BytesMut) (additional: UInt64.t) (return (x: ())) =
+  {[@stop_split] [@expl:reserve requires] ([@stop_split] [@expl:reserve 'self_' type invariant] [%#sbytes] inv_refmut_BytesMut self_)
+  /\ ([@stop_split] [@expl:reserve requires] [%#sbytes'0] UInt64.t'int additional
+  <= Int64.to_int const_MAX - Seq.length (bytes_mut_seq self_.current))}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:reserve ensures] ([@stop_split] [@expl:reserve ensures #0] [%#sbytes'1] bytes_mut_seq self_.final
+      = bytes_mut_seq self_.current)
+    /\ ([@stop_split] [@expl:reserve ensures #1] [%#sbytes'2] bytes_mut_capacity self_.final
+    >= Seq.length (bytes_mut_seq self_.current) + UInt64.t'int additional)}
+    (! return {result}) ]
+
+predicate resolve_refmut_BytesMut [@inline:trivial] (_1: MutBorrow.t t_BytesMut) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_BytesMut
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec reserve_mutable [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 153 0 153 63]
+  (value: MutBorrow.t t_BytesMut) (additional: UInt64.t) (return (x: ())) =
+  {[@stop_split] [@expl:reserve_mutable requires] ([@stop_split] [@expl:reserve_mutable 'value' type invariant] [%#slib'0] inv_refmut_BytesMut value)
+  /\ ([@stop_split] [@expl:reserve_mutable requires] [%#slib'1] UInt64.t'int additional
+  <= Int64.to_int const_MAX - Seq.length (bytes_mut_seq value.current))}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_BytesMut> {value.current} {MutBorrow.get_id value}
+        (fun (_bor: MutBorrow.t t_BytesMut) ->
+          [ &_11 <- _bor ] -{inv_BytesMut _bor.final}-
+          [ &value <- { value with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_BytesMut value.current} any) ]
+    | s1 = reserve [%#slib] {_11} {additional} (fun (_x: ()) -> [ &_ret <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_BytesMut value} any) ]
+    | s3 = -{resolve_refmut_BytesMut value}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & value: MutBorrow.t t_BytesMut = value
+  | & additional: UInt64.t = additional
+  | & _11: MutBorrow.t t_BytesMut = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:reserve_mutable ensures] ([@stop_split] [@expl:reserve_mutable ensures #0] [%#slib'2] bytes_mut_seq value.final
+      = bytes_mut_seq value.current)
+    /\ ([@stop_split] [@expl:reserve_mutable ensures #1] [%#slib'3] bytes_mut_capacity value.final
+    >= Seq.length (bytes_mut_seq value.current) + UInt64.t'int additional)}
+    (! return {result}) ]

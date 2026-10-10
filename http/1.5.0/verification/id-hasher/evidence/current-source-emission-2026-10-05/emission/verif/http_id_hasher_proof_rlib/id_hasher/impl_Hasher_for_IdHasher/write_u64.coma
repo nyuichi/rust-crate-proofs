@@ -1,0 +1,31 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/id-hasher/src/../../../src/extensions/id_hasher.rs" 31 4 31 36 *)
+
+(* <id_hasher::IdHasher as std::hash::Hasher> *)
+
+let%span sid_hasher = "/workspace/rust-crate-proofs/http/1.5.0/verification/id-hasher/src/../../../src/extensions/id_hasher.rs" 30 14 30 31
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_IdHasher = { f0: UInt64.t }
+
+predicate resolve_refmut_IdHasher [@inline:trivial] (_1: MutBorrow.t t_IdHasher) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_IdHasher
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec write_u64_IdHasher
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/id-hasher/src/../../../src/extensions/id_hasher.rs" 31 4 31 36]
+  (self: MutBorrow.t t_IdHasher) (id: UInt64.t) (return (x: ())) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &self <- { self with current = { f0 = id } } ] s1
+    | s1 = -{resolve_refmut_IdHasher self}- s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l () | & self: MutBorrow.t t_IdHasher = self | & id: UInt64.t = id ])
+  [ return (result: ()) -> {[@stop_split] [@expl:write_u64 ensures] [%#sid_hasher] UInt64.t'int self.final.f0
+    = UInt64.t'int id}
+    (! return {result}) ]

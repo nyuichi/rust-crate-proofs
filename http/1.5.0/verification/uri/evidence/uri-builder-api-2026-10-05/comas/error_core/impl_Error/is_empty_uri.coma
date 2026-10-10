@@ -1,0 +1,164 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 131 4 131 45 *)
+
+(* error_core::Error *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span serror = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/error.rs" 107 28 107 32
+let%span serror'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/error.rs" 106 14 106 49
+let%span score = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 134 17 134 22
+let%span score'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 133 39 133 53
+let%span score'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 131 32 131 36
+let%span score'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 129 16 129 50
+let%span score'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 112 4 115 5
+let%span score'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 74 4 82 5
+
+use creusot.prelude.Any
+
+type t_InvalidStatusCode
+
+type t_InvalidMethod
+
+type t_InvalidUri
+
+type t_InvalidUriParts = { f0: t_InvalidUri }
+
+type t_InvalidHeaderName
+
+type t_InvalidHeaderValue
+
+type t_MaxSizeReached
+
+type t_ErrorKind =
+  | StatusCode t_InvalidStatusCode
+  | Method t_InvalidMethod
+  | Uri t_InvalidUri
+  | UriParts t_InvalidUriParts
+  | HeaderName t_InvalidHeaderName
+  | HeaderValue t_InvalidHeaderValue
+  | MaxSizeReached t_MaxSizeReached
+
+type t_Error = { inner: t_ErrorKind }
+
+let rec elim_Uri (_x: t_ErrorKind) (return (f0'0: t_InvalidUri)) = any
+  [ _k (f0'0: t_InvalidUri) -> {Uri f0'0 = _x} (! return {f0'0})
+  | _chk -> (! {[@expl:elim Uri] match _x with
+      | Uri _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate inv_InvalidUri (_1: t_InvalidUri)
+
+predicate invariant_ref_InvalidUri [@inline:trivial] (self: t_InvalidUri) = [%#sinvariant] inv_InvalidUri self
+
+meta "rewrite_def" predicate invariant_ref_InvalidUri
+
+predicate inv_ref_InvalidUri [@inline:trivial] (_1: t_InvalidUri) = invariant_ref_InvalidUri _1
+
+meta "rewrite_def" predicate inv_ref_InvalidUri
+
+function deep_model_InvalidUri [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/error.rs" 93 4 93 44] (self: t_InvalidUri) : int
+
+function deep_model_ref_InvalidUri [@inline:trivial] (self: t_InvalidUri) : int = [%#smodel] deep_model_InvalidUri self
+
+meta "rewrite_def" function deep_model_ref_InvalidUri
+
+let rec is_empty (self: t_InvalidUri) (return (x: bool)) =
+  {[@stop_split] [@expl:is_empty 'self' type invariant] [%#serror] inv_ref_InvalidUri self}
+  any
+  [ return (result: bool) -> {[@stop_split] [@expl:is_empty ensures] [%#serror'0] result
+    = (deep_model_ref_InvalidUri self = 10)}
+    (! return {result}) ]
+
+predicate inv_InvalidStatusCode (_1: t_InvalidStatusCode)
+
+predicate inv_InvalidMethod (_1: t_InvalidMethod)
+
+predicate inv_InvalidUriParts (_1: t_InvalidUriParts)
+
+axiom inv_axiom [@rewrite]: forall x: t_InvalidUriParts [inv_InvalidUriParts x]. inv_InvalidUriParts x
+    = inv_InvalidUri x.f0
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+predicate inv_InvalidHeaderValue (_1: t_InvalidHeaderValue)
+
+predicate inv_MaxSizeReached (_1: t_MaxSizeReached)
+
+predicate inv_ErrorKind (_1: t_ErrorKind)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_ErrorKind [inv_ErrorKind x]. inv_ErrorKind x
+    = match x with
+      | StatusCode f0'0 -> inv_InvalidStatusCode f0'0
+      | Method f0'0 -> inv_InvalidMethod f0'0
+      | Uri f0'0 -> inv_InvalidUri f0'0
+      | UriParts f0'0 -> inv_InvalidUriParts f0'0
+      | HeaderName f0'0 -> inv_InvalidHeaderName f0'0
+      | HeaderValue f0'0 -> inv_InvalidHeaderValue f0'0
+      | MaxSizeReached f0'0 -> inv_MaxSizeReached f0'0
+      end
+
+predicate inv_Error (_1: t_Error)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Error [inv_Error x]. inv_Error x = inv_ErrorKind x.inner
+
+predicate invariant_ref_Error [@inline:trivial] (self: t_Error) = [%#sinvariant] inv_Error self
+
+meta "rewrite_def" predicate invariant_ref_Error
+
+predicate inv_ref_Error [@inline:trivial] (_1: t_Error) = invariant_ref_Error _1
+
+meta "rewrite_def" predicate inv_ref_Error
+
+type t_ErrorModel =
+  | StatusCode'0 t_InvalidStatusCode
+  | Method'0 t_InvalidMethod
+  | Uri'0 t_InvalidUri
+  | UriParts'0 t_InvalidUriParts
+  | HeaderName'0 t_InvalidHeaderName
+  | HeaderValue'0 t_InvalidHeaderValue
+  | MaxSizeReached'0 t_MaxSizeReached
+
+function error_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 73 0 73 46] (error: t_Error) : t_ErrorModel
+ = [%#score'4] match error.inner with
+    | StatusCode err -> StatusCode'0 err
+    | Method err -> Method'0 err
+    | Uri err -> Uri'0 err
+    | UriParts err -> UriParts'0 err
+    | HeaderName err -> HeaderName'0 err
+    | HeaderValue err -> HeaderValue'0 err
+    | MaxSizeReached err -> MaxSizeReached'0 err
+    end
+
+predicate error_is_empty_uri [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 111 0 111 48] (error: t_Error) =
+  [%#score'3] match error_model error with
+    | Uri'0 uri_error -> deep_model_InvalidUri uri_error = 10
+    | _ -> false
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec is_empty_uri
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/error/core.rs" 131 4 131 45]
+  (self: t_Error) (return (x: bool)) =
+  {[@stop_split] [@expl:is_empty_uri 'self' type invariant] [%#score'1] inv_ref_Error self}
+  (! bb0
+  [ bb0 = any
+    [ br0 (x0: t_InvalidStatusCode) -> {self.inner = StatusCode x0} (! bb1)
+    | br1 (x0: t_InvalidMethod) -> {self.inner = Method x0} (! bb1)
+    | br2 (x0: t_InvalidUri) -> {self.inner = Uri x0} (! bb3)
+    | br3 (x0: t_InvalidUriParts) -> {self.inner = UriParts x0} (! bb1)
+    | br4 (x0: t_InvalidHeaderName) -> {self.inner = HeaderName x0} (! bb1)
+    | br5 (x0: t_InvalidHeaderValue) -> {self.inner = HeaderValue x0} (! bb1)
+    | br6 (x0: t_MaxSizeReached) -> {self.inner = MaxSizeReached x0} (! bb1) ]
+  | bb1 = s0 [ s0 = [ &_ret <- [%#score] false ] s1 | s1 = return {_ret} ]
+  | bb3 = s0
+    [ s0 = elim_Uri {self.inner} (fun (r0: t_InvalidUri) -> [ &err <- r0 ] s1)
+    | s1 = is_empty [%#score'0] {err} (fun (_x: bool) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & self: t_Error = self | & err: t_InvalidUri = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:is_empty_uri ensures] [%#score'2] result = error_is_empty_uri self}
+    (! return {result}) ]

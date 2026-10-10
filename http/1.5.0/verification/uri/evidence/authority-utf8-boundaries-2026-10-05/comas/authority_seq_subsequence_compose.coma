@@ -1,0 +1,41 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 345 0 351 9 *)
+
+let%span sauthority = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 339 11 339 62
+let%span sauthority'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 340 11 341 33
+let%span sauthority'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 342 10 342 16
+let%span sauthority'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 343 10 344 66
+let%span sauthority'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 352 4 352 86
+
+use seq.Seq
+use int.Int
+
+type t_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant source : Seq.seq t_T
+
+constant first : int
+
+constant last : int
+
+constant inner_first : int
+
+constant inner_last : int
+
+predicate authority_seq_subsequence_compose_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 345 0 351 9] (source: Seq.seq t_T) (first: int) (last: int) (inner_first: int) (inner_last: int)
+
+goal vc_authority_seq_subsequence_compose_T: ([%#sauthority] 0 <= first /\ first <= last /\ last <= Seq.length source)
+  -> ([%#sauthority'0] 0 <= inner_first /\ inner_first <= inner_last /\ inner_last <= last - first)
+  -> (let nested = Seq.([..]) (Seq.([..]) source first last) inner_first inner_last in let direct = Seq.([..]) source (first
+  + inner_first) (first + inner_last) in Seq.length nested = Seq.length direct
+  && (forall i: int. 0 <= i /\ i < Seq.length nested
+      -> Seq.get nested i = Seq.get source (first + inner_first + i)
+      /\ Seq.get direct i = Seq.get source (first + inner_first + i))
+  && Seq.(==) nested direct
+  && nested = direct
+  && ([@stop_split] [@expl:authority_seq_subsequence_compose_T ensures] ([@stop_split] [@expl:authority_seq_subsequence_compose ensures #0] [%#sauthority'1] true)
+  /\ ([@stop_split] [@expl:authority_seq_subsequence_compose ensures #1] [%#sauthority'2] Seq.([..]) (Seq.([..]) source first last) inner_first inner_last
+  = Seq.([..]) source (first + inner_first) (first + inner_last))))

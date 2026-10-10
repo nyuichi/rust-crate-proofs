@@ -1,0 +1,202 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3320 4 3320 36 *)
+
+(* header::map::VacantEntry<'a, T> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 89 20 89 30
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3320 16 3320 20
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3320 25 3320 36
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3319 32 3319 72
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 151 4 151 20
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt16
+use creusot.slice.Slice64
+use creusot.int.UInt64
+use creusot.prelude.Any
+use seq.Seq
+use int.Int
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+type t_Vec_Bucket_T_Global
+
+type t_Vec_ExtraValue_T_Global
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+type t_HeaderMap_T = {
+  mask: UInt16.t;
+  indices: Slice64.slice t_Pos;
+  entries: t_Vec_Bucket_T_Global;
+  extra_values: t_Vec_ExtraValue_T_Global;
+  danger: t_Danger }
+
+type t_HeaderName
+
+type t_VacantEntry_T = {
+  map'0: MutBorrow.t t_HeaderMap_T;
+  key'0: t_HeaderName;
+  hash'0: t_HashValue;
+  probe'0: UInt64.t;
+  danger'0: bool }
+
+type t_T
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None | Some t_Links
+
+type t_Bucket_T = { hash'1: t_HashValue; key'1: t_HeaderName; value'1: t_T; links'1: t_Option_Links }
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Bucket_T (_1: t_Bucket_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Bucket_T [inv_Bucket_T x]. inv_Bucket_T x
+    = (inv_HeaderName x.key'1 /\ inv_T x.value'1)
+
+predicate invariant_ref_Bucket_T [@inline:trivial] (self: t_Bucket_T) = [%#sinvariant] inv_Bucket_T self
+
+meta "rewrite_def" predicate invariant_ref_Bucket_T
+
+predicate inv_ref_Bucket_T [@inline:trivial] (_1: t_Bucket_T) = invariant_ref_Bucket_T _1
+
+meta "rewrite_def" predicate inv_ref_Bucket_T
+
+predicate invariant_Seq_Bucket_T [@inline:trivial] (self: Seq.seq t_Bucket_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_Bucket_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_Bucket_T
+
+predicate inv_Seq_Bucket_T [@inline:trivial] (_1: Seq.seq t_Bucket_T) = invariant_Seq_Bucket_T _1
+
+meta "rewrite_def" predicate inv_Seq_Bucket_T
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) : Seq.seq t_Bucket_T
+
+axiom view_Vec_Bucket_T_Global_spec:
+  forall self: t_Vec_Bucket_T_Global. [%#svec'0] Seq.length (view_Vec_Bucket_T_Global self) <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) =
+  [%#svec] inv_Seq_Bucket_T (view_Vec_Bucket_T_Global self)
+
+predicate inv_Vec_Bucket_T_Global (_1: t_Vec_Bucket_T_Global)
+
+axiom inv_axiom'0: forall x: t_Vec_Bucket_T_Global [inv_Vec_Bucket_T_Global x]. inv_Vec_Bucket_T_Global x
+    -> invariant_Vec_Bucket_T_Global x
+
+type t_Link = Entry UInt64.t | Extra UInt64.t
+
+type t_ExtraValue_T = { value'0: t_T; prev'0: t_Link; next'0: t_Link }
+
+predicate inv_ExtraValue_T (_1: t_ExtraValue_T)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_ExtraValue_T [inv_ExtraValue_T x]. inv_ExtraValue_T x = inv_T x.value'0
+
+predicate invariant_ref_ExtraValue_T [@inline:trivial] (self: t_ExtraValue_T) = [%#sinvariant] inv_ExtraValue_T self
+
+meta "rewrite_def" predicate invariant_ref_ExtraValue_T
+
+predicate inv_ref_ExtraValue_T [@inline:trivial] (_1: t_ExtraValue_T) = invariant_ref_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_ref_ExtraValue_T
+
+predicate invariant_Seq_ExtraValue_T [@inline:trivial] (self: Seq.seq t_ExtraValue_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_ExtraValue_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_ExtraValue_T
+
+predicate inv_Seq_ExtraValue_T [@inline:trivial] (_1: Seq.seq t_ExtraValue_T) = invariant_Seq_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_Seq_ExtraValue_T
+
+function view_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) : Seq.seq t_ExtraValue_T
+
+axiom view_Vec_ExtraValue_T_Global_spec:
+  forall self: t_Vec_ExtraValue_T_Global. [%#svec'0] Seq.length (view_Vec_ExtraValue_T_Global self)
+    <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) =
+  [%#svec] inv_Seq_ExtraValue_T (view_Vec_ExtraValue_T_Global self)
+
+predicate inv_Vec_ExtraValue_T_Global (_1: t_Vec_ExtraValue_T_Global)
+
+axiom inv_axiom'2: forall x: t_Vec_ExtraValue_T_Global [inv_Vec_ExtraValue_T_Global x]. inv_Vec_ExtraValue_T_Global x
+    -> invariant_Vec_ExtraValue_T_Global x
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0'0 -> inv_RandomState f0'0
+      end
+
+predicate inv_HeaderMap_T (_1: t_HeaderMap_T)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_HeaderMap_T [inv_HeaderMap_T x]. inv_HeaderMap_T x
+    = (inv_Vec_Bucket_T_Global x.entries /\ inv_Vec_ExtraValue_T_Global x.extra_values /\ inv_Danger x.danger)
+
+predicate invariant_refmut_HeaderMap_T [@inline:trivial] (self: MutBorrow.t t_HeaderMap_T) =
+  [%#sinvariant'0] inv_HeaderMap_T self.current /\ inv_HeaderMap_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_HeaderMap_T
+
+predicate inv_refmut_HeaderMap_T [@inline:trivial] (_1: MutBorrow.t t_HeaderMap_T) = invariant_refmut_HeaderMap_T _1
+
+meta "rewrite_def" predicate inv_refmut_HeaderMap_T
+
+predicate inv_VacantEntry_T (_1: t_VacantEntry_T)
+
+axiom inv_axiom'5 [@rewrite]: forall x: t_VacantEntry_T [inv_VacantEntry_T x]. inv_VacantEntry_T x
+    = (inv_refmut_HeaderMap_T x.map'0 /\ inv_HeaderName x.key'0)
+
+predicate invariant_ref_VacantEntry_T [@inline:trivial] (self: t_VacantEntry_T) = [%#sinvariant] inv_VacantEntry_T self
+
+meta "rewrite_def" predicate invariant_ref_VacantEntry_T
+
+predicate inv_ref_VacantEntry_T [@inline:trivial] (_1: t_VacantEntry_T) = invariant_ref_VacantEntry_T _1
+
+meta "rewrite_def" predicate inv_ref_VacantEntry_T
+
+predicate invariant_ref_HeaderName [@inline:trivial] (self: t_HeaderName) = [%#sinvariant] inv_HeaderName self
+
+meta "rewrite_def" predicate invariant_ref_HeaderName
+
+predicate inv_ref_HeaderName [@inline:trivial] (_1: t_HeaderName) = invariant_ref_HeaderName _1
+
+meta "rewrite_def" predicate inv_ref_HeaderName
+
+predicate vacant_entry_key_matches_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 150 0 150 90] (entry: t_VacantEntry_T) (key: t_HeaderName) =
+  [%#smap'2] entry.key'0 = key
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec key_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 3320 4 3320 36]
+  (self: t_VacantEntry_T) (return (x: t_HeaderName)) =
+  {[@stop_split] [@expl:key 'self' type invariant] [%#smap] inv_ref_VacantEntry_T self}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_4 <- self.key'0 ] s1 | s1 = [ &_ret <- _4 ] s2 | s2 = return {_ret} ] ]
+  [ & _ret: t_HeaderName = Any.any_l () | & self: t_VacantEntry_T = self | & _4: t_HeaderName = Any.any_l () ])
+  [ return (result: t_HeaderName) ->
+  {[@stop_split] [@expl:key_T ensures] ([@stop_split] [@expl:key result type invariant] [%#smap'0] inv_ref_HeaderName result)
+    /\ ([@stop_split] [@expl:key ensures] [%#smap'1] vacant_entry_key_matches_T self result)}
+    (! return {result}) ]

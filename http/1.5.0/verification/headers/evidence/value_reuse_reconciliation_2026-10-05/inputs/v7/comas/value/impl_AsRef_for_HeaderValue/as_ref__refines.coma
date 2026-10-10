@@ -1,0 +1,32 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 538 4 538 29 *)
+
+(* <header::value::HeaderValue as std::convert::AsRef<[u8]>> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sconvert = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 24 27 24 31
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 538 15 538 19
+
+type t_Bytes
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+predicate invariant_ref_HeaderValue [@inline:trivial] (self: t_HeaderValue) = [%#sinvariant] inv_HeaderValue self
+
+meta "rewrite_def" predicate invariant_ref_HeaderValue
+
+predicate inv_ref_HeaderValue [@inline:trivial] (_1: t_HeaderValue) = invariant_ref_HeaderValue _1
+
+meta "rewrite_def" predicate inv_ref_HeaderValue
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_HeaderValue. ([%#sconvert] inv_ref_HeaderValue self_)
+    -> ([%#svalue] inv_ref_HeaderValue self_)

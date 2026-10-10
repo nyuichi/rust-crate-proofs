@@ -1,0 +1,31 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/negative/src/lib.rs" 23 0 23 50 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/negative/src/lib.rs" 22 10 22 23
+
+use creusot.prelude.Any
+use creusot.int.Int8
+
+type t_SignedI8 = Negative | Positive
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec deliberately_wrong_discriminant_tag
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/negative/src/lib.rs" 23 0 23 50]
+  (return (x: Int8.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = bb0'0
+      [ bb0'0 = s0'0 [ s0'0 = [ &_1 <- Negative ] s1'0 | s1'0 = [ &_ret'0 <- _1 ] s2'0 | s2'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: t_SignedI8 = Any.any_l () | & _1: t_SignedI8 = Any.any_l () ]
+      [ _const_ret (_const: t_SignedI8) -> [ &_5 <- _const ] s1 ]
+    | s1 = [ &_3 <- _5 ] s2
+    | s2 = [ &_ret <- match _3 with
+        | Negative -> (-7: Int8.t)
+        | Positive -> (20: Int8.t)
+        end ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: Int8.t = Any.any_l () | & _3: t_SignedI8 = Any.any_l () | & _5: t_SignedI8 = Any.any_l () ])
+  [ return (result: Int8.t) -> {[@stop_split] [@expl:deliberately_wrong_discriminant_tag ensures] [%#slib] result
+    = (0: Int8.t)}
+    (! return {result}) ]

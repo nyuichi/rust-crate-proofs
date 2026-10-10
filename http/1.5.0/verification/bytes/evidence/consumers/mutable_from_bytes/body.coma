@@ -1,0 +1,48 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 201 0 201 51 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 202 4 202 25
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 201 26 201 31
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 201 43 201 51
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 200 10 200 51
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 207 16 207 21
+let%span sbytes'0 = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes.rs" 1042 4 1042 33
+let%span sbytes'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 206 18 206 59
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_Bytes
+
+type t_BytesMut
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec from_BytesMut (bytes: t_Bytes) (return (x: t_BytesMut)) =
+  {[@stop_split] [@expl:from 'bytes' type invariant] [%#sbytes] inv_Bytes bytes}
+  any
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:from_BytesMut ensures] ([@stop_split] [@expl:from result type invariant] [%#sbytes'0] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:from ensures] [%#sbytes'1] bytes_mut_seq result = bytes_seq bytes)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec mutable_from_bytes [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 201 0 201 51]
+  (value: t_Bytes) (return (x: t_BytesMut)) =
+  {[@stop_split] [@expl:mutable_from_bytes 'value' type invariant] [%#slib'0] inv_Bytes value}
+  (! bb0
+  [ bb0 = s0 [ s0 = from_BytesMut [%#slib] {value} (fun (_x: t_BytesMut) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_BytesMut = Any.any_l () | & value: t_Bytes = value ])
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:mutable_from_bytes ensures] ([@stop_split] [@expl:mutable_from_bytes result type invariant] [%#slib'1] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:mutable_from_bytes ensures] [%#slib'2] bytes_mut_seq result = bytes_seq value)}
+    (! return {result}) ]

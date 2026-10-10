@@ -1,0 +1,52 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 168 0 168 51 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 169 4 169 18
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 168 21 168 27
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 168 43 168 51
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 167 10 167 57
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 189 18 189 22
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 188 18 188 63
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sbytes_mut = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes_mut.rs" 1366 4 1366 31
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_BytesMut
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+predicate invariant_ref_BytesMut [@inline:trivial] (self: t_BytesMut) = [%#sinvariant] inv_BytesMut self
+
+meta "rewrite_def" predicate invariant_ref_BytesMut
+
+predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_BytesMut _1
+
+meta "rewrite_def" predicate inv_ref_BytesMut
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+let rec clone_BytesMut (self_: t_BytesMut) (return (x: t_BytesMut)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#sbytes] inv_ref_BytesMut self_}
+  any
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:clone_BytesMut ensures] ([@stop_split] [@expl:clone result type invariant] [%#sbytes_mut] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:clone ensures] [%#sbytes'0] bytes_mut_seq result = bytes_mut_seq self_)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_mutable [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 168 0 168 51]
+  (source: t_BytesMut) (return (x: t_BytesMut)) =
+  {[@stop_split] [@expl:clone_mutable 'source' type invariant] [%#slib'0] inv_ref_BytesMut source}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = clone_BytesMut [%#slib] {source} (fun (_x: t_BytesMut) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_BytesMut = Any.any_l () | & source: t_BytesMut = source ])
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:clone_mutable ensures] ([@stop_split] [@expl:clone_mutable result type invariant] [%#slib'1] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:clone_mutable ensures] [%#slib'2] bytes_mut_seq result = bytes_mut_seq source)}
+    (! return {result}) ]

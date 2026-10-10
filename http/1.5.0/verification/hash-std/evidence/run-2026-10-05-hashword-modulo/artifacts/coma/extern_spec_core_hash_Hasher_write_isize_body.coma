@@ -1,0 +1,96 @@
+(* #"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 27 18 52 18 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span shash_word = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash_word.rs" 6 4 10 5
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 53 35 53 61
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 54 20 54 46
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 52 36 52 40
+let%span shash'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 51 26 51 36
+let%span shash'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 32 36 32 40
+let%span shash'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 31 26 31 36
+
+use creusot.int.Int64
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+use int.Int
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+let rec isize_to_usize_word (value: Int64.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:isize_to_usize_word ensures] [%#shash_word] UInt64.t'int result
+    = (if Int64.to_int value >= 0 then Int64.to_int value else UInt64.t'int const_MAX + 1 + Int64.to_int value)}
+    (! return {result}) ]
+
+type t_Self_
+
+predicate inv_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] (_1: t_Self_)
+
+type tup2_refmut_Self__usize = { f0: MutBorrow.t t_Self_; f1: UInt64.t }
+
+predicate invariant_refmut_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 92 4 92 30] [@inline:trivial] (self: MutBorrow.t t_Self_) =
+  [%#sinvariant] inv_Self_ self.current /\ inv_Self_ self.final
+
+meta "rewrite_def" predicate invariant_refmut_Self_
+
+predicate inv_refmut_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 103 0 103 35] [@inline:trivial] (_1: MutBorrow.t t_Self_) =
+  invariant_refmut_Self_ _1
+
+meta "rewrite_def" predicate inv_refmut_Self_
+
+predicate precondition_write_usize [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 96 4 96 45] (self: ()) (args: tup2_refmut_Self__usize)
+
+axiom precondition_fndef:
+  forall args: tup2_refmut_Self__usize [precondition_write_usize () args]. (let {f0 = self_; f1 = value} = args in [%#shash'3] inv_refmut_Self_ self_)
+    -> precondition_write_usize () args
+
+predicate postcondition_once_write_usize [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 103 4 103 73] (self: ()) (args: tup2_refmut_Self__usize) (result: ())
+
+axiom postcondition_fndef:
+  forall args: tup2_refmut_Self__usize, res: () [postcondition_once_write_usize () args res]. postcondition_once_write_usize () args res
+    -> (let {f0 = self_; f1 = value} = args in [%#shash'4] inv_Self_ self_.final)
+
+let rec write_usize_Self_ (self_: MutBorrow.t t_Self_) (value: UInt64.t) (return (x: ())) =
+  {[@stop_split] [@expl:write_usize requires] precondition_write_usize () { f0 = self_; f1 = value }}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:write_usize ensures] postcondition_once_write_usize () { f0 = self_;
+                                                                                                          f1 = value } result}
+    (! return {result}) ]
+
+predicate resolve_refmut_Self_ [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/resolve.rs" 11 0 11 39] [@inline:trivial] (_1: MutBorrow.t t_Self_) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Self_
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec extern_spec_core_hash_Hasher_write_isize_body_Self_
+  [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 27 18 52 18] (self_: MutBorrow.t t_Self_)
+  (value: Int64.t) (return (x: ())) =
+  {[@stop_split] [@expl:extern_spec_core_hash_Hasher_write_isize_body 'self_' type invariant] [%#shash'1] inv_refmut_Self_ self_}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = isize_to_usize_word [%#shash] {value} (fun (_x: UInt64.t) -> [ &unsigned <- _x ] s1)
+    | s1 = MutBorrow.borrow_final <t_Self_> {self_.current} {MutBorrow.get_id self_}
+        (fun (_bor: MutBorrow.t t_Self_) ->
+          [ &_7 <- _bor ] -{inv_Self_ _bor.final}-
+          [ &self_ <- { self_ with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_Self_ self_.current} any) ]
+    | s2 = write_usize_Self_ [%#shash'0] {_7} {unsigned} (fun (_x: ()) -> [ &_ret <- _x ] s3)
+    | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut_Self_ self_} any) ]
+    | s4 = -{resolve_refmut_Self_ self_}- s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self_: MutBorrow.t t_Self_ = self_
+  | & value: Int64.t = value
+  | & unsigned: UInt64.t = Any.any_l ()
+  | & _7: MutBorrow.t t_Self_ = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:extern_spec_core_hash_Hasher_write_isize_body ensures] [%#shash'2] inv_Self_ self_.final}
+    (! return {result}) ]

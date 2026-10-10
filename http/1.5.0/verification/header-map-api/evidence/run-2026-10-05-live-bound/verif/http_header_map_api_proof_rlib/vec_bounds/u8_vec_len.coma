@@ -1,0 +1,62 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 25 0 25 44 *)
+
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 114 18 114 40
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 139 11 139 35
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 140 10 140 38
+let%span smem = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/mem.rs" 131 10 131 21
+let%span svec_bounds = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 26 4 26 52
+let%span svec_bounds'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 27 4 27 16
+let%span svec_bounds'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 24 10 24 32
+
+use seq.Seq
+use creusot.int.UInt8
+use creusot.int.UInt64
+use creusot.int.Int64
+use creusot.prelude.Any
+use int.Int
+
+type t_Vec_u8_Global
+
+constant size_of_u8: int = 1
+
+meta "rewrite_def" constant size_of_u8
+
+axiom size_of_u8_spec: [%#smem] 0 <= size_of_u8
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_u8_Global (self: t_Vec_u8_Global) : Seq.seq UInt8.t
+
+axiom view_Vec_u8_Global_spec: forall self: t_Vec_u8_Global. [%#svec'0] Seq.length (view_Vec_u8_Global self)
+    <= UInt64.t'int const_MAX
+
+constant const_MAX'0: Int64.t = (9223372036854775807: Int64.t)
+
+let rec allocation_len_bound_u8 (values: t_Vec_u8_Global) (return (x: ())) =
+  {[@stop_split] [@expl:allocation_len_bound requires] [%#smap] size_of_u8 > 0}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:allocation_len_bound ensures] [%#smap'0] Seq.length (view_Vec_u8_Global values)
+    <= Int64.to_int const_MAX'0}
+    (! return {result}) ]
+
+let rec len_u8 (self_: t_Vec_u8_Global) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#svec] UInt64.t'int result
+    = Seq.length (view_Vec_u8_Global self_)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec u8_vec_len [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 25 0 25 44]
+  (values: t_Vec_u8_Global) (return (x: UInt64.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = allocation_len_bound_u8 [%#svec_bounds] {values} (fun (_x: ()) -> [ &_3 <- _x ] s1)
+    | s1 = len_u8 [%#svec_bounds'0] {values} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & values: t_Vec_u8_Global = values | & _3: () = Any.any_l () ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:u8_vec_len ensures] [%#svec_bounds'1] UInt64.t'int result
+    <= Int64.to_int const_MAX'0}
+    (! return {result}) ]

@@ -1,0 +1,106 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 862 0 866 24 *)
+
+let%span swell_founded = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/well_founded.rs" 43 8 43 33
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 255 8 261 9
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+let%span sauthority = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 861 10 861 46
+let%span sauthority'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 860 11 860 68
+let%span sauthority'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 868 8 877 9
+
+use seq.Seq
+use int.Int
+
+type t_Ordering = Less | Equal | Greater
+
+function cmp_log_Int (self: int) (o: int) : t_Ordering = [%#sord] if self < o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_Int (x: int) (y: int) : ()
+
+axiom eq_cmp_Int_spec: forall x: int, y: int. [%#sord'12] (x = y) = (cmp_log_Int x y = Equal)
+
+function antisym2_Int (x: int) (y: int) : ()
+
+axiom antisym2_Int_spec: forall x: int, y: int. ([%#sord'10] cmp_log_Int x y = Greater)
+    -> ([%#sord'11] cmp_log_Int y x = Less)
+
+function antisym1_Int (x: int) (y: int) : ()
+
+axiom antisym1_Int_spec: forall x: int, y: int. ([%#sord'8] cmp_log_Int x y = Less)
+    -> ([%#sord'9] cmp_log_Int y x = Greater)
+
+function trans_Int (x: int) (y: int) (z: int) (o: t_Ordering) : ()
+
+axiom trans_Int_spec: forall x: int, y: int, z: int, o: t_Ordering. ([%#sord'5] cmp_log_Int x y = o)
+    -> ([%#sord'6] cmp_log_Int y z = o) -> ([%#sord'7] cmp_log_Int x z = o)
+
+function refl_Int (x: int) : ()
+
+axiom refl_Int_spec: forall x: int. [%#sord'4] cmp_log_Int x x = Equal
+
+function cmp_gt_log_Int (x: int) (y: int) : ()
+
+axiom cmp_gt_log_Int_spec: forall x: int, y: int. [%#sord'3] (x > y) = (cmp_log_Int x y = Greater)
+
+function cmp_ge_log_Int (x: int) (y: int) : ()
+
+axiom cmp_ge_log_Int_spec: forall x: int, y: int. [%#sord'2] (x >= y) = (cmp_log_Int x y <> Less)
+
+function cmp_lt_log_Int (x: int) (y: int) : ()
+
+axiom cmp_lt_log_Int_spec: forall x: int, y: int. [%#sord'1] (x < y) = (cmp_log_Int x y = Less)
+
+function cmp_le_log_Int (x: int) (y: int) : ()
+
+axiom cmp_le_log_Int_spec: forall x: int, y: int. [%#sord'0] (x <= y) = (cmp_log_Int x y <> Greater)
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] self >= 0 /\ self > other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant left : Seq.seq int
+
+constant right : Seq.seq int
+
+constant index : int
+
+function authority_folded_cmp_from [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 862 0 866 24] (left: Seq.seq int) (right: Seq.seq int) (index: int) : t_Ordering
+
+goal vc_authority_folded_cmp_from: ([%#sauthority'0] 0 <= index
+    /\ index <= Seq.length left /\ index <= Seq.length right)
+  -> (if index = Seq.length left then
+    true
+  else
+    if index = Seq.length right then
+      true
+    else
+      match cmp_log_Int (Seq.get left index) (Seq.get right index) with
+        | Less -> true
+        | Equal -> ([@stop_split] [@expl:authority_folded_cmp_from requires] [%#sauthority'0] 0 <= index + 1
+          /\ index + 1 <= Seq.length left /\ index + 1 <= Seq.length right)
+        /\ ([@expl:variant decreases] well_founded_relation_Int ([%#sauthority] Seq.length left + Seq.length right
+        - 2 * index) ([%#sauthority] Seq.length left + Seq.length right - 2 * (index + 1)))
+        | Greater -> true
+        end
+  
+  )

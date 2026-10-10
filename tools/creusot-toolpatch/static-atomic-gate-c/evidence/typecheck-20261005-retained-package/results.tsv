@@ -1,0 +1,9 @@
+case	result	meaning
+translation-positive	PASS	positive normal/proof audit matched and generated all expected invariant COMA modules with AVX2/SSE4.2 absent in effective session cfg and target features
+type-only-positive	PASS	all 8 exact emitted positive COMA files type-checked with Why3 --type-only against the retained full generated package snapshot
+wrong-signature	REJECTED	requires fn(u8, bool, bool) -> bool
+wrong-profile	REJECTED	unsupported profile is rejected
+wrong-target-features	REJECTED	explicit -C target-feature=+avx2 is rejected
+manual-target-feature-cfg	REJECTED	manual --cfg target_feature=avx2 is rejected by Gate C
+encoded-target-feature-cfg	REJECTED	CARGO_ENCODED_RUSTFLAGS target_feature=sse4.2 is rejected after Cargo expands arguments
+caller-capability-path	REJECTED	manifest cannot choose a logical capability symbol

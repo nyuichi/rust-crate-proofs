@@ -1,0 +1,1590 @@
+module UInt8
+  use mach.int.Int
+
+  type t = < range 0 0xFF >
+
+  constant two_power_size : int = 0x100
+
+  axiom extensionality:
+    forall x y: t [t'int x, t'int y]. t'int x = t'int y -> x = y
+
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFF
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> t'int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(t'int x + t'int y) -> t'int(add x y) = t'int x + t'int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. t'int(add x y) = t'int x + t'int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(t'int x - t'int y) -> t'int(sub x y) = t'int x - t'int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. t'int(sub x y) = t'int x - t'int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(t'int x * t'int y) -> t'int(mul x y) = t'int x * t'int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. t'int(mul x y) = t'int x * t'int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_zero:
+    forall x:t [neg x]. t'int x = 0 -> t'int(neg x) = 0
+  axiom neg_not_zero:
+    forall x:t [neg x]. 0 < t'int x <= 0xFF -> t'int(neg x) = two_power_size - t'int x
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = t'int a <= t'int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = t'int a < t'int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = t'int a >= t'int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = t'int a > t'int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+  function nth (x: t) (i: int) : bool
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { t'int result = n }) = any
+
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a + t'int b) }
+    (ret (result : t) { t'int result = t'int a + t'int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a - t'int b) }
+    (ret (result : t) { t'int result = t'int a - t'int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a * t'int b) }
+    (ret (result : t) { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = div (t'int a) (t'int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = mod (t'int a) (t'int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 8  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 8 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module UInt8BW
+  use export bv.BV8
+  use bv.BV256 as BV256
+  use bv.BVConverter_8_256
+  use mach.int.Int
+
+  constant max_uint_as_BV256 : BV256.t = 0xFF
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFF
+
+  function to_BV256 (x: t) : BV256.t = toBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = ule a b
+  predicate lt (a:t) (b:t) = ult a b
+  predicate ge (a:t) (b:t) = uge a b
+  predicate gt (a:t) (b:t) = ugt a b
+
+  function shr (a:t) (b:t) : t = lsr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.t'int a >= 0 /\ BV256.t'int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a + t'int b < two_power_size \/ BV256.ule (BV256.add (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result :t)  { t'int result = t'int a + t'int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] t'int a >= t'int b \/ uge a b }
+    (ret (result: t) { t'int result = t'int a - t'int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a * t'int b < two_power_size \/ BV256.ule (BV256.mul (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result: t) { result = mul a b } { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = div (t'int a) (t'int b) } { result = udiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros  \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = mod (t'int a) (t'int b) } { result = urem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int8
+  use mach.int.Int
+
+  type t = < range -0x80 0x7F >
+
+  constant min_int : int = - 0x80
+  constant max_int : int =   0x7F
+  constant two_power_size : int = 0x100
+
+  predicate in_bounds [@inline:trivial] (n:int) = min_int <= n <= max_int
+
+  function to_int (x:t) : int = t'int x
+  axiom extensionality:
+    forall x y: t [to_int x, to_int y]. to_int x = to_int y -> x = y
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> to_int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(to_int x + to_int y) -> to_int(add x y) = to_int x + to_int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. to_int(add x y) = to_int x + to_int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(to_int x - to_int y) -> to_int(sub x y) = to_int x - to_int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. to_int(sub x y) = to_int x - to_int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(to_int x * to_int y) -> to_int(mul x y) = to_int x * to_int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. to_int(mul x y) = to_int x * to_int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_in_bounds:
+    forall x:t [neg x]. min_int < to_int x <= max_int -> to_int(neg x) = - (to_int x)
+  axiom neg_wrapping:
+    forall x:t [neg x]. to_int x = min_int -> to_int(neg x) = min_int
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = to_int a <= to_int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = to_int a < to_int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = to_int a >= to_int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = to_int a > to_int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { to_int result = n }) = any
+  let neg (a:t)
+    { [@expl:integer overflow] to_int a <> min_int }
+    (ret (result : t) { to_int result =  - (to_int a) })
+    = any
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a + to_int b) }
+    (ret (result : t) { to_int result = to_int a + to_int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a - to_int b) }
+    (ret (result : t) { to_int result = to_int a - to_int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a * to_int b) }
+    (ret (result : t) { to_int result = to_int a * to_int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = div (to_int a) (to_int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = mod (to_int a) (to_int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 8  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 8 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int8BW
+  use export bv.BV8
+  use bv.BV256 as BV256
+  use bv.BVConverter_8_256
+  use mach.int.Int
+
+  constant min_sint_as_BV256 : BV256.t = 0x80
+  constant max_sint_as_BV256 : BV256.t = 0x7F
+  predicate in_bounds [@inline:trivial] (n:int) = - 0x80 <= n <= 0xFF
+
+  function to_BV256 (x: t) : BV256.t = stoBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = sle a b
+  predicate lt (a:t) (b:t) = slt a b
+  predicate ge (a:t) (b:t) = sge a b
+  predicate gt (a:t) (b:t) = sgt a b
+
+  function shr (a:t) (b:t) : t = asr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.to_int a >= 0 /\ BV256.to_int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+  let neg (a:t)
+    { [@expl:arithmetic overflow] a <> min_sint }
+    (ret (result :t)  { to_int result = - to_int a  } { result = neg a})
+    = any
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a + to_int b < two_power_sizem1 \/ let r = BV256.add (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result :t)  { to_int result = to_int a + to_int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a - to_int b < two_power_sizem1 \/ let r = BV256.sub (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a - to_int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a * to_int b < two_power_sizem1 \/ let r = BV256.mul (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a * to_int b } { result = mul a b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ to_int b <> 0 }
+    { [@expl:signed division overflow check] (a <> min_sint \/ b <> minus_one) \/ (to_int a <> to_int min_sint \/ to_int b <> -1) }
+    (ret (result: t) { to_int result = div (to_int a) (to_int b) } { result = sdiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros \/ to_int b <> 0 }
+    (ret (result: t) { to_int result = mod (to_int a) (to_int b) } { result = srem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module UInt16
+  use mach.int.Int
+
+  type t = < range 0 0xFFFF >
+
+  constant two_power_size : int = 0x10000
+
+  axiom extensionality:
+    forall x y: t [t'int x, t'int y]. t'int x = t'int y -> x = y
+
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFFFF
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> t'int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(t'int x + t'int y) -> t'int(add x y) = t'int x + t'int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. t'int(add x y) = t'int x + t'int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(t'int x - t'int y) -> t'int(sub x y) = t'int x - t'int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. t'int(sub x y) = t'int x - t'int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(t'int x * t'int y) -> t'int(mul x y) = t'int x * t'int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. t'int(mul x y) = t'int x * t'int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_zero:
+    forall x:t [neg x]. t'int x = 0 -> t'int(neg x) = 0
+  axiom neg_not_zero:
+    forall x:t [neg x]. 0 < t'int x <= 0xFFFF -> t'int(neg x) = two_power_size - t'int x
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = t'int a <= t'int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = t'int a < t'int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = t'int a >= t'int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = t'int a > t'int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+  function nth (x: t) (i: int) : bool
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { t'int result = n }) = any
+
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a + t'int b) }
+    (ret (result : t) { t'int result = t'int a + t'int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a - t'int b) }
+    (ret (result : t) { t'int result = t'int a - t'int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a * t'int b) }
+    (ret (result : t) { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = div (t'int a) (t'int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = mod (t'int a) (t'int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 16  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 16 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module UInt16BW
+  use export bv.BV16
+  use bv.BV256 as BV256
+  use bv.BVConverter_16_256
+  use mach.int.Int
+
+  constant max_uint_as_BV256 : BV256.t = 0xFFFF
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFFFF
+
+  function to_BV256 (x: t) : BV256.t = toBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = ule a b
+  predicate lt (a:t) (b:t) = ult a b
+  predicate ge (a:t) (b:t) = uge a b
+  predicate gt (a:t) (b:t) = ugt a b
+
+  function shr (a:t) (b:t) : t = lsr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.t'int a >= 0 /\ BV256.t'int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a + t'int b < two_power_size \/ BV256.ule (BV256.add (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result :t)  { t'int result = t'int a + t'int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] t'int a >= t'int b \/ uge a b }
+    (ret (result: t) { t'int result = t'int a - t'int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a * t'int b < two_power_size \/ BV256.ule (BV256.mul (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result: t) { result = mul a b } { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = div (t'int a) (t'int b) } { result = udiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros  \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = mod (t'int a) (t'int b) } { result = urem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int16
+  use mach.int.Int
+
+  type t = < range -0x8000 0x7FFF >
+
+  constant min_int : int = - 0x8000
+  constant max_int : int =   0x7FFF
+  constant two_power_size : int = 0x10000
+
+  predicate in_bounds [@inline:trivial] (n:int) = min_int <= n <= max_int
+
+  function to_int (x:t) : int = t'int x
+  axiom extensionality:
+    forall x y: t [to_int x, to_int y]. to_int x = to_int y -> x = y
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> to_int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(to_int x + to_int y) -> to_int(add x y) = to_int x + to_int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. to_int(add x y) = to_int x + to_int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(to_int x - to_int y) -> to_int(sub x y) = to_int x - to_int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. to_int(sub x y) = to_int x - to_int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(to_int x * to_int y) -> to_int(mul x y) = to_int x * to_int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. to_int(mul x y) = to_int x * to_int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_in_bounds:
+    forall x:t [neg x]. min_int < to_int x <= max_int -> to_int(neg x) = - (to_int x)
+  axiom neg_wrapping:
+    forall x:t [neg x]. to_int x = min_int -> to_int(neg x) = min_int
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = to_int a <= to_int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = to_int a < to_int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = to_int a >= to_int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = to_int a > to_int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { to_int result = n }) = any
+  let neg (a:t)
+    { [@expl:integer overflow] to_int a <> min_int }
+    (ret (result : t) { to_int result =  - (to_int a) })
+    = any
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a + to_int b) }
+    (ret (result : t) { to_int result = to_int a + to_int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a - to_int b) }
+    (ret (result : t) { to_int result = to_int a - to_int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a * to_int b) }
+    (ret (result : t) { to_int result = to_int a * to_int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = div (to_int a) (to_int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = mod (to_int a) (to_int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 16  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 16 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int16BW
+  use export bv.BV16
+  use bv.BV256 as BV256
+  use bv.BVConverter_16_256
+  use mach.int.Int
+
+  constant min_sint_as_BV256 : BV256.t = 0x8000
+  constant max_sint_as_BV256 : BV256.t = 0x7FFF
+  predicate in_bounds [@inline:trivial] (n:int) = - 0x8000 <= n <= 0xFFFF
+
+  function to_BV256 (x: t) : BV256.t = stoBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = sle a b
+  predicate lt (a:t) (b:t) = slt a b
+  predicate ge (a:t) (b:t) = sge a b
+  predicate gt (a:t) (b:t) = sgt a b
+
+  function shr (a:t) (b:t) : t = asr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.to_int a >= 0 /\ BV256.to_int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+  let neg (a:t)
+    { [@expl:arithmetic overflow] a <> min_sint }
+    (ret (result :t)  { to_int result = - to_int a  } { result = neg a})
+    = any
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a + to_int b < two_power_sizem1 \/ let r = BV256.add (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result :t)  { to_int result = to_int a + to_int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a - to_int b < two_power_sizem1 \/ let r = BV256.sub (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a - to_int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a * to_int b < two_power_sizem1 \/ let r = BV256.mul (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a * to_int b } { result = mul a b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ to_int b <> 0 }
+    { [@expl:signed division overflow check] (a <> min_sint \/ b <> minus_one) \/ (to_int a <> to_int min_sint \/ to_int b <> -1) }
+    (ret (result: t) { to_int result = div (to_int a) (to_int b) } { result = sdiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros \/ to_int b <> 0 }
+    (ret (result: t) { to_int result = mod (to_int a) (to_int b) } { result = srem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module UInt32
+  use mach.int.Int
+
+  type t = < range 0 0xFFFFFFFF >
+
+  constant two_power_size : int = 0x100000000
+
+  axiom extensionality:
+    forall x y: t [t'int x, t'int y]. t'int x = t'int y -> x = y
+
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFFFFFFFF
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> t'int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(t'int x + t'int y) -> t'int(add x y) = t'int x + t'int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. t'int(add x y) = t'int x + t'int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(t'int x - t'int y) -> t'int(sub x y) = t'int x - t'int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. t'int(sub x y) = t'int x - t'int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(t'int x * t'int y) -> t'int(mul x y) = t'int x * t'int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. t'int(mul x y) = t'int x * t'int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_zero:
+    forall x:t [neg x]. t'int x = 0 -> t'int(neg x) = 0
+  axiom neg_not_zero:
+    forall x:t [neg x]. 0 < t'int x <= 0xFFFFFFFF -> t'int(neg x) = two_power_size - t'int x
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = t'int a <= t'int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = t'int a < t'int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = t'int a >= t'int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = t'int a > t'int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+  function nth (x: t) (i: int) : bool
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { t'int result = n }) = any
+
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a + t'int b) }
+    (ret (result : t) { t'int result = t'int a + t'int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a - t'int b) }
+    (ret (result : t) { t'int result = t'int a - t'int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a * t'int b) }
+    (ret (result : t) { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = div (t'int a) (t'int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = mod (t'int a) (t'int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 32  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 32 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module UInt32BW
+  use export bv.BV32
+  use bv.BV256 as BV256
+  use bv.BVConverter_32_256
+  use mach.int.Int
+
+  constant max_uint_as_BV256 : BV256.t = 0xFFFFFFFF
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFFFFFFFF
+
+  function to_BV256 (x: t) : BV256.t = toBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = ule a b
+  predicate lt (a:t) (b:t) = ult a b
+  predicate ge (a:t) (b:t) = uge a b
+  predicate gt (a:t) (b:t) = ugt a b
+
+  function shr (a:t) (b:t) : t = lsr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.t'int a >= 0 /\ BV256.t'int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a + t'int b < two_power_size \/ BV256.ule (BV256.add (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result :t)  { t'int result = t'int a + t'int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] t'int a >= t'int b \/ uge a b }
+    (ret (result: t) { t'int result = t'int a - t'int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a * t'int b < two_power_size \/ BV256.ule (BV256.mul (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result: t) { result = mul a b } { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = div (t'int a) (t'int b) } { result = udiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros  \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = mod (t'int a) (t'int b) } { result = urem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int32
+  use mach.int.Int
+
+  type t = < range -0x80000000 0x7FFFFFFF >
+
+  constant min_int : int = - 0x80000000
+  constant max_int : int =   0x7FFFFFFF
+  constant two_power_size : int = 0x100000000
+
+  predicate in_bounds [@inline:trivial] (n:int) = min_int <= n <= max_int
+
+  function to_int (x:t) : int = t'int x
+  axiom extensionality:
+    forall x y: t [to_int x, to_int y]. to_int x = to_int y -> x = y
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> to_int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(to_int x + to_int y) -> to_int(add x y) = to_int x + to_int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. to_int(add x y) = to_int x + to_int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(to_int x - to_int y) -> to_int(sub x y) = to_int x - to_int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. to_int(sub x y) = to_int x - to_int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(to_int x * to_int y) -> to_int(mul x y) = to_int x * to_int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. to_int(mul x y) = to_int x * to_int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_in_bounds:
+    forall x:t [neg x]. min_int < to_int x <= max_int -> to_int(neg x) = - (to_int x)
+  axiom neg_wrapping:
+    forall x:t [neg x]. to_int x = min_int -> to_int(neg x) = min_int
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = to_int a <= to_int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = to_int a < to_int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = to_int a >= to_int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = to_int a > to_int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { to_int result = n }) = any
+  let neg (a:t)
+    { [@expl:integer overflow] to_int a <> min_int }
+    (ret (result : t) { to_int result =  - (to_int a) })
+    = any
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a + to_int b) }
+    (ret (result : t) { to_int result = to_int a + to_int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a - to_int b) }
+    (ret (result : t) { to_int result = to_int a - to_int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a * to_int b) }
+    (ret (result : t) { to_int result = to_int a * to_int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = div (to_int a) (to_int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = mod (to_int a) (to_int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 32  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 32 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int32BW
+  use export bv.BV32
+  use bv.BV256 as BV256
+  use bv.BVConverter_32_256
+  use mach.int.Int
+
+  constant min_sint_as_BV256 : BV256.t = 0x80000000
+  constant max_sint_as_BV256 : BV256.t = 0x7FFFFFFF
+  predicate in_bounds [@inline:trivial] (n:int) = - 0x80000000 <= n <= 0xFFFFFFFF
+
+  function to_BV256 (x: t) : BV256.t = stoBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = sle a b
+  predicate lt (a:t) (b:t) = slt a b
+  predicate ge (a:t) (b:t) = sge a b
+  predicate gt (a:t) (b:t) = sgt a b
+
+  function shr (a:t) (b:t) : t = asr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.to_int a >= 0 /\ BV256.to_int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+  let neg (a:t)
+    { [@expl:arithmetic overflow] a <> min_sint }
+    (ret (result :t)  { to_int result = - to_int a  } { result = neg a})
+    = any
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a + to_int b < two_power_sizem1 \/ let r = BV256.add (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result :t)  { to_int result = to_int a + to_int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a - to_int b < two_power_sizem1 \/ let r = BV256.sub (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a - to_int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a * to_int b < two_power_sizem1 \/ let r = BV256.mul (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a * to_int b } { result = mul a b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ to_int b <> 0 }
+    { [@expl:signed division overflow check] (a <> min_sint \/ b <> minus_one) \/ (to_int a <> to_int min_sint \/ to_int b <> -1) }
+    (ret (result: t) { to_int result = div (to_int a) (to_int b) } { result = sdiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros \/ to_int b <> 0 }
+    (ret (result: t) { to_int result = mod (to_int a) (to_int b) } { result = srem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module UInt64
+  use mach.int.Int
+
+  type t = < range 0 0xFFFFFFFFFFFFFFFF >
+
+  constant two_power_size : int = 0x10000000000000000
+
+  axiom extensionality:
+    forall x y: t [t'int x, t'int y]. t'int x = t'int y -> x = y
+
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFFFFFFFFFFFFFFFF
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> t'int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(t'int x + t'int y) -> t'int(add x y) = t'int x + t'int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. t'int(add x y) = t'int x + t'int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(t'int x - t'int y) -> t'int(sub x y) = t'int x - t'int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. t'int(sub x y) = t'int x - t'int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(t'int x * t'int y) -> t'int(mul x y) = t'int x * t'int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. t'int(mul x y) = t'int x * t'int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_zero:
+    forall x:t [neg x]. t'int x = 0 -> t'int(neg x) = 0
+  axiom neg_not_zero:
+    forall x:t [neg x]. 0 < t'int x <= 0xFFFFFFFFFFFFFFFF -> t'int(neg x) = two_power_size - t'int x
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = t'int a <= t'int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = t'int a < t'int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = t'int a >= t'int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = t'int a > t'int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+  function nth (x: t) (i: int) : bool
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { t'int result = n }) = any
+
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a + t'int b) }
+    (ret (result : t) { t'int result = t'int a + t'int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a - t'int b) }
+    (ret (result : t) { t'int result = t'int a - t'int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a * t'int b) }
+    (ret (result : t) { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = div (t'int a) (t'int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = mod (t'int a) (t'int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 64  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 64 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module UInt64BW
+  use export bv.BV64
+  use bv.BV256 as BV256
+  use bv.BVConverter_64_256
+  use mach.int.Int
+
+  constant max_uint_as_BV256 : BV256.t = 0xFFFFFFFFFFFFFFFF
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFFFFFFFFFFFFFFFF
+
+  function to_BV256 (x: t) : BV256.t = toBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = ule a b
+  predicate lt (a:t) (b:t) = ult a b
+  predicate ge (a:t) (b:t) = uge a b
+  predicate gt (a:t) (b:t) = ugt a b
+
+  function shr (a:t) (b:t) : t = lsr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.t'int a >= 0 /\ BV256.t'int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a + t'int b < two_power_size \/ BV256.ule (BV256.add (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result :t)  { t'int result = t'int a + t'int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] t'int a >= t'int b \/ uge a b }
+    (ret (result: t) { t'int result = t'int a - t'int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a * t'int b < two_power_size \/ BV256.ule (BV256.mul (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result: t) { result = mul a b } { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = div (t'int a) (t'int b) } { result = udiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros  \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = mod (t'int a) (t'int b) } { result = urem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int64
+  use mach.int.Int
+
+  type t = < range -0x8000000000000000 0x7FFFFFFFFFFFFFFF >
+
+  constant min_int : int = - 0x8000000000000000
+  constant max_int : int =   0x7FFFFFFFFFFFFFFF
+  constant two_power_size : int = 0x10000000000000000
+
+  predicate in_bounds [@inline:trivial] (n:int) = min_int <= n <= max_int
+
+  function to_int (x:t) : int = t'int x
+  axiom extensionality:
+    forall x y: t [to_int x, to_int y]. to_int x = to_int y -> x = y
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> to_int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(to_int x + to_int y) -> to_int(add x y) = to_int x + to_int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. to_int(add x y) = to_int x + to_int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(to_int x - to_int y) -> to_int(sub x y) = to_int x - to_int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. to_int(sub x y) = to_int x - to_int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(to_int x * to_int y) -> to_int(mul x y) = to_int x * to_int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. to_int(mul x y) = to_int x * to_int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_in_bounds:
+    forall x:t [neg x]. min_int < to_int x <= max_int -> to_int(neg x) = - (to_int x)
+  axiom neg_wrapping:
+    forall x:t [neg x]. to_int x = min_int -> to_int(neg x) = min_int
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = to_int a <= to_int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = to_int a < to_int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = to_int a >= to_int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = to_int a > to_int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { to_int result = n }) = any
+  let neg (a:t)
+    { [@expl:integer overflow] to_int a <> min_int }
+    (ret (result : t) { to_int result =  - (to_int a) })
+    = any
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a + to_int b) }
+    (ret (result : t) { to_int result = to_int a + to_int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a - to_int b) }
+    (ret (result : t) { to_int result = to_int a - to_int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a * to_int b) }
+    (ret (result : t) { to_int result = to_int a * to_int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = div (to_int a) (to_int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = mod (to_int a) (to_int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 64  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 64 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int64BW
+  use export bv.BV64
+  use bv.BV256 as BV256
+  use bv.BVConverter_64_256
+  use mach.int.Int
+
+  constant min_sint_as_BV256 : BV256.t = 0x8000000000000000
+  constant max_sint_as_BV256 : BV256.t = 0x7FFFFFFFFFFFFFFF
+  predicate in_bounds [@inline:trivial] (n:int) = - 0x8000000000000000 <= n <= 0xFFFFFFFFFFFFFFFF
+
+  function to_BV256 (x: t) : BV256.t = stoBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = sle a b
+  predicate lt (a:t) (b:t) = slt a b
+  predicate ge (a:t) (b:t) = sge a b
+  predicate gt (a:t) (b:t) = sgt a b
+
+  function shr (a:t) (b:t) : t = asr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.to_int a >= 0 /\ BV256.to_int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+  let neg (a:t)
+    { [@expl:arithmetic overflow] a <> min_sint }
+    (ret (result :t)  { to_int result = - to_int a  } { result = neg a})
+    = any
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a + to_int b < two_power_sizem1 \/ let r = BV256.add (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result :t)  { to_int result = to_int a + to_int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a - to_int b < two_power_sizem1 \/ let r = BV256.sub (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a - to_int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a * to_int b < two_power_sizem1 \/ let r = BV256.mul (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a * to_int b } { result = mul a b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ to_int b <> 0 }
+    { [@expl:signed division overflow check] (a <> min_sint \/ b <> minus_one) \/ (to_int a <> to_int min_sint \/ to_int b <> -1) }
+    (ret (result: t) { to_int result = div (to_int a) (to_int b) } { result = sdiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros \/ to_int b <> 0 }
+    (ret (result: t) { to_int result = mod (to_int a) (to_int b) } { result = srem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module UInt128
+  use mach.int.Int
+
+  type t = < range 0 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF >
+
+  constant two_power_size : int = 0x100000000000000000000000000000000
+
+  axiom extensionality:
+    forall x y: t [t'int x, t'int y]. t'int x = t'int y -> x = y
+
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> t'int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(t'int x + t'int y) -> t'int(add x y) = t'int x + t'int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. t'int(add x y) = t'int x + t'int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(t'int x - t'int y) -> t'int(sub x y) = t'int x - t'int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. t'int(sub x y) = t'int x - t'int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(t'int x * t'int y) -> t'int(mul x y) = t'int x * t'int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. t'int(mul x y) = t'int x * t'int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_zero:
+    forall x:t [neg x]. t'int x = 0 -> t'int(neg x) = 0
+  axiom neg_not_zero:
+    forall x:t [neg x]. 0 < t'int x <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF -> t'int(neg x) = two_power_size - t'int x
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = t'int a <= t'int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = t'int a < t'int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = t'int a >= t'int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = t'int a > t'int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+  function nth (x: t) (i: int) : bool
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { t'int result = n }) = any
+
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a + t'int b) }
+    (ret (result : t) { t'int result = t'int a + t'int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a - t'int b) }
+    (ret (result : t) { t'int result = t'int a - t'int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (t'int a * t'int b) }
+    (ret (result : t) { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = div (t'int a) (t'int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] t'int b <> 0 }
+    (ret (result : t) { t'int result = mod (t'int a) (t'int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 128  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 128 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module UInt128BW
+  use export bv.BV128
+  use bv.BV256 as BV256
+  use bv.BVConverter_128_256
+  use mach.int.Int
+
+  constant max_uint_as_BV256 : BV256.t = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+  predicate in_bounds [@inline:trivial] (n:int) = 0 <= n <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+
+  function to_BV256 (x: t) : BV256.t = toBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = ule a b
+  predicate lt (a:t) (b:t) = ult a b
+  predicate ge (a:t) (b:t) = uge a b
+  predicate gt (a:t) (b:t) = ugt a b
+
+  function shr (a:t) (b:t) : t = lsr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.t'int a >= 0 /\ BV256.t'int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a + t'int b < two_power_size \/ BV256.ule (BV256.add (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result :t)  { t'int result = t'int a + t'int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] t'int a >= t'int b \/ uge a b }
+    (ret (result: t) { t'int result = t'int a - t'int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] t'int a * t'int b < two_power_size \/ BV256.ule (BV256.mul (to_BV256 a) (to_BV256 b)) max_uint_as_BV256 }
+    (ret (result: t) { result = mul a b } { t'int result = t'int a * t'int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = div (t'int a) (t'int b) } { result = udiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros  \/ t'int b <> 0 }
+    (ret (result: t) { t'int result = mod (t'int a) (t'int b) } { result = urem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int128
+  use mach.int.Int
+
+  type t = < range -0x80000000000000000000000000000000 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF >
+
+  constant min_int : int = - 0x80000000000000000000000000000000
+  constant max_int : int =   0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+  constant two_power_size : int = 0x100000000000000000000000000000000
+
+  predicate in_bounds [@inline:trivial] (n:int) = min_int <= n <= max_int
+
+  function to_int (x:t) : int = t'int x
+  axiom extensionality:
+    forall x y: t [to_int x, to_int y]. to_int x = to_int y -> x = y
+
+  function of_int (n: int) : t
+  axiom to_of_int:
+    forall x: int [of_int x]. in_bounds x -> to_int (of_int x) = x
+
+  function add (a:t) (b:t) : t
+  axiom add_in_bounds:
+    forall x y:t [add x y]. in_bounds(to_int x + to_int y) -> to_int(add x y) = to_int x + to_int y
+  axiom add_wrapping:
+    forall x y:t [add x y]. exists k:int. to_int(add x y) = to_int x + to_int y + k * two_power_size
+
+  function sub (a:t) (b:t) : t
+  axiom sub_in_bounds:
+    forall x y:t [sub x y]. in_bounds(to_int x - to_int y) -> to_int(sub x y) = to_int x - to_int y
+  axiom sub_wrapping:
+    forall x y:t [sub x y]. exists k:int. to_int(sub x y) = to_int x - to_int y + k * two_power_size
+
+  function mul (a:t) (b:t) : t
+  axiom mul_in_bounds:
+    forall x y:t [mul x y]. in_bounds(to_int x * to_int y) -> to_int(mul x y) = to_int x * to_int y
+  axiom mul_wrapping:
+    forall x y:t [mul x y]. exists k:int. to_int(mul x y) = to_int x * to_int y + k * two_power_size
+
+  function neg (a:t): t
+  axiom neg_in_bounds:
+    forall x:t [neg x]. min_int < to_int x <= max_int -> to_int(neg x) = - (to_int x)
+  axiom neg_wrapping:
+    forall x:t [neg x]. to_int x = min_int -> to_int(neg x) = min_int
+
+  function of_bool [@inline:trivial] (b:bool) : t = if b then 1:t else 0:t
+
+  predicate le [@inline:trivial] (a:t) (b:t) = to_int a <= to_int b
+  predicate lt [@inline:trivial] (a:t) (b:t) = to_int a < to_int b
+  predicate ge [@inline:trivial] (a:t) (b:t) = to_int a >= to_int b
+  predicate gt [@inline:trivial] (a:t) (b:t) = to_int a > to_int b
+
+  function bw_and (a:t) (b:t) : t
+  function bw_or (a:t) (b:t) : t
+  function bw_xor (a:t) (b:t) : t
+  function bw_not (a:t) : t
+  function shl (a:t) (b:t) : t
+  function shr (a:t) (b:t) : t
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_int (n:int) { [@expl:integer overflow] in_bounds n }
+    (ret (result : t) { to_int result = n }) = any
+  let neg (a:t)
+    { [@expl:integer overflow] to_int a <> min_int }
+    (ret (result : t) { to_int result =  - (to_int a) })
+    = any
+  let add (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a + to_int b) }
+    (ret (result : t) { to_int result = to_int a + to_int b })
+    = any
+  let sub (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a - to_int b) }
+    (ret (result : t) { to_int result = to_int a - to_int b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:integer overflow] in_bounds (to_int a * to_int b) }
+    (ret (result : t) { to_int result = to_int a * to_int b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = div (to_int a) (to_int b) })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:division by zero] (to_int b) <> 0 }
+    { [@expl:integer overflow] not (to_int a = min_int /\ to_int b = -1) }
+    (ret (result : t) { to_int result = mod (to_int a) (to_int b) })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 128  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b <= 128 }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+
+module Int128BW
+  use export bv.BV128
+  use bv.BV256 as BV256
+  use bv.BVConverter_128_256
+  use mach.int.Int
+
+  constant min_sint_as_BV256 : BV256.t = 0x80000000000000000000000000000000
+  constant max_sint_as_BV256 : BV256.t = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+  predicate in_bounds [@inline:trivial] (n:int) = - 0x80000000000000000000000000000000 <= n <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+
+  function to_BV256 (x: t) : BV256.t = stoBig x
+  function of_BV256 (x: BV256.t) : t = toSmall x
+
+  function of_bool [@inline:trivial] (b : bool) : t = if b then 1:t else 0:t
+
+  predicate le (a:t) (b:t) = sle a b
+  predicate lt (a:t) (b:t) = slt a b
+  predicate ge (a:t) (b:t) = sge a b
+  predicate gt (a:t) (b:t) = sgt a b
+
+  function shr (a:t) (b:t) : t = asr_bv a b
+  function shl (a:t) (b:t) : t = lsl_bv a b
+
+  function add_with_overflow (a:t) (b:t) : (t, bool) = (add a b, not in_bounds(t'int a + t'int b))
+  function sub_with_overflow (a:t) (b:t) : (t, bool) = (sub a b, not in_bounds(t'int a - t'int b))
+  function mul_with_overflow (a:t) (b:t) : (t, bool) = (mul a b, not in_bounds(t'int a * t'int b))
+
+  let of_BV256 (a:BV256.t)
+    { [@expl:arithmetic overflow] BV256.to_int a >= 0 /\ BV256.to_int a < two_power_size }
+    (ret (result: t) { result = of_BV256 a })
+    = any
+  let neg (a:t)
+    { [@expl:arithmetic overflow] a <> min_sint }
+    (ret (result :t)  { to_int result = - to_int a  } { result = neg a})
+    = any
+  let add (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a + to_int b < two_power_sizem1 \/ let r = BV256.add (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result :t)  { to_int result = to_int a + to_int b } { result = add a b })
+    = any
+  let sub (a:t)  (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a - to_int b < two_power_sizem1 \/ let r = BV256.sub (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a - to_int b } { result = sub a b })
+    = any
+  let mul (a:t) (b:t)
+    { [@expl:arithmetic overflow] - two_power_sizem1 <= to_int a * to_int b < two_power_sizem1 \/ let r = BV256.mul (to_BV256 a) (to_BV256 b) in (BV256.sle min_sint_as_BV256 r /\ BV256.sle r max_sint_as_BV256) }
+    (ret (result: t) { to_int result = to_int a * to_int b } { result = mul a b })
+    = any
+  let div (a:t) (b:t)
+    { [@expl:division by zero] b <> zeros \/ to_int b <> 0 }
+    { [@expl:signed division overflow check] (a <> min_sint \/ b <> minus_one) \/ (to_int a <> to_int min_sint \/ to_int b <> -1) }
+    (ret (result: t) { to_int result = div (to_int a) (to_int b) } { result = sdiv a b })
+    = any
+  let rem (a:t) (b:t)
+    { [@expl:remainder by zero] b <> zeros \/ to_int b <> 0 }
+    (ret (result: t) { to_int result = mod (to_int a) (to_int b) } { result = srem a b })
+    = any
+  let shl (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size  }
+    (ret (result :t) { result = shl a (of_int b) })
+    = any
+  let shr (a:t) (b:int)
+    { [@expl:out-of-bounds shifting] b >= 0 /\ b < size }
+    (ret (result :t) { result = shr a (of_int b) })
+    = any
+end
+

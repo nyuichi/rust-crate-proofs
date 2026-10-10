@@ -1,0 +1,18 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 140 4 140 44 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 138 14 138 41
+
+use creusot.prelude.Any
+use creusot.int.UInt32BW
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec expected_invalid_u32_wrong_high_bit
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 140 4 140 44]
+  (return (x: ())) = (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:expected_invalid_u32_wrong_high_bit ensures] [%#slib] UInt32BW.nth (2147483648: UInt32BW.t) 0}
+    (! return {result}) ]

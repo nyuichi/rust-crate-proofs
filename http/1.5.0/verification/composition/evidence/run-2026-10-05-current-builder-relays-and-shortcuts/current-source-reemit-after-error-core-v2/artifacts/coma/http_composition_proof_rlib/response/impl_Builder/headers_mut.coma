@@ -1,0 +1,328 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 935 4 935 72 *)
+
+(* response::Builder *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sresponse = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 935 28 935 32
+let%span sresponse'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 935 37 935 72
+let%span sresponse'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 923 32 926 5
+let%span sresponse'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 927 32 930 5
+let%span sresponse'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 931 32 931 96
+let%span sresponse'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 932 32 932 98
+let%span sresponse'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 933 32 933 100
+let%span sresponse'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 934 32 934 106
+let%span sresponse'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 314 4 317 5
+let%span sresponse'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 271 4 274 5
+let%span sresponse'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 294 4 297 5
+let%span sresponse'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 304 4 307 5
+let%span sresponse'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 324 4 327 5
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_StatusCode
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  status: t_StatusCode;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+type t_InvalidStatusCode
+
+type t_InvalidMethod
+
+type t_InvalidUri
+
+type t_InvalidUriParts
+
+type t_InvalidHeaderName
+
+type t_InvalidHeaderValue
+
+type t_MaxSizeReached
+
+type t_ErrorKind =
+  | StatusCode t_InvalidStatusCode
+  | Method t_InvalidMethod
+  | Uri t_InvalidUri
+  | UriParts t_InvalidUriParts
+  | HeaderName t_InvalidHeaderName
+  | HeaderValue t_InvalidHeaderValue
+  | MaxSizeReached t_MaxSizeReached
+
+type t_Error = { inner: t_ErrorKind }
+
+type t_Result_Parts_Error = Ok t_Parts | Err t_Error
+
+type t_Builder = { inner'0: t_Result_Parts_Error }
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+predicate inv_Version (_1: t_Version)
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_StatusCode x.status
+    /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+predicate inv_InvalidStatusCode (_1: t_InvalidStatusCode)
+
+predicate inv_InvalidMethod (_1: t_InvalidMethod)
+
+predicate inv_InvalidUri (_1: t_InvalidUri)
+
+predicate inv_InvalidUriParts (_1: t_InvalidUriParts)
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+predicate inv_InvalidHeaderValue (_1: t_InvalidHeaderValue)
+
+predicate inv_MaxSizeReached (_1: t_MaxSizeReached)
+
+predicate inv_ErrorKind (_1: t_ErrorKind)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_ErrorKind [inv_ErrorKind x]. inv_ErrorKind x
+    = match x with
+      | StatusCode f0 -> inv_InvalidStatusCode f0
+      | Method f0 -> inv_InvalidMethod f0
+      | Uri f0 -> inv_InvalidUri f0
+      | UriParts f0 -> inv_InvalidUriParts f0
+      | HeaderName f0 -> inv_InvalidHeaderName f0
+      | HeaderValue f0 -> inv_InvalidHeaderValue f0
+      | MaxSizeReached f0 -> inv_MaxSizeReached f0
+      end
+
+predicate inv_Error (_1: t_Error)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Error [inv_Error x]. inv_Error x = inv_ErrorKind x.inner
+
+predicate inv_Result_Parts_Error (_1: t_Result_Parts_Error)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_Result_Parts_Error [inv_Result_Parts_Error x]. inv_Result_Parts_Error x
+    = match x with
+      | Ok f0 -> inv_Parts f0
+      | Err f0 -> inv_Error f0
+      end
+
+predicate invariant_refmut_Result_Parts_Error [@inline:trivial] (self: MutBorrow.t t_Result_Parts_Error) =
+  [%#sinvariant] inv_Result_Parts_Error self.current /\ inv_Result_Parts_Error self.final
+
+meta "rewrite_def" predicate invariant_refmut_Result_Parts_Error
+
+predicate inv_refmut_Result_Parts_Error [@inline:trivial] (_1: MutBorrow.t t_Result_Parts_Error) =
+  invariant_refmut_Result_Parts_Error _1
+
+meta "rewrite_def" predicate inv_refmut_Result_Parts_Error
+
+predicate resolve_refmut_Result_Parts_Error [@inline:trivial] (_1: MutBorrow.t t_Result_Parts_Error) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Result_Parts_Error
+
+type t_Option_refmut_HeaderMap_HeaderValue = None | Some (MutBorrow.t t_HeaderMap_HeaderValue)
+
+let rec elim_Ok (_x: t_Result_Parts_Error) (return (f0: t_Parts)) = any
+  [ _k (f0: t_Parts) -> {Ok f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Ok] match _x with
+      | Ok _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate invariant_refmut_HeaderMap_HeaderValue [@inline:trivial] (self: MutBorrow.t t_HeaderMap_HeaderValue) =
+  [%#sinvariant] inv_HeaderMap_HeaderValue self.current /\ inv_HeaderMap_HeaderValue self.final
+
+meta "rewrite_def" predicate invariant_refmut_HeaderMap_HeaderValue
+
+predicate inv_refmut_HeaderMap_HeaderValue [@inline:trivial] (_1: MutBorrow.t t_HeaderMap_HeaderValue) =
+  invariant_refmut_HeaderMap_HeaderValue _1
+
+meta "rewrite_def" predicate inv_refmut_HeaderMap_HeaderValue
+
+predicate resolve_refmut_HeaderMap_HeaderValue [@inline:trivial] (_1: MutBorrow.t t_HeaderMap_HeaderValue) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_HeaderMap_HeaderValue
+
+predicate invariant_refmut_Parts [@inline:trivial] (self: MutBorrow.t t_Parts) =
+  [%#sinvariant] inv_Parts self.current /\ inv_Parts self.final
+
+meta "rewrite_def" predicate invariant_refmut_Parts
+
+predicate inv_refmut_Parts [@inline:trivial] (_1: MutBorrow.t t_Parts) = invariant_refmut_Parts _1
+
+meta "rewrite_def" predicate inv_refmut_Parts
+
+predicate resolve_refmut_Parts [@inline:trivial] (_1: MutBorrow.t t_Parts) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Parts
+
+predicate inv_Builder (_1: t_Builder)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_Builder [inv_Builder x]. inv_Builder x = inv_Result_Parts_Error x.inner'0
+
+predicate invariant_refmut_Builder [@inline:trivial] (self: MutBorrow.t t_Builder) =
+  [%#sinvariant] inv_Builder self.current /\ inv_Builder self.final
+
+meta "rewrite_def" predicate invariant_refmut_Builder
+
+predicate inv_refmut_Builder [@inline:trivial] (_1: MutBorrow.t t_Builder) = invariant_refmut_Builder _1
+
+meta "rewrite_def" predicate inv_refmut_Builder
+
+predicate resolve_refmut_Builder [@inline:trivial] (_1: MutBorrow.t t_Builder) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Builder
+
+predicate inv_Option_refmut_HeaderMap_HeaderValue (_1: t_Option_refmut_HeaderMap_HeaderValue)
+
+axiom inv_axiom'4 [@rewrite]:
+  forall x: t_Option_refmut_HeaderMap_HeaderValue [inv_Option_refmut_HeaderMap_HeaderValue x]. inv_Option_refmut_HeaderMap_HeaderValue x
+    = match x with
+      | None -> true
+      | Some f0 -> inv_refmut_HeaderMap_HeaderValue f0
+      end
+
+type t_Option_ref_HeaderMap_HeaderValue = None'0 | Some'0 t_HeaderMap_HeaderValue
+
+function response_builder_headers [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 313 0 313 95] (builder: t_Builder) : t_Option_ref_HeaderMap_HeaderValue
+ = [%#sresponse'7] match builder.inner'0 with
+    | Ok head -> Some'0 (head.headers)
+    | Err _ -> None'0
+    end
+
+type t_ErrorModelRef =
+  | StatusCode'0 t_InvalidStatusCode
+  | Method'0 t_InvalidMethod
+  | Uri'0 t_InvalidUri
+  | UriParts'0 t_InvalidUriParts
+  | HeaderName'0 t_InvalidHeaderName
+  | HeaderValue'0 t_InvalidHeaderValue
+  | MaxSizeReached'0 t_MaxSizeReached
+
+type t_Option_ErrorModelRef = None'1 | Some'1 t_ErrorModelRef
+
+function error_model_ref [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/error/core.rs" 90 0 90 65] (error: t_Error) : t_ErrorModelRef
+
+function response_builder_error [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 270 0 270 91] (builder: t_Builder) : t_Option_ErrorModelRef
+ = [%#sresponse'8] match builder.inner'0 with
+    | Ok _ -> None'1
+    | Err error -> Some'1 (error_model_ref error)
+    end
+
+type t_Option_ref_StatusCode = None'2 | Some'2 t_StatusCode
+
+function response_builder_status [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 293 0 293 82] (builder: t_Builder) : t_Option_ref_StatusCode
+ = [%#sresponse'9] match builder.inner'0 with
+    | Ok head -> Some'2 (head.status)
+    | Err _ -> None'2
+    end
+
+type t_Option_ref_Version = None'3 | Some'3 t_Version
+
+function response_builder_version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 303 0 303 80] (builder: t_Builder) : t_Option_ref_Version
+ = [%#sresponse'10] match builder.inner'0 with
+    | Ok head -> Some'3 (head.version)
+    | Err _ -> None'3
+    end
+
+type t_Option_ref_Extensions = None'4 | Some'4 t_Extensions
+
+function response_builder_extensions [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 323 0 323 86] (builder: t_Builder) : t_Option_ref_Extensions
+ = [%#sresponse'11] match builder.inner'0 with
+    | Ok head -> Some'4 (head.extensions)
+    | Err _ -> None'4
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec headers_mut
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 935 4 935 72]
+  (self: MutBorrow.t t_Builder) (return (x: t_Option_refmut_HeaderMap_HeaderValue)) =
+  {[@stop_split] [@expl:headers_mut 'self' type invariant] [%#sresponse] inv_refmut_Builder self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_Result_Parts_Error> {self.current.inner'0}
+        {MutBorrow.inherit_id (MutBorrow.get_id self) 0}
+        (fun (_bor: MutBorrow.t t_Result_Parts_Error) ->
+          [ &_14 <- _bor ] -{inv_Result_Parts_Error _bor.final}-
+          [ &self <- { self with current = { inner'0 = _bor.final } } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_Result_Parts_Error self.current.inner'0} any) ]
+    | s1 = any
+      [ br0 (x0: t_Parts) -> {_14.current = Ok x0} (! bb4) | br1 (x0: t_Error) -> {_14.current = Err x0} (! bb3) ] ]
+  | bb3 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_Result_Parts_Error _14} any) ]
+    | s1 = -{resolve_refmut_Result_Parts_Error _14}- s2
+    | s2 = [ &_ret <- None ] s3
+    | s3 = bb5 ]
+  | bb4 = s0
+    [ s0 = elim_Ok {_14.current}
+        (fun (r0: t_Parts) ->
+          MutBorrow.borrow_final <t_Parts> {r0} {MutBorrow.inherit_id (MutBorrow.get_id _14) 0}
+            (fun (_bor: MutBorrow.t t_Parts) ->
+              [ &head <- _bor ] -{inv_Parts _bor.final}-
+              [ &_14 <- { _14 with current = Ok _bor.final } ] s1)
+          [ _ck -> (! {[@expl:type invariant] inv_Parts r0} any) ])
+    | s1 = MutBorrow.borrow_final <t_HeaderMap_HeaderValue> {head.current.headers}
+        {MutBorrow.inherit_id (MutBorrow.get_id head) 2}
+        (fun (_bor: MutBorrow.t t_HeaderMap_HeaderValue) ->
+          [ &_18 <- _bor ] -{inv_HeaderMap_HeaderValue _bor.final}-
+          [ &head <- { head with current = { head.current with headers = _bor.final } } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_HeaderMap_HeaderValue head.current.headers} any) ]
+    | s2 = MutBorrow.borrow_final <t_HeaderMap_HeaderValue> {_18.current} {MutBorrow.get_id _18}
+        (fun (_bor: MutBorrow.t t_HeaderMap_HeaderValue) ->
+          [ &_17 <- _bor ] -{inv_HeaderMap_HeaderValue _bor.final}-
+          [ &_18 <- { _18 with current = _bor.final } ] s3)
+      [ _ck -> (! {[@expl:type invariant] inv_HeaderMap_HeaderValue _18.current} any) ]
+    | s3 = [ &_ret <- Some _17 ] s4
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_HeaderValue _18} any) ]
+    | s5 = -{resolve_refmut_HeaderMap_HeaderValue _18}- s6
+    | s6 = s7 [ _ck -> (! {[@expl:type invariant] inv_refmut_Parts head} any) ]
+    | s7 = -{resolve_refmut_Parts head}- s8
+    | s8 = bb5 ]
+  | bb5 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_Result_Parts_Error _14} any) ]
+    | s1 = -{resolve_refmut_Result_Parts_Error _14}- s2
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_Builder self} any) ]
+    | s3 = -{resolve_refmut_Builder self}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Option_refmut_HeaderMap_HeaderValue = Any.any_l ()
+  | & self: MutBorrow.t t_Builder = self
+  | & _14: MutBorrow.t t_Result_Parts_Error = Any.any_l ()
+  | & head: MutBorrow.t t_Parts = Any.any_l ()
+  | & _17: MutBorrow.t t_HeaderMap_HeaderValue = Any.any_l ()
+  | & _18: MutBorrow.t t_HeaderMap_HeaderValue = Any.any_l () ])
+  [ return (result: t_Option_refmut_HeaderMap_HeaderValue) ->
+  {[@stop_split] [@expl:headers_mut ensures] ([@stop_split] [@expl:headers_mut result type invariant] [%#sresponse'0] inv_Option_refmut_HeaderMap_HeaderValue result)
+    /\ ([@stop_split] [@expl:headers_mut ensures #0] [%#sresponse'1] match result with
+        | Some reference -> Some'0 (reference.current) = response_builder_headers self.current
+        | None -> response_builder_headers self.current = None'0
+        end)
+    /\ ([@stop_split] [@expl:headers_mut ensures #1] [%#sresponse'2] match result with
+        | Some reference -> Some'0 (reference.final) = response_builder_headers self.final
+        | None -> response_builder_headers self.final = None'0
+        end)
+    /\ ([@stop_split] [@expl:headers_mut ensures #2] [%#sresponse'3] response_builder_error self.final
+      = response_builder_error self.current)
+    /\ ([@stop_split] [@expl:headers_mut ensures #3] [%#sresponse'4] response_builder_status self.final
+      = response_builder_status self.current)
+    /\ ([@stop_split] [@expl:headers_mut ensures #4] [%#sresponse'5] response_builder_version self.final
+      = response_builder_version self.current)
+    /\ ([@stop_split] [@expl:headers_mut ensures #5] [%#sresponse'6] response_builder_extensions self.final
+    = response_builder_extensions self.current)}
+    (! return {result}) ]

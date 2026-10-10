@@ -1,0 +1,34 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/verification/newline.rs" 67 0 72 18 *)
+
+let%span snum = "/workspace/scratch/httparse-string-model/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+let%span snewline = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/verification/newline.rs" 65 11 65 38
+let%span snewline'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/verification/newline.rs" 66 11 66 46
+let%span snewline'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/verification/newline.rs" 73 4 111 5
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_NewlineOutcome = Complete | Partial | Error
+
+type t_NewlineResult = { outcome: t_NewlineOutcome; mark: int; cursor: int }
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant mark'0 : int
+
+constant cursor'0 : int
+
+constant end' : int
+
+function parse_newline_model [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/verification/newline.rs" 67 0 72 18] (input: Seq.seq UInt8.t) (mark'0: int) (cursor'0: int) (end': int) : t_NewlineResult
+
+goal vc_parse_newline_model: true

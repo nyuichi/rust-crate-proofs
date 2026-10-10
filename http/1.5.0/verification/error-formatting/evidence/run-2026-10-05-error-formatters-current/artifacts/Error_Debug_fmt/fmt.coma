@@ -1,0 +1,390 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 24 4 24 56 *)
+
+(* <error::core::Error as std::fmt::Debug> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 100 20 100 24
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 98 18 98 76
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 108 20 108 24
+let%span sfmt'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 106 18 106 28
+let%span sfmt'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 113 23 113 27
+let%span sfmt'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 112 18 112 28
+let%span sfmt'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span serror = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 25 38 25 51
+let%span serror'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 25 24 25 52
+let%span serror'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 46 16 46 30
+let%span serror'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 43 16 43 30
+let%span serror'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 40 16 40 30
+let%span serror'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 37 16 37 30
+let%span serror'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 34 16 34 30
+let%span serror'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 31 16 31 30
+let%span serror'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 28 16 28 30
+let%span serror'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 49 8 49 22
+let%span serror'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 24 12 24 16
+let%span serror'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 24 18 24 19
+let%span serror'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 19 16 22 9
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.prelude.Any
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+type t_DebugTuple
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate inv_DebugTuple (_1: t_DebugTuple)
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'5] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+let rec debug_tuple (self_: MutBorrow.t t_Formatter) (name: string) (return (x: t_DebugTuple)) =
+  {[@stop_split] [@expl:debug_tuple 'self_' type invariant] [%#sfmt] inv_refmut_Formatter self_}
+  any
+  [ return (result: t_DebugTuple) ->
+  {[@stop_split] [@expl:debug_tuple ensures] ([@stop_split] [@expl:debug_tuple result type invariant] inv_DebugTuple result)
+    /\ ([@stop_split] [@expl:debug_tuple ensures] [%#sfmt'0] formatter_extends (deep_model_refmut_Formatter self_) (deep_model_Formatter self_.final))}
+    (! return {result}) ]
+
+type t_InvalidStatusCode
+
+type t_InvalidMethod
+
+type t_InvalidUri
+
+type t_InvalidUriParts
+
+type t_InvalidHeaderName
+
+type t_InvalidHeaderValue
+
+type t_MaxSizeReached
+
+type t_ErrorKind =
+  | StatusCode t_InvalidStatusCode
+  | Method t_InvalidMethod
+  | Uri t_InvalidUri
+  | UriParts t_InvalidUriParts
+  | HeaderName t_InvalidHeaderName
+  | HeaderValue t_InvalidHeaderValue
+  | MaxSizeReached t_MaxSizeReached
+
+type t_Error = { inner: t_ErrorKind }
+
+let rec elim_MaxSizeReached (_x: t_ErrorKind) (return (f0: t_MaxSizeReached)) = any
+  [ _k (f0: t_MaxSizeReached) -> {MaxSizeReached f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim MaxSizeReached] match _x with
+      | MaxSizeReached _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type dyn_Debug
+
+function dyn_Debug_of_MaxSizeReached (x: t_MaxSizeReached) : dyn_Debug
+
+predicate invariant_refmut_DebugTuple [@inline:trivial] (self: MutBorrow.t t_DebugTuple) =
+  [%#sinvariant] inv_DebugTuple self.current /\ inv_DebugTuple self.final
+
+meta "rewrite_def" predicate invariant_refmut_DebugTuple
+
+predicate inv_refmut_DebugTuple [@inline:trivial] (_1: MutBorrow.t t_DebugTuple) = invariant_refmut_DebugTuple _1
+
+meta "rewrite_def" predicate inv_refmut_DebugTuple
+
+let rec field (self_: MutBorrow.t t_DebugTuple) (value: dyn_Debug) (return (x: MutBorrow.t t_DebugTuple)) =
+  {[@stop_split] [@expl:field 'self_' type invariant] [%#sfmt'1] inv_refmut_DebugTuple self_}
+  any
+  [ return (result: MutBorrow.t t_DebugTuple) ->
+  {[@stop_split] [@expl:field ensures] ([@stop_split] [@expl:field result type invariant] inv_refmut_DebugTuple result)
+    /\ ([@stop_split] [@expl:field ensures] [%#sfmt'2] inv_DebugTuple self_.final)}
+    (! return {result}) ]
+
+predicate resolve_refmut_DebugTuple [@inline:trivial] (_1: MutBorrow.t t_DebugTuple) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_DebugTuple
+
+let rec elim_HeaderValue (_x: t_ErrorKind) (return (f0: t_InvalidHeaderValue)) = any
+  [ _k (f0: t_InvalidHeaderValue) -> {HeaderValue f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim HeaderValue] match _x with
+      | HeaderValue _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function dyn_Debug_of_InvalidHeaderValue (x: t_InvalidHeaderValue) : dyn_Debug
+
+let rec elim_HeaderName (_x: t_ErrorKind) (return (f0: t_InvalidHeaderName)) = any
+  [ _k (f0: t_InvalidHeaderName) -> {HeaderName f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim HeaderName] match _x with
+      | HeaderName _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function dyn_Debug_of_InvalidHeaderName (x: t_InvalidHeaderName) : dyn_Debug
+
+let rec elim_UriParts (_x: t_ErrorKind) (return (f0: t_InvalidUriParts)) = any
+  [ _k (f0: t_InvalidUriParts) -> {UriParts f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim UriParts] match _x with
+      | UriParts _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function dyn_Debug_of_InvalidUriParts (x: t_InvalidUriParts) : dyn_Debug
+
+let rec elim_Uri (_x: t_ErrorKind) (return (f0: t_InvalidUri)) = any
+  [ _k (f0: t_InvalidUri) -> {Uri f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Uri] match _x with
+      | Uri _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function dyn_Debug_of_InvalidUri (x: t_InvalidUri) : dyn_Debug
+
+let rec elim_Method (_x: t_ErrorKind) (return (f0: t_InvalidMethod)) = any
+  [ _k (f0: t_InvalidMethod) -> {Method f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Method] match _x with
+      | Method _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function dyn_Debug_of_InvalidMethod (x: t_InvalidMethod) : dyn_Debug
+
+let rec elim_StatusCode (_x: t_ErrorKind) (return (f0: t_InvalidStatusCode)) = any
+  [ _k (f0: t_InvalidStatusCode) -> {StatusCode f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim StatusCode] match _x with
+      | StatusCode _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function dyn_Debug_of_InvalidStatusCode (x: t_InvalidStatusCode) : dyn_Debug
+
+type t_Result_unit_Error = Ok () | Err ()
+
+let rec finish (self_: MutBorrow.t t_DebugTuple) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:finish 'self_' type invariant] [%#sfmt'3] inv_refmut_DebugTuple self_}
+  any
+  [ return (result: t_Result_unit_Error) -> {[@stop_split] [@expl:finish ensures] [%#sfmt'4] inv_DebugTuple self_.final}
+    (! return {result}) ]
+
+predicate resolve_DebugTuple (_1: t_DebugTuple)
+
+predicate resolve_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Formatter
+
+predicate inv_InvalidStatusCode (_1: t_InvalidStatusCode)
+
+predicate inv_InvalidMethod (_1: t_InvalidMethod)
+
+predicate inv_InvalidUri (_1: t_InvalidUri)
+
+predicate inv_InvalidUriParts (_1: t_InvalidUriParts)
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+predicate inv_InvalidHeaderValue (_1: t_InvalidHeaderValue)
+
+predicate inv_MaxSizeReached (_1: t_MaxSizeReached)
+
+predicate inv_ErrorKind (_1: t_ErrorKind)
+
+axiom inv_axiom [@rewrite]: forall x: t_ErrorKind [inv_ErrorKind x]. inv_ErrorKind x
+    = match x with
+      | StatusCode f0 -> inv_InvalidStatusCode f0
+      | Method f0 -> inv_InvalidMethod f0
+      | Uri f0 -> inv_InvalidUri f0
+      | UriParts f0 -> inv_InvalidUriParts f0
+      | HeaderName f0 -> inv_InvalidHeaderName f0
+      | HeaderValue f0 -> inv_InvalidHeaderValue f0
+      | MaxSizeReached f0 -> inv_MaxSizeReached f0
+      end
+
+predicate inv_Error (_1: t_Error)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Error [inv_Error x]. inv_Error x = inv_ErrorKind x.inner
+
+predicate invariant_ref_Error [@inline:trivial] (self: t_Error) = [%#sinvariant'0] inv_Error self
+
+meta "rewrite_def" predicate invariant_ref_Error
+
+predicate inv_ref_Error [@inline:trivial] (_1: t_Error) = invariant_ref_Error _1
+
+meta "rewrite_def" predicate inv_ref_Error
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec fmt_Error
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 24 4 24 56]
+  (self: t_Error) (f: MutBorrow.t t_Formatter) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:fmt_Error requires] ([@stop_split] [@expl:fmt 'self' type invariant] [%#serror'9] inv_ref_Error self)
+  /\ ([@stop_split] [@expl:fmt 'f' type invariant] [%#serror'10] inv_refmut_Formatter f)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_8 <- [%#serror] "http::Error" ] s1
+    | s1 = MutBorrow.borrow_final <t_Formatter> {f.current} {MutBorrow.get_id f}
+        (fun (_bor: MutBorrow.t t_Formatter) ->
+          [ &_6 <- _bor ] -{inv_Formatter _bor.final}-
+          [ &f <- { f with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_Formatter f.current} any) ]
+    | s2 = debug_tuple [%#serror'0] {_6} {_8} (fun (_x: t_DebugTuple) -> [ &tuple <- _x ] s3)
+    | s3 = any
+      [ br0 (x0: t_InvalidStatusCode) -> {self.inner = StatusCode x0} (! bb15)
+      | br1 (x0: t_InvalidMethod) -> {self.inner = Method x0} (! bb14)
+      | br2 (x0: t_InvalidUri) -> {self.inner = Uri x0} (! bb13)
+      | br3 (x0: t_InvalidUriParts) -> {self.inner = UriParts x0} (! bb12)
+      | br4 (x0: t_InvalidHeaderName) -> {self.inner = HeaderName x0} (! bb11)
+      | br5 (x0: t_InvalidHeaderValue) -> {self.inner = HeaderValue x0} (! bb10)
+      | br6 (x0: t_MaxSizeReached) -> {self.inner = MaxSizeReached x0} (! bb9) ] ]
+  | bb9 = s0
+    [ s0 = elim_MaxSizeReached {self.inner} (fun (r0: t_MaxSizeReached) -> [ &e'5 <- r0 ] s1)
+    | s1 = [ &_44 <- dyn_Debug_of_MaxSizeReached e'5 ] s2
+    | s2 = MutBorrow.borrow_mut <t_DebugTuple> {tuple}
+        (fun (_bor: MutBorrow.t t_DebugTuple) ->
+          [ &_43 <- _bor ] -{inv_DebugTuple _bor.final}-
+          [ &tuple <- _bor.final ] s3) [ _ck -> (! {[@expl:type invariant] inv_DebugTuple tuple} any) ]
+    | s3 = field [%#serror'1] {_43} {_44} (fun (_x: MutBorrow.t t_DebugTuple) -> [ &_42 <- _x ] s4)
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugTuple _42} any) ]
+    | s5 = -{resolve_refmut_DebugTuple _42}- s6
+    | s6 = bb23 ]
+  | bb10 = s0
+    [ s0 = elim_HeaderValue {self.inner} (fun (r0: t_InvalidHeaderValue) -> [ &e'4 <- r0 ] s1)
+    | s1 = [ &_39 <- dyn_Debug_of_InvalidHeaderValue e'4 ] s2
+    | s2 = MutBorrow.borrow_mut <t_DebugTuple> {tuple}
+        (fun (_bor: MutBorrow.t t_DebugTuple) ->
+          [ &_38 <- _bor ] -{inv_DebugTuple _bor.final}-
+          [ &tuple <- _bor.final ] s3) [ _ck -> (! {[@expl:type invariant] inv_DebugTuple tuple} any) ]
+    | s3 = field [%#serror'2] {_38} {_39} (fun (_x: MutBorrow.t t_DebugTuple) -> [ &_37 <- _x ] s4)
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugTuple _37} any) ]
+    | s5 = -{resolve_refmut_DebugTuple _37}- s6
+    | s6 = bb23 ]
+  | bb11 = s0
+    [ s0 = elim_HeaderName {self.inner} (fun (r0: t_InvalidHeaderName) -> [ &e'3 <- r0 ] s1)
+    | s1 = [ &_34 <- dyn_Debug_of_InvalidHeaderName e'3 ] s2
+    | s2 = MutBorrow.borrow_mut <t_DebugTuple> {tuple}
+        (fun (_bor: MutBorrow.t t_DebugTuple) ->
+          [ &_33 <- _bor ] -{inv_DebugTuple _bor.final}-
+          [ &tuple <- _bor.final ] s3) [ _ck -> (! {[@expl:type invariant] inv_DebugTuple tuple} any) ]
+    | s3 = field [%#serror'3] {_33} {_34} (fun (_x: MutBorrow.t t_DebugTuple) -> [ &_32 <- _x ] s4)
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugTuple _32} any) ]
+    | s5 = -{resolve_refmut_DebugTuple _32}- s6
+    | s6 = bb23 ]
+  | bb12 = s0
+    [ s0 = elim_UriParts {self.inner} (fun (r0: t_InvalidUriParts) -> [ &e'2 <- r0 ] s1)
+    | s1 = [ &_29 <- dyn_Debug_of_InvalidUriParts e'2 ] s2
+    | s2 = MutBorrow.borrow_mut <t_DebugTuple> {tuple}
+        (fun (_bor: MutBorrow.t t_DebugTuple) ->
+          [ &_28 <- _bor ] -{inv_DebugTuple _bor.final}-
+          [ &tuple <- _bor.final ] s3) [ _ck -> (! {[@expl:type invariant] inv_DebugTuple tuple} any) ]
+    | s3 = field [%#serror'4] {_28} {_29} (fun (_x: MutBorrow.t t_DebugTuple) -> [ &_27 <- _x ] s4)
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugTuple _27} any) ]
+    | s5 = -{resolve_refmut_DebugTuple _27}- s6
+    | s6 = bb23 ]
+  | bb13 = s0
+    [ s0 = elim_Uri {self.inner} (fun (r0: t_InvalidUri) -> [ &e'1 <- r0 ] s1)
+    | s1 = [ &_24 <- dyn_Debug_of_InvalidUri e'1 ] s2
+    | s2 = MutBorrow.borrow_mut <t_DebugTuple> {tuple}
+        (fun (_bor: MutBorrow.t t_DebugTuple) ->
+          [ &_23 <- _bor ] -{inv_DebugTuple _bor.final}-
+          [ &tuple <- _bor.final ] s3) [ _ck -> (! {[@expl:type invariant] inv_DebugTuple tuple} any) ]
+    | s3 = field [%#serror'5] {_23} {_24} (fun (_x: MutBorrow.t t_DebugTuple) -> [ &_22 <- _x ] s4)
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugTuple _22} any) ]
+    | s5 = -{resolve_refmut_DebugTuple _22}- s6
+    | s6 = bb23 ]
+  | bb14 = s0
+    [ s0 = elim_Method {self.inner} (fun (r0: t_InvalidMethod) -> [ &e'0 <- r0 ] s1)
+    | s1 = [ &_19 <- dyn_Debug_of_InvalidMethod e'0 ] s2
+    | s2 = MutBorrow.borrow_mut <t_DebugTuple> {tuple}
+        (fun (_bor: MutBorrow.t t_DebugTuple) ->
+          [ &_18 <- _bor ] -{inv_DebugTuple _bor.final}-
+          [ &tuple <- _bor.final ] s3) [ _ck -> (! {[@expl:type invariant] inv_DebugTuple tuple} any) ]
+    | s3 = field [%#serror'6] {_18} {_19} (fun (_x: MutBorrow.t t_DebugTuple) -> [ &_17 <- _x ] s4)
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugTuple _17} any) ]
+    | s5 = -{resolve_refmut_DebugTuple _17}- s6
+    | s6 = bb23 ]
+  | bb15 = s0
+    [ s0 = elim_StatusCode {self.inner} (fun (r0: t_InvalidStatusCode) -> [ &e <- r0 ] s1)
+    | s1 = [ &_14 <- dyn_Debug_of_InvalidStatusCode e ] s2
+    | s2 = MutBorrow.borrow_mut <t_DebugTuple> {tuple}
+        (fun (_bor: MutBorrow.t t_DebugTuple) ->
+          [ &_13 <- _bor ] -{inv_DebugTuple _bor.final}-
+          [ &tuple <- _bor.final ] s3) [ _ck -> (! {[@expl:type invariant] inv_DebugTuple tuple} any) ]
+    | s3 = field [%#serror'7] {_13} {_14} (fun (_x: MutBorrow.t t_DebugTuple) -> [ &_12 <- _x ] s4)
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_DebugTuple _12} any) ]
+    | s5 = -{resolve_refmut_DebugTuple _12}- s6
+    | s6 = bb23 ]
+  | bb23 = s0
+    [ s0 = MutBorrow.borrow_mut <t_DebugTuple> {tuple}
+        (fun (_bor: MutBorrow.t t_DebugTuple) ->
+          [ &_46 <- _bor ] -{inv_DebugTuple _bor.final}-
+          [ &tuple <- _bor.final ] s1) [ _ck -> (! {[@expl:type invariant] inv_DebugTuple tuple} any) ]
+    | s1 = finish [%#serror'8] {_46} (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_DebugTuple tuple} any) ]
+    | s3 = -{resolve_DebugTuple tuple}- s4
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_Formatter f} any) ]
+    | s5 = -{resolve_refmut_Formatter f}- s6
+    | s6 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & self: t_Error = self
+  | & f: MutBorrow.t t_Formatter = f
+  | & tuple: t_DebugTuple = Any.any_l ()
+  | & _6: MutBorrow.t t_Formatter = Any.any_l ()
+  | & _8: string = Any.any_l ()
+  | & e: t_InvalidStatusCode = Any.any_l ()
+  | & _12: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _13: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _14: dyn_Debug = Any.any_l ()
+  | & e'0: t_InvalidMethod = Any.any_l ()
+  | & _17: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _18: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _19: dyn_Debug = Any.any_l ()
+  | & e'1: t_InvalidUri = Any.any_l ()
+  | & _22: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _23: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _24: dyn_Debug = Any.any_l ()
+  | & e'2: t_InvalidUriParts = Any.any_l ()
+  | & _27: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _28: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _29: dyn_Debug = Any.any_l ()
+  | & e'3: t_InvalidHeaderName = Any.any_l ()
+  | & _32: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _33: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _34: dyn_Debug = Any.any_l ()
+  | & e'4: t_InvalidHeaderValue = Any.any_l ()
+  | & _37: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _38: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _39: dyn_Debug = Any.any_l ()
+  | & e'5: t_MaxSizeReached = Any.any_l ()
+  | & _42: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _43: MutBorrow.t t_DebugTuple = Any.any_l ()
+  | & _44: dyn_Debug = Any.any_l ()
+  | & _46: MutBorrow.t t_DebugTuple = Any.any_l () ])
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:fmt ensures] [%#serror'11] formatter_extends (deep_model_refmut_Formatter f) (deep_model_Formatter f.final)}
+    (! return {result}) ]

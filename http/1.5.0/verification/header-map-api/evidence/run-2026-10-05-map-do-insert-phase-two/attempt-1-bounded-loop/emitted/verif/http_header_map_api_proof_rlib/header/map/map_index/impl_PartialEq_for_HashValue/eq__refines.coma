@@ -1,0 +1,30 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 45 4 45 38 *)
+
+(* <header::map::map_index::HashValue as std::cmp::PartialEq> *)
+
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span spartial_eq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 21 20 21 31
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 18 26 18 80
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 44 14 44 45
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 39 20 39 27
+
+use creusot.int.UInt16
+
+type t_HashValue = { f0: UInt16.t }
+
+predicate eq_model_Int (self: int) (rhs: int) = [%#spartial_eq] self = rhs
+
+function deep_model_HashValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 38 4 38 44] (self: t_HashValue) : int
+ = [%#smap_index'0] UInt16.t'int self.f0
+
+function deep_model_ref_HashValue [@inline:trivial] (self: t_HashValue) : int = [%#smodel] deep_model_HashValue self
+
+meta "rewrite_def" function deep_model_ref_HashValue
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_HashValue. forall rhs: t_HashValue. forall result: bool. ([%#smap_index] result
+          = (UInt16.t'int self_.f0 = UInt16.t'int rhs.f0))
+        -> ([%#scmp] result = eq_model_Int (deep_model_ref_HashValue self_) (deep_model_ref_HashValue rhs))

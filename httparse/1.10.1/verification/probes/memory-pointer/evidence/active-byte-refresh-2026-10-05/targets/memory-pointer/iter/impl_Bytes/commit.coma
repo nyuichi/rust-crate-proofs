@@ -1,0 +1,204 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/iter.rs" 243 4 243 28 *)
+
+(* iter::Bytes<'a> *)
+
+let%span smodel = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/verification/model.rs" 334 4 339 5
+let%span smodel'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/verification/model.rs" 286 8 289 45
+let%span siter = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/iter.rs" 243 23 243 27
+let%span siter'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/iter.rs" 242 14 242 73
+let%span siter'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/iter.rs" 352 12 357 13
+let%span siter'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/iter.rs" 367 12 367 46
+let%span sghost = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/ghost.rs" 104 8 104 18
+let%span sptr = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 258 14 258 42
+let%span sptr'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 263 14 263 102
+let%span sptr'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 275 14 275 39
+let%span sptr'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 280 14 280 65
+let%span sptr'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 249 15 249 70
+let%span sptr'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 250 15 250 80
+let%span sptr'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 251 14 251 88
+let%span sptr'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 339 8 339 24
+let%span sptr'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 351 14 351 100
+let%span sptr'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 345 20 345 40
+let%span sptr'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 563 12 565 34
+let%span sptr'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 142 8 142 35
+let%span sptr'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 52 16 52 36
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smem = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/mem.rs" 131 10 131 21
+
+use creusot.prelude.Opaque
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use creusot.slice.Slice64
+use creusot.prelude.Any
+use int.Int
+
+type t_Perm_ptr_slice_u8
+
+type t_Bytes = {
+  start: Opaque.ptr;
+  end': Opaque.ptr;
+  cursor: Opaque.ptr;
+  permission: t_Perm_ptr_slice_u8;
+  input: Seq.seq UInt8.t;
+  origin: Opaque.ptr;
+  phantom: () }
+
+type t_CursorModel = { input'0: Seq.seq UInt8.t; mark'0: int; cursor'0: int; end''0: int }
+
+constant size_of_u8: int = 1
+
+meta "rewrite_def" constant size_of_u8
+
+axiom size_of_u8_spec: [%#smem] 0 <= size_of_u8
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function offset_ptr_u8 (self: Opaque.ptr) (offset: int) : Opaque.ptr
+
+axiom offset_ptr_u8_spec: forall self: Opaque.ptr, offset: int. ([%#sptr'3] 0
+      <= UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+    -> ([%#sptr'4] UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8 <= UInt64.t'int const_MAX)
+    -> ([%#sptr'5] UInt64.t'int (Ptr.addr_logic_u64 (offset_ptr_u8 self offset))
+    = UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+
+function sub_ptr_u8 (self: Opaque.ptr) (rhs: Opaque.ptr) : int
+
+function sub_offset_ptr_u8 (self: Opaque.ptr) (offset: int) : ()
+
+axiom sub_offset_ptr_u8_spec:
+  forall self: Opaque.ptr, offset: int. [%#sptr'2] sub_ptr_u8 (offset_ptr_u8 self offset) self = offset
+
+function sub_logic_refl_ptr_u8 (self: Opaque.ptr) : ()
+
+axiom sub_logic_refl_ptr_u8_spec: forall self: Opaque.ptr. [%#sptr'1] sub_ptr_u8 self self = 0
+
+function offset_logic_assoc_ptr_u8 (self: Opaque.ptr) (offset1: int) (offset2: int) : ()
+
+axiom offset_logic_assoc_ptr_u8_spec:
+  forall self: Opaque.ptr, offset1: int, offset2: int. [%#sptr'0] offset_ptr_u8 (offset_ptr_u8 self offset1) offset2
+    = offset_ptr_u8 self (offset1 + offset2)
+
+function offset_logic_zero_ptr_u8 (self: Opaque.ptr) : ()
+
+axiom offset_logic_zero_ptr_u8_spec: forall self: Opaque.ptr. [%#sptr] offset_ptr_u8 self 0 = self
+
+function view_Bytes [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/iter.rs" 350 4 350 33] (self: t_Bytes) : t_CursorModel
+ = [%#siter'1] { input'0 = self.input;
+                 mark'0 = sub_ptr_u8 self.start self.origin;
+                 cursor'0 = sub_ptr_u8 self.cursor self.origin;
+                 end''0 = sub_ptr_u8 self.end' self.origin }
+
+predicate valid_cursor [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/verification/model.rs" 284 0 284 47] (state: t_CursorModel) =
+  [%#smodel'0] 0 <= state.mark'0
+  /\ state.mark'0 <= state.cursor'0 /\ state.cursor'0 <= state.end''0 /\ state.end''0 <= Seq.length state.input'0
+
+function val_ptr_slice_u8 (self: t_Perm_ptr_slice_u8) : Slice64.slice UInt8.t
+
+function metadata_slice_u8 (_1: Opaque.ptr) : UInt64.t
+
+function len_ptr_slice_u8 [@inline:trivial] (self: Opaque.ptr) : UInt64.t = [%#sptr'8] metadata_slice_u8 self
+
+meta "rewrite_def" function len_ptr_slice_u8
+
+function thin_ptr_slice_u8 [@inline:trivial] (self: Opaque.ptr) : Opaque.ptr = [%#sptr'6] Opaque.thin self
+
+meta "rewrite_def" function thin_ptr_slice_u8
+
+function slice_ptr_ext_ptr_slice_u8 (self: Opaque.ptr) (other: Opaque.ptr) : ()
+
+axiom slice_ptr_ext_ptr_slice_u8_spec: forall self: Opaque.ptr, other: Opaque.ptr. [%#sptr'7] thin_ptr_slice_u8 self
+        = thin_ptr_slice_u8 other
+      /\ len_ptr_slice_u8 self = len_ptr_slice_u8 other -> self = other
+
+function ward_ptr_slice_u8 (self: t_Perm_ptr_slice_u8) : Opaque.ptr
+
+predicate invariant_Bytes [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/iter.rs" 365 4 365 30] (self: t_Bytes) =
+  [%#siter'2] let permission'0 = self.permission in let origin'0 = self.origin in let model = view_Bytes self in valid_cursor model
+  /\ Slice64.view (val_ptr_slice_u8 permission'0) = model.input'0
+  /\ thin_ptr_slice_u8 (ward_ptr_slice_u8 permission'0) = origin'0
+  /\ UInt64.t'int (Ptr.addr_logic_u64 origin'0) + model.end''0 <= UInt64.t'int const_MAX
+  /\ self.start = offset_ptr_u8 origin'0 model.mark'0
+  /\ self.cursor = offset_ptr_u8 origin'0 model.cursor'0 /\ self.end' = offset_ptr_u8 origin'0 model.end''0
+
+predicate is_null_ptr_slice_u8 (self: Opaque.ptr) = [%#sptr'10] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+predicate metadata_matches_slice_u8 [@inline:trivial] (_value: Slice64.slice UInt8.t) (_metadata: UInt64.t) =
+  [%#sptr'11] Seq.length (Slice64.view _value) = UInt64.t'int _metadata
+
+meta "rewrite_def" predicate metadata_matches_slice_u8
+
+predicate inv_ref_slice_u8 [@inline:trivial] (_1: Slice64.slice UInt8.t) = true
+
+meta "rewrite_def" predicate inv_ref_slice_u8
+
+predicate invariant_Perm_ptr_slice_u8 (self: t_Perm_ptr_slice_u8) =
+  [%#sptr'9] not is_null_ptr_slice_u8 (ward_ptr_slice_u8 self)
+  /\ metadata_matches_slice_u8 (val_ptr_slice_u8 self) (metadata_slice_u8 (ward_ptr_slice_u8 self))
+  /\ inv_ref_slice_u8 (val_ptr_slice_u8 self)
+
+predicate inv_Perm_ptr_slice_u8 (_1: t_Perm_ptr_slice_u8)
+
+axiom inv_axiom [@rewrite]: forall x: t_Perm_ptr_slice_u8 [inv_Perm_ptr_slice_u8 x]. inv_Perm_ptr_slice_u8 x
+    = invariant_Perm_ptr_slice_u8 x
+
+predicate invariant_ref_Perm_ptr_slice_u8 [@inline:trivial] (self: t_Perm_ptr_slice_u8) =
+  [%#sinvariant'0] inv_Perm_ptr_slice_u8 self
+
+meta "rewrite_def" predicate invariant_ref_Perm_ptr_slice_u8
+
+predicate inv_ref_Perm_ptr_slice_u8 [@inline:trivial] (_1: t_Perm_ptr_slice_u8) = invariant_ref_Perm_ptr_slice_u8 _1
+
+meta "rewrite_def" predicate inv_ref_Perm_ptr_slice_u8
+
+predicate invariant_Ghost_ref_Perm_ptr_slice_u8 [@inline:trivial] (self: t_Perm_ptr_slice_u8) =
+  [%#sghost] inv_ref_Perm_ptr_slice_u8 self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_Perm_ptr_slice_u8
+
+predicate inv_Ghost_ref_Perm_ptr_slice_u8 [@inline:trivial] (_1: t_Perm_ptr_slice_u8) =
+  invariant_Ghost_ref_Perm_ptr_slice_u8 _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_Perm_ptr_slice_u8
+
+predicate inv_Bytes (_1: t_Bytes)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Bytes [inv_Bytes x]. inv_Bytes x
+    = (invariant_Bytes x /\ inv_Ghost_ref_Perm_ptr_slice_u8 x.permission)
+
+predicate invariant_refmut_Bytes [@inline:trivial] (self: MutBorrow.t t_Bytes) =
+  [%#sinvariant] inv_Bytes self.current /\ inv_Bytes self.final
+
+meta "rewrite_def" predicate invariant_refmut_Bytes
+
+predicate inv_refmut_Bytes [@inline:trivial] (_1: MutBorrow.t t_Bytes) = invariant_refmut_Bytes _1
+
+meta "rewrite_def" predicate inv_refmut_Bytes
+
+predicate resolve_refmut_Bytes [@inline:trivial] (_1: MutBorrow.t t_Bytes) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Bytes
+
+function cursor_commit [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/verification/model.rs" 333 0 333 55] (state: t_CursorModel) : t_CursorModel
+ = [%#smodel] { input'0 = state.input'0; mark'0 = state.cursor'0; cursor'0 = state.cursor'0; end''0 = state.end''0 }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec commit
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-pointer/src/../../../../src/iter.rs" 243 4 243 28]
+  (self: MutBorrow.t t_Bytes) (return (x: ())) =
+  {[@stop_split] [@expl:commit 'self' type invariant] [%#siter] inv_refmut_Bytes self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &self <- { self with current = { self.current with start = self.current.cursor } } ] s1
+    | s1 = s2 [ _ck -> (! {[@expl:type invariant] inv_refmut_Bytes self} any) ]
+    | s2 = -{resolve_refmut_Bytes self}- s3
+    | s3 = return {_ret} ] ] [ & _ret: () = Any.any_l () | & self: MutBorrow.t t_Bytes = self ])
+  [ return (result: ()) -> {[@stop_split] [@expl:commit ensures] [%#siter'0] view_Bytes self.final
+    = cursor_commit (view_Bytes self.current)}
+    (! return {result}) ]

@@ -1,0 +1,44 @@
+{
+  "manifest_version": 1,
+  "target": "creusot-std std::partial_eq byte/Int sequence equality transport",
+  "profile": "creusot-std; bytes-model; --locked --offline",
+  "source_fingerprints": [
+    {
+      "path": "creusot-libs/creusot-std/src/std/partial_eq.rs",
+      "sha256": "efe3e792d9deea9dfa89ba2c4adf0b55c7c4fb0709c48b8e791753ee487c5756"
+    }
+  ],
+  "artifacts": [
+    {
+      "target": "seq_eq_u8_int_view_transport",
+      "coma": "http/1.5.0/verification/byte-eq/evidence/creusot-std/partial_eq/seq_eq_u8_int_view_transport/seq_eq_u8_int_view_transport.coma",
+      "coma_sha256": "9c11f404b4699c877538dfb3bfae714ac20d6c4c0bdbbc3bfc6a15dfe01c9936",
+      "proof_json": "http/1.5.0/verification/byte-eq/evidence/creusot-std/partial_eq/seq_eq_u8_int_view_transport/seq_eq_u8_int_view_transport.proof.json",
+      "proof_json_sha256": "a53421d90c6d78c336c835aa1fe6591e57623e629060501ac75205c42fb29d3b",
+      "own_goals": 1,
+      "passed_leaves": 1,
+      "failed_or_null_leaves": 0
+    }
+  ],
+  "commands": {
+    "check": "RUSTFLAGS='--cfg http_header_value_complete' ../../scripts/run-proof.sh cargo creusot --check --simple-triggers=false -- --locked --offline (from http/1.5.0/verification/headers)",
+    "clean": "../http/1.5.0/scripts/run-proof.sh cargo clean -p creusot-std (from creusot-libs)",
+    "emit": "../http/1.5.0/scripts/run-proof.sh cargo creusot -p creusot-std -- --features bytes-model --locked --offline (from creusot-libs)",
+    "proof": "../http/1.5.0/scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache verif/creusot_std_rlib/std/partial_eq/seq_eq_u8_int_view_transport.coma -- --features bytes-model --locked --offline (from creusot-libs)",
+    "proof_execution": "require_escalated; wrapper lock; one solver; 1024 MiB per prover"
+  },
+  "result": {
+    "status": "proved",
+    "own_goals": 1,
+    "terminal_leaves": 1,
+    "failed_or_null_leaves": 0,
+    "prover": "z3@4.15.3"
+  },
+  "scope": {
+    "relation": "Seq<u8>::eq_model(Seq<Int>) iff equality of the byte sequence with the paired Seq<u8> view",
+    "assumptions": "The RHS byte view and RHS integer deep model have equal lengths and pointwise equal numeric values. No equality-of-length precondition is placed between left and right operands.",
+    "body": "Source-bodied opaque logic certificate. It bridges u8 sequence Eq model semantics with exact Seq<u8> equality; no trusted axiom was added.",
+    "trusted_axioms_added": 0,
+    "caller": "HeaderValue PartialEq<str> uses the real Bytes equality and str::as_bytes bodies/contracts, then this certificate to prove its existing UTF-8 byte model postcondition."
+  }
+}

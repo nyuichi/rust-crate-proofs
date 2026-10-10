@@ -1,0 +1,90 @@
+{
+  "manifest_version": 1,
+  "captured_at_utc": "2026-10-05T07:41:29.141451+00:00",
+  "status": "fresh source-linked std slice AsRef identity-view body proof",
+  "scope": "The real generic AsRef<[T]> for [T] source body preserves the slice View; the existing generic AsRef<U> for &T relay can carry it through &[T]. This directly supports URI borrowed-byte conversion.",
+  "profile": {
+    "crate": "creusot-std",
+    "features": [
+      "bytes-model"
+    ],
+    "bytes": "1.11.1 assumed fully verified"
+  },
+  "source_fingerprints": [
+    {
+      "path": "creusot-libs/creusot-std/src/std/convert.rs",
+      "sha256": "4dcbc31ef0a6829a42a1a2c6f16df52e2252521ea6ac606791b98ccce814d8de",
+      "mtime_utc": "2026-10-05T07:32:21.501633+00:00"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std/slice.rs",
+      "sha256": "07ffe0cc8dfabab4b26da57d28aec80007a4b09491563f4f53bbeeb69756b7cc",
+      "mtime_utc": "2026-10-04T21:43:32.743598+00:00"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std.rs",
+      "sha256": "6a53fdb248abc38b060aed3612ccb7b450eb8630334b8a25181738878d4f553d",
+      "mtime_utc": "2026-10-05T05:20:05.959105+00:00"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/lib.rs",
+      "sha256": "5a2b41e4b98149f860b91e518c8bf425be820251e94d482654db785cc44861bd",
+      "mtime_utc": "2026-10-05T01:04:47.931543+00:00"
+    },
+    {
+      "path": "creusot-libs/creusot-std/Cargo.toml",
+      "sha256": "b46846933e75040159932a285b06acea26b659917c070e6cd2020538a43f9c64",
+      "mtime_utc": "2026-10-04T23:45:46.419162+00:00"
+    },
+    {
+      "path": "creusot-libs/Cargo.lock",
+      "sha256": "927e567bf96481912a41dcb160e7c3bf014e044d58d8294842b3a87e4dc3f492",
+      "mtime_utc": "2026-10-05T00:11:18.039750+00:00"
+    },
+    {
+      "path": "http/1.5.0/scripts/run-proof.sh",
+      "sha256": "aa6fd76fb82706452bb94f67e8bd895c011373a8f4c1fc5504df86b3c91dd456",
+      "mtime_utc": "2026-10-04T22:47:35.904221+00:00"
+    }
+  ],
+  "commands": {
+    "check": {
+      "cwd": "creusot-libs",
+      "command": "../http/1.5.0/scripts/run-proof.sh cargo creusot -p creusot-std --check --simple-triggers=false -- --features bytes-model --locked --offline",
+      "exit_code": 0
+    },
+    "clean_emit": {
+      "cwd": "creusot-libs",
+      "command": "../http/1.5.0/scripts/run-proof.sh bash -c 'cargo clean -p creusot-std && cargo creusot -p creusot-std --simple-triggers=false -- --features bytes-model --locked --offline'",
+      "exit_code": 0,
+      "mode": "actual Creusot emission; not --check"
+    },
+    "prove": {
+      "cwd": "creusot-libs",
+      "command": "DUNE_DIR_LOCATIONS=why3find:lib:/workspace/proof-tools/creusot-data/share/why3find ../http/1.5.0/scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always verif/creusot_std_rlib/std/convert/extern_spec_T_AsRef_slice_T_slice_T_as_ref_body.coma",
+      "execution": "require_escalated; one solver, 1024 MiB via run-proof.sh",
+      "exit_code": 0,
+      "own_body_goals": 1,
+      "own_proved_leaves": 1,
+      "own_null_leaves": 0
+    }
+  },
+  "targets": [
+    {
+      "coma_path": "creusot-libs/verif/creusot_std_rlib/std/convert/extern_spec_T_AsRef_slice_T_slice_T_as_ref_body.coma",
+      "coma_sha256": "bd0066a6c9155df92367e7553178207da18d30d9208026cb998a8b5804c3d55f",
+      "archived_coma": "artifacts/coma/extern_spec_T_AsRef_slice_T_slice_T_as_ref_body.coma",
+      "proof_json": "artifacts/proof/proof.json",
+      "proof_json_sha256": "ecfa1cf7e21a8104b47aeaa3aa95040c8317001d13dc40f9b05005a278dc78a3",
+      "own_body_goal": "vc_extern_spec_T_AsRef__slice_T__slice_T_as_ref_body_T",
+      "own_body_goal_status": "proved",
+      "own_terminal_leaves": 1,
+      "own_null_leaves": 0
+    }
+  ],
+  "trusted_or_core_patch": false,
+  "notes": [
+    "Extern spec matches the standard slice identity implementation body and was independently emitted from the current source.",
+    "No new trusted declaration, core patch, or strengthened HTTP-specific contract was introduced."
+  ]
+}

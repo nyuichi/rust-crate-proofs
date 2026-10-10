@@ -1,0 +1,196 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 828 4 828 58 *)
+
+(* request::Request<T> *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 750 8 750 53
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 379 8 392 9
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 1232 8 1232 28
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 328 8 345 9
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 39 8 45 43
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 299 8 300 78
+let%span smethod'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 277 8 290 9
+let%span srequest = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 828 22 828 27
+let%span srequest'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 828 36 828 40
+let%span srequest'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 828 48 828 58
+let%span srequest'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 827 14 827 75
+let%span srequest'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 213 4 213 16
+let%span srequest'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 220 4 220 16
+
+use creusot.prelude.Any
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use int.Int
+
+type t_Method
+
+type t_Uri
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  method: t_Method;
+  uri: t_Uri;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+type t_T
+
+type t_Request_T = { head: t_Parts; body: t_T }
+
+type t_MethodModel =
+  | Options
+  | Get
+  | Post
+  | Put
+  | Delete
+  | Head
+  | Trace
+  | Connect
+  | Patch
+  | Query
+  | ExtensionInline (Seq.seq UInt8.t) int
+  | ExtensionAllocated (Seq.seq UInt8.t)
+
+constant const_MAX: UInt64.t = [%#smethod'1] (15: UInt64.t)
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'4] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'2] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+predicate method_text_matches [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 297 0 297 65] (left: Seq.seq UInt8.t) (right: Seq.seq UInt8.t) =
+  [%#smethod'5] Seq.length left = Seq.length right
+  /\ (forall i: int. 0 <= i /\ i < Seq.length left -> Seq.get left i = Seq.get right i)
+
+function method_model_text [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 275 0 275 56] (method'0: t_MethodModel) : Seq.seq UInt8.t
+ = [%#smethod'6] match method'0 with
+    | Options -> Seq.create 7 [|(79: UInt8.t);(80: UInt8.t);(84: UInt8.t);(73: UInt8.t);(79: UInt8.t);(78: UInt8.t);(83: UInt8.t)|]
+    | Get -> Seq.create 3 [|(71: UInt8.t);(69: UInt8.t);(84: UInt8.t)|]
+    | Post -> Seq.create 4 [|(80: UInt8.t);(79: UInt8.t);(83: UInt8.t);(84: UInt8.t)|]
+    | Put -> Seq.create 3 [|(80: UInt8.t);(85: UInt8.t);(84: UInt8.t)|]
+    | Delete -> Seq.create 6 [|(68: UInt8.t);(69: UInt8.t);(76: UInt8.t);(69: UInt8.t);(84: UInt8.t);(69: UInt8.t)|]
+    | Head -> Seq.create 4 [|(72: UInt8.t);(69: UInt8.t);(65: UInt8.t);(68: UInt8.t)|]
+    | Trace -> Seq.create 5 [|(84: UInt8.t);(82: UInt8.t);(65: UInt8.t);(67: UInt8.t);(69: UInt8.t)|]
+    | Connect -> Seq.create 7 [|(67: UInt8.t);(79: UInt8.t);(78: UInt8.t);(78: UInt8.t);(69: UInt8.t);(67: UInt8.t);(84: UInt8.t)|]
+    | Patch -> Seq.create 5 [|(80: UInt8.t);(65: UInt8.t);(84: UInt8.t);(67: UInt8.t);(72: UInt8.t)|]
+    | Query -> Seq.create 5 [|(81: UInt8.t);(85: UInt8.t);(69: UInt8.t);(82: UInt8.t);(89: UInt8.t)|]
+    | ExtensionInline data len -> Seq.([..]) data 0 len
+    | ExtensionAllocated data -> data
+    end
+
+predicate is_known_method_text [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 326 0 326 51] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'3] if Seq.length bytes = 3 then
+    method_text_matches bytes (method_model_text (Get)) \/ method_text_matches bytes (method_model_text (Put))
+  else
+    if Seq.length bytes = 4 then
+      method_text_matches bytes (method_model_text (Post)) \/ method_text_matches bytes (method_model_text (Head))
+    else
+      if Seq.length bytes = 5 then
+        method_text_matches bytes (method_model_text (Patch))
+        \/ method_text_matches bytes (method_model_text (Trace))
+        \/ method_text_matches bytes (method_model_text (Query))
+      else
+        if Seq.length bytes = 6 then
+          method_text_matches bytes (method_model_text (Delete))
+        else
+          if Seq.length bytes = 7 then
+            method_text_matches bytes (method_model_text (Options))
+            \/ method_text_matches bytes (method_model_text (Connect))
+          else
+            false
+        
+      
+    
+  
+
+
+predicate method_model_is_canonical [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 377 0 377 61] (method'0: t_MethodModel) =
+  [%#smethod'0] match method'0 with
+    | ExtensionInline data len -> Seq.length data = UInt64.t'int const_MAX
+    /\ 0 < len
+    /\ len <= UInt64.t'int const_MAX
+    /\ all_method_chars_valid (Seq.([..]) data 0 len)
+    /\ (forall i: int. len <= i /\ i < Seq.length data -> Seq.get data i = (0: UInt8.t))
+    /\ not is_known_method_text (Seq.([..]) data 0 len)
+    | ExtensionAllocated data -> Seq.length data > UInt64.t'int const_MAX
+    /\ all_method_chars_valid data /\ not is_known_method_text data
+    | _ -> true
+    end
+
+function method_repr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 611 0 611 49] (value: t_Method) : t_MethodModel
+
+predicate invariant_Method [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/method.rs" 749 4 749 30] (self: t_Method) =
+  [%#smethod] method_model_is_canonical (method_repr self)
+
+predicate inv_Method (_1: t_Method)
+
+axiom inv_axiom: forall x: t_Method [inv_Method x]. inv_Method x -> invariant_Method x
+
+predicate inv_Uri (_1: t_Uri)
+
+predicate inv_Version (_1: t_Version)
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_Method x.method
+    /\ inv_Uri x.uri /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Request_T (_1: t_Request_T)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Request_T [inv_Request_T x]. inv_Request_T x
+    = (inv_Parts x.head /\ inv_T x.body)
+
+function request_head_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 212 0 212 52] (request: t_Request_T) : t_Parts
+ = [%#srequest'3] request.head
+
+function request_body_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 219 0 219 48] (request: t_Request_T) : t_T
+ = [%#srequest'4] request.body
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_parts_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/request.rs" 828 4 828 58]
+  (parts: t_Parts) (body'0: t_T) (return (x: t_Request_T)) =
+  {[@stop_split] [@expl:from_parts_T requires] ([@stop_split] [@expl:from_parts 'parts' type invariant] [%#srequest] inv_Parts parts)
+  /\ ([@stop_split] [@expl:from_parts 'body' type invariant] [%#srequest'0] inv_T body'0)}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- { head = parts; body = body'0 } ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Request_T = Any.any_l () | & parts: t_Parts = parts | & body'0: t_T = body'0 ])
+  [ return (result: t_Request_T) ->
+  {[@stop_split] [@expl:from_parts_T ensures] ([@stop_split] [@expl:from_parts result type invariant] [%#srequest'1] inv_Request_T result)
+    /\ ([@stop_split] [@expl:from_parts ensures] [%#srequest'2] request_head_T result = parts
+    /\ request_body_T result = body'0)}
+    (! return {result}) ]

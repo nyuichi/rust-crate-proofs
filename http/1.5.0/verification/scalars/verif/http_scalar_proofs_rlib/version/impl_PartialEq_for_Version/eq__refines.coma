@@ -1,0 +1,70 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 61 4 61 38 *)
+
+(* <version::Version as std::cmp::PartialEq> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 19 23 19 27
+let%span scmp'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 19 29 19 32
+let%span scmp'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 18 26 18 80
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 61 11 61 15
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 61 17 61 22
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 60 32 60 83
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 45 20 45 25
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 36 20 36 39
+let%span sversion'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 178 12 185 13
+let%span sversion'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 53 12 54 45
+let%span spartial_eq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 21 20 21 31
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+type t_Version = { f0: t_Http }
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'4] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+function view_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 35 4 35 33] (self: t_Version) : int
+ = [%#sversion'3] deep_model_Http self.f0
+
+predicate invariant_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 51 4 51 30] (self: t_Version) =
+  [%#sversion'5] view_Version self = 9
+  \/ view_Version self = 10 \/ view_Version self = 11 \/ view_Version self = 20 \/ view_Version self = 30
+
+predicate inv_Version (_1: t_Version)
+
+axiom inv_axiom [@rewrite]: forall x: t_Version [inv_Version x]. inv_Version x = invariant_Version x
+
+predicate invariant_ref_Version [@inline:trivial] (self: t_Version) = [%#sinvariant] inv_Version self
+
+meta "rewrite_def" predicate invariant_ref_Version
+
+predicate inv_ref_Version [@inline:trivial] (_1: t_Version) = invariant_ref_Version _1
+
+meta "rewrite_def" predicate inv_ref_Version
+
+function deep_model_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 44 4 44 44] (self: t_Version) : int
+ = [%#sversion'2] view_Version self
+
+function deep_model_ref_Version [@inline:trivial] (self: t_Version) : int = [%#smodel] deep_model_Version self
+
+meta "rewrite_def" function deep_model_ref_Version
+
+predicate eq_model_Int (self: int) (rhs: int) = [%#spartial_eq] self = rhs
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Version. forall rhs: t_Version. ([%#scmp] inv_ref_Version self_)
+        /\ ([%#scmp'0] inv_ref_Version rhs)
+      -> ([%#sversion] inv_ref_Version self_)
+      /\ ([%#sversion'0] inv_ref_Version rhs)
+      /\ (forall result: bool. ([%#sversion'1] result = (deep_model_ref_Version self_ = deep_model_ref_Version rhs))
+        -> ([%#scmp'1] result = eq_model_Int (deep_model_ref_Version self_) (deep_model_ref_Version rhs)))

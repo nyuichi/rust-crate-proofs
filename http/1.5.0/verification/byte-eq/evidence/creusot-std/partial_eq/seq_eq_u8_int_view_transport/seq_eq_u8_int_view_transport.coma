@@ -1,0 +1,40 @@
+(* #"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 76 0 80 9 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span spartial_eq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 72 11 72 52
+let%span spartial_eq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 73 11 73 93
+let%span spartial_eq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 74 10 74 16
+let%span spartial_eq'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 75 10 75 88
+let%span spartial_eq'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 81 4 83 5
+let%span spartial_eq'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 48 12 49 72
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+predicate eq_model_Seq_u8 [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 46 4 46 44] (self: Seq.seq UInt8.t) (rhs: Seq.seq int) =
+  [%#spartial_eq'4] Seq.length self = Seq.length rhs
+  /\ (forall i: int. 0 <= i /\ i < Seq.length self -> UInt8.t'int (Seq.get self i) = Seq.get rhs i)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant left_bytes : Seq.seq UInt8.t
+
+constant right_bytes : Seq.seq UInt8.t
+
+constant right_integers : Seq.seq int
+
+predicate seq_eq_u8_int_view_transport [#"/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 76 0 80 9] (left_bytes: Seq.seq UInt8.t) (right_bytes: Seq.seq UInt8.t) (right_integers: Seq.seq int)
+
+goal vc_seq_eq_u8_int_view_transport: ([%#spartial_eq] Seq.length right_bytes = Seq.length right_integers)
+  -> ([%#spartial_eq'0] forall i: int. 0 <= i /\ i < Seq.length right_bytes
+      -> UInt8.t'int (Seq.get right_bytes i) = Seq.get right_integers i)
+  -> eq_model_Seq_u8 left_bytes right_integers = (left_bytes = right_bytes)
+  && (let result = true in [@stop_split] [@expl:seq_eq_u8_int_view_transport ensures] ([@stop_split] [@expl:seq_eq_u8_int_view_transport ensures #0] [%#spartial_eq'1] result)
+  /\ ([@stop_split] [@expl:seq_eq_u8_int_view_transport ensures #1] [%#spartial_eq'2] result
+  = (eq_model_Seq_u8 left_bytes right_integers = (left_bytes = right_bytes))))

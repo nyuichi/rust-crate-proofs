@@ -1,0 +1,305 @@
+     Removed 7 files, 1011.4KiB total
+    Checking http-header-map-api-proof v0.1.0 (/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api)
+warning: unused import: `std::collections::HashMap`
+ --> src/../../../src/header/map.rs:5:5
+  |
+5 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::convert::TryFrom`
+ --> src/../../../src/header/map.rs:7:5
+  |
+7 | use std::convert::TryFrom;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::iter::FromIterator`
+  --> src/../../../src/header/map.rs:10:5
+   |
+10 | use std::iter::FromIterator;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::iter::FusedIterator`
+  --> src/../../../src/header/map.rs:11:5
+   |
+11 | use std::iter::FusedIterator;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ops` and `ptr`
+  --> src/../../../src/header/map.rs:13:21
+   |
+13 | use std::{fmt, mem, ops, ptr, vec};
+   |                     ^^^  ^^^
+
+warning: unused import: `PtrAddExt`
+  --> src/../../../src/header/map.rs:16:29
+   |
+16 | use creusot_std::std::ptr::{PtrAddExt, PtrLive};
+   |                             ^^^^^^^^^
+
+warning: unused import: `crate::Error`
+  --> src/../../../src/header/map.rs:29:5
+   |
+29 | use crate::Error;
+   |     ^^^^^^^^^^^^
+
+warning: unused macro definition: `insert_phase_one`
+   --> src/../../../src/header/map.rs:840:14
+    |
+840 | macro_rules! insert_phase_one {
+    |              ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_macros)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `HdrName` and `HeaderName`
+    --> src/../../../src/header/map.rs:4765:24
+     |
+4765 |     use super::{Entry, HdrName, HeaderMap, HeaderName, MaxSizeReached};
+     |                        ^^^^^^^             ^^^^^^^^^^
+
+warning: unused import: `Entry`
+    --> src/../../../src/header/map.rs:4868:17
+     |
+4868 |     use super::{Entry, HdrName, HeaderMap, HeaderName, InvalidHeaderName, MaxSizeReached};
+     |                 ^^^^^
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<...>` is not satisfied
+    --> src/../../../src/header/map.rs:4874:29
+     |
+4874 |     pub trait AsHeaderName: Sealed {}
+     |                             ^^^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<Self as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `header::map::as_header_name::Sealed`
+    --> src/../../../src/header/map.rs:4933:17
+     |
+4905 |               pub trait Sealed $($bounds)* {
+     |                         ------ required by a bound in this trait
+...
+4933 | /                 creusot_std::std::partial_eq::PartialEqModel<
+4934 | |                     <Self as creusot_std::prelude::DeepModel>::DeepModelTy
+4935 | |                 >
+     | |_________________^ required by this bound in `Sealed`
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-18242877052333600638.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<<K as DeepModel>::DeepModelTy>` is not satisfied
+    --> src/../../../src/header/map.rs:1268:17
+     |
+1267 |             && creusot_std::std::partial_eq::PartialEqModel::eq_model(
+     |                ------------------------------------------------------ required by a bound introduced by this call
+1268 |                 self.entries.view()[index].key.deep_model(),
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-6997511218511634290.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider extending the `where` clause, but there might be an alternative better way to express this requirement
+     |
+1275 |         K: AsHeaderName, header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>: creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>
+     |                          +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<<K as DeepModel>::DeepModelTy>` is not satisfied
+    --> src/../../../src/header/map.rs:1301:17
+     |
+1300 |             && creusot_std::std::partial_eq::PartialEqModel::eq_model(
+     |                ------------------------------------------------------ required by a bound introduced by this call
+1301 |                 self.entries.view()[index].key.deep_model(),
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-6997511218511634290.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider extending the `where` clause, but there might be an alternative better way to express this requirement
+     |
+1308 |         K: AsHeaderName, header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>: creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>
+     |                          +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<<K as DeepModel>::DeepModelTy>` is not satisfied
+    --> src/../../../src/header/map.rs:1310:19
+     |
+1310 |         match key.find(self) {
+     |                   ^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `header::map::as_header_name::Sealed::find`
+    --> src/../../../src/header/map.rs:4933:17
+     |
+4920 |                   fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)>;
+     |                      ---- required by a bound in this associated function
+...
+4933 | /                 creusot_std::std::partial_eq::PartialEqModel<
+4934 | |                     <Self as creusot_std::prelude::DeepModel>::DeepModelTy
+4935 | |                 >
+     | |_________________^ required by this bound in `Sealed::find`
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-6997511218511634290.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider extending the `where` clause, but there might be an alternative better way to express this requirement
+     |
+1308 |         K: AsHeaderName, header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>: creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>
+     |                          +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<<K as DeepModel>::DeepModelTy>` is not satisfied
+    --> src/../../../src/header/map.rs:1371:21
+     |
+1370 |                 && creusot_std::std::partial_eq::PartialEqModel::eq_model(
+     |                    ------------------------------------------------------ required by a bound introduced by this call
+1371 |                     self.entries@[index].key.deep_model(),
+     |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-6997511218511634290.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider extending the `where` clause, but there might be an alternative better way to express this requirement
+     |
+1381 |         K: AsHeaderName, header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>: creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>
+     |                          +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<<K as DeepModel>::DeepModelTy>` is not satisfied
+    --> src/../../../src/header/map.rs:1383:19
+     |
+1383 |         match key.find(self) {
+     |                   ^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `header::map::as_header_name::Sealed::find`
+    --> src/../../../src/header/map.rs:4933:17
+     |
+4920 |                   fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)>;
+     |                      ---- required by a bound in this associated function
+...
+4933 | /                 creusot_std::std::partial_eq::PartialEqModel<
+4934 | |                     <Self as creusot_std::prelude::DeepModel>::DeepModelTy
+4935 | |                 >
+     | |_________________^ required by this bound in `Sealed::find`
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-6997511218511634290.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider extending the `where` clause, but there might be an alternative better way to express this requirement
+     |
+1381 |         K: AsHeaderName, header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>: creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>
+     |                          +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<<K as DeepModel>::DeepModelTy>` is not satisfied
+    --> src/../../../src/header/map.rs:1434:17
+     |
+1433 |             && creusot_std::std::partial_eq::PartialEqModel::eq_model(
+     |                ------------------------------------------------------ required by a bound introduced by this call
+1434 |                 self.entries.view()[index@].key.deep_model(),
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-6997511218511634290.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider extending the `where` clause, but there might be an alternative better way to express this requirement
+     |
+1441 |         K: AsHeaderName, header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>: creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>
+     |                          +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<<K as DeepModel>::DeepModelTy>` is not satisfied
+    --> src/../../../src/header/map.rs:1445:24
+     |
+1445 |             index: key.find(self).map(|(_, i)| i),
+     |                        ^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `header::map::as_header_name::Sealed::find`
+    --> src/../../../src/header/map.rs:4933:17
+     |
+4920 |                   fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)>;
+     |                      ---- required by a bound in this associated function
+...
+4933 | /                 creusot_std::std::partial_eq::PartialEqModel<
+4934 | |                     <Self as creusot_std::prelude::DeepModel>::DeepModelTy
+4935 | |                 >
+     | |_________________^ required by this bound in `Sealed::find`
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-6997511218511634290.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider extending the `where` clause, but there might be an alternative better way to express this requirement
+     |
+1441 |         K: AsHeaderName, header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>: creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>
+     |                          +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<<K as DeepModel>::DeepModelTy>` is not satisfied
+    --> src/../../../src/header/map.rs:1476:17
+     |
+1475 |             && creusot_std::std::partial_eq::PartialEqModel::eq_model(
+     |                ------------------------------------------------------ required by a bound introduced by this call
+1476 |                 self.entries.view()[index].key.deep_model(),
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-6997511218511634290.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider extending the `where` clause, but there might be an alternative better way to express this requirement
+     |
+1482 |         K: AsHeaderName, header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>: creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>
+     |                          +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `ReprDeepModel<Seq<u8>>: PartialEqModel<<K as DeepModel>::DeepModelTy>` is not satisfied
+    --> src/../../../src/header/map.rs:1484:13
+     |
+1484 |         key.find(self).is_some()
+     |             ^^^^ unsatisfied trait bound
+     |
+help: the trait `creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>` is not implemented for `header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>`
+    --> src/../../../src/header/name.rs:122:1
+     |
+ 122 | pub enum ReprDeepModel<T> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `header::map::as_header_name::Sealed::find`
+    --> src/../../../src/header/map.rs:4933:17
+     |
+4920 |                   fn find<T>(&self, map: &HeaderMap<T>) -> Option<(usize, usize)>;
+     |                      ---- required by a bound in this associated function
+...
+4933 | /                 creusot_std::std::partial_eq::PartialEqModel<
+4934 | |                     <Self as creusot_std::prelude::DeepModel>::DeepModelTy
+4935 | |                 >
+     | |_________________^ required by this bound in `Sealed::find`
+     = note: the full name for the type has been written to '/workspace/rust-crate-proofs/target/http/debug/deps/http_header_map_api_proof-2de1b56f58e69e74.long-type-6997511218511634290.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+help: consider extending the `where` clause, but there might be an alternative better way to express this requirement
+     |
+1482 |         K: AsHeaderName, header::name::ReprDeepModel<creusot_std::logic::Seq<u8>>: creusot_std::std::partial_eq::PartialEqModel<<K as creusot_std::model::DeepModel>::DeepModelTy>
+     |                          +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+For more information about this error, try `rustc --explain E0277`.
+warning: `http-header-map-api-proof` (lib) generated 10 warnings
+error: could not compile `http-header-map-api-proof` (lib) due to 10 previous errors; 10 warnings emitted

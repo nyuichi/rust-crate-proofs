@@ -1,0 +1,114 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 92 0 97 9 *)
+
+let%span smodel = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 86 11 86 59
+let%span smodel'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 87 10 87 31
+let%span smodel'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 88 10 88 68
+let%span smodel'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 89 10 89 41
+let%span smodel'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 90 10 90 89
+let%span smodel'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 91 10 91 65
+let%span smodel'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 71 11 71 59
+let%span smodel'6 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 72 10 72 42
+let%span smodel'7 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 73 10 73 78
+let%span smodel'8 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 74 10 74 57
+let%span smodel'9 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 98 4 98 64
+let%span smodel'10 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 70 10 70 21
+let%span smodel'11 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 76 4 80 5
+let%span smodel'12 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 264 16 264 82
+let%span smodel'13 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 30 4 43 5
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_ByteClass = Token | Uri | HeaderValue
+
+type t_Span = { start: int; end': int }
+
+predicate accepts [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 29 0 29 50] (class: t_ByteClass) (byte: UInt8.t) =
+  [%#smodel'13] match class with
+    | Token -> UInt8.t'int byte >= 48 /\ UInt8.t'int byte <= 57
+    \/ UInt8.t'int byte >= 65 /\ UInt8.t'int byte <= 90
+    \/ UInt8.t'int byte >= 97 /\ UInt8.t'int byte <= 122
+    \/ UInt8.t'int byte = 33
+    \/ UInt8.t'int byte = 35
+    \/ UInt8.t'int byte = 36
+    \/ UInt8.t'int byte = 37
+    \/ UInt8.t'int byte = 38
+    \/ UInt8.t'int byte = 39
+    \/ UInt8.t'int byte = 42
+    \/ UInt8.t'int byte = 43
+    \/ UInt8.t'int byte = 45
+    \/ UInt8.t'int byte = 46
+    \/ UInt8.t'int byte = 94
+    \/ UInt8.t'int byte = 95 \/ UInt8.t'int byte = 96 \/ UInt8.t'int byte = 124 \/ UInt8.t'int byte = 126
+    | Uri -> UInt8.t'int byte >= 33 /\ UInt8.t'int byte <> 127
+    | HeaderValue -> UInt8.t'int byte = 9 \/ UInt8.t'int byte >= 32 /\ UInt8.t'int byte <> 127
+    end
+
+function maximal_prefix_end [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 75 0 75 88] (input: Seq.seq UInt8.t) (start'0: int) (end''0: int) (class: t_ByteClass) : int
+
+axiom maximal_prefix_end_def:
+  forall input: Seq.seq UInt8.t, start'0: int, end''0: int, class: t_ByteClass. ([%#smodel'5] 0 <= start'0
+      /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+    -> maximal_prefix_end input start'0 end''0 class
+    = ([%#smodel'11] if start'0 = end''0 \/ not accepts class (Seq.get input start'0) then
+      start'0
+    else
+      maximal_prefix_end input (start'0 + 1) end''0 class
+    )
+
+axiom maximal_prefix_end_spec:
+  forall input: Seq.seq UInt8.t, start'0: int, end''0: int, class: t_ByteClass. ([%#smodel'5] 0 <= start'0
+      /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+    -> ([%#smodel'6] start'0 <= maximal_prefix_end input start'0 end''0 class
+    /\ maximal_prefix_end input start'0 end''0 class <= end''0)
+
+axiom maximal_prefix_end_spec'0:
+  forall input: Seq.seq UInt8.t, start'0: int, end''0: int, class: t_ByteClass. ([%#smodel'5] 0 <= start'0
+      /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+    -> ([%#smodel'7] forall i: int. start'0 <= i /\ i < maximal_prefix_end input start'0 end''0 class
+      -> accepts class (Seq.get input i))
+
+axiom maximal_prefix_end_spec'1:
+  forall input: Seq.seq UInt8.t, start'0: int, end''0: int, class: t_ByteClass. ([%#smodel'5] 0 <= start'0
+      /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+    -> ([%#smodel'8] maximal_prefix_end input start'0 end''0 class < end''0
+    -> not accepts class (Seq.get input (maximal_prefix_end input start'0 end''0 class)))
+
+predicate valid_span [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 263 0 263 53] (span: t_Span) (input_len: int) =
+  [%#smodel'12] 0 <= span.start /\ span.start <= span.end' /\ span.end' <= input_len
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant start'0 : int
+
+constant end''0 : int
+
+constant class : t_ByteClass
+
+function accepted_prefix_span [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/spaces-harness/string/../src/../../../../src/verification/model.rs" 92 0 97 9] (input: Seq.seq UInt8.t) (start'0: int) (end''0: int) (class: t_ByteClass) : t_Span
+
+goal vc_accepted_prefix_span: ([%#smodel] 0 <= start'0 /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+  -> ([@stop_split] [@expl:maximal_prefix_end requires] [%#smodel'5] 0 <= start'0
+    /\ start'0 <= end''0 /\ end''0 <= Seq.length input)
+  /\ (([@stop_split] [@expl:maximal_prefix_end ensures] ([@stop_split] [@expl:maximal_prefix_end ensures #0] [%#smodel'6] start'0
+        <= maximal_prefix_end input start'0 end''0 class
+      /\ maximal_prefix_end input start'0 end''0 class <= end''0)
+    /\ ([@stop_split] [@expl:maximal_prefix_end ensures #1] [%#smodel'7] forall i: int. start'0 <= i
+          /\ i < maximal_prefix_end input start'0 end''0 class -> accepts class (Seq.get input i))
+    /\ ([@stop_split] [@expl:maximal_prefix_end ensures #2] [%#smodel'8] maximal_prefix_end input start'0 end''0 class
+      < end''0 -> not accepts class (Seq.get input (maximal_prefix_end input start'0 end''0 class))))
+  -> (let span_end = maximal_prefix_end input start'0 end''0 class in let result = { start = start'0;
+                                                                                     end' = span_end } in [@stop_split] [@expl:accepted_prefix_span ensures] ([@stop_split] [@expl:accepted_prefix_span ensures #0] [%#smodel'0] result.start
+    = start'0)
+  /\ ([@stop_split] [@expl:accepted_prefix_span ensures #1] [%#smodel'1] result.end'
+    = maximal_prefix_end input start'0 end''0 class)
+  /\ ([@stop_split] [@expl:accepted_prefix_span ensures #2] [%#smodel'2] valid_span result (Seq.length input))
+  /\ ([@stop_split] [@expl:accepted_prefix_span ensures #3] [%#smodel'3] forall i: int. result.start <= i
+        /\ i < result.end' -> accepts class (Seq.get input i))
+  /\ ([@stop_split] [@expl:accepted_prefix_span ensures #4] [%#smodel'4] result.end' < end''0
+  -> not accepts class (Seq.get input result.end'))))

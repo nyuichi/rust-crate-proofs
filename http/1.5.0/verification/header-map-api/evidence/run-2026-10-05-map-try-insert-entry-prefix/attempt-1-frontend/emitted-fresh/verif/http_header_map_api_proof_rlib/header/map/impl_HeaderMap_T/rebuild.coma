@@ -1,0 +1,835 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2625 4 2625 25 *)
+
+(* header::map::HeaderMap<T> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 296 16 302 17
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 364 25 364 29
+let%span sslice'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 363 18 363 33
+let%span sslice'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+let%span sslice'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 17 20 17 30
+let%span sslice'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 554 14 554 50
+let%span sslice'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 576 20 576 62
+let%span sslice'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 582 12 582 66
+let%span sslice'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 587 14 587 47
+let%span sslice'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 588 27 588 29
+let%span sslice'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 591 15 591 32
+let%span sslice'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 592 15 592 32
+let%span sslice'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 593 14 593 42
+let%span sslice'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 594 91 594 93
+let%span sslice'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 94 14 94 41
+let%span sslice'13 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 95 14 95 80
+let%span sslice'14 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 64 20 64 29
+let%span sslice'15 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 563 20 563 36
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 211 26 211 30
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 208 18 208 34
+let%span svec'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 209 18 209 50
+let%span svec'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 210 18 210 40
+let%span svec'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span svec'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 89 20 89 30
+let%span siter = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 161 29 161 33
+let%span siter'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 158 27 158 100
+let%span siter'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 159 27 159 114
+let%span siter'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 160 26 160 67
+let%span siter'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 224 21 224 25
+let%span siter'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 223 18 223 32
+let%span siter'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 107 29 107 33
+let%span siter'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter.rs" 103 26 106 17
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 121 10 121 44
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 122 10 122 33
+let%span smap_index'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 105 14 109 5
+let%span smap_index'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 129 11 129 57
+let%span smap_index'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 130 11 130 28
+let%span smap_index'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 131 11 131 28
+let%span smap_index'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 132 11 132 46
+let%span smap_index'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 133 10 137 1
+let%span smap_index'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 72 15 72 33
+let%span smap_index'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 73 14 73 37
+let%span smap_index'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 74 14 74 33
+let%span smap_index'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 11 0 11 32
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2627 38 2627 61
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2627 38 2627 73
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2627 38 2627 73
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2628 23 2628 64
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2629 28 2629 56
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2630 27 2630 28
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2635 32 2635 50
+let%span smap'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 895 29 895 30
+let%span smap'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2636 47 2636 66
+let%span smap'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2636 47 2636 76
+let%span smap'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2638 37 2638 81
+let%span smap'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2650 24 2650 25
+let%span smap'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2650 16 2650 25
+let%span smap'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 899 30 899 31
+let%span smap'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 899 16 899 31
+let%span smap'14 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 901 29 901 30
+let%span smap'15 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2646 42 2646 63
+let%span smap'16 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2646 20 2646 39
+let%span smap'17 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2653 58 2653 79
+let%span smap'18 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2653 12 2653 80
+let%span smap'19 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2625 20 2625 24
+let%span smap'20 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4771 22 4771 28
+let%span smap'21 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4771 39 4771 40
+let%span senumerate = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter/enumerate.rs" 57 12 59 44
+let%span senumerate'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter/enumerate.rs" 66 12 70 109
+let%span senumerate'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter/enumerate.rs" 40 14 40 41
+let%span senumerate'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter/enumerate.rs" 75 14 75 47
+let%span senumerate'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter/enumerate.rs" 79 15 79 32
+let%span senumerate'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter/enumerate.rs" 80 15 80 32
+let%span senumerate'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter/enumerate.rs" 81 14 81 42
+let%span senumerate'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/iter/enumerate.rs" 28 8 28 28
+
+use creusot.int.UInt16
+use creusot.slice.Slice64
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.Opaque
+use int.Power
+use creusot.prelude.Any
+use int.Int
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+type t_Vec_Bucket_T_Global
+
+type t_Vec_ExtraValue_T_Global
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+type t_HeaderMap_T = {
+  mask: UInt16.t;
+  indices: Slice64.slice t_Pos;
+  entries: t_Vec_Bucket_T_Global;
+  extra_values: t_Vec_ExtraValue_T_Global;
+  danger: t_Danger }
+
+type t_HeaderName
+
+type t_T
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None | Some t_Links
+
+type t_Bucket_T = { hash'0: t_HashValue; key'0: t_HeaderName; value'0: t_T; links'0: t_Option_Links }
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Bucket_T (_1: t_Bucket_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Bucket_T [inv_Bucket_T x]. inv_Bucket_T x
+    = (inv_HeaderName x.key'0 /\ inv_T x.value'0)
+
+predicate invariant_ref_Bucket_T [@inline:trivial] (self: t_Bucket_T) = [%#sinvariant'0] inv_Bucket_T self
+
+meta "rewrite_def" predicate invariant_ref_Bucket_T
+
+predicate inv_ref_Bucket_T [@inline:trivial] (_1: t_Bucket_T) = invariant_ref_Bucket_T _1
+
+meta "rewrite_def" predicate inv_ref_Bucket_T
+
+predicate invariant_Seq_Bucket_T [@inline:trivial] (self: Seq.seq t_Bucket_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_Bucket_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_Bucket_T
+
+predicate inv_Seq_Bucket_T [@inline:trivial] (_1: Seq.seq t_Bucket_T) = invariant_Seq_Bucket_T _1
+
+meta "rewrite_def" predicate inv_Seq_Bucket_T
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) : Seq.seq t_Bucket_T
+
+axiom view_Vec_Bucket_T_Global_spec:
+  forall self: t_Vec_Bucket_T_Global. [%#svec'3] Seq.length (view_Vec_Bucket_T_Global self) <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) =
+  [%#svec'4] inv_Seq_Bucket_T (view_Vec_Bucket_T_Global self)
+
+predicate inv_Vec_Bucket_T_Global (_1: t_Vec_Bucket_T_Global)
+
+axiom inv_axiom'0: forall x: t_Vec_Bucket_T_Global [inv_Vec_Bucket_T_Global x]. inv_Vec_Bucket_T_Global x
+    -> invariant_Vec_Bucket_T_Global x
+
+predicate invariant_refmut_Vec_Bucket_T_Global [@inline:trivial] (self: MutBorrow.t t_Vec_Bucket_T_Global) =
+  [%#sinvariant] inv_Vec_Bucket_T_Global self.current /\ inv_Vec_Bucket_T_Global self.final
+
+meta "rewrite_def" predicate invariant_refmut_Vec_Bucket_T_Global
+
+predicate inv_refmut_Vec_Bucket_T_Global [@inline:trivial] (_1: MutBorrow.t t_Vec_Bucket_T_Global) =
+  invariant_refmut_Vec_Bucket_T_Global _1
+
+meta "rewrite_def" predicate inv_refmut_Vec_Bucket_T_Global
+
+predicate invariant_slice_Bucket_T (self: Slice64.slice t_Bucket_T) = [%#sslice'2] inv_Seq_Bucket_T (Slice64.view self)
+
+predicate inv_slice_Bucket_T [@inline:trivial] (_1: Slice64.slice t_Bucket_T) = invariant_slice_Bucket_T _1
+
+meta "rewrite_def" predicate inv_slice_Bucket_T
+
+predicate invariant_refmut_slice_Bucket_T [@inline:trivial] (self: MutBorrow.t (Slice64.slice t_Bucket_T)) =
+  [%#sinvariant] inv_slice_Bucket_T self.current /\ inv_slice_Bucket_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_slice_Bucket_T
+
+predicate inv_refmut_slice_Bucket_T [@inline:trivial] (_1: MutBorrow.t (Slice64.slice t_Bucket_T)) =
+  invariant_refmut_slice_Bucket_T _1
+
+meta "rewrite_def" predicate inv_refmut_slice_Bucket_T
+
+let rec deref_mut_Vec_Bucket_T_Global (self_: MutBorrow.t t_Vec_Bucket_T_Global)
+  (return (x: MutBorrow.t (Slice64.slice t_Bucket_T))) =
+  {[@stop_split] [@expl:deref_mut 'self_' type invariant] [%#svec] inv_refmut_Vec_Bucket_T_Global self_}
+  any
+  [ return (result: MutBorrow.t (Slice64.slice t_Bucket_T)) ->
+  {[@stop_split] [@expl:deref_mut_Vec_Bucket_T_Global ensures] ([@stop_split] [@expl:deref_mut result type invariant] inv_refmut_slice_Bucket_T result)
+    /\ ([@stop_split] [@expl:deref_mut ensures #0] [%#svec'0] Slice64.view result.current
+      = view_Vec_Bucket_T_Global self_.current)
+    /\ ([@stop_split] [@expl:deref_mut ensures #1] [%#svec'1] Seq.length (view_Vec_Bucket_T_Global self_.final)
+      = Seq.length (view_Vec_Bucket_T_Global self_.current))
+    /\ ([@stop_split] [@expl:deref_mut ensures #2] [%#svec'2] Slice64.view result.final
+    = view_Vec_Bucket_T_Global self_.final)}
+    (! return {result}) ]
+
+type t_IterMut_Bucket_T
+
+predicate inv_IterMut_Bucket_T (_1: t_IterMut_Bucket_T)
+
+function view_IterMut_Bucket_T (self: t_IterMut_Bucket_T) : MutBorrow.t (Slice64.slice t_Bucket_T)
+
+axiom view_IterMut_Bucket_T_spec:
+  forall self: t_IterMut_Bucket_T. [%#sslice'3] Seq.length (Slice64.view (view_IterMut_Bucket_T self).final)
+    = Seq.length (Slice64.view (view_IterMut_Bucket_T self).current)
+
+let rec iter_mut_Bucket_T (self_: MutBorrow.t (Slice64.slice t_Bucket_T)) (return (x: t_IterMut_Bucket_T)) =
+  {[@stop_split] [@expl:iter_mut 'self_' type invariant] [%#sslice] inv_refmut_slice_Bucket_T self_}
+  any
+  [ return (result: t_IterMut_Bucket_T) ->
+  {[@stop_split] [@expl:iter_mut_Bucket_T ensures] ([@stop_split] [@expl:iter_mut result type invariant] inv_IterMut_Bucket_T result)
+    /\ ([@stop_split] [@expl:iter_mut ensures] [%#sslice'0] view_IterMut_Bucket_T result = self_)}
+    (! return {result}) ]
+
+type t_Enumerate_IterMut_Bucket_T
+
+function index_slice_Bucket_T [@inline:trivial] (self: Slice64.slice t_Bucket_T) (ix: int) : t_Bucket_T =
+  [%#sslice'14] Seq.get (Slice64.view self) ix
+
+meta "rewrite_def" function index_slice_Bucket_T
+
+function to_mut_seq_slice_Bucket_T (self: MutBorrow.t (Slice64.slice t_Bucket_T)) : Seq.seq (MutBorrow.t t_Bucket_T)
+
+axiom to_mut_seq_slice_Bucket_T_spec:
+  forall self: MutBorrow.t (Slice64.slice t_Bucket_T). [%#sslice'12] Seq.length (to_mut_seq_slice_Bucket_T self)
+    = Seq.length (Slice64.view self.current)
+
+axiom to_mut_seq_slice_Bucket_T_spec'0:
+  forall self: MutBorrow.t (Slice64.slice t_Bucket_T). [%#sslice'13] forall i: int. 0 <= i
+        /\ i < Seq.length (to_mut_seq_slice_Bucket_T self)
+      -> Seq.get (to_mut_seq_slice_Bucket_T self) i
+      = MutBorrow.borrow_logic (index_slice_Bucket_T self.current i) (index_slice_Bucket_T self.final i) (MutBorrow.inherit_id (MutBorrow.get_id self) i)
+
+predicate produces_IterMut_Bucket_T (self: t_IterMut_Bucket_T) (visited: Seq.seq (MutBorrow.t t_Bucket_T)) (tl: t_IterMut_Bucket_T) =
+  [%#sslice'5] to_mut_seq_slice_Bucket_T (view_IterMut_Bucket_T self)
+  = Seq.(++) visited (to_mut_seq_slice_Bucket_T (view_IterMut_Bucket_T tl))
+
+function produces_trans_IterMut_Bucket_T (a: t_IterMut_Bucket_T) (ab: Seq.seq (MutBorrow.t t_Bucket_T)) (b: t_IterMut_Bucket_T) (bc: Seq.seq (MutBorrow.t t_Bucket_T)) (c: t_IterMut_Bucket_T) : ()
+ = [%#sslice'11] ()
+
+axiom produces_trans_IterMut_Bucket_T_spec:
+  forall a: t_IterMut_Bucket_T, ab: Seq.seq (MutBorrow.t t_Bucket_T), b: t_IterMut_Bucket_T, bc: Seq.seq (MutBorrow.t t_Bucket_T), c: t_IterMut_Bucket_T. ([%#sslice'8] produces_IterMut_Bucket_T a ab b)
+    -> ([%#sslice'9] produces_IterMut_Bucket_T b bc c) -> ([%#sslice'10] produces_IterMut_Bucket_T a (Seq.(++) ab bc) c)
+
+function produces_refl_IterMut_Bucket_T (self: t_IterMut_Bucket_T) : () = [%#sslice'7] ()
+
+axiom produces_refl_IterMut_Bucket_T_spec:
+  forall self: t_IterMut_Bucket_T. [%#sslice'6] produces_IterMut_Bucket_T self (Seq.empty: Seq.seq (MutBorrow.t t_Bucket_T)) self
+
+predicate resolve_refmut_IterMut_Bucket_T [@inline:trivial] (_1: MutBorrow.t t_IterMut_Bucket_T) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_IterMut_Bucket_T
+
+predicate completed_IterMut_Bucket_T (self: MutBorrow.t t_IterMut_Bucket_T) =
+  [%#sslice'4] resolve_refmut_IterMut_Bucket_T self
+  /\ Slice64.view (view_IterMut_Bucket_T self.current).current = (Seq.empty: Seq.seq t_Bucket_T)
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+function iter_Enumerate_IterMut_Bucket_T (self: t_Enumerate_IterMut_Bucket_T) : t_IterMut_Bucket_T
+
+predicate invariant_Enumerate_IterMut_Bucket_T (self: t_Enumerate_IterMut_Bucket_T)
+
+axiom invariant_Enumerate_IterMut_Bucket_T_spec:
+  forall self: t_Enumerate_IterMut_Bucket_T. [%#senumerate'1] invariant_Enumerate_IterMut_Bucket_T self
+    -> inv_IterMut_Bucket_T (iter_Enumerate_IterMut_Bucket_T self)
+
+predicate inv_Enumerate_IterMut_Bucket_T (_1: t_Enumerate_IterMut_Bucket_T)
+
+axiom inv_axiom'1:
+  forall x: t_Enumerate_IterMut_Bucket_T [inv_Enumerate_IterMut_Bucket_T x]. inv_Enumerate_IterMut_Bucket_T x
+    -> invariant_Enumerate_IterMut_Bucket_T x
+
+function n_Enumerate_IterMut_Bucket_T (self: t_Enumerate_IterMut_Bucket_T) : UInt64.t
+
+let rec enumerate_IterMut_Bucket_T (self_: t_IterMut_Bucket_T) (return (x: t_Enumerate_IterMut_Bucket_T)) =
+  {[@stop_split] [@expl:enumerate_IterMut_Bucket_T requires] ([@stop_split] [@expl:enumerate 'self_' type invariant] [%#siter] inv_IterMut_Bucket_T self_)
+  /\ ([@stop_split] [@expl:enumerate requires #0] [%#siter'0] forall i: MutBorrow.t t_IterMut_Bucket_T. completed_IterMut_Bucket_T i
+      -> produces_IterMut_Bucket_T i.current (Seq.empty: Seq.seq (MutBorrow.t t_Bucket_T)) i.final)
+  /\ ([@stop_split] [@expl:enumerate requires #1] [%#siter'1] forall s: Seq.seq (MutBorrow.t t_Bucket_T), i: t_IterMut_Bucket_T. produces_IterMut_Bucket_T self_ s i
+    -> Seq.length s < UInt64.t'int const_MAX'0)}
+  any
+  [ return (result: t_Enumerate_IterMut_Bucket_T) ->
+  {[@stop_split] [@expl:enumerate_IterMut_Bucket_T ensures] ([@stop_split] [@expl:enumerate result type invariant] inv_Enumerate_IterMut_Bucket_T result)
+    /\ ([@stop_split] [@expl:enumerate ensures] [%#siter'2] iter_Enumerate_IterMut_Bucket_T result = self_
+    /\ UInt64.t'int (n_Enumerate_IterMut_Bucket_T result) = 0)}
+    (! return {result}) ]
+
+let rec into_iter_Enumerate_IterMut_Bucket_T (self_: t_Enumerate_IterMut_Bucket_T)
+  (return (x: t_Enumerate_IterMut_Bucket_T)) =
+  {[@stop_split] [@expl:into_iter 'self_' type invariant] [%#siter'3] inv_Enumerate_IterMut_Bucket_T self_}
+  any
+  [ return (result: t_Enumerate_IterMut_Bucket_T) ->
+  {[@stop_split] [@expl:into_iter_Enumerate_IterMut_Bucket_T ensures] ([@stop_split] [@expl:into_iter result type invariant] inv_Enumerate_IterMut_Bucket_T result)
+    /\ ([@stop_split] [@expl:into_iter ensures] [%#siter'4] result = self_)}
+    (! return {result}) ]
+
+type tup2_usize_refmut_Bucket_T = { f0'0: UInt64.t; f1'0: MutBorrow.t t_Bucket_T }
+
+type t_Option_tup2_usize_refmut_Bucket_T = None'0 | Some'0 tup2_usize_refmut_Bucket_T
+
+predicate invariant_refmut_Enumerate_IterMut_Bucket_T [@inline:trivial] (self: MutBorrow.t t_Enumerate_IterMut_Bucket_T) =
+  [%#sinvariant] inv_Enumerate_IterMut_Bucket_T self.current /\ inv_Enumerate_IterMut_Bucket_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_Enumerate_IterMut_Bucket_T
+
+predicate inv_refmut_Enumerate_IterMut_Bucket_T [@inline:trivial] (_1: MutBorrow.t t_Enumerate_IterMut_Bucket_T) =
+  invariant_refmut_Enumerate_IterMut_Bucket_T _1
+
+meta "rewrite_def" predicate inv_refmut_Enumerate_IterMut_Bucket_T
+
+predicate invariant_refmut_Bucket_T [@inline:trivial] (self: MutBorrow.t t_Bucket_T) =
+  [%#sinvariant] inv_Bucket_T self.current /\ inv_Bucket_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_Bucket_T
+
+predicate inv_refmut_Bucket_T [@inline:trivial] (_1: MutBorrow.t t_Bucket_T) = invariant_refmut_Bucket_T _1
+
+meta "rewrite_def" predicate inv_refmut_Bucket_T
+
+predicate inv_tup2_usize_refmut_Bucket_T [@inline:trivial] (_1: tup2_usize_refmut_Bucket_T) =
+  inv_refmut_Bucket_T _1.f1'0
+
+meta "rewrite_def" predicate inv_tup2_usize_refmut_Bucket_T
+
+predicate inv_Option_tup2_usize_refmut_Bucket_T (_1: t_Option_tup2_usize_refmut_Bucket_T)
+
+axiom inv_axiom'2 [@rewrite]:
+  forall x: t_Option_tup2_usize_refmut_Bucket_T [inv_Option_tup2_usize_refmut_Bucket_T x]. inv_Option_tup2_usize_refmut_Bucket_T x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0'1 -> inv_tup2_usize_refmut_Bucket_T f0'1
+      end
+
+predicate produces_Enumerate_IterMut_Bucket_T (self: t_Enumerate_IterMut_Bucket_T) (visited: Seq.seq tup2_usize_refmut_Bucket_T) (o: t_Enumerate_IterMut_Bucket_T) =
+  [%#senumerate'0] Seq.length visited
+    = UInt64.t'int (n_Enumerate_IterMut_Bucket_T o) - UInt64.t'int (n_Enumerate_IterMut_Bucket_T self)
+  /\ (exists s: Seq.seq (MutBorrow.t t_Bucket_T). produces_IterMut_Bucket_T (iter_Enumerate_IterMut_Bucket_T self) s (iter_Enumerate_IterMut_Bucket_T o)
+    /\ Seq.length visited = Seq.length s
+    /\ (forall i: int. 0 <= i /\ i < Seq.length s
+      -> UInt64.t'int (Seq.get visited i).f0'0 = UInt64.t'int (n_Enumerate_IterMut_Bucket_T self) + i
+      /\ (Seq.get visited i).f1'0 = Seq.get s i))
+
+function produces_trans_Enumerate_IterMut_Bucket_T (a: t_Enumerate_IterMut_Bucket_T) (ab: Seq.seq tup2_usize_refmut_Bucket_T) (b: t_Enumerate_IterMut_Bucket_T) (bc: Seq.seq tup2_usize_refmut_Bucket_T) (c: t_Enumerate_IterMut_Bucket_T) : ()
+
+axiom produces_trans_Enumerate_IterMut_Bucket_T_spec:
+  forall a: t_Enumerate_IterMut_Bucket_T, ab: Seq.seq tup2_usize_refmut_Bucket_T, b: t_Enumerate_IterMut_Bucket_T, bc: Seq.seq tup2_usize_refmut_Bucket_T, c: t_Enumerate_IterMut_Bucket_T. ([%#senumerate'3] produces_Enumerate_IterMut_Bucket_T a ab b)
+    -> ([%#senumerate'4] produces_Enumerate_IterMut_Bucket_T b bc c)
+    -> ([%#senumerate'5] produces_Enumerate_IterMut_Bucket_T a (Seq.(++) ab bc) c)
+
+function produces_refl_Enumerate_IterMut_Bucket_T (self: t_Enumerate_IterMut_Bucket_T) : ()
+
+axiom produces_refl_Enumerate_IterMut_Bucket_T_spec:
+  forall self: t_Enumerate_IterMut_Bucket_T. [%#senumerate'2] produces_Enumerate_IterMut_Bucket_T self (Seq.empty: Seq.seq tup2_usize_refmut_Bucket_T) self
+
+predicate completed_Enumerate_IterMut_Bucket_T (self: MutBorrow.t t_Enumerate_IterMut_Bucket_T) =
+  [%#senumerate] exists inner: MutBorrow.t t_IterMut_Bucket_T. inner.current
+      = iter_Enumerate_IterMut_Bucket_T self.current
+    /\ inner.final = iter_Enumerate_IterMut_Bucket_T self.final
+    /\ completed_IterMut_Bucket_T inner
+    /\ UInt64.t'int (n_Enumerate_IterMut_Bucket_T self.current) = UInt64.t'int (n_Enumerate_IterMut_Bucket_T self.final)
+
+let rec next_Enumerate_IterMut_Bucket_T (self_: MutBorrow.t t_Enumerate_IterMut_Bucket_T)
+  (return (x: t_Option_tup2_usize_refmut_Bucket_T)) =
+  {[@stop_split] [@expl:next 'self_' type invariant] [%#siter'5] inv_refmut_Enumerate_IterMut_Bucket_T self_}
+  any
+  [ return (result: t_Option_tup2_usize_refmut_Bucket_T) ->
+  {[@stop_split] [@expl:next_Enumerate_IterMut_Bucket_T ensures] ([@stop_split] [@expl:next result type invariant] inv_Option_tup2_usize_refmut_Bucket_T result)
+    /\ ([@stop_split] [@expl:next ensures] [%#siter'6] match result with
+      | None'0 -> completed_Enumerate_IterMut_Bucket_T self_
+      | Some'0 v -> produces_Enumerate_IterMut_Bucket_T self_.current (Seq.singleton v) self_.final
+      end)}
+    (! return {result}) ]
+
+predicate resolve_refmut_Enumerate_IterMut_Bucket_T [@inline:trivial] (_1: MutBorrow.t t_Enumerate_IterMut_Bucket_T) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Enumerate_IterMut_Bucket_T
+
+type t_Link = Entry UInt64.t | Extra UInt64.t
+
+type t_ExtraValue_T = { value'1: t_T; prev'1: t_Link; next'1: t_Link }
+
+predicate inv_ExtraValue_T (_1: t_ExtraValue_T)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_ExtraValue_T [inv_ExtraValue_T x]. inv_ExtraValue_T x = inv_T x.value'1
+
+predicate invariant_ref_ExtraValue_T [@inline:trivial] (self: t_ExtraValue_T) = [%#sinvariant'0] inv_ExtraValue_T self
+
+meta "rewrite_def" predicate invariant_ref_ExtraValue_T
+
+predicate inv_ref_ExtraValue_T [@inline:trivial] (_1: t_ExtraValue_T) = invariant_ref_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_ref_ExtraValue_T
+
+predicate invariant_Seq_ExtraValue_T [@inline:trivial] (self: Seq.seq t_ExtraValue_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_ExtraValue_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_ExtraValue_T
+
+predicate inv_Seq_ExtraValue_T [@inline:trivial] (_1: Seq.seq t_ExtraValue_T) = invariant_Seq_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_Seq_ExtraValue_T
+
+function view_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) : Seq.seq t_ExtraValue_T
+
+axiom view_Vec_ExtraValue_T_Global_spec:
+  forall self: t_Vec_ExtraValue_T_Global. [%#svec'3] Seq.length (view_Vec_ExtraValue_T_Global self)
+    <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) =
+  [%#svec'4] inv_Seq_ExtraValue_T (view_Vec_ExtraValue_T_Global self)
+
+predicate inv_Vec_ExtraValue_T_Global (_1: t_Vec_ExtraValue_T_Global)
+
+axiom inv_axiom'4: forall x: t_Vec_ExtraValue_T_Global [inv_Vec_ExtraValue_T_Global x]. inv_Vec_ExtraValue_T_Global x
+    -> invariant_Vec_ExtraValue_T_Global x
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom'5 [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0'1 -> inv_RandomState f0'1
+      end
+
+predicate inv_HeaderMap_T (_1: t_HeaderMap_T)
+
+axiom inv_axiom'6 [@rewrite]: forall x: t_HeaderMap_T [inv_HeaderMap_T x]. inv_HeaderMap_T x
+    = (inv_Vec_Bucket_T_Global x.entries /\ inv_Vec_ExtraValue_T_Global x.extra_values /\ inv_Danger x.danger)
+
+predicate invariant_refmut_HeaderMap_T [@inline:trivial] (self: MutBorrow.t t_HeaderMap_T) =
+  [%#sinvariant] inv_HeaderMap_T self.current /\ inv_HeaderMap_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_HeaderMap_T
+
+predicate inv_refmut_HeaderMap_T [@inline:trivial] (_1: MutBorrow.t t_HeaderMap_T) = invariant_refmut_HeaderMap_T _1
+
+meta "rewrite_def" predicate inv_refmut_HeaderMap_T
+
+let rec elim_Some (_x: t_Option_tup2_usize_refmut_Bucket_T) (return (f0'1: tup2_usize_refmut_Bucket_T)) = any
+  [ _k (f0'1: tup2_usize_refmut_Bucket_T) -> {Some'0 f0'1 = _x} (! return {f0'1})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some'0 _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate invariant_ref_Danger [@inline:trivial] (self: t_Danger) = [%#sinvariant'0] inv_Danger self
+
+meta "rewrite_def" predicate invariant_ref_Danger
+
+predicate inv_ref_Danger [@inline:trivial] (_1: t_Danger) = invariant_ref_Danger _1
+
+meta "rewrite_def" predicate inv_ref_Danger
+
+predicate invariant_ref_HeaderName [@inline:trivial] (self: t_HeaderName) = [%#sinvariant'0] inv_HeaderName self
+
+meta "rewrite_def" predicate invariant_ref_HeaderName
+
+predicate inv_ref_HeaderName [@inline:trivial] (_1: t_HeaderName) = invariant_ref_HeaderName _1
+
+meta "rewrite_def" predicate inv_ref_HeaderName
+
+let rec hash_elem_using_HeaderName (danger'0: t_Danger) (k: t_HeaderName) (return (x: t_HashValue)) =
+  {[@stop_split] [@expl:hash_elem_using_HeaderName requires] ([@stop_split] [@expl:hash_elem_using 'danger' type invariant] [%#smap'20] inv_ref_Danger danger'0)
+  /\ ([@stop_split] [@expl:hash_elem_using 'k' type invariant] [%#smap'21] inv_ref_HeaderName k)}
+  any [ return (result: t_HashValue) -> (! return {result}) ]
+
+type t_Ordering = Less | Equal | Greater
+
+function cmp_log_usize (self: UInt64.t) (o: UInt64.t) : t_Ordering = [%#sord'12] if UInt64.lt self o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom eq_cmp_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'11] (x = y) = (cmp_log_usize x y = Equal)
+
+function antisym2_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom antisym2_usize_spec: forall x: UInt64.t, y: UInt64.t. ([%#sord'9] cmp_log_usize x y = Greater)
+    -> ([%#sord'10] cmp_log_usize y x = Less)
+
+function antisym1_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom antisym1_usize_spec: forall x: UInt64.t, y: UInt64.t. ([%#sord'7] cmp_log_usize x y = Less)
+    -> ([%#sord'8] cmp_log_usize y x = Greater)
+
+function trans_usize (x: UInt64.t) (y: UInt64.t) (z: UInt64.t) (o: t_Ordering) : ()
+
+axiom trans_usize_spec: forall x: UInt64.t, y: UInt64.t, z: UInt64.t, o: t_Ordering. ([%#sord'4] cmp_log_usize x y = o)
+    -> ([%#sord'5] cmp_log_usize y z = o) -> ([%#sord'6] cmp_log_usize x z = o)
+
+function refl_usize (x: UInt64.t) : ()
+
+axiom refl_usize_spec: forall x: UInt64.t. [%#sord'3] cmp_log_usize x x = Equal
+
+function cmp_gt_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_gt_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'2] UInt64.gt x y = (cmp_log_usize x y = Greater)
+
+function cmp_ge_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_ge_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'1] UInt64.ge x y = (cmp_log_usize x y <> Less)
+
+function cmp_lt_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_lt_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord'0] UInt64.lt x y = (cmp_log_usize x y = Less)
+
+function cmp_le_log_usize (x: UInt64.t) (y: UInt64.t) : ()
+
+axiom cmp_le_log_usize_spec: forall x: UInt64.t, y: UInt64.t. [%#sord] UInt64.le x y = (cmp_log_usize x y <> Greater)
+
+let rec desired_pos (mask'0: UInt16.t) (hash'1: t_HashValue) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:desired_pos ensures] ([@stop_split] [@expl:desired_pos ensures #0] [%#smap_index] result
+      = UInt64.of_int (UInt16.t'int (UInt16.bw_and hash'1.f0 mask'0)))
+    /\ ([@stop_split] [@expl:desired_pos ensures #1] [%#smap_index'0] UInt64.le result (UInt64.of_int (UInt16.t'int mask'0)))}
+    (! return {result}) ]
+
+predicate resolve_refmut_Bucket_T [@inline:trivial] (_1: MutBorrow.t t_Bucket_T) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Bucket_T
+
+let rec len_Pos (self_: Slice64.slice t_Pos) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice'1] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+type tup2_usize_HashValue = { f0'1: UInt64.t; f1'1: t_HashValue }
+
+type t_Option_tup2_usize_HashValue = None'1 | Some'1 tup2_usize_HashValue
+
+constant const_MAX'1: UInt16.t = (65535: UInt16.t)
+
+let rec resolve (self: t_Pos) (return (x: t_Option_tup2_usize_HashValue)) = any
+  [ return (result: t_Option_tup2_usize_HashValue) ->
+  {[@stop_split] [@expl:resolve ensures] [%#smap_index'1] match result with
+      | Some'1 {f0'1 = index'0; f1'1 = hash'1} -> self.index <> const_MAX'1
+      /\ UInt64.t'int index'0 = UInt16.t'int self.index /\ hash'1 = self.hash
+      | None'1 -> self.index = const_MAX'1
+      end}
+    (! return {result}) ]
+
+let rec elim_Some'0 (_x: t_Option_tup2_usize_HashValue) (return (f0'2: tup2_usize_HashValue)) = any
+  [ _k (f0'2: tup2_usize_HashValue) -> {Some'1 f0'2 = _x} (! return {f0'2})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some'1 _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+constant const_MAX_SIZE: UInt64.t = [%#smap_index'10] (32768: UInt64.t)
+
+let rec probe_distance (mask'0: UInt16.t) (hash'1: t_HashValue) (current': UInt64.t) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:probe_distance requires] ([@stop_split] [@expl:probe_distance requires #0] [%#smap_index'2] exists k: int. k
+        >= 0
+      /\ UInt16.t'int mask'0 + 1 = Power.power 2 k)
+  /\ ([@stop_split] [@expl:probe_distance requires #1] [%#smap_index'3] UInt16.t'int mask'0
+    < UInt64.t'int const_MAX_SIZE)
+  /\ ([@stop_split] [@expl:probe_distance requires #2] [%#smap_index'4] UInt64.t'int current' <= UInt16.t'int mask'0)
+  /\ ([@stop_split] [@expl:probe_distance requires #3] [%#smap_index'5] UInt64.t'int current' + UInt16.t'int mask'0 + 1
+  <= UInt64.t'int const_MAX)}
+  any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:probe_distance ensures] [%#smap_index'6] UInt64.t'int result
+    = (if UInt64.t'int current' >= UInt16.t'int (UInt16.bw_and hash'1.f0 mask'0) then
+      UInt64.t'int current' - UInt16.t'int (UInt16.bw_and hash'1.f0 mask'0)
+    else
+      UInt64.t'int current' + UInt16.t'int mask'0 + 1 - UInt16.t'int (UInt16.bw_and hash'1.f0 mask'0)
+    )}
+    (! return {result}) ]
+
+let rec new (index'0: UInt64.t) (hash'1: t_HashValue) (return (x: t_Pos)) =
+  {[@stop_split] [@expl:new requires] [%#smap_index'7] UInt64.t'int index'0 < UInt64.t'int const_MAX_SIZE}
+  any
+  [ return (result: t_Pos) ->
+  {[@stop_split] [@expl:new ensures] ([@stop_split] [@expl:new ensures #0] [%#smap_index'8] UInt16.t'int result.index
+      = UInt64.t'int index'0)
+    /\ ([@stop_split] [@expl:new ensures #1] [%#smap_index'9] result.hash = hash'1)}
+    (! return {result}) ]
+
+let rec do_insert_phase_two (indices'0: MutBorrow.t (Slice64.slice t_Pos)) (probe: UInt64.t) (old_pos: t_Pos)
+  (return (x: UInt64.t)) = any [ return (result: UInt64.t) -> (! return {result}) ]
+
+predicate resolve_refmut_Box_slice_Pos_Global [@inline:trivial] (_1: MutBorrow.t (Slice64.slice t_Pos)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Box_slice_Pos_Global
+
+predicate resolve_IterMut_Bucket_T [@inline:trivial] (self: t_IterMut_Bucket_T) =
+  [%#sslice'15] (view_IterMut_Bucket_T self).current = (view_IterMut_Bucket_T self).final
+
+meta "rewrite_def" predicate resolve_IterMut_Bucket_T
+
+predicate resolve_IterMut_Bucket_T'0 (_1: t_IterMut_Bucket_T)
+
+axiom resolve_axiom: forall x: t_IterMut_Bucket_T [resolve_IterMut_Bucket_T'0 x]. resolve_IterMut_Bucket_T'0 x
+    -> resolve_IterMut_Bucket_T x
+
+predicate resolve_Enumerate_IterMut_Bucket_T [@inline:trivial] (self: t_Enumerate_IterMut_Bucket_T) =
+  [%#senumerate'6] resolve_IterMut_Bucket_T'0 (iter_Enumerate_IterMut_Bucket_T self)
+
+meta "rewrite_def" predicate resolve_Enumerate_IterMut_Bucket_T
+
+predicate resolve_Enumerate_IterMut_Bucket_T'0 (_1: t_Enumerate_IterMut_Bucket_T)
+
+axiom resolve_axiom'0:
+  forall x: t_Enumerate_IterMut_Bucket_T [resolve_Enumerate_IterMut_Bucket_T'0 x]. resolve_Enumerate_IterMut_Bucket_T'0 x
+    -> resolve_Enumerate_IterMut_Bucket_T x
+
+predicate resolve_refmut_slice_Bucket_T [@inline:trivial] (_1: MutBorrow.t (Slice64.slice t_Bucket_T)) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_slice_Bucket_T
+
+predicate resolve_refmut_HeaderMap_T [@inline:trivial] (_1: MutBorrow.t t_HeaderMap_T) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_HeaderMap_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec rebuild_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 2625 4 2625 25]
+  (self: MutBorrow.t t_HeaderMap_T) (return (x: ())) =
+  {[@stop_split] [@expl:rebuild 'self' type invariant] [%#smap'19] inv_refmut_HeaderMap_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_Vec_Bucket_T_Global> {self.current.entries}
+        {MutBorrow.inherit_id (MutBorrow.get_id self) 2}
+        (fun (_bor: MutBorrow.t t_Vec_Bucket_T_Global) ->
+          [ &_7 <- _bor ] -{inv_Vec_Bucket_T_Global _bor.final}-
+          [ &self <- { self with current = { self.current with entries = _bor.final } } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_Vec_Bucket_T_Global self.current.entries} any) ]
+    | s1 = deref_mut_Vec_Bucket_T_Global [%#smap] {_7}
+        (fun (_x: MutBorrow.t (Slice64.slice t_Bucket_T)) -> [ &_6 <- _x ] s2)
+    | s2 = MutBorrow.borrow_final <Slice64.slice t_Bucket_T> {_6.current} {MutBorrow.get_id _6}
+        (fun (_bor: MutBorrow.t (Slice64.slice t_Bucket_T)) ->
+          [ &_5 <- _bor ] -{inv_slice_Bucket_T _bor.final}-
+          [ &_6 <- { _6 with current = _bor.final } ] s3)
+      [ _ck -> (! {[@expl:type invariant] inv_slice_Bucket_T _6.current} any) ]
+    | s3 = iter_mut_Bucket_T [%#smap] {_5} (fun (_x: t_IterMut_Bucket_T) -> [ &_4 <- _x ] s4)
+    | s4 = enumerate_IterMut_Bucket_T [%#smap'0] {_4} (fun (_x: t_Enumerate_IterMut_Bucket_T) -> [ &_3 <- _x ] s5)
+    | s5 = into_iter_Enumerate_IterMut_Bucket_T [%#smap'1] {_3}
+        (fun (_x: t_Enumerate_IterMut_Bucket_T) -> [ &_2 <- _x ] s6)
+    | s6 = [ &iter <- _2 ] s7
+    | s7 = [ &_old <- self.final ] s8
+    | s8 = [ &_old'0 <- self.current.mask ] s9
+    | s9 = [ &_old'1 <- self.current.entries ] s10
+    | s10 = [ &_old'2 <- self.current.extra_values ] s11
+    | s11 = [ &_old'3 <- self.current.danger ] s12
+    | s12 = bb5 ]
+  | bb5 = bb5
+    [ bb5 = {[@expl:inferred invariant: type invariant] inv_Enumerate_IterMut_Bucket_T iter}
+      {[@expl:inferred invariant: type invariant] inv_refmut_HeaderMap_T self}
+      {[@expl:inferred invariant: unchanged value] _old'3 = self.current.danger}
+      {[@expl:inferred invariant: unchanged value] _old'2 = self.current.extra_values}
+      {[@expl:inferred invariant: unchanged value] _old'1 = self.current.entries}
+      {[@expl:inferred invariant: unchanged value] _old'0 = self.current.mask}
+      {[@expl:inferred invariant: unchanged value] _old = self.final}
+      (! s0)
+      [ s0 = MutBorrow.borrow_mut <t_Enumerate_IterMut_Bucket_T> {iter}
+          (fun (_bor: MutBorrow.t t_Enumerate_IterMut_Bucket_T) ->
+            [ &_13 <- _bor ] -{inv_Enumerate_IterMut_Bucket_T _bor.final}-
+            [ &iter <- _bor.final ] s1) [ _ck -> (! {[@expl:type invariant] inv_Enumerate_IterMut_Bucket_T iter} any) ]
+      | s1 = MutBorrow.borrow_final <t_Enumerate_IterMut_Bucket_T> {_13.current} {MutBorrow.get_id _13}
+          (fun (_bor: MutBorrow.t t_Enumerate_IterMut_Bucket_T) ->
+            [ &_12 <- _bor ] -{inv_Enumerate_IterMut_Bucket_T _bor.final}-
+            [ &_13 <- { _13 with current = _bor.final } ] s2)
+        [ _ck -> (! {[@expl:type invariant] inv_Enumerate_IterMut_Bucket_T _13.current} any) ]
+      | s2 = next_Enumerate_IterMut_Bucket_T [%#smap'1] {_12}
+          (fun (_x: t_Option_tup2_usize_refmut_Bucket_T) -> [ &_11 <- _x ] s3)
+      | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut_Enumerate_IterMut_Bucket_T _13} any) ]
+      | s4 = -{resolve_refmut_Enumerate_IterMut_Bucket_T _13}- s5
+      | s5 = any
+        [ br0 -> {_11 = None'0} (! bb9) | br1 (x0: tup2_usize_refmut_Bucket_T) -> {_11 = Some'0 x0} (! bb10) ] ]
+      [ bb10 = s0
+        [ s0 = elim_Some {_11} (fun (r0: tup2_usize_refmut_Bucket_T) -> [ &index'0 <- r0.f0'0 ] s1)
+        | s1 = elim_Some {_11} (fun (r0: tup2_usize_refmut_Bucket_T) -> [ &entry <- r0.f1'0 ] s2)
+        | s2 = [ &_20 <- self.current.danger ] s3
+        | s3 = [ &_22 <- entry.current.key'0 ] s4
+        | s4 = hash_elem_using_HeaderName [%#smap'2] {_20} {_22} (fun (_x: t_HashValue) -> [ &hash'1 <- _x ] s5)
+        | s5 = desired_pos [%#smap'3] {self.current.mask} {hash'1} (fun (_x: UInt64.t) -> [ &probe <- _x ] s6)
+        | s6 = [ &dist <- [%#smap'4] (0: UInt64.t) ] s7
+        | s7 = [ &entry <- { entry with current = { entry.current with hash'0 = hash'1 } } ] s8
+        | s8 = s9 [ _ck -> (! {[@expl:type invariant] inv_refmut_Bucket_T entry} any) ]
+        | s9 = -{resolve_refmut_Bucket_T entry}- s10
+        | s10 = any [ br0 -> {false} (! bb21) | br1 -> (! bb14) ] ]
+      | bb14 = s0
+        [ s0 = len_Pos [%#smap'5] {self.current.indices} (fun (_x: UInt64.t) -> [ &_32 <- _x ] s1)
+        | s1 = [ &_31 <- UInt64.gt _32 ([%#smap'6] (0: UInt64.t)) ] s2
+        | s2 = any [ br0 -> {_31 = false} (! bb17) | br1 -> {_31} (! bb21) ] ]
+      | bb21 = bb21
+        [ bb21 = (! s0
+          [ s0 = len_Pos [%#smap'5] {self.current.indices} (fun (_x: UInt64.t) -> [ &_38 <- _x ] s1)
+          | s1 = [ &_36 <- UInt64.lt probe _38 ] s2
+          | s2 = any [ br0 -> {_36 = false} (! bb34) | br1 -> {_36} (! bb23) ] ])
+          [ bb23 = s0
+            [ s0 = [ &_44 <- probe ] s1
+            | s1 = Opaque.fresh_ptr
+                (fun (_ptr: Opaque.ptr) ->
+                  -{Slice64.slice_ptr_len _ptr = Slice64.length self.current.indices}-
+                  [ &_45 <- _ptr ] s2)
+            | s2 = [ &_46 <- Slice64.slice_ptr_len _45 ] s3
+            | s3 = [ &_47 <- UInt64.lt _44 _46 ] s4
+            | s4 = {[@expl:index in bounds] [%#smap'7] _47} s5
+            | s5 = Slice64.get <t_Pos> {self.current.indices} {_44} (fun (r: t_Pos) -> [ &_43 <- r ] s6)
+            | s6 = resolve [%#smap'8] {_43} (fun (_x: t_Option_tup2_usize_HashValue) -> [ &_42 <- _x ] s7)
+            | s7 = any
+              [ br0 -> {_42 = None'1} (! bb31) | br1 (x0: tup2_usize_HashValue) -> {_42 = Some'1 x0} (! bb27) ] ]
+          | bb27 = s0
+            [ s0 = elim_Some'0 {_42} (fun (r0: tup2_usize_HashValue) -> [ &entry_hash <- r0.f1'1 ] s1)
+            | s1 = probe_distance [%#smap'9] {self.current.mask} {entry_hash} {probe}
+                (fun (_x: UInt64.t) -> [ &their_dist <- _x ] s2)
+            | s2 = [ &_54 <- UInt64.lt their_dist dist ] s3
+            | s3 = any [ br0 -> {_54 = false} (! bb30) | br1 -> {_54} (! bb29) ] ]
+          | bb30 = s0
+            [ s0 = UInt64.add [%#smap'11] {dist} {[%#smap'10] (1: UInt64.t)} (fun (_x: UInt64.t) -> [ &dist <- _x ] s1)
+            | s1 = UInt64.add [%#smap'13] {probe} {[%#smap'12] (1: UInt64.t)}
+                (fun (_x: UInt64.t) -> [ &probe <- _x ] s2)
+            | s2 = bb21 ]
+          | bb34 = s0 [ s0 = [ &probe <- [%#smap'14] (0: UInt64.t) ] s1 | s1 = bb21 ] ] ]
+      | bb31 = s0
+        [ s0 = new [%#smap'15] {index'0} {hash'1} (fun (_x: t_Pos) -> [ &_59 <- _x ] s1)
+        | s1 = [ &_62 <- probe ] s2
+        | s2 = Opaque.fresh_ptr
+            (fun (_ptr: Opaque.ptr) ->
+              -{Slice64.slice_ptr_len _ptr = Slice64.length self.current.indices}-
+              [ &_63 <- _ptr ] s3)
+        | s3 = [ &_64 <- Slice64.slice_ptr_len _63 ] s4
+        | s4 = [ &_65 <- UInt64.lt _62 _64 ] s5
+        | s5 = {[@expl:index in bounds] [%#smap'16] _65} s6
+        | s6 = Slice64.set <t_Pos> {self.current.indices} {_62} {_59}
+            (fun (r: Slice64.slice t_Pos) -> [ &self <- { self with current = { self.current with indices = r } } ] s7)
+        | s7 = bb5 ]
+      | bb29 = s0
+        [ s0 = MutBorrow.borrow_mut <Slice64.slice t_Pos> {self.current.indices}
+            (fun (_bor: MutBorrow.t (Slice64.slice t_Pos)) ->
+              [ &_68 <- _bor ] [ &self <- { self with current = { self.current with indices = _bor.final } } ] s1)
+        | s1 = new [%#smap'17] {index'0} {hash'1} (fun (_x: t_Pos) -> [ &_70 <- _x ] s2)
+        | s2 = MutBorrow.borrow_final <Slice64.slice t_Pos> {_68.current} {MutBorrow.get_id _68}
+            (fun (_bor: MutBorrow.t (Slice64.slice t_Pos)) ->
+              [ &_67 <- _bor ] [ &_68 <- { _68 with current = _bor.final } ] s3)
+        | s3 = do_insert_phase_two [%#smap'18] {_67} {probe} {_70} (fun (_x: UInt64.t) -> [ &_66 <- _x ] s4)
+        | s4 = -{resolve_refmut_Box_slice_Pos_Global _68}- s5
+        | s5 = bb5 ] ] ]
+  | bb17 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_Enumerate_IterMut_Bucket_T iter} any) ]
+    | s1 = -{resolve_Enumerate_IterMut_Bucket_T'0 iter}- s2
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_slice_Bucket_T _6} any) ]
+    | s3 = -{resolve_refmut_slice_Bucket_T _6}- s4
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s5 = -{resolve_refmut_HeaderMap_T self}- s6
+    | s6 = {false} any ]
+  | bb9 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_Enumerate_IterMut_Bucket_T iter} any) ]
+    | s1 = -{resolve_Enumerate_IterMut_Bucket_T'0 iter}- s2
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_slice_Bucket_T _6} any) ]
+    | s3 = -{resolve_refmut_slice_Bucket_T _6}- s4
+    | s4 = s5 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderMap_T self} any) ]
+    | s5 = -{resolve_refmut_HeaderMap_T self}- s6
+    | s6 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: MutBorrow.t t_HeaderMap_T = self
+  | & _2: t_Enumerate_IterMut_Bucket_T = Any.any_l ()
+  | & _3: t_Enumerate_IterMut_Bucket_T = Any.any_l ()
+  | & _4: t_IterMut_Bucket_T = Any.any_l ()
+  | & _5: MutBorrow.t (Slice64.slice t_Bucket_T) = Any.any_l ()
+  | & _6: MutBorrow.t (Slice64.slice t_Bucket_T) = Any.any_l ()
+  | & _7: MutBorrow.t t_Vec_Bucket_T_Global = Any.any_l ()
+  | & iter: t_Enumerate_IterMut_Bucket_T = Any.any_l ()
+  | & _11: t_Option_tup2_usize_refmut_Bucket_T = Any.any_l ()
+  | & _12: MutBorrow.t t_Enumerate_IterMut_Bucket_T = Any.any_l ()
+  | & _13: MutBorrow.t t_Enumerate_IterMut_Bucket_T = Any.any_l ()
+  | & index'0: UInt64.t = Any.any_l ()
+  | & entry: MutBorrow.t t_Bucket_T = Any.any_l ()
+  | & hash'1: t_HashValue = Any.any_l ()
+  | & _20: t_Danger = Any.any_l ()
+  | & _22: t_HeaderName = Any.any_l ()
+  | & probe: UInt64.t = Any.any_l ()
+  | & dist: UInt64.t = Any.any_l ()
+  | & _31: bool = Any.any_l ()
+  | & _32: UInt64.t = Any.any_l ()
+  | & _36: bool = Any.any_l ()
+  | & _38: UInt64.t = Any.any_l ()
+  | & _42: t_Option_tup2_usize_HashValue = Any.any_l ()
+  | & _43: t_Pos = Any.any_l ()
+  | & _44: UInt64.t = Any.any_l ()
+  | & _45: Opaque.ptr = Any.any_l ()
+  | & _46: UInt64.t = Any.any_l ()
+  | & _47: bool = Any.any_l ()
+  | & entry_hash: t_HashValue = Any.any_l ()
+  | & their_dist: UInt64.t = Any.any_l ()
+  | & _54: bool = Any.any_l ()
+  | & _59: t_Pos = Any.any_l ()
+  | & _62: UInt64.t = Any.any_l ()
+  | & _63: Opaque.ptr = Any.any_l ()
+  | & _64: UInt64.t = Any.any_l ()
+  | & _65: bool = Any.any_l ()
+  | & _66: UInt64.t = Any.any_l ()
+  | & _67: MutBorrow.t (Slice64.slice t_Pos) = Any.any_l ()
+  | & _68: MutBorrow.t (Slice64.slice t_Pos) = Any.any_l ()
+  | & _70: t_Pos = Any.any_l ()
+  | & _old: t_HeaderMap_T = Any.any_l ()
+  | & _old'0: UInt16.t = Any.any_l ()
+  | & _old'1: t_Vec_Bucket_T_Global = Any.any_l ()
+  | & _old'2: t_Vec_ExtraValue_T_Global = Any.any_l ()
+  | & _old'3: t_Danger = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

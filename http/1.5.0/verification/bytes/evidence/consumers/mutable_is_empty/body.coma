@@ -1,0 +1,47 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 141 0 141 49 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 142 4 142 20
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 141 24 141 29
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 140 10 140 54
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 151 21 151 25
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 150 18 150 61
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+
+use seq.Seq
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+type t_BytesMut
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+predicate invariant_ref_BytesMut [@inline:trivial] (self: t_BytesMut) = [%#sinvariant] inv_BytesMut self
+
+meta "rewrite_def" predicate invariant_ref_BytesMut
+
+predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_BytesMut _1
+
+meta "rewrite_def" predicate inv_ref_BytesMut
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+let rec is_empty (self_: t_BytesMut) (return (x: bool)) =
+  {[@stop_split] [@expl:is_empty 'self_' type invariant] [%#sbytes] inv_ref_BytesMut self_}
+  any
+  [ return (result: bool) -> {[@stop_split] [@expl:is_empty ensures] [%#sbytes'0] result
+    = (Seq.length (bytes_mut_seq self_) = 0)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec mutable_is_empty [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 141 0 141 49]
+  (value: t_BytesMut) (return (x: bool)) =
+  {[@stop_split] [@expl:mutable_is_empty 'value' type invariant] [%#slib'0] inv_ref_BytesMut value}
+  (! bb0
+  [ bb0 = s0 [ s0 = is_empty [%#slib] {value} (fun (_x: bool) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & value: t_BytesMut = value ])
+  [ return (result: bool) -> {[@stop_split] [@expl:mutable_is_empty ensures] [%#slib'1] result
+    = (Seq.length (bytes_mut_seq value) = 0)}
+    (! return {result}) ]

@@ -1,0 +1,14 @@
+# Full source-linked Value profile emission archived before new proof JSON generation.
+RUSTFLAGS='--cfg http_header_value_complete' ../../scripts/run-proof.sh bash -c 'cargo clean -p http-headers-proof && cargo creusot --simple-triggers=false -- --locked --offline'
+exit_code=0; no --check; target=/workspace/rust-crate-proofs/target/http
+value.rs SHA256=5420fc7682706cb56adc2516a94cd29182ffad5997186cf59593742549c9f8f6
+Value COMAs archived=106; a pre-proof find count reported 0 proof.json files in the new archive.
+
+
+# Solver-free exact preprocessing arity audit; performed on archived COMAs before proof.
+why3 prove -C /workspace/proof-tools/config/creusot/why3.conf -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot -a split_vc -D why3 <each selected archived COMA>
+expected_direct_tasks=55 across 18 targets; no prover selected.
+
+# Fresh proof from the archived COMAs (first proof attempt elevated as required).
+DUNE_DIR_LOCATIONS='why3find:lib:/workspace/proof-tools/creusot-data/share/why3find' ../../scripts/run-proof.sh why3find prove --root . --no-cache --preprocess split_vc --show-progress always comas/value/impl_From_for_HeaderValue_1/from.coma comas/value/impl_From_for_HeaderValue_1/from__refines.coma comas/value/impl_From_for_HeaderValue_4/from.coma comas/value/impl_From_for_HeaderValue_4/from__refines.coma comas/value/impl_From_for_HeaderValue_5/from.coma comas/value/impl_From_for_HeaderValue_5/from__refines.coma comas/value/impl_From_for_HeaderValue_6/from.coma comas/value/impl_From_for_HeaderValue_6/from__refines.coma comas/value/impl_From_for_HeaderValue_7/from.coma comas/value/impl_From_for_HeaderValue_7/from__refines.coma comas/value/impl_TryFrom_for_HeaderValue_0/try_from.coma comas/value/impl_TryFrom_for_HeaderValue_0/try_from__refines.coma comas/value/impl_TryFrom_for_HeaderValue_1/try_from.coma comas/value/impl_TryFrom_for_HeaderValue_1/try_from__refines.coma comas/value/impl_TryFrom_for_HeaderValue_2/try_from.coma comas/value/impl_TryFrom_for_HeaderValue_2/try_from__refines.coma comas/value/impl_TryFrom_for_HeaderValue_3/try_from.coma comas/value/impl_TryFrom_for_HeaderValue_3/try_from__refines.coma
+exit_code=0; own_leaves=55/55; nulls=0

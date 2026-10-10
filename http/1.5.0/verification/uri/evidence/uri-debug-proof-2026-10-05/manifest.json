@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "evidence_id": "uri-debug-proof-2026-10-05",
+  "captured_at_utc": "2026-10-05T14:55:00Z",
+  "scope": "Actual Uri Debug::fmt body and refinement post under the corrected current URI leaf profile.",
+  "profile": {
+    "harness": "http/1.5.0/verification/uri",
+    "cfg": [
+      "http_uri_compare_leaf",
+      "http_uri_authority_compare_leaf",
+      "http_uri_authority_scanner_leaf",
+      "http_uri_host_leaf",
+      "http_uri_leaf",
+      "http_uri_builder_leaf"
+    ],
+    "cargo_target_dir": "/workspace/proof-tools/targets/http-uri-conversion-evidence",
+    "why3_version": "Why3 1.8.2+git",
+    "solver": "z3@4.15.3",
+    "proof_wrapper": "scripts/run-proof.sh",
+    "settings": {
+      "no_cache": true,
+      "preprocess": "split_vc",
+      "jobs": 1,
+      "memory_mib_per_prover": 1024
+    }
+  },
+  "source_contract": "The actual Debug::fmt method at http/1.5.0/src/uri/mod.rs:1805 ensures the formatter output equals uri_display_text on success, is a prefix on formatter error, and extends the incoming formatter model.",
+  "source_and_emission_binding": {
+    "source_freeze_manifest": "http/1.5.0/verification/uri/evidence/uri-conversion-proof-2026-10-05/manifest.json",
+    "source_freeze_manifest_sha256": "44685a972bf237d2c1bc13a89b00d6aa0b16595651c4703b6b4930f2564d5312",
+    "source_hash_manifest": "http/1.5.0/verification/uri/evidence/uri-conversion-proof-2026-10-05/source-hashes.sha256",
+    "source_hash_manifest_sha256": "4e992930bc9c4f68ef4d614a5e829c5d7a341e921519e20ac75de33d93a443b8",
+    "src_uri_mod_sha256": "09fb5ee4f72940f5603745c812d4343efae154e13711691d506cf88544febd5d",
+    "harness_lib_sha256": "cbcc755c033ce4cf87dffedc17142925cd4cd2ba1acd31c324c422066ec4d9b9",
+    "note": "This batch uses COMAs from the current clean emission under that frozen profile. Its full fresh-emission and frontend logs are archived with the referenced source freeze."
+  },
+  "proof_batch": {
+    "command": "proof-command.txt",
+    "raw_log": "proof-run.log",
+    "exit_status_file": "proof-exit-status.txt",
+    "exit_code": 0,
+    "owned_terminal_leaves": 7,
+    "passed": 7,
+    "open": 0,
+    "body": {
+      "proof_json": "proofs/uri_debug_fmt.json",
+      "coma": "comas/uri_debug_fmt.coma",
+      "owned_root": "vc_fmt_Uri'0",
+      "leaves": 4
+    },
+    "refinement": {
+      "proof_json": "proofs/uri_debug_fmt__refines.json",
+      "coma": "comas/uri_debug_fmt__refines.coma",
+      "owned_root": "refines",
+      "leaves": 3
+    },
+    "support_root": {
+      "name": "vc_fmt_Uri",
+      "meaning": "opaque imported Display::fmt contract/callee stub",
+      "children": 0,
+      "status": "support assumption; no body proof in this batch"
+    },
+    "proof_json_sha256": {
+      "proofs/uri_debug_fmt.json": "30d7c0fd1e1f1759a3264ca0236ba03942881883b48d0fb0c2f8f9e495280e11",
+      "proofs/uri_debug_fmt__refines.json": "e2d54f64a3cf6e64c25412105233655aa04369423d1177c0dea1924fac20aa4e"
+    }
+  },
+  "arity_audit": {
+    "file": "arity/audit.json",
+    "sha256": "43a8927495c70e5156f1674d54afa35d2530ce6a22c30149a39d14c651b78af9",
+    "solver_free": true,
+    "expected_tasks": 7,
+    "printed_tasks": 7,
+    "tasks_sha256": {
+      "arity/tasks/fmt-Coma-vc_fmt_Uriqt0.why": "e786f751efb17a5df11a5f40b59a399b5c88dd281088d565cee6546df1875b61",
+      "arity/tasks/fmt-Coma-vc_fmt_Uriqt01.why": "539a5d4c990cda8c1eb7fe22d50f28172ac7169694a2554d976d62d52263184f",
+      "arity/tasks/fmt-Coma-vc_fmt_Uriqt02.why": "2ccc2f585e5efe22d7429a44e4750bcbebf5ef83feaf3fd59d28c959e4dd1081",
+      "arity/tasks/fmt-Coma-vc_fmt_Uriqt03.why": "d0b7a06ca32c253ae038e52fabdfd31e8ab7c6cb8c9c5de376399a4b180d8887",
+      "arity/tasks/fmt__refines-Coma-refines.why": "e1ac09693159b0e7f5d2cd3e5a40aca7b4193c95e6e7a7f346b7afe171510bdf",
+      "arity/tasks/fmt__refines-Coma-refines1.why": "992994d535116f7cbfcc11df419ba47cc35f7c5b5af4e7f6953e93c621c58687",
+      "arity/tasks/fmt__refines-Coma-refines2.why": "bba1590e0d731283f0c0d5acb2b0f7bf298f06ecaccf92b6d88ba57bb269255f"
+    },
+    "classification": "The source-anchored `fmt_Uri'0` body root and the `refines` root print exactly seven tasks, all recorded as Z3 successes. The source-less `fmt_Uri` stub is the external Display::fmt contract used by Debug; its empty proof.json child list is a support dependency, not an owned proof result. The actual Uri Display body remains a separate 51-leaf target."
+  },
+  "not_covered": "Uri Display::fmt body is not proved by this Debug batch. That separate target currently has 48 body tasks and 3 refinement tasks. Same-type equality, Uri-to-str equality, hashing, getters, and parsers are independently scoped.",
+  "evidence_artifact_sha256": {
+    "proof-command.txt": "ca3d46e53b08580f9ab88bdb2c8f5c4d0ef90644b4adc200e380b5c899a03045",
+    "proof-run.log": "03f19e31d5355f92daa57506e0f2a10a6b9e252e55b0814b4c21109967b4e77c",
+    "proof-exit-status.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "native-and-profile-reference.txt": "59017dd8fa4f74d887b04c8488c4b6ac5d52ac50426281b16cd2ffc1d63b048c",
+    "arity/command.txt": "034bde27487368a396da97e51368f44a6c75c1242db1abde3034f02bf6341e92",
+    "arity/audit.json": "43a8927495c70e5156f1674d54afa35d2530ce6a22c30149a39d14c651b78af9",
+    "comas/uri_debug_fmt.coma": "ebdbf77877ddff0be924c56c23993cd05cc940d9ce3e5351e641f57bfcdce65d",
+    "comas/uri_debug_fmt__refines.coma": "8fa18278e5b1f3232d24d7a18857c801a2f533945ad314eabc4126dac5c9ad72",
+    "proofs/uri_debug_fmt.json": "30d7c0fd1e1f1759a3264ca0236ba03942881883b48d0fb0c2f8f9e495280e11",
+    "proofs/uri_debug_fmt__refines.json": "e2d54f64a3cf6e64c25412105233655aa04369423d1177c0dea1924fac20aa4e",
+    "arity/tasks/fmt-Coma-vc_fmt_Uriqt0.why": "e786f751efb17a5df11a5f40b59a399b5c88dd281088d565cee6546df1875b61",
+    "arity/tasks/fmt-Coma-vc_fmt_Uriqt01.why": "539a5d4c990cda8c1eb7fe22d50f28172ac7169694a2554d976d62d52263184f",
+    "arity/tasks/fmt-Coma-vc_fmt_Uriqt02.why": "2ccc2f585e5efe22d7429a44e4750bcbebf5ef83feaf3fd59d28c959e4dd1081",
+    "arity/tasks/fmt-Coma-vc_fmt_Uriqt03.why": "d0b7a06ca32c253ae038e52fabdfd31e8ab7c6cb8c9c5de376399a4b180d8887",
+    "arity/tasks/fmt__refines-Coma-refines.why": "e1ac09693159b0e7f5d2cd3e5a40aca7b4193c95e6e7a7f346b7afe171510bdf",
+    "arity/tasks/fmt__refines-Coma-refines1.why": "992994d535116f7cbfcc11df419ba47cc35f7c5b5af4e7f6953e93c621c58687",
+    "arity/tasks/fmt__refines-Coma-refines2.why": "bba1590e0d731283f0c0d5acb2b0f7bf298f06ecaccf92b6d88ba57bb269255f"
+  }
+}

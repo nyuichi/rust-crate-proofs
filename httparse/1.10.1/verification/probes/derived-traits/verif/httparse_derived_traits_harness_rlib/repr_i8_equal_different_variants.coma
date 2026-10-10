@@ -1,0 +1,51 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 49 0 49 49 *)
+
+let%span scmp = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/cmp.rs" 14 26 14 75
+let%span smodel = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 50 4 50 44
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 48 10 48 17
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 8 27 8 58
+
+use creusot.prelude.Any
+
+type t_SignedI8 = Negative | Positive
+
+type t_SignedI8DeepModel = Negative'0 | Positive'0
+
+function deep_model_SignedI8 [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 8 27 8 58] (self: t_SignedI8) : t_SignedI8DeepModel
+ = [%#slib'1] match self with
+    | Negative -> Negative'0
+    | Positive -> Positive'0
+    end
+
+function deep_model_ref_SignedI8 [@inline:trivial] (self: t_SignedI8) : t_SignedI8DeepModel =
+  [%#smodel] deep_model_SignedI8 self
+
+meta "rewrite_def" function deep_model_ref_SignedI8
+
+let rec eq_SignedI8 (self_: t_SignedI8) (rhs: t_SignedI8) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#scmp] result
+    = (deep_model_ref_SignedI8 self_ = deep_model_ref_SignedI8 rhs)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec repr_i8_equal_different_variants
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 49 0 49 49]
+  (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = bb0'0
+      [ bb0'0 = s0'0 [ s0'0 = [ &_1 <- Negative ] s1'0 | s1'0 = [ &_ret'0 <- _1 ] s2'0 | s2'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: t_SignedI8 = Any.any_l () | & _1: t_SignedI8 = Any.any_l () ]
+      [ _const_ret (_const: t_SignedI8) -> [ &_7 <- _const ] s1 ]
+    | s1 = bb0'0
+      [ bb0'0 = s0'0 [ s0'0 = [ &_1 <- Positive ] s1'0 | s1'0 = [ &_ret'0 <- _1 ] s2'0 | s2'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: t_SignedI8 = Any.any_l () | & _1: t_SignedI8 = Any.any_l () ]
+      [ _const_ret (_const: t_SignedI8) -> [ &_6 <- _const ] s2 ]
+    | s2 = eq_SignedI8 [%#slib] {_7} {_6} (fun (_x: bool) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & _6: t_SignedI8 = Any.any_l () | & _7: t_SignedI8 = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:repr_i8_equal_different_variants ensures] [%#slib'0] not result}
+    (! return {result}) ]

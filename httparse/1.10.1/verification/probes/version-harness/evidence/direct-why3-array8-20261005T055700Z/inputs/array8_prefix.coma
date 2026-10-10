@@ -1,0 +1,317 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-array-conversion/src/lib.rs" 13 0 13 53 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-array-conversion/src/lib.rs" 14 29 14 30
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-array-conversion/src/lib.rs" 14 17 14 31
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-array-conversion/src/lib.rs" 14 17 14 32
+let%span slib'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-array-conversion/src/lib.rs" 15 4 15 21
+let%span slib'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-array-conversion/src/lib.rs" 15 4 15 26
+let%span slib'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-array-conversion/src/lib.rs" 13 38 13 53
+let%span slib'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-array-conversion/src/lib.rs" 8 10 12 1
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 308 18 308 96
+let%span sslice'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 309 18 309 55
+let%span sslice'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 213 20 213 42
+let%span sslice'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 218 20 218 57
+let%span sslice'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 64 20 64 29
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 631 18 634 9
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 645 25 645 33
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 644 18 644 32
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 160 14 160 114
+let%span sops'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 165 14 165 100
+let%span sops'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 170 14 170 61
+let%span sops'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 126 15 126 59
+let%span sops'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 127 14 127 38
+let%span sops'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 132 14 132 33
+let%span sops'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 137 15 137 31
+let%span sops'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 138 15 138 28
+let%span sops'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 139 14 139 30
+let%span sops'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 144 14 145 104
+let%span sconvert = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 33 19 33 68
+let%span sconvert'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 34 18 34 76
+let%span sconvert'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 137 18 141 9
+let%span sresult = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/result.rs" 30 14 30 18
+let%span sresult'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/result.rs" 28 18 28 66
+let%span sresult'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/result.rs" 29 18 29 66
+let%span sarray = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 56 20 56 29
+let%span sarray'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+
+use creusot.int.UInt64
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_RangeTo_usize = { end': UInt64.t }
+
+type t_Option_ref_slice_u8 = None | Some (Slice64.slice UInt8.t)
+
+predicate in_bounds_RangeTo_usize (self: t_RangeTo_usize) (seq: Seq.seq UInt8.t) =
+  [%#sslice'1] UInt64.t'int self.end' <= Seq.length seq
+
+predicate has_value_RangeTo_usize (self: t_RangeTo_usize) (seq: Seq.seq UInt8.t) (out: Slice64.slice UInt8.t) =
+  [%#sslice'2] Seq.([..]) seq 0 (UInt64.t'int self.end') = Slice64.view out
+
+let rec get_u8 (self_: Slice64.slice UInt8.t) (ix: t_RangeTo_usize) (return (x: t_Option_ref_slice_u8)) = any
+  [ return (result: t_Option_ref_slice_u8) ->
+  {[@stop_split] [@expl:get_u8 ensures] ([@stop_split] [@expl:get ensures #0] [%#sslice] in_bounds_RangeTo_usize ix (Slice64.view self_)
+      -> (exists r: Slice64.slice UInt8.t. result = Some r /\ has_value_RangeTo_usize ix (Slice64.view self_) r))
+    /\ ([@stop_split] [@expl:get ensures #1] [%#sslice'0] in_bounds_RangeTo_usize ix (Slice64.view self_)
+    \/ result = None)}
+    (! return {result}) ]
+
+type t_Option_Infallible = None'0 | Some'0 ()
+
+type t_ControlFlow_Option_Infallible_ref_slice_u8 = Continue (Slice64.slice UInt8.t) | Break t_Option_Infallible
+
+predicate inv_Infallible [@inline:trivial] (_1: ()) = false
+
+meta "rewrite_def" predicate inv_Infallible
+
+predicate inv_Option_Infallible (_1: t_Option_Infallible)
+
+axiom inv_axiom [@rewrite]: forall x: t_Option_Infallible [inv_Option_Infallible x]. inv_Option_Infallible x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0 -> inv_Infallible f0
+      end
+
+predicate inv_ControlFlow_Option_Infallible_ref_slice_u8 (_1: t_ControlFlow_Option_Infallible_ref_slice_u8)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_ControlFlow_Option_Infallible_ref_slice_u8 [inv_ControlFlow_Option_Infallible_ref_slice_u8 x]. inv_ControlFlow_Option_Infallible_ref_slice_u8 x
+    = match x with
+      | Continue f0 -> true
+      | Break f0 -> inv_Option_Infallible f0
+      end
+
+let rec branch_Option_ref_slice_u8 (self_: t_Option_ref_slice_u8)
+  (return (x: t_ControlFlow_Option_Infallible_ref_slice_u8)) = any
+  [ return (result: t_ControlFlow_Option_Infallible_ref_slice_u8) ->
+  {[@stop_split] [@expl:branch_Option_ref_slice_u8 ensures] ([@stop_split] [@expl:branch result type invariant] inv_ControlFlow_Option_Infallible_ref_slice_u8 result)
+    /\ ([@stop_split] [@expl:branch ensures] [%#sops] match self_ with
+      | Some v -> result = Continue v
+      | None -> result = Break (None'0)
+      end)}
+    (! return {result}) ]
+
+let rec elim_Break (_x: t_ControlFlow_Option_Infallible_ref_slice_u8) (return (f0: t_Option_Infallible)) = any
+  [ _k (f0: t_Option_Infallible) -> {Break f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Break] match _x with
+      | Break _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_Option_array_u8_8 = None'1 | Some'1 (Slice64.array UInt8.t)
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_8 (self: Slice64.array UInt8.t) =
+  [%#sarray'0] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (8: UInt64.t)
+
+predicate inv_array_u8_8 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_8 _1
+
+meta "rewrite_def" predicate inv_array_u8_8
+
+predicate inv_Option_array_u8_8 (_1: t_Option_array_u8_8)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Option_array_u8_8 [inv_Option_array_u8_8 x]. inv_Option_array_u8_8 x
+    = match x with
+      | None'1 -> true
+      | Some'1 f0 -> inv_array_u8_8 f0
+      end
+
+let rec from_residual_Option_array_u8_8 (residual: t_Option_Infallible) (return (x: t_Option_array_u8_8)) =
+  {[@stop_split] [@expl:from_residual 'residual' type invariant] [%#sops'0] inv_Option_Infallible residual}
+  any
+  [ return (result: t_Option_array_u8_8) ->
+  {[@stop_split] [@expl:from_residual_Option_array_u8_8 ensures] ([@stop_split] [@expl:from_residual result type invariant] inv_Option_array_u8_8 result)
+    /\ ([@stop_split] [@expl:from_residual ensures] [%#sops'1] result = None'1)}
+    (! return {result}) ]
+
+let rec elim_Continue (_x: t_ControlFlow_Option_Infallible_ref_slice_u8) (return (f0: Slice64.slice UInt8.t)) = any
+  [ _k (f0: Slice64.slice UInt8.t) -> {Continue f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Continue] match _x with
+      | Continue _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_TryFromSliceError
+
+type t_Result_array_u8_8_TryFromSliceError = Ok (Slice64.array UInt8.t) | Err t_TryFromSliceError
+
+predicate precondition_try_from [@inline:trivial] (self: ()) (args: Slice64.slice UInt8.t) = let value = args in true
+
+meta "rewrite_def" predicate precondition_try_from
+
+predicate inv_TryFromSliceError (_1: t_TryFromSliceError)
+
+predicate inv_Result_array_u8_8_TryFromSliceError (_1: t_Result_array_u8_8_TryFromSliceError)
+
+axiom inv_axiom'2 [@rewrite]:
+  forall x: t_Result_array_u8_8_TryFromSliceError [inv_Result_array_u8_8_TryFromSliceError x]. inv_Result_array_u8_8_TryFromSliceError x
+    = match x with
+      | Ok f0 -> inv_array_u8_8 f0
+      | Err f0 -> inv_TryFromSliceError f0
+      end
+
+function index_array_u8_8 [@inline:trivial] (self: Slice64.array UInt8.t) (ix: int) : UInt8.t =
+  [%#sarray] Seq.get (Slice64.view self) ix
+
+meta "rewrite_def" function index_array_u8_8
+
+function index_slice_u8 [@inline:trivial] (self: Slice64.slice UInt8.t) (ix: int) : UInt8.t =
+  [%#sslice'3] Seq.get (Slice64.view self) ix
+
+meta "rewrite_def" function index_slice_u8
+
+let rec try_from_array_u8_8 (value: Slice64.slice UInt8.t) (return (x: t_Result_array_u8_8_TryFromSliceError)) = any
+  [ return (result: t_Result_array_u8_8_TryFromSliceError) ->
+  {[@stop_split] [@expl:try_from_array_u8_8 ensures] ([@stop_split] [@expl:try_from result type invariant] inv_Result_array_u8_8_TryFromSliceError result)
+    /\ ([@stop_split] [@expl:try_from ensures] [%#sconvert'1] match result with
+      | Ok array -> Seq.length (Slice64.view value) = UInt64.t'int (8: UInt64.t)
+      /\ (forall i: int. 0 <= i /\ i < UInt64.t'int (8: UInt64.t) -> index_array_u8_8 array i = index_slice_u8 value i)
+      | Err _ -> Seq.length (Slice64.view value) <> UInt64.t'int (8: UInt64.t)
+      end)}
+    (! return {result}) ]
+
+predicate postcondition_once_try_from [@inline:trivial] (self: ()) (args: Slice64.slice UInt8.t) (result: t_Result_array_u8_8_TryFromSliceError) =
+  let value = args in inv_Result_array_u8_8_TryFromSliceError result
+  /\ ([%#sconvert'1] match result with
+    | Ok array -> Seq.length (Slice64.view value) = UInt64.t'int (8: UInt64.t)
+    /\ (forall i: int. 0 <= i /\ i < UInt64.t'int (8: UInt64.t) -> index_array_u8_8 array i = index_slice_u8 value i)
+    | Err _ -> Seq.length (Slice64.view value) <> UInt64.t'int (8: UInt64.t)
+    end)
+
+meta "rewrite_def" predicate postcondition_once_try_from
+
+predicate resolve_try_from [@inline:trivial] (_1: ()) = true
+
+meta "rewrite_def" predicate resolve_try_from
+
+predicate postcondition_mut_try_from [@inline:trivial] (self: ()) (args: Slice64.slice UInt8.t) (result_state: ()) (result: t_Result_array_u8_8_TryFromSliceError) =
+  let value = args in inv_Result_array_u8_8_TryFromSliceError result
+  /\ ([%#sconvert'1] match result with
+    | Ok array -> Seq.length (Slice64.view value) = UInt64.t'int (8: UInt64.t)
+    /\ (forall i: int. 0 <= i /\ i < UInt64.t'int (8: UInt64.t) -> index_array_u8_8 array i = index_slice_u8 value i)
+    | Err _ -> Seq.length (Slice64.view value) <> UInt64.t'int (8: UInt64.t)
+    end)
+
+meta "rewrite_def" predicate postcondition_mut_try_from
+
+function fn_mut_once_try_from (self: ()) (args: Slice64.slice UInt8.t) (res: t_Result_array_u8_8_TryFromSliceError) : ()
+
+axiom fn_mut_once_try_from_spec:
+  forall self: (), args: Slice64.slice UInt8.t, res: t_Result_array_u8_8_TryFromSliceError. [%#sops'11] postcondition_once_try_from self args res
+    = (exists res_state: (). postcondition_mut_try_from self args res_state res /\ resolve_try_from res_state)
+
+predicate hist_inv_try_from [@inline:trivial] (self: ()) (result_state: ()) = true
+
+meta "rewrite_def" predicate hist_inv_try_from
+
+function hist_inv_trans_try_from (self: ()) (b: ()) (c: ()) : ()
+
+axiom hist_inv_trans_try_from_spec: forall self: (), b: (), c: (). ([%#sops'8] hist_inv_try_from self b)
+    -> ([%#sops'9] hist_inv_try_from b c) -> ([%#sops'10] hist_inv_try_from self c)
+
+function hist_inv_refl_try_from (self: ()) : ()
+
+axiom hist_inv_refl_try_from_spec: forall self: (). [%#sops'7] hist_inv_try_from self self
+
+function postcondition_mut_hist_inv_try_from (self: ()) (args: Slice64.slice UInt8.t) (res_state: ()) (res: t_Result_array_u8_8_TryFromSliceError) : ()
+
+axiom postcondition_mut_hist_inv_try_from_spec:
+  forall self: (), args: Slice64.slice UInt8.t, res_state: (), res: t_Result_array_u8_8_TryFromSliceError. ([%#sops'5] postcondition_mut_try_from self args res_state res)
+    -> ([%#sops'6] hist_inv_try_from self res_state)
+
+function fn_hist_inv_try_from (self: ()) (res_state: ()) : ()
+
+axiom fn_hist_inv_try_from_spec: forall self: (), res_state: (). [%#sops'4] hist_inv_try_from self res_state
+    = (self = res_state)
+
+predicate postcondition_try_from [@inline:trivial] (self: ()) (args: Slice64.slice UInt8.t) (result: t_Result_array_u8_8_TryFromSliceError) =
+  let value = args in inv_Result_array_u8_8_TryFromSliceError result
+  /\ ([%#sconvert'1] match result with
+    | Ok array -> Seq.length (Slice64.view value) = UInt64.t'int (8: UInt64.t)
+    /\ (forall i: int. 0 <= i /\ i < UInt64.t'int (8: UInt64.t) -> index_array_u8_8 array i = index_slice_u8 value i)
+    | Err _ -> Seq.length (Slice64.view value) <> UInt64.t'int (8: UInt64.t)
+    end)
+
+meta "rewrite_def" predicate postcondition_try_from
+
+function fn_once_try_from (self: ()) (args: Slice64.slice UInt8.t) (res: t_Result_array_u8_8_TryFromSliceError) : ()
+
+axiom fn_once_try_from_spec:
+  forall self: (), args: Slice64.slice UInt8.t, res: t_Result_array_u8_8_TryFromSliceError. [%#sops'3] postcondition_once_try_from self args res
+    = (postcondition_try_from self args res /\ resolve_try_from self)
+
+function fn_mut_try_from (self: ()) (args: Slice64.slice UInt8.t) (res_state: ()) (res: t_Result_array_u8_8_TryFromSliceError) : ()
+
+axiom fn_mut_try_from_spec:
+  forall self: (), args: Slice64.slice UInt8.t, res_state: (), res: t_Result_array_u8_8_TryFromSliceError. [%#sops'2] postcondition_mut_try_from self args res_state res
+    = (postcondition_try_from self args res /\ self = res_state)
+
+let rec try_into_ref_slice_u8 (self_: Slice64.slice UInt8.t) (return (x: t_Result_array_u8_8_TryFromSliceError)) =
+  {[@stop_split] [@expl:try_into requires] [%#sconvert] precondition_try_from () self_}
+  any
+  [ return (result: t_Result_array_u8_8_TryFromSliceError) ->
+  {[@stop_split] [@expl:try_into_ref_slice_u8 ensures] ([@stop_split] [@expl:try_into result type invariant] inv_Result_array_u8_8_TryFromSliceError result)
+    /\ ([@stop_split] [@expl:try_into ensures] [%#sconvert'0] postcondition_try_from () self_ result)}
+    (! return {result}) ]
+
+let rec ok_array_u8_8 (self_: t_Result_array_u8_8_TryFromSliceError) (return (x: t_Option_array_u8_8)) =
+  {[@stop_split] [@expl:ok 'self_' type invariant] [%#sresult] inv_Result_array_u8_8_TryFromSliceError self_}
+  any
+  [ return (result: t_Option_array_u8_8) ->
+  {[@stop_split] [@expl:ok_array_u8_8 ensures] ([@stop_split] [@expl:ok result type invariant] inv_Option_array_u8_8 result)
+    /\ ([@stop_split] [@expl:ok ensures #0] [%#sresult'0] forall t: Slice64.array UInt8.t. self_ = Ok t
+        -> result = Some'1 t)
+    /\ ([@stop_split] [@expl:ok ensures #1] [%#sresult'1] (exists e: t_TryFromSliceError. self_ = Err e)
+    -> result = None'1)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec array8_prefix
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/memory-array-conversion/src/lib.rs" 13 0 13 53]
+  (input: Slice64.slice UInt8.t) (return (x: t_Option_array_u8_8)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_8 <- { end' = ([%#slib] (8: UInt64.t)) } ] s1
+    | s1 = get_u8 [%#slib'0] {input} {_8} (fun (_x: t_Option_ref_slice_u8) -> [ &_6 <- _x ] s2)
+    | s2 = branch_Option_ref_slice_u8 [%#slib'1] {_6}
+        (fun (_x: t_ControlFlow_Option_Infallible_ref_slice_u8) -> [ &_5 <- _x ] s3)
+    | s3 = any
+      [ br0 (x0: Slice64.slice UInt8.t) -> {_5 = Continue x0} (! bb5)
+      | br1 (x0: t_Option_Infallible) -> {_5 = Break x0} (! bb6) ] ]
+  | bb6 = s0
+    [ s0 = elim_Break {_5} (fun (r0: t_Option_Infallible) -> [ &residual <- r0 ] s1)
+    | s1 = from_residual_Option_array_u8_8 [%#slib'1] {residual} (fun (_x: t_Option_array_u8_8) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ]
+  | bb5 = s0
+    [ s0 = elim_Continue {_5} (fun (r0: Slice64.slice UInt8.t) -> [ &val' <- r0 ] s1)
+    | s1 = [ &prefix <- val' ] s2
+    | s2 = try_into_ref_slice_u8 [%#slib'2] {prefix}
+        (fun (_x: t_Result_array_u8_8_TryFromSliceError) -> [ &_14 <- _x ] s3)
+    | s3 = ok_array_u8_8 [%#slib'3] {_14} (fun (_x: t_Option_array_u8_8) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Option_array_u8_8 = Any.any_l ()
+  | & input: Slice64.slice UInt8.t = input
+  | & prefix: Slice64.slice UInt8.t = Any.any_l ()
+  | & _5: t_ControlFlow_Option_Infallible_ref_slice_u8 = Any.any_l ()
+  | & _6: t_Option_ref_slice_u8 = Any.any_l ()
+  | & _8: t_RangeTo_usize = Any.any_l ()
+  | & residual: t_Option_Infallible = Any.any_l ()
+  | & val': Slice64.slice UInt8.t = Any.any_l ()
+  | & _14: t_Result_array_u8_8_TryFromSliceError = Any.any_l () ])
+  [ return (result: t_Option_array_u8_8) ->
+  {[@stop_split] [@expl:array8_prefix ensures] ([@stop_split] [@expl:array8_prefix result type invariant] [%#slib'4] inv_Option_array_u8_8 result)
+    /\ ([@stop_split] [@expl:array8_prefix ensures] [%#slib'5] match result with
+      | Some'1 array -> Seq.length (Slice64.view input) >= 8 /\ Slice64.view array = Seq.([..]) (Slice64.view input) 0 8
+      | None'1 -> Seq.length (Slice64.view input) < 8
+      end)}
+    (! return {result}) ]

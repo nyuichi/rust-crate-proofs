@@ -1,0 +1,5 @@
+# Scoped HeaderName leaf emission; working directory http/1.5.0/verification/headers
+source /workspace/proof-tools/activate.sh
+export CARGO_TARGET_DIR=/workspace/rust-crate-proofs/target/http
+export RUSTFLAGS='--cfg http_header_name_leaf'
+../../scripts/run-proof.sh bash -c 'set -euo pipefail; cargo clean -p http-headers-proof; cargo creusot --simple-triggers=false -- --locked --offline'

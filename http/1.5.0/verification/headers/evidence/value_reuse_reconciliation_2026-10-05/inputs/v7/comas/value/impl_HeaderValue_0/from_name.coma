@@ -1,0 +1,160 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 260 4 260 53 *)
+
+(* header::value::HeaderValue *)
+
+let%span sconvert = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 67 16 67 20
+let%span sconvert'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 65 19 65 61
+let%span sconvert'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 66 18 66 69
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 160 14 160 114
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 165 14 165 100
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 170 14 170 61
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 126 15 126 59
+let%span sops'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 127 14 127 38
+let%span sops'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 132 14 132 33
+let%span sops'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 137 15 137 31
+let%span sops'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 138 15 138 28
+let%span sops'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 139 14 139 30
+let%span sops'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 144 14 145 104
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 261 8 261 19
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 260 21 260 25
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 260 42 260 53
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 259 32 259 77
+let%span svalue'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 50 8 50 49
+let%span svalue'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 70 8 70 25
+let%span svalue'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 581 12 581 13
+let%span svalue'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 581 4 581 41
+let%span svalue'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 581 30 581 41
+let%span svalue'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 580 32 580 74
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+
+type t_HeaderName
+
+type t_Bytes
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate precondition_from [@inline:trivial] (self: ()) (args: t_HeaderName) =
+  [%#svalue'6] let h = args in [%#svalue'5] inv_HeaderName h
+
+meta "rewrite_def" predicate precondition_from
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function view_HeaderValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 49 4 49 33] (self: t_HeaderValue) : Seq.seq UInt8.t
+ = [%#svalue'3] bytes_seq self.inner
+
+function view_HeaderName [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 1427 4 1427 33] (self: t_HeaderName) : Seq.seq UInt8.t
+
+predicate sensitive_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 69 4 69 41] (self: t_HeaderValue) =
+  [%#svalue'4] self.is_sensitive
+
+let rec from_HeaderValue (h: t_HeaderName) (return (x: t_HeaderValue)) =
+  {[@stop_split] [@expl:from 'h' type invariant] [%#svalue'5] inv_HeaderName h}
+  any
+  [ return (result: t_HeaderValue) ->
+  {[@stop_split] [@expl:from_HeaderValue ensures] ([@stop_split] [@expl:from result type invariant] [%#svalue'7] inv_HeaderValue result)
+    /\ ([@stop_split] [@expl:from ensures] [%#svalue'8] view_HeaderValue result = view_HeaderName h
+    /\ not sensitive_model result)}
+    (! return {result}) ]
+
+predicate postcondition_once_from [@inline:trivial] (self: ()) (args: t_HeaderName) (result: t_HeaderValue) =
+  [%#svalue'6] let h = args in ([%#svalue'7] inv_HeaderValue result)
+  /\ ([%#svalue'8] view_HeaderValue result = view_HeaderName h /\ not sensitive_model result)
+
+meta "rewrite_def" predicate postcondition_once_from
+
+predicate resolve_from [@inline:trivial] (_1: ()) = true
+
+meta "rewrite_def" predicate resolve_from
+
+predicate postcondition_mut_from [@inline:trivial] (self: ()) (args: t_HeaderName) (result_state: ()) (result: t_HeaderValue) =
+  [%#svalue'6] let h = args in ([%#svalue'7] inv_HeaderValue result)
+  /\ ([%#svalue'8] view_HeaderValue result = view_HeaderName h /\ not sensitive_model result)
+
+meta "rewrite_def" predicate postcondition_mut_from
+
+function fn_mut_once_from (self: ()) (args: t_HeaderName) (res: t_HeaderValue) : ()
+
+axiom fn_mut_once_from_spec:
+  forall self: (), args: t_HeaderName, res: t_HeaderValue. [%#sops'8] postcondition_once_from self args res
+    = (exists res_state: (). postcondition_mut_from self args res_state res /\ resolve_from res_state)
+
+predicate hist_inv_from [@inline:trivial] (self: ()) (result_state: ()) = true
+
+meta "rewrite_def" predicate hist_inv_from
+
+function hist_inv_trans_from (self: ()) (b: ()) (c: ()) : ()
+
+axiom hist_inv_trans_from_spec: forall self: (), b: (), c: (). ([%#sops'5] hist_inv_from self b)
+    -> ([%#sops'6] hist_inv_from b c) -> ([%#sops'7] hist_inv_from self c)
+
+function hist_inv_refl_from (self: ()) : ()
+
+axiom hist_inv_refl_from_spec: forall self: (). [%#sops'4] hist_inv_from self self
+
+function postcondition_mut_hist_inv_from (self: ()) (args: t_HeaderName) (res_state: ()) (res: t_HeaderValue) : ()
+
+axiom postcondition_mut_hist_inv_from_spec:
+  forall self: (), args: t_HeaderName, res_state: (), res: t_HeaderValue. ([%#sops'2] postcondition_mut_from self args res_state res)
+    -> ([%#sops'3] hist_inv_from self res_state)
+
+function fn_hist_inv_from (self: ()) (res_state: ()) : ()
+
+axiom fn_hist_inv_from_spec: forall self: (), res_state: (). [%#sops'1] hist_inv_from self res_state
+    = (self = res_state)
+
+predicate postcondition_from [@inline:trivial] (self: ()) (args: t_HeaderName) (result: t_HeaderValue) =
+  [%#svalue'6] let h = args in ([%#svalue'7] inv_HeaderValue result)
+  /\ ([%#svalue'8] view_HeaderValue result = view_HeaderName h /\ not sensitive_model result)
+
+meta "rewrite_def" predicate postcondition_from
+
+function fn_once_from (self: ()) (args: t_HeaderName) (res: t_HeaderValue) : ()
+
+axiom fn_once_from_spec:
+  forall self: (), args: t_HeaderName, res: t_HeaderValue. [%#sops'0] postcondition_once_from self args res
+    = (postcondition_from self args res /\ resolve_from self)
+
+function fn_mut_from (self: ()) (args: t_HeaderName) (res_state: ()) (res: t_HeaderValue) : ()
+
+axiom fn_mut_from_spec:
+  forall self: (), args: t_HeaderName, res_state: (), res: t_HeaderValue. [%#sops] postcondition_mut_from self args res_state res
+    = (postcondition_from self args res /\ self = res_state)
+
+let rec into_HeaderName (self_: t_HeaderName) (return (x: t_HeaderValue)) =
+  {[@stop_split] [@expl:into_HeaderName requires] ([@stop_split] [@expl:into 'self_' type invariant] [%#sconvert] inv_HeaderName self_)
+  /\ ([@stop_split] [@expl:into requires] [%#sconvert'0] precondition_from () self_)}
+  any
+  [ return (result: t_HeaderValue) ->
+  {[@stop_split] [@expl:into_HeaderName ensures] ([@stop_split] [@expl:into result type invariant] inv_HeaderValue result)
+    /\ ([@stop_split] [@expl:into ensures] [%#sconvert'1] postcondition_from () self_ result)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_name
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 260 4 260 53]
+  (name: t_HeaderName) (return (x: t_HeaderValue)) =
+  {[@stop_split] [@expl:from_name 'name' type invariant] [%#svalue'0] inv_HeaderName name}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = into_HeaderName [%#svalue] {name} (fun (_x: t_HeaderValue) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_HeaderValue = Any.any_l () | & name: t_HeaderName = name ])
+  [ return (result: t_HeaderValue) ->
+  {[@stop_split] [@expl:from_name ensures] ([@stop_split] [@expl:from_name result type invariant] [%#svalue'1] inv_HeaderValue result)
+    /\ ([@stop_split] [@expl:from_name ensures] [%#svalue'2] view_HeaderValue result = view_HeaderName name
+    /\ not sensitive_model result)}
+    (! return {result}) ]

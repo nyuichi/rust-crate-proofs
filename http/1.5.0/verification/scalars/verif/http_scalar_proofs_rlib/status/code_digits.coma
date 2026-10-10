@@ -1,0 +1,97 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 95 0 95 39 *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 96 5 96 16
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 95 20 95 39
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 92 28 93 56
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 835 0 835 29
+let%span sstatus'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 835 32 835 51
+let%span sstatus'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 56 8 62 9
+let%span sstatus'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 70 32 70 42
+let%span sstatus'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 67 28 68 56
+let%span sarray = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use int.ComputerDivision
+use creusot.prelude.Any
+use int.Int
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_2700 (self: Slice64.array UInt8.t) =
+  [%#sarray] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (2700: UInt64.t)
+
+predicate inv_array_u8_2700 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_2700 _1
+
+meta "rewrite_def" predicate inv_array_u8_2700
+
+function status_digit_byte [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 54 0 54 55] (code: int) (column: int) : int
+ = [%#sstatus'4] if column = 0 then
+    48 + ComputerDivision.div code 100
+  else
+    if column = 1 then
+      48 + ComputerDivision.mod (ComputerDivision.div code 10) 10
+    else
+      48 + ComputerDivision.mod code 10
+  
+
+
+let rec build_code_digits (return (x: Slice64.array UInt8.t)) = any
+  [ return (result: Slice64.array UInt8.t) ->
+  {[@stop_split] [@expl:build_code_digits ensures] ([@stop_split] [@expl:build_code_digits result type invariant] [%#sstatus'5] inv_array_u8_2700 result)
+    /\ ([@stop_split] [@expl:build_code_digits ensures] [%#sstatus'6] forall i: int. 0 <= i
+        /\ i < Seq.length (Slice64.view result)
+      -> UInt8.t'int (Seq.get (Slice64.view result) i)
+      = status_digit_byte (100 + ComputerDivision.div i 3) (ComputerDivision.mod i 3))}
+    (! return {result}) ]
+
+constant const_CODE_DIGITS [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 835 0 835 29] : Slice64.array UInt8.t
+
+axiom const_CODE_DIGITS_spec: [%#sstatus'2] inv_array_u8_2700 const_CODE_DIGITS
+
+let rec set_CODE_DIGITS (return) = bb0
+  [ bb0 = s0
+    [ s0 = build_code_digits [%#sstatus'3] (fun (_x: Slice64.array UInt8.t) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ] [ & _ret: Slice64.array UInt8.t = Any.any_l () ]
+  [ return (_const: Slice64.array UInt8.t) -> -{const_CODE_DIGITS = _const}- return ]
+
+predicate invariant_ref_array_u8_2700 [@inline:trivial] (self: Slice64.array UInt8.t) =
+  [%#sinvariant] inv_array_u8_2700 self
+
+meta "rewrite_def" predicate invariant_ref_array_u8_2700
+
+predicate inv_ref_array_u8_2700 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_ref_array_u8_2700 _1
+
+meta "rewrite_def" predicate inv_ref_array_u8_2700
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec code_digits
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 95 0 95 39]
+  (return (x: Slice64.array UInt8.t)) = set_CODE_DIGITS
+    ((! bb0
+    [ bb0 = s0
+      [ s0 = bb0'0
+        [ bb0'0 = s0'0 [ s0'0 = [ &_ret'0 <- [%#sstatus] const_CODE_DIGITS ] s1'0 | s1'0 = _const_ret {_ret'0} ] ]
+        [ & _ret'0: Slice64.array UInt8.t = Any.any_l () ]
+        [ _const_ret (_const: Slice64.array UInt8.t) -> [ &_4 <- _const ] s1 ]
+      | s1 = [ &_2 <- _4 ] s2
+      | s2 = [ &_ret <- _2 ] s3
+      | s3 = return {_ret} ] ]
+    [ & _ret: Slice64.array UInt8.t = Any.any_l ()
+    | & _2: Slice64.array UInt8.t = Any.any_l ()
+    | & _4: Slice64.array UInt8.t = Any.any_l () ])
+    [ return (result: Slice64.array UInt8.t) ->
+    {[@stop_split] [@expl:code_digits ensures] ([@stop_split] [@expl:code_digits result type invariant] [%#sstatus'0] inv_ref_array_u8_2700 result)
+      /\ ([@stop_split] [@expl:code_digits ensures] [%#sstatus'1] forall i: int. 0 <= i
+          /\ i < Seq.length (Slice64.view result)
+        -> UInt8.t'int (Seq.get (Slice64.view result) i)
+        = status_digit_byte (100 + ComputerDivision.div i 3) (ComputerDivision.mod i 3))}
+      (! return {result}) ])

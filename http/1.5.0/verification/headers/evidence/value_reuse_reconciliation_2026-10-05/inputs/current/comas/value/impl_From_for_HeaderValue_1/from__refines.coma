@@ -1,0 +1,90 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 770 12 770 43 *)
+
+(* <header::value::HeaderValue as std::convert::From<i16>> *)
+
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 305 14 305 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 303 14 303 40
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 304 14 304 76
+let%span smapping = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/mapping.rs" 65 8 65 19
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 770 32 770 43
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 767 16 767 84
+let%span svalue'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 769 40 769 65
+let%span svalue'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 52 8 52 49
+let%span svalue'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 72 8 72 25
+let%span sverification = "/workspace/rust-crate-proofs/itoa/1.0.18/src/verification.rs" 554 4 554 47
+let%span sverification'0 = "/workspace/rust-crate-proofs/itoa/1.0.18/src/verification.rs" 411 4 415 5
+let%span sverification'1 = "/workspace/rust-crate-proofs/itoa/1.0.18/src/verification.rs" 548 4 548 33
+let%span sverification'2 = "/workspace/rust-crate-proofs/itoa/1.0.18/src/verification.rs" 14 10 14 11
+let%span sverification'3 = "/workspace/rust-crate-proofs/itoa/1.0.18/src/verification.rs" 13 11 13 17
+let%span sverification'4 = "/workspace/rust-crate-proofs/itoa/1.0.18/src/verification.rs" 16 4 20 5
+let%span sverification'5 = "/workspace/rust-crate-proofs/itoa/1.0.18/src/verification.rs" 699 28 699 33
+
+use creusot.int.UInt8
+use seq.Seq
+use map.Map
+use creusot.int.Int16
+use int.ComputerDivision
+use int.Int
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+function index_Mapping_u8_Int [@inline:trivial] (self: Map.map UInt8.t int) (a: UInt8.t) : int =
+  [%#smapping] Map.get self a
+
+meta "rewrite_def" function index_Mapping_u8_Int
+
+function map_u8 (self: Seq.seq UInt8.t) (m: Map.map UInt8.t int) : Seq.seq int
+
+axiom map_u8_spec: forall self: Seq.seq UInt8.t, m: Map.map UInt8.t int. [%#sseq'0] Seq.length (map_u8 self m)
+    = Seq.length self
+
+axiom map_u8_spec'0: forall self: Seq.seq UInt8.t, m: Map.map UInt8.t int. [%#sseq'1] forall i: int. 0 <= i
+        /\ i < Seq.length self -> Seq.get (map_u8 self m) i = index_Mapping_u8_Int m (Seq.get self i)
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+function view_HeaderValue [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 51 4 51 33] (self: t_HeaderValue) : Seq.seq UInt8.t
+ = [%#svalue'2] bytes_seq self.inner
+
+function decimal_values (n: int) : Seq.seq int
+
+axiom decimal_values_def: forall n: int. ([%#sverification'3] n >= 0)
+    -> decimal_values n
+    = ([%#sverification'4] if n < 10 then
+      Seq.singleton (48 + n)
+    else
+      Seq.snoc (decimal_values (ComputerDivision.div n 10)) (48 + ComputerDivision.mod n 10)
+    )
+
+function signed_decimal_values (n: int) : Seq.seq int = [%#sverification'0] if n < 0 then
+    Seq.(++) (Seq.singleton 45) (decimal_values (- n))
+  else
+    decimal_values n
+
+
+function value_i16 (self: Int16.t) : int = [%#sverification'5] Int16.to_int self
+
+function integer_value_i16 (value: Int16.t) : int = [%#sverification'1] value_i16 value
+
+function integer_decimal_values_i16 (value: Int16.t) : Seq.seq int =
+  [%#sverification] signed_decimal_values (integer_value_i16 value)
+
+predicate sensitive_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 71 4 71 41] (self: t_HeaderValue) =
+  [%#svalue'3] self.is_sensitive
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall value: Int16.t. forall result: t_HeaderValue. ([%#svalue] inv_HeaderValue result)
+        /\ ([%#svalue'0] map_u8 (view_HeaderValue result) (fun (byte: UInt8.t) -> UInt8.t'int byte)
+          = integer_decimal_values_i16 value)
+        /\ ([%#svalue'1] not sensitive_model result) -> inv_HeaderValue result

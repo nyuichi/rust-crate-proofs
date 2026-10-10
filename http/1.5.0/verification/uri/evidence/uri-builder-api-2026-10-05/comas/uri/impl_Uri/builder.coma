@@ -1,0 +1,42 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 455 4 455 31 *)
+
+(* uri::Uri *)
+
+let%span sbuilder = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 195 20 195 27
+let%span sbuilder'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 193 32 193 61
+let%span sbuilder'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 194 32 194 70
+let%span smod = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 456 8 456 22
+let%span smod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 455 24 455 31
+let%span smod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 453 32 453 70
+let%span smod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 454 32 454 79
+
+use creusot.prelude.Any
+
+type t_Builder
+
+predicate inv_Builder (_1: t_Builder)
+
+predicate uri_builder_is_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 18 0 18 54] (builder: t_Builder)
+
+predicate uri_builder_has_default_parts [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/builder.rs" 109 0 109 63] (builder: t_Builder)
+
+let rec new (return (x: t_Builder)) = any
+  [ return (result: t_Builder) ->
+  {[@stop_split] [@expl:new ensures] ([@stop_split] [@expl:new result type invariant] [%#sbuilder] inv_Builder result)
+    /\ ([@stop_split] [@expl:new ensures #0] [%#sbuilder'0] uri_builder_is_valid result)
+    /\ ([@stop_split] [@expl:new ensures #1] [%#sbuilder'1] uri_builder_has_default_parts result)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec builder [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/mod.rs" 455 4 455 31]
+  (return (x: t_Builder)) = (! bb0
+  [ bb0 = s0 [ s0 = new [%#smod] (fun (_x: t_Builder) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_Builder = Any.any_l () ])
+  [ return (result: t_Builder) ->
+  {[@stop_split] [@expl:builder ensures] ([@stop_split] [@expl:builder result type invariant] [%#smod'0] inv_Builder result)
+    /\ ([@stop_split] [@expl:builder ensures #0] [%#smod'1] uri_builder_is_valid result)
+    /\ ([@stop_split] [@expl:builder ensures #1] [%#smod'2] uri_builder_has_default_parts result)}
+    (! return {result}) ]

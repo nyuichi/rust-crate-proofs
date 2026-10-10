@@ -1,0 +1,310 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 800 0 800 78 *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 801 40 801 72
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 802 38 802 65
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 803 25 803 64
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 804 25 804 66
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 800 28 800 33
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 800 61 800 78
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 795 28 795 52
+let%span smap'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 796 28 796 50
+let%span smap'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 797 28 797 55
+let%span smap'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 798 28 798 55
+let%span smap'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 799 28 799 55
+let%span sghost = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/ghost.rs" 96 20 96 27
+let%span sghost'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/ghost.rs" 104 8 104 18
+let%span sptr = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 628 20 628 21
+let%span sptr'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 628 4 628 70
+let%span sptr'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 624 14 624 42
+let%span sptr'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 625 14 625 35
+let%span sptr'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 626 14 626 52
+let%span sptr'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 607 4 607 64
+let%span sptr'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 604 14 604 42
+let%span sptr'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 605 14 605 35
+let%span sptr'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 656 40 656 43
+let%span sptr'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 652 15 652 33
+let%span sptr'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 653 14 653 35
+let%span sptr'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 686 38 686 41
+let%span sptr'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 681 15 681 45
+let%span sptr'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 686 4 686 80
+let%span sptr'13 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 682 14 682 35
+let%span sptr'14 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 683 14 683 41
+let%span sptr'15 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 684 14 684 38
+let%span sptr'16 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 563 12 565 34
+let%span sptr'17 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ptr.rs" 142 8 142 35
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Opaque
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+
+type t_T
+
+type t_Link = Entry UInt64.t | Extra UInt64.t
+
+type t_ExtraValue_T = { value: t_T; prev: t_Link; next: t_Link }
+
+predicate inv_T (_1: t_T)
+
+type t_Perm_ptr_T
+
+type tup2_ptr_T_Ghost_refmut_Perm_ptr_T = { f0: Opaque.ptr; f1: MutBorrow.t t_Perm_ptr_T }
+
+predicate invariant_refmut_T [@inline:trivial] (self: MutBorrow.t t_T) =
+  [%#sinvariant] inv_T self.current /\ inv_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_T
+
+predicate inv_refmut_T [@inline:trivial] (_1: MutBorrow.t t_T) = invariant_refmut_T _1
+
+meta "rewrite_def" predicate inv_refmut_T
+
+predicate is_null_ptr_T (self: Opaque.ptr) = [%#sptr'17] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+function ward_ptr_T (self: t_Perm_ptr_T) : Opaque.ptr
+
+predicate metadata_matches_T [@inline:trivial] (_value: t_T) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_T
+
+function val_ptr_T (self: t_Perm_ptr_T) : t_T
+
+function metadata_T (_1: Opaque.ptr) : ()
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant'0] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate invariant_Perm_ptr_T (self: t_Perm_ptr_T) =
+  [%#sptr'16] not is_null_ptr_T (ward_ptr_T self)
+  /\ metadata_matches_T (val_ptr_T self) (metadata_T (ward_ptr_T self)) /\ inv_ref_T (val_ptr_T self)
+
+predicate inv_Perm_ptr_T (_1: t_Perm_ptr_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Perm_ptr_T [inv_Perm_ptr_T x]. inv_Perm_ptr_T x = invariant_Perm_ptr_T x
+
+predicate invariant_refmut_Perm_ptr_T [@inline:trivial] (self: MutBorrow.t t_Perm_ptr_T) =
+  [%#sinvariant] inv_Perm_ptr_T self.current /\ inv_Perm_ptr_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_Perm_ptr_T
+
+predicate inv_refmut_Perm_ptr_T [@inline:trivial] (_1: MutBorrow.t t_Perm_ptr_T) = invariant_refmut_Perm_ptr_T _1
+
+meta "rewrite_def" predicate inv_refmut_Perm_ptr_T
+
+predicate invariant_Ghost_refmut_Perm_ptr_T [@inline:trivial] (self: MutBorrow.t t_Perm_ptr_T) =
+  [%#sghost'0] inv_refmut_Perm_ptr_T self
+
+meta "rewrite_def" predicate invariant_Ghost_refmut_Perm_ptr_T
+
+predicate inv_Ghost_refmut_Perm_ptr_T [@inline:trivial] (_1: MutBorrow.t t_Perm_ptr_T) =
+  invariant_Ghost_refmut_Perm_ptr_T _1
+
+meta "rewrite_def" predicate inv_Ghost_refmut_Perm_ptr_T
+
+predicate inv_tup2_ptr_T_Ghost_refmut_Perm_ptr_T [@inline:trivial] (_1: tup2_ptr_T_Ghost_refmut_Perm_ptr_T) =
+  inv_Ghost_refmut_Perm_ptr_T _1.f1
+
+meta "rewrite_def" predicate inv_tup2_ptr_T_Ghost_refmut_Perm_ptr_T
+
+let rec from_mut_T (r: MutBorrow.t t_T) (return (x: tup2_ptr_T_Ghost_refmut_Perm_ptr_T)) =
+  {[@stop_split] [@expl:from_mut 'r' type invariant] [%#sptr] inv_refmut_T r}
+  any
+  [ return (result: tup2_ptr_T_Ghost_refmut_Perm_ptr_T) ->
+  {[@stop_split] [@expl:from_mut_T ensures] ([@stop_split] [@expl:from_mut result type invariant] [%#sptr'0] inv_tup2_ptr_T_Ghost_refmut_Perm_ptr_T result)
+    /\ ([@stop_split] [@expl:from_mut ensures #0] [%#sptr'1] ward_ptr_T result.f1.current = result.f0)
+    /\ ([@stop_split] [@expl:from_mut ensures #1] [%#sptr'2] val_ptr_T result.f1.current = r.current)
+    /\ ([@stop_split] [@expl:from_mut ensures #2] [%#sptr'3] val_ptr_T result.f1.final = r.final)}
+    (! return {result}) ]
+
+predicate resolve_refmut_T [@inline:trivial] (_1: MutBorrow.t t_T) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_T
+
+type t_Perm_ptr_Link
+
+type tup2_ptr_Link_Ghost_ref_Perm_ptr_Link = { f0'0: Opaque.ptr; f1'0: t_Perm_ptr_Link }
+
+predicate is_null_ptr_Link (self: Opaque.ptr) = [%#sptr'17] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+function ward_ptr_Link (self: t_Perm_ptr_Link) : Opaque.ptr
+
+predicate metadata_matches_Link [@inline:trivial] (_value: t_Link) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_Link
+
+function val_ptr_Link (self: t_Perm_ptr_Link) : t_Link
+
+function metadata_Link (_1: Opaque.ptr) : ()
+
+predicate inv_ref_Link [@inline:trivial] (_1: t_Link) = true
+
+meta "rewrite_def" predicate inv_ref_Link
+
+predicate invariant_Perm_ptr_Link (self: t_Perm_ptr_Link) =
+  [%#sptr'16] not is_null_ptr_Link (ward_ptr_Link self)
+  /\ metadata_matches_Link (val_ptr_Link self) (metadata_Link (ward_ptr_Link self)) /\ inv_ref_Link (val_ptr_Link self)
+
+predicate inv_Perm_ptr_Link (_1: t_Perm_ptr_Link)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Perm_ptr_Link [inv_Perm_ptr_Link x]. inv_Perm_ptr_Link x
+    = invariant_Perm_ptr_Link x
+
+predicate invariant_ref_Perm_ptr_Link [@inline:trivial] (self: t_Perm_ptr_Link) =
+  [%#sinvariant'0] inv_Perm_ptr_Link self
+
+meta "rewrite_def" predicate invariant_ref_Perm_ptr_Link
+
+predicate inv_ref_Perm_ptr_Link [@inline:trivial] (_1: t_Perm_ptr_Link) = invariant_ref_Perm_ptr_Link _1
+
+meta "rewrite_def" predicate inv_ref_Perm_ptr_Link
+
+predicate invariant_Ghost_ref_Perm_ptr_Link [@inline:trivial] (self: t_Perm_ptr_Link) =
+  [%#sghost'0] inv_ref_Perm_ptr_Link self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_Perm_ptr_Link
+
+predicate inv_Ghost_ref_Perm_ptr_Link [@inline:trivial] (_1: t_Perm_ptr_Link) = invariant_Ghost_ref_Perm_ptr_Link _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_Perm_ptr_Link
+
+predicate inv_tup2_ptr_Link_Ghost_ref_Perm_ptr_Link [@inline:trivial] (_1: tup2_ptr_Link_Ghost_ref_Perm_ptr_Link) =
+  inv_Ghost_ref_Perm_ptr_Link _1.f1'0
+
+meta "rewrite_def" predicate inv_tup2_ptr_Link_Ghost_ref_Perm_ptr_Link
+
+let rec from_ref_Link (r: t_Link) (return (x: tup2_ptr_Link_Ghost_ref_Perm_ptr_Link)) = any
+  [ return (result: tup2_ptr_Link_Ghost_ref_Perm_ptr_Link) ->
+  {[@stop_split] [@expl:from_ref_Link ensures] ([@stop_split] [@expl:from_ref result type invariant] [%#sptr'4] inv_tup2_ptr_Link_Ghost_ref_Perm_ptr_Link result)
+    /\ ([@stop_split] [@expl:from_ref ensures #0] [%#sptr'5] ward_ptr_Link result.f1'0 = result.f0'0)
+    /\ ([@stop_split] [@expl:from_ref ensures #1] [%#sptr'6] val_ptr_Link result.f1'0 = r)}
+    (! return {result}) ]
+
+let rec as_ref_Link (ptr: Opaque.ptr) (own: t_Perm_ptr_Link) (return (x: t_Link)) =
+  {[@stop_split] [@expl:as_ref_Link requires] ([@stop_split] [@expl:as_ref 'own' type invariant] [%#sptr'7] inv_Ghost_ref_Perm_ptr_Link own)
+  /\ ([@stop_split] [@expl:as_ref requires] [%#sptr'8] ptr = ward_ptr_Link own)}
+  any
+  [ return (result: t_Link) -> {[@stop_split] [@expl:as_ref ensures] [%#sptr'9] result = val_ptr_Link own}
+    (! return {result}) ]
+
+function fin_Ghost_refmut_Perm_ptr_T [@inline:trivial] (self: MutBorrow.t t_Perm_ptr_T) : t_Perm_ptr_T =
+  [%#sghost] self.final
+
+meta "rewrite_def" function fin_Ghost_refmut_Perm_ptr_T
+
+let rec as_mut_T (ptr: Opaque.ptr) (own: MutBorrow.t t_Perm_ptr_T) (return (x: MutBorrow.t t_T)) =
+  {[@stop_split] [@expl:as_mut_T requires] ([@stop_split] [@expl:as_mut 'own' type invariant] [%#sptr'10] inv_Ghost_refmut_Perm_ptr_T own)
+  /\ ([@stop_split] [@expl:as_mut requires] [%#sptr'11] ptr = ward_ptr_T own.current)}
+  any
+  [ return (result: MutBorrow.t t_T) ->
+  {[@stop_split] [@expl:as_mut_T ensures] ([@stop_split] [@expl:as_mut result type invariant] [%#sptr'12] inv_refmut_T result)
+    /\ ([@stop_split] [@expl:as_mut ensures #0] [%#sptr'13] result.current = val_ptr_T own.current)
+    /\ ([@stop_split] [@expl:as_mut ensures #1] [%#sptr'14] ward_ptr_T (fin_Ghost_refmut_Perm_ptr_T own)
+      = ward_ptr_T own.current)
+    /\ ([@stop_split] [@expl:as_mut ensures #2] [%#sptr'15] val_ptr_T (fin_Ghost_refmut_Perm_ptr_T own) = result.final)}
+    (! return {result}) ]
+
+type tup2_refmut_T_Link = { f0'1: MutBorrow.t t_T; f1'1: t_Link }
+
+predicate inv_ExtraValue_T (_1: t_ExtraValue_T)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_ExtraValue_T [inv_ExtraValue_T x]. inv_ExtraValue_T x = inv_T x.value
+
+predicate invariant_refmut_ExtraValue_T [@inline:trivial] (self: MutBorrow.t t_ExtraValue_T) =
+  [%#sinvariant] inv_ExtraValue_T self.current /\ inv_ExtraValue_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_ExtraValue_T
+
+predicate inv_refmut_ExtraValue_T [@inline:trivial] (_1: MutBorrow.t t_ExtraValue_T) = invariant_refmut_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_refmut_ExtraValue_T
+
+predicate resolve_refmut_ExtraValue_T [@inline:trivial] (_1: MutBorrow.t t_ExtraValue_T) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_ExtraValue_T
+
+predicate inv_tup2_refmut_T_Link [@inline:trivial] (_1: tup2_refmut_T_Link) = inv_refmut_T _1.f0'1
+
+meta "rewrite_def" predicate inv_tup2_refmut_T_Link
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec yield_extra_value_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 800 0 800 78]
+  (extra: MutBorrow.t t_ExtraValue_T) (return (x: tup2_refmut_T_Link)) =
+  {[@stop_split] [@expl:yield_extra_value 'extra' type invariant] [%#smap'3] inv_refmut_ExtraValue_T extra}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_T> {extra.current.value} {MutBorrow.inherit_id (MutBorrow.get_id extra) 0}
+        (fun (_bor: MutBorrow.t t_T) ->
+          [ &_16 <- _bor ] -{inv_T _bor.final}-
+          [ &extra <- { extra with current = { extra.current with value = _bor.final } } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_T extra.current.value} any) ]
+    | s1 = MutBorrow.borrow_final <t_T> {_16.current} {MutBorrow.get_id _16}
+        (fun (_bor: MutBorrow.t t_T) ->
+          [ &_15 <- _bor ] -{inv_T _bor.final}-
+          [ &_16 <- { _16 with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_T _16.current} any) ]
+    | s2 = from_mut_T [%#smap] {_15} (fun (_x: tup2_ptr_T_Ghost_refmut_Perm_ptr_T) -> [ &_14 <- _x ] s3)
+    | s3 = [ &value_ptr <- _14.f0 ] s4
+    | s4 = [ &value_permission <- _14.f1 ] s5
+    | s5 = s6 [ _ck -> (! {[@expl:type invariant] inv_refmut_T _16} any) ]
+    | s6 = -{resolve_refmut_T _16}- s7
+    | s7 = [ &_21 <- extra.current.next ] s8
+    | s8 = from_ref_Link [%#smap'0] {_21} (fun (_x: tup2_ptr_Link_Ghost_ref_Perm_ptr_Link) -> [ &_19 <- _x ] s9)
+    | s9 = [ &next_ptr <- _19.f0'0 ] s10
+    | s10 = [ &next_permission <- _19.f1'0 ] s11
+    | s11 = as_ref_Link [%#smap'1] {next_ptr} {next_permission} (fun (_x: t_Link) -> [ &_23 <- _x ] s12)
+    | s12 = [ &next'0 <- _23 ] s13
+    | s13 = as_mut_T [%#smap'2] {value_ptr} {value_permission} (fun (_x: MutBorrow.t t_T) -> [ &_27 <- _x ] s14)
+    | s14 = MutBorrow.borrow_final <t_T> {_27.current} {MutBorrow.get_id _27}
+        (fun (_bor: MutBorrow.t t_T) ->
+          [ &value'0 <- _bor ] -{inv_T _bor.final}-
+          [ &_27 <- { _27 with current = _bor.final } ] s15)
+      [ _ck -> (! {[@expl:type invariant] inv_T _27.current} any) ]
+    | s15 = s16 [ _ck -> (! {[@expl:type invariant] inv_refmut_T _27} any) ]
+    | s16 = -{resolve_refmut_T _27}- s17
+    | s17 = MutBorrow.borrow_final <t_T> {value'0.current} {MutBorrow.get_id value'0}
+        (fun (_bor: MutBorrow.t t_T) ->
+          [ &_30 <- _bor ] -{inv_T _bor.final}-
+          [ &value'0 <- { value'0 with current = _bor.final } ] s18)
+      [ _ck -> (! {[@expl:type invariant] inv_T value'0.current} any) ]
+    | s18 = [ &_ret <- { f0'1 = _30; f1'1 = next'0 } ] s19
+    | s19 = s20 [ _ck -> (! {[@expl:type invariant] inv_refmut_T value'0} any) ]
+    | s20 = -{resolve_refmut_T value'0}- s21
+    | s21 = s22 [ _ck -> (! {[@expl:type invariant] inv_refmut_ExtraValue_T extra} any) ]
+    | s22 = -{resolve_refmut_ExtraValue_T extra}- s23
+    | s23 = return {_ret} ] ]
+  [ & _ret: tup2_refmut_T_Link = Any.any_l ()
+  | & extra: MutBorrow.t t_ExtraValue_T = extra
+  | & value_ptr: Opaque.ptr = Any.any_l ()
+  | & value_permission: MutBorrow.t t_Perm_ptr_T = Any.any_l ()
+  | & _14: tup2_ptr_T_Ghost_refmut_Perm_ptr_T = Any.any_l ()
+  | & _15: MutBorrow.t t_T = Any.any_l ()
+  | & _16: MutBorrow.t t_T = Any.any_l ()
+  | & next_ptr: Opaque.ptr = Any.any_l ()
+  | & next_permission: t_Perm_ptr_Link = Any.any_l ()
+  | & _19: tup2_ptr_Link_Ghost_ref_Perm_ptr_Link = Any.any_l ()
+  | & _21: t_Link = Any.any_l ()
+  | & next'0: t_Link = Any.any_l ()
+  | & _23: t_Link = Any.any_l ()
+  | & value'0: MutBorrow.t t_T = Any.any_l ()
+  | & _27: MutBorrow.t t_T = Any.any_l ()
+  | & _30: MutBorrow.t t_T = Any.any_l () ])
+  [ return (result: tup2_refmut_T_Link) ->
+  {[@stop_split] [@expl:yield_extra_value_T ensures] ([@stop_split] [@expl:yield_extra_value result type invariant] [%#smap'4] inv_tup2_refmut_T_Link result)
+    /\ ([@stop_split] [@expl:yield_extra_value ensures #0] [%#smap'5] result.f0'1.current = extra.current.value)
+    /\ ([@stop_split] [@expl:yield_extra_value ensures #1] [%#smap'6] result.f1'1 = extra.current.next)
+    /\ ([@stop_split] [@expl:yield_extra_value ensures #2] [%#smap'7] extra.final.prev = extra.current.prev)
+    /\ ([@stop_split] [@expl:yield_extra_value ensures #3] [%#smap'8] extra.final.next = extra.current.next)
+    /\ ([@stop_split] [@expl:yield_extra_value ensures #4] [%#smap'9] extra.final.value = result.f0'1.final)}
+    (! return {result}) ]

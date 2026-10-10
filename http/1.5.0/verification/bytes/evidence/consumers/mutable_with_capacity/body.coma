@@ -1,0 +1,56 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 131 0 131 57 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 132 4 132 37
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 128 11 128 35
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 131 49 131 57
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 129 10 129 47
+let%span slib'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 130 10 130 49
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 142 19 142 43
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 143 18 143 55
+let%span sbytes'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 144 18 144 57
+let%span sbytes_mut = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes_mut.rs" 147 4 147 53
+
+use creusot.int.UInt64
+use creusot.int.Int64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_BytesMut
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+function bytes_mut_capacity (_value: t_BytesMut) : int
+
+let rec with_capacity (capacity: UInt64.t) (return (x: t_BytesMut)) =
+  {[@stop_split] [@expl:with_capacity requires] [%#sbytes] UInt64.t'int capacity <= Int64.to_int const_MAX}
+  any
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:with_capacity ensures] ([@stop_split] [@expl:with_capacity result type invariant] [%#sbytes_mut] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:with_capacity ensures #0] [%#sbytes'0] bytes_mut_seq result = (Seq.empty: Seq.seq UInt8.t))
+    /\ ([@stop_split] [@expl:with_capacity ensures #1] [%#sbytes'1] bytes_mut_capacity result >= UInt64.t'int capacity)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec mutable_with_capacity [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 131 0 131 57]
+  (capacity: UInt64.t) (return (x: t_BytesMut)) =
+  {[@stop_split] [@expl:mutable_with_capacity requires] [%#slib'0] UInt64.t'int capacity <= Int64.to_int const_MAX}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = with_capacity [%#slib] {capacity} (fun (_x: t_BytesMut) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_BytesMut = Any.any_l () | & capacity: UInt64.t = capacity ])
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:mutable_with_capacity ensures] ([@stop_split] [@expl:mutable_with_capacity result type invariant] [%#slib'1] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:mutable_with_capacity ensures #0] [%#slib'2] bytes_mut_seq result
+      = (Seq.empty: Seq.seq UInt8.t))
+    /\ ([@stop_split] [@expl:mutable_with_capacity ensures #1] [%#slib'3] bytes_mut_capacity result
+    >= UInt64.t'int capacity)}
+    (! return {result}) ]

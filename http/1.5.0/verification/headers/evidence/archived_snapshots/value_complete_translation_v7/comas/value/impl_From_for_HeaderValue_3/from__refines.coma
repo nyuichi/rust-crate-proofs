@@ -1,0 +1,24 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 592 12 592 43 *)
+
+(* <header::value::HeaderValue as std::convert::From<i32>> *)
+
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 592 32 592 43
+
+use creusot.int.Int32
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall value: Int32.t. forall result: t_HeaderValue. ([%#svalue] inv_HeaderValue result)
+      -> inv_HeaderValue result

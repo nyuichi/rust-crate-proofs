@@ -1,0 +1,70 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 558 4 558 60 *)
+
+(* <header::value::HeaderValue as std::fmt::Debug> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 45 21 45 25
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 46 20 46 29
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 43 26 43 94
+let%span sfmt'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span svalue = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 558 12 558 16
+let%span svalue'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value.rs" 558 18 558 19
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+
+type t_Bytes
+
+type t_HeaderValue = { inner: t_Bytes; is_sensitive: bool }
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate inv_HeaderValue (_1: t_HeaderValue)
+
+axiom inv_axiom [@rewrite]: forall x: t_HeaderValue [inv_HeaderValue x]. inv_HeaderValue x = inv_Bytes x.inner
+
+predicate invariant_ref_HeaderValue [@inline:trivial] (self: t_HeaderValue) = [%#sinvariant] inv_HeaderValue self
+
+meta "rewrite_def" predicate invariant_ref_HeaderValue
+
+predicate inv_ref_HeaderValue [@inline:trivial] (_1: t_HeaderValue) = invariant_ref_HeaderValue _1
+
+meta "rewrite_def" predicate inv_ref_HeaderValue
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant'0] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'2] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+type t_Result_unit_Error = Ok () | Err ()
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall self_: t_HeaderValue. forall formatter: MutBorrow.t t_Formatter. ([%#sfmt] inv_ref_HeaderValue self_)
+        /\ ([%#sfmt'0] inv_refmut_Formatter formatter)
+      -> ([%#svalue] inv_ref_HeaderValue self_)
+      /\ ([%#svalue'0] inv_refmut_Formatter formatter)
+      /\ (forall result: t_Result_unit_Error. [%#sfmt'1] formatter_extends (deep_model_refmut_Formatter formatter) (deep_model_Formatter formatter.final))

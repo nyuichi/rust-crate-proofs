@@ -1,0 +1,197 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 201 0 206 18 *)
+
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 192 28 192 33
+let%span sversion = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 196 11 196 59
+let%span sversion'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 197 11 197 37
+let%span sversion'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 198 10 198 29
+let%span sversion'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 199 10 199 56
+let%span sversion'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 200 10 200 57
+let%span sversion'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 62 11 62 65
+let%span sversion'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 85 11 85 59
+let%span sversion'6 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 86 11 86 37
+let%span sversion'7 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 87 11 87 26
+let%span sversion'8 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 88 10 88 29
+let%span sversion'9 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 89 10 89 56
+let%span sversion'10 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 207 4 229 5
+let%span sversion'11 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 69 4 76 50
+let%span sversion'12 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 96 4 186 5
+let%span sversion'13 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 39 11 39 36
+let%span sversion'14 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 41 4 53 5
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_VersionOutcome = Http10 | Http11 | Partial | Error
+
+type t_VersionResult = { outcome: t_VersionOutcome; mark: int; cursor: int }
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+predicate matches_version_bytes [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 63 0 68 9] (input: Seq.seq UInt8.t) (cursor'0: int) (end': int) (minor: int) =
+  [%#sversion'11] deep_model_u8 (Seq.get input cursor'0) = 72
+  /\ deep_model_u8 (Seq.get input (cursor'0 + 1)) = 84
+  /\ deep_model_u8 (Seq.get input (cursor'0 + 2)) = 84
+  /\ deep_model_u8 (Seq.get input (cursor'0 + 3)) = 80
+  /\ deep_model_u8 (Seq.get input (cursor'0 + 4)) = 47
+  /\ deep_model_u8 (Seq.get input (cursor'0 + 5)) = 49
+  /\ deep_model_u8 (Seq.get input (cursor'0 + 6)) = 46 /\ deep_model_u8 (Seq.get input (cursor'0 + 7)) = minor
+
+function version_prefix_byte [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 40 0 40 46] (offset: int) : int
+ = [%#sversion'14] if offset = 0 then
+    72
+  else
+    if offset = 1 \/ offset = 2 then
+      84
+    else
+      if offset = 3 then 80 else if offset = 4 then 47 else if offset = 5 then 49 else 46
+  
+
+
+function short_version_model [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 90 0 95 18] (input: Seq.seq UInt8.t) (mark'0: int) (start: int) (end': int) : t_VersionResult
+ = [%#sversion'12] if end' - start = 0 then
+    { outcome = Partial; mark = mark'0; cursor = end' }
+  else
+    if deep_model_u8 (Seq.get input start) <> version_prefix_byte 0 then
+      { outcome = Error; mark = mark'0; cursor = start + 1 }
+    else
+      if end' - start = 1 then
+        { outcome = Partial; mark = mark'0; cursor = end' }
+      else
+        if deep_model_u8 (Seq.get input (start + 1)) <> version_prefix_byte 1 then
+          { outcome = Error; mark = mark'0; cursor = start + 2 }
+        else
+          if end' - start = 2 then
+            { outcome = Partial; mark = mark'0; cursor = end' }
+          else
+            if deep_model_u8 (Seq.get input (start + 2)) <> version_prefix_byte 2 then
+              { outcome = Error; mark = mark'0; cursor = start + 3 }
+            else
+              if end' - start = 3 then
+                { outcome = Partial; mark = mark'0; cursor = end' }
+              else
+                if deep_model_u8 (Seq.get input (start + 3)) <> version_prefix_byte 3 then
+                  { outcome = Error; mark = mark'0; cursor = start + 4 }
+                else
+                  if end' - start = 4 then
+                    { outcome = Partial; mark = mark'0; cursor = end' }
+                  else
+                    if deep_model_u8 (Seq.get input (start + 4)) <> version_prefix_byte 4 then
+                      { outcome = Error; mark = mark'0; cursor = start + 5 }
+                    else
+                      if end' - start = 5 then
+                        { outcome = Partial; mark = mark'0; cursor = end' }
+                      else
+                        if deep_model_u8 (Seq.get input (start + 5)) <> version_prefix_byte 5 then
+                          { outcome = Error; mark = mark'0; cursor = start + 6 }
+                        else
+                          if end' - start = 6 then
+                            { outcome = Partial; mark = mark'0; cursor = end' }
+                          else
+                            if deep_model_u8 (Seq.get input (start + 6)) <> version_prefix_byte 6 then
+                              { outcome = Error; mark = mark'0; cursor = start + 7 }
+                            else
+                              { outcome = Partial; mark = mark'0; cursor = end' }
+                          
+                        
+                      
+                    
+                  
+                
+              
+            
+          
+        
+      
+    
+  
+
+
+axiom short_version_model_spec: forall input: Seq.seq UInt8.t, mark'0: int, start: int, end': int. ([%#sversion'5] 0
+        <= start
+      /\ start <= end' /\ end' <= Seq.length input)
+    -> ([%#sversion'6] 0 <= mark'0 /\ mark'0 <= start)
+    -> ([%#sversion'7] end' - start < 8) -> ([%#sversion'8] (short_version_model input mark'0 start end').mark = mark'0)
+
+axiom short_version_model_spec'0: forall input: Seq.seq UInt8.t, mark'0: int, start: int, end': int. ([%#sversion'5] 0
+        <= start
+      /\ start <= end' /\ end' <= Seq.length input)
+    -> ([%#sversion'6] 0 <= mark'0 /\ mark'0 <= start)
+    -> ([%#sversion'7] end' - start < 8)
+    -> ([%#sversion'9] start <= (short_version_model input mark'0 start end').cursor
+    /\ (short_version_model input mark'0 start end').cursor <= end')
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant mark'0 : int
+
+constant start : int
+
+constant end' : int
+
+function parse_version_model [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 201 0 206 18] (input: Seq.seq UInt8.t) (mark'0: int) (start: int) (end': int) : t_VersionResult
+
+goal vc_parse_version_model: ([%#sversion] 0 <= start /\ start <= end' /\ end' <= Seq.length input)
+  -> ([%#sversion'0] 0 <= mark'0 /\ mark'0 <= start)
+  -> (if end' - start >= 8 then
+    ([@stop_split] [@expl:matches_version_bytes requires] [%#sversion'4] 0 <= start
+      /\ start + 8 <= end' /\ end' <= Seq.length input)
+    /\ (if matches_version_bytes input start end' 48 then
+      let result = { outcome = Http10;
+                     mark = mark'0;
+                     cursor = start
+                     + 8 } in [@stop_split] [@expl:parse_version_model ensures] ([@stop_split] [@expl:parse_version_model ensures #0] [%#sversion'1] result.mark
+        = mark'0)
+      /\ ([@stop_split] [@expl:parse_version_model ensures #1] [%#sversion'2] start <= result.cursor
+        /\ result.cursor <= end')
+      /\ ([@stop_split] [@expl:parse_version_model ensures #2] [%#sversion'3] end' - start >= 8
+      -> result.cursor = start + 8)
+    else
+      ([@stop_split] [@expl:matches_version_bytes requires] [%#sversion'4] 0 <= start
+        /\ start + 8 <= end' /\ end' <= Seq.length input)
+      /\ (if matches_version_bytes input start end' 49 then
+        let result = { outcome = Http11;
+                       mark = mark'0;
+                       cursor = start
+                       + 8 } in [@stop_split] [@expl:parse_version_model ensures] ([@stop_split] [@expl:parse_version_model ensures #0] [%#sversion'1] result.mark
+          = mark'0)
+        /\ ([@stop_split] [@expl:parse_version_model ensures #1] [%#sversion'2] start <= result.cursor
+          /\ result.cursor <= end')
+        /\ ([@stop_split] [@expl:parse_version_model ensures #2] [%#sversion'3] end' - start >= 8
+        -> result.cursor = start + 8)
+      else
+        let result = { outcome = Error;
+                       mark = mark'0;
+                       cursor = start
+                       + 8 } in [@stop_split] [@expl:parse_version_model ensures] ([@stop_split] [@expl:parse_version_model ensures #0] [%#sversion'1] result.mark
+          = mark'0)
+        /\ ([@stop_split] [@expl:parse_version_model ensures #1] [%#sversion'2] start <= result.cursor
+          /\ result.cursor <= end')
+        /\ ([@stop_split] [@expl:parse_version_model ensures #2] [%#sversion'3] end' - start >= 8
+        -> result.cursor = start + 8)
+      )
+    )
+  else
+    ([@stop_split] [@expl:short_version_model requires] ([@stop_split] [@expl:short_version_model requires #0] [%#sversion'5] 0
+          <= start
+        /\ start <= end' /\ end' <= Seq.length input)
+      /\ ([@stop_split] [@expl:short_version_model requires #1] [%#sversion'6] 0 <= mark'0 /\ mark'0 <= start)
+      /\ ([@stop_split] [@expl:short_version_model requires #2] [%#sversion'7] end' - start < 8))
+    /\ (([@stop_split] [@expl:short_version_model ensures] ([@stop_split] [@expl:short_version_model ensures #0] [%#sversion'8] (short_version_model input mark'0 start end').mark
+        = mark'0)
+      /\ ([@stop_split] [@expl:short_version_model ensures #1] [%#sversion'9] start
+        <= (short_version_model input mark'0 start end').cursor
+      /\ (short_version_model input mark'0 start end').cursor <= end'))
+    -> (let result = short_version_model input mark'0 start end' in [@stop_split] [@expl:parse_version_model ensures] ([@stop_split] [@expl:parse_version_model ensures #0] [%#sversion'1] result.mark
+      = mark'0)
+    /\ ([@stop_split] [@expl:parse_version_model ensures #1] [%#sversion'2] start <= result.cursor
+      /\ result.cursor <= end')
+    /\ ([@stop_split] [@expl:parse_version_model ensures #2] [%#sversion'3] end' - start >= 8
+    -> result.cursor = start + 8)))
+  )

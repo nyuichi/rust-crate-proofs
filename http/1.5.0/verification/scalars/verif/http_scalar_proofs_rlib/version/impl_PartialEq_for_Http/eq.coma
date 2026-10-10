@@ -1,0 +1,55 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 147 4 147 38 *)
+
+(* <version::Http as std::cmp::PartialEq> *)
+
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 148 8 148 28
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 148 32 148 53
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 146 32 146 83
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 132 32 132 60
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 178 12 185 13
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'3] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+let rec numeric_value (self: t_Http) (return (x: UInt16.t)) = any
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:numeric_value ensures] [%#sversion'2] UInt16.t'int result
+    = deep_model_Http self}
+    (! return {result}) ]
+
+function deep_model_ref_Http [@inline:trivial] (self: t_Http) : int = [%#smodel] deep_model_Http self
+
+meta "rewrite_def" function deep_model_ref_Http
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec eq_Http
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 147 4 147 38]
+  (self: t_Http) (other: t_Http) (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = numeric_value [%#sversion] {self} (fun (_x: UInt16.t) -> [ &_6 <- _x ] s1)
+    | s1 = numeric_value [%#sversion'0] {other} (fun (_x: UInt16.t) -> [ &_8 <- _x ] s2)
+    | s2 = [ &_ret <- _6 = _8 ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & self: t_Http = self
+  | & other: t_Http = other
+  | & _6: UInt16.t = Any.any_l ()
+  | & _8: UInt16.t = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#sversion'1] result
+    = (deep_model_ref_Http self = deep_model_ref_Http other)}
+    (! return {result}) ]

@@ -1,0 +1,31 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value_validation.rs" 12 0 12 37 *)
+
+let%span svalue_validation = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value_validation.rs" 13 9 13 11
+let%span svalue_validation'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value_validation.rs" 13 20 13 23
+let%span svalue_validation'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value_validation.rs" 13 4 13 37
+let%span svalue_validation'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value_validation.rs" 13 32 13 37
+let%span svalue_validation'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value_validation.rs" 11 28 11 72
+
+use creusot.int.UInt8
+use creusot.prelude.Any
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec is_valid
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/value_validation.rs" 12 0 12 37]
+  (b: UInt8.t) (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- UInt8.ge b ([%#svalue_validation] (32: UInt8.t)) ] s1
+    | s1 = any [ br0 -> {_4 = false} (! bb5) | br1 -> {_4} (! bb1) ] ]
+  | bb1 = s0
+    [ s0 = [ &_6 <- b <> ([%#svalue_validation'0] (127: UInt8.t)) ] s1
+    | s1 = any [ br0 -> {_6 = false} (! bb5) | br1 -> {_6} (! bb2) ] ]
+  | bb2 = s0 [ s0 = [ &_ret <- [%#svalue_validation'1] true ] s1 | s1 = return {_ret} ]
+  | bb5 = s0 [ s0 = [ &_ret <- b = ([%#svalue_validation'2] (9: UInt8.t)) ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & b: UInt8.t = b | & _4: bool = Any.any_l () | & _6: bool = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:is_valid ensures] [%#svalue_validation'3] result
+    = (UInt8.t'int b >= 32 /\ UInt8.t'int b <> 127 \/ UInt8.t'int b = 9)}
+    (! return {result}) ]

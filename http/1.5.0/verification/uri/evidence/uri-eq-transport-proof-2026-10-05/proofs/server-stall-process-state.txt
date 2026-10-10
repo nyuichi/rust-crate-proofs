@@ -1,0 +1,10 @@
+Fresh bounded Eq proof attempt process note (2026-10-05)
+
+- The run used the exact frozen COMAs listed by proof-command.txt after the pre-proof source hash check returned exit 0.
+- Parent wrapper: scripts/run-proof.sh; configured resources: jobs=1 and 1024 MiB per prover.
+- Raw proof-run.log progress remained at `> 27/0` for approximately 150 seconds. No VC leaf name or prover calibration/start appeared, and no Z3 process was observed.
+- `why3find` PID 31671 remained sleeping; its child `why3server` PID 31675 was defunct during the stall. The `why3find` process was terminated with SIGTERM at the 150-second no-progress limit.
+- Captured proof-exit-status.txt is 143. This was a frontend/server process stall before a solver leaf started, not an open VC or a proved/failed VC result.
+- No COMA, task stream, timeout setting, or source was changed during the attempt. Do not treat this as proof progress and do not increase the timeout. Await read-only Astra diagnosis before restarting the same frozen batch.
+    PID    PPID S WCHAN                        ELAPSED COMMAND
+  31675       1 Z -                              03:41 why3server

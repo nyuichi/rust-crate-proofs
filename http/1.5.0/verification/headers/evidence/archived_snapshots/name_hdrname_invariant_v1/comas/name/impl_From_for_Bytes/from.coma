@@ -1,0 +1,527 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2094 4 2094 35 *)
+
+(* <bytes::Bytes as std::convert::From<header::name::Repr<T>>> *)
+
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span sstring = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 213 18 213 45
+let%span sstring'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 290 14 290 24
+let%span sstring'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 291 14 291 60
+let%span sstring'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 294 12 298 13
+let%span schar = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span sbytes = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes.rs" 167 4 167 58
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 61 18 61 45
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2097 36 2097 49
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2096 57 2096 72
+let%span sname'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2096 57 2096 83
+let%span sname'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2096 38 2096 84
+let%span sname'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2094 12 2094 16
+let%span sname'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2094 30 2094 35
+let%span sname'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 248 40 248 78
+let%span sname'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 236 16 236 40
+let%span sname'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 181 20 183 21
+let%span sname'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 242 16 244 17
+let%span sconvert = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/convert.rs" 15 24 15 28
+
+use creusot.prelude.Char
+use seq.Seq
+use creusot.int.UInt8
+use map.Map
+use int.ComputerDivision
+use creusot.slice.Slice64
+use creusot.prelude.Any
+use int.Int
+
+type t_StandardHeader =
+  | Accept
+  | AcceptCharset
+  | AcceptEncoding
+  | AcceptLanguage
+  | AcceptRanges
+  | AccessControlAllowCredentials
+  | AccessControlAllowHeaders
+  | AccessControlAllowMethods
+  | AccessControlAllowOrigin
+  | AccessControlExposeHeaders
+  | AccessControlMaxAge
+  | AccessControlRequestHeaders
+  | AccessControlRequestMethod
+  | Age
+  | Allow
+  | AltSvc
+  | Authorization
+  | CacheControl
+  | CacheStatus
+  | CdnCacheControl
+  | Connection
+  | ContentDisposition
+  | ContentEncoding
+  | ContentLanguage
+  | ContentLength
+  | ContentLocation
+  | ContentRange
+  | ContentSecurityPolicy
+  | ContentSecurityPolicyReportOnly
+  | ContentType
+  | Cookie
+  | Dnt
+  | Date
+  | Etag
+  | Expect
+  | Expires
+  | Forwarded
+  | From
+  | Host
+  | IfMatch
+  | IfModifiedSince
+  | IfNoneMatch
+  | IfRange
+  | IfUnmodifiedSince
+  | LastModified
+  | Link
+  | Location
+  | MaxForwards
+  | Origin
+  | Pragma
+  | ProxyAuthenticate
+  | ProxyAuthorization
+  | PublicKeyPins
+  | PublicKeyPinsReportOnly
+  | Range
+  | Referer
+  | ReferrerPolicy
+  | Refresh
+  | RetryAfter
+  | SecWebSocketAccept
+  | SecWebSocketExtensions
+  | SecWebSocketKey
+  | SecWebSocketProtocol
+  | SecWebSocketVersion
+  | Server
+  | SetCookie
+  | StrictTransportSecurity
+  | Te
+  | Trailer
+  | TransferEncoding
+  | UserAgent
+  | Upgrade
+  | UpgradeInsecureRequests
+  | Vary
+  | Via
+  | Warning
+  | WwwAuthenticate
+  | XContentTypeOptions
+  | XDnsPrefetchControl
+  | XFrameOptions
+  | XXssProtection
+
+type t_T
+
+type t_Repr_T = Standard t_StandardHeader | Custom t_T
+
+let rec elim_Custom (_x: t_Repr_T) (return (f0: t_T)) = any
+  [ _k (f0: t_T) -> {Custom f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Custom] match _x with
+      | Custom _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_Bytes
+
+predicate inv_T (_1: t_T)
+
+predicate precondition_into (self: ()) (args: t_T)
+
+axiom precondition_fndef: forall args: t_T [precondition_into () args]. (let self_ = args in [%#sconvert] inv_T self_)
+    -> precondition_into () args
+
+predicate inv_Bytes (_1: t_Bytes)
+
+predicate postcondition_once_into (self: ()) (args: t_T) (result: t_Bytes)
+
+axiom postcondition_fndef:
+  forall args: t_T, res: t_Bytes [postcondition_once_into () args res]. postcondition_once_into () args res
+    -> (let self_ = args in inv_Bytes res)
+
+let rec into_T (self_: t_T) (return (x: t_Bytes)) = {[@stop_split] [@expl:into requires] precondition_into () self_}
+  any
+  [ return (result: t_Bytes) -> {[@stop_split] [@expl:into ensures] postcondition_once_into () self_ result}
+    (! return {result}) ]
+
+let rec elim_Standard (_x: t_Repr_T) (return (f0: t_StandardHeader)) = any
+  [ _k (f0: t_StandardHeader) -> {Standard f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Standard] match _x with
+      | Standard _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'1] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'0] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t
+
+axiom to_bytes_def: forall self: Seq.seq Char.t. to_bytes self
+    = ([%#sstring'2] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (to_utf8_char (Seq.get self 0)) (to_bytes (tail_char self))
+    )
+
+axiom to_bytes_spec: forall self: Seq.seq Char.t. [%#sstring'1] to_bytes self
+    = flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+function view_str (self: string) : Seq.seq Char.t
+
+type t_StandardHeaderModel =
+  | Accept'0
+  | AcceptCharset'0
+  | AcceptEncoding'0
+  | AcceptLanguage'0
+  | AcceptRanges'0
+  | AccessControlAllowCredentials'0
+  | AccessControlAllowHeaders'0
+  | AccessControlAllowMethods'0
+  | AccessControlAllowOrigin'0
+  | AccessControlExposeHeaders'0
+  | AccessControlMaxAge'0
+  | AccessControlRequestHeaders'0
+  | AccessControlRequestMethod'0
+  | Age'0
+  | Allow'0
+  | AltSvc'0
+  | Authorization'0
+  | CacheControl'0
+  | CacheStatus'0
+  | CdnCacheControl'0
+  | Connection'0
+  | ContentDisposition'0
+  | ContentEncoding'0
+  | ContentLanguage'0
+  | ContentLength'0
+  | ContentLocation'0
+  | ContentRange'0
+  | ContentSecurityPolicy'0
+  | ContentSecurityPolicyReportOnly'0
+  | ContentType'0
+  | Cookie'0
+  | Dnt'0
+  | Date'0
+  | Etag'0
+  | Expect'0
+  | Expires'0
+  | Forwarded'0
+  | From'0
+  | Host'0
+  | IfMatch'0
+  | IfModifiedSince'0
+  | IfNoneMatch'0
+  | IfRange'0
+  | IfUnmodifiedSince'0
+  | LastModified'0
+  | Link'0
+  | Location'0
+  | MaxForwards'0
+  | Origin'0
+  | Pragma'0
+  | ProxyAuthenticate'0
+  | ProxyAuthorization'0
+  | PublicKeyPins'0
+  | PublicKeyPinsReportOnly'0
+  | Range'0
+  | Referer'0
+  | ReferrerPolicy'0
+  | Refresh'0
+  | RetryAfter'0
+  | SecWebSocketAccept'0
+  | SecWebSocketExtensions'0
+  | SecWebSocketKey'0
+  | SecWebSocketProtocol'0
+  | SecWebSocketVersion'0
+  | Server'0
+  | SetCookie'0
+  | StrictTransportSecurity'0
+  | Te'0
+  | Trailer'0
+  | TransferEncoding'0
+  | UserAgent'0
+  | Upgrade'0
+  | UpgradeInsecureRequests'0
+  | Vary'0
+  | Via'0
+  | Warning'0
+  | WwwAuthenticate'0
+  | XContentTypeOptions'0
+  | XDnsPrefetchControl'0
+  | XFrameOptions'0
+  | XXssProtection'0
+
+function byte_view [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 179 12 179 45] (self: t_StandardHeaderModel) : Seq.seq UInt8.t
+ = [%#sname'7] match self with
+    | Accept'0 -> Seq.create 6 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t)|]
+    | AcceptCharset'0 -> Seq.create 14 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(99: UInt8.t);(104: UInt8.t);(97: UInt8.t);(114: UInt8.t);(115: UInt8.t);(101: UInt8.t);(116: UInt8.t)|]
+    | AcceptEncoding'0 -> Seq.create 15 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(101: UInt8.t);(110: UInt8.t);(99: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]
+    | AcceptLanguage'0 -> Seq.create 15 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(117: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | AcceptRanges'0 -> Seq.create 13 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t);(45: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t);(115: UInt8.t)|]
+    | AccessControlAllowCredentials'0 -> Seq.create 32 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(99: UInt8.t);(114: UInt8.t);(101: UInt8.t);(100: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(97: UInt8.t);(108: UInt8.t);(115: UInt8.t)|]
+    | AccessControlAllowHeaders'0 -> Seq.create 28 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(104: UInt8.t);(101: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t)|]
+    | AccessControlAllowMethods'0 -> Seq.create 28 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(109: UInt8.t);(101: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(100: UInt8.t);(115: UInt8.t)|]
+    | AccessControlAllowOrigin'0 -> Seq.create 27 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t);(45: UInt8.t);(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(103: UInt8.t);(105: UInt8.t);(110: UInt8.t)|]
+    | AccessControlExposeHeaders'0 -> Seq.create 29 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(101: UInt8.t);(120: UInt8.t);(112: UInt8.t);(111: UInt8.t);(115: UInt8.t);(101: UInt8.t);(45: UInt8.t);(104: UInt8.t);(101: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t)|]
+    | AccessControlMaxAge'0 -> Seq.create 22 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(109: UInt8.t);(97: UInt8.t);(120: UInt8.t);(45: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | AccessControlRequestHeaders'0 -> Seq.create 30 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(113: UInt8.t);(117: UInt8.t);(101: UInt8.t);(115: UInt8.t);(116: UInt8.t);(45: UInt8.t);(104: UInt8.t);(101: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t)|]
+    | AccessControlRequestMethod'0 -> Seq.create 29 [|(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(113: UInt8.t);(117: UInt8.t);(101: UInt8.t);(115: UInt8.t);(116: UInt8.t);(45: UInt8.t);(109: UInt8.t);(101: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(100: UInt8.t)|]
+    | Age'0 -> Seq.create 3 [|(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | Allow'0 -> Seq.create 5 [|(97: UInt8.t);(108: UInt8.t);(108: UInt8.t);(111: UInt8.t);(119: UInt8.t)|]
+    | AltSvc'0 -> Seq.create 7 [|(97: UInt8.t);(108: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(118: UInt8.t);(99: UInt8.t)|]
+    | Authorization'0 -> Seq.create 13 [|(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(122: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | CacheControl'0 -> Seq.create 13 [|(99: UInt8.t);(97: UInt8.t);(99: UInt8.t);(104: UInt8.t);(101: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]
+    | CacheStatus'0 -> Seq.create 12 [|(99: UInt8.t);(97: UInt8.t);(99: UInt8.t);(104: UInt8.t);(101: UInt8.t);(45: UInt8.t);(115: UInt8.t);(116: UInt8.t);(97: UInt8.t);(116: UInt8.t);(117: UInt8.t);(115: UInt8.t)|]
+    | CdnCacheControl'0 -> Seq.create 17 [|(99: UInt8.t);(100: UInt8.t);(110: UInt8.t);(45: UInt8.t);(99: UInt8.t);(97: UInt8.t);(99: UInt8.t);(104: UInt8.t);(101: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]
+    | Connection'0 -> Seq.create 10 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(110: UInt8.t);(101: UInt8.t);(99: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | ContentDisposition'0 -> Seq.create 19 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(100: UInt8.t);(105: UInt8.t);(115: UInt8.t);(112: UInt8.t);(111: UInt8.t);(115: UInt8.t);(105: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | ContentEncoding'0 -> Seq.create 16 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(101: UInt8.t);(110: UInt8.t);(99: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]
+    | ContentLanguage'0 -> Seq.create 16 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(117: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | ContentLength'0 -> Seq.create 14 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(101: UInt8.t);(110: UInt8.t);(103: UInt8.t);(116: UInt8.t);(104: UInt8.t)|]
+    | ContentLocation'0 -> Seq.create 16 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(108: UInt8.t);(111: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | ContentRange'0 -> Seq.create 13 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | ContentSecurityPolicy'0 -> Seq.create 23 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(105: UInt8.t);(116: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(111: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(121: UInt8.t)|]
+    | ContentSecurityPolicyReportOnly'0 -> Seq.create 35 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(105: UInt8.t);(116: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(111: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(121: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(112: UInt8.t);(111: UInt8.t);(114: UInt8.t);(116: UInt8.t);(45: UInt8.t);(111: UInt8.t);(110: UInt8.t);(108: UInt8.t);(121: UInt8.t)|]
+    | ContentType'0 -> Seq.create 12 [|(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(116: UInt8.t);(121: UInt8.t);(112: UInt8.t);(101: UInt8.t)|]
+    | Cookie'0 -> Seq.create 6 [|(99: UInt8.t);(111: UInt8.t);(111: UInt8.t);(107: UInt8.t);(105: UInt8.t);(101: UInt8.t)|]
+    | Dnt'0 -> Seq.create 3 [|(100: UInt8.t);(110: UInt8.t);(116: UInt8.t)|]
+    | Date'0 -> Seq.create 4 [|(100: UInt8.t);(97: UInt8.t);(116: UInt8.t);(101: UInt8.t)|]
+    | Etag'0 -> Seq.create 4 [|(101: UInt8.t);(116: UInt8.t);(97: UInt8.t);(103: UInt8.t)|]
+    | Expect'0 -> Seq.create 6 [|(101: UInt8.t);(120: UInt8.t);(112: UInt8.t);(101: UInt8.t);(99: UInt8.t);(116: UInt8.t)|]
+    | Expires'0 -> Seq.create 7 [|(101: UInt8.t);(120: UInt8.t);(112: UInt8.t);(105: UInt8.t);(114: UInt8.t);(101: UInt8.t);(115: UInt8.t)|]
+    | Forwarded'0 -> Seq.create 9 [|(102: UInt8.t);(111: UInt8.t);(114: UInt8.t);(119: UInt8.t);(97: UInt8.t);(114: UInt8.t);(100: UInt8.t);(101: UInt8.t);(100: UInt8.t)|]
+    | From'0 -> Seq.create 4 [|(102: UInt8.t);(114: UInt8.t);(111: UInt8.t);(109: UInt8.t)|]
+    | Host'0 -> Seq.create 4 [|(104: UInt8.t);(111: UInt8.t);(115: UInt8.t);(116: UInt8.t)|]
+    | IfMatch'0 -> Seq.create 8 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(109: UInt8.t);(97: UInt8.t);(116: UInt8.t);(99: UInt8.t);(104: UInt8.t)|]
+    | IfModifiedSince'0 -> Seq.create 17 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(109: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(102: UInt8.t);(105: UInt8.t);(101: UInt8.t);(100: UInt8.t);(45: UInt8.t);(115: UInt8.t);(105: UInt8.t);(110: UInt8.t);(99: UInt8.t);(101: UInt8.t)|]
+    | IfNoneMatch'0 -> Seq.create 13 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(110: UInt8.t);(111: UInt8.t);(110: UInt8.t);(101: UInt8.t);(45: UInt8.t);(109: UInt8.t);(97: UInt8.t);(116: UInt8.t);(99: UInt8.t);(104: UInt8.t)|]
+    | IfRange'0 -> Seq.create 8 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | IfUnmodifiedSince'0 -> Seq.create 19 [|(105: UInt8.t);(102: UInt8.t);(45: UInt8.t);(117: UInt8.t);(110: UInt8.t);(109: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(102: UInt8.t);(105: UInt8.t);(101: UInt8.t);(100: UInt8.t);(45: UInt8.t);(115: UInt8.t);(105: UInt8.t);(110: UInt8.t);(99: UInt8.t);(101: UInt8.t)|]
+    | LastModified'0 -> Seq.create 13 [|(108: UInt8.t);(97: UInt8.t);(115: UInt8.t);(116: UInt8.t);(45: UInt8.t);(109: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(102: UInt8.t);(105: UInt8.t);(101: UInt8.t);(100: UInt8.t)|]
+    | Link'0 -> Seq.create 4 [|(108: UInt8.t);(105: UInt8.t);(110: UInt8.t);(107: UInt8.t)|]
+    | Location'0 -> Seq.create 8 [|(108: UInt8.t);(111: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | MaxForwards'0 -> Seq.create 12 [|(109: UInt8.t);(97: UInt8.t);(120: UInt8.t);(45: UInt8.t);(102: UInt8.t);(111: UInt8.t);(114: UInt8.t);(119: UInt8.t);(97: UInt8.t);(114: UInt8.t);(100: UInt8.t);(115: UInt8.t)|]
+    | Origin'0 -> Seq.create 6 [|(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(103: UInt8.t);(105: UInt8.t);(110: UInt8.t)|]
+    | Pragma'0 -> Seq.create 6 [|(112: UInt8.t);(114: UInt8.t);(97: UInt8.t);(103: UInt8.t);(109: UInt8.t);(97: UInt8.t)|]
+    | ProxyAuthenticate'0 -> Seq.create 18 [|(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(120: UInt8.t);(121: UInt8.t);(45: UInt8.t);(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(101: UInt8.t)|]
+    | ProxyAuthorization'0 -> Seq.create 19 [|(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(120: UInt8.t);(121: UInt8.t);(45: UInt8.t);(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(111: UInt8.t);(114: UInt8.t);(105: UInt8.t);(122: UInt8.t);(97: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | PublicKeyPins'0 -> Seq.create 15 [|(112: UInt8.t);(117: UInt8.t);(98: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(45: UInt8.t);(107: UInt8.t);(101: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(105: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]
+    | PublicKeyPinsReportOnly'0 -> Seq.create 27 [|(112: UInt8.t);(117: UInt8.t);(98: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(45: UInt8.t);(107: UInt8.t);(101: UInt8.t);(121: UInt8.t);(45: UInt8.t);(112: UInt8.t);(105: UInt8.t);(110: UInt8.t);(115: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(112: UInt8.t);(111: UInt8.t);(114: UInt8.t);(116: UInt8.t);(45: UInt8.t);(111: UInt8.t);(110: UInt8.t);(108: UInt8.t);(121: UInt8.t)|]
+    | Range'0 -> Seq.create 5 [|(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(103: UInt8.t);(101: UInt8.t)|]
+    | Referer'0 -> Seq.create 7 [|(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(101: UInt8.t);(114: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]
+    | ReferrerPolicy'0 -> Seq.create 15 [|(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(101: UInt8.t);(114: UInt8.t);(114: UInt8.t);(101: UInt8.t);(114: UInt8.t);(45: UInt8.t);(112: UInt8.t);(111: UInt8.t);(108: UInt8.t);(105: UInt8.t);(99: UInt8.t);(121: UInt8.t)|]
+    | Refresh'0 -> Seq.create 7 [|(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(114: UInt8.t);(101: UInt8.t);(115: UInt8.t);(104: UInt8.t)|]
+    | RetryAfter'0 -> Seq.create 11 [|(114: UInt8.t);(101: UInt8.t);(116: UInt8.t);(114: UInt8.t);(121: UInt8.t);(45: UInt8.t);(97: UInt8.t);(102: UInt8.t);(116: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]
+    | SecWebSocketAccept'0 -> Seq.create 20 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(97: UInt8.t);(99: UInt8.t);(99: UInt8.t);(101: UInt8.t);(112: UInt8.t);(116: UInt8.t)|]
+    | SecWebSocketExtensions'0 -> Seq.create 24 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(101: UInt8.t);(120: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(115: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]
+    | SecWebSocketKey'0 -> Seq.create 17 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(107: UInt8.t);(101: UInt8.t);(121: UInt8.t)|]
+    | SecWebSocketProtocol'0 -> Seq.create 22 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(116: UInt8.t);(111: UInt8.t);(99: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]
+    | SecWebSocketVersion'0 -> Seq.create 21 [|(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(45: UInt8.t);(119: UInt8.t);(101: UInt8.t);(98: UInt8.t);(115: UInt8.t);(111: UInt8.t);(99: UInt8.t);(107: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(118: UInt8.t);(101: UInt8.t);(114: UInt8.t);(115: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    | Server'0 -> Seq.create 6 [|(115: UInt8.t);(101: UInt8.t);(114: UInt8.t);(118: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]
+    | SetCookie'0 -> Seq.create 10 [|(115: UInt8.t);(101: UInt8.t);(116: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(111: UInt8.t);(107: UInt8.t);(105: UInt8.t);(101: UInt8.t)|]
+    | StrictTransportSecurity'0 -> Seq.create 25 [|(115: UInt8.t);(116: UInt8.t);(114: UInt8.t);(105: UInt8.t);(99: UInt8.t);(116: UInt8.t);(45: UInt8.t);(116: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(115: UInt8.t);(112: UInt8.t);(111: UInt8.t);(114: UInt8.t);(116: UInt8.t);(45: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(105: UInt8.t);(116: UInt8.t);(121: UInt8.t)|]
+    | Te'0 -> Seq.create 2 [|(116: UInt8.t);(101: UInt8.t)|]
+    | Trailer'0 -> Seq.create 7 [|(116: UInt8.t);(114: UInt8.t);(97: UInt8.t);(105: UInt8.t);(108: UInt8.t);(101: UInt8.t);(114: UInt8.t)|]
+    | TransferEncoding'0 -> Seq.create 17 [|(116: UInt8.t);(114: UInt8.t);(97: UInt8.t);(110: UInt8.t);(115: UInt8.t);(102: UInt8.t);(101: UInt8.t);(114: UInt8.t);(45: UInt8.t);(101: UInt8.t);(110: UInt8.t);(99: UInt8.t);(111: UInt8.t);(100: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]
+    | UserAgent'0 -> Seq.create 10 [|(117: UInt8.t);(115: UInt8.t);(101: UInt8.t);(114: UInt8.t);(45: UInt8.t);(97: UInt8.t);(103: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t)|]
+    | Upgrade'0 -> Seq.create 7 [|(117: UInt8.t);(112: UInt8.t);(103: UInt8.t);(114: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t)|]
+    | UpgradeInsecureRequests'0 -> Seq.create 25 [|(117: UInt8.t);(112: UInt8.t);(103: UInt8.t);(114: UInt8.t);(97: UInt8.t);(100: UInt8.t);(101: UInt8.t);(45: UInt8.t);(105: UInt8.t);(110: UInt8.t);(115: UInt8.t);(101: UInt8.t);(99: UInt8.t);(117: UInt8.t);(114: UInt8.t);(101: UInt8.t);(45: UInt8.t);(114: UInt8.t);(101: UInt8.t);(113: UInt8.t);(117: UInt8.t);(101: UInt8.t);(115: UInt8.t);(116: UInt8.t);(115: UInt8.t)|]
+    | Vary'0 -> Seq.create 4 [|(118: UInt8.t);(97: UInt8.t);(114: UInt8.t);(121: UInt8.t)|]
+    | Via'0 -> Seq.create 3 [|(118: UInt8.t);(105: UInt8.t);(97: UInt8.t)|]
+    | Warning'0 -> Seq.create 7 [|(119: UInt8.t);(97: UInt8.t);(114: UInt8.t);(110: UInt8.t);(105: UInt8.t);(110: UInt8.t);(103: UInt8.t)|]
+    | WwwAuthenticate'0 -> Seq.create 16 [|(119: UInt8.t);(119: UInt8.t);(119: UInt8.t);(45: UInt8.t);(97: UInt8.t);(117: UInt8.t);(116: UInt8.t);(104: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(105: UInt8.t);(99: UInt8.t);(97: UInt8.t);(116: UInt8.t);(101: UInt8.t)|]
+    | XContentTypeOptions'0 -> Seq.create 22 [|(120: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(101: UInt8.t);(110: UInt8.t);(116: UInt8.t);(45: UInt8.t);(116: UInt8.t);(121: UInt8.t);(112: UInt8.t);(101: UInt8.t);(45: UInt8.t);(111: UInt8.t);(112: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]
+    | XDnsPrefetchControl'0 -> Seq.create 22 [|(120: UInt8.t);(45: UInt8.t);(100: UInt8.t);(110: UInt8.t);(115: UInt8.t);(45: UInt8.t);(112: UInt8.t);(114: UInt8.t);(101: UInt8.t);(102: UInt8.t);(101: UInt8.t);(116: UInt8.t);(99: UInt8.t);(104: UInt8.t);(45: UInt8.t);(99: UInt8.t);(111: UInt8.t);(110: UInt8.t);(116: UInt8.t);(114: UInt8.t);(111: UInt8.t);(108: UInt8.t)|]
+    | XFrameOptions'0 -> Seq.create 15 [|(120: UInt8.t);(45: UInt8.t);(102: UInt8.t);(114: UInt8.t);(97: UInt8.t);(109: UInt8.t);(101: UInt8.t);(45: UInt8.t);(111: UInt8.t);(112: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t);(115: UInt8.t)|]
+    | XXssProtection'0 -> Seq.create 16 [|(120: UInt8.t);(45: UInt8.t);(120: UInt8.t);(115: UInt8.t);(115: UInt8.t);(45: UInt8.t);(112: UInt8.t);(114: UInt8.t);(111: UInt8.t);(116: UInt8.t);(101: UInt8.t);(99: UInt8.t);(116: UInt8.t);(105: UInt8.t);(111: UInt8.t);(110: UInt8.t)|]
+    end
+
+function model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 241 12 241 49] (self: t_StandardHeader) : t_StandardHeaderModel
+ = [%#sname'8] match self with
+    | Accept -> Accept'0
+    | AcceptCharset -> AcceptCharset'0
+    | AcceptEncoding -> AcceptEncoding'0
+    | AcceptLanguage -> AcceptLanguage'0
+    | AcceptRanges -> AcceptRanges'0
+    | AccessControlAllowCredentials -> AccessControlAllowCredentials'0
+    | AccessControlAllowHeaders -> AccessControlAllowHeaders'0
+    | AccessControlAllowMethods -> AccessControlAllowMethods'0
+    | AccessControlAllowOrigin -> AccessControlAllowOrigin'0
+    | AccessControlExposeHeaders -> AccessControlExposeHeaders'0
+    | AccessControlMaxAge -> AccessControlMaxAge'0
+    | AccessControlRequestHeaders -> AccessControlRequestHeaders'0
+    | AccessControlRequestMethod -> AccessControlRequestMethod'0
+    | Age -> Age'0
+    | Allow -> Allow'0
+    | AltSvc -> AltSvc'0
+    | Authorization -> Authorization'0
+    | CacheControl -> CacheControl'0
+    | CacheStatus -> CacheStatus'0
+    | CdnCacheControl -> CdnCacheControl'0
+    | Connection -> Connection'0
+    | ContentDisposition -> ContentDisposition'0
+    | ContentEncoding -> ContentEncoding'0
+    | ContentLanguage -> ContentLanguage'0
+    | ContentLength -> ContentLength'0
+    | ContentLocation -> ContentLocation'0
+    | ContentRange -> ContentRange'0
+    | ContentSecurityPolicy -> ContentSecurityPolicy'0
+    | ContentSecurityPolicyReportOnly -> ContentSecurityPolicyReportOnly'0
+    | ContentType -> ContentType'0
+    | Cookie -> Cookie'0
+    | Dnt -> Dnt'0
+    | Date -> Date'0
+    | Etag -> Etag'0
+    | Expect -> Expect'0
+    | Expires -> Expires'0
+    | Forwarded -> Forwarded'0
+    | From -> From'0
+    | Host -> Host'0
+    | IfMatch -> IfMatch'0
+    | IfModifiedSince -> IfModifiedSince'0
+    | IfNoneMatch -> IfNoneMatch'0
+    | IfRange -> IfRange'0
+    | IfUnmodifiedSince -> IfUnmodifiedSince'0
+    | LastModified -> LastModified'0
+    | Link -> Link'0
+    | Location -> Location'0
+    | MaxForwards -> MaxForwards'0
+    | Origin -> Origin'0
+    | Pragma -> Pragma'0
+    | ProxyAuthenticate -> ProxyAuthenticate'0
+    | ProxyAuthorization -> ProxyAuthorization'0
+    | PublicKeyPins -> PublicKeyPins'0
+    | PublicKeyPinsReportOnly -> PublicKeyPinsReportOnly'0
+    | Range -> Range'0
+    | Referer -> Referer'0
+    | ReferrerPolicy -> ReferrerPolicy'0
+    | Refresh -> Refresh'0
+    | RetryAfter -> RetryAfter'0
+    | SecWebSocketAccept -> SecWebSocketAccept'0
+    | SecWebSocketExtensions -> SecWebSocketExtensions'0
+    | SecWebSocketKey -> SecWebSocketKey'0
+    | SecWebSocketProtocol -> SecWebSocketProtocol'0
+    | SecWebSocketVersion -> SecWebSocketVersion'0
+    | Server -> Server'0
+    | SetCookie -> SetCookie'0
+    | StrictTransportSecurity -> StrictTransportSecurity'0
+    | Te -> Te'0
+    | Trailer -> Trailer'0
+    | TransferEncoding -> TransferEncoding'0
+    | UserAgent -> UserAgent'0
+    | Upgrade -> Upgrade'0
+    | UpgradeInsecureRequests -> UpgradeInsecureRequests'0
+    | Vary -> Vary'0
+    | Via -> Via'0
+    | Warning -> Warning'0
+    | WwwAuthenticate -> WwwAuthenticate'0
+    | XContentTypeOptions -> XContentTypeOptions'0
+    | XDnsPrefetchControl -> XDnsPrefetchControl'0
+    | XFrameOptions -> XFrameOptions'0
+    | XXssProtection -> XXssProtection'0
+    end
+
+function byte_view'0 [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 235 12 235 41] (self: t_StandardHeader) : Seq.seq UInt8.t
+ = [%#sname'6] byte_view (model self)
+
+let rec as_str (self: t_StandardHeader) (return (x: string)) = any
+  [ return (result: string) -> {[@stop_split] [@expl:as_str ensures] [%#sname'5] to_bytes (view_str result)
+    = byte_view'0 self}
+    (! return {result}) ]
+
+let rec as_bytes (self_: string) (return (x: Slice64.slice UInt8.t)) = any
+  [ return (result: Slice64.slice UInt8.t) -> {[@stop_split] [@expl:as_bytes ensures] [%#sstring] Slice64.view result
+    = to_bytes (view_str self_)}
+    (! return {result}) ]
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+let rec from_static (bytes: Slice64.slice UInt8.t) (return (x: t_Bytes)) = any
+  [ return (result: t_Bytes) ->
+  {[@stop_split] [@expl:from_static ensures] ([@stop_split] [@expl:from_static result type invariant] [%#sbytes] inv_Bytes result)
+    /\ ([@stop_split] [@expl:from_static ensures] [%#sbytes'0] bytes_seq result = Slice64.view bytes)}
+    (! return {result}) ]
+
+predicate inv_Repr_T (_1: t_Repr_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Repr_T [inv_Repr_T x]. inv_Repr_T x
+    = match x with
+      | Standard f0 -> true
+      | Custom f0 -> inv_T f0
+      end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_Bytes
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 2094 4 2094 35]
+  (repr: t_Repr_T) (return (x: t_Bytes)) =
+  {[@stop_split] [@expl:from 'repr' type invariant] [%#sname'3] inv_Repr_T repr}
+  (! bb0
+  [ bb0 = any
+    [ br0 (x0: t_StandardHeader) -> {repr = Standard x0} (! bb4) | br1 (x0: t_T) -> {repr = Custom x0} (! bb3) ]
+  | bb3 = s0
+    [ s0 = elim_Custom {repr} (fun (r0: t_T) -> [ &header'0 <- r0 ] s1)
+    | s1 = into_T [%#sname] {header'0} (fun (_x: t_Bytes) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ]
+  | bb4 = s0
+    [ s0 = elim_Standard {repr} (fun (r0: t_StandardHeader) -> [ &header <- r0 ] s1)
+    | s1 = as_str [%#sname'0] {header} (fun (_x: string) -> [ &_7 <- _x ] s2)
+    | s2 = as_bytes [%#sname'1] {_7} (fun (_x: Slice64.slice UInt8.t) -> [ &_5 <- _x ] s3)
+    | s3 = from_static [%#sname'2] {_5} (fun (_x: t_Bytes) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Bytes = Any.any_l ()
+  | & repr: t_Repr_T = repr
+  | & header: t_StandardHeader = Any.any_l ()
+  | & _5: Slice64.slice UInt8.t = Any.any_l ()
+  | & _7: string = Any.any_l ()
+  | & header'0: t_T = Any.any_l () ])
+  [ return (result: t_Bytes) -> {[@stop_split] [@expl:from result type invariant] [%#sname'4] inv_Bytes result}
+    (! return {result}) ]

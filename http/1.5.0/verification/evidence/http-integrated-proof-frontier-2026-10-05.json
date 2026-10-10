@@ -1,0 +1,102 @@
+{
+  "record_type": "http-integrated-proof-frontier-attempt",
+  "crate": "http 1.5.0",
+  "captured_at_utc": "2026-10-05T08:14:02Z",
+  "scope": "HTTP 1.5.0 only; required verify-all default/all-features integrated frontier.",
+  "source_snapshot": {
+    "baseline_manifest": "verification/runtime-check/evidence/http-native-checkpoint-source-2026-10-05T08-03-09Z.json",
+    "baseline_archive": "verification/runtime-check/evidence/http-native-checkpoint-source-2026-10-05T08-03-09Z.tar.gz",
+    "baseline_archive_sha256": "a64883b4a7b459dc7439615477941e3f6eab3364706690b424b4f60047a7c5a1",
+    "file_count": 172,
+    "hash_map_sha256": "21ea257c2a1705ba00d19f44900ec0b56b075cf2e79eb7a9baeab175bf3a8411",
+    "post_run_manifest": "verification/evidence/http-proof-frontier-source-after-runs-2026-10-05.json",
+    "post_run_hash_map_sha256": "21ea257c2a1705ba00d19f44900ec0b56b075cf2e79eb7a9baeab175bf3a8411",
+    "changed_paths_after_run": [],
+    "unchanged_during_run": true
+  },
+  "instructions": {
+    "repository_agents": {
+      "path": "AGENTS.md",
+      "sha256": "594b288f8261c71b030819b6e67b24ab7388ac589208f1bffa22db8eddc69f6c"
+    },
+    "required_playbook": {
+      "path": ".agents/playbooks/verification.md",
+      "sha256": "11f85b22537759315b0f71bfbc59411247eea48301aa1c26ed7c7556b7491482"
+    },
+    "verify_all": {
+      "path": "http/1.5.0/verify-all.bash",
+      "sha256": "6172fbd2fd172182b91e36d0dcdae8025e627ffb5deeb07d1dc31c794a208319"
+    },
+    "internal_wrapper": {
+      "path": "http/1.5.0/scripts/run-proof.sh",
+      "sha256": "aa6fd76fb82706452bb94f67e8bd895c011373a8f4c1fc5504df86b3c91dd456"
+    },
+    "wrapper_behavior": "Each proof command invokes the shared lock internally. No outer wrapper was used.",
+    "proof_resources": "1 prover job, 1024 MiB per prover, shared lock held.",
+    "lint_caps": false,
+    "source_edits": false
+  },
+  "runs": [
+    {
+      "name": "required verify-all default then all-features script",
+      "command": "bash ./verify-all.bash",
+      "log": {
+        "path": "verification/evidence/http-default_verify_all_log-2026-10-05.log",
+        "sha256": "3bdb9aae78dacfb26b09ae5af12fa9964b4fe7c2dabbe6837ad591207cde7ac4",
+        "bytes": 31150
+      },
+      "exit_code": 101,
+      "stages": [
+        {
+          "command": "./scripts/run-proof.sh cargo creusot clean --force",
+          "exit_code": 0,
+          "note": "No dangling files found."
+        },
+        {
+          "command": "./scripts/run-proof.sh cargo creusot --simple-triggers=false prove -- --locked --offline",
+          "exit_code": 101,
+          "stage": "default",
+          "failure_phase": "Rust/Creusot frontend compilation before Why3 VC generation"
+        }
+      ],
+      "all_features_stage": "Not reached: verify-all.bash uses set -e and stopped after default failure."
+    },
+    {
+      "name": "separate all-features clean+prove follow-up",
+      "commands": [
+        {
+          "command": "./scripts/run-proof.sh cargo creusot clean --force",
+          "exit_code": 0
+        },
+        {
+          "command": "./scripts/run-proof.sh cargo creusot --simple-triggers=false prove -- --all-features --locked --offline",
+          "exit_code": 101,
+          "failure_phase": "Rust/Creusot frontend compilation before Why3 VC generation"
+        }
+      ],
+      "log": {
+        "path": "verification/evidence/http-all_features_followup_log-2026-10-05.log",
+        "sha256": "ba386822829e1652576d7dcff79e332fa5e5423b98e7f0625087019c2448c33d",
+        "bytes": 30727
+      }
+    }
+  ],
+  "frontend_failure": {
+    "both_profiles": "Same 27 frontend errors on default and all-features.",
+    "counts": {
+      "E0425_missing_root_error_model_exports": 8,
+      "unused_parens_denied_by_warnings": 17,
+      "unused_pearlite_imports_denied_by_warnings": 2
+    },
+    "diagnostics": [
+      "request.rs and response.rs refer to crate::ErrorModelRef and crate::error_model_ref, but error/core.rs declarations are inaccessible from the crate root.",
+      "Verification ensures expressions trigger unnecessary-parentheses diagnostics under crate-level deny(warnings).",
+      "uri/path_class.rs and uri/path_static_domain.rs import pearlite without using it."
+    ],
+    "expected_any_clone_gap": "The anticipated Any/Clone proof gap was not reached; native Rust frontend compilation stopped first.",
+    "vcs_generated_or_proved": false,
+    "source_fix_attempted": false
+  },
+  "resolution_status": "Default and all-features integrated proofs remain open at frontend compilation; this run records the current blocking frontier without changing source.",
+  "preservation": "Only the production verification output was cleaned by the required script. No source or accepted evidence archive was edited."
+}

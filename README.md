@@ -50,6 +50,32 @@ standard-library specifications used by the proofs.
 
 ## Current proofs
 
+### httparse 1.10.1 (partial)
+
+The P1 proof checkpoint covers the actual shared-source bodies for
+`Status<T>`'s three inherent methods and `Clone`, plus `ParserConfig`'s default,
+seven setters, four getters, `Clone`, and a chained-setter caller. The
+contracts harness discharged 26 verification conditions. Shared byte-class
+and constructor harnesses passed 29 and 9 conditions respectively. The actual
+extracted chunk-size parser and its dependencies passed 61 debug conditions;
+the selected release bodies passed 42. A fresh active-compiler run proved 139
+unique `Bytes` leaves across 31 CoMa targets at `src/iter.rs` SHA-256
+`369662bbf36c68ba814750ce3a91c4aa78ab40e9453af0f7e07f30d869103625`.
+
+The extracted `parse_code` helper body proves against its exact independent
+model: 3/3 obligations for the body, within a 33-leaf selected closure that
+includes 27 shared `Bytes` dependencies and 6 model/helper/parser leaves. These
+totals share dependencies and are not additive. The outer response caller and
+other parser routines remain open.
+
+This does not prove HTTP parsing behavior. Request/response adapters and state
+updates, header parsing and uninitialized storage,
+`Error` formatting, some `_benchable::Bytes` API specifications, and SWAR/SIMD
+scanners and dispatch remain open. `Status` formatting/equality and
+`ParserConfig` formatting are excluded only from `cfg(creusot)`; normal builds
+retain their upstream trait implementations. The per-component ledger and
+reproduction details are in [httparse's provenance record](httparse/1.10.1/PROVENANCE.md).
+
 ### crossbeam-epoch 0.9.20
 
 `crossbeam-epoch` 0.9.20 has an exact single-owner model of the collector's

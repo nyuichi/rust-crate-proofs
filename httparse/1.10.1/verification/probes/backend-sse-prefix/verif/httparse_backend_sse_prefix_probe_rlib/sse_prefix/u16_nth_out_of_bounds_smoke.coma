@@ -1,0 +1,25 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 90 4 90 36 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 85 14 85 33
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 86 14 86 33
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 87 14 87 36
+let%span slib'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 88 14 88 38
+
+use creusot.prelude.Any
+use creusot.int.UInt16BW
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec u16_nth_out_of_bounds_smoke
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 90 4 90 36]
+  (return (x: ())) = (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:u16_nth_out_of_bounds_smoke ensures] ([@stop_split] [@expl:u16_nth_out_of_bounds_smoke ensures #0] [%#slib] not UInt16BW.nth (1: UInt16BW.t) (- 1))
+    /\ ([@stop_split] [@expl:u16_nth_out_of_bounds_smoke ensures #1] [%#slib'0] not UInt16BW.nth (1: UInt16BW.t) 16)
+    /\ ([@stop_split] [@expl:u16_nth_out_of_bounds_smoke ensures #2] [%#slib'1] not UInt16BW.nth (1: UInt16BW.t) 65536)
+    /\ ([@stop_split] [@expl:u16_nth_out_of_bounds_smoke ensures #3] [%#slib'2] not UInt16BW.nth (65535: UInt16BW.t) (- 1))}
+    (! return {result}) ]

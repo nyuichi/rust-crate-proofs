@@ -1,0 +1,489 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 110 9 110 14 *)
+
+(* <header::map::HeaderMap<T> as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 491 18 492 60
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 160 14 160 114
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 165 14 165 100
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 170 14 170 61
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 126 15 126 59
+let%span sops'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 127 14 127 38
+let%span sops'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 132 14 132 33
+let%span sops'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 137 15 137 31
+let%span sops'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 138 15 138 28
+let%span sops'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 139 14 139 30
+let%span sops'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 144 14 145 104
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 243 18 243 22
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 240 18 240 46
+let%span svec'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 241 18 242 60
+let%span svec'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span svec'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 89 20 89 30
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 215 26 215 41
+let%span smap_index = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 61 14 61 68
+let%span smap_index'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map_index.rs" 62 4 62 27
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 113 4 113 14
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 114 4 114 23
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 115 4 115 27
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 116 4 116 36
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 117 4 117 18
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 110 9 110 14
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 110 9 110 14
+let%span smap'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 854 9 854 14
+let%span smap'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 854 9 854 14
+let%span smap'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 630 16 630 21
+let%span smap'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 630 16 630 21
+let%span smap'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 816 16 816 21
+let%span smap'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 816 16 816 21
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 24 8 24 22
+
+use creusot.int.UInt16
+use creusot.slice.Slice64
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+type t_Vec_Bucket_T_Global
+
+type t_Vec_ExtraValue_T_Global
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+type t_HeaderMap_T = {
+  mask: UInt16.t;
+  indices: Slice64.slice t_Pos;
+  entries: t_Vec_Bucket_T_Global;
+  extra_values: t_Vec_ExtraValue_T_Global;
+  danger: t_Danger }
+
+let rec clone_u16 (self_: UInt16.t) (return (x: UInt16.t)) = any
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:clone ensures] [%#snum] result = self_} (! return {result}) ]
+
+function view_Box_slice_Pos_Global [@inline:trivial] (self: Slice64.slice t_Pos) : Seq.seq t_Pos =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_Pos_Global
+
+predicate postcondition_once_clone [@inline:trivial] (self: ()) (args: t_Pos) (result: t_Pos) =
+  [%#smap_index'0] let self'0 = args in [%#smap_index] result.index = self'0.index /\ result.hash = self'0.hash
+
+meta "rewrite_def" predicate postcondition_once_clone
+
+predicate resolve_clone [@inline:trivial] (_1: ()) = true
+
+meta "rewrite_def" predicate resolve_clone
+
+predicate postcondition_mut_clone [@inline:trivial] (self: ()) (args: t_Pos) (result_state: ()) (result: t_Pos) =
+  [%#smap_index'0] let self'0 = args in [%#smap_index] result.index = self'0.index /\ result.hash = self'0.hash
+
+meta "rewrite_def" predicate postcondition_mut_clone
+
+function fn_mut_once_clone (self: ()) (args: t_Pos) (res: t_Pos) : ()
+
+axiom fn_mut_once_clone_spec:
+  forall self: (), args: t_Pos, res: t_Pos. [%#sops'8] postcondition_once_clone self args res
+    = (exists res_state: (). postcondition_mut_clone self args res_state res /\ resolve_clone res_state)
+
+predicate hist_inv_clone [@inline:trivial] (self: ()) (result_state: ()) = true
+
+meta "rewrite_def" predicate hist_inv_clone
+
+function hist_inv_trans_clone (self: ()) (b: ()) (c: ()) : ()
+
+axiom hist_inv_trans_clone_spec: forall self: (), b: (), c: (). ([%#sops'5] hist_inv_clone self b)
+    -> ([%#sops'6] hist_inv_clone b c) -> ([%#sops'7] hist_inv_clone self c)
+
+function hist_inv_refl_clone (self: ()) : ()
+
+axiom hist_inv_refl_clone_spec: forall self: (). [%#sops'4] hist_inv_clone self self
+
+function postcondition_mut_hist_inv_clone (self: ()) (args: t_Pos) (res_state: ()) (res: t_Pos) : ()
+
+axiom postcondition_mut_hist_inv_clone_spec:
+  forall self: (), args: t_Pos, res_state: (), res: t_Pos. ([%#sops'2] postcondition_mut_clone self args res_state res)
+    -> ([%#sops'3] hist_inv_clone self res_state)
+
+function fn_hist_inv_clone (self: ()) (res_state: ()) : ()
+
+axiom fn_hist_inv_clone_spec: forall self: (), res_state: (). [%#sops'1] hist_inv_clone self res_state
+    = (self = res_state)
+
+predicate postcondition_clone [@inline:trivial] (self: ()) (args: t_Pos) (result: t_Pos) =
+  [%#smap_index'0] let self'0 = args in [%#smap_index] result.index = self'0.index /\ result.hash = self'0.hash
+
+meta "rewrite_def" predicate postcondition_clone
+
+function fn_once_clone (self: ()) (args: t_Pos) (res: t_Pos) : ()
+
+axiom fn_once_clone_spec: forall self: (), args: t_Pos, res: t_Pos. [%#sops'0] postcondition_once_clone self args res
+    = (postcondition_clone self args res /\ resolve_clone self)
+
+function fn_mut_clone (self: ()) (args: t_Pos) (res_state: ()) (res: t_Pos) : ()
+
+axiom fn_mut_clone_spec:
+  forall self: (), args: t_Pos, res_state: (), res: t_Pos. [%#sops] postcondition_mut_clone self args res_state res
+    = (postcondition_clone self args res /\ self = res_state)
+
+let rec clone_Pos (self: t_Pos) (return (x: t_Pos)) = any
+  [ return (result: t_Pos) -> {[@stop_split] [@expl:clone ensures] [%#smap_index] result.index = self.index
+    /\ result.hash = self.hash}
+    (! return {result}) ]
+
+let rec clone_Box_slice_Pos_Global (self_: Slice64.slice t_Pos) (return (x: Slice64.slice t_Pos)) = any
+  [ return (result: Slice64.slice t_Pos) -> {[@stop_split] [@expl:clone ensures] [%#sslice] forall i: int. 0 <= i
+        /\ i < Seq.length (view_Box_slice_Pos_Global self_)
+      -> postcondition_clone () (Seq.get (view_Box_slice_Pos_Global self_) i) (Seq.get (view_Box_slice_Pos_Global result) i)}
+    (! return {result}) ]
+
+type t_HeaderName
+
+type t_T
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None | Some t_Links
+
+type t_Bucket_T = { hash'0: t_HashValue; key'0: t_HeaderName; value'0: t_T; links'0: t_Option_Links }
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Bucket_T (_1: t_Bucket_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Bucket_T [inv_Bucket_T x]. inv_Bucket_T x
+    = (inv_HeaderName x.key'0 /\ inv_T x.value'0)
+
+predicate invariant_ref_Bucket_T [@inline:trivial] (self: t_Bucket_T) = [%#sinvariant] inv_Bucket_T self
+
+meta "rewrite_def" predicate invariant_ref_Bucket_T
+
+predicate inv_ref_Bucket_T [@inline:trivial] (_1: t_Bucket_T) = invariant_ref_Bucket_T _1
+
+meta "rewrite_def" predicate inv_ref_Bucket_T
+
+predicate invariant_Seq_Bucket_T [@inline:trivial] (self: Seq.seq t_Bucket_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_Bucket_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_Bucket_T
+
+predicate inv_Seq_Bucket_T [@inline:trivial] (_1: Seq.seq t_Bucket_T) = invariant_Seq_Bucket_T _1
+
+meta "rewrite_def" predicate inv_Seq_Bucket_T
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) : Seq.seq t_Bucket_T
+
+axiom view_Vec_Bucket_T_Global_spec:
+  forall self: t_Vec_Bucket_T_Global. [%#svec'2] Seq.length (view_Vec_Bucket_T_Global self) <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) =
+  [%#svec'3] inv_Seq_Bucket_T (view_Vec_Bucket_T_Global self)
+
+predicate inv_Vec_Bucket_T_Global (_1: t_Vec_Bucket_T_Global)
+
+axiom inv_axiom'0: forall x: t_Vec_Bucket_T_Global [inv_Vec_Bucket_T_Global x]. inv_Vec_Bucket_T_Global x
+    -> invariant_Vec_Bucket_T_Global x
+
+predicate invariant_ref_Vec_Bucket_T_Global [@inline:trivial] (self: t_Vec_Bucket_T_Global) =
+  [%#sinvariant] inv_Vec_Bucket_T_Global self
+
+meta "rewrite_def" predicate invariant_ref_Vec_Bucket_T_Global
+
+predicate inv_ref_Vec_Bucket_T_Global [@inline:trivial] (_1: t_Vec_Bucket_T_Global) =
+  invariant_ref_Vec_Bucket_T_Global _1
+
+meta "rewrite_def" predicate inv_ref_Vec_Bucket_T_Global
+
+predicate postcondition_once_clone'0 [@inline:trivial] (self: ()) (args: t_Bucket_T) (result: t_Bucket_T) =
+  [%#smap'8] let self'0 = args in [%#smap'8] inv_Bucket_T result
+
+meta "rewrite_def" predicate postcondition_once_clone'0
+
+predicate resolve_clone'0 [@inline:trivial] (_1: ()) = true
+
+meta "rewrite_def" predicate resolve_clone'0
+
+predicate postcondition_mut_clone'0 [@inline:trivial] (self: ()) (args: t_Bucket_T) (result_state: ()) (result: t_Bucket_T) =
+  [%#smap'8] let self'0 = args in [%#smap'8] inv_Bucket_T result
+
+meta "rewrite_def" predicate postcondition_mut_clone'0
+
+function fn_mut_once_clone'0 (self: ()) (args: t_Bucket_T) (res: t_Bucket_T) : ()
+
+axiom fn_mut_once_clone_spec'0:
+  forall self: (), args: t_Bucket_T, res: t_Bucket_T. [%#sops'8] postcondition_once_clone'0 self args res
+    = (exists res_state: (). postcondition_mut_clone'0 self args res_state res /\ resolve_clone'0 res_state)
+
+predicate hist_inv_clone'0 [@inline:trivial] (self: ()) (result_state: ()) = true
+
+meta "rewrite_def" predicate hist_inv_clone'0
+
+function hist_inv_trans_clone'0 (self: ()) (b: ()) (c: ()) : ()
+
+axiom hist_inv_trans_clone_spec'0: forall self: (), b: (), c: (). ([%#sops'5] hist_inv_clone'0 self b)
+    -> ([%#sops'6] hist_inv_clone'0 b c) -> ([%#sops'7] hist_inv_clone'0 self c)
+
+function hist_inv_refl_clone'0 (self: ()) : ()
+
+axiom hist_inv_refl_clone_spec'0: forall self: (). [%#sops'4] hist_inv_clone'0 self self
+
+function postcondition_mut_hist_inv_clone'0 (self: ()) (args: t_Bucket_T) (res_state: ()) (res: t_Bucket_T) : ()
+
+axiom postcondition_mut_hist_inv_clone_spec'0:
+  forall self: (), args: t_Bucket_T, res_state: (), res: t_Bucket_T. ([%#sops'2] postcondition_mut_clone'0 self args res_state res)
+    -> ([%#sops'3] hist_inv_clone'0 self res_state)
+
+function fn_hist_inv_clone'0 (self: ()) (res_state: ()) : ()
+
+axiom fn_hist_inv_clone_spec'0: forall self: (), res_state: (). [%#sops'1] hist_inv_clone'0 self res_state
+    = (self = res_state)
+
+predicate postcondition_clone'0 [@inline:trivial] (self: ()) (args: t_Bucket_T) (result: t_Bucket_T) =
+  [%#smap'8] let self'0 = args in [%#smap'8] inv_Bucket_T result
+
+meta "rewrite_def" predicate postcondition_clone'0
+
+function fn_once_clone'0 (self: ()) (args: t_Bucket_T) (res: t_Bucket_T) : ()
+
+axiom fn_once_clone_spec'0:
+  forall self: (), args: t_Bucket_T, res: t_Bucket_T. [%#sops'0] postcondition_once_clone'0 self args res
+    = (postcondition_clone'0 self args res /\ resolve_clone'0 self)
+
+function fn_mut_clone'0 (self: ()) (args: t_Bucket_T) (res_state: ()) (res: t_Bucket_T) : ()
+
+axiom fn_mut_clone_spec'0:
+  forall self: (), args: t_Bucket_T, res_state: (), res: t_Bucket_T. [%#sops] postcondition_mut_clone'0 self args res_state res
+    = (postcondition_clone'0 self args res /\ self = res_state)
+
+let rec clone_Bucket_T (self: t_Bucket_T) (return (x: t_Bucket_T)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smap'9] inv_ref_Bucket_T self}
+  any
+  [ return (result: t_Bucket_T) -> {[@stop_split] [@expl:clone result type invariant] [%#smap'8] inv_Bucket_T result}
+    (! return {result}) ]
+
+let rec clone_Vec_Bucket_T_Global (self_: t_Vec_Bucket_T_Global) (return (x: t_Vec_Bucket_T_Global)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#svec] inv_ref_Vec_Bucket_T_Global self_}
+  any
+  [ return (result: t_Vec_Bucket_T_Global) ->
+  {[@stop_split] [@expl:clone_Vec_Bucket_T_Global ensures] ([@stop_split] [@expl:clone result type invariant] inv_Vec_Bucket_T_Global result)
+    /\ ([@stop_split] [@expl:clone ensures #0] [%#svec'0] Seq.length (view_Vec_Bucket_T_Global self_)
+      = Seq.length (view_Vec_Bucket_T_Global result))
+    /\ ([@stop_split] [@expl:clone ensures #1] [%#svec'1] forall i: int. 0 <= i
+        /\ i < Seq.length (view_Vec_Bucket_T_Global self_)
+      -> postcondition_clone'0 () (Seq.get (view_Vec_Bucket_T_Global self_) i) (Seq.get (view_Vec_Bucket_T_Global result) i))}
+    (! return {result}) ]
+
+type t_Link = Entry UInt64.t | Extra UInt64.t
+
+type t_ExtraValue_T = { value'1: t_T; prev'1: t_Link; next'1: t_Link }
+
+predicate inv_ExtraValue_T (_1: t_ExtraValue_T)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_ExtraValue_T [inv_ExtraValue_T x]. inv_ExtraValue_T x = inv_T x.value'1
+
+predicate invariant_ref_ExtraValue_T [@inline:trivial] (self: t_ExtraValue_T) = [%#sinvariant] inv_ExtraValue_T self
+
+meta "rewrite_def" predicate invariant_ref_ExtraValue_T
+
+predicate inv_ref_ExtraValue_T [@inline:trivial] (_1: t_ExtraValue_T) = invariant_ref_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_ref_ExtraValue_T
+
+predicate invariant_Seq_ExtraValue_T [@inline:trivial] (self: Seq.seq t_ExtraValue_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_ExtraValue_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_ExtraValue_T
+
+predicate inv_Seq_ExtraValue_T [@inline:trivial] (_1: Seq.seq t_ExtraValue_T) = invariant_Seq_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_Seq_ExtraValue_T
+
+function view_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) : Seq.seq t_ExtraValue_T
+
+axiom view_Vec_ExtraValue_T_Global_spec:
+  forall self: t_Vec_ExtraValue_T_Global. [%#svec'2] Seq.length (view_Vec_ExtraValue_T_Global self)
+    <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) =
+  [%#svec'3] inv_Seq_ExtraValue_T (view_Vec_ExtraValue_T_Global self)
+
+predicate inv_Vec_ExtraValue_T_Global (_1: t_Vec_ExtraValue_T_Global)
+
+axiom inv_axiom'2: forall x: t_Vec_ExtraValue_T_Global [inv_Vec_ExtraValue_T_Global x]. inv_Vec_ExtraValue_T_Global x
+    -> invariant_Vec_ExtraValue_T_Global x
+
+predicate invariant_ref_Vec_ExtraValue_T_Global [@inline:trivial] (self: t_Vec_ExtraValue_T_Global) =
+  [%#sinvariant] inv_Vec_ExtraValue_T_Global self
+
+meta "rewrite_def" predicate invariant_ref_Vec_ExtraValue_T_Global
+
+predicate inv_ref_Vec_ExtraValue_T_Global [@inline:trivial] (_1: t_Vec_ExtraValue_T_Global) =
+  invariant_ref_Vec_ExtraValue_T_Global _1
+
+meta "rewrite_def" predicate inv_ref_Vec_ExtraValue_T_Global
+
+predicate postcondition_once_clone'1 [@inline:trivial] (self: ()) (args: t_ExtraValue_T) (result: t_ExtraValue_T) =
+  [%#smap'10] let self'0 = args in [%#smap'10] inv_ExtraValue_T result
+
+meta "rewrite_def" predicate postcondition_once_clone'1
+
+predicate resolve_clone'1 [@inline:trivial] (_1: ()) = true
+
+meta "rewrite_def" predicate resolve_clone'1
+
+predicate postcondition_mut_clone'1 [@inline:trivial] (self: ()) (args: t_ExtraValue_T) (result_state: ()) (result: t_ExtraValue_T) =
+  [%#smap'10] let self'0 = args in [%#smap'10] inv_ExtraValue_T result
+
+meta "rewrite_def" predicate postcondition_mut_clone'1
+
+function fn_mut_once_clone'1 (self: ()) (args: t_ExtraValue_T) (res: t_ExtraValue_T) : ()
+
+axiom fn_mut_once_clone_spec'1:
+  forall self: (), args: t_ExtraValue_T, res: t_ExtraValue_T. [%#sops'8] postcondition_once_clone'1 self args res
+    = (exists res_state: (). postcondition_mut_clone'1 self args res_state res /\ resolve_clone'1 res_state)
+
+predicate hist_inv_clone'1 [@inline:trivial] (self: ()) (result_state: ()) = true
+
+meta "rewrite_def" predicate hist_inv_clone'1
+
+function hist_inv_trans_clone'1 (self: ()) (b: ()) (c: ()) : ()
+
+axiom hist_inv_trans_clone_spec'1: forall self: (), b: (), c: (). ([%#sops'5] hist_inv_clone'1 self b)
+    -> ([%#sops'6] hist_inv_clone'1 b c) -> ([%#sops'7] hist_inv_clone'1 self c)
+
+function hist_inv_refl_clone'1 (self: ()) : ()
+
+axiom hist_inv_refl_clone_spec'1: forall self: (). [%#sops'4] hist_inv_clone'1 self self
+
+function postcondition_mut_hist_inv_clone'1 (self: ()) (args: t_ExtraValue_T) (res_state: ()) (res: t_ExtraValue_T) : ()
+
+axiom postcondition_mut_hist_inv_clone_spec'1:
+  forall self: (), args: t_ExtraValue_T, res_state: (), res: t_ExtraValue_T. ([%#sops'2] postcondition_mut_clone'1 self args res_state res)
+    -> ([%#sops'3] hist_inv_clone'1 self res_state)
+
+function fn_hist_inv_clone'1 (self: ()) (res_state: ()) : ()
+
+axiom fn_hist_inv_clone_spec'1: forall self: (), res_state: (). [%#sops'1] hist_inv_clone'1 self res_state
+    = (self = res_state)
+
+predicate postcondition_clone'1 [@inline:trivial] (self: ()) (args: t_ExtraValue_T) (result: t_ExtraValue_T) =
+  [%#smap'10] let self'0 = args in [%#smap'10] inv_ExtraValue_T result
+
+meta "rewrite_def" predicate postcondition_clone'1
+
+function fn_once_clone'1 (self: ()) (args: t_ExtraValue_T) (res: t_ExtraValue_T) : ()
+
+axiom fn_once_clone_spec'1:
+  forall self: (), args: t_ExtraValue_T, res: t_ExtraValue_T. [%#sops'0] postcondition_once_clone'1 self args res
+    = (postcondition_clone'1 self args res /\ resolve_clone'1 self)
+
+function fn_mut_clone'1 (self: ()) (args: t_ExtraValue_T) (res_state: ()) (res: t_ExtraValue_T) : ()
+
+axiom fn_mut_clone_spec'1:
+  forall self: (), args: t_ExtraValue_T, res_state: (), res: t_ExtraValue_T. [%#sops] postcondition_mut_clone'1 self args res_state res
+    = (postcondition_clone'1 self args res /\ self = res_state)
+
+let rec clone_ExtraValue_T (self: t_ExtraValue_T) (return (x: t_ExtraValue_T)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smap'11] inv_ref_ExtraValue_T self}
+  any
+  [ return (result: t_ExtraValue_T) ->
+  {[@stop_split] [@expl:clone result type invariant] [%#smap'10] inv_ExtraValue_T result}
+    (! return {result}) ]
+
+let rec clone_Vec_ExtraValue_T_Global (self_: t_Vec_ExtraValue_T_Global) (return (x: t_Vec_ExtraValue_T_Global)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#svec] inv_ref_Vec_ExtraValue_T_Global self_}
+  any
+  [ return (result: t_Vec_ExtraValue_T_Global) ->
+  {[@stop_split] [@expl:clone_Vec_ExtraValue_T_Global ensures] ([@stop_split] [@expl:clone result type invariant] inv_Vec_ExtraValue_T_Global result)
+    /\ ([@stop_split] [@expl:clone ensures #0] [%#svec'0] Seq.length (view_Vec_ExtraValue_T_Global self_)
+      = Seq.length (view_Vec_ExtraValue_T_Global result))
+    /\ ([@stop_split] [@expl:clone ensures #1] [%#svec'1] forall i: int. 0 <= i
+        /\ i < Seq.length (view_Vec_ExtraValue_T_Global self_)
+      -> postcondition_clone'1 () (Seq.get (view_Vec_ExtraValue_T_Global self_) i) (Seq.get (view_Vec_ExtraValue_T_Global result) i))}
+    (! return {result}) ]
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0'0 -> inv_RandomState f0'0
+      end
+
+predicate invariant_ref_Danger [@inline:trivial] (self: t_Danger) = [%#sinvariant] inv_Danger self
+
+meta "rewrite_def" predicate invariant_ref_Danger
+
+predicate inv_ref_Danger [@inline:trivial] (_1: t_Danger) = invariant_ref_Danger _1
+
+meta "rewrite_def" predicate inv_ref_Danger
+
+let rec clone_Danger (self: t_Danger) (return (x: t_Danger)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smap'6] inv_ref_Danger self}
+  any
+  [ return (result: t_Danger) -> {[@stop_split] [@expl:clone result type invariant] [%#smap'7] inv_Danger result}
+    (! return {result}) ]
+
+predicate inv_HeaderMap_T (_1: t_HeaderMap_T)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_HeaderMap_T [inv_HeaderMap_T x]. inv_HeaderMap_T x
+    = (inv_Vec_Bucket_T_Global x.entries /\ inv_Vec_ExtraValue_T_Global x.extra_values /\ inv_Danger x.danger)
+
+predicate invariant_ref_HeaderMap_T [@inline:trivial] (self: t_HeaderMap_T) = [%#sinvariant] inv_HeaderMap_T self
+
+meta "rewrite_def" predicate invariant_ref_HeaderMap_T
+
+predicate inv_ref_HeaderMap_T [@inline:trivial] (_1: t_HeaderMap_T) = invariant_ref_HeaderMap_T _1
+
+meta "rewrite_def" predicate inv_ref_HeaderMap_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_HeaderMap_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 110 9 110 14]
+  (self: t_HeaderMap_T) (return (x: t_HeaderMap_T)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#smap'4] inv_ref_HeaderMap_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- self.mask ] s1
+    | s1 = clone_u16 [%#smap] {_4} (fun (_x: UInt16.t) -> [ &_2 <- _x ] s2)
+    | s2 = [ &_7 <- self.indices ] s3
+    | s3 = clone_Box_slice_Pos_Global [%#smap'0] {_7} (fun (_x: Slice64.slice t_Pos) -> [ &_5 <- _x ] s4)
+    | s4 = [ &_10 <- self.entries ] s5
+    | s5 = clone_Vec_Bucket_T_Global [%#smap'1] {_10} (fun (_x: t_Vec_Bucket_T_Global) -> [ &_8 <- _x ] s6)
+    | s6 = [ &_13 <- self.extra_values ] s7
+    | s7 = clone_Vec_ExtraValue_T_Global [%#smap'2] {_13} (fun (_x: t_Vec_ExtraValue_T_Global) -> [ &_11 <- _x ] s8)
+    | s8 = [ &_16 <- self.danger ] s9
+    | s9 = clone_Danger [%#smap'3] {_16} (fun (_x: t_Danger) -> [ &_14 <- _x ] s10)
+    | s10 = [ &_ret <- { mask = _2; indices = _5; entries = _8; extra_values = _11; danger = _14 } ] s11
+    | s11 = return {_ret} ] ]
+  [ & _ret: t_HeaderMap_T = Any.any_l ()
+  | & self: t_HeaderMap_T = self
+  | & _2: UInt16.t = Any.any_l ()
+  | & _4: UInt16.t = Any.any_l ()
+  | & _5: Slice64.slice t_Pos = Any.any_l ()
+  | & _7: Slice64.slice t_Pos = Any.any_l ()
+  | & _8: t_Vec_Bucket_T_Global = Any.any_l ()
+  | & _10: t_Vec_Bucket_T_Global = Any.any_l ()
+  | & _11: t_Vec_ExtraValue_T_Global = Any.any_l ()
+  | & _13: t_Vec_ExtraValue_T_Global = Any.any_l ()
+  | & _14: t_Danger = Any.any_l ()
+  | & _16: t_Danger = Any.any_l () ])
+  [ return (result: t_HeaderMap_T) ->
+  {[@stop_split] [@expl:clone result type invariant] [%#smap'5] inv_HeaderMap_T result}
+    (! return {result}) ]

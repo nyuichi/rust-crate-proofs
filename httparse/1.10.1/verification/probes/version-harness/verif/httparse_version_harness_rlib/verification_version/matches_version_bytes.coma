@@ -1,0 +1,29 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 63 0 68 9 *)
+
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 192 28 192 33
+let%span sversion = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 62 11 62 65
+let%span sversion'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 69 4 76 50
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant input : Seq.seq UInt8.t
+
+constant cursor : int
+
+constant end' : int
+
+constant minor : int
+
+predicate matches_version_bytes [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/version.rs" 63 0 68 9] (input: Seq.seq UInt8.t) (cursor: int) (end': int) (minor: int)
+
+goal vc_matches_version_bytes: true

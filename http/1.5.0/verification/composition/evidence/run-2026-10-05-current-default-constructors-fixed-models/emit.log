@@ -1,0 +1,39 @@
+    Checking http-composition-proof v0.1.0 (/workspace/rust-crate-proofs/http/1.5.0/verification/composition)
+warning: calling external function `to_ascii_lowercase` with no contract will yield an impossible precondition
+   --> src/../../../src/uri/scheme.rs:371:36
+    |
+371 |                     state.write_u8(b.to_ascii_lowercase());
+    |                                    ^^^^^^^^^^^^^^^^^^^^^^ function called here
+    |
+    = note: `#[warn(creusot::contractless_external_function)]` on by default
+
+warning: calling external function `try_append` with no contract will yield an impossible precondition
+    --> src/../../../src/request.rs:1431:13
+     |
+1431 |             head.headers.try_append(name, value)?;
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
+
+warning: calling external function `insert` with no contract will yield an impossible precondition
+    --> src/../../../src/request.rs:1513:13
+     |
+1513 |             head.extensions.insert(extension);
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
+
+warning: calling external function `try_append` with no contract will yield an impossible precondition
+   --> src/../../../src/response.rs:878:13
+    |
+878 |             head.headers.try_append(name, value)?;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
+
+warning: calling external function `insert` with no contract will yield an impossible precondition
+   --> src/../../../src/response.rs:962:13
+    |
+962 |             head.extensions.insert(extension);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
+
+warning: `http-composition-proof` (lib) generated 5 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.27s
+Warning: found dangling files and directories:
+  verif/http_composition_proof_rlib/request/impl_Debug_for_Builder
+  verif/http_composition_proof_rlib/response/impl_Debug_for_Builder
+Run 'cargo creusot clean' to remove them

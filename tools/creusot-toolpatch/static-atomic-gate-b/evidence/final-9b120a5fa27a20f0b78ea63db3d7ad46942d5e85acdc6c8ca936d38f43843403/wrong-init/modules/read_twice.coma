@@ -1,0 +1,32 @@
+(* #"/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 59 0 59 31 *)
+
+let%span slib = "/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 36 16 36 42
+
+use creusot.int.UInt8
+use creusot.prelude.Any
+
+predicate value_invariant [#"/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 35 0 35 41] [@inline:trivial] (value: UInt8.t) =
+  [%#slib] UInt8.t'int value = 0 \/ UInt8.t'int value = 1
+
+meta "rewrite_def" predicate value_invariant
+
+type tup2_u8_u8 = { f0: UInt8.t; f1: UInt8.t }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec read_twice
+  [#"/workspace/rust-crate-proofs/tools/creusot-toolpatch/static-atomic-gate-b/fixture/src/lib.rs" 59 0 59 31]
+  (return (x: tup2_u8_u8)) = (! bb0
+  [ bb0 = s0
+    [ s0 = any
+      [ any_ (static_atomic_observation: UInt8.t) -> (! -{value_invariant static_atomic_observation}-
+        [ &_1 <- static_atomic_observation ] s1) ]
+    | s1 = any
+      [ any_ (static_atomic_observation: UInt8.t) -> (! -{value_invariant static_atomic_observation}-
+        [ &_5 <- static_atomic_observation ] s2) ]
+    | s2 = [ &_ret <- { f0 = _1; f1 = _5 } ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: tup2_u8_u8 = Any.any_l () | & _1: UInt8.t = Any.any_l () | & _5: UInt8.t = Any.any_l () ])
+  [ return (result: tup2_u8_u8) -> (! return {result}) ]

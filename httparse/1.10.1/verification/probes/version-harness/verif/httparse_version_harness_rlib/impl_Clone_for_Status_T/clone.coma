@@ -1,0 +1,89 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 14 33 14 38 *)
+
+(* <Status<T> as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sstatus = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 17 13 17 14
+let%span sstatus'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 14 33 14 38
+let%span sstatus'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 14 33 14 38
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+
+use creusot.prelude.Any
+
+type t_T
+
+type t_Status_T = Complete t_T | Partial
+
+let rec elim_Complete (_x: t_Status_T) (return (f0: t_T)) = any
+  [ _k (f0: t_T) -> {Complete f0 = _x} (! return {f0})
+  | _chk -> (! {[@expl:elim Complete] match _x with
+      | Complete _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+predicate inv_T (_1: t_T)
+
+predicate invariant_ref_T [@inline:trivial] (self: t_T) = [%#sinvariant] inv_T self
+
+meta "rewrite_def" predicate invariant_ref_T
+
+predicate inv_ref_T [@inline:trivial] (_1: t_T) = invariant_ref_T _1
+
+meta "rewrite_def" predicate inv_ref_T
+
+predicate precondition_clone (self: ()) (args: t_T)
+
+axiom precondition_fndef:
+  forall args: t_T [precondition_clone () args]. (let self_ = args in [%#sclone] inv_ref_T self_)
+    -> precondition_clone () args
+
+predicate postcondition_once_clone (self: ()) (args: t_T) (result: t_T)
+
+axiom postcondition_fndef:
+  forall args: t_T, res: t_T [postcondition_once_clone () args res]. postcondition_once_clone () args res
+    -> (let self_ = args in inv_T res)
+
+let rec clone_T (self_: t_T) (return (x: t_T)) = {[@stop_split] [@expl:clone requires] precondition_clone () self_}
+  any
+  [ return (result: t_T) -> {[@stop_split] [@expl:clone ensures] postcondition_once_clone () self_ result}
+    (! return {result}) ]
+
+predicate inv_Status_T (_1: t_Status_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Status_T [inv_Status_T x]. inv_Status_T x
+    = match x with
+      | Complete f0 -> inv_T f0
+      | Partial -> true
+      end
+
+predicate invariant_ref_Status_T [@inline:trivial] (self: t_Status_T) = [%#sinvariant] inv_Status_T self
+
+meta "rewrite_def" predicate invariant_ref_Status_T
+
+predicate inv_ref_Status_T [@inline:trivial] (_1: t_Status_T) = invariant_ref_Status_T _1
+
+meta "rewrite_def" predicate inv_ref_Status_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_Status_T
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 14 33 14 38]
+  (self: t_Status_T) (return (x: t_Status_T)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#sstatus'0] inv_ref_Status_T self}
+  (! bb0
+  [ bb0 = any [ br0 (x0: t_T) -> {self = Complete x0} (! bb4) | br1 -> {self = Partial} (! bb3) ]
+  | bb3 = s0 [ s0 = [ &_ret <- Partial ] s1 | s1 = return {_ret} ]
+  | bb4 = s0
+    [ s0 = elim_Complete {self} (fun (r0: t_T) -> [ &__self_0 <- r0 ] s1)
+    | s1 = clone_T [%#sstatus] {__self_0} (fun (_x: t_T) -> [ &_4 <- _x ] s2)
+    | s2 = [ &_ret <- Complete _4 ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: t_Status_T = Any.any_l ()
+  | & self: t_Status_T = self
+  | & __self_0: t_T = Any.any_l ()
+  | & _4: t_T = Any.any_l () ])
+  [ return (result: t_Status_T) -> {[@stop_split] [@expl:clone result type invariant] [%#sstatus'1] inv_Status_T result}
+    (! return {result}) ]

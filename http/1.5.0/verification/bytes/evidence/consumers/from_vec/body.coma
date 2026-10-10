@@ -1,0 +1,48 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 60 0 60 39 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 61 4 61 21
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 60 34 60 39
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 59 10 59 36
+let%span sbytes = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes.rs" 961 4 961 34
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 104 18 104 45
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_Vec_u8_Global
+
+type t_Bytes
+
+predicate inv_Bytes (_1: t_Bytes)
+
+function bytes_seq (_value: t_Bytes) : Seq.seq UInt8.t
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_u8_Global (self: t_Vec_u8_Global) : Seq.seq UInt8.t
+
+axiom view_Vec_u8_Global_spec: forall self: t_Vec_u8_Global. [%#svec] Seq.length (view_Vec_u8_Global self)
+    <= UInt64.t'int const_MAX
+
+let rec from_Bytes (bytes: t_Vec_u8_Global) (return (x: t_Bytes)) = any
+  [ return (result: t_Bytes) ->
+  {[@stop_split] [@expl:from_Bytes ensures] ([@stop_split] [@expl:from result type invariant] [%#sbytes] inv_Bytes result)
+    /\ ([@stop_split] [@expl:from ensures] [%#sbytes'0] bytes_seq result = view_Vec_u8_Global bytes)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_vec [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 60 0 60 39]
+  (data: t_Vec_u8_Global) (return (x: t_Bytes)) = (! bb0
+  [ bb0 = s0 [ s0 = from_Bytes [%#slib] {data} (fun (_x: t_Bytes) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_Bytes = Any.any_l () | & data: t_Vec_u8_Global = data ])
+  [ return (result: t_Bytes) ->
+  {[@stop_split] [@expl:from_vec ensures] ([@stop_split] [@expl:from_vec result type invariant] [%#slib'0] inv_Bytes result)
+    /\ ([@stop_split] [@expl:from_vec ensures] [%#slib'1] bytes_seq result = view_Vec_u8_Global data)}
+    (! return {result}) ]

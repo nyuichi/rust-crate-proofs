@@ -1,0 +1,26 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 327 0 327 66 *)
+
+let%span smodel = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 326 11 326 49
+let%span smodel'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 328 4 328 60
+let%span smodel'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 296 4 296 29
+
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_CursorModel = { input: Seq.seq UInt8.t; mark: int; cursor: int; end': int }
+
+function cursor_pos [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 295 0 295 44] (state: t_CursorModel) : int
+ = [%#smodel'1] state.cursor - state.mark
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant state : t_CursorModel
+
+constant skip : int
+
+function cursor_slice_skip [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/verification/model.rs" 327 0 327 66] (state: t_CursorModel) (skip: int) : Seq.seq UInt8.t
+
+goal vc_cursor_slice_skip: true

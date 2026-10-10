@@ -1,0 +1,31 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 80 0 80 42 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 79 10 79 27
+
+use creusot.prelude.Any
+use creusot.int.Int16
+
+type t_SignedI16 = Negative | Positive
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec repr_i16_discriminant_math
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/lib.rs" 80 0 80 42]
+  (return (x: Int16.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = bb0'0
+      [ bb0'0 = s0'0 [ s0'0 = [ &_1 <- Negative ] s1'0 | s1'0 = [ &_ret'0 <- _1 ] s2'0 | s2'0 = _const_ret {_ret'0} ] ]
+      [ & _ret'0: t_SignedI16 = Any.any_l () | & _1: t_SignedI16 = Any.any_l () ]
+      [ _const_ret (_const: t_SignedI16) -> [ &_5 <- _const ] s1 ]
+    | s1 = [ &_3 <- _5 ] s2
+    | s2 = [ &_ret <- match _3 with
+        | Negative -> (-300: Int16.t)
+        | Positive -> (1000: Int16.t)
+        end ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: Int16.t = Any.any_l () | & _3: t_SignedI16 = Any.any_l () | & _5: t_SignedI16 = Any.any_l () ])
+  [ return (result: Int16.t) -> {[@stop_split] [@expl:repr_i16_discriminant_math ensures] [%#slib] result
+    = Int16.neg (300: Int16.t)}
+    (! return {result}) ]

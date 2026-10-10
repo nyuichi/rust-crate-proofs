@@ -1,0 +1,107 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 132 15 132 19 *)
+
+(* <status::StatusCode as std::hash::Hash> *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 133 22 133 32
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 132 15 132 19
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 132 15 132 19
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 167 20 167 48
+let%span sstatus'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 141 20 141 39
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 148 40 148 44
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 148 46 148 51
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 147 18 147 29
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 187 20 187 40
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+use creusot.int.UInt16
+use int.Int
+
+type t_NonZero_u16
+
+type t_StatusCode = { f0: t_NonZero_u16 }
+
+type __H
+
+predicate inv___H (_1: __H)
+
+predicate inv_NonZero_u16 (_1: t_NonZero_u16)
+
+predicate invariant_ref_NonZero_u16 [@inline:trivial] (self: t_NonZero_u16) = [%#sinvariant'0] inv_NonZero_u16 self
+
+meta "rewrite_def" predicate invariant_ref_NonZero_u16
+
+predicate inv_ref_NonZero_u16 [@inline:trivial] (_1: t_NonZero_u16) = invariant_ref_NonZero_u16 _1
+
+meta "rewrite_def" predicate inv_ref_NonZero_u16
+
+predicate invariant_refmut___H [@inline:trivial] (self: MutBorrow.t __H) =
+  [%#sinvariant] inv___H self.current /\ inv___H self.final
+
+meta "rewrite_def" predicate invariant_refmut___H
+
+predicate inv_refmut___H [@inline:trivial] (_1: MutBorrow.t __H) = invariant_refmut___H _1
+
+meta "rewrite_def" predicate inv_refmut___H
+
+let rec hash_NonZero_u16 (self_: t_NonZero_u16) (state: MutBorrow.t __H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_NonZero_u16 requires] ([@stop_split] [@expl:hash 'self_' type invariant] [%#shash] inv_ref_NonZero_u16 self_)
+  /\ ([@stop_split] [@expl:hash 'state' type invariant] [%#shash'0] inv_refmut___H state)}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] [%#shash'1] inv___H state.final} (! return {result}) ]
+
+predicate resolve_refmut___H [@inline:trivial] (_1: MutBorrow.t __H) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut___H
+
+function nonzero_value_u16 (_value: t_NonZero_u16) : UInt16.t
+
+function deep_model_NonZero_u16 (self: t_NonZero_u16) : int = [%#snum] UInt16.t'int (nonzero_value_u16 self)
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+ = [%#sstatus'3] deep_model_NonZero_u16 self.f0
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'2] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom [@rewrite]: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x
+    = (invariant_StatusCode x /\ inv_NonZero_u16 x.f0)
+
+predicate invariant_ref_StatusCode [@inline:trivial] (self: t_StatusCode) = [%#sinvariant'0] inv_StatusCode self
+
+meta "rewrite_def" predicate invariant_ref_StatusCode
+
+predicate inv_ref_StatusCode [@inline:trivial] (_1: t_StatusCode) = invariant_ref_StatusCode _1
+
+meta "rewrite_def" predicate inv_ref_StatusCode
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec hash_StatusCode
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 132 15 132 19]
+  (self: t_StatusCode) (state: MutBorrow.t __H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_StatusCode requires] ([@stop_split] [@expl:hash 'self' type invariant] [%#sstatus'0] inv_ref_StatusCode self)
+  /\ ([@stop_split] [@expl:hash 'state' type invariant] [%#sstatus'1] inv_refmut___H state)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- self.f0 ] s1
+    | s1 = MutBorrow.borrow_final <__H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t __H) ->
+          [ &_5 <- _bor ] -{inv___H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv___H state.current} any) ]
+    | s2 = hash_NonZero_u16 [%#sstatus] {_4} {_5} (fun (_x: ()) -> [ &_ret <- _x ] s3)
+    | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut___H state} any) ]
+    | s4 = -{resolve_refmut___H state}- s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: t_StatusCode = self
+  | & state: MutBorrow.t __H = state
+  | & _4: t_NonZero_u16 = Any.any_l ()
+  | & _5: MutBorrow.t __H = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

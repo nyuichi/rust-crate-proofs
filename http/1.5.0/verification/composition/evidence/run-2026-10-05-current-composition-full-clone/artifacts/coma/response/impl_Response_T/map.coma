@@ -1,0 +1,131 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 671 4 673 26 *)
+
+(* response::Response<T> *)
+
+let%span sops = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 180 29 180 33
+let%span sops'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 180 35 180 38
+let%span sops'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 178 27 178 49
+let%span sops'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/ops.rs" 179 26 179 62
+let%span sresponse = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 676 18 676 30
+let%span sresponse'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 671 21 671 25
+let%span sresponse'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 671 27 671 28
+let%span sresponse'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 668 15 668 53
+let%span sresponse'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 671 36 671 47
+let%span sresponse'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 669 14 669 58
+let%span sresponse'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 670 14 670 81
+let%span sresponse'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 238 4 238 17
+let%span sresponse'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 231 4 231 17
+
+use creusot.prelude.Any
+
+type t_StatusCode
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  status: t_StatusCode;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+type t_T
+
+type t_Response_T = { head: t_Parts; body: t_T }
+
+type t_F
+
+type t_U
+
+predicate inv_F (_1: t_F)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_tup1_T [@inline:trivial] (_1: t_T) = inv_T _1
+
+meta "rewrite_def" predicate inv_tup1_T
+
+predicate precondition_F (self: t_F) (args: t_T)
+
+predicate inv_U (_1: t_U)
+
+predicate postcondition_once_F (self: t_F) (args: t_T) (result: t_U)
+
+let rec call_once_F (self_: t_F) (arg: t_T) (return (x: t_U)) =
+  {[@stop_split] [@expl:call_once_F requires] ([@stop_split] [@expl:call_once 'self_' type invariant] [%#sops] inv_F self_)
+  /\ ([@stop_split] [@expl:call_once 'arg' type invariant] [%#sops'0] inv_tup1_T arg)
+  /\ ([@stop_split] [@expl:call_once requires] [%#sops'1] precondition_F self_ arg)}
+  any
+  [ return (result: t_U) ->
+  {[@stop_split] [@expl:call_once_F ensures] ([@stop_split] [@expl:call_once result type invariant] inv_U result)
+    /\ ([@stop_split] [@expl:call_once ensures] [%#sops'2] postcondition_once_F self_ arg result)}
+    (! return {result}) ]
+
+type t_Response_U = { head'0: t_Parts; body'0: t_U }
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+predicate inv_Version (_1: t_Version)
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_StatusCode x.status
+    /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+predicate inv_Response_T (_1: t_Response_T)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Response_T [inv_Response_T x]. inv_Response_T x
+    = (inv_Parts x.head /\ inv_T x.body)
+
+function response_body_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 237 0 237 51] (response: t_Response_T) : t_T
+ = [%#sresponse'6] response.body
+
+predicate inv_Response_U (_1: t_Response_U)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Response_U [inv_Response_U x]. inv_Response_U x
+    = (inv_Parts x.head'0 /\ inv_U x.body'0)
+
+function response_head_U [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 230 0 230 55] (response: t_Response_U) : t_Parts
+ = [%#sresponse'7] response.head'0
+
+function response_head_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 230 0 230 55] (response: t_Response_T) : t_Parts
+ = [%#sresponse'7] response.head
+
+function response_body_U [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 237 0 237 51] (response: t_Response_U) : t_U
+ = [%#sresponse'6] response.body'0
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec map_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 671 4 673 26]
+  (self: t_Response_T) (f: t_F) (return (x: t_Response_U)) =
+  {[@stop_split] [@expl:map_T requires] ([@stop_split] [@expl:map 'self' type invariant] [%#sresponse'0] inv_Response_T self)
+  /\ ([@stop_split] [@expl:map 'f' type invariant] [%#sresponse'1] inv_F f)
+  /\ ([@stop_split] [@expl:map requires] [%#sresponse'2] precondition_F f (response_body_T self))}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_13 <- self.body ] s1
+    | s1 = call_once_F [%#sresponse] {f} {_13} (fun (_x: t_U) -> [ &_11 <- _x ] s2)
+    | s2 = [ &_ret <- { head'0 = self.head; body'0 = _11 } ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: t_Response_U = Any.any_l ()
+  | & self: t_Response_T = self
+  | & f: t_F = f
+  | & _11: t_U = Any.any_l ()
+  | & _13: t_T = Any.any_l () ])
+  [ return (result: t_Response_U) ->
+  {[@stop_split] [@expl:map_T ensures] ([@stop_split] [@expl:map result type invariant] [%#sresponse'3] inv_Response_U result)
+    /\ ([@stop_split] [@expl:map ensures #0] [%#sresponse'4] response_head_U result = response_head_T self)
+    /\ ([@stop_split] [@expl:map ensures #1] [%#sresponse'5] postcondition_once_F f (response_body_T self) (response_body_U result))}
+    (! return {result}) ]

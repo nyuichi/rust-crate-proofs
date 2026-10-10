@@ -1,0 +1,174 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1170 8 1170 42 *)
+
+(* <method::extension::InlineExtension as std::cmp::PartialEq> *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1171 31 1171 48
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1172 25 1172 58
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1176 32 1176 63
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1178 20 1179 51
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1181 32 1181 56
+let%span smethod'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1170 15 1170 19
+let%span smethod'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1170 21 1170 26
+let%span smethod'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1169 36 1169 87
+let%span smethod'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1216 24 1216 42
+let%span smethod'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1197 16 1198 78
+let%span smethod'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1232 8 1232 28
+let%span smethod'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sarray = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 30 14 30 47
+let%span sarray'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 31 14 31 88
+let%span sarray'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 56 20 56 29
+let%span sarray'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/array.rs" 9 20 9 51
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 19 23 19 27
+let%span scmp'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 19 29 19 32
+let%span scmp'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 18 26 18 80
+let%span spartial_eq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 21 20 21 31
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_InlineExtension = { f0: Slice64.array UInt8.t; f1: UInt8.t }
+
+predicate inv_Seq_u8 [@inline:trivial] (_1: Seq.seq UInt8.t) = true
+
+meta "rewrite_def" predicate inv_Seq_u8
+
+predicate invariant_array_u8_15 (self: Slice64.array UInt8.t) =
+  [%#sarray'2] inv_Seq_u8 (Slice64.view self) /\ Seq.length (Slice64.view self) = UInt64.t'int (15: UInt64.t)
+
+predicate inv_array_u8_15 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_array_u8_15 _1
+
+meta "rewrite_def" predicate inv_array_u8_15
+
+predicate invariant_ref_array_u8_15 [@inline:trivial] (self: Slice64.array UInt8.t) =
+  [%#sinvariant] inv_array_u8_15 self
+
+meta "rewrite_def" predicate invariant_ref_array_u8_15
+
+predicate inv_ref_array_u8_15 [@inline:trivial] (_1: Slice64.array UInt8.t) = invariant_ref_array_u8_15 _1
+
+meta "rewrite_def" predicate inv_ref_array_u8_15
+
+predicate eq_model_Seq_Int (self: Seq.seq int) (rhs: Seq.seq int) = [%#spartial_eq] self = rhs
+
+function deep_model_u8 [@inline:trivial] (self: UInt8.t) : int = [%#snum] UInt8.t'int self
+
+meta "rewrite_def" function deep_model_u8
+
+function index_array_u8_15 [@inline:trivial] (self: Slice64.array UInt8.t) (ix: int) : UInt8.t =
+  [%#sarray'1] Seq.get (Slice64.view self) ix
+
+meta "rewrite_def" function index_array_u8_15
+
+function deep_model_array_u8_15 (self: Slice64.array UInt8.t) : Seq.seq int
+
+axiom deep_model_array_u8_15_spec: forall self: Slice64.array UInt8.t. [%#sarray] Seq.length (Slice64.view self)
+    = Seq.length (deep_model_array_u8_15 self)
+
+axiom deep_model_array_u8_15_spec'0: forall self: Slice64.array UInt8.t. [%#sarray'0] forall i: int. 0 <= i
+        /\ i < Seq.length (deep_model_array_u8_15 self)
+      -> Seq.get (deep_model_array_u8_15 self) i = deep_model_u8 (index_array_u8_15 self i)
+
+function deep_model_ref_array_u8_15 [@inline:trivial] (self: Slice64.array UInt8.t) : Seq.seq int =
+  [%#smodel] deep_model_array_u8_15 self
+
+meta "rewrite_def" function deep_model_ref_array_u8_15
+
+let rec eq_array_u8_15 (self_: Slice64.array UInt8.t) (rhs: Slice64.array UInt8.t) (return (x: bool)) =
+  {[@stop_split] [@expl:eq_array_u8_15 requires] ([@stop_split] [@expl:eq 'self_' type invariant] [%#scmp] inv_ref_array_u8_15 self_)
+  /\ ([@stop_split] [@expl:eq 'rhs' type invariant] [%#scmp'0] inv_ref_array_u8_15 rhs)}
+  any
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#scmp'1] result
+    = eq_model_Seq_Int (deep_model_ref_array_u8_15 self_) (deep_model_ref_array_u8_15 rhs)}
+    (! return {result}) ]
+
+constant const_MAX: UInt64.t = [%#smethod'9] (15: UInt64.t)
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'11] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'10] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+predicate invariant_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1195 8 1195 34] (self: t_InlineExtension) =
+  [%#smethod'8] UInt8.t'int self.f1 <= UInt64.t'int const_MAX
+  /\ all_method_chars_valid (Seq.([..]) (Slice64.view self.f0) 0 (UInt8.t'int self.f1))
+
+predicate inv_InlineExtension (_1: t_InlineExtension)
+
+axiom inv_axiom [@rewrite]: forall x: t_InlineExtension [inv_InlineExtension x]. inv_InlineExtension x
+    = (invariant_InlineExtension x /\ inv_array_u8_15 x.f0)
+
+predicate invariant_ref_InlineExtension [@inline:trivial] (self: t_InlineExtension) =
+  [%#sinvariant] inv_InlineExtension self
+
+meta "rewrite_def" predicate invariant_ref_InlineExtension
+
+predicate inv_ref_InlineExtension [@inline:trivial] (_1: t_InlineExtension) = invariant_ref_InlineExtension _1
+
+meta "rewrite_def" predicate inv_ref_InlineExtension
+
+type tup2_Seq_u8_Int = { f0'0: Seq.seq UInt8.t; f1'0: int }
+
+function deep_model_InlineExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1215 8 1215 48] (self: t_InlineExtension) : tup2_Seq_u8_Int
+ = [%#smethod'7] { f0'0 = Slice64.view self.f0; f1'0 = UInt8.t'int self.f1 }
+
+function deep_model_ref_InlineExtension [@inline:trivial] (self: t_InlineExtension) : tup2_Seq_u8_Int =
+  [%#smodel] deep_model_InlineExtension self
+
+meta "rewrite_def" function deep_model_ref_InlineExtension
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec eq_InlineExtension
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1170 8 1170 42]
+  (self: t_InlineExtension) (other: t_InlineExtension) (return (x: bool)) =
+  {[@stop_split] [@expl:eq_InlineExtension requires] ([@stop_split] [@expl:eq 'self' type invariant] [%#smethod'4] inv_ref_InlineExtension self)
+  /\ ([@stop_split] [@expl:eq 'other' type invariant] [%#smethod'5] inv_ref_InlineExtension other)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = eq_array_u8_15 [%#smethod] {self.f0} {other.f0} (fun (_x: bool) -> [ &arrays_equal <- _x ] s1)
+    | s1 = any [ br0 -> {arrays_equal = false} (! bb3) | br1 -> {arrays_equal} (! bb2) ] ]
+  | bb2 = s0 [ s0 = [ &result <- self.f1 = other.f1 ] s1 | s1 = bb4 ]
+  | bb3 = s0 [ s0 = [ &result <- [%#smethod'0] false ] s1 | s1 = bb4 ]
+  | bb4 = any [ br0 -> {arrays_equal = false} (! bb7) | br1 -> {arrays_equal} (! bb5) ]
+  | bb5 = s0
+    [ s0 = {[@expl:assertion] [%#smethod'1] Seq.length (Slice64.view self.f0) = Seq.length (Slice64.view other.f0)} s1
+    | s1 = {[@expl:assertion] [%#smethod'2] forall i: int. 0 <= i /\ i < Seq.length (Slice64.view self.f0)
+        -> UInt8.t'int (Seq.get (Slice64.view self.f0) i) = UInt8.t'int (Seq.get (Slice64.view other.f0) i)}
+      s2
+    | s2 = {[@expl:assertion] [%#smethod'3] Seq.(==) (Slice64.view self.f0) (Slice64.view other.f0)} s3
+    | s3 = bb7 ]
+  | bb7 = s0 [ s0 = [ &_ret <- result ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & self: t_InlineExtension = self
+  | & other: t_InlineExtension = other
+  | & arrays_equal: bool = Any.any_l ()
+  | & result: bool = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#smethod'6] result
+    = (deep_model_ref_InlineExtension self = deep_model_ref_InlineExtension other)}
+    (! return {result}) ]

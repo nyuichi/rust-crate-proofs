@@ -1,0 +1,266 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 641 4 641 30 *)
+
+(* header::map::HeaderMap<T> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 929 20 929 91
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 115 16 115 20
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 114 18 114 40
+let%span svec'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span svec'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 89 20 89 30
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 644 12 644 47
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 645 12 645 52
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 647 8 647 26
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 647 29 647 52
+let%span smap'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 647 8 647 52
+let%span smap'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 641 16 641 20
+let%span smap'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 640 32 640 70
+let%span smap'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 141 38 141 44
+let%span smap'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 139 11 139 35
+let%span smap'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 140 10 140 38
+let%span smap'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 124 4 124 63
+let%span smap'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 110 4 110 28
+let%span smap'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 117 4 117 33
+let%span smem = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/mem.rs" 131 10 131 21
+
+use creusot.int.UInt16
+use creusot.slice.Slice64
+use creusot.int.UInt64
+use seq.Seq
+use creusot.int.Int64
+use creusot.prelude.Any
+use int.Int
+
+type t_HashValue = { f0: UInt16.t }
+
+type t_Pos = { index: UInt16.t; hash: t_HashValue }
+
+type t_Vec_Bucket_T_Global
+
+type t_Vec_ExtraValue_T_Global
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+type t_HeaderMap_T = {
+  mask: UInt16.t;
+  indices: Slice64.slice t_Pos;
+  entries: t_Vec_Bucket_T_Global;
+  extra_values: t_Vec_ExtraValue_T_Global;
+  danger: t_Danger }
+
+type t_HeaderName
+
+type t_T
+
+type t_Links = { next: UInt64.t; tail: UInt64.t }
+
+type t_Option_Links = None | Some t_Links
+
+type t_Bucket_T = { hash'0: t_HashValue; key'0: t_HeaderName; value'0: t_T; links'0: t_Option_Links }
+
+predicate inv_HeaderName (_1: t_HeaderName)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Bucket_T (_1: t_Bucket_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Bucket_T [inv_Bucket_T x]. inv_Bucket_T x
+    = (inv_HeaderName x.key'0 /\ inv_T x.value'0)
+
+predicate invariant_ref_Bucket_T [@inline:trivial] (self: t_Bucket_T) = [%#sinvariant] inv_Bucket_T self
+
+meta "rewrite_def" predicate invariant_ref_Bucket_T
+
+predicate inv_ref_Bucket_T [@inline:trivial] (_1: t_Bucket_T) = invariant_ref_Bucket_T _1
+
+meta "rewrite_def" predicate inv_ref_Bucket_T
+
+predicate invariant_Seq_Bucket_T [@inline:trivial] (self: Seq.seq t_Bucket_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_Bucket_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_Bucket_T
+
+predicate inv_Seq_Bucket_T [@inline:trivial] (_1: Seq.seq t_Bucket_T) = invariant_Seq_Bucket_T _1
+
+meta "rewrite_def" predicate inv_Seq_Bucket_T
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) : Seq.seq t_Bucket_T
+
+axiom view_Vec_Bucket_T_Global_spec:
+  forall self: t_Vec_Bucket_T_Global. [%#svec'1] Seq.length (view_Vec_Bucket_T_Global self) <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_Bucket_T_Global (self: t_Vec_Bucket_T_Global) =
+  [%#svec'2] inv_Seq_Bucket_T (view_Vec_Bucket_T_Global self)
+
+predicate inv_Vec_Bucket_T_Global (_1: t_Vec_Bucket_T_Global)
+
+axiom inv_axiom'0: forall x: t_Vec_Bucket_T_Global [inv_Vec_Bucket_T_Global x]. inv_Vec_Bucket_T_Global x
+    -> invariant_Vec_Bucket_T_Global x
+
+predicate invariant_ref_Vec_Bucket_T_Global [@inline:trivial] (self: t_Vec_Bucket_T_Global) =
+  [%#sinvariant] inv_Vec_Bucket_T_Global self
+
+meta "rewrite_def" predicate invariant_ref_Vec_Bucket_T_Global
+
+predicate inv_ref_Vec_Bucket_T_Global [@inline:trivial] (_1: t_Vec_Bucket_T_Global) =
+  invariant_ref_Vec_Bucket_T_Global _1
+
+meta "rewrite_def" predicate inv_ref_Vec_Bucket_T_Global
+
+constant size_of_Bucket_T : int
+
+axiom size_of_Bucket_T_spec: [%#smem] 0 <= size_of_Bucket_T
+
+constant const_MAX'0: Int64.t = (9223372036854775807: Int64.t)
+
+let rec allocation_len_bound_Bucket_T (values: t_Vec_Bucket_T_Global) (return (x: ())) =
+  {[@stop_split] [@expl:allocation_len_bound_Bucket_T requires] ([@stop_split] [@expl:allocation_len_bound 'values' type invariant] [%#smap'6] inv_ref_Vec_Bucket_T_Global values)
+  /\ ([@stop_split] [@expl:allocation_len_bound requires] [%#smap'7] size_of_Bucket_T > 0)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:allocation_len_bound ensures] [%#smap'8] Seq.length (view_Vec_Bucket_T_Global values)
+    <= Int64.to_int const_MAX'0}
+    (! return {result}) ]
+
+type t_Link = Entry UInt64.t | Extra UInt64.t
+
+type t_ExtraValue_T = { value'1: t_T; prev'1: t_Link; next'1: t_Link }
+
+predicate inv_ExtraValue_T (_1: t_ExtraValue_T)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_ExtraValue_T [inv_ExtraValue_T x]. inv_ExtraValue_T x = inv_T x.value'1
+
+predicate invariant_ref_ExtraValue_T [@inline:trivial] (self: t_ExtraValue_T) = [%#sinvariant] inv_ExtraValue_T self
+
+meta "rewrite_def" predicate invariant_ref_ExtraValue_T
+
+predicate inv_ref_ExtraValue_T [@inline:trivial] (_1: t_ExtraValue_T) = invariant_ref_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_ref_ExtraValue_T
+
+predicate invariant_Seq_ExtraValue_T [@inline:trivial] (self: Seq.seq t_ExtraValue_T) =
+  [%#sseq] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_ExtraValue_T (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_ExtraValue_T
+
+predicate inv_Seq_ExtraValue_T [@inline:trivial] (_1: Seq.seq t_ExtraValue_T) = invariant_Seq_ExtraValue_T _1
+
+meta "rewrite_def" predicate inv_Seq_ExtraValue_T
+
+function view_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) : Seq.seq t_ExtraValue_T
+
+axiom view_Vec_ExtraValue_T_Global_spec:
+  forall self: t_Vec_ExtraValue_T_Global. [%#svec'1] Seq.length (view_Vec_ExtraValue_T_Global self)
+    <= UInt64.t'int const_MAX
+
+predicate invariant_Vec_ExtraValue_T_Global (self: t_Vec_ExtraValue_T_Global) =
+  [%#svec'2] inv_Seq_ExtraValue_T (view_Vec_ExtraValue_T_Global self)
+
+predicate inv_Vec_ExtraValue_T_Global (_1: t_Vec_ExtraValue_T_Global)
+
+axiom inv_axiom'2: forall x: t_Vec_ExtraValue_T_Global [inv_Vec_ExtraValue_T_Global x]. inv_Vec_ExtraValue_T_Global x
+    -> invariant_Vec_ExtraValue_T_Global x
+
+predicate invariant_ref_Vec_ExtraValue_T_Global [@inline:trivial] (self: t_Vec_ExtraValue_T_Global) =
+  [%#sinvariant] inv_Vec_ExtraValue_T_Global self
+
+meta "rewrite_def" predicate invariant_ref_Vec_ExtraValue_T_Global
+
+predicate inv_ref_Vec_ExtraValue_T_Global [@inline:trivial] (_1: t_Vec_ExtraValue_T_Global) =
+  invariant_ref_Vec_ExtraValue_T_Global _1
+
+meta "rewrite_def" predicate inv_ref_Vec_ExtraValue_T_Global
+
+constant size_of_ExtraValue_T : int
+
+axiom size_of_ExtraValue_T_spec: [%#smem] 0 <= size_of_ExtraValue_T
+
+let rec allocation_len_bound_ExtraValue_T (values: t_Vec_ExtraValue_T_Global) (return (x: ())) =
+  {[@stop_split] [@expl:allocation_len_bound_ExtraValue_T requires] ([@stop_split] [@expl:allocation_len_bound 'values' type invariant] [%#smap'6] inv_ref_Vec_ExtraValue_T_Global values)
+  /\ ([@stop_split] [@expl:allocation_len_bound requires] [%#smap'7] size_of_ExtraValue_T > 0)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:allocation_len_bound ensures] [%#smap'8] Seq.length (view_Vec_ExtraValue_T_Global values)
+    <= Int64.to_int const_MAX'0}
+    (! return {result}) ]
+
+let rec len_Bucket_T (self_: t_Vec_Bucket_T_Global) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:len 'self_' type invariant] [%#svec] inv_ref_Vec_Bucket_T_Global self_}
+  any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#svec'0] UInt64.t'int result
+    = Seq.length (view_Vec_Bucket_T_Global self_)}
+    (! return {result}) ]
+
+let rec len_ExtraValue_T (self_: t_Vec_ExtraValue_T_Global) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:len 'self_' type invariant] [%#svec] inv_ref_Vec_ExtraValue_T_Global self_}
+  any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#svec'0] UInt64.t'int result
+    = Seq.length (view_Vec_ExtraValue_T_Global self_)}
+    (! return {result}) ]
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0'0 -> inv_RandomState f0'0
+      end
+
+predicate inv_HeaderMap_T (_1: t_HeaderMap_T)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_HeaderMap_T [inv_HeaderMap_T x]. inv_HeaderMap_T x
+    = (inv_Vec_Bucket_T_Global x.entries /\ inv_Vec_ExtraValue_T_Global x.extra_values /\ inv_Danger x.danger)
+
+predicate invariant_ref_HeaderMap_T [@inline:trivial] (self: t_HeaderMap_T) = [%#sinvariant] inv_HeaderMap_T self
+
+meta "rewrite_def" predicate invariant_ref_HeaderMap_T
+
+predicate inv_ref_HeaderMap_T [@inline:trivial] (_1: t_HeaderMap_T) = invariant_ref_HeaderMap_T _1
+
+meta "rewrite_def" predicate inv_ref_HeaderMap_T
+
+function header_map_keys_len_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 109 0 109 55] (map: t_HeaderMap_T) : int
+ = [%#smap'10] Seq.length (view_Vec_Bucket_T_Global map.entries)
+
+function header_map_extra_values_len_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 116 0 116 63] (map: t_HeaderMap_T) : int
+ = [%#smap'11] Seq.length (view_Vec_ExtraValue_T_Global map.extra_values)
+
+function header_map_total_len_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 123 0 123 56] (map: t_HeaderMap_T) : int
+ = [%#smap'9] header_map_keys_len_T map + header_map_extra_values_len_T map
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec len_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 641 4 641 30]
+  (self: t_HeaderMap_T) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:len 'self' type invariant] [%#smap'4] inv_ref_HeaderMap_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_7 <- self.entries ] s1
+    | s1 = allocation_len_bound_Bucket_T [%#smap] {_7} (fun (_x: ()) -> [ &_5 <- _x ] s2)
+    | s2 = [ &_10 <- self.extra_values ] s3
+    | s3 = allocation_len_bound_ExtraValue_T [%#smap'0] {_10} (fun (_x: ()) -> [ &_8 <- _x ] s4)
+    | s4 = len_Bucket_T [%#smap'1] {self.entries} (fun (_x: UInt64.t) -> [ &_11 <- _x ] s5)
+    | s5 = len_ExtraValue_T [%#smap'2] {self.extra_values} (fun (_x: UInt64.t) -> [ &_13 <- _x ] s6)
+    | s6 = UInt64.add [%#smap'3] {_11} {_13} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s7)
+    | s7 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l ()
+  | & self: t_HeaderMap_T = self
+  | & _5: () = Any.any_l ()
+  | & _7: t_Vec_Bucket_T_Global = Any.any_l ()
+  | & _8: () = Any.any_l ()
+  | & _10: t_Vec_ExtraValue_T_Global = Any.any_l ()
+  | & _11: UInt64.t = Any.any_l ()
+  | & _13: UInt64.t = Any.any_l () ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#smap'5] UInt64.t'int result
+    = header_map_total_len_T self}
+    (! return {result}) ]

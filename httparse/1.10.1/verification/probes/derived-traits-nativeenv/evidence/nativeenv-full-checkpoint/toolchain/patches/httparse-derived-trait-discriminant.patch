@@ -1,0 +1,277 @@
+diff --git a/creusot/src/backend/optimization/invariants.rs b/creusot/src/backend/optimization/invariants.rs
+index 78eb78f..c3bcddd 100644
+--- a/creusot/src/backend/optimization/invariants.rs
++++ b/creusot/src/backend/optimization/invariants.rs
+@@ -644,6 +644,9 @@ impl TyInvState {
+ 
+         match rv {
+             RValue::Operand(op) => ty_inv_op(op),
++            RValue::EnumDiscriminant { .. } => {
++                unreachable!("an enum discriminant has a primitive integer result")
++            }
+             RValue::BinOp(..) | RValue::UnaryOp(..) | RValue::Cast(..) | RValue::Ptr(_) => {
+                 unreachable!("binary op / unary op / casts / ptr should return trivial tyinv")
+             }
+diff --git a/creusot/src/backend/program.rs b/creusot/src/backend/program.rs
+index e394fe8..8e50d51 100644
+--- a/creusot/src/backend/program.rs
++++ b/creusot/src/backend/program.rs
+@@ -58,7 +58,7 @@ use why3::{
+     Ident, Name,
+     coma::{Arg, Defn, Expr, IsRef, Param, Prototype, Var},
+     declaration::{Attribute, Contract, Decl, Module},
+-    exp::{Binder, Constant, Exp},
++    exp::{Binder, Constant, Exp, Pattern as WhyPattern},
+     ty::Type,
+ };
+ 
+@@ -556,6 +556,76 @@ impl<'tcx> RValue<'tcx> {
+     ) -> Exp {
+         match self {
+             RValue::Operand(op) => op.into_why(lower, istmts),
++            RValue::EnumDiscriminant { source, enum_ty, result_ty } => {
++                let enum_ty = lower.names.normalize(enum_ty);
++                let result_ty = lower.names.normalize(result_ty);
++                let TyKind::Adt(def, subst) = enum_ty.kind() else { unreachable!() };
++                let arms = def.discriminants(lower.ctx.tcx).map(|(variant, discr)| {
++                    assert_eq!(lower.names.normalize(discr.ty), result_ty);
++                    let variant_id = def.variant(variant).def_id;
++                    let pattern = WhyPattern::ConsP(
++                        Name::local(lower.names.item_ident(variant_id, *subst)),
++                        Box::new([]),
++                    );
++                    let value = match result_ty.kind() {
++                        TyKind::Int(ity) if lower.names.bitwise_mode() => {
++                            let width = ity
++                                .normalize(lower.ctx.tcx.sess.target.pointer_width)
++                                .bit_width()
++                                .unwrap();
++                            let mask = if width == 128 {
++                                u128::MAX
++                            } else {
++                                (1u128 << width) - 1
++                            };
++                            Exp::Const(Constant::Uint(
++                                discr.val & mask,
++                                Some(Type::qconstructor(
++                                    lower.names.in_pre(ity_to_prelude(lower.ctx.tcx, *ity), "t"),
++                                )),
++                            ))
++                        }
++                        TyKind::Int(ity) => {
++                            let width = ity
++                                .normalize(lower.ctx.tcx.sess.target.pointer_width)
++                                .bit_width()
++                                .unwrap();
++                            let mask = if width == 128 {
++                                u128::MAX
++                            } else {
++                                (1u128 << width) - 1
++                            };
++                            let signed_ity = ity.normalize(lower.ctx.tcx.sess.target.pointer_width);
++                            Exp::Const(Constant::Int(
++                                sign_extend((discr.val & mask) as i128, signed_ity),
++                                Some(Type::qconstructor(
++                                    lower.names.in_pre(ity_to_prelude(lower.ctx.tcx, *ity), "t"),
++                                )),
++                            ))
++                        }
++                        TyKind::Uint(uty) => {
++                            let width = uty
++                                .normalize(lower.ctx.tcx.sess.target.pointer_width)
++                                .bit_width()
++                                .unwrap();
++                            let mask = if width == 128 {
++                                u128::MAX
++                            } else {
++                                (1u128 << width) - 1
++                            };
++                            Exp::Const(Constant::Uint(
++                                discr.val & mask,
++                                Some(Type::qconstructor(
++                                    lower.names.in_pre(uty_to_prelude(lower.ctx.tcx, *uty), "t"),
++                                )),
++                            ))
++                        }
++                        _ => unreachable!("non-integer discriminant result was rejected"),
++                    };
++                    (pattern, value)
++                });
++                source.into_why(lower, istmts).match_(arms)
++            }
+             RValue::BinOp(op, l, r) => {
+                 let l_ty = l.ty(lower.ctx.tcx, lower.locals);
+ 
+diff --git a/creusot/src/translation/fmir.rs b/creusot/src/translation/fmir.rs
+index 509d4dc..74cadbe 100644
+--- a/creusot/src/translation/fmir.rs
++++ b/creusot/src/translation/fmir.rs
+@@ -110,6 +110,11 @@ pub(crate) struct Statement<'tcx> {
+ #[derive(Clone, Debug, TypeFoldable, TypeVisitable)]
+ pub enum RValue<'tcx> {
+     Operand(Operand<'tcx>),
++    EnumDiscriminant {
++        source: Operand<'tcx>,
++        enum_ty: Ty<'tcx>,
++        result_ty: Ty<'tcx>,
++    },
+     BinOp(BinOp, Operand<'tcx>, Operand<'tcx>),
+     UnaryOp(UnOp, Operand<'tcx>),
+     Constructor(DefId, GenericArgsRef<'tcx>, Box<[Operand<'tcx>]>),
+@@ -564,6 +569,7 @@ pub(crate) fn super_visit_terminator<'tcx, V: FmirVisitor<'tcx>>(
+ pub(crate) fn super_visit_rvalue<'tcx, V: FmirVisitor<'tcx>>(visitor: &mut V, rval: &RValue<'tcx>) {
+     match rval {
+         RValue::Operand(op) => visitor.visit_operand(op),
++        RValue::EnumDiscriminant { source, .. } => visitor.visit_operand(source),
+         RValue::BinOp(_, op1, op2) => {
+             visitor.visit_operand(op1);
+             visitor.visit_operand(op2);
+@@ -701,6 +707,7 @@ pub(crate) fn super_visit_mut_rvalue<'tcx, V: FmirVisitorMut<'tcx>>(
+ ) {
+     match rval {
+         RValue::Operand(op) => visitor.visit_mut_operand(op),
++        RValue::EnumDiscriminant { source, .. } => visitor.visit_mut_operand(source),
+         RValue::BinOp(_, op1, op2) => {
+             visitor.visit_mut_operand(op1);
+             visitor.visit_mut_operand(op2);
+diff --git a/creusot/src/translation/function/statement.rs b/creusot/src/translation/function/statement.rs
+index 9feb044..cd08397 100644
+--- a/creusot/src/translation/function/statement.rs
++++ b/creusot/src/translation/function/statement.rs
+@@ -1,4 +1,4 @@
+-use super::BodyTranslator;
++use super::{BodyTranslator, discriminator_for_switch};
+ use crate::{
+     contracts_items::{
+         is_assertion, is_before_loop, is_erasure, is_invariant, is_snapshot_closure, is_spec,
+@@ -101,7 +101,44 @@ impl<'tcx> BodyTranslator<'_, 'tcx> {
+                     return;
+                 }
+             },
+-            Rvalue::Discriminant(_) => return,
++            Rvalue::Discriminant(discriminated) => {
++                let block = &self.body.basic_blocks[loc.block];
++                let is_switch_discriminant = loc.statement_index + 1 == block.statements.len()
++                    && discriminator_for_switch(block).as_ref() == Some(discriminated);
++                if is_switch_discriminant {
++                    return;
++                }
++
++                let enum_ty = self.ctx.normalize_erasing_regions(
++                    self.typing_env(),
++                    discriminated.ty(self.body, self.tcx()).ty,
++                );
++                let TyKind::Adt(def, _) = enum_ty.kind() else {
++                    self.crash_and_error(si.span, "discriminant of a non-enum is unsupported")
++                };
++                if !def.is_enum()
++                    || def.variants().is_empty()
++                    || def.variants().iter().any(|variant| !variant.fields.is_empty())
++                {
++                    self.crash_and_error(
++                        si.span,
++                        "non-switch discriminants are supported only for non-empty fieldless enums",
++                    )
++                }
++
++                let result_ty = self.ctx.normalize_erasing_regions(self.typing_env(), ty);
++                if !matches!(result_ty.kind(), TyKind::Int(_) | TyKind::Uint(_)) {
++                    self.crash_and_error(
++                        si.span,
++                        format!("unsupported discriminant result type {result_ty}"),
++                    )
++                }
++                RValue::EnumDiscriminant {
++                    source: Operand::Place(self.translate_place(*discriminated, span)),
++                    enum_ty,
++                    result_ty,
++                }
++            }
+             Rvalue::BinaryOp(op, box (l, r)) => {
+                 RValue::BinOp(*op, self.translate_operand(l, span), self.translate_operand(r, span))
+             }
+diff --git a/creusot/src/translation/function/terminator.rs b/creusot/src/translation/function/terminator.rs
+index 6f0854d..3e91121 100644
+--- a/creusot/src/translation/function/terminator.rs
++++ b/creusot/src/translation/function/terminator.rs
+@@ -60,6 +60,43 @@ impl<'tcx> BodyTranslator<'_, 'tcx> {
+                     let TyKind::Closure(def_id, _) = ty.kind() else { unreachable!() };
+                     let snapshot = self.snapshots.remove(def_id).unwrap();
+                     self.emit_snapshot_assign(destination, snapshot, span);
++                } else if self.tcx().is_intrinsic(fun_def_id, sym::discriminant_value) {
++                    let [arg] = args.as_ref() else {
++                        self.crash_and_error(fn_span, "discriminant_value expects one argument")
++                    };
++                    let arg_ty = arg.node.ty(self.body, self.tcx());
++                    let TyKind::Ref(_, enum_ty, _) = arg_ty.kind() else {
++                        self.crash_and_error(fn_span, "discriminant_value expects a reference")
++                    };
++                    let enum_ty = self.ctx.normalize_erasing_regions(self.typing_env(), *enum_ty);
++                    let TyKind::Adt(def, _) = enum_ty.kind() else {
++                        self.crash_and_error(fn_span, "discriminant of a non-enum is unsupported")
++                    };
++                    if !def.is_enum()
++                        || def.variants().is_empty()
++                        || def.variants().iter().any(|variant| !variant.fields.is_empty())
++                    {
++                        self.crash_and_error(
++                            fn_span,
++                            "discriminant_value is supported only for non-empty fieldless enums",
++                        )
++                    }
++                    let result_ty = self.ctx.normalize_erasing_regions(
++                        self.typing_env(),
++                        destination.ty(self.body, self.tcx()).ty,
++                    );
++                    if !matches!(result_ty.kind(), TyKind::Int(_) | TyKind::Uint(_)) {
++                        self.crash_and_error(
++                            fn_span,
++                            format!("unsupported discriminant result type {result_ty}"),
++                        )
++                    }
++                    let source = self.translate_operand(&arg.node, arg.span);
++                    self.emit_assignment(
++                        destination,
++                        fmir::RValue::EnumDiscriminant { source, enum_ty, result_ty },
++                        span,
++                    );
+                 } else {
+                     let func_args: Box<[_]> = args
+                         .iter()
+diff --git a/creusot/src/translation/specification.rs b/creusot/src/translation/specification.rs
+index e94bf75..7ab0404 100644
+--- a/creusot/src/translation/specification.rs
++++ b/creusot/src/translation/specification.rs
+@@ -102,6 +102,10 @@ impl ContractClauses {
+         }
+     }
+ 
++    pub(crate) fn is_empty(&self) -> bool {
++        self.requires.is_empty() && self.ensures.is_empty() && self.variant.is_none()
++    }
++
+     fn get_pre<'tcx>(
+         self,
+         ctx: &TranslationCtx<'tcx>,
+@@ -206,12 +210,19 @@ pub(crate) fn inherited_extern_spec<'tcx>(
+ ) -> Option<(DefId, GenericArgsRef<'tcx>)> {
+     let subst = erased_identity_for_item(ctx.tcx, def_id);
+     try {
+-        if def_id.is_local() || ctx.extern_spec(def_id).is_some() {
++        if ctx.extern_spec(def_id).is_some() {
+             return None;
+         }
+ 
+         let assoc = ctx.opt_associated_item(def_id)?;
+-        let trait_ref = ctx.impl_opt_trait_ref(assoc.impl_container(ctx.tcx)?)?;
++        let impl_id = assoc.impl_container(ctx.tcx)?;
++        if def_id.is_local()
++            && (!rustc_hir::find_attr!(ctx.tcx, impl_id, AutomaticallyDerived(..))
++                || !contract_clauses_of(ctx, def_id).ok()?.is_empty())
++        {
++            return None;
++        }
++        let trait_ref = ctx.impl_opt_trait_ref(impl_id)?;
+         let id = assoc.trait_item_def_id()?;
+ 
+         if ctx.extern_spec(id).is_none() {

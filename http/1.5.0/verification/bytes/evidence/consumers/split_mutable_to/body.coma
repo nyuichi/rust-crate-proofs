@@ -1,0 +1,85 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 185 0 185 69 *)
+
+let%span slib = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 186 4 186 23
+let%span slib'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 185 24 185 30
+let%span slib'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 182 11 182 46
+let%span slib'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 185 61 185 69
+let%span slib'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 183 10 183 77
+let%span slib'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 184 10 184 105
+let%span sbytes = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 214 25 214 29
+let%span sbytes'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 211 19 211 52
+let%span sbytes'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 212 18 212 83
+let%span sbytes'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/bytes.rs" 213 18 213 107
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sbytes_mut = "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.1/src/bytes_mut.rs" 394 4 394 53
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use seq.Seq
+use creusot.int.UInt8
+use creusot.prelude.Any
+use int.Int
+
+type t_BytesMut
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+predicate invariant_refmut_BytesMut [@inline:trivial] (self: MutBorrow.t t_BytesMut) =
+  [%#sinvariant] inv_BytesMut self.current /\ inv_BytesMut self.final
+
+meta "rewrite_def" predicate invariant_refmut_BytesMut
+
+predicate inv_refmut_BytesMut [@inline:trivial] (_1: MutBorrow.t t_BytesMut) = invariant_refmut_BytesMut _1
+
+meta "rewrite_def" predicate inv_refmut_BytesMut
+
+function bytes_mut_seq (_value: t_BytesMut) : Seq.seq UInt8.t
+
+let rec split_to (self_: MutBorrow.t t_BytesMut) (at': UInt64.t) (return (x: t_BytesMut)) =
+  {[@stop_split] [@expl:split_to requires] ([@stop_split] [@expl:split_to 'self_' type invariant] [%#sbytes] inv_refmut_BytesMut self_)
+  /\ ([@stop_split] [@expl:split_to requires] [%#sbytes'0] UInt64.t'int at'
+  <= Seq.length (bytes_mut_seq self_.current))}
+  any
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:split_to ensures] ([@stop_split] [@expl:split_to result type invariant] [%#sbytes_mut] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:split_to ensures #0] [%#sbytes'1] bytes_mut_seq result
+      = Seq.([..]) (bytes_mut_seq self_.current) 0 (UInt64.t'int at'))
+    /\ ([@stop_split] [@expl:split_to ensures #1] [%#sbytes'2] bytes_mut_seq self_.final
+    = Seq.([..]) (bytes_mut_seq self_.current) (UInt64.t'int at') (Seq.length (bytes_mut_seq self_.current)))}
+    (! return {result}) ]
+
+predicate resolve_refmut_BytesMut [@inline:trivial] (_1: MutBorrow.t t_BytesMut) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_BytesMut
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec split_mutable_to [#"/workspace/rust-crate-proofs/http/1.5.0/verification/bytes/src/lib.rs" 185 0 185 69]
+  (source: MutBorrow.t t_BytesMut) (at': UInt64.t) (return (x: t_BytesMut)) =
+  {[@stop_split] [@expl:split_mutable_to requires] ([@stop_split] [@expl:split_mutable_to 'source' type invariant] [%#slib'0] inv_refmut_BytesMut source)
+  /\ ([@stop_split] [@expl:split_mutable_to requires] [%#slib'1] UInt64.t'int at'
+  <= Seq.length (bytes_mut_seq source.current))}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_BytesMut> {source.current} {MutBorrow.get_id source}
+        (fun (_bor: MutBorrow.t t_BytesMut) ->
+          [ &_12 <- _bor ] -{inv_BytesMut _bor.final}-
+          [ &source <- { source with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_BytesMut source.current} any) ]
+    | s1 = split_to [%#slib] {_12} {at'} (fun (_x: t_BytesMut) -> [ &_ret <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_BytesMut source} any) ]
+    | s3 = -{resolve_refmut_BytesMut source}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_BytesMut = Any.any_l ()
+  | & source: MutBorrow.t t_BytesMut = source
+  | & at': UInt64.t = at'
+  | & _12: MutBorrow.t t_BytesMut = Any.any_l () ])
+  [ return (result: t_BytesMut) ->
+  {[@stop_split] [@expl:split_mutable_to ensures] ([@stop_split] [@expl:split_mutable_to result type invariant] [%#slib'2] inv_BytesMut result)
+    /\ ([@stop_split] [@expl:split_mutable_to ensures #0] [%#slib'3] bytes_mut_seq result
+      = Seq.([..]) (bytes_mut_seq source.current) 0 (UInt64.t'int at'))
+    /\ ([@stop_split] [@expl:split_mutable_to ensures #1] [%#slib'4] bytes_mut_seq source.final
+    = Seq.([..]) (bytes_mut_seq source.current) (UInt64.t'int at') (Seq.length (bytes_mut_seq source.current)))}
+    (! return {result}) ]

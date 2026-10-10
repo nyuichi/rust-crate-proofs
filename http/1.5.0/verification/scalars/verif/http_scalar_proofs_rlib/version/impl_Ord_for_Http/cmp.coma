@@ -1,0 +1,131 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 167 4 167 43 *)
+
+(* <version::Http as std::cmp::Ord> *)
+
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 255 8 261 9
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 216 18 216 77
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 168 8 168 28
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 168 34 168 55
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 168 8 168 56
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 165 8 165 63
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 132 32 132 60
+let%span sversion'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 178 12 185 13
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+use int.Int
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'4] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+let rec numeric_value (self: t_Http) (return (x: UInt16.t)) = any
+  [ return (result: UInt16.t) -> {[@stop_split] [@expl:numeric_value ensures] [%#sversion'3] UInt16.t'int result
+    = deep_model_Http self}
+    (! return {result}) ]
+
+type t_Ordering = Less | Equal | Greater
+
+function cmp_log_Int (self: int) (o: int) : t_Ordering = [%#sord] if self < o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_Int (x: int) (y: int) : ()
+
+axiom eq_cmp_Int_spec: forall x: int, y: int. [%#sord'12] (x = y) = (cmp_log_Int x y = Equal)
+
+function antisym2_Int (x: int) (y: int) : ()
+
+axiom antisym2_Int_spec: forall x: int, y: int. ([%#sord'10] cmp_log_Int x y = Greater)
+    -> ([%#sord'11] cmp_log_Int y x = Less)
+
+function antisym1_Int (x: int) (y: int) : ()
+
+axiom antisym1_Int_spec: forall x: int, y: int. ([%#sord'8] cmp_log_Int x y = Less)
+    -> ([%#sord'9] cmp_log_Int y x = Greater)
+
+function trans_Int (x: int) (y: int) (z: int) (o: t_Ordering) : ()
+
+axiom trans_Int_spec: forall x: int, y: int, z: int, o: t_Ordering. ([%#sord'5] cmp_log_Int x y = o)
+    -> ([%#sord'6] cmp_log_Int y z = o) -> ([%#sord'7] cmp_log_Int x z = o)
+
+function refl_Int (x: int) : ()
+
+axiom refl_Int_spec: forall x: int. [%#sord'4] cmp_log_Int x x = Equal
+
+function cmp_gt_log_Int (x: int) (y: int) : ()
+
+axiom cmp_gt_log_Int_spec: forall x: int, y: int. [%#sord'3] (x > y) = (cmp_log_Int x y = Greater)
+
+function cmp_ge_log_Int (x: int) (y: int) : ()
+
+axiom cmp_ge_log_Int_spec: forall x: int, y: int. [%#sord'2] (x >= y) = (cmp_log_Int x y <> Less)
+
+function cmp_lt_log_Int (x: int) (y: int) : ()
+
+axiom cmp_lt_log_Int_spec: forall x: int, y: int. [%#sord'1] (x < y) = (cmp_log_Int x y = Less)
+
+function cmp_le_log_Int (x: int) (y: int) : ()
+
+axiom cmp_le_log_Int_spec: forall x: int, y: int. [%#sord'0] (x <= y) = (cmp_log_Int x y <> Greater)
+
+function deep_model_u16 [@inline:trivial] (self: UInt16.t) : int = [%#snum] UInt16.t'int self
+
+meta "rewrite_def" function deep_model_u16
+
+let rec cmp_u16 (self_: UInt16.t) (rhs: UInt16.t) (return (x: t_Ordering)) = any
+  [ return (result: t_Ordering) -> {[@stop_split] [@expl:cmp ensures] [%#scmp] result
+    = cmp_log_Int (deep_model_u16 self_) (deep_model_u16 rhs)}
+    (! return {result}) ]
+
+function deep_model_ref_Http [@inline:trivial] (self: t_Http) : int = [%#smodel] deep_model_Http self
+
+meta "rewrite_def" function deep_model_ref_Http
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec cmp_Http
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 167 4 167 43]
+  (self: t_Http) (other: t_Http) (return (x: t_Ordering)) = (! bb0
+  [ bb0 = s0
+    [ s0 = numeric_value [%#sversion] {self} (fun (_x: UInt16.t) -> [ &_7 <- _x ] s1)
+    | s1 = numeric_value [%#sversion'0] {other} (fun (_x: UInt16.t) -> [ &_11 <- _x ] s2)
+    | s2 = [ &_10 <- _11 ] s3
+    | s3 = cmp_u16 [%#sversion'1] {_7} {_10} (fun (_x: t_Ordering) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Ordering = Any.any_l ()
+  | & self: t_Http = self
+  | & other: t_Http = other
+  | & _7: UInt16.t = Any.any_l ()
+  | & _10: UInt16.t = Any.any_l ()
+  | & _11: UInt16.t = Any.any_l () ])
+  [ return (result: t_Ordering) -> {[@stop_split] [@expl:cmp ensures] [%#sversion'2] result
+    = cmp_log_Int (deep_model_ref_Http self) (deep_model_ref_Http other)}
+    (! return {result}) ]

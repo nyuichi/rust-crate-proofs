@@ -1,0 +1,79 @@
+{
+  "status": "fresh_current_emission; all_proof_tasks_semantically_identical_to_passed_snapshot",
+  "created_utc": "2026-10-05T10:16:00Z",
+  "profile": "verification/composition; RUSTFLAGS=--cfg http_composition_leaf --cfg http_builder_entrypoints_leaf; runtime URI/Status/Version dependency; error_is_empty_uri is cfg-excluded",
+  "source": {
+    "error_core_sha256": "3ea66eb8889dcf1b8dc5845cc1a39744ee53e29f0788f8b42403a9dbaa4fcc42",
+    "source_map_file_count": 175,
+    "source_before_sha256": "07e3f13ce910639fe6eece5febb47c5e328b63c47ef17197c244be3453a217f7",
+    "source_after_sha256": "07e3f13ce910639fe6eece5febb47c5e328b63c47ef17197c244be3453a217f7",
+    "source_stable_during_clean_emit": true,
+    "changed_paths_during_emit": []
+  },
+  "commands": {
+    "clean": "cargo clean -p http-composition-proof",
+    "emit": "RUSTFLAGS=\"--cfg http_composition_leaf --cfg http_builder_entrypoints_leaf\" cargo creusot --simple-triggers=false -- --locked --offline",
+    "semantic_comparison": "Byte compare each old/current COMA after removing only generated let%span source-location bindings.",
+    "direct_goal_audit": "why3 prove -C /workspace/proof-tools/config/creusot/why3.conf -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot -D why3 <current COMA>; no -P and no -a."
+  },
+  "exits": {
+    "clean": 0,
+    "emit": 0,
+    "why3_direct_enumeration": 0
+  },
+  "task_comparison": {
+    "target_count": 35,
+    "literal_coma_equal_count": 26,
+    "literal_coma_changed_count": 9,
+    "normalized_equal_count": 35,
+    "changed_only_by_source_location_bindings": true,
+    "normalization": "Remove only lines beginning `let%span `; all remaining Why3 declarations, axioms, function bodies, predicates, and goal formulas compare byte-for-byte.",
+    "all_current_task_formulas_equal_proof_snapshot": true,
+    "independent_full_task_stream_report": "independent-astra-task-streams/report.json",
+    "independent_full_task_stream_report_sha256": "9d6f872143ce85bf80e6bd590c8136dcc2173bc5cb601596d4b5907580a7fcf3"
+  },
+  "direct_goal_audit": {
+    "targets": 35,
+    "direct_roots": 199,
+    "root_names_match_archived_proof_json": true,
+    "no_preprocess_no_solver": true,
+    "audit_report": "why3-direct-arity/report.json",
+    "own_direct_roots": 35,
+    "support_direct_roots": 164,
+    "classification_note": "Two vc_call_once_F roots are std::ops::FnOnce contract stubs; source-body roots count as 35 own."
+  },
+  "proof_reuse": {
+    "proof_manifest": "../manifest.json",
+    "reuse_basis": "Every new COMA has exactly the same logical task text after source-span-only normalization; direct Why3 root names still match all archived proof JSON trees. The previous 35-target Z3 run and terminal-leaf counts therefore prove these regenerated current-profile tasks.",
+    "terminal_counts_reused": {
+      "own": 116,
+      "support": 164,
+      "total": 280
+    },
+    "direct_root_counts_reused": {
+      "own": 35,
+      "support": 164,
+      "total": 199
+    },
+    "classification_correction": "vc_call_once_F is a support stub in both and_then targets; see parent run nested-tactic-audit.json."
+  },
+  "artifacts": {
+    "current_comas": "artifacts/coma/",
+    "current_error_core_copy": "source-snapshot/error-core.rs",
+    "normalized_coma_comparison": "normalized-coma-comparison.json",
+    "direct_goal_audit": "why3-direct-arity/report.json"
+  },
+  "independent_nested_task_audit": {
+    "path": "../nested-tactic-audit.json",
+    "sha256": "5c7df44dc1ce7f1ed129554d31ee819ab5636e71a54f40fa5f236a0cf4272471",
+    "result": "17/17 nodes and printed contexts independently audited; all match."
+  },
+  "independent_full_task_stream_audit": {
+    "report": "independent-astra-task-streams/report.json",
+    "report_sha256": "9d6f872143ce85bf80e6bd590c8136dcc2173bc5cb601596d4b5907580a7fcf3",
+    "auditor": "/root/astra_resume (read-only)",
+    "method": "For each of the 9 span-only COMA differences, invoke the recorded Why3 direct printer with no -P and no transformations; compare complete stdout bytes. Preserve all 18 raw stdout streams as gzip without changing raw stream bytes.",
+    "result": "All 9 old/current-v2 stdout pairs are byte-identical; their goal counts are 13 each. The other 26 COMAs were already raw-byte-identical.",
+    "raw_streams": "All 18 stdout streams and paired stderr files are stored under independent-astra-task-streams/. Exact argv, cwd, exit status, raw and gzip SHA-256, byte counts, target COMA hashes, and binary/config hashes are in the linked report."
+  }
+}

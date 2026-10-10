@@ -1,0 +1,1292 @@
+{
+  "created_utc": "2026-10-05T08:45:30Z",
+  "crate": "http 1.5.0",
+  "profile": "verification/composition; RUSTFLAGS=--cfg http_composition_leaf --cfg http_builder_entrypoints_leaf",
+  "source_map": "source-before.sha256",
+  "source_map_sha256": "54d174cd6a830a50e101d376ab95209a2aad258d1b7f19d78d2e26a8e5bb1efd",
+  "source_after_map": "source-after.sha256",
+  "source_check_log_sha256": "62702f964714536579217e17716137fe1cbc288d57affa01be674e9b7143fa28",
+  "source_check_exit": 0,
+  "source_stable_during_proof": true,
+  "translation_run": "evidence/run-2026-10-05-composition-clone-derives/emit.log",
+  "translation_exit": 0,
+  "proof_command": "RUSTFLAGS='--cfg http_composition_leaf --cfg http_builder_entrypoints_leaf' ../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache <targets.txt: 49 COMA files> -- --locked --offline",
+  "proof_exit": 0,
+  "proof_log_sha256": "3edfbc171fa9722f29594d479e16b379ee1461cdba38ecf2b73822ea8c3f7718",
+  "counts": {
+    "target_coma_files": 49,
+    "passing_targets": 49,
+    "failed_targets": 0,
+    "source_body_targets": 41,
+    "generated_trait_refinement_targets": 8,
+    "proof_json_terminal_leaves": 107,
+    "own_successful_terminal_leaves": 65,
+    "call_or_spec_support_terminal_leaves": 42,
+    "proof_json_trees_matching_run_log_arity": 49,
+    "archived_comas": 49,
+    "archived_proof_json": 49
+  },
+  "coverage": {
+    "generic_Request_Response_Clone": {
+      "bodies": [
+        "Request<T>::clone",
+        "Response<T>::clone"
+      ],
+      "refinement_targets": 2,
+      "note": "Production derive Clone is emitted in this composition profile. Each body has one source-body goal and two call/spec support goals (Parts and T); each trait refinement goal passes."
+    },
+    "Parts_Clone": {
+      "bodies": [
+        "Request::Parts::clone",
+        "Response::Parts::clone"
+      ],
+      "note": "Manual bodies retain declaration-order Clone calls and copy the unit private field directly; component Clone calls rely on imported trait contracts."
+    },
+    "Debug": {
+      "bodies": [
+        "Request<T>::fmt",
+        "Request::Parts::fmt",
+        "Response<T>::fmt",
+        "Response::Parts::fmt"
+      ],
+      "postcondition": "formatter_extends(initial, final); append preservation only."
+    },
+    "structural_API": {
+      "bodies": 30,
+      "own_vcs": 32,
+      "note": "Request/Response from_parts, field access/mutation, into_body, into_parts and map; each map has a second source-owned FnOnce relay goal."
+    },
+    "Builder_version_API": {
+      "bodies": [
+        "Request::Builder::version",
+        "Request::Builder::version_ref",
+        "Response::Builder::version"
+      ],
+      "note": "Direct version paths proved. Builder header/extension methods are not in this batch; translation reports missing imported contracts for those calls."
+    }
+  },
+  "targets": [
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Clone_for_Parts/clone.coma",
+      "coma_sha256": "2179908fdab3401c976b16e6b9e877ecb7cc9ea615a8864dcf650ca5aadf0b31",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Clone_for_Parts/clone/proof.json",
+      "proof_json_sha256": "82935550f91cd14ff51892f9b75d37d5b0cd6e164f889d0ae0cfe1c342eb80ea",
+      "coma_top_level_goal_keys": [
+        "vc_clone_Extensions",
+        "vc_clone_HeaderMap_HeaderValue",
+        "vc_clone_Method",
+        "vc_clone_Parts",
+        "vc_clone_Uri",
+        "vc_clone_Version"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_clone_Extensions": 1,
+        "vc_clone_HeaderMap_HeaderValue": 1,
+        "vc_clone_Method": 1,
+        "vc_clone_Parts": 1,
+        "vc_clone_Uri": 1,
+        "vc_clone_Version": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 5,
+      "terminal_leaf_count": 6,
+      "run_log_leaf_count": 6,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_clone_Parts"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_clone_Extensions",
+        "vc_clone_HeaderMap_HeaderValue",
+        "vc_clone_Method",
+        "vc_clone_Uri",
+        "vc_clone_Version"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Clone_for_Parts/clone__refines.coma",
+      "coma_sha256": "130b6e4a28369996c5a5248aafdc84c56bc6e7c9afe3555dbc300d59ca87fed1",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Clone_for_Parts/clone__refines/proof.json",
+      "proof_json_sha256": "f9aa3a574f23a1fd265acc334a7e068094a9cc02918830ed7e21dda8d08a4b8d",
+      "coma_top_level_goal_keys": [
+        "refines"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "refines": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "refines"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Clone_for_Parts/clone.coma",
+      "coma_sha256": "e530e83c2a13a7bf1e914aa965ccad8d94abd68d9b8a97fbfa7743e30996faa0",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Clone_for_Parts/clone/proof.json",
+      "proof_json_sha256": "1d79290c3fb6e2a6b78c736f0325749b301384e0513253fefa4c6f8a279d5f7e",
+      "coma_top_level_goal_keys": [
+        "vc_clone_Extensions",
+        "vc_clone_HeaderMap_HeaderValue",
+        "vc_clone_Parts",
+        "vc_clone_StatusCode",
+        "vc_clone_Version"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_clone_Extensions": 1,
+        "vc_clone_HeaderMap_HeaderValue": 1,
+        "vc_clone_Parts": 1,
+        "vc_clone_StatusCode": 1,
+        "vc_clone_Version": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 4,
+      "terminal_leaf_count": 5,
+      "run_log_leaf_count": 5,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_clone_Parts"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_clone_Extensions",
+        "vc_clone_HeaderMap_HeaderValue",
+        "vc_clone_StatusCode",
+        "vc_clone_Version"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Clone_for_Parts/clone__refines.coma",
+      "coma_sha256": "f70cd3a6e117c4115fe46e472d17d2a9adf6ba1cfbda669f8dc3a5fcbc1b132d",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Clone_for_Parts/clone__refines/proof.json",
+      "proof_json_sha256": "49e3a58df4762dfefabf01674dedc6e797551998d8737a53e8450f86504ad4b5",
+      "coma_top_level_goal_keys": [
+        "refines"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "refines": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "refines"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Debug_for_Parts/fmt.coma",
+      "coma_sha256": "6f6493cc1d33bc623b5279f6e8a3b5c16d04f72e8ce3ccf9971fa9036baec381",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Debug_for_Parts/fmt/proof.json",
+      "proof_json_sha256": "ce89f1df0c48e96996328fb828762897558828ac1b0c0cee9fe590d074d2ec96",
+      "coma_top_level_goal_keys": [
+        "vc_debug_struct",
+        "vc_field",
+        "vc_finish",
+        "vc_fmt_Parts"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_debug_struct": 1,
+        "vc_field": 1,
+        "vc_finish": 1,
+        "vc_fmt_Parts": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 3,
+      "terminal_leaf_count": 4,
+      "run_log_leaf_count": 4,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_fmt_Parts"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_debug_struct",
+        "vc_field",
+        "vc_finish"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Debug_for_Parts/fmt__refines.coma",
+      "coma_sha256": "db66086c0cee6686fa3b35668e58a677722ddab54cc1f01ac03f34739a91508f",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Debug_for_Parts/fmt__refines/proof.json",
+      "proof_json_sha256": "0df42ddc7ceae7c53f76e0c43b640902d65779f3a66d57299be5dff2c1a5a51f",
+      "coma_top_level_goal_keys": [
+        "refines"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "refines": 3
+      },
+      "own_successful_terminal_leaves": 3,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 3,
+      "run_log_leaf_count": 3,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "refines"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Debug_for_Request_T/fmt.coma",
+      "coma_sha256": "8906a8c2f798b1344327761038608bb6caa550e79b4b5159f33dded61e3a0677",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Debug_for_Request_T/fmt/proof.json",
+      "proof_json_sha256": "8095128aa096b12a1834ceac24a6815c75451cc0c418db94bde398bcf4b339aa",
+      "coma_top_level_goal_keys": [
+        "vc_body_T",
+        "vc_debug_struct",
+        "vc_field",
+        "vc_finish",
+        "vc_fmt_Request_T",
+        "vc_headers_T",
+        "vc_method_T",
+        "vc_uri_T",
+        "vc_version_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_body_T": 1,
+        "vc_debug_struct": 1,
+        "vc_field": 1,
+        "vc_finish": 1,
+        "vc_fmt_Request_T": 1,
+        "vc_headers_T": 1,
+        "vc_method_T": 1,
+        "vc_uri_T": 1,
+        "vc_version_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 8,
+      "terminal_leaf_count": 9,
+      "run_log_leaf_count": 9,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_fmt_Request_T"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_body_T",
+        "vc_debug_struct",
+        "vc_field",
+        "vc_finish",
+        "vc_headers_T",
+        "vc_method_T",
+        "vc_uri_T",
+        "vc_version_T"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Debug_for_Request_T/fmt__refines.coma",
+      "coma_sha256": "01ce0bf2aee5fbd30191c94e9a1213e21673e557075d50d0a257684d2ec4e3f3",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Debug_for_Request_T/fmt__refines/proof.json",
+      "proof_json_sha256": "f87f35e191779c698101ab0d9999d8a9dbfce8d7bf25cc1ec2a3eba0f1e2a8c9",
+      "coma_top_level_goal_keys": [
+        "refines"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "refines": 3
+      },
+      "own_successful_terminal_leaves": 3,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 3,
+      "run_log_leaf_count": 3,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "refines"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Debug_for_Parts/fmt.coma",
+      "coma_sha256": "eaf8b9d82fd7b00ae40d5e4f61f981645061bde86c17973dbf411b01a8a4cb46",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Debug_for_Parts/fmt/proof.json",
+      "proof_json_sha256": "b7181d79783e86278284e1c0ce8bddf900128541de33f482d50a7797e86a2b42",
+      "coma_top_level_goal_keys": [
+        "vc_debug_struct",
+        "vc_field",
+        "vc_finish",
+        "vc_fmt_Parts"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_debug_struct": 1,
+        "vc_field": 1,
+        "vc_finish": 1,
+        "vc_fmt_Parts": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 3,
+      "terminal_leaf_count": 4,
+      "run_log_leaf_count": 4,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_fmt_Parts"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_debug_struct",
+        "vc_field",
+        "vc_finish"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Debug_for_Parts/fmt__refines.coma",
+      "coma_sha256": "b1f5d083d44fd412a67b14ae96d72826f8d78e2c4353a7f8f02484ea74bde13f",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Debug_for_Parts/fmt__refines/proof.json",
+      "proof_json_sha256": "1d978a50b0b7f70338aeb23927305b34214d006cd1b9d1109cddc378c2ba39d7",
+      "coma_top_level_goal_keys": [
+        "refines"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "refines": 3
+      },
+      "own_successful_terminal_leaves": 3,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 3,
+      "run_log_leaf_count": 3,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "refines"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Debug_for_Response_T/fmt.coma",
+      "coma_sha256": "f28aefb2cfbc1cf342dc85c113d2f2cb79dc5eb4ad34408ff1b56f5d2acde3a5",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Debug_for_Response_T/fmt/proof.json",
+      "proof_json_sha256": "5f4258afe72f27f0f0afbfdd4c42baab6cc167554952bd4543600ff31ea25c8e",
+      "coma_top_level_goal_keys": [
+        "vc_body_T",
+        "vc_debug_struct",
+        "vc_field",
+        "vc_finish",
+        "vc_fmt_Response_T",
+        "vc_headers_T",
+        "vc_status_T",
+        "vc_version_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_body_T": 1,
+        "vc_debug_struct": 1,
+        "vc_field": 1,
+        "vc_finish": 1,
+        "vc_fmt_Response_T": 1,
+        "vc_headers_T": 1,
+        "vc_status_T": 1,
+        "vc_version_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 7,
+      "terminal_leaf_count": 8,
+      "run_log_leaf_count": 8,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_fmt_Response_T"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_body_T",
+        "vc_debug_struct",
+        "vc_field",
+        "vc_finish",
+        "vc_headers_T",
+        "vc_status_T",
+        "vc_version_T"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Debug_for_Response_T/fmt__refines.coma",
+      "coma_sha256": "b0e669692c5ba56acb8503a23e33bf8fc78137eebab10e34ad62115c5427c787",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Debug_for_Response_T/fmt__refines/proof.json",
+      "proof_json_sha256": "af6f96dce08670590ed24ae36be6ba1a3f47f13a61b3d42ec969681bfadc863c",
+      "coma_top_level_goal_keys": [
+        "refines"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "refines": 3
+      },
+      "own_successful_terminal_leaves": 3,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 3,
+      "run_log_leaf_count": 3,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "refines"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/from_parts.coma",
+      "coma_sha256": "5f9d4bf1a64d45e2e2cba6c1bf04ef634d6250db669e2ad34522b1ad5eaddfc3",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/from_parts/proof.json",
+      "proof_json_sha256": "e0276a9c921f37410688e00463d2ba68d95d12cd6b6d5acbe82db832da66a2f6",
+      "coma_top_level_goal_keys": [
+        "vc_from_parts_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_from_parts_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_from_parts_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/method.coma",
+      "coma_sha256": "3686c6d0a2d10324e538adfc3dfcd162baf22ab1938c64551c3bd86c33943782",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/method/proof.json",
+      "proof_json_sha256": "6ef66fc112c57b7a05d5eb4f2daec8fb8226cb0f002b6c2c594d991a9052dc3d",
+      "coma_top_level_goal_keys": [
+        "vc_method_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_method_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_method_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/method_mut.coma",
+      "coma_sha256": "4db2dc5938814dac777e769027e949077c2da3eaeb986dc523df569cc064157c",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/method_mut/proof.json",
+      "proof_json_sha256": "e54210d7961263c40799757ced9d91e60e9b90827c5423a783cba6dba83868b0",
+      "coma_top_level_goal_keys": [
+        "vc_method_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_method_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_method_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/uri.coma",
+      "coma_sha256": "077ccc6a4542d144b2ebffea73326df13636a4d60cc1b48fc06716a1ff9a040a",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/uri/proof.json",
+      "proof_json_sha256": "42ddf3eff63abc6526eb60c914d7e70480a7a0b459a669cf0a7e5f01b1e0c4a7",
+      "coma_top_level_goal_keys": [
+        "vc_uri_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_uri_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_uri_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/uri_mut.coma",
+      "coma_sha256": "9389e7dfde37fe1ae15d60074f4a7a50178e2a05727fe8bc4cb91fd03bffde8b",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/uri_mut/proof.json",
+      "proof_json_sha256": "b0734bb8d4d207f4921277b4115390211ae7596ca18894184208dff2cd3ff63d",
+      "coma_top_level_goal_keys": [
+        "vc_uri_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_uri_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_uri_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/version.coma",
+      "coma_sha256": "4b52969ded1d958ff2fcc2b9b6f9092745181203ef605feb70cdd8d98f6049e7",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/version/proof.json",
+      "proof_json_sha256": "9df3b5933f906a22542ce3329bb1c31ccf92d2b49b166d11ce3e865ba6b99634",
+      "coma_top_level_goal_keys": [
+        "vc_version_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_version_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_version_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/version_mut.coma",
+      "coma_sha256": "ed08ad1cf90adddf5850c380a6d6853f748ab9f1090a98db2facafccdfe8a36d",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/version_mut/proof.json",
+      "proof_json_sha256": "1a2571e24d7ede7e0720dc846c45fd7c8bd0131b34bc39adb6638b554ab54deb",
+      "coma_top_level_goal_keys": [
+        "vc_version_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_version_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_version_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/headers.coma",
+      "coma_sha256": "3d766406ad2457db8581795c930458200253ebdd6a3c9649a212392d700211da",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/headers/proof.json",
+      "proof_json_sha256": "6aeb535f77ef13dd5e75cf746233bfc9a9bffff7e403243cf89ac4ade20142ab",
+      "coma_top_level_goal_keys": [
+        "vc_headers_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_headers_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_headers_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/headers_mut.coma",
+      "coma_sha256": "987fc56f7e8f285ac9842fc9371067c75609530190d1241bb4a1af654b57c80a",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/headers_mut/proof.json",
+      "proof_json_sha256": "5f338a9680f7e394461877b85b5479cb59be1b97e8a0a0f0a3bfef60a8c6ef2d",
+      "coma_top_level_goal_keys": [
+        "vc_headers_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_headers_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_headers_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/extensions.coma",
+      "coma_sha256": "d3c327f20c5632d85b24f1064fff97f14e83fc795629c34f9e1ad90b2b38700d",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/extensions/proof.json",
+      "proof_json_sha256": "1175c1513edf313d5e5ff87b4fafe9f1a32bbfccb31aed333292d6497caf5b7e",
+      "coma_top_level_goal_keys": [
+        "vc_extensions_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_extensions_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_extensions_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/extensions_mut.coma",
+      "coma_sha256": "d202f64067a7cb9cd6aa4630fd40ad712b5e3ad4b36ae97eb0868cb673362249",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/extensions_mut/proof.json",
+      "proof_json_sha256": "8cfa198fd928cf1018d97dfe13ffd8ae181d44009be84e99f635c15733180abc",
+      "coma_top_level_goal_keys": [
+        "vc_extensions_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_extensions_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_extensions_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/body.coma",
+      "coma_sha256": "ef42dac67eab53b168c1d03f8f09d3a1fa10b15d4f5106e96732ab75caf4ed85",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/body/proof.json",
+      "proof_json_sha256": "b544f688df87701db4dca12ede2a1ffe5766fc4c7d7f9975c821e5725397d6c2",
+      "coma_top_level_goal_keys": [
+        "vc_body_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_body_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_body_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/body_mut.coma",
+      "coma_sha256": "d0dce90da3c0baab3d284cb41e690780ad8c030cb78ca841533406e49ee3a6e5",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/body_mut/proof.json",
+      "proof_json_sha256": "d8a30e30614e577312a653f65b625919dc3b399f40cc4c5e5e00f829a9824a33",
+      "coma_top_level_goal_keys": [
+        "vc_body_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_body_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_body_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/into_body.coma",
+      "coma_sha256": "bfb87885c245ef87efdce8fe0957783caef335d3c511786801cd20006ed4caa7",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/into_body/proof.json",
+      "proof_json_sha256": "5cb82207265d340588c38ac58c34a84539468f8bf419e2570e0f91f8dee8eb54",
+      "coma_top_level_goal_keys": [
+        "vc_into_body_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_into_body_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_into_body_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/into_parts.coma",
+      "coma_sha256": "696d52cd74fe57f2ff8473fa651f260771c80e9240b29827152544fb856684bb",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/into_parts/proof.json",
+      "proof_json_sha256": "c2faae42c297aad1e6a5568ae83611355a7d361bb76a94d7714a9bd0f054ba26",
+      "coma_top_level_goal_keys": [
+        "vc_into_parts_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_into_parts_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_into_parts_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Request_T/map.coma",
+      "coma_sha256": "59e380adabf1cc8913ecaa52fd566ec56d3cb834388fdc93448dac8ce349bf6e",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Request_T/map/proof.json",
+      "proof_json_sha256": "09a19c10e6c1a21557f301ea35695958d512ba7c6a115f22848ed35a50d4d709",
+      "coma_top_level_goal_keys": [
+        "vc_call_once_F",
+        "vc_map_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_call_once_F": 1,
+        "vc_map_T": 1
+      },
+      "own_successful_terminal_leaves": 2,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 2,
+      "run_log_leaf_count": 2,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_call_once_F",
+        "vc_map_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/from_parts.coma",
+      "coma_sha256": "1bef81b1e733b988cbe0f90e33cc63b5a6cbb563e66146e6a95130715deff0a9",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/from_parts/proof.json",
+      "proof_json_sha256": "be2de0ce53241e2dc1053223f3fec2b75d4e2b53db78c6112d8c3a1bb85ab5a6",
+      "coma_top_level_goal_keys": [
+        "vc_from_parts_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_from_parts_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_from_parts_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/status.coma",
+      "coma_sha256": "393e18679e30d56ed82b613a41a4e3b6ab5703d9fe04eda263a5ff0b8c1424fb",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/status/proof.json",
+      "proof_json_sha256": "c15c956b8c9ecb491550492fd4371f27ae49af5758e3c7d62ad40d79c0103df8",
+      "coma_top_level_goal_keys": [
+        "vc_status_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_status_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_status_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/status_mut.coma",
+      "coma_sha256": "cdd4e8e04cb00fe9f709b113dc5ccab63b2cb23c54906c5aabdceeb0583f41c4",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/status_mut/proof.json",
+      "proof_json_sha256": "1aca1d0b46c68583cc0c3b5675a007ab2c500fb30c62a959ec0eb71a0a35ddde",
+      "coma_top_level_goal_keys": [
+        "vc_status_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_status_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_status_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/version.coma",
+      "coma_sha256": "eb3d0dbf192699e2ef21e4ca67e7a5f4dca67e85d867c7bed306173de2d8e77f",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/version/proof.json",
+      "proof_json_sha256": "13cd6935c1a63d2dfbb9fc9332543dd0b4c7d4ad7f80abc16240fbb50af372d1",
+      "coma_top_level_goal_keys": [
+        "vc_version_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_version_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_version_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/version_mut.coma",
+      "coma_sha256": "3bb5869178939a853261c2dab569f0bb86a8965129e7ab491daade593ec9ff3b",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/version_mut/proof.json",
+      "proof_json_sha256": "f140e445d5153262cabbb297962832c3e0238b011c464b0217b887043f9305b3",
+      "coma_top_level_goal_keys": [
+        "vc_version_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_version_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_version_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/headers.coma",
+      "coma_sha256": "4fae17a5e1289a6d9e75f5b30f89c3146d873ceeda55bc0deb5016988f0d76f5",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/headers/proof.json",
+      "proof_json_sha256": "6aeb535f77ef13dd5e75cf746233bfc9a9bffff7e403243cf89ac4ade20142ab",
+      "coma_top_level_goal_keys": [
+        "vc_headers_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_headers_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_headers_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/headers_mut.coma",
+      "coma_sha256": "eecce9adfd0f9690fc7476364e907c40a33fac74d1620b2f82276dca8b2468a1",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/headers_mut/proof.json",
+      "proof_json_sha256": "f74b2dc03196e1ae0238a21bb3246f90c6f040ca4590776cd56f083046237308",
+      "coma_top_level_goal_keys": [
+        "vc_headers_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_headers_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_headers_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/extensions.coma",
+      "coma_sha256": "af2d4830e850291059f0da5e05ce3c971dd30ddf1eced01c5217a3ff8e5a4834",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/extensions/proof.json",
+      "proof_json_sha256": "c582bd202c214500c528e88a83b3f9c98bb8af14c58b979a94be0e3c91b316dc",
+      "coma_top_level_goal_keys": [
+        "vc_extensions_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_extensions_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_extensions_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/extensions_mut.coma",
+      "coma_sha256": "5db2a472f49c800c9b38686580907784282721e3cdde6c9cb4b11c5d85925c7c",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/extensions_mut/proof.json",
+      "proof_json_sha256": "227c79ff038976cde018dd79ea8ef02f9d89405af17ffb616b3d823d069774c3",
+      "coma_top_level_goal_keys": [
+        "vc_extensions_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_extensions_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_extensions_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/body.coma",
+      "coma_sha256": "f9ec1d2fa7540129c4b79ff3cca299aa1ea41852d3d831032c0de3d2a75eda63",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/body/proof.json",
+      "proof_json_sha256": "1ccda44113dd78d00577476f9f53630dbef4b85769cff3f717e25f0f84f3ce66",
+      "coma_top_level_goal_keys": [
+        "vc_body_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_body_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_body_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/body_mut.coma",
+      "coma_sha256": "d541e88d3c6d2dd54e41d68bac29f7f3577298c811701a7f4c6d1159c2a67719",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/body_mut/proof.json",
+      "proof_json_sha256": "8f33ff601a0ab1df14c00c845dd57688457301687286296fa7fb8c5bd87ecb65",
+      "coma_top_level_goal_keys": [
+        "vc_body_mut_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_body_mut_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_body_mut_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/into_body.coma",
+      "coma_sha256": "cd818f432ddefe73541ea2ee20d7ceba031bdb18bd254e3c3a46d6ef82592439",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/into_body/proof.json",
+      "proof_json_sha256": "5cb82207265d340588c38ac58c34a84539468f8bf419e2570e0f91f8dee8eb54",
+      "coma_top_level_goal_keys": [
+        "vc_into_body_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_into_body_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_into_body_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/into_parts.coma",
+      "coma_sha256": "e1801f58d5d1852c22027f9874554de52f35755b09d7aa60a9fa054d51c7bf85",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/into_parts/proof.json",
+      "proof_json_sha256": "8214235f814e7bd3c730b90a361ee06f13d4650d86883f5ec8f51be05982dc8b",
+      "coma_top_level_goal_keys": [
+        "vc_into_parts_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_into_parts_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_into_parts_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Response_T/map.coma",
+      "coma_sha256": "43bd50c7faa50fe790598aec4f7f61daed0aac0729befd2226f3bbeeeedb1658",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Response_T/map/proof.json",
+      "proof_json_sha256": "f43c5dd257564aa1646391aa940b4cc4417abc06b34ea0d0ff831bf685d75a0a",
+      "coma_top_level_goal_keys": [
+        "vc_call_once_F",
+        "vc_map_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_call_once_F": 1,
+        "vc_map_T": 1
+      },
+      "own_successful_terminal_leaves": 2,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 2,
+      "run_log_leaf_count": 2,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_call_once_F",
+        "vc_map_T"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Builder/version.coma",
+      "coma_sha256": "55a176eb02c64c39050bd8c26ed6455f95dc2306ca89cca9d2c2e06e62108e19",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Builder/version/proof.json",
+      "proof_json_sha256": "9a2b9ef5d72dd9ea9b147b415e66b29b68c6ed63815f955710ce5d8c4ee9d18b",
+      "coma_top_level_goal_keys": [
+        "vc_elim_Err",
+        "vc_elim_Ok",
+        "vc_version'0"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_elim_Err": 1,
+        "vc_elim_Ok": 1,
+        "vc_version'0": 4
+      },
+      "own_successful_terminal_leaves": 4,
+      "call_or_spec_support_terminal_leaves": 2,
+      "terminal_leaf_count": 6,
+      "run_log_leaf_count": 6,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_version'0"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_elim_Err",
+        "vc_elim_Ok"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Builder/version_ref.coma",
+      "coma_sha256": "a8ceec51fe28252dbc4fc4be92cd2238e0f593a3bfb697452bff72d77dfc391b",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Builder/version_ref/proof.json",
+      "proof_json_sha256": "747851ccc9e6335ab6e8a4faac028e8c5ebc863c02dfcc39d1d63f881459ef2f",
+      "coma_top_level_goal_keys": [
+        "vc_as_ref_Parts",
+        "vc_closure0",
+        "vc_map_ref_Parts",
+        "vc_ok_ref_Parts",
+        "vc_version_ref"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_as_ref_Parts": 1,
+        "vc_closure0": 1,
+        "vc_map_ref_Parts": 1,
+        "vc_ok_ref_Parts": 1,
+        "vc_version_ref": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 4,
+      "terminal_leaf_count": 5,
+      "run_log_leaf_count": 5,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_version_ref"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_as_ref_Parts",
+        "vc_closure0",
+        "vc_map_ref_Parts",
+        "vc_ok_ref_Parts"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Builder/version.coma",
+      "coma_sha256": "cece1e90cd245336bb95ab7484f5424d037948a8fb5d5d76242073fdc9211b68",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Builder/version/proof.json",
+      "proof_json_sha256": "90d9e4fb62ce0928d25ca4686325bdb3ebfc9fd46ff47c35aa9e1f8833127e84",
+      "coma_top_level_goal_keys": [
+        "vc_elim_Err",
+        "vc_elim_Ok",
+        "vc_version'0"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_elim_Err": 1,
+        "vc_elim_Ok": 1,
+        "vc_version'0": 4
+      },
+      "own_successful_terminal_leaves": 4,
+      "call_or_spec_support_terminal_leaves": 2,
+      "terminal_leaf_count": 6,
+      "run_log_leaf_count": 6,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_version'0"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_elim_Err",
+        "vc_elim_Ok"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Clone_for_Request_T/clone.coma",
+      "coma_sha256": "9a4a28b6aa62891adde71206d1451d7ea03e2b271e9c247489939436cfaa9b0d",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Clone_for_Request_T/clone/proof.json",
+      "proof_json_sha256": "a31a6905d18f7a9f4be312db144bd692a2e2409499b422b7369e4112f4cdbd8a",
+      "coma_top_level_goal_keys": [
+        "vc_clone_Parts",
+        "vc_clone_Request_T",
+        "vc_clone_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_clone_Parts": 1,
+        "vc_clone_Request_T": 1,
+        "vc_clone_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 2,
+      "terminal_leaf_count": 3,
+      "run_log_leaf_count": 3,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_clone_Request_T"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_clone_Parts",
+        "vc_clone_T"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/request/impl_Clone_for_Request_T/clone__refines.coma",
+      "coma_sha256": "74e3cf67bd1f06dfb3c7bf82f4676bf760af15a072b9e7e8846d2aa3c2b7353e",
+      "proof_json": "verif/http_composition_proof_rlib/request/impl_Clone_for_Request_T/clone__refines/proof.json",
+      "proof_json_sha256": "ffaf269558d38274c632ecd4122ddd19365ba91c4e185df402f1dbb69675f8a8",
+      "coma_top_level_goal_keys": [
+        "refines"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "refines": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "refines"
+      ],
+      "call_or_spec_support_goal_keys": []
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Clone_for_Response_T/clone.coma",
+      "coma_sha256": "97e1ffc226a696215fa2330830d659b0e25b3cf60e33af1253a7b5ae5b2e2c57",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Clone_for_Response_T/clone/proof.json",
+      "proof_json_sha256": "314a4f9cd23ea2f0d342d32a432f8f83ad17748b5e086cb7b9b8af57949c0e42",
+      "coma_top_level_goal_keys": [
+        "vc_clone_Parts",
+        "vc_clone_Response_T",
+        "vc_clone_T"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "vc_clone_Parts": 1,
+        "vc_clone_Response_T": 1,
+        "vc_clone_T": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 2,
+      "terminal_leaf_count": 3,
+      "run_log_leaf_count": 3,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "vc_clone_Response_T"
+      ],
+      "call_or_spec_support_goal_keys": [
+        "vc_clone_Parts",
+        "vc_clone_T"
+      ]
+    },
+    {
+      "coma": "verif/http_composition_proof_rlib/response/impl_Clone_for_Response_T/clone__refines.coma",
+      "coma_sha256": "fa5c2f2bbe36ccb91e8492bf70a07d980069fec3bf30aac85889290479054157",
+      "proof_json": "verif/http_composition_proof_rlib/response/impl_Clone_for_Response_T/clone__refines/proof.json",
+      "proof_json_sha256": "4eba0ce5207184b15accbe06b5899401737ee1e19dee4254e445303c0be40325",
+      "coma_top_level_goal_keys": [
+        "refines"
+      ],
+      "proof_json_root_goal_leaf_counts": {
+        "refines": 1
+      },
+      "own_successful_terminal_leaves": 1,
+      "call_or_spec_support_terminal_leaves": 0,
+      "terminal_leaf_count": 1,
+      "run_log_leaf_count": 1,
+      "tree_arity_matches_run_log": true,
+      "all_terminal_leaves_z3_proved": true,
+      "own_goal_keys": [
+        "refines"
+      ],
+      "call_or_spec_support_goal_keys": []
+    }
+  ],
+  "split_audit": "split-audit.txt"
+}

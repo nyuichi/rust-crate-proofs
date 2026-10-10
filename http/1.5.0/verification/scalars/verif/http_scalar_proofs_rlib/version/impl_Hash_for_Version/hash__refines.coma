@@ -1,0 +1,71 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 22 28 26 *)
+
+(* <version::Version as std::hash::Hash> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 36 65 40
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 42 65 47
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 64 26 64 37
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 22 28 26
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 22 28 26
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 53 12 54 45
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 36 20 36 39
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 178 12 185 13
+
+use creusot.prelude.MutBorrow
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+type t_Version = { f0: t_Http }
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'3] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+function view_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 35 4 35 33] (self: t_Version) : int
+ = [%#sversion'2] deep_model_Http self.f0
+
+predicate invariant_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 51 4 51 30] (self: t_Version) =
+  [%#sversion'1] view_Version self = 9
+  \/ view_Version self = 10 \/ view_Version self = 11 \/ view_Version self = 20 \/ view_Version self = 30
+
+predicate inv_Version (_1: t_Version)
+
+axiom inv_axiom [@rewrite]: forall x: t_Version [inv_Version x]. inv_Version x = invariant_Version x
+
+predicate invariant_ref_Version [@inline:trivial] (self: t_Version) = [%#sinvariant] inv_Version self
+
+meta "rewrite_def" predicate invariant_ref_Version
+
+predicate inv_ref_Version [@inline:trivial] (_1: t_Version) = invariant_ref_Version _1
+
+meta "rewrite_def" predicate inv_ref_Version
+
+type __H
+
+predicate inv___H (_1: __H)
+
+predicate invariant_refmut___H [@inline:trivial] (self: MutBorrow.t __H) =
+  [%#sinvariant'0] inv___H self.current /\ inv___H self.final
+
+meta "rewrite_def" predicate invariant_refmut___H
+
+predicate inv_refmut___H [@inline:trivial] (_1: MutBorrow.t __H) = invariant_refmut___H _1
+
+meta "rewrite_def" predicate inv_refmut___H
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Version. forall state: MutBorrow.t __H. ([%#shash] inv_ref_Version self_)
+        /\ ([%#shash'0] inv_refmut___H state)
+      -> ([%#sversion] inv_ref_Version self_)
+      /\ ([%#sversion'0] inv_refmut___H state) /\ (forall result: (). [%#shash'1] inv___H state.final)

@@ -1,0 +1,117 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 61 4 61 60 *)
+
+(* <error::core::Error as std::fmt::Display> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span sfmt = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 37 21 37 25
+let%span sfmt'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 38 20 38 29
+let%span sfmt'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 35 26 35 94
+let%span sfmt'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span serror = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 61 12 61 16
+let%span serror'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 61 18 61 19
+let%span serror'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/error-formatting/src/../../../src/error.rs" 56 16 59 9
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+
+type t_InvalidStatusCode
+
+type t_InvalidMethod
+
+type t_InvalidUri
+
+type t_InvalidUriParts
+
+type t_InvalidHeaderName
+
+type t_InvalidHeaderValue
+
+type t_MaxSizeReached
+
+type t_ErrorKind =
+  | StatusCode t_InvalidStatusCode
+  | Method t_InvalidMethod
+  | Uri t_InvalidUri
+  | UriParts t_InvalidUriParts
+  | HeaderName t_InvalidHeaderName
+  | HeaderValue t_InvalidHeaderValue
+  | MaxSizeReached t_MaxSizeReached
+
+type t_Error = { inner: t_ErrorKind }
+
+predicate inv_InvalidStatusCode (_1: t_InvalidStatusCode)
+
+predicate inv_InvalidMethod (_1: t_InvalidMethod)
+
+predicate inv_InvalidUri (_1: t_InvalidUri)
+
+predicate inv_InvalidUriParts (_1: t_InvalidUriParts)
+
+predicate inv_InvalidHeaderName (_1: t_InvalidHeaderName)
+
+predicate inv_InvalidHeaderValue (_1: t_InvalidHeaderValue)
+
+predicate inv_MaxSizeReached (_1: t_MaxSizeReached)
+
+predicate inv_ErrorKind (_1: t_ErrorKind)
+
+axiom inv_axiom [@rewrite]: forall x: t_ErrorKind [inv_ErrorKind x]. inv_ErrorKind x
+    = match x with
+      | StatusCode f0 -> inv_InvalidStatusCode f0
+      | Method f0 -> inv_InvalidMethod f0
+      | Uri f0 -> inv_InvalidUri f0
+      | UriParts f0 -> inv_InvalidUriParts f0
+      | HeaderName f0 -> inv_InvalidHeaderName f0
+      | HeaderValue f0 -> inv_InvalidHeaderValue f0
+      | MaxSizeReached f0 -> inv_MaxSizeReached f0
+      end
+
+predicate inv_Error (_1: t_Error)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Error [inv_Error x]. inv_Error x = inv_ErrorKind x.inner
+
+predicate invariant_ref_Error [@inline:trivial] (self: t_Error) = [%#sinvariant] inv_Error self
+
+meta "rewrite_def" predicate invariant_ref_Error
+
+predicate inv_ref_Error [@inline:trivial] (_1: t_Error) = invariant_ref_Error _1
+
+meta "rewrite_def" predicate inv_ref_Error
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant'0] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'2] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+type t_Result_unit_Error = Ok () | Err ()
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Error. forall formatter: MutBorrow.t t_Formatter. ([%#sfmt] inv_ref_Error self_)
+        /\ ([%#sfmt'0] inv_refmut_Formatter formatter)
+      -> ([%#serror] inv_ref_Error self_)
+      /\ ([%#serror'0] inv_refmut_Formatter formatter)
+      /\ (forall result: t_Result_unit_Error. ([%#serror'1] formatter_extends (deep_model_refmut_Formatter formatter) (deep_model_Formatter formatter.final))
+        -> ([%#sfmt'1] formatter_extends (deep_model_refmut_Formatter formatter) (deep_model_Formatter formatter.final)))

@@ -1,0 +1,132 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2743 4 2743 45 *)
+
+(* <header::name::Custom as std::hash::Hash> *)
+
+let%span sbyte_str = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/byte_str.rs" 49 20 49 37
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sstring = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 14 16 14 76
+let%span sstring'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 290 14 290 24
+let%span sstring'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 291 14 291 60
+let%span sstring'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/string.rs" 294 12 298 13
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span schar = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2743 24 2743 28
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/name.rs" 2743 30 2743 36
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 36 65 40
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 65 42 65 47
+let%span shash'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 64 26 64 37
+
+use creusot.int.UInt8
+use seq.Seq
+use creusot.prelude.Char
+use map.Map
+use int.ComputerDivision
+use creusot.prelude.MutBorrow
+use int.Int
+
+type t_ByteStr
+
+type t_Custom = { f0: t_ByteStr }
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'1] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'0] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t
+
+axiom to_bytes_def: forall self: Seq.seq Char.t. to_bytes self
+    = ([%#sstring'2] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (to_utf8_char (Seq.get self 0)) (to_bytes (tail_char self))
+    )
+
+axiom to_bytes_spec: forall self: Seq.seq Char.t. [%#sstring'1] to_bytes self
+    = flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+predicate valid_utf8 (bytes: Seq.seq UInt8.t) =
+  [%#sstring] exists characters: Seq.seq Char.t. to_bytes characters = bytes
+
+function view_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/byte_str.rs" 41 4 41 33] (self: t_ByteStr) : Seq.seq UInt8.t
+
+predicate invariant_ByteStr [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/byte_str.rs" 48 4 48 30] (self: t_ByteStr) =
+  [%#sbyte_str] valid_utf8 (view_ByteStr self)
+
+predicate inv_ByteStr (_1: t_ByteStr)
+
+axiom inv_axiom: forall x: t_ByteStr [inv_ByteStr x]. inv_ByteStr x -> invariant_ByteStr x
+
+predicate inv_Custom (_1: t_Custom)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Custom [inv_Custom x]. inv_Custom x = inv_ByteStr x.f0
+
+predicate invariant_ref_Custom [@inline:trivial] (self: t_Custom) = [%#sinvariant] inv_Custom self
+
+meta "rewrite_def" predicate invariant_ref_Custom
+
+predicate inv_ref_Custom [@inline:trivial] (_1: t_Custom) = invariant_ref_Custom _1
+
+meta "rewrite_def" predicate inv_ref_Custom
+
+type t_H
+
+predicate inv_H (_1: t_H)
+
+predicate invariant_refmut_H [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant'0] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Custom. forall state: MutBorrow.t t_H. ([%#shash] inv_ref_Custom self_)
+        /\ ([%#shash'0] inv_refmut_H state)
+      -> ([%#sname] inv_ref_Custom self_)
+      /\ ([%#sname'0] inv_refmut_H state) /\ (forall result: (). [%#shash'1] inv_H state.final)

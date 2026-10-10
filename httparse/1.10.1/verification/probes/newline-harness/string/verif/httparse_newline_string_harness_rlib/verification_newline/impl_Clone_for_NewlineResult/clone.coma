@@ -1,0 +1,20 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/verification/newline.rs" 20 15 20 20 *)
+
+(* <verification_newline::NewlineResult as std::clone::Clone> *)
+
+use creusot.prelude.Any
+
+type t_NewlineOutcome = Complete | Partial | Error
+
+type t_NewlineResult = { outcome: t_NewlineOutcome; mark: int; cursor: int }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_NewlineResult
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/newline-harness/string/../src/../../../../src/verification/newline.rs" 20 15 20 20]
+  (self: t_NewlineResult) (return (x: t_NewlineResult)) = (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_NewlineResult = Any.any_l () | & self: t_NewlineResult = self ])
+  [ return (result: t_NewlineResult) -> (! return {result}) ]

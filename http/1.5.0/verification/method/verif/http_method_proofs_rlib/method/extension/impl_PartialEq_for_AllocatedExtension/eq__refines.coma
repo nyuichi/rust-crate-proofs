@@ -1,0 +1,90 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1189 31 1189 63 *)
+
+(* <method::extension::AllocatedExtension as std::cmp::PartialEq> *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1189 31 1189 63
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1226 24 1226 31
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1206 24 1206 55
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 24 8 24 22
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 19 23 19 27
+let%span scmp'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 19 29 19 32
+let%span scmp'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 18 26 18 80
+let%span spartial_eq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 21 20 21 31
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_AllocatedExtension = { f0: Slice64.slice UInt8.t }
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'3] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'2] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+function view_Box_slice_u8_Global [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq UInt8.t =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_u8_Global
+
+predicate invariant_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1205 8 1205 34] (self: t_AllocatedExtension) =
+  [%#smethod'1] all_method_chars_valid (view_Box_slice_u8_Global self.f0)
+
+predicate inv_AllocatedExtension (_1: t_AllocatedExtension)
+
+axiom inv_axiom [@rewrite]: forall x: t_AllocatedExtension [inv_AllocatedExtension x]. inv_AllocatedExtension x
+    = invariant_AllocatedExtension x
+
+predicate invariant_ref_AllocatedExtension [@inline:trivial] (self: t_AllocatedExtension) =
+  [%#sinvariant] inv_AllocatedExtension self
+
+meta "rewrite_def" predicate invariant_ref_AllocatedExtension
+
+predicate inv_ref_AllocatedExtension [@inline:trivial] (_1: t_AllocatedExtension) = invariant_ref_AllocatedExtension _1
+
+meta "rewrite_def" predicate inv_ref_AllocatedExtension
+
+function deep_model_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1225 8 1225 48] (self: t_AllocatedExtension) : Seq.seq UInt8.t
+ = [%#smethod'0] view_Box_slice_u8_Global self.f0
+
+function deep_model_ref_AllocatedExtension [@inline:trivial] (self: t_AllocatedExtension) : Seq.seq UInt8.t =
+  [%#smodel] deep_model_AllocatedExtension self
+
+meta "rewrite_def" function deep_model_ref_AllocatedExtension
+
+predicate eq_model_Seq_u8 (self: Seq.seq UInt8.t) (rhs: Seq.seq UInt8.t) = [%#spartial_eq] self = rhs
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall self_: t_AllocatedExtension. forall rhs: t_AllocatedExtension. ([%#scmp] inv_ref_AllocatedExtension self_)
+        /\ ([%#scmp'0] inv_ref_AllocatedExtension rhs)
+      -> ([%#smethod] inv_ref_AllocatedExtension self_)
+      /\ ([%#smethod] inv_ref_AllocatedExtension rhs)
+      /\ (forall result: bool. ([%#smethod] result
+          = (deep_model_ref_AllocatedExtension self_ = deep_model_ref_AllocatedExtension rhs))
+        -> ([%#scmp'1] result
+        = eq_model_Seq_u8 (deep_model_ref_AllocatedExtension self_) (deep_model_ref_AllocatedExtension rhs)))

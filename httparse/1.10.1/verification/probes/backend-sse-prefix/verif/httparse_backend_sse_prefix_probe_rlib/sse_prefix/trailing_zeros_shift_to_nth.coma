@@ -1,0 +1,107 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 206 4 206 58 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 201 15 201 52
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 202 14 202 26
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 203 14 203 71
+let%span slib'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 204 14 204 51
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 290 22 290 43
+let%span snum'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 291 22 291 120
+let%span snum'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 292 22 292 64
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 296 16 302 17
+
+use creusot.prelude.Any
+use creusot.int.UInt16BW
+use creusot.int.UInt32BW
+use int.Int
+
+type t_Ordering = Less | Equal | Greater
+
+function cmp_log_u32 (self: UInt32BW.t) (o: UInt32BW.t) : t_Ordering = [%#sord'12] if UInt32BW.lt self o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom eq_cmp_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord'11] (x = y) = (cmp_log_u32 x y = Equal)
+
+function antisym2_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom antisym2_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. ([%#sord'9] cmp_log_u32 x y = Greater)
+    -> ([%#sord'10] cmp_log_u32 y x = Less)
+
+function antisym1_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom antisym1_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. ([%#sord'7] cmp_log_u32 x y = Less)
+    -> ([%#sord'8] cmp_log_u32 y x = Greater)
+
+function trans_u32 (x: UInt32BW.t) (y: UInt32BW.t) (z: UInt32BW.t) (o: t_Ordering) : ()
+
+axiom trans_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t, z: UInt32BW.t, o: t_Ordering. ([%#sord'4] cmp_log_u32 x y
+      = o) -> ([%#sord'5] cmp_log_u32 y z = o) -> ([%#sord'6] cmp_log_u32 x z = o)
+
+function refl_u32 (x: UInt32BW.t) : ()
+
+axiom refl_u32_spec: forall x: UInt32BW.t. [%#sord'3] cmp_log_u32 x x = Equal
+
+function cmp_gt_log_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom cmp_gt_log_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord'2] UInt32BW.gt x y = (cmp_log_u32 x y = Greater)
+
+function cmp_ge_log_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom cmp_ge_log_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord'1] UInt32BW.ge x y = (cmp_log_u32 x y <> Less)
+
+function cmp_lt_log_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom cmp_lt_log_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord'0] UInt32BW.lt x y = (cmp_log_u32 x y = Less)
+
+function cmp_le_log_u32 (x: UInt32BW.t) (y: UInt32BW.t) : ()
+
+axiom cmp_le_log_u32_spec: forall x: UInt32BW.t, y: UInt32BW.t. [%#sord] UInt32BW.le x y = (cmp_log_u32 x y <> Greater)
+
+constant const_BITS: UInt32BW.t = (16: UInt32BW.t)
+
+function trailing_zeros_u16 (self: UInt16BW.t) : UInt32BW.t
+
+axiom trailing_zeros_u16_spec: forall self: UInt16BW.t. [%#snum] UInt32BW.le (trailing_zeros_u16 self) const_BITS
+
+axiom trailing_zeros_u16_spec'0: forall self: UInt16BW.t. [%#snum'0] (trailing_zeros_u16 self <> const_BITS)
+    = (UInt16BW.shl self (UInt16BW.of_BV256 (UInt32BW.to_BV256 (UInt32BW.sub (UInt32BW.sub const_BITS (trailing_zeros_u16 self)) (1: UInt32BW.t))))
+    = UInt16BW.shl (1: UInt16BW.t) (UInt16BW.of_BV256 (UInt32BW.to_BV256 (UInt32BW.sub const_BITS (1: UInt32BW.t)))))
+
+axiom trailing_zeros_u16_spec'1: forall self: UInt16BW.t. [%#snum'1] (trailing_zeros_u16 self = const_BITS)
+    = (self = (0: UInt16BW.t))
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec trailing_zeros_shift_to_nth
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 206 4 206 58]
+  (value: UInt16BW.t) (count: UInt32BW.t) (return (x: ())) =
+  {[@stop_split] [@expl:trailing_zeros_shift_to_nth requires] [%#slib] count = trailing_zeros_u16 value}
+  (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:trailing_zeros_shift_to_nth ensures] ([@stop_split] [@expl:trailing_zeros_shift_to_nth ensures #0] [%#slib'0] UInt32BW.t'int count
+      <= 16)
+    /\ ([@stop_split] [@expl:trailing_zeros_shift_to_nth ensures #1] [%#slib'1] forall i: int. 0 <= i
+          /\ i < UInt32BW.t'int count -> not UInt16BW.nth value i)
+    /\ ([@stop_split] [@expl:trailing_zeros_shift_to_nth ensures #2] [%#slib'2] UInt32BW.t'int count = 16
+    \/ UInt16BW.nth value (UInt32BW.t'int count))}
+    (! return {result}) ]

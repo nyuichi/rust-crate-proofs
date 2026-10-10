@@ -1,0 +1,52 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits-nativeenv/src/lib.rs" 15 9 15 18 *)
+
+(* <SignedI16 as std::cmp::PartialEq> *)
+
+let%span scmp = "/workspace/scratch/httparse-derived-traits-nativeenv/creusot-libs/creusot-std/src/std/cmp.rs" 14 26 14 75
+let%span smodel = "/workspace/scratch/httparse-derived-traits-nativeenv/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits-nativeenv/src/lib.rs" 16 27 16 58
+
+use creusot.int.Int16
+use creusot.prelude.Any
+
+type t_SignedI16 = Negative | Positive
+
+type t_SignedI16DeepModel = Negative'0 | Positive'0
+
+function deep_model_SignedI16 [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits-nativeenv/src/lib.rs" 16 27 16 58] (self: t_SignedI16) : t_SignedI16DeepModel
+ = [%#slib] match self with
+    | Negative -> Negative'0
+    | Positive -> Positive'0
+    end
+
+function deep_model_ref_SignedI16 [@inline:trivial] (self: t_SignedI16) : t_SignedI16DeepModel =
+  [%#smodel] deep_model_SignedI16 self
+
+meta "rewrite_def" function deep_model_ref_SignedI16
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec eq_SignedI16
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits-nativeenv/src/lib.rs" 15 9 15 18]
+  (self_: t_SignedI16) (rhs: t_SignedI16) (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &__self_discr <- match self_ with
+        | Negative -> (-300: Int16.t)
+        | Positive -> (1000: Int16.t)
+        end ] s1
+    | s1 = [ &__arg1_discr <- match rhs with
+        | Negative -> (-300: Int16.t)
+        | Positive -> (1000: Int16.t)
+        end ] s2
+    | s2 = [ &_ret <- __self_discr = __arg1_discr ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & self_: t_SignedI16 = self_
+  | & rhs: t_SignedI16 = rhs
+  | & __self_discr: Int16.t = Any.any_l ()
+  | & __arg1_discr: Int16.t = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#scmp] result
+    = (deep_model_ref_SignedI16 self_ = deep_model_ref_SignedI16 rhs)}
+    (! return {result}) ]

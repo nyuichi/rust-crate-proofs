@@ -1,0 +1,38 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 854 9 854 14 *)
+
+(* <header::map::Danger as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 854 9 854 14
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 854 9 854 14
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0 -> inv_RandomState f0
+      end
+
+predicate invariant_ref_Danger [@inline:trivial] (self: t_Danger) = [%#sinvariant] inv_Danger self
+
+meta "rewrite_def" predicate invariant_ref_Danger
+
+predicate inv_ref_Danger [@inline:trivial] (_1: t_Danger) = invariant_ref_Danger _1
+
+meta "rewrite_def" predicate inv_ref_Danger
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Danger. ([%#sclone] inv_ref_Danger self_)
+    -> ([%#smap] inv_ref_Danger self_) /\ (forall result: t_Danger. ([%#smap'0] inv_Danger result) -> inv_Danger result)

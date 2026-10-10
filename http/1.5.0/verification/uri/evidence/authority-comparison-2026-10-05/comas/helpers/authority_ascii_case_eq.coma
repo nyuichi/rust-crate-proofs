@@ -1,0 +1,177 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 943 0 943 61 *)
+
+let%span sseq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 305 14 305 24
+let%span sseq'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 303 14 303 40
+let%span sseq'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/seq.rs" 304 14 304 76
+let%span swell_founded = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/well_founded.rs" 43 8 43 33
+let%span sauthority = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 944 7 944 17
+let%span sauthority'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 944 21 944 32
+let%span sauthority'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 947 12 947 87
+let%span sauthority'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 949 15 949 20
+let%span sauthority'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 952 20 952 21
+let%span sauthority'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 957 14 957 34
+let%span sauthority'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 958 18 958 28
+let%span sauthority'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 955 16 956 64
+let%span sauthority'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 954 16 954 38
+let%span sauthority'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 953 16 953 37
+let%span sauthority'9 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 959 55 959 66
+let%span sauthority'10 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 959 24 959 67
+let%span sauthority'11 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 960 56 960 68
+let%span sauthority'12 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 960 25 960 69
+let%span sauthority'13 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 976 17 976 18
+let%span sauthority'14 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 976 8 976 18
+let%span sauthority'15 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 965 20 965 71
+let%span sauthority'16 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 968 20 968 73
+let%span sauthority'17 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 971 20 971 83
+let%span sauthority'18 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 974 19 974 24
+let%span sauthority'19 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 981 24 981 45
+let%span sauthority'20 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 982 24 982 51
+let%span sauthority'21 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 984 12 984 75
+let%span sauthority'22 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 987 4 987 8
+let%span sauthority'23 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 940 28 942 1
+let%span sauthority'24 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 853 16 853 70
+let%span sauthority'25 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 931 28 931 71
+let%span sauthority'26 = "/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 845 16 845 71
+let%span sslice = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/slice.rs" 288 18 288 40
+let%span smapping = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/mapping.rs" 65 8 65 19
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use creusot.int.UInt64
+use seq.Seq
+use map.Map
+use creusot.prelude.Any
+use int.Int
+
+let rec len_u8 (self_: Slice64.slice UInt8.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#sslice] Seq.length (Slice64.view self_)
+    = UInt64.t'int result}
+    (! return {result}) ]
+
+function index_Mapping_u8_Int [@inline:trivial] (self: Map.map UInt8.t int) (a: UInt8.t) : int =
+  [%#smapping] Map.get self a
+
+meta "rewrite_def" function index_Mapping_u8_Int
+
+function map_u8 (self: Seq.seq UInt8.t) (m: Map.map UInt8.t int) : Seq.seq int
+
+axiom map_u8_spec: forall self: Seq.seq UInt8.t, m: Map.map UInt8.t int. [%#sseq'0] Seq.length (map_u8 self m)
+    = Seq.length self
+
+axiom map_u8_spec'0: forall self: Seq.seq UInt8.t, m: Map.map UInt8.t int. [%#sseq'1] forall i: int. 0 <= i
+        /\ i < Seq.length self -> Seq.get (map_u8 self m) i = index_Mapping_u8_Int m (Seq.get self i)
+
+function authority_fold_ascii_byte [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 844 0 844 50] (byte: int) : int
+ = [%#sauthority'26] if 65 <= byte /\ byte <= 90 then byte + 32 else byte
+
+function authority_folded_bytes [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 852 0 852 57] (bytes: Seq.seq UInt8.t) : Seq.seq int
+ = [%#sauthority'24] map_u8 bytes (fun (byte: UInt8.t) -> authority_fold_ascii_byte (UInt8.t'int byte))
+
+predicate well_founded_relation_Int [@inline:trivial] (self: int) (other: int) =
+  [%#swell_founded] self >= 0 /\ self > other
+
+meta "rewrite_def" predicate well_founded_relation_Int
+
+let rec authority_ascii_lowercase_byte (byte: UInt8.t) (return (x: UInt8.t)) = any
+  [ return (result: UInt8.t) ->
+  {[@stop_split] [@expl:authority_ascii_lowercase_byte ensures] [%#sauthority'25] UInt8.t'int result
+    = authority_fold_ascii_byte (UInt8.t'int byte)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec authority_ascii_case_eq
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/uri/src/../../../src/uri/authority.rs" 943 0 943 61]
+  (left: Slice64.slice UInt8.t) (right: Slice64.slice UInt8.t) (return (x: bool)) = (! bb0
+  [ bb0 = s0
+    [ s0 = len_u8 [%#sauthority] {left} (fun (_x: UInt64.t) -> [ &_8 <- _x ] s1)
+    | s1 = len_u8 [%#sauthority'0] {right} (fun (_x: UInt64.t) -> [ &_10 <- _x ] s2)
+    | s2 = [ &_7 <- _8 <> _10 ] s3
+    | s3 = any [ br0 -> {_7 = false} (! bb4) | br1 -> {_7} (! bb3) ] ]
+  | bb3 = s0
+    [ s0 = {[@expl:assertion] [%#sauthority'1] Seq.length (authority_folded_bytes (Slice64.view left))
+      <> Seq.length (authority_folded_bytes (Slice64.view right))}
+      s1
+    | s1 = [ &_ret <- [%#sauthority'2] false ] s2
+    | s2 = return {_ret} ]
+  | bb4 = s0 [ s0 = [ &index <- [%#sauthority'3] (0: UInt64.t) ] s1 | s1 = bb5 ]
+  | bb5 = bb5invariant
+    [ bb5 =
+      {[@expl:loop variant] well_founded_relation_Int variant_old_bb5 ([%#sauthority'4] Seq.length (Slice64.view left)
+      - UInt64.t'int index)}
+      bb5invariant
+    | bb5invariant = {[@expl:loop invariant #0] [%#sauthority'8] UInt64.t'int index <= Seq.length (Slice64.view left)}
+      {[@expl:loop invariant #1] [%#sauthority'7] UInt64.t'int index <= Seq.length (Slice64.view right)}
+      {[@expl:loop invariant #2] [%#sauthority'6] Seq.([..]) (authority_folded_bytes (Slice64.view left)) 0 (UInt64.t'int index)
+      = Seq.([..]) (authority_folded_bytes (Slice64.view right)) 0 (UInt64.t'int index)}
+      (! [ &variant_old_bb5 <- [%#sauthority'4] Seq.length (Slice64.view left) - UInt64.t'int index ] s0)
+      [ s0 = len_u8 [%#sauthority'5] {left} (fun (_x: UInt64.t) -> [ &_36 <- _x ] s1)
+      | s1 = [ &_34 <- UInt64.lt index _36 ] s2
+      | s2 = any [ br0 -> {_34 = false} (! bb15) | br1 -> {_34} (! bb8) ] ]
+      [ bb8 = s0
+        [ s0 = [ &_40 <- index ] s1
+        | s1 = [ &_41 <- Slice64.length left ] s2
+        | s2 = [ &_42 <- UInt64.lt _40 _41 ] s3
+        | s3 = {[@expl:index in bounds] [%#sauthority'9] _42} s4
+        | s4 = Slice64.get <UInt8.t> {left} {_40} (fun (r: UInt8.t) -> [ &_39 <- r ] s5)
+        | s5 = authority_ascii_lowercase_byte [%#sauthority'10] {_39} (fun (_x: UInt8.t) -> [ &left_byte <- _x ] s6)
+        | s6 = [ &_45 <- index ] s7
+        | s7 = [ &_46 <- Slice64.length right ] s8
+        | s8 = [ &_47 <- UInt64.lt _45 _46 ] s9
+        | s9 = {[@expl:index in bounds] [%#sauthority'11] _47} s10
+        | s10 = Slice64.get <UInt8.t> {right} {_45} (fun (r: UInt8.t) -> [ &_44 <- r ] s11)
+        | s11 = authority_ascii_lowercase_byte [%#sauthority'12] {_44} (fun (_x: UInt8.t) -> [ &right_byte <- _x ] s12)
+        | s12 = [ &_49 <- left_byte <> right_byte ] s13
+        | s13 = any [ br0 -> {_49 = false} (! bb14) | br1 -> {_49} (! bb13) ] ]
+      | bb14 = s0
+        [ s0 = UInt64.add [%#sauthority'14] {index} {[%#sauthority'13] (1: UInt64.t)}
+            (fun (_x: UInt64.t) -> [ &index <- _x ] s1)
+        | s1 = bb5 ] ] ]
+  | bb13 = s0
+    [ s0 =
+      {[@expl:assertion] [%#sauthority'15] Seq.get (authority_folded_bytes (Slice64.view left)) (UInt64.t'int index)
+      = UInt8.t'int left_byte}
+      s1
+    | s1 =
+      {[@expl:assertion] [%#sauthority'16] Seq.get (authority_folded_bytes (Slice64.view right)) (UInt64.t'int index)
+      = UInt8.t'int right_byte}
+      s2
+    | s2 = {[@expl:assertion] [%#sauthority'17] authority_folded_bytes (Slice64.view left)
+      <> authority_folded_bytes (Slice64.view right)}
+      s3
+    | s3 = [ &_ret <- [%#sauthority'18] false ] s4
+    | s4 = return {_ret} ]
+  | bb15 = s0
+    [ s0 = {[@expl:assertion] [%#sauthority'19] UInt64.t'int index = Seq.length (Slice64.view left)} s1
+    | s1 = {[@expl:assertion] [%#sauthority'20] Seq.length (Slice64.view left) = Seq.length (Slice64.view right)} s2
+    | s2 = {[@expl:assertion] [%#sauthority'21] authority_folded_bytes (Slice64.view left)
+      = authority_folded_bytes (Slice64.view right)}
+      s3
+    | s3 = [ &_ret <- [%#sauthority'22] true ] s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l ()
+  | & left: Slice64.slice UInt8.t = left
+  | & right: Slice64.slice UInt8.t = right
+  | & _7: bool = Any.any_l ()
+  | & _8: UInt64.t = Any.any_l ()
+  | & _10: UInt64.t = Any.any_l ()
+  | & index: UInt64.t = Any.any_l ()
+  | & _34: bool = Any.any_l ()
+  | & _36: UInt64.t = Any.any_l ()
+  | & left_byte: UInt8.t = Any.any_l ()
+  | & _39: UInt8.t = Any.any_l ()
+  | & _40: UInt64.t = Any.any_l ()
+  | & _41: UInt64.t = Any.any_l ()
+  | & _42: bool = Any.any_l ()
+  | & right_byte: UInt8.t = Any.any_l ()
+  | & _44: UInt8.t = Any.any_l ()
+  | & _45: UInt64.t = Any.any_l ()
+  | & _46: UInt64.t = Any.any_l ()
+  | & _47: bool = Any.any_l ()
+  | & _49: bool = Any.any_l ()
+  | & variant_old_bb5: int = Any.any_l () ])
+  [ return (result: bool) -> {[@stop_split] [@expl:authority_ascii_case_eq ensures] [%#sauthority'23] result
+    = (authority_folded_bytes (Slice64.view left) = authority_folded_bytes (Slice64.view right))}
+    (! return {result}) ]

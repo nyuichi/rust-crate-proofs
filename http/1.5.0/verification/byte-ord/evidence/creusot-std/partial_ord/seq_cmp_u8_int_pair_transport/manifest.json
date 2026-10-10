@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "target": "creusot-std std::partial_ord two-sided u8/Int comparator transport",
+  "profile": "creusot-std; bytes-model; --locked --offline",
+  "source_fingerprints": [
+    {
+      "path": "creusot-libs/creusot-std/src/std/partial_ord.rs",
+      "sha256": "5df40cc3e0b9ca30858911a20f267024891563b7ea01e97037dd116296603d8b"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std/convert.rs",
+      "sha256": "5d2ca5991d48a069a1a1e97ed74cdd2ccf6a8f7a0204c8e58fd0a66fd529869b"
+    }
+  ],
+  "artifacts": [
+    {
+      "target": "seq_cmp_u8_int_pair_transport",
+      "coma": "http/1.5.0/verification/byte-ord/evidence/creusot-std/partial_ord/seq_cmp_u8_int_pair_transport/seq_cmp_u8_int_pair_transport.coma",
+      "coma_sha256": "9818afdc07ddd1b14bf1399d224a76455f2387848096501d5cd94cf388e6ba7d",
+      "proof_json": "http/1.5.0/verification/byte-ord/evidence/creusot-std/partial_ord/seq_cmp_u8_int_pair_transport/seq_cmp_u8_int_pair_transport.proof.json",
+      "proof_json_sha256": "79bd26a82a7abb89aad52324c7d152d8ccb092de8de7052f4dca7bdf56410154",
+      "own_goals": 1,
+      "passed_leaves": 1,
+      "failed_or_null_leaves": 0
+    },
+    {
+      "target": "seq_cmp_u8_int_pair_transport_preserved",
+      "coma": "http/1.5.0/verification/byte-ord/evidence/creusot-std/partial_ord/seq_cmp_u8_int_pair_transport/seq_cmp_u8_int_pair_transport_preserved.coma",
+      "coma_sha256": "60bb1121cee6722503fb792098203281fe39827d249a46ab8ad82875ab4a2428",
+      "proof_json": "http/1.5.0/verification/byte-ord/evidence/creusot-std/partial_ord/seq_cmp_u8_int_pair_transport/seq_cmp_u8_int_pair_transport_preserved.proof.json",
+      "proof_json_sha256": "65c6c677bdea53fbdfb0513cb1b9bbae7ecc5b9a0d498dade434ce1a7a9ba8f4",
+      "own_goals": 1,
+      "passed_leaves": 1,
+      "failed_or_null_leaves": 0
+    }
+  ],
+  "commands": {
+    "clean": "../http/1.5.0/scripts/run-proof.sh cargo clean -p creusot-std",
+    "emit": "../http/1.5.0/scripts/run-proof.sh cargo creusot -p creusot-std -- --features bytes-model --locked --offline",
+    "proof": "../http/1.5.0/scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache verif/creusot_std_rlib/std/partial_ord/seq_cmp_u8_int_pair_transport.coma verif/creusot_std_rlib/std/partial_ord/seq_cmp_u8_int_pair_transport_preserved.coma -- --features bytes-model --locked --offline",
+    "proof_execution": "require_escalated; wrapper lock; one solver; 1024 MiB per prover"
+  },
+  "result": {
+    "status": "proved",
+    "own_goals": 2,
+    "terminal_leaves": 2,
+    "failed_or_null_leaves": 0,
+    "prover": "z3@4.15.3"
+  },
+  "scope": {
+    "relation": "seq_cmp(left_integers,right_integers) == seq_cmp(left_bytes,right_bytes)",
+    "assumptions": "each operand byte sequence has the same length as its own Int view, and each byte numeric view equals its paired Int; there is no left-vs-right operand length assumption",
+    "body": "Source-bodied recursive lemma; both-empty/either-empty cases follow the per-operand length contracts; when both heads exist, u8_int_cmp_transport bridges scalar comparison and the lemma recurses on all four tails only for equal heads.",
+    "caller_certificate": "Opaque boolean wrapper returns true and exposes the exact comparator equality so consumers can use the result in a small proof assertion.",
+    "trusted_axioms_added": 0,
+    "co_emitted_source": "convert.rs was changed by another owner and included in the same clean emission; it is fingerprinted for provenance but is outside these two proof targets."
+  }
+}

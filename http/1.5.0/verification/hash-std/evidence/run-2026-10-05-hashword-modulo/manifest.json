@@ -1,0 +1,260 @@
+{
+  "manifest_version": 1,
+  "captured_at_utc": "2026-10-05",
+  "status": "fresh-source Hash support checkpoint; source frozen after clean emit and exact target proof",
+  "scope": "creusot-std callback invariant-preservation wrappers and the exact isize-to-usize word-conversion helper used by HTTP 1.5.0 Hash callers.",
+  "workspace": "creusot-libs",
+  "feature_configuration": {
+    "creusot-std": [
+      "bytes-model"
+    ]
+  },
+  "source_fingerprints": [
+    {
+      "path": "creusot-libs/creusot-std/src/std/hash.rs",
+      "sha256": "a24a1bc06a5f7ffee1e7512bf5aea3b1fdc0791c3caebd79be5bc1eeacfd8fed"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std/hash_word.rs",
+      "sha256": "cbfb9d3f3da257b4fe1f52eaf007c66b36f7ea7d69b2ea076b7ef94e7c2533d0"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std.rs",
+      "sha256": "6a53fdb248abc38b060aed3612ccb7b450eb8630334b8a25181738878d4f553d"
+    },
+    {
+      "path": "creusot-libs/creusot-std/Cargo.toml",
+      "sha256": "b46846933e75040159932a285b06acea26b659917c070e6cd2020538a43f9c64"
+    },
+    {
+      "path": "creusot-libs/Cargo.toml",
+      "sha256": "af2583aedceb2ab1d57d797645ed8bcef450fceabf5a93e756f7db33588ad249"
+    },
+    {
+      "path": "creusot-libs/Cargo.lock",
+      "sha256": "927e567bf96481912a41dcb160e7c3bf014e044d58d8294842b3a87e4dc3f492"
+    },
+    {
+      "path": "http/1.5.0/scripts/run-proof.sh",
+      "sha256": "aa6fd76fb82706452bb94f67e8bd895c011373a8f4c1fc5504df86b3c91dd456"
+    }
+  ],
+  "pinned_rust_source": {
+    "toolchain_commit": "6a979b3e32522049d0acb4a47f7ae44b7c8abfd5",
+    "reviewed_blobs": {
+      "library/core/src/hash/mod.rs": "eea61185712045a767cd44deb5c5d97fd6482cce",
+      "library/core/src/array/mod.rs": "4a2cf152774414956405ddb9d5582069e346b6f3",
+      "library/alloc/src/boxed.rs": "ae16a8401552d3ad2396f88fb572782d0764b943",
+      "library/core/src/num/nonzero.rs": "f52438e4e62e0c326a81facac60bfc793feeca38"
+    }
+  },
+  "commands": {
+    "clean": {
+      "cwd": "creusot-libs",
+      "command": "../http/1.5.0/scripts/run-proof.sh cargo clean -p creusot-std",
+      "exit_code": 0,
+      "result": "Removed 74 files (58.7 MiB)."
+    },
+    "emit": {
+      "cwd": "creusot-libs",
+      "command": "../http/1.5.0/scripts/run-proof.sh cargo creusot -p creusot-std -- --features bytes-model --locked --offline",
+      "exit_code": 0,
+      "result": "Fresh translation completed; current output includes 16 Hash/hash_word COMA files."
+    },
+    "prove": {
+      "cwd": "creusot-libs",
+      "command": "../http/1.5.0/scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache verif/creusot_std_rlib/std/hash_word/isize_to_usize_word.coma verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hash_hash_slice_body.coma verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_u8_body.coma verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_u16_body.coma verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_usize_body.coma verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_isize_body.coma verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_length_prefix_body.coma verif/creusot_std_rlib/std/hash/extern_spec_Hash_u8_hash_body.coma verif/creusot_std_rlib/std/hash/extern_spec_Hash_u8_hash_slice_body.coma verif/creusot_std_rlib/std/hash/extern_spec_Hash_u16_hash_body.coma verif/creusot_std_rlib/std/hash/extern_spec_Hash_usize_hash_body.coma verif/creusot_std_rlib/std/hash/extern_spec_Hash_isize_hash_body.coma verif/creusot_std_rlib/std/hash/extern_spec_T_Hash_slice_T_hash_body.coma verif/creusot_std_rlib/std/hash/extern_spec_T_constN_Hash_array_T_hash_body.coma verif/creusot_std_rlib/std/hash/extern_spec_T_A_Hash_alloc_boxed_Box_T_A_hash_body.coma verif/creusot_std_rlib/std/hash/extern_spec_T_core_hash_Hash_core_num_NonZero_T_hash_body.coma -- --features bytes-model --locked --offline",
+      "execution": "require_escalated; run-proof.sh enforces one solver and 1024 MiB per prover",
+      "exit_code": 0,
+      "own_body_goals": 16,
+      "total_leaf_obligations_including_callees": 41,
+      "result": "All current target trees passed; no failed/null leaves."
+    },
+    "runtime_test": {
+      "cwd": "creusot-libs",
+      "command": "../http/1.5.0/scripts/run-proof.sh cargo test -p creusot-std --lib --locked --offline write_isize_word_conversion_matches_cast_and_callback_dispatch",
+      "exit_code": 0,
+      "tests_run": 1,
+      "passed": 1,
+      "failed": 0,
+      "case_values": [
+        "isize::MIN",
+        "-1",
+        "0",
+        "isize::MAX"
+      ],
+      "result": "Same helper body used by the extern spec matches Rust signed-to-unsigned casts at boundaries; default Hasher::write_isize dispatches to an overridden write_usize callback."
+    }
+  },
+  "targets": [
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash_word/isize_to_usize_word.coma",
+      "coma_sha256": "f69c531b1dbb059fb5307a638305b735af890b95aeaa715805ee61115717c210",
+      "proof_json": "artifacts/proof/isize_to_usize_word/proof.json",
+      "proof_json_sha256": "83c120d71fe5ad285a2fd4bd37e4195ef2a30b64f7eb930b4a76dc98236cbb76",
+      "own_body_goal": "vc_isize_to_usize_word",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 1,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hash_hash_slice_body.coma",
+      "coma_sha256": "eed42d334448810ab9cdcb7f6811629bdfb0756731facae43cbdef61ed6c17b2",
+      "proof_json": "artifacts/proof/extern_spec_core_hash_Hash_hash_slice_body/proof.json",
+      "proof_json_sha256": "3c250c17970ebfd8251e18f4d3a18b0fe95bea291754c44852699da2fc668962",
+      "own_body_goal": "vc_extern_spec_core_hash_Hash_hash_slice_body_Self_",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 5,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_u8_body.coma",
+      "coma_sha256": "223dbd1f82c3712192e18b2f1ff522842adbb36725d49dbd8d7857d97e294833",
+      "proof_json": "artifacts/proof/extern_spec_core_hash_Hasher_write_u8_body/proof.json",
+      "proof_json_sha256": "547c88ad5aac96ddb971fd3f8f02529a2d06d502e41e81ff3c65f529ba5701a4",
+      "own_body_goal": "vc_extern_spec_core_hash_Hasher_write_u8_body_Self_",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 2,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_u16_body.coma",
+      "coma_sha256": "30d5faf09bd70ba3eb23376db745d8f7b87186191db6a32f97305926ff1b902b",
+      "proof_json": "artifacts/proof/extern_spec_core_hash_Hasher_write_u16_body/proof.json",
+      "proof_json_sha256": "39b77ad006c767432b7a1c84cf3ebb5bbe6f7c1f05ce057bff633eba1bd1bf66",
+      "own_body_goal": "vc_extern_spec_core_hash_Hasher_write_u16_body_Self_",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 3,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_usize_body.coma",
+      "coma_sha256": "14698a8269708a56d54f071994ab957d7f8a42e5c8aaf187fd4a4b0d172a2e1d",
+      "proof_json": "artifacts/proof/extern_spec_core_hash_Hasher_write_usize_body/proof.json",
+      "proof_json_sha256": "f5a71e2eb4ad0c7f3e1168bcad0811e4a409312987527d4412b6b500ad3aa192",
+      "own_body_goal": "vc_extern_spec_core_hash_Hasher_write_usize_body_Self_",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 3,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_isize_body.coma",
+      "coma_sha256": "0886f4c5bd690a18b9bc79da72043c0734c089d230883885e951b600b0bb3eb2",
+      "proof_json": "artifacts/proof/extern_spec_core_hash_Hasher_write_isize_body/proof.json",
+      "proof_json_sha256": "f13bb23b7dda7b516372f04969814552acdf812a602819916fdc4079df4eeb09",
+      "own_body_goal": "vc_extern_spec_core_hash_Hasher_write_isize_body_Self_",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 3,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_core_hash_Hasher_write_length_prefix_body.coma",
+      "coma_sha256": "70f9285d5f6e24b644ed80d5ad359cc5744d72a816d864b07f744b5912a0fb0b",
+      "proof_json": "artifacts/proof/extern_spec_core_hash_Hasher_write_length_prefix_body/proof.json",
+      "proof_json_sha256": "3218dbf89701974266bc9ecde30bce17907eac720b9ec11490965ebdbde970d3",
+      "own_body_goal": "vc_extern_spec_core_hash_Hasher_write_length_prefix_body_Self_",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 2,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_Hash_u8_hash_body.coma",
+      "coma_sha256": "9ce1ee3fe0032e0281f6f7b07a6ff66e25958d248dcb727c136bd3610c38960f",
+      "proof_json": "artifacts/proof/extern_spec_Hash_u8_hash_body/proof.json",
+      "proof_json_sha256": "a4dfae8418eba32a3ec956738b49391a399ae8ca2e87565519fb4199f96d2a8d",
+      "own_body_goal": "vc_extern_spec_Hash_u8_hash_body_H",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 2,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_Hash_u8_hash_slice_body.coma",
+      "coma_sha256": "433dc7779779b0f0bb443af88979377979dc966705d8bcd6f3651b4fb5947bc7",
+      "proof_json": "artifacts/proof/extern_spec_Hash_u8_hash_slice_body/proof.json",
+      "proof_json_sha256": "1f279dcc75cccc94dfe32ff65c38614de22b5d69270f6c220d3c3688a42a8f4e",
+      "own_body_goal": "vc_extern_spec_Hash_u8_hash_slice_body_H",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 2,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_Hash_u16_hash_body.coma",
+      "coma_sha256": "f606b63569b1f641b1a1edca033d499c9a384dd589c638f52d388283eb262b81",
+      "proof_json": "artifacts/proof/extern_spec_Hash_u16_hash_body/proof.json",
+      "proof_json_sha256": "6ce64d4c43e2fc4c223805b7354e1c950637dd8ca7cec581f4a65a3f239b121b",
+      "own_body_goal": "vc_extern_spec_Hash_u16_hash_body_H",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 2,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_Hash_usize_hash_body.coma",
+      "coma_sha256": "e0d5b4af7e98e21461dfb67cb987bfc6c7cd441c8c89c13a67693cce771354f7",
+      "proof_json": "artifacts/proof/extern_spec_Hash_usize_hash_body/proof.json",
+      "proof_json_sha256": "262c9b286bf66b2369950d0c8ae43607c65018b2d3f0aff6ff44aa96c7755c48",
+      "own_body_goal": "vc_extern_spec_Hash_usize_hash_body_H",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 2,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_Hash_isize_hash_body.coma",
+      "coma_sha256": "b2982af765b588053c89a8399174c23d3b55ca811f47425a7f163417973c0136",
+      "proof_json": "artifacts/proof/extern_spec_Hash_isize_hash_body/proof.json",
+      "proof_json_sha256": "73d396be2b478860b72afac77569a1388c6af140828593b9ba7d58de19f7bc56",
+      "own_body_goal": "vc_extern_spec_Hash_isize_hash_body_H",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 2,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_T_Hash_slice_T_hash_body.coma",
+      "coma_sha256": "7844a56bf915ead1325f4bee6072cf3918ead6723f1727f12549ef344e314c7b",
+      "proof_json": "artifacts/proof/extern_spec_T_Hash_slice_T_hash_body/proof.json",
+      "proof_json_sha256": "a628ac0e4f4e1592ad8286fa782178c42334d2b3c131d5dc9b3b079422c3d0c1",
+      "own_body_goal": "vc_extern_spec_T_Hash__slice_T_hash_body_T",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 4,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_T_constN_Hash_array_T_hash_body.coma",
+      "coma_sha256": "5b6502c83a3c5ac936794996a028019ab1a53bce2e03b605ca16207cd3528602",
+      "proof_json": "artifacts/proof/extern_spec_T_constN_Hash_array_T_hash_body/proof.json",
+      "proof_json_sha256": "e7f29a3dcb33287f7875855f87f946cd3a5f5dba1e9e31e1cd43e857098fc9c6",
+      "own_body_goal": "vc_extern_spec_T__constN_Hash__array_T_hash_body_T",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 3,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_T_A_Hash_alloc_boxed_Box_T_A_hash_body.coma",
+      "coma_sha256": "9a5f6b99d4d8e4d9e08abe82b44dba9e5adbd7bfa2cfd8f366d55c381d9c7e58",
+      "proof_json": "artifacts/proof/extern_spec_T_A_Hash_alloc_boxed_Box_T_A_hash_body/proof.json",
+      "proof_json_sha256": "3c9c73fb356a2412ab30435fb0040ff0198893440602493596d0be7a31cfad93",
+      "own_body_goal": "vc_extern_spec_T_A_Hash_alloc_boxed_Box_T_A_hash_body_T",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 2,
+      "all_leaves_proved": true
+    },
+    {
+      "coma_path_in_verif": "verif/creusot_std_rlib/std/hash/extern_spec_T_core_hash_Hash_core_num_NonZero_T_hash_body.coma",
+      "coma_sha256": "745ec7f3f2644ca4197483d8dc4c9b7653a546e19e408857bee38daa44368832",
+      "proof_json": "artifacts/proof/extern_spec_T_core_hash_Hash_core_num_NonZero_T_hash_body/proof.json",
+      "proof_json_sha256": "0a4c2679d8d9e7aa098bb4723633b2d1931ecfb355768b27a75db3bb35048c95",
+      "own_body_goal": "vc_extern_spec_T_core_hash_Hash_core_num_NonZero_T_hash_body_T",
+      "own_body_goal_status": "proved",
+      "total_leaf_obligations_including_callees": 3,
+      "all_leaves_proved": true
+    }
+  ],
+  "trusted_and_scoped_premises": [
+    "Hasher::write, write_usize, and the to_ne_bytes observers are external std contracts. The Hash model records mutable Hasher invariant preservation only.",
+    "The default write_isize body is source-shaped and proved; it calls write_usize once with isize_to_usize_word(value). The helper postcondition proves the unsigned logical value is value for nonnegative inputs and usize::MAX + 1 + value for negative inputs. Boundary-value runtime test compares the same helper implementation to Rust casts.",
+    "The logical conversion formula is word-width-parametric via usize::MAX; it does not specify hash output bytes. Exact digest semantics remain outside the model.",
+    "The generic NonZero<T> forwarding spec requires NonZeroPrimitiveModel for model resolution. Current modeled applicability is only the primitive subset represented by that relation, including u16.",
+    "These are proved external-spec wrapper/helper bodies under the listed callback and observer contracts, not source-included proofs of core/alloc implementations.",
+    "No Hash/Eq coherence property or hash digest is specified or proved."
+  ],
+  "result_classification": "Fresh source-matched std proof; HTTP consumers must be re-emitted and reproved against these final contracts before claiming integrated Hash closure."
+}

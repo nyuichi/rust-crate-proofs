@@ -1,0 +1,144 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 207 4 207 28 *)
+
+(* <response::Parts as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+let%span sclone'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 13 27 13 31
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/runtime-http/src/version.rs" 25 38 25 43
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/runtime-http/src/header/map.rs" 80 9 80 14
+let%span sextensions = "/workspace/rust-crate-proofs/http/1.5.0/verification/runtime-http/src/extensions.rs" 34 9 34 14
+let%span sresponse = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 209 20 209 39
+let%span sresponse'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 210 21 210 41
+let%span sresponse'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 211 21 211 41
+let%span sresponse'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 212 24 212 47
+let%span sresponse'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 207 14 207 18
+let%span sresponse'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 207 23 207 28
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/runtime-http/src/status.rs" 44 9 44 14
+
+use creusot.prelude.Any
+
+type t_StatusCode
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  status: t_StatusCode;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+predicate invariant_ref_StatusCode [@inline:trivial] (self: t_StatusCode) = [%#sinvariant] inv_StatusCode self
+
+meta "rewrite_def" predicate invariant_ref_StatusCode
+
+predicate inv_ref_StatusCode [@inline:trivial] (_1: t_StatusCode) = invariant_ref_StatusCode _1
+
+meta "rewrite_def" predicate inv_ref_StatusCode
+
+let rec clone_StatusCode (self_: t_StatusCode) (return (x: t_StatusCode)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#sclone] inv_ref_StatusCode self_}
+  any
+  [ return (result: t_StatusCode) ->
+  {[@stop_split] [@expl:clone result type invariant] [%#sstatus] inv_StatusCode result}
+    (! return {result}) ]
+
+predicate inv_Version (_1: t_Version)
+
+predicate invariant_ref_Version [@inline:trivial] (self: t_Version) = [%#sinvariant] inv_Version self
+
+meta "rewrite_def" predicate invariant_ref_Version
+
+predicate inv_ref_Version [@inline:trivial] (_1: t_Version) = invariant_ref_Version _1
+
+meta "rewrite_def" predicate inv_ref_Version
+
+let rec clone_Version (self_: t_Version) (return (x: t_Version)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#sclone] inv_ref_Version self_}
+  any
+  [ return (result: t_Version) -> {[@stop_split] [@expl:clone result type invariant] [%#sversion] inv_Version result}
+    (! return {result}) ]
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate invariant_ref_HeaderMap_HeaderValue [@inline:trivial] (self: t_HeaderMap_HeaderValue) =
+  [%#sinvariant] inv_HeaderMap_HeaderValue self
+
+meta "rewrite_def" predicate invariant_ref_HeaderMap_HeaderValue
+
+predicate inv_ref_HeaderMap_HeaderValue [@inline:trivial] (_1: t_HeaderMap_HeaderValue) =
+  invariant_ref_HeaderMap_HeaderValue _1
+
+meta "rewrite_def" predicate inv_ref_HeaderMap_HeaderValue
+
+let rec clone_HeaderMap_HeaderValue (self_: t_HeaderMap_HeaderValue) (return (x: t_HeaderMap_HeaderValue)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#sclone] inv_ref_HeaderMap_HeaderValue self_}
+  any
+  [ return (result: t_HeaderMap_HeaderValue) ->
+  {[@stop_split] [@expl:clone result type invariant] [%#smap] inv_HeaderMap_HeaderValue result}
+    (! return {result}) ]
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate invariant_ref_Extensions [@inline:trivial] (self: t_Extensions) = [%#sinvariant] inv_Extensions self
+
+meta "rewrite_def" predicate invariant_ref_Extensions
+
+predicate inv_ref_Extensions [@inline:trivial] (_1: t_Extensions) = invariant_ref_Extensions _1
+
+meta "rewrite_def" predicate inv_ref_Extensions
+
+let rec clone_Extensions (self_: t_Extensions) (return (x: t_Extensions)) =
+  {[@stop_split] [@expl:clone 'self_' type invariant] [%#sclone] inv_ref_Extensions self_}
+  any
+  [ return (result: t_Extensions) ->
+  {[@stop_split] [@expl:clone result type invariant] [%#sextensions] inv_Extensions result}
+    (! return {result}) ]
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_StatusCode x.status
+    /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+predicate invariant_ref_Parts [@inline:trivial] (self: t_Parts) = [%#sinvariant] inv_Parts self
+
+meta "rewrite_def" predicate invariant_ref_Parts
+
+predicate inv_ref_Parts [@inline:trivial] (_1: t_Parts) = invariant_ref_Parts _1
+
+meta "rewrite_def" predicate inv_ref_Parts
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec clone_Parts
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 207 4 207 28]
+  (self: t_Parts) (return (x: t_Parts)) =
+  {[@stop_split] [@expl:clone 'self' type invariant] [%#sresponse'3] inv_ref_Parts self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = clone_StatusCode [%#sresponse] {self.status} (fun (_x: t_StatusCode) -> [ &_2 <- _x ] s1)
+    | s1 = clone_Version [%#sresponse'0] {self.version} (fun (_x: t_Version) -> [ &_4 <- _x ] s2)
+    | s2 = clone_HeaderMap_HeaderValue [%#sresponse'1] {self.headers}
+        (fun (_x: t_HeaderMap_HeaderValue) -> [ &_6 <- _x ] s3)
+    | s3 = clone_Extensions [%#sresponse'2] {self.extensions} (fun (_x: t_Extensions) -> [ &_8 <- _x ] s4)
+    | s4 = [ &_ret <- { status = _2; version = _4; headers = _6; extensions = _8; _priv = _10 } ] s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: t_Parts = Any.any_l ()
+  | & self: t_Parts = self
+  | & _2: t_StatusCode = Any.any_l ()
+  | & _4: t_Version = Any.any_l ()
+  | & _6: t_HeaderMap_HeaderValue = Any.any_l ()
+  | & _8: t_Extensions = Any.any_l ()
+  | & _10: () = Any.any_l () ])
+  [ return (result: t_Parts) -> {[@stop_split] [@expl:clone result type invariant] [%#sresponse'4] inv_Parts result}
+    (! return {result}) ]

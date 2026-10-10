@@ -1,0 +1,85 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 245 4 245 67 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 246 19 246 47
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 247 8 247 34
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 245 45 245 48
+let%span slib'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 242 14 242 27
+let%span slib'3 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 243 14 243 87
+let%span slib'4 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 244 14 244 70
+let%span slib'5 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 215 38 215 41
+let%span slib'6 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 211 14 211 46
+let%span slib'7 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 212 14 213 61
+let%span slib'8 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 228 14 228 27
+let%span slib'9 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 229 14 229 70
+let%span slib'10 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 230 14 230 53
+let%span slib'11 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 32 8 32 33
+let%span slib'12 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 23 8 27 9
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+
+use creusot.int.UInt16
+use creusot.int.Int8
+use seq.Seq
+use creusot.slice.Slice64
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type __m128i
+
+predicate inv___m128i (_1: __m128i)
+
+function deep_model_i8 [@inline:trivial] (self: Int8.t) : int = [%#snum] Int8.to_int self
+
+meta "rewrite_def" function deep_model_i8
+
+function byte_value [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 22 4 22 38] (lane: Int8.t) : int
+ = [%#slib'12] if deep_model_i8 lane < 0 then deep_model_i8 lane + 256 else deep_model_i8 lane
+
+predicate uri_lane_allowed [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 31 4 31 45] (lane: Int8.t) =
+  [%#slib'11] let b = byte_value lane in b >= 33 /\ b <> 127
+
+function lanes [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 17 4 17 40] (v: __m128i) : Slice64.array Int8.t
+
+let rec uri_allowed_mask_16_sse (dat: __m128i) (return (x: UInt16.t)) =
+  {[@stop_split] [@expl:uri_allowed_mask_16_sse 'dat' type invariant] [%#slib'5] inv___m128i dat}
+  any
+  [ return (result: UInt16.t) ->
+  {[@stop_split] [@expl:uri_allowed_mask_16_sse ensures] ([@stop_split] [@expl:uri_allowed_mask_16_sse ensures #0] [%#slib'6] 0
+        <= UInt16.t'int result
+      /\ UInt16.t'int result <= 65535)
+    /\ ([@stop_split] [@expl:uri_allowed_mask_16_sse ensures #1] [%#slib'7] forall i: int. 0 <= i /\ i < 16
+      -> UInt16.nth result i = uri_lane_allowed (Seq.get (Slice64.view (lanes dat)) i))}
+    (! return {result}) ]
+
+let rec prefix_len_from_mask (mask: UInt16.t) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:prefix_len_from_mask ensures] ([@stop_split] [@expl:prefix_len_from_mask ensures #0] [%#slib'8] UInt64.t'int result
+      <= 16)
+    /\ ([@stop_split] [@expl:prefix_len_from_mask ensures #1] [%#slib'9] forall i: int. 0 <= i
+          /\ i < UInt64.t'int result -> UInt16.nth mask i)
+    /\ ([@stop_split] [@expl:prefix_len_from_mask ensures #2] [%#slib'10] UInt64.t'int result < 16
+    -> not UInt16.nth mask (UInt64.t'int result))}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec match_uri_char_16_sse_pure
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 245 4 245 67]
+  (dat: __m128i) (return (x: UInt64.t)) =
+  {[@stop_split] [@expl:match_uri_char_16_sse_pure 'dat' type invariant] [%#slib'1] inv___m128i dat}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = uri_allowed_mask_16_sse [%#slib] {dat} (fun (_x: UInt16.t) -> [ &mask <- _x ] s1)
+    | s1 = prefix_len_from_mask [%#slib'0] {mask} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & dat: __m128i = dat | & mask: UInt16.t = Any.any_l () ])
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:match_uri_char_16_sse_pure ensures] ([@stop_split] [@expl:match_uri_char_16_sse_pure ensures #0] [%#slib'2] UInt64.t'int result
+      <= 16)
+    /\ ([@stop_split] [@expl:match_uri_char_16_sse_pure ensures #1] [%#slib'3] forall i: int. 0 <= i
+          /\ i < UInt64.t'int result -> uri_lane_allowed (Seq.get (Slice64.view (lanes dat)) i))
+    /\ ([@stop_split] [@expl:match_uri_char_16_sse_pure ensures #2] [%#slib'4] UInt64.t'int result < 16
+    -> not uri_lane_allowed (Seq.get (Slice64.view (lanes dat)) (UInt64.t'int result)))}
+    (! return {result}) ]

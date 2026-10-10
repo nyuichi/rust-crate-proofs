@@ -1,0 +1,343 @@
+{
+  "manifest_version": 1,
+  "scope": "Freshly emitted actual HTTP Request/Response Builder method and and_then source proofs in the composition harness. This is a selected conditional source proof set, not an integrated Builder or crate proof.",
+  "source_fingerprints": [
+    {
+      "path": "http/1.5.0/src/request.rs",
+      "sha256": "8928318e8fd08a653dff351135812fa551e013fd2f4747f1e005446532423299"
+    },
+    {
+      "path": "http/1.5.0/src/response.rs",
+      "sha256": "870058af322689d098ec54aec073207fc087f8d919ab18bfd364ae4b75a6151a"
+    },
+    {
+      "path": "creusot-libs/creusot-std/src/std/convert.rs",
+      "sha256": "845435d95e1b04bb9a3771808a215199e24236635022d8e4c32f3b9a89bfbd80"
+    },
+    {
+      "path": "http/1.5.0/src/error/core.rs",
+      "sha256": "d46ce419611c11062b3b8f6f3a870bca8a208cda711cba66fbcd6411252d3361"
+    },
+    {
+      "path": "http/1.5.0/verification/composition/src/lib.rs",
+      "sha256": "bf9d84406453e7c208a6fc91ddb50a3b836b8989db44489b6021cd6ea8d0049a"
+    },
+    {
+      "path": "http/1.5.0/verification/composition/Cargo.toml",
+      "sha256": "c3497427d84a60081c530bfdbfe9cc6ee39922578312a193189dbd611e140b7f"
+    },
+    {
+      "path": "http/1.5.0/verification/composition/Cargo.lock",
+      "sha256": "e44c24d73aa14cd1feb0898a99fa47bcbd821061a782950ad6730377ca5c0758"
+    },
+    {
+      "path": "http/1.5.0/verification/composition/why3find.json",
+      "sha256": "c7014603e8a4f00384e112d1c626b3c0ed1a6fdf54425d25ee2d6e3bfcdd685d"
+    }
+  ],
+  "proof_run": {
+    "clean_command": "cargo clean --target-dir /workspace/rust-crate-proofs/target/http -p http-composition-proof",
+    "translation_command": "RUSTFLAGS='--cfg http_composition_leaf' cargo creusot --simple-triggers=false -- --locked --offline",
+    "proof_command": "RUSTFLAGS='--cfg http_composition_leaf' ../../scripts/run-proof.sh cargo creusot --simple-triggers=false prove --no-cache <5 exact generated .coma paths> -- --locked --offline",
+    "target": "http-composition-proof",
+    "feature_configuration": {
+      "crate_cfg": [
+        "http_composition_leaf"
+      ],
+      "crate_features": []
+    },
+    "status": "passed",
+    "target_methods": 5,
+    "total_leaf_vcs": 44,
+    "proved_leaf_vcs": 44,
+    "open_leaf_vcs": 0,
+    "own_leaf_vcs": 22,
+    "supporting_or_elimination_leaf_vcs": 22,
+    "environment": "Why3 split_vc; Z3 4.15.3; one prover / 1024 MiB via shared HTTP lock"
+  },
+  "notes": [
+    "creusot-std std::convert::Into trait declaration is an external specification boundary. Its generic method contract only carries the implementation postcondition; the existing blanket Into<U> for T where U: From<T> forwards to From exactly.",
+    "The setter precondition applies conversion requirements only if the incoming builder is valid, then relays TryInto::try_into preconditions and, for reachable Err cases, Into::into preconditions. No Error: From<E> bound was introduced.",
+    "The setters model exact branches in terms of TryInto and Into postconditions. Concrete source-level Error conversion semantics require the relevant Into/From implementation contract.",
+    "Header and extension setter bodies remain open because actual HeaderMap::try_append and Extensions::insert have no usable contracts in this harness; their own VCs are not included."
+  ],
+  "targets": [
+    {
+      "method": "request::and_then",
+      "why3find_target": "http_composition_proof_rlib.request.impl_Builder.and_then",
+      "goal_names": {
+        "vc_and_then_F": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_call_once_F": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Err": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Ok": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 4,
+      "proved_leaf_count": 4,
+      "open_leaf_count": 0,
+      "own_leaf_count": 2,
+      "supporting_or_elimination_leaf_count": 2,
+      "own_goal_names": [
+        "vc_and_then_F",
+        "vc_call_once_F"
+      ],
+      "status": "proved",
+      "strength": "Error state is retained exactly; Ok state relays FnOnce pre/postcondition.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/request/impl_Builder/and_then/and_then.coma",
+          "sha256": "6d44c6b88144df8175c0de76117889358a2bae26972a2196fa5abf35de5c325a"
+        },
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/request/impl_Builder/and_then/proof.json",
+          "sha256": "394c4884fad41225a2083a9f9621d43668a49a8aa24dc82c49195a8ebaec8a0d"
+        }
+      ]
+    },
+    {
+      "method": "request::method",
+      "why3find_target": "http_composition_proof_rlib.request.impl_Builder.method",
+      "goal_names": {
+        "vc_and_then_closure0": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_closure0": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Err": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Ok": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_into_Error": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_method_T": {
+          "leaves": 6,
+          "proved": 6,
+          "open": 0
+        },
+        "vc_try_into_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 12,
+      "proved_leaf_count": 12,
+      "open_leaf_count": 0,
+      "own_leaf_count": 6,
+      "supporting_or_elimination_leaf_count": 6,
+      "own_goal_names": [
+        "vc_method_T"
+      ],
+      "status": "proved",
+      "strength": "Conditional exact TryInto result relay; success updates only Method, conversion failure records the Into-postcondition relation to the produced Error; frames URI/version/headers/extensions.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/request/impl_Builder/method/method.coma",
+          "sha256": "c6eb6447fe9e30e32f3d98fa376318f3c39307024b9ded181dbfe8c521e48d04"
+        },
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/request/impl_Builder/method/proof.json",
+          "sha256": "b829d72789c9214928893f0b5ed24f4886810cf6983a7ebd44aeb4d809b332f0"
+        }
+      ]
+    },
+    {
+      "method": "request::uri",
+      "why3find_target": "http_composition_proof_rlib.request.impl_Builder.uri",
+      "goal_names": {
+        "vc_and_then_closure0": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_closure0": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Err": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Ok": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_into_Error": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_try_into_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_uri_T": {
+          "leaves": 6,
+          "proved": 6,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 12,
+      "proved_leaf_count": 12,
+      "open_leaf_count": 0,
+      "own_leaf_count": 6,
+      "supporting_or_elimination_leaf_count": 6,
+      "own_goal_names": [
+        "vc_uri_T"
+      ],
+      "status": "proved",
+      "strength": "Conditional exact TryInto result relay; success updates only Uri, conversion failure records the Into-postcondition relation to the produced Error; frames method/version/headers/extensions.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/request/impl_Builder/uri/uri.coma",
+          "sha256": "843231d32d11c21f872ee8d321e5ecfa1f04dbfb4bac0aeb87fc204e66ad8e89"
+        },
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/request/impl_Builder/uri/proof.json",
+          "sha256": "8053454d728929e18a18f57aa55722c368706211a5075555b70c1e123043a5ac"
+        }
+      ]
+    },
+    {
+      "method": "response::and_then",
+      "why3find_target": "http_composition_proof_rlib.response.impl_Builder.and_then",
+      "goal_names": {
+        "vc_and_then_F": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_call_once_F": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Err": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Ok": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 4,
+      "proved_leaf_count": 4,
+      "open_leaf_count": 0,
+      "own_leaf_count": 2,
+      "supporting_or_elimination_leaf_count": 2,
+      "own_goal_names": [
+        "vc_and_then_F",
+        "vc_call_once_F"
+      ],
+      "status": "proved",
+      "strength": "Error state is retained exactly; Ok state relays FnOnce pre/postcondition.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/response/impl_Builder/and_then/and_then.coma",
+          "sha256": "08e6f0f7ca4ebebf5318519537f2079ed51d3bf4a30f96a46d7f532c931062ee"
+        },
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/response/impl_Builder/and_then/proof.json",
+          "sha256": "003b591cc161915c967bf006a22bf7e12e65a5d61d3feba427fe5c50cffb3410"
+        }
+      ]
+    },
+    {
+      "method": "response::status",
+      "why3find_target": "http_composition_proof_rlib.response.impl_Builder.status",
+      "goal_names": {
+        "vc_and_then_closure0": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_closure0": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Err": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_elim_Ok": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_into_Error": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        },
+        "vc_status_T": {
+          "leaves": 6,
+          "proved": 6,
+          "open": 0
+        },
+        "vc_try_into_T": {
+          "leaves": 1,
+          "proved": 1,
+          "open": 0
+        }
+      },
+      "leaf_vc_count": 12,
+      "proved_leaf_count": 12,
+      "open_leaf_count": 0,
+      "own_leaf_count": 6,
+      "supporting_or_elimination_leaf_count": 6,
+      "own_goal_names": [
+        "vc_status_T"
+      ],
+      "status": "proved",
+      "strength": "Conditional exact TryInto result relay; success updates only StatusCode, conversion failure records the Into-postcondition relation to the produced Error; frames version/headers/extensions.",
+      "artifacts": [
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/response/impl_Builder/status/status.coma",
+          "sha256": "37e3fef9b7227f66f069afcb0a902fc0a610a992e2151355b2f3c8862dc0cb08"
+        },
+        {
+          "path": "evidence/run-2026-10-05-builder-into-relay/artifacts/response/impl_Builder/status/proof.json",
+          "sha256": "dabe612f99bd5d688031b040b7e5fa283cdd20d46bf363515591050494c12e05"
+        }
+      ]
+    }
+  ]
+}

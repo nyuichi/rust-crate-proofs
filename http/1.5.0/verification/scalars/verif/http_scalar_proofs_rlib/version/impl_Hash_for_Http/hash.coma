@@ -1,0 +1,83 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 117 4 117 55 *)
+
+(* <version::Http as std::hash::Hash> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 115 34 115 39
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 114 18 114 29
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 124 37 124 43
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 123 24 123 30
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 122 24 122 30
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 121 28 121 34
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 120 28 120 34
+let%span sversion'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 119 28 119 34
+let%span sversion'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 126 8 126 51
+let%span sversion'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 117 41 117 46
+
+use creusot.int.Int64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+type t_H
+
+predicate inv_H (_1: t_H)
+
+predicate invariant_refmut_H [@inline:trivial] (self: MutBorrow.t t_H) =
+  [%#sinvariant] inv_H self.current /\ inv_H self.final
+
+meta "rewrite_def" predicate invariant_refmut_H
+
+predicate inv_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = invariant_refmut_H _1
+
+meta "rewrite_def" predicate inv_refmut_H
+
+let rec hash_isize (self_: Int64.t) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash 'state' type invariant] [%#shash] inv_refmut_H state}
+  any [ return (result: ()) -> {[@stop_split] [@expl:hash ensures] [%#shash'0] inv_H state.final} (! return {result}) ]
+
+predicate resolve_refmut_H [@inline:trivial] (_1: MutBorrow.t t_H) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_H
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec hash_Http
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 117 4 117 55]
+  (self: t_Http) (state: MutBorrow.t t_H) (return (x: ())) =
+  {[@stop_split] [@expl:hash 'state' type invariant] [%#sversion'6] inv_refmut_H state}
+  (! bb0
+  [ bb0 = any
+    [ br0 -> {self = Http09} (! bb12)
+    | br1 -> {self = Http10} (! bb11)
+    | br2 -> {self = Http11} (! bb10)
+    | br3 -> {self = H2} (! bb9)
+    | br4 -> {self = H3} (! bb8)
+    | br5 -> {self = C___NonExhaustive} (! bb7) ]
+  | bb7 = s0 [ s0 = [ &discriminant <- [%#sversion] (5: Int64.t) ] s1 | s1 = bb13 ]
+  | bb8 = s0 [ s0 = [ &discriminant <- [%#sversion'0] (4: Int64.t) ] s1 | s1 = bb13 ]
+  | bb9 = s0 [ s0 = [ &discriminant <- [%#sversion'1] (3: Int64.t) ] s1 | s1 = bb13 ]
+  | bb10 = s0 [ s0 = [ &discriminant <- [%#sversion'2] (2: Int64.t) ] s1 | s1 = bb13 ]
+  | bb11 = s0 [ s0 = [ &discriminant <- [%#sversion'3] (1: Int64.t) ] s1 | s1 = bb13 ]
+  | bb12 = s0 [ s0 = [ &discriminant <- [%#sversion'4] (0: Int64.t) ] s1 | s1 = bb13 ]
+  | bb13 = s0
+    [ s0 = [ &_7 <- discriminant ] s1
+    | s1 = MutBorrow.borrow_final <t_H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t t_H) ->
+          [ &_8 <- _bor ] -{inv_H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_H state.current} any) ]
+    | s2 = hash_isize [%#sversion'5] {_7} {_8} (fun (_x: ()) -> [ &_5 <- _x ] s3)
+    | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut_H state} any) ]
+    | s4 = -{resolve_refmut_H state}- s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: t_Http = self
+  | & state: MutBorrow.t t_H = state
+  | & discriminant: Int64.t = Any.any_l ()
+  | & _5: () = Any.any_l ()
+  | & _7: Int64.t = Any.any_l ()
+  | & _8: MutBorrow.t t_H = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

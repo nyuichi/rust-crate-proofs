@@ -1,0 +1,141 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 191 4 191 69 *)
+
+(* <status::StatusCode as std::cmp::PartialOrd> *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 192 13 192 28
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 191 20 191 24
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 191 26 191 31
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 189 8 189 45
+let%span sstatus'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 198 12 198 16
+let%span sstatus'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 198 18 198 23
+let%span sstatus'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 197 32 197 63
+let%span sstatus'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 141 20 141 39
+let%span sstatus'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 167 20 167 48
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 187 20 187 40
+let%span sord = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 255 8 261 9
+let%span sord'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 162 41 162 102
+let%span sord'1 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 168 41 168 99
+let%span sord'2 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 174 41 174 99
+let%span sord'3 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 180 41 180 102
+let%span sord'4 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 186 41 186 83
+let%span sord'5 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 192 42 192 59
+let%span sord'6 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 193 42 193 59
+let%span sord'7 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 194 41 194 58
+let%span sord'8 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 200 42 200 83
+let%span sord'9 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 201 41 201 85
+let%span sord'10 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 207 42 207 86
+let%span sord'11 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 208 41 208 82
+let%span sord'12 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/logic/ord.rs" 214 41 214 97
+
+use creusot.int.UInt16
+use creusot.prelude.Any
+use int.Int
+
+type t_NonZero_u16
+
+type t_StatusCode = { f0: t_NonZero_u16 }
+
+type t_Ordering = Less | Equal | Greater
+
+function nonzero_value_u16 (_value: t_NonZero_u16) : UInt16.t
+
+function deep_model_NonZero_u16 (self: t_NonZero_u16) : int = [%#snum] UInt16.t'int (nonzero_value_u16 self)
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+ = [%#sstatus'6] deep_model_NonZero_u16 self.f0
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'7] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_NonZero_u16 (_1: t_NonZero_u16)
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom [@rewrite]: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x
+    = (invariant_StatusCode x /\ inv_NonZero_u16 x.f0)
+
+predicate invariant_ref_StatusCode [@inline:trivial] (self: t_StatusCode) = [%#sinvariant] inv_StatusCode self
+
+meta "rewrite_def" predicate invariant_ref_StatusCode
+
+predicate inv_ref_StatusCode [@inline:trivial] (_1: t_StatusCode) = invariant_ref_StatusCode _1
+
+meta "rewrite_def" predicate inv_ref_StatusCode
+
+function cmp_log_Int (self: int) (o: int) : t_Ordering = [%#sord] if self < o then
+    Less
+  else
+    if self = o then Equal else Greater
+
+
+function eq_cmp_Int (x: int) (y: int) : ()
+
+axiom eq_cmp_Int_spec: forall x: int, y: int. [%#sord'12] (x = y) = (cmp_log_Int x y = Equal)
+
+function antisym2_Int (x: int) (y: int) : ()
+
+axiom antisym2_Int_spec: forall x: int, y: int. ([%#sord'10] cmp_log_Int x y = Greater)
+    -> ([%#sord'11] cmp_log_Int y x = Less)
+
+function antisym1_Int (x: int) (y: int) : ()
+
+axiom antisym1_Int_spec: forall x: int, y: int. ([%#sord'8] cmp_log_Int x y = Less)
+    -> ([%#sord'9] cmp_log_Int y x = Greater)
+
+function trans_Int (x: int) (y: int) (z: int) (o: t_Ordering) : ()
+
+axiom trans_Int_spec: forall x: int, y: int, z: int, o: t_Ordering. ([%#sord'5] cmp_log_Int x y = o)
+    -> ([%#sord'6] cmp_log_Int y z = o) -> ([%#sord'7] cmp_log_Int x z = o)
+
+function refl_Int (x: int) : ()
+
+axiom refl_Int_spec: forall x: int. [%#sord'4] cmp_log_Int x x = Equal
+
+function cmp_gt_log_Int (x: int) (y: int) : ()
+
+axiom cmp_gt_log_Int_spec: forall x: int, y: int. [%#sord'3] (x > y) = (cmp_log_Int x y = Greater)
+
+function cmp_ge_log_Int (x: int) (y: int) : ()
+
+axiom cmp_ge_log_Int_spec: forall x: int, y: int. [%#sord'2] (x >= y) = (cmp_log_Int x y <> Less)
+
+function cmp_lt_log_Int (x: int) (y: int) : ()
+
+axiom cmp_lt_log_Int_spec: forall x: int, y: int. [%#sord'1] (x < y) = (cmp_log_Int x y = Less)
+
+function cmp_le_log_Int (x: int) (y: int) : ()
+
+axiom cmp_le_log_Int_spec: forall x: int, y: int. [%#sord'0] (x <= y) = (cmp_log_Int x y <> Greater)
+
+let rec cmp_StatusCode (self: t_StatusCode) (other: t_StatusCode) (return (x: t_Ordering)) =
+  {[@stop_split] [@expl:cmp_StatusCode requires] ([@stop_split] [@expl:cmp 'self' type invariant] [%#sstatus'3] inv_ref_StatusCode self)
+  /\ ([@stop_split] [@expl:cmp 'other' type invariant] [%#sstatus'4] inv_ref_StatusCode other)}
+  any
+  [ return (result: t_Ordering) -> {[@stop_split] [@expl:cmp ensures] [%#sstatus'5] result
+    = cmp_log_Int (view_StatusCode self) (view_StatusCode other)}
+    (! return {result}) ]
+
+type t_Option_Ordering = None | Some t_Ordering
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec partial_cmp_StatusCode
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 191 4 191 69]
+  (self: t_StatusCode) (other: t_StatusCode) (return (x: t_Option_Ordering)) =
+  {[@stop_split] [@expl:partial_cmp_StatusCode requires] ([@stop_split] [@expl:partial_cmp 'self' type invariant] [%#sstatus'0] inv_ref_StatusCode self)
+  /\ ([@stop_split] [@expl:partial_cmp 'other' type invariant] [%#sstatus'1] inv_ref_StatusCode other)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = cmp_StatusCode [%#sstatus] {self} {other} (fun (_x: t_Ordering) -> [ &_6 <- _x ] s1)
+    | s1 = [ &_ret <- Some _6 ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: t_Option_Ordering = Any.any_l ()
+  | & self: t_StatusCode = self
+  | & other: t_StatusCode = other
+  | & _6: t_Ordering = Any.any_l () ])
+  [ return (result: t_Option_Ordering) -> {[@stop_split] [@expl:partial_cmp ensures] [%#sstatus'2] result
+    = Some (cmp_log_Int (view_StatusCode self) (view_StatusCode other))}
+    (! return {result}) ]

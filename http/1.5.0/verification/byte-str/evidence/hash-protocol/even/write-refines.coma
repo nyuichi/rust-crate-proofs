@@ -1,0 +1,42 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 18 4 18 38 *)
+
+(* <hash_protocol_probe::EvenHasher as std::hash::Hasher> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span shash_protocol_probe = "/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 18 18 18 22
+let%span shash_protocol_probe'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 9 20 9 36
+let%span shash = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 19 30 19 34
+let%span shash'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/hash.rs" 18 26 18 36
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use int.ComputerDivision
+use creusot.slice.Slice64
+use creusot.int.UInt8
+
+type t_EvenHasher = { f0: UInt64.t }
+
+predicate invariant_EvenHasher [#"/workspace/rust-crate-proofs/http/1.5.0/verification/byte-str/src/hash_protocol_probe.rs" 8 4 8 30] (self: t_EvenHasher) =
+  [%#shash_protocol_probe'0] ComputerDivision.mod (UInt64.t'int self.f0) 2 = 0
+
+predicate inv_EvenHasher (_1: t_EvenHasher)
+
+axiom inv_axiom [@rewrite]: forall x: t_EvenHasher [inv_EvenHasher x]. inv_EvenHasher x = invariant_EvenHasher x
+
+predicate invariant_refmut_EvenHasher [@inline:trivial] (self: MutBorrow.t t_EvenHasher) =
+  [%#sinvariant] inv_EvenHasher self.current /\ inv_EvenHasher self.final
+
+meta "rewrite_def" predicate invariant_refmut_EvenHasher
+
+predicate inv_refmut_EvenHasher [@inline:trivial] (_1: MutBorrow.t t_EvenHasher) = invariant_refmut_EvenHasher _1
+
+meta "rewrite_def" predicate inv_refmut_EvenHasher
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall self_: MutBorrow.t t_EvenHasher. forall bytes: Slice64.slice UInt8.t. ([%#shash] inv_refmut_EvenHasher self_)
+      -> ([%#shash_protocol_probe] inv_refmut_EvenHasher self_)
+      /\ (forall result: (). [%#shash'0] inv_EvenHasher self_.final)

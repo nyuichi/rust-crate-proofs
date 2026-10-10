@@ -1,0 +1,26 @@
+diff --git a/http/1.5.0/src/method.rs b/http/1.5.0/src/method.rs
+index 1bc44b5..e70e6cb 100644
+--- a/http/1.5.0/src/method.rs
++++ b/http/1.5.0/src/method.rs
+@@ -254,6 +254,9 @@ pub struct Method(Inner);
+ // the public DeepModel implementation does not expose that representation.
+ #[cfg(creusot)]
+ #[doc(hidden)]
++// This is a logical model type; deriving runtime Debug would impose a Debug
++// implementation on the verifier's logical Seq fields.
++#[allow(missing_debug_implementations)]
+ #[derive(Copy, Clone)]
+ pub enum MethodModel {
+     Options,
+diff --git a/http/1.5.0/src/status.rs b/http/1.5.0/src/status.rs
+index 177494c..20f56d3 100644
+--- a/http/1.5.0/src/status.rs
++++ b/http/1.5.0/src/status.rs
+@@ -565,6 +565,7 @@ macro_rules! status_codes {
+     ) => {
+         $(
+             #[cfg(creusot)]
++            /// Verifier-only canonical reason phrase for this status code.
+             pub const $konst: &str = $phrase;
+         )+
+ 

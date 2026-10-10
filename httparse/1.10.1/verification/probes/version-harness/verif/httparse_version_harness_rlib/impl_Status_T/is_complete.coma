@@ -1,0 +1,52 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 29 4 29 37 *)
+
+(* Status<T> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sstatus = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 32 31 32 36
+let%span sstatus'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 31 36 31 40
+let%span sstatus'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 29 24 29 28
+let%span sstatus'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 25 14 28 5
+
+use creusot.prelude.Any
+
+type t_T
+
+type t_Status_T = Complete t_T | Partial
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Status_T (_1: t_Status_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Status_T [inv_Status_T x]. inv_Status_T x
+    = match x with
+      | Complete f0 -> inv_T f0
+      | Partial -> true
+      end
+
+predicate invariant_ref_Status_T [@inline:trivial] (self: t_Status_T) = [%#sinvariant] inv_Status_T self
+
+meta "rewrite_def" predicate invariant_ref_Status_T
+
+predicate inv_ref_Status_T [@inline:trivial] (_1: t_Status_T) = invariant_ref_Status_T _1
+
+meta "rewrite_def" predicate inv_ref_Status_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec is_complete_T
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/version-harness/src/../../../../src/status.rs" 29 4 29 37]
+  (self: t_Status_T) (return (x: bool)) =
+  {[@stop_split] [@expl:is_complete 'self' type invariant] [%#sstatus'1] inv_ref_Status_T self}
+  (! bb0
+  [ bb0 = any [ br0 (x0: t_T) -> {self = Complete x0} (! bb4) | br1 -> {self = Partial} (! bb3) ]
+  | bb3 = s0 [ s0 = [ &_ret <- [%#sstatus] false ] s1 | s1 = return {_ret} ]
+  | bb4 = s0 [ s0 = [ &_ret <- [%#sstatus'0] true ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & self: t_Status_T = self ])
+  [ return (result: bool) -> {[@stop_split] [@expl:is_complete ensures] [%#sstatus'2] match self with
+      | Complete _ -> result
+      | Partial -> not result
+      end}
+    (! return {result}) ]

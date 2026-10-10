@@ -1,0 +1,36 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 46 4 46 40 *)
+
+let%span slib = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 43 14 43 62
+let%span slib'0 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 44 14 44 56
+let%span slib'1 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 45 14 45 58
+let%span slib'2 = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 23 8 27 9
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 25 28 25 33
+
+use creusot.prelude.Any
+use creusot.int.Int8
+use int.Int
+
+function deep_model_i8 [@inline:trivial] (self: Int8.t) : int = [%#snum] Int8.to_int self
+
+meta "rewrite_def" function deep_model_i8
+
+function byte_value [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 22 4 22 38] (lane: Int8.t) : int
+ = [%#slib'2] if deep_model_i8 lane < 0 then deep_model_i8 lane + 256 else deep_model_i8 lane
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec signed_byte_value_facts
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/backend-sse-prefix/src/lib.rs" 46 4 46 40]
+  (lane: Int8.t) (return (x: ())) = (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:signed_byte_value_facts ensures] ([@stop_split] [@expl:signed_byte_value_facts ensures #0] [%#slib] 0
+        <= byte_value lane
+      /\ byte_value lane <= 255)
+    /\ ([@stop_split] [@expl:signed_byte_value_facts ensures #1] [%#slib'0] (byte_value lane = 33)
+      = (lane = (33: Int8.t)))
+    /\ ([@stop_split] [@expl:signed_byte_value_facts ensures #2] [%#slib'1] (byte_value lane = 127)
+    = (lane = (127: Int8.t)))}
+    (! return {result}) ]

@@ -1,0 +1,76 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 438 4 438 59 *)
+
+(* response::Response<T> *)
+
+let%span sresponse = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 438 22 438 27
+let%span sresponse'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 438 36 438 40
+let%span sresponse'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 438 48 438 59
+let%span sresponse'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 437 14 437 77
+let%span sresponse'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 231 4 231 17
+let%span sresponse'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 238 4 238 17
+
+use creusot.prelude.Any
+
+type t_StatusCode
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  status: t_StatusCode;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+type t_T
+
+type t_Response_T = { head: t_Parts; body: t_T }
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+predicate inv_Version (_1: t_Version)
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_StatusCode x.status
+    /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Response_T (_1: t_Response_T)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Response_T [inv_Response_T x]. inv_Response_T x
+    = (inv_Parts x.head /\ inv_T x.body)
+
+function response_head_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 230 0 230 55] (response: t_Response_T) : t_Parts
+ = [%#sresponse'3] response.head
+
+function response_body_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 237 0 237 51] (response: t_Response_T) : t_T
+ = [%#sresponse'4] response.body
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec from_parts_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 438 4 438 59]
+  (parts: t_Parts) (body'0: t_T) (return (x: t_Response_T)) =
+  {[@stop_split] [@expl:from_parts_T requires] ([@stop_split] [@expl:from_parts 'parts' type invariant] [%#sresponse] inv_Parts parts)
+  /\ ([@stop_split] [@expl:from_parts 'body' type invariant] [%#sresponse'0] inv_T body'0)}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- { head = parts; body = body'0 } ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_Response_T = Any.any_l () | & parts: t_Parts = parts | & body'0: t_T = body'0 ])
+  [ return (result: t_Response_T) ->
+  {[@stop_split] [@expl:from_parts_T ensures] ([@stop_split] [@expl:from_parts result type invariant] [%#sresponse'1] inv_Response_T result)
+    /\ ([@stop_split] [@expl:from_parts ensures] [%#sresponse'2] response_head_T result = parts
+    /\ response_body_T result = body'0)}
+    (! return {result}) ]

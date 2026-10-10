@@ -1,0 +1,35 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 147 4 147 38 *)
+
+(* <version::Http as std::cmp::PartialEq> *)
+
+let%span scmp = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/cmp.rs" 18 26 18 80
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 146 32 146 83
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 178 12 185 13
+let%span spartial_eq = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/partial_eq.rs" 21 20 21 31
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'0] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+function deep_model_ref_Http [@inline:trivial] (self: t_Http) : int = [%#smodel] deep_model_Http self
+
+meta "rewrite_def" function deep_model_ref_Http
+
+predicate eq_model_Int (self: int) (rhs: int) = [%#spartial_eq] self = rhs
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Http. forall rhs: t_Http. forall result: bool. ([%#sversion] result
+          = (deep_model_ref_Http self_ = deep_model_ref_Http rhs))
+        -> ([%#scmp] result = eq_model_Int (deep_model_ref_Http self_) (deep_model_ref_Http rhs))

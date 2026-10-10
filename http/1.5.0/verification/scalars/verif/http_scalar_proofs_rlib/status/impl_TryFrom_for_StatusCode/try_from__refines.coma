@@ -1,0 +1,79 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 526 4 526 54 *)
+
+(* <status::StatusCode as std::convert::TryFrom<&[u8]>> *)
+
+let%span sstatus = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 526 29 526 54
+let%span sstatus'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 520 32 525 5
+let%span sstatus'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 33 8 36 49
+let%span sstatus'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 141 20 141 39
+let%span sstatus'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 44 8 48 9
+let%span sstatus'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 167 20 167 48
+let%span snum = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/num.rs" 187 20 187 40
+
+use creusot.int.UInt16
+use creusot.int.UInt8
+use seq.Seq
+use creusot.slice.Slice64
+use int.Int
+
+type t_NonZero_u16
+
+type t_StatusCode = { f0: t_NonZero_u16 }
+
+type t_InvalidStatusCode = { _priv: () }
+
+type t_Result_StatusCode_InvalidStatusCode = Ok t_StatusCode | Err t_InvalidStatusCode
+
+function nonzero_value_u16 (_value: t_NonZero_u16) : UInt16.t
+
+function deep_model_NonZero_u16 (self: t_NonZero_u16) : int = [%#snum] UInt16.t'int (nonzero_value_u16 self)
+
+function view_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 140 4 140 33] (self: t_StatusCode) : int
+ = [%#sstatus'2] deep_model_NonZero_u16 self.f0
+
+predicate invariant_StatusCode [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 166 4 166 30] (self: t_StatusCode) =
+  [%#sstatus'4] 100 <= view_StatusCode self /\ view_StatusCode self <= 999
+
+predicate inv_NonZero_u16 (_1: t_NonZero_u16)
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+axiom inv_axiom [@rewrite]: forall x: t_StatusCode [inv_StatusCode x]. inv_StatusCode x
+    = (invariant_StatusCode x /\ inv_NonZero_u16 x.f0)
+
+predicate inv_Result_StatusCode_InvalidStatusCode (_1: t_Result_StatusCode_InvalidStatusCode)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_Result_StatusCode_InvalidStatusCode [inv_Result_StatusCode_InvalidStatusCode x]. inv_Result_StatusCode_InvalidStatusCode x
+    = match x with
+      | Ok f0'0 -> inv_StatusCode f0'0
+      | Err f0'0 -> true
+      end
+
+predicate valid_status_bytes [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 31 0 31 71] (bytes: Seq.seq UInt8.t) =
+  [%#sstatus'1] Seq.length bytes = 3
+  /\ 49 <= UInt8.t'int (Seq.get bytes 0)
+  /\ UInt8.t'int (Seq.get bytes 0) <= 57
+  /\ 48 <= UInt8.t'int (Seq.get bytes 1)
+  /\ UInt8.t'int (Seq.get bytes 1) <= 57 /\ 48 <= UInt8.t'int (Seq.get bytes 2) /\ UInt8.t'int (Seq.get bytes 2) <= 57
+
+function status_bytes_value [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/status.rs" 42 0 42 70] (bytes: Seq.seq UInt8.t) : int
+ = [%#sstatus'3] if Seq.length bytes = 3 then
+    (UInt8.t'int (Seq.get bytes 0) - 48) * 100 + (UInt8.t'int (Seq.get bytes 1) - 48) * 10
+      + UInt8.t'int (Seq.get bytes 2)
+    - 48
+  else
+    0
+
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines:
+  forall value: Slice64.slice UInt8.t. forall result: t_Result_StatusCode_InvalidStatusCode. ([%#sstatus] inv_Result_StatusCode_InvalidStatusCode result)
+        /\ ([%#sstatus'0] match result with
+          | Ok code -> valid_status_bytes (Slice64.view value)
+          /\ view_StatusCode code = status_bytes_value (Slice64.view value) /\ invariant_StatusCode code
+          | Err _ -> not valid_status_bytes (Slice64.view value)
+          end) -> inv_Result_StatusCode_InvalidStatusCode result

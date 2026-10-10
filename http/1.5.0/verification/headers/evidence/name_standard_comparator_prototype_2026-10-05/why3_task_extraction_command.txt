@@ -1,0 +1,12 @@
+set -euo pipefail
+source /workspace/proof-tools/activate.sh
+root=/workspace/rust-crate-proofs/http/1.5.0/verification/headers/evidence/name_standard_comparator_prototype_2026-10-05
+rm -rf /tmp/http-name-prototype-reextract-final
+mkdir -p /tmp/http-name-prototype-reextract-final
+for name in bytes_equal bytes_equal_accept bytes_equal_access_control_allow_credentials selected_standard_header_comparator_consumer; do
+  mkdir -p "/tmp/http-name-prototype-reextract-final/$name"
+  why3 prove -C /workspace/proof-tools/config/creusot/why3.conf -L /workspace/proof-tools/creusot-data/share/why3find/packages/creusot -a split_vc -D why3 -o "/tmp/http-name-prototype-reextract-final/$name" "$root/comas/$name.coma"
+  for task in "/tmp/http-name-prototype-reextract-final/$name/"*.why; do
+    cmp "$root/why3_tasks/$name/$(basename "$task")" "$task"
+  done
+done

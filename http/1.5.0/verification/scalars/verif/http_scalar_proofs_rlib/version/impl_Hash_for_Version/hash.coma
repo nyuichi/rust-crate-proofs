@@ -1,0 +1,97 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 22 28 26 *)
+
+(* <version::Version as std::hash::Hash> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 29 19 29 23
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 22 28 26
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 22 28 26
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 117 41 117 46
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 53 12 54 45
+let%span sversion'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 36 20 36 39
+let%span sversion'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 178 12 185 13
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+type t_Version = { f0: t_Http }
+
+type __H
+
+predicate inv___H (_1: __H)
+
+predicate invariant_refmut___H [@inline:trivial] (self: MutBorrow.t __H) =
+  [%#sinvariant] inv___H self.current /\ inv___H self.final
+
+meta "rewrite_def" predicate invariant_refmut___H
+
+predicate inv_refmut___H [@inline:trivial] (_1: MutBorrow.t __H) = invariant_refmut___H _1
+
+meta "rewrite_def" predicate inv_refmut___H
+
+let rec hash_Http (self: t_Http) (state: MutBorrow.t __H) (return (x: ())) =
+  {[@stop_split] [@expl:hash 'state' type invariant] [%#sversion'2] inv_refmut___H state}
+  any [ return (result: ()) -> (! return {result}) ]
+
+predicate resolve_refmut___H [@inline:trivial] (_1: MutBorrow.t __H) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut___H
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'5] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+function view_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 35 4 35 33] (self: t_Version) : int
+ = [%#sversion'4] deep_model_Http self.f0
+
+predicate invariant_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 51 4 51 30] (self: t_Version) =
+  [%#sversion'3] view_Version self = 9
+  \/ view_Version self = 10 \/ view_Version self = 11 \/ view_Version self = 20 \/ view_Version self = 30
+
+predicate inv_Version (_1: t_Version)
+
+axiom inv_axiom [@rewrite]: forall x: t_Version [inv_Version x]. inv_Version x = invariant_Version x
+
+predicate invariant_ref_Version [@inline:trivial] (self: t_Version) = [%#sinvariant'0] inv_Version self
+
+meta "rewrite_def" predicate invariant_ref_Version
+
+predicate inv_ref_Version [@inline:trivial] (_1: t_Version) = invariant_ref_Version _1
+
+meta "rewrite_def" predicate inv_ref_Version
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec hash_Version
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 28 22 28 26]
+  (self: t_Version) (state: MutBorrow.t __H) (return (x: ())) =
+  {[@stop_split] [@expl:hash_Version requires] ([@stop_split] [@expl:hash 'self' type invariant] [%#sversion'0] inv_ref_Version self)
+  /\ ([@stop_split] [@expl:hash 'state' type invariant] [%#sversion'1] inv_refmut___H state)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_4 <- self.f0 ] s1
+    | s1 = MutBorrow.borrow_final <__H> {state.current} {MutBorrow.get_id state}
+        (fun (_bor: MutBorrow.t __H) ->
+          [ &_5 <- _bor ] -{inv___H _bor.final}-
+          [ &state <- { state with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv___H state.current} any) ]
+    | s2 = hash_Http [%#sversion] {_4} {_5} (fun (_x: ()) -> [ &_ret <- _x ] s3)
+    | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut___H state} any) ]
+    | s4 = -{resolve_refmut___H state}- s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: t_Version = self
+  | & state: MutBorrow.t __H = state
+  | & _4: t_Http = Any.any_l ()
+  | & _5: MutBorrow.t __H = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

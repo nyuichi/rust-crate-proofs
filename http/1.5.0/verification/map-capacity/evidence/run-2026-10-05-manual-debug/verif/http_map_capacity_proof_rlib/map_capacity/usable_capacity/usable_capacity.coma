@@ -1,0 +1,33 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_capacity.rs" 7 0 7 55 *)
+
+let%span smap_capacity = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_capacity.rs" 8 26 8 27
+let%span smap_capacity'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_capacity.rs" 8 15 8 27
+let%span smap_capacity'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_capacity.rs" 8 4 8 27
+let%span smap_capacity'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_capacity.rs" 6 10 6 46
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.ComputerDivision
+use int.Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec usable_capacity
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/map-capacity/src/../../../src/header/map_capacity.rs" 7 0 7 55]
+  (capacity: UInt64.t) (return (x: UInt64.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_7 <- ([%#smap_capacity] (4: UInt64.t)) = ([%#smap_capacity'0] (0: UInt64.t)) ] s1
+    | s1 = {[@expl:division by zero] [%#smap_capacity'0] not _7} s2
+    | s2 = UInt64.div [%#smap_capacity'0] {capacity} {[%#smap_capacity] (4: UInt64.t)}
+        (fun (_x: UInt64.t) -> [ &_5 <- _x ] s3)
+    | s3 = UInt64.sub [%#smap_capacity'1] {capacity} {_5} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l ()
+  | & capacity: UInt64.t = capacity
+  | & _5: UInt64.t = Any.any_l ()
+  | & _7: bool = Any.any_l () ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:usable_capacity ensures] [%#smap_capacity'2] UInt64.t'int result
+    = UInt64.t'int capacity - ComputerDivision.div (UInt64.t'int capacity) 4}
+    (! return {result}) ]

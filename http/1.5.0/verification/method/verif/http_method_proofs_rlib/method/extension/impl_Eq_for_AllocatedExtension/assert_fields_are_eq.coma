@@ -1,0 +1,72 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1188 13 1188 15 *)
+
+(* <method::extension::AllocatedExtension as std::cmp::Eq> *)
+
+let%span smethod = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1188 13 1188 15
+let%span smethod'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1206 24 1206 55
+let%span smethod'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 54 8 54 83
+let%span smethod'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 39 8 45 43
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sboxed = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/boxed.rs" 24 8 24 22
+
+use creusot.prelude.Any
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use int.Int
+
+type t_AllocatedExtension = { f0: Slice64.slice UInt8.t }
+
+predicate is_method_char_model [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 37 0 37 45] (byte: UInt8.t) =
+  [%#smethod'2] 33 <= UInt8.t'int byte
+  /\ UInt8.t'int byte <= 126
+  /\ UInt8.t'int byte <> 34
+  /\ UInt8.t'int byte <> 40
+  /\ UInt8.t'int byte <> 41
+  /\ UInt8.t'int byte <> 44
+  /\ UInt8.t'int byte <> 47
+  /\ UInt8.t'int byte <> 58
+  /\ UInt8.t'int byte <> 59
+  /\ UInt8.t'int byte <> 60
+  /\ UInt8.t'int byte <> 61
+  /\ UInt8.t'int byte <> 62
+  /\ UInt8.t'int byte <> 63
+  /\ UInt8.t'int byte <> 64
+  /\ UInt8.t'int byte <> 91
+  /\ UInt8.t'int byte <> 92 /\ UInt8.t'int byte <> 93 /\ UInt8.t'int byte <> 123 /\ UInt8.t'int byte <> 125
+
+predicate all_method_chars_valid [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 52 0 52 53] (bytes: Seq.seq UInt8.t) =
+  [%#smethod'1] forall i: int. 0 <= i /\ i < Seq.length bytes -> is_method_char_model (Seq.get bytes i)
+
+function view_Box_slice_u8_Global [@inline:trivial] (self: Slice64.slice UInt8.t) : Seq.seq UInt8.t =
+  [%#sboxed] Slice64.view self
+
+meta "rewrite_def" function view_Box_slice_u8_Global
+
+predicate invariant_AllocatedExtension [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1205 8 1205 34] (self: t_AllocatedExtension) =
+  [%#smethod'0] all_method_chars_valid (view_Box_slice_u8_Global self.f0)
+
+predicate inv_AllocatedExtension (_1: t_AllocatedExtension)
+
+axiom inv_axiom [@rewrite]: forall x: t_AllocatedExtension [inv_AllocatedExtension x]. inv_AllocatedExtension x
+    = invariant_AllocatedExtension x
+
+predicate invariant_ref_AllocatedExtension [@inline:trivial] (self: t_AllocatedExtension) =
+  [%#sinvariant] inv_AllocatedExtension self
+
+meta "rewrite_def" predicate invariant_ref_AllocatedExtension
+
+predicate inv_ref_AllocatedExtension [@inline:trivial] (_1: t_AllocatedExtension) = invariant_ref_AllocatedExtension _1
+
+meta "rewrite_def" predicate inv_ref_AllocatedExtension
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec assert_fields_are_eq_AllocatedExtension
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/method/src/../../../src/method.rs" 1188 13 1188 15]
+  (self: t_AllocatedExtension) (return (x: ())) =
+  {[@stop_split] [@expl:assert_fields_are_eq 'self' type invariant] [%#smethod] inv_ref_AllocatedExtension self}
+  (! bb0
+  [ bb0 = return {_ret} ] [ & _ret: () = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

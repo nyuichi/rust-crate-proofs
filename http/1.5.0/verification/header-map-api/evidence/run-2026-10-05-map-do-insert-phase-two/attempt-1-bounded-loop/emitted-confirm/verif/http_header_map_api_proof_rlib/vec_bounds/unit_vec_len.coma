@@ -1,0 +1,39 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 33 0 33 46 *)
+
+let%span svec = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 114 18 114 40
+let%span svec'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/vec.rs" 18 14 18 41
+let%span svec_bounds = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 34 4 34 16
+let%span svec_bounds'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 32 10 32 34
+
+use creusot.int.UInt64
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_Vec_unit_Global
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_unit_Global (self: t_Vec_unit_Global) : Seq.seq ()
+
+axiom view_Vec_unit_Global_spec: forall self: t_Vec_unit_Global. [%#svec'0] Seq.length (view_Vec_unit_Global self)
+    <= UInt64.t'int const_MAX
+
+let rec len_unit (self_: t_Vec_unit_Global) (return (x: UInt64.t)) = any
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:len ensures] [%#svec] UInt64.t'int result
+    = Seq.length (view_Vec_unit_Global self_)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec unit_vec_len
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/vec_bounds.rs" 33 0 33 46]
+  (values: t_Vec_unit_Global) (return (x: UInt64.t)) = (! bb0
+  [ bb0 = s0
+    [ s0 = len_unit [%#svec_bounds] {values} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l () | & values: t_Vec_unit_Global = values ])
+  [ return (result: UInt64.t) -> {[@stop_split] [@expl:unit_vec_len ensures] [%#svec_bounds'0] UInt64.t'int result
+    = Seq.length (view_Vec_unit_Global values)}
+    (! return {result}) ]

@@ -1,0 +1,6 @@
+set -euo pipefail
+source /workspace/proof-tools/activate.sh
+export CARGO_TARGET_DIR=/tmp/http-headers-name-prototype
+export RUSTFLAGS='--cfg http_header_name_leaf'
+cargo clean -p http-headers-proof
+cargo creusot --simple-triggers=false -- --locked --offline

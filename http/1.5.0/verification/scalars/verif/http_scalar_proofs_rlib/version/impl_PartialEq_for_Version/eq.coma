@@ -1,0 +1,83 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 61 4 61 38 *)
+
+(* <version::Version as std::cmp::PartialEq> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smodel = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/model.rs" 36 8 36 28
+let%span sversion = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 62 8 62 25
+let%span sversion'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 61 11 61 15
+let%span sversion'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 61 17 61 22
+let%span sversion'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 60 32 60 83
+let%span sversion'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 146 32 146 83
+let%span sversion'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 45 20 45 25
+let%span sversion'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 178 12 185 13
+let%span sversion'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 36 20 36 39
+let%span sversion'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 53 12 54 45
+
+use creusot.prelude.Any
+
+type t_Http = Http09 | Http10 | Http11 | H2 | H3 | C___NonExhaustive
+
+type t_Version = { f0: t_Http }
+
+function deep_model_Http [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 176 4 176 44] (self: t_Http) : int
+ = [%#sversion'5] match self with
+    | Http09 -> 9
+    | Http10 -> 10
+    | Http11 -> 11
+    | H2 -> 20
+    | H3 -> 30
+    | C___NonExhaustive -> 255
+    end
+
+function deep_model_ref_Http [@inline:trivial] (self: t_Http) : int = [%#smodel] deep_model_Http self
+
+meta "rewrite_def" function deep_model_ref_Http
+
+let rec eq_Http (self: t_Http) (other: t_Http) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#sversion'3] result
+    = (deep_model_ref_Http self = deep_model_ref_Http other)}
+    (! return {result}) ]
+
+function view_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 35 4 35 33] (self: t_Version) : int
+ = [%#sversion'6] deep_model_Http self.f0
+
+predicate invariant_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 51 4 51 30] (self: t_Version) =
+  [%#sversion'7] view_Version self = 9
+  \/ view_Version self = 10 \/ view_Version self = 11 \/ view_Version self = 20 \/ view_Version self = 30
+
+predicate inv_Version (_1: t_Version)
+
+axiom inv_axiom [@rewrite]: forall x: t_Version [inv_Version x]. inv_Version x = invariant_Version x
+
+predicate invariant_ref_Version [@inline:trivial] (self: t_Version) = [%#sinvariant] inv_Version self
+
+meta "rewrite_def" predicate invariant_ref_Version
+
+predicate inv_ref_Version [@inline:trivial] (_1: t_Version) = invariant_ref_Version _1
+
+meta "rewrite_def" predicate inv_ref_Version
+
+function deep_model_Version [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 44 4 44 44] (self: t_Version) : int
+ = [%#sversion'4] view_Version self
+
+function deep_model_ref_Version [@inline:trivial] (self: t_Version) : int = [%#smodel] deep_model_Version self
+
+meta "rewrite_def" function deep_model_ref_Version
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec eq_Version
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/scalars/src/../../../src/version.rs" 61 4 61 38]
+  (self: t_Version) (other: t_Version) (return (x: bool)) =
+  {[@stop_split] [@expl:eq_Version requires] ([@stop_split] [@expl:eq 'self' type invariant] [%#sversion'0] inv_ref_Version self)
+  /\ ([@stop_split] [@expl:eq 'other' type invariant] [%#sversion'1] inv_ref_Version other)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = eq_Http [%#sversion] {self.f0} {other.f0} (fun (_x: bool) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: bool = Any.any_l () | & self: t_Version = self | & other: t_Version = other ])
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#sversion'2] result
+    = (deep_model_ref_Version self = deep_model_ref_Version other)}
+    (! return {result}) ]

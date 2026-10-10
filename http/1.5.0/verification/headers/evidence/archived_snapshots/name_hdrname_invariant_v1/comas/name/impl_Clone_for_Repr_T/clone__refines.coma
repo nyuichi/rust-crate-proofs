@@ -1,0 +1,121 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 69 16 69 21 *)
+
+(* <header::name::Repr<T> as std::clone::Clone> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span sname = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 69 16 69 21
+let%span sname'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/headers/src/../../../src/header/name.rs" 69 16 69 21
+let%span sclone = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/std/clone.rs" 14 26 14 30
+
+type t_StandardHeader =
+  | Accept
+  | AcceptCharset
+  | AcceptEncoding
+  | AcceptLanguage
+  | AcceptRanges
+  | AccessControlAllowCredentials
+  | AccessControlAllowHeaders
+  | AccessControlAllowMethods
+  | AccessControlAllowOrigin
+  | AccessControlExposeHeaders
+  | AccessControlMaxAge
+  | AccessControlRequestHeaders
+  | AccessControlRequestMethod
+  | Age
+  | Allow
+  | AltSvc
+  | Authorization
+  | CacheControl
+  | CacheStatus
+  | CdnCacheControl
+  | Connection
+  | ContentDisposition
+  | ContentEncoding
+  | ContentLanguage
+  | ContentLength
+  | ContentLocation
+  | ContentRange
+  | ContentSecurityPolicy
+  | ContentSecurityPolicyReportOnly
+  | ContentType
+  | Cookie
+  | Dnt
+  | Date
+  | Etag
+  | Expect
+  | Expires
+  | Forwarded
+  | From
+  | Host
+  | IfMatch
+  | IfModifiedSince
+  | IfNoneMatch
+  | IfRange
+  | IfUnmodifiedSince
+  | LastModified
+  | Link
+  | Location
+  | MaxForwards
+  | Origin
+  | Pragma
+  | ProxyAuthenticate
+  | ProxyAuthorization
+  | PublicKeyPins
+  | PublicKeyPinsReportOnly
+  | Range
+  | Referer
+  | ReferrerPolicy
+  | Refresh
+  | RetryAfter
+  | SecWebSocketAccept
+  | SecWebSocketExtensions
+  | SecWebSocketKey
+  | SecWebSocketProtocol
+  | SecWebSocketVersion
+  | Server
+  | SetCookie
+  | StrictTransportSecurity
+  | Te
+  | Trailer
+  | TransferEncoding
+  | UserAgent
+  | Upgrade
+  | UpgradeInsecureRequests
+  | Vary
+  | Via
+  | Warning
+  | WwwAuthenticate
+  | XContentTypeOptions
+  | XDnsPrefetchControl
+  | XFrameOptions
+  | XXssProtection
+
+type t_T
+
+type t_Repr_T = Standard t_StandardHeader | Custom t_T
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Repr_T (_1: t_Repr_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_Repr_T [inv_Repr_T x]. inv_Repr_T x
+    = match x with
+      | Standard f0 -> true
+      | Custom f0 -> inv_T f0
+      end
+
+predicate invariant_ref_Repr_T [@inline:trivial] (self: t_Repr_T) = [%#sinvariant] inv_Repr_T self
+
+meta "rewrite_def" predicate invariant_ref_Repr_T
+
+predicate inv_ref_Repr_T [@inline:trivial] (_1: t_Repr_T) = invariant_ref_Repr_T _1
+
+meta "rewrite_def" predicate inv_ref_Repr_T
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+goal refines: forall self_: t_Repr_T. ([%#sclone] inv_ref_Repr_T self_)
+    -> ([%#sname] inv_ref_Repr_T self_)
+    /\ (forall result: t_Repr_T. ([%#sname'0] inv_Repr_T result) -> inv_Repr_T result)

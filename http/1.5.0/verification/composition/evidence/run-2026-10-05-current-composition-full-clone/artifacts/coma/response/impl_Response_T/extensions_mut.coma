@@ -1,0 +1,143 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 584 4 584 55 *)
+
+(* response::Response<T> *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sresponse = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 584 31 584 35
+let%span sresponse'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 584 40 584 55
+let%span sresponse'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 578 14 578 56
+let%span sresponse'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 579 14 579 56
+let%span sresponse'3 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 580 14 580 72
+let%span sresponse'4 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 581 14 581 74
+let%span sresponse'5 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 582 14 582 74
+let%span sresponse'6 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 583 14 583 58
+let%span sresponse'7 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 231 4 231 17
+let%span sresponse'8 = "/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 238 4 238 17
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_StatusCode
+
+type t_Version
+
+type t_HeaderMap_HeaderValue
+
+type t_Extensions
+
+type t_Parts = {
+  status: t_StatusCode;
+  version: t_Version;
+  headers: t_HeaderMap_HeaderValue;
+  extensions: t_Extensions;
+  _priv: () }
+
+type t_T
+
+type t_Response_T = { head: t_Parts; body: t_T }
+
+predicate inv_Extensions (_1: t_Extensions)
+
+predicate invariant_refmut_Extensions [@inline:trivial] (self: MutBorrow.t t_Extensions) =
+  [%#sinvariant] inv_Extensions self.current /\ inv_Extensions self.final
+
+meta "rewrite_def" predicate invariant_refmut_Extensions
+
+predicate inv_refmut_Extensions [@inline:trivial] (_1: MutBorrow.t t_Extensions) = invariant_refmut_Extensions _1
+
+meta "rewrite_def" predicate inv_refmut_Extensions
+
+predicate resolve_refmut_Extensions [@inline:trivial] (_1: MutBorrow.t t_Extensions) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Extensions
+
+predicate inv_StatusCode (_1: t_StatusCode)
+
+predicate inv_Version (_1: t_Version)
+
+predicate inv_HeaderMap_HeaderValue (_1: t_HeaderMap_HeaderValue)
+
+predicate inv_Parts (_1: t_Parts)
+
+axiom inv_axiom [@rewrite]: forall x: t_Parts [inv_Parts x]. inv_Parts x
+    = (inv_StatusCode x.status
+    /\ inv_Version x.version /\ inv_HeaderMap_HeaderValue x.headers /\ inv_Extensions x.extensions)
+
+predicate inv_T (_1: t_T)
+
+predicate inv_Response_T (_1: t_Response_T)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Response_T [inv_Response_T x]. inv_Response_T x
+    = (inv_Parts x.head /\ inv_T x.body)
+
+predicate invariant_refmut_Response_T [@inline:trivial] (self: MutBorrow.t t_Response_T) =
+  [%#sinvariant] inv_Response_T self.current /\ inv_Response_T self.final
+
+meta "rewrite_def" predicate invariant_refmut_Response_T
+
+predicate inv_refmut_Response_T [@inline:trivial] (_1: MutBorrow.t t_Response_T) = invariant_refmut_Response_T _1
+
+meta "rewrite_def" predicate inv_refmut_Response_T
+
+predicate resolve_refmut_Response_T [@inline:trivial] (_1: MutBorrow.t t_Response_T) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Response_T
+
+function response_head_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 230 0 230 55] (response: t_Response_T) : t_Parts
+ = [%#sresponse'7] response.head
+
+function response_body_T [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 237 0 237 51] (response: t_Response_T) : t_T
+ = [%#sresponse'8] response.body
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec extensions_mut_T
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/composition/src/../../../src/response.rs" 584 4 584 55]
+  (self: MutBorrow.t t_Response_T) (return (x: MutBorrow.t t_Extensions)) =
+  {[@stop_split] [@expl:extensions_mut 'self' type invariant] [%#sresponse] inv_refmut_Response_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_Extensions> {self.current.head.extensions}
+        {MutBorrow.inherit_id (MutBorrow.inherit_id (MutBorrow.get_id self) 0) 3}
+        (fun (_bor: MutBorrow.t t_Extensions) ->
+          [ &_15 <- _bor ] -{inv_Extensions _bor.final}-
+          [ &self <- { self with current = { self.current with head = { self.current.head with extensions = _bor.final } } } ]
+          s1) [ _ck -> (! {[@expl:type invariant] inv_Extensions self.current.head.extensions} any) ]
+    | s1 = MutBorrow.borrow_final <t_Extensions> {_15.current} {MutBorrow.get_id _15}
+        (fun (_bor: MutBorrow.t t_Extensions) ->
+          [ &_2 <- _bor ] -{inv_Extensions _bor.final}-
+          [ &_15 <- { _15 with current = _bor.final } ] s2)
+      [ _ck -> (! {[@expl:type invariant] inv_Extensions _15.current} any) ]
+    | s2 = MutBorrow.borrow_final <t_Extensions> {_2.current} {MutBorrow.get_id _2}
+        (fun (_bor: MutBorrow.t t_Extensions) ->
+          [ &_ret <- _bor ] -{inv_Extensions _bor.final}-
+          [ &_2 <- { _2 with current = _bor.final } ] s3)
+      [ _ck -> (! {[@expl:type invariant] inv_Extensions _2.current} any) ]
+    | s3 = s4 [ _ck -> (! {[@expl:type invariant] inv_refmut_Extensions _15} any) ]
+    | s4 = -{resolve_refmut_Extensions _15}- s5
+    | s5 = s6 [ _ck -> (! {[@expl:type invariant] inv_refmut_Extensions _2} any) ]
+    | s6 = -{resolve_refmut_Extensions _2}- s7
+    | s7 = s8 [ _ck -> (! {[@expl:type invariant] inv_refmut_Response_T self} any) ]
+    | s8 = -{resolve_refmut_Response_T self}- s9
+    | s9 = return {_ret} ] ]
+  [ & _ret: MutBorrow.t t_Extensions = Any.any_l ()
+  | & self: MutBorrow.t t_Response_T = self
+  | & _2: MutBorrow.t t_Extensions = Any.any_l ()
+  | & _15: MutBorrow.t t_Extensions = Any.any_l () ])
+  [ return (result: MutBorrow.t t_Extensions) ->
+  {[@stop_split] [@expl:extensions_mut_T ensures] ([@stop_split] [@expl:extensions_mut result type invariant] [%#sresponse'0] inv_refmut_Extensions result)
+    /\ ([@stop_split] [@expl:extensions_mut ensures #0] [%#sresponse'1] result.current
+      = (response_head_T self.current).extensions)
+    /\ ([@stop_split] [@expl:extensions_mut ensures #1] [%#sresponse'2] result.final
+      = (response_head_T self.final).extensions)
+    /\ ([@stop_split] [@expl:extensions_mut ensures #2] [%#sresponse'3] (response_head_T self.final).status
+      = (response_head_T self.current).status)
+    /\ ([@stop_split] [@expl:extensions_mut ensures #3] [%#sresponse'4] (response_head_T self.final).version
+      = (response_head_T self.current).version)
+    /\ ([@stop_split] [@expl:extensions_mut ensures #4] [%#sresponse'5] (response_head_T self.final).headers
+      = (response_head_T self.current).headers)
+    /\ ([@stop_split] [@expl:extensions_mut ensures #5] [%#sresponse'6] response_body_T self.final
+    = response_body_T self.current)}
+    (! return {result}) ]

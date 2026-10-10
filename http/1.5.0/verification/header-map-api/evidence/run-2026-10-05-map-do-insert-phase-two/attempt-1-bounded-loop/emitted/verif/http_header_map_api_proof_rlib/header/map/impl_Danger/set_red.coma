@@ -1,0 +1,77 @@
+(* #"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4806 4 4806 25 *)
+
+(* header::map::Danger *)
+
+let%span sinvariant = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/rust-crate-proofs/creusot-libs/creusot-std/src/invariant.rs" 85 8 85 18
+let%span smap = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4807 22 4807 38
+let%span smap'0 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4808 28 4808 46
+let%span smap'1 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4806 20 4806 24
+let%span smap'2 = "/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4811 18 4811 22
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_RandomState
+
+type t_Danger = Green | Yellow | Red t_RandomState
+
+predicate inv_RandomState (_1: t_RandomState)
+
+predicate inv_Danger (_1: t_Danger)
+
+axiom inv_axiom [@rewrite]: forall x: t_Danger [inv_Danger x]. inv_Danger x
+    = match x with
+      | Green -> true
+      | Yellow -> true
+      | Red f0 -> inv_RandomState f0
+      end
+
+predicate invariant_ref_Danger [@inline:trivial] (self: t_Danger) = [%#sinvariant'0] inv_Danger self
+
+meta "rewrite_def" predicate invariant_ref_Danger
+
+predicate inv_ref_Danger [@inline:trivial] (_1: t_Danger) = invariant_ref_Danger _1
+
+meta "rewrite_def" predicate inv_ref_Danger
+
+let rec is_yellow (self: t_Danger) (return (x: bool)) =
+  {[@stop_split] [@expl:is_yellow 'self' type invariant] [%#smap'2] inv_ref_Danger self}
+  any [ return (result: bool) -> (! return {result}) ]
+
+predicate invariant_refmut_Danger [@inline:trivial] (self: MutBorrow.t t_Danger) =
+  [%#sinvariant] inv_Danger self.current /\ inv_Danger self.final
+
+meta "rewrite_def" predicate invariant_refmut_Danger
+
+predicate inv_refmut_Danger [@inline:trivial] (_1: MutBorrow.t t_Danger) = invariant_refmut_Danger _1
+
+meta "rewrite_def" predicate inv_refmut_Danger
+
+predicate resolve_refmut_Danger [@inline:trivial] (_1: MutBorrow.t t_Danger) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Danger
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec set_red
+  [#"/workspace/rust-crate-proofs/http/1.5.0/verification/header-map-api/src/../../../src/header/map.rs" 4806 4 4806 25]
+  (self: MutBorrow.t t_Danger) (return (x: ())) =
+  {[@stop_split] [@expl:set_red 'self' type invariant] [%#smap'1] inv_refmut_Danger self}
+  (! bb0
+  [ bb0 = any [ br0 -> {false} (! bb6) | br1 -> (! bb1) ]
+  | bb1 = s0
+    [ s0 = is_yellow [%#smap] {self.current} (fun (_x: bool) -> [ &_5 <- _x ] s1)
+    | s1 = any [ br0 -> {_5 = false} (! bb4) | br1 -> {_5} (! bb6) ] ]
+  | bb4 = s0
+    [ s0 = s1 [ _ck -> (! {[@expl:type invariant] inv_refmut_Danger self} any) ]
+    | s1 = -{resolve_refmut_Danger self}- s2
+    | s2 = {false} any ]
+  | bb6 = {[%#smap'0] false} any ]
+  [ & _ret: () = Any.any_l ()
+  | & self: MutBorrow.t t_Danger = self
+  | & _5: bool = Any.any_l ()
+  | & _8: t_Danger = Any.any_l ()
+  | & _9: t_RandomState = Any.any_l () ]) [ return (result: ()) -> (! return {result}) ]

@@ -1,0 +1,568 @@
+diff --git a/creusot/src/backend/clone_map.rs b/creusot/src/backend/clone_map.rs
+index 8e857a0..ee710a0 100644
+--- a/creusot/src/backend/clone_map.rs
++++ b/creusot/src/backend/clone_map.rs
+@@ -37,6 +37,7 @@ pub enum PreMod {
+     Float64,
+     Int,
+     ComputerDivision,
++    StaticAtomicCaps,
+     Int8,
+     Int16,
+     Int32,
+@@ -146,6 +147,7 @@ pub(crate) trait Namer<'tcx> {
+             (PreMod::Float64, _) => &["creusot", "float", "Float64"],
+             (PreMod::Int, _) => &["int", "Int"],
+             (PreMod::ComputerDivision, _) => &["int", "ComputerDivision"],
++            (PreMod::StaticAtomicCaps, _) => &["creusot", "prelude", "StaticAtomicCaps"],
+             (PreMod::Int8, false) => &["creusot", "int", "Int8"],
+             (PreMod::Int16, false) => &["creusot", "int", "Int16"],
+             (PreMod::Int32, false) => &["creusot", "int", "Int32"],
+diff --git a/creusot/src/backend/program.rs b/creusot/src/backend/program.rs
+index 6f8e4a5..e41ab98 100644
+--- a/creusot/src/backend/program.rs
++++ b/creusot/src/backend/program.rs
+@@ -1439,11 +1439,12 @@ impl<'tcx> Statement<'tcx> {
+                 }
+                 let observed = Ident::fresh_local("static_atomic_observation");
+                 istmts.push(IntermediateStmt::Any(observed, lower.ty(lower.ctx.types.u8)));
+-                let predicate = lower.names.item(
+-                    predicate_id,
+-                    GenericArgs::identity_for_item(lower.ctx.tcx, predicate_id),
++                let invariant = super::static_atomic::invariant_application(
++                    lower.ctx,
++                    lower.names,
++                    spec,
++                    Exp::var(observed),
+                 );
+-                let invariant = Exp::Var(predicate).app([Exp::var(observed)]);
+                 istmts.push(IntermediateStmt::Assume(invariant));
+                 lower.assignment(&dest, Exp::var(observed), &mut istmts, self.span);
+             }
+@@ -1466,15 +1467,16 @@ impl<'tcx> Statement<'tcx> {
+                     );
+                 }
+                 let stored = value.into_why(lower, &mut istmts);
+-                let predicate = lower.names.item(
+-                    predicate_id,
+-                    GenericArgs::identity_for_item(lower.ctx.tcx, predicate_id),
+-                );
+-                let invariant =
+-                    Exp::Var(predicate).app([stored]).with_attr(Attribute::Attr(format!(
+-                        "expl:static AtomicU8 store preserves {}",
+-                        lower.ctx.def_path_str(static_id)
+-                    )));
++                let invariant = super::static_atomic::invariant_application(
++                    lower.ctx,
++                    lower.names,
++                    spec,
++                    stored,
++                )
++                .with_attr(Attribute::Attr(format!(
++                    "expl:static AtomicU8 store preserves {}",
++                    lower.ctx.def_path_str(static_id)
++                )));
+                 istmts.push(IntermediateStmt::Assert(invariant));
+                 lower.assignment(&dest, Exp::unit(), &mut istmts, self.span);
+             }
+diff --git a/creusot/src/backend/static_atomic.rs b/creusot/src/backend/static_atomic.rs
+index b963a89..1d60004 100644
+--- a/creusot/src/backend/static_atomic.rs
++++ b/creusot/src/backend/static_atomic.rs
+@@ -1,11 +1,39 @@
+ use crate::{
+-    backend::{Why3Generator, clone_map::Dependencies, common_meta_decls, term::lower_pure},
++    backend::{
++        Why3Generator,
++        clone_map::{Dependencies, Namer, PreMod},
++        common_meta_decls,
++        term::lower_pure,
++    },
++    static_atomic::{StaticAtomicProfile, StaticAtomicSpec},
+     translated_item::FileModule,
+-    translation::{constant::u8_to_term, pearlite::Term},
++    translation::constant::u8_to_term,
+ };
+ use rustc_hir::def_id::DefId;
+ use rustc_middle::ty::GenericArgs;
+-use why3::{Ident, declaration::Module};
++use why3::{Exp, Ident, declaration::Module};
++
++/// Build one checked invariant application. Gate C's capability arguments are
++/// fixed compiler-owned qualified constants, never terms supplied by a Rust
++/// caller or names accepted from the registration manifest.
++pub(crate) fn invariant_application<'tcx>(
++    ctx: &Why3Generator<'tcx>,
++    names: &impl Namer<'tcx>,
++    spec: StaticAtomicSpec,
++    value: Exp,
++) -> Exp {
++    let predicate =
++        names.item(spec.predicate_id, GenericArgs::identity_for_item(ctx.tcx, spec.predicate_id));
++    match spec.profile {
++        StaticAtomicProfile::ByteInvariant => Exp::Var(predicate).app([value]),
++        StaticAtomicProfile::X86RuntimeCapsV1 => {
++            let caps = PreMod::StaticAtomicCaps;
++            let avx2 = Exp::qvar(names.in_pre(caps, "avx2_usable"));
++            let sse42 = Exp::qvar(names.in_pre(caps, "sse42_usable"));
++            Exp::Var(predicate).app([value, avx2, sse42])
++        }
++    }
++}
+ 
+ /// Emit the checked initializer obligation for one registered static. The
+ /// static value is never translated as a constant or dependency; only its
+@@ -16,21 +44,10 @@ pub(crate) fn translate_initializer(
+ ) -> Option<FileModule> {
+     let spec = ctx.static_atomics.as_ref()?.spec(static_id)?;
+     let names = Dependencies::new(ctx, static_id);
+-    let predicate_args = GenericArgs::identity_for_item(ctx.tcx, spec.predicate_id);
+-    let initial = u8_to_term(
+-        spec.initial,
+-        ctx,
+-        ctx.typing_env(static_id),
+-        ctx.tcx.def_span(static_id),
+-    );
+-    let invariant = Term::call(
+-        ctx.tcx,
+-        ctx.typing_env(static_id),
+-        spec.predicate_id,
+-        predicate_args,
+-        [initial],
+-    );
+-    let goal = lower_pure(ctx, &names, &invariant.spanned());
++    let initial =
++        u8_to_term(spec.initial, ctx, ctx.typing_env(static_id), ctx.tcx.def_span(static_id));
++    let initial = lower_pure(ctx, &names, &initial.spanned());
++    let goal = invariant_application(ctx, &names, spec, initial);
+     let (mut decls, setters) = names.provide_deps(ctx);
+     decls.extend(common_meta_decls());
+     decls.push(setters.mk_goal(Ident::fresh_local("vc_static_atomic_init"), goal));
+diff --git a/creusot/src/ctx.rs b/creusot/src/ctx.rs
+index f74cbd5..2406f26 100644
+--- a/creusot/src/ctx.rs
++++ b/creusot/src/ctx.rs
+@@ -318,10 +318,12 @@ impl<'tcx> TranslationCtx<'tcx> {
+             let scoped = self.term(predicate).ok_or_else(|| {
+                 format!("Gate B predicate {} has no translated body", self.def_path_str(predicate))
+             })?;
+-            if scoped.0.len() != 1 || !static_atomic_predicate_is_total(self, &scoped.1, &scoped.0)
++            if scoped.0.len() != registry.profile.predicate_arity()
++                || !static_atomic_predicate_is_total(self, &scoped.1, &scoped.0)
+             {
+                 return Err(format!(
+-                    "Gate B predicate {} is outside the closed total-expression subset; only its argument, literals, total boolean comparisons/connectives, and the registered primitive u8 View are accepted",
++                    "static atomic predicate {} is outside the closed total-expression subset for profile {}; only its formal arguments, literals, total boolean comparisons/connectives, and the registered primitive u8 View are accepted",
++                    registry.profile.as_str(),
+                     self.def_path_str(predicate)
+                 ));
+             }
+diff --git a/creusot/src/static_atomic.rs b/creusot/src/static_atomic.rs
+index 0638c07..9e84663 100644
+--- a/creusot/src/static_atomic.rs
++++ b/creusot/src/static_atomic.rs
+@@ -61,6 +61,31 @@ pub struct AuditConfig {
+     pub provenance: AuditProvenance,
+     pub output: PathBuf,
+     pub statics: Vec<StaticRegistration>,
++    pub profile: StaticAtomicProfile,
++}
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum StaticAtomicProfile {
++    /// The original Gate B predicate I(u8).
++    ByteInvariant,
++    /// Gate C's fixed x86-64 runtime CPU capability symbols and I(u8, A, S).
++    X86RuntimeCapsV1,
++}
++
++impl StaticAtomicProfile {
++    pub fn predicate_arity(self) -> usize {
++        match self {
++            Self::ByteInvariant => 1,
++            Self::X86RuntimeCapsV1 => 3,
++        }
++    }
++
++    pub fn as_str(self) -> &'static str {
++        match self {
++            Self::ByteInvariant => "byte-invariant-v2",
++            Self::X86RuntimeCapsV1 => "x86-runtime-caps-v1",
++        }
++    }
+ }
+ 
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+@@ -83,6 +108,7 @@ pub struct StaticAtomicSpec {
+     pub static_id: rustc_hir::def_id::DefId,
+     pub predicate_id: rustc_hir::def_id::DefId,
+     pub initial: u8,
++    pub profile: StaticAtomicProfile,
+ }
+ 
+ #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+@@ -102,6 +128,7 @@ pub struct GateBRegistry {
+     pub crate_name: String,
+     pub target: String,
+     pub provenance: AuditProvenance,
++    pub profile: StaticAtomicProfile,
+     pub statics: HashMap<rustc_hir::def_id::DefId, StaticAtomicSpec>,
+     pub validated_predicates: HashSet<rustc_hir::def_id::DefId>,
+     pub accessors: HashMap<rustc_hir::def_id::DefId, Vec<(rustc_hir::def_id::DefId, AtomicMethod)>>,
+@@ -190,6 +217,7 @@ impl AuditConfig {
+         if crate_name != self.crate_name {
+             return Ok(false);
+         }
++        check_profile_invocation(self.profile, args)?;
+         let actual_dir = env::var("CARGO_MANIFEST_DIR")
+             .map_err(|_| "target audit requires CARGO_MANIFEST_DIR".to_string())?;
+         let actual_dir = fs::canonicalize(&actual_dir)
+@@ -227,10 +255,85 @@ impl AuditConfig {
+                 self.target
+             ));
+         }
++        check_profile_target(self.profile, tcx)?;
+         Ok(true)
+     }
+ }
+ 
++fn check_profile_invocation(profile: StaticAtomicProfile, args: &[String]) -> Result<(), String> {
++    if profile != StaticAtomicProfile::X86RuntimeCapsV1 {
++        return Ok(());
++    }
++    for (index, arg) in args.iter().enumerate() {
++        let cfg = if arg == "--cfg" {
++            args.get(index + 1).map(String::as_str)
++        } else {
++            arg.strip_prefix("--cfg=")
++        };
++        let Some(cfg) = cfg else { continue };
++        let key = cfg.split('=').next().unwrap_or(cfg);
++        if key == "target_feature" || key.starts_with("httparse_simd_target_feature") {
++            return Err(format!("Gate C profile rejects manually supplied --cfg `{key}`"));
++        }
++    }
++    Ok(())
++}
++
++fn check_profile_target(profile: StaticAtomicProfile, tcx: TyCtxt<'_>) -> Result<(), String> {
++    if profile != StaticAtomicProfile::X86RuntimeCapsV1 {
++        return Ok(());
++    }
++    let target = tcx.sess.opts.target_triple.to_string();
++    if target != "x86_64-unknown-linux-gnu" {
++        return Err(format!(
++            "Gate C profile x86-runtime-caps-v1 requires x86_64-unknown-linux-gnu, found `{target}`"
++        ));
++    }
++    if tcx.sess.opts.cg.target_cpu.is_some() || !tcx.sess.opts.cg.target_feature.is_empty() {
++        return Err(
++            "Gate C profile rejects explicit -C target-cpu and -C target-feature overrides".into(),
++        );
++    }
++    // Check rustc's effective session state as well as the raw command line.
++    // `ParseSess::config` combines user cfg flags with the codegen backend's
++    // target-feature cfgs, while `Session::target_features` contains the
++    // backend's resolved enabled target features. The argv check above remains
++    // necessary because the user-provided cfg set is not kept separately here.
++    let avx2 = Symbol::intern("avx2");
++    let sse42 = Symbol::intern("sse4.2");
++    let cfg_target_features = tcx
++        .sess
++        .psess
++        .config
++        .iter()
++        .filter_map(|(name, value)| (*name == Symbol::intern("target_feature")).then_some(*value))
++        .collect::<Vec<_>>();
++    if cfg_target_features.iter().any(Option::is_none) {
++        return Err("Gate C profile rejects malformed effective target_feature cfg".into());
++    }
++    let cfg_has = |feature| cfg_target_features.contains(&Some(feature));
++    let session_has = |feature| tcx.sess.target_features.contains(&feature);
++    if session_has(avx2) || session_has(sse42) {
++        return Err(
++            "Gate C profile requires AVX2 and SSE4.2 absent from effective session target features"
++                .into(),
++        );
++    }
++    if cfg_has(avx2) || cfg_has(sse42) {
++        return Err(
++            "Gate C profile requires AVX2 and SSE4.2 absent from effective session cfg".into()
++        );
++    }
++    for feature in tcx.sess.target.options.features.split(',') {
++        if feature == "+avx2" || feature == "+sse4.2" {
++            return Err(format!(
++                "Gate C profile does not admit baseline target feature `{feature}`"
++            ));
++        }
++    }
++    Ok(())
++}
++
+ /// Capture pre-optimization executable MIR before rustc steals the `mir_built`
+ /// query to produce optimized MIR. `LocalInfo::StaticRef` carries the resolved
+ /// static identity at this stage.
+@@ -352,6 +455,8 @@ pub fn build_gate_b_registry<'tcx>(
+         .map_err(|err| format!("cannot read proof audit {}: {err}", config.output.display()))?;
+     compare_audits(config, &normal, &proof)?;
+ 
++    check_profile_target(config.profile, tcx)?;
++
+     let atomic_u8 = tcx
+         .get_diagnostic_item(Symbol::intern("AtomicU8"))
+         .ok_or_else(|| "sysroot AtomicU8 diagnostic item was not found".to_string())?;
+@@ -360,10 +465,13 @@ pub fn build_gate_b_registry<'tcx>(
+         let static_id = resolve_local(tcx, &registration.static_path)?;
+         let predicate_id = resolve_local(tcx, &registration.predicate_path)?;
+         validate_static(tcx, static_id, atomic_u8)?;
+-        validate_predicate(tcx, predicate_id)?;
++        validate_predicate(tcx, predicate_id, config.profile)?;
+         let initial = read_initial_byte(tcx, static_id)?;
+         if statics
+-            .insert(static_id, StaticAtomicSpec { static_id, predicate_id, initial })
++            .insert(
++                static_id,
++                StaticAtomicSpec { static_id, predicate_id, initial, profile: config.profile },
++            )
+             .is_some()
+         {
+             return Err(format!(
+@@ -417,6 +525,7 @@ pub fn build_gate_b_registry<'tcx>(
+         crate_name: config.crate_name.clone(),
+         target: config.target.clone(),
+         provenance: config.provenance.clone(),
++        profile: config.profile,
+         statics,
+         validated_predicates: HashSet::new(),
+         accessors,
+@@ -436,6 +545,7 @@ pub fn coverage_report(
+     let tcx = ctx.tcx;
+     registry.verify_complete()?;
+     let mut output = String::from("creusot-static-atomic-coverage-v1\n");
++    output.push_str(&format!("profile\t{}\n", registry.profile.as_str()));
+     output.push_str(&format!("crate\t{}\n", registry.crate_name));
+     output.push_str(&format!("target\t{}\n", registry.target));
+     output.push_str(&format!("run_id\t{}\n", registry.provenance.run_id));
+@@ -491,7 +601,7 @@ pub fn coverage_report(
+         let body_path = tcx.def_path_str(body_id);
+         let module_name = ctx.module_path(body_id).why3_ident();
+         output.push_str(&format!(
+-            "accessor\t{body_path}\t{}\tprogram-goals-emitted\n",
++            "accessor\t{body_path}\t{}\tprogram-body-lowered\n",
+             module_name.to_string()
+         ));
+         let mut operations = audited.operations.iter().collect::<Vec<_>>();
+@@ -764,16 +874,25 @@ fn compare_audits(config: &AuditConfig, normal: &str, proof: &str) -> Result<(),
+         entries
+     }
+ 
+-    if !normal.starts_with("creusot-static-atomic-audit-v2\nmode\tNormal\n")
+-        || !proof.starts_with("creusot-static-atomic-audit-v2\nmode\tProof\n")
+-    {
+-        return Err("Gate B requires fresh normal and proof v2 audit reports".into());
++    let audit_header = audit_version(config.profile);
++    if !normal.starts_with(&format!(
++        "{audit_header}\nprofile\t{}\nmode\tNormal\n",
++        config.profile.as_str()
++    )) || !proof.starts_with(&format!(
++        "{audit_header}\nprofile\t{}\nmode\tProof\n",
++        config.profile.as_str()
++    )) {
++        return Err(format!(
++            "Gate C requires fresh normal and proof reports for profile {}",
++            config.profile.as_str()
++        ));
+     }
+     if common_header(normal)? != common_header(proof)? {
+         return Err("Gate B normal/proof audit provenance headers differ".into());
+     }
+     let header = common_header(proof)?;
+     let expected = [
++        ("profile", config.profile.as_str()),
+         ("crate", config.crate_name.as_str()),
+         ("target", config.target.as_str()),
+         ("source_sha256", config.source_sha256.as_str()),
+@@ -808,6 +927,7 @@ fn run_audit<'tcx>(
+             config.target
+         ));
+     }
++    check_profile_target(config.profile, tcx)?;
+ 
+     let atomic_u8 = tcx
+         .get_diagnostic_item(Symbol::intern("AtomicU8"))
+@@ -821,7 +941,9 @@ fn run_audit<'tcx>(
+     let atomic_new = atomic_constructor_id(tcx, atomic_u8)
+         .ok_or_else(|| "sysroot AtomicU8::new definition was not resolved".to_string())?;
+     let mut output = format!(
+-        "creusot-static-atomic-audit-v2\nmode\t{:?}\ncrate\t{}\ntarget\t{}\nsource_sha256\t{}\nrun_id\t{}\nnormal_input_sha256\t{}\nproof_input_sha256\t{}\ncompiler_sha256\t{}\npatch_sha256\t{}\nfixture_sha256\t{}\nrunner_sha256\t{}\n",
++        "{}\nprofile\t{}\nmode\t{:?}\ncrate\t{}\ntarget\t{}\nsource_sha256\t{}\nrun_id\t{}\nnormal_input_sha256\t{}\nproof_input_sha256\t{}\ncompiler_sha256\t{}\npatch_sha256\t{}\nfixture_sha256\t{}\nrunner_sha256\t{}\n",
++        audit_version(config.profile),
++        config.profile.as_str(),
+         config.mode,
+         config.crate_name,
+         config.target,
+@@ -834,13 +956,26 @@ fn run_audit<'tcx>(
+         config.provenance.fixture_sha256,
+         config.provenance.runner_sha256,
+     );
++    if config.profile == StaticAtomicProfile::X86RuntimeCapsV1 {
++        for (feature_name, feature) in
++            [("avx2", Symbol::intern("avx2")), ("sse4.2", Symbol::intern("sse4.2"))]
++        {
++            let in_session = tcx.sess.target_features.contains(&feature);
++            let in_cfg = tcx.sess.psess.config.iter().any(|(name, value)| {
++                *name == Symbol::intern("target_feature") && *value == Some(feature)
++            });
++            output.push_str(&format!(
++                "effective_target_feature\t{feature_name}\tsession={in_session}\tcfg={in_cfg}\n"
++            ));
++        }
++    }
+     let mut resolved = Vec::new();
+     for registration in &config.statics {
+         let static_id = resolve_local(tcx, &registration.static_path)?;
+         validate_static(tcx, static_id, atomic_u8)?;
+         if config.mode == AuditMode::Proof {
+             let predicate_id = resolve_local(tcx, &registration.predicate_path)?;
+-            validate_predicate(tcx, predicate_id)?;
++            validate_predicate(tcx, predicate_id, config.profile)?;
+         }
+         let initial = read_initial_byte(tcx, static_id)?;
+         let initializer_body = bodies
+@@ -1467,7 +1602,11 @@ fn validate_static(
+     Ok(())
+ }
+ 
+-fn validate_predicate(tcx: TyCtxt<'_>, def_id: rustc_hir::def_id::DefId) -> Result<(), String> {
++fn validate_predicate(
++    tcx: TyCtxt<'_>,
++    def_id: rustc_hir::def_id::DefId,
++    profile: StaticAtomicProfile,
++) -> Result<(), String> {
+     if tcx.def_kind(def_id) != DefKind::Fn {
+         return Err(format!("{} is not a free function", tcx.def_path_str(def_id)));
+     }
+@@ -1482,13 +1621,32 @@ fn validate_predicate(tcx: TyCtxt<'_>, def_id: rustc_hir::def_id::DefId) -> Resu
+         ));
+     }
+     let sig = tcx.fn_sig(def_id).instantiate_identity().skip_binder();
+-    if tcx.generics_of(def_id).count() != 0
+-        || sig.inputs().len() != 1
+-        || sig.inputs()[0] != tcx.types.u8
+-        || sig.output() != tcx.types.bool
++    let valid_inputs = match profile {
++        StaticAtomicProfile::ByteInvariant => {
++            sig.inputs().len() == 1 && sig.inputs()[0] == tcx.types.u8
++        }
++        StaticAtomicProfile::X86RuntimeCapsV1 => {
++            sig.inputs().len() == 3
++                && sig.inputs()[0] == tcx.types.u8
++                && sig.inputs()[1] == tcx.types.bool
++                && sig.inputs()[2] == tcx.types.bool
++        }
++    };
++    if tcx.generics_of(def_id).count() != 0 || !valid_inputs || sig.output() != tcx.types.bool {
++        return Err(format!(
++            "{} must have the exact non-generic signature {}",
++            tcx.def_path_str(def_id),
++            match profile {
++                StaticAtomicProfile::ByteInvariant => "fn(u8) -> bool",
++                StaticAtomicProfile::X86RuntimeCapsV1 => "fn(u8, bool, bool) -> bool",
++            }
++        ));
++    }
++    if profile == StaticAtomicProfile::X86RuntimeCapsV1
++        && tcx.sess.opts.target_triple.to_string() != "x86_64-unknown-linux-gnu"
+     {
+         return Err(format!(
+-            "{} must have the exact non-generic signature fn(u8) -> bool",
++            "Gate C predicate {} cannot be registered outside the fixed x86_64 profile",
+             tcx.def_path_str(def_id)
+         ));
+     }
+@@ -1545,12 +1703,15 @@ fn parse_manifest(
+     output: PathBuf,
+ ) -> Result<Option<AuditConfig>, String> {
+     let mut lines = contents.lines();
+-    if lines.next() != Some("creusot-static-atomic-v2") {
+-        return Err("static audit manifest has an unknown or missing version header".into());
+-    }
++    let profile = match lines.next() {
++        Some("creusot-static-atomic-v2") => StaticAtomicProfile::ByteInvariant,
++        Some("creusot-static-atomic-gate-c-v1") => StaticAtomicProfile::X86RuntimeCapsV1,
++        _ => return Err("static audit manifest has an unknown or missing version header".into()),
++    };
+     let mut crate_name = None;
+     let mut manifest_dir = None;
+     let mut target = None;
++    let mut declared_profile = None;
+     let mut manifest_hash = None;
+     let mut run_id = None;
+     let mut normal_input_hash = None;
+@@ -1571,6 +1732,9 @@ fn parse_manifest(
+                 manifest_dir = Some(PathBuf::from(value));
+             }
+             ["target", value] if target.is_none() => target = Some((*value).to_string()),
++            ["profile", value] if declared_profile.is_none() => {
++                declared_profile = Some((*value).to_string())
++            }
+             ["source_sha256", value] if manifest_hash.is_none() => {
+                 manifest_hash = Some((*value).to_string())
+             }
+@@ -1611,6 +1775,16 @@ fn parse_manifest(
+         format!("cannot canonicalize manifest_dir {}: {err}", manifest_dir.display())
+     })?;
+     let target = target.ok_or("manifest is missing target")?;
++    match (profile, declared_profile.as_deref()) {
++        (StaticAtomicProfile::ByteInvariant, None) => (),
++        (StaticAtomicProfile::X86RuntimeCapsV1, Some("x86-runtime-caps-v1")) => (),
++        (StaticAtomicProfile::ByteInvariant, Some(_)) => {
++            return Err("Gate B v2 manifest must not declare a Gate C profile".into());
++        }
++        (StaticAtomicProfile::X86RuntimeCapsV1, _) => {
++            return Err("Gate C manifest requires exactly profile x86-runtime-caps-v1".into());
++        }
++    }
+     let manifest_hash = manifest_hash.ok_or("manifest is missing source_sha256")?;
+     if manifest_hash != source_sha256 {
+         return Err(
+@@ -1659,9 +1833,17 @@ fn parse_manifest(
+         provenance,
+         output,
+         statics,
++        profile,
+     }))
+ }
+ 
++fn audit_version(profile: StaticAtomicProfile) -> &'static str {
++    match profile {
++        StaticAtomicProfile::ByteInvariant => "creusot-static-atomic-audit-v2",
++        StaticAtomicProfile::X86RuntimeCapsV1 => "creusot-static-atomic-audit-gate-c-v1",
++    }
++}
++
+ fn required_path(var: &str) -> Result<PathBuf, String> {
+     let value = env::var_os(var).ok_or_else(|| format!("missing {var}"))?;
+     let value = PathBuf::from(value);
+diff --git a/prelude-generator/prelude.coma b/prelude-generator/prelude.coma
+index c794f45..ceb315e 100644
+--- a/prelude-generator/prelude.coma
++++ b/prelude-generator/prelude.coma
+@@ -32,6 +32,16 @@ module Bool
+   predicate gt [@inline:trivial] (a:bool) (b:bool) = a /\ not b
+ end
+ 
++(* Stable, unconstrained process capability symbols used only by the
++   compiler-registered x86 runtime-dispatch invariant profile. The detector
++   refinement is a separate audited TCB obligation. *)
++module StaticAtomicCaps
++  use bool.Bool
++
++  function avx2_usable : bool
++  function sse42_usable : bool
++end
++
+ module Char
+   (* utf8 characters (not glyphs)
+       highly restricted until Why3 supports Unicode strings

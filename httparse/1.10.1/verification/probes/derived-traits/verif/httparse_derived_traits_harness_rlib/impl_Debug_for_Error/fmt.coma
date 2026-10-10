@@ -1,0 +1,217 @@
+(* #"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 4 37 4 42 *)
+
+(* <Error as std::fmt::Debug> *)
+
+let%span smodel = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/model.rs" 44 8 44 28
+let%span serror = "/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 4 37 4 42
+let%span sfmt = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/fmt.rs" 38 20 38 29
+let%span sfmt'0 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/fmt.rs" 35 26 35 94
+let%span sfmt'1 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/fmt.rs" 51 26 51 30
+let%span sfmt'2 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/fmt.rs" 47 18 50 84
+let%span sfmt'3 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/fmt.rs" 28 16 28 71
+let%span sstring = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/string.rs" 234 20 234 56
+let%span sseq = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/logic/seq.rs" 305 14 305 24
+let%span sseq'0 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/logic/seq.rs" 303 14 303 40
+let%span sseq'1 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/logic/seq.rs" 304 14 304 76
+let%span sseq'2 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/logic/seq.rs" 317 14 317 24
+let%span sseq'3 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/logic/seq.rs" 319 8 325 9
+let%span sseq'4 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/logic/seq.rs" 164 8 164 39
+let%span sinvariant = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/invariant.rs" 93 20 93 44
+let%span schar = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/char.rs" 46 14 46 52
+let%span schar'0 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/char.rs" 45 4 45 18
+let%span schar'1 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/char.rs" 76 10 76 15
+let%span schar'2 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/char.rs" 74 11 74 37
+let%span schar'3 = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/std/char.rs" 75 10 75 26
+let%span smapping = "/workspace/scratch/httparse-derived-traits/creusot-libs/creusot-std/src/logic/mapping.rs" 65 8 65 19
+
+use creusot.prelude.Char
+use seq.Seq
+use creusot.prelude.MutBorrow
+use creusot.int.UInt8
+use map.Map
+use int.ComputerDivision
+use creusot.prelude.Any
+use int.Int
+
+type t_Error = HeaderName | HeaderValue | NewLine | Status | Token | TooManyHeaders | Version
+
+type t_Formatter
+
+predicate inv_Formatter (_1: t_Formatter)
+
+type t_Result_unit_Error = Ok () | Err ()
+
+predicate invariant_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) =
+  [%#sinvariant] inv_Formatter self.current /\ inv_Formatter self.final
+
+meta "rewrite_def" predicate invariant_refmut_Formatter
+
+predicate inv_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = invariant_refmut_Formatter _1
+
+meta "rewrite_def" predicate inv_refmut_Formatter
+
+function tail_char (self: Seq.seq Char.t) : Seq.seq Char.t = [%#sseq'4] Seq.([..]) self 1 (Seq.length self)
+
+function flat_map_char (self: Seq.seq Char.t) (other: Map.map Char.t (Seq.seq UInt8.t)) : Seq.seq UInt8.t
+
+axiom flat_map_char_def: forall self: Seq.seq Char.t, other: Map.map Char.t (Seq.seq UInt8.t). flat_map_char self other
+    = ([%#sseq'3] if Seq.length self = 0 then
+      Seq.empty: Seq.seq UInt8.t
+    else
+      Seq.(++) (Map.get other (Seq.get self 0)) (flat_map_char (tail_char self) other)
+    )
+
+function utf8_byte (value: int) : UInt8.t
+
+axiom utf8_byte_spec: forall value: int. ([%#schar'2] 0 <= value /\ value <= 255)
+    -> ([%#schar'3] UInt8.t'int (utf8_byte value) = value)
+
+function to_utf8_char (self: Char.t) : Seq.seq UInt8.t = [%#schar'0] let code = Char.to_int self in if code < 128 then
+    Seq.singleton (utf8_byte code)
+  else
+    if code < 2048 then
+      Seq.snoc (Seq.singleton (utf8_byte (192 + ComputerDivision.div code 64))) (utf8_byte (128
+      + ComputerDivision.mod code 64))
+    else
+      if code < 65536 then
+        Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (224 + ComputerDivision.div code 4096))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+      else
+        Seq.snoc (Seq.snoc (Seq.snoc (Seq.singleton (utf8_byte (240
+        + ComputerDivision.div code 262144))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 4096) 64))) (utf8_byte (128
+        + ComputerDivision.mod (ComputerDivision.div code 64) 64))) (utf8_byte (128 + ComputerDivision.mod code 64))
+    
+  
+
+
+axiom to_utf8_char_spec: forall self: Char.t. [%#schar] 1 <= Seq.length (to_utf8_char self)
+    /\ Seq.length (to_utf8_char self) <= 4
+
+function to_bytes (self: Seq.seq Char.t) : Seq.seq UInt8.t =
+  [%#sstring] flat_map_char self (fun (c: Char.t) -> to_utf8_char c)
+
+function deep_model_Formatter (self: t_Formatter) : Seq.seq int
+
+function deep_model_refmut_Formatter [@inline:trivial] (self: MutBorrow.t t_Formatter) : Seq.seq int =
+  [%#smodel] deep_model_Formatter self.current
+
+meta "rewrite_def" function deep_model_refmut_Formatter
+
+function index_Mapping_u8_Int [@inline:trivial] (self: Map.map UInt8.t int) (a: UInt8.t) : int =
+  [%#smapping] Map.get self a
+
+meta "rewrite_def" function index_Mapping_u8_Int
+
+function map_u8 (self: Seq.seq UInt8.t) (m: Map.map UInt8.t int) : Seq.seq int
+
+axiom map_u8_spec: forall self: Seq.seq UInt8.t, m: Map.map UInt8.t int. [%#sseq'0] Seq.length (map_u8 self m)
+    = Seq.length self
+
+axiom map_u8_spec'0: forall self: Seq.seq UInt8.t, m: Map.map UInt8.t int. [%#sseq'1] forall i: int. 0 <= i
+        /\ i < Seq.length self -> Seq.get (map_u8 self m) i = index_Mapping_u8_Int m (Seq.get self i)
+
+let rec write_str (self_: MutBorrow.t t_Formatter) (data: Seq.seq Char.t) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:write_str 'self_' type invariant] [%#sfmt'1] inv_refmut_Formatter self_}
+  any
+  [ return (result: t_Result_unit_Error) -> {[@stop_split] [@expl:write_str ensures] [%#sfmt'2] exists i: int. 0 <= i
+      /\ i <= Seq.length (to_bytes data)
+      /\ deep_model_Formatter self_.final
+        = Seq.(++) (deep_model_refmut_Formatter self_) (map_u8 (Seq.([..]) (to_bytes data) 0 i) (fun (byte: UInt8.t) -> UInt8.t'int byte))
+      /\ match result with
+        | Ok _ -> i = Seq.length (to_bytes data)
+        | Err _ -> true
+        end}
+    (! return {result}) ]
+
+predicate resolve_refmut_Formatter [@inline:trivial] (_1: MutBorrow.t t_Formatter) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Formatter
+
+predicate formatter_extends (before: Seq.seq int) (after: Seq.seq int) =
+  [%#sfmt'3] exists suffix: Seq.seq int. after = Seq.(++) before suffix
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let rec fmt_Error
+  [#"/workspace/rust-crate-proofs/httparse/1.10.1/verification/probes/derived-traits/src/../../../../src/error.rs" 4 37 4 42]
+  (self_: t_Error) (formatter: MutBorrow.t t_Formatter) (return (x: t_Result_unit_Error)) =
+  {[@stop_split] [@expl:fmt 'formatter' type invariant] [%#sfmt] inv_refmut_Formatter formatter}
+  (! bb0
+  [ bb0 = any
+    [ br0 -> {self_ = HeaderName} (! bb14)
+    | br1 -> {self_ = HeaderValue} (! bb13)
+    | br2 -> {self_ = NewLine} (! bb12)
+    | br3 -> {self_ = Status} (! bb11)
+    | br4 -> {self_ = Token} (! bb10)
+    | br5 -> {self_ = TooManyHeaders} (! bb9)
+    | br6 -> {self_ = Version} (! bb8) ]
+  | bb8 = s0
+    [ s0 =
+      [ &_12 <- [%#serror] Seq.create 7 [|Char.of_int 86;Char.of_int 101;Char.of_int 114;Char.of_int 115;Char.of_int 105;Char.of_int 111;Char.of_int 110|]: Seq.seq Char.t ]
+      s1
+    | s1 = [ &_4 <- _12 ] s2
+    | s2 = bb15 ]
+  | bb9 = s0
+    [ s0 =
+      [ &_11 <- [%#serror] Seq.create 14 [|Char.of_int 84;Char.of_int 111;Char.of_int 111;Char.of_int 77;Char.of_int 97;Char.of_int 110;Char.of_int 121;Char.of_int 72;Char.of_int 101;Char.of_int 97;Char.of_int 100;Char.of_int 101;Char.of_int 114;Char.of_int 115|]: Seq.seq Char.t ]
+      s1
+    | s1 = [ &_4 <- _11 ] s2
+    | s2 = bb15 ]
+  | bb10 = s0
+    [ s0 =
+      [ &_10 <- [%#serror] Seq.create 5 [|Char.of_int 84;Char.of_int 111;Char.of_int 107;Char.of_int 101;Char.of_int 110|]: Seq.seq Char.t ]
+      s1
+    | s1 = [ &_4 <- _10 ] s2
+    | s2 = bb15 ]
+  | bb11 = s0
+    [ s0 =
+      [ &_9 <- [%#serror] Seq.create 6 [|Char.of_int 83;Char.of_int 116;Char.of_int 97;Char.of_int 116;Char.of_int 117;Char.of_int 115|]: Seq.seq Char.t ]
+      s1
+    | s1 = [ &_4 <- _9 ] s2
+    | s2 = bb15 ]
+  | bb12 = s0
+    [ s0 =
+      [ &_8 <- [%#serror] Seq.create 7 [|Char.of_int 78;Char.of_int 101;Char.of_int 119;Char.of_int 76;Char.of_int 105;Char.of_int 110;Char.of_int 101|]: Seq.seq Char.t ]
+      s1
+    | s1 = [ &_4 <- _8 ] s2
+    | s2 = bb15 ]
+  | bb13 = s0
+    [ s0 =
+      [ &_7 <- [%#serror] Seq.create 11 [|Char.of_int 72;Char.of_int 101;Char.of_int 97;Char.of_int 100;Char.of_int 101;Char.of_int 114;Char.of_int 86;Char.of_int 97;Char.of_int 108;Char.of_int 117;Char.of_int 101|]: Seq.seq Char.t ]
+      s1
+    | s1 = [ &_4 <- _7 ] s2
+    | s2 = bb15 ]
+  | bb14 = s0
+    [ s0 =
+      [ &_6 <- [%#serror] Seq.create 10 [|Char.of_int 72;Char.of_int 101;Char.of_int 97;Char.of_int 100;Char.of_int 101;Char.of_int 114;Char.of_int 78;Char.of_int 97;Char.of_int 109;Char.of_int 101|]: Seq.seq Char.t ]
+      s1
+    | s1 = [ &_4 <- _6 ] s2
+    | s2 = bb15 ]
+  | bb15 = s0
+    [ s0 = MutBorrow.borrow_final <t_Formatter> {formatter.current} {MutBorrow.get_id formatter}
+        (fun (_bor: MutBorrow.t t_Formatter) ->
+          [ &_3 <- _bor ] -{inv_Formatter _bor.final}-
+          [ &formatter <- { formatter with current = _bor.final } ] s1)
+      [ _ck -> (! {[@expl:type invariant] inv_Formatter formatter.current} any) ]
+    | s1 = write_str [%#serror] {_3} {_4} (fun (_x: t_Result_unit_Error) -> [ &_ret <- _x ] s2)
+    | s2 = s3 [ _ck -> (! {[@expl:type invariant] inv_refmut_Formatter formatter} any) ]
+    | s3 = -{resolve_refmut_Formatter formatter}- s4
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_Result_unit_Error = Any.any_l ()
+  | & self_: t_Error = self_
+  | & formatter: MutBorrow.t t_Formatter = formatter
+  | & _3: MutBorrow.t t_Formatter = Any.any_l ()
+  | & _4: Seq.seq Char.t = Any.any_l ()
+  | & _6: Seq.seq Char.t = Any.any_l ()
+  | & _7: Seq.seq Char.t = Any.any_l ()
+  | & _8: Seq.seq Char.t = Any.any_l ()
+  | & _9: Seq.seq Char.t = Any.any_l ()
+  | & _10: Seq.seq Char.t = Any.any_l ()
+  | & _11: Seq.seq Char.t = Any.any_l ()
+  | & _12: Seq.seq Char.t = Any.any_l () ])
+  [ return (result: t_Result_unit_Error) ->
+  {[@stop_split] [@expl:fmt ensures] [%#sfmt'0] formatter_extends (deep_model_refmut_Formatter formatter) (deep_model_Formatter formatter.final)}
+    (! return {result}) ]
