@@ -15,7 +15,10 @@ layout, exclusive ownership transferred by moving the Vec, capacity at most
 `bind_consumed_vec` constructs the logical resource split and slot ledger from
 the sealed witness. The selected `from_vec`, `with_capacity`, `new`, `zeroed`,
 `From<&[u8]>`, `From<&str>`, and `Default` bodies establish this state, with
-the exact copied or initialized prefix and unknown spare slots. `clear`
+the exact copied or initialized prefix and unknown spare slots. They also
+establish `unique_vec_rebuildable`: the visible initialized bytes and any
+hidden prefix needed when reconstructing a Vec are known; spare-capacity slots
+remain unknown. `clear`
 preserves the state and all capacity-slot values while setting length to zero.
 The body of `is_empty` is checked without a representation precondition. The
 capacity encoder and decoder, and local ownership/provenance helpers are
@@ -43,16 +46,18 @@ the implementation body. Therefore this body proof does not establish the
 public trait refinement.
 The logical invariant and prefix helpers retain the complete allocation frame
 at an absolute cursor, and the metadata helpers prove the packed Vec position
-updates. The selected constructor bodies establish `unique_valid` at offset
-zero. Body proofs for `advance_vec_layout` and `set_visible_len` establish the
-two phases of a Vec cursor advance while preserving all allocation slots; the
-`advance_unchecked` body is proved under its internal validity, capacity, and
-representable-position preconditions. That contract restricts this proof to
-the Vec no-promotion path. The selected proofs still do not establish a safe
-public-call chain that produces a nonzero offset, and the promotion branch is
-not covered. Shared states, immutable peers, lifecycle operations,
-concurrency and unwind behavior remain outside the selected `BytesMut` proof
-scope.
+updates. The selected constructor bodies establish `unique_vec_rebuildable` at
+offset zero. Body proofs for `advance_vec_layout` and `set_visible_len`
+establish the two phases of a Vec cursor advance while preserving all
+allocation slots. The private `advance_unchecked` body is proved only with a
+rebuildable Vec state, `count <= len`, capacity bounds and representable packed
+position; the selected branch is the Vec no-promotion path. This does not prove
+that any safe public call chain produces a nonzero offset. The public
+`Buf::advance` wrapper is not translated, and the trait-refinement obligation
+for `BufMut::advance_mut` remains unproved because its implementation body has
+stronger proof preconditions than the trait prestate. Promotion, Shared states,
+immutable peers, lifecycle operations, concurrency and unwind behavior remain
+outside the selected `BytesMut` proof scope.
 
 The supporting `split_view_region` body preserves the full physical allocation
 while splitting the cursor-relative visible region, including any hidden

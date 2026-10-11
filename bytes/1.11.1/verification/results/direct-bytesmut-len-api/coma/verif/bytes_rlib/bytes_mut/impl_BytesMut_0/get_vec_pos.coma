@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1512 4 1512 41 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1562 4 1562 41 *)
 
 (* bytes_mut::BytesMut *)
 
@@ -6,18 +6,18 @@ let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-ref
 let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
 let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1518 23 1518 71
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1519 20 1519 34
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1519 12 1519 34
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1512 27 1512 31
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1507 66 1507 85
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1508 65 1508 96
-let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1512 4 1512 41
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1568 23 1568 71
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1569 20 1569 34
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1569 12 1569 34
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1562 27 1562 31
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1557 66 1557 85
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1558 65 1558 96
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1562 4 1562 41
 let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 138 12 140 48
 let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 95 20 95 77
 let%span sbytes_mut'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 112 12 132 13
-let%span sbytes_mut'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 151 20 151 77
-let%span sbytes_mut'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 146 20 146 93
+let%span sbytes_mut'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 171 20 171 77
+let%span sbytes_mut'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 166 20 166 93
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
@@ -380,10 +380,10 @@ function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof
 axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'14] slot'0 self index
     = slot (view_PhysicalRegion self).f0'2 index
 
-function unique_allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 145 4 145 80] (self: t_BytesMut) (index: int) : t_Option_Option_u8
+function unique_allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 165 4 165 80] (self: t_BytesMut) (index: int) : t_Option_Option_u8
  = [%#sbytes_mut'10] slot'0 (unwrap_Option_OriginalUniqueProof self.unique_proof).capabilities.f1 index
 
-function unique_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 150 4 150 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
+function unique_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 170 4 170 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
  = [%#sbytes_mut'9] unique_allocation_slot self (unique_offset self + index)
 
 predicate unique_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 136 4 136 44] (self: t_BytesMut) =
@@ -395,7 +395,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let get_vec_pos [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1512 4 1512 41] (self: t_BytesMut)
+let get_vec_pos [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1562 4 1562 41] (self: t_BytesMut)
   (return (x: UInt64.t)) =
 {[@stop_split] [@expl:get_vec_pos requires] ([@stop_split] [@expl:get_vec_pos 'self' type invariant] [%#sbytes_mut'2] inv_ref_BytesMut self)
   /\ ([@stop_split] [@expl:get_vec_pos requires] [%#sbytes_mut'3] unique_valid self)}

@@ -140,6 +140,26 @@ impl BytesMut {
                 slot_known(self.unique_slot(i)))
         }
     }
+    /// The allocation prefix hidden before this view is initialized. This is
+    /// independent of `len` so it remains available during the private layout
+    /// phase, when the pointer has moved but the old length is still stored.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn unique_hidden_prefix_known(self) -> bool {
+        pearlite! {
+            self.unique_layout_valid() &&
+            (forall<i:Int> 0 <= i && i < self.unique_offset() ==>
+                slot_known(self.unique_allocation_slot(i)))
+        }
+    }
+    /// A stable Vec-backed view whose whole reconstructed Vec prefix is
+    /// initialized. `rebuild_vec` sets its Vec length to `offset + len`, so
+    /// visible-view validity alone is insufficient when `offset` is nonzero.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn unique_vec_rebuildable(self) -> bool {
+        pearlite! {
+            self.unique_valid() && self.unique_hidden_prefix_known()
+        }
+    }
     /// Slot in allocation coordinates, including hidden prefixes and suffixes.
     #[logic(open(self))]
     pub(crate) fn unique_allocation_slot(self, index: Int) -> Option<Option<u8>> {
@@ -184,12 +204,16 @@ fn unique_initialized_prefix_extend(
 #[cfg(all(creusot, bytes_original_unique_gate))]
 #[check(ghost)]
 #[requires((*prestate).unique_valid())]
+#[requires((*prestate).unique_vec_rebuildable())]
 #[requires(count@ <= (*prestate).unique_capacity())]
+#[requires(count@ <= (*prestate).unique_length())]
 #[ensures(forall<i:Int>
     0 <= i && i < (if count@ <= (*prestate).unique_length() {
         (*prestate).unique_length() - count@
     } else { 0int }) ==>
         slot_known((*prestate).unique_slot(count@ + i)))]
+#[ensures(forall<i:Int> 0 <= i && i < (*prestate).unique_offset() + count@ ==>
+    slot_known((*prestate).unique_allocation_slot(i)))]
 fn unique_initialized_prefix_suffix(prestate: Snapshot<BytesMut>, count: usize) {
     proof_assert!(forall<i:Int>
         0 <= i && i < (if count@ <= (*prestate).unique_length() {
@@ -202,6 +226,14 @@ fn unique_initialized_prefix_suffix(prestate: Snapshot<BytesMut>, count: usize) 
             (*prestate).unique_length() - count@
         } else { 0int }) ==>
             slot_known((*prestate).unique_slot(count@ + i))
+    );
+    proof_assert!(forall<i:Int>
+        0 <= i && i < (*prestate).unique_offset() + count@ ==>
+            if i < (*prestate).unique_offset() {
+                slot_known((*prestate).unique_allocation_slot(i))
+            } else {
+                slot_known((*prestate).unique_slot(i - (*prestate).unique_offset()))
+            }
     );
 }
 
@@ -298,6 +330,7 @@ impl BytesMut {
     /// assert_eq!(&bytes[..], b"hello world");
     /// ```
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == 0))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == Seq::empty()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
@@ -328,6 +361,7 @@ impl BytesMut {
     /// assert_eq!(&b"xy"[..], &bytes[..]);
     /// ```
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == 0))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == Seq::empty()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
@@ -475,6 +509,7 @@ impl BytesMut {
     /// zeros.into_iter().for_each(|x| assert_eq!(x, 0));
     /// ```
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == len@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_capacity() >= len@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() ==
@@ -630,6 +665,7 @@ impl BytesMut {
     /// ```
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() ==
         if len@ <= self.unique_length() { len@ } else { self.unique_length() }))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer() &&
@@ -672,6 +708,7 @@ impl BytesMut {
     /// ```
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == 0))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() == Seq::empty()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer() &&
@@ -750,6 +787,8 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(forall<i:Int>
         0 <= i && i < new_len@ ==> slot_known(self.unique_slot(i))))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_hidden_prefix_known() ==> (^self).unique_hidden_prefix_known()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_hidden_prefix_known() ==> (^self).unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == new_len@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_capacity() == self.unique_capacity()))]
@@ -772,9 +811,12 @@ impl BytesMut {
     /// length/prefix invariant. The helper only runs on the non-promotion path.
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.unique_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_vec_rebuildable()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.unique_length()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(pos@ == self.unique_offset() + count@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(pos@ <= MAX_VEC_POS@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_layout_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_hidden_prefix_known()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == self.unique_length()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_capacity() == self.unique_capacity() - count@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_offset() == self.unique_offset() + count@))]
@@ -860,6 +902,7 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(forall<i:Int>
         self.unique_length() <= i && i < len@ ==> slot_known(self.unique_slot(i))))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == len@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_capacity() == self.unique_capacity()))]
@@ -1301,6 +1344,7 @@ impl BytesMut {
     // internal change could make a simple pattern (`BytesMut::from(vec)`)
     // suddenly a lot more expensive.
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == vec@.len()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == vec@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_capacity() == creusot_std::std::vec::capacity_model(vec)))]
@@ -1360,10 +1404,16 @@ impl BytesMut {
     /// The caller must ensure that `count` <= `self.cap`.
     // The proof contract below covers the Vec path only while its packed offset
     // remains representable; promotion is handled by a separate proof slice.
+    // Under this verification gate the selected no-promotion Vec path also
+    // carries the hidden initialized prefix and advances only within len. The
+    // native ARC path remains capacity-bounded as before.
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.cap@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.unique_length()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_offset() + count@ <= MAX_VEC_POS@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_offset() == self.unique_offset() + count@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_capacity() == self.unique_capacity() - count@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == if count@ <= self.unique_length() { self.unique_length() - count@ } else { 0 }))]
@@ -1664,6 +1714,7 @@ unsafe impl BufMut for BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cnt@ <= self.unique_capacity() - self.unique_length()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(forall<i:Int> self.unique_length() <= i && i < self.unique_length() + cnt@ ==> slot_known(self.unique_slot(i))))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == self.unique_length() + cnt@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer() &&
         (^self).unique_capacity() == self.unique_capacity() &&
@@ -1786,6 +1837,7 @@ impl DerefMut for BytesMut {
 
 impl<'a> From<&'a [u8]> for BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == src@.len()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_capacity() >= src@.len()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == src@))]
@@ -1798,6 +1850,7 @@ impl<'a> From<&'a [u8]> for BytesMut {
 
 impl<'a> From<&'a str> for BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == src@.to_bytes().len()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_capacity() >= src@.to_bytes().len()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == src@.to_bytes()))]
@@ -1841,6 +1894,7 @@ impl Eq for BytesMut {}
 impl Default for BytesMut {
     #[inline]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_vec_rebuildable()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == 0))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == Seq::empty()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
