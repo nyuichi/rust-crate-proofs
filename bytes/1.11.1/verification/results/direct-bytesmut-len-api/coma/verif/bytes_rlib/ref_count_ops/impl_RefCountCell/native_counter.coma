@@ -1,0 +1,77 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 118 4 118 57 *)
+
+(* ref_count_ops::RefCountCell *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 118 34 118 38
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 117 32 117 55
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 365 16 368 17
+
+use creusot.prelude.Any
+
+type t_NativeCounter
+
+type t_EventBoundInvariant_RefCountState
+
+type t_Option_EventBoundInvariant_RefCountState = None | Some t_EventBoundInvariant_RefCountState
+
+type t_RefCountCell = { counter: t_NativeCounter; invariant': t_Option_EventBoundInvariant_RefCountState }
+
+type tup2_NativeCounter_unit = { f0: t_NativeCounter; f1: () }
+
+function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 341 8 341 64] (self: t_EventBoundInvariant_RefCountState) : tup2_NativeCounter_unit
+
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 363 8 363 34] (self: t_RefCountCell) =
+  [%#sref_count_ops'1] match self.invariant' with
+    | None -> true
+    | Some invariant''0 -> (public_RefCountState invariant''0).f0 = self.counter
+    end
+
+predicate inv_EventBoundInvariant_RefCountState (_1: t_EventBoundInvariant_RefCountState)
+
+predicate inv_Option_EventBoundInvariant_RefCountState (_1: t_Option_EventBoundInvariant_RefCountState)
+
+axiom inv_axiom [@rewrite]:
+  forall x: t_Option_EventBoundInvariant_RefCountState [inv_Option_EventBoundInvariant_RefCountState x]. inv_Option_EventBoundInvariant_RefCountState x
+    = match x with
+      | None -> true
+      | Some f0'0 -> inv_EventBoundInvariant_RefCountState f0'0
+      end
+
+predicate invariant_Ghost_Option_EventBoundInvariant_RefCountState [@inline:trivial] (self: t_Option_EventBoundInvariant_RefCountState) =
+  [%#sghost] inv_Option_EventBoundInvariant_RefCountState self
+
+meta "rewrite_def" predicate invariant_Ghost_Option_EventBoundInvariant_RefCountState
+
+predicate inv_Ghost_Option_EventBoundInvariant_RefCountState [@inline:trivial] (_1: t_Option_EventBoundInvariant_RefCountState) =
+  invariant_Ghost_Option_EventBoundInvariant_RefCountState _1
+
+meta "rewrite_def" predicate inv_Ghost_Option_EventBoundInvariant_RefCountState
+
+predicate inv_RefCountCell (_1: t_RefCountCell)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_RefCountCell [inv_RefCountCell x]. inv_RefCountCell x
+    = (invariant_RefCountCell x /\ inv_Ghost_Option_EventBoundInvariant_RefCountState x.invariant')
+
+predicate invariant_ref_RefCountCell [@inline:trivial] (self: t_RefCountCell) = [%#sinvariant] inv_RefCountCell self
+
+meta "rewrite_def" predicate invariant_ref_RefCountCell
+
+predicate inv_ref_RefCountCell [@inline:trivial] (_1: t_RefCountCell) = invariant_ref_RefCountCell _1
+
+meta "rewrite_def" predicate inv_ref_RefCountCell
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let native_counter [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 118 4 118 57]
+  (self: t_RefCountCell) (return (x: t_NativeCounter)) =
+{[@stop_split] [@expl:native_counter 'self' type invariant] [%#sref_count_ops] inv_ref_RefCountCell self}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_4 <- self.counter ] s1 | s1 = [ &_ret <- _4 ] s2 | s2 = return {_ret} ] ]
+  [ & _ret: t_NativeCounter = Any.any_l () | & self: t_RefCountCell = self | & _4: t_NativeCounter = Any.any_l () ])
+  [ return (result: t_NativeCounter) -> {[@stop_split] [@expl:native_counter ensures] [%#sref_count_ops'0] result
+    = self.counter}
+    (! return {result}) ]

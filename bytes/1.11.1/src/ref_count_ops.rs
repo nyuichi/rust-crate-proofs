@@ -78,7 +78,7 @@ impl NativeCounter {
 pub(crate) struct RefCountCell {
     counter: NativeCounter,
     #[cfg(creusot)]
-    invariant: Ghost<RefCountInvariant>,
+    invariant: Ghost<Option<RefCountInvariant>>,
 }
 
 const _: [(); core::mem::size_of::<AtomicUsize>()] = [(); core::mem::size_of::<RefCountCell>()];
@@ -86,14 +86,21 @@ const _: [(); core::mem::align_of::<AtomicUsize>()] = [(); core::mem::align_of::
 const _: [(); 0] = [(); core::mem::needs_drop::<RefCountCell>() as usize];
 
 impl RefCountCell {
+    #[cfg(creusot)]
+    #[logic(open(self))]
+    pub(crate) fn has_event_invariant(self) -> bool {
+        pearlite! { self.invariant.inner_logic() != None }
+    }
+
     #[cfg_attr(creusot, ensures(result.invariant()))]
+    #[cfg_attr(creusot, ensures(result.has_event_invariant()))]
     pub(crate) fn new(value: usize) -> Self {
         #[cfg(creusot)]
         {
             let (counter, owner) = NativeCounter::new(value);
             let invariant =
                 EventBoundInvariant::new(&counter, owner, ghost!(RefCountState { current: value }));
-            Self { counter, invariant }
+            Self { counter, invariant: ghost!(Some(invariant.into_inner())) }
         }
 
         #[cfg(not(creusot))]
@@ -104,14 +111,46 @@ impl RefCountCell {
         }
     }
 
-    #[cfg_attr(creusot, requires(self.invariant()))]
-    #[cfg_attr(creusot, ensures(self.invariant()))]
+    /// Return the exact native counter field without opening its ghost
+    /// invariant. This getter preserves field identity for callers that first
+    /// place the enclosing header at its final address.
+    #[cfg_attr(creusot, ensures(result == &self.counter))]
+    pub(crate) fn native_counter(&self) -> &NativeCounter {
+        &self.counter
+    }
+
+    /// Consume the cell's one-shot event invariant and return its unique
+    /// permission together with the value recorded by that permission.
+    ///
+    /// The native counter remains in place. The cell is left detached so that
+    /// later scalar operations cannot reopen the old invariant after its
+    /// permission has moved to a header-level owner.
+    #[cfg(creusot)]
+    #[check(ghost)]
+    #[requires(self.invariant() && self.has_event_invariant())]
+    #[ensures((^self).invariant() && !(^self).has_event_invariant())]
+    #[ensures((^self).counter == self.counter)]
+    #[ensures(result.inner_logic().0.ward() == &(^self).counter)]
+    #[ensures(*result.inner_logic().0.ward() == (^self).counter)]
+    #[ensures(result.inner_logic().0.val() == result.inner_logic().1)]
+    pub(crate) fn take_bootstrap_owner(
+        &mut self,
+    ) -> Ghost<(creusot_std::ghost::Perm<NativeCounter>, usize)> {
+        ghost! {
+            let invariant = self.invariant.borrow_mut().into_inner().take().unwrap();
+            let (owner, state) = invariant.into_inner().into_inner();
+            (owner, state.current)
+        }
+    }
+
+    #[cfg_attr(creusot, requires(self.invariant() && self.has_event_invariant()))]
+    #[cfg_attr(creusot, ensures(self.invariant() && self.has_event_invariant()))]
     pub(crate) fn load_relaxed(&self) -> usize {
         #[cfg(creusot)]
         {
             self.counter
                 .load_relaxed_with(
-                    ghost!(&*self.invariant),
+                    ghost!(self.invariant.borrow().into_inner().as_ref().unwrap()),
                     ghost!(|state: &mut RefCountState, value| { observe_ref_count(state, value) }),
                 )
                 .0
@@ -123,14 +162,14 @@ impl RefCountCell {
         }
     }
 
-    #[cfg_attr(creusot, requires(self.invariant()))]
-    #[cfg_attr(creusot, ensures(self.invariant()))]
+    #[cfg_attr(creusot, requires(self.invariant() && self.has_event_invariant()))]
+    #[cfg_attr(creusot, ensures(self.invariant() && self.has_event_invariant()))]
     pub(crate) fn load_acquire(&self) -> usize {
         #[cfg(creusot)]
         {
             self.counter
                 .load_acquire_with(
-                    ghost!(&*self.invariant),
+                    ghost!(self.invariant.borrow().into_inner().as_ref().unwrap()),
                     ghost!(|state: &mut RefCountState, value| { observe_ref_count(state, value) }),
                 )
                 .0
@@ -142,8 +181,8 @@ impl RefCountCell {
         }
     }
 
-    #[cfg_attr(creusot, requires(self.invariant()))]
-    #[cfg_attr(creusot, ensures(self.invariant()))]
+    #[cfg_attr(creusot, requires(self.invariant() && self.has_event_invariant()))]
+    #[cfg_attr(creusot, ensures(self.invariant() && self.has_event_invariant()))]
     #[cfg_attr(creusot, ensures(match result {
         Ok(old) => old == expected,
         Err(actual) => actual != expected,
@@ -156,7 +195,7 @@ impl RefCountCell {
         #[cfg(creusot)]
         {
             let (result, callback) = self.counter.compare_exchange_relaxed_with(
-                ghost!(&*self.invariant),
+                ghost!(self.invariant.borrow().into_inner().as_ref().unwrap()),
                 expected,
                 new,
                 ghost!(|state: &mut RefCountState, old, new| { update_ref_count(state, old, new) }),
@@ -175,8 +214,8 @@ impl RefCountCell {
         }
     }
 
-    #[cfg_attr(creusot, requires(self.invariant()))]
-    #[cfg_attr(creusot, ensures(self.invariant()))]
+    #[cfg_attr(creusot, requires(self.invariant() && self.has_event_invariant()))]
+    #[cfg_attr(creusot, ensures(self.invariant() && self.has_event_invariant()))]
     #[cfg_attr(creusot, ensures(match result {
         Ok(old) => old == expected,
         Err(actual) => actual != expected,
@@ -189,7 +228,7 @@ impl RefCountCell {
         #[cfg(creusot)]
         {
             let (result, callback) = self.counter.compare_exchange_acqrel_relaxed_with(
-                ghost!(&*self.invariant),
+                ghost!(self.invariant.borrow().into_inner().as_ref().unwrap()),
                 expected,
                 new,
                 ghost!(|state: &mut RefCountState, old, new| { update_ref_count(state, old, new) }),
@@ -209,14 +248,14 @@ impl RefCountCell {
         }
     }
 
-    #[cfg_attr(creusot, requires(self.invariant()))]
-    #[cfg_attr(creusot, ensures(self.invariant()))]
+    #[cfg_attr(creusot, requires(self.invariant() && self.has_event_invariant()))]
+    #[cfg_attr(creusot, ensures(self.invariant() && self.has_event_invariant()))]
     pub(crate) fn fetch_sub_release(&self) -> usize {
         #[cfg(creusot)]
         {
             self.counter
                 .fetch_sub_release_with(
-                    ghost!(&*self.invariant),
+                    ghost!(self.invariant.borrow().into_inner().as_ref().unwrap()),
                     ghost!(|state: &mut RefCountState, old, new| {
                         update_ref_count(state, old, new)
                     }),
@@ -302,12 +341,32 @@ mod proof {
         pub(super) fn public(self) -> (NativeCounter, T::Public) {
             self.inner.public()
         }
+
+        /// Consume the invariant and move out its one owner permission and
+        /// current protocol value. This is the body-checked bootstrap path;
+        /// it does not mint or duplicate either resource.
+        #[check(ghost)]
+        #[ensures(*result.inner_logic().0.ward() == self.public().0)]
+        #[ensures(result.inner_logic().1.public() == self.public().1)]
+        #[ensures(result.inner_logic().1.protocol())]
+        #[ensures(result.inner_logic().1.agrees_with_value(result.inner_logic().0.val()))]
+        pub(super) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
+            ghost! {
+                let EventState { owner, current } = self.inner.into_inner().into_inner();
+                (owner, current)
+            }
+        }
     }
 
     impl Invariant for RefCountCell {
         #[logic(open(super), prophetic)]
         fn invariant(self) -> bool {
-            self.invariant.inner_logic().public().0 == self.counter
+            pearlite! {
+                match self.invariant.inner_logic() {
+                    None => true,
+                    Some(invariant) => invariant.public().0 == self.counter,
+                }
+            }
         }
     }
 
@@ -593,15 +652,15 @@ type RefCountInvariant = EventBoundInvariant<RefCountState>;
 #[cfg(creusot)]
 use creusot_std::prelude::*;
 
-#[cfg_attr(creusot, requires(cell.invariant()))]
-#[cfg_attr(creusot, ensures(cell.invariant()))]
+#[cfg_attr(creusot, requires(cell.invariant() && cell.has_event_invariant()))]
+#[cfg_attr(creusot, ensures(cell.invariant() && cell.has_event_invariant()))]
 #[cfg_attr(creusot, ensures(match result {
     Ok(old) => old <= crate::ref_count_limit::MAX_REF_COUNT,
     Err(old) => old > crate::ref_count_limit::MAX_REF_COUNT,
 }))]
 pub(crate) fn try_increment(cell: &RefCountCell) -> Result<usize, usize> {
     let mut current = cell.load_relaxed();
-    #[cfg_attr(creusot, invariant(cell.invariant()))]
+    #[cfg_attr(creusot, invariant(cell.invariant() && cell.has_event_invariant()))]
     loop {
         let next = match crate::ref_count_limit::next_ref_count(current) {
             Some(next) => next,
@@ -616,8 +675,8 @@ pub(crate) fn try_increment(cell: &RefCountCell) -> Result<usize, usize> {
 }
 
 #[inline]
-#[cfg_attr(creusot, requires(cell.invariant()))]
-#[cfg_attr(creusot, ensures(cell.invariant()))]
+#[cfg_attr(creusot, requires(cell.invariant() && cell.has_event_invariant()))]
+#[cfg_attr(creusot, ensures(cell.invariant() && cell.has_event_invariant()))]
 pub(crate) fn increment(cell: &RefCountCell) {
     if try_increment(cell).is_err() {
         crate::abort();

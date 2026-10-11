@@ -68,32 +68,42 @@ documented beside the source in [`bytes.rs`](../../../src/bytes.rs) and
 
 The refcount operation layer has a private `#[repr(transparent)]`
 `NativeCounter` around the existing atomic type and a `#[repr(C)]` `RefCountCell`
-with only a proof-only zero-sized sidecar. Native builds execute the original
-atomic operations once and preserve their orderings. Selected body proofs
-cover the invariant constructor, Relaxed and Acquire loads, both compare-exchange
-wrappers, Release decrement, the checked next-count function, and the
-`try_increment`/`increment` loop. The increment body only establishes the
-guarded arithmetic and normal-return result. The generic platform abort
-contract accounts for overflow error not returning from `increment`. Compile-
-time assertions check the cell's size, alignment, and drop behavior. The
-existing native layout test checks `Shared` field offsets; it does not exercise
-the `Owned` prefix cast. That cast relies on the `repr(C)` cell with its counter
-as the first field, and is not claimed as a separate runtime test.
+with a proof-only zero-sized `Option` sidecar. Native builds execute the
+original atomic operations once and preserve their orderings. Selected body
+proofs cover the invariant constructor, native-counter getter, Relaxed and
+Acquire loads, both compare-exchange wrappers, Release decrement, the checked
+next-count function, and the `try_increment`/`increment` loop. They also prove
+`take_bootstrap_owner`, which consumes the invariant from a populated sidecar,
+returns its unique permission and recorded scalar value, and leaves the cell's
+sidecar empty while framing the native counter. The `EventBoundInvariant`
+`into_inner` body is proved to move out the same permission and protocol state.
+No production `Bytes` or `BytesMut` path calls this extraction yet; current
+scalar adapter callers still require the sidecar to be populated. The increment
+body only establishes guarded arithmetic and normal-return behavior. The
+generic platform abort contract accounts for overflow error not returning from
+`increment`. Compile-time assertions check the cell's size, alignment, and
+drop behavior. The existing native layout test checks `Shared` field offsets;
+it does not exercise the `Owned` prefix cast. That cast relies on the `repr(C)`
+cell with its counter as the first field, and is not claimed as a separate
+runtime test.
 
 Contracts for the native adapters are generic trusted primitives with a narrow
-single-thread interpretation. Each adapter assumes it opens the unique
-`AtomicInvariant` stored in the cell's ghost sidecar, whose public projection is
-bound to that exact `NativeCounter`, lends its current state only to the
-one-shot callback, and restores the invariant before returning. The opening
-does not expose a second state or permit callback reentry. The patched FnGhost
-purity checker rejects native operations from checked callbacks; the exact
-tool identity is bound by the receipt. Each verified operation is bound to
-the exact stored counter permission and current scalar protocol state, and
-every access to that counter in the selected proof cone must use these
-adapters on one thread. These contracts do not describe concurrent loads,
-read coherence, synchronization handoff, or acquire-imported resources. The
-crate's ordinary native implementation retains its concurrent behavior, but
-these proofs make no concurrent Bytes claim.
+single-thread interpretation. While the sidecar is populated, each adapter
+assumes it opens the unique `AtomicInvariant` stored there, whose public
+projection is bound to that exact `NativeCounter`, lends its current state only
+to the one-shot callback, and restores the invariant before returning. The
+opening does not expose a second state or permit callback reentry. The patched
+FnGhost purity checker rejects native operations from checked callbacks; the
+exact tool identity is bound by the receipt. The body-proved bootstrap helper
+can consume this invariant once and transfer its permission and current scalar
+state out of the cell, but the selected production call cone does not yet
+perform that transfer or route operations through the transferred capsule.
+Each verified operation is bound to the exact stored counter permission and
+current scalar protocol state, and every access to that counter in the selected
+proof cone must use these adapters on one thread. These contracts do not
+describe concurrent loads, read coherence, synchronization handoff, or
+acquire-imported resources. The crate's ordinary native implementation retains
+its concurrent behavior, but these proofs make no concurrent Bytes claim.
 
 The scalar refcount protocol does not contain owner tickets. The body proofs do
 not connect constructors, clones, conversions, drops, or handle transfers to
