@@ -479,7 +479,7 @@ impl VecStorage {
     }
 
     #[logic(open(self), prophetic)]
-    fn matches_authority(self, authority: StoredAuthority) -> bool {
+    pub(crate) fn matches_authority(self, authority: StoredAuthority) -> bool {
         pearlite! {
             self.invariant() && authority.invariant() &&
             match self.storage_model() {

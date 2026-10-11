@@ -71,6 +71,15 @@ stronger proof preconditions than the trait prestate. Promotion, Shared states,
 immutable peers, lifecycle operations, concurrency and unwind behavior remain
 outside the selected `BytesMut` proof scope.
 
+The native Shared reserve-growth path now compacts the handle's initialized
+visible bytes to the Vec base before setting its length and calling
+`Vec::reserve`. This prevents a hidden prefix that another disjoint handle
+could leave uninitialized from being included in the Vec length. The existing
+regression test exercises that sequence. Shared reserve remains
+`no_translate`, so this is native test evidence, not a body proof; it does not
+establish Shared ownership or lifecycle properties, nor claim that a prior
+execution was observed to have undefined behavior.
+
 The supporting `split_view_region` body preserves the full physical allocation
 while splitting the cursor-relative visible region, including any hidden
 prefix. The selected `BoundPtr` projection and `advance_within` bodies preserve

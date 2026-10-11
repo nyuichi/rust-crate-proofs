@@ -1,17 +1,17 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 436 4 436 85 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 447 4 447 85 *)
 
 type namespace_other
 
 type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
-let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 437 8 437 37
-let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 432 15 432 55
-let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 433 14 433 49
-let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 434 14 434 33
-let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 435 14 435 45
-let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 411 12 411 16
-let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 407 24 407 26
-let%span sref_count_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 418 12 418 33
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 448 8 448 37
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 443 15 443 55
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 444 14 444 49
+let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 445 14 445 33
+let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 446 14 446 45
+let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 422 12 422 16
+let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 418 24 418 26
+let%span sref_count_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 429 12 429 33
 
 use creusot.int.UInt64
 use creusot.prelude.MutBorrow
@@ -23,20 +23,20 @@ predicate resolve_refmut_RefCountState [@inline:trivial] (_1: MutBorrow.t t_RefC
 
 meta "rewrite_def" predicate resolve_refmut_RefCountState
 
-predicate protocol_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 410 8 410 33] (self: t_RefCountState) =
+predicate protocol_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 421 8 421 33] (self: t_RefCountState) =
   [%#sref_count_ops'4] true
 
-function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 407 8 407 23] (self: t_RefCountState) : ()
+function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 418 8 418 23] (self: t_RefCountState) : ()
  = [%#sref_count_ops'5] ()
 
-predicate agrees_with_value_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 417 8 417 56] (self: t_RefCountState) (value: UInt64.t) =
+predicate agrees_with_value_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 428 8 428 56] (self: t_RefCountState) (value: UInt64.t) =
   [%#sref_count_ops'6] self.current' = value
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let update_ref_count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 436 4 436 85]
+let update_ref_count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 447 4 447 85]
   (state: MutBorrow.t t_RefCountState) (old': UInt64.t) (new: UInt64.t) (return (x: ())) =
 {[@stop_split] [@expl:update_ref_count requires] [%#sref_count_ops'0] protocol_RefCountState state.current
   /\ state.current.current' = old'}

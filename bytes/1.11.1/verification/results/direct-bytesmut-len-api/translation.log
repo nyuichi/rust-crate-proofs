@@ -65,40 +65,64 @@ warning: unused import: `AtomicUsize`
    |                                            ^^^^^^^^^^^
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:1588:66
+    --> src/bytes_mut.rs:1590:66
      |
-1588 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
+1590 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
      |                                                                  ^                                           ^
      |
      = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
 help: remove these parentheses
      |
-1588 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
-1588 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> forall<i:Int>
+1590 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
+1590 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> forall<i:Int>
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/bytes_mut.rs:1585:66
+     |
+1585 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
+     |                                                                  ^                                           ^
+     |
+help: remove these parentheses
+     |
+1585 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+1585 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/bytes_mut.rs:1584:66
+     |
+1584 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
+     |                                                                  ^                                           ^
+     |
+help: remove these parentheses
+     |
+1584 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
+1584 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
      |
 
 warning: unnecessary parentheses around function argument
     --> src/bytes_mut.rs:1583:66
      |
-1583 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
+1583 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-1583 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
-1583 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+1583 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
+1583 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
      |
 
 warning: unnecessary parentheses around function argument
     --> src/bytes_mut.rs:1582:66
      |
-1582 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
+1582 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-1582 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
-1582 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
+1582 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
+1582 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
      |
 
 warning: unnecessary parentheses around function argument
@@ -109,8 +133,8 @@ warning: unnecessary parentheses around function argument
      |
 help: remove these parentheses
      |
-1581 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
-1581 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
+1581 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_length() == self.unique_length()))]
+1581 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_length() == self.unique_length()))]
      |
 
 warning: unnecessary parentheses around function argument
@@ -121,8 +145,8 @@ warning: unnecessary parentheses around function argument
      |
 help: remove these parentheses
      |
-1580 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
-1580 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
+1580 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_capacity() == self.unique_capacity()))]
+1580 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_capacity() == self.unique_capacity()))]
      |
 
 warning: unnecessary parentheses around function argument
@@ -133,8 +157,8 @@ warning: unnecessary parentheses around function argument
      |
 help: remove these parentheses
      |
-1579 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_length() == self.unique_length()))]
-1579 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_length() == self.unique_length()))]
+1579 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_pointer() == self.unique_pointer()))]
+1579 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_pointer() == self.unique_pointer()))]
      |
 
 warning: unnecessary parentheses around function argument
@@ -145,68 +169,44 @@ warning: unnecessary parentheses around function argument
      |
 help: remove these parentheses
      |
-1578 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_capacity() == self.unique_capacity()))]
-1578 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_capacity() == self.unique_capacity()))]
+1578 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_offset() == self.unique_offset()))]
+1578 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_offset() == self.unique_offset()))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:1577:66
-     |
-1577 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
-     |                                                                  ^                                           ^
-     |
-help: remove these parentheses
-     |
-1577 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_pointer() == self.unique_pointer()))]
-1577 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_pointer() == self.unique_pointer()))]
-     |
-
-warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:1576:66
-     |
-1576 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
-     |                                                                  ^                                           ^
-     |
-help: remove these parentheses
-     |
-1576 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_offset() == self.unique_offset()))]
-1576 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_offset() == self.unique_offset()))]
-     |
-
-warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:518:17
+   --> src/ref_count_ops.rs:529:17
     |
-518 |                 (old == expected ==>
+529 |                 (old == expected ==>
     |                 ^
 ...
-522 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+533 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
     |                                                                                        ^
     |
 help: remove these parentheses
     |
-518 ~                 old == expected ==>
-519 |                     f.precondition((&mut s.current, old, new)) &&
-520 |                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
-521 |                         (^s).current.public() == s.current.public() &&
-522 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+529 ~                 old == expected ==>
+530 |                     f.precondition((&mut s.current, old, new)) &&
+531 |                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
+532 |                         (^s).current.public() == s.current.public() &&
+533 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
     |
 
 warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:571:17
+   --> src/ref_count_ops.rs:582:17
     |
-571 |                 (old == expected ==>
+582 |                 (old == expected ==>
     |                 ^
 ...
-575 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+586 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
     |                                                                                        ^
     |
 help: remove these parentheses
     |
-571 ~                 old == expected ==>
-572 |                     f.precondition((&mut s.current, old, new)) &&
-573 |                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
-574 |                         (^s).current.public() == s.current.public() &&
-575 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+582 ~                 old == expected ==>
+583 |                     f.precondition((&mut s.current, old, new)) &&
+584 |                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
+585 |                         (^s).current.public() == s.current.public() &&
+586 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
     |
 
 warning: unused import: `borrow::Borrow`
@@ -368,13 +368,13 @@ warning: methods `binding` and `stored_len` are never used
     |                   ^^^^^^^^^^
 
 warning: associated items `matches_authority` and `hold_owned` are never used
-   --> src/vec_storage.rs:482:8
+   --> src/vec_storage.rs:482:19
     |
 470 | impl VecStorage {
     | --------------- associated items in this implementation
 ...
-482 |     fn matches_authority(self, authority: StoredAuthority) -> bool {
-    |        ^^^^^^^^^^^^^^^^^
+482 |     pub(crate) fn matches_authority(self, authority: StoredAuthority) -> bool {
+    |                   ^^^^^^^^^^^^^^^^^
 ...
 590 |     pub(crate) fn hold_owned(
     |                   ^^^^^^^^^^
@@ -784,28 +784,31 @@ warning: function `factor_singleton_removal` is never used
 523 | fn factor_singleton_removal(map: Snapshot<ActiveOwners>, id: Snapshot<Int>) {
     |    ^^^^^^^^^^^^^^^^^^^^^^^^
 
-warning: associated items `new_with_owner`, `native_counter`, and `take_bootstrap_owner` are never used
-   --> src/ref_count_ops.rs:129:19
+warning: associated items `counter_model`, `new_with_owner`, `native_counter`, and `take_bootstrap_owner` are never used
+   --> src/ref_count_ops.rs:94:19
     |
  88 | impl RefCountCell {
     | ----------------- associated items in this implementation
 ...
-129 |     pub(crate) fn new_with_owner(
+ 94 |     pub(crate) fn counter_model(self) -> NativeCounter {
+    |                   ^^^^^^^^^^^^^
+...
+139 |     pub(crate) fn new_with_owner(
     |                   ^^^^^^^^^^^^^^
 ...
-144 |     pub(crate) fn native_counter(&self) -> &NativeCounter {
+155 |     pub(crate) fn native_counter(&self) -> &NativeCounter {
     |                   ^^^^^^^^^^^^^^
 ...
-162 |     pub(crate) fn take_bootstrap_owner(
+173 |     pub(crate) fn take_bootstrap_owner(
     |                   ^^^^^^^^^^^^^^^^^^^^
 
 warning: method `into_inner` is never used
-   --> src/ref_count_ops.rs:379:23
+   --> src/ref_count_ops.rs:390:23
     |
-349 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
+360 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
     |     ----------------------------------------------- method in this implementation
 ...
-379 |         pub(super) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
+390 |         pub(super) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
     |                       ^^^^^^^^^^
 
 warning: calling external function `is_empty` with no contract will yield an impossible precondition
@@ -2865,51 +2868,51 @@ warning: calling external function `write_bytes` with no contract will yield an 
     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1392:18
+    --> src/bytes_mut.rs:1394:18
      |
-1392 |         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
+1394 |         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts_mut` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1397:18
+    --> src/bytes_mut.rs:1399:18
      |
-1397 |         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
+1399 |         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `add` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1480:28
+    --> src/bytes_mut.rs:1482:28
      |
-1480 |         let ptr = unsafe { self.ptr.as_ptr().add(self.len) };
+1482 |         let ptr = unsafe { self.ptr.as_ptr().add(self.len) };
      |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1797:13
+    --> src/bytes_mut.rs:1799:13
      |
-1797 |             ptr::write_bytes(dst.as_mut_ptr(), val, cnt);
+1799 |             ptr::write_bytes(dst.as_mut_ptr(), val, cnt);
      |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `hash` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1913:9
+    --> src/bytes_mut.rs:1915:9
      |
-1913 |         s.hash(state);
+1915 |         s.hash(state);
      |         ^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1944:9
+    --> src/bytes_mut.rs:1946:9
      |
-1944 |         fmt::write(self, args)
+1946 |         fmt::write(self, args)
      |         ^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `sub` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2515:15
+    --> src/bytes_mut.rs:2536:15
      |
-2515 |     let ptr = ptr.sub(off);
+2536 |     let ptr = ptr.sub(off);
      |               ^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2519:5
+    --> src/bytes_mut.rs:2540:5
      |
-2519 |     Vec::from_raw_parts(ptr, len, cap)
+2540 |     Vec::from_raw_parts(ptr, len, cap)
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `contains` with no contract will yield an impossible precondition
@@ -2931,4 +2934,4 @@ warning: calling external function `new` with no contract will yield an impossib
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: `bytes` (lib) generated 325 warnings (run `cargo fix --lib -p bytes` to apply 21 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.88s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.10s

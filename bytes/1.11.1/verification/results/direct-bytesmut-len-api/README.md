@@ -23,6 +23,13 @@ pointer, length, capacity, and contents to a sealed witness is trusted; it
 does not create those affine resources or establish any `Bytes` owner,
 refcount, or retirement rule. `hold_owned` has no production Shared caller.
 
+The native Shared reserve-growth path now compacts its initialized visible
+bytes to the Vec base before calling `Vec::reserve`, so a hidden prefix left
+uninitialized by another disjoint handle is not included in the Vec length.
+The existing regression test covers that sequence. Reserve remains
+`no_translate`; this is a tested native behavior change, not a proof of Shared
+ownership or lifecycle.
+
 The selected source targets also include body proofs for cursor-relative
 prefix helpers, Vec metadata packing and position updates, `BoundPtr`
 projections, `set_visible_len`, `advance_vec_layout`, `advance_unchecked`, and

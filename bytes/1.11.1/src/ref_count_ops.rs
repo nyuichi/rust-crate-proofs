@@ -86,6 +86,15 @@ const _: [(); core::mem::align_of::<AtomicUsize>()] = [(); core::mem::align_of::
 const _: [(); 0] = [(); core::mem::needs_drop::<RefCountCell>() as usize];
 
 impl RefCountCell {
+    /// Stable logical identity of the exact native counter field. This is a
+    /// projection only; it does not expose or duplicate the counter
+    /// permission.
+    #[cfg(creusot)]
+    #[logic(open(self))]
+    pub(crate) fn counter_model(self) -> NativeCounter {
+        pearlite! { self.counter }
+    }
+
     #[cfg(creusot)]
     #[logic(open(self))]
     pub(crate) fn has_event_invariant(self) -> bool {
@@ -124,6 +133,7 @@ impl RefCountCell {
     #[ensures(result.0.invariant() && !result.0.has_event_invariant())]
     #[ensures(result.1.inner_logic().0.ward() == &result.0.counter)]
     #[ensures(*result.1.inner_logic().0.ward() == result.0.counter)]
+    #[ensures(*result.1.inner_logic().0.ward() == result.0.counter_model())]
     #[ensures(result.1.inner_logic().0.val() == value)]
     #[ensures(result.1.inner_logic().1 == value)]
     pub(crate) fn new_with_owner(
@@ -141,6 +151,7 @@ impl RefCountCell {
     /// invariant. This getter preserves field identity for callers that first
     /// place the enclosing header at its final address.
     #[cfg_attr(creusot, ensures(result == &self.counter))]
+    #[cfg_attr(creusot, ensures(*result == self.counter_model()))]
     pub(crate) fn native_counter(&self) -> &NativeCounter {
         &self.counter
     }

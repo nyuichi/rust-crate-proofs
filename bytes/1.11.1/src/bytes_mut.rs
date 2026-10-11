@@ -1130,8 +1130,9 @@ impl BytesMut {
                         return false;
                     }
 
-                    // new_cap is calculated in terms of `BytesMut`, not the underlying
-                    // `Vec`, so it does not take the offset into account.
+                    // `new_cap` is calculated in terms of `BytesMut`, not the
+                    // underlying `Vec`, so it does not take the offset into
+                    // account.
                     //
                     // Thus we have to manually add it here.
                     new_cap = new_cap_plus_offset;
@@ -1150,20 +1151,21 @@ impl BytesMut {
 
                     // No space - allocate more
                     //
-                    // The length field of `Shared::vec` is not used by the `BytesMut`;
-                    // instead we use the `len` field in the `BytesMut` itself. However,
-                    // when calling `reserve`, it doesn't guarantee that data stored in
-                    // the unused capacity of the vector is copied over to the new
-                    // allocation, so we need to ensure that we don't have any data we
-                    // care about in the unused capacity before calling `reserve`.
+                    // The Shared Vec may contain an uninitialized hidden prefix:
+                    // another disjoint handle can safely overwrite that prefix
+                    // through its spare capacity before being dropped. Compact
+                    // only this handle's initialized visible bytes to the base
+                    // before growing, so Vec::reserve receives an initialized
+                    // element prefix; any spare capacity remains uninitialized.
                     debug_assert!(offset + len <= v.metadata().2);
-                    v.set_len(offset + len);
-                    v.reserve(new_cap - (offset + len));
+                    ptr::copy(self.ptr.as_ptr(), ptr, len);
+                    v.set_len(len);
+                    v.reserve(new_cap - len);
 
                     // Update the info
                     let (base, _, vec_cap) = v.metadata();
-                    self.ptr = vptr(base.add(offset));
-                    self.cap = vec_cap - offset;
+                    self.ptr = vptr(base);
+                    self.cap = vec_cap;
                     return true;
                 }
             }
@@ -2162,6 +2164,25 @@ mod tests {
             right.len()
         );
         assert_eq!(&right[..], b"0123456789");
+    }
+
+    #[test]
+    fn reserve_compacts_visible_bytes_before_growing_after_hidden_prefix_is_uninitialized() {
+        let original: Vec<u8> = (0..80).map(|i| i as u8).collect();
+        let expected = original[32..].to_vec();
+        let mut left = BytesMut::from(original.as_slice());
+        let mut right = left.split_off(32);
+
+        left.clear();
+        for slot in left.spare_capacity_mut() {
+            *slot = MaybeUninit::uninit();
+        }
+        drop(left);
+
+        right.reserve(100);
+
+        assert!(right.capacity() >= right.len() + 100);
+        assert_eq!(&right[..], expected.as_slice());
     }
 
     #[test]
