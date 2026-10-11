@@ -7,13 +7,28 @@ All selected targets translate from this crate's original source; no separate
 Std-source proof targets are included. [`TCB.md`](TCB.md) describes the selected
 guarantees and their assumptions.
 
+The selected source targets also include body proofs for cursor-relative
+prefix helpers, Vec metadata packing and position updates, `BoundPtr`
+projections, and `BufMut::advance_mut`. They do not include the body of
+`advance_unchecked`; its final `unique_valid` postcondition remains unproved.
+The `BufMut::advance_mut` implementation body has a proof under its
+cursor-validity and initialized-slot preconditions, but the generated trait
+refinement obligation is not proved because those implementation preconditions
+are stronger than the trait prestate.
+The initial Vec constructors establish offset zero, and no selected proof
+establishes a safe production path to a nonzero offset or through the
+promotion branch. The logical model and cursor helpers are not evidence that
+those states are reachable through the original API.
+
 The selected source targets include body proofs for the generic `OwnerLedger`
 algebra and the current-value refcount operation wrappers and increment loop.
 The ledger remains disconnected from production `Bytes` and `BytesMut` owner
 handles. The refcount proof state is a scalar operation model, not an owner
 inventory. These results do not establish that the native refcount equals the
 number of registered handles, that an observed count of one is exclusive, or
-that Shared storage may be reclaimed.
+that Shared storage may be reclaimed. They are a partial direct-source
+checkpoint, not complete `BytesMut::truncate` verification across all safe
+states.
 
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current

@@ -385,6 +385,7 @@ impl BoundPtr {
     /// no permission to dereference it.
     #[cfg(creusot)]
     #[logic(open(self))]
+    #[ensures(result.addr_logic()@ == self.current_address())]
     pub(crate) fn raw_pointer(self) -> *mut u8 {
         pearlite! { self.pointer@ }
     }
@@ -1278,7 +1279,7 @@ pub(crate) unsafe fn borrow_mut<'a>(
 /// of its optional ledger entry are present.
 #[logic(open)]
 pub(crate) fn slot_known(slot: Option<Option<u8>>) -> bool {
-    match slot { Some(Some(_)) => true, _ => false }
+    pearlite! { exists<value: u8> slot == Some(Some(value)) }
 }
 
 #[check(ghost)]

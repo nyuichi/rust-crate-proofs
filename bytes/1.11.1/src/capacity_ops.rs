@@ -114,6 +114,7 @@ pub(crate) fn reconstructed_original_capacity(cap: usize) -> usize {
 #[cfg_attr(creusot, ensures(((result & ORIGINAL_CAPACITY_MASK) >> ORIGINAL_CAPACITY_OFFSET) == repr))]
 #[cfg_attr(creusot, ensures(result & KIND_MASK == KIND_VEC))]
 #[cfg_attr(creusot, ensures(result >> VEC_POS_OFFSET == 0usize))]
+#[cfg_attr(creusot, ensures(result & 3usize == 1usize))]
 pub(crate) fn pack_vec_metadata(repr: usize) -> usize {
     (repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC
 }
@@ -140,6 +141,7 @@ pub(crate) fn vec_pos_from_data(data: usize) -> usize {
 #[cfg_attr(creusot, ensures((result >> VEC_POS_OFFSET) == pos))]
 #[cfg_attr(creusot, ensures(result & NOT_VEC_POS_MASK == data & NOT_VEC_POS_MASK))]
 #[cfg_attr(creusot, ensures(result & KIND_MASK == data & KIND_MASK))]
+#[cfg_attr(creusot, ensures(result & 3usize == data & 3usize))]
 pub(crate) fn set_vec_pos_in_data(data: usize, pos: usize) -> usize {
     (pos << VEC_POS_OFFSET) | (data & NOT_VEC_POS_MASK)
 }

@@ -242,6 +242,8 @@ impl VecRawParts {
 
     #[cfg(all(creusot, bytes_original_unique_gate))]
     #[requires(self.invariant())]
+    #[requires(forall<i:Int> 0 <= i && i < self.native_len_model() ==>
+        raw_vec::slot_known(self.region_slot_model(i)))]
     #[ensures(result.0.raw_pointer() == self.native_ptr_model())]
     #[ensures(result.0.base_address() == self.raw_base_address_model())]
     #[ensures(result.0.capacity() == self.native_capacity_model())]
@@ -258,6 +260,9 @@ impl VecRawParts {
     #[ensures(result.0.base_address() + self.native_capacity_model() <= usize::MAX@)]
     #[ensures(forall<i:Int> 0 <= i && i < self.native_capacity_model() ==>
         result.1.inner_logic().1.slot(i) == self.region_slot_model(i))]
+    #[ensures(forall<i:Int> 0 <= i && i < self.native_len_model() ==>
+        result.1.inner_logic().1.slot(i) == self.region_slot_model(i) &&
+        raw_vec::slot_known(result.1.inner_logic().1.slot(i)))]
     pub(crate) fn into_proof_authority(
         self,
     ) -> (RawAllocation, Ghost<(Recovery, PhysicalRegion)>) {

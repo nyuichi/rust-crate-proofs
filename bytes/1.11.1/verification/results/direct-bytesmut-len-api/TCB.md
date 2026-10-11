@@ -33,19 +33,31 @@ UTF-8 encoding. The precise assumption and replacement path are documented in
 the [Std overlay notes](../../std-support/README.md).
 
 `len` and `is_empty` are proved without a representation precondition.
-`truncate`, `clear` and unsafe `set_len` require `unique_valid`, the
-whole-allocation, offset-zero Vec-backed state. `set_len` also requires
-capacity bounds and known initialized slots for any growth. The listed
-constructor bodies establish this state for their selected paths; other
-constructors and transitions are not shown to establish it. Shared and
-nonzero-offset states, immutable peers, lifecycle operations, concurrency and
-unwind behavior are outside the selected `BytesMut` proof scope.
+`truncate`, `clear`, unsafe `set_len`, and the implementation body of
+`BufMut::advance_mut` are proved from the cursor-aware `unique_valid`
+precondition; `set_len` and `advance_mut` also require capacity and
+initialized-slot bounds for growth. The separate generated trait-refinement
+obligation for `BufMut::advance_mut` is not proved: the trait prestate does not
+establish the proof-only validity and initialized-slot preconditions added to
+the implementation body. Therefore this body proof does not establish the
+public trait refinement.
+The logical invariant and prefix helpers retain the complete allocation frame
+at an absolute cursor, and the metadata helpers prove the packed Vec position
+updates. The selected constructor bodies establish `unique_valid` at offset
+zero. The body of `advance_unchecked`, which would establish a later cursor
+state, still has one unproved `unique_valid` postcondition. Thus no selected
+proof establishes a safe production path to a nonzero offset or through its
+promotion branch. Shared states, immutable peers, lifecycle operations,
+concurrency and unwind behavior remain outside the selected `BytesMut` proof
+scope.
 
 The supporting `split_view_region` body preserves the full physical allocation
 while splitting the cursor-relative visible region, including any hidden
-prefix. The selected bodies use generic Creusot Std ghost/resource and logic
-contracts, plus the address-only `wrapping_add_u8` specification. Their Vec
-observer and resource assumptions are documented in the
+prefix. The selected `BoundPtr` projection and `advance_within` bodies preserve
+the bounded pointer relationship used by the cursor helpers. The selected
+bodies use generic Creusot Std ghost/resource and logic contracts, plus the
+address-only `wrapping_add_u8` specification. Their Vec observer and resource
+assumptions are documented in the
 [Std overlay](../../std-support/README.md). Verification-only exclusions for
 unrelated comparison, ownership, iterator and Shared-backed bodies are
 documented beside the source in [`bytes.rs`](../../../src/bytes.rs) and

@@ -1,17 +1,17 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 285 4 285 30 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 342 4 342 30 *)
 
 (* bytes_mut::BytesMut *)
 
 let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 285 16 285 20
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 283 65 283 96
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 88 59 88 68
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 342 16 342 20
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 340 65 340 96
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 90 59 90 68
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 361 12 369 13
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 245 12 246 56
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 644 12 648 33
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 645 12 649 33
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
 
 use creusot.int.UInt64
@@ -33,7 +33,11 @@ type t_PhysicalRegion
 
 type tup2_Recovery_PhysicalRegion = { f0: t_Recovery; f1: t_PhysicalRegion }
 
-type t_OriginalUniqueProof = { base: t_BoundPtr; raw: t_RawAllocation; capabilities: tup2_Recovery_PhysicalRegion }
+type t_OriginalUniqueProof = {
+  base: t_BoundPtr;
+  cursor: t_BoundPtr;
+  raw: t_RawAllocation;
+  capabilities: tup2_Recovery_PhysicalRegion }
 
 type t_Option_OriginalUniqueProof = None | Some t_OriginalUniqueProof
 
@@ -110,7 +114,7 @@ predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src
 
 type tup3_OwnedRegion_Int_Id = { f0'2: t_OwnedRegion; f1'2: int; f2'2: t_Id }
 
-function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 630 4 630 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 631 4 631 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
 
 type t_Excl_unit = { f0'3: () }
 
@@ -128,7 +132,7 @@ type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
 
 function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
 
-predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 642 4 642 30] (self: t_PhysicalRegion) =
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 643 4 643 30] (self: t_PhysicalRegion) =
   [%#sraw_vec'1] invariant_OwnedRegion (view_PhysicalRegion self).f0'2
   /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5
   /\ (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f1'5
@@ -157,7 +161,8 @@ meta "rewrite_def" predicate inv_Ghost_tup2_Recovery_PhysicalRegion
 predicate inv_OriginalUniqueProof (_1: t_OriginalUniqueProof)
 
 axiom inv_axiom'3 [@rewrite]: forall x: t_OriginalUniqueProof [inv_OriginalUniqueProof x]. inv_OriginalUniqueProof x
-    = (inv_BoundPtr x.base /\ inv_RawAllocation x.raw /\ inv_Ghost_tup2_Recovery_PhysicalRegion x.capabilities)
+    = (inv_BoundPtr x.base
+    /\ inv_BoundPtr x.cursor /\ inv_RawAllocation x.raw /\ inv_Ghost_tup2_Recovery_PhysicalRegion x.capabilities)
 
 predicate inv_Option_OriginalUniqueProof (_1: t_Option_OriginalUniqueProof)
 
@@ -181,14 +186,14 @@ predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_By
 
 meta "rewrite_def" predicate inv_ref_BytesMut
 
-function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 88 4 88 44] (self: t_BytesMut) : int
+function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 90 4 90 44] (self: t_BytesMut) : int
  = [%#sbytes_mut'1] UInt64.t'int self.len
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let len'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 285 4 285 30] (self: t_BytesMut)
+let len'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 342 4 342 30] (self: t_BytesMut)
   (return (x: UInt64.t)) = {[@stop_split] [@expl:len 'self' type invariant] [%#sbytes_mut] inv_ref_BytesMut self}
   (! bb0
   [ bb0 = s0 [ s0 = [ &_ret <- self.len ] s1 | s1 = return {_ret} ] ]
