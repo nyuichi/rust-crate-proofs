@@ -68,3 +68,13 @@ observer and resource assumptions are documented in the
 unrelated comparison, ownership, iterator and Shared-backed bodies are
 documented beside the source in [`bytes.rs`](../../../src/bytes.rs) and
 [`bytes_mut.rs`](../../../src/bytes_mut.rs).
+
+The selected crate targets also body-prove the generic `ownership_proof::ref_count_ledger`
+module. Its affine authority map represents active owner IDs, and its tickets
+support root/promotion construction, a child split, a drop, and the empty-map
+retirement permit; the checked helpers prove singleton and no-conflicting-ticket
+facts. This is a reusable ledger component only. No current `Bytes` or
+`BytesMut` construction, clone, split, drop, refcount operation, terminal
+Acquire read, or storage recovery is connected to it. The proof therefore
+establishes no native refcount-to-handle equality, no count-one uniqueness
+result, and no Shared allocation lifecycle property.

@@ -1,4 +1,3 @@
-    Checking creusot-std v0.13.0 (/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-core-events)
 warning: unused variable: `vector`
   --> /workspace/bytes-proof-tools/bytes-proof-std-as-bytes-core-events/src/std/vec.rs:21:40
    |
@@ -479,6 +478,150 @@ warning: function `split_view_region` is never used
    |
 59 | pub(crate) fn split_view_region(
    |               ^^^^^^^^^^^^^^^^^
+
+warning: type alias `ActiveOwners` is never used
+  --> src/ownership_proof/ref_count_ledger.rs:18:17
+   |
+18 | pub(crate) type ActiveOwners = FMap<Int, Excl<()>>;
+   |                 ^^^^^^^^^^^^
+
+warning: struct `OwnerTicket` is never constructed
+  --> src/ownership_proof/ref_count_ledger.rs:22:19
+   |
+22 | pub(crate) struct OwnerTicket {
+   |                   ^^^^^^^^^^^
+
+warning: methods `ledger_id`, `owner_id`, `fragment_resource_id`, `fragment_map`, and `valid` are never used
+  --> src/ownership_proof/ref_count_ledger.rs:30:19
+   |
+28 | impl OwnerTicket {
+   | ---------------- methods in this implementation
+29 |     #[logic(open(self))]
+30 |     pub(crate) fn ledger_id(self) -> Id {
+   |                   ^^^^^^^^^
+...
+35 |     pub(crate) fn owner_id(self) -> Int {
+   |                   ^^^^^^^^
+...
+40 |     pub(crate) fn fragment_resource_id(self) -> Id {
+   |                   ^^^^^^^^^^^^^^^^^^^^
+...
+45 |     pub(crate) fn fragment_map(self) -> ActiveOwners {
+   |                   ^^^^^^^^^^^^
+...
+50 |     fn valid(self) -> bool {
+   |        ^^^^^
+
+warning: struct `RetirePermit` is never constructed
+  --> src/ownership_proof/ref_count_ledger.rs:67:19
+   |
+67 | pub(crate) struct RetirePermit {
+   |                   ^^^^^^^^^^^^
+
+warning: methods `ledger_id`, `active_ids`, `valid`, and `contradicts_live_ticket` are never used
+  --> src/ownership_proof/ref_count_ledger.rs:74:19
+   |
+72 | impl RetirePermit {
+   | ----------------- methods in this implementation
+73 |     #[logic(open(self))]
+74 |     pub(crate) fn ledger_id(self) -> Id {
+   |                   ^^^^^^^^^
+...
+79 |     pub(crate) fn active_ids(self) -> ActiveOwners {
+   |                   ^^^^^^^^^^
+...
+84 |     fn valid(self) -> bool {
+   |        ^^^^^
+...
+99 |     pub(crate) fn contradicts_live_ticket(&self, ticket: &OwnerTicket) {
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `OwnerLedger` is never constructed
+   --> src/ownership_proof/ref_count_ledger.rs:125:19
+    |
+125 | pub(crate) struct OwnerLedger {
+    |                   ^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src/ownership_proof/ref_count_ledger.rs:134:19
+    |
+132 | impl OwnerLedger {
+    | ---------------- associated items in this implementation
+133 |     #[logic(open(self))]
+134 |     pub(crate) fn ledger_id(self) -> Id {
+    |                   ^^^^^^^^^
+...
+139 |     pub(crate) fn next_id(self) -> Int {
+    |                   ^^^^^^^
+...
+144 |     pub(crate) fn is_live(self) -> bool {
+    |                   ^^^^^^^
+...
+149 |     pub(crate) fn active_ids(self) -> ActiveOwners {
+    |                   ^^^^^^^^^^
+...
+159 |     pub(crate) fn count(self) -> Int {
+    |                   ^^^^^
+...
+165 |     pub(crate) fn agrees_with_value(self, value: Int) -> bool {
+    |                   ^^^^^^^^^^^^^^^^^
+...
+170 |     fn valid(self) -> bool {
+    |        ^^^^^
+...
+186 |     pub(crate) fn has_ticket(self, ticket: OwnerTicket) -> bool {
+    |                   ^^^^^^^^^^
+...
+202 |     fn prove_ticket_is_active(&self, ticket: &OwnerTicket) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+223 |     pub(crate) fn new_root() -> Ghost<(OwnerLedger, OwnerTicket)> {
+    |                   ^^^^^^^^
+...
+262 |     pub(crate) fn new_promoted_pair() -> Ghost<(OwnerLedger, OwnerTicket, OwnerTicket)> {
+    |                   ^^^^^^^^^^^^^^^^^
+...
+329 |     pub(crate) fn split_owner(
+    |                   ^^^^^^^^^^^
+...
+379 |     pub(crate) fn drop_owner(
+    |                   ^^^^^^^^^^
+
+warning: function `map_op_fresh_singleton` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:439:4
+    |
+439 | fn map_op_fresh_singleton(map: Snapshot<ActiveOwners>, id: Snapshot<Int>) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `sole_active_id` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:459:15
+    |
+459 | pub(crate) fn sole_active_id(ledger: Snapshot<OwnerLedger>, ticket: Snapshot<OwnerTicket>) {
+    |               ^^^^^^^^^^^^^^
+
+warning: function `contradict_two_tickets` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:473:15
+    |
+473 | pub(crate) fn contradict_two_tickets(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `map_singleton_from_len_one` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:496:4
+    |
+496 | fn map_singleton_from_len_one(map: Snapshot<ActiveOwners>, id: Snapshot<Int>) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `zero_length_map_has_no_ids` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:511:4
+    |
+511 | fn zero_length_map_has_no_ids(map: Snapshot<ActiveOwners>) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `factor_singleton_removal` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:523:4
+    |
+523 | fn factor_singleton_removal(map: Snapshot<ActiveOwners>, id: Snapshot<Int>) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: calling external function `is_empty` with no contract will yield an impossible precondition
    --> src/buf/buf_impl.rs:211:12
@@ -2624,8 +2767,8 @@ warning: calling external function `new` with no contract will yield an impossib
 184 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 303 warnings (run `cargo fix --lib -p bytes` to apply 9 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 37.21s
+warning: `bytes` (lib) generated 316 warnings (run `cargo fix --lib -p bytes` to apply 9 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.90s
      Removed 7 files, 16.3MiB total
     Checking creusot-std v0.13.0 (/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-core-events)
 warning: unused variable: `vector`
@@ -2651,4 +2794,4 @@ warning: unused variable: `vector`
 warning: Some cross-crate `#[erasure]` checks were skipped.
 
 warning: `creusot-std` (lib) generated 4 warnings (run `cargo fix --lib -p creusot-std` to apply 3 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 30.09s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 26.29s
