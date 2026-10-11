@@ -25,6 +25,25 @@ casts in logical contracts total. The supplied high-half witness keeps the
 contract in mathematical division form and verifies the actual Rust
 `(n >> 64) as u64` body.
 
+## Bytes-only FnGhost purity patch
+
+`patches/bytes-fn-ghost-purity.patch` targets Creusot commit
+`318615be3b8bbc60d1f6d52469ba5c0bdebed4f1`. It checks annotated
+`#[check(ghost)]` callback bodies in ghost purity context, so a native atomic
+operation or an ordinary helper that performs one cannot be hidden in an
+erased `FnGhost` callback. The existing Logic context guard is preserved.
+`bytes/1.11.1/scripts/setup-bytes-toolchain.sh` builds this compiler into a
+separate path and records the patch/source/setup identity and binary hash in
+the installation manifest. The bytes proof runner selects it explicitly;
+the vanilla compiler and the itoa tool selection stay unchanged.
+
+This validator correction is not a memory-model proof and adds no trusted bytes
+ownership, count, retirement, or destructor law. Explicit
+`#[trusted(ghost)]` functions remain part of Creusot's trusted boundary, so
+callback openers must not use them to conceal native effects. Remove this patch
+only after an upstream pinned revision provides an equivalent callback effect
+check and diagnostics plus affected fresh proofs confirm the change.
+
 ## Pins
 
 Exact source, Why3, Why3find, Rust, and solver revisions and the environment

@@ -68,6 +68,15 @@ PINNED = {
     "why3_sha": "54c92f96bb0711d6e991c18f10bfbc08d90d028b",
     "why3find_sha": "eab37557d3e24e1913a3c4f44bc5528ef497c6c9",
 }
+PURITY_PATCH_ID = {
+    "id": "bytes-fn-ghost-purity-v1",
+    "source_commit": PINNED["creusot_sha"],
+    "source_path": "creusot/src/validate/purity.rs",
+    "base_source_sha256": "5c56221d3f131c6ad1cfc2aebc85363ba84ae548c742a905f3d38100528b1af0",
+    "patched_source_sha256": "857f74d243f068642cf278f707f9b54e93ea433575769525994f15d234eba9f1",
+    "patch_sha256": "6eb53cf71094d0987605a6ec2784ef6556fa253832b30f40ff0a8a3179ba9587",
+    "compiler_binary": "creusot-rustc-fn-ghost-purity",
+}
 PROVERS = {"alt-ergo", "z3", "cvc4", "cvc5"}
 SPAN = re.compile(r'"(?P<file>/[^"\n]+\.rs)"\s+(?P<start>\d+)\s+\d+\s+(?P<end>\d+)\s+\d+')
 WARNING = re.compile(r"no contract|contractless|unsupported|unimplemented|no specification|unproved external", re.I)
@@ -128,7 +137,24 @@ def std_tree_sha256(root: Path) -> str:
     return digest_value.hexdigest()
 
 
-def inputs(crate: Path, verify_installed_std: bool = False) -> dict[str, str]:
+def purity_toolpatch_identity(crate: Path) -> dict[str, str]:
+    repo = crate.parents[1]
+    patch = repo / "tools/creusot-toolpatch/patches/bytes-fn-ghost-purity.patch"
+    builder = repo / "tools/creusot-toolpatch/scripts/build-bytes-fn-ghost-purity.sh"
+    setup = crate / "scripts/setup-bytes-toolchain.sh"
+    try:
+        patch_sha = digest(patch.read_bytes())
+        builder_sha = digest(builder.read_bytes())
+        setup_sha = digest(setup.read_bytes())
+    except OSError as error:
+        raise ReuseMiss(f"Creusot patch/setup input is missing: {error.filename}") from None
+    require(patch_sha == PURITY_PATCH_ID["patch_sha256"],
+            "tracked FnGhost purity patch differs from the reviewed patch identity")
+    return {**PURITY_PATCH_ID, "builder_sha256": builder_sha, "setup_sha256": setup_sha}
+
+
+def inputs(crate: Path, verify_installed_std: bool = False,
+           verify_installed_tool: bool = False) -> dict[str, str]:
     manifest = std_manifest(crate)
     patch_names = manifest["patches"]
     require(all(isinstance(name, str) and PurePosixPath(name).name == name
@@ -139,7 +165,7 @@ def inputs(crate: Path, verify_installed_std: bool = False) -> dict[str, str]:
     fixed = (
         "Cargo.lock", "Cargo.toml", "why3find.json",
         "scripts/check-current-proof.py", "scripts/prepare-proof-std.py",
-        "scripts/verify-current.bash",
+        "scripts/verify-current.bash", "scripts/setup-bytes-toolchain.sh",
         "verification/std-support/README.md",
         "verification/std-support/manifest.json",
     )
@@ -160,6 +186,11 @@ def inputs(crate: Path, verify_installed_std: bool = False) -> dict[str, str]:
     else:
         external_tree = expected_tree
     values["external_std_package_tree_sha256"] = external_tree
+    identity = purity_toolpatch_identity(crate)
+    values["creusot_toolpatch_identity_sha256"] = digest(
+        json.dumps(identity, sort_keys=True).encode("utf-8"))
+    if verify_installed_tool:
+        installed_tool_identity(crate, identity)
     return values
 
 
@@ -257,11 +288,20 @@ def check(crate: Path) -> dict:
             and tool.get("pinned_revisions") == PINNED,
             "receipt omits the pinned Creusot/Why3 identities")
     hashes = tool.get("binary_sha256", {})
-    names = {"creusot-rustc", "cargo-creusot", "why3", "why3find",
+    names = {"creusot-rustc", "creusot-rustc-fn-ghost-purity", "cargo-creusot", "why3", "why3find",
              "alt-ergo", "z3", "cvc4", "cvc5"}
     require(set(hashes) == names and all(re.fullmatch(r"[0-9a-f]{64}", str(v))
                                          for v in hashes.values()),
             "receipt has incomplete tool binary identities")
+    expected_patch = purity_toolpatch_identity(crate)
+    require(tool.get("creusot_toolpatch") == expected_patch,
+            "receipt does not bind the exact tracked Creusot patch/setup inputs")
+    selected = tool.get("selected_compiler", {})
+    require(selected.get("name") == expected_patch["compiler_binary"]
+            and isinstance(selected.get("path"), str)
+            and Path(selected["path"]).is_absolute()
+            and selected.get("sha256") == hashes[expected_patch["compiler_binary"]],
+            "receipt does not identify the selected patched compiler path and hash")
 
     std = receipt.get("std_overlay", {})
     manifest = path(crate, "verification/std-support/manifest.json").read_bytes()
@@ -310,7 +350,8 @@ def evidence_paths(target: str) -> tuple[str, str]:
     return coma, proof
 
 
-def tool_identity() -> dict:
+def installed_tool_identity(crate: Path,
+                            expected_patch: dict[str, str] | None = None) -> dict:
     manifest = Path(os.environ.get("BYTES_TOOL_ROOT", "/workspace/bytes-proof-tools")) \
         / "installation-manifest.json"
     try:
@@ -319,8 +360,33 @@ def tool_identity() -> dict:
         raise ValueError(f"cannot read installed tool identities: {error}") from None
     revisions = {name: value.get(name) for name in PINNED}
     require(revisions == PINNED, "installed tools differ from the pinned setup")
+    expected_patch = expected_patch or purity_toolpatch_identity(crate)
+    manifest_patch = value.get("creusot_toolpatch")
+    require(manifest_patch == expected_patch,
+            "installed Creusot tool patch identity differs from tracked setup inputs")
     binaries = value.get("binaries", {})
-    names = ("creusot-rustc", "cargo-creusot", "why3", "why3find",
+    selected_name = expected_patch["compiler_binary"]
+    try:
+        selected_path = Path(binaries[selected_name]["path"]).resolve(strict=True)
+        selected_hash = binaries[selected_name]["sha256"]
+    except (KeyError, TypeError, OSError):
+        raise ValueError("installed manifest omits the selected patched Creusot compiler") from None
+    require(re.fullmatch(r"[0-9a-f]{64}", str(selected_hash))
+            and digest(selected_path.read_bytes()) == selected_hash,
+            "selected patched Creusot compiler hash differs from its installation manifest")
+    configured = os.environ.get("CREUSOT_RUSTC")
+    require(configured is not None and Path(configured).resolve(strict=True) == selected_path,
+            "CREUSOT_RUSTC is not the patched compiler selected by the installation manifest")
+    return {"manifest_identity": manifest_patch,
+            "selected_compiler": {"name": selected_name, "path": str(selected_path),
+                                  "sha256": selected_hash},
+            "binaries": binaries}
+
+
+def tool_identity(crate: Path) -> dict:
+    installed = installed_tool_identity(crate)
+    binaries = installed["binaries"]
+    names = ("creusot-rustc", "creusot-rustc-fn-ghost-purity", "cargo-creusot", "why3", "why3find",
              "alt-ergo", "z3", "cvc4", "cvc5")
     hashes = {name: binaries.get(name, {}).get("sha256") for name in names}
     for name, expected in hashes.items():
@@ -344,7 +410,9 @@ def tool_identity() -> dict:
                         for name in os.environ),
             "unexpected proof cfg or additional Rust flags")
     return {"rust_toolchain": rust_toolchain, "host": host.group(1),
-            "pinned_revisions": revisions, "binary_sha256": hashes}
+            "pinned_revisions": PINNED, "binary_sha256": hashes,
+            "creusot_toolpatch": installed["manifest_identity"],
+            "selected_compiler": installed["selected_compiler"]}
 
 
 def save(crate: Path, feature_file: Path, log_file: Path, snapshot_file: Path,
@@ -353,7 +421,7 @@ def save(crate: Path, feature_file: Path, log_file: Path, snapshot_file: Path,
         receipt_inputs = json.loads(snapshot_file.read_bytes())
     except (OSError, json.JSONDecodeError) as error:
         raise ValueError(f"cannot read pre-translation source snapshot: {error}") from None
-    require(isinstance(receipt_inputs, dict) and receipt_inputs == inputs(crate, True),
+    require(isinstance(receipt_inputs, dict) and receipt_inputs == inputs(crate, True, True),
             "proof inputs changed during translation or proving; refusing stale evidence")
     feature_data, log_data = feature_file.read_bytes(), log_file.read_bytes()
     verify_feature_tree(feature_data)
@@ -382,7 +450,7 @@ def save(crate: Path, feature_file: Path, log_file: Path, snapshot_file: Path,
                                     (std_package_root(crate),))
     require(not warnings, "selected target call cone has unsupported diagnostics: "
             + "; ".join(warnings))
-    tool = tool_identity()
+    tool = tool_identity(crate)
     shutil.rmtree(path(crate, f"{EVIDENCE}/coma"), ignore_errors=True)
     shutil.rmtree(path(crate, f"{EVIDENCE}/results"), ignore_errors=True)
 
@@ -431,7 +499,7 @@ def main() -> int:
     crate = Path(__file__).resolve().parents[1]
     try:
         if sys.argv[1:] == ["--snapshot"]:
-            print(json.dumps(inputs(crate, True), sort_keys=True))
+            print(json.dumps(inputs(crate, True, True), sort_keys=True))
             return 0
         if len(sys.argv) == 6 and sys.argv[1] == "--save":
             result = save(crate, Path(sys.argv[2]), Path(sys.argv[3]), Path(sys.argv[4]),
