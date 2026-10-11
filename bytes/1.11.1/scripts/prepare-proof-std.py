@@ -29,6 +29,7 @@ PATCH_NAMES = (
     "address-model.patch",
     "pointer-model.patch",
     "release-sources.patch",
+    "core-events.patch",
 )
 
 
@@ -130,7 +131,7 @@ def apply_overlay(stock: Path, destination: Path, root: Path, manifest: dict[str
         patch_path = SUPPORT_ROOT / name
         try:
             subprocess.run(
-                ["patch", "--batch", "--forward", "--fuzz=0", "-p1", "-i", str(patch_path)],
+                ["patch", "--batch", "--forward", "--fuzz=0", "--no-backup-if-mismatch", "-p1", "-i", str(patch_path)],
                 cwd=destination,
                 check=True,
                 stdout=subprocess.PIPE,

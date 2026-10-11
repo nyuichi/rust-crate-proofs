@@ -1,8 +1,10 @@
 # Direct-source `BytesMut` proof evidence
 
 `proof.json` records the fresh proof run from the crate's live source. It
-contains 40 selected Bytes COMA targets and five body-proved algebra targets
-translated directly from the pinned private `creusot-std` source package. The
+contains 40 selected Bytes COMA targets and six body-proved targets translated
+directly from the pinned private `creusot-std` source package: five pure
+`release_sources` algebra functions and the generic
+`EventBoundInvariant::new` constructor. The
 `coma/` and `results/` trees retain the exact COMA bodies and successful prover
 results used by that run, together with the feature tree and translation log.
 [`TCB.md`](TCB.md) describes the selected guarantees and their assumptions.

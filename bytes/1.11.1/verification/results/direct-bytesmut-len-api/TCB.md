@@ -48,6 +48,19 @@ from the pinned Std source. They specify set propagation over abstract event
 history only; they do not prove native atomic source selection or any Bytes
 synchronization property.
 
+The generic Std overlay also contains a trusted core-atomic boundary. Its
+`new_event` contract binds one native `core::AtomicUsize::new` to the unique
+permission and initial history; `load_acquire_event` executes one native
+Acquire load and binds its returned value to a sealed callback event;
+`open_read` binds that exact event to its matching history entry and imported
+release sources. The body of `EventBoundInvariant::new`, which composes the
+unique permission and protocol state into an invariant, is separately proved.
+This does not prove the native adapter contracts, cross-call thread coherence
+or handoff, the Shared refcount ledger, singleton ownership, or any Bytes
+uniqueness, retirement, or destructor law. The source-compatible thread-order
+connection remains unresolved; consequently this kernel is not used to claim
+Shared-backed or concurrent Bytes coverage.
+
 The selected bodies use generic Creusot Std ghost/resource and logic
 contracts, plus the address-only `wrapping_add_u8` specification. Their Vec
 observer and resource assumptions are documented in the

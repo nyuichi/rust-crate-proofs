@@ -1,0 +1,262 @@
+--- a/src/std/sync.rs
++++ b/src/std/sync.rs
+@@ -6,0 +7 @@
++pub mod core_events;
+--- /dev/null
++++ b/src/std/sync/core_events.rs
+@@ -0,0 +1,255 @@
++//! Generic bridge between native `AtomicUsize` events and the proof history.
++//!
++//! Trusted-boundary scope: initialization binds one actual core atomic to its sole
++//! permission; the Acquire adapter executes one native load, and the read opener
++//! relates that exact event to the matching entry in the permission history. This
++//! does not establish cross-call coherence, singleton ownership, refcount rules,
++//! quiescence, or retirement.
++//!
++//! Replacement path: prove the native operation-to-history correspondence for
++//! initialization, read-from, and acquire-source propagation, then remove the
++//! corresponding trusted contracts; Bytes-specific ownership remains body-proved.
++
++use crate::{
++    ghost::{
++        FnGhost, Perm,
++        invariant::{AtomicInvariant, Namespace, Protocol},
++        perm::PermTarget,
++    },
++    logic::{FMap, FSet},
++    prelude::*,
++    std::sync::{
++        release_sources::ReleaseSources,
++        view::{HasTimestamp, SyncView, Timestamp},
++    },
++};
++use core::sync::atomic::{AtomicUsize as CoreAtomicUsize, Ordering};
++use core::marker::PhantomData;
++
++pub type CoreAtomicUsizeHistory = FMap<Timestamp, (usize, SyncView, ReleaseSources)>;
++
++impl PermTarget for CoreAtomicUsize {
++    type Value<'a> = CoreAtomicUsizeHistory where Self: 'a;
++    type PermPayload = ();
++}
++
++impl HasTimestamp for CoreAtomicUsize {
++    #[logic(opaque)]
++    fn get_timestamp(self, _: SyncView) -> Timestamp { dead }
++
++    #[logic(law)]
++    #[requires(x <= y)]
++    #[ensures(self.get_timestamp(x) <= self.get_timestamp(y))]
++    #[trusted]
++    fn get_timestamp_monotonic(self, x: SyncView, y: SyncView) {}
++}
++
++/// Bind a native core atomic and its unique permission to an initial logical value.
++///
++/// This trusted constructor represents the native initialization event and its
++/// initial history record; it grants no ownership fact beyond the unique permission.
++#[ensures(result.1.val() == FMap::singleton(
++    result.0.get_timestamp(^sync_view),
++    (value, ^sync_view, FSet::empty()),
++))]
++#[ensures(**sync_view <= ^sync_view)]
++#[ensures(*result.1.ward() == result.0)]
++#[trusted]
++#[check(terminates)]
++#[allow(unused_variables)]
++pub fn new_event(
++    value: usize,
++    sync_view: Ghost<&mut SyncView>,
++) -> (CoreAtomicUsize, Ghost<Perm<CoreAtomicUsize>>) {
++    (CoreAtomicUsize::new(value), Ghost::conjure())
++}
++
++/// Body-proved connection between protocol state and the atomic's full history.
++pub trait AtomicProtocol: Protocol {
++    #[logic(prophetic)]
++    fn agrees_with_history(self, history: CoreAtomicUsizeHistory) -> bool;
++}
++
++pub struct EventState<T: AtomicProtocol> {
++    owner: Perm<CoreAtomicUsize>,
++    current: T,
++}
++
++impl<T: AtomicProtocol> Protocol for EventState<T> {
++    type Public = (CoreAtomicUsize, T::Public);
++
++    #[logic]
++    fn public(self) -> Self::Public {
++        pearlite! { (*self.owner.ward(), self.current.public()) }
++    }
++
++    #[logic(prophetic)]
++    fn protocol(self) -> bool {
++        pearlite! {
++            self.current.protocol() &&
++            self.current.agrees_with_history(self.owner.val())
++        }
++    }
++}
++
++pub struct EventBoundInvariant<T: AtomicProtocol> {
++    inner: AtomicInvariant<EventState<T>>,
++}
++
++impl<T: AtomicProtocol> EventBoundInvariant<T> {
++    #[logic(open(self))]
++    pub fn public(self) -> (CoreAtomicUsize, T::Public) {
++        self.inner.public()
++    }
++
++    /// Body-proved constructor: the atomic permission is consumed exactly once.
++    #[requires(*owner.ward() == *atomic)]
++    #[requires(current.protocol())]
++    #[requires(current.agrees_with_history(owner.val()))]
++    #[ensures(result.public() == (*atomic, current.public()))]
++    #[check(ghost)]
++    pub fn new(
++        atomic: &CoreAtomicUsize,
++        owner: Ghost<Perm<CoreAtomicUsize>>,
++        current: Ghost<T>,
++        namespace: Snapshot<Namespace>,
++    ) -> Ghost<Self> {
++        ghost! {
++            let state = EventState {
++                owner: owner.into_inner(),
++                current: current.into_inner(),
++            };
++            let inner = AtomicInvariant::new(Ghost::new(state), namespace).into_inner();
++            Self { inner }
++        }
++    }
++
++    /// Open current protocol state for one exact acquire event. The trusted
++    /// opener establishes the read-from/history link and constructs the
++    /// copyable observation from the sole permission's full history. The current
++    /// protocol value is not treated as a historical snapshot.
++    #[trusted]
++    #[check(ghost)]
++    #[requires(event.ward() == self.public().0)]
++    #[requires(forall<s: &mut EventState<T>, obs: ReadObservation>
++        s.public() == self.public() && s.protocol() &&
++        event.ward() == *s.owner.ward() &&
++        obs.history() == s.owner.val() &&
++        obs.read_from() == event.read_from() &&
++        obs.value() == event.value() && obs.invariant() ==>
++        f.precondition((&mut s.current, &s.owner, obs)) &&
++        (forall<res: A> f.postcondition_once(
++            (&mut s.current, &s.owner, obs), res
++        ) ==> (^s).public() == s.public() && (^s).protocol() &&
++            (^s).owner.val() == s.owner.val())
++    )]
++    #[ensures(exists<s: &mut EventState<T>, obs: ReadObservation>
++        s.public() == self.public() && s.protocol() &&
++        event.ward() == *s.owner.ward() &&
++        obs.history() == s.owner.val() &&
++        obs.read_from() == event.read_from() && obs.value() == event.value() &&
++        match s.owner.val().get(event.read_from()) {
++            Some((value, _, sources)) =>
++                value == event.value() && sources == obs.release_sources() &&
++                obs.invariant() &&
++                f.postcondition_once((&mut s.current, &s.owner, obs), result) &&
++                forall<source: SyncView>
++                    sources.contains(source) ==> source <= ^sync_view,
++            None => false,
++        } &&
++        s.owner.val() == (^s).owner.val() && **sync_view <= ^sync_view
++    )]
++    #[allow(unused_variables)]
++    pub fn open_read<A, F>(
++        &self,
++        event: ReadEvent<'_>,
++        sync_view: Ghost<&mut SyncView>,
++        f: Ghost<F>,
++    ) -> A
++    where
++        F: FnGhost
++            + for<'scope> FnOnce(
++                &'scope mut T,
++                &'scope Perm<CoreAtomicUsize>,
++                ReadObservation,
++            ) -> A,
++    {
++        panic!("ghost event opening")
++    }
++}
++
++#[derive(core::clone::Clone, Copy)]
++pub struct ReadObservation {
++    #[doc(hidden)]
++    pub value: usize,
++    #[doc(hidden)]
++    pub read_from: Timestamp,
++    #[doc(hidden)]
++    pub release_sources: ReleaseSources,
++    #[doc(hidden)]
++    pub history: CoreAtomicUsizeHistory,
++}
++
++impl ReadObservation {
++    #[logic(open)]
++    pub fn value(self) -> usize { self.value }
++
++    #[logic(open)]
++    pub fn read_from(self) -> Timestamp { self.read_from }
++
++    #[logic(open)]
++    pub fn release_sources(self) -> ReleaseSources { self.release_sources }
++
++    #[logic(open)]
++    pub fn history(self) -> CoreAtomicUsizeHistory { self.history }
++}
++
++impl Invariant for ReadObservation {
++    #[logic(open)]
++    fn invariant(self) -> bool {
++        pearlite! {
++            match self.history.get(self.read_from) {
++                Some((value, _, sources)) =>
++                    value == self.value && sources == self.release_sources,
++                None => false,
++            }
++        }
++    }
++}
++
++#[opaque]
++pub struct ReadEvent<'event> {
++    _scope: PhantomData<&'event mut ()>,
++}
++
++impl ReadEvent<'_> {
++    #[logic(opaque)]
++    pub fn ward(self) -> CoreAtomicUsize { dead }
++
++    #[logic(opaque)]
++    pub fn read_from(self) -> Timestamp { dead }
++
++    #[logic(opaque)]
++    pub fn value(self) -> usize { dead }
++}
++
++/// One native Acquire load paired with an affine, callback-scoped event.
++///
++/// The native body executes exactly one `core::AtomicUsize::load(Acquire)`; its
++/// trusted contract binds the returned value and read event to that operation.
++#[requires(forall<event: ReadEvent<'_>>
++    event.ward() == *atomic ==> f.precondition((event,))
++)]
++#[ensures(exists<event: ReadEvent<'_>>
++    event.ward() == *atomic && event.value() == result &&
++    f.postcondition_once((event,), ())
++)]
++#[trusted]
++#[check(terminates)]
++#[allow(unused_variables)]
++pub fn load_acquire_event<F>(atomic: &CoreAtomicUsize, f: Ghost<F>) -> usize
++where
++    F: FnGhost + for<'event> FnOnce(ReadEvent<'event>) -> (),
++{
++    atomic.load(Ordering::Acquire)
++}

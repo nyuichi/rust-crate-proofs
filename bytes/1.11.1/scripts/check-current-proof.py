@@ -59,6 +59,7 @@ STD_TARGETS = (
     "verif/creusot_std_rlib/std/sync/release_sources/rmw_adds_attached_source.coma",
     "verif/creusot_std_rlib/std/sync/release_sources/plain_store_drops_inherited_source.coma",
     "verif/creusot_std_rlib/std/sync/release_sources/relaxed_rmw_then_release_rmw_to_acquire.coma",
+    "verif/creusot_std_rlib/std/sync/core_events/impl_EventBoundInvariant_T/new.coma",
 )
 STD_EVIDENCE_TARGETS = tuple(f"std/{target.removeprefix('verif/')}" for target in STD_TARGETS)
 EVIDENCE_TARGETS = (*TARGETS, *STD_EVIDENCE_TARGETS)
