@@ -16,13 +16,18 @@ slot region from the witness: the initialized prefix matches the Vec contents,
 and spare-capacity slots are unknown. The selected bodies for
 `VecRawParts::take` and `VecStorage::hold_owned` compose the capture with this
 resource construction; `take` suppresses the temporary storage destructor
-after transferring its native owner. `hold_owned` returns the body-proved
+after transferring its native owner with the existing Std
+`core::mem::forget(storage)` operation. `hold_owned` returns the body-proved
 storage authority and region, but has no production Shared caller. The proof
 uses an opaque transparent native Vec wrapper and an outer C-layout storage
 struct with a zero-sized ghost field; compile-time assertions compare its
 size and alignment with `Vec<u8>`. The native `VecRawParts::take` branch keeps
 the original direct extraction implementation. No trusted Bytes-specific
 ownership, refcount, destructor, or reclamation law is used here.
+Removing the capture assumption requires deriving the exact native metadata
+and consumed-owner transfer from verified Vec, allocator, and `ManuallyDrop`
+contracts; proving only `bind_consumed_vec` would leave that assumption in
+place.
 
 The selected `from_vec`, `with_capacity`, `new`, `zeroed`, `From<&[u8]>`,
 `From<&str>`, and `Default` bodies establish their specified initialized
