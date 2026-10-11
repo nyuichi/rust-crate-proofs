@@ -153,3 +153,15 @@ does not connect any production `Bytes` or `BytesMut` construction, clone,
 split, drop, refcount operation, terminal read, or storage recovery to a ticket.
 It therefore establishes no native refcount-to-registration equality,
 count-one uniqueness, or Shared allocation lifecycle property.
+
+The added `terminal_phase` bodies prove creation of a matching affine close
+action, its one-shot transition to a retained empty authority, and the
+contradiction between a closed authority and a still-valid matching action.
+`SharedOwnerPacket::make_count_one_packet` is body-proved to compose supplied
+header, exact counter permission, storage authority, one registered owner
+ticket, whole physical region, and open terminal phase into a capsule whose
+protocol binds those identities and value one. These body-proved components
+have explicit constructor preconditions; no production `Shared`
+promotion/split caller establishes those preconditions yet. They add no
+trusted native count-to-ticket law, count-one exclusivity, terminal recovery,
+or allocation-lifecycle guarantee.

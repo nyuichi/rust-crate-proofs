@@ -1,19 +1,24 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 402 4 402 34 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 409 4 409 34 *)
 
 (* bytes_mut::BytesMut *)
 
+type namespace_other
+
+type t_Namespace = Namespace_BYTES_MUT_SHARED_CAPSULE int | Other namespace_other
+
 let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 403 20 403 21
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 402 21 402 25
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 400 65 400 102
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 90 59 90 68
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 410 20 410 21
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 409 21 409 25
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 407 65 407 102
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 96 59 96 68
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sshared = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/shared.rs" 26 8 26 46
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 372 12 380 13
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 247 12 248 56
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 683 12 687 33
-let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
 
 use creusot.int.UInt64
 use creusot.prelude.Opaque
@@ -42,12 +47,26 @@ type t_OriginalUniqueProof = {
 
 type t_Option_OriginalUniqueProof = None | Some t_OriginalUniqueProof
 
+type t_AtomicInvariant_SharedState
+
+type t_OwnerTicket
+
+type t_SharedOwnerPacket = {
+  capsule'0: t_AtomicInvariant_SharedState;
+  ticket'0: t_OwnerTicket;
+  region'0: t_PhysicalRegion;
+  base'0: t_BoundPtr;
+  cursor'0: t_BoundPtr }
+
+type t_Option_SharedOwnerPacket = None'0 | Some'0 t_SharedOwnerPacket
+
 type t_BytesMut = {
   ptr: t_NonNull_u8;
   len: UInt64.t;
   cap: UInt64.t;
   data: Opaque.ptr;
-  unique_proof: t_Option_OriginalUniqueProof }
+  unique_proof: t_Option_OriginalUniqueProof;
+  shared_proof: t_Option_SharedOwnerPacket }
 
 function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
 
@@ -68,7 +87,7 @@ type t_Id
 
 type tup3_Id_Int_Int = { f0'0: t_Id; f1'0: int; f2'0: int }
 
-type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+type t_Option_tup3_Id_Int_Int = None'1 | Some'1 tup3_Id_Int_Int
 
 function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 353 4 353 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
 
@@ -80,8 +99,8 @@ constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
 
 predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 370 4 370 30] (self: t_BoundPtr) =
   [%#sraw_vec] match view_BoundPtr self with
-    | None'0 -> true
-    | Some'0 {f1'0 = allocation_capacity; f2'0 = absolute_offset} -> 0 <= absolute_offset
+    | None'1 -> true
+    | Some'1 {f1'0 = allocation_capacity; f2'0 = absolute_offset} -> 0 <= absolute_offset
     /\ absolute_offset <= allocation_capacity
     /\ allocation_capacity <= Int64.to_int const_MAX
     /\ absolute_offset < current_address self
@@ -119,7 +138,7 @@ function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ow
 
 type t_Excl_unit = { f0'3: () }
 
-type t_Option_Excl_unit = None'1 | Some'1 t_Excl_unit
+type t_Option_Excl_unit = None'2 | Some'2 t_Excl_unit
 
 type t_FMap_Int_Excl_Option_u8
 
@@ -174,10 +193,78 @@ axiom inv_axiom'4 [@rewrite]:
       | Some f0'6 -> inv_OriginalUniqueProof f0'6
       end
 
+predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 156 4 156 30] (self: t_SharedOwnerPacket)
+
+predicate resolve_AtomicInvariant_SharedState [@inline:trivial] (_1: t_AtomicInvariant_SharedState) = true
+
+meta "rewrite_def" predicate resolve_AtomicInvariant_SharedState
+
+predicate inv_AtomicInvariant_SharedState [@inline:trivial] (_1: t_AtomicInvariant_SharedState) = true
+
+meta "rewrite_def" predicate inv_AtomicInvariant_SharedState
+
+predicate invariant_GhostShared_AtomicInvariant_SharedState (self: t_AtomicInvariant_SharedState) =
+  [%#sshared] resolve_AtomicInvariant_SharedState self /\ inv_AtomicInvariant_SharedState self
+
+predicate inv_GhostShared_AtomicInvariant_SharedState [@inline:trivial] (_1: t_AtomicInvariant_SharedState) =
+  invariant_GhostShared_AtomicInvariant_SharedState _1
+
+meta "rewrite_def" predicate inv_GhostShared_AtomicInvariant_SharedState
+
+predicate invariant_Ghost_GhostShared_AtomicInvariant_SharedState [@inline:trivial] (self: t_AtomicInvariant_SharedState) =
+  [%#sghost] inv_GhostShared_AtomicInvariant_SharedState self
+
+meta "rewrite_def" predicate invariant_Ghost_GhostShared_AtomicInvariant_SharedState
+
+predicate inv_Ghost_GhostShared_AtomicInvariant_SharedState [@inline:trivial] (_1: t_AtomicInvariant_SharedState) =
+  invariant_Ghost_GhostShared_AtomicInvariant_SharedState _1
+
+meta "rewrite_def" predicate inv_Ghost_GhostShared_AtomicInvariant_SharedState
+
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 60 4 60 30] (self: t_OwnerTicket)
+
+predicate inv_OwnerTicket (_1: t_OwnerTicket)
+
+axiom inv_axiom'5: forall x: t_OwnerTicket [inv_OwnerTicket x]. inv_OwnerTicket x -> invariant_OwnerTicket x
+
+predicate invariant_Ghost_OwnerTicket [@inline:trivial] (self: t_OwnerTicket) = [%#sghost] inv_OwnerTicket self
+
+meta "rewrite_def" predicate invariant_Ghost_OwnerTicket
+
+predicate inv_Ghost_OwnerTicket [@inline:trivial] (_1: t_OwnerTicket) = invariant_Ghost_OwnerTicket _1
+
+meta "rewrite_def" predicate inv_Ghost_OwnerTicket
+
+predicate invariant_Ghost_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) = [%#sghost] inv_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_PhysicalRegion
+
+predicate inv_Ghost_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_Ghost_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_PhysicalRegion
+
+predicate inv_SharedOwnerPacket (_1: t_SharedOwnerPacket)
+
+axiom inv_axiom'6 [@rewrite]: forall x: t_SharedOwnerPacket [inv_SharedOwnerPacket x]. inv_SharedOwnerPacket x
+    = (invariant_SharedOwnerPacket x
+    /\ inv_Ghost_GhostShared_AtomicInvariant_SharedState x.capsule'0
+    /\ inv_Ghost_OwnerTicket x.ticket'0
+    /\ inv_Ghost_PhysicalRegion x.region'0 /\ inv_BoundPtr x.base'0 /\ inv_BoundPtr x.cursor'0)
+
+predicate inv_Option_SharedOwnerPacket (_1: t_Option_SharedOwnerPacket)
+
+axiom inv_axiom'7 [@rewrite]:
+  forall x: t_Option_SharedOwnerPacket [inv_Option_SharedOwnerPacket x]. inv_Option_SharedOwnerPacket x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0'6 -> inv_SharedOwnerPacket f0'6
+      end
+
 predicate inv_BytesMut (_1: t_BytesMut)
 
-axiom inv_axiom'5 [@rewrite]: forall x: t_BytesMut [inv_BytesMut x]. inv_BytesMut x
-    = (inv_NonNull_u8 x.ptr /\ inv_Option_OriginalUniqueProof x.unique_proof)
+axiom inv_axiom'8 [@rewrite]: forall x: t_BytesMut [inv_BytesMut x]. inv_BytesMut x
+    = (inv_NonNull_u8 x.ptr
+    /\ inv_Option_OriginalUniqueProof x.unique_proof /\ inv_Option_SharedOwnerPacket x.shared_proof)
 
 predicate invariant_ref_BytesMut [@inline:trivial] (self: t_BytesMut) = [%#sinvariant] inv_BytesMut self
 
@@ -187,14 +274,14 @@ predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_By
 
 meta "rewrite_def" predicate inv_ref_BytesMut
 
-function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 90 4 90 44] (self: t_BytesMut) : int
+function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 96 4 96 44] (self: t_BytesMut) : int
  = [%#sbytes_mut'2] UInt64.t'int self.len
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let is_empty [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 402 4 402 34] (self: t_BytesMut)
+let is_empty [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 409 4 409 34] (self: t_BytesMut)
   (return (x: bool)) = {[@stop_split] [@expl:is_empty 'self' type invariant] [%#sbytes_mut'0] inv_ref_BytesMut self}
   (! bb0
   [ bb0 = s0 [ s0 = [ &_ret <- self.len = ([%#sbytes_mut] (0: UInt64.t)) ] s1 | s1 = return {_ret} ] ]

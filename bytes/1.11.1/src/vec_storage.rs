@@ -449,6 +449,19 @@ impl StoredAuthority {
     pub(crate) fn stored_len(self) -> Int {
         pearlite! { self.stored_len@ }
     }
+
+    /// Raw pointer carried by the sealed storage allocation. This preserves
+    /// pointer identity but does not expose raw-allocation access permission.
+    #[logic(open(self))]
+    pub(crate) fn raw_pointer(self) -> *mut u8 {
+        pearlite! { self.raw.raw_pointer() }
+    }
+
+    /// Capacity of the exact allocation bound to this stored Vec.
+    #[logic(open(self))]
+    pub(crate) fn capacity(self) -> Int {
+        pearlite! { self.raw.capacity() }
+    }
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
@@ -564,24 +577,24 @@ impl VecStorage {
     ))]
     #[ensures(result.1.inner_logic().0.invariant())]
     #[ensures(result.1.inner_logic().0.raw.invariant())]
-    #[ensures(result.1.inner_logic().0.raw.raw_pointer() ==
+    #[ensures(result.1.inner_logic().0.raw_pointer() ==
         creusot_std::std::vec::pointer_model(input))]
-    #[ensures(result.1.inner_logic().0.raw.capacity() ==
+    #[ensures(result.1.inner_logic().0.capacity() ==
         creusot_std::std::vec::capacity_model(input))]
     #[ensures(result.1.inner_logic().0.raw.base_address() ==
         creusot_std::std::vec::base_model(input))]
     #[ensures(result.1.inner_logic().0.stored_len() == input@.len())]
     #[ensures(result.1.inner_logic().0.recovery.invariant())]
     #[ensures(result.1.inner_logic().0.recovery.namespace() == result.1.inner_logic().0.binding())]
-    #[ensures(result.1.inner_logic().0.recovery.capacity() == result.1.inner_logic().0.raw.capacity())]
+    #[ensures(result.1.inner_logic().0.recovery.capacity() == result.1.inner_logic().0.capacity())]
     #[ensures(result.1.inner_logic().1.invariant())]
     #[ensures(result.1.inner_logic().1.namespace() == result.1.inner_logic().0.binding())]
     #[ensures(result.1.inner_logic().1.resource_id() == result.1.inner_logic().0.binding())]
-    #[ensures(result.1.inner_logic().1.capacity() == result.1.inner_logic().0.raw.capacity())]
+    #[ensures(result.1.inner_logic().1.capacity() == result.1.inner_logic().0.capacity())]
     #[ensures(result.1.inner_logic().1.lo() == 0)]
-    #[ensures(result.1.inner_logic().1.hi() == result.1.inner_logic().0.raw.capacity())]
-    #[ensures(result.1.inner_logic().0.raw.base_address() + result.1.inner_logic().0.raw.capacity() <= usize::MAX@)]
-    #[ensures(result.1.inner_logic().0.raw.capacity() <= isize::MAX@)]
+    #[ensures(result.1.inner_logic().1.hi() == result.1.inner_logic().0.capacity())]
+    #[ensures(result.1.inner_logic().0.raw.base_address() + result.1.inner_logic().0.capacity() <= usize::MAX@)]
+    #[ensures(result.1.inner_logic().0.capacity() <= isize::MAX@)]
     #[ensures(forall<i: Int> 0 <= i && i < input@.len() ==>
         result.1.inner_logic().1.slot(i) == Some(Some(input@[i])))]
     #[ensures(forall<i: Int> input@.len() <= i &&

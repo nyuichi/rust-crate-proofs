@@ -24,6 +24,10 @@ use crate::ref_count_ops::RefCountCell;
 use crate::vec_storage::{VecRawParts, VecStorage};
 use crate::{Buf, BufMut, Bytes, TryGetError};
 
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[path = "bytes_mut/shared_capsule.rs"]
+mod shared_capsule;
+
 // Creusot-only exclusions below cover unrelated Shared/refcount/recovery and adapter bodies.
 // Native APIs remain present, and excluded implementations are not treated as proven contracts.
 
@@ -74,6 +78,8 @@ pub struct BytesMut {
     // No authority is established for unselected constructors/representations.
     #[cfg(all(creusot, bytes_original_unique_gate))]
     unique_proof: Option<OriginalUniqueProof>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    shared_proof: Option<shared_capsule::SharedOwnerPacket>,
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
@@ -119,6 +125,7 @@ impl BytesMut {
                 proof.base@ == Some((caps.0.namespace(), proof.raw.capacity(), 0int)) &&
                 proof.cursor@ == Some((caps.0.namespace(), proof.raw.capacity(), self.unique_offset())) &&
                 self.ptr@ == proof.cursor.raw_pointer() &&
+                proof.cursor.current_address() == proof.base.current_address() + self.unique_offset() &&
                 0 <= self.unique_offset() && self.unique_offset() <= proof.raw.capacity() &&
                 self.unique_offset() + self.cap@ == proof.raw.capacity() &&
                 caps.0.capacity() == proof.raw.capacity() &&
@@ -1386,6 +1393,8 @@ impl BytesMut {
             data: invalid_ptr(data),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             unique_proof,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            shared_proof: None,
         }
     }
 
@@ -2617,6 +2626,8 @@ unsafe fn shared_v_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> B
             data: shared,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             unique_proof: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            shared_proof: None,
         }
     } else {
         let v = slice::from_raw_parts(ptr, len).to_vec();

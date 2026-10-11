@@ -65,6 +65,14 @@ handles, that an observed count of one is exclusive, or that Shared storage may
 be reclaimed. They are a partial direct-source checkpoint, not complete
 `BytesMut::truncate` verification across all safe states.
 
+The current increment also body-proves `PhaseAuthority`'s one-shot close
+action and `shared_capsule::make_count_one_packet`, the count-one capsule
+constructor. It binds supplied header, counter permission, storage authority,
+single owner ticket, full physical region, and terminal phase into one
+invariant. No production promotion or split path calls it yet, and the proof
+does not establish its preconditions for a native `Shared` allocation. It
+adds no refcount-to-owner, uniqueness, or reclamation guarantee.
+
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current
 inputs without invoking a solver.

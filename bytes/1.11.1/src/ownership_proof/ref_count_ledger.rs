@@ -216,10 +216,16 @@ impl OwnerLedger {
     /// Construct a count-one shared block and its sole root ticket.
     #[check(ghost)]
     #[ensures(result.inner_logic().0.invariant())]
+    #[ensures(result.inner_logic().0.is_live())]
     #[ensures(result.inner_logic().0.count() == 1)]
+    #[ensures(result.inner_logic().0.next_id() == 1)]
     #[ensures(result.inner_logic().0.agrees_with_value(1))]
     #[ensures(result.inner_logic().1.invariant())]
     #[ensures(result.inner_logic().0.has_ticket(result.inner_logic().1))]
+    #[ensures(result.inner_logic().1.ledger_id() == result.inner_logic().0.ledger_id())]
+    #[ensures(result.inner_logic().1.owner_id() == 0)]
+    #[ensures(result.inner_logic().1.owner_id() >= 0)]
+    #[ensures(result.inner_logic().1.owner_id() < result.inner_logic().0.next_id())]
     pub(crate) fn new_root() -> Ghost<(OwnerLedger, OwnerTicket)> {
         ghost! {
         let mut authority: Authority<ActiveOwners> = Authority::alloc().into_inner();

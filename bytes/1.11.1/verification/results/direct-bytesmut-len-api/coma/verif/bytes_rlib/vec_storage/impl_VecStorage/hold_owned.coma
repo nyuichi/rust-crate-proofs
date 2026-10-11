@@ -1,6 +1,10 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 590 4 592 57 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 603 4 605 57 *)
 
 (* vec_storage::VecStorage *)
+
+type namespace_other
+
+type t_Namespace = Namespace_BYTES_MUT_SHARED_CAPSULE int | Other namespace_other
 
 let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
@@ -8,6 +12,17 @@ let%span svec = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 199 14 199 29
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 15 179 16
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 4 181 17
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 228 17 228 21
+let%span sghost'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 228 4 228 46
+let%span sghost'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 226 14 226 36
+let%span sghost'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 227 14 227 36
+let%span sghost'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 22 201 26
+let%span sghost'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 4 203 17
+let%span sghost'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 191 4 191 11
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 173 11 173 30
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 192 5 192 55
@@ -37,19 +52,18 @@ let%span sraw_vec'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_
 let%span sraw_vec'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 559 14 559 66
 let%span sraw_vec'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 84 10 84 27
 let%span sraw_vec'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 247 12 248 56
-let%span sraw_vec'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 267 20 267 27
-let%span sraw_vec'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 649 12 651 30
-let%span sraw_vec'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 638 20 638 27
-let%span sraw_vec'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 643 20 643 27
-let%span sraw_vec'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 683 12 687 33
-let%span sraw_vec'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 705 20 705 27
-let%span sraw_vec'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 715 20 715 30
-let%span sraw_vec'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 710 20 710 27
-let%span sraw_vec'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 695 20 695 30
-let%span sraw_vec'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 700 20 700 30
-let%span sraw_vec'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 719 14 719 43
+let%span sraw_vec'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 649 12 651 30
+let%span sraw_vec'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 638 20 638 27
+let%span sraw_vec'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 643 20 643 27
+let%span sraw_vec'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 683 12 687 33
+let%span sraw_vec'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 705 20 705 27
+let%span sraw_vec'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 715 20 715 30
+let%span sraw_vec'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 710 20 710 27
+let%span sraw_vec'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 695 20 695 30
+let%span sraw_vec'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 700 20 700 30
+let%span sraw_vec'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 719 14 719 43
+let%span sraw_vec'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 267 20 267 27
 let%span sraw_vec'39 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 273 20 273 27
-let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
 let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 108 8 108 34
 let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 168 40 168 65
 let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 171 12 171 41
@@ -57,68 +71,58 @@ let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
 let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
 let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
-let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 199 14 199 29
-let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
-let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 15 179 16
-let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 4 181 17
-let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 228 17 228 21
-let%span sghost'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 228 4 228 46
-let%span sghost'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 226 14 226 36
-let%span sghost'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 227 14 227 36
-let%span sghost'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 22 201 26
-let%span sghost'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 4 203 17
-let%span sghost'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
-let%span svec_storage = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 593 37 593 67
-let%span svec_storage'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 594 46 594 68
-let%span svec_storage'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 595 34 595 69
-let%span svec_storage'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 596 40 596 61
-let%span svec_storage'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 596 40 596 74
-let%span svec_storage'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 596 33 596 75
-let%span svec_storage'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 597 24 597 40
-let%span svec_storage'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 600 21 600 41
-let%span svec_storage'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 602 21 602 56
-let%span svec_storage'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 602 21 602 69
-let%span svec_storage'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 603 26 603 59
-let%span svec_storage'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 603 26 603 72
-let%span svec_storage'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 598 20 605 9
-let%span svec_storage'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 606 33 606 53
-let%span svec_storage'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 610 25 610 47
-let%span svec_storage'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 611 30 611 51
-let%span svec_storage'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 612 29 612 49
-let%span svec_storage'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 615 16 615 35
-let%span svec_storage'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 607 77 617 9
-let%span svec_storage'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 592 9 592 57
-let%span svec_storage'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 559 14 559 66
-let%span svec_storage'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 560 14 564 5
-let%span svec_storage'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 565 14 565 50
-let%span svec_storage'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 566 14 566 54
-let%span svec_storage'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 567 14 568 51
-let%span svec_storage'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 569 14 570 52
-let%span svec_storage'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 571 14 572 48
-let%span svec_storage'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 573 14 573 67
-let%span svec_storage'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 574 14 574 59
-let%span svec_storage'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 575 14 575 97
-let%span svec_storage'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 576 14 576 101
-let%span svec_storage'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 577 14 577 50
-let%span svec_storage'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 578 14 578 88
-let%span svec_storage'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 579 14 579 90
-let%span svec_storage'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 580 14 580 92
-let%span svec_storage'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 581 14 581 48
-let%span svec_storage'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 582 14 582 86
-let%span svec_storage'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 583 14 583 114
-let%span svec_storage'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 584 14 584 68
-let%span svec_storage'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 585 14 586 65
-let%span svec_storage'39 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 587 14 589 54
-let%span svec_storage'40 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 530 44 530 67
-let%span svec_storage'41 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 513 14 513 34
-let%span svec_storage'42 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 514 14 518 6
-let%span svec_storage'43 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 519 14 523 5
-let%span svec_storage'44 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 524 14 524 34
-let%span svec_storage'45 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 525 14 525 79
-let%span svec_storage'46 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 526 14 526 90
-let%span svec_storage'47 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 527 14 527 47
-let%span svec_storage'48 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 528 14 528 81
-let%span svec_storage'49 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 529 14 529 43
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span svec_storage = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 606 37 606 67
+let%span svec_storage'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 607 46 607 68
+let%span svec_storage'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 608 34 608 69
+let%span svec_storage'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 609 40 609 61
+let%span svec_storage'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 609 40 609 74
+let%span svec_storage'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 609 33 609 75
+let%span svec_storage'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 610 24 610 40
+let%span svec_storage'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 613 21 613 41
+let%span svec_storage'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 615 21 615 56
+let%span svec_storage'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 615 21 615 69
+let%span svec_storage'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 616 26 616 59
+let%span svec_storage'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 616 26 616 72
+let%span svec_storage'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 611 20 618 9
+let%span svec_storage'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 619 33 619 53
+let%span svec_storage'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 623 25 623 47
+let%span svec_storage'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 624 30 624 51
+let%span svec_storage'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 625 29 625 49
+let%span svec_storage'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 628 16 628 35
+let%span svec_storage'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 620 77 630 9
+let%span svec_storage'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 605 9 605 57
+let%span svec_storage'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 572 14 572 66
+let%span svec_storage'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 573 14 577 5
+let%span svec_storage'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 578 14 578 50
+let%span svec_storage'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 579 14 579 54
+let%span svec_storage'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 580 14 581 51
+let%span svec_storage'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 582 14 583 52
+let%span svec_storage'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 584 14 585 48
+let%span svec_storage'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 586 14 586 67
+let%span svec_storage'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 587 14 587 59
+let%span svec_storage'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 588 14 588 97
+let%span svec_storage'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 589 14 589 97
+let%span svec_storage'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 590 14 590 50
+let%span svec_storage'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 591 14 591 88
+let%span svec_storage'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 592 14 592 90
+let%span svec_storage'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 593 14 593 88
+let%span svec_storage'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 594 14 594 48
+let%span svec_storage'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 595 14 595 82
+let%span svec_storage'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 596 14 596 110
+let%span svec_storage'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 597 14 597 64
+let%span svec_storage'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 598 14 599 65
+let%span svec_storage'39 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 600 14 602 54
+let%span svec_storage'40 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 543 44 543 67
+let%span svec_storage'41 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 526 14 526 34
+let%span svec_storage'42 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 527 14 531 6
+let%span svec_storage'43 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 532 14 536 5
+let%span svec_storage'44 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 537 14 537 34
+let%span svec_storage'45 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 538 14 538 79
+let%span svec_storage'46 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 539 14 539 90
+let%span svec_storage'47 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 540 14 540 47
+let%span svec_storage'48 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 541 14 541 81
+let%span svec_storage'49 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 542 14 542 43
 let%span svec_storage'50 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 106 32 106 36
 let%span svec_storage'51 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 101 15 101 31
 let%span svec_storage'52 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 106 41 106 68
@@ -129,19 +133,21 @@ let%span svec_storage'56 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_st
 let%span svec_storage'57 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 103 14 103 38
 let%span svec_storage'58 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 104 14 104 68
 let%span svec_storage'59 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 105 14 105 63
-let%span svec_storage'60 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 484 12 492 13
-let%span svec_storage'61 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 478 20 478 27
-let%span svec_storage'62 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 459 12 464 78
-let%span svec_storage'63 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 450 20 450 36
-let%span svec_storage'64 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 445 20 445 32
-let%span svec_storage'65 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 627 12 639 13
-let%span svec_storage'66 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 499 12 503 13
-let%span svec_storage'67 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 123 12 127 67
-let%span svec_storage'68 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 80 20 80 29
-let%span svec_storage'69 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 85 20 85 29
-let%span svec_storage'70 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 90 20 90 29
-let%span svec_storage'71 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 95 20 95 34
-let%span svec_storage'72 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 473 20 473 40
+let%span svec_storage'60 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 497 12 505 13
+let%span svec_storage'61 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 491 20 491 27
+let%span svec_storage'62 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 472 12 477 78
+let%span svec_storage'63 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 457 20 457 42
+let%span svec_storage'64 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 463 20 463 39
+let%span svec_storage'65 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 450 20 450 36
+let%span svec_storage'66 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 445 20 445 32
+let%span svec_storage'67 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 640 12 652 13
+let%span svec_storage'68 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 512 12 516 13
+let%span svec_storage'69 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 123 12 127 67
+let%span svec_storage'70 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 80 20 80 29
+let%span svec_storage'71 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 85 20 85 29
+let%span svec_storage'72 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 90 20 90 29
+let%span svec_storage'73 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 95 20 95 34
+let%span svec_storage'74 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 486 20 486 40
 
 use creusot.prelude.Opaque
 use creusot.int.UInt64
@@ -172,14 +178,14 @@ type t_VecPartsWitness = { ptr: t_NonNull_u8; len: UInt64.t; cap: UInt64.t; cont
 
 type tup2_VecStorage_VecPartsWitness = { f0'0: t_VecStorage; f1'0: t_VecPartsWitness }
 
-function storage_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 472 4 472 61] (self: t_VecStorage) : t_Option_StorageModel
- = [%#svec_storage'72] self.f1
+function storage_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 485 4 485 61] (self: t_VecStorage) : t_Option_StorageModel
+ = [%#svec_storage'74] self.f1
 
 type tup3_ptr_u8_Int_Int = { f0'1: Opaque.ptr; f1'1: int; f2'1: int }
 
 function view_NativeStoredVec [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 410 4 410 33] (self: t_NativeStoredVec) : tup3_ptr_u8_Int_Int
 
-function native_metadata [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 477 4 477 51] (self: t_VecStorage) : tup3_ptr_u8_Int_Int
+function native_metadata [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 490 4 490 51] (self: t_VecStorage) : tup3_ptr_u8_Int_Int
  = [%#svec_storage'61] view_NativeStoredVec self.f0
 
 function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
@@ -193,8 +199,8 @@ meta "rewrite_def" function addr_NonNull_u8
 
 constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
 
-predicate invariant_VecStorage [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 625 4 625 30] (self: t_VecStorage) =
-  [%#svec_storage'65] match storage_model self with
+predicate invariant_VecStorage [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 638 4 638 30] (self: t_VecStorage) =
+  [%#svec_storage'67] match storage_model self with
     | None -> true
     | Some (Pending pointer len'0 capacity) -> native_metadata self
       = { f0'1 = view_NonNull_u8 pointer; f1'1 = len'0; f2'1 = capacity }
@@ -252,16 +258,16 @@ axiom inv_axiom'2 [@rewrite]: forall x: t_VecStorage [inv_VecStorage x]. inv_Vec
     = (invariant_VecStorage x /\ inv_Ghost_Option_StorageModel x.f1)
 
 function length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 84 4 84 37] (self: t_VecPartsWitness) : int
- = [%#svec_storage'69] UInt64.t'int self.len
+ = [%#svec_storage'71] UInt64.t'int self.len
 
 function contents'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 94 4 94 43] (self: t_VecPartsWitness) : Seq.seq UInt8.t
- = [%#svec_storage'71] self.contents
+ = [%#svec_storage'73] self.contents
 
 function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 89 4 89 39] (self: t_VecPartsWitness) : int
- = [%#svec_storage'70] UInt64.t'int self.cap
+ = [%#svec_storage'72] UInt64.t'int self.cap
 
 predicate invariant_VecPartsWitness [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 121 4 121 30] (self: t_VecPartsWitness) =
-  [%#svec_storage'67] 0 <= length self
+  [%#svec_storage'69] 0 <= length self
   /\ length self = Seq.length (contents'0 self)
   /\ length self <= capacity self
   /\ capacity self <= Int64.to_int const_MAX
@@ -279,8 +285,8 @@ meta "rewrite_def" predicate inv_tup2_VecStorage_VecPartsWitness
 
 type t_Option_tup3_ptr_u8_Int_Int = None'0 | Some'0 tup3_ptr_u8_Int_Int
 
-function pending_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 497 4 497 57] (self: t_VecStorage) : t_Option_tup3_ptr_u8_Int_Int
- = [%#svec_storage'66] match storage_model self with
+function pending_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 510 4 510 57] (self: t_VecStorage) : t_Option_tup3_ptr_u8_Int_Int
+ = [%#svec_storage'68] match storage_model self with
     | Some (Pending pointer len'0 capacity'0) -> Some'0 { f0'1 = view_NonNull_u8 pointer;
                                                           f1'1 = len'0;
                                                           f2'1 = capacity'0 }
@@ -298,7 +304,7 @@ axiom view_Vec_u8_Global_spec:
 function capacity_model_u8 (vector: t_Vec_u8_Global) : int
 
 function pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 79 4 79 42] (self: t_VecPartsWitness) : Opaque.ptr
- = [%#svec_storage'68] view_NonNull_u8 self.ptr
+ = [%#svec_storage'70] view_NonNull_u8 self.ptr
 
 function base_model_u8 (vector: t_Vec_u8_Global) : int
 
@@ -414,7 +420,7 @@ type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
 function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
 
 predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 681 4 681 30] (self: t_PhysicalRegion) =
-  [%#sraw_vec'32] invariant_OwnedRegion (view_PhysicalRegion self).f0'6
+  [%#sraw_vec'31] invariant_OwnedRegion (view_PhysicalRegion self).f0'6
   /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'6).f0'9
   /\ (view_OwnedRegion (view_PhysicalRegion self).f0'6).f0'9 <= (view_OwnedRegion (view_PhysicalRegion self).f0'6).f1'9
   /\ (view_OwnedRegion (view_PhysicalRegion self).f0'6).f1'9 <= (view_PhysicalRegion self).f1'6
@@ -447,7 +453,7 @@ meta "rewrite_def" predicate inv_tup2_RawAllocation_Ghost_tup2_Recovery_Physical
 function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 256 4 256 46] (self: t_RawAllocation) : Opaque.ptr
 
 function capacity'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 266 4 266 39] (self: t_RawAllocation) : int
- = [%#sraw_vec'28] (view_RawAllocation self).f0'5
+ = [%#sraw_vec'38] (view_RawAllocation self).f0'5
 
 type tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id = {
   f0'10: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8;
@@ -493,32 +499,32 @@ axiom empty_Int_spec'0: [%#sfmap'3] to_mapping_Int empty_Int = Const.const (None
 predicate is_empty_Int (self: t_FMap_Int_Excl_Option_u8) = [%#sfmap] ext_eq_Int self empty_Int
 
 predicate invariant' [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 647 4 647 41] (self: t_Recovery) =
-  [%#sraw_vec'29] (view_Recovery self).f0'10.f0'8 = Some'1 { f0'7 = () }
+  [%#sraw_vec'28] (view_Recovery self).f0'10.f0'8 = Some'1 { f0'7 = () }
   /\ is_empty_Int (view_Recovery self).f0'10.f1'8 /\ (view_Recovery self).f2'10 = (view_Recovery self).f3'10
 
 function capacity'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 642 4 642 39] (self: t_Recovery) : int
- = [%#sraw_vec'31] (view_Recovery self).f1'10
+ = [%#sraw_vec'30] (view_Recovery self).f1'10
 
 function capacity'2 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 709 4 709 39] (self: t_PhysicalRegion) : int
- = [%#sraw_vec'35] (view_PhysicalRegion self).f1'6
+ = [%#sraw_vec'34] (view_PhysicalRegion self).f1'6
 
 function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 637 4 637 39] (self: t_Recovery) : t_Id
- = [%#sraw_vec'30] (view_Recovery self).f2'10
+ = [%#sraw_vec'29] (view_Recovery self).f2'10
 
 function namespace'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 272 4 272 39] (self: t_RawAllocation) : t_Id
  = [%#sraw_vec'39] (view_RawAllocation self).f1'5
 
 function namespace'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 704 4 704 39] (self: t_PhysicalRegion) : t_Id
- = [%#sraw_vec'33] (view_PhysicalRegion self).f2'6
+ = [%#sraw_vec'32] (view_PhysicalRegion self).f2'6
 
 function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 714 4 714 41] (self: t_PhysicalRegion) : t_Id
- = [%#sraw_vec'34] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f2'9
+ = [%#sraw_vec'33] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f2'9
 
 function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 694 4 694 33] (self: t_PhysicalRegion) : int
- = [%#sraw_vec'36] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f0'9
+ = [%#sraw_vec'35] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f0'9
 
 function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 699 4 699 33] (self: t_PhysicalRegion) : int
- = [%#sraw_vec'37] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f1'9
+ = [%#sraw_vec'36] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f1'9
 
 type t_Option_Option_u8 = None'4 | Some'4 t_Option_u8
 
@@ -532,7 +538,7 @@ axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#so
 
 function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 720 4 720 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
 
-axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'38] slot'0 self index
+axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'37] slot'0 self index
     = slot (view_PhysicalRegion self).f0'6 index
 
 let bind_consumed_vec (witness: t_VecPartsWitness) (return (x: tup2_RawAllocation_Ghost_tup2_Recovery_PhysicalRegion)) =
@@ -684,12 +690,12 @@ let into_inner_PhysicalRegion (self: t_PhysicalRegion) (return (x: t_PhysicalReg
 type tup2_StoredAuthority_PhysicalRegion = { f0'13: t_StoredAuthority; f1'13: t_PhysicalRegion }
 
 function binding'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 444 4 444 37] (self: t_StoredAuthority) : t_Id
- = [%#svec_storage'64] self.binding
+ = [%#svec_storage'66] self.binding
 
 function stored_len'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 449 4 449 41] (self: t_StoredAuthority) : int
- = [%#svec_storage'63] UInt64.t'int self.stored_len
+ = [%#svec_storage'65] UInt64.t'int self.stored_len
 
-predicate invariant_StoredAuthority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 457 4 457 30] (self: t_StoredAuthority) =
+predicate invariant_StoredAuthority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 470 4 470 30] (self: t_StoredAuthority) =
   [%#svec_storage'62] invariant_RawAllocation self.raw
   /\ invariant' self.recovery
   /\ binding'0 self = namespace'0 self.raw
@@ -735,7 +741,7 @@ predicate inv_tup2_VecStorage_Ghost_tup2_StoredAuthority_PhysicalRegion [@inline
 
 meta "rewrite_def" predicate inv_tup2_VecStorage_Ghost_tup2_StoredAuthority_PhysicalRegion
 
-predicate matches_authority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 482 4 482 77] (self: t_VecStorage) (authority: t_StoredAuthority) =
+predicate matches_authority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 495 4 495 77] (self: t_VecStorage) (authority: t_StoredAuthority) =
   [%#svec_storage'60] invariant_VecStorage self
   /\ invariant_StoredAuthority authority
   /\ match storage_model self with
@@ -745,11 +751,17 @@ predicate matches_authority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec
     | _ -> false
     end
 
+function raw_pointer'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 456 4 456 46] (self: t_StoredAuthority) : Opaque.ptr
+ = [%#svec_storage'63] raw_pointer self.raw
+
+function capacity'3 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 462 4 462 39] (self: t_StoredAuthority) : int
+ = [%#svec_storage'64] capacity'0 self.raw
+
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let hold_owned [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 590 4 592 57] (input: t_Vec_u8_Global)
+let hold_owned [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 603 4 605 57] (input: t_Vec_u8_Global)
   (return (x: tup2_VecStorage_Ghost_tup2_StoredAuthority_PhysicalRegion)) = (! bb0
   [ bb0 = s0
     [ s0 = capture_vec_owner [%#svec_storage] {input} (fun (_x: tup2_VecStorage_VecPartsWitness) -> [ &_32 <- _x ] s1)
@@ -758,7 +770,7 @@ let hold_owned [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 
     | s3 = native_parts [%#svec_storage'0] {witness} (fun (_x: tup3_NonNull_u8_usize_usize) -> [ &_37 <- _x ] s4)
     | s4 = [ &pointer'0 <- _37.f0'2 ] s5
     | s5 = [ &stored_len'1 <- _37.f1'2 ] s6
-    | s6 = [ &capacity'3 <- _37.f2'2 ] s7
+    | s6 = [ &capacity'4 <- _37.f2'2 ] s7
     | s7 = bind_consumed_vec [%#svec_storage'1] {witness}
         (fun (_x: tup2_RawAllocation_Ghost_tup2_Recovery_PhysicalRegion) -> [ &_41 <- _x ] s8)
     | s8 = [ &raw'0 <- _41.f0'4 ] s9
@@ -770,7 +782,7 @@ let hold_owned [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 
     | s14 = into_inner_Id [%#svec_storage'6] {binding'1} (fun (_x: t_Id) -> [ &_52 <- _x ] s15)
     | s15 = int_from_usize [%#svec_storage'7] {stored_len'1} (fun (_x: int) -> [ &_56 <- _x ] s16)
     | s16 = into_inner_Int [%#svec_storage'8] {_56} (fun (_x: int) -> [ &_55 <- _x ] s17)
-    | s17 = int_from_usize [%#svec_storage'9] {capacity'3} (fun (_x: int) -> [ &_59 <- _x ] s18)
+    | s17 = int_from_usize [%#svec_storage'9] {capacity'4} (fun (_x: int) -> [ &_59 <- _x ] s18)
     | s18 = into_inner_Int [%#svec_storage'10] {_59} (fun (_x: int) -> [ &_58 <- _x ] s19)
     | s19 = [ &_51 <- Owned _52 pointer'0 _55 _58 ] s20
     | s20 = [ &_50 <- Some _51 ] s21
@@ -797,7 +809,7 @@ let hold_owned [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 
   | & _32: tup2_VecStorage_VecPartsWitness = Any.any_l ()
   | & pointer'0: t_NonNull_u8 = Any.any_l ()
   | & stored_len'1: UInt64.t = Any.any_l ()
-  | & capacity'3: UInt64.t = Any.any_l ()
+  | & capacity'4: UInt64.t = Any.any_l ()
   | & _37: tup3_NonNull_u8_usize_usize = Any.any_l ()
   | & raw'0: t_RawAllocation = Any.any_l ()
   | & capabilities: tup2_Recovery_PhysicalRegion = Any.any_l ()
@@ -831,9 +843,9 @@ let hold_owned [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 
       = { f0'1 = pointer_model_u8 input; f1'1 = Seq.length (view_Vec_u8_Global input); f2'1 = capacity_model_u8 input })
     /\ ([@stop_split] [@expl:hold_owned ensures #2] [%#svec_storage'21] invariant_StoredAuthority result.f1'14.f0'13)
     /\ ([@stop_split] [@expl:hold_owned ensures #3] [%#svec_storage'22] invariant_RawAllocation result.f1'14.f0'13.raw)
-    /\ ([@stop_split] [@expl:hold_owned ensures #4] [%#svec_storage'23] raw_pointer result.f1'14.f0'13.raw
+    /\ ([@stop_split] [@expl:hold_owned ensures #4] [%#svec_storage'23] raw_pointer'0 result.f1'14.f0'13
       = pointer_model_u8 input)
-    /\ ([@stop_split] [@expl:hold_owned ensures #5] [%#svec_storage'24] capacity'0 result.f1'14.f0'13.raw
+    /\ ([@stop_split] [@expl:hold_owned ensures #5] [%#svec_storage'24] capacity'3 result.f1'14.f0'13
       = capacity_model_u8 input)
     /\ ([@stop_split] [@expl:hold_owned ensures #6] [%#svec_storage'25] base_address result.f1'14.f0'13.raw
       = base_model_u8 input)
@@ -843,21 +855,21 @@ let hold_owned [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 
     /\ ([@stop_split] [@expl:hold_owned ensures #9] [%#svec_storage'28] namespace result.f1'14.f0'13.recovery
       = binding'0 result.f1'14.f0'13)
     /\ ([@stop_split] [@expl:hold_owned ensures #10] [%#svec_storage'29] capacity'1 result.f1'14.f0'13.recovery
-      = capacity'0 result.f1'14.f0'13.raw)
+      = capacity'3 result.f1'14.f0'13)
     /\ ([@stop_split] [@expl:hold_owned ensures #11] [%#svec_storage'30] invariant_PhysicalRegion result.f1'14.f1'13)
     /\ ([@stop_split] [@expl:hold_owned ensures #12] [%#svec_storage'31] namespace'1 result.f1'14.f1'13
       = binding'0 result.f1'14.f0'13)
     /\ ([@stop_split] [@expl:hold_owned ensures #13] [%#svec_storage'32] resource_id result.f1'14.f1'13
       = binding'0 result.f1'14.f0'13)
     /\ ([@stop_split] [@expl:hold_owned ensures #14] [%#svec_storage'33] capacity'2 result.f1'14.f1'13
-      = capacity'0 result.f1'14.f0'13.raw)
+      = capacity'3 result.f1'14.f0'13)
     /\ ([@stop_split] [@expl:hold_owned ensures #15] [%#svec_storage'34] lo result.f1'14.f1'13 = 0)
     /\ ([@stop_split] [@expl:hold_owned ensures #16] [%#svec_storage'35] hi result.f1'14.f1'13
-      = capacity'0 result.f1'14.f0'13.raw)
+      = capacity'3 result.f1'14.f0'13)
     /\ ([@stop_split] [@expl:hold_owned ensures #17] [%#svec_storage'36] base_address result.f1'14.f0'13.raw
-        + capacity'0 result.f1'14.f0'13.raw
+        + capacity'3 result.f1'14.f0'13
       <= UInt64.t'int const_MAX'0)
-    /\ ([@stop_split] [@expl:hold_owned ensures #18] [%#svec_storage'37] capacity'0 result.f1'14.f0'13.raw
+    /\ ([@stop_split] [@expl:hold_owned ensures #18] [%#svec_storage'37] capacity'3 result.f1'14.f0'13
       <= Int64.to_int const_MAX)
     /\ ([@stop_split] [@expl:hold_owned ensures #19] [%#svec_storage'38] forall i: int. 0 <= i
           /\ i < Seq.length (view_Vec_u8_Global input)
