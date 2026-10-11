@@ -44,10 +44,13 @@ public trait refinement.
 The logical invariant and prefix helpers retain the complete allocation frame
 at an absolute cursor, and the metadata helpers prove the packed Vec position
 updates. The selected constructor bodies establish `unique_valid` at offset
-zero. The body of `advance_unchecked`, which would establish a later cursor
-state, still has one unproved `unique_valid` postcondition. Thus no selected
-proof establishes a safe production path to a nonzero offset or through its
-promotion branch. Shared states, immutable peers, lifecycle operations,
+zero. Body proofs for `advance_vec_layout` and `set_visible_len` establish the
+two phases of a Vec cursor advance while preserving all allocation slots; the
+`advance_unchecked` body is proved under its internal validity, capacity, and
+representable-position preconditions. That contract restricts this proof to
+the Vec no-promotion path. The selected proofs still do not establish a safe
+public-call chain that produces a nonzero offset, and the promotion branch is
+not covered. Shared states, immutable peers, lifecycle operations,
 concurrency and unwind behavior remain outside the selected `BytesMut` proof
 scope.
 

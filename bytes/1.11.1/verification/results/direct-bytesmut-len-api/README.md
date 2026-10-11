@@ -9,16 +9,18 @@ guarantees and their assumptions.
 
 The selected source targets also include body proofs for cursor-relative
 prefix helpers, Vec metadata packing and position updates, `BoundPtr`
-projections, and `BufMut::advance_mut`. They do not include the body of
-`advance_unchecked`; its final `unique_valid` postcondition remains unproved.
+projections, `set_visible_len`, `advance_vec_layout`, `advance_unchecked`, and
+`BufMut::advance_mut`. `advance_unchecked` is proved only under its internal
+`unique_valid`, capacity, and representable-position preconditions; that
+contract keeps execution on the Vec no-promotion path.
 The `BufMut::advance_mut` implementation body has a proof under its
 cursor-validity and initialized-slot preconditions, but the generated trait
 refinement obligation is not proved because those implementation preconditions
 are stronger than the trait prestate.
-The initial Vec constructors establish offset zero, and no selected proof
-establishes a safe production path to a nonzero offset or through the
-promotion branch. The logical model and cursor helpers are not evidence that
-those states are reachable through the original API.
+The initial Vec constructors establish offset zero. No selected proof
+establishes a safe public-call chain that produces a nonzero cursor, and the
+promotion branch is outside this proof. The logical model and cursor helpers
+are not evidence that those states are reachable through the original API.
 
 The selected source targets include body proofs for the generic `OwnerLedger`
 algebra and the current-value refcount operation wrappers and increment loop.

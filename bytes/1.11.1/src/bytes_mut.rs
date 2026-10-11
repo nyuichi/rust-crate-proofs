@@ -102,8 +102,12 @@ impl BytesMut {
     pub(crate) fn unique_pointer(self) -> *mut u8 { pearlite! { self.ptr@ } }
     #[logic(open(self))]
     pub(crate) fn unique_tag_pointer(self) -> *mut () { pearlite! { self.data as *mut () } }
+    /// The allocation, cursor, native pointer, packed tag, and affine
+    /// capabilities agree. This deliberately omits the current length bound
+    /// and initialized-prefix fact so the two private advance phases can be
+    /// specified while `len` still describes the old view.
     #[logic(open(self), prophetic)]
-    pub(crate) fn unique_valid(self) -> bool {
+    pub(crate) fn unique_layout_valid(self) -> bool {
         pearlite! {
             self.unique_proof != None && {
                 let proof = self.unique_proof.unwrap_logic();
@@ -122,13 +126,18 @@ impl BytesMut {
                 caps.1.namespace() == caps.0.namespace() &&
                 caps.1.resource_id() == caps.0.namespace() &&
                 caps.1.lo() == 0 && caps.1.hi() == proof.raw.capacity() &&
-                self.len <= self.cap &&
                 (self.data.addr_logic() & 3usize) == 1usize &&
                 (self.data.addr_logic() >> VEC_POS_OFFSET)@ == self.unique_offset() &&
-                (self.data.addr_logic() & KIND_MASK) == KIND_VEC &&
-                (forall<i:Int> 0 <= i && i < self.len@ ==>
-                    slot_known(self.unique_slot(i)))
+                (self.data.addr_logic() & KIND_MASK) == KIND_VEC
             }
+        }
+    }
+    #[logic(open(self), prophetic)]
+    pub(crate) fn unique_valid(self) -> bool {
+        pearlite! {
+            self.unique_layout_valid() && self.len <= self.cap &&
+            (forall<i:Int> 0 <= i && i < self.len@ ==>
+                slot_known(self.unique_slot(i)))
         }
     }
     /// Slot in allocation coordinates, including hidden prefixes and suffixes.
@@ -195,6 +204,7 @@ fn unique_initialized_prefix_suffix(prestate: Snapshot<BytesMut>, count: usize) 
             slot_known((*prestate).unique_slot(count@ + i))
     );
 }
+
 
 // Thread-safe reference-counted container for the shared storage. This mostly
 // the same as `core::sync::Arc` but without the weak counter. The ref counting
@@ -731,6 +741,95 @@ impl BytesMut {
         unsafe { self.set_len(new_len) };
     }
 
+    /// Complete a length-only transition after the new visible prefix has
+    /// already been shown initialized. This also restores `unique_valid` after
+    /// a private cursor/capacity transition temporarily left the old length in
+    /// place.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_layout_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(new_len@ <= self.unique_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(forall<i:Int>
+        0 <= i && i < new_len@ ==> slot_known(self.unique_slot(i))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == new_len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_capacity() == self.unique_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_offset() == self.unique_offset()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_tag_pointer() == self.unique_tag_pointer()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof == self.unique_proof))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < self.unique_allocation_capacity() ==>
+            (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() ==
+        Seq::create(new_len@, |i:Int| self.unique_slot(i).unwrap_logic().unwrap_logic())))]
+    #[inline]
+    fn set_visible_len(&mut self, new_len: usize) {
+        self.len = new_len;
+    }
+
+    /// Advance a Vec-backed view without changing its visible length. This is
+    /// the layout phase; `set_visible_len` follows and restores the full
+    /// length/prefix invariant. The helper only runs on the non-promotion path.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.unique_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(pos@ == self.unique_offset() + count@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(pos@ <= MAX_VEC_POS@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_layout_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == self.unique_length()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_capacity() == self.unique_capacity() - count@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_offset() == self.unique_offset() + count@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer().addr_logic()@ == self.unique_pointer().addr_logic()@ + count@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ == pos@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+            (self.unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof.unwrap_logic().base == self.unique_proof.unwrap_logic().base))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof.unwrap_logic().raw == self.unique_proof.unwrap_logic().raw))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof.unwrap_logic().capabilities == self.unique_proof.unwrap_logic().capabilities))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < self.unique_allocation_capacity() ==>
+            (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < (^self).unique_capacity() ==>
+            (^self).unique_slot(i) == self.unique_slot(count@ + i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < (if count@ <= self.unique_length() {
+            self.unique_length() - count@
+        } else { 0int }) ==>
+            slot_known((^self).unique_slot(i))))]
+    #[inline]
+    unsafe fn advance_vec_layout(&mut self, count: usize, pos: usize) {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let prestate = snapshot!(*self);
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let _ = ghost! {
+            unique_initialized_prefix_suffix(prestate, count);
+        };
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let cursor = self.unique_proof.as_ref().unwrap().cursor.advance_within(count);
+            let pointer = cursor.as_non_null();
+            self.set_vec_pos(pos);
+            self.ptr = pointer;
+            self.unique_proof.as_mut().unwrap().cursor = cursor;
+        }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        {
+            self.set_vec_pos(pos);
+            self.ptr = vptr(crate::provenance_specs::wrapping_offset(
+                self.ptr.as_ptr(), count,
+            ));
+        }
+
+        // The old length is preserved until the next private phase, so it may
+        // temporarily exceed this reduced capacity; no public observer can run
+        // between these non-panicking updates under the caller's `&mut` borrow.
+        self.cap -= count;
+    }
+
     /// Sets the length of the buffer.
     ///
     /// This will explicitly set the size of the buffer without actually
@@ -782,7 +881,7 @@ impl BytesMut {
         let _ = ghost! {
             unique_initialized_prefix_extend(snapshot!(*self), self.len, len);
         };
-        self.len = len;
+        self.set_visible_len(len);
     }
 
     /// Reserves capacity for at least `additional` more bytes to be inserted
@@ -1287,13 +1386,6 @@ impl BytesMut {
 
         debug_assert!(count <= self.cap, "internal: set_start out of bounds");
 
-        #[cfg(all(creusot, bytes_original_unique_gate))]
-        let prestate = snapshot!(*self);
-        #[cfg(all(creusot, bytes_original_unique_gate))]
-        let _ = ghost! {
-            unique_initialized_prefix_suffix(prestate, count);
-        };
-
         let kind = self.kind();
         if kind == KIND_VEC {
             // Setting the start when in vec representation is a little more
@@ -1303,26 +1395,14 @@ impl BytesMut {
             let pos = self.get_vec_pos() + count;
 
             if pos <= MAX_VEC_POS {
-                #[cfg(all(creusot, bytes_original_unique_gate))]
-                {
-                    // Keep the proof cursor and the native pointer on the
-                    // same branch and use one computed pointer value for both.
-                    // The cursor update erases in native builds; its body uses
-                    // the same provenance-preserving wrapping offset as below.
-                    let cursor = self.unique_proof.as_ref().unwrap().cursor.advance_within(count);
-                    let pointer = cursor.as_non_null();
-                    self.set_vec_pos(pos);
-                    self.ptr = pointer;
-                    self.unique_proof.as_mut().unwrap().cursor = cursor;
-                }
-                #[cfg(not(all(creusot, bytes_original_unique_gate)))]
-                {
-                    self.set_vec_pos(pos);
-                    self.ptr = vptr(crate::provenance_specs::wrapping_offset(
-                        self.ptr.as_ptr(),
-                        count,
-                    ));
-                }
+                // The private layout helper updates the Vec cursor, pointer,
+                // packed position and capacity together. It keeps the old
+                // length until the next non-panicking assignment restores the
+                // full invariant.
+                unsafe { self.advance_vec_layout(count, pos) };
+                let new_len = self.len.saturating_sub(count);
+                self.set_visible_len(new_len);
+                return;
             } else {
                 // The repr must be upgraded to ARC. This is unusual on 64-bit
                 // systems, but the packed Vec offset still has a finite bound.
@@ -1610,7 +1690,7 @@ unsafe impl BufMut for BytesMut {
         let _ = ghost! {
             unique_initialized_prefix_extend(snapshot!(*self), self.len, new_len);
         };
-        self.len = new_len;
+        self.set_visible_len(new_len);
     }
 
     #[inline]

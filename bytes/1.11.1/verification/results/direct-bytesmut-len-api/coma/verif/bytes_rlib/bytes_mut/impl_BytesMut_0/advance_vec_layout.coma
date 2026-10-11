@@ -1,0 +1,805 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 803 4 803 69 *)
+
+(* bytes_mut::BytesMut *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 93 20 93 44
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 74 19 74 23
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 70 18 70 50
+let%span soption'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 72 12 72 81
+let%span soption'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 139 18 139 22
+let%span soption'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 137 19 137 23
+let%span soption'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 138 34 138 38
+let%span soption'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 88 23 88 27
+let%span soption'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 83 18 83 67
+let%span soption'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 85 12 86 92
+let%span soption'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
+let%span soption'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 805 33 805 38
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 808 12 808 61
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 807 16 809 9
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 813 25 813 51
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 813 25 813 60
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 813 25 813 89
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 814 26 814 46
+let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 815 12 815 33
+let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 817 12 817 38
+let%span sbytes_mut'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 817 12 817 47
+let%span sbytes_mut'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 830 8 830 25
+let%span sbytes_mut'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 803 38 803 42
+let%span sbytes_mut'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 773 66 773 85
+let%span sbytes_mut'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 774 66 774 98
+let%span sbytes_mut'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 775 66 775 103
+let%span sbytes_mut'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 776 66 776 86
+let%span sbytes_mut'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 777 65 777 94
+let%span sbytes_mut'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 778 65 778 112
+let%span sbytes_mut'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 779 65 779 125
+let%span sbytes_mut'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 780 65 780 121
+let%span sbytes_mut'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 781 65 781 138
+let%span sbytes_mut'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 782 65 782 151
+let%span sbytes_mut'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 783 65 783 135
+let%span sbytes_mut'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 784 65 784 132
+let%span sbytes_mut'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 786 8 787 71
+let%span sbytes_mut'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 788 65 788 146
+let%span sbytes_mut'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 789 65 789 144
+let%span sbytes_mut'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 790 65 790 162
+let%span sbytes_mut'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 791 65 793 79
+let%span sbytes_mut'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 794 65 796 66
+let%span sbytes_mut'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 797 65 801 46
+let%span sbytes_mut'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 186 11 186 37
+let%span sbytes_mut'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 187 11 187 50
+let%span sbytes_mut'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 188 10 192 55
+let%span sbytes_mut'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1542 31 1542 35
+let%span sbytes_mut'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1525 66 1525 86
+let%span sbytes_mut'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1526 65 1526 162
+let%span sbytes_mut'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1527 65 1527 164
+let%span sbytes_mut'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1528 65 1528 166
+let%span sbytes_mut'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1529 65 1529 162
+let%span sbytes_mut'39 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1530 65 1530 188
+let%span sbytes_mut'40 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1531 65 1531 181
+let%span sbytes_mut'41 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1532 65 1532 182
+let%span sbytes_mut'42 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1533 65 1534 67
+let%span sbytes_mut'43 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1535 65 1536 57
+let%span sbytes_mut'44 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1537 65 1537 106
+let%span sbytes_mut'45 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1538 65 1540 79
+let%span sbytes_mut'46 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 138 12 140 48
+let%span sbytes_mut'47 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 92 61 92 70
+let%span sbytes_mut'48 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 95 20 95 77
+let%span sbytes_mut'49 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 263 27 263 55
+let%span sbytes_mut'50 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 263 41 263 55
+let%span sbytes_mut'51 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 263 27 263 37
+let%span sbytes_mut'52 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 112 12 132 13
+let%span sbytes_mut'53 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 90 59 90 68
+let%span sbytes_mut'54 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 99 20 99 67
+let%span sbytes_mut'55 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 102 64 102 73
+let%span sbytes_mut'56 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 104 68 104 88
+let%span sbytes_mut'57 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 803 4 803 69
+let%span sbytes_mut'58 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 146 20 146 93
+let%span sbytes_mut'59 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 151 20 151 77
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 501 34 501 38
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 484 15 484 31
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 485 15 485 28
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 486 15 490 5
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 501 57 501 61
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 491 14 491 32
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 492 14 499 5
+let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 500 14 500 73
+let%span sraw_vec'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 420 31 420 35
+let%span sraw_vec'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 420 40 420 51
+let%span sraw_vec'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 418 14 418 32
+let%span sraw_vec'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 419 32 419 61
+let%span sraw_vec'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1282 16 1282 59
+let%span sraw_vec'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 361 12 369 13
+let%span sraw_vec'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 388 14 388 60
+let%span sraw_vec'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 245 12 246 56
+let%span sraw_vec'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 271 20 271 27
+let%span sraw_vec'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 600 20 600 27
+let%span sraw_vec'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 611 12 613 30
+let%span sraw_vec'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 645 12 649 33
+let%span sraw_vec'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 265 20 265 27
+let%span sraw_vec'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 605 20 605 27
+let%span sraw_vec'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 672 20 672 27
+let%span sraw_vec'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 667 20 667 27
+let%span sraw_vec'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 677 20 677 30
+let%span sraw_vec'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 657 20 657 30
+let%span sraw_vec'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 662 20 662 30
+let%span sraw_vec'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 681 14 681 43
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 108 8 108 34
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 168 40 168 65
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 171 12 171 41
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
+let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use creusot.prelude.Opaque
+use creusot.int.Int64
+use creusot.prelude.Ptr
+use creusot.int.UInt8
+use map.Map
+use map.Const
+use creusot.prelude.Any
+use int.Int
+
+type t_NonNull_u8
+
+type t_BoundPtr
+
+type t_RawAllocation
+
+type t_Recovery
+
+type t_PhysicalRegion
+
+type tup2_Recovery_PhysicalRegion = { f0: t_Recovery; f1: t_PhysicalRegion }
+
+type t_OriginalUniqueProof = {
+  base: t_BoundPtr;
+  cursor: t_BoundPtr;
+  raw: t_RawAllocation;
+  capabilities: tup2_Recovery_PhysicalRegion }
+
+type t_Option_OriginalUniqueProof = None | Some t_OriginalUniqueProof
+
+type t_BytesMut = {
+  ptr: t_NonNull_u8;
+  len: UInt64.t;
+  cap: UInt64.t;
+  data: Opaque.ptr;
+  unique_proof: t_Option_OriginalUniqueProof }
+
+constant any_OriginalUniqueProof : t_OriginalUniqueProof
+
+function unwrap_Option_OriginalUniqueProof (self: t_Option_OriginalUniqueProof) : t_OriginalUniqueProof =
+  [%#soption'9] match self with
+    | Some x -> x
+    | None -> any_OriginalUniqueProof
+    end
+
+type t_Id
+
+type tup3_Id_Int_Int = { f0'0: t_Id; f1'0: int; f2'0: int }
+
+type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 342 4 342 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 378 4 378 39] (self: t_BoundPtr) : int
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 359 4 359 30] (self: t_BoundPtr) =
+  [%#sraw_vec'12] match view_BoundPtr self with
+    | None'0 -> true
+    | Some'0 {f1'0 = allocation_capacity; f2'0 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity
+    /\ allocation_capacity <= Int64.to_int const_MAX
+    /\ absolute_offset < current_address self
+    /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
+    end
+
+type tup2_Int_Id = { f0'1: int; f1'1: t_Id }
+
+function view_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 236 4 236 33] (self: t_RawAllocation) : tup2_Int_Id
+
+function base_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 258 4 258 36] (self: t_RawAllocation) : int
+
+predicate invariant_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 243 4 243 30] (self: t_RawAllocation) =
+  [%#sraw_vec'14] 0 <= (view_RawAllocation self).f0'1
+  /\ (view_RawAllocation self).f0'1 <= Int64.to_int const_MAX
+  /\ base_address self + (view_RawAllocation self).f0'1 <= UInt64.t'int const_MAX'0
+
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 270 4 270 39] (self: t_RawAllocation) : t_Id
+ = [%#sraw_vec'15] (view_RawAllocation self).f1'1
+
+type t_Excl_unit = { f0'2: () }
+
+type t_Option_Excl_unit = None'1 | Some'1 t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'3: t_Option_Excl_unit; f1'3: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id = {
+  f0'4: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8;
+  f1'4: int;
+  f2'4: t_Id;
+  f3'4: t_Id }
+
+function view_Recovery [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 589 4 589 33] (self: t_Recovery) : tup4_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Int_Id_Id
+
+function namespace'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 599 4 599 39] (self: t_Recovery) : t_Id
+ = [%#sraw_vec'16] (view_Recovery self).f2'4
+
+function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 254 4 254 46] (self: t_RawAllocation) : Opaque.ptr
+
+function raw_pointer'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 389 4 389 46] (self: t_BoundPtr) : Opaque.ptr
+
+axiom raw_pointer_spec:
+  forall self: t_BoundPtr [raw_pointer'0 self]. [%#sraw_vec'13] UInt64.t'int (Ptr.addr_logic_u64 (raw_pointer'0 self))
+    = current_address self
+
+type t_Option_u8 = None'2 | Some'2 UInt8.t
+
+type t_Excl_Option_u8 = { f0'5: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'3 | Some'3 t_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap'4] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate ext_eq_Int (self: t_FMap_Int_Excl_Option_u8) (other: t_FMap_Int_Excl_Option_u8) =
+  [%#sfmap'1] forall k: int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec: forall self: t_FMap_Int_Excl_Option_u8, other: t_FMap_Int_Excl_Option_u8 [self
+    = other]. [%#sfmap'0] ext_eq_Int self other = (self = other)
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_Option_u8) : int
+
+axiom len_Int_spec: forall self: t_FMap_Int_Excl_Option_u8 [len_Int self]. [%#sfmap'5] ge_log_Int (len_Int self) 0
+
+constant empty_Int : t_FMap_Int_Excl_Option_u8
+
+axiom empty_Int_spec: [%#sfmap'2] len_Int empty_Int = 0
+
+axiom empty_Int_spec'0: [%#sfmap'3] to_mapping_Int empty_Int = Const.const (None'3)
+
+predicate is_empty_Int (self: t_FMap_Int_Excl_Option_u8) = [%#sfmap] ext_eq_Int self empty_Int
+
+predicate invariant' [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 609 4 609 41] (self: t_Recovery) =
+  [%#sraw_vec'17] (view_Recovery self).f0'4.f0'3 = Some'1 { f0'2 = () }
+  /\ is_empty_Int (view_Recovery self).f0'4.f1'3 /\ (view_Recovery self).f2'4 = (view_Recovery self).f3'4
+
+type t_OwnedRegion
+
+predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 83 4 83 30] (self: t_OwnedRegion)
+
+type tup3_OwnedRegion_Int_Id = { f0'6: t_OwnedRegion; f1'6: int; f2'6: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 631 4 631 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'7: int;
+  f1'7: int;
+  f2'7: t_Id;
+  f3'7: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 643 4 643 30] (self: t_PhysicalRegion) =
+  [%#sraw_vec'18] invariant_OwnedRegion (view_PhysicalRegion self).f0'6
+  /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'6).f0'7
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'6).f0'7 <= (view_OwnedRegion (view_PhysicalRegion self).f0'6).f1'7
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'6).f1'7 <= (view_PhysicalRegion self).f1'6
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'6).f2'7 = (view_PhysicalRegion self).f2'6
+
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 264 4 264 39] (self: t_RawAllocation) : int
+ = [%#sraw_vec'19] (view_RawAllocation self).f0'1
+
+constant any_tup3_Id_Int_Int : tup3_Id_Int_Int
+
+function unwrap_Option_tup3_Id_Int_Int (self: t_Option_tup3_Id_Int_Int) : tup3_Id_Int_Int =
+  [%#soption'9] match self with
+    | Some'0 x -> x
+    | None'0 -> any_tup3_Id_Int_Int
+    end
+
+function unique_offset [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 94 4 94 44] (self: t_BytesMut) : int
+ =
+  [%#sbytes_mut'48] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (unwrap_Option_OriginalUniqueProof self.unique_proof).cursor)).f2'0
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function capacity'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 604 4 604 39] (self: t_Recovery) : int
+ = [%#sraw_vec'20] (view_Recovery self).f1'4
+
+function capacity'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 671 4 671 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'21] (view_PhysicalRegion self).f1'6
+
+function namespace'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 666 4 666 39] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'22] (view_PhysicalRegion self).f2'6
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 676 4 676 41] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'23] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f2'7
+
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 656 4 656 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'24] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f0'7
+
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 661 4 661 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'25] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f1'7
+
+constant const_VEC_POS_OFFSET: UInt64.t = [%#sbytes_mut'57] (5: UInt64.t)
+
+constant const_KIND_MASK: UInt64.t = [%#sbytes_mut'57] (1: UInt64.t)
+
+constant const_KIND_VEC: UInt64.t = [%#sbytes_mut'57] (1: UInt64.t)
+
+predicate unique_layout_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 110 4 110 51] (self: t_BytesMut) =
+  [%#sbytes_mut'52] self.unique_proof <> None
+  /\ (let proof = unwrap_Option_OriginalUniqueProof self.unique_proof in let caps = proof.capabilities in invariant_BoundPtr proof.base
+  /\ invariant_BoundPtr proof.cursor
+  /\ invariant_RawAllocation proof.raw
+  /\ namespace proof.raw = namespace'0 caps.f0
+  /\ raw_pointer proof.raw = raw_pointer'0 proof.base
+  /\ invariant' caps.f0
+  /\ invariant_PhysicalRegion caps.f1
+  /\ view_BoundPtr proof.base = Some'0 { f0'0 = namespace'0 caps.f0; f1'0 = capacity proof.raw; f2'0 = 0 }
+  /\ view_BoundPtr proof.cursor
+    = Some'0 { f0'0 = namespace'0 caps.f0; f1'0 = capacity proof.raw; f2'0 = unique_offset self }
+  /\ view_NonNull_u8 self.ptr = raw_pointer'0 proof.cursor
+  /\ 0 <= unique_offset self
+  /\ unique_offset self <= capacity proof.raw
+  /\ unique_offset self + UInt64.t'int self.cap = capacity proof.raw
+  /\ capacity'0 caps.f0 = capacity proof.raw
+  /\ capacity'1 caps.f1 = capacity proof.raw
+  /\ namespace'1 caps.f1 = namespace'0 caps.f0
+  /\ resource_id caps.f1 = namespace'0 caps.f0
+  /\ lo caps.f1 = 0
+  /\ hi caps.f1 = capacity proof.raw
+  /\ UInt64.bw_and (Ptr.addr_logic_u64 self.data) (3: UInt64.t) = (1: UInt64.t)
+  /\ UInt64.t'int (UInt64.shr (Ptr.addr_logic_u64 self.data) const_VEC_POS_OFFSET) = unique_offset self
+  /\ UInt64.bw_and (Ptr.addr_logic_u64 self.data) const_KIND_MASK = const_KIND_VEC)
+
+type t_Option_Option_u8 = None'4 | Some'4 t_Option_u8
+
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1281 0 1281 58] (slot: t_Option_Option_u8) =
+  [%#sraw_vec'11] exists value: UInt8.t. slot = Some'4 (Some'2 value)
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#sowned_region] slot self index
+    = match get_Int (view_OwnedRegion self).f3'7.f1'3 index with
+      | None'3 -> None'4
+      | Some'3 {f0'5 = value} -> Some'4 value
+      end
+
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 682 4 682 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'26] slot'0 self index
+    = slot (view_PhysicalRegion self).f0'6 index
+
+function unique_allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 145 4 145 80] (self: t_BytesMut) (index: int) : t_Option_Option_u8
+ = [%#sbytes_mut'58] slot'0 (unwrap_Option_OriginalUniqueProof self.unique_proof).capabilities.f1 index
+
+function unique_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 150 4 150 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
+ = [%#sbytes_mut'59] unique_allocation_slot self (unique_offset self + index)
+
+predicate unique_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 136 4 136 44] (self: t_BytesMut) =
+  [%#sbytes_mut'46] unique_layout_valid self
+  /\ UInt64.le self.len self.cap
+  /\ (forall i: int. 0 <= i /\ i < UInt64.t'int self.len -> slot_known (unique_slot self i))
+
+function unique_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 92 4 92 46] (self: t_BytesMut) : int
+ = [%#sbytes_mut'47] UInt64.t'int self.cap
+
+function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 90 4 90 44] (self: t_BytesMut) : int
+ = [%#sbytes_mut'53] UInt64.t'int self.len
+
+let unique_initialized_prefix_suffix (prestate: t_BytesMut) (count: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:unique_initialized_prefix_suffix requires] ([@stop_split] [@expl:unique_initialized_prefix_suffix requires #0] [%#sbytes_mut'30] unique_valid prestate)
+  /\ ([@stop_split] [@expl:unique_initialized_prefix_suffix requires #1] [%#sbytes_mut'31] UInt64.t'int count
+  <= unique_capacity prestate)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:unique_initialized_prefix_suffix ensures] [%#sbytes_mut'32] forall i: int. 0 <= i
+        /\ i < (if UInt64.t'int count <= unique_length prestate then unique_length prestate - UInt64.t'int count else 0)
+      -> slot_known (unique_slot prestate (UInt64.t'int count + i))}
+    (! return {result}) ]
+
+let new_unit (x: ()) (return (x'0: ())) = any
+  [ return (result: ()) -> {[@stop_split] [@expl:new ensures] [%#sghost] result = x} (! return {result}) ]
+
+type t_Option_ref_OriginalUniqueProof = None'5 | Some'5 t_OriginalUniqueProof
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> invariant_BoundPtr x
+
+predicate inv_RawAllocation (_1: t_RawAllocation)
+
+axiom inv_axiom'0: forall x: t_RawAllocation [inv_RawAllocation x]. inv_RawAllocation x -> invariant_RawAllocation x
+
+predicate inv_Recovery (_1: t_Recovery)
+
+predicate inv_PhysicalRegion (_1: t_PhysicalRegion)
+
+axiom inv_axiom'1: forall x: t_PhysicalRegion [inv_PhysicalRegion x]. inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate inv_tup2_Recovery_PhysicalRegion [@inline:trivial] (_1: tup2_Recovery_PhysicalRegion) =
+  inv_Recovery _1.f0 /\ inv_PhysicalRegion _1.f1
+
+meta "rewrite_def" predicate inv_tup2_Recovery_PhysicalRegion
+
+predicate invariant_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial] (self: tup2_Recovery_PhysicalRegion) =
+  [%#sghost'0] inv_tup2_Recovery_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_tup2_Recovery_PhysicalRegion
+
+predicate inv_Ghost_tup2_Recovery_PhysicalRegion [@inline:trivial] (_1: tup2_Recovery_PhysicalRegion) =
+  invariant_Ghost_tup2_Recovery_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_tup2_Recovery_PhysicalRegion
+
+predicate inv_OriginalUniqueProof (_1: t_OriginalUniqueProof)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_OriginalUniqueProof [inv_OriginalUniqueProof x]. inv_OriginalUniqueProof x
+    = (inv_BoundPtr x.base
+    /\ inv_BoundPtr x.cursor /\ inv_RawAllocation x.raw /\ inv_Ghost_tup2_Recovery_PhysicalRegion x.capabilities)
+
+predicate inv_Option_OriginalUniqueProof (_1: t_Option_OriginalUniqueProof)
+
+axiom inv_axiom'3 [@rewrite]:
+  forall x: t_Option_OriginalUniqueProof [inv_Option_OriginalUniqueProof x]. inv_Option_OriginalUniqueProof x
+    = match x with
+      | None -> true
+      | Some f0'8 -> inv_OriginalUniqueProof f0'8
+      end
+
+predicate invariant_ref_Option_OriginalUniqueProof [@inline:trivial] (self: t_Option_OriginalUniqueProof) =
+  [%#sinvariant] inv_Option_OriginalUniqueProof self
+
+meta "rewrite_def" predicate invariant_ref_Option_OriginalUniqueProof
+
+predicate inv_ref_Option_OriginalUniqueProof [@inline:trivial] (_1: t_Option_OriginalUniqueProof) =
+  invariant_ref_Option_OriginalUniqueProof _1
+
+meta "rewrite_def" predicate inv_ref_Option_OriginalUniqueProof
+
+predicate invariant_ref_OriginalUniqueProof [@inline:trivial] (self: t_OriginalUniqueProof) =
+  [%#sinvariant] inv_OriginalUniqueProof self
+
+meta "rewrite_def" predicate invariant_ref_OriginalUniqueProof
+
+predicate inv_ref_OriginalUniqueProof [@inline:trivial] (_1: t_OriginalUniqueProof) =
+  invariant_ref_OriginalUniqueProof _1
+
+meta "rewrite_def" predicate inv_ref_OriginalUniqueProof
+
+predicate inv_Option_ref_OriginalUniqueProof (_1: t_Option_ref_OriginalUniqueProof)
+
+axiom inv_axiom'4 [@rewrite]:
+  forall x: t_Option_ref_OriginalUniqueProof [inv_Option_ref_OriginalUniqueProof x]. inv_Option_ref_OriginalUniqueProof x
+    = match x with
+      | None'5 -> true
+      | Some'5 f0'8 -> inv_ref_OriginalUniqueProof f0'8
+      end
+
+let as_ref_OriginalUniqueProof (self_: t_Option_OriginalUniqueProof) (return (x: t_Option_ref_OriginalUniqueProof)) =
+{[@stop_split] [@expl:as_ref 'self_' type invariant] [%#soption] inv_ref_Option_OriginalUniqueProof self_}
+  any
+  [ return (result: t_Option_ref_OriginalUniqueProof) ->
+  {[@stop_split] [@expl:as_ref_OriginalUniqueProof ensures] ([@stop_split] [@expl:as_ref result type invariant] inv_Option_ref_OriginalUniqueProof result)
+    /\ ([@stop_split] [@expl:as_ref ensures #0] [%#soption'0] self_ = None -> result = None'5)
+    /\ ([@stop_split] [@expl:as_ref ensures #1] [%#soption'1] self_ = None
+    \/ (exists r: t_OriginalUniqueProof. result = Some'5 r /\ self_ = Some r))}
+    (! return {result}) ]
+
+let unwrap_ref_OriginalUniqueProof (self_: t_Option_ref_OriginalUniqueProof) (return (x: t_OriginalUniqueProof)) =
+{[@stop_split] [@expl:unwrap_ref_OriginalUniqueProof requires] ([@stop_split] [@expl:unwrap 'self_' type invariant] [%#soption'2] inv_Option_ref_OriginalUniqueProof self_)
+  /\ ([@stop_split] [@expl:unwrap requires] [%#soption'3] self_ <> None'5)}
+  any
+  [ return (result: t_OriginalUniqueProof) ->
+  {[@stop_split] [@expl:unwrap_ref_OriginalUniqueProof ensures] ([@stop_split] [@expl:unwrap result type invariant] inv_ref_OriginalUniqueProof result)
+    /\ ([@stop_split] [@expl:unwrap ensures] [%#soption'4] Some'5 result = self_)}
+    (! return {result}) ]
+
+predicate invariant_ref_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sinvariant] inv_BoundPtr self
+
+meta "rewrite_def" predicate invariant_ref_BoundPtr
+
+predicate inv_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_ref_BoundPtr _1
+
+meta "rewrite_def" predicate inv_ref_BoundPtr
+
+type tup2_Option_tup3_Id_Int_Int_Option_tup3_Id_Int_Int = {
+  f0'8: t_Option_tup3_Id_Int_Int;
+  f1'8: t_Option_tup3_Id_Int_Int }
+
+let advance_within (self: t_BoundPtr) (count: UInt64.t) (return (x: t_BoundPtr)) =
+{[@stop_split] [@expl:advance_within requires] ([@stop_split] [@expl:advance_within 'self' type invariant] [%#sraw_vec] inv_ref_BoundPtr self)
+  /\ ([@stop_split] [@expl:advance_within requires #0] [%#sraw_vec'0] invariant_ref_BoundPtr self)
+  /\ ([@stop_split] [@expl:advance_within requires #1] [%#sraw_vec'1] view_BoundPtr self <> None'0)
+  /\ ([@stop_split] [@expl:advance_within requires #2] [%#sraw_vec'2] match view_BoundPtr self with
+    | Some'0 {f1'0 = allocation_capacity; f2'0 = absolute_offset} -> absolute_offset + UInt64.t'int count
+    <= allocation_capacity
+    | None'0 -> false
+    end)}
+  any
+  [ return (result: t_BoundPtr) ->
+  {[@stop_split] [@expl:advance_within ensures] ([@stop_split] [@expl:advance_within result type invariant] [%#sraw_vec'3] inv_BoundPtr result)
+    /\ ([@stop_split] [@expl:advance_within ensures #0] [%#sraw_vec'4] invariant_BoundPtr result)
+    /\ ([@stop_split] [@expl:advance_within ensures #1] [%#sraw_vec'5] match { f0'8 = view_BoundPtr self;
+                                                                               f1'8 = view_BoundPtr result } with
+        | {f0'8 = Some'0 {f0'0 = namespace'2; f1'0 = allocation_capacity; f2'0 = absolute_offset}; f1'8 = Some'0 {f0'0 = result_namespace; f1'0 = result_capacity; f2'0 = result_offset}} -> namespace'2
+          = result_namespace
+        /\ allocation_capacity = result_capacity /\ result_offset = absolute_offset + UInt64.t'int count
+        | _ -> false
+        end)
+    /\ ([@stop_split] [@expl:advance_within ensures #2] [%#sraw_vec'6] current_address result
+    = current_address self + UInt64.t'int count)}
+    (! return {result}) ]
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull'0] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom'5: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+let as_non_null (self: t_BoundPtr) (return (x: t_NonNull_u8)) =
+{[@stop_split] [@expl:as_non_null 'self' type invariant] [%#sraw_vec'7] inv_ref_BoundPtr self}
+  any
+  [ return (result: t_NonNull_u8) ->
+  {[@stop_split] [@expl:as_non_null ensures] ([@stop_split] [@expl:as_non_null result type invariant] [%#sraw_vec'8] inv_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:as_non_null ensures #0] [%#sraw_vec'9] invariant_NonNull_u8 result)
+    /\ ([@stop_split] [@expl:as_non_null ensures #1] [%#sraw_vec'10] view_NonNull_u8 result = raw_pointer'0 self)}
+    (! return {result}) ]
+
+predicate inv_BytesMut (_1: t_BytesMut)
+
+axiom inv_axiom'6 [@rewrite]: forall x: t_BytesMut [inv_BytesMut x]. inv_BytesMut x
+    = (inv_NonNull_u8 x.ptr /\ inv_Option_OriginalUniqueProof x.unique_proof)
+
+predicate invariant_refmut_BytesMut [@inline:trivial] (self: MutBorrow.t t_BytesMut) =
+  [%#sinvariant'0] inv_BytesMut self.current /\ inv_BytesMut self.final
+
+meta "rewrite_def" predicate invariant_refmut_BytesMut
+
+predicate inv_refmut_BytesMut [@inline:trivial] (_1: MutBorrow.t t_BytesMut) = invariant_refmut_BytesMut _1
+
+meta "rewrite_def" predicate inv_refmut_BytesMut
+
+constant const_MAX_VEC_POS [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 263 0 263 24] : UInt64.t
+
+let set_MAX_VEC_POS (return) = bb0
+  [ bb0 = s0
+    [ s0 = [ &_1 <- UInt64.lt ([%#sbytes_mut'50] const_VEC_POS_OFFSET) ([%#sbytes_mut'49] (64: UInt64.t)) ] s1
+    | s1 = {[@expl:Shr overflow] [%#sbytes_mut'49] _1} s2
+    | s2 = UInt64.shr [%#sbytes_mut'49] {[%#sbytes_mut'51] const_MAX'0}
+        {UInt64.t'int ([%#sbytes_mut'50] const_VEC_POS_OFFSET)} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ] [ & _ret: UInt64.t = Any.any_l () | & _1: bool = Any.any_l () ]
+  [ return (_const: UInt64.t) -> -{const_MAX_VEC_POS = _const}- return ]
+
+function unique_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 102 4 102 49] (self: t_BytesMut) : Opaque.ptr
+ = [%#sbytes_mut'55] view_NonNull_u8 self.ptr
+
+function unique_allocation_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 98 4 98 57] (self: t_BytesMut) : int
+ = [%#sbytes_mut'54] capacity (unwrap_Option_OriginalUniqueProof self.unique_proof).raw
+
+function unique_tag_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 104 4 104 53] (self: t_BytesMut) : Opaque.ptr
+ = [%#sbytes_mut'56] self.data
+
+constant const_NOT_VEC_POS_MASK: UInt64.t = [%#sbytes_mut'57] (31: UInt64.t)
+
+let set_vec_pos (self: MutBorrow.t t_BytesMut) (pos: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:set_vec_pos requires] ([@stop_split] [@expl:set_vec_pos 'self' type invariant] [%#sbytes_mut'33] inv_refmut_BytesMut self)
+  /\ ([@stop_split] [@expl:set_vec_pos requires] [%#sbytes_mut'34] UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:set_vec_pos ensures] ([@stop_split] [@expl:set_vec_pos ensures #0] [%#sbytes_mut'35] unique_valid self.current
+        /\ UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS -> unique_offset self.final = unique_offset self.current)
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #1] [%#sbytes_mut'36] unique_valid self.current
+        /\ UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS
+      -> unique_pointer self.final = unique_pointer self.current)
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #2] [%#sbytes_mut'37] unique_valid self.current
+        /\ UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS
+      -> unique_capacity self.final = unique_capacity self.current)
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #3] [%#sbytes_mut'38] unique_valid self.current
+        /\ UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS -> unique_length self.final = unique_length self.current)
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #4] [%#sbytes_mut'39] unique_valid self.current
+        /\ UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS
+      -> unique_allocation_capacity self.final = unique_allocation_capacity self.current)
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #5] [%#sbytes_mut'40] unique_valid self.current
+        /\ UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS
+      -> UInt64.shr (Ptr.addr_logic_u64 (unique_tag_pointer self.final)) const_VEC_POS_OFFSET = pos)
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #6] [%#sbytes_mut'41] unique_valid self.current
+        /\ UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS
+      -> UInt64.bw_and (Ptr.addr_logic_u64 (unique_tag_pointer self.final)) const_KIND_MASK = const_KIND_VEC)
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #7] [%#sbytes_mut'42] unique_valid self.current
+        /\ UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS
+      -> UInt64.bw_and (Ptr.addr_logic_u64 (unique_tag_pointer self.final)) const_NOT_VEC_POS_MASK
+      = UInt64.bw_and (Ptr.addr_logic_u64 (unique_tag_pointer self.current)) const_NOT_VEC_POS_MASK)
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #8] [%#sbytes_mut'43] UInt64.bw_and (Ptr.addr_logic_u64 (unique_tag_pointer self.final)) (3: UInt64.t)
+      = UInt64.bw_and (Ptr.addr_logic_u64 (unique_tag_pointer self.current)) (3: UInt64.t))
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #9] [%#sbytes_mut'44] self.final.unique_proof
+      = self.current.unique_proof)
+    /\ ([@stop_split] [@expl:set_vec_pos ensures #10] [%#sbytes_mut'45] unique_valid self.current
+      /\ UInt64.t'int pos <= UInt64.t'int const_MAX_VEC_POS
+    -> (forall i: int. 0 <= i /\ i < unique_allocation_capacity self.current
+      -> unique_allocation_slot self.final i = unique_allocation_slot self.current i))}
+    (! return {result}) ]
+
+type t_Option_refmut_OriginalUniqueProof = None'6 | Some'6 (MutBorrow.t t_OriginalUniqueProof)
+
+predicate invariant_refmut_Option_OriginalUniqueProof [@inline:trivial] (self: MutBorrow.t t_Option_OriginalUniqueProof) =
+  [%#sinvariant'0] inv_Option_OriginalUniqueProof self.current /\ inv_Option_OriginalUniqueProof self.final
+
+meta "rewrite_def" predicate invariant_refmut_Option_OriginalUniqueProof
+
+predicate inv_refmut_Option_OriginalUniqueProof [@inline:trivial] (_1: MutBorrow.t t_Option_OriginalUniqueProof) =
+  invariant_refmut_Option_OriginalUniqueProof _1
+
+meta "rewrite_def" predicate inv_refmut_Option_OriginalUniqueProof
+
+predicate invariant_refmut_OriginalUniqueProof [@inline:trivial] (self: MutBorrow.t t_OriginalUniqueProof) =
+  [%#sinvariant'0] inv_OriginalUniqueProof self.current /\ inv_OriginalUniqueProof self.final
+
+meta "rewrite_def" predicate invariant_refmut_OriginalUniqueProof
+
+predicate inv_refmut_OriginalUniqueProof [@inline:trivial] (_1: MutBorrow.t t_OriginalUniqueProof) =
+  invariant_refmut_OriginalUniqueProof _1
+
+meta "rewrite_def" predicate inv_refmut_OriginalUniqueProof
+
+predicate inv_Option_refmut_OriginalUniqueProof (_1: t_Option_refmut_OriginalUniqueProof)
+
+axiom inv_axiom'7 [@rewrite]:
+  forall x: t_Option_refmut_OriginalUniqueProof [inv_Option_refmut_OriginalUniqueProof x]. inv_Option_refmut_OriginalUniqueProof x
+    = match x with
+      | None'6 -> true
+      | Some'6 f0'9 -> inv_refmut_OriginalUniqueProof f0'9
+      end
+
+let as_mut_OriginalUniqueProof (self_: MutBorrow.t t_Option_OriginalUniqueProof)
+  (return (x: t_Option_refmut_OriginalUniqueProof)) =
+{[@stop_split] [@expl:as_mut 'self_' type invariant] [%#soption'5] inv_refmut_Option_OriginalUniqueProof self_}
+  any
+  [ return (result: t_Option_refmut_OriginalUniqueProof) ->
+  {[@stop_split] [@expl:as_mut_OriginalUniqueProof ensures] ([@stop_split] [@expl:as_mut result type invariant] inv_Option_refmut_OriginalUniqueProof result)
+    /\ ([@stop_split] [@expl:as_mut ensures #0] [%#soption'6] self_.current = None
+      -> result = None'6 /\ self_.final = None)
+    /\ ([@stop_split] [@expl:as_mut ensures #1] [%#soption'7] self_.current = None
+    \/ (exists r: MutBorrow.t t_OriginalUniqueProof. result = Some'6 r
+      /\ self_.current = Some (r.current) /\ self_.final = Some (r.final)))}
+    (! return {result}) ]
+
+let unwrap_refmut_OriginalUniqueProof (self_: t_Option_refmut_OriginalUniqueProof)
+  (return (x: MutBorrow.t t_OriginalUniqueProof)) =
+{[@stop_split] [@expl:unwrap_refmut_OriginalUniqueProof requires] ([@stop_split] [@expl:unwrap 'self_' type invariant] [%#soption'2] inv_Option_refmut_OriginalUniqueProof self_)
+  /\ ([@stop_split] [@expl:unwrap requires] [%#soption'3] self_ <> None'6)}
+  any
+  [ return (result: MutBorrow.t t_OriginalUniqueProof) ->
+  {[@stop_split] [@expl:unwrap_refmut_OriginalUniqueProof ensures] ([@stop_split] [@expl:unwrap result type invariant] inv_refmut_OriginalUniqueProof result)
+    /\ ([@stop_split] [@expl:unwrap ensures] [%#soption'4] Some'6 result = self_)}
+    (! return {result}) ]
+
+predicate resolve_refmut_OriginalUniqueProof [@inline:trivial] (_1: MutBorrow.t t_OriginalUniqueProof) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_OriginalUniqueProof
+
+predicate resolve_refmut_BytesMut [@inline:trivial] (_1: MutBorrow.t t_BytesMut) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_BytesMut
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let advance_vec_layout [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 803 4 803 69]
+  (self: MutBorrow.t t_BytesMut) (count: UInt64.t) (pos: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:advance_vec_layout requires] ([@stop_split] [@expl:advance_vec_layout 'self' type invariant] [%#sbytes_mut'10] inv_refmut_BytesMut self)
+  /\ ([@stop_split] [@expl:advance_vec_layout requires #0] [%#sbytes_mut'11] unique_valid self.current)
+  /\ ([@stop_split] [@expl:advance_vec_layout requires #1] [%#sbytes_mut'12] UInt64.t'int count
+    <= unique_capacity self.current)
+  /\ ([@stop_split] [@expl:advance_vec_layout requires #2] [%#sbytes_mut'13] UInt64.t'int pos
+    = unique_offset self.current + UInt64.t'int count)
+  /\ ([@stop_split] [@expl:advance_vec_layout requires #3] [%#sbytes_mut'14] UInt64.t'int pos
+  <= UInt64.t'int const_MAX_VEC_POS)}
+  (! set_MAX_VEC_POS
+    (bb0
+    [ bb0 = s0
+      [ s0 = [ &prestate <- [%#sbytes_mut] self.current ] s1
+      | s1 = unique_initialized_prefix_suffix [%#sbytes_mut'0] {prestate} {count} (fun (_x: ()) -> [ &_56 <- _x ] s2)
+      | s2 = new_unit [%#sbytes_mut'1] {_55} (fun (_x: ()) -> [ &_54 <- _x ] s3)
+      | s3 = as_ref_OriginalUniqueProof [%#sbytes_mut'2] {self.current.unique_proof}
+          (fun (_x: t_Option_ref_OriginalUniqueProof) -> [ &_63 <- _x ] s4)
+      | s4 = unwrap_ref_OriginalUniqueProof [%#sbytes_mut'3] {_63}
+          (fun (_x: t_OriginalUniqueProof) -> [ &_62 <- _x ] s5)
+      | s5 = advance_within [%#sbytes_mut'4] {_62.cursor} {count} (fun (_x: t_BoundPtr) -> [ &cursor'0 <- _x ] s6)
+      | s6 = as_non_null [%#sbytes_mut'5] {cursor'0} (fun (_x: t_NonNull_u8) -> [ &pointer <- _x ] s7)
+      | s7 = MutBorrow.borrow_mut <t_BytesMut> {self.current}
+          (fun (_bor: MutBorrow.t t_BytesMut) ->
+            [ &_69 <- _bor ] -{inv_BytesMut _bor.final}-
+            [ &self <- { self with current = _bor.final } ] s8)
+        [ _ck -> (! {[@expl:type invariant] inv_BytesMut self.current} any) ]
+      | s8 = set_vec_pos [%#sbytes_mut'6] {_69} {pos} (fun (_x: ()) -> [ &_68 <- _x ] s9)
+      | s9 = [ &self <- { self with current = { self.current with ptr = pointer } } ] s10
+      | s10 = MutBorrow.borrow_final <t_Option_OriginalUniqueProof> {self.current.unique_proof}
+          {MutBorrow.inherit_id (MutBorrow.get_id self) 4}
+          (fun (_bor: MutBorrow.t t_Option_OriginalUniqueProof) ->
+            [ &_75 <- _bor ] -{inv_Option_OriginalUniqueProof _bor.final}-
+            [ &self <- { self with current = { self.current with unique_proof = _bor.final } } ] s11)
+        [ _ck -> (! {[@expl:type invariant] inv_Option_OriginalUniqueProof self.current.unique_proof} any) ]
+      | s11 = as_mut_OriginalUniqueProof [%#sbytes_mut'7] {_75}
+          (fun (_x: t_Option_refmut_OriginalUniqueProof) -> [ &_74 <- _x ] s12)
+      | s12 = unwrap_refmut_OriginalUniqueProof [%#sbytes_mut'8] {_74}
+          (fun (_x: MutBorrow.t t_OriginalUniqueProof) -> [ &_73 <- _x ] s13)
+      | s13 = [ &_73 <- { _73 with current = { _73.current with cursor = cursor'0 } } ] s14
+      | s14 = s15 [ _ck -> (! {[@expl:type invariant] inv_refmut_OriginalUniqueProof _73} any) ]
+      | s15 = -{resolve_refmut_OriginalUniqueProof _73}- s16
+      | s16 = UInt64.sub [%#sbytes_mut'9] {self.current.cap} {count}
+          (fun (_x: UInt64.t) -> [ &self <- { self with current = { self.current with cap = _x } } ] s17)
+      | s17 = s18 [ _ck -> (! {[@expl:type invariant] inv_refmut_BytesMut self} any) ]
+      | s18 = -{resolve_refmut_BytesMut self}- s19
+      | s19 = return {_ret} ] ]
+    [ & _ret: () = Any.any_l ()
+    | & self: MutBorrow.t t_BytesMut = self
+    | & count: UInt64.t = count
+    | & pos: UInt64.t = pos
+    | & prestate: t_BytesMut = Any.any_l ()
+    | & _54: () = Any.any_l ()
+    | & _55: () = Any.any_l ()
+    | & _56: () = Any.any_l ()
+    | & cursor'0: t_BoundPtr = Any.any_l ()
+    | & _62: t_OriginalUniqueProof = Any.any_l ()
+    | & _63: t_Option_ref_OriginalUniqueProof = Any.any_l ()
+    | & pointer: t_NonNull_u8 = Any.any_l ()
+    | & _68: () = Any.any_l ()
+    | & _69: MutBorrow.t t_BytesMut = Any.any_l ()
+    | & _73: MutBorrow.t t_OriginalUniqueProof = Any.any_l ()
+    | & _74: t_Option_refmut_OriginalUniqueProof = Any.any_l ()
+    | & _75: MutBorrow.t t_Option_OriginalUniqueProof = Any.any_l () ]))
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:advance_vec_layout ensures] ([@stop_split] [@expl:advance_vec_layout ensures #0] [%#sbytes_mut'15] unique_layout_valid self.final)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #1] [%#sbytes_mut'16] unique_length self.final
+      = unique_length self.current)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #2] [%#sbytes_mut'17] unique_capacity self.final
+      = unique_capacity self.current - UInt64.t'int count)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #3] [%#sbytes_mut'18] unique_offset self.final
+      = unique_offset self.current + UInt64.t'int count)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #4] [%#sbytes_mut'19] unique_allocation_capacity self.final
+      = unique_allocation_capacity self.current)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #5] [%#sbytes_mut'20] UInt64.t'int (Ptr.addr_logic_u64 (unique_pointer self.final))
+      = UInt64.t'int (Ptr.addr_logic_u64 (unique_pointer self.current)) + UInt64.t'int count)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #6] [%#sbytes_mut'21] UInt64.t'int (UInt64.shr (Ptr.addr_logic_u64 (unique_tag_pointer self.final)) const_VEC_POS_OFFSET)
+      = UInt64.t'int pos)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #7] [%#sbytes_mut'22] UInt64.bw_and (Ptr.addr_logic_u64 (unique_tag_pointer self.final)) const_KIND_MASK
+      = const_KIND_VEC)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #8] [%#sbytes_mut'23] UInt64.bw_and (Ptr.addr_logic_u64 (unique_tag_pointer self.final)) const_NOT_VEC_POS_MASK
+      = UInt64.bw_and (Ptr.addr_logic_u64 (unique_tag_pointer self.current)) const_NOT_VEC_POS_MASK)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #9] [%#sbytes_mut'24] (unwrap_Option_OriginalUniqueProof self.final.unique_proof).base
+      = (unwrap_Option_OriginalUniqueProof self.current.unique_proof).base)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #10] [%#sbytes_mut'25] (unwrap_Option_OriginalUniqueProof self.final.unique_proof).raw
+      = (unwrap_Option_OriginalUniqueProof self.current.unique_proof).raw)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #11] [%#sbytes_mut'26] (unwrap_Option_OriginalUniqueProof self.final.unique_proof).capabilities
+      = (unwrap_Option_OriginalUniqueProof self.current.unique_proof).capabilities)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #12] [%#sbytes_mut'27] forall i: int. 0 <= i
+          /\ i < unique_allocation_capacity self.current
+        -> unique_allocation_slot self.final i = unique_allocation_slot self.current i)
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #13] [%#sbytes_mut'28] forall i: int. 0 <= i
+          /\ i < unique_capacity self.final
+        -> unique_slot self.final i = unique_slot self.current (UInt64.t'int count + i))
+    /\ ([@stop_split] [@expl:advance_vec_layout ensures #14] [%#sbytes_mut'29] forall i: int. 0 <= i
+        /\ i
+        < (if UInt64.t'int count <= unique_length self.current then
+          unique_length self.current - UInt64.t'int count
+        else
+          0
+        ) -> slot_known (unique_slot self.final i))}
+    (! return {result}) ]
