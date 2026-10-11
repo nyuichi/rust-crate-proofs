@@ -232,6 +232,8 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == 0))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == Seq::empty()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < result.unique_capacity() ==> result.unique_slot(i) == Some(None)))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(capacity@ <= result.unique_capacity()))]
     #[inline]
     pub fn with_capacity(capacity: usize) -> BytesMut {
@@ -257,6 +259,11 @@ impl BytesMut {
     ///
     /// assert_eq!(&b"xy"[..], &bytes[..]);
     /// ```
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == Seq::empty()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < result.unique_capacity() ==> result.unique_slot(i) == Some(None)))]
     #[inline]
     pub fn new() -> BytesMut {
         BytesMut::with_capacity(0)
@@ -288,6 +295,7 @@ impl BytesMut {
     /// let b = BytesMut::with_capacity(64);
     /// assert!(b.is_empty());
     /// ```
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result == (self.unique_length() == 0)))]
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.len == 0
@@ -398,6 +406,13 @@ impl BytesMut {
     /// assert_eq!(zeros.len(), 42);
     /// zeros.into_iter().for_each(|x| assert_eq!(x, 0));
     /// ```
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_capacity() >= len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() ==
+        Seq::create(len@, |_i: Int| 0u8)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        len@ <= i && i < result.unique_capacity() ==> result.unique_slot(i) == Some(None)))]
     pub fn zeroed(len: usize) -> BytesMut {
         BytesMut::from_vec(vec![0; len])
     }
@@ -582,6 +597,22 @@ impl BytesMut {
     /// buf.clear();
     /// assert!(buf.is_empty());
     /// ```
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() == Seq::empty()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer() &&
+        (^self).unique_capacity() == self.unique_capacity() &&
+        (^self).unique_tag_pointer() == self.unique_tag_pointer()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).unique_proof.unwrap_logic().raw.namespace() ==
+            self.unique_proof.unwrap_logic().raw.namespace() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < self.unique_capacity() ==> (^self).unique_slot(i) == self.unique_slot(i)))]
     pub fn clear(&mut self) {
         // SAFETY: Setting the length to zero cannot expose uninitialized bytes.
         unsafe { self.set_len(0) };
@@ -1531,12 +1562,24 @@ impl DerefMut for BytesMut {
 }
 
 impl<'a> From<&'a [u8]> for BytesMut {
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == src@.len()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_capacity() >= src@.len()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == src@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        src@.len() <= i && i < result.unique_capacity() ==> result.unique_slot(i) == Some(None)))]
     fn from(src: &'a [u8]) -> BytesMut {
         BytesMut::from_vec(src.to_vec())
     }
 }
 
 impl<'a> From<&'a str> for BytesMut {
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == src@.to_bytes().len()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_capacity() >= src@.to_bytes().len()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == src@.to_bytes()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        src@.to_bytes().len() <= i && i < result.unique_capacity() ==> result.unique_slot(i) == Some(None)))]
     fn from(src: &'a str) -> BytesMut {
         BytesMut::from(src.as_bytes())
     }
@@ -1574,6 +1617,11 @@ impl Eq for BytesMut {}
 
 impl Default for BytesMut {
     #[inline]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_bytes() == Seq::empty()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < result.unique_capacity() ==> result.unique_slot(i) == Some(None)))]
     fn default() -> BytesMut {
         BytesMut::new()
     }

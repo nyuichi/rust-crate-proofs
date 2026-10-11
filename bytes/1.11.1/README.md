@@ -1,21 +1,25 @@
 # bytes 1.11.1 runtime verification
 
-Under the verification cfg, `BytesMut::from_vec` consumes a `Vec<u8>` and
-returns an offset-zero `unique_valid` state with the Vec's pointer, length,
-capacity and initialized contents. Its spare-capacity slots are modeled as
-unknown. `BytesMut::with_capacity(n)` uses this path and returns length zero,
-empty contents and capacity at least `n`.
+The selected direct-source constructor proofs cover `BytesMut::from_vec` and
+the public `with_capacity`, `new`, `zeroed`, `From<&[u8]>`, `From<&str>`, and
+`Default` paths. They establish an offset-zero `unique_valid` Vec-backed state
+with the specified length and initialized bytes, capacity at least the requested
+or copied length, and unknown spare-capacity slots. `From<&str>` preserves the
+generic Std model `Seq<char>::to_bytes()`; the concrete native UTF-8 encoder is
+not proved by this crate run (see the [Std overlay notes](verification/std-support/README.md)).
 
-`BytesMut::len` returns the modeled length without a `unique_valid`
-precondition. For a `unique_valid` state, `truncate(n)` sets the length to
-`min(n, old_len)` and preserves the initialized prefix, pointer, capacity,
-storage tag and all capacity slots. Unsafe `set_len(n)` requires `n <=
-capacity` and known initialized slots for any growth; it changes only the
-logical length and preserves the pointer, capacity, storage tag and all
-capacity slots. The original-source proofs include the local ownership,
-provenance and capacity-representation helper bodies in their call cone.
+`BytesMut::len` and `is_empty` are proved without a `unique_valid`
+precondition. For a `unique_valid` state, `clear` sets the length to zero and
+preserves the pointer, capacity, storage tag, authority identity and all
+capacity slots. `truncate(n)` sets the length to `min(n, old_len)` and preserves
+the initialized prefix, pointer, capacity, storage tag and all capacity slots.
+Unsafe `set_len(n)` requires `n <= capacity` and known initialized slots for
+any growth; it changes only the logical length and preserves the pointer,
+capacity, storage tag and all capacity slots. The original-source proofs
+include the local ownership, provenance and capacity-representation helper
+bodies in their call cone.
 
-These guarantees cover the selected offset-zero Vec path and normal-return,
+These guarantees cover the selected offset-zero Vec paths and normal-return,
 sequential behavior. They do not establish `unique_valid` for other
 constructors or transitions, and do not cover Shared-backed or nonzero-offset
 states, immutable peers, lifecycle operations, concurrency or unwind behavior.

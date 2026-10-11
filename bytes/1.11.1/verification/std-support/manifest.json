@@ -25,7 +25,7 @@
       "original_sha256": "3cdf909b658fbb37fe5474b88cd4d9b2b9cf98359a5320f81d4752c8a09a50cd"
     },
     "src/std/string.rs": {
-      "final_sha256": "90d53d05ab8001a57267b4f7c96e4e88851d49cfd8a2e95270ac20263c94f153",
+      "final_sha256": "2f9bad31252c00c24940e23193332cf31970ee03ce636234c4c2ff4c7500cd05",
       "original_sha256": "3380344474fde787cbccb1b1c4b1d5ebe08689b13d107022d5d5de36fe2ea836"
     },
     "src/std/vec.rs": {
@@ -34,15 +34,16 @@
     }
   },
   "candidate_tree": {
-    "bytes": 710525,
+    "bytes": 710635,
     "files": 110,
-    "sha256": "4c254d026e7fa57d45558621e4eaccff58bdeeca101666e2c6d0ad090ea76613"
+    "sha256": "e43b8ba084cb6162697ac2bfe8a8d7a13ed8f7c3eb46d523c04ae2dcae909341"
   },
   "install_policy": {
-    "cargo_config_policy": "Append only the required crates-io patch if the table is absent; preserve unrelated config; refuse conflicting creusot-std patches; require the generated file to be Git-ignored.",
+    "cargo_config_policy": "Append only the required crates-io patch if the table is absent; migrate only the exact prior generated config; preserve unrelated config; refuse conflicting creusot-std patches; require the generated file to be Git-ignored.",
     "generated_cargo_config_relative_path": ".cargo/config.toml",
     "idempotent_only_when_exact_candidate_tree": true,
     "input_must_match_full_stock_tree": true,
+    "migrate_previous_generated_config_only_when_exact": true,
     "output_is_private_copy_only": true,
     "overwrite_existing": false
   },
@@ -55,7 +56,8 @@
   "package": {
     "edition": "2024",
     "name": "creusot-std",
-    "private_copy_relative_path": "bytes-proof-std",
+    "private_copy_relative_path": "bytes-proof-std-as-bytes",
+    "previous_generated_private_copy_relative_path": "bytes-proof-std",
     "provenance": "Pinned normalized Cargo registry package; no workspace-relative dependencies are used.",
     "stock_registry_glob": "*/creusot-std-0.13.0",
     "version": "0.13.0"
@@ -67,8 +69,8 @@
       "source_patch_sha256": "390e375616660d9859ad28b02667ea480387c1dc1c852286fa8708c0dc6eba2b"
     },
     "alloc-capacity.patch": {
-      "scope": "Only the eight normalized registry-package chunks from the generic capacity and alloc exposure proposal.",
-      "sha256": "9eead572270996da05b5472b65ed61f1199b702e4723e88431e146edeaa80f13",
+      "scope": "Generic capacity and alloc exposure, plus the str::as_bytes UTF-8 view contract.",
+      "sha256": "bc8a26d4deee7f1380eaead62bb4fb60d8a9e51eff95b07c8bac3669bb5a626e",
       "source_patch_sha256": "3fb15fe81bb4e5582631b7009594dc78a7af9adff73d4e56b7bc83af129d753b"
     },
     "pointer-model.patch": {

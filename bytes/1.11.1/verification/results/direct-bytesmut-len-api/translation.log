@@ -1,5 +1,5 @@
 warning: unused variable: `vector`
-  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:21:40
+  --> /workspace/bytes-proof-tools/bytes-proof-std-as-bytes/src/std/vec.rs:21:40
    |
 21 | pub fn capacity_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
    |                                        ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
@@ -7,13 +7,13 @@ warning: unused variable: `vector`
    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
 
 warning: unused variable: `vector`
-  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:32:36
+  --> /workspace/bytes-proof-tools/bytes-proof-std-as-bytes/src/std/vec.rs:32:36
    |
 32 | pub fn base_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
    |                                    ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
 
 warning: unused variable: `vector`
-  --> /workspace/bytes-proof-tools/bytes-proof-std/src/std/vec.rs:42:39
+  --> /workspace/bytes-proof-tools/bytes-proof-std-as-bytes/src/std/vec.rs:42:39
    |
 42 | pub fn pointer_model<T, A: Allocator>(vector: Vec<T, A>) -> *mut T {
    |                                       ^^^^^^ help: if this is intentional, prefix it with an underscore: `_vector`
@@ -2505,12 +2505,6 @@ warning: calling external function `hash` with no contract will yield an impossi
 806 |         self.as_slice().hash(state);
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: calling external function `as_bytes` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1046:28
-     |
-1046 |         Bytes::from_static(slice.as_bytes())
-     |                            ^^^^^^^^^^^^^^^^ function called here
-
 warning: calling external function `into_bytes` with no contract will yield an impossible precondition
     --> src/bytes.rs:1206:21
      |
@@ -2536,75 +2530,63 @@ warning: calling external function `wrapping_add` with no contract will yield an
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
-   --> src/bytes_mut.rs:628:18
+   --> src/bytes_mut.rs:659:18
     |
-628 |         unsafe { ptr::write_bytes(dst, value, additional) };
+659 |         unsafe { ptr::write_bytes(dst, value, additional) };
     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1148:18
+    --> src/bytes_mut.rs:1179:18
      |
-1148 |         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
+1179 |         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts_mut` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1153:18
+    --> src/bytes_mut.rs:1184:18
      |
-1153 |         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
+1184 |         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `add` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1193:25
+    --> src/bytes_mut.rs:1224:25
      |
-1193 |         self.ptr = vptr(self.ptr.as_ptr().add(count));
+1224 |         self.ptr = vptr(self.ptr.as_ptr().add(count));
      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `add` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1203:28
+    --> src/bytes_mut.rs:1234:28
      |
-1203 |         let ptr = unsafe { self.ptr.as_ptr().add(self.len) };
+1234 |         let ptr = unsafe { self.ptr.as_ptr().add(self.len) };
      |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1492:13
+    --> src/bytes_mut.rs:1523:13
      |
-1492 |             ptr::write_bytes(dst.as_mut_ptr(), val, cnt);
+1523 |             ptr::write_bytes(dst.as_mut_ptr(), val, cnt);
      |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: calling external function `as_bytes` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1541:24
-     |
-1541 |         BytesMut::from(src.as_bytes())
-     |                        ^^^^^^^^^^^^^^ function called here
-
 warning: calling external function `hash` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1588:9
+    --> src/bytes_mut.rs:1636:9
      |
-1588 |         s.hash(state);
+1636 |         s.hash(state);
      |         ^^^^^^^^^^^^^ function called here
 
-warning: calling external function `as_bytes` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1610:28
-     |
-1610 |             self.put_slice(s.as_bytes());
-     |                            ^^^^^^^^^^^^ function called here
-
 warning: calling external function `write` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1619:9
+    --> src/bytes_mut.rs:1667:9
      |
-1619 |         fmt::write(self, args)
+1667 |         fmt::write(self, args)
      |         ^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `sub` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2190:15
+    --> src/bytes_mut.rs:2238:15
      |
-2190 |     let ptr = ptr.sub(off);
+2238 |     let ptr = ptr.sub(off);
      |               ^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2194:5
+    --> src/bytes_mut.rs:2242:5
      |
-2194 |     Vec::from_raw_parts(ptr, len, cap)
+2242 |     Vec::from_raw_parts(ptr, len, cap)
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `contains` with no contract will yield an impossible precondition
@@ -2641,5 +2623,5 @@ warning: calling external function `new` with no contract will yield an impossib
 184 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 306 warnings (run `cargo fix --lib -p bytes` to apply 9 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.68s
+warning: `bytes` (lib) generated 303 warnings (run `cargo fix --lib -p bytes` to apply 9 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.12s

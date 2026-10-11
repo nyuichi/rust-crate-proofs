@@ -13,7 +13,11 @@ This generic interpretation assumes the default global allocator and `u8`
 layout, exclusive ownership transferred by moving the Vec, capacity at most
 `isize::MAX`, and a nonwrapping base-plus-capacity address range. The body of
 `bind_consumed_vec` constructs the logical resource split and slot ledger from
-the sealed witness. The selected `from_vec` and `with_capacity` bodies,
+the sealed witness. The selected `from_vec`, `with_capacity`, `new`, `zeroed`,
+`From<&[u8]>`, `From<&str>`, and `Default` bodies establish this state, with
+the exact copied or initialized prefix and unknown spare slots. `clear`
+preserves the state and all capacity-slot values while setting length to zero.
+The body of `is_empty` is checked without a representation precondition. The
 capacity encoder and decoder, and local ownership/provenance helpers are
 checked against the original crate source. No trusted Bytes-specific
 ownership, refcount or destructor law is used in this call cone.
@@ -22,11 +26,18 @@ representation/transfer contracts that derive this exact native-tuple to
 affine-allocation binding; proving only `bind_consumed_vec` would not remove
 this trust.
 
-`len` is proved without a precondition. `truncate` and unsafe `set_len` require
-`unique_valid`, the whole-allocation, offset-zero Vec-backed state. `set_len`
-also requires capacity bounds and known initialized slots for any growth.
-`from_vec` and `with_capacity` establish this state for their selected path;
-other constructors and transitions are not shown to establish it. Shared and
+The `From<&str>` result uses the generic Std model `Seq<char>::to_bytes()`.
+The `str::as_bytes` contract equates native string bytes with that model, whose
+opaque `char::to_utf8` operation is not proved here to match Rust's concrete
+UTF-8 encoding. The precise assumption and replacement path are documented in
+the [Std overlay notes](../../std-support/README.md).
+
+`len` and `is_empty` are proved without a representation precondition.
+`truncate`, `clear` and unsafe `set_len` require `unique_valid`, the
+whole-allocation, offset-zero Vec-backed state. `set_len` also requires
+capacity bounds and known initialized slots for any growth. The listed
+constructor bodies establish this state for their selected paths; other
+constructors and transitions are not shown to establish it. Shared and
 nonzero-offset states, immutable peers, lifecycle operations, concurrency and
 unwind behavior are outside this proof scope.
 
