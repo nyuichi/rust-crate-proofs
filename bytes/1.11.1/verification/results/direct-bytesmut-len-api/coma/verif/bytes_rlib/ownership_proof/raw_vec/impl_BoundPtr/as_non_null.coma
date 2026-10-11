@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 420 4 420 51 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 431 4 431 51 *)
 
 (* ownership_proof::raw_vec::BoundPtr *)
 
@@ -6,15 +6,15 @@ let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-ref
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
-let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 420 31 420 35
-let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 420 40 420 51
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 418 14 418 32
-let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 419 32 419 61
-let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 388 14 388 60
-let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 390 20 390 33
-let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 379 20 379 46
-let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 361 12 369 13
-let%span sraw_vec'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 344 12 351 13
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 431 31 431 35
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 431 40 431 51
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 429 14 429 32
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 430 32 430 61
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 399 14 399 60
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 401 20 401 33
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 390 20 390 46
+let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 372 12 380 13
+let%span sraw_vec'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 355 12 362 13
 
 use creusot.prelude.Any
 use creusot.int.Int64
@@ -37,7 +37,7 @@ type tup3_Id_Int_Int = { f0: t_Id; f1: int; f2: int }
 
 type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
 
-function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 342 4 342 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 353 4 353 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
  = [%#sraw_vec'7] match self.binding with
     | None -> None'0
     | Some binding'0 -> Some'0 { f0 = binding'0.namespace;
@@ -54,12 +54,12 @@ function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
 
 meta "rewrite_def" function addr_NonNull_u8
 
-function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 378 4 378 39] (self: t_BoundPtr) : int
+function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 389 4 389 39] (self: t_BoundPtr) : int
  = [%#sraw_vec'5] UInt64.t'int (addr_NonNull_u8 self.pointer)
 
 constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
 
-predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 359 4 359 30] (self: t_BoundPtr) =
+predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 370 4 370 30] (self: t_BoundPtr) =
   [%#sraw_vec'6] match view_BoundPtr self with
     | None'0 -> true
     | Some'0 {f1 = allocation_capacity'0; f2 = absolute_offset'0} -> 0 <= absolute_offset'0
@@ -90,7 +90,7 @@ predicate inv_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_ref_Bo
 
 meta "rewrite_def" predicate inv_ref_BoundPtr
 
-function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 389 4 389 46] (self: t_BoundPtr) : Opaque.ptr
+function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 400 4 400 46] (self: t_BoundPtr) : Opaque.ptr
  = [%#sraw_vec'4] view_NonNull_u8 self.pointer
 
 axiom raw_pointer_spec:
@@ -101,7 +101,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let as_non_null [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 420 4 420 51]
+let as_non_null [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 431 4 431 51]
   (self: t_BoundPtr) (return (x: t_NonNull_u8)) =
 {[@stop_split] [@expl:as_non_null 'self' type invariant] [%#sraw_vec] inv_ref_BoundPtr self}
   (! bb0

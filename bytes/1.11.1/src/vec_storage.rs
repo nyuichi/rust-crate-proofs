@@ -132,20 +132,11 @@ impl Invariant for VecPartsWitness {
 impl VecRawParts {
     /// Consume a Vec into its exact native pointer, length, and capacity.
     ///
-    /// This generic B1 boundary binds the shared-storage path to a
-    /// Vec-backed allocation: it consumes the original Vec, suppresses its
-    /// destructor, and binds the exact `as_mut_ptr`/`len`/`capacity` tuple to
-    /// one recovery token and the full slot region. The known prefix matches
-    /// the Vec model and spare capacity is Unknown. At capacity zero, the
-    /// returned non-null dangling pointer is metadata only and the region is
-    /// empty; no allocation liveness or byte access is claimed. The native
-    /// extraction body is shared by production and verification builds. The
-    /// generic B1 interpretation assumes Vec's default global allocator and
-    /// `u8` layout, `capacity <= isize::MAX`, a nonwrapping base-plus-capacity
-    /// address range, and exclusive ownership transferred by consuming Vec.
-    /// The resulting affine region prevents overlapping mutable access; the
-    /// helper does not create permissions from pointer equality alone.
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), trusted)]
+    /// Compose the generic Vec capture with the body-proved B1 resource bind.
+    /// The known prefix matches the Vec model and spare capacity is Unknown.
+    /// At capacity zero, the returned non-null dangling pointer is metadata
+    /// only and the region is empty; no allocation liveness or byte access is
+    /// claimed. Native builds retain the original one-shot extraction body.
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         result.native_ptr_model() == creusot_std::std::vec::pointer_model(input)
     ))]
@@ -198,30 +189,28 @@ impl VecRawParts {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.invariant()))]
     pub(crate) fn take(input: Vec<u8>) -> Self {
         #[cfg(all(creusot, bytes_original_unique_gate))]
-        let input_model = snapshot!(input@);
+        {
+            let (storage, witness) = VecStorage::capture_vec_owner(input);
+            let (ptr, len, cap) = witness.native_parts();
+            let (raw, capabilities) = raw_vec::bind_consumed_vec(witness);
 
-        let mut input = ManuallyDrop::new(input);
-        let ptr = input.as_mut_ptr();
-        let len = input.len();
-        let cap = input.capacity();
-        // SAFETY: Vec::as_mut_ptr is non-null even when capacity is zero.
-        // For zero capacity this is the dangling metadata pointer and the
-        // empty region below carries no dereference or allocation authority.
-        let ptr = unsafe { NonNull::new_unchecked(ptr) };
+            // This path transfers the retained allocation to VecRawParts.
+            // Suppress VecStorage::drop: the raw pointer authority is now
+            // represented by this raw-parts value.
+            core::mem::forget(storage);
+            Self { ptr, len, cap, raw, capabilities }
+        }
 
-        #[cfg(all(creusot, bytes_original_unique_gate))]
-        let witness = VecPartsWitness { ptr, len, cap, contents: input_model };
-        #[cfg(all(creusot, bytes_original_unique_gate))]
-        let (raw, capabilities) = raw_vec::bind_consumed_vec(witness);
-
-        Self {
-            ptr,
-            len,
-            cap,
-            #[cfg(all(creusot, bytes_original_unique_gate))]
-            raw,
-            #[cfg(all(creusot, bytes_original_unique_gate))]
-            capabilities,
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        {
+            let mut input = ManuallyDrop::new(input);
+            let ptr = input.as_mut_ptr();
+            let len = input.len();
+            let cap = input.capacity();
+            // SAFETY: Vec::as_mut_ptr is non-null and aligned even when
+            // capacity is zero; in that case it remains metadata only.
+            let ptr = unsafe { NonNull::new_unchecked(ptr) };
+            Self { ptr, len, cap }
         }
     }
 
@@ -393,14 +382,264 @@ impl VecRawParts {
     pub(crate) fn discard_unmodeled(self) {}
 }
 
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[derive(core::clone::Clone, core::marker::Copy)]
+pub(crate) enum StorageModel {
+    Pending { pointer: NonNull<u8>, len: Int, capacity: Int },
+    Owned { key: Id, pointer: NonNull<u8>, len: Int, capacity: Int },
+    Empty { pointer: *mut u8 },
+}
+
+/// The one native Vec owner. Its proof view exposes metadata only, not Vec's
+/// byte sequence, so long-lived Shared state does not pair an ordinary Vec
+/// model with the separate PhysicalRegion slot model.
+#[allow(missing_debug_implementations)]
+#[cfg_attr(creusot, opaque)]
+#[repr(transparent)]
+struct NativeStoredVec(ManuallyDrop<Vec<u8>>);
+
+#[cfg(creusot)]
+impl View for NativeStoredVec {
+    type ViewTy = (*mut u8, Int, Int);
+
+    // Keep the native Vec's element model out of this storage model. The
+    // capture boundary below binds this abstract metadata tuple to the exact
+    // consumed Vec; later proof code reasons through the separate physical
+    // slot ledger.
+    #[logic(opaque)]
+    fn view(self) -> Self::ViewTy {
+        dead
+    }
+}
+
 /// A native Vec allocation retained behind a non-accessible storage handle.
 ///
-/// `repr(transparent)` preserves the size, alignment, and ABI of the wrapped
-/// `ManuallyDrop<Vec<u8>>`; `ManuallyDrop` itself has the layout of `Vec<u8>`.
-/// The wrapper is private to the crate and does not expose initialized bytes.
+/// The outer ghost metadata is body-updatable. Its zero-sized field preserves
+/// the layout of NativeStoredVec and hence Vec<u8>.
 #[allow(missing_debug_implementations)]
-#[repr(transparent)]
-pub(crate) struct VecStorage(ManuallyDrop<Vec<u8>>);
+#[repr(C)]
+pub(crate) struct VecStorage(
+    NativeStoredVec,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    Ghost<Option<StorageModel>>,
+);
+
+const _: [(); core::mem::size_of::<Vec<u8>>()] = [(); core::mem::size_of::<NativeStoredVec>()];
+const _: [(); core::mem::align_of::<Vec<u8>>()] = [(); core::mem::align_of::<NativeStoredVec>()];
+const _: [(); core::mem::size_of::<Vec<u8>>()] = [(); core::mem::size_of::<VecStorage>()];
+const _: [(); core::mem::align_of::<Vec<u8>>()] = [(); core::mem::align_of::<VecStorage>()];
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[allow(missing_debug_implementations)]
+pub(crate) struct StoredAuthority {
+    raw: RawAllocation,
+    recovery: Recovery,
+    binding: Id,
+    stored_len: usize,
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+impl StoredAuthority {
+    #[logic(open(self))]
+    pub(crate) fn binding(self) -> Id {
+        pearlite! { self.binding }
+    }
+
+    #[logic(open(self))]
+    pub(crate) fn stored_len(self) -> Int {
+        pearlite! { self.stored_len@ }
+    }
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+impl Invariant for StoredAuthority {
+    #[logic(open(self), prophetic)]
+    fn invariant(self) -> bool {
+        pearlite! {
+            self.raw.invariant() &&
+            self.recovery.invariant() &&
+            self.binding() == self.raw.namespace() &&
+            self.recovery.namespace() == self.binding() &&
+            self.recovery.capacity() == self.raw.capacity() &&
+            0 <= self.stored_len() && self.stored_len() <= self.raw.capacity()
+        }
+    }
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+impl VecStorage {
+    #[logic(open(self))]
+    pub(crate) fn storage_model(self) -> Option<StorageModel> {
+        pearlite! { self.1.inner_logic() }
+    }
+
+    #[logic(open(self))]
+    fn native_metadata(self) -> (*mut u8, Int, Int) {
+        pearlite! { self.0@ }
+    }
+
+    #[logic(open(self), prophetic)]
+    fn matches_authority(self, authority: StoredAuthority) -> bool {
+        pearlite! {
+            self.invariant() && authority.invariant() &&
+            match self.storage_model() {
+                Some(StorageModel::Owned { key, pointer, len, capacity }) =>
+                    key == authority.binding() &&
+                    pointer@ == authority.raw.raw_pointer() &&
+                    len == authority.stored_len() &&
+                    capacity == authority.raw.capacity(),
+                _ => false,
+            }
+        }
+    }
+
+    #[logic(open(self))]
+    fn pending_model(self) -> Option<(*mut u8, Int, Int)> {
+        pearlite! {
+            match self.storage_model() {
+                Some(StorageModel::Pending { pointer, len, capacity }) =>
+                    Some((pointer@, len, capacity)),
+                _ => None,
+            }
+        }
+    }
+
+    /// Generic native Vec-to-storage capture. This is the only trusted
+    /// operation here: the consumed Vec's exact native owner, pointer, len,
+    /// capacity and contents are bound to the opaque storage field and sealed
+    /// witness. It does not mint RA/region resources or assert any Bytes
+    /// owner, refcount, retirement, or reclamation rule.
+    #[trusted]
+    #[ensures(result.0.invariant())]
+    #[ensures(result.0.pending_model() == Some((
+        creusot_std::std::vec::pointer_model(input),
+        input@.len(),
+        creusot_std::std::vec::capacity_model(input),
+    )))]
+    #[ensures(result.0.native_metadata() == (
+        creusot_std::std::vec::pointer_model(input),
+        input@.len(),
+        creusot_std::std::vec::capacity_model(input),
+    ))]
+    #[ensures(result.1.invariant())]
+    #[ensures(result.1.pointer() == creusot_std::std::vec::pointer_model(input))]
+    #[ensures(result.1.pointer().addr_logic()@ == creusot_std::std::vec::base_model(input))]
+    #[ensures(result.1.length() == input@.len())]
+    #[ensures(result.1.capacity() == creusot_std::std::vec::capacity_model(input))]
+    #[ensures(result.1.contents() == input@)]
+    fn capture_vec_owner(input: Vec<u8>) -> (Self, VecPartsWitness) {
+        let contents = snapshot!(input@);
+        let mut input = ManuallyDrop::new(input);
+        let raw_pointer = input.as_mut_ptr();
+        let len = input.len();
+        let capacity = input.capacity();
+        // SAFETY: Vec::as_mut_ptr is non-null even at capacity zero; the
+        // zero-capacity pointer remains metadata only.
+        let pointer = unsafe { NonNull::new_unchecked(raw_pointer) };
+        let witness = VecPartsWitness { ptr: pointer, len, cap: capacity, contents };
+        let model: Ghost<Option<StorageModel>> = ghost! {
+            let len_model = raw_vec::int_from_usize(len).into_inner();
+            let capacity_model = raw_vec::int_from_usize(capacity).into_inner();
+            Some(StorageModel::Pending {
+                pointer,
+                len: len_model,
+                capacity: capacity_model,
+            })
+        };
+        let storage = Self(
+            NativeStoredVec(input),
+            model,
+        );
+        (storage, witness)
+    }
+
+    /// Consume a native Vec into storage plus its separately returned B1
+    /// authority. The capture boundary above relates the native owner to the
+    /// sealed witness; `bind_consumed_vec` body-proves the RA/map construction.
+    #[ensures(result.0.matches_authority(result.1.inner_logic().0))]
+    #[ensures(result.0.native_metadata() == (
+        creusot_std::std::vec::pointer_model(input),
+        input@.len(),
+        creusot_std::std::vec::capacity_model(input),
+    ))]
+    #[ensures(result.1.inner_logic().0.invariant())]
+    #[ensures(result.1.inner_logic().0.raw.invariant())]
+    #[ensures(result.1.inner_logic().0.raw.raw_pointer() ==
+        creusot_std::std::vec::pointer_model(input))]
+    #[ensures(result.1.inner_logic().0.raw.capacity() ==
+        creusot_std::std::vec::capacity_model(input))]
+    #[ensures(result.1.inner_logic().0.raw.base_address() ==
+        creusot_std::std::vec::base_model(input))]
+    #[ensures(result.1.inner_logic().0.stored_len() == input@.len())]
+    #[ensures(result.1.inner_logic().0.recovery.invariant())]
+    #[ensures(result.1.inner_logic().0.recovery.namespace() == result.1.inner_logic().0.binding())]
+    #[ensures(result.1.inner_logic().0.recovery.capacity() == result.1.inner_logic().0.raw.capacity())]
+    #[ensures(result.1.inner_logic().1.invariant())]
+    #[ensures(result.1.inner_logic().1.namespace() == result.1.inner_logic().0.binding())]
+    #[ensures(result.1.inner_logic().1.resource_id() == result.1.inner_logic().0.binding())]
+    #[ensures(result.1.inner_logic().1.capacity() == result.1.inner_logic().0.raw.capacity())]
+    #[ensures(result.1.inner_logic().1.lo() == 0)]
+    #[ensures(result.1.inner_logic().1.hi() == result.1.inner_logic().0.raw.capacity())]
+    #[ensures(result.1.inner_logic().0.raw.base_address() + result.1.inner_logic().0.raw.capacity() <= usize::MAX@)]
+    #[ensures(result.1.inner_logic().0.raw.capacity() <= isize::MAX@)]
+    #[ensures(forall<i: Int> 0 <= i && i < input@.len() ==>
+        result.1.inner_logic().1.slot(i) == Some(Some(input@[i])))]
+    #[ensures(forall<i: Int> input@.len() <= i &&
+        i < creusot_std::std::vec::capacity_model(input) ==>
+        result.1.inner_logic().1.slot(i) == Some(None))]
+    pub(crate) fn hold_owned(
+        input: Vec<u8>,
+    ) -> (Self, Ghost<(StoredAuthority, PhysicalRegion)>) {
+        let (mut storage, witness) = Self::capture_vec_owner(input);
+        let (pointer, stored_len, capacity) = witness.native_parts();
+        let (raw, capabilities) = raw_vec::bind_consumed_vec(witness);
+        let binding: Ghost<Id> = ghost!(raw.namespace_ghost().into_inner());
+        let ghost_raw = raw.into_ghost();
+        storage.1 = ghost! {
+            Some(StorageModel::Owned {
+                key: binding.into_inner(),
+                pointer,
+                len: raw_vec::int_from_usize(stored_len).into_inner(),
+                capacity: raw_vec::int_from_usize(capacity).into_inner(),
+            })
+        };
+        let (recovery, region) = capabilities.split();
+        let authority_and_region: Ghost<(StoredAuthority, PhysicalRegion)> = ghost! {
+            (
+                StoredAuthority {
+                    raw: ghost_raw.into_inner(),
+                    recovery: recovery.into_inner(),
+                    binding: binding.into_inner(),
+                    stored_len,
+                },
+                region.into_inner(),
+            )
+        };
+        (storage, authority_and_region)
+    }
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+impl Invariant for VecStorage {
+    #[logic(open(self), prophetic)]
+    fn invariant(self) -> bool {
+        pearlite! {
+            match self.storage_model() {
+                None => true,
+                Some(StorageModel::Pending { pointer, len, capacity }) =>
+                    self.native_metadata() == (pointer@, len, capacity) &&
+                    0 <= len && len <= capacity && capacity <= isize::MAX@ &&
+                    pointer.addr_logic()@ + capacity <= usize::MAX@,
+                Some(StorageModel::Owned { key: _, pointer, len, capacity }) =>
+                    self.native_metadata() == (pointer@, len, capacity) &&
+                    0 <= len && len <= capacity && capacity <= isize::MAX@ &&
+                    pointer.addr_logic()@ + capacity <= usize::MAX@,
+                Some(StorageModel::Empty { pointer }) =>
+                    self.native_metadata() == (pointer, 0int, 0int),
+            }
+        }
+    }
+}
 
 impl Default for VecStorage {
     #[inline]
@@ -417,14 +656,9 @@ impl Drop for VecStorage {
         // The wrapper's normal terminal path is the native Vec destructor.
         // Shared's proof-side drop contract must establish that no packet or
         // borrow remains before this generic storage retirement takes place.
-        unsafe { ManuallyDrop::drop(&mut self.0) }
+        unsafe { ManuallyDrop::drop(&mut self.0.0) }
     }
 }
-
-#[cfg(not(creusot))]
-const _: [(); core::mem::size_of::<Vec<u8>>()] = [(); core::mem::size_of::<VecStorage>()];
-#[cfg(not(creusot))]
-const _: [(); core::mem::align_of::<Vec<u8>>()] = [(); core::mem::align_of::<VecStorage>()];
 
 impl VecStorage {
     /// Retain a Vec without exposing it to ordinary Vec operations.
@@ -434,7 +668,15 @@ impl VecStorage {
     #[inline]
     #[cfg_attr(creusot, creusot::no_translate)]
     pub(crate) fn hold(vec: Vec<u8>) -> Self {
-        Self(ManuallyDrop::new(vec))
+        let native = NativeStoredVec(ManuallyDrop::new(vec));
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            Self(native, Ghost::new(None))
+        }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        {
+            Self(native)
+        }
     }
 
     /// Observe only the native Vec pointer and capacity metadata.
@@ -445,7 +687,7 @@ impl VecStorage {
     #[inline]
     #[cfg_attr(creusot, creusot::no_translate)]
     pub(crate) fn metadata(&mut self) -> (*mut u8, usize, usize) {
-        let vec = &mut *self.0;
+        let vec = &mut *self.0.0;
         (vec.as_mut_ptr(), vec.len(), vec.capacity())
     }
 
@@ -459,7 +701,7 @@ impl VecStorage {
     #[inline]
     #[cfg_attr(creusot, creusot::no_translate)]
     pub(crate) unsafe fn set_len(&mut self, len: usize) {
-        unsafe { (&mut *self.0).set_len(len) }
+        unsafe { (&mut *self.0.0).set_len(len) }
     }
 
     /// Reserve Vec capacity while the caller exclusively owns the allocation.
@@ -472,7 +714,7 @@ impl VecStorage {
     #[inline]
     #[cfg_attr(creusot, creusot::no_translate)]
     pub(crate) unsafe fn reserve(&mut self, additional: usize) {
-        (&mut *self.0).reserve(additional)
+        (&mut *self.0.0).reserve(additional)
     }
 
     /// Transfer the hidden Vec to the generic B2 restoration boundary.
@@ -490,7 +732,7 @@ impl VecStorage {
         // SAFETY: `storage` owns an initialized VecStorage and is itself
         // ManuallyDrop, so taking its sole Vec field transfers that owner
         // without running VecStorage's destructor.
-        unsafe { ManuallyDrop::take(&mut storage.0) }
+        unsafe { ManuallyDrop::take(&mut storage.0.0) }
     }
 
     /// Explicitly transfer the retained Vec to a B2/B3 ownership boundary.
@@ -505,6 +747,6 @@ impl VecStorage {
         let mut storage = ManuallyDrop::new(self);
         // SAFETY: same ownership transfer as `take_for_restore`; the caller
         // must dispose the returned Vec exactly once through the B3 boundary.
-        unsafe { ManuallyDrop::take(&mut storage.0) }
+        unsafe { ManuallyDrop::take(&mut storage.0.0) }
     }
 }

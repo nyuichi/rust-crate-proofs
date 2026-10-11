@@ -228,23 +228,23 @@ warning: unused import: `BorrowMut`
    |                      ^^^^^^^^^
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1185:25
+    --> src/ownership_proof/raw_vec.rs:1223:25
      |
-1185 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1223 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                         ^^^^ help: try ignoring the field: `base: _`
      |
      = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
 
 warning: unused variable: `capacity`
-    --> src/ownership_proof/raw_vec.rs:1185:31
+    --> src/ownership_proof/raw_vec.rs:1223:31
      |
-1185 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1223 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1221:9
+    --> src/ownership_proof/raw_vec.rs:1259:9
      |
-1221 |     let base = bound.as_ptr();
+1259 |     let base = bound.as_ptr();
      |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
 
 warning: associated function `new` is never used
@@ -336,6 +336,49 @@ warning: function `copy_to_uninit_prefix` is never used
 58 | pub(crate) fn copy_to_uninit_prefix(dst: &mut [MaybeUninit<u8>], src: &[u8]) {
    |               ^^^^^^^^^^^^^^^^^^^^^
 
+warning: variants `Owned` and `Empty` are never constructed
+   --> src/vec_storage.rs:389:5
+    |
+387 | pub(crate) enum StorageModel {
+    |                 ------------ variants in this enum
+388 |     Pending { pointer: NonNull<u8>, len: Int, capacity: Int },
+389 |     Owned { key: Id, pointer: NonNull<u8>, len: Int, capacity: Int },
+    |     ^^^^^
+390 |     Empty { pointer: *mut u8 },
+    |     ^^^^^
+    |
+    = note: `StorageModel` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: struct `StoredAuthority` is never constructed
+   --> src/vec_storage.rs:434:19
+    |
+434 | pub(crate) struct StoredAuthority {
+    |                   ^^^^^^^^^^^^^^^
+
+warning: methods `binding` and `stored_len` are never used
+   --> src/vec_storage.rs:444:19
+    |
+442 | impl StoredAuthority {
+    | -------------------- methods in this implementation
+443 |     #[logic(open(self))]
+444 |     pub(crate) fn binding(self) -> Id {
+    |                   ^^^^^^^
+...
+449 |     pub(crate) fn stored_len(self) -> Int {
+    |                   ^^^^^^^^^^
+
+warning: associated items `matches_authority` and `hold_owned` are never used
+   --> src/vec_storage.rs:482:8
+    |
+470 | impl VecStorage {
+    | --------------- associated items in this implementation
+...
+482 |     fn matches_authority(self, authority: StoredAuthority) -> bool {
+    |        ^^^^^^^^^^^^^^^^^
+...
+590 |     pub(crate) fn hold_owned(
+    |                   ^^^^^^^^^^
+
 warning: function `equal` is never used
  --> src/comparison_ops.rs:7:15
   |
@@ -408,151 +451,163 @@ warning: function `reallocate_bound` is never used
 128 | pub(crate) unsafe fn reallocate_bound(base: BoundPtr, old_capacity: usize, capacity: usize,
     |                      ^^^^^^^^^^^^^^^^
 
-warning: associated items `unbound`, `offset_from_bound_base`, and `retreat_within` are never used
-   --> src/ownership_proof/raw_vec.rs:396:19
+warning: method `namespace_ghost` is never used
+   --> src/ownership_proof/raw_vec.rs:281:19
     |
-374 | impl BoundPtr {
-    | ------------- associated items in this implementation
-...
-396 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
-    |                   ^^^^^^^
-...
-443 |     pub(crate) fn offset_from_bound_base(&self, base: Self) -> usize {
-    |                   ^^^^^^^^^^^^^^^^^^^^^^
-...
-455 |     pub(crate) fn retreat_within(&self, count: usize) -> Self {
-    |                   ^^^^^^^^^^^^^^
-
-warning: method `into_bound_ptr_at_zero` is never used
-   --> src/ownership_proof/raw_vec.rs:551:19
-    |
-538 | impl RawAllocation {
+253 | impl RawAllocation {
     | ------------------ method in this implementation
 ...
-551 |     pub(crate) fn into_bound_ptr_at_zero(self) -> (BoundPtr, usize) {
+281 |     pub(crate) fn namespace_ghost(&self) -> Ghost<Id> {
+    |                   ^^^^^^^^^^^^^^^
+
+warning: associated items `unbound`, `offset_from_bound_base`, and `retreat_within` are never used
+   --> src/ownership_proof/raw_vec.rs:407:19
+    |
+385 | impl BoundPtr {
+    | ------------- associated items in this implementation
+...
+407 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
+    |                   ^^^^^^^
+...
+454 |     pub(crate) fn offset_from_bound_base(&self, base: Self) -> usize {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^
+...
+466 |     pub(crate) fn retreat_within(&self, count: usize) -> Self {
+    |                   ^^^^^^^^^^^^^^
+
+warning: methods `into_ghost` and `into_bound_ptr_at_zero` are never used
+   --> src/ownership_proof/raw_vec.rs:560:19
+    |
+549 | impl RawAllocation {
+    | ------------------ methods in this implementation
+...
+560 |     pub(crate) fn into_ghost(self) -> Ghost<Self> {
+    |                   ^^^^^^^^^^
+...
+589 |     pub(crate) fn into_bound_ptr_at_zero(self) -> (BoundPtr, usize) {
     |                   ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: methods `split_at` and `join` are never used
-   --> src/ownership_proof/raw_vec.rs:706:19
+   --> src/ownership_proof/raw_vec.rs:744:19
     |
-654 | impl PhysicalRegion {
+692 | impl PhysicalRegion {
     | ------------------- methods in this implementation
 ...
-706 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+744 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
     |                   ^^^^^^^^
 ...
-736 |     pub(crate) fn join(self, other: Self) -> Self {
+774 |     pub(crate) fn join(self, other: Self) -> Self {
     |                   ^^^^
 
 warning: struct `PhysicalPool` is never constructed
-   --> src/ownership_proof/raw_vec.rs:750:19
+   --> src/ownership_proof/raw_vec.rs:788:19
     |
-750 | pub(crate) struct PhysicalPool {
+788 | pub(crate) struct PhysicalPool {
     |                   ^^^^^^^^^^^^
 
 warning: multiple associated items are never used
-   --> src/ownership_proof/raw_vec.rs:783:19
+   --> src/ownership_proof/raw_vec.rs:821:19
     |
-781 | impl PhysicalPool {
+819 | impl PhysicalPool {
     | ----------------- associated items in this implementation
-782 |     #[logic(open)]
-783 |     pub(crate) fn capacity(self) -> Int {
+820 |     #[logic(open)]
+821 |     pub(crate) fn capacity(self) -> Int {
     |                   ^^^^^^^^
 ...
-788 |     pub(crate) fn namespace(self) -> Id {
+826 |     pub(crate) fn namespace(self) -> Id {
     |                   ^^^^^^^^^
 ...
-793 |     pub(crate) fn resource_id(self) -> Id {
+831 |     pub(crate) fn resource_id(self) -> Id {
     |                   ^^^^^^^^^^^
 ...
-798 |     pub(crate) fn contains(self, index: Int) -> bool {
+836 |     pub(crate) fn contains(self, index: Int) -> bool {
     |                   ^^^^^^^^
 ...
-803 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+841 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
     |                   ^^^^
 ...
-817 |     fn kernel_unit_is_empty() {
+855 |     fn kernel_unit_is_empty() {
     |        ^^^^^^^^^^^^^^^^^^^^
 ...
-843 |     pub(crate) fn empty_from(region: &PhysicalRegion) -> Self {
+881 |     pub(crate) fn empty_from(region: &PhysicalRegion) -> Self {
     |                   ^^^^^^^^^^
 ...
-876 |     pub(crate) fn retire(self, region: PhysicalRegion) -> Self {
+914 |     pub(crate) fn retire(self, region: PhysicalRegion) -> Self {
     |                   ^^^^^^
 ...
-912 |     pub(crate) fn finish(self, lo: Int) -> PhysicalRegion {
+950 |     pub(crate) fn finish(self, lo: Int) -> PhysicalRegion {
     |                   ^^^^^^
 
 warning: function `detach_vec` is never used
-   --> src/ownership_proof/raw_vec.rs:964:15
-    |
-964 | pub(crate) fn detach_vec(
-    |               ^^^^^^^^^^
+    --> src/ownership_proof/raw_vec.rs:1002:15
+     |
+1002 | pub(crate) fn detach_vec(
+     |               ^^^^^^^^^^
 
 warning: function `detach_boxed_slice` is never used
-    --> src/ownership_proof/raw_vec.rs:1052:15
+    --> src/ownership_proof/raw_vec.rs:1090:15
      |
-1052 | pub(crate) fn detach_boxed_slice(
+1090 | pub(crate) fn detach_boxed_slice(
      |               ^^^^^^^^^^^^^^^^^^
 
 warning: function `resume_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1145:22
+    --> src/ownership_proof/raw_vec.rs:1183:22
      |
-1145 | pub(crate) unsafe fn resume_vec(
+1183 | pub(crate) unsafe fn resume_vec(
      |                      ^^^^^^^^^^
 
 warning: function `deallocate_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1181:22
+    --> src/ownership_proof/raw_vec.rs:1219:22
      |
-1181 | pub(crate) unsafe fn deallocate_vec(
+1219 | pub(crate) unsafe fn deallocate_vec(
      |                      ^^^^^^^^^^^^^^
 
 warning: function `deallocate_bound_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1216:22
+    --> src/ownership_proof/raw_vec.rs:1254:22
      |
-1216 | pub(crate) unsafe fn deallocate_bound_vec(
+1254 | pub(crate) unsafe fn deallocate_bound_vec(
      |                      ^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1265:22
+    --> src/ownership_proof/raw_vec.rs:1303:22
      |
-1265 | pub(crate) unsafe fn borrow_mut<'a>(
+1303 | pub(crate) unsafe fn borrow_mut<'a>(
      |                      ^^^^^^^^^^
 
 warning: function `slot_known_equivalence` is never used
-    --> src/ownership_proof/raw_vec.rs:1287:15
+    --> src/ownership_proof/raw_vec.rs:1325:15
      |
-1287 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+1325 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
      |               ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1326:22
+    --> src/ownership_proof/raw_vec.rs:1364:22
      |
-1326 | pub(crate) unsafe fn borrow_bound_mut<'a>(
+1364 | pub(crate) unsafe fn borrow_bound_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^
 
 warning: function `borrow_bound` is never used
-    --> src/ownership_proof/raw_vec.rs:1434:22
+    --> src/ownership_proof/raw_vec.rs:1472:22
      |
-1434 | pub(crate) unsafe fn borrow_bound<'a>(
+1472 | pub(crate) unsafe fn borrow_bound<'a>(
      |                      ^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound` is never used
-    --> src/ownership_proof/raw_vec.rs:1450:22
+    --> src/ownership_proof/raw_vec.rs:1488:22
      |
-1450 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
+1488 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
      |                      ^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1459:22
+    --> src/ownership_proof/raw_vec.rs:1497:22
      |
-1459 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
+1497 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
      |                      ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_uninit_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1467:22
+    --> src/ownership_proof/raw_vec.rs:1505:22
      |
-1467 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
+1505 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `into_raw_aligned` is never used
@@ -2875,5 +2930,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 320 warnings (run `cargo fix --lib -p bytes` to apply 21 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.70s
+warning: `bytes` (lib) generated 325 warnings (run `cargo fix --lib -p bytes` to apply 21 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.88s

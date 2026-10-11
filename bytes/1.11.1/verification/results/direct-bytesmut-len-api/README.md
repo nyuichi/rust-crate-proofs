@@ -1,11 +1,27 @@
 # Direct-source `BytesMut` proof evidence
 
+On this verification fork based on crates.io `bytes` 1.11.1, selected
+constructor bodies establish that `with_capacity(n)` returns an empty buffer
+with capacity at least `n`, and `zeroed(n)` returns `n` zero bytes with
+capacity at least `n`. The selected crate-private `from_vec(v)` conversion
+preserves `v`'s length and bytes; `new` and `Default` establish an empty
+buffer. These results apply to this fork; its native source refactors are not
+shown equivalent to the unmodified release.
+
 `proof.json` records the fresh proof run from the crate's live source. The
 `coma/` and `results/` trees retain the exact selected COMA bodies and
 successful prover results, together with the feature tree and translation log.
 All selected targets translate from this crate's original source; no separate
 Std-source proof targets are included. [`TCB.md`](TCB.md) describes the selected
 guarantees and their assumptions.
+
+For the generic Vec-storage path, `VecRawParts::take` and
+`VecStorage::hold_owned` now have body proofs composing the B1 capture with
+the body-proved recovery-token and physical-region construction. The
+`VecStorage::capture_vec_owner` primitive that binds the consumed native Vec's
+pointer, length, capacity, and contents to a sealed witness is trusted; it
+does not create those affine resources or establish any `Bytes` owner,
+refcount, or retirement rule. `hold_owned` has no production Shared caller.
 
 The selected source targets also include body proofs for cursor-relative
 prefix helpers, Vec metadata packing and position updates, `BoundPtr`

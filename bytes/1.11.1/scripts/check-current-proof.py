@@ -84,6 +84,8 @@ TARGETS = (
     "verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/slots.coma",
     "verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/slot.coma",
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/slot.coma",
+    "verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation/namespace_ghost.coma",
+    "verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation_0/into_ghost.coma",
     "verif/bytes_rlib/provenance_specs/wrapping_offset.coma",
     "verif/bytes_rlib/capacity_ops/pack_vec_metadata.coma",
     "verif/bytes_rlib/capacity_ops/set_vec_pos_in_data.coma",
@@ -92,7 +94,9 @@ TARGETS = (
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/native_ptr.coma",
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/logical_len.coma",
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/logical_capacity.coma",
+    "verif/bytes_rlib/vec_storage/impl_VecRawParts/take.coma",
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/into_proof_authority.coma",
+    "verif/bytes_rlib/vec_storage/impl_VecStorage/hold_owned.coma",
 )
 EVIDENCE_TARGETS = TARGETS
 EVIDENCE = "verification/results/direct-bytesmut-len-api"

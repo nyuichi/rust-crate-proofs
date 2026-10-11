@@ -167,11 +167,13 @@ pub(crate) struct RawAllocation {
 
 /// Build B1's logical recovery and slot resources from the sealed, one-use
 /// witness created while consuming a Vec. The witness cannot be constructed
-/// from arbitrary pointer metadata. Physical interpretation is supplied only
-/// by the consuming `VecRawParts::take` boundary.
+/// from arbitrary pointer metadata. The exact native Vec interpretation is
+/// supplied by `VecStorage::capture_vec_owner`; `VecRawParts::take` composes
+/// that capture with this body-proved resource construction.
 #[requires(witness.invariant())]
 #[ensures(result.0.invariant())]
 #[ensures(result.0.raw_pointer() == witness.pointer())]
+#[ensures(result.0.base_address() == witness.pointer().addr_logic()@)]
 #[ensures(result.0.capacity() == witness.capacity())]
 #[ensures(result.1.inner_logic().0.invariant())]
 #[ensures(result.1.inner_logic().1.invariant())]
@@ -269,6 +271,15 @@ impl RawAllocation {
     #[logic(open)]
     pub(crate) fn namespace(self) -> Id {
         pearlite! { self@.1 }
+    }
+
+    /// Copy the sealed namespace projection without consuming this descriptor.
+    /// The returned ghost value carries identity only; it grants no raw-pointer
+    /// or physical-byte authority.
+    #[check(ghost)]
+    #[ensures(result.inner_logic() == self.namespace())]
+    pub(crate) fn namespace_ghost(&self) -> Ghost<Id> {
+        self.namespace
     }
 
     /// Borrow this B1 descriptor to create offset-zero pointer metadata for
@@ -536,6 +547,33 @@ const _: [(); core::mem::align_of::<NonNull<u8>>()] =
     [(); core::mem::align_of::<BoundPtr>()];
 
 impl RawAllocation {
+    /// Move the descriptor into ghost ownership without changing its sealed
+    /// allocation identity. The native pointer and capacity are copied only
+    /// as descriptor metadata; this does not create a recovery or region
+    /// capability.
+    #[requires(self.invariant())]
+    #[ensures(result.inner_logic().invariant())]
+    #[ensures(result.inner_logic().raw_pointer() == self.raw_pointer())]
+    #[ensures(result.inner_logic().base_address() == self.base_address())]
+    #[ensures(result.inner_logic().capacity() == self.capacity())]
+    #[ensures(result.inner_logic().namespace() == self.namespace())]
+    pub(crate) fn into_ghost(self) -> Ghost<Self> {
+        let RawAllocation {
+            base,
+            capacity,
+            namespace,
+            _not_objective: _,
+        } = self;
+        ghost! {
+            RawAllocation {
+                base,
+                capacity,
+                namespace,
+                _not_objective: NotObjective {},
+            }
+        }
+    }
+
     /// Consume B1's raw descriptor into an offset-zero bound pointer.
     ///
     /// This consuming form complements `bound_ptr_at_zero(&self)`, which keeps
