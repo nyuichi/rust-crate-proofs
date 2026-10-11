@@ -1,0 +1,41 @@
+(* #"/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 73 0 76 1 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sfset = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/logic/fset.rs" 44 8 44 26
+let%span srelease_sources = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 77 18 77 61
+let%span srelease_sources'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 71 11 71 38
+let%span srelease_sources'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 72 10 72 59
+let%span srelease_sources'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 20 4 20 12
+
+use set.Fset
+use creusot.prelude.Any
+
+type t_SyncView
+
+function plain_store_sources [#"/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 19 0 19 70] [@inline:trivial] (attached: Fset.fset t_SyncView) : Fset.fset t_SyncView
+ = [%#srelease_sources'2] attached
+
+meta "rewrite_def" function plain_store_sources
+
+predicate contains_SyncView [#"/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/logic/fset.rs" 43 4 43 39] [@inline:trivial] (self: Fset.fset t_SyncView) (e: t_SyncView) =
+  [%#sfset] Fset.mem e self
+
+meta "rewrite_def" predicate contains_SyncView
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let plain_store_drops_inherited_source [#"/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 73 0 76 1]
+  (attached: Fset.fset t_SyncView) (source: t_SyncView) (return (x: ())) =
+{[@stop_split] [@expl:plain_store_drops_inherited_source requires] [%#srelease_sources'0] not contains_SyncView attached source}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#srelease_sources] plain_store_sources attached = attached} s1 | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l () | & attached: Fset.fset t_SyncView = attached ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:plain_store_drops_inherited_source ensures] [%#srelease_sources'1] not contains_SyncView (plain_store_sources attached) source}
+    (! return {result}) ]

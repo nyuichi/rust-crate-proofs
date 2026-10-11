@@ -20,3 +20,17 @@ boundary. The current theorem is sequential and normal-return only.
 
 Past rejected routes and examples are available in Git at `e5f127fb` when needed.
 They are not required inputs or mandatory regression runs for current proof work.
+
+## Inactive Creusot FnGhost purity candidate
+
+The proposed `tools/creusot-toolpatch/patches/bytes-fn-ghost-purity.patch`
+targets Creusot commit `318615be3b8bbc60d1f6d52469ba5c0bdebed4f1`. It validates
+an annotated `#[check(ghost)]` closure body in ghost purity context while
+preserving the existing logic-context guard. The unpatched compiler accepts a
+positive nested atomic operation inside such a closure, so this is relevant to
+the generic atomic callback boundary; a direct nested atomic operation in
+`ghost!` is already rejected. This candidate is inactive, is not included in
+the current proof toolchain or TCB, and changes no current proof result. The
+scratch diagnostic also found that function-pointer and dynamic-trait calls
+are unsupported by translation, while a static generic trait helper translates.
+No broader negative-test workflow is required to retain this proposal.

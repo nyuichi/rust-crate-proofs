@@ -41,6 +41,13 @@ constructors and transitions are not shown to establish it. Shared and
 nonzero-offset states, immutable peers, lifecycle operations, concurrency and
 unwind behavior are outside this proof scope.
 
+The supporting `split_view_region` body preserves the full physical allocation
+while splitting the cursor-relative visible region, including any hidden
+prefix. Five selected pure `release_sources` algebra bodies are also proved
+from the pinned Std source. They specify set propagation over abstract event
+history only; they do not prove native atomic source selection or any Bytes
+synchronization property.
+
 The selected bodies use generic Creusot Std ghost/resource and logic
 contracts, plus the address-only `wrapping_add_u8` specification. Their Vec
 observer and resource assumptions are documented in the

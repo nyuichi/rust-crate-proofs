@@ -4,8 +4,8 @@
 normalized `creusot-std 0.13.0` registry package. It applies the reviewed
 generic contract patches to the private copy, validates the full stock package
 tree and every affected-file hash, and creates the ignored `.cargo/config.toml`
-override for `$BYTES_TOOL_ROOT/bytes-proof-std-as-bytes`. The older private copy
-is left untouched. The installer migrates the override only when it exactly
+override for `$BYTES_TOOL_ROOT/bytes-proof-std-as-bytes-release-sources`. The
+older private copy is left untouched. The installer migrates the override only when it exactly
 matches the previous generated config; custom or conflicting configs are
 refused. The installed registry source and other crates are untouched.
 
@@ -21,6 +21,13 @@ The active patches are:
    and preservation of pointer/capacity. This connects B1/B2 to the native
    pointer word rather than deriving it from a numeric address. The observer
    grants no access permission, allocation injectivity or liveness.
+4. `release-sources.patch` adds pure set algebra for release-sequence history:
+   an RMW carries the release sources of the exact modification it reads and
+   adds any source attached to its own successful event; a plain store starts
+   from only its own attached sources; an acquire selects the sources on its
+   exact read-from modification. This algebra does not establish which views a
+   native operation contributes. The atomic event boundary must separately
+   prove source attachment, ordering, fences, and read-from provenance.
 
 The original `ownership_proof::raw_vec` bridge uses `capacity_model` and
 `base_model` to connect its allocation descriptor to the same Vec value. These
@@ -37,6 +44,11 @@ tree and the complete stock-tree digest.
 
 The generic Vec observation contracts and B1/B2 physical interpretation remain
 explicit TCB assumptions; they do not prove bytes ownership or lifecycle laws.
+The release-source module is pure algebra and adds no native atomic-operation
+contract or synchronization guarantee. The direct-source receipt includes
+body proofs of the five selected `release_sources` functions from this exact
+private source tree; it does not claim that a native operation selected the
+algebra's inputs or that the whole Std package has been verified.
 The selected direct-source proof uses the overlay identity recorded in its
 receipt. Historical receipts retain their own source and overlay hashes.
 

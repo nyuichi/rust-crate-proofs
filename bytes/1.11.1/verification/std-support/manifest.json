@@ -28,15 +28,23 @@
       "final_sha256": "2f9bad31252c00c24940e23193332cf31970ee03ce636234c4c2ff4c7500cd05",
       "original_sha256": "3380344474fde787cbccb1b1c4b1d5ebe08689b13d107022d5d5de36fe2ea836"
     },
+    "src/std/sync.rs": {
+      "final_sha256": "c0d523378d7f35ea7e8ed16321ab3cd6028d6af025d8f3d35ea5ce6e6f38bc50",
+      "original_sha256": "b82849a1bc080fdd42f80cdbfe5d760e01429be78983c50abdf8350cbc981ec1"
+    },
+    "src/std/sync/release_sources.rs": {
+      "final_sha256": "777f805190b27fcc33a1a2986ded9fb24201e75a13ea9311e83d5878b6cd61f0",
+      "original_sha256": null
+    },
     "src/std/vec.rs": {
       "final_sha256": "fc52751f54cbfcb670100d7402200d9685537425cd7013211eaddcc5755468ad",
       "original_sha256": "5ce87b16b5e6b633e77c32c7c98cf73e0584c0f0b23127fe4f5277c1d4f1a427"
     }
   },
   "candidate_tree": {
-    "bytes": 710635,
-    "files": 110,
-    "sha256": "e43b8ba084cb6162697ac2bfe8a8d7a13ed8f7c3eb46d523c04ae2dcae909341"
+    "bytes": 715110,
+    "files": 111,
+    "sha256": "56cc740f2ec77fc6b05a9865b8f027595ec6ba49d901e6d6c3607c9fb0b390c0"
   },
   "install_policy": {
     "cargo_config_policy": "Append only the required crates-io patch if the table is absent; migrate only the exact prior generated config; preserve unrelated config; refuse conflicting creusot-std patches; require the generated file to be Git-ignored.",
@@ -51,13 +59,14 @@
     "base_model": "Opaque numeric address observer only; no pointer permission, provenance identity, or allocation liveness fact.",
     "capacity_model": "Opaque observer keyed by actual generic Vec value; no sequence identity, pointer identity, or allocation injectivity axiom.",
     "pointer_model": "Opaque exact mutable getter pointer observer keyed by actual Vec term; no access permission, allocation injectivity, byte contents or liveness; B1/B2 must independently supply sealed matching authority.",
+    "release_sources": "Pure FSet algebra only: RMW inherits the exact read-from modification\u2019s source set and unions sources established for that RMW; plain stores start from only their own established sources; acquire selects the observed modification\u2019s sources. Native ordering, read-from, fence provenance and source attachment remain obligations of the atomic event boundary.",
     "termination": "New extern contracts add no total-correctness attributes; existing infallible std termination check remains inherited."
   },
   "package": {
     "edition": "2024",
     "name": "creusot-std",
-    "private_copy_relative_path": "bytes-proof-std-as-bytes",
-    "previous_generated_private_copy_relative_path": "bytes-proof-std",
+    "previous_generated_private_copy_relative_path": "bytes-proof-std-as-bytes",
+    "private_copy_relative_path": "bytes-proof-std-as-bytes-release-sources",
     "provenance": "Pinned normalized Cargo registry package; no workspace-relative dependencies are used.",
     "stock_registry_glob": "*/creusot-std-0.13.0",
     "version": "0.13.0"
@@ -76,6 +85,10 @@
     "pointer-model.patch": {
       "scope": "Generic exact mutable Vec getter pointer observation and pointer/capacity preservation only; no permission, injectivity or liveness.",
       "sha256": "3a15f89fa1c7ce9e14ed48f0ae5f13c3e37fa77b144ffebd10a385d13d5281e5"
+    },
+    "release-sources.patch": {
+      "scope": "Pure generic release-source set algebra for plain stores, RMW inheritance and exact acquire observations; makes no native event or source-attachment claim.",
+      "sha256": "57552a737243b1892bef68ffce95b03f573bc54432cd5e4a9595362c2b425a34"
     }
   },
   "schema_version": 1,

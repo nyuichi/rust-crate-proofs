@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install the reviewed generic Vec-contract std overlay for bytes 1.11.1.
+"""Install the reviewed generic std overlay for bytes 1.11.1.
 
 This copies the pinned normalized registry package, applies the reviewed
 generic contract patches only to the private copy, verifies all affected-file
@@ -24,7 +24,12 @@ SCRIPT = Path(__file__).resolve()
 CRATE_ROOT = SCRIPT.parents[1]
 SUPPORT_ROOT = CRATE_ROOT / "verification" / "std-support"
 MANIFEST_PATH = SUPPORT_ROOT / "manifest.json"
-PATCH_NAMES = ("alloc-capacity.patch", "address-model.patch", "pointer-model.patch")
+PATCH_NAMES = (
+    "alloc-capacity.patch",
+    "address-model.patch",
+    "pointer-model.patch",
+    "release-sources.patch",
+)
 
 
 def fail(message: str) -> "NoReturn":
@@ -58,9 +63,13 @@ def tree_sha256(root: Path) -> tuple[str, int, int]:
     return digest.hexdigest(), len(files), total_bytes
 
 
-def verify_files(root: Path, hashes: dict[str, str], label: str) -> None:
+def verify_files(root: Path, hashes: dict[str, str | None], label: str) -> None:
     for relative, expected in hashes.items():
         path = root / relative
+        if expected is None:
+            if path.exists() or path.is_symlink():
+                fail(f"{label} unexpectedly contains new file {relative}")
+            continue
         if not path.is_file():
             fail(f"{label} is missing affected file {relative}")
         actual = sha256(path)

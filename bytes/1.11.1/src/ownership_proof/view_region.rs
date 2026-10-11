@@ -1,4 +1,4 @@
-//! Partitioning one pointer view's physical interval.
+//! Partitioning an allocation interval covered by one pointer view.
 //!
 //! This composes the sealed pointer-offset arithmetic with the affine
 //! `PhysicalRegion` split. It establishes spatial correspondence only; a
@@ -15,12 +15,14 @@ use super::raw_vec::{BoundPtr, PhysicalRegion};
 /// Both endpoint cuts are supported. In particular, a zero-length result
 /// still carries a `PhysicalRegion` token; higher-level Shared protocols must
 /// retain the matching control/lifetime ticket independently of this spatial
-/// capability.
+/// capability. The input region may start before the current view: this is
+/// needed after `BytesMut::advance`, which moves the visible pointer forward
+/// while retaining authority over the consumed prefix.
 #[requires(view.invariant() && view@ != None)]
 #[requires(region.inner_logic().invariant())]
 #[requires(view@.unwrap_logic().0 == region.inner_logic().namespace())]
 #[requires(view@.unwrap_logic().1 == region.inner_logic().capacity())]
-#[requires(view@.unwrap_logic().2 == region.inner_logic().lo())]
+#[requires(region.inner_logic().lo() <= view@.unwrap_logic().2)]
 #[requires(region.inner_logic().hi() == view@.unwrap_logic().2 + extent@)]
 #[requires(cut@ <= extent@)]
 #[ensures(result.0.0.invariant() && result.0.0@ == view@)]
@@ -40,13 +42,13 @@ use super::raw_vec::{BoundPtr, PhysicalRegion};
     result.1.1.inner_logic().capacity() == region.inner_logic().capacity())]
 #[ensures(result.0.1.inner_logic().resource_id() == region.inner_logic().resource_id() &&
     result.1.1.inner_logic().resource_id() == region.inner_logic().resource_id())]
-#[ensures(result.0.1.inner_logic().lo() == view@.unwrap_logic().2)]
+#[ensures(result.0.1.inner_logic().lo() == region.inner_logic().lo())]
 #[ensures(result.0.1.inner_logic().hi() == view@.unwrap_logic().2 + cut@)]
 #[ensures(result.1.1.inner_logic().lo() == view@.unwrap_logic().2 + cut@)]
 #[ensures(result.1.1.inner_logic().hi() == region.inner_logic().hi())]
 #[ensures(forall<index: Int>
     result.0.1.inner_logic().slot(index) ==
-        if view@.unwrap_logic().2 <= index && index < view@.unwrap_logic().2 + cut@ {
+        if region.inner_logic().lo() <= index && index < view@.unwrap_logic().2 + cut@ {
             region.inner_logic().slot(index)
         } else { None })]
 #[ensures(forall<index: Int>
@@ -64,7 +66,7 @@ pub(crate) fn split_view_region(
     proof_assert!(view@.unwrap_logic().2 + cut@ <= region.inner_logic().hi());
     proof_assert!(view@.unwrap_logic().2 + cut@ <= region.inner_logic().capacity());
     let shifted = view.advance_within(cut);
-    let split_at: Snapshot<Int> = snapshot!(region.inner_logic().lo() + cut@);
+    let split_at: Snapshot<Int> = snapshot!(view@.unwrap_logic().2 + cut@);
     let fragments = ghost! {
         region.into_inner().split_at(split_at.into_ghost().into_inner())
     };

@@ -1,0 +1,22 @@
+--- a/creusot/src/validate/purity.rs
++++ b/creusot/src/validate/purity.rs
+@@ -359,7 +359,18 @@
+                 }
+                 let (thir, expr) = self.ctx.thir_body(closure_id);
+                 let thir = &thir.borrow();
+-                PurityVisitor { thir, ..*self }.visit_expr(&thir[expr]);
++                // A #[check(ghost)] closure is a ghost callback even when it
++                // is created in program code. Validate its body in that same
++                // ghost context so trusted native operations cannot be hidden
++                // inside an erased FnGhost callback.
++                let context = if is_check_ghost(self.ctx.tcx, closure_id.into())
++                    && !self.context.is_logic()
++                {
++                    LocalPurity::ghost()
++                } else {
++                    self.context
++                };
++                PurityVisitor { thir, context, ..*self }.visit_expr(&thir[expr]);
+             }
+             ExprKind::Scope { region_scope: _, hir_id, value: _ } => {
+                 if super::is_ghost_block(self.ctx.tcx, hir_id) {

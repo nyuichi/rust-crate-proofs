@@ -1,0 +1,92 @@
+(* #"/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 95 0 100 1 *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sfset = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/logic/fset.rs" 44 8 44 26
+let%span srelease_sources = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 103 18 103 31
+let%span srelease_sources'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 101 4 105 5
+let%span srelease_sources'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 107 18 107 54
+let%span srelease_sources'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 106 4 110 5
+let%span srelease_sources'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 112 18 112 54
+let%span srelease_sources'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 111 4 115 5
+let%span srelease_sources'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 85 11 85 46
+let%span srelease_sources'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 86 11 86 57
+let%span srelease_sources'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 87 10 90 30
+let%span srelease_sources'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 91 10 94 30
+let%span srelease_sources'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 45 11 45 38
+let%span srelease_sources'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 46 10 46 62
+let%span srelease_sources'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 27 4 27 29
+let%span srelease_sources'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 58 11 58 37
+let%span srelease_sources'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 59 10 59 62
+let%span srelease_sources'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 35 4 35 12
+
+use set.Fset
+use creusot.prelude.Any
+
+type t_SyncView
+
+predicate contains_SyncView [#"/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/logic/fset.rs" 43 4 43 39] [@inline:trivial] (self: Fset.fset t_SyncView) (e: t_SyncView) =
+  [%#sfset] Fset.mem e self
+
+meta "rewrite_def" predicate contains_SyncView
+
+function rmw_sources [#"/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 26 0 26 89] [@inline:trivial] (inherited: Fset.fset t_SyncView) (attached: Fset.fset t_SyncView) : Fset.fset t_SyncView
+ = [%#srelease_sources'11] Fset.union inherited attached
+
+meta "rewrite_def" function rmw_sources
+
+let rmw_preserves_inherited_source (inherited: Fset.fset t_SyncView) (attached: Fset.fset t_SyncView)
+  (source: t_SyncView) (return (x: ())) =
+{[@stop_split] [@expl:rmw_preserves_inherited_source requires] [%#srelease_sources'9] contains_SyncView inherited source}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:rmw_preserves_inherited_source ensures] [%#srelease_sources'10] contains_SyncView (rmw_sources inherited attached) source}
+    (! return {result}) ]
+
+let rmw_adds_attached_source (inherited: Fset.fset t_SyncView) (attached: Fset.fset t_SyncView) (source: t_SyncView)
+  (return (x: ())) =
+{[@stop_split] [@expl:rmw_adds_attached_source requires] [%#srelease_sources'12] contains_SyncView attached source}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:rmw_adds_attached_source ensures] [%#srelease_sources'13] contains_SyncView (rmw_sources inherited attached) source}
+    (! return {result}) ]
+
+function acquire_sources [#"/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 34 0 34 66] [@inline:trivial] (observed: Fset.fset t_SyncView) : Fset.fset t_SyncView
+ = [%#srelease_sources'14] observed
+
+meta "rewrite_def" function acquire_sources
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let relaxed_rmw_then_release_rmw_to_acquire [#"/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-release-sources/src/std/sync/release_sources.rs" 95 0 100 1]
+  (initial: Fset.fset t_SyncView) (decrement_attached: Fset.fset t_SyncView) (inherited_source: t_SyncView)
+  (decrement_source: t_SyncView) (return (x: ())) =
+{[@stop_split] [@expl:relaxed_rmw_then_release_rmw_to_acquire requires] ([@stop_split] [@expl:relaxed_rmw_then_release_rmw_to_acquire requires #0] [%#srelease_sources'5] contains_SyncView initial inherited_source)
+  /\ ([@stop_split] [@expl:relaxed_rmw_then_release_rmw_to_acquire requires #1] [%#srelease_sources'6] contains_SyncView decrement_attached decrement_source)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = rmw_preserves_inherited_source [%#srelease_sources'0] {initial}
+        {[%#srelease_sources] Fset.empty: Fset.fset t_SyncView} {inherited_source} (fun (_x: ()) -> [ &_19 <- _x ] s1)
+    | s1 = rmw_preserves_inherited_source [%#srelease_sources'2]
+        {[%#srelease_sources'1] rmw_sources initial (Fset.empty: Fset.fset t_SyncView)} {decrement_attached}
+        {inherited_source} (fun (_x: ()) -> [ &_24 <- _x ] s2)
+    | s2 = rmw_adds_attached_source [%#srelease_sources'4]
+        {[%#srelease_sources'3] rmw_sources initial (Fset.empty: Fset.fset t_SyncView)} {decrement_attached}
+        {decrement_source} (fun (_x: ()) -> [ &_30 <- _x ] s3)
+    | s3 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & initial: Fset.fset t_SyncView = initial
+  | & decrement_attached: Fset.fset t_SyncView = decrement_attached
+  | & inherited_source: t_SyncView = inherited_source
+  | & decrement_source: t_SyncView = decrement_source
+  | & _19: () = Any.any_l ()
+  | & _24: () = Any.any_l ()
+  | & _30: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:relaxed_rmw_then_release_rmw_to_acquire ensures] ([@stop_split] [@expl:relaxed_rmw_then_release_rmw_to_acquire ensures #0] [%#srelease_sources'7] contains_SyncView (acquire_sources (rmw_sources (rmw_sources initial (Fset.empty: Fset.fset t_SyncView)) decrement_attached)) inherited_source)
+    /\ ([@stop_split] [@expl:relaxed_rmw_then_release_rmw_to_acquire ensures #1] [%#srelease_sources'8] contains_SyncView (acquire_sources (rmw_sources (rmw_sources initial (Fset.empty: Fset.fset t_SyncView)) decrement_attached)) decrement_source)}
+    (! return {result}) ]
