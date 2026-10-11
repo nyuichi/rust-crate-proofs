@@ -10,7 +10,7 @@ use alloc::vec::Vec;
 use core::{mem::ManuallyDrop, ptr::NonNull};
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
-use crate::ownership_proof::raw_vec::{self, PhysicalRegion, RawAllocation, Recovery};
+use crate::ownership_proof::raw_vec::{self, BoundPtr, PhysicalRegion, RawAllocation, Recovery};
 #[cfg(all(creusot, bytes_original_unique_gate))]
 use creusot_std::prelude::*;
 #[cfg(all(creusot, bytes_original_unique_gate))]
@@ -462,11 +462,18 @@ impl StoredAuthority {
     pub(crate) fn capacity(self) -> Int {
         pearlite! { self.raw.capacity() }
     }
+
+    /// Numeric base address of the sealed storage allocation. This is a
+    /// location fact only; it does not expose or recreate allocation access.
+    #[logic(open(self))]
+    pub(crate) fn base_address(self) -> Int {
+        pearlite! { self.raw.base_address() }
+    }
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
 impl Invariant for StoredAuthority {
-    #[logic(open(self), prophetic)]
+    #[logic(prophetic)]
     fn invariant(self) -> bool {
         pearlite! {
             self.raw.invariant() &&
@@ -576,25 +583,26 @@ impl VecStorage {
         creusot_std::std::vec::capacity_model(input),
     ))]
     #[ensures(result.1.inner_logic().0.invariant())]
-    #[ensures(result.1.inner_logic().0.raw.invariant())]
     #[ensures(result.1.inner_logic().0.raw_pointer() ==
         creusot_std::std::vec::pointer_model(input))]
     #[ensures(result.1.inner_logic().0.capacity() ==
         creusot_std::std::vec::capacity_model(input))]
-    #[ensures(result.1.inner_logic().0.raw.base_address() ==
+    #[ensures(result.1.inner_logic().0.base_address() ==
         creusot_std::std::vec::base_model(input))]
     #[ensures(result.1.inner_logic().0.stored_len() == input@.len())]
-    #[ensures(result.1.inner_logic().0.recovery.invariant())]
-    #[ensures(result.1.inner_logic().0.recovery.namespace() == result.1.inner_logic().0.binding())]
-    #[ensures(result.1.inner_logic().0.recovery.capacity() == result.1.inner_logic().0.capacity())]
     #[ensures(result.1.inner_logic().1.invariant())]
     #[ensures(result.1.inner_logic().1.namespace() == result.1.inner_logic().0.binding())]
     #[ensures(result.1.inner_logic().1.resource_id() == result.1.inner_logic().0.binding())]
     #[ensures(result.1.inner_logic().1.capacity() == result.1.inner_logic().0.capacity())]
     #[ensures(result.1.inner_logic().1.lo() == 0)]
     #[ensures(result.1.inner_logic().1.hi() == result.1.inner_logic().0.capacity())]
-    #[ensures(result.1.inner_logic().0.raw.base_address() + result.1.inner_logic().0.capacity() <= usize::MAX@)]
+    #[ensures(result.1.inner_logic().0.base_address() + result.1.inner_logic().0.capacity() <= usize::MAX@)]
     #[ensures(result.1.inner_logic().0.capacity() <= isize::MAX@)]
+    #[ensures(result.2.invariant())]
+    #[ensures(result.2@ == Some((result.1.inner_logic().0.binding(),
+        result.1.inner_logic().0.capacity(), 0int)))]
+    #[ensures(result.2.raw_pointer() == creusot_std::std::vec::pointer_model(input))]
+    #[ensures(result.2.current_address() == creusot_std::std::vec::base_model(input))]
     #[ensures(forall<i: Int> 0 <= i && i < input@.len() ==>
         result.1.inner_logic().1.slot(i) == Some(Some(input@[i])))]
     #[ensures(forall<i: Int> input@.len() <= i &&
@@ -602,10 +610,11 @@ impl VecStorage {
         result.1.inner_logic().1.slot(i) == Some(None))]
     pub(crate) fn hold_owned(
         input: Vec<u8>,
-    ) -> (Self, Ghost<(StoredAuthority, PhysicalRegion)>) {
+    ) -> (Self, Ghost<(StoredAuthority, PhysicalRegion)>, BoundPtr) {
         let (mut storage, witness) = Self::capture_vec_owner(input);
         let (pointer, stored_len, capacity) = witness.native_parts();
         let (raw, capabilities) = raw_vec::bind_consumed_vec(witness);
+        let (base, _) = raw.bound_ptr_at_zero();
         let binding: Ghost<Id> = ghost!(raw.namespace_ghost().into_inner());
         let ghost_raw = raw.into_ghost();
         storage.1 = ghost! {
@@ -628,7 +637,7 @@ impl VecStorage {
                 region.into_inner(),
             )
         };
-        (storage, authority_and_region)
+        (storage, authority_and_region, base)
     }
 }
 

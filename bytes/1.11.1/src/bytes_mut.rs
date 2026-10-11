@@ -17,6 +17,8 @@ use alloc::{
 
 use crate::buf::{IntoIter, UninitSlice};
 use crate::bytes::Vtable;
+#[cfg(all(creusot, bytes_original_unique_gate))]
+use crate::ownership_proof::{boxed_alignment, ref_count_ledger::OwnerLedger, terminal_phase::PhaseAuthority};
 #[allow(unused)]
 use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
@@ -1453,7 +1455,8 @@ impl BytesMut {
             // complicated. First, we have to track how far ahead the
             // "start" of the byte buffer from the beginning of the vec. We
             // also have to ensure that we don't exceed the maximum shift.
-            let pos = self.get_vec_pos() + count;
+            let off = self.get_vec_pos();
+            let pos = off + count;
 
             if pos <= MAX_VEC_POS {
                 // The private layout helper updates the Vec cursor, pointer,
@@ -1467,11 +1470,7 @@ impl BytesMut {
             } else {
                 // The repr must be upgraded to ARC. This is unusual on 64-bit
                 // systems, but the packed Vec offset still has a finite bound.
-                self.promote_to_shared(/*ref_count = */ 1);
-                self.ptr = vptr(crate::provenance_specs::wrapping_offset(
-                    self.ptr.as_ptr(),
-                    count,
-                ));
+                unsafe { self.promote_to_shared_count_one(off, pos, count) };
             }
         } else {
             self.ptr = vptr(crate::provenance_specs::wrapping_offset(
@@ -1481,6 +1480,122 @@ impl BytesMut {
         }
         self.len = self.len.saturating_sub(count);
         self.cap -= count;
+    }
+
+    /// Promote the unique Vec-backed owner while its packed offset is about to
+    /// overflow. The Vec is resumed from the current B1 authority, immediately
+    /// recaptured by B1 in opaque Shared storage, and the handle cursor is
+    /// derived from that returned allocation base. In native builds the same
+    /// Vec transfer and pointer offset are performed directly.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_vec_rebuildable()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(off@ == self.unique_offset()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(pos@ == self.unique_offset() + count@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.unique_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(pos@ <= self.unique_allocation_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof == None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_proof != None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_proof.unwrap_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_proof.unwrap_logic().capsule_public().0 == (^self).data as *mut ()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_proof.unwrap_logic().cursor.raw_pointer() == (^self).ptr@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_proof.unwrap_logic().cursor@ == Some((
+        (^self).shared_proof.unwrap_logic().region.inner_logic().namespace(),
+        (^self).shared_proof.unwrap_logic().region.inner_logic().capacity(), pos@
+    ))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).len == self.len && (^self).cap == self.cap))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer().addr_logic()@ == self.unique_pointer().addr_logic()@ + count@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_ARC))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < self.unique_offset() + self.unique_length() ==>
+            (^self).shared_proof.unwrap_logic().allocation_slot(i) == self.unique_allocation_slot(i)))]
+    unsafe fn promote_to_shared_count_one(&mut self, off: usize, pos: usize, count: usize) {
+        debug_assert_eq!(self.kind(), KIND_VEC);
+
+        let original_capacity_repr = crate::capacity_ops::original_capacity_repr_from_data(
+            crate::provenance_specs::pointer_addr(self.data),
+        );
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (vec, authority_region, base) = {
+            let prestate = snapshot!(*self);
+            proof_assert!((*prestate).unique_vec_rebuildable());
+            proof_assert!(off@ == (*prestate).unique_offset());
+            proof_assert!(pos@ == off@ + count@);
+            proof_assert!(pos@ <= (*prestate).unique_allocation_capacity());
+            proof_assert!(forall<i:Int> 0 <= i && i < off@ + self.len@ ==>
+                if i < off@ {
+                    slot_known((*prestate).unique_allocation_slot(i))
+                } else {
+                    slot_known((*prestate).unique_slot(i - off@))
+                }
+            );
+
+            let proof = self.unique_proof.take().unwrap();
+            let vec_len = off + self.len;
+            let vec = unsafe { raw_vec::resume_vec(proof.raw, vec_len, proof.capabilities) };
+            VecStorage::hold_owned(vec)
+        };
+
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let (vec, base_pointer) = {
+            let mut vec = unsafe { rebuild_vec(self.ptr.as_ptr(), self.len, self.cap, off) };
+            let base = vec.as_mut_ptr();
+            (VecStorage::hold(vec), base)
+        };
+
+        // The sealed proof descriptor is used only to derive the proof-side
+        // cursor. Its program accessor supplies the actual pointer value; the
+        // native build performs the same provenance-preserving offset from
+        // the Vec base directly.
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (cursor, pointer) = {
+            let cursor = base.advance_within(pos);
+            let pointer = cursor.as_ptr();
+            (cursor, pointer)
+        };
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let pointer = crate::provenance_specs::wrapping_offset(base_pointer, pos);
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (ref_count, owner) = RefCountCell::new_with_owner(1);
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let ref_count = RefCountCell::new(1);
+
+        let shared = Box::new(Shared { vec, original_capacity_repr, ref_count });
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (header, root) = boxed_alignment::into_raw_aligned(shared);
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let header = Box::into_raw(shared);
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            boxed_alignment::aligned_address_has_clear_low_bit(
+                crate::provenance_specs::pointer_addr(header),
+                core::mem::align_of::<Shared>(),
+            );
+            let ledger_ticket = OwnerLedger::new_root();
+            let phase_action = PhaseAuthority::new();
+            let packet = shared_capsule::make_count_one_packet(
+                header,
+                root,
+                owner,
+                authority_region,
+                ledger_ticket,
+                phase_action,
+                base,
+                cursor,
+                1,
+            );
+            self.shared_proof = Some(packet);
+        }
+
+        debug_assert_eq!(
+            crate::provenance_specs::pointer_addr(header) & KIND_MASK,
+            KIND_ARC,
+            "internal: Box<Shared> should have an aligned pointer",
+        );
+        self.ptr = vptr(pointer);
+        self.data = header;
     }
 
     fn try_unsplit(&mut self, other: BytesMut) -> Result<(), BytesMut> {
@@ -2192,6 +2307,30 @@ mod tests {
 
         assert!(right.capacity() >= right.len() + 100);
         assert_eq!(&right[..], expected.as_slice());
+    }
+
+    #[test]
+    fn count_one_promotion_preserves_nonzero_offset_view() {
+        let original: Vec<u8> = (0..32).collect();
+        let expected = original[3..].to_vec();
+        let mut buffer = BytesMut::from_vec(original);
+        Buf::advance(&mut buffer, 3);
+
+        let offset = unsafe { buffer.get_vec_pos() };
+        assert_eq!(offset, 3);
+        let pointer = buffer.as_ptr();
+        let len = buffer.len();
+        let cap = buffer.capacity();
+
+        // Exercise the common native promotion body with no further cursor
+        // movement, so the visible view stays valid throughout the check.
+        unsafe { buffer.promote_to_shared_count_one(offset, offset, 0) };
+
+        assert_eq!(buffer.kind(), KIND_ARC);
+        assert_eq!(buffer.as_ptr(), pointer);
+        assert_eq!(buffer.len(), len);
+        assert_eq!(buffer.capacity(), cap);
+        assert_eq!(&buffer[..], expected.as_slice());
     }
 
     #[test]

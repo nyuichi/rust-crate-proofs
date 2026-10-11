@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 409 4 409 34 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 411 4 411 34 *)
 
 (* bytes_mut::BytesMut *)
 
@@ -7,18 +7,18 @@ type namespace_other
 type t_Namespace = Namespace_BYTES_MUT_SHARED_CAPSULE int | Other namespace_other
 
 let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 410 20 410 21
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 409 21 409 25
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 407 65 407 102
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 96 59 96 68
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 412 20 412 21
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 411 21 411 25
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 409 65 409 102
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 98 59 98 68
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
-let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
-let%span sshared = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/shared.rs" 26 8 26 46
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 372 12 380 13
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 247 12 248 56
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 683 12 687 33
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sshared = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/shared.rs" 26 8 26 46
 
 use creusot.int.UInt64
 use creusot.prelude.Opaque
@@ -193,7 +193,7 @@ axiom inv_axiom'4 [@rewrite]:
       | Some f0'6 -> inv_OriginalUniqueProof f0'6
       end
 
-predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 156 4 156 30] (self: t_SharedOwnerPacket)
+predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 162 4 162 30] (self: t_SharedOwnerPacket)
 
 predicate resolve_AtomicInvariant_SharedState [@inline:trivial] (_1: t_AtomicInvariant_SharedState) = true
 
@@ -274,14 +274,14 @@ predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_By
 
 meta "rewrite_def" predicate inv_ref_BytesMut
 
-function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 96 4 96 44] (self: t_BytesMut) : int
+function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 98 4 98 44] (self: t_BytesMut) : int
  = [%#sbytes_mut'2] UInt64.t'int self.len
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let is_empty [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 409 4 409 34] (self: t_BytesMut)
+let is_empty [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 411 4 411 34] (self: t_BytesMut)
   (return (x: bool)) = {[@stop_split] [@expl:is_empty 'self' type invariant] [%#sbytes_mut'0] inv_ref_BytesMut self}
   (! bb0
   [ bb0 = s0 [ s0 = [ &_ret <- self.len = ([%#sbytes_mut] (0: UInt64.t)) ] s1 | s1 = return {_ret} ] ]

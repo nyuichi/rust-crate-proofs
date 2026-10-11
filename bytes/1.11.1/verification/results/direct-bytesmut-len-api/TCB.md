@@ -18,9 +18,11 @@ and spare-capacity slots are unknown. The selected bodies for
 resource construction; `take` suppresses the temporary storage destructor
 after transferring its native owner with the existing Std
 `core::mem::forget(storage)` operation. `hold_owned` returns the body-proved
-storage authority and region, but has no production Shared caller. The proof
-uses an opaque transparent native Vec wrapper and an outer C-layout storage
-struct with a zero-sized ghost field; compile-time assertions compare its
+storage authority and region; the private count-one promotion helper calls it
+to construct the initial Shared state. This does not prove later Shared
+lifecycle operations. The proof uses an opaque transparent native Vec wrapper
+and an outer C-layout storage struct with a zero-sized ghost field;
+compile-time assertions compare its
 size and alignment with `Vec<u8>`. The native `VecRawParts::take` branch keeps
 the original direct extraction implementation. No trusted Bytes-specific
 ownership, refcount, destructor, or reclamation law is used here.
@@ -105,9 +107,11 @@ sidecar empty while framing the native counter. The `EventBoundInvariant`
 `into_inner` body is proved to move out the same permission and protocol state.
 The proof-only `new_with_owner` constructor body is also proved: it creates the
 native counter once and returns its exact sole permission with the constructor
-value while leaving the cell sidecar empty. No production `Bytes` or `BytesMut`
-path calls this helper, and it does not establish a handle or owner-ledger
-registration.
+value while leaving the cell sidecar empty. The proof branch of
+`promote_to_shared_count_one` uses this helper to connect the corresponding
+native counter construction to the promotion capsule; native builds use the
+ordinary `RefCountCell::new`. The helper by itself creates no handle or
+owner-ledger registration.
 No production `Bytes` or `BytesMut` path calls this extraction yet; current
 scalar adapter callers still require the sidecar to be populated. The increment
 body only establishes guarded arithmetic and normal-return behavior. The
@@ -136,12 +140,14 @@ describe concurrent loads, read coherence, synchronization handoff, or
 acquire-imported resources. The crate's ordinary native implementation retains
 its concurrent behavior, but these proofs make no concurrent Bytes claim.
 
-The scalar refcount protocol does not contain owner tickets. The body proofs do
-not connect constructors, clones, conversions, drops, or handle transfers to
-the `OwnerLedger`; they establish neither count-to-registration equality nor
-count-one exclusivity. Terminal recovery, Shared allocation retirement,
-destruction, and end-to-end `BytesMut::truncate` across Shared, split, or
-nonzero-offset states remain unproved.
+The scalar refcount protocol does not contain owner tickets. The body-proved
+initial promotion path connects one native count of one with one root ledger
+ticket in its capsule. The body proofs do not yet connect later increments,
+clones, splits, conversions, drops, or handle transfers to the `OwnerLedger`,
+so they do not establish count-to-registration equality across those
+transitions or derive count-one exclusivity for recovery. Terminal recovery,
+Shared allocation retirement, destruction, and end-to-end `BytesMut::truncate`
+across Shared, split, or nonzero-offset states remain unproved.
 
 The selected crate targets also body-prove the generic
 `ownership_proof::ref_count_ledger` module. Its affine authority map represents
@@ -157,11 +163,15 @@ count-one uniqueness, or Shared allocation lifecycle property.
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
 contradiction between a closed authority and a still-valid matching action.
-`SharedOwnerPacket::make_count_one_packet` is body-proved to compose supplied
+`shared_capsule::make_count_one_packet` is body-proved to compose supplied
 header, exact counter permission, storage authority, one registered owner
 ticket, whole physical region, and open terminal phase into a capsule whose
-protocol binds those identities and value one. These body-proved components
-have explicit constructor preconditions; no production `Shared`
-promotion/split caller establishes those preconditions yet. They add no
-trusted native count-to-ticket law, count-one exclusivity, terminal recovery,
-or allocation-lifecycle guarantee.
+protocol binds those identities and value one. The private
+`promote_to_shared_count_one` body now supplies these values on its proof path,
+including the count-one counter and root ticket. It is the only promotion
+helper whose body is verified in this checkpoint; no clone/split/drop update
+path is connected yet.
+The `advance_unchecked` proof assumes a representable Vec position, so it does
+not establish reachability of the promotion branch, and public `Buf::advance`
+is untranslated. The proof adds no trusted native count-to-ticket law,
+count-one exclusivity, terminal recovery, or allocation-lifecycle guarantee.

@@ -21,7 +21,9 @@ the body-proved recovery-token and physical-region construction. The
 `VecStorage::capture_vec_owner` primitive that binds the consumed native Vec's
 pointer, length, capacity, and contents to a sealed witness is trusted; it
 does not create those affine resources or establish any `Bytes` owner,
-refcount, or retirement rule. `hold_owned` has no production Shared caller.
+refcount, or retirement rule. The private promotion helper calls `hold_owned`
+to build its initial Shared storage state; later Shared lifecycle operations
+remain outside this proof.
 
 The native Shared reserve-growth path now compacts its initialized visible
 bytes to the Vec base before calling `Vec::reserve`, so a hidden prefix left
@@ -44,10 +46,15 @@ cursor-validity and initialized-slot preconditions, but the generated trait
 refinement obligation is not proved because those implementation preconditions
 are stronger than the trait prestate.
 No selected proof establishes a safe public-call chain that produces a
-nonzero cursor, and the promotion branch is outside this proof. The public
-`Buf::advance` wrapper is not translated. The logical model and cursor helpers
-are not evidence that nonzero-offset states are reachable through the original
-API.
+nonzero cursor. The public `Buf::advance` wrapper is not translated, and the
+`advance_unchecked` body proof still covers only the Vec no-promotion branch.
+A separate body proof now covers the private
+`promote_to_shared_count_one` helper: it moves a rebuildable Vec into a Shared
+header and binds the nonzero cursor, whole allocation region, count-one native
+counter permission, and root owner ticket into the capsule. The native test
+`count_one_promotion_preserves_nonzero_offset_view` exercises this helper at
+offset 3 with zero additional advance and checks the visible view. Neither
+result proves a safe public call chain reaches the promotion branch.
 
 The selected source targets include body proofs for the generic `OwnerLedger`
 algebra and the current-value refcount operation wrappers and increment loop.
@@ -57,21 +64,25 @@ the proof-only sidecar detached. No production `Bytes` or `BytesMut` path calls
 that extraction yet; the selected scalar adapters still require the sidecar to
 contain its invariant. The proof-only `new_with_owner` constructor also has a
 body proof for creating one native counter and returning its exact permission
-and initial value while leaving the sidecar empty. It has no production caller
-and creates no owner registration. The ledger and refcount proof state
-therefore remain disconnected from production owner handles. These results do
-not establish that the native refcount equals the number of registered
-handles, that an observed count of one is exclusive, or that Shared storage may
-be reclaimed. They are a partial direct-source checkpoint, not complete
+and initial value while leaving the sidecar empty. The proof branch of
+`promote_to_shared_count_one` uses it; native builds instead use the ordinary
+`RefCountCell::new`. Outside that one initial promotion proof, the ledger and
+refcount proof state are not connected to later production owner operations.
+These results do not establish that the native refcount equals the number of
+registered handles across transitions, that a count of one proves exclusivity,
+or that Shared storage may be reclaimed. They are a partial direct-source
+checkpoint, not complete
 `BytesMut::truncate` verification across all safe states.
 
 The current increment also body-proves `PhaseAuthority`'s one-shot close
-action and `shared_capsule::make_count_one_packet`, the count-one capsule
-constructor. It binds supplied header, counter permission, storage authority,
-single owner ticket, full physical region, and terminal phase into one
-invariant. No production promotion or split path calls it yet, and the proof
-does not establish its preconditions for a native `Shared` allocation. It
-adds no refcount-to-owner, uniqueness, or reclamation guarantee.
+action, `shared_capsule::make_count_one_packet`, and
+`promote_to_shared_count_one`. For this private promotion helper, the proof
+constructs a count-one Shared capsule from the actual Vec storage and exact
+native counter permission, with one root ticket and the allocation's full
+physical region. It does not prove every safe call path reaches the helper or
+connect later clone, split, drop, and recovery operations to that registration.
+It therefore gives no general count-to-owner, uniqueness, or reclamation
+guarantee.
 
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current

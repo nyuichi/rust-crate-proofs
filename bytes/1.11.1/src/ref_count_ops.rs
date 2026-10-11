@@ -131,8 +131,6 @@ impl RefCountCell {
     /// single `AtomicUsize::new` operation through `NativeCounter::new`.
     #[cfg(creusot)]
     #[ensures(result.0.invariant() && !result.0.has_event_invariant())]
-    #[ensures(result.1.inner_logic().0.ward() == &result.0.counter)]
-    #[ensures(*result.1.inner_logic().0.ward() == result.0.counter)]
     #[ensures(*result.1.inner_logic().0.ward() == result.0.counter_model())]
     #[ensures(result.1.inner_logic().0.val() == value)]
     #[ensures(result.1.inner_logic().1 == value)]

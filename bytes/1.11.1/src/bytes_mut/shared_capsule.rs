@@ -126,6 +126,12 @@ impl SharedOwnerPacket {
         pearlite! { self.capsule.inner_logic().val().public() }
     }
 
+    #[logic(open(self))]
+    #[ensures(result == self.region.inner_logic().slot(index))]
+    pub(crate) fn allocation_slot(self, index: Int) -> Option<Option<u8>> {
+        pearlite! { self.region.inner_logic().slot(index) }
+    }
+
     #[logic(prophetic)]
     fn valid(self) -> bool {
         pearlite! {
@@ -165,52 +171,52 @@ impl Invariant for SharedOwnerPacket {
 #[requires(
     root.inner_logic().invariant() &&
     *root.inner_logic().ward() == header_id as *const Shared &&
-    owner.inner_logic().invariant() &&
-    (*root.inner_logic().val()).ref_count.counter_model() == *owner.inner_logic().ward() &&
-    owner.inner_logic().val() == value &&
+    owner.inner_logic().0.invariant() &&
+    (*root.inner_logic().val()).ref_count.counter_model() == *owner.inner_logic().0.ward() &&
+    owner.inner_logic().0.val() == value && owner.inner_logic().1 == value &&
     !(*root.inner_logic().val()).ref_count.has_event_invariant() &&
-    storage.inner_logic().invariant() &&
-    (*root.inner_logic().val()).vec.matches_authority(storage.inner_logic()) &&
-    ledger.inner_logic().invariant() && ledger.inner_logic().is_live() &&
-    ledger.inner_logic().agrees_with_value(value@) && ledger.inner_logic().count() == 1 &&
+    storage.inner_logic().0.invariant() &&
+    (*root.inner_logic().val()).vec.matches_authority(storage.inner_logic().0) &&
+    ledger.inner_logic().0.invariant() && ledger.inner_logic().0.is_live() &&
+    ledger.inner_logic().0.agrees_with_value(value@) && ledger.inner_logic().0.count() == 1 &&
     value@ == 1 &&
-    ledger.inner_logic().ledger_id() == ticket.inner_logic().ledger_id() &&
-    ticket.inner_logic().invariant() &&
-    ledger.inner_logic().has_ticket(ticket.inner_logic()) &&
-    0 <= ticket.inner_logic().owner_id() &&
-    ticket.inner_logic().owner_id() < ledger.inner_logic().next_id() &&
-    region.inner_logic().invariant() &&
-    region.inner_logic().namespace() == storage.inner_logic().binding() &&
-    region.inner_logic().capacity() == storage.inner_logic().capacity() &&
-    region.inner_logic().lo() == 0 &&
-    region.inner_logic().hi() == region.inner_logic().capacity() &&
+    ledger.inner_logic().0.ledger_id() == ledger.inner_logic().1.ledger_id() &&
+    ledger.inner_logic().1.invariant() &&
+    ledger.inner_logic().0.has_ticket(ledger.inner_logic().1) &&
+    0 <= ledger.inner_logic().1.owner_id() &&
+    ledger.inner_logic().1.owner_id() < ledger.inner_logic().0.next_id() &&
+    storage.inner_logic().1.invariant() &&
+    storage.inner_logic().1.namespace() == storage.inner_logic().0.binding() &&
+    storage.inner_logic().1.capacity() == storage.inner_logic().0.capacity() &&
+    storage.inner_logic().1.lo() == 0 &&
+    storage.inner_logic().1.hi() == storage.inner_logic().1.capacity() &&
     base.invariant() &&
-    base@ == Some((region.inner_logic().namespace(), region.inner_logic().capacity(), 0int)) &&
-    base.raw_pointer() == storage.inner_logic().raw_pointer() &&
+    base@ == Some((storage.inner_logic().1.namespace(), storage.inner_logic().1.capacity(), 0int)) &&
+    base.raw_pointer() == storage.inner_logic().0.raw_pointer() &&
     cursor.invariant() && cursor@ != None &&
-    cursor@.unwrap_logic().0 == region.inner_logic().namespace() &&
-    cursor@.unwrap_logic().1 == region.inner_logic().capacity() &&
+    cursor@.unwrap_logic().0 == storage.inner_logic().1.namespace() &&
+    cursor@.unwrap_logic().1 == storage.inner_logic().1.capacity() &&
     cursor.current_address() == base.current_address() + cursor@.unwrap_logic().2 &&
-    cursor@.unwrap_logic().2 <= region.inner_logic().hi() &&
-    phase.inner_logic().invariant() && phase.inner_logic().is_open() &&
-    action.inner_logic().invariant() &&
-    action.inner_logic().resource_id() == phase.inner_logic().resource_id()
+    cursor@.unwrap_logic().2 <= storage.inner_logic().1.hi() &&
+    phase.inner_logic().0.invariant() && phase.inner_logic().0.is_open() &&
+    phase.inner_logic().1.invariant() &&
+    phase.inner_logic().1.resource_id() == phase.inner_logic().0.resource_id()
 )]
 #[ensures(result.capsule_public() ==
-    (header_id as *mut (), (*root.inner_logic().val()).ref_count.counter_model(), ledger.inner_logic().ledger_id(), phase.inner_logic().resource_id()))]
+    (header_id as *mut (), (*root.inner_logic().val()).ref_count.counter_model(), ledger.inner_logic().0.ledger_id(), phase.inner_logic().0.resource_id()))]
 #[ensures(result.base@ == base@ && result.cursor@ == cursor@)]
 #[ensures(result.base.raw_pointer() == base.raw_pointer())]
 #[ensures(result.cursor.raw_pointer() == cursor.raw_pointer())]
-#[ensures(result.ticket.inner_logic() == ticket.inner_logic())]
-#[ensures(result.region.inner_logic() == region.inner_logic())]
-#[ensures(ledger.inner_logic().ledger_id() == result.capsule_public().2)]
-#[ensures(ledger.inner_logic().has_ticket(result.ticket.inner_logic()))]
+#[ensures(result.ticket.inner_logic() == ledger.inner_logic().1)]
+#[ensures(result.region.inner_logic() == storage.inner_logic().1)]
+#[ensures(ledger.inner_logic().0.ledger_id() == result.capsule_public().2)]
+#[ensures(ledger.inner_logic().0.has_ticket(result.ticket.inner_logic()))]
 #[ensures(result.ticket.inner_logic().owner_id() >= 0)]
-#[ensures(result.ticket.inner_logic().owner_id() < ledger.inner_logic().next_id())]
+#[ensures(result.ticket.inner_logic().owner_id() < ledger.inner_logic().0.next_id())]
 #[ensures(result.region.inner_logic().namespace() == result.base@.unwrap_logic().0)]
 #[ensures(result.region.inner_logic().capacity() == result.base@.unwrap_logic().1)]
-#[ensures(result.region.inner_logic().capacity() == storage.inner_logic().capacity())]
-#[ensures(result.base.raw_pointer() == storage.inner_logic().raw_pointer())]
+#[ensures(result.region.inner_logic().capacity() == storage.inner_logic().0.capacity())]
+#[ensures(result.base.raw_pointer() == storage.inner_logic().0.raw_pointer())]
 #[ensures(result.cursor.current_address() == result.base.current_address() +
     result.cursor@.unwrap_logic().2)]
 #[ensures(result.region.inner_logic().lo() == 0)]
@@ -220,24 +226,23 @@ impl Invariant for SharedOwnerPacket {
 pub(crate) fn make_count_one_packet(
     header_id: *mut Shared,
     root: Ghost<Box<Perm<*const Shared>>>,
-    owner: Ghost<Perm<NativeCounter>>,
-    storage: Ghost<StoredAuthority>,
-    ledger: Ghost<OwnerLedger>,
-    ticket: Ghost<OwnerTicket>,
-    region: Ghost<PhysicalRegion>,
+    owner: Ghost<(Perm<NativeCounter>, usize)>,
+    storage: Ghost<(StoredAuthority, PhysicalRegion)>,
+    ledger: Ghost<(OwnerLedger, OwnerTicket)>,
+    phase: Ghost<(PhaseAuthority, TerminalAction)>,
     base: BoundPtr,
     cursor: BoundPtr,
-    phase: Ghost<PhaseAuthority>,
-    action: Ghost<TerminalAction>,
     value: usize,
 ) -> SharedOwnerPacket {
-    let capsule = ghost! {
+    let packet_parts = ghost! {
         let root = root.into_inner();
-        let owner = owner.into_inner();
-        let storage = storage.into_inner();
-        let ledger = ledger.into_inner();
-        let phase = phase.into_inner();
-        let action = action.into_inner();
+        let (owner, owner_value) = owner.into_inner();
+        let (storage, region) = storage.into_inner();
+        let (ledger, ticket) = ledger.into_inner();
+        let (phase, action) = phase.into_inner();
+        proof_assert!(owner_value == value);
+        proof_assert!(owner.val() == value);
+        proof_assert!(ledger.has_ticket(ticket));
         let ledger_id = snapshot!(ledger.ledger_id()).into_ghost().into_inner();
         let phase_id = snapshot!(phase.resource_id()).into_ghost().into_inner();
         let state = SharedState {
@@ -260,7 +265,9 @@ pub(crate) fn make_count_one_packet(
             Ghost::new(state),
             snapshot!(BYTES_MUT_SHARED_CAPSULE()),
         );
-        GhostShared::new(invariant).into_inner()
+        let capsule = GhostShared::new(invariant).into_inner();
+        (capsule, ticket, region)
     };
+    let (capsule, ticket, region) = packet_parts.split();
     SharedOwnerPacket { capsule, ticket, region, base, cursor }
 }
