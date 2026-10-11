@@ -82,6 +82,11 @@ next-count function, and the `try_increment`/`increment` loop. They also prove
 returns its unique permission and recorded scalar value, and leaves the cell's
 sidecar empty while framing the native counter. The `EventBoundInvariant`
 `into_inner` body is proved to move out the same permission and protocol state.
+The proof-only `new_with_owner` constructor body is also proved: it creates the
+native counter once and returns its exact sole permission with the constructor
+value while leaving the cell sidecar empty. No production `Bytes` or `BytesMut`
+path calls this helper, and it does not establish a handle or owner-ledger
+registration.
 No production `Bytes` or `BytesMut` path calls this extraction yet; current
 scalar adapter callers still require the sidecar to be populated. The increment
 body only establishes guarded arithmetic and normal-return behavior. The

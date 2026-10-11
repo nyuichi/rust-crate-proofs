@@ -174,39 +174,39 @@ help: remove these parentheses
      |
 
 warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:492:17
+   --> src/ref_count_ops.rs:518:17
     |
-492 |                 (old == expected ==>
+518 |                 (old == expected ==>
     |                 ^
 ...
-496 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+522 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
     |                                                                                        ^
     |
 help: remove these parentheses
     |
-492 ~                 old == expected ==>
-493 |                     f.precondition((&mut s.current, old, new)) &&
-494 |                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
-495 |                         (^s).current.public() == s.current.public() &&
-496 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+518 ~                 old == expected ==>
+519 |                     f.precondition((&mut s.current, old, new)) &&
+520 |                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
+521 |                         (^s).current.public() == s.current.public() &&
+522 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
     |
 
 warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:545:17
+   --> src/ref_count_ops.rs:571:17
     |
-545 |                 (old == expected ==>
+571 |                 (old == expected ==>
     |                 ^
 ...
-549 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+575 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
     |                                                                                        ^
     |
 help: remove these parentheses
     |
-545 ~                 old == expected ==>
-546 |                     f.precondition((&mut s.current, old, new)) &&
-547 |                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
-548 |                         (^s).current.public() == s.current.public() &&
-549 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+571 ~                 old == expected ==>
+572 |                     f.precondition((&mut s.current, old, new)) &&
+573 |                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
+574 |                         (^s).current.public() == s.current.public() &&
+575 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
     |
 
 warning: unused import: `borrow::Borrow`
@@ -729,25 +729,28 @@ warning: function `factor_singleton_removal` is never used
 523 | fn factor_singleton_removal(map: Snapshot<ActiveOwners>, id: Snapshot<Int>) {
     |    ^^^^^^^^^^^^^^^^^^^^^^^^
 
-warning: methods `native_counter` and `take_bootstrap_owner` are never used
-   --> src/ref_count_ops.rs:118:19
+warning: associated items `new_with_owner`, `native_counter`, and `take_bootstrap_owner` are never used
+   --> src/ref_count_ops.rs:129:19
     |
  88 | impl RefCountCell {
-    | ----------------- methods in this implementation
+    | ----------------- associated items in this implementation
 ...
-118 |     pub(crate) fn native_counter(&self) -> &NativeCounter {
+129 |     pub(crate) fn new_with_owner(
     |                   ^^^^^^^^^^^^^^
 ...
-136 |     pub(crate) fn take_bootstrap_owner(
+144 |     pub(crate) fn native_counter(&self) -> &NativeCounter {
+    |                   ^^^^^^^^^^^^^^
+...
+162 |     pub(crate) fn take_bootstrap_owner(
     |                   ^^^^^^^^^^^^^^^^^^^^
 
 warning: method `into_inner` is never used
-   --> src/ref_count_ops.rs:353:23
+   --> src/ref_count_ops.rs:379:23
     |
-323 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
+349 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
     |     ----------------------------------------------- method in this implementation
 ...
-353 |         pub(super) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
+379 |         pub(super) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
     |                       ^^^^^^^^^^
 
 warning: calling external function `is_empty` with no contract will yield an impossible precondition
@@ -2873,4 +2876,4 @@ warning: calling external function `new` with no contract will yield an impossib
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: `bytes` (lib) generated 320 warnings (run `cargo fix --lib -p bytes` to apply 21 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 14.32s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.70s

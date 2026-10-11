@@ -1,12 +1,12 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 118 4 118 57 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 144 4 144 57 *)
 
 (* ref_count_ops::RefCountCell *)
 
 let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
-let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 118 34 118 38
-let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 117 32 117 55
-let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 365 16 368 17
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 144 34 144 38
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 143 32 143 55
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 391 16 394 17
 
 use creusot.prelude.Any
 
@@ -20,9 +20,9 @@ type t_RefCountCell = { counter: t_NativeCounter; invariant': t_Option_EventBoun
 
 type tup2_NativeCounter_unit = { f0: t_NativeCounter; f1: () }
 
-function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 341 8 341 64] (self: t_EventBoundInvariant_RefCountState) : tup2_NativeCounter_unit
+function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 367 8 367 64] (self: t_EventBoundInvariant_RefCountState) : tup2_NativeCounter_unit
 
-predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 363 8 363 34] (self: t_RefCountCell) =
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 389 8 389 34] (self: t_RefCountCell) =
   [%#sref_count_ops'1] match self.invariant' with
     | None -> true
     | Some invariant''0 -> (public_RefCountState invariant''0).f0 = self.counter
@@ -66,7 +66,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let native_counter [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 118 4 118 57]
+let native_counter [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 144 4 144 57]
   (self: t_RefCountCell) (return (x: t_NativeCounter)) =
 {[@stop_split] [@expl:native_counter 'self' type invariant] [%#sref_count_ops] inv_ref_RefCountCell self}
   (! bb0

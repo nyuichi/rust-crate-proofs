@@ -111,6 +111,32 @@ impl RefCountCell {
         }
     }
 
+    /// Construct the native counter and detach its one-shot proof permission
+    /// from the cell in the same step. The returned permission is the sole
+    /// permission produced for the exact counter field, and its value records
+    /// the constructor argument. This is used when a higher-level header
+    /// invariant will own the counter protocol after the cell is placed.
+    ///
+    /// This constructor has no normal-build counterpart: native construction
+    /// continues through `new`, and this proof-only path performs the same
+    /// single `AtomicUsize::new` operation through `NativeCounter::new`.
+    #[cfg(creusot)]
+    #[ensures(result.0.invariant() && !result.0.has_event_invariant())]
+    #[ensures(result.1.inner_logic().0.ward() == &result.0.counter)]
+    #[ensures(*result.1.inner_logic().0.ward() == result.0.counter)]
+    #[ensures(result.1.inner_logic().0.val() == value)]
+    #[ensures(result.1.inner_logic().1 == value)]
+    pub(crate) fn new_with_owner(
+        value: usize,
+    ) -> (Self, Ghost<(creusot_std::ghost::Perm<NativeCounter>, usize)>) {
+        let (counter, owner) = NativeCounter::new(value);
+        let cell = Self {
+            counter,
+            invariant: ghost!(None),
+        };
+        (cell, ghost!((owner.into_inner(), value)))
+    }
+
     /// Return the exact native counter field without opening its ghost
     /// invariant. This getter preserves field identity for callers that first
     /// place the enclosing header at its final address.

@@ -19,15 +19,15 @@ let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_c
 let%span sref_count_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 96 32 96 60
 let%span sref_count_ops'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 29 14 29 42
 let%span sref_count_ops'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 30 14 30 37
-let%span sref_count_ops'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 325 19 325 42
-let%span sref_count_ops'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 326 19 326 79
-let%span sref_count_ops'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 332 13 332 24
-let%span sref_count_ops'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 327 18 327 65
-let%span sref_count_ops'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 365 16 368 17
+let%span sref_count_ops'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 351 19 351 42
+let%span sref_count_ops'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 352 19 352 79
+let%span sref_count_ops'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 358 13 358 24
+let%span sref_count_ops'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 353 18 353 65
+let%span sref_count_ops'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 391 16 394 17
 let%span sref_count_ops'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 92 20 92 56
-let%span sref_count_ops'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 385 12 385 16
-let%span sref_count_ops'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 392 12 392 33
-let%span sref_count_ops'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 381 24 381 26
+let%span sref_count_ops'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 411 12 411 16
+let%span sref_count_ops'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 418 12 418 33
+let%span sref_count_ops'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 407 24 407 26
 
 use creusot.int.UInt64
 use creusot.prelude.Any
@@ -56,10 +56,10 @@ let new_RefCountState (x: t_RefCountState) (return (x'0: t_RefCountState)) = any
 
 type t_EventBoundInvariant_RefCountState
 
-predicate protocol_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 384 8 384 33] (self: t_RefCountState) =
+predicate protocol_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 410 8 410 33] (self: t_RefCountState) =
   [%#sref_count_ops'15] true
 
-predicate agrees_with_value_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 391 8 391 56] (self: t_RefCountState) (value: UInt64.t) =
+predicate agrees_with_value_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 417 8 417 56] (self: t_RefCountState) (value: UInt64.t) =
   [%#sref_count_ops'16] self.current' = value
 
 predicate inv_EventBoundInvariant_RefCountState (_1: t_EventBoundInvariant_RefCountState)
@@ -76,9 +76,9 @@ meta "rewrite_def" predicate inv_Ghost_EventBoundInvariant_RefCountState
 
 type tup2_NativeCounter_unit = { f0'0: t_NativeCounter; f1'0: () }
 
-function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 341 8 341 64] (self: t_EventBoundInvariant_RefCountState) : tup2_NativeCounter_unit
+function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 367 8 367 64] (self: t_EventBoundInvariant_RefCountState) : tup2_NativeCounter_unit
 
-function public_RefCountState'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 381 8 381 23] (self: t_RefCountState) : ()
+function public_RefCountState'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 407 8 407 23] (self: t_RefCountState) : ()
  = [%#sref_count_ops'17] ()
 
 let new_RefCountState'0 (counter: t_NativeCounter) (owner: t_Perm_NativeCounter) (current''0: t_RefCountState)
@@ -135,7 +135,7 @@ let new_Option_EventBoundInvariant_RefCountState (x: t_Option_EventBoundInvarian
 
 type t_RefCountCell = { counter: t_NativeCounter; invariant': t_Option_EventBoundInvariant_RefCountState }
 
-predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 363 8 363 34] (self: t_RefCountCell) =
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 389 8 389 34] (self: t_RefCountCell) =
   [%#sref_count_ops'13] match self.invariant' with
     | None -> true
     | Some invariant''0 -> (public_RefCountState invariant''0).f0'0 = self.counter

@@ -53,6 +53,7 @@ TARGETS = (
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/map_singleton_from_len_one.coma",
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/zero_length_map_has_no_ids.coma",
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new.coma",
+    "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new_with_owner.coma",
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/native_counter.coma",
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_relaxed.coma",
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_acquire.coma",
