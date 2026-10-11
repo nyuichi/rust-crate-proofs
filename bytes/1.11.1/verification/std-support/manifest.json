@@ -28,27 +28,15 @@
       "final_sha256": "2f9bad31252c00c24940e23193332cf31970ee03ce636234c4c2ff4c7500cd05",
       "original_sha256": "3380344474fde787cbccb1b1c4b1d5ebe08689b13d107022d5d5de36fe2ea836"
     },
-    "src/std/sync.rs": {
-      "final_sha256": "c31e04ad050f92f1bed315d5df396763d70a5bae2d52800d39254da536b09b25",
-      "original_sha256": "b82849a1bc080fdd42f80cdbfe5d760e01429be78983c50abdf8350cbc981ec1"
-    },
-    "src/std/sync/release_sources.rs": {
-      "final_sha256": "777f805190b27fcc33a1a2986ded9fb24201e75a13ea9311e83d5878b6cd61f0",
-      "original_sha256": null
-    },
     "src/std/vec.rs": {
       "final_sha256": "fc52751f54cbfcb670100d7402200d9685537425cd7013211eaddcc5755468ad",
       "original_sha256": "5ce87b16b5e6b633e77c32c7c98cf73e0584c0f0b23127fe4f5277c1d4f1a427"
-    },
-    "src/std/sync/core_events.rs": {
-      "original_sha256": null,
-      "final_sha256": "86cd01b7f92c60789abbf335187fb6a55947feb67801d6af7ec8fd594d65e1d0"
     }
   },
   "candidate_tree": {
-    "sha256": "0110894fd157adbe9605c210bba6a667a2dc21746457e4e97820bb0b1efae090",
-    "files": 112,
-    "bytes": 723446
+    "sha256": "e43b8ba084cb6162697ac2bfe8a8d7a13ed8f7c3eb46d523c04ae2dcae909341",
+    "files": 110,
+    "bytes": 710635
   },
   "install_policy": {
     "cargo_config_policy": "Append only the required crates-io patch if the table is absent; migrate only the exact prior generated config; preserve unrelated config; refuse conflicting creusot-std patches; require the generated file to be Git-ignored.",
@@ -63,15 +51,13 @@
     "base_model": "Opaque numeric address observer only; no pointer permission, provenance identity, or allocation liveness fact.",
     "capacity_model": "Opaque observer keyed by actual generic Vec value; no sequence identity, pointer identity, or allocation injectivity axiom.",
     "pointer_model": "Opaque exact mutable getter pointer observer keyed by actual Vec term; no access permission, allocation injectivity, byte contents or liveness; B1/B2 must independently supply sealed matching authority.",
-    "release_sources": "Pure FSet algebra only: RMW inherits the exact read-from modification’s source set and unions sources established for that RMW; plain stores start from only their own established sources; acquire selects the observed modification’s sources. Native ordering, read-from, fence provenance and source attachment remain obligations of the atomic event boundary.",
-    "termination": "New extern contracts add no total-correctness attributes; existing infallible std termination check remains inherited.",
-    "core_events": "Trusted native boundary binds one core::AtomicUsize initialization and one exact Acquire load/read-from event to the generic permission history. EventBoundInvariant::new is body-proved. No cross-call thread coherence/handoff, singleton, Bytes refcount, ownership, quiescence, or retirement theorem is supplied."
+    "termination": "New extern contracts add no total-correctness attributes; existing infallible std termination check remains inherited."
   },
   "package": {
     "edition": "2024",
     "name": "creusot-std",
-    "previous_generated_private_copy_relative_path": "bytes-proof-std-as-bytes-release-sources",
-    "private_copy_relative_path": "bytes-proof-std-as-bytes-core-events",
+    "previous_generated_private_copy_relative_path": "bytes-proof-std-as-bytes-core-events",
+    "private_copy_relative_path": "bytes-proof-std-as-bytes-refcount",
     "provenance": "Pinned normalized Cargo registry package; no workspace-relative dependencies are used.",
     "stock_registry_glob": "*/creusot-std-0.13.0",
     "version": "0.13.0"
@@ -90,14 +76,6 @@
     "pointer-model.patch": {
       "scope": "Generic exact mutable Vec getter pointer observation and pointer/capacity preservation only; no permission, injectivity or liveness.",
       "sha256": "3a15f89fa1c7ce9e14ed48f0ae5f13c3e37fa77b144ffebd10a385d13d5281e5"
-    },
-    "release-sources.patch": {
-      "scope": "Pure generic release-source set algebra for plain stores, RMW inheritance and exact acquire observations; makes no native event or source-attachment claim.",
-      "sha256": "d554469661d0a1d97cd7efaad5d983b5578f526842a45eeeb5b10ece272b887d"
-    },
-    "core-events.patch": {
-      "scope": "Generic core::AtomicUsize initialization and exact Acquire-read event binding plus an affine, body-proved EventBoundInvariant constructor; no cross-call coherence or Bytes ownership/refcount/lifecycle law.",
-      "sha256": "bfdcc7e3834072f1f07512c891bd4b887887228703afa1fff82317e5790f801c"
     }
   },
   "schema_version": 1,

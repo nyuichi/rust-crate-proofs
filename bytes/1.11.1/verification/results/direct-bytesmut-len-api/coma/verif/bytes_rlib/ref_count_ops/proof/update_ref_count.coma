@@ -1,0 +1,62 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 351 4 351 85 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 352 8 352 37
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 347 15 347 55
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 348 14 348 49
+let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 349 14 349 33
+let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 350 14 350 45
+let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 326 12 326 16
+let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 322 24 322 26
+let%span sref_count_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 333 12 333 33
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_RefCountState = { current': UInt64.t }
+
+predicate resolve_refmut_RefCountState [@inline:trivial] (_1: MutBorrow.t t_RefCountState) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_RefCountState
+
+predicate protocol_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 325 8 325 33] (self: t_RefCountState) =
+  [%#sref_count_ops'4] true
+
+function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 322 8 322 23] (self: t_RefCountState) : ()
+ = [%#sref_count_ops'5] ()
+
+predicate agrees_with_value_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 332 8 332 56] (self: t_RefCountState) (value: UInt64.t) =
+  [%#sref_count_ops'6] self.current' = value
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let update_ref_count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 351 4 351 85]
+  (state: MutBorrow.t t_RefCountState) (old': UInt64.t) (new: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:update_ref_count requires] [%#sref_count_ops'0] protocol_RefCountState state.current
+  /\ state.current.current' = old'}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_15 <- state.current.current' = old' ] s1
+    | s1 = any [ br0 -> {_15 = false} (! bb2) | br1 -> {_15} (! bb1) ] ]
+  | bb1 = s0
+    [ s0 = [ &state <- { state with current = { current' = new } } ] s1
+    | s1 = -{resolve_refmut_RefCountState state}- s2
+    | s2 = return {_ret} ]
+  | bb2 = s0 [ s0 = -{resolve_refmut_RefCountState state}- s1 | s1 = {[%#sref_count_ops] false} any ] ]
+  [ & _ret: () = Any.any_l ()
+  | & state: MutBorrow.t t_RefCountState = state
+  | & old': UInt64.t = old'
+  | & new: UInt64.t = new
+  | & _15: bool = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:update_ref_count ensures] ([@stop_split] [@expl:update_ref_count ensures #0] [%#sref_count_ops'1] public_RefCountState state.final
+      = public_RefCountState state.current)
+    /\ ([@stop_split] [@expl:update_ref_count ensures #1] [%#sref_count_ops'2] protocol_RefCountState state.final)
+    /\ ([@stop_split] [@expl:update_ref_count ensures #2] [%#sref_count_ops'3] agrees_with_value_RefCountState state.final new)}
+    (! return {result}) ]

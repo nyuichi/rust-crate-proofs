@@ -28,8 +28,6 @@ PATCH_NAMES = (
     "alloc-capacity.patch",
     "address-model.patch",
     "pointer-model.patch",
-    "release-sources.patch",
-    "core-events.patch",
 )
 
 

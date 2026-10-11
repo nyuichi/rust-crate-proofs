@@ -1,0 +1,199 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 602 0 602 72 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 22 8 22 20
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sref_count_limit = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_limit.rs" 7 28 10 1
+let%span sref_count_limit'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_limit.rs" 11 28 14 1
+let%span sref_count_limit'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_limit.rs" 4 53 4 54
+let%span sref_count_limit'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_limit.rs" 4 40 4 54
+let%span sref_count_limit'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_limit.rs" 4 40 4 50
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 603 22 603 41
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 606 25 606 72
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 604 34 604 50
+let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 611 14 611 58
+let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 602 28 602 32
+let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 596 29 596 45
+let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 597 28 597 44
+let%span sref_count_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 598 28 601 1
+let%span sref_count_ops'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 109 32 109 36
+let%span sref_count_ops'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 107 33 107 49
+let%span sref_count_ops'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 108 32 108 48
+let%span sref_count_ops'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 152 9 152 13
+let%span sref_count_ops'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 145 33 145 49
+let%span sref_count_ops'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 146 32 146 48
+let%span sref_count_ops'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 147 32 150 5
+let%span sref_count_ops'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 310 12 310 67
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_NativeCounter
+
+type t_EventBoundInvariant_RefCountState
+
+type t_RefCountCell = { counter: t_NativeCounter; invariant': t_EventBoundInvariant_RefCountState }
+
+type tup2_NativeCounter_unit = { f0: t_NativeCounter; f1: () }
+
+function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 302 8 302 64] (self: t_EventBoundInvariant_RefCountState) : tup2_NativeCounter_unit
+
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 309 8 309 34] (self: t_RefCountCell) =
+  [%#sref_count_ops'14] (public_RefCountState self.invariant').f0 = self.counter
+
+predicate inv_EventBoundInvariant_RefCountState (_1: t_EventBoundInvariant_RefCountState)
+
+predicate invariant_Ghost_EventBoundInvariant_RefCountState [@inline:trivial] (self: t_EventBoundInvariant_RefCountState) =
+  [%#sghost] inv_EventBoundInvariant_RefCountState self
+
+meta "rewrite_def" predicate invariant_Ghost_EventBoundInvariant_RefCountState
+
+predicate inv_Ghost_EventBoundInvariant_RefCountState [@inline:trivial] (_1: t_EventBoundInvariant_RefCountState) =
+  invariant_Ghost_EventBoundInvariant_RefCountState _1
+
+meta "rewrite_def" predicate inv_Ghost_EventBoundInvariant_RefCountState
+
+predicate inv_RefCountCell (_1: t_RefCountCell)
+
+axiom inv_axiom [@rewrite]: forall x: t_RefCountCell [inv_RefCountCell x]. inv_RefCountCell x
+    = (invariant_RefCountCell x /\ inv_Ghost_EventBoundInvariant_RefCountState x.invariant')
+
+predicate invariant_ref_RefCountCell [@inline:trivial] (self: t_RefCountCell) = [%#sinvariant] inv_RefCountCell self
+
+meta "rewrite_def" predicate invariant_ref_RefCountCell
+
+predicate inv_ref_RefCountCell [@inline:trivial] (_1: t_RefCountCell) = invariant_ref_RefCountCell _1
+
+meta "rewrite_def" predicate inv_ref_RefCountCell
+
+let load_relaxed (self: t_RefCountCell) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:load_relaxed requires] ([@stop_split] [@expl:load_relaxed 'self' type invariant] [%#sref_count_ops'7] inv_ref_RefCountCell self)
+  /\ ([@stop_split] [@expl:load_relaxed requires] [%#sref_count_ops'8] invariant_ref_RefCountCell self)}
+  any
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:load_relaxed ensures] [%#sref_count_ops'9] invariant_ref_RefCountCell self}
+    (! return {result}) ]
+
+type t_Option_usize = None | Some UInt64.t
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+constant const_MAX_REF_COUNT [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_limit.rs" 4 0 4 37] : UInt64.t
+
+let set_MAX_REF_COUNT (return) = bb0
+  [ bb0 = s0
+    [ s0 = [ &_1 <- ([%#sref_count_limit'1] (2: UInt64.t)) = ([%#sref_count_limit'2] (0: UInt64.t)) ] s1
+    | s1 = {[@expl:division by zero] [%#sref_count_limit'2] not _1} s2
+    | s2 = UInt64.div [%#sref_count_limit'2] {[%#sref_count_limit'3] const_MAX} {[%#sref_count_limit'1] (2: UInt64.t)}
+        (fun (_x: UInt64.t) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ] [ & _ret: UInt64.t = Any.any_l () | & _1: bool = Any.any_l () ]
+  [ return (_const: UInt64.t) -> -{const_MAX_REF_COUNT = _const}- return ]
+
+predicate gt_log_usize [@inline:trivial] (self: UInt64.t) (other: UInt64.t) = [%#sord] UInt64.lt other self
+
+meta "rewrite_def" predicate gt_log_usize
+
+let next_ref_count (old': UInt64.t) (return (x: t_Option_usize)) = any
+  [ return (result: t_Option_usize) ->
+  {[@stop_split] [@expl:next_ref_count ensures] ([@stop_split] [@expl:next_ref_count ensures #0] [%#sref_count_limit] match result with
+        | Some _ -> UInt64.le old' const_MAX_REF_COUNT
+        | None -> gt_log_usize old' const_MAX_REF_COUNT
+        end)
+    /\ ([@stop_split] [@expl:next_ref_count ensures #1] [%#sref_count_limit'0] match result with
+      | Some next -> UInt64.t'int next = UInt64.t'int old' + 1
+      /\ UInt64.t'int next <= UInt64.t'int const_MAX_REF_COUNT + 1
+      | None -> gt_log_usize old' const_MAX_REF_COUNT
+      end)}
+    (! return {result}) ]
+
+let elim_Some (_x: t_Option_usize) (return (f0'0: UInt64.t)) = any
+  [ _k (f0'0: UInt64.t) -> {Some f0'0 = _x} (! return {f0'0})
+  | _chk -> (! {[@expl:elim Some] match _x with
+      | Some _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+type t_Result_usize_usize = Ok UInt64.t | Err UInt64.t
+
+let compare_exchange_relaxed (self: t_RefCountCell) (expected: UInt64.t) (new: UInt64.t)
+  (return (x: t_Result_usize_usize)) =
+{[@stop_split] [@expl:compare_exchange_relaxed requires] ([@stop_split] [@expl:compare_exchange_relaxed 'self' type invariant] [%#sref_count_ops'10] inv_ref_RefCountCell self)
+  /\ ([@stop_split] [@expl:compare_exchange_relaxed requires] [%#sref_count_ops'11] invariant_ref_RefCountCell self)}
+  any
+  [ return (result: t_Result_usize_usize) ->
+  {[@stop_split] [@expl:compare_exchange_relaxed ensures] ([@stop_split] [@expl:compare_exchange_relaxed ensures #0] [%#sref_count_ops'12] invariant_ref_RefCountCell self)
+    /\ ([@stop_split] [@expl:compare_exchange_relaxed ensures #1] [%#sref_count_ops'13] match result with
+      | Ok old' -> old' = expected
+      | Err actual -> actual <> expected
+      end)}
+    (! return {result}) ]
+
+let elim_Err (_x: t_Result_usize_usize) (return (f0'0: UInt64.t)) = any
+  [ _k (f0'0: UInt64.t) -> {Err f0'0 = _x} (! return {f0'0})
+  | _chk -> (! {[@expl:elim Err] match _x with
+      | Err _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+let elim_Ok (_x: t_Result_usize_usize) (return (f0'0: UInt64.t)) = any
+  [ _k (f0'0: UInt64.t) -> {Ok f0'0 = _x} (! return {f0'0})
+  | _chk -> (! {[@expl:elim Ok] match _x with
+      | Ok _ -> true
+      | _ -> false
+      end}
+    any) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let try_increment [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 602 0 602 72]
+  (cell: t_RefCountCell) (return (x: t_Result_usize_usize)) =
+{[@stop_split] [@expl:try_increment requires] ([@stop_split] [@expl:try_increment 'cell' type invariant] [%#sref_count_ops'3] inv_ref_RefCountCell cell)
+  /\ ([@stop_split] [@expl:try_increment requires] [%#sref_count_ops'4] invariant_ref_RefCountCell cell)}
+  (! set_MAX_REF_COUNT
+    (bb0
+    [ bb0 = s0 [ s0 = load_relaxed [%#sref_count_ops] {cell} (fun (_x: UInt64.t) -> [ &current' <- _x ] s1) | s1 = bb2 ]
+    | bb2 = bb2
+      [ bb2 = {[@expl:loop invariant] [%#sref_count_ops'1] invariant_ref_RefCountCell cell}
+        (! s0)
+        [ s0 = next_ref_count [%#sref_count_ops'0] {current'} (fun (_x: t_Option_usize) -> [ &_15 <- _x ] s1)
+        | s1 = any [ br0 -> {_15 = None} (! bb7) | br1 (x0: UInt64.t) -> {_15 = Some x0} (! bb8) ] ]
+        [ bb8 = s0
+          [ s0 = elim_Some {_15} (fun (r0: UInt64.t) -> [ &next'0 <- r0 ] s1)
+          | s1 = [ &next <- next'0 ] s2
+          | s2 = compare_exchange_relaxed [%#sref_count_ops'2] {cell} {current'} {next}
+              (fun (_x: t_Result_usize_usize) -> [ &_21 <- _x ] s3)
+          | s3 = any [ br0 (x0: UInt64.t) -> {_21 = Ok x0} (! bb13) | br1 (x0: UInt64.t) -> {_21 = Err x0} (! bb12) ] ]
+        | bb12 = s0
+          [ s0 = elim_Err {_21} (fun (r0: UInt64.t) -> [ &actual <- r0 ] s1)
+          | s1 = [ &current' <- actual ] s2
+          | s2 = bb2 ] ] ]
+    | bb13 = s0
+      [ s0 = elim_Ok {_21} (fun (r0: UInt64.t) -> [ &old' <- r0 ] s1)
+      | s1 = [ &_ret <- Ok old' ] s2
+      | s2 = return {_ret} ]
+    | bb7 = s0 [ s0 = [ &_ret <- Err current' ] s1 | s1 = return {_ret} ] ]
+    [ & _ret: t_Result_usize_usize = Any.any_l ()
+    | & cell: t_RefCountCell = cell
+    | & current': UInt64.t = Any.any_l ()
+    | & next: UInt64.t = Any.any_l ()
+    | & _15: t_Option_usize = Any.any_l ()
+    | & next'0: UInt64.t = Any.any_l ()
+    | & _21: t_Result_usize_usize = Any.any_l ()
+    | & old': UInt64.t = Any.any_l ()
+    | & actual: UInt64.t = Any.any_l () ]))
+  [ return (result: t_Result_usize_usize) ->
+  {[@stop_split] [@expl:try_increment ensures] ([@stop_split] [@expl:try_increment ensures #0] [%#sref_count_ops'5] invariant_ref_RefCountCell cell)
+    /\ ([@stop_split] [@expl:try_increment ensures #1] [%#sref_count_ops'6] match result with
+      | Ok old' -> UInt64.le old' const_MAX_REF_COUNT
+      | Err old' -> gt_log_usize old' const_MAX_REF_COUNT
+      end)}
+    (! return {result}) ]

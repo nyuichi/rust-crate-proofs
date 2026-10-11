@@ -1,0 +1,127 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 90 4 90 43 *)
+
+(* ref_count_ops::RefCountCell *)
+
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 93 35 93 60
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 95 58 95 98
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 95 16 95 99
+let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 90 39 90 43
+let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 89 32 89 50
+let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 29 14 29 42
+let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 30 14 30 37
+let%span sref_count_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 286 19 286 42
+let%span sref_count_ops'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 287 19 287 79
+let%span sref_count_ops'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 293 13 293 24
+let%span sref_count_ops'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 288 18 288 65
+let%span sref_count_ops'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 310 12 310 67
+let%span sref_count_ops'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 326 12 326 16
+let%span sref_count_ops'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 333 12 333 33
+let%span sref_count_ops'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 322 24 322 26
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_NativeCounter
+
+type t_Perm_NativeCounter
+
+type tup2_NativeCounter_Ghost_Perm_NativeCounter = { f0: t_NativeCounter; f1: t_Perm_NativeCounter }
+
+function ward_NativeCounter (self: t_Perm_NativeCounter) : t_NativeCounter
+
+function val_NativeCounter (self: t_Perm_NativeCounter) : UInt64.t
+
+let new (value: UInt64.t) (return (x: tup2_NativeCounter_Ghost_Perm_NativeCounter)) = any
+  [ return (result: tup2_NativeCounter_Ghost_Perm_NativeCounter) ->
+  {[@stop_split] [@expl:new ensures] ([@stop_split] [@expl:new ensures #0] [%#sref_count_ops'4] result.f0
+      = ward_NativeCounter result.f1)
+    /\ ([@stop_split] [@expl:new ensures #1] [%#sref_count_ops'5] val_NativeCounter result.f1 = value)}
+    (! return {result}) ]
+
+type t_RefCountState = { current': UInt64.t }
+
+let new_RefCountState (x: t_RefCountState) (return (x'0: t_RefCountState)) = any
+  [ return (result: t_RefCountState) -> {[@stop_split] [@expl:new ensures] [%#sghost] result = x} (! return {result}) ]
+
+type t_EventBoundInvariant_RefCountState
+
+predicate protocol_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 325 8 325 33] (self: t_RefCountState) =
+  [%#sref_count_ops'11] true
+
+predicate agrees_with_value_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 332 8 332 56] (self: t_RefCountState) (value: UInt64.t) =
+  [%#sref_count_ops'12] self.current' = value
+
+predicate inv_EventBoundInvariant_RefCountState (_1: t_EventBoundInvariant_RefCountState)
+
+predicate invariant_Ghost_EventBoundInvariant_RefCountState [@inline:trivial] (self: t_EventBoundInvariant_RefCountState) =
+  [%#sghost'0] inv_EventBoundInvariant_RefCountState self
+
+meta "rewrite_def" predicate invariant_Ghost_EventBoundInvariant_RefCountState
+
+predicate inv_Ghost_EventBoundInvariant_RefCountState [@inline:trivial] (_1: t_EventBoundInvariant_RefCountState) =
+  invariant_Ghost_EventBoundInvariant_RefCountState _1
+
+meta "rewrite_def" predicate inv_Ghost_EventBoundInvariant_RefCountState
+
+type tup2_NativeCounter_unit = { f0'0: t_NativeCounter; f1'0: () }
+
+function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 302 8 302 64] (self: t_EventBoundInvariant_RefCountState) : tup2_NativeCounter_unit
+
+function public_RefCountState'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 322 8 322 23] (self: t_RefCountState) : ()
+ = [%#sref_count_ops'13] ()
+
+let new_RefCountState'0 (counter: t_NativeCounter) (owner: t_Perm_NativeCounter) (current''0: t_RefCountState)
+  (return (x: t_EventBoundInvariant_RefCountState)) =
+{[@stop_split] [@expl:new_RefCountState requires] ([@stop_split] [@expl:new requires #0] [%#sref_count_ops'6] counter
+    = ward_NativeCounter owner)
+  /\ ([@stop_split] [@expl:new requires #1] [%#sref_count_ops'7] protocol_RefCountState current''0
+  /\ agrees_with_value_RefCountState current''0 (val_NativeCounter owner))}
+  any
+  [ return (result: t_EventBoundInvariant_RefCountState) ->
+  {[@stop_split] [@expl:new_RefCountState ensures] ([@stop_split] [@expl:new result type invariant] [%#sref_count_ops'8] inv_Ghost_EventBoundInvariant_RefCountState result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sref_count_ops'9] public_RefCountState result
+    = { f0'0 = counter; f1'0 = public_RefCountState'0 current''0 })}
+    (! return {result}) ]
+
+type t_RefCountCell = { counter: t_NativeCounter; invariant': t_EventBoundInvariant_RefCountState }
+
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 309 8 309 34] (self: t_RefCountCell) =
+  [%#sref_count_ops'10] (public_RefCountState self.invariant').f0'0 = self.counter
+
+predicate inv_RefCountCell (_1: t_RefCountCell)
+
+axiom inv_axiom [@rewrite]: forall x: t_RefCountCell [inv_RefCountCell x]. inv_RefCountCell x
+    = (invariant_RefCountCell x /\ inv_Ghost_EventBoundInvariant_RefCountState x.invariant')
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let new'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 90 4 90 43] (value: UInt64.t)
+  (return (x: t_RefCountCell)) = (! bb0
+  [ bb0 = s0
+    [ s0 = new [%#sref_count_ops] {value} (fun (_x: tup2_NativeCounter_Ghost_Perm_NativeCounter) -> [ &_5 <- _x ] s1)
+    | s1 = [ &counter'0 <- _5.f0 ] s2
+    | s2 = [ &owner <- _5.f1 ] s3
+    | s3 = [ &_9 <- counter'0 ] s4
+    | s4 = [ &_12 <- { current' = value } ] s5
+    | s5 = new_RefCountState [%#sref_count_ops'0] {_12} (fun (_x: t_RefCountState) -> [ &_11 <- _x ] s6)
+    | s6 = new_RefCountState'0 [%#sref_count_ops'1] {_9} {owner} {_11}
+        (fun (_x: t_EventBoundInvariant_RefCountState) -> [ &invariant''0 <- _x ] s7)
+    | s7 = [ &_ret <- { counter = counter'0; invariant' = invariant''0 } ] s8
+    | s8 = return {_ret} ] ]
+  [ & _ret: t_RefCountCell = Any.any_l ()
+  | & value: UInt64.t = value
+  | & counter'0: t_NativeCounter = Any.any_l ()
+  | & owner: t_Perm_NativeCounter = Any.any_l ()
+  | & _5: tup2_NativeCounter_Ghost_Perm_NativeCounter = Any.any_l ()
+  | & invariant''0: t_EventBoundInvariant_RefCountState = Any.any_l ()
+  | & _9: t_NativeCounter = Any.any_l ()
+  | & _11: t_RefCountState = Any.any_l ()
+  | & _12: t_RefCountState = Any.any_l () ])
+  [ return (result: t_RefCountCell) ->
+  {[@stop_split] [@expl:new ensures] ([@stop_split] [@expl:new result type invariant] [%#sref_count_ops'2] inv_RefCountCell result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sref_count_ops'3] invariant_RefCountCell result)}
+    (! return {result}) ]

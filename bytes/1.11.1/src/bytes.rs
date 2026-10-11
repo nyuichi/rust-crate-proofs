@@ -21,6 +21,7 @@ use crate::buf::IntoIter;
 #[allow(unused)]
 use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
+use crate::ref_count_ops::RefCountCell;
 use crate::{Buf, BytesMut};
 
 // Creusot-only exclusions below cover unrelated vtable/lifecycle, pointer-range, and generic
@@ -73,10 +74,6 @@ impl Bytes {
 // Temporary ordinary translation leaves. No atomic value/state, refcount,
 // vtable identity or callback law is assumed. Native branches below still use
 // the exact original core/loom constructors and SHARED_VTABLE reference.
-#[cfg(all(creusot, bytes_original_freeze_gate))]
-#[trusted]
-#[ensures(true)]
-fn original_atomic_usize_new(_value: usize) -> AtomicUsize { unimplemented!() }
 #[cfg(all(creusot, bytes_original_freeze_gate))]
 #[trusted]
 #[ensures(true)]
@@ -277,7 +274,7 @@ impl Bytes {
         //                  and: https://github.com/tokio-rs/bytes/pull/742/#discussion_r1813316032
 
         let owned = Box::into_raw(Box::new(Owned {
-            ref_cnt: AtomicUsize::new(1),
+            ref_cnt: RefCountCell::new(1),
             owner,
         }));
 
@@ -1090,12 +1087,7 @@ impl From<Vec<u8>> for Bytes {
         let shared = Box::new(Shared {
             buf: ptr,
             cap,
-            ref_cnt: {
-                #[cfg(all(creusot, bytes_original_freeze_gate))]
-                { original_atomic_usize_new(1) }
-                #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
-                { AtomicUsize::new(1) }
-            },
+            ref_cnt: RefCountCell::new(1),
         });
 
         #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
@@ -1265,7 +1257,7 @@ unsafe fn static_drop(_: &mut AtomicPtr<()>, _: *const u8, _: usize) {
 
 #[repr(C)]
 struct Owned<T> {
-    ref_cnt: AtomicUsize,
+    ref_cnt: RefCountCell,
     owner: T,
 }
 
@@ -1282,7 +1274,7 @@ impl<T> Owned<T> {
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
     let owned = data.load(Ordering::Relaxed);
-    crate::ref_count_ops::increment(&*owned.cast::<AtomicUsize>());
+    crate::ref_count_ops::increment(&*owned.cast::<RefCountCell>());
 
     Bytes {
 
@@ -1317,9 +1309,9 @@ unsafe fn owned_is_unique(_data: &AtomicPtr<()>) -> bool {
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn owned_drop_impl<T>(owned: *mut ()) {
     {
-        let ref_cnt = &*owned.cast::<AtomicUsize>();
+        let ref_cnt = &*owned.cast::<RefCountCell>();
 
-        let old_cnt = ref_cnt.fetch_sub(1, Ordering::Release);
+        let old_cnt = ref_cnt.fetch_sub_release();
         debug_assert!(
             old_cnt > 0 && old_cnt <= crate::ref_count_limit::MAX_REF_COUNT + 1,
             "expected non-zero refcount and no underflow"
@@ -1327,7 +1319,7 @@ unsafe fn owned_drop_impl<T>(owned: *mut ()) {
         if old_cnt != 1 {
             return;
         }
-        ref_cnt.load(Ordering::Acquire);
+        ref_cnt.load_acquire();
     }
 
     drop(Box::<Owned<T>>::from_raw(owned.cast()));
@@ -1525,7 +1517,7 @@ unsafe fn promotable_is_unique(data: &AtomicPtr<()>) -> bool {
     let kind = shared as usize & KIND_MASK;
 
     if kind == KIND_ARC {
-        let ref_cnt = (*shared.cast::<Shared>()).ref_cnt.load(Ordering::Relaxed);
+        let ref_cnt = (*shared.cast::<Shared>()).ref_cnt.load_relaxed();
         ref_cnt == 1
     } else {
         true
@@ -1594,7 +1586,7 @@ unsafe fn shared_to_vec_impl(shared: *mut Shared, ptr: *const u8, len: usize) ->
     // Otherwise, we take the other branch and call release_shared.
     if (*shared)
         .ref_cnt
-        .compare_exchange(1, 0, Ordering::AcqRel, Ordering::Relaxed)
+        .compare_exchange_acqrel_relaxed(1, 0)
         .is_ok()
     {
         // Deallocate the `Shared` instance without running its destructor.
@@ -1633,7 +1625,7 @@ unsafe fn shared_to_mut_impl(shared: *mut Shared, ptr: *const u8, len: usize) ->
     // visible to the current thread.
     //
     // Otherwise, we take the other branch, copy the data and call `release_shared`.
-    if (*shared).ref_cnt.load(Ordering::Acquire) == 1 {
+    if (*shared).ref_cnt.load_acquire() == 1 {
         // Deallocate the `Shared` instance without running its destructor.
         let shared = *Box::from_raw(shared);
         let shared = ManuallyDrop::new(shared);
@@ -1663,7 +1655,7 @@ unsafe fn shared_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Byt
 #[cfg_attr(creusot, creusot::no_translate)]
 pub(crate) unsafe fn shared_is_unique(data: &AtomicPtr<()>) -> bool {
     let shared = data.load(Ordering::Acquire);
-    let ref_cnt = (*shared.cast::<Shared>()).ref_cnt.load(Ordering::Relaxed);
+    let ref_cnt = (*shared.cast::<Shared>()).ref_cnt.load_relaxed();
     ref_cnt == 1
 }
 
@@ -1716,7 +1708,7 @@ unsafe fn shallow_clone_vec(
         // Initialize refcount to 2. One for this reference, and one
         // for the new clone that will be returned from
         // `shallow_clone`.
-        ref_cnt: AtomicUsize::new(2),
+        ref_cnt: RefCountCell::new(2),
     });
 
     let shared = Box::into_raw(shared);
@@ -1768,7 +1760,7 @@ unsafe fn shallow_clone_vec(
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn release_shared(ptr: *mut Shared) {
     // `Shared` storage... follow the drop steps from Arc.
-    if (*ptr).ref_cnt.fetch_sub(1, Ordering::Release) != 1 {
+    if (*ptr).ref_cnt.fetch_sub_release() != 1 {
         return;
     }
 
@@ -1792,7 +1784,7 @@ unsafe fn release_shared(ptr: *mut Shared) {
     //
     // Thread sanitizer does not support atomic fences. Use an atomic load
     // instead.
-    (*ptr).ref_cnt.load(Ordering::Acquire);
+    (*ptr).ref_cnt.load_acquire();
 
     // Explicit cleanup has the same payload/control effects as dropping the Box.
     free_shared(ptr);

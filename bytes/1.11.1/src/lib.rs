@@ -77,6 +77,9 @@ and `BufMut` are infallible.
 #[allow(unused_extern_crates)]
 extern crate creusot_std;
 
+#[cfg(creusot)]
+use creusot_std::prelude::trusted;
+
 #[allow(unused_extern_crates)]
 extern crate alloc;
 
@@ -122,6 +125,8 @@ mod serde;
 
 #[inline(never)]
 #[cold]
+// Generic platform boundary: process abort / the no-std fallback never return.
+#[cfg_attr(creusot, trusted)]
 fn abort() -> ! {
     #[cfg(feature = "std")]
     {

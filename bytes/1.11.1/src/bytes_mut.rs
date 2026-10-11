@@ -20,6 +20,7 @@ use crate::bytes::Vtable;
 #[allow(unused)]
 use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
+use crate::ref_count_ops::RefCountCell;
 use crate::vec_storage::{VecRawParts, VecStorage};
 use crate::{Buf, BufMut, Bytes, TryGetError};
 
@@ -150,7 +151,7 @@ fn original_unique_decode_bits(addr: usize) {}
 struct Shared {
     vec: VecStorage,
     original_capacity_repr: usize,
-    ref_count: AtomicUsize,
+    ref_count: RefCountCell,
 }
 
 #[cfg(test)]
@@ -1283,7 +1284,7 @@ impl BytesMut {
         let shared = Box::new(Shared {
             vec: VecStorage::hold(rebuild_vec(self.ptr.as_ptr(), self.len, self.cap, off)),
             original_capacity_repr,
-            ref_count: AtomicUsize::new(ref_cnt),
+            ref_count: RefCountCell::new(ref_cnt),
         });
 
         let shared = Box::into_raw(shared);
@@ -1762,7 +1763,7 @@ unsafe fn increment_shared(ptr: *mut Shared) {
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn release_shared(ptr: *mut Shared) {
     // `Shared` storage... follow the drop steps from Arc.
-    if (*ptr).ref_count.fetch_sub(1, Ordering::Release) != 1 {
+    if (*ptr).ref_count.fetch_sub_release() != 1 {
         return;
     }
 
@@ -1786,7 +1787,7 @@ unsafe fn release_shared(ptr: *mut Shared) {
     //
     // Thread sanitizer does not support atomic fences. Use an atomic load
     // instead.
-    (*ptr).ref_count.load(Ordering::Acquire);
+    (*ptr).ref_count.load_acquire();
 
     // Transfer and retire the native Vec once; the empty replacement is safe
     // for the Shared record's ordinary field drop below.
@@ -1810,7 +1811,7 @@ impl Shared {
         // are ordered before the `ref_count` is decremented. As such,
         // this `Acquire` will guarantee that those mutations are
         // visible to the current thread.
-        self.ref_count.load(Ordering::Acquire) == 1
+        self.ref_count.load_acquire() == 1
     }
 }
 
@@ -2330,7 +2331,7 @@ unsafe fn shared_v_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> B
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shared_v_is_unique(data: &AtomicPtr<()>) -> bool {
     let shared = data.load(Ordering::Acquire);
-    let ref_count = (*shared.cast::<Shared>()).ref_count.load(Ordering::Relaxed);
+    let ref_count = (*shared.cast::<Shared>()).ref_count.load_relaxed();
     ref_count == 1
 }
 

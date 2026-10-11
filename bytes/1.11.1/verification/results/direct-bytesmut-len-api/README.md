@@ -1,20 +1,19 @@
 # Direct-source `BytesMut` proof evidence
 
-`proof.json` records the fresh proof run from the crate's live source. It
-contains 52 selected crate COMA targets and six body-proved targets translated
-directly from the pinned private `creusot-std` source package: five pure
-`release_sources` algebra functions and the generic
-`EventBoundInvariant::new` constructor. The
-`coma/` and `results/` trees retain the exact COMA bodies and successful prover
-results used by that run, together with the feature tree and translation log.
-[`TCB.md`](TCB.md) describes the selected guarantees and their assumptions.
+`proof.json` records the fresh proof run from the crate's live source. The
+`coma/` and `results/` trees retain the exact selected COMA bodies and
+successful prover results, together with the feature tree and translation log.
+All selected targets translate from this crate's original source; no separate
+Std-source proof targets are included. [`TCB.md`](TCB.md) describes the selected
+guarantees and their assumptions.
 
-The crate targets include twelve body-proved generic `OwnerLedger` algebra
-functions. They establish the affine ticket/map operations used to represent
-registered owner IDs, but no production `Bytes` handle is registered through
-this ledger yet. They do not prove that the native refcount equals the number
-of live handles, that an observed count of one is exclusive, or that Shared
-storage may be reclaimed.
+The selected source targets include body proofs for the generic `OwnerLedger`
+algebra and the current-value refcount operation wrappers and increment loop.
+The ledger remains disconnected from production `Bytes` and `BytesMut` owner
+handles. The refcount proof state is a scalar operation model, not an owner
+inventory. These results do not establish that the native refcount equals the
+number of registered handles, that an observed count of one is exclusive, or
+that Shared storage may be reclaimed.
 
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current

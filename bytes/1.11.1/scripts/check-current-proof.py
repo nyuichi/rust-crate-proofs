@@ -44,6 +44,18 @@ TARGETS = (
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/sole_active_id.coma",
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/map_singleton_from_len_one.coma",
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/zero_length_map_has_no_ids.coma",
+    "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new.coma",
+    "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_relaxed.coma",
+    "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_acquire.coma",
+    "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/compare_exchange_relaxed.coma",
+    "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/compare_exchange_acqrel_relaxed.coma",
+    "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/fetch_sub_release.coma",
+    "verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/new.coma",
+    "verif/bytes_rlib/ref_count_ops/proof/observe_ref_count.coma",
+    "verif/bytes_rlib/ref_count_ops/proof/update_ref_count.coma",
+    "verif/bytes_rlib/ref_count_limit/next_ref_count.coma",
+    "verif/bytes_rlib/ref_count_ops/try_increment.coma",
+    "verif/bytes_rlib/ref_count_ops/increment.coma",
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/advance_within.coma",
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/split_at.coma",
     "verif/bytes_rlib/ownership_proof/raw_vec/bind_consumed_vec.coma",
@@ -65,16 +77,7 @@ TARGETS = (
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/logical_capacity.coma",
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/into_proof_authority.coma",
 )
-STD_TARGETS = (
-    "verif/creusot_std_rlib/std/sync/release_sources/plain_store_source_identity.coma",
-    "verif/creusot_std_rlib/std/sync/release_sources/rmw_preserves_inherited_source.coma",
-    "verif/creusot_std_rlib/std/sync/release_sources/rmw_adds_attached_source.coma",
-    "verif/creusot_std_rlib/std/sync/release_sources/plain_store_drops_inherited_source.coma",
-    "verif/creusot_std_rlib/std/sync/release_sources/relaxed_rmw_then_release_rmw_to_acquire.coma",
-    "verif/creusot_std_rlib/std/sync/core_events/impl_EventBoundInvariant_T/new.coma",
-)
-STD_EVIDENCE_TARGETS = tuple(f"std/{target.removeprefix('verif/')}" for target in STD_TARGETS)
-EVIDENCE_TARGETS = (*TARGETS, *STD_EVIDENCE_TARGETS)
+EVIDENCE_TARGETS = TARGETS
 EVIDENCE = "verification/results/direct-bytesmut-len-api"
 PINNED = {
     "creusot_sha": "318615be3b8bbc60d1f6d52469ba5c0bdebed4f1",
@@ -428,8 +431,7 @@ def tool_identity(crate: Path) -> dict:
             "selected_compiler": installed["selected_compiler"]}
 
 
-def save(crate: Path, feature_file: Path, log_file: Path, snapshot_file: Path,
-         std_output_dir: Path) -> dict:
+def save(crate: Path, feature_file: Path, log_file: Path, snapshot_file: Path) -> dict:
     try:
         receipt_inputs = json.loads(snapshot_file.read_bytes())
     except (OSError, json.JSONDecodeError) as error:
@@ -441,11 +443,7 @@ def save(crate: Path, feature_file: Path, log_file: Path, snapshot_file: Path,
     require(bool(log_data), "direct translation log is empty")
     evidence, sources, leaves, coma_blobs = {}, {}, 0, []
     for target in EVIDENCE_TARGETS:
-        if target in STD_EVIDENCE_TARGETS:
-            source_target = f"verif/{target.removeprefix('std/')}"
-            coma = path(std_output_dir, source_target)
-        else:
-            coma = path(crate, target)
+        coma = path(crate, target)
         sources[target] = coma
         result = coma.with_suffix("") / "proof.json"
         try:
@@ -503,9 +501,6 @@ def main() -> int:
     if sys.argv[1:] == ["--targets"]:
         print("\n".join(TARGETS))
         return 0
-    if sys.argv[1:] == ["--std-targets"]:
-        print("\n".join(STD_TARGETS))
-        return 0
     if sys.argv[1:] == ["--std-root"]:
         print(std_package_root(Path(__file__).resolve().parents[1]))
         return 0
@@ -514,13 +509,12 @@ def main() -> int:
         if sys.argv[1:] == ["--snapshot"]:
             print(json.dumps(inputs(crate, True, True), sort_keys=True))
             return 0
-        if len(sys.argv) == 6 and sys.argv[1] == "--save":
-            result = save(crate, Path(sys.argv[2]), Path(sys.argv[3]), Path(sys.argv[4]),
-                          Path(sys.argv[5]))
+        if len(sys.argv) == 5 and sys.argv[1] == "--save":
+            result = save(crate, Path(sys.argv[2]), Path(sys.argv[3]), Path(sys.argv[4]))
         elif sys.argv[1:] in ([], ["--check"]):
             result = check(crate)
         else:
-            print("usage: check-current-proof.py [--targets | --std-targets | --std-root | --snapshot | --check | --save FEATURE_TREE TRANSLATION_LOG INPUT_SNAPSHOT STD_OUTPUT_DIR]",
+            print("usage: check-current-proof.py [--targets | --std-root | --snapshot | --check | --save FEATURE_TREE TRANSLATION_LOG INPUT_SNAPSHOT]",
                   file=sys.stderr)
             return 2
         print(json.dumps(result, indent=2))

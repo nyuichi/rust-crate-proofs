@@ -1,18 +1,18 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 284 4 284 30 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 285 4 285 30 *)
 
 (* bytes_mut::BytesMut *)
 
-let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-core-events/src/invariant.rs" 85 8 85 18
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 284 16 284 20
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 282 65 282 96
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 87 59 87 68
-let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-core-events/src/std/ptr/nonnull.rs" 50 8 50 29
-let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-core-events/src/std/ptr/nonnull.rs" 38 8 38 32
-let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-core-events/src/std/ptr.rs" 142 8 142 35
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 285 16 285 20
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 283 65 283 96
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 88 59 88 68
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 361 12 369 13
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 245 12 246 56
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 644 12 648 33
-let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-core-events/src/ghost.rs" 112 8 112 18
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
 
 use creusot.int.UInt64
 use creusot.prelude.Opaque
@@ -181,14 +181,14 @@ predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_By
 
 meta "rewrite_def" predicate inv_ref_BytesMut
 
-function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 87 4 87 44] (self: t_BytesMut) : int
+function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 88 4 88 44] (self: t_BytesMut) : int
  = [%#sbytes_mut'1] UInt64.t'int self.len
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let len'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 284 4 284 30] (self: t_BytesMut)
+let len'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 285 4 285 30] (self: t_BytesMut)
   (return (x: UInt64.t)) = {[@stop_split] [@expl:len 'self' type invariant] [%#sbytes_mut] inv_ref_BytesMut self}
   (! bb0
   [ bb0 = s0 [ s0 = [ &_ret <- self.len ] s1 | s1 = return {_ret} ] ]

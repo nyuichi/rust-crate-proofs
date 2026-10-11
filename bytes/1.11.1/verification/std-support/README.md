@@ -1,12 +1,12 @@
 # Generic Creusot std support for bytes 1.11.1
 
 `scripts/prepare-proof-std.py` prepares a bytes-only copy of the pinned,
-normalized `creusot-std 0.13.0` registry package. It applies the reviewed
-generic contract patches to the private copy, validates the full stock package
-tree and every affected-file hash, and creates the ignored `.cargo/config.toml`
-override for `$BYTES_TOOL_ROOT/bytes-proof-std-as-bytes-core-events`. The
-older private copy is left untouched. The installer migrates the override only when it exactly
-matches the previous generated config; custom or conflicting configs are
+normalized `creusot-std 0.13.0` registry package. It validates the stock tree,
+applies the three reviewed generic patches to the private copy, verifies the
+candidate tree, and generates the ignored `.cargo/config.toml` override for
+`$BYTES_TOOL_ROOT/bytes-proof-std-as-bytes-refcount`. The previous generated
+copy is left untouched. The installer migrates the Cargo override only when it
+exactly matches the prior generated config; custom or conflicting configs are
 refused. The installed registry source and other crates are untouched.
 
 The active patches are:
@@ -21,28 +21,14 @@ The active patches are:
    and preservation of pointer/capacity. This connects B1/B2 to the native
    pointer word rather than deriving it from a numeric address. The observer
    grants no access permission, allocation injectivity or liveness.
-4. `release-sources.patch` adds pure set algebra for release-sequence history:
-   an RMW carries the release sources of the exact modification it reads and
-   adds any source attached to its own successful event; a plain store starts
-   from only its own attached sources; an acquire selects the sources on its
-   exact read-from modification. This algebra does not establish which views a
-   native operation contributes. The atomic event boundary must separately
-   prove source attachment, ordering, fences, and read-from provenance.
-5. `core-events.patch` adds a generic bridge for `core::sync::atomic::AtomicUsize`:
-   a trusted initialization boundary, a trusted adapter that performs one
-   native Acquire load and seals its exact read event to a callback, a trusted
-   opener that binds that event to the matching permission-history entry, and
-   the body-proved `EventBoundInvariant::new` constructor. This slice does not
-   establish cross-call thread coherence or synchronization handoff, singleton
-   ownership, refcount transitions, quiescence, retirement, or any Bytes law.
 
 The original `ownership_proof::raw_vec` bridge uses `capacity_model` and
 `base_model` to connect its allocation descriptor to the same Vec value. These
 are generic library assumptions with no sequence-based allocation identity,
 pointer permission, injectivity, or allocation-liveness fact. The exact pointer
 observer is metadata only; the sealed matching B1/B2 capabilities remain
-independently required. They add no bytes-specific ownership or refcount theorem and no
-termination attributes.
+independently required. These assumptions add no bytes-specific ownership or
+refcount theorem and no termination attributes.
 
 The installer refuses an unexpected stock package, patch hash, private
 destination, candidate tree, or conflicting Cargo override. It never replaces
@@ -51,17 +37,6 @@ tree and the complete stock-tree digest.
 
 The generic Vec observation contracts and B1/B2 physical interpretation remain
 explicit TCB assumptions; they do not prove bytes ownership or lifecycle laws.
-The release-source module is pure algebra and adds no native atomic-operation
-contract or synchronization guarantee. The direct-source receipt includes
-body proofs of the five selected `release_sources` functions from this exact
-private source tree; it does not claim that a native operation selected the
-algebra's inputs or that the whole Std package has been verified.
-The selected direct-source proof uses the overlay identity recorded in its
-receipt. It body-proves the five `release_sources` algebra functions and the
-generic `EventBoundInvariant::new` constructor; it does not prove the trusted
-native event adapters or connect them to `Bytes`. Historical receipts retain
-their own source and overlay hashes.
-
 The `str::as_bytes` extern spec assumes Rust's native string bytes equal
 `Seq<char>::to_bytes()`. That model concatenates the opaque `char::to_utf8`
 function; its current assumptions bound each result to one through four bytes
