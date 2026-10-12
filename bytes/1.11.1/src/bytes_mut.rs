@@ -117,7 +117,7 @@ impl BytesMut {
     #[logic(open(self), prophetic)]
     pub(crate) fn unique_layout_valid(self) -> bool {
         pearlite! {
-            self.unique_proof != None && {
+            self.shared_proof == None && self.unique_proof != None && {
                 let proof = self.unique_proof.unwrap_logic();
                 let caps = proof.capabilities.inner_logic();
                 proof.base.invariant() && proof.cursor.invariant() && proof.raw.invariant() &&
@@ -185,9 +185,9 @@ impl BytesMut {
     }
 
     /// The handle's proof packet names the same header and ARC-tagged data
-    /// pointer. This packet predicate does not express the capsule's
-    /// storage-authority binding; the initial constructor establishes it, and
-    /// later transitions still need to preserve that relation.
+    /// pointer. Its invariant relates the ticket's allocation binding to the
+    /// packet region and the capsule's protected storage. Selected proofs do
+    /// not establish all production paths that create or preserve this state.
     #[logic(open(self), prophetic)]
     fn shared_packet_header_valid(self) -> bool {
         pearlite! {
@@ -235,10 +235,11 @@ impl BytesMut {
         }
     }
 
-    /// Stable handle layout for the cursor-only shared path. This predicate
-    /// does not express the packet region's relation to the capsule's
-    /// protected storage authority. The initial constructor establishes that
-    /// relation; its preservation through later transitions remains unproved.
+    /// Stable handle layout for the cursor-only shared path. The packet
+    /// invariant links its region, base and capacity to the capsule's current
+    /// storage binding through the live ledger ticket. This predicate does
+    /// not establish that every public producer or later lifecycle transition
+    /// creates and preserves the relation.
     #[logic(open(self), prophetic)]
     fn shared_layout_valid(self) -> bool {
         pearlite! {
@@ -1567,7 +1568,7 @@ impl BytesMut {
     // The selected proof paths are the rebuildable, no-promotion Vec case and
     // the packet-backed ARC cursor case. They establish these private state
     // transitions from their respective invariants; this does not prove the
-    // public producer chain or the ARC capsule's lifecycle and storage binding.
+    // public producer chain or actual Shared owner/refcount lifecycle updates.
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.cap@))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
         (self.unique_valid() && self.unique_vec_rebuildable() &&
@@ -1750,7 +1751,7 @@ impl BytesMut {
         );
 
         #[cfg(all(creusot, bytes_original_unique_gate))]
-        let (vec, authority_region, base) = {
+        let (vec, authority_region, base, allocation_binding) = {
             let prestate = snapshot!(*self);
             proof_assert!((*prestate).unique_vec_rebuildable());
             proof_assert!(off@ == (*prestate).unique_offset());
@@ -1808,7 +1809,7 @@ impl BytesMut {
                 crate::provenance_specs::pointer_addr(header),
                 core::mem::align_of::<Shared>(),
             );
-            let ledger_ticket = OwnerLedger::new_root();
+            let ledger_ticket = OwnerLedger::new_root(allocation_binding);
             let phase_action = PhaseAuthority::new();
             let packet = shared_capsule::make_count_one_packet(
                 header,
@@ -1946,6 +1947,7 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(((^self).unique_tag_pointer().addr_logic() & 3usize) ==
         (self.unique_tag_pointer().addr_logic() & 3usize)))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof == self.unique_proof))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_proof == self.shared_proof))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
         0 <= i && i < self.unique_allocation_capacity() ==>
             (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]

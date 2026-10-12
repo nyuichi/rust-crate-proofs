@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 291 0 293 1 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 292 0 294 1 *)
 
 type namespace_other
 
@@ -7,12 +7,12 @@ type t_Namespace = Namespace_BYTES_MUT_SHARED_CAPSULE int | Other namespace_othe
 let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
 let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 294 18 299 9
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 284 11 284 37
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 285 11 285 50
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 286 11 286 52
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 287 11 288 42
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 289 10 290 42
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 295 18 300 9
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 285 11 285 37
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 286 11 286 50
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 287 11 287 52
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 288 11 289 42
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 290 10 291 42
 let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 180 20 180 77
 let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 147 12 149 48
 let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 98 59 98 68
@@ -20,7 +20,7 @@ let%span sbytes_mut'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut
 let%span sbytes_mut'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 175 20 175 93
 let%span sbytes_mut'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 103 20 103 77
 let%span sbytes_mut'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 120 12 141 13
-let%span sbytes_mut'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 291 0 293 1
+let%span sbytes_mut'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 292 0 294 1
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1320 16 1320 59
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 719 14 719 43
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 372 12 380 13
@@ -298,7 +298,8 @@ constant const_KIND_MASK: UInt64.t = [%#sbytes_mut'12] (1: UInt64.t)
 constant const_KIND_VEC: UInt64.t = [%#sbytes_mut'12] (1: UInt64.t)
 
 predicate unique_layout_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 118 4 118 51] (self: t_BytesMut) =
-  [%#sbytes_mut'11] self.unique_proof <> None'1
+  [%#sbytes_mut'11] self.shared_proof = None'2
+  /\ self.unique_proof <> None'1
   /\ (let proof = unwrap_Option_OriginalUniqueProof self.unique_proof in let caps = proof.capabilities in invariant_BoundPtr proof.base
   /\ invariant_BoundPtr proof.cursor
   /\ invariant_RawAllocation proof.raw
@@ -339,7 +340,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let unique_initialized_prefix_extend [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 291 0 293 1]
+let unique_initialized_prefix_extend [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 292 0 294 1]
   (prestate: t_BytesMut) (old_len: UInt64.t) (new_len: UInt64.t) (return (x: ())) =
 {[@stop_split] [@expl:unique_initialized_prefix_extend requires] ([@stop_split] [@expl:unique_initialized_prefix_extend requires #0] [%#sbytes_mut'0] unique_valid prestate)
   /\ ([@stop_split] [@expl:unique_initialized_prefix_extend requires #1] [%#sbytes_mut'1] UInt64.t'int old_len

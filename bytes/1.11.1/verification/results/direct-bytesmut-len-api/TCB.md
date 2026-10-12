@@ -18,10 +18,12 @@ and spare-capacity slots are unknown. The selected bodies for
 resource construction; `take` suppresses the temporary storage destructor
 after transferring its native owner with the existing Std
 `core::mem::forget(storage)` operation. `hold_owned` returns the body-proved
-storage authority and region; the private count-one promotion helper calls it
-to construct the initial Shared state. This does not prove later Shared
-lifecycle operations. The proof uses an opaque transparent native Vec wrapper
-and an outer C-layout storage struct with a zero-sized ghost field;
+storage authority, region, base descriptor and ghost allocation identity
+(namespace, base pointer and capacity) computed from the same captured Vec.
+The private count-one promotion helper passes that identity into the owner
+ledger and packet constructor. It grants no access authority and does not prove
+later Shared lifecycle operations. The proof uses an opaque transparent native
+Vec wrapper and an outer C-layout storage struct with a zero-sized ghost field;
 compile-time assertions compare its
 size and alignment with `Vec<u8>`. The native `VecRawParts::take` branch keeps
 the original direct extraction implementation. No trusted Bytes-specific
@@ -70,11 +72,14 @@ packet-layout and initialized-visible-prefix preconditions.
 `advance_shared_layout` and `SharedOwnerPacket::advance_cursor` preserve the
 packet capsule, ticket, physical-region descriptor, base and allocation slots
 while advancing the cursor, pointer, visible suffix and remaining capacity.
-The packet-layout predicate does not connect each handle's physical region to
-the capsule's protected storage authority after later transitions; this proof
-therefore does not establish Shared reads, recovery, exclusivity or lifecycle
-behavior. No selected proof establishes a safe public call chain that produces
-a nonzero offset: public `Buf::advance` is untranslated. The trait-refinement
+The packet invariant ties each ticket's ghost allocation identity (namespace,
+base pointer and capacity) to its physical region; the capsule protocol ties
+that same identity to its current protected storage authority. This tuple is
+identity metadata and grants no allocation access. The selected proof does not
+establish every production path that creates or preserves the relation, or
+Shared reads, recovery, exclusivity or lifecycle behavior. No selected proof
+establishes a safe public call chain that produces a nonzero offset: public
+`Buf::advance` is untranslated. The trait-refinement
 obligation for `BufMut::advance_mut` also remains unproved because its body has
 stronger proof preconditions than the trait prestate. Immutable peers,
 refcount-to-owner correspondence, concurrency and unwind behavior remain
@@ -158,14 +163,17 @@ across Shared, split, or nonzero-offset states remain unproved.
 
 The selected crate targets also body-prove the generic
 `ownership_proof::ref_count_ledger` module. Its affine authority map represents
-registered owner IDs, and its tickets support root/promotion construction, a
-child split, a drop, and the empty-map retirement permit; checked helpers prove
-singleton and no-conflicting-ticket facts. This is a reusable ledger component
-only. A forgotten handle may leave a registration outstanding, and the module
-does not connect any production `Bytes` or `BytesMut` construction, clone,
-split, drop, refcount operation, terminal read, or storage recovery to a ticket.
-It therefore establishes no native refcount-to-registration equality,
-count-one uniqueness, or Shared allocation lifecycle property.
+registered owner IDs, and every active fragment now carries the same ghost
+allocation identity tuple (namespace, base pointer and capacity). The
+constructor, child split and drop bodies preserve that binding; checked
+helpers prove ticket membership, singleton and no-conflicting-ticket facts.
+This metadata records allocation identity but grants no access authority. The
+initial promotion composes it with the captured Vec storage authority and the
+packet's matching region and base. These generic ledger proofs and that one
+initial production constructor do not connect later production `Bytes` or
+`BytesMut` clone, split, drop, refcount, terminal-read or recovery paths to a
+ticket. They establish no native refcount-to-registration equality, count-one
+uniqueness or Shared allocation lifecycle property.
 
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
@@ -173,7 +181,9 @@ contradiction between a closed authority and a still-valid matching action.
 `shared_capsule::make_count_one_packet` is body-proved to compose supplied
 header, exact counter permission, storage authority, one registered owner
 ticket, whole physical region, and open terminal phase into a capsule whose
-protocol binds those identities and value one. The private
+protocol binds those identities and value one. Its allocation identity tuple
+matches the protected storage namespace, base and capacity, the ticket's
+exclusive fragment, and the returned packet region and base. The private
 `promote_to_shared_count_one` body now supplies these values on its proof path,
 including the count-one counter and root ticket. It is the only promotion
 helper whose body is verified in this checkpoint; no clone/split/drop update
@@ -181,6 +191,7 @@ path is connected yet.
 The Vec `advance_unchecked` branch assumes a representable position, so it
 does not establish reachability of the promotion branch, and public
 `Buf::advance` is untranslated. Its packet-backed Shared branch proves cursor
-movement under private packet predicates, but leaves later storage-authority
-binding unproved. The proof adds no trusted native count-to-ticket law,
+movement under private packet predicates, whose allocation identity is bound
+to current protected storage as described above. The proof adds no trusted
+native count-to-ticket law,
 count-one exclusivity, terminal recovery, or allocation-lifecycle guarantee.

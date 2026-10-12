@@ -77,6 +77,8 @@ impl Protocol for SharedState {
                 !header.ref_count.has_event_invariant() &&
                 owner.val() == self.value &&
                 ledger.agrees_with_value(self.value@) && ledger.count() > 0 &&
+                ledger.allocation_binding() == (
+                    storage.binding(), storage.raw_pointer(), storage.capacity()) &&
                 header.vec.matches_authority(storage)
             },
             (Some(root), Some(owner), Some(storage), None, Some(retire), None) => {
@@ -140,6 +142,9 @@ impl SharedOwnerPacket {
             self.ticket.inner_logic().ledger_id() == self.capsule_public().2 &&
             self.region.inner_logic().invariant() &&
             self.base.invariant() && self.cursor.invariant() &&
+            self.ticket.inner_logic().allocation_binding() == (
+                self.region.inner_logic().namespace(), self.base.raw_pointer(),
+                self.region.inner_logic().capacity()) &&
             self.base@ == Some((self.region.inner_logic().namespace(),
                 self.region.inner_logic().capacity(), 0int)) &&
             self.cursor@ != None &&
@@ -208,6 +213,9 @@ impl SharedOwnerPacket {
     (*root.inner_logic().val()).vec.matches_authority(storage.inner_logic().0) &&
     ledger.inner_logic().0.invariant() && ledger.inner_logic().0.is_live() &&
     ledger.inner_logic().0.agrees_with_value(value@) && ledger.inner_logic().0.count() == 1 &&
+    ledger.inner_logic().0.allocation_binding() == (
+        storage.inner_logic().0.binding(), storage.inner_logic().0.raw_pointer(),
+        storage.inner_logic().0.capacity()) &&
     value@ == 1 &&
     ledger.inner_logic().0.ledger_id() == ledger.inner_logic().1.ledger_id() &&
     ledger.inner_logic().1.invariant() &&
@@ -237,6 +245,9 @@ impl SharedOwnerPacket {
 #[ensures(result.base.raw_pointer() == base.raw_pointer())]
 #[ensures(result.cursor.raw_pointer() == cursor.raw_pointer())]
 #[ensures(result.ticket.inner_logic() == ledger.inner_logic().1)]
+#[ensures(result.ticket.inner_logic().allocation_binding() == (
+    storage.inner_logic().0.binding(), storage.inner_logic().0.raw_pointer(),
+    storage.inner_logic().0.capacity()))]
 #[ensures(result.region.inner_logic() == storage.inner_logic().1)]
 #[ensures(ledger.inner_logic().0.ledger_id() == result.capsule_public().2)]
 #[ensures(ledger.inner_logic().0.has_ticket(result.ticket.inner_logic()))]
@@ -272,6 +283,7 @@ pub(crate) fn make_count_one_packet(
         proof_assert!(owner_value == value);
         proof_assert!(owner.val() == value);
         proof_assert!(ledger.has_ticket(ticket));
+        ledger.prove_ticket_is_active(&ticket);
         let ledger_id = snapshot!(ledger.ledger_id()).into_ghost().into_inner();
         let phase_id = snapshot!(phase.resource_id()).into_ghost().into_inner();
         let state = SharedState {

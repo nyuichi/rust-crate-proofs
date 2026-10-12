@@ -15,7 +15,12 @@ use creusot_std::{
 
 use crate::ref_count_limit::MAX_REF_COUNT;
 
-pub(crate) type ActiveOwners = FMap<Int, Excl<()>>;
+/// Metadata identifying the allocation owned by every registration in one
+/// shared control block. This records identity only; it carries no access
+/// authority for the allocation.
+pub(crate) type AllocationBinding = (Id, *mut u8, Int);
+
+pub(crate) type ActiveOwners = FMap<Int, Excl<AllocationBinding>>;
 
 /// One non-duplicable registration for a particular owner in a control block.
 #[allow(missing_debug_implementations)]
@@ -46,11 +51,21 @@ impl OwnerTicket {
         pearlite! { self.fragment@ }
     }
 
+    /// Allocation metadata stored in this ticket's actual exclusive
+    /// singleton fragment.
+    #[logic(open(self))]
+    pub(crate) fn allocation_binding(&self) -> AllocationBinding {
+        pearlite! { self.fragment@.get(self.owner_id).unwrap_logic().0 }
+    }
+
     #[logic(prophetic)]
     fn valid(self) -> bool {
         pearlite! {
             self.fragment.id() == self.ledger_id &&
-            self.fragment@ == FMap::singleton(self.owner_id, Excl(()))
+            self.fragment@ == FMap::singleton(
+                self.owner_id,
+                Excl(self.allocation_binding())
+            )
         }
     }
 }
@@ -101,7 +116,8 @@ impl RetirePermit {
         let fragment: Snapshot<ActiveOwners> = snapshot!(ticket.fragment@);
         let empty: Snapshot<ActiveOwners> = snapshot!(self.authority@);
         proof_assert!((*fragment).incl(*empty));
-        proof_assert!((*fragment).get(ticket.owner_id()) == Some(Excl(())));
+        proof_assert!((*fragment).get(ticket.owner_id()) ==
+            Some(Excl(ticket.allocation_binding())));
         proof_assert!((*empty).get(ticket.owner_id()) == None);
         proof_assert!((*fragment).get(ticket.owner_id()).incl(
             (*empty).get(ticket.owner_id())
@@ -126,6 +142,7 @@ pub(crate) struct OwnerLedger {
     ledger_id: Id,
     next_id: Int,
     live: bool,
+    allocation_binding: AllocationBinding,
     authority: Option<Authority<ActiveOwners>>,
 }
 
@@ -143,6 +160,11 @@ impl OwnerLedger {
     #[logic(open(self))]
     pub(crate) fn is_live(self) -> bool {
         self.live
+    }
+
+    #[logic(open(self))]
+    pub(crate) fn allocation_binding(self) -> AllocationBinding {
+        self.allocation_binding
     }
 
     #[logic(open(self))]
@@ -175,7 +197,8 @@ impl OwnerLedger {
                     authority.invariant() && authority.id() == self.ledger_id &&
                     authority@.len() > 0 &&
                     forall<id: Int> authority@.contains(id) ==>
-                        0 <= id && id < self.next_id,
+                        0 <= id && id < self.next_id &&
+                        authority@.get(id) == Some(Excl(self.allocation_binding)),
                 (false, None) => true,
                 _ => false,
             }
@@ -187,7 +210,9 @@ impl OwnerLedger {
         pearlite! {
             self.invariant() && self.live && ticket.invariant() &&
             ticket.ledger_id() == self.ledger_id &&
-            self.active_ids().get(ticket.owner_id()) == Some(Excl(()))
+            ticket.allocation_binding() == self.allocation_binding &&
+            self.active_ids().get(ticket.owner_id()) ==
+                Some(Excl(ticket.allocation_binding()))
         }
     }
 
@@ -199,15 +224,21 @@ impl OwnerLedger {
     #[requires(ticket.invariant())]
     #[requires(ticket.ledger_id() == self.ledger_id())]
     #[ensures(self.has_ticket(*ticket))]
-    fn prove_ticket_is_active(&self, ticket: &OwnerTicket) {
+    #[ensures(ticket.allocation_binding() == self.allocation_binding())]
+    pub(crate) fn prove_ticket_is_active(&self, ticket: &OwnerTicket) {
         match &self.authority {
             Some(authority) => {
                 authority.frag_lemma(&ticket.fragment);
                 let fragment: Snapshot<ActiveOwners> = snapshot!(ticket.fragment@);
                 let active: Snapshot<ActiveOwners> = snapshot!(authority@);
                 proof_assert!((*fragment).incl(*active));
-                proof_assert!((*fragment).get(ticket.owner_id()) == Some(Excl(())));
-                proof_assert!((*active).get(ticket.owner_id()) == Some(Excl(())));
+                proof_assert!((*fragment).get(ticket.owner_id()) ==
+                    Some(Excl(ticket.allocation_binding())));
+                proof_assert!((*active).get(ticket.owner_id()) ==
+                    Some(Excl(ticket.allocation_binding())));
+                proof_assert!((*active).get(ticket.owner_id()) ==
+                    Some(Excl(self.allocation_binding())));
+                proof_assert!(ticket.allocation_binding() == self.allocation_binding());
             }
             None => proof_assert!(false),
         }
@@ -217,6 +248,7 @@ impl OwnerLedger {
     #[check(ghost)]
     #[ensures(result.inner_logic().0.invariant())]
     #[ensures(result.inner_logic().0.is_live())]
+    #[ensures(result.inner_logic().0.allocation_binding() == binding.inner_logic())]
     #[ensures(result.inner_logic().0.count() == 1)]
     #[ensures(result.inner_logic().0.next_id() == 1)]
     #[ensures(result.inner_logic().0.agrees_with_value(1))]
@@ -226,14 +258,18 @@ impl OwnerLedger {
     #[ensures(result.inner_logic().1.owner_id() == 0)]
     #[ensures(result.inner_logic().1.owner_id() >= 0)]
     #[ensures(result.inner_logic().1.owner_id() < result.inner_logic().0.next_id())]
-    pub(crate) fn new_root() -> Ghost<(OwnerLedger, OwnerTicket)> {
+    #[ensures(result.inner_logic().1.allocation_binding() == binding.inner_logic())]
+    pub(crate) fn new_root(
+        binding: Ghost<AllocationBinding>,
+    ) -> Ghost<(OwnerLedger, OwnerTicket)> {
         ghost! {
+        let binding = binding.into_inner();
         let mut authority: Authority<ActiveOwners> = Authority::alloc().into_inner();
         let empty_map: Snapshot<ActiveOwners> = snapshot!(ActiveOwners::unit());
         proof_assert!(authority@ == *empty_map);
         let root_id: Int = *Int::new(0i128);
         let root_map: Snapshot<ActiveOwners> =
-            snapshot!(FMap::singleton(root_id, Excl(())));
+            snapshot!(FMap::singleton(root_id, Excl(binding)));
         let root_fragment = authority.add_fragment(root_map);
         proof_assert!(authority@.ext_eq(*root_map));
         let ledger_id = authority.id_ghost();
@@ -241,6 +277,7 @@ impl OwnerLedger {
             ledger_id,
             next_id: *Int::new(1i128),
             live: true,
+            allocation_binding: binding,
             authority: Some(authority),
         };
         let ticket = OwnerTicket {
@@ -259,37 +296,44 @@ impl OwnerLedger {
     /// two live handles.
     #[check(ghost)]
     #[ensures(result.inner_logic().0.invariant())]
+    #[ensures(result.inner_logic().0.allocation_binding() == binding.inner_logic())]
     #[ensures(result.inner_logic().0.count() == 2)]
     #[ensures(result.inner_logic().0.agrees_with_value(2))]
     #[ensures(result.inner_logic().1.invariant() && result.inner_logic().2.invariant())]
     #[ensures(result.inner_logic().0.has_ticket(result.inner_logic().1) &&
         result.inner_logic().0.has_ticket(result.inner_logic().2))]
+    #[ensures(result.inner_logic().1.allocation_binding() == binding.inner_logic() &&
+        result.inner_logic().2.allocation_binding() == binding.inner_logic())]
     #[ensures(result.inner_logic().1.owner_id() == 0 && result.inner_logic().2.owner_id() == 1)]
-    pub(crate) fn new_promoted_pair() -> Ghost<(OwnerLedger, OwnerTicket, OwnerTicket)> {
+    pub(crate) fn new_promoted_pair(
+        binding: Ghost<AllocationBinding>,
+    ) -> Ghost<(OwnerLedger, OwnerTicket, OwnerTicket)> {
         ghost! {
+        let binding = binding.into_inner();
         let mut authority: Authority<ActiveOwners> = Authority::alloc().into_inner();
         let empty_map: Snapshot<ActiveOwners> = snapshot!(ActiveOwners::unit());
         proof_assert!(authority@ == *empty_map);
         let first_id: Int = *Int::new(0i128);
         let second_id: Int = *Int::new(1i128);
         let first_map: Snapshot<ActiveOwners> =
-            snapshot!(FMap::singleton(first_id, Excl(())));
+            snapshot!(FMap::singleton(first_id, Excl(binding)));
         let first_fragment = authority.add_fragment(first_map);
         proof_assert!(authority@.ext_eq(*first_map));
         let after_first: Snapshot<ActiveOwners> = snapshot!(authority@);
         proof_assert!((*after_first).contains(second_id) == false);
         let second_map: Snapshot<ActiveOwners> =
-            snapshot!(FMap::singleton(second_id, Excl(())));
-        map_op_fresh_singleton(after_first, snapshot!(second_id));
+            snapshot!(FMap::singleton(second_id, Excl(binding)));
+        map_op_fresh_singleton(after_first, snapshot!(second_id), snapshot!(binding));
         let second_fragment = authority.add_fragment(second_map);
         let pair_map: Snapshot<ActiveOwners> =
-            snapshot!((*first_map).insert(second_id, Excl(())));
+            snapshot!((*first_map).insert(second_id, Excl(binding)));
         proof_assert!(authority@.ext_eq(*pair_map));
         let ledger_id = authority.id_ghost();
         let ledger = OwnerLedger {
             ledger_id,
             next_id: *Int::new(2i128),
             live: true,
+            allocation_binding: binding,
             authority: Some(authority),
         };
         let first = OwnerTicket {
@@ -319,18 +363,24 @@ impl OwnerLedger {
     #[requires(parent.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
     #[ensures((^ledger.inner_logic()).invariant() && (^ledger.inner_logic()).is_live())]
     #[ensures((^ledger.inner_logic()).ledger_id() == ledger.inner_logic().ledger_id())]
+    #[ensures((^ledger.inner_logic()).allocation_binding() ==
+        ledger.inner_logic().allocation_binding())]
     #[ensures((^ledger.inner_logic()).count() == ledger.inner_logic().count() + 1)]
     #[ensures((^ledger.inner_logic()).agrees_with_value(ledger.inner_logic().count() + 1))]
     #[ensures((^ledger.inner_logic()).active_ids() ==
-        ledger.inner_logic().active_ids().insert(ledger.inner_logic().next_id(), Excl(())))]
+        ledger.inner_logic().active_ids().insert(ledger.inner_logic().next_id(),
+            Excl(ledger.inner_logic().allocation_binding())))]
     #[ensures((^ledger.inner_logic()).next_id() == ledger.inner_logic().next_id() + 1)]
     #[ensures((^ledger.inner_logic()).has_ticket(*parent.inner_logic()))]
     #[ensures(result.inner_logic().invariant())]
     #[ensures(result.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
     #[ensures(result.inner_logic().owner_id() == ledger.inner_logic().next_id())]
     #[ensures(result.inner_logic().fragment_resource_id() == ledger.inner_logic().ledger_id())]
+    #[ensures(result.inner_logic().allocation_binding() ==
+        parent.inner_logic().allocation_binding())]
     #[ensures(result.inner_logic().fragment_map() ==
-        FMap::singleton(ledger.inner_logic().next_id(), Excl(())))]
+        FMap::singleton(ledger.inner_logic().next_id(),
+            Excl(parent.inner_logic().allocation_binding())))]
     #[ensures((^ledger.inner_logic()).has_ticket(result.inner_logic()))]
     pub(crate) fn split_owner(
         ledger: Ghost<&mut OwnerLedger>,
@@ -342,10 +392,15 @@ impl OwnerLedger {
             ledger.prove_ticket_is_active(parent);
             let old_map: Snapshot<ActiveOwners> = snapshot!(ledger.active_ids());
             let new_id = ledger.next_id;
+            let parent_fragment: Snapshot<ActiveOwners> = snapshot!(parent.fragment@);
+            let binding_snapshot: Snapshot<AllocationBinding> = snapshot!(
+                (*parent_fragment).get(parent.owner_id).unwrap_logic().0
+            );
+            let binding = binding_snapshot.into_ghost().into_inner();
             proof_assert!(!(*old_map).contains(new_id));
-            map_op_fresh_singleton(old_map, snapshot!(new_id));
+            map_op_fresh_singleton(old_map, snapshot!(new_id), snapshot!(binding));
             let new_fragment = ledger.authority.as_mut().unwrap().add_fragment(
-                snapshot!(FMap::singleton(new_id, Excl(()))),
+                snapshot!(FMap::singleton(new_id, Excl(binding))),
             );
             ledger.next_id = ledger.next_id + 1int;
             let child = OwnerTicket {
@@ -368,6 +423,8 @@ impl OwnerLedger {
     #[requires(ticket.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
     #[ensures((^ledger.inner_logic()).invariant())]
     #[ensures((^ledger.inner_logic()).ledger_id() == ledger.inner_logic().ledger_id())]
+    #[ensures((^ledger.inner_logic()).allocation_binding() ==
+        ledger.inner_logic().allocation_binding())]
     #[ensures((^ledger.inner_logic()).count() + 1 == ledger.inner_logic().count())]
     #[ensures((^ledger.inner_logic()).active_ids() ==
         ledger.inner_logic().active_ids().remove(ticket.inner_logic().owner_id()))]
@@ -394,12 +451,17 @@ impl OwnerLedger {
             let old_count: Snapshot<Int> = snapshot!((*before).len());
             let old_count = old_count.into_ghost().into_inner();
             let owner_id = ticket.owner_id;
+            let ticket_fragment: Snapshot<ActiveOwners> = snapshot!(ticket.fragment@);
+            let binding_snapshot: Snapshot<AllocationBinding> = snapshot!(
+                (*ticket_fragment).get(ticket.owner_id).unwrap_logic().0
+            );
+            let binding = binding_snapshot.into_ghost().into_inner();
             if old_count == 1int {
                 sole_active_id(snapshot!(*ledger), snapshot!(ticket));
             }
             let mut fragment = ticket.fragment;
-            proof_assert!((*before).get(owner_id) == Some(Excl(())));
-            factor_singleton_removal(before, snapshot!(owner_id));
+            proof_assert!((*before).get(owner_id) == Some(Excl(binding)));
+            factor_singleton_removal(before, snapshot!(owner_id), snapshot!(binding));
             ledger.authority
                 .as_mut()
                 .unwrap()
@@ -440,18 +502,23 @@ impl Invariant for OwnerLedger {
 /// exactly the corresponding insertion.
 #[check(ghost)]
 #[requires(!(*map).contains(*id))]
-#[ensures((*map).op(FMap::singleton(*id, Excl(()))) ==
-    Some((*map).insert(*id, Excl(()))))]
-fn map_op_fresh_singleton(map: Snapshot<ActiveOwners>, id: Snapshot<Int>) {
-    let single: Snapshot<ActiveOwners> = snapshot!(FMap::singleton(*id, Excl(())));
+#[ensures((*map).op(FMap::singleton(*id, Excl(*binding))) ==
+    Some((*map).insert(*id, Excl(*binding))))]
+fn map_op_fresh_singleton(
+    map: Snapshot<ActiveOwners>,
+    id: Snapshot<Int>,
+    binding: Snapshot<AllocationBinding>,
+) {
+    let single: Snapshot<ActiveOwners> =
+        snapshot!(FMap::singleton(*id, Excl(*binding)));
     proof_assert!(forall<key: Int>
         (*map).get(key).op((*single).get(key)) != None);
     proof_assert!(forall<key: Int>
         (*map).get(key).op((*single).get(key)) ==
-            Some((*map).insert(*id, Excl(())).get(key)));
+            Some((*map).insert(*id, Excl(*binding)).get(key)));
     let composed: Snapshot<ActiveOwners> = snapshot!((*map).total_op(*single));
-    proof_assert!((*composed).ext_eq((*map).insert(*id, Excl(()))));
-    proof_assert!((*map).op(*single) == Some((*map).insert(*id, Excl(()))));
+    proof_assert!((*composed).ext_eq((*map).insert(*id, Excl(*binding))));
+    proof_assert!((*map).op(*single) == Some((*map).insert(*id, Excl(*binding))));
 }
 
 /// A length-one active map containing the caller's valid ticket has exactly
@@ -461,11 +528,13 @@ fn map_op_fresh_singleton(map: Snapshot<ActiveOwners>, id: Snapshot<Int>) {
 #[requires((*ledger).invariant() && (*ledger).count() == 1)]
 #[requires((*ledger).has_ticket(*ticket))]
 #[ensures((*ledger).active_ids() ==
-    FMap::singleton((*ticket).owner_id(), Excl(())))]
+    FMap::singleton((*ticket).owner_id(), Excl((*ticket).allocation_binding())))]
 pub(crate) fn sole_active_id(ledger: Snapshot<OwnerLedger>, ticket: Snapshot<OwnerTicket>) {
     let map: Snapshot<ActiveOwners> = snapshot!((*ledger).active_ids());
     let id: Snapshot<Int> = snapshot!((*ticket).owner_id());
-    map_singleton_from_len_one(map, id);
+    let binding: Snapshot<AllocationBinding> =
+        snapshot!((*ticket).allocation_binding());
+    map_singleton_from_len_one(map, id, binding);
 }
 
 /// A count-one ledger cannot admit two independently borrowed tickets. The
@@ -497,16 +566,20 @@ pub(crate) fn contradict_two_tickets(
 
 #[check(ghost)]
 #[requires((*map).len() == 1)]
-#[requires((*map).get(*id) == Some(Excl(())))]
-#[ensures(*map == FMap::singleton(*id, Excl(())))]
-fn map_singleton_from_len_one(map: Snapshot<ActiveOwners>, id: Snapshot<Int>) {
+#[requires((*map).get(*id) == Some(Excl(*binding)))]
+#[ensures(*map == FMap::singleton(*id, Excl(*binding)))]
+fn map_singleton_from_len_one(
+    map: Snapshot<ActiveOwners>,
+    id: Snapshot<Int>,
+    binding: Snapshot<AllocationBinding>,
+) {
     let remainder: Snapshot<ActiveOwners> =
         snapshot!((*map).remove(*id));
     proof_assert!((*remainder).len() == 0);
     zero_length_map_has_no_ids(remainder);
     proof_assert!(forall<other: Int> other != *id ==> (*map).get(other) == None);
-    proof_assert!((*map).get(*id) == Some(Excl(())));
-    proof_assert!((*map).ext_eq(FMap::singleton(*id, Excl(()))));
+    proof_assert!((*map).get(*id) == Some(Excl(*binding)));
+    proof_assert!((*map).ext_eq(FMap::singleton(*id, Excl(*binding))));
 }
 
 /// FMap's remove/len contracts imply that a map of length zero cannot contain
@@ -524,11 +597,15 @@ fn zero_length_map_has_no_ids(map: Snapshot<ActiveOwners>) {
 /// Cancelling one exclusive singleton registration factors precisely the
 /// finite map with that ID removed.
 #[check(ghost)]
-#[requires((*map).get(*id) == Some(Excl(())))]
-#[ensures((*map).factor(FMap::singleton(*id, Excl(()))) == (*map).remove(*id))]
-fn factor_singleton_removal(map: Snapshot<ActiveOwners>, id: Snapshot<Int>) {
+#[requires((*map).get(*id) == Some(Excl(*binding)))]
+#[ensures((*map).factor(FMap::singleton(*id, Excl(*binding))) == (*map).remove(*id))]
+fn factor_singleton_removal(
+    map: Snapshot<ActiveOwners>,
+    id: Snapshot<Int>,
+    binding: Snapshot<AllocationBinding>,
+) {
     let singleton: Snapshot<ActiveOwners> =
-        snapshot!(FMap::singleton(*id, Excl(())));
+        snapshot!(FMap::singleton(*id, Excl(*binding)));
     proof_assert!((*singleton).incl(*map));
     let remainder: Snapshot<ActiveOwners> = snapshot!((*map).factor(*singleton));
     proof_assert!((*singleton).op(*remainder) == Some(*map));

@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1923 4 1923 41 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1924 4 1924 41 *)
 
 (* bytes_mut::BytesMut *)
 
@@ -10,13 +10,13 @@ let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-ref
 let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
 let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1929 23 1929 71
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1930 20 1930 34
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1930 12 1930 34
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1923 27 1923 31
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1918 66 1918 85
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1919 65 1919 96
-let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1923 4 1923 41
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1930 23 1930 71
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1931 20 1931 34
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1931 12 1931 34
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1924 27 1924 31
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1919 66 1919 85
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1920 65 1920 96
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1924 4 1924 41
 let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 147 12 149 48
 let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 103 20 103 77
 let%span sbytes_mut'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 120 12 141 13
@@ -236,7 +236,7 @@ axiom inv_axiom'4 [@rewrite]:
       | Some f0'6 -> inv_OriginalUniqueProof f0'6
       end
 
-predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 162 4 162 30] (self: t_SharedOwnerPacket)
+predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 167 4 167 30] (self: t_SharedOwnerPacket)
 
 predicate resolve_AtomicInvariant_SharedState [@inline:trivial] (_1: t_AtomicInvariant_SharedState) = true
 
@@ -264,7 +264,7 @@ predicate inv_Ghost_GhostShared_AtomicInvariant_SharedState [@inline:trivial] (_
 
 meta "rewrite_def" predicate inv_Ghost_GhostShared_AtomicInvariant_SharedState
 
-predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 60 4 60 30] (self: t_OwnerTicket)
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 75 4 75 30] (self: t_OwnerTicket)
 
 predicate inv_OwnerTicket (_1: t_OwnerTicket)
 
@@ -424,7 +424,8 @@ constant const_KIND_MASK: UInt64.t = [%#sbytes_mut'5] (1: UInt64.t)
 constant const_KIND_VEC: UInt64.t = [%#sbytes_mut'5] (1: UInt64.t)
 
 predicate unique_layout_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 118 4 118 51] (self: t_BytesMut) =
-  [%#sbytes_mut'8] self.unique_proof <> None
+  [%#sbytes_mut'8] self.shared_proof = None'0
+  /\ self.unique_proof <> None
   /\ (let proof = unwrap_Option_OriginalUniqueProof self.unique_proof in let caps = proof.capabilities in invariant_BoundPtr proof.base
   /\ invariant_BoundPtr proof.cursor
   /\ invariant_RawAllocation proof.raw
@@ -483,7 +484,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let get_vec_pos [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1923 4 1923 41] (self: t_BytesMut)
+let get_vec_pos [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1924 4 1924 41] (self: t_BytesMut)
   (return (x: UInt64.t)) =
 {[@stop_split] [@expl:get_vec_pos requires] ([@stop_split] [@expl:get_vec_pos 'self' type invariant] [%#sbytes_mut'2] inv_ref_BytesMut self)
   /\ ([@stop_split] [@expl:get_vec_pos requires] [%#sbytes_mut'3] unique_valid self)}

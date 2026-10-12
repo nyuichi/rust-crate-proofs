@@ -22,8 +22,11 @@ the body-proved recovery-token and physical-region construction. The
 pointer, length, capacity, and contents to a sealed witness is trusted; it
 does not create those affine resources or establish any `Bytes` owner,
 refcount, or retirement rule. The private promotion helper calls `hold_owned`
-to build its initial Shared storage state; later Shared lifecycle operations
-remain outside this proof.
+to build its initial Shared storage state. `hold_owned` also returns a ghost
+allocation identity tuple (namespace, base pointer, capacity) computed from
+that captured Vec, alongside the storage authority, physical region and base
+descriptor. The tuple identifies the allocation; it grants no access
+authority. Later Shared lifecycle operations remain outside this proof.
 
 The native Shared reserve-growth path now compacts its initialized visible
 bytes to the Vec base before calling `Vec::reserve`, so a hidden prefix left
@@ -45,9 +48,12 @@ The packet-backed Shared branch is proved under its internal layout and
 initialized-visible-prefix preconditions. It advances the handle pointer and
 packet cursor, reduces length and capacity, preserves the packet capsule,
 ticket, region, base and all allocation slots, and specifies the visible bytes
-as the old suffix after `min(count, old_len)`. This packet layout does not
-connect each handle's physical region to the capsule's protected storage
-authority after later transitions. The native regression
+as the old suffix after `min(count, old_len)`. The selected packet invariant
+ties each ticket's allocation identity to its region namespace, base and
+capacity; the capsule protocol ties the same identity to its current protected
+storage authority. The generic ledger split and drop bodies preserve this
+identity. It remains metadata only, and no production clone, split, drop or
+refcount transition chain is established. The native regression
 `shared_advance_past_len_within_capacity_keeps_empty_view` checks the Shared
 path when count exceeds length but stays within capacity.
 The `BufMut::advance_mut` implementation body has a proof under its
@@ -55,8 +61,7 @@ cursor-validity and initialized-slot preconditions, but the generated trait
 refinement obligation is not proved because those implementation preconditions
 are stronger than the trait prestate.
 No selected proof establishes a safe public-call chain that produces a
-nonzero cursor. The public `Buf::advance` wrapper is not translated, and the
-Shared packet predicates do not establish later storage-authority binding.
+nonzero cursor. The public `Buf::advance` wrapper is not translated.
 A separate body proof now covers the private
 `promote_to_shared_count_one` helper: it moves a rebuildable Vec into a Shared
 header and binds the nonzero cursor, whole allocation region, count-one native
@@ -67,6 +72,11 @@ result proves a safe public call chain reaches the promotion branch.
 
 The selected source targets include body proofs for the generic `OwnerLedger`
 algebra and the current-value refcount operation wrappers and increment loop.
+The ledger stores one ghost allocation identity in every active owner
+registration and exclusive ticket; its constructor, split and drop proofs
+preserve that tuple. This connects the selected initial promotion packet to
+protected storage metadata, but does not connect later production owner or
+refcount operations to the ledger.
 They also prove the one-shot `RefCountCell` bootstrap extraction body, which
 moves its event permission and recorded scalar value out of the cell and leaves
 the proof-only sidecar detached. No production `Bytes` or `BytesMut` path calls

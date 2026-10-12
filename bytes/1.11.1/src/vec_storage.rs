@@ -608,14 +608,32 @@ impl VecStorage {
     #[ensures(forall<i: Int> input@.len() <= i &&
         i < creusot_std::std::vec::capacity_model(input) ==>
         result.1.inner_logic().1.slot(i) == Some(None))]
+    #[ensures(result.3.inner_logic() == (
+        result.1.inner_logic().0.binding(),
+        result.1.inner_logic().0.raw_pointer(),
+        result.1.inner_logic().0.capacity()
+    ))]
     pub(crate) fn hold_owned(
         input: Vec<u8>,
-    ) -> (Self, Ghost<(StoredAuthority, PhysicalRegion)>, BoundPtr) {
+    ) -> (
+        Self,
+        Ghost<(StoredAuthority, PhysicalRegion)>,
+        BoundPtr,
+        Ghost<(Id, *mut u8, Int)>,
+    ) {
         let (mut storage, witness) = Self::capture_vec_owner(input);
         let (pointer, stored_len, capacity) = witness.native_parts();
         let (raw, capabilities) = raw_vec::bind_consumed_vec(witness);
         let (base, _) = raw.bound_ptr_at_zero();
         let binding: Ghost<Id> = ghost!(raw.namespace_ghost().into_inner());
+        let allocation_base = pointer.as_ptr();
+        let allocation_binding: Ghost<(Id, *mut u8, Int)> = ghost! {
+            (
+                binding.into_inner(),
+                allocation_base,
+                raw_vec::int_from_usize(capacity).into_inner(),
+            )
+        };
         let ghost_raw = raw.into_ghost();
         storage.1 = ghost! {
             Some(StorageModel::Owned {
@@ -637,7 +655,7 @@ impl VecStorage {
                 region.into_inner(),
             )
         };
-        (storage, authority_and_region, base)
+        (storage, authority_and_region, base, allocation_binding)
     }
 }
 
