@@ -132,7 +132,7 @@ impl SharedOwnerPacket {
         pearlite! { self.region.inner_logic().slot(index) }
     }
 
-    #[logic(prophetic)]
+    #[logic(open(self), prophetic)]
     fn valid(self) -> bool {
         pearlite! {
             self.capsule.invariant() &&
@@ -161,6 +161,35 @@ impl Invariant for SharedOwnerPacket {
     #[logic(open(self), prophetic)]
     fn invariant(self) -> bool {
         self.valid()
+    }
+}
+
+impl SharedOwnerPacket {
+    /// Advance this handle's bound cursor while preserving the capsule, ticket,
+    /// region, and base allocation descriptor. This moves only the packet's
+    /// existing cursor; it does not split, clone, or rebind any authority.
+    #[requires(self.invariant())]
+    #[requires(count@ <= self.region.inner_logic().hi() - self.cursor@.unwrap_logic().2)]
+    #[ensures(result.invariant())]
+    #[ensures(result.capsule.inner_logic() == self.capsule.inner_logic())]
+    #[ensures(result.capsule_public() == self.capsule_public())]
+    #[ensures(result.ticket.inner_logic() == self.ticket.inner_logic())]
+    #[ensures(result.region.inner_logic() == self.region.inner_logic())]
+    #[ensures(forall<i:Int> 0 <= i && i < self.region.inner_logic().capacity() ==>
+        result.allocation_slot(i) == self.allocation_slot(i))]
+    #[ensures(result.base == self.base)]
+    #[ensures(result.cursor@ == Some((
+        self.cursor@.unwrap_logic().0,
+        self.cursor@.unwrap_logic().1,
+        self.cursor@.unwrap_logic().2 + count@
+    )))]
+    #[ensures(result.cursor.current_address() == self.cursor.current_address() + count@)]
+    #[ensures(result.cursor.raw_pointer().addr_logic()@ ==
+        self.cursor.raw_pointer().addr_logic()@ + count@)]
+    pub(crate) fn advance_cursor(self, count: usize) -> Self {
+        let mut result = self;
+        result.cursor = result.cursor.advance_within(count);
+        result
     }
 }
 

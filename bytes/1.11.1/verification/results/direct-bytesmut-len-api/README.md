@@ -34,20 +34,29 @@ ownership or lifecycle.
 
 The selected source targets also include body proofs for cursor-relative
 prefix helpers, Vec metadata packing and position updates, `BoundPtr`
-projections, `set_visible_len`, `advance_vec_layout`, `advance_unchecked`, and
+projections, `set_visible_len`, `advance_vec_layout`, `advance_shared_layout`,
+`SharedOwnerPacket::advance_cursor`, `advance_unchecked`, and
 `BufMut::advance_mut`. The selected constructors establish an offset-zero
 `unique_vec_rebuildable` Vec state, including the known initialized prefix
-needed to reconstruct the original Vec. `advance_unchecked` is proved only
-under its internal rebuildable-state, `count <= len`, capacity, and
-representable-position preconditions; this keeps the proof on the Vec
-no-promotion path and preserves the allocation-slot frame.
+needed to reconstruct the original Vec. The Vec `advance_unchecked` branch is
+proved under its rebuildable-state, `count <= len`, capacity, and
+representable-position preconditions; it preserves the allocation-slot frame.
+The packet-backed Shared branch is proved under its internal layout and
+initialized-visible-prefix preconditions. It advances the handle pointer and
+packet cursor, reduces length and capacity, preserves the packet capsule,
+ticket, region, base and all allocation slots, and specifies the visible bytes
+as the old suffix after `min(count, old_len)`. This packet layout does not
+connect each handle's physical region to the capsule's protected storage
+authority after later transitions. The native regression
+`shared_advance_past_len_within_capacity_keeps_empty_view` checks the Shared
+path when count exceeds length but stays within capacity.
 The `BufMut::advance_mut` implementation body has a proof under its
 cursor-validity and initialized-slot preconditions, but the generated trait
 refinement obligation is not proved because those implementation preconditions
 are stronger than the trait prestate.
 No selected proof establishes a safe public-call chain that produces a
 nonzero cursor. The public `Buf::advance` wrapper is not translated, and the
-`advance_unchecked` body proof still covers only the Vec no-promotion branch.
+Shared packet predicates do not establish later storage-authority binding.
 A separate body proof now covers the private
 `promote_to_shared_count_one` helper: it moves a rebuildable Vec into a Shared
 header and binds the nonzero cursor, whole allocation region, count-one native

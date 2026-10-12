@@ -183,6 +183,99 @@ impl BytesMut {
     pub(crate) fn unique_bytes(self) -> Seq<u8> {
         pearlite! { Seq::create(self.len@, |i:Int| self.unique_slot(i).unwrap_logic().unwrap_logic()) }
     }
+
+    /// The handle's proof packet names the same header and ARC-tagged data
+    /// pointer. This packet predicate does not express the capsule's
+    /// storage-authority binding; the initial constructor establishes it, and
+    /// later transitions still need to preserve that relation.
+    #[logic(open(self), prophetic)]
+    fn shared_packet_header_valid(self) -> bool {
+        pearlite! {
+            self.unique_proof == None &&
+            match self.shared_proof {
+                Some(packet) => packet.invariant() &&
+                    packet.capsule_public().0 == self.data as *mut () &&
+                    (self.data.addr_logic() & KIND_MASK) == KIND_ARC,
+                None => false,
+            }
+        }
+    }
+
+    /// The packet's cursor is the handle pointer, and both bound descriptors
+    /// retain one allocation namespace and base-relative offset.
+    #[logic(open(self), prophetic)]
+    fn shared_cursor_valid(self) -> bool {
+        pearlite! {
+            match self.shared_proof {
+                Some(packet) =>
+                    packet.base@ == Some((packet.region.inner_logic().namespace(),
+                        packet.region.inner_logic().capacity(), 0int)) &&
+                    packet.cursor@ != None &&
+                    packet.cursor.raw_pointer() == self.ptr@ &&
+                    packet.cursor@.unwrap_logic().0 == packet.region.inner_logic().namespace() &&
+                    packet.cursor@.unwrap_logic().1 == packet.region.inner_logic().capacity() &&
+                    packet.cursor.current_address() == packet.base.current_address() +
+                        packet.cursor@.unwrap_logic().2,
+                None => false,
+            }
+        }
+    }
+
+    /// The view fits its packet's physical suffix. This is independent of
+    /// whether the current visible bytes are initialized.
+    #[logic(open(self), prophetic)]
+    fn shared_extent_valid(self) -> bool {
+        pearlite! {
+            match self.shared_proof {
+                Some(packet) =>
+                    self.len@ <= self.cap@ &&
+                    packet.cursor@.unwrap_logic().2 + self.cap@ == packet.region.inner_logic().hi(),
+                None => false,
+            }
+        }
+    }
+
+    /// Stable handle layout for the cursor-only shared path. This predicate
+    /// does not express the packet region's relation to the capsule's
+    /// protected storage authority. The initial constructor establishes that
+    /// relation; its preservation through later transitions remains unproved.
+    #[logic(open(self), prophetic)]
+    fn shared_layout_valid(self) -> bool {
+        pearlite! {
+            self.shared_packet_header_valid() &&
+            self.shared_cursor_valid() &&
+            self.shared_extent_valid()
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    fn shared_visible_slots_known(self) -> bool {
+        pearlite! {
+            forall<i:Int> 0 <= i && i < self.len@ ==>
+                slot_known(self.shared_proof.unwrap_logic().allocation_slot(
+                    self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2 + i))
+        }
+    }
+
+    /// Only the bytes in the current shared view must be initialized. Hidden
+    /// bytes before the cursor and spare capacity may be unknown.
+    #[logic(open(self), prophetic)]
+    fn shared_visible_prefix_known(self) -> bool {
+        pearlite! {
+            self.shared_layout_valid() &&
+            self.shared_visible_slots_known()
+        }
+    }
+
+    #[logic(open(self))]
+    pub(crate) fn shared_bytes(self) -> Seq<u8> {
+        pearlite! {
+            Seq::create(self.len@, |i:Int|
+                self.shared_proof.unwrap_logic().allocation_slot(
+                    self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2 + i
+                ).unwrap_logic().unwrap_logic())
+        }
+    }
 }
 /// Combine the currently initialized visible prefix with the range newly
 /// exposed by `set_len`. Slot indices are absolute allocation coordinates.
@@ -881,6 +974,62 @@ impl BytesMut {
         self.cap -= count;
     }
 
+    /// Move a shared handle's view within its owned physical subregion. The
+    /// packet's region, ticket, capsule, and allocation slots are unchanged;
+    /// only the cursor and the native view fields advance.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.shared_layout_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.shared_visible_prefix_known()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.cap@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_packet_header_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_cursor_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_extent_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_visible_slots_known()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof == self.unique_proof))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).data == self.data))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).len@ ==
+        (if count@ <= self.len@ { self.len@ - count@ } else { 0int })))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).cap@ + count@ == self.cap@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).shared_proof.unwrap_logic().capsule.inner_logic() ==
+            self.shared_proof.unwrap_logic().capsule.inner_logic()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).shared_proof.unwrap_logic().ticket.inner_logic() ==
+            self.shared_proof.unwrap_logic().ticket.inner_logic()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).shared_proof.unwrap_logic().region.inner_logic() ==
+            self.shared_proof.unwrap_logic().region.inner_logic()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).shared_proof.unwrap_logic().base == self.shared_proof.unwrap_logic().base))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).shared_proof.unwrap_logic().cursor@.unwrap_logic().2 ==
+            self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2 + count@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
+            (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
+                self.shared_proof.unwrap_logic().allocation_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).shared_bytes() ==
+        self.shared_bytes().subsequence(
+            if count@ <= self.len@ { count@ } else { self.len@ }, self.len@)))]
+    #[inline]
+    unsafe fn advance_shared_layout(&mut self, count: usize) {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let next_packet = self.shared_proof.take().unwrap().advance_cursor(count);
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let pointer = next_packet.cursor.as_ptr();
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let pointer = crate::provenance_specs::wrapping_offset(self.ptr.as_ptr(), count);
+
+        self.ptr = vptr(pointer);
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            self.shared_proof = Some(next_packet);
+        }
+        self.len = self.len.saturating_sub(count);
+        self.cap -= count;
+    }
+
     /// Sets the length of the buffer.
     ///
     /// This will explicitly set the size of the buffer without actually
@@ -1415,31 +1564,114 @@ impl BytesMut {
     /// # SAFETY
     ///
     /// The caller must ensure that `count` <= `self.cap`.
-    // The proof contract below covers the Vec path only while its packed offset
-    // remains representable; promotion is handled by a separate proof slice.
-    // Under this verification gate the selected no-promotion Vec path also
-    // carries the hidden initialized prefix and advances only within len. The
-    // native ARC path remains capacity-bounded as before.
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_vec_rebuildable()))]
+    // The selected proof paths are the rebuildable, no-promotion Vec case and
+    // the packet-backed ARC cursor case. They establish these private state
+    // transitions from their respective invariants; this does not prove the
+    // public producer chain or the ARC capsule's lifecycle and storage binding.
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.cap@))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.unique_length()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_offset() + count@ <= MAX_VEC_POS@))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_vec_rebuildable()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_offset() == self.unique_offset() + count@))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_capacity() == self.unique_capacity() - count@))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == if count@ <= self.unique_length() { self.unique_length() - count@ } else { 0 }))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ == self.unique_offset() + count@))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer().addr_logic()@ == self.unique_pointer().addr_logic()@ + count@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        (self.unique_valid() && self.unique_vec_rebuildable() &&
+            count@ <= self.unique_length() &&
+            self.unique_offset() + count@ <= MAX_VEC_POS@) ||
+        (self.shared_layout_valid() && self.shared_visible_prefix_known())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==> (^self).unique_valid()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==>
+            ((^self).unique_offset() == self.unique_offset() + count@)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==>
+            ((^self).unique_capacity() == self.unique_capacity() - count@)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==>
+            ((^self).unique_length() == if count@ <= self.unique_length() {
+                self.unique_length() - count@
+            } else { 0 })
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==>
+            ((^self).unique_allocation_capacity() == self.unique_allocation_capacity())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==>
+            (((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ ==
+                self.unique_offset() + count@)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==>
+            ((^self).unique_pointer().addr_logic()@ ==
+                self.unique_pointer().addr_logic()@ + count@)
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        0 <= i && i < (^self).unique_capacity() ==> (^self).unique_slot(i) == self.unique_slot(count@ + i)))]
+        self.unique_vec_rebuildable() ==>
+            (0 <= i && i < (^self).unique_capacity() ==>
+                (^self).unique_slot(i) == self.unique_slot(count@ + i))))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        0 <= i && i < self.unique_allocation_capacity() ==>
-            (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() ==
-        self.unique_bytes().subsequence(if count@ <= self.unique_length() { count@ } else { self.unique_length() }, self.unique_length())))]
+        self.unique_vec_rebuildable() ==>
+            (0 <= i && i < self.unique_allocation_capacity() ==>
+                (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==>
+            ((^self).unique_bytes() == self.unique_bytes().subsequence(
+                if count@ <= self.unique_length() { count@ } else { self.unique_length() },
+                self.unique_length()))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> (^self).shared_layout_valid()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_visible_prefix_known() ==> (^self).shared_visible_prefix_known()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> (^self).shared_proof.unwrap_logic().capsule.inner_logic() ==
+            self.shared_proof.unwrap_logic().capsule.inner_logic()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> (^self).shared_proof.unwrap_logic().ticket.inner_logic() ==
+            self.shared_proof.unwrap_logic().ticket.inner_logic()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> (^self).shared_proof.unwrap_logic().region.inner_logic() ==
+            self.shared_proof.unwrap_logic().region.inner_logic()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> (^self).shared_proof.unwrap_logic().base ==
+            self.shared_proof.unwrap_logic().base
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> (^self).shared_proof.unwrap_logic().cursor@.unwrap_logic().2 ==
+            self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2 + count@
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> ((^self).data == self.data)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> ((^self).len@ ==
+            (if count@ <= self.len@ { self.len@ - count@ } else { 0int }))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> ((^self).cap@ + count@ == self.cap@)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> ((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        self.shared_layout_valid() ==>
+            (0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
+                (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
+                    self.shared_proof.unwrap_logic().allocation_slot(i))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==>
+            ((^self).shared_bytes() == self.shared_bytes().subsequence(
+                if count@ <= self.len@ { count@ } else { self.len@ }, self.len@))
+    ))]
     pub(crate) unsafe fn advance_unchecked(&mut self, count: usize) {
         // Setting the start to 0 is a no-op, so return early if this is the
         // case.
@@ -1472,6 +1704,9 @@ impl BytesMut {
                 // systems, but the packed Vec offset still has a finite bound.
                 unsafe { self.promote_to_shared_count_one(off, pos, count) };
             }
+        } else if kind == KIND_ARC {
+            unsafe { self.advance_shared_layout(count) };
+            return;
         } else {
             self.ptr = vptr(crate::provenance_specs::wrapping_offset(
                 self.ptr.as_ptr(),
@@ -2331,6 +2566,26 @@ mod tests {
         assert_eq!(buffer.len(), len);
         assert_eq!(buffer.capacity(), cap);
         assert_eq!(&buffer[..], expected.as_slice());
+    }
+
+    #[test]
+    fn shared_advance_past_len_within_capacity_keeps_empty_view() {
+        let mut left = BytesMut::with_capacity(20);
+        left.extend_from_slice(b"hello");
+        let original_capacity = left.capacity();
+        assert!(original_capacity >= 7);
+
+        // split_off promotes the Vec to shared storage before advancing the
+        // returned view. Here the cursor count exceeds len but remains within
+        // capacity, so the shared path produces an empty view with a suffix.
+        let right = left.split_off(7);
+
+        assert_eq!(left.len(), 5);
+        assert_eq!(left.capacity(), 7);
+        assert_eq!(&left[..], b"hello");
+        assert_eq!(right.len(), 0);
+        assert_eq!(right.capacity(), original_capacity - 7);
+        assert!(right.is_empty());
     }
 
     #[test]

@@ -63,14 +63,21 @@ at an absolute cursor, and the metadata helpers prove the packed Vec position
 updates. The selected constructor bodies establish `unique_vec_rebuildable` at
 offset zero. Body proofs for `advance_vec_layout` and `set_visible_len`
 establish the two phases of a Vec cursor advance while preserving all
-allocation slots. The private `advance_unchecked` body is proved only with a
+allocation slots. The Vec `advance_unchecked` branch is body-proved with a
 rebuildable Vec state, `count <= len`, capacity bounds and representable packed
-position; the selected branch is the Vec no-promotion path. This does not prove
-that any safe public call chain produces a nonzero offset. The public
-`Buf::advance` wrapper is not translated, and the trait-refinement obligation
-for `BufMut::advance_mut` remains unproved because its implementation body has
-stronger proof preconditions than the trait prestate. Promotion, Shared states,
-immutable peers, lifecycle operations, concurrency and unwind behavior remain
+position. The packet-backed Shared branch is body-proved with the handle's
+packet-layout and initialized-visible-prefix preconditions.
+`advance_shared_layout` and `SharedOwnerPacket::advance_cursor` preserve the
+packet capsule, ticket, physical-region descriptor, base and allocation slots
+while advancing the cursor, pointer, visible suffix and remaining capacity.
+The packet-layout predicate does not connect each handle's physical region to
+the capsule's protected storage authority after later transitions; this proof
+therefore does not establish Shared reads, recovery, exclusivity or lifecycle
+behavior. No selected proof establishes a safe public call chain that produces
+a nonzero offset: public `Buf::advance` is untranslated. The trait-refinement
+obligation for `BufMut::advance_mut` also remains unproved because its body has
+stronger proof preconditions than the trait prestate. Immutable peers,
+refcount-to-owner correspondence, concurrency and unwind behavior remain
 outside the selected `BytesMut` proof scope.
 
 The native Shared reserve-growth path now compacts the handle's initialized
@@ -171,7 +178,9 @@ protocol binds those identities and value one. The private
 including the count-one counter and root ticket. It is the only promotion
 helper whose body is verified in this checkpoint; no clone/split/drop update
 path is connected yet.
-The `advance_unchecked` proof assumes a representable Vec position, so it does
-not establish reachability of the promotion branch, and public `Buf::advance`
-is untranslated. The proof adds no trusted native count-to-ticket law,
+The Vec `advance_unchecked` branch assumes a representable position, so it
+does not establish reachability of the promotion branch, and public
+`Buf::advance` is untranslated. Its packet-backed Shared branch proves cursor
+movement under private packet predicates, but leaves later storage-authority
+binding unproved. The proof adds no trusted native count-to-ticket law,
 count-one exclusivity, terminal recovery, or allocation-lifecycle guarantee.

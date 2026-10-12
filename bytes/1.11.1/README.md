@@ -23,17 +23,19 @@ capacity, storage tag and all capacity slots. The original-source proofs
 include the local ownership, provenance and capacity-representation helper
 bodies in their call cone.
 
-The private Vec advance is proved in two phases: `advance_vec_layout` moves the
-cursor while retaining the full allocation-slot frame, then `set_visible_len`
-restores the visible-prefix invariant. `advance_unchecked` is proved only for
-the Vec no-promotion branch, with a rebuildable state and `count <= len` as
-preconditions. The initial constructors establish the rebuildable state at
-offset zero, but the selected proofs do not establish a safe public-call chain
-that reaches a nonzero offset. The public `Buf::advance` wrapper is not
-translated, and `BufMut::advance_mut` has a body proof but its trait-refinement
-obligation remains open. Shared-backed transitions, immutable peers,
-refcount-to-owner correspondence, lifecycle operations, concurrency and
-unwind behavior are outside this checkpoint. See the
+The private `advance_unchecked` body has selected Vec and packet-backed Shared
+cursor proofs. The Vec path retains the full allocation-slot frame and updates
+the visible prefix in two phases. The Shared path advances the packet cursor
+and proves the new pointer, length, capacity, visible-byte suffix and complete
+packet allocation-slot frame under its internal layout and initialized-view
+preconditions. These packet predicates do not connect each handle's physical
+region to the capsule's protected storage authority after later transitions.
+The selected proofs do not establish a safe public-call chain that reaches a
+nonzero cursor; the public `Buf::advance` wrapper is not translated.
+`BufMut::advance_mut` has a body proof, but its trait-refinement obligation
+remains open. Immutable peers, refcount-to-owner correspondence, lifecycle
+operations, concurrency and unwind behavior remain outside this checkpoint.
+See the
 [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md) and
 [generic Std overlay](verification/std-support/README.md) assumptions.
 
