@@ -157,37 +157,55 @@ initial promotion path connects one native count of one with one root ledger
 ticket in its capsule. The body proofs do not yet connect later increments,
 clones, splits, conversions, drops, or handle transfers to the `OwnerLedger`,
 so they do not establish count-to-registration equality across those
-transitions or derive count-one exclusivity for recovery. Terminal recovery,
-Shared allocation retirement, destruction, and end-to-end `BytesMut::truncate`
-across Shared, split, or nonzero-offset states remain unproved.
+transitions or derive count-one exclusivity for recovery. Terminal recovery in
+a production path, Shared allocation retirement and destruction, and end-to-end
+`BytesMut::truncate` across Shared, split, or nonzero-offset states remain
+unproved.
 
-The selected crate targets also body-prove the generic
-`ownership_proof::ref_count_ledger` module. Its affine authority map represents
-registered owner IDs, and every active fragment now carries the same ghost
-allocation identity tuple (namespace, base pointer and capacity). The
-constructor, child split and drop bodies preserve that binding; checked
-helpers prove ticket membership, singleton and no-conflicting-ticket facts.
-This metadata records allocation identity but grants no access authority. The
-initial promotion composes it with the captured Vec storage authority and the
-packet's matching region and base. These generic ledger proofs and that one
-initial production constructor do not connect later production `Bytes` or
-`BytesMut` clone, split, drop, refcount, terminal-read or recovery paths to a
-ticket. They establish no native refcount-to-registration equality, count-one
-uniqueness or Shared allocation lifecycle property.
+The selected crate targets body-prove the generic
+`ownership_proof::ref_count_ledger` module. Each `OwnerTicket` contains the
+actual affine `Fragment` for one singleton owner ID. The body-proved
+`OwnerTicket::from_fragment` constructor consumes that fragment once and
+establishes its ledger resource ID, owner ID, exact singleton map and stored
+binding. `replace_binding` preserves the ticket identity and explicitly frames
+the authority resource ID while updating the matching map entry; the
+`OwnerBindingUpdate` trait-refinement obligation is also selected and proved.
+
+An `OwnerBinding` contains the common allocation identity tuple (namespace,
+base pointer and capacity) and a half-open range `[lo, hi)`. The ledger
+invariant requires each active range to lie within the allocation and requires
+active ranges to be pairwise disjoint. Body proofs cover a root ticket over
+`[0, capacity)`, a promoted pair split at a supplied cut, `split_owner` splitting
+one live parent interval into adjacent parent and child intervals, and
+`drop_owner` removing one registration. `sole_active_id` characterizes the
+range represented by the only active ticket. These interval and allocation
+fields are metadata: they grant no allocation access authority.
+
+Only the root-ticket constructor is connected to the selected production
+promotion helper. The two-ticket constructor, split and drop transitions are
+proved as generic ledger operations; no native handle split, drop, conversion
+or refcount operation invokes them in the selected call cone. Consequently the
+proofs do not establish native refcount-to-registration equality, count-one
+uniqueness for recovery, or a Shared allocation lifecycle.
 
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
 contradiction between a closed authority and a still-valid matching action.
-`shared_capsule::make_count_one_packet` is body-proved to compose supplied
-header, exact counter permission, storage authority, one registered owner
-ticket, whole physical region, and open terminal phase into a capsule whose
-protocol binds those identities and value one. Its allocation identity tuple
-matches the protected storage namespace, base and capacity, the ticket's
-exclusive fragment, and the returned packet region and base. The private
-`promote_to_shared_count_one` body now supplies these values on its proof path,
-including the count-one counter and root ticket. It is the only promotion
-helper whose body is verified in this checkpoint; no clone/split/drop update
-path is connected yet.
+`shared_capsule::make_count_one_packet` is body-proved to compose the supplied
+header, exact counter permission, storage authority, root ticket, whole
+physical region and open terminal phase into a count-one capsule. The packet
+invariant binds the ticket's allocation identity and `[lo, hi)` range to the
+region namespace, base, capacity and bounds. `SharedState` states that its
+physical pool contains exactly the in-bounds complement of active owner
+ranges. The selected constructor proves the initial case: the ticket owns the
+whole `[0, capacity)` interval and the pool is empty, using the body-proved
+`PhysicalPool::empty_from` constructor and its unit-normalization helper. The
+generic `PhysicalPool::retire` and `finish` operations are also body-proved.
+No selected production path invokes them to retire regions into the pool or
+recover a full region from it. The private `promote_to_shared_count_one` body
+supplies these initial values, including the count-one counter and root ticket.
+This is the only selected production owner-ledger composition; no
+clone/split/drop update path is connected yet.
 The Vec `advance_unchecked` branch assumes a representable position, so it
 does not establish reachability of the promotion branch, and public
 `Buf::advance` is untranslated. Its packet-backed Shared branch proves cursor

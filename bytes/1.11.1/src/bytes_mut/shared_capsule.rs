@@ -18,8 +18,8 @@ use creusot_std::{
 
 use crate::{
     ownership_proof::{
-        raw_vec::{BoundPtr, PhysicalRegion},
-        ref_count_ledger::{OwnerLedger, OwnerTicket, RetirePermit},
+        raw_vec::{BoundPtr, PhysicalPool, PhysicalRegion},
+        ref_count_ledger::{active_owner_contains, sole_active_id, OwnerLedger, OwnerTicket, RetirePermit},
         terminal_phase::{PhaseAuthority, TerminalAction},
     },
     ref_count_ops::NativeCounter,
@@ -42,6 +42,7 @@ pub(crate) struct SharedState {
     root: Option<Box<Perm<*const Shared>>>,
     counter_owner: Option<Perm<NativeCounter>>,
     storage: Option<StoredAuthority>,
+    pool: Option<PhysicalPool>,
     ledger: Option<OwnerLedger>,
     retire: Option<RetirePermit>,
     phase: PhaseAuthority,
@@ -62,12 +63,12 @@ impl Protocol for SharedState {
     fn protocol(self) -> bool {
         pearlite! {
         self.phase.invariant() && self.phase.resource_id() == self.phase_id &&
-        match (self.root, self.counter_owner, self.storage, self.ledger,
+        match (self.root, self.counter_owner, self.storage, self.pool, self.ledger,
             self.retire, self.terminal_action) {
-            (Some(root), Some(owner), Some(storage), Some(ledger), None, Some(action)) => {
+            (Some(root), Some(owner), Some(storage), Some(pool), Some(ledger), None, Some(action)) => {
                 let header = root.val();
                 !self.closed && self.value@ > 0 && self.phase.is_open() &&
-                root.invariant() && owner.invariant() && storage.invariant() &&
+                root.invariant() && owner.invariant() && storage.invariant() && pool.invariant() &&
                 ledger.invariant() && ledger.is_live() && ledger.ledger_id() == self.ledger_id &&
                 action.invariant() &&
                 action.resource_id() == self.phase_id &&
@@ -79,21 +80,34 @@ impl Protocol for SharedState {
                 ledger.agrees_with_value(self.value@) && ledger.count() > 0 &&
                 ledger.allocation_binding() == (
                     storage.binding(), storage.raw_pointer(), storage.capacity()) &&
+                pool.capacity() == storage.capacity() &&
+                pool.namespace() == storage.binding() &&
+                pool.resource_id() == storage.binding() &&
+                (forall<index: Int> pool.contains(index) == (
+                    0 <= index && index < storage.capacity() &&
+                    !active_owner_contains(ledger.active_ids(), index)
+                )) &&
                 header.vec.matches_authority(storage)
             },
-            (Some(root), Some(owner), Some(storage), None, Some(retire), None) => {
+            (Some(root), Some(owner), Some(storage), Some(pool), None, Some(retire), None) => {
                 let header = root.val();
                 !self.closed && self.value@ == 0 && self.phase.is_open() &&
-                root.invariant() && owner.invariant() && storage.invariant() &&
+                root.invariant() && owner.invariant() && storage.invariant() && pool.invariant() &&
                 retire.invariant() && retire.ledger_id() == self.ledger_id &&
                 retire.active_ids().is_empty() &&
                 *root.ward() == self.header_id as *const Shared &&
                 header.ref_count.counter_model() == *owner.ward() &&
                 header.ref_count.counter_model() == *self.counter_model &&
                 !header.ref_count.has_event_invariant() && owner.val()@ == 0 &&
+                pool.capacity() == storage.capacity() &&
+                pool.namespace() == storage.binding() &&
+                pool.resource_id() == storage.binding() &&
+                (forall<index: Int> pool.contains(index) == (
+                    0 <= index && index < storage.capacity()
+                )) &&
                 header.vec.matches_authority(storage)
             },
-            (None, None, None, None, Some(retire), None) =>
+            (None, None, None, None, None, Some(retire), None) =>
                 self.closed && self.phase.is_closed() && retire.invariant() &&
                 retire.ledger_id() == self.ledger_id && retire.active_ids().is_empty(),
             _ => false,
@@ -106,7 +120,8 @@ impl Invariant for SharedState {
     #[logic(open(self), prophetic)]
     fn invariant(self) -> bool {
         inv(self.root) && inv(self.counter_owner) && inv(self.storage) &&
-        inv(self.ledger) && inv(self.retire) && self.phase.invariant() && inv(self.terminal_action)
+        inv(self.pool) && inv(self.ledger) && inv(self.retire) &&
+        self.phase.invariant() && inv(self.terminal_action)
     }
 }
 
@@ -145,6 +160,8 @@ impl SharedOwnerPacket {
             self.ticket.inner_logic().allocation_binding() == (
                 self.region.inner_logic().namespace(), self.base.raw_pointer(),
                 self.region.inner_logic().capacity()) &&
+            self.ticket.inner_logic().owned_lo() == self.region.inner_logic().lo() &&
+            self.ticket.inner_logic().owned_hi() == self.region.inner_logic().hi() &&
             self.base@ == Some((self.region.inner_logic().namespace(),
                 self.region.inner_logic().capacity(), 0int)) &&
             self.cursor@ != None &&
@@ -220,6 +237,8 @@ impl SharedOwnerPacket {
     ledger.inner_logic().0.ledger_id() == ledger.inner_logic().1.ledger_id() &&
     ledger.inner_logic().1.invariant() &&
     ledger.inner_logic().0.has_ticket(ledger.inner_logic().1) &&
+    ledger.inner_logic().1.owned_lo() == 0 &&
+    ledger.inner_logic().1.owned_hi() == storage.inner_logic().1.capacity() &&
     0 <= ledger.inner_logic().1.owner_id() &&
     ledger.inner_logic().1.owner_id() < ledger.inner_logic().0.next_id() &&
     storage.inner_logic().1.invariant() &&
@@ -248,6 +267,8 @@ impl SharedOwnerPacket {
 #[ensures(result.ticket.inner_logic().allocation_binding() == (
     storage.inner_logic().0.binding(), storage.inner_logic().0.raw_pointer(),
     storage.inner_logic().0.capacity()))]
+#[ensures(result.ticket.inner_logic().owned_lo() == result.region.inner_logic().lo())]
+#[ensures(result.ticket.inner_logic().owned_hi() == result.region.inner_logic().hi())]
 #[ensures(result.region.inner_logic() == storage.inner_logic().1)]
 #[ensures(ledger.inner_logic().0.ledger_id() == result.capsule_public().2)]
 #[ensures(ledger.inner_logic().0.has_ticket(result.ticket.inner_logic()))]
@@ -284,6 +305,8 @@ pub(crate) fn make_count_one_packet(
         proof_assert!(owner.val() == value);
         proof_assert!(ledger.has_ticket(ticket));
         ledger.prove_ticket_is_active(&ticket);
+        sole_active_id(snapshot!(ledger), snapshot!(ticket));
+        let pool = PhysicalPool::empty_from(&region);
         let ledger_id = snapshot!(ledger.ledger_id()).into_ghost().into_inner();
         let phase_id = snapshot!(phase.resource_id()).into_ghost().into_inner();
         let state = SharedState {
@@ -294,6 +317,7 @@ pub(crate) fn make_count_one_packet(
             root: Some(root),
             counter_owner: Some(owner),
             storage: Some(storage),
+            pool: Some(pool),
             ledger: Some(ledger),
             retire: None,
             phase,

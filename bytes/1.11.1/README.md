@@ -30,14 +30,30 @@ and proves the new pointer, length, capacity, visible-byte suffix and complete
 packet allocation-slot frame under its internal layout and initialized-view
 preconditions. The selected capsule and packet invariants tie each packet's
 ghost allocation identity (namespace, base and capacity) to the protected
-Shared storage through its ledger ticket. This identity tuple grants no access
-authority, and the proofs do not establish every public producer or later
-owner-lifecycle path. They also do not establish a safe public-call chain that
-reaches a nonzero cursor; the public `Buf::advance` wrapper is not translated.
-`BufMut::advance_mut` has a body proof, but its trait-refinement obligation
-remains open. Immutable peers, refcount-to-owner correspondence, lifecycle
-operations, concurrency and unwind behavior remain outside this checkpoint.
-See the
+Shared storage through its ledger ticket; the ticket's owned interval also
+matches the packet's physical region. The identity and interval metadata grant
+no access authority, and the proofs do not establish every public producer or
+later owner-lifecycle path. They also do not establish a safe public-call chain
+that reaches a nonzero cursor; the public `Buf::advance` wrapper is not
+translated. `BufMut::advance_mut` has a body proof, but its trait-refinement
+obligation remains open.
+
+The selected ghost ownership proofs model each ticket as an exact singleton
+fragment carrying a half-open interval within the allocation. The ledger
+invariant requires those intervals to be in bounds and pairwise disjoint;
+body proofs cover root registration, a two-owner registration, splitting a
+parent interval at a valid cut, dropping a registration, and replacing a
+ticket's interval while preserving the authority identity. The count-one
+packet constructor binds its sole full-range ticket to the packet region and
+the initial empty physical pool using the body-proved
+`PhysicalPool::empty_from` constructor and unit-normalization helper. The
+generic pool retirement and full-range finish operations are also body-proved;
+no production path invokes them yet. These generic ledger proofs do not
+connect native handle split, drop, conversion, or refcount transitions to the
+tickets; pool retirement and recovery transitions also remain unproved in a
+production call path. Immutable peers, refcount-to-owner correspondence,
+concurrency, unwind behavior, and end-to-end `BytesMut::truncate` across shared
+or split states remain outside this checkpoint. See the
 [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md) and
 [generic Std overlay](verification/std-support/README.md) assumptions.
 

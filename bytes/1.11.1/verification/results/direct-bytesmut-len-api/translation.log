@@ -377,6 +377,18 @@ help: remove these parentheses
 1938 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_offset() == self.unique_offset()))]
      |
 
+warning: unnecessary parentheses around method argument
+   --> src/ownership_proof/ref_count_ledger.rs:576:50
+    |
+576 |     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+    |                                                  ^                     ^
+    |
+help: remove these parentheses
+    |
+576 -     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+576 +     #[ensures((^ledger.inner_logic()).has_ticket(^parent.inner_logic()))]
+    |
+
 warning: unnecessary parentheses around function argument
    --> src/ref_count_ops.rs:527:17
     |
@@ -450,6 +462,24 @@ warning: unused variable: `base`
      |
 1259 |     let base = bound.as_ptr();
      |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
+
+warning: unused variable: `from_auth`
+  --> src/ownership_proof/ref_count_ledger.rs:94:9
+   |
+94 |         from_auth: Excl<OwnerBinding>,
+   |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_from_auth`
+
+warning: unused variable: `from_frag`
+  --> src/ownership_proof/ref_count_ledger.rs:95:9
+   |
+95 |         from_frag: Excl<OwnerBinding>,
+   |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_from_frag`
+
+warning: unused variable: `frame`
+  --> src/ownership_proof/ref_count_ledger.rs:96:9
+   |
+96 |         frame: Option<Excl<OwnerBinding>>,
+   |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_frame`
 
 warning: associated function `new` is never used
   --> src/buf/chain.rs:42:19
@@ -653,38 +683,14 @@ warning: methods `split_at` and `join` are never used
 774 |     pub(crate) fn join(self, other: Self) -> Self {
     |                   ^^^^
 
-warning: struct `PhysicalPool` is never constructed
-   --> src/ownership_proof/raw_vec.rs:788:19
-    |
-788 | pub(crate) struct PhysicalPool {
-    |                   ^^^^^^^^^^^^
-
-warning: multiple associated items are never used
-   --> src/ownership_proof/raw_vec.rs:821:19
+warning: methods `slot`, `retire`, and `finish` are never used
+   --> src/ownership_proof/raw_vec.rs:841:19
     |
 819 | impl PhysicalPool {
-    | ----------------- associated items in this implementation
-820 |     #[logic(open)]
-821 |     pub(crate) fn capacity(self) -> Int {
-    |                   ^^^^^^^^
-...
-826 |     pub(crate) fn namespace(self) -> Id {
-    |                   ^^^^^^^^^
-...
-831 |     pub(crate) fn resource_id(self) -> Id {
-    |                   ^^^^^^^^^^^
-...
-836 |     pub(crate) fn contains(self, index: Int) -> bool {
-    |                   ^^^^^^^^
+    | ----------------- methods in this implementation
 ...
 841 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
     |                   ^^^^
-...
-855 |     fn kernel_unit_is_empty() {
-    |        ^^^^^^^^^^^^^^^^^^^^
-...
-881 |     pub(crate) fn empty_from(region: &PhysicalRegion) -> Self {
-    |                   ^^^^^^^^^^
 ...
 914 |     pub(crate) fn retire(self, region: PhysicalRegion) -> Self {
     |                   ^^^^^^
@@ -776,76 +782,67 @@ warning: function `split_view_region` is never used
 59 | pub(crate) fn split_view_region(
    |               ^^^^^^^^^^^^^^^^^
 
-warning: methods `fragment_resource_id` and `fragment_map` are never used
-  --> src/ownership_proof/ref_count_ledger.rs:45:19
+warning: struct `OwnerBindingUpdate` is never constructed
+  --> src/ownership_proof/ref_count_ledger.rs:74:12
    |
-33 | impl OwnerTicket {
-   | ---------------- methods in this implementation
+74 | pub struct OwnerBindingUpdate(pub Snapshot<OwnerBinding>);
+   |            ^^^^^^^^^^^^^^^^^^
+
+warning: method `replace_binding` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:211:19
+    |
+111 | impl OwnerTicket {
+    | ---------------- method in this implementation
 ...
-45 |     pub(crate) fn fragment_resource_id(self) -> Id {
-   |                   ^^^^^^^^^^^^^^^^^^^^
-...
-50 |     pub(crate) fn fragment_map(self) -> ActiveOwners {
-   |                   ^^^^^^^^^^^^
+211 |     pub(crate) fn replace_binding(
+    |                   ^^^^^^^^^^^^^^^
 
 warning: method `contradicts_live_ticket` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:114:19
+   --> src/ownership_proof/ref_count_ledger.rs:286:19
     |
- 87 | impl RetirePermit {
+259 | impl RetirePermit {
     | ----------------- method in this implementation
 ...
-114 |     pub(crate) fn contradicts_live_ticket(&self, ticket: &OwnerTicket) {
+286 |     pub(crate) fn contradicts_live_ticket(&self, ticket: &OwnerTicket) {
     |                   ^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: associated functions `new_promoted_pair`, `split_owner`, and `drop_owner` are never used
-   --> src/ownership_proof/ref_count_ledger.rs:308:19
+   --> src/ownership_proof/ref_count_ledger.rs:495:19
     |
-149 | impl OwnerLedger {
+321 | impl OwnerLedger {
     | ---------------- associated functions in this implementation
 ...
-308 |     pub(crate) fn new_promoted_pair(
+495 |     pub(crate) fn new_promoted_pair(
     |                   ^^^^^^^^^^^^^^^^^
 ...
-385 |     pub(crate) fn split_owner(
+592 |     pub(crate) fn split_owner(
     |                   ^^^^^^^^^^^
 ...
-442 |     pub(crate) fn drop_owner(
+664 |     pub(crate) fn drop_owner(
     |                   ^^^^^^^^^^
 
 warning: function `map_op_fresh_singleton` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:507:4
+   --> src/ownership_proof/ref_count_ledger.rs:729:4
     |
-507 | fn map_op_fresh_singleton(
+729 | fn map_op_fresh_singleton(
     |    ^^^^^^^^^^^^^^^^^^^^^^
 
-warning: function `sole_active_id` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:532:15
-    |
-532 | pub(crate) fn sole_active_id(ledger: Snapshot<OwnerLedger>, ticket: Snapshot<OwnerTicket>) {
-    |               ^^^^^^^^^^^^^^
-
 warning: function `contradict_two_tickets` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:548:15
+   --> src/ownership_proof/ref_count_ledger.rs:775:15
     |
-548 | pub(crate) fn contradict_two_tickets(
+775 | pub(crate) fn contradict_two_tickets(
     |               ^^^^^^^^^^^^^^^^^^^^^^
 
-warning: function `map_singleton_from_len_one` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:571:4
+warning: function `normalize_singleton_insert` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:821:4
     |
-571 | fn map_singleton_from_len_one(
-    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: function `zero_length_map_has_no_ids` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:590:4
-    |
-590 | fn zero_length_map_has_no_ids(map: Snapshot<ActiveOwners>) {
+821 | fn normalize_singleton_insert(
     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `factor_singleton_removal` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:602:4
+   --> src/ownership_proof/ref_count_ledger.rs:860:4
     |
-602 | fn factor_singleton_removal(
+860 | fn factor_singleton_removal(
     |    ^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: methods `close` and `contradicts_action` are never used
@@ -3003,5 +3000,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 329 warnings (run `cargo fix --lib -p bytes` to apply 36 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.76s
+warning: `bytes` (lib) generated 331 warnings (run `cargo fix --lib -p bytes` to apply 40 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.60s

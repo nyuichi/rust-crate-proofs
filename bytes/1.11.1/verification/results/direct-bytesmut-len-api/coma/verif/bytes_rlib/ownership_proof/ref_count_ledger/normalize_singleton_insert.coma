@@ -1,0 +1,187 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 821 0 825 1 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_BYTES_MUT_SHARED_CAPSULE int | Other namespace_other
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 62 14 62 70
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 63 14 63 88
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 71 8 71 34
+let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 199 14 199 29
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 827 47 827 59
+let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 828 22 828 42
+let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 828 22 828 55
+let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 829 22 829 26
+let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 829 11 829 26
+let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 830 12 830 43
+let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 832 26 832 43
+let%span sref_count_ledger'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 833 26 833 49
+let%span sref_count_ledger'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 836 22 836 56
+let%span sref_count_ledger'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 837 22 837 66
+let%span sref_count_ledger'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 838 22 838 44
+let%span sref_count_ledger'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 839 8 839 57
+let%span sref_count_ledger'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 826 12 840 5
+let%span sref_count_ledger'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 815 11 816 50
+let%span sref_count_ledger'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 817 10 818 40
+let%span sref_count_ledger'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 819 10 820 24
+let%span sref_count_ledger'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 846 11 846 28
+let%span sref_count_ledger'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 847 10 847 48
+let%span sref_count_ledger'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 795 11 795 28
+let%span sref_count_ledger'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 796 11 796 50
+let%span sref_count_ledger'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 797 10 797 54
+let%span ssnapshot = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/snapshot.rs" 109 14 109 30
+let%span sint = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/int.rs" 238 14 238 31
+let%span sint'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/int.rs" 259 14 259 41
+
+use creusot.int.Int128
+use creusot.prelude.Opaque
+use map.Map
+use map.Const
+use creusot.prelude.Any
+use int.Int
+
+type t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : int
+
+axiom len_Int_spec:
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [len_Int self]. [%#sfmap] ge_log_Int (len_Int self) 0
+
+let into_ghost_Int (self: int) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:into_ghost ensures] [%#ssnapshot] result = self} (! return {result}) ]
+
+let into_inner_Int (self: int) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:into_inner ensures] [%#sghost] result = self} (! return {result}) ]
+
+let new (value: Int128.t) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:new ensures] [%#sint] result = Int128.to_int value}
+    (! return {result}) ]
+
+let eq_Int (self: int) (other: int) (return (x: bool)) = any
+  [ return (result: bool) -> {[@stop_split] [@expl:eq ensures] [%#sint'0] result = (self = other)} (! return {result}) ]
+
+type t_Id
+
+type tup3_Id_ptr_u8_Int = { f0: t_Id; f1: Opaque.ptr; f2: int }
+
+type tup3_tup3_Id_ptr_u8_Int_Int_Int = { f0'0: tup3_Id_ptr_u8_Int; f1'0: int; f2'0: int }
+
+type t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = { f0'1: tup3_tup3_Id_ptr_u8_Int_Int_Int }
+
+type t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = None | Some t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+
+function to_mapping_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : Map.map int t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (k: int) : t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+ = [%#sfmap'0] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (k: int) =
+  [%#sfmap'4] get_Int self k <> None
+
+meta "rewrite_def" predicate contains_Int
+
+let zero_length_map_has_no_ids (map: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (return (x: ())) =
+{[@stop_split] [@expl:zero_length_map_has_no_ids requires] [%#sref_count_ledger'15] len_Int map = 0}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:zero_length_map_has_no_ids ensures] [%#sref_count_ledger'16] forall key: int. not contains_Int map key}
+    (! return {result}) ]
+
+function insert_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (k: int) (v: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+
+axiom insert_Int_spec:
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, k: int, v: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [insert_Int self k v]. [%#sfmap'1] to_mapping_Int (insert_Int self k v)
+    = Map.set (to_mapping_Int self) k (Some v)
+
+axiom insert_Int_spec'0:
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, k: int, v: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [insert_Int self k v]. [%#sfmap'2] len_Int (insert_Int self k v)
+    = (if contains_Int self k then len_Int self else len_Int self + 1)
+
+constant empty_Int : t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+
+axiom empty_Int_spec: [%#sfmap'5] len_Int empty_Int = 0
+
+axiom empty_Int_spec'0: [%#sfmap'6] to_mapping_Int empty_Int = Const.const (None)
+
+function singleton_Int (k: int) (v: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+ = [%#sfmap'3] insert_Int empty_Int k v
+
+let map_singleton_from_len_one (map: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (id: int)
+  (binding: tup3_tup3_Id_ptr_u8_Int_Int_Int) (return (x: ())) =
+{[@stop_split] [@expl:map_singleton_from_len_one requires] ([@stop_split] [@expl:map_singleton_from_len_one requires #0] [%#sref_count_ledger'17] len_Int map
+    = 1)
+  /\ ([@stop_split] [@expl:map_singleton_from_len_one requires #1] [%#sref_count_ledger'18] get_Int map id
+  = Some { f0'1 = binding })}
+  any
+  [ return (result: ()) -> {[@stop_split] [@expl:map_singleton_from_len_one ensures] [%#sref_count_ledger'19] map
+    = singleton_Int id { f0'1 = binding }}
+    (! return {result}) ]
+
+let new_unit (x: ()) (return (x'0: ())) = any
+  [ return (result: ()) -> {[@stop_split] [@expl:new ensures] [%#sghost'0] result = x} (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let normalize_singleton_insert [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 821 0 825 1]
+  (map: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (id: int) (binding: tup3_tup3_Id_ptr_u8_Int_Int_Int)
+  (return (x: ())) = {[@stop_split] [@expl:normalize_singleton_insert requires] [%#sref_count_ledger'12] len_Int map = 0
+  \/ len_Int map = 1 /\ get_Int map id <> None}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &map_len <- [%#sref_count_ledger] len_Int map ] s1
+    | s1 = into_ghost_Int [%#sref_count_ledger'0] {map_len} (fun (_x: int) -> [ &_21 <- _x ] s2)
+    | s2 = into_inner_Int [%#sref_count_ledger'1] {_21} (fun (_x: int) -> [ &map_len'0 <- _x ] s3)
+    | s3 = new [%#sref_count_ledger'2] {[%#sref_count_ledger'2] (0: Int128.t)} (fun (_x: int) -> [ &_28 <- _x ] s4)
+    | s4 = into_inner_Int [%#sref_count_ledger'2] {_28} (fun (_x: int) -> [ &_27 <- _x ] s5)
+    | s5 = eq_Int [%#sref_count_ledger'3] {map_len'0} {_27} (fun (_x: bool) -> [ &_24 <- _x ] s6)
+    | s6 = any [ br0 -> {_24 = false} (! bb9) | br1 -> {_24} (! bb7) ] ]
+  | bb7 = s0
+    [ s0 = zero_length_map_has_no_ids [%#sref_count_ledger'4] {map} (fun (_x: ()) -> [ &_29 <- _x ] s1) | s1 = bb10 ]
+  | bb9 = s0
+    [ s0 = {[@expl:assertion] [%#sref_count_ledger'5] len_Int map = 1} s1
+    | s1 = {[@expl:assertion] [%#sref_count_ledger'6] get_Int map id <> None} s2
+    | s2 = bb10 ]
+  | bb10 = s0
+    [ s0 = [ &inserted <- [%#sref_count_ledger'7] insert_Int map id { f0'1 = binding } ] s1
+    | s1 = {[@expl:assertion] [%#sref_count_ledger'8] get_Int inserted id = Some { f0'1 = binding }} s2
+    | s2 = {[@expl:assertion] [%#sref_count_ledger'9] len_Int inserted = 1} s3
+    | s3 = map_singleton_from_len_one [%#sref_count_ledger'10] {inserted} {id} {binding}
+        (fun (_x: ()) -> [ &_51 <- _x ] s4)
+    | s4 = new_unit [%#sref_count_ledger'11] {_16} (fun (_x: ()) -> [ &_15 <- _x ] s5)
+    | s5 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & map: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = map
+  | & id: int = id
+  | & binding: tup3_tup3_Id_ptr_u8_Int_Int_Int = binding
+  | & _15: () = Any.any_l ()
+  | & _16: () = Any.any_l ()
+  | & map_len: int = Any.any_l ()
+  | & map_len'0: int = Any.any_l ()
+  | & _21: int = Any.any_l ()
+  | & _24: bool = Any.any_l ()
+  | & _27: int = Any.any_l ()
+  | & _28: int = Any.any_l ()
+  | & _29: () = Any.any_l ()
+  | & inserted: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = Any.any_l ()
+  | & _51: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:normalize_singleton_insert ensures] ([@stop_split] [@expl:normalize_singleton_insert ensures #0] [%#sref_count_ledger'13] insert_Int map id { f0'1 = binding }
+      = singleton_Int id { f0'1 = binding })
+    /\ ([@stop_split] [@expl:normalize_singleton_insert ensures #1] [%#sref_count_ledger'14] get_Int (insert_Int map id { f0'1 = binding }) id
+    = Some { f0'1 = binding })}
+    (! return {result}) ]

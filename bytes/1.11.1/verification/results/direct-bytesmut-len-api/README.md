@@ -72,11 +72,23 @@ result proves a safe public call chain reaches the promotion branch.
 
 The selected source targets include body proofs for the generic `OwnerLedger`
 algebra and the current-value refcount operation wrappers and increment loop.
-The ledger stores one ghost allocation identity in every active owner
-registration and exclusive ticket; its constructor, split and drop proofs
-preserve that tuple. This connects the selected initial promotion packet to
-protected storage metadata, but does not connect later production owner or
-refcount operations to the ledger.
+An `OwnerTicket` consumes the exact affine singleton fragment for its owner ID.
+Its `OwnerBinding` stores the allocation identity tuple and a half-open range
+`[lo, hi)`; the ledger invariant requires ranges to stay within the allocation
+and remain pairwise disjoint. The selected bodies cover root and two-owner
+registration, splitting a parent range at a valid cut, dropping a registration,
+and replacing the ticket's binding while preserving ticket and authority
+identity. They prove generic ledger operations and do not connect native handle
+split, drop, conversion or refcount transitions to those tickets.
+
+The count-one packet invariant binds its ticket range to the packet's physical
+region. `SharedState` states that the proof-only physical pool contains exactly
+the in-bounds complement of active owner ranges. The selected initial packet
+construction combines a full-range ticket with an empty pool using the
+body-proved `PhysicalPool::empty_from` constructor and its unit-normalization
+helper. The generic `retire` and `finish` operations also have body proofs, but
+no selected production path calls them to retire regions into the pool or
+recover a full region from it.
 They also prove the one-shot `RefCountCell` bootstrap extraction body, which
 moves its event permission and recorded scalar value out of the cell and leaves
 the proof-only sidecar detached. No production `Bytes` or `BytesMut` path calls
@@ -97,11 +109,11 @@ The current increment also body-proves `PhaseAuthority`'s one-shot close
 action, `shared_capsule::make_count_one_packet`, and
 `promote_to_shared_count_one`. For this private promotion helper, the proof
 constructs a count-one Shared capsule from the actual Vec storage and exact
-native counter permission, with one root ticket and the allocation's full
-physical region. It does not prove every safe call path reaches the helper or
-connect later clone, split, drop, and recovery operations to that registration.
-It therefore gives no general count-to-owner, uniqueness, or reclamation
-guarantee.
+native counter permission, with one root ticket over the allocation's full
+physical region and an empty pool. It does not prove every safe call path
+reaches the helper or connect later clone, split, drop, and recovery operations
+to that registration. It therefore gives no general count-to-owner,
+uniqueness, or reclamation guarantee.
 
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current

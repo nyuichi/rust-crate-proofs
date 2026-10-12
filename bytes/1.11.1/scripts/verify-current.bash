@@ -98,7 +98,7 @@ for target in "${targets[@]}"; do
         exit 1
     fi
 done
-if ! cargo creusot --only=prove --no-cache --why3find-arg=-j --why3find-arg=1 "${targets[@]}"; then
+if ! cargo creusot --only=prove --no-cache --why3session --why3find-arg=-j --why3find-arg=1 "${targets[@]}"; then
     printf 'Fresh direct-source proof failed; translator output follows\n' >&2
     cat "$translation_log" >&2
     exit 1

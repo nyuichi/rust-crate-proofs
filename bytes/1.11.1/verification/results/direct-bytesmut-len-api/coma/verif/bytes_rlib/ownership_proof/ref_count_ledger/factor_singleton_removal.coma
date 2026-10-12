@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 602 0 606 1 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 860 0 864 1 *)
 
 type namespace_other
 
@@ -28,14 +28,14 @@ let%span sfmap'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refco
 let%span sfmap'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 163 14 163 78
 let%span sfmap'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
 let%span sfmap'16 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
-let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 608 18 608 54
-let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 609 18 609 41
-let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 610 54 610 79
-let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 611 18 611 59
-let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 612 18 613 60
-let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 614 18 614 57
-let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 600 11 600 50
-let%span sref_count_ledger'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 601 10 601 83
+let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 866 18 866 54
+let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 867 18 867 41
+let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 868 54 868 79
+let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 869 18 869 59
+let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 870 18 871 60
+let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 872 18 872 57
+let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 858 11 858 50
+let%span sref_count_ledger'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 859 10 859 83
 let%span sexcl = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 16 8 16 12
 let%span sexcl'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 26 14 26 32
 let%span sexcl'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 20 14 20 71
@@ -67,239 +67,256 @@ type t_Id
 
 type tup3_Id_ptr_u8_Int = { f0: t_Id; f1: Opaque.ptr; f2: int }
 
-type t_Excl_tup3_Id_ptr_u8_Int = { f0'0: tup3_Id_ptr_u8_Int }
+type tup3_tup3_Id_ptr_u8_Int_Int_Int = { f0'0: tup3_Id_ptr_u8_Int; f1'0: int; f2'0: int }
 
-type t_FMap_Int_Excl_tup3_Id_ptr_u8_Int
+type t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = { f0'1: tup3_tup3_Id_ptr_u8_Int_Int_Int }
 
-type t_Option_Excl_tup3_Id_ptr_u8_Int = None | Some t_Excl_tup3_Id_ptr_u8_Int
+type t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
-function to_mapping_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : Map.map int t_Option_Excl_tup3_Id_ptr_u8_Int
+type t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = None | Some t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+
+function to_mapping_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : Map.map int t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
 predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
 
 meta "rewrite_def" predicate ge_log_Int
 
-function len_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : int
+function len_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : int
 
 axiom len_Int_spec:
-  forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int [len_Int self]. [%#sfmap'15] ge_log_Int (len_Int self) 0
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [len_Int self]. [%#sfmap'15] ge_log_Int (len_Int self) 0
 
-function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (k: int) : t_Option_Excl_tup3_Id_ptr_u8_Int
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (k: int) : t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
  = [%#sfmap'3] Map.get (to_mapping_Int self) k
 
 meta "rewrite_def" function get_Int
 
-predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (k: int) =
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (k: int) =
   [%#sfmap'16] get_Int self k <> None
 
 meta "rewrite_def" predicate contains_Int
 
-function insert_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (k: int) (v: t_Excl_tup3_Id_ptr_u8_Int) : t_FMap_Int_Excl_tup3_Id_ptr_u8_Int
+function insert_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (k: int) (v: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
 axiom insert_Int_spec:
-  forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, k: int, v: t_Excl_tup3_Id_ptr_u8_Int [insert_Int self k v]. [%#sfmap'8] to_mapping_Int (insert_Int self k v)
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, k: int, v: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [insert_Int self k v]. [%#sfmap'8] to_mapping_Int (insert_Int self k v)
     = Map.set (to_mapping_Int self) k (Some v)
 
 axiom insert_Int_spec'0:
-  forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, k: int, v: t_Excl_tup3_Id_ptr_u8_Int [insert_Int self k v]. [%#sfmap'9] len_Int (insert_Int self k v)
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, k: int, v: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [insert_Int self k v]. [%#sfmap'9] len_Int (insert_Int self k v)
     = (if contains_Int self k then len_Int self else len_Int self + 1)
 
-constant empty_Int : t_FMap_Int_Excl_tup3_Id_ptr_u8_Int
+constant empty_Int : t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
 axiom empty_Int_spec: [%#sfmap'10] len_Int empty_Int = 0
 
 axiom empty_Int_spec'0: [%#sfmap'11] to_mapping_Int empty_Int = Const.const (None)
 
-function singleton_Int (k: int) (v: t_Excl_tup3_Id_ptr_u8_Int) : t_FMap_Int_Excl_tup3_Id_ptr_u8_Int =
-  [%#sfmap] insert_Int empty_Int k v
+function singleton_Int (k: int) (v: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+ = [%#sfmap] insert_Int empty_Int k v
 
-type t_Option_FMap_Int_Excl_tup3_Id_ptr_u8_Int = None'0 | Some'0 t_FMap_Int_Excl_tup3_Id_ptr_u8_Int
+type t_Option_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int =
+  | None'0
+  | Some'0 t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
-type t_Option_Option_Excl_tup3_Id_ptr_u8_Int = None'1 | Some'1 t_Option_Excl_tup3_Id_ptr_u8_Int
+type t_Option_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int =
+  | None'1
+  | Some'1 t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
-type tup2_Option_Excl_tup3_Id_ptr_u8_Int_Option_Excl_tup3_Id_ptr_u8_Int = {
-  f0'1: t_Option_Excl_tup3_Id_ptr_u8_Int;
-  f1'1: t_Option_Excl_tup3_Id_ptr_u8_Int }
+type tup2_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = {
+  f0'2: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int;
+  f1'2: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int }
 
-function map_Option_Excl_tup3_Id_ptr_u8_Int (self: t_Option_Excl_tup3_Id_ptr_u8_Int) (f: Map.map t_Excl_tup3_Id_ptr_u8_Int t_Option_Excl_tup3_Id_ptr_u8_Int) : t_Option_Option_Excl_tup3_Id_ptr_u8_Int
+function map_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (f: Map.map t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_Option_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
  = [%#soption'3] match self with
     | None -> None'1
     | Some x -> Some'1 (Map.get f x)
     end
 
-function op_Excl_tup3_Id_ptr_u8_Int (self: t_Excl_tup3_Id_ptr_u8_Int) (_other: t_Excl_tup3_Id_ptr_u8_Int) : t_Option_Excl_tup3_Id_ptr_u8_Int
+function op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (_other: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
  = [%#sexcl] None
 
-function commutative_Excl_tup3_Id_ptr_u8_Int (a: t_Excl_tup3_Id_ptr_u8_Int) (b: t_Excl_tup3_Id_ptr_u8_Int) : ()
+function commutative_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (a: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (b: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom commutative_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall a: t_Excl_tup3_Id_ptr_u8_Int, b: t_Excl_tup3_Id_ptr_u8_Int. [%#sexcl'0] op_Excl_tup3_Id_ptr_u8_Int a b
-    = op_Excl_tup3_Id_ptr_u8_Int b a
+axiom commutative_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall a: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, b: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. [%#sexcl'0] op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a b
+    = op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int b a
 
-function op_Option_Excl_tup3_Id_ptr_u8_Int (self: t_Option_Excl_tup3_Id_ptr_u8_Int) (other: t_Option_Excl_tup3_Id_ptr_u8_Int) : t_Option_Option_Excl_tup3_Id_ptr_u8_Int
- = [%#soption'1] match { f0'1 = self; f1'1 = other } with
-    | {f0'1 = None} -> Some'1 other
-    | {f1'1 = None} -> Some'1 self
-    | {f0'1 = Some x; f1'1 = Some y} -> map_Option_Excl_tup3_Id_ptr_u8_Int (op_Excl_tup3_Id_ptr_u8_Int x y) (fun (z: t_Excl_tup3_Id_ptr_u8_Int) -> Some z)
+function op_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_Option_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+ = [%#soption'1] match { f0'2 = self; f1'2 = other } with
+    | {f0'2 = None} -> Some'1 other
+    | {f1'2 = None} -> Some'1 self
+    | {f0'2 = Some x; f1'2 = Some y} -> map_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int x y) (fun (z: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) -> Some z)
     end
 
-function commutative_Option_Excl_tup3_Id_ptr_u8_Int (a: t_Option_Excl_tup3_Id_ptr_u8_Int) (b: t_Option_Excl_tup3_Id_ptr_u8_Int) : ()
+function commutative_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (a: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (b: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom commutative_Option_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall a: t_Option_Excl_tup3_Id_ptr_u8_Int, b: t_Option_Excl_tup3_Id_ptr_u8_Int. [%#soption'2] op_Option_Excl_tup3_Id_ptr_u8_Int a b
-    = op_Option_Excl_tup3_Id_ptr_u8_Int b a
+axiom commutative_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall a: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, b: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. [%#soption'2] op_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a b
+    = op_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int b a
 
-function total_op_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (other: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : t_FMap_Int_Excl_tup3_Id_ptr_u8_Int
+function total_op_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
 axiom total_op_Int_spec:
-  forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, other: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int [total_op_Int self other]. ([%#sfmap'13] forall k: int. op_Option_Excl_tup3_Id_ptr_u8_Int (get_Int self k) (get_Int other k)
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, other: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [total_op_Int self other]. ([%#sfmap'13] forall k: int. op_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (get_Int self k) (get_Int other k)
         <> None'1)
     -> ([%#sfmap'14] forall k: int. Some'1 (get_Int (total_op_Int self other) k)
-      = op_Option_Excl_tup3_Id_ptr_u8_Int (get_Int self k) (get_Int other k))
+      = op_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (get_Int self k) (get_Int other k))
 
-function op_FMap_Int_Excl_tup3_Id_ptr_u8_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (other: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : t_Option_FMap_Int_Excl_tup3_Id_ptr_u8_Int
- = [%#sfmap'2] if forall k: int. op_Option_Excl_tup3_Id_ptr_u8_Int (get_Int self k) (get_Int other k) <> None'1 then
+function op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_Option_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
+ = [%#sfmap'2] if forall k: int. op_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (get_Int self k) (get_Int other k)
+    <> None'1 then
     Some'0 (total_op_Int self other)
   else
     None'0
 
 
-function commutative_FMap_Int_Excl_tup3_Id_ptr_u8_Int (a: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (b: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : ()
+function commutative_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (a: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (b: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom commutative_FMap_Int_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall a: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, b: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int. [%#sfmap'12] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int a b
-    = op_FMap_Int_Excl_tup3_Id_ptr_u8_Int b a
+axiom commutative_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall a: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, b: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. [%#sfmap'12] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a b
+    = op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int b a
 
-predicate incl_Excl_tup3_Id_ptr_u8_Int (self: t_Excl_tup3_Id_ptr_u8_Int) (other: t_Excl_tup3_Id_ptr_u8_Int) =
+predicate incl_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) =
   [%#sexcl'2] false
 
-axiom incl_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall self: t_Excl_tup3_Id_ptr_u8_Int, other: t_Excl_tup3_Id_ptr_u8_Int [incl_Excl_tup3_Id_ptr_u8_Int self other]. [%#sexcl'1] incl_Excl_tup3_Id_ptr_u8_Int self other
-    = (exists factor: t_Excl_tup3_Id_ptr_u8_Int. op_Excl_tup3_Id_ptr_u8_Int self factor = Some other)
+axiom incl_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall self: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, other: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [incl_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other]. [%#sexcl'1] incl_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other
+    = (exists factor: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self factor
+      = Some other)
 
-function incl_transitive_Excl_tup3_Id_ptr_u8_Int (a: t_Excl_tup3_Id_ptr_u8_Int) (b: t_Excl_tup3_Id_ptr_u8_Int) (c: t_Excl_tup3_Id_ptr_u8_Int) : ()
+function incl_transitive_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (a: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (b: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (c: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom incl_transitive_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall a: t_Excl_tup3_Id_ptr_u8_Int, b: t_Excl_tup3_Id_ptr_u8_Int, c: t_Excl_tup3_Id_ptr_u8_Int. ([%#sra'9] incl_Excl_tup3_Id_ptr_u8_Int a b)
-    -> ([%#sra'10] incl_Excl_tup3_Id_ptr_u8_Int b c) -> ([%#sra'11] incl_Excl_tup3_Id_ptr_u8_Int a c)
+axiom incl_transitive_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall a: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, b: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, c: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. ([%#sra'9] incl_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a b)
+    -> ([%#sra'10] incl_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int b c)
+    -> ([%#sra'11] incl_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a c)
 
-function associative_some_Excl_tup3_Id_ptr_u8_Int (a: t_Excl_tup3_Id_ptr_u8_Int) (b: t_Excl_tup3_Id_ptr_u8_Int) (c: t_Excl_tup3_Id_ptr_u8_Int) (ab: t_Excl_tup3_Id_ptr_u8_Int) (bc: t_Excl_tup3_Id_ptr_u8_Int) : ()
+function associative_some_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (a: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (b: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (c: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (ab: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (bc: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom associative_some_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall a: t_Excl_tup3_Id_ptr_u8_Int, b: t_Excl_tup3_Id_ptr_u8_Int, c: t_Excl_tup3_Id_ptr_u8_Int, ab: t_Excl_tup3_Id_ptr_u8_Int, bc: t_Excl_tup3_Id_ptr_u8_Int. ([%#sra'6] op_Excl_tup3_Id_ptr_u8_Int a b
+axiom associative_some_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall a: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, b: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, c: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, ab: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, bc: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. ([%#sra'6] op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a b
       = Some ab)
-    -> ([%#sra'7] op_Excl_tup3_Id_ptr_u8_Int b c = Some bc)
-    -> ([%#sra'8] op_Excl_tup3_Id_ptr_u8_Int a bc = op_Excl_tup3_Id_ptr_u8_Int ab c)
+    -> ([%#sra'7] op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int b c = Some bc)
+    -> ([%#sra'8] op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a bc = op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int ab c)
 
-function associative_none_Excl_tup3_Id_ptr_u8_Int (a: t_Excl_tup3_Id_ptr_u8_Int) (b: t_Excl_tup3_Id_ptr_u8_Int) (c: t_Excl_tup3_Id_ptr_u8_Int) (bc: t_Excl_tup3_Id_ptr_u8_Int) : ()
+function associative_none_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (a: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (b: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (c: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (bc: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom associative_none_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall a: t_Excl_tup3_Id_ptr_u8_Int, b: t_Excl_tup3_Id_ptr_u8_Int, c: t_Excl_tup3_Id_ptr_u8_Int, bc: t_Excl_tup3_Id_ptr_u8_Int. ([%#sra'3] op_Excl_tup3_Id_ptr_u8_Int a b
+axiom associative_none_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall a: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, b: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, c: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, bc: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. ([%#sra'3] op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a b
       = None)
-    -> ([%#sra'4] op_Excl_tup3_Id_ptr_u8_Int b c = Some bc) -> ([%#sra'5] op_Excl_tup3_Id_ptr_u8_Int a bc = None)
+    -> ([%#sra'4] op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int b c = Some bc)
+    -> ([%#sra'5] op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a bc = None)
 
-function incl_op_Excl_tup3_Id_ptr_u8_Int (self: t_Excl_tup3_Id_ptr_u8_Int) (other: t_Excl_tup3_Id_ptr_u8_Int) (comb: t_Excl_tup3_Id_ptr_u8_Int) : ()
+function incl_op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (comb: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom incl_op_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall self: t_Excl_tup3_Id_ptr_u8_Int, other: t_Excl_tup3_Id_ptr_u8_Int, comb: t_Excl_tup3_Id_ptr_u8_Int. ([%#sra'1] op_Excl_tup3_Id_ptr_u8_Int self other
-      = Some comb) -> ([%#sra'2] incl_Excl_tup3_Id_ptr_u8_Int self comb)
+axiom incl_op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall self: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, other: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, comb: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. ([%#sra'1] op_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other
+      = Some comb) -> ([%#sra'2] incl_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self comb)
 
-predicate eq_Excl_tup3_Id_ptr_u8_Int [@inline:trivial] (self: t_Excl_tup3_Id_ptr_u8_Int) (other: t_Excl_tup3_Id_ptr_u8_Int) =
+predicate eq_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [@inline:trivial] (self: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) =
   [%#sra'14] self = other
 
-meta "rewrite_def" predicate eq_Excl_tup3_Id_ptr_u8_Int
+meta "rewrite_def" predicate eq_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
-axiom eq_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall self: t_Excl_tup3_Id_ptr_u8_Int, other: t_Excl_tup3_Id_ptr_u8_Int [eq_Excl_tup3_Id_ptr_u8_Int self other]. [%#sra'13] eq_Excl_tup3_Id_ptr_u8_Int self other
+axiom eq_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall self: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, other: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [eq_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other]. [%#sra'13] eq_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other
     = (self = other)
 
-predicate incl_eq_Excl_tup3_Id_ptr_u8_Int (self: t_Excl_tup3_Id_ptr_u8_Int) (other: t_Excl_tup3_Id_ptr_u8_Int) =
-  [%#sra'12] eq_Excl_tup3_Id_ptr_u8_Int self other \/ incl_Excl_tup3_Id_ptr_u8_Int self other
+predicate incl_eq_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) =
+  [%#sra'12] eq_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other \/ incl_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other
 
-predicate incl_Option_Excl_tup3_Id_ptr_u8_Int (self: t_Option_Excl_tup3_Id_ptr_u8_Int) (other: t_Option_Excl_tup3_Id_ptr_u8_Int) =
-  [%#soption'0] match { f0'1 = self; f1'1 = other } with
-    | {f0'1 = None} -> true
-    | {f1'1 = None} -> false
-    | {f0'1 = Some x; f1'1 = Some y} -> incl_eq_Excl_tup3_Id_ptr_u8_Int x y
+predicate incl_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) =
+  [%#soption'0] match { f0'2 = self; f1'2 = other } with
+    | {f0'2 = None} -> true
+    | {f1'2 = None} -> false
+    | {f0'2 = Some x; f1'2 = Some y} -> incl_eq_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int x y
     end
 
-axiom incl_Option_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall self: t_Option_Excl_tup3_Id_ptr_u8_Int, other: t_Option_Excl_tup3_Id_ptr_u8_Int [incl_Option_Excl_tup3_Id_ptr_u8_Int self other]. [%#soption] incl_Option_Excl_tup3_Id_ptr_u8_Int self other
-    = (exists factor: t_Option_Excl_tup3_Id_ptr_u8_Int. op_Option_Excl_tup3_Id_ptr_u8_Int self factor = Some'1 other)
+axiom incl_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall self: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, other: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [incl_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other]. [%#soption] incl_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other
+    = (exists factor: t_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. op_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self factor
+      = Some'1 other)
 
-predicate incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (other: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) =
-  [%#sfmap'1] let r = forall k: int. incl_Option_Excl_tup3_Id_ptr_u8_Int (get_Int self k) (get_Int other k) in r
+predicate incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) =
+  [%#sfmap'1] let r = forall k: int. incl_Option_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (get_Int self k) (get_Int other k) in r
 
-axiom incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, other: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int [incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int self other]. [%#sfmap'0] incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int self other
-    = (exists factor: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int. op_FMap_Int_Excl_tup3_Id_ptr_u8_Int self factor
+axiom incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, other: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other]. [%#sfmap'0] incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other
+    = (exists factor: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self factor
       = Some'0 other)
 
-function incl_transitive_FMap_Int_Excl_tup3_Id_ptr_u8_Int (a: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (b: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (c: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : ()
+function incl_transitive_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (a: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (b: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (c: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom incl_transitive_FMap_Int_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall a: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, b: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, c: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int. ([%#sra'9] incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int a b)
-    -> ([%#sra'10] incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int b c) -> ([%#sra'11] incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int a c)
+axiom incl_transitive_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall a: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, b: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, c: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. ([%#sra'9] incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a b)
+    -> ([%#sra'10] incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int b c)
+    -> ([%#sra'11] incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a c)
 
-function associative_some_FMap_Int_Excl_tup3_Id_ptr_u8_Int (a: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (b: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (c: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (ab: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (bc: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : ()
+function associative_some_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (a: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (b: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (c: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (ab: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (bc: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom associative_some_FMap_Int_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall a: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, b: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, c: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, ab: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, bc: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int. ([%#sra'6] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int a b
+axiom associative_some_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall a: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, b: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, c: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, ab: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, bc: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. ([%#sra'6] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a b
       = Some'0 ab)
-    -> ([%#sra'7] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int b c = Some'0 bc)
-    -> ([%#sra'8] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int a bc = op_FMap_Int_Excl_tup3_Id_ptr_u8_Int ab c)
+    -> ([%#sra'7] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int b c = Some'0 bc)
+    -> ([%#sra'8] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a bc
+    = op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int ab c)
 
-function associative_none_FMap_Int_Excl_tup3_Id_ptr_u8_Int (a: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (b: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (c: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (bc: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : ()
+function associative_none_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (a: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (b: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (c: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (bc: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom associative_none_FMap_Int_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall a: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, b: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, c: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, bc: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int. ([%#sra'3] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int a b
+axiom associative_none_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall a: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, b: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, c: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, bc: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. ([%#sra'3] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a b
       = None'0)
-    -> ([%#sra'4] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int b c = Some'0 bc)
-    -> ([%#sra'5] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int a bc = None'0)
+    -> ([%#sra'4] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int b c = Some'0 bc)
+    -> ([%#sra'5] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int a bc = None'0)
 
-function incl_op_FMap_Int_Excl_tup3_Id_ptr_u8_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (other: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (comb: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : ()
+function incl_op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (comb: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : ()
 
-axiom incl_op_FMap_Int_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, other: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, comb: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int. ([%#sra'1] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int self other
-      = Some'0 comb) -> ([%#sra'2] incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int self comb)
+axiom incl_op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, other: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, comb: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int. ([%#sra'1] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self other
+      = Some'0 comb) -> ([%#sra'2] incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self comb)
 
-function factor_FMap_Int_Excl_tup3_Id_ptr_u8_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (factor: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) : t_FMap_Int_Excl_tup3_Id_ptr_u8_Int
+function factor_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (factor: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) : t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
-axiom factor_FMap_Int_Excl_tup3_Id_ptr_u8_Int_spec:
-  forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, factor: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int [factor_FMap_Int_Excl_tup3_Id_ptr_u8_Int self factor]. ([%#sra] incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int factor self)
-    -> ([%#sra'0] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int factor (factor_FMap_Int_Excl_tup3_Id_ptr_u8_Int self factor)
+axiom factor_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int_spec:
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, factor: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [factor_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self factor]. ([%#sra] incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int factor self)
+    -> ([%#sra'0] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int factor (factor_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int self factor)
     = Some'0 self)
 
-function remove_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (k: int) : t_FMap_Int_Excl_tup3_Id_ptr_u8_Int
+function remove_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (k: int) : t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int
 
 axiom remove_Int_spec:
-  forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, k: int [remove_Int self k]. [%#sfmap'4] to_mapping_Int (remove_Int self k)
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, k: int [remove_Int self k]. [%#sfmap'4] to_mapping_Int (remove_Int self k)
     = Map.set (to_mapping_Int self) k (None)
 
 axiom remove_Int_spec'0:
-  forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, k: int [remove_Int self k]. [%#sfmap'5] len_Int (remove_Int self k)
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, k: int [remove_Int self k]. [%#sfmap'5] len_Int (remove_Int self k)
     = (if contains_Int self k then len_Int self - 1 else len_Int self)
 
-predicate ext_eq_Int (self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (other: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) =
+predicate ext_eq_Int (self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (other: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) =
   [%#sfmap'7] forall k: int. get_Int self k = get_Int other k
 
-axiom ext_eq_Int_spec: forall self: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int, other: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int [self
+axiom ext_eq_Int_spec:
+  forall self: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int, other: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int [self
     = other]. [%#sfmap'6] ext_eq_Int self other = (self = other)
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let factor_singleton_removal [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 602 0 606 1]
-  (map: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int) (id: int) (binding: tup3_Id_ptr_u8_Int) (return (x: ())) =
-{[@stop_split] [@expl:factor_singleton_removal requires] [%#sref_count_ledger'5] get_Int map id
-  = Some { f0'0 = binding }}
+let factor_singleton_removal [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 860 0 864 1]
+  (map: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int) (id: int) (binding: tup3_tup3_Id_ptr_u8_Int_Int_Int)
+  (return (x: ())) = {[@stop_split] [@expl:factor_singleton_removal requires] [%#sref_count_ledger'5] get_Int map id
+  = Some { f0'1 = binding }}
   (! bb0
   [ bb0 = s0
-    [ s0 = [ &singleton <- [%#sref_count_ledger] singleton_Int id { f0'0 = binding } ] s1
-    | s1 = {[@expl:assertion] [%#sref_count_ledger'0] incl_FMap_Int_Excl_tup3_Id_ptr_u8_Int singleton map} s2
-    | s2 = [ &remainder <- [%#sref_count_ledger'1] factor_FMap_Int_Excl_tup3_Id_ptr_u8_Int map singleton ] s3
-    | s3 = {[@expl:assertion] [%#sref_count_ledger'2] op_FMap_Int_Excl_tup3_Id_ptr_u8_Int singleton remainder
+    [ s0 = [ &singleton <- [%#sref_count_ledger] singleton_Int id { f0'1 = binding } ] s1
+    | s1 = {[@expl:assertion] [%#sref_count_ledger'0] incl_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int singleton map}
+      s2
+    | s2 = [ &remainder <- [%#sref_count_ledger'1] factor_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int map singleton ]
+      s3
+    | s3 =
+      {[@expl:assertion] [%#sref_count_ledger'2] op_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int singleton remainder
       = Some'0 map}
       s4
     | s4 = {[@expl:assertion] [%#sref_count_ledger'3] forall key: int. get_Int remainder key
@@ -308,12 +325,12 @@ let factor_singleton_removal [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ow
     | s5 = {[@expl:assertion] [%#sref_count_ledger'4] ext_eq_Int remainder (remove_Int map id)} s6
     | s6 = return {_ret} ] ]
   [ & _ret: () = Any.any_l ()
-  | & map: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int = map
+  | & map: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = map
   | & id: int = id
-  | & binding: tup3_Id_ptr_u8_Int = binding
-  | & singleton: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int = Any.any_l ()
-  | & remainder: t_FMap_Int_Excl_tup3_Id_ptr_u8_Int = Any.any_l () ])
+  | & binding: tup3_tup3_Id_ptr_u8_Int_Int_Int = binding
+  | & singleton: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = Any.any_l ()
+  | & remainder: t_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int = Any.any_l () ])
   [ return (result: ()) ->
-  {[@stop_split] [@expl:factor_singleton_removal ensures] [%#sref_count_ledger'6] factor_FMap_Int_Excl_tup3_Id_ptr_u8_Int map (singleton_Int id { f0'0 = binding })
+  {[@stop_split] [@expl:factor_singleton_removal ensures] [%#sref_count_ledger'6] factor_FMap_Int_Excl_tup3_tup3_Id_ptr_u8_Int_Int_Int map (singleton_Int id { f0'1 = binding })
     = remove_Int map id}
     (! return {result}) ]
