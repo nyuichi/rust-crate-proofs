@@ -1,0 +1,141 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 752 4 752 53 *)
+
+(* ownership_proof::raw_vec::PhysicalRegion *)
+
+type namespace_other
+
+type t_Namespace = Namespace_BYTES_MUT_SHARED_CAPSULE int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 753 22 753 44
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 752 38 752 42
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 747 15 747 31
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 748 15 748 49
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 749 15 750 36
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 751 14 751 36
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 738 12 740 44
+let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 718 20 718 27
+let%span sraw_vec'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1375 16 1375 59
+let%span sraw_vec'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 727 14 727 43
+let%span sraw_vec'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 729 20 729 43
+let%span sraw_vec'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 679 12 679 78
+let%span sraw_vec'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 691 12 695 33
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+
+use creusot.int.UInt8
+use map.Map
+use creusot.prelude.Any
+use int.Int
+
+type t_OwnedRegion
+
+type t_Id
+
+type t_AllocationDesc = { capacity: int; namespace: t_Id }
+
+type t_PhysicalRegion = { ledger: t_OwnedRegion; descriptor: t_AllocationDesc; _not_objective: () }
+
+type tup3_OwnedRegion_Int_Id = { f0: t_OwnedRegion; f1: int; f2: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 677 4 677 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+ = [%#sraw_vec'10] { f0 = self.ledger; f1 = self.descriptor.capacity; f2 = self.descriptor.namespace }
+
+function capacity'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 717 4 717 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'6] (view_PhysicalRegion self).f1
+
+type t_Option_u8 = None | Some UInt8.t
+
+type t_Option_Option_u8 = None'0 | Some'0 t_Option_u8
+
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1374 0 1374 58] (slot: t_Option_Option_u8) =
+  [%#sraw_vec'7] exists value: UInt8.t. slot = Some'0 (Some value)
+
+type t_Excl_Option_u8 = { f0'0: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'1 | Some'1 t_Excl_Option_u8
+
+type t_FMap_Int_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+type t_Excl_unit = { f0'1: () }
+
+type t_Option_Excl_unit = None'2 | Some'2 t_Excl_unit
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'2: t_Option_Excl_unit; f1'2: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'3: int;
+  f1'3: int;
+  f2'3: t_Id;
+  f3'3: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#sowned_region] slot self index
+    = match get_Int (view_OwnedRegion self).f3'3.f1'2 index with
+      | None'1 -> None'0
+      | Some'1 {f0'0 = value} -> Some'0 value
+      end
+
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 728 4 728 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+ = [%#sraw_vec'9] slot self.ledger index
+
+axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'8] slot'0 self index
+    = slot (view_PhysicalRegion self).f0 index
+
+predicate prefix_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 736 4 736 54] (self: t_PhysicalRegion) (len: int) =
+  [%#sraw_vec'5] 0 <= len
+  /\ len <= capacity'0 self /\ (forall index: int. 0 <= index /\ index < len -> slot_known (slot'0 self index))
+
+predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 83 4 83 30] (self: t_OwnedRegion)
+
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 689 4 689 30] (self: t_PhysicalRegion) =
+  [%#sraw_vec'11] invariant_OwnedRegion (view_PhysicalRegion self).f0
+  /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0).f0'3
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0).f0'3 <= (view_OwnedRegion (view_PhysicalRegion self).f0).f1'3
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0).f1'3 <= (view_PhysicalRegion self).f1
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0).f2'3 = (view_PhysicalRegion self).f2
+
+predicate inv_OwnedRegion (_1: t_OwnedRegion)
+
+axiom inv_axiom: forall x: t_OwnedRegion [inv_OwnedRegion x]. inv_OwnedRegion x -> invariant_OwnedRegion x
+
+predicate inv_PhysicalRegion (_1: t_PhysicalRegion)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_PhysicalRegion [inv_PhysicalRegion x]. inv_PhysicalRegion x
+    = (invariant_PhysicalRegion x /\ inv_OwnedRegion x.ledger)
+
+predicate invariant_ref_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sinvariant] inv_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_ref_PhysicalRegion
+
+predicate inv_ref_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_ref_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_ref_PhysicalRegion
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let prove_prefix_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 752 4 752 53]
+  (self: t_PhysicalRegion) (len: int) (return (x: ())) =
+{[@stop_split] [@expl:prove_prefix_known requires] ([@stop_split] [@expl:prove_prefix_known 'self' type invariant] [%#sraw_vec'0] inv_ref_PhysicalRegion self)
+  /\ ([@stop_split] [@expl:prove_prefix_known requires #0] [%#sraw_vec'1] invariant_ref_PhysicalRegion self)
+  /\ ([@stop_split] [@expl:prove_prefix_known requires #1] [%#sraw_vec'2] 0 <= len /\ len <= capacity'0 self)
+  /\ ([@stop_split] [@expl:prove_prefix_known requires #2] [%#sraw_vec'3] forall index: int. 0 <= index /\ index < len
+    -> slot_known (slot'0 self index))}
+  (! bb0
+  [ bb0 = s0 [ s0 = {[@expl:assertion] [%#sraw_vec] prefix_known self len} s1 | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l () | & self: t_PhysicalRegion = self | & len: int = len ])
+  [ return (result: ()) -> {[@stop_split] [@expl:prove_prefix_known ensures] [%#sraw_vec'4] prefix_known self len}
+    (! return {result}) ]

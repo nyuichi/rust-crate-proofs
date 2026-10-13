@@ -509,6 +509,9 @@ impl BoundPtr {
         _ => false,
     })]
     #[ensures(result.current_address() == self.current_address() + count@)]
+    #[cfg_attr(creusot, ensures(
+        result.raw_pointer() == self.raw_pointer().offset_logic(count@)
+    ))]
     pub(crate) fn advance_within(&self, count: usize) -> Self {
         let pointer = crate::provenance_specs::wrapping_offset(self.pointer.as_ptr(), count);
         // SAFETY: the B1 range invariant and the bound-offset precondition
@@ -644,6 +647,11 @@ impl Recovery {
     }
 
     #[logic(open)]
+    pub(crate) fn resource_id(self) -> Id {
+        pearlite! { self@.3 }
+    }
+
+    #[logic(open)]
     pub(crate) fn invariant(self) -> bool {
         pearlite! {
             self@.0.0 == Some(Excl(())) &&
@@ -731,6 +739,41 @@ impl PhysicalRegion {
             forall<index: Int> 0 <= index && index < len ==>
                 slot_known(self.slot(index))
         }
+    }
+
+    /// Package pointwise slot facts into the reusable prefix predicate used
+    /// by allocation-recovery boundaries.
+    #[check(ghost)]
+    #[requires(self.invariant())]
+    #[requires(0 <= len && len <= self.capacity())]
+    #[requires(forall<index: Int> 0 <= index && index < len ==>
+        slot_known(self.slot(index)))]
+    #[ensures(self.prefix_known(len))]
+    pub(crate) fn prove_prefix_known(&self, len: Int) {
+        proof_assert!(self.prefix_known(len));
+    }
+
+    /// Transfer known-slot facts from an initialized allocation prefix to a
+    /// related subregion interval without consuming either region token.
+    #[check(ghost)]
+    #[requires((*source).prefix_known(known_end))]
+    #[requires(self.invariant())]
+    #[requires(count >= 0)]
+    #[requires(self.lo() <= start && start + count <= self.hi())]
+    #[requires(count == 0 || start + count <= known_end)]
+    #[requires(forall<index: Int> 0 <= index && index < count ==>
+        self.slot(start + index) == (*source).slot(start + index))]
+    #[ensures(forall<index: Int> 0 <= index && index < count ==>
+        slot_known(self.slot(start + index)))]
+    pub(crate) fn prove_subregion_prefix_known(
+        &self,
+        source: Snapshot<PhysicalRegion>,
+        start: Int,
+        count: Int,
+        known_end: Int,
+    ) {
+        proof_assert!(forall<index: Int> 0 <= index && index < count ==>
+            slot_known(self.slot(start + index)));
     }
 
     /// Split only the ledger. The allocation binding and non-objective marker

@@ -471,6 +471,18 @@ impl StoredAuthority {
     pub(crate) fn base_address(self) -> Int {
         pearlite! { self.raw.base_address() }
     }
+
+    /// Identity of the exact recovery resource retained by this authority.
+    #[logic(open(self))]
+    pub(crate) fn recovery_resource_id(self) -> Id {
+        pearlite! { self.recovery.resource_id() }
+    }
+
+    /// Full logical view of the exact recovery token retained by this authority.
+    #[logic(open(self))]
+    pub(crate) fn recovery_view(self) -> <Recovery as View>::ViewTy {
+        pearlite! { self.recovery@ }
+    }
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
@@ -628,15 +640,13 @@ impl VecStorage {
     #[ensures(result.0.matches_authority(result.1.inner_logic()))]
     #[ensures(result.0.native_metadata() == (raw.raw_pointer(), len@, raw.capacity()))]
     #[ensures(result.1.inner_logic().invariant())]
-    #[ensures(result.1.inner_logic().raw@ == raw@)]
-    #[ensures(result.1.inner_logic().raw.raw_pointer() == raw.raw_pointer())]
-    #[ensures(result.1.inner_logic().raw.base_address() == raw.base_address())]
-    #[ensures(result.1.inner_logic().raw.capacity() == raw.capacity())]
+    #[ensures(result.1.inner_logic().raw_pointer() == raw.raw_pointer())]
+    #[ensures(result.1.inner_logic().base_address() == raw.base_address())]
+    #[ensures(result.1.inner_logic().capacity() == raw.capacity())]
     #[ensures(result.1.inner_logic().binding() == raw.namespace())]
     #[ensures(result.1.inner_logic().stored_len() == len@)]
-    #[ensures(result.1.inner_logic().recovery@ == capabilities.inner_logic().0@)]
-    #[ensures(result.1.inner_logic().recovery.namespace() == raw.namespace())]
-    #[ensures(result.1.inner_logic().recovery.capacity() == raw.capacity())]
+    #[ensures(result.1.inner_logic().recovery_resource_id() == capabilities.inner_logic().0.resource_id())]
+    #[ensures(result.1.inner_logic().recovery_view() == capabilities.inner_logic().0@)]
     #[ensures(result.2.inner_logic().invariant())]
     #[ensures(result.2.inner_logic()@ == capabilities.inner_logic().1@)]
     #[ensures(result.2.inner_logic().namespace() == raw.namespace())]

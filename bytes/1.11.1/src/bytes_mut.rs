@@ -18,7 +18,11 @@ use alloc::{
 use crate::buf::{IntoIter, UninitSlice};
 use crate::bytes::Vtable;
 #[cfg(all(creusot, bytes_original_unique_gate))]
-use crate::ownership_proof::{boxed_alignment, ref_count_ledger::OwnerLedger, terminal_phase::PhaseAuthority};
+use crate::ownership_proof::{
+    boxed_alignment,
+    ref_count_ledger::{AllocationBinding, OwnerLedger},
+    terminal_phase::PhaseAuthority,
+};
 #[allow(unused)]
 use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
@@ -32,6 +36,57 @@ mod shared_capsule;
 
 // Creusot-only exclusions below cover unrelated Shared/refcount/recovery and adapter bodies.
 // Native APIs remain present, and excluded implementations are not treated as proven contracts.
+
+/// Drop-free field bundle used only while installing the two views produced by
+/// a Vec-to-shared transfer. It carries pointer metadata and, in the proof
+/// build, the matching affine owner packet; it never owns or drops the data.
+#[allow(missing_debug_implementations)]
+struct SharedSplitView {
+    ptr: NonNull<u8>,
+    len: usize,
+    cap: usize,
+    data: *mut Shared,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    packet: shared_capsule::SharedOwnerPacket,
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+impl SharedSplitView {
+    /// Packet facts needed to install this exact native view. The predicate is
+    /// intentionally stated in terms of the descriptor's concrete fields,
+    /// rather than assuming a `BytesMut` layout predicate at the call site.
+    #[logic(open(self), prophetic)]
+    fn packet_frame_valid(self) -> bool {
+        pearlite! {
+            self.packet.invariant() &&
+            self.packet.capsule_public().0 == self.data as *mut () &&
+            (self.data.addr_logic() & KIND_MASK) == KIND_ARC &&
+            self.packet.base@ == Some((self.packet.region.inner_logic().namespace(),
+                self.packet.region.inner_logic().capacity(), 0int)) &&
+            self.packet.cursor@ != None &&
+            self.packet.cursor.raw_pointer() == self.ptr@ &&
+            self.packet.cursor@.unwrap_logic().0 ==
+                self.packet.region.inner_logic().namespace() &&
+            self.packet.cursor@.unwrap_logic().1 ==
+                self.packet.region.inner_logic().capacity() &&
+            self.packet.cursor.current_address() == self.packet.base.current_address() +
+                self.packet.cursor@.unwrap_logic().2 &&
+            self.len@ <= self.cap@ &&
+            self.packet.cursor@.unwrap_logic().2 + self.cap@ ==
+                self.packet.region.inner_logic().hi()
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    fn visible_prefix_known(self) -> bool {
+        pearlite! {
+            self.packet_frame_valid() &&
+            forall<i:Int> 0 <= i && i < self.len@ ==>
+                slot_known(self.packet.allocation_slot(
+                    self.packet.cursor@.unwrap_logic().2 + i))
+        }
+    }
+}
 
 /// A unique reference to a contiguous slice of memory.
 ///
@@ -659,6 +714,11 @@ impl BytesMut {
             at,
             self.capacity(),
         );
+        if self.kind() == KIND_VEC {
+            // SAFETY: the bounds assertion above proves the split point is
+            // within this Vec-backed view's capacity.
+            return unsafe { self.split_unique_to_shared(at, false) };
+        }
         unsafe {
             let mut other = self.shallow_clone();
             // SAFETY: We've checked that `at` <= `self.capacity()` above.
@@ -735,6 +795,12 @@ impl BytesMut {
             self.len(),
         );
 
+        if self.kind() == KIND_VEC {
+            // SAFETY: the bounds assertion above proves the split point is
+            // within this Vec-backed view's initialized prefix.
+            return unsafe { self.split_unique_to_shared(at, true) };
+        }
+
         unsafe {
             let mut other = self.shallow_clone();
             // SAFETY: We've checked that `at` <= `self.len()` and we know that `self.len()` <=
@@ -744,6 +810,355 @@ impl BytesMut {
             other.len = at;
             other
         }
+    }
+
+    /// Install two already framed shared views without constructing an
+    /// intermediate owning handle for `self`.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.unique_proof == None && self.shared_proof == None
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        left.visible_prefix_known() && right.visible_prefix_known()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).shared_layout_valid() && result.shared_layout_valid() &&
+        (^self).shared_visible_prefix_known() && result.shared_visible_prefix_known() &&
+        (^self).ptr@ == if return_left { right.ptr@ } else { left.ptr@ } &&
+        result.ptr@ == if return_left { left.ptr@ } else { right.ptr@ } &&
+        (^self).len@ == if return_left { right.len@ } else { left.len@ } &&
+        result.len@ == if return_left { left.len@ } else { right.len@ } &&
+        (^self).cap@ == if return_left { right.cap@ } else { left.cap@ } &&
+        result.cap@ == if return_left { left.cap@ } else { right.cap@ } &&
+        (^self).data == if return_left { right.data } else { left.data } &&
+        result.data == if return_left { left.data } else { right.data } &&
+        (^self).shared_proof.unwrap_logic() ==
+            (if return_left { right.packet } else { left.packet }) &&
+        result.shared_proof.unwrap_logic() ==
+            (if return_left { left.packet } else { right.packet })
+    ))]
+    unsafe fn install_shared_split_views(
+        &mut self,
+        left: SharedSplitView,
+        right: SharedSplitView,
+        return_left: bool,
+    ) -> BytesMut {
+        let (self_view, other_view) = if return_left {
+            (right, left)
+        } else {
+            (left, right)
+        };
+
+        self.ptr = self_view.ptr;
+        self.len = self_view.len;
+        self.cap = self_view.cap;
+        self.data = self_view.data;
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            self.unique_proof = None;
+            self.shared_proof = Some(self_view.packet);
+        }
+
+        BytesMut {
+            ptr: other_view.ptr,
+            len: other_view.len,
+            cap: other_view.cap,
+            data: other_view.data,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            unique_proof: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            shared_proof: Some(other_view.packet),
+        }
+    }
+
+    /// Split a unique Vec-backed view by transferring its original allocation
+    /// directly into one shared header with two disjoint owners. This is the
+    /// same runtime operation used by both original public split methods; the
+    /// Creusot branch only moves the matching affine descriptors alongside
+    /// the native allocation transfer.
+    ///
+    /// `return_left` chooses which half is returned. When false, `self` keeps
+    /// the left range and the result is the right range (`split_off`); when
+    /// true, `self` keeps the right range and the result is the left range
+    /// (`split_to`).
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.unique_vec_rebuildable() &&
+        at@ <= self.unique_capacity() &&
+        (!return_left || at@ <= self.unique_length())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).shared_layout_valid() && result.shared_layout_valid() &&
+        (^self).shared_visible_prefix_known() && result.shared_visible_prefix_known() &&
+        (^self).data == result.data &&
+        (^self).shared_proof.unwrap_logic().capsule_public() ==
+            result.shared_proof.unwrap_logic().capsule_public() &&
+        (^self).shared_proof.unwrap_logic().ticket.inner_logic().owner_id() !=
+            result.shared_proof.unwrap_logic().ticket.inner_logic().owner_id() &&
+        (^self).shared_proof.unwrap_logic().ticket.inner_logic().ledger_id() ==
+            result.shared_proof.unwrap_logic().ticket.inner_logic().ledger_id() &&
+        (^self).shared_proof.unwrap_logic().region.inner_logic().namespace() ==
+            self.unique_proof.unwrap_logic().raw.namespace() &&
+        result.shared_proof.unwrap_logic().region.inner_logic().namespace() ==
+            self.unique_proof.unwrap_logic().raw.namespace() &&
+        (^self).shared_proof.unwrap_logic().region.inner_logic().capacity() ==
+            self.unique_allocation_capacity() &&
+        result.shared_proof.unwrap_logic().region.inner_logic().capacity() ==
+            self.unique_allocation_capacity() &&
+        (^self).shared_proof.unwrap_logic().base.raw_pointer() ==
+            self.unique_proof.unwrap_logic().base.raw_pointer() &&
+        result.shared_proof.unwrap_logic().base.raw_pointer() ==
+            self.unique_proof.unwrap_logic().base.raw_pointer() &&
+        (^self).len@ == if return_left {
+            self.unique_length() - at@
+        } else if at@ < self.unique_length() {
+            at@
+        } else {
+            self.unique_length()
+        } &&
+        result.len@ == if return_left {
+            if at@ < self.unique_length() { at@ } else { self.unique_length() }
+        } else if at@ < self.unique_length() {
+            self.unique_length() - at@
+        } else {
+            0int
+        } &&
+        (^self).cap@ == if return_left {
+            self.unique_capacity() - at@
+        } else {
+            at@
+        } &&
+        result.cap@ == if return_left {
+            at@
+        } else {
+            self.unique_capacity() - at@
+        } &&
+        (^self).ptr.addr_logic()@ == if return_left {
+            self.unique_pointer().addr_logic()@ + at@
+        } else {
+            self.unique_pointer().addr_logic()@
+        } &&
+        result.ptr.addr_logic()@ == if return_left {
+            self.unique_pointer().addr_logic()@
+        } else {
+            self.unique_pointer().addr_logic()@ + at@
+        } &&
+        (if return_left { result.ptr@ } else { (^self).ptr@ }) == self.ptr@ &&
+        (if return_left {
+            result.shared_bytes() == Seq::create(
+                if at@ < self.unique_length() { at@ } else { self.unique_length() },
+                |i: Int| self.unique_slot(i).unwrap_logic().unwrap_logic(),
+            ) &&
+            (^self).shared_bytes() == Seq::create(
+                if at@ < self.unique_length() { self.unique_length() - at@ } else { 0int },
+                |i: Int| self.unique_slot(at@ + i).unwrap_logic().unwrap_logic(),
+            )
+        } else {
+            (^self).shared_bytes() == Seq::create(
+                if at@ < self.unique_length() { at@ } else { self.unique_length() },
+                |i: Int| self.unique_slot(i).unwrap_logic().unwrap_logic(),
+            ) &&
+            result.shared_bytes() == Seq::create(
+                if at@ < self.unique_length() { self.unique_length() - at@ } else { 0int },
+                |i: Int| self.unique_slot(at@ + i).unwrap_logic().unwrap_logic(),
+            )
+        }) &&
+        (if return_left {
+            result.shared_proof.unwrap_logic().region.inner_logic().lo() == 0 &&
+            result.shared_proof.unwrap_logic().region.inner_logic().hi() ==
+                self.unique_offset() + at@ &&
+            (^self).shared_proof.unwrap_logic().region.inner_logic().lo() ==
+                self.unique_offset() + at@ &&
+            (^self).shared_proof.unwrap_logic().region.inner_logic().hi() ==
+                self.unique_allocation_capacity()
+        } else {
+            (^self).shared_proof.unwrap_logic().region.inner_logic().lo() == 0 &&
+            (^self).shared_proof.unwrap_logic().region.inner_logic().hi() ==
+                self.unique_offset() + at@ &&
+            result.shared_proof.unwrap_logic().region.inner_logic().lo() ==
+                self.unique_offset() + at@ &&
+            result.shared_proof.unwrap_logic().region.inner_logic().hi() ==
+                self.unique_allocation_capacity()
+        }) &&
+        (forall<i: Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+            if i < self.unique_offset() + at@ {
+                (if return_left {
+                    result.shared_proof.unwrap_logic().allocation_slot(i)
+                } else {
+                    (^self).shared_proof.unwrap_logic().allocation_slot(i)
+                }) == self.unique_allocation_slot(i)
+            } else {
+                (if return_left {
+                    (^self).shared_proof.unwrap_logic().allocation_slot(i)
+                } else {
+                    result.shared_proof.unwrap_logic().allocation_slot(i)
+                }) == self.unique_allocation_slot(i)
+            }
+    )))]
+    unsafe fn split_unique_to_shared(&mut self, at: usize, return_left: bool) -> BytesMut {
+        debug_assert_eq!(self.kind(), KIND_VEC);
+
+        let old_len = self.len;
+        let old_cap = self.cap;
+        let old_pointer = self.ptr.as_ptr();
+        let off = unsafe { self.get_vec_pos() };
+        let cut = off + at;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let total_len = off + old_len;
+        let original_capacity_repr = crate::capacity_ops::original_capacity_repr_from_data(
+            crate::provenance_specs::pointer_addr(self.data),
+        );
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (vec, storage_region, base, allocation_binding, original_cursor) = {
+            let prestate = snapshot!(*self);
+            proof_assert!((*prestate).unique_vec_rebuildable());
+            proof_assert!(at@ <= (*prestate).unique_capacity());
+            proof_assert!(forall<i: Int> 0 <= i && i < total_len@ ==>
+                if i < off@ {
+                    slot_known((*prestate).unique_allocation_slot(i))
+                } else {
+                    slot_known((*prestate).unique_slot(i - off@))
+                }
+            );
+
+            let proof = self.unique_proof.take().unwrap();
+            let original_cursor = proof.cursor;
+            let (binding_base, binding_capacity) = proof.raw.bound_ptr_at_zero();
+            let binding_base_pointer = binding_base.as_ptr();
+            let binding: Ghost<AllocationBinding> = ghost! {
+                (
+                    proof.raw.namespace_ghost().into_inner(),
+                    binding_base_pointer,
+                    raw_vec::int_from_usize(binding_capacity).into_inner(),
+                )
+            };
+            let capabilities = ghost! {
+                let (recovery, region) = proof.capabilities.into_inner();
+                let total_len_int = raw_vec::int_from_usize(total_len).into_inner();
+                proof_assert!(forall<i: Int> 0 <= i && i < total_len@ ==>
+                    slot_known(region.slot(i)));
+                region.prove_prefix_known(total_len_int);
+                (recovery, region)
+            };
+            let (vec, authority, region, base) = unsafe {
+                VecStorage::resume_owned(proof.raw, total_len, capabilities)
+            };
+            let storage_region = ghost! {
+                let authority = authority.into_inner();
+                let region = region.into_inner();
+                let total_len_int = raw_vec::int_from_usize(total_len).into_inner();
+                region.prove_prefix_known(total_len_int);
+                (authority, region)
+            };
+            (vec, storage_region, base, binding, original_cursor)
+        };
+
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let vec = {
+            let vec = unsafe { rebuild_vec(self.ptr.as_ptr(), old_len, old_cap, off) };
+            VecStorage::hold(vec)
+        };
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (left_cursor, right_cursor) = {
+            let left_cursor = original_cursor;
+            let right_cursor = original_cursor.advance_within(at);
+            (left_cursor, right_cursor)
+        };
+
+        let left_pointer = old_pointer;
+        let right_pointer = crate::provenance_specs::wrapping_offset(old_pointer, at);
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (ref_count, owner) = RefCountCell::new_with_owner(2);
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let ref_count = RefCountCell::new(2);
+
+        let shared = Box::new(Shared {
+            vec,
+            original_capacity_repr,
+            ref_count,
+        });
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (header, root) = boxed_alignment::into_raw_aligned(shared);
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let header = Box::into_raw(shared);
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let source_region: Snapshot<PhysicalRegion> =
+            snapshot!(storage_region.inner_logic().1);
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let known_end: Snapshot<Int> =
+            snapshot!(storage_region.inner_logic().0.stored_len());
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let (left_packet, right_packet) = {
+            boxed_alignment::aligned_address_has_clear_low_bit(
+                crate::provenance_specs::pointer_addr(header),
+                core::mem::align_of::<Shared>(),
+            );
+            let ledger = OwnerLedger::new_promoted_pair(allocation_binding, snapshot!(cut@));
+            let phase_action = PhaseAuthority::new();
+            shared_capsule::make_count_two_packets(
+                header,
+                root,
+                owner,
+                storage_region,
+                ledger,
+                phase_action,
+                base,
+                left_cursor,
+                right_cursor,
+                snapshot!(cut@),
+            )
+        };
+
+        debug_assert_eq!(
+            crate::provenance_specs::pointer_addr(header) & KIND_MASK,
+            KIND_ARC,
+            "internal: Box<Shared> should have an aligned pointer",
+        );
+
+        let left_len = cmp::min(old_len, at);
+        let right_len = old_len.saturating_sub(at);
+        let right_cap = old_cap - at;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let _ = ghost! {
+            let left_start = raw_vec::int_from_usize(off).into_inner();
+            let left_count = raw_vec::int_from_usize(left_len).into_inner();
+            let right_start = raw_vec::int_from_usize(cut).into_inner();
+            let right_count = raw_vec::int_from_usize(right_len).into_inner();
+            let known_end_int = known_end.into_ghost().into_inner();
+            left_packet.region.borrow().into_inner().prove_subregion_prefix_known(
+                source_region,
+                left_start,
+                left_count,
+                known_end_int,
+            );
+            right_packet.region.borrow().into_inner().prove_subregion_prefix_known(
+                source_region,
+                right_start,
+                right_count,
+                known_end_int,
+            );
+        };
+        let left_view = SharedSplitView {
+            ptr: vptr(left_pointer),
+            len: left_len,
+            cap: at,
+            data: header,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            packet: left_packet,
+        };
+        let right_view = SharedSplitView {
+            ptr: vptr(right_pointer),
+            len: right_len,
+            cap: right_cap,
+            data: header,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            packet: right_packet,
+        };
+        unsafe { self.install_shared_split_views(left_view, right_view, return_left) }
     }
 
     /// Shortens the buffer, keeping the first `len` bytes and dropping the
@@ -2588,6 +3003,103 @@ mod tests {
         assert_eq!(right.len(), 0);
         assert_eq!(right.capacity(), original_capacity - 7);
         assert!(right.is_empty());
+    }
+
+    #[test]
+    fn vec_split_off_past_len_after_advance_keeps_disjoint_capacity() {
+        let mut original = Vec::with_capacity(64);
+        original.extend(0u8..16);
+        let mut left = BytesMut::from_vec(original);
+        Buf::advance(&mut left, 3);
+
+        let old_capacity = left.capacity();
+        let old_pointer = left.as_ptr();
+        let old_len = left.len();
+        let split_at = old_len + 4;
+        assert!(split_at <= old_capacity);
+
+        let mut right = left.split_off(split_at);
+
+        assert_eq!(left.len(), old_len);
+        assert_eq!(left.capacity(), split_at);
+        assert_eq!(right.len(), 0);
+        assert_eq!(right.capacity(), old_capacity - split_at);
+        assert_eq!(left.as_ptr(), old_pointer);
+        assert_eq!(right.as_ptr() as usize, old_pointer as usize + split_at);
+        assert_eq!(&left[..], &(3u8..16).collect::<Vec<_>>());
+
+        left[0] = 99;
+        right.extend_from_slice(b"x");
+        assert_eq!(left[0], 99);
+        assert_eq!(&right[..], b"x");
+    }
+
+    #[test]
+    fn vec_split_to_after_advance_keeps_halves_independently_writable() {
+        let mut original = Vec::with_capacity(40);
+        original.extend(0u8..20);
+        let mut right = BytesMut::from_vec(original);
+        Buf::advance(&mut right, 4);
+
+        let old_capacity = right.capacity();
+        let old_pointer = right.as_ptr();
+        let mut left = right.split_to(6);
+
+        assert_eq!(left.len(), 6);
+        assert_eq!(left.capacity(), 6);
+        assert_eq!(right.len(), 10);
+        assert_eq!(right.capacity(), old_capacity - 6);
+        assert_eq!(left.as_ptr(), old_pointer);
+        assert_eq!(right.as_ptr() as usize, old_pointer as usize + 6);
+        assert_eq!(&left[..], &(4u8..10).collect::<Vec<_>>());
+        assert_eq!(&right[..], &(10u8..20).collect::<Vec<_>>());
+
+        left[0] = 99;
+        right[0] = 88;
+        assert_eq!(left[0], 99);
+        assert_eq!(right[0], 88);
+    }
+
+    #[test]
+    fn vec_split_off_at_capacity_and_with_zero_capacity() {
+        let mut end = BytesMut::with_capacity(8);
+        end.extend_from_slice(b"abc");
+        let capacity = end.capacity();
+        let tail = end.split_off(capacity);
+
+        assert_eq!(&end[..], b"abc");
+        assert_eq!(end.capacity(), capacity);
+        assert!(tail.is_empty());
+        assert_eq!(tail.capacity(), 0);
+
+        let mut empty = BytesMut::new();
+        assert_eq!(empty.capacity(), 0);
+        let tail = empty.split_off(0);
+        assert!(empty.is_empty() && tail.is_empty());
+        assert_eq!(empty.capacity(), 0);
+        assert_eq!(tail.capacity(), 0);
+    }
+
+    #[test]
+    fn split_after_truncate_preserves_initialized_capacity_suffix() {
+        let mut original = Vec::with_capacity(24);
+        original.extend(0u8..16);
+        let mut left = BytesMut::from_vec(original);
+        left.truncate(4);
+
+        let right = left.split_off(10);
+        assert_eq!(left.len(), 4);
+        assert_eq!(right.len(), 0);
+
+        // The Vec allocation still contains the initialized suffix even
+        // though truncate hid it. Each split half owns a disjoint part of it.
+        unsafe {
+            left.set_len(10);
+            let mut right = right;
+            right.set_len(6);
+            assert_eq!(&left[..], &(0u8..10).collect::<Vec<_>>());
+            assert_eq!(&right[..], &(10u8..16).collect::<Vec<_>>());
+        }
     }
 
     #[test]

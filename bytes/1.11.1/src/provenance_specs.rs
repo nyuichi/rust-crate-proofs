@@ -1,10 +1,11 @@
-//! Small pointer-address helpers used by the pointer-tagged metadata paths.
+//! Pointer and address helpers used by pointer-tagged metadata paths.
 //!
-//! These functions deliberately model numerical addresses only. The
-//! provenance-preserving operation below uses `wrapping_add` on the original
-//! allocation-derived pointer, but its contract says nothing about
-//! dereferenceability or permission creation. Metadata pointers made from null
-//! are for integer metadata fields only.
+//! Address conversion helpers model numerical addresses only. The
+//! provenance-preserving `wrapping_offset` operation uses `wrapping_add` on
+//! the original pointer; for non-wrapping offsets its proof contract relates
+//! the exact result to the standard logical pointer offset. This is pointer
+//! metadata only and grants no dereferenceability or memory permission.
+//! Metadata pointers made from null are for integer metadata fields only.
 
 #[cfg(creusot)]
 use creusot_std::prelude::*;
@@ -28,10 +29,11 @@ pub(crate) fn pointer_addr_eq<T>(left: *const T, right: *const T) -> bool {
 }
 
 // STD-PTRWRAP-01: Creusot 0.13 has no contract for raw-pointer wrapping_add.
-// This extern spec is usable only for one-byte pointees (the u8 operation used
-// by pointer tagging) and states only the numeric address calculation. It says
-// nothing about pointer equality, provenance, live ranges, `Perm`, `PtrLive`,
-// or dereferenceability.
+// This extern spec is usable only for one-byte pointees. Besides the modular
+// address calculation, a non-wrapping offset is modeled as the Std pointer
+// `offset_logic` operation on the exact input pointer. This records the normal
+// provenance-preserving pointer-word result; it does not establish a live
+// range, create `Perm`/`PtrLive`, or grant dereferenceability.
 #[cfg(creusot)]
 extern_spec! {
     impl<T> *mut T {
@@ -39,6 +41,10 @@ extern_spec! {
         #[ensures(
             result.addr_logic()@ ==
                 (self.addr_logic()@ + offset@) % (usize::MAX@ + 1)
+        )]
+        #[ensures(
+            self.addr_logic()@ + offset@ <= usize::MAX@ ==>
+                result == self.offset_logic(offset@)
         )]
         fn wrapping_add(self, offset: usize) -> *mut T;
     }
@@ -65,12 +71,21 @@ pub(crate) fn pointer_addr<T>(ptr: *const T) -> usize {
 /// Return the requested address by offsetting the original pointer with
 /// provenance-preserving wrapping pointer arithmetic.
 ///
-/// The specification describes only the resulting numerical address. It does
-/// not construct or return a `Perm`, `PtrLive`, or other dereference authority.
+/// For a non-wrapping address, the specification also relates the result to
+/// the standard logical pointer-offset operation on the same input pointer.
+/// It does not construct or return a `Perm`, `PtrLive`, or other dereference
+/// authority.
 #[cfg_attr(
     creusot,
     ensures(
         result.addr_logic()@ == (ptr.addr_logic()@ + offset@) % (usize::MAX@ + 1)
+    )
+)]
+#[cfg_attr(
+    creusot,
+    ensures(
+        ptr.addr_logic()@ + offset@ <= usize::MAX@ ==>
+            result == ptr.offset_logic(offset@)
     )
 )]
 #[inline]

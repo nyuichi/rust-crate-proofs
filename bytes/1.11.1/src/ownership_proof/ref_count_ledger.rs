@@ -478,6 +478,8 @@ impl OwnerLedger {
     /// two live handles.
     #[check(ghost)]
     #[ensures(result.inner_logic().0.invariant())]
+    #[ensures(result.inner_logic().0.is_live())]
+    #[ensures(result.inner_logic().0.next_id() == 2)]
     #[ensures(result.inner_logic().0.allocation_binding() == binding.inner_logic())]
     #[ensures(result.inner_logic().0.count() == 2)]
     #[ensures(result.inner_logic().0.agrees_with_value(2))]
@@ -492,6 +494,8 @@ impl OwnerLedger {
     #[ensures(result.inner_logic().1.allocation_binding() == binding.inner_logic() &&
         result.inner_logic().2.allocation_binding() == binding.inner_logic())]
     #[ensures(result.inner_logic().1.owner_id() == 0 && result.inner_logic().2.owner_id() == 1)]
+    #[ensures(result.inner_logic().1.owner_id() < result.inner_logic().0.next_id() &&
+        result.inner_logic().2.owner_id() < result.inner_logic().0.next_id())]
     #[ensures(result.inner_logic().1.owned_lo() == 0 &&
         result.inner_logic().1.owned_hi() == *cut)]
     #[ensures(result.inner_logic().2.owned_lo() == *cut &&

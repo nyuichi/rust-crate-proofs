@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 720 4 720 62 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 728 4 728 62 *)
 
 (* ownership_proof::raw_vec::PhysicalRegion *)
 
@@ -6,8 +6,8 @@ type namespace_other
 
 type t_Namespace = Namespace_BYTES_MUT_SHARED_CAPSULE int | Other namespace_other
 
-let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 719 14 719 43
-let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 671 12 671 78
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 727 14 727 43
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 679 12 679 78
 let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
 let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
 
@@ -63,7 +63,7 @@ axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#so
 
 type tup3_OwnedRegion_Int_Id = { f0'3: t_OwnedRegion; f1'3: int; f2'3: t_Id }
 
-function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 669 4 669 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 677 4 677 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
  = [%#sraw_vec'0] { f0'3 = self.ledger; f1'3 = self.descriptor.capacity; f2'3 = self.descriptor.namespace }
 
 meta "compute_max_steps" 1000000
@@ -74,7 +74,7 @@ constant self : t_PhysicalRegion
 
 constant index : int
 
-function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 720 4 720 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 728 4 728 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
 
 goal vc_slot: ([@stop_split] [@expl:slot ensures] [%#sowned_region] slot self.ledger index
     = match get_Int (view_OwnedRegion self.ledger).f3'2.f1'1 index with

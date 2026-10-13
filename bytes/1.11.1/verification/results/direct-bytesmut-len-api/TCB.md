@@ -34,9 +34,10 @@ contracts; proving only `bind_consumed_vec` would leave that assumption in
 place.
 
 The source now also defines `VecStorage::resume_owned` as a narrow generic B2
-restoration boundary for a future unique-to-Shared producer proof. It consumes
-the matching existing `RawAllocation`, `Recovery`, and full-capacity
-`PhysicalRegion`, requires every slot in the restored Vec prefix to be known,
+restoration boundary used by the selected private unique-to-Shared producer
+proof. It consumes the matching existing `RawAllocation`, `Recovery`, and
+full-capacity `PhysicalRegion`, requires every slot in the restored Vec prefix
+to be known,
 and calls `Vec::from_raw_parts` exactly once before immediately wrapping the
 Vec in the opaque `NativeStoredVec(ManuallyDrop<Vec<u8>>)` field. Its contract
 preserves the same native pointer word, allocation base and capacity, every
@@ -48,12 +49,13 @@ outstanding physical borrow into the allocation. The boundary assumes the
 matching B1 tokens still represent the live original global-allocator `u8`
 allocation and that native `Vec::from_raw_parts` plus the opaque wrapper
 transfer its sole owner without changing allocation bytes. It states no Bytes
-owner, refcount, split, or reclamation rule. This adapter is not yet included
-in the recorded selected producer call cone, so the current saved proof does
-not establish its use by a BytesMut path. Removing this new assumption
-requires a generic Std/B2 contract for exact native owner reconstruction and
-full-allocation preservation, followed by a body proof of the opaque storage
-adoption and metadata binding.
+owner, refcount, split, or reclamation rule. The selected body proof for the
+private original-source Vec split producer calls this adapter and proves its
+own use of the returned exact resources; the adapter itself remains trusted,
+and the proof does not establish public wrapper reachability. Removing this
+assumption requires a generic Std/B2 contract for exact native owner
+reconstruction and full-allocation preservation, followed by a body proof of
+the opaque storage adoption and metadata binding.
 
 The selected `from_vec`, `with_capacity`, `new`, `zeroed`, `From<&[u8]>`,
 `From<&str>`, and `Default` bodies establish their specified initialized
@@ -119,10 +121,17 @@ execution was observed to have undefined behavior.
 The supporting `split_view_region` body preserves the full physical allocation
 while splitting the cursor-relative visible region, including any hidden
 prefix. The selected `BoundPtr` projection and `advance_within` bodies preserve
-the bounded pointer relationship used by the cursor helpers. The selected
-bodies use generic Creusot Std ghost/resource and logic contracts, plus the
-address-only `wrapping_add_u8` specification. Their Vec observer and resource
-assumptions are documented in the
+the bounded pointer relationship used by the cursor helpers. Generic
+`STD-PTRWRAP-01` is a strengthened external specification for raw `u8`
+`wrapping_add`: it retains the modular-address guarantee and, when the source
+address plus offset does not wrap, assumes that the exact result pointer equals
+the Std logical `offset_logic` result for that same source pointer and offset.
+This pointer-word identity is a generic standard-pointer assumption used by
+`BoundPtr::advance_within` and the original Vec split helper; it is not inferred
+from equal numeric addresses. The assumption grants no `Perm`, `PtrLive`, B1/B2
+resource, allocation liveness, or dereference authority. The selected bodies
+also use generic Creusot Std ghost/resource and logic contracts. Their Vec
+observer and resource assumptions are documented in the
 [Std overlay](../../std-support/README.md). Verification-only exclusions for
 unrelated comparison, ownership, iterator and Shared-backed bodies are
 documented beside the source in [`bytes.rs`](../../../src/bytes.rs) and
@@ -203,12 +212,15 @@ one live parent interval into adjacent parent and child intervals, and
 range represented by the only active ticket. These interval and allocation
 fields are metadata: they grant no allocation access authority.
 
-Only the root-ticket constructor is connected to the selected production
-promotion helper. The two-ticket constructor, split and drop transitions are
-proved as generic ledger operations; no native handle split, drop, conversion
-or refcount operation invokes them in the selected call cone. Consequently the
-proofs do not establish native refcount-to-registration equality, count-one
-uniqueness for recovery, or a Shared allocation lifecycle.
+The root-ticket constructor is connected to the selected production
+count-one promotion helper. The two-ticket constructor is connected to the
+selected private original-source Vec split helper, which consumes the actual
+Vec state and installs the two returned packets. The generic `split_owner` and
+drop transitions remain unconnected to native handle operations; no selected
+production clone, drop, conversion, or later refcount transition updates the
+ledger. Consequently the proofs do not establish that later native refcount
+changes remain matched to ledger changes, count-one uniqueness for recovery,
+or a Shared allocation lifecycle.
 
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
@@ -247,7 +259,12 @@ physical-region fragments cut from the full region; both packets share the
 same capsule. The generic `new_promoted_pair` constructor proves the matching
 full-range active-owner coverage for its particular `[0, cut)` and
 `[cut, capacity)` pair. These proofs establish constructor behavior under
-their stated preconditions. No original-source `BytesMut` split producer
-calls `make_count_two_packets` yet, and they prove no native split/refcount
-transition or public call chain. The separate `VecStorage::resume_owned`
-boundary remains trusted and is not called by this helper.
+their stated preconditions. The body-proved `split_unique_to_shared` helper
+calls `make_count_two_packets`, then installs the actual left and right
+pointer/length/capacity views with those packets while preserving their common
+capsule and full allocation-slot frame. Its proof depends on the trusted B2
+`VecStorage::resume_owned` adapter and the generic non-wrapping pointer-offset
+assumption above. It establishes this private Vec producer body under its
+unique-state preconditions; it does not prove the public `split_off` or
+`split_to` wrappers, safe call-chain reachability, the ARC split producer, or
+subsequent ARC split, clone/drop/refcount lifecycle transitions.

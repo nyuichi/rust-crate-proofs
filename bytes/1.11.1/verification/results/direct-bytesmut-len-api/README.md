@@ -96,10 +96,17 @@ the actual active-owner map covers the full allocation, it places the exact
 counter permission, stored authority, ledger, and empty physical pool into
 one shared state, then returns the actual disjoint ticket and physical-region
 fragments for `[0, cut)` and `[cut, capacity)`. `new_promoted_pair` proves that
-coverage for its pair of ranges. No native split producer calls this helper
-yet; it establishes no native split/refcount transition or public call chain.
-The generic `VecStorage::resume_owned` B2 restoration adapter is separately
-trusted and is not called here.
+coverage for its pair of ranges. The original-source private Vec split
+producer, `BytesMut::split_unique_to_shared`, now calls this constructor and
+has a body proof that installs the two actual pointer/length/capacity views
+with the returned packets. It preserves the allocation frame and each
+visible initialized prefix under its strong unique-Vec precondition and the
+generic B2 restoration and non-wrapping pointer-offset assumptions described
+in [`TCB.md`](TCB.md). This proves that helper body; the public
+`split_off`/`split_to` wrappers and their call-chain reachability are not
+selected proof targets. The ARC split producer and clone/drop/refcount
+transitions remain outside the selected proof, so the result does not establish
+all safe split states or a public `BytesMut::truncate` call chain.
 
 The selected targets also prove the one-shot `RefCountCell` bootstrap
 extraction body, which
