@@ -60,6 +60,16 @@ checkpoint. Thus these body proofs do not yet establish an end-to-end public
 [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md) and
 [generic Std overlay](verification/std-support/README.md) assumptions.
 
+The verification-only Shared capsule also has body-proved affine header-loan
+transitions. A token-aware `EventBoundInvariant::open_with_tokens` exposes the
+protocol, counter-owner agreement and callback frame; packet take/restore
+helpers move the exact boxed header permission into and out of a lease bound to
+its generation and header/storage metadata. Acquisition remains conditional:
+the packet invariant and namespace token do not imply that the header root is
+present, so `try_take_header_read_loan` returns `Option`. No selected public
+Shared lifecycle body yet uses these helpers around native counter operations.
+They establish proof plumbing, not safe producer closure for `truncate`.
+
 This is a verification fork based on the crates.io 1.11.1 source. It includes
 branch runtime fixes and verification-only annotations/refactors; this evidence
 applies to the fork and does not establish equivalence to the unmodified

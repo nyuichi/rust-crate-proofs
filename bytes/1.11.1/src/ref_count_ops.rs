@@ -95,6 +95,15 @@ impl RefCountCell {
         pearlite! { self.counter }
     }
 
+    /// Opaque logical identity of the counter field's address. The body is
+    /// visible only in this module so callers can name the address without
+    /// unfolding the private `counter` field in their own contracts.
+    #[cfg(creusot)]
+    #[logic(open(self))]
+    pub(crate) fn counter_reference(&self) -> &NativeCounter {
+        &self.counter
+    }
+
     #[cfg(creusot)]
     #[logic(open(self))]
     pub(crate) fn has_event_invariant(self) -> bool {
@@ -150,7 +159,7 @@ impl RefCountCell {
     /// Return the exact native counter field without opening its ghost
     /// invariant. This getter preserves field identity for callers that first
     /// place the enclosing header at its final address.
-    #[cfg_attr(creusot, ensures(result == &self.counter))]
+    #[cfg_attr(creusot, ensures(result == self.counter_reference()))]
     #[cfg_attr(creusot, ensures(*result == self.counter_model()))]
     pub(crate) fn native_counter(&self) -> &NativeCounter {
         &self.counter
@@ -314,7 +323,7 @@ mod proof {
         ghost::{
             invariant::{declare_namespace, AtomicInvariant, Protocol},
             perm::{Perm, PermTarget},
-            FnGhost, Ghost,
+            FnGhost, FnGhostWrapper, Ghost,
         },
         prelude::*,
     };
@@ -379,6 +388,81 @@ mod proof {
                 let state = EventState { owner: owner.into_inner(), current: current.into_inner() };
                 let inner = AtomicInvariant::new(Ghost::new(state), snapshot!(REF_COUNT_EVENT()));
                 Self { inner }
+            }
+        }
+
+        #[logic(open(self))]
+        pub(crate) fn namespace(self) -> creusot_std::ghost::invariant::Namespace {
+            self.inner.namespace()
+        }
+
+        /// Open the exact event state with an explicitly supplied invariant
+        /// token. Unlike the native counter adapters below, this helper has
+        /// no atomic operation of its own: it delegates only to the existing
+        /// generic `AtomicInvariant::open` contract and exposes its checked
+        /// callback/frame obligations to callers.
+        #[check(ghost)]
+        #[requires(tokens.contains(self.namespace()))]
+        #[requires(forall<s: &mut EventState<T>>
+            s.public() == self.public() &&
+                s.current.protocol() &&
+                s.current.counter_model() == *s.owner.ward() &&
+                s.current.agrees_with_value(s.owner.val()) &&
+                inv(s) ==>
+                f.precondition((
+                    &mut s.current,
+                    Snapshot::new(*s.owner.ward()),
+                    Snapshot::new(s.owner.val()),
+                )) &&
+                (forall<res: A> f.postcondition_once((
+                    &mut s.current,
+                    Snapshot::new(*s.owner.ward()),
+                    Snapshot::new(s.owner.val()),
+                ), res) ==>
+                    (^s).current.public() == s.current.public() &&
+                    (^s).current.counter_model() == s.current.counter_model() &&
+                    (^s).current.protocol() &&
+                    (^s).current.agrees_with_value(s.owner.val()))
+        )]
+        #[ensures(exists<s: &mut EventState<T>>
+            s.public() == self.public() &&
+            s.current.protocol() &&
+            s.current.counter_model() == *s.owner.ward() &&
+            s.current.agrees_with_value(s.owner.val()) &&
+            inv(s) &&
+            f.postcondition_once((
+                &mut s.current,
+                Snapshot::new(*s.owner.ward()),
+                Snapshot::new(s.owner.val()),
+            ), *result) &&
+            (^s).current.public() == s.current.public() &&
+            (^s).current.counter_model() == s.current.counter_model() &&
+            (^s).current.protocol() &&
+            (^s).current.agrees_with_value(s.owner.val()) &&
+            (^s).owner.val() == s.owner.val() &&
+            (^s).owner.ward() == s.owner.ward())]
+        pub(crate) fn open_with_tokens<A, F>(
+            &self,
+            tokens: Ghost<creusot_std::ghost::invariant::Tokens<'_>>,
+            f: Ghost<F>,
+        ) -> Ghost<A>
+        where
+            F: FnGhost + for<'s> FnOnce(
+                &'s mut T,
+                Snapshot<NativeCounter>,
+                Snapshot<usize>,
+            ) -> A,
+        {
+            ghost! {
+                let callback = f.into_inner();
+                self.inner.borrow().open(
+                    tokens.into_inner(),
+                    FnGhostWrapper(|state: &mut EventState<T>| {
+                        let owner_model = snapshot!(*state.owner.ward());
+                        let owner_value = snapshot!(state.owner.val());
+                        callback(&mut state.current, owner_model, owner_value)
+                    }),
+                )
             }
         }
 

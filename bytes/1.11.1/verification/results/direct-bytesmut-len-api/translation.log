@@ -64,6 +64,12 @@ warning: unused import: `AtomicUsize`
 28 | use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
    |                                            ^^^^^^^^^^^
 
+warning: unused import: `Recovery`
+  --> src/bytes_mut/shared_capsule.rs:22:59
+   |
+22 |         raw_vec::{BoundPtr, PhysicalPool, PhysicalRegion, Recovery},
+   |                                                           ^^^^^^^^
+
 warning: unnecessary parentheses around function argument
    --> src/bytes_mut.rs:524:5
     |
@@ -534,39 +540,39 @@ help: remove these parentheses
     |
 
 warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:554:17
+   --> src/ref_count_ops.rs:638:17
     |
-554 |                 (old == expected ==>
+638 |                 (old == expected ==>
     |                 ^
 ...
-559 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+643 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
     |                                                                                        ^
     |
 help: remove these parentheses
     |
-554 ~                 old == expected ==>
-555 |                     f.precondition((&mut s.current, old, new)) &&
+638 ~                 old == expected ==>
+639 |                     f.precondition((&mut s.current, old, new)) &&
 ...
-558 |                         (^s).current.counter_model() == s.current.counter_model() &&
-559 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+642 |                         (^s).current.counter_model() == s.current.counter_model() &&
+643 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
     |
 
 warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:609:17
+   --> src/ref_count_ops.rs:693:17
     |
-609 |                 (old == expected ==>
+693 |                 (old == expected ==>
     |                 ^
 ...
-614 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+698 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
     |                                                                                        ^
     |
 help: remove these parentheses
     |
-609 ~                 old == expected ==>
-610 |                     f.precondition((&mut s.current, old, new)) &&
+693 ~                 old == expected ==>
+694 |                     f.precondition((&mut s.current, old, new)) &&
 ...
-613 |                         (^s).current.counter_model() == s.current.counter_model() &&
-614 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+697 |                         (^s).current.counter_model() == s.current.counter_model() &&
+698 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
     |
 
 warning: unused import: `borrow::Borrow`
@@ -689,6 +695,90 @@ warning: function `reallocate_u8` is never used
    |
 25 | pub(crate) unsafe fn reallocate_u8(base: *mut u8, old_capacity: usize, capacity: usize) -> core::ptr::NonNull<u8> {
    |                      ^^^^^^^^^^^^^
+
+warning: associated items `activate`, `deactivate`, and `require_active_fragment` are never used
+   --> src/bytes_mut/shared_capsule.rs:156:8
+    |
+106 | impl HeaderLeaseAuthority {
+    | ------------------------- associated items in this implementation
+...
+156 |     fn activate(
+    |        ^^^^^^^^
+...
+183 |     fn deactivate(
+    |        ^^^^^^^^^^
+...
+210 |     fn require_active_fragment(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `same_stored_authority` is never used
+   --> src/bytes_mut/shared_capsule.rs:245:4
+    |
+245 | fn same_stored_authority(left: StoredAuthority, right: StoredAuthority) -> bool {
+    |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `SharedHeaderReadLoan` is never constructed
+   --> src/bytes_mut/shared_capsule.rs:429:19
+    |
+429 | pub(crate) struct SharedHeaderReadLoan {
+    |                   ^^^^^^^^^^^^^^^^^^^^
+
+warning: method `valid` is never used
+   --> src/bytes_mut/shared_capsule.rs:445:8
+    |
+443 | impl SharedHeaderReadLoan {
+    | ------------------------- method in this implementation
+444 |     #[logic(open(self), prophetic)]
+445 |     fn valid(self) -> bool {
+    |        ^^^^^
+
+warning: associated items `prove_public_lease_resource_id`, `prove_root_some_implies_lease_idle`, `prove_current_header_lease`, `take_header_read_loan`, and `restore_header_read_loan` are never used
+   --> src/bytes_mut/shared_capsule.rs:484:8
+    |
+477 | impl SharedPayload {
+    | ------------------ associated items in this implementation
+...
+484 |     fn prove_public_lease_resource_id(&self, expected: Snapshot<Id>) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+494 |     fn prove_root_some_implies_lease_idle(&self) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+532 |     fn prove_current_header_lease(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+619 |     pub(crate) fn take_header_read_loan(
+    |                   ^^^^^^^^^^^^^^^^^^^^^
+...
+686 |     pub(crate) fn restore_header_read_loan(
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `loaned_native_counter` is never used
+   --> src/bytes_mut/shared_capsule.rs:722:15
+    |
+722 | pub(crate) fn loaned_native_counter<'a>(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `lease_resource_id` is never used
+   --> src/bytes_mut/shared_capsule.rs:758:19
+    |
+743 | impl SharedOwnerPacket {
+    | ---------------------- method in this implementation
+...
+758 |     pub(crate) fn lease_resource_id(&self) -> Id {
+    |                   ^^^^^^^^^^^^^^^^^
+
+warning: methods `try_take_header_read_loan` and `try_restore_header_read_loan` are never used
+   --> src/bytes_mut/shared_capsule.rs:871:19
+    |
+809 | impl SharedOwnerPacket {
+    | ---------------------- methods in this implementation
+...
+871 |     pub(crate) fn try_take_header_read_loan(
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+932 |     pub(crate) fn try_restore_header_read_loan(
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `vec_pos_from_data` is never used
    --> src/capacity_ops.rs:133:15
@@ -1004,25 +1094,34 @@ warning: methods `close` and `contradicts_action` are never used
 121 |     pub(crate) fn contradicts_action(&self, action: &TerminalAction) {
     |                   ^^^^^^^^^^^^^^^^^^
 
-warning: methods `native_counter` and `take_bootstrap_owner` are never used
-   --> src/ref_count_ops.rs:155:19
+warning: methods `counter_reference`, `native_counter`, and `take_bootstrap_owner` are never used
+   --> src/ref_count_ops.rs:103:19
     |
  88 | impl RefCountCell {
     | ----------------- methods in this implementation
 ...
-155 |     pub(crate) fn native_counter(&self) -> &NativeCounter {
+103 |     pub(crate) fn counter_reference(&self) -> &NativeCounter {
+    |                   ^^^^^^^^^^^^^^^^^
+...
+164 |     pub(crate) fn native_counter(&self) -> &NativeCounter {
     |                   ^^^^^^^^^^^^^^
 ...
-173 |     pub(crate) fn take_bootstrap_owner(
+182 |     pub(crate) fn take_bootstrap_owner(
     |                   ^^^^^^^^^^^^^^^^^^^^
 
-warning: method `into_inner` is never used
-   --> src/ref_count_ops.rs:400:23
+warning: methods `namespace`, `open_with_tokens`, and `into_inner` are never used
+   --> src/ref_count_ops.rs:395:23
     |
-368 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
-    |     ----------------------------------------------- method in this implementation
+377 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
+    |     ----------------------------------------------- methods in this implementation
 ...
-400 |         pub(crate) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
+395 |         pub(crate) fn namespace(self) -> creusot_std::ghost::invariant::Namespace {
+    |                       ^^^^^^^^^
+...
+444 |         pub(crate) fn open_with_tokens<A, F>(
+    |                       ^^^^^^^^^^^^^^^^
+...
+484 |         pub(crate) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
     |                       ^^^^^^^^^^
 
 warning: calling external function `is_empty` with no contract will yield an impossible precondition
@@ -3147,5 +3246,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 341 warnings (run `cargo fix --lib -p bytes` to apply 49 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.80s
+warning: `bytes` (lib) generated 350 warnings (run `cargo fix --lib -p bytes` to apply 50 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 17.92s

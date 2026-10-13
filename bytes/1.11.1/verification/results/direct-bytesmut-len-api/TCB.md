@@ -171,6 +171,38 @@ its allocation identity to the stored authority. The initial count-one
 promotion and count-two Vec split construction have body proofs that establish
 those relations and return the matching tickets and regions.
 
+The token-aware `EventBoundInvariant::open_with_tokens` body is also proved.
+Its callback precondition and postcondition explicitly expose the payload
+protocol, equality between the payload counter model and owner permission, and
+agreement between the payload and owner scalar value; the body delegates to the
+generic `AtomicInvariant::open` contract and preserves those facts and the
+owner permission frame. This proves the generic opener's body and callback
+obligations. It does not mint namespace tokens or establish a native Shared
+operation's access to them.
+
+The Shared payload's header-read lease is a verification-only affine resource,
+not a native reference count. Selected body proofs cover lease-authority
+creation, activation and deactivation, checking an active fragment, the exact
+payload take/restore transitions, their projection helpers, and the loan-bound
+`loaned_native_counter` accessor. Packet `try_take_header_read_loan` and
+`try_restore_header_read_loan` open the capsule with an explicit namespace
+token and have body-proved callback contracts that preserve the public tuple,
+counter model, protocol and owner-value agreement. A successful take moves the
+exact boxed header permission into a loan whose affine fragment binds the
+generation, header pointer, counter, storage authority and allocation binding,
+Vec metadata, ledger and phase. Restoring requires that matching fragment and
+returns that exact permission while restoring the idle lease state.
+
+The packet precondition and namespace token establish permission to attempt an
+open; they do not establish that the root is present. The try-take operation
+therefore returns `Option`, and no proof in this checkpoint makes the `None`
+case unreachable for an arbitrary valid packet. The selected public Shared
+producer and lifecycle bodies do not yet scope these transitions around their
+native counter operations. This lease layer consequently does not close safe
+producer/lifecycle reachability for the common `BytesMut::truncate`
+precondition. The exact selected bodies and prover results are listed in
+[`proof.json`](proof.json).
+
 The native atomic adapters that open this generic event invariant are trusted
 primitives. Their contracts preserve the same permission and counter model,
 and require a one-shot callback to preserve the protocol after the exact
