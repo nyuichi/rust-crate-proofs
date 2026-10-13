@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 146 4 146 74 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 169 4 169 74 *)
 
 (* ownership_proof::ready_registry::ReadyRegistry<R> *)
 
@@ -34,13 +34,18 @@ let%span sra'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcoun
 let%span sra'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 233 14 233 39
 let%span sra'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 255 14 255 55
 let%span sra'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 241 14 241 41
-let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 145 14 145 52
-let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 136 8 139 9
-let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 129 8 129 34
-let%span sready_registry'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 47 14 47 46
-let%span sready_registry'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 48 14 48 39
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 168 14 168 52
+let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 159 8 162 9
+let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 143 8 143 34
+let%span sready_registry'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 47 14 47 50
+let%span sready_registry'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 48 14 48 43
 let%span sready_registry'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 49 14 49 44
-let%span sready_registry'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 50 14 50 40
+let%span sready_registry'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 50 14 50 47
+let%span sready_registry'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 26 8 26 24
+let%span sready_registry'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 71 8 71 16
+let%span sready_registry'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 31 8 31 17
+let%span sready_registry'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 61 8 61 26
+let%span sready_registry'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 66 20 66 34
 
 use seq.Seq
 use int.Int
@@ -70,12 +75,24 @@ type t_Option_Option_ReadyCap_R = None'1 | Some'1 t_Option_ReadyCap_R
 function get_Option_ReadyCap_R (self: Seq.seq t_Option_ReadyCap_R) (ix: int) : t_Option_Option_ReadyCap_R =
   [%#sseq] if 0 <= ix /\ ix < Seq.length self then Some'1 (Seq.get self ix) else None'1
 
-function entries_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 128 4 128 48] (self: t_ReadyRegistry_R) : Seq.seq t_Option_ReadyCap_R
+function entries_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 142 4 142 48] (self: t_ReadyRegistry_R) : Seq.seq t_Option_ReadyCap_R
  = [%#sready_registry'1] self.entries'0
+
+function resource_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 25 4 25 41] (self: t_ReadyKey) : t_Id
+ = [%#sready_registry'6] self.resource_id
+
+function key_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 70 4 70 39] (self: t_ReadyCap_R) : t_ReadyKey
+ = [%#sready_registry'7] self.key
+
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 30 4 30 35] (self: t_ReadyKey) : int
+ = [%#sready_registry'8] self.slot
 
 function id_View_AuthViewRel_R (self: t_Resource_View_AuthViewRel_R) : t_Id
 
 function id_R (self: t_Fragment_R) : t_Id = [%#sauth] id_View_AuthViewRel_R self.f0
+
+function fragment_id_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 60 4 60 41] (self: t_ReadyCap_R) : t_Id
+ = [%#sready_registry'9] id_R self.fragment
 
 type t_View_AuthViewRel_R
 
@@ -166,22 +183,25 @@ meta "rewrite_def" function view_Resource_View_AuthViewRel_R
 function view_Fragment_R (self: t_Fragment_R) : t_R =
   [%#sauth'0] frag_AuthViewRel_R (view_Resource_View_AuthViewRel_R self.f0)
 
+function fragment_value_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 65 4 65 43] (self: t_ReadyCap_R) : t_R
+ = [%#sready_registry'10] view_Fragment_R self.fragment
+
 function state_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 51 4 51 49] (self: t_ReadyCap_R) : tup4_Id_Int_Id_R
 
 axiom state_R_spec: forall self: t_ReadyCap_R [state_R self]. [%#sready_registry'2] (state_R self).f0'0
-    = self.key.resource_id
+    = resource_id'0 (key_R self)
 
 axiom state_R_spec'0: forall self: t_ReadyCap_R [state_R self]. [%#sready_registry'3] (state_R self).f1'0
-    = self.key.slot
+    = slot'0 (key_R self)
 
 axiom state_R_spec'1: forall self: t_ReadyCap_R [state_R self]. [%#sready_registry'4] (state_R self).f2'0
-    = id_R self.fragment
+    = fragment_id_R self
 
 axiom state_R_spec'2: forall self: t_ReadyCap_R [state_R self]. [%#sready_registry'5] (state_R self).f3'0
-    = view_Fragment_R self.fragment
+    = fragment_value_R self
 
-function entry_state_model_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 135 4 135 69] (self: t_ReadyRegistry_R) (slot'0: int) : t_Option_tup4_Id_Int_Id_R
- = [%#sready_registry'0] match get_Option_ReadyCap_R (entries_R self) slot'0 with
+function entry_state_model_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 158 4 158 69] (self: t_ReadyRegistry_R) (slot'1: int) : t_Option_tup4_Id_Int_Id_R
+ = [%#sready_registry'0] match get_Option_ReadyCap_R (entries_R self) slot'1 with
     | Some'1 (Some cap) -> Some'0 (state_R cap)
     | _ -> None'0
     end
@@ -192,9 +212,9 @@ meta "select_lsinst" "all"
 
 constant self : t_ReadyRegistry_R
 
-constant slot'0 : int
+constant slot'1 : int
 
-function entry_state_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 146 4 146 74] (self: t_ReadyRegistry_R) (slot'0: int) : t_Option_tup4_Id_Int_Id_R
+function entry_state_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 169 4 169 74] (self: t_ReadyRegistry_R) (slot'1: int) : t_Option_tup4_Id_Int_Id_R
 
-goal vc_entry_state_R: [@stop_split] [@expl:entry_state ensures] [%#sready_registry] entry_state_model_R self slot'0
-  = entry_state_model_R self slot'0
+goal vc_entry_state_R: [@stop_split] [@expl:entry_state ensures] [%#sready_registry] entry_state_model_R self slot'1
+  = entry_state_model_R self slot'1

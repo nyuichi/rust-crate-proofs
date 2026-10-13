@@ -44,14 +44,26 @@ impl<R: UnitRA> ReadyCap<R> {
     /// Opaque logical view of the key and the exact fragment identity and RA
     /// state. Callers can rely on this tuple without opening the cap layout.
     #[logic(opaque)]
-    #[ensures(result.0 == self.key.resource_id)]
-    #[ensures(result.1 == self.key.slot)]
-    #[ensures(result.2 == self.fragment.id())]
-    #[ensures(result.3 == self.fragment@)]
+    #[ensures(result.0 == self.key().resource_id())]
+    #[ensures(result.1 == self.key().slot())]
+    #[ensures(result.2 == self.fragment_id())]
+    #[ensures(result.3 == self.fragment_value())]
     pub(crate) fn state(self) -> (Id, Int, Id, R) {
         pearlite! {
             (self.key.resource_id, self.key.slot, self.fragment.id(), self.fragment@)
         }
+    }
+
+    /// Public logical projections used in state contracts without exposing
+    /// the affine fragment field to sibling proof modules.
+    #[logic(open(self))]
+    pub(crate) fn fragment_id(self) -> Id {
+        self.fragment.id()
+    }
+
+    #[logic(open(self))]
+    pub(crate) fn fragment_value(self) -> R {
+        pearlite! { self.fragment@ }
     }
 
     #[logic(open(self))]
@@ -62,6 +74,8 @@ impl<R: UnitRA> ReadyCap<R> {
     /// Body-checked access to the actual affine fragment for authority
     /// compatibility lemmas. The reference is confined to ghost code.
     #[check(ghost)]
+    #[ensures(result.inner_logic().id() == self.fragment_id())]
+    #[ensures(result.inner_logic()@ == self.fragment_value())]
     pub(crate) fn fragment_ref(&self) -> Ghost<&Fragment<R>> {
         ghost! { &self.fragment }
     }
@@ -129,6 +143,15 @@ impl<R: UnitRA> ReadyRegistry<R> {
         self.entries.inner_logic()
     }
 
+    /// Opaque length observation for exact context reborrow framing. This
+    /// keeps append position and trailing tombstones visible without exposing
+    /// the affine entries sequence itself.
+    #[logic(opaque)]
+    #[ensures(result == self.entries().len())]
+    pub(crate) fn len(self) -> Int {
+        self.entries().len()
+    }
+
     /// Private representation view used to body-prove the public opaque slot
     /// observation. Each occupied entry contributes its full cap state.
     #[logic(open(self))]
@@ -158,6 +181,15 @@ impl<R: UnitRA> ReadyRegistry<R> {
                 None => false,
             }
         }
+    }
+
+    /// Public opaque projection of the exact occupied slot named by `key`.
+    /// This is only a registration lookup; callers must still inspect the
+    /// returned cap's actual RA state before treating it as an idle lease.
+    #[logic(opaque)]
+    #[ensures(result == self.contains_key(key))]
+    pub(crate) fn has_key(self, key: ReadyKey) -> bool {
+        self.contains_key(key)
     }
 
     #[check(ghost)]

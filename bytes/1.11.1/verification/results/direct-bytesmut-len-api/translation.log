@@ -631,6 +631,40 @@ warning: unused variable: `frame`
 134 |         frame: Option<Excl<OwnerBinding>>,
     |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_frame`
 
+warning: variable does not need to be mutable
+   --> src/ownership_proof/shared_context.rs:191:17
+    |
+191 |             let mut registry = context.ready.borrow_mut().into_inner();
+    |                 ----^^^^^^^^
+    |                 |
+    |                 help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> src/ownership_proof/shared_context.rs:218:17
+    |
+218 |             let mut registry = context.ready.borrow_mut().into_inner();
+    |                 ----^^^^^^^^
+    |                 |
+    |                 help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src/ownership_proof/shared_context.rs:248:17
+    |
+248 |             let mut registry = context.ready.borrow_mut().into_inner();
+    |                 ----^^^^^^^^
+    |                 |
+    |                 help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src/ownership_proof/shared_context.rs:275:17
+    |
+275 |             let mut ready = context.ready.borrow_mut().into_inner();
+    |                 ----^^^^^
+    |                 |
+    |                 help: remove this `mut`
+
 warning: associated function `new` is never used
   --> src/buf/chain.rs:42:19
    |
@@ -1118,7 +1152,7 @@ warning: struct `ReadyCap` is never constructed
 37 | pub(crate) struct ReadyCap<R: UnitRA> {
    |                   ^^^^^^^^
 
-warning: methods `state`, `key`, `fragment_ref`, and `update` are never used
+warning: methods `state`, `fragment_id`, `fragment_value`, `key`, `fragment_ref`, and `update` are never used
   --> src/ownership_proof/ready_registry.rs:51:19
    |
 43 | impl<R: UnitRA> ReadyCap<R> {
@@ -1127,56 +1161,143 @@ warning: methods `state`, `key`, `fragment_ref`, and `update` are never used
 51 |     pub(crate) fn state(self) -> (Id, Int, Id, R) {
    |                   ^^^^^
 ...
-58 |     pub(crate) fn key(self) -> ReadyKey {
+60 |     pub(crate) fn fragment_id(self) -> Id {
+   |                   ^^^^^^^^^^^
+...
+65 |     pub(crate) fn fragment_value(self) -> R {
+   |                   ^^^^^^^^^^^^^^
+...
+70 |     pub(crate) fn key(self) -> ReadyKey {
    |                   ^^^
 ...
-65 |     pub(crate) fn fragment_ref(&self) -> Ghost<&Fragment<R>> {
+79 |     pub(crate) fn fragment_ref(&self) -> Ghost<&Fragment<R>> {
    |                   ^^^^^^^^^^^^
 ...
-82 |     pub(crate) fn update<U: LocalUpdate<R>>(
+96 |     pub(crate) fn update<U: LocalUpdate<R>>(
    |                   ^^^^^^
 
 warning: struct `ReadyRegistry` is never constructed
-   --> src/ownership_proof/ready_registry.rs:104:19
+   --> src/ownership_proof/ready_registry.rs:118:19
     |
-104 | pub(crate) struct ReadyRegistry<R: UnitRA> {
+118 | pub(crate) struct ReadyRegistry<R: UnitRA> {
     |                   ^^^^^^^^^^^^^
 
 warning: function `same_entry_state` is never used
-   --> src/ownership_proof/ready_registry.rs:110:4
+   --> src/ownership_proof/ready_registry.rs:124:4
     |
-110 | fn same_entry_state<R: UnitRA>(
+124 | fn same_entry_state<R: UnitRA>(
     |    ^^^^^^^^^^^^^^^^
 
 warning: multiple associated items are never used
-   --> src/ownership_proof/ready_registry.rs:128:8
+   --> src/ownership_proof/ready_registry.rs:142:8
     |
-126 | impl<R: UnitRA> ReadyRegistry<R> {
+140 | impl<R: UnitRA> ReadyRegistry<R> {
     | -------------------------------- associated items in this implementation
-127 |     #[logic(open(self))]
-128 |     fn entries(self) -> Seq<Option<ReadyCap<R>>> {
+141 |     #[logic(open(self))]
+142 |     fn entries(self) -> Seq<Option<ReadyCap<R>>> {
     |        ^^^^^^^
 ...
-135 |     fn entry_state_model(self, slot: Int) -> Option<(Id, Int, Id, R)> {
-    |        ^^^^^^^^^^^^^^^^^
-...
-146 |     pub(crate) fn entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
-    |                   ^^^^^^^^^^^
-...
-151 |     fn contains_key(self, key: ReadyKey) -> bool {
-    |        ^^^^^^^^^^^^
-...
-166 |     pub(crate) fn new() -> Ghost<Self> {
+151 |     pub(crate) fn len(self) -> Int {
     |                   ^^^
 ...
-188 |     pub(crate) fn register(&mut self, fragment: Ghost<Fragment<R>>) -> Ghost<ReadyKey> {
+158 |     fn entry_state_model(self, slot: Int) -> Option<(Id, Int, Id, R)> {
+    |        ^^^^^^^^^^^^^^^^^
+...
+169 |     pub(crate) fn entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
+    |                   ^^^^^^^^^^^
+...
+174 |     fn contains_key(self, key: ReadyKey) -> bool {
+    |        ^^^^^^^^^^^^
+...
+191 |     pub(crate) fn has_key(self, key: ReadyKey) -> bool {
+    |                   ^^^^^^^
+...
+198 |     pub(crate) fn new() -> Ghost<Self> {
+    |                   ^^^
+...
+220 |     pub(crate) fn register(&mut self, fragment: Ghost<Fragment<R>>) -> Ghost<ReadyKey> {
     |                   ^^^^^^^^
 ...
-214 |     pub(crate) fn take(&mut self, key: ReadyKey) -> Ghost<ReadyCap<R>> {
+246 |     pub(crate) fn take(&mut self, key: ReadyKey) -> Ghost<ReadyCap<R>> {
     |                   ^^^^
 ...
-239 |     pub(crate) fn return_cap(&mut self, cap: Ghost<ReadyCap<R>>) -> Ghost<()> {
+271 |     pub(crate) fn return_cap(&mut self, cap: Ghost<ReadyCap<R>>) -> Ghost<()> {
     |                   ^^^^^^^^^^
+
+warning: struct `OwnedSharedContext` is never constructed
+  --> src/ownership_proof/shared_context.rs:18:19
+   |
+18 | pub(crate) struct OwnedSharedContext<'ctx, R: UnitRA> {
+   |                   ^^^^^^^^^^^^^^^^^^
+
+warning: struct `BorrowedSharedContext` is never constructed
+  --> src/ownership_proof/shared_context.rs:26:19
+   |
+26 | pub(crate) struct BorrowedSharedContext<'view, R: UnitRA> {
+   |                   ^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `token_namespaces`, `ready_len`, `ready_entry_state`, `ready_has_key`, `from_tokens`, and `reborrow_view` are never used
+  --> src/ownership_proof/shared_context.rs:38:19
+   |
+34 | impl<'ctx, R: UnitRA> OwnedSharedContext<'ctx, R> {
+   | ------------------------------------------------- associated items in this implementation
+...
+38 |     pub(crate) fn token_namespaces(self) -> Set<Namespace> {
+   |                   ^^^^^^^^^^^^^^^^
+...
+46 |     pub(crate) fn ready_len(self) -> Int {
+   |                   ^^^^^^^^^
+...
+54 |     pub(crate) fn ready_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
+   |                   ^^^^^^^^^^^^^^^^^
+...
+60 |     pub(crate) fn ready_has_key(self, key: ReadyKey) -> bool {
+   |                   ^^^^^^^^^^^^^
+...
+72 |     pub(crate) fn from_tokens(tokens: Ghost<Tokens<'ctx>>) -> Ghost<Self> {
+   |                   ^^^^^^^^^^^
+...
+95 |     pub(crate) fn reborrow_view<'view>(
+   |                   ^^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src/ownership_proof/shared_context.rs:110:19
+    |
+107 | impl<'view, R: UnitRA> BorrowedSharedContext<'view, R> {
+    | ------------------------------------------------------ associated items in this implementation
+...
+110 |     pub(crate) fn token_namespaces(self) -> Set<Namespace> {
+    |                   ^^^^^^^^^^^^^^^^
+...
+116 |     pub(crate) fn ready_len(self) -> Int {
+    |                   ^^^^^^^^^
+...
+122 |     pub(crate) fn ready_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
+    |                   ^^^^^^^^^^^^^^^^^
+...
+128 |     pub(crate) fn ready_has_key(self, key: ReadyKey) -> bool {
+    |                   ^^^^^^^^^^^^^
+...
+135 |     pub(crate) fn ready_final_len(self) -> Int {
+    |                   ^^^^^^^^^^^^^^^
+...
+140 |     pub(crate) fn ready_final_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^
+...
+154 |     pub(crate) fn reborrow_tokens<'short>(
+    |                   ^^^^^^^^^^^^^^^
+...
+182 |     pub(crate) fn register<'short>(
+    |                   ^^^^^^^^
+...
+209 |     pub(crate) fn take<'short>(
+    |                   ^^^^
+...
+239 |     pub(crate) fn return_cap<'short>(
+    |                   ^^^^^^^^^^
+...
+266 |     pub(crate) fn reborrow<'short>(
+    |                   ^^^^^^^^
 
 warning: methods `counter_reference`, `native_counter`, and `take_bootstrap_owner` are never used
    --> src/ref_count_ops.rs:103:19
@@ -3330,5 +3451,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 357 warnings (run `cargo fix --lib -p bytes` to apply 50 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.65s
+warning: `bytes` (lib) generated 365 warnings (run `cargo fix --lib -p bytes` to apply 54 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.45s

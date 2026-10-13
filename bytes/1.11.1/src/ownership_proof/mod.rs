@@ -11,3 +11,4 @@ pub(crate) mod view_region;
 pub(crate) mod ref_count_ledger;
 pub(crate) mod terminal_phase;
 pub(crate) mod ready_registry;
+pub(crate) mod shared_context;

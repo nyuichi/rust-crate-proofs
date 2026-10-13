@@ -1,0 +1,140 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 72 4 72 73 *)
+
+(* ownership_proof::shared_context::OwnedSharedContext<'ctx, R> *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 15 179 16
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 4 181 17
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 198 27 198 38
+let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 196 14 196 46
+let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 197 14 197 55
+let%span sready_registry'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 150 14 150 44
+let%span sshared_context = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 74 24 74 44
+let%span sshared_context'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 73 8 76 9
+let%span sshared_context'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 67 15 67 33
+let%span sshared_context'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 72 62 72 73
+let%span sshared_context'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 68 14 68 46
+let%span sshared_context'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 69 14 69 52
+let%span sshared_context'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 70 14 70 65
+let%span sshared_context'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 71 14 71 90
+let%span sshared_context'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 285 8 285 57
+let%span sshared_context'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 37 14 37 48
+
+use seq.Seq
+use creusot.prelude.Any
+use set.Set
+
+type t_ReadyRegistry_R
+
+predicate invariant_ReadyRegistry_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 285 4 285 30] (self: t_ReadyRegistry_R)
+
+predicate inv_ReadyRegistry_R (_1: t_ReadyRegistry_R)
+
+axiom inv_axiom: forall x: t_ReadyRegistry_R [inv_ReadyRegistry_R x]. inv_ReadyRegistry_R x
+    -> invariant_ReadyRegistry_R x
+
+predicate invariant_Ghost_ReadyRegistry_R [@inline:trivial] (self: t_ReadyRegistry_R) =
+  [%#sghost'2] inv_ReadyRegistry_R self
+
+meta "rewrite_def" predicate invariant_Ghost_ReadyRegistry_R
+
+predicate inv_Ghost_ReadyRegistry_R [@inline:trivial] (_1: t_ReadyRegistry_R) = invariant_Ghost_ReadyRegistry_R _1
+
+meta "rewrite_def" predicate inv_Ghost_ReadyRegistry_R
+
+type t_ReadyCap_R
+
+type t_Option_ReadyCap_R = None | Some t_ReadyCap_R
+
+function entries_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 142 4 142 48] (self: t_ReadyRegistry_R) : Seq.seq t_Option_ReadyCap_R
+
+let new_R (return (x: t_ReadyRegistry_R)) = any
+  [ return (result: t_ReadyRegistry_R) ->
+  {[@stop_split] [@expl:new_R ensures] ([@stop_split] [@expl:new result type invariant] [%#sready_registry] inv_Ghost_ReadyRegistry_R result)
+    /\ ([@stop_split] [@expl:new ensures #0] [%#sready_registry'0] invariant_ReadyRegistry_R result)
+    /\ ([@stop_split] [@expl:new ensures #1] [%#sready_registry'1] Seq.length (entries_R result) = 0)}
+    (! return {result}) ]
+
+type t_Tokens
+
+type t_OwnedSharedContext_R = { tokens: t_Tokens; ready: t_ReadyRegistry_R; _not_objective: () }
+
+predicate inv_Tokens [@inline:trivial] (_1: t_Tokens) = true
+
+meta "rewrite_def" predicate inv_Tokens
+
+predicate invariant_Ghost_Tokens [@inline:trivial] (self: t_Tokens) = [%#sghost'2] inv_Tokens self
+
+meta "rewrite_def" predicate invariant_Ghost_Tokens
+
+predicate invariant_OwnedSharedContext_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 284 4 284 30] (self: t_OwnedSharedContext_R) =
+  [%#sshared_context'7] invariant_Ghost_Tokens self.tokens /\ invariant_Ghost_ReadyRegistry_R self.ready
+
+predicate inv_OwnedSharedContext_R (_1: t_OwnedSharedContext_R)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_OwnedSharedContext_R [inv_OwnedSharedContext_R x]. inv_OwnedSharedContext_R x
+    = (invariant_OwnedSharedContext_R x /\ inv_Ghost_ReadyRegistry_R x.ready)
+
+predicate invariant_Ghost_OwnedSharedContext_R [@inline:trivial] (self: t_OwnedSharedContext_R) =
+  [%#sghost'2] inv_OwnedSharedContext_R self
+
+meta "rewrite_def" predicate invariant_Ghost_OwnedSharedContext_R
+
+predicate inv_Ghost_OwnedSharedContext_R [@inline:trivial] (_1: t_OwnedSharedContext_R) =
+  invariant_Ghost_OwnedSharedContext_R _1
+
+meta "rewrite_def" predicate inv_Ghost_OwnedSharedContext_R
+
+let new_OwnedSharedContext_R (x: t_OwnedSharedContext_R) (return (x'0: t_OwnedSharedContext_R)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost] inv_OwnedSharedContext_R x}
+  any
+  [ return (result: t_OwnedSharedContext_R) ->
+  {[@stop_split] [@expl:new_OwnedSharedContext_R ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'0] inv_Ghost_OwnedSharedContext_R result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'1] result = x)}
+    (! return {result}) ]
+
+function len_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 151 4 151 34] (self: t_ReadyRegistry_R) : int
+
+axiom len_R_spec: forall self: t_ReadyRegistry_R [len_R self]. [%#sready_registry'2] len_R self
+    = Seq.length (entries_R self)
+
+function namespaces (self: t_Tokens) : Set.set t_Namespace
+
+function token_namespaces_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 38 4 38 58] (self: t_OwnedSharedContext_R) : Set.set t_Namespace
+
+axiom token_namespaces_R_spec:
+  forall self: t_OwnedSharedContext_R [token_namespaces_R self]. [%#sshared_context'8] token_namespaces_R self
+    = namespaces self.tokens
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let from_tokens_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 72 4 72 73]
+  (tokens'0: t_Tokens) (return (x: t_OwnedSharedContext_R)) =
+{[@stop_split] [@expl:from_tokens requires] [%#sshared_context'1] invariant_Ghost_Tokens tokens'0}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = new_R [%#sshared_context] (fun (_x: t_ReadyRegistry_R) -> [ &ready'0 <- _x ] s1)
+    | s1 = [ &_13 <- () ] s2
+    | s2 = [ &_9 <- { tokens = tokens'0; ready = ready'0; _not_objective = _13 } ] s3
+    | s3 = new_OwnedSharedContext_R [%#sshared_context'0] {_9} (fun (_x: t_OwnedSharedContext_R) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_OwnedSharedContext_R = Any.any_l ()
+  | & tokens'0: t_Tokens = tokens'0
+  | & _9: t_OwnedSharedContext_R = Any.any_l ()
+  | & ready'0: t_ReadyRegistry_R = Any.any_l ()
+  | & _13: () = Any.any_l () ])
+  [ return (result: t_OwnedSharedContext_R) ->
+  {[@stop_split] [@expl:from_tokens_R ensures] ([@stop_split] [@expl:from_tokens result type invariant] [%#sshared_context'2] inv_Ghost_OwnedSharedContext_R result)
+    /\ ([@stop_split] [@expl:from_tokens ensures #0] [%#sshared_context'3] invariant_OwnedSharedContext_R result)
+    /\ ([@stop_split] [@expl:from_tokens ensures #1] [%#sshared_context'4] invariant_Ghost_ReadyRegistry_R result.ready)
+    /\ ([@stop_split] [@expl:from_tokens ensures #2] [%#sshared_context'5] len_R result.ready = 0)
+    /\ ([@stop_split] [@expl:from_tokens ensures #3] [%#sshared_context'6] token_namespaces_R result
+    = namespaces tokens'0)}
+    (! return {result}) ]

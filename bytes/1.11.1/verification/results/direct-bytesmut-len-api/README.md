@@ -164,6 +164,17 @@ integrated with a Bytes producer, `SharedPayload`, or a native lifecycle body;
 it therefore establishes no header-idle invariant or safe-state reachability
 for `BytesMut::truncate`.
 
+The selected `ownership_proof::shared_context` targets body-prove the affine
+`OwnedSharedContext` and `BorrowedSharedContext` carrier. `from_tokens` moves an
+actual caller-supplied token set into an owner with an empty registry; the
+owner and borrowed-view reborrows preserve the exact token namespaces and
+registry final-state observations. `register`, `take`, and `return_cap` move
+the actual fragment through the registry while framing its other slots. The
+carrier does not create tokens, fragments, or a header permission. No
+`BytesMut` producer or native lifecycle method currently uses it, so these
+targets establish neither a ready Shared header nor producer reachability for
+`buffer_view_valid` or `truncate`.
+
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current
 inputs without invoking a solver.

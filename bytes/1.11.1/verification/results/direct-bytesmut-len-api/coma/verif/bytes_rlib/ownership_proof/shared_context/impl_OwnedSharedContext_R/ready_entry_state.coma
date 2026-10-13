@@ -1,0 +1,48 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 54 4 54 80 *)
+
+(* ownership_proof::shared_context::OwnedSharedContext<'ctx, R> *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 168 14 168 52
+let%span sshared_context = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 53 14 53 66
+
+type t_Tokens
+
+type t_ReadyRegistry_R
+
+type t_OwnedSharedContext_R = { tokens: t_Tokens; ready: t_ReadyRegistry_R; _not_objective: () }
+
+type t_Id
+
+type t_R
+
+type tup4_Id_Int_Id_R = { f0: t_Id; f1: int; f2: t_Id; f3: t_R }
+
+type t_Option_tup4_Id_Int_Id_R = None | Some tup4_Id_Int_Id_R
+
+function entry_state_model_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 158 4 158 69] (self: t_ReadyRegistry_R) (slot: int) : t_Option_tup4_Id_Int_Id_R
+
+function entry_state_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 169 4 169 74] (self: t_ReadyRegistry_R) (slot: int) : t_Option_tup4_Id_Int_Id_R
+
+axiom entry_state_R_spec:
+  forall self: t_ReadyRegistry_R, slot: int [entry_state_R self slot]. [%#sready_registry] entry_state_R self slot
+    = entry_state_model_R self slot
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_OwnedSharedContext_R
+
+constant slot : int
+
+function ready_entry_state_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 54 4 54 80] (self: t_OwnedSharedContext_R) (slot: int) : t_Option_tup4_Id_Int_Id_R
+
+goal vc_ready_entry_state_R:
+  ([@stop_split] [@expl:entry_state ensures] [%#sready_registry] entry_state_R self.ready slot
+    = entry_state_model_R self.ready slot)
+  -> ([@stop_split] [@expl:ready_entry_state ensures] [%#sshared_context] entry_state_R self.ready slot
+  = entry_state_R self.ready slot)

@@ -226,6 +226,18 @@ preserving the authority identity when replacing a ticket binding. The
 ledger's count is the map cardinality. Its generic operations alone do not
 connect arbitrary native lifecycle operations to the registrations.
 
+The selected `shared_context` bodies prove a proof-only affine owner and
+borrowed view for an actual caller-supplied `Tokens` value and one
+`ReadyRegistry`. Construction preserves the token namespaces and creates an
+empty registry; reborrow bodies tie the view to the owner's existing fields
+and frame the registry's final slot states. Register, take, and return move
+the exact supplied `Fragment` through that registry. These bodies create no
+tokens, fragments, header permission, or new trusted boundary. Token
+membership for a particular capsule namespace remains a separate precondition
+at each open. The context has not been connected to a `BytesMut` producer or
+native lifecycle body, so it does not establish a ready Shared header,
+producer reachability for `buffer_view_valid`, or a verified release path.
+
 For Shared payloads, the physical pool contains exactly the in-bounds
 complement of active Mutable intervals. Readonly intervals do not claim
 physical mutation authority. The count-one packet constructor body-proves the
