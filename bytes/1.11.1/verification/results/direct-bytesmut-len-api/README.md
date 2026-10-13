@@ -90,6 +90,21 @@ helper. The generic `retire` and `finish` operations also have body proofs, but
 no selected production path calls them to retire regions into the pool or
 recover a full region from it.
 
+The public `truncate` and `clear` bodies, and unsafe `set_len`, are also
+body-proved from `buffer_view_valid`, a common precondition for a stable
+unique or packet-backed Shared layout with an initialized visible prefix.
+`truncate(n)` proves the `min(n, old_len)` result, preserves the visible byte
+prefix, native pointer, capacity, header and exact proof sidecars, and frames
+every allocation slot. `clear` proves the corresponding empty-view transition.
+Growing `set_len` requires the newly exposed slots to be initialized and proves
+that only the logical length changes. A body-proved bidirectional lemma
+connects the common prefix observer to the unique and Shared slot models. In
+the Shared case, the `BytesMut` type invariant still carries the
+`SharedOwnerPacket` capsule/ticket/ledger conditions. These modular method-body
+proofs do not establish that every safe producer or lifecycle path supplies
+`buffer_view_valid`; they do not prove the public truncate behavior for every
+safely produced state.
+
 This increment also body-proves `make_count_two_packets`, a generic constructor
 for one count-two capsule and its two owner packets. Under a precondition that
 the actual active-owner map covers the full allocation, it places the exact
@@ -106,7 +121,8 @@ in [`TCB.md`](TCB.md). This proves that helper body; the public
 `split_off`/`split_to` wrappers and their call-chain reachability are not
 selected proof targets. The ARC split producer and clone/drop/refcount
 transitions remain outside the selected proof, so the result does not establish
-all safe split states or a public `BytesMut::truncate` call chain.
+all safe split states or that every safe state satisfies the common precondition
+for `BytesMut::truncate`.
 
 The selected targets also prove the one-shot `RefCountCell` bootstrap
 extraction body, which

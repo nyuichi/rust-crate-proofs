@@ -76,14 +76,24 @@ UTF-8 encoding. The precise assumption and replacement path are documented in
 the [Std overlay notes](../../std-support/README.md).
 
 `len` and `is_empty` are proved without a representation precondition.
-`truncate`, `clear`, unsafe `set_len`, and the implementation body of
-`BufMut::advance_mut` are proved from the cursor-aware `unique_valid`
-precondition; `set_len` and `advance_mut` also require capacity and
-initialized-slot bounds for growth. The separate generated trait-refinement
-obligation for `BufMut::advance_mut` is not proved: the trait prestate does not
-establish the proof-only validity and initialized-slot preconditions added to
-the implementation body. Therefore this body proof does not establish the
-public trait refinement.
+`truncate`, `clear`, and unsafe `set_len` have body proofs from the common
+`buffer_view_valid` precondition. It requires a stable layout and initialized
+visible prefix, with either the Vec-backed unique layout or the packet-backed
+Shared view. In the Shared case, `BytesMut`'s type invariant also carries the
+`SharedOwnerPacket` invariant; this modular proof does not remove or bypass its
+capsule, ticket, or ledger conditions. `truncate(n)` establishes length
+`min(n, old_len)` and preserves the visible byte prefix, native pointer,
+capacity, header word, exact proof sidecars and every allocation slot. `clear`
+establishes an empty visible sequence with the same frame. Unsafe `set_len(n)`
+requires `n <= capacity` and known initialized slots for any growth, then
+changes only the length. A body-proved bidirectional observer lemma converts
+the canonical prefix fact to the unique or Shared slot model. These body proofs
+do not establish that every safe producer or lifecycle transition supplies
+`buffer_view_valid`; shared-state reachability remains open. The implementation
+body of `BufMut::advance_mut` still uses its unique-state precondition and
+initialized-slot bounds for growth. Its separate generated trait-refinement
+obligation is not proved because the trait prestate does not establish those
+proof-only preconditions.
 The logical invariant and prefix helpers retain the complete allocation frame
 at an absolute cursor, and the metadata helpers prove the packed Vec position
 updates. The selected constructor bodies establish `unique_vec_rebuildable` at
@@ -189,9 +199,12 @@ ticket in its capsule. The body proofs do not yet connect later increments,
 clones, splits, conversions, drops, or handle transfers to the `OwnerLedger`,
 so they do not establish count-to-registration equality across those
 transitions or derive count-one exclusivity for recovery. Terminal recovery in
-a production path, Shared allocation retirement and destruction, and end-to-end
-`BytesMut::truncate` across Shared, split, or nonzero-offset states remain
-unproved.
+a production path, Shared allocation retirement and destruction, and
+safe-state reachability of the `buffer_view_valid` precondition across Shared,
+split, clone, drop, freeze, or nonzero-offset states remain unproved. The
+selected `truncate` body is verified under that precondition, but this checkpoint
+does not establish a public `BytesMut::truncate` call chain for every safely
+produced state.
 
 The selected crate targets body-prove the generic
 `ownership_proof::ref_count_ledger` module. Each `OwnerTicket` contains the

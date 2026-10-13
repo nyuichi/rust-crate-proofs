@@ -65,316 +65,448 @@ warning: unused import: `AtomicUsize`
    |                                            ^^^^^^^^^^^
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2088:13
+   --> src/bytes_mut.rs:524:5
+    |
+524 |     ((*prestate).buffer_prefix_known(upto@) ==
+    |     ^
+525 |         (*prestate).shared_slots_known_upto(upto@)))]
+    |                                                   ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+524 ~     (*prestate).buffer_prefix_known(upto@) ==
+525 ~         (*prestate).shared_slots_known_upto(upto@))]
+    |
+
+warning: unnecessary parentheses around function argument
+   --> src/bytes_mut.rs:520:5
+    |
+520 |     ((*prestate).buffer_prefix_known(upto@) ==
+    |     ^
+521 |         (forall<i:Int> 0 <= i && i < upto@ ==>
+522 |             slot_known((*prestate).unique_slot(i)))))]
+    |                                                    ^
+    |
+help: remove these parentheses
+    |
+520 ~     (*prestate).buffer_prefix_known(upto@) ==
+521 |         (forall<i:Int> 0 <= i && i < upto@ ==>
+522 ~             slot_known((*prestate).unique_slot(i))))]
+    |
+
+warning: unnecessary parentheses around function argument
+   --> src/bytes_mut.rs:528:9
+    |
+528 |         ((*prestate).buffer_prefix_known(upto@) ==
+    |         ^
+529 |             (forall<i:Int> 0 <= i && i < upto@ ==>
+530 |                 slot_known((*prestate).unique_slot(i)))));
+    |                                                        ^
+    |
+help: remove these parentheses
+    |
+528 ~         (*prestate).buffer_prefix_known(upto@) ==
+529 |             (forall<i:Int> 0 <= i && i < upto@ ==>
+530 ~                 slot_known((*prestate).unique_slot(i))));
+    |
+
+warning: unnecessary parentheses around function argument
+   --> src/bytes_mut.rs:532:9
+    |
+532 |         ((*prestate).buffer_prefix_known(upto@) ==
+    |         ^
+533 |             (*prestate).shared_slots_known_upto(upto@)));
+    |                                                       ^
+    |
+help: remove these parentheses
+    |
+532 ~         (*prestate).buffer_prefix_known(upto@) ==
+533 ~             (*prestate).shared_slots_known_upto(upto@));
+    |
+
+warning: unnecessary parentheses around function argument
+    --> src/bytes_mut.rs:1374:13
      |
-2088 |             ((^self).shared_bytes() == self.shared_bytes().subsequence(
+1374 |             ((^self).unique_valid() &&
      |             ^
-2089 |                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@))
-     |                                                                                 ^
+...
+1383 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+     |                                                                                     ^
      |
-     = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
 help: remove these parentheses
      |
-2088 ~             (^self).shared_bytes() == self.shared_bytes().subsequence(
-2089 ~                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@)
+1374 ~             (^self).unique_valid() &&
+1375 |              (^self).unique_pointer() == self.unique_pointer() &&
+ ...
+1382 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+1383 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2083:13
+    --> src/bytes_mut.rs:1416:13
      |
-2083 |             (0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
+1416 |             ((^self).unique_valid() &&
      |             ^
-2084 |                 (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
-2085 |                     self.shared_proof.unwrap_logic().allocation_slot(i))))]
+...
+1427 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+     |                                                                                     ^
+     |
+help: remove these parentheses
+     |
+1416 ~             (^self).unique_valid() &&
+1417 |              (^self).unique_length() == 0 &&
+ ...
+1426 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+1427 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/bytes_mut.rs:1501:13
+     |
+1501 |             ((^self).unique_valid() &&
+     |             ^
+...
+1509 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+     |                                                                                     ^
+     |
+help: remove these parentheses
+     |
+1501 ~             (^self).unique_valid() &&
+1502 |              (^self).unique_pointer() == self.unique_pointer() &&
+ ...
+1508 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+1509 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/bytes_mut.rs:1686:13
+     |
+1686 |             ((^self).unique_valid() &&
+     |             ^
+...
+1694 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+     |                                                                                     ^
+     |
+help: remove these parentheses
+     |
+1686 ~             (^self).unique_valid() &&
+1687 |              (^self).unique_pointer() == self.unique_pointer() &&
+ ...
+1693 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+1694 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/bytes_mut.rs:2292:13
+     |
+2292 |             ((^self).shared_bytes() == self.shared_bytes().subsequence(
+     |             ^
+2293 |                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@))
+     |                                                                                 ^
+     |
+help: remove these parentheses
+     |
+2292 ~             (^self).shared_bytes() == self.shared_bytes().subsequence(
+2293 ~                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@)
+     |
+
+warning: unnecessary parentheses around function argument
+    --> src/bytes_mut.rs:2287:13
+     |
+2287 |             (0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
+     |             ^
+2288 |                 (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
+2289 |                     self.shared_proof.unwrap_logic().allocation_slot(i))))]
      |                                                                        ^
      |
 help: remove these parentheses
      |
-2083 ~             0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
-2084 |                 (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
-2085 ~                     self.shared_proof.unwrap_logic().allocation_slot(i)))]
+2287 ~             0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
+2288 |                 (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
+2289 ~                     self.shared_proof.unwrap_logic().allocation_slot(i)))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2079:40
+    --> src/bytes_mut.rs:2283:40
      |
-2079 |         self.shared_layout_valid() ==> ((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@)
+2283 |         self.shared_layout_valid() ==> ((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@)
      |                                        ^                                                            ^
      |
 help: remove these parentheses
      |
-2079 -         self.shared_layout_valid() ==> ((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@)
-2079 +         self.shared_layout_valid() ==> (^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@
+2283 -         self.shared_layout_valid() ==> ((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@)
+2283 +         self.shared_layout_valid() ==> (^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2076:40
+    --> src/bytes_mut.rs:2280:40
      |
-2076 |         self.shared_layout_valid() ==> ((^self).cap@ + count@ == self.cap@)
+2280 |         self.shared_layout_valid() ==> ((^self).cap@ + count@ == self.cap@)
      |                                        ^                                  ^
      |
 help: remove these parentheses
      |
-2076 -         self.shared_layout_valid() ==> ((^self).cap@ + count@ == self.cap@)
-2076 +         self.shared_layout_valid() ==> (^self).cap@ + count@ == self.cap@
+2280 -         self.shared_layout_valid() ==> ((^self).cap@ + count@ == self.cap@)
+2280 +         self.shared_layout_valid() ==> (^self).cap@ + count@ == self.cap@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2072:40
+    --> src/bytes_mut.rs:2276:40
      |
-2072 |         self.shared_layout_valid() ==> ((^self).len@ ==
+2276 |         self.shared_layout_valid() ==> ((^self).len@ ==
      |                                        ^
-2073 |             (if count@ <= self.len@ { self.len@ - count@ } else { 0int }))
+2277 |             (if count@ <= self.len@ { self.len@ - count@ } else { 0int }))
      |                                                                          ^
      |
 help: remove these parentheses
      |
-2072 ~         self.shared_layout_valid() ==> (^self).len@ ==
-2073 ~             (if count@ <= self.len@ { self.len@ - count@ } else { 0int })
+2276 ~         self.shared_layout_valid() ==> (^self).len@ ==
+2277 ~             (if count@ <= self.len@ { self.len@ - count@ } else { 0int })
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2069:40
+    --> src/bytes_mut.rs:2273:40
      |
-2069 |         self.shared_layout_valid() ==> ((^self).data == self.data)
+2273 |         self.shared_layout_valid() ==> ((^self).data == self.data)
      |                                        ^                         ^
      |
 help: remove these parentheses
      |
-2069 -         self.shared_layout_valid() ==> ((^self).data == self.data)
-2069 +         self.shared_layout_valid() ==> (^self).data == self.data
+2273 -         self.shared_layout_valid() ==> ((^self).data == self.data)
+2273 +         self.shared_layout_valid() ==> (^self).data == self.data
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2038:13
+    --> src/bytes_mut.rs:2242:13
      |
-2038 |             ((^self).unique_bytes() == self.unique_bytes().subsequence(
+2242 |             ((^self).unique_bytes() == self.unique_bytes().subsequence(
      |             ^
-2039 |                 if count@ <= self.unique_length() { count@ } else { self.unique_length() },
-2040 |                 self.unique_length()))
+2243 |                 if count@ <= self.unique_length() { count@ } else { self.unique_length() },
+2244 |                 self.unique_length()))
      |                                      ^
      |
 help: remove these parentheses
      |
-2038 ~             (^self).unique_bytes() == self.unique_bytes().subsequence(
-2039 |                 if count@ <= self.unique_length() { count@ } else { self.unique_length() },
-2040 ~                 self.unique_length())
+2242 ~             (^self).unique_bytes() == self.unique_bytes().subsequence(
+2243 |                 if count@ <= self.unique_length() { count@ } else { self.unique_length() },
+2244 ~                 self.unique_length())
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2034:13
+    --> src/bytes_mut.rs:2238:13
      |
-2034 |             (0 <= i && i < self.unique_allocation_capacity() ==>
+2238 |             (0 <= i && i < self.unique_allocation_capacity() ==>
      |             ^
-2035 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))))]
+2239 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))))]
      |                                                                                    ^
      |
 help: remove these parentheses
      |
-2034 ~             0 <= i && i < self.unique_allocation_capacity() ==>
-2035 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
+2238 ~             0 <= i && i < self.unique_allocation_capacity() ==>
+2239 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2030:13
+    --> src/bytes_mut.rs:2234:13
      |
-2030 |             (0 <= i && i < (^self).unique_capacity() ==>
+2234 |             (0 <= i && i < (^self).unique_capacity() ==>
      |             ^
-2031 |                 (^self).unique_slot(i) == self.unique_slot(count@ + i))))]
+2235 |                 (^self).unique_slot(i) == self.unique_slot(count@ + i))))]
      |                                                                       ^
      |
 help: remove these parentheses
      |
-2030 ~             0 <= i && i < (^self).unique_capacity() ==>
-2031 ~                 (^self).unique_slot(i) == self.unique_slot(count@ + i)))]
+2234 ~             0 <= i && i < (^self).unique_capacity() ==>
+2235 ~                 (^self).unique_slot(i) == self.unique_slot(count@ + i)))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2025:13
+    --> src/bytes_mut.rs:2229:13
      |
-2025 |             ((^self).unique_pointer().addr_logic()@ ==
+2229 |             ((^self).unique_pointer().addr_logic()@ ==
      |             ^
-2026 |                 self.unique_pointer().addr_logic()@ + count@)
+2230 |                 self.unique_pointer().addr_logic()@ + count@)
      |                                                             ^
      |
 help: remove these parentheses
      |
-2025 ~             (^self).unique_pointer().addr_logic()@ ==
-2026 ~                 self.unique_pointer().addr_logic()@ + count@
+2229 ~             (^self).unique_pointer().addr_logic()@ ==
+2230 ~                 self.unique_pointer().addr_logic()@ + count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2020:13
+    --> src/bytes_mut.rs:2224:13
      |
-2020 |             (((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ ==
+2224 |             (((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ ==
      |             ^
-2021 |                 self.unique_offset() + count@)
+2225 |                 self.unique_offset() + count@)
      |                                              ^
      |
 help: remove these parentheses
      |
-2020 ~             ((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ ==
-2021 ~                 self.unique_offset() + count@
+2224 ~             ((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ ==
+2225 ~                 self.unique_offset() + count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2016:13
+    --> src/bytes_mut.rs:2220:13
      |
-2016 |             ((^self).unique_allocation_capacity() == self.unique_allocation_capacity())
+2220 |             ((^self).unique_allocation_capacity() == self.unique_allocation_capacity())
      |             ^                                                                         ^
      |
 help: remove these parentheses
      |
-2016 -             ((^self).unique_allocation_capacity() == self.unique_allocation_capacity())
-2016 +             (^self).unique_allocation_capacity() == self.unique_allocation_capacity()
+2220 -             ((^self).unique_allocation_capacity() == self.unique_allocation_capacity())
+2220 +             (^self).unique_allocation_capacity() == self.unique_allocation_capacity()
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2010:13
+    --> src/bytes_mut.rs:2214:13
      |
-2010 |             ((^self).unique_length() == if count@ <= self.unique_length() {
+2214 |             ((^self).unique_length() == if count@ <= self.unique_length() {
      |             ^
-2011 |                 self.unique_length() - count@
-2012 |             } else { 0 })
+2215 |                 self.unique_length() - count@
+2216 |             } else { 0 })
      |                         ^
      |
 help: remove these parentheses
      |
-2010 ~             (^self).unique_length() == if count@ <= self.unique_length() {
-2011 |                 self.unique_length() - count@
-2012 ~             } else { 0 }
+2214 ~             (^self).unique_length() == if count@ <= self.unique_length() {
+2215 |                 self.unique_length() - count@
+2216 ~             } else { 0 }
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2006:13
+    --> src/bytes_mut.rs:2210:13
      |
-2006 |             ((^self).unique_capacity() == self.unique_capacity() - count@)
+2210 |             ((^self).unique_capacity() == self.unique_capacity() - count@)
      |             ^                                                            ^
      |
 help: remove these parentheses
      |
-2006 -             ((^self).unique_capacity() == self.unique_capacity() - count@)
-2006 +             (^self).unique_capacity() == self.unique_capacity() - count@
+2210 -             ((^self).unique_capacity() == self.unique_capacity() - count@)
+2210 +             (^self).unique_capacity() == self.unique_capacity() - count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2002:13
+    --> src/bytes_mut.rs:2206:13
      |
-2002 |             ((^self).unique_offset() == self.unique_offset() + count@)
+2206 |             ((^self).unique_offset() == self.unique_offset() + count@)
      |             ^                                                        ^
      |
 help: remove these parentheses
      |
-2002 -             ((^self).unique_offset() == self.unique_offset() + count@)
-2002 +             (^self).unique_offset() == self.unique_offset() + count@
+2206 -             ((^self).unique_offset() == self.unique_offset() + count@)
+2206 +             (^self).unique_offset() == self.unique_offset() + count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2366:66
+    --> src/bytes_mut.rs:2574:66
      |
-2366 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
+2574 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2366 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
-2366 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> forall<i:Int>
+2574 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
+2574 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> forall<i:Int>
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2360:66
+    --> src/bytes_mut.rs:2568:66
      |
-2360 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
+2568 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2360 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
-2360 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+2568 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+2568 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2359:66
+    --> src/bytes_mut.rs:2567:66
      |
-2359 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
+2567 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2359 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
-2359 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
+2567 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
+2567 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2358:66
+    --> src/bytes_mut.rs:2566:66
      |
-2358 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2566 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2358 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
-2358 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
+2566 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
+2566 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2357:66
+    --> src/bytes_mut.rs:2565:66
      |
-2357 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2565 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2357 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
-2357 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
+2565 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
+2565 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2356:66
+    --> src/bytes_mut.rs:2564:66
      |
-2356 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2564 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2356 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_length() == self.unique_length()))]
-2356 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_length() == self.unique_length()))]
+2564 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_length() == self.unique_length()))]
+2564 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_length() == self.unique_length()))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2355:66
+    --> src/bytes_mut.rs:2563:66
      |
-2355 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2563 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2355 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_capacity() == self.unique_capacity()))]
-2355 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_capacity() == self.unique_capacity()))]
+2563 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_capacity() == self.unique_capacity()))]
+2563 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_capacity() == self.unique_capacity()))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2354:66
+    --> src/bytes_mut.rs:2562:66
      |
-2354 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2562 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2354 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_pointer() == self.unique_pointer()))]
-2354 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_pointer() == self.unique_pointer()))]
+2562 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_pointer() == self.unique_pointer()))]
+2562 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_pointer() == self.unique_pointer()))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2353:66
+    --> src/bytes_mut.rs:2561:66
      |
-2353 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2561 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2353 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_offset() == self.unique_offset()))]
-2353 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_offset() == self.unique_offset()))]
+2561 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_offset() == self.unique_offset()))]
+2561 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_offset() == self.unique_offset()))]
      |
 
 warning: unnecessary parentheses around method argument
@@ -2911,57 +3043,57 @@ warning: calling external function `wrapping_add` with no contract will yield an
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1292:18
+    --> src/bytes_mut.rs:1474:18
      |
-1292 |         unsafe { ptr::write_bytes(dst, value, additional) };
+1474 |         unsafe { ptr::write_bytes(dst, value, additional) };
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1970:18
+    --> src/bytes_mut.rs:2174:18
      |
-1970 |         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
+2174 |         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts_mut` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1975:18
+    --> src/bytes_mut.rs:2179:18
      |
-1975 |         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
+2179 |         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `add` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2257:28
+    --> src/bytes_mut.rs:2465:28
      |
-2257 |         let ptr = unsafe { self.ptr.as_ptr().add(self.len) };
+2465 |         let ptr = unsafe { self.ptr.as_ptr().add(self.len) };
      |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2575:13
+    --> src/bytes_mut.rs:2784:13
      |
-2575 |             ptr::write_bytes(dst.as_mut_ptr(), val, cnt);
+2784 |             ptr::write_bytes(dst.as_mut_ptr(), val, cnt);
      |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `hash` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2691:9
+    --> src/bytes_mut.rs:2900:9
      |
-2691 |         s.hash(state);
+2900 |         s.hash(state);
      |         ^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2722:9
+    --> src/bytes_mut.rs:2931:9
      |
-2722 |         fmt::write(self, args)
+2931 |         fmt::write(self, args)
      |         ^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `sub` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:3453:15
+    --> src/bytes_mut.rs:3662:15
      |
-3453 |     let ptr = ptr.sub(off);
+3662 |     let ptr = ptr.sub(off);
      |               ^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:3457:5
+    --> src/bytes_mut.rs:3666:5
      |
-3457 |     Vec::from_raw_parts(ptr, len, cap)
+3666 |     Vec::from_raw_parts(ptr, len, cap)
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `contains` with no contract will yield an impossible precondition
@@ -2982,5 +3114,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 330 warnings (run `cargo fix --lib -p bytes` to apply 40 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.90s
+warning: `bytes` (lib) generated 338 warnings (run `cargo fix --lib -p bytes` to apply 48 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.21s

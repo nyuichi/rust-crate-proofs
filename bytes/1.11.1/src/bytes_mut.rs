@@ -304,6 +304,60 @@ impl BytesMut {
         }
     }
 
+    /// Stable shared physical layout needed for a length-only operation. This
+    /// retains the native ARC tag and capsule/header pointer relation but
+    /// deliberately excludes the capsule protocol, native refcount, and owner
+    /// ledger: changing `len` does not inspect or transfer any of them. Like
+    /// `unique_layout_valid`, it omits the current length bound and visible
+    /// initialized-prefix fact so private layout transitions can be specified.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn shared_view_layout_valid(self) -> bool {
+        pearlite! {
+            self.unique_proof == None &&
+            match self.shared_proof {
+                Some(packet) => {
+                    let region = packet.region.inner_logic();
+                    let offset = packet.cursor@.unwrap_logic().2;
+                    region.invariant() &&
+                    packet.base.invariant() && packet.cursor.invariant() &&
+                    packet.base@ == Some((region.namespace(), region.capacity(), 0int)) &&
+                    packet.cursor@ != None &&
+                    packet.capsule_public().0 == self.data as *mut () &&
+                    (self.data.addr_logic() & KIND_MASK) == KIND_ARC &&
+                    packet.cursor.raw_pointer() == self.ptr@ &&
+                    packet.cursor@.unwrap_logic().0 == region.namespace() &&
+                    packet.cursor@.unwrap_logic().1 == region.capacity() &&
+                    packet.cursor.current_address() == packet.base.current_address() + offset &&
+                    region.lo() <= offset && offset <= region.hi() &&
+                    offset + self.cap@ == region.hi()
+                },
+                None => false,
+            }
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn shared_view_slots_known(self) -> bool {
+        pearlite! { self.shared_slots_known_upto(self.len@) }
+    }
+
+    #[logic(open(self), prophetic)]
+    fn shared_slots_known_upto(self, upto: Int) -> bool {
+        pearlite! {
+            forall<i:Int> 0 <= i && i < upto ==>
+                slot_known(self.shared_proof.unwrap_logic().region.inner_logic().slot(
+                    self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2 + i))
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn shared_view_valid(self) -> bool {
+        pearlite! {
+            self.shared_view_layout_valid() && self.len@ <= self.cap@ &&
+            self.shared_view_slots_known()
+        }
+    }
+
     #[logic(open(self), prophetic)]
     fn shared_visible_slots_known(self) -> bool {
         pearlite! {
@@ -332,6 +386,82 @@ impl BytesMut {
                 ).unwrap_logic().unwrap_logic())
         }
     }
+
+    /// The stable allocation/layout facts for either representation of a
+    /// mutable view. This is a local representation predicate, not a claim
+    /// that every native producer establishes it.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn buffer_layout_valid(self) -> bool {
+        pearlite! {
+            self.unique_layout_valid() || self.shared_view_layout_valid()
+        }
+    }
+
+    /// A live mutable view with an initialized visible prefix, in either the
+    /// Vec-backed or packet-backed Shared representation.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn buffer_view_valid(self) -> bool {
+        pearlite! {
+            self.buffer_layout_valid() && self.len@ <= self.cap@ &&
+            self.buffer_prefix_known(self.len@)
+        }
+    }
+
+    /// Slot in the current view, independent of its native representation.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn buffer_slot(self, index: Int) -> Option<Option<u8>> {
+        pearlite! {
+            if self.unique_proof != None {
+                self.unique_slot(index)
+            } else {
+                self.shared_proof.unwrap_logic().region.inner_logic().slot(
+                    self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2 + index
+                )
+            }
+        }
+    }
+
+    /// The initialized prefix shared by both native representations.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn buffer_prefix_known(self, upto: Int) -> bool {
+        pearlite! {
+            forall<i:Int> 0 <= i && i < upto ==>
+                slot_known(self.buffer_slot(i))
+        }
+    }
+
+    /// Full allocation capacity represented by the current affine view.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn buffer_allocation_capacity(self) -> Int {
+        pearlite! {
+            if self.unique_proof != None {
+                self.unique_allocation_capacity()
+            } else {
+                self.shared_proof.unwrap_logic().region.inner_logic().capacity()
+            }
+        }
+    }
+
+    /// Slot in allocation coordinates, retaining hidden prefixes and spare
+    /// capacity in the frame of a view-only operation.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn buffer_allocation_slot(self, index: Int) -> Option<Option<u8>> {
+        pearlite! {
+            if self.unique_proof != None {
+                self.unique_allocation_slot(index)
+            } else {
+                self.shared_proof.unwrap_logic().region.inner_logic().slot(index)
+            }
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn buffer_bytes(self) -> Seq<u8> {
+        pearlite! {
+            Seq::create(self.len@, |i:Int|
+                self.buffer_slot(i).unwrap_logic().unwrap_logic())
+        }
+    }
 }
 /// Combine the currently initialized visible prefix with the range newly
 /// exposed by `set_len`. Slot indices are absolute allocation coordinates.
@@ -354,6 +484,53 @@ fn unique_initialized_prefix_extend(
             slot_known((*prestate).unique_slot(i))
         }
     );
+}
+
+/// Combine the current initialized view with a range newly exposed by
+/// `set_len`, without depending on whether the view is Vec-backed or Shared.
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[check(ghost)]
+#[requires((*prestate).buffer_view_valid())]
+#[requires(old_len@ == (*prestate).len@)]
+#[requires(new_len@ <= (*prestate).cap@)]
+#[requires(forall<i:Int> old_len@ <= i && i < new_len@ ==>
+    slot_known((*prestate).buffer_slot(i)))]
+#[ensures(forall<i:Int> 0 <= i && i < new_len@ ==>
+    slot_known((*prestate).buffer_slot(i)))]
+fn buffer_initialized_prefix_extend(
+    prestate: Snapshot<BytesMut>, old_len: usize, new_len: usize,
+) {
+    proof_assert!(forall<i:Int> 0 <= i && i < new_len@ ==>
+        if i < old_len@ {
+            slot_known((*prestate).buffer_slot(i))
+        } else {
+            slot_known((*prestate).buffer_slot(i))
+        }
+    );
+}
+
+/// Convert the common visible-prefix observation to and from each native
+/// representation's slot model. The snapshot borrow preserves the affine
+/// packet and allocation authority while making the mode split explicit.
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[check(ghost)]
+#[requires((*prestate).buffer_layout_valid())]
+#[requires(upto@ <= (*prestate).cap@)]
+#[ensures((*prestate).unique_layout_valid() ==>
+    ((*prestate).buffer_prefix_known(upto@) ==
+        (forall<i:Int> 0 <= i && i < upto@ ==>
+            slot_known((*prestate).unique_slot(i)))))]
+#[ensures((*prestate).shared_view_layout_valid() ==>
+    ((*prestate).buffer_prefix_known(upto@) ==
+        (*prestate).shared_slots_known_upto(upto@)))]
+fn buffer_prefix_mode_equivalence(prestate: Snapshot<BytesMut>, upto: usize) {
+    proof_assert!((*prestate).unique_layout_valid() ==>
+        ((*prestate).buffer_prefix_known(upto@) ==
+            (forall<i:Int> 0 <= i && i < upto@ ==>
+                slot_known((*prestate).unique_slot(i)))));
+    proof_assert!((*prestate).shared_view_layout_valid() ==>
+        ((*prestate).buffer_prefix_known(upto@) ==
+            (*prestate).shared_slots_known_upto(upto@)));
 }
 
 /// Reindex the initialized visible prefix after moving the current view forward.
@@ -1181,31 +1358,32 @@ impl BytesMut {
     /// buf.truncate(5);
     /// assert_eq!(buf, b"hello"[..]);
     /// ```
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() ==
-        if len@ <= self.unique_length() { len@ } else { self.unique_length() }))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer() &&
-        (^self).unique_capacity() == self.unique_capacity() &&
-        (^self).unique_offset() == self.unique_offset() &&
-        (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
-        (^self).unique_tag_pointer() == self.unique_tag_pointer()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.buffer_view_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        (^self).unique_proof.unwrap_logic().raw.namespace() ==
-            self.unique_proof.unwrap_logic().raw.namespace() &&
-        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() ==
-            self.unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() &&
-        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() ==
-            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        0 <= i && i < self.unique_capacity() ==> (^self).unique_slot(i) == self.unique_slot(i)))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        0 <= i && i < self.unique_allocation_capacity() ==>
-            (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() ==
-        self.unique_bytes().subsequence(0,
-            if len@ <= self.unique_length() { len@ } else { self.unique_length() })))]
+        (^self).buffer_view_valid() &&
+        (^self).len@ == if len@ <= self.len@ { len@ } else { self.len@ } &&
+        (^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data &&
+        (^self).unique_proof == self.unique_proof &&
+        (^self).shared_proof == self.shared_proof &&
+        (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
+        (forall<i:Int> 0 <= i && i < self.buffer_allocation_capacity() ==>
+            (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)) &&
+        (^self).buffer_bytes() == self.buffer_bytes().subsequence(0,
+            if len@ <= self.len@ { len@ } else { self.len@ }) &&
+        (self.unique_layout_valid() ==>
+            ((^self).unique_valid() &&
+             (^self).unique_pointer() == self.unique_pointer() &&
+             (^self).unique_capacity() == self.unique_capacity() &&
+             (^self).unique_offset() == self.unique_offset() &&
+             (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+             (^self).unique_tag_pointer() == self.unique_tag_pointer() &&
+             (^self).unique_bytes() == self.unique_bytes().subsequence(0,
+                if len@ <= self.unique_length() { len@ } else { self.unique_length() }) &&
+             (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+                (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+        (self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()) &&
+        (self.shared_view_valid() ==> (^self).shared_view_valid())
+    ))]
     pub fn truncate(&mut self, len: usize) {
         if len <= self.len() {
             // SAFETY: Shrinking the buffer cannot expose uninitialized bytes.
@@ -1224,28 +1402,32 @@ impl BytesMut {
     /// buf.clear();
     /// assert!(buf.is_empty());
     /// ```
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == 0))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() == Seq::empty()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer() &&
-        (^self).unique_capacity() == self.unique_capacity() &&
-        (^self).unique_offset() == self.unique_offset() &&
-        (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
-        (^self).unique_tag_pointer() == self.unique_tag_pointer()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.buffer_view_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        (^self).unique_proof.unwrap_logic().raw.namespace() ==
-            self.unique_proof.unwrap_logic().raw.namespace() &&
-        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() ==
-            self.unique_proof.unwrap_logic().capabilities.inner_logic().0.namespace() &&
-        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() ==
-            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        0 <= i && i < self.unique_capacity() ==> (^self).unique_slot(i) == self.unique_slot(i)))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        0 <= i && i < self.unique_allocation_capacity() ==>
-            (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
+        (^self).buffer_view_valid() && (^self).len@ == 0 &&
+        (^self).buffer_bytes() == Seq::empty() &&
+        (^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data &&
+        (^self).unique_proof == self.unique_proof &&
+        (^self).shared_proof == self.shared_proof &&
+        (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
+        (forall<i:Int> 0 <= i && i < self.buffer_allocation_capacity() ==>
+            (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)) &&
+        (self.unique_valid() ==>
+            ((^self).unique_valid() &&
+             (^self).unique_length() == 0 &&
+             (^self).unique_bytes() == Seq::empty() &&
+             (^self).unique_pointer() == self.unique_pointer() &&
+             (^self).unique_capacity() == self.unique_capacity() &&
+             (^self).unique_offset() == self.unique_offset() &&
+             (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+             (^self).unique_tag_pointer() == self.unique_tag_pointer() &&
+             (forall<i:Int> 0 <= i && i < self.unique_capacity() ==>
+                (^self).unique_slot(i) == self.unique_slot(i)) &&
+             (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+                (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+        (self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()) &&
+        (self.shared_view_valid() ==> (^self).shared_view_valid())
+    ))]
     pub fn clear(&mut self) {
         // SAFETY: Setting the length to zero cannot expose uninitialized bytes.
         unsafe { self.set_len(0) };
@@ -1300,28 +1482,42 @@ impl BytesMut {
     /// already been shown initialized. This also restores `unique_valid` after
     /// a private cursor/capacity transition temporarily left the old length in
     /// place.
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_layout_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(new_len@ <= self.unique_capacity()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(forall<i:Int>
-        0 <= i && i < new_len@ ==> slot_known(self.unique_slot(i))))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_hidden_prefix_known() ==> (^self).unique_hidden_prefix_known()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_hidden_prefix_known() ==> (^self).unique_vec_rebuildable()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == new_len@))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_capacity() == self.unique_capacity()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_offset() == self.unique_offset()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_tag_pointer() == self.unique_tag_pointer()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof == self.unique_proof))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        0 <= i && i < self.unique_allocation_capacity() ==>
-            (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() ==
-        Seq::create(new_len@, |i:Int| self.unique_slot(i).unwrap_logic().unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.buffer_layout_valid() && new_len@ <= self.cap@ &&
+        (forall<i:Int> 0 <= i && i < new_len@ ==>
+            slot_known(self.buffer_slot(i)))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).buffer_view_valid() && (^self).len@ == new_len@ &&
+        (^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data &&
+        (^self).unique_proof == self.unique_proof &&
+        (^self).shared_proof == self.shared_proof &&
+        (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
+        (forall<i:Int> 0 <= i && i < self.buffer_allocation_capacity() ==>
+            (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)) &&
+        (^self).buffer_bytes() == Seq::create(new_len@, |i:Int|
+            self.buffer_slot(i).unwrap_logic().unwrap_logic()) &&
+        (self.unique_layout_valid() ==>
+            ((^self).unique_valid() &&
+             (^self).unique_pointer() == self.unique_pointer() &&
+             (^self).unique_capacity() == self.unique_capacity() &&
+             (^self).unique_offset() == self.unique_offset() &&
+             (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+             (^self).unique_tag_pointer() == self.unique_tag_pointer() &&
+             (^self).unique_proof == self.unique_proof &&
+             (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+                (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+        (self.unique_hidden_prefix_known() ==> (^self).unique_vec_rebuildable()) &&
+        (self.unique_hidden_prefix_known() ==> (^self).unique_hidden_prefix_known()) &&
+        (self.shared_view_layout_valid() ==> (^self).shared_view_valid())
+    ))]
     #[inline]
     fn set_visible_len(&mut self, new_len: usize) {
         self.len = new_len;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let _ = ghost! {
+            buffer_prefix_mode_equivalence(snapshot!(*self), new_len);
+        };
     }
 
     /// Advance a Vec-backed view without changing its visible length. This is
@@ -1471,32 +1667,40 @@ impl BytesMut {
     ///
     /// assert_eq!(&b[..], b"hello world");
     /// ```
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(len@ <= self.unique_capacity()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(forall<i:Int>
-        self.unique_length() <= i && i < len@ ==> slot_known(self.unique_slot(i))))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == len@))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_capacity() == self.unique_capacity()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_offset() == self.unique_offset()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_tag_pointer() == self.unique_tag_pointer()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof == self.unique_proof))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        0 <= i && i < self.unique_capacity() ==> (^self).unique_slot(i) == self.unique_slot(i)))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        0 <= i && i < self.unique_allocation_capacity() ==>
-            (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() ==
-        Seq::create(len@, |i:Int| self.unique_slot(i).unwrap_logic().unwrap_logic())))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.buffer_view_valid() && len@ <= self.cap@ &&
+        (forall<i:Int> self.len@ <= i && i < len@ ==>
+            slot_known(self.buffer_slot(i)))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).buffer_view_valid() && (^self).len@ == len@ &&
+        (^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data &&
+        (^self).unique_proof == self.unique_proof &&
+        (^self).shared_proof == self.shared_proof &&
+        (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
+        (forall<i:Int> 0 <= i && i < self.buffer_allocation_capacity() ==>
+            (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)) &&
+        (^self).buffer_bytes() == Seq::create(len@, |i:Int|
+            self.buffer_slot(i).unwrap_logic().unwrap_logic()) &&
+        (self.unique_valid() ==>
+            ((^self).unique_valid() &&
+             (^self).unique_pointer() == self.unique_pointer() &&
+             (^self).unique_capacity() == self.unique_capacity() &&
+             (^self).unique_offset() == self.unique_offset() &&
+             (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+             (^self).unique_tag_pointer() == self.unique_tag_pointer() &&
+             (^self).unique_proof == self.unique_proof &&
+             (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+                (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+        (self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()) &&
+        (self.shared_view_valid() ==> (^self).shared_view_valid())
+    ))]
     #[inline]
     pub unsafe fn set_len(&mut self, len: usize) {
         debug_assert!(len <= self.cap, "set_len out of bounds");
         #[cfg(all(creusot, bytes_original_unique_gate))]
         let _ = ghost! {
-            unique_initialized_prefix_extend(snapshot!(*self), self.len, len);
+            buffer_initialized_prefix_extend(snapshot!(*self), self.len, len);
         };
         self.set_visible_len(len);
     }
@@ -2113,6 +2317,10 @@ impl BytesMut {
                 // full invariant.
                 unsafe { self.advance_vec_layout(count, pos) };
                 let new_len = self.len.saturating_sub(count);
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                let _ = ghost! {
+                    buffer_prefix_mode_equivalence(snapshot!(*self), new_len);
+                };
                 self.set_visible_len(new_len);
                 return;
             } else {
@@ -2518,6 +2726,7 @@ unsafe impl BufMut for BytesMut {
         #[cfg(all(creusot, bytes_original_unique_gate))]
         let _ = ghost! {
             unique_initialized_prefix_extend(snapshot!(*self), self.len, new_len);
+            buffer_prefix_mode_equivalence(snapshot!(*self), new_len);
         };
         self.set_visible_len(new_len);
     }

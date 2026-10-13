@@ -12,16 +12,19 @@ slice and string conversions establish the copied contents. `From<&str>` uses
 the generic Std model `Seq<char>::to_bytes()`; the concrete native UTF-8 encoder
 is not proved by this crate run (see the [Std overlay notes](verification/std-support/README.md)).
 
-`BytesMut::len` and `is_empty` are proved without a `unique_valid`
-precondition. For a `unique_valid` state, `clear` sets the length to zero and
-preserves the pointer, capacity, storage tag, authority identity and all
-capacity slots. `truncate(n)` sets the length to `min(n, old_len)` and preserves
-the initialized prefix, pointer, capacity, storage tag and all capacity slots.
-Unsafe `set_len(n)` requires `n <= capacity` and known initialized slots for
-any growth; it changes only the logical length and preserves the pointer,
-capacity, storage tag and all capacity slots. The original-source proofs
-include the local ownership, provenance and capacity-representation helper
-bodies in their call cone.
+`BytesMut::len` and `is_empty` are proved without a representation
+precondition. From a `buffer_view_valid` prestate, `clear` sets the length to
+zero and `truncate(n)` sets it to `min(n, old_len)`. Both preserve the visible
+byte prefix, native pointer, capacity, header word, exact proof sidecars and
+every allocation slot. Unsafe `set_len(n)` requires `n <= capacity` and known
+initialized slots for any growth; it changes only the logical length and
+preserves the same full allocation frame. The common view precondition covers
+either a Vec-backed unique layout or a packet-backed Shared view with known
+visible bytes. These are modular body proofs: the Shared form carries the
+`SharedOwnerPacket` type invariant, and the proofs do not establish that every
+safe producer or lifecycle transition supplies this precondition. The
+original-source proofs include the local ownership, provenance and
+capacity-representation helper bodies in their call cone.
 
 The private `advance_unchecked` body has selected Vec and packet-backed Shared
 cursor proofs. The Vec path retains the full allocation-slot frame and updates
@@ -52,8 +55,11 @@ no production path invokes them yet. These generic ledger proofs do not
 connect native handle split, drop, conversion, or refcount transitions to the
 tickets; pool retirement and recovery transitions also remain unproved in a
 production call path. Immutable peers, refcount-to-owner correspondence,
-concurrency, unwind behavior, and end-to-end `BytesMut::truncate` across shared
-or split states remain outside this checkpoint. See the
+concurrency, unwind behavior, and safe-state reachability of the common view
+precondition across all Shared, split, clone, drop and freeze paths remain
+outside this checkpoint. Thus the body proofs do not yet establish an
+end-to-end public `BytesMut::truncate` guarantee for every safely produced
+state. See the
 [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md) and
 [generic Std overlay](verification/std-support/README.md) assumptions.
 

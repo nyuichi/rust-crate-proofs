@@ -41,6 +41,8 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/original_capacity_from_repr.coma",
     "verif/bytes_rlib/capacity_ops/original_capacity_repr_from_data.coma",
     "verif/bytes_rlib/bytes_mut/unique_initialized_prefix_extend.coma",
+    "verif/bytes_rlib/bytes_mut/buffer_initialized_prefix_extend.coma",
+    "verif/bytes_rlib/bytes_mut/buffer_prefix_mode_equivalence.coma",
     "verif/bytes_rlib/bytes_mut/unique_initialized_prefix_suffix.coma",
     "verif/bytes_rlib/bytes_mut/impl_BufMut_for_BytesMut/advance_mut.coma",
     "verif/bytes_rlib/bytes_mut/vptr.coma",
