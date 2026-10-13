@@ -1,0 +1,620 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 183 4 187 18 *)
+
+(* bytes_mut::shared_capsule::HeaderLeaseAuthority *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 22 14 22 71
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 24 8 28 9
+let%span soption'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 42 14 42 32
+let%span soption'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 32 40 32 65
+let%span soption'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 34 8 38 9
+let%span soption'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 14 8 18 9
+let%span soption'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 870 8 873 9
+let%span soption'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 112 14 112 78
+let%span soption'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 114 8 114 12
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 189 28 189 50
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 190 31 190 52
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 191 12 191 53
+let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 192 26 192 65
+let%span sshared_capsule'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 193 26 193 57
+let%span sshared_capsule'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 194 26 194 68
+let%span sshared_capsule'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 195 64 195 76
+let%span sshared_capsule'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 195 12 195 78
+let%span sshared_capsule'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 196 26 196 75
+let%span sshared_capsule'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 188 8 198 9
+let%span sshared_capsule'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 184 8 184 17
+let%span sshared_capsule'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 175 15 176 49
+let%span sshared_capsule'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 177 15 177 83
+let%span sshared_capsule'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 178 15 178 60
+let%span sshared_capsule'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 179 14 180 44
+let%span sshared_capsule'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 181 14 182 45
+let%span sshared_capsule'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 125 12 125 78
+let%span sshared_capsule'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 109 8 109 24
+let%span sshared_capsule'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 235 12 239 13
+let%span sshared_capsule'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 115 12 118 13
+let%span sauth = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 153 23 153 27
+let%span sauth'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 151 15 151 37
+let%span sauth'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 152 14 152 31
+let%span sauth'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 51 20 51 34
+let%span sauth'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 124 42 124 46
+let%span sauth'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 117 15 117 37
+let%span sauth'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 118 15 118 40
+let%span sauth'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 119 14 119 39
+let%span sauth'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 120 14 120 39
+let%span sauth'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 121 14 121 31
+let%span sauth'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 122 14 122 62
+let%span sauth'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 162 8 162 19
+let%span sauth'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 32 8 35 9
+let%span sauth'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 39 15 39 31
+let%span sauth'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 40 15 40 26
+let%span sauth'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 41 14 41 30
+let%span sauth'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 45 14 45 32
+let%span sauth'16 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 49 14 49 37
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 22 201 26
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 4 203 17
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 199 14 199 29
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sexcl = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 16 8 16 12
+let%span sexcl'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 26 14 26 32
+let%span sexcl'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 20 14 20 71
+let%span sexcl'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 22 8 22 13
+let%span sview = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/view.rs" 81 14 81 41
+let%span sresource = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource.rs" 59 12 59 22
+let%span sra = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 92 8 92 42
+let%span sra'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 86 15 86 43
+let%span sra'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 87 14 87 29
+let%span sra'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 153 15 153 30
+let%span sra'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 154 15 154 34
+let%span sra'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 155 14 155 30
+let%span sra'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 165 15 165 34
+let%span sra'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 166 15 166 34
+let%span sra'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 167 14 167 34
+let%span sra'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 174 15 174 24
+let%span sra'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 175 15 175 24
+let%span sra'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 176 14 176 23
+let%span sra'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 50 14 50 39
+let%span sra'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 52 8 52 21
+let%span supdate = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/update.rs" 170 12 172 56
+let%span supdate'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/update.rs" 178 8 178 13
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use map.Map
+use creusot.prelude.Any
+
+type t_Id
+
+type t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+type t_Resource_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+type t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = {
+  f0: t_Resource_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize }
+
+type t_Option_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize =
+  | None
+  | Some t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+type t_HeaderLeaseAuthority = {
+  resource_id: t_Id;
+  authority: t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize;
+  idle_fragment: t_Option_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize }
+
+predicate invariant_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+
+function id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Id
+
+function id_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Resource_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Id
+
+function id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize'0 (self: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Id
+ =
+  [%#sauth'10] id_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.f0
+
+predicate invariant_HeaderLeaseAuthority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 233 4 233 30] (self: t_HeaderLeaseAuthority) =
+  [%#sshared_capsule'17] invariant_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.authority
+  /\ id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.authority
+    = self.resource_id
+  /\ match self.idle_fragment with
+    | Some fragment -> id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize'0 fragment
+    = self.resource_id
+    | None -> true
+    end
+
+predicate inv_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (_1: t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+
+axiom inv_axiom:
+  forall x: t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [inv_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize x]. inv_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize x
+    -> invariant_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize x
+
+predicate inv_HeaderLeaseAuthority (_1: t_HeaderLeaseAuthority)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_HeaderLeaseAuthority [inv_HeaderLeaseAuthority x]. inv_HeaderLeaseAuthority x
+    = (invariant_HeaderLeaseAuthority x
+    /\ inv_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize x.authority)
+
+predicate invariant_refmut_HeaderLeaseAuthority [@inline:trivial] (self: MutBorrow.t t_HeaderLeaseAuthority) =
+  [%#sinvariant] inv_HeaderLeaseAuthority self.current /\ inv_HeaderLeaseAuthority self.final
+
+meta "rewrite_def" predicate invariant_refmut_HeaderLeaseAuthority
+
+predicate inv_refmut_HeaderLeaseAuthority [@inline:trivial] (_1: MutBorrow.t t_HeaderLeaseAuthority) =
+  invariant_refmut_HeaderLeaseAuthority _1
+
+meta "rewrite_def" predicate inv_refmut_HeaderLeaseAuthority
+
+predicate invariant_Ghost_refmut_HeaderLeaseAuthority [@inline:trivial] (self: MutBorrow.t t_HeaderLeaseAuthority) =
+  [%#sghost'3] inv_refmut_HeaderLeaseAuthority self
+
+meta "rewrite_def" predicate invariant_Ghost_refmut_HeaderLeaseAuthority
+
+predicate inv_Ghost_refmut_HeaderLeaseAuthority [@inline:trivial] (_1: MutBorrow.t t_HeaderLeaseAuthority) =
+  invariant_Ghost_refmut_HeaderLeaseAuthority _1
+
+meta "rewrite_def" predicate inv_Ghost_refmut_HeaderLeaseAuthority
+
+let into_inner_refmut_HeaderLeaseAuthority (self: MutBorrow.t t_HeaderLeaseAuthority)
+  (return (x: MutBorrow.t t_HeaderLeaseAuthority)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost] inv_Ghost_refmut_HeaderLeaseAuthority self}
+  any
+  [ return (result: MutBorrow.t t_HeaderLeaseAuthority) ->
+  {[@stop_split] [@expl:into_inner_refmut_HeaderLeaseAuthority ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'0] inv_refmut_HeaderLeaseAuthority result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+let into_inner_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+  (self: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+  (return (x: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)) = any
+  [ return (result: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) ->
+  {[@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self}
+    (! return {result}) ]
+
+predicate invariant_ref_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (self: t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#sinvariant'0] inv_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self
+
+meta "rewrite_def" predicate invariant_ref_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+predicate inv_ref_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (_1: t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  invariant_ref_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize _1
+
+meta "rewrite_def" predicate inv_ref_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+type t_NativeCounter
+
+type t_StoredAuthority
+
+type t_VecStorage
+
+type tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = {
+  f0'0: int;
+  f1'0: Opaque.ptr;
+  f2'0: t_NativeCounter;
+  f3'0: t_Id;
+  f4'0: t_Id;
+  f5'0: t_StoredAuthority;
+  f6'0: t_VecStorage;
+  f7'0: UInt64.t }
+
+type t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = {
+  f0'1: tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize }
+
+type t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize =
+  | None'0
+  | Some'0 t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+type t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize =
+  | None'1
+  | Some'1 t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+type tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = {
+  f0'2: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize;
+  f1'2: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize }
+
+function map_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (f: Map.map t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+ = [%#soption'5] match self with
+    | None'0 -> None'1
+    | Some'0 x -> Some'1 (Map.get f x)
+    end
+
+function op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (_other: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+ = [%#sexcl] None'0
+
+function commutative_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (b: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom commutative_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, b: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. [%#sexcl'0] op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a b
+    = op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize b a
+
+function op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+ = [%#soption'4] match { f0'2 = self; f1'2 = other } with
+    | {f0'2 = None'0} -> Some'1 other
+    | {f1'2 = None'0} -> Some'1 self
+    | {f0'2 = Some'0 x; f1'2 = Some'0 y} -> map_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize x y) (fun (z: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) -> Some'0 z)
+    end
+
+function commutative_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (b: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom commutative_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, b: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. [%#soption'1] op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a b
+    = op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize b a
+
+predicate incl_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#sexcl'2] false
+
+axiom incl_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall self: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, other: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [incl_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other]. [%#sexcl'1] incl_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+    = (exists factor: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self factor
+      = Some'0 other)
+
+function incl_transitive_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (b: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (c: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom incl_transitive_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, b: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, c: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. ([%#sra'8] incl_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a b)
+    -> ([%#sra'9] incl_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize b c)
+    -> ([%#sra'10] incl_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a c)
+
+function associative_some_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (b: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (c: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (ab: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (bc: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom associative_some_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, b: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, c: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, ab: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, bc: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. ([%#sra'5] op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a b
+      = Some'0 ab)
+    -> ([%#sra'6] op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize b c = Some'0 bc)
+    -> ([%#sra'7] op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a bc
+    = op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize ab c)
+
+function associative_none_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (b: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (c: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (bc: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom associative_none_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, b: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, c: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, bc: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. ([%#sra'2] op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a b
+      = None'0)
+    -> ([%#sra'3] op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize b c = Some'0 bc)
+    -> ([%#sra'4] op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a bc = None'0)
+
+function incl_op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (comb: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom incl_op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall self: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, other: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, comb: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. ([%#sra'0] op_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+      = Some'0 comb)
+    -> ([%#sra'1] incl_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self comb)
+
+predicate eq_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (self: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#sra'12] self = other
+
+meta "rewrite_def" predicate eq_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+axiom eq_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall self: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, other: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [eq_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other]. [%#sra'11] eq_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+    = (self = other)
+
+predicate incl_eq_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#sra] eq_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+  \/ incl_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+
+predicate incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#soption'0] match { f0'2 = self; f1'2 = other } with
+    | {f0'2 = None'0} -> true
+    | {f1'2 = None'0} -> false
+    | {f0'2 = Some'0 x; f1'2 = Some'0 y} -> incl_eq_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize x y
+    end
+
+axiom incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall self: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, other: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other]. [%#soption] incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+    = (exists factor: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self factor
+      = Some'1 other)
+
+type t_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+constant unit_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = [%#soption'7] None'0
+
+axiom unit_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  [%#soption'6] forall x: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize x unit_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize]. op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize x unit_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+    = Some'1 x
+
+predicate rel_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (f: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#sauth'11] match a with
+    | Some'1 a'0 -> incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize f a'0
+    | None'1 -> true
+    end
+
+function rel_unit_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom rel_unit_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. [%#sauth'16] rel_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a unit_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+function rel_none_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (f: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom rel_none_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, f: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. [%#sauth'15] rel_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (None'1) f
+
+function rel_mono_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (f1: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (f2: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom rel_mono_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, f1: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, f2: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. ([%#sauth'12] rel_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a f1)
+    -> ([%#sauth'13] incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize f2 f1)
+    -> ([%#sauth'14] rel_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a f2)
+
+function auth_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+function frag_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+axiom frag_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall self: t_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [frag_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self]. [%#sview] rel_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (auth_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self) (frag_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self)
+
+function val_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Resource_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+function view_Resource_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (self: t_Resource_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+ =
+  [%#sresource] val_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self
+
+meta "rewrite_def" function view_Resource_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+function view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+ =
+  [%#sauth'2] frag_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (view_Resource_View_AuthViewRel_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.f0)
+
+function view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+let frag_lemma_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+  (self: t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+  (frag: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+  (return (x: ())) =
+{[@stop_split] [@expl:frag_lemma_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize requires] ([@stop_split] [@expl:frag_lemma 'self' type invariant] [%#sauth] inv_ref_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self)
+  /\ ([@stop_split] [@expl:frag_lemma requires] [%#sauth'0] id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self
+  = id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize'0 frag)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:frag_lemma ensures] [%#sauth'1] incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize frag) (view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self)}
+    (! return {result}) ]
+
+function incl_transitive_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (b: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (c: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom incl_transitive_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, b: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, c: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. ([%#sra'8] incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a b)
+    -> ([%#sra'9] incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize b c)
+    -> ([%#sra'10] incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a c)
+
+function associative_some_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (b: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (c: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (ab: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (bc: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom associative_some_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, b: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, c: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, ab: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, bc: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. ([%#sra'5] op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a b
+      = Some'1 ab)
+    -> ([%#sra'6] op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize b c
+      = Some'1 bc)
+    -> ([%#sra'7] op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a bc
+    = op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize ab c)
+
+function associative_none_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (b: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (c: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (bc: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom associative_none_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, b: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, c: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, bc: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. ([%#sra'2] op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a b
+      = None'1)
+    -> ([%#sra'3] op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize b c
+      = Some'1 bc)
+    -> ([%#sra'4] op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a bc = None'1)
+
+function incl_op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (comb: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom incl_op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall self: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, other: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, comb: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. ([%#sra'0] op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+      = Some'1 comb)
+    -> ([%#sra'1] incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self comb)
+
+predicate eq_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (self: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#soption'3] match { f0'2 = self; f1'2 = other } with
+    | {f0'2 = Some'0 s; f1'2 = Some'0 o} -> eq_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize s o
+    | {f0'2 = None'0; f1'2 = None'0} -> true
+    | _ -> false
+    end
+
+meta "rewrite_def" predicate eq_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+axiom eq_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall self: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, other: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [self
+    = other]. [%#soption'2] eq_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+    = (self = other)
+
+predicate incl_eq_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#sra] eq_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+  \/ incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self other
+
+predicate invariant_refmut_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (self: MutBorrow.t t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#sinvariant] inv_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.current
+  /\ inv_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.final
+
+meta "rewrite_def" predicate invariant_refmut_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+predicate inv_refmut_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (_1: MutBorrow.t t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  invariant_refmut_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize _1
+
+meta "rewrite_def" predicate inv_refmut_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+type t_Option_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize =
+  | None'2
+  | Some'2 t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+type tup2_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = {
+  f0'3: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize;
+  f1'3: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize }
+
+function map_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (f: Map.map t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Option_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+ = [%#soption'5] match self with
+    | None'1 -> None'2
+    | Some'1 x -> Some'2 (Map.get f x)
+    end
+
+function op_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (self: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (other: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : t_Option_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+ = [%#soption'4] match { f0'3 = self; f1'3 = other } with
+    | {f0'3 = None'1} -> Some'2 other
+    | {f1'3 = None'1} -> Some'2 self
+    | {f0'3 = Some'1 x; f1'3 = Some'1 y} -> map_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (op_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize x y) (fun (z: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) -> Some'1 z)
+    end
+
+function commutative_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (a: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (b: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : ()
+
+axiom commutative_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_spec:
+  forall a: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize, b: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. [%#soption'1] op_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize a b
+    = op_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize b a
+
+predicate premise_Snapshot_tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (self: tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (from_auth: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (from_frag: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#supdate] forall f: t_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize. op_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (Some'1 from_frag) f
+      = Some'2 (Some'1 from_auth)
+    -> op_Option_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (Some'1 (self.f1'2)) f
+    = Some'2 (Some'1 (self.f0'2))
+
+meta "rewrite_def" predicate premise_Snapshot_tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+function update_Snapshot_tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (self: tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (_2: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) (_3: t_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) : tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+ = [%#supdate'0] self
+
+meta "rewrite_def" function update_Snapshot_tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+let update_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+  (self: MutBorrow.t t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+  (frag: MutBorrow.t t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+  (upd: tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+  (return (x: ())) =
+{[@stop_split] [@expl:update_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize requires] ([@stop_split] [@expl:update 'self' type invariant] [%#sauth'3] inv_refmut_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self)
+  /\ ([@stop_split] [@expl:update requires #0] [%#sauth'4] id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.current
+    = id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize'0 frag.current)
+  /\ ([@stop_split] [@expl:update requires #1] [%#sauth'5] premise_Snapshot_tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize upd (view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.current) (view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize frag.current))}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:update_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize ensures] ([@stop_split] [@expl:update ensures #0] [%#sauth'6] id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.current
+      = id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.final)
+    /\ ([@stop_split] [@expl:update ensures #1] [%#sauth'7] id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize'0 frag.current
+      = id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize'0 frag.final)
+    /\ ([@stop_split] [@expl:update ensures #2] [%#sauth'8] incl_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize frag.current) (view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.current))
+    /\ ([@stop_split] [@expl:update ensures #3] [%#sauth'9] { f0'2 = view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.final;
+                                                              f1'2 = view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize frag.final }
+    = update_Snapshot_tup2_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize upd (view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.current) (view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize frag.current))}
+    (! return {result}) ]
+
+predicate resolve_refmut_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [@inline:trivial] (_1: MutBorrow.t t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize
+
+predicate resolve_refmut_HeaderLeaseAuthority [@inline:trivial] (_1: MutBorrow.t t_HeaderLeaseAuthority) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_HeaderLeaseAuthority
+
+let new_unit (x: ()) (return (x'0: ())) = any
+  [ return (result: ()) -> {[@stop_split] [@expl:new ensures] [%#sghost'2] result = x} (! return {result}) ]
+
+predicate is_active [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 123 4 123 55] (self: t_HeaderLeaseAuthority) (stamp: tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) =
+  [%#sshared_capsule'15] view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.authority
+    = Some'0 { f0'1 = stamp }
+  /\ self.idle_fragment = None
+
+function resource_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 108 4 108 30] (self: t_HeaderLeaseAuthority) : t_Id
+ = [%#sshared_capsule'16] self.resource_id
+
+predicate is_idle [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 113 4 113 28] (self: t_HeaderLeaseAuthority) =
+  [%#sshared_capsule'18] view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize self.authority
+    = None'0
+  /\ match self.idle_fragment with
+    | Some fragment -> view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize fragment
+    = None'0
+    | None -> false
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let deactivate [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 183 4 187 18]
+  (authority'0: MutBorrow.t t_HeaderLeaseAuthority)
+  (stamp: tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+  (fragment: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize)
+  (return (x: ())) =
+{[@stop_split] [@expl:deactivate requires] ([@stop_split] [@expl:deactivate 'authority' type invariant] [%#sshared_capsule'9] inv_Ghost_refmut_HeaderLeaseAuthority authority'0)
+  /\ ([@stop_split] [@expl:deactivate requires #0] [%#sshared_capsule'10] invariant_refmut_HeaderLeaseAuthority authority'0
+    /\ is_active authority'0.current stamp)
+  /\ ([@stop_split] [@expl:deactivate requires #1] [%#sshared_capsule'11] id_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize'0 fragment
+    = resource_id'0 authority'0.current)
+  /\ ([@stop_split] [@expl:deactivate requires #2] [%#sshared_capsule'12] view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize fragment
+  = Some'0 { f0'1 = stamp })}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = into_inner_refmut_HeaderLeaseAuthority [%#sshared_capsule] {authority'0}
+        (fun (_x: MutBorrow.t t_HeaderLeaseAuthority) -> [ &authority'1 <- _x ] s1)
+    | s1 =
+      into_inner_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [%#sshared_capsule'0]
+        {fragment}
+        (fun (_x: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) ->
+          [ &fragment'0 <- _x ] s2)
+    | s2 = [ &_25 <- fragment'0 ] s3
+    | s3 =
+      frag_lemma_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [%#sshared_capsule'1]
+        {authority'1.current.authority} {_25} (fun (_x: ()) -> [ &_22 <- _x ] s4)
+    | s4 =
+      {[@expl:assertion] [%#sshared_capsule'2] incl_eq_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize (view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize fragment'0) (view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize authority'1.current.authority)}
+      s5
+    | s5 =
+      {[@expl:assertion] [%#sshared_capsule'3] view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize fragment'0
+      = Some'0 { f0'1 = stamp }}
+      s6
+    | s6 =
+      {[@expl:assertion] [%#sshared_capsule'4] view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize authority'1.current.authority
+      = Some'0 { f0'1 = stamp }}
+      s7
+    | s7 = MutBorrow.borrow_mut
+        <t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize> {fragment'0}
+        (fun (_bor: MutBorrow.t t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) ->
+          [ &_41 <- _bor ] [ &fragment'0 <- _bor.final ] s8)
+    | s8 = MutBorrow.borrow_final
+        <t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize>
+        {authority'1.current.authority} {MutBorrow.inherit_id (MutBorrow.get_id authority'1) 1}
+        (fun (_bor: MutBorrow.t t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) ->
+          [ &_39 <- _bor ]
+          -{inv_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize _bor.final}-
+          [ &authority'1 <- { authority'1 with current = { authority'1.current with authority = _bor.final } } ] s9)
+      [ _ck ->
+      (! {[@expl:type invariant] inv_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize authority'1.current.authority}
+        any) ]
+    | s9 = MutBorrow.borrow_final
+        <t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize> {_41.current}
+        {MutBorrow.get_id _41}
+        (fun (_bor: MutBorrow.t t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize) ->
+          [ &_40 <- _bor ] [ &_41 <- { _41 with current = _bor.final } ] s10)
+    | s10 =
+      update_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize [%#sshared_capsule'6]
+        {_39} {_40} {[%#sshared_capsule'5] { f0'2 = None'0; f1'2 = None'0 }} (fun (_x: ()) -> [ &_38 <- _x ] s11)
+    | s11 =
+      -{resolve_refmut_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize _41}-
+      s12
+    | s12 =
+      {[@expl:assertion] [%#sshared_capsule'7] view_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize authority'1.current.authority
+        = None'0
+      /\ view_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize fragment'0
+      = None'0}
+      s13
+    | s13 = [ &_48 <- Some fragment'0 ] s14
+    | s14 = [ &authority'1 <- { authority'1 with current = { authority'1.current with idle_fragment = _48 } } ] s15
+    | s15 = s16 [ _ck -> (! {[@expl:type invariant] inv_refmut_HeaderLeaseAuthority authority'1} any) ]
+    | s16 = -{resolve_refmut_HeaderLeaseAuthority authority'1}- s17
+    | s17 = new_unit [%#sshared_capsule'8] {_17} (fun (_x: ()) -> [ &_ret <- _x ] s18)
+    | s18 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & authority'0: MutBorrow.t t_HeaderLeaseAuthority = authority'0
+  | & stamp: tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = stamp
+  | & fragment: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = fragment
+  | & _17: () = Any.any_l ()
+  | & authority'1: MutBorrow.t t_HeaderLeaseAuthority = Any.any_l ()
+  | & fragment'0: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = Any.any_l ()
+  | & _22: () = Any.any_l ()
+  | & _25: t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = Any.any_l ()
+  | & _38: () = Any.any_l ()
+  | & _39: MutBorrow.t t_Authority_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = Any.any_l ()
+  | & _40: MutBorrow.t t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = Any.any_l ()
+  | & _41: MutBorrow.t t_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = Any.any_l ()
+  | & _48: t_Option_Fragment_Option_Excl_tup8_Int_ptr_Shared_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:deactivate ensures] ([@stop_split] [@expl:deactivate ensures #0] [%#sshared_capsule'13] invariant_HeaderLeaseAuthority authority'0.final
+      /\ is_idle authority'0.final)
+    /\ ([@stop_split] [@expl:deactivate ensures #1] [%#sshared_capsule'14] resource_id'0 authority'0.final
+    = resource_id'0 authority'0.current)}
+    (! return {result}) ]
