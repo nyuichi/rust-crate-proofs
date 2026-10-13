@@ -16,7 +16,8 @@ fi
 tool_root=${BYTES_TOOL_ROOT:-/workspace/bytes-proof-tools}
 "$crate_root/scripts/setup-bytes-toolchain.sh"
 source "$tool_root/activate.sh"
-export CREUSOT_RUSTC="$tool_root/fn-ghost-purity/creusot-rustc"
+unset CREUSOT_STD CREUSOT_STDLIB
+export CREUSOT_RUSTC="$tool_root/vanilla/creusot-rustc"
 tool_config="$XDG_CONFIG_HOME/creusot/why3.conf"
 export CARGO_NET_OFFLINE=true
 export RUSTFLAGS='--cfg bytes_original_unique_gate'

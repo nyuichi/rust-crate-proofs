@@ -5,6 +5,10 @@ actual implementation verification and Vec reverse-comparison fix. Small source
 changes needed for verification are allowed. Commit/push validated increments to
 origin bytes-runtime-verification; never main or force-push.
 
+Do not modify the Creusot compiler, including for bug fixes. Work around its
+limitations in this verification target's source; consult the user if a required
+change would alter the crate's API or runtime representation.
+
 Read README.md. Work on default std, x86_64 and native atomic orderings; sc-drf
 stays disabled. Use verify-all.bash (one prover, shared lock, elevated Why3).
 Use --check for unchanged-source evidence maintenance; it runs no solver.

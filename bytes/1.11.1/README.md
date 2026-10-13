@@ -88,8 +88,8 @@ sc-drf. Results describe the selected sequential, normal-return proof scope,
 not concurrent `Bytes` behavior.
 
 `./verify-all.bash` translates the live crate source and runs fresh, no-cache
-proofs with the pinned bytes Creusot toolchain, default `std` features, native
-atomic orderings, and one prover under the shared lock. Why3 needs elevated
+proofs with the pristine pinned bytes Creusot toolchain, default `std` features,
+native atomic orderings, and one prover under the shared lock. Why3 needs elevated
 execution. `./verify-all.bash --check` checks the saved COMA and prover results,
 source/configuration identities, target inventory and translation diagnostics
 without invoking a solver. A changed input is a reuse miss and requires a fresh

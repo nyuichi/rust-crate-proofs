@@ -21,34 +21,10 @@ boundary. The current theorem is sequential and normal-return only.
 Past rejected routes and examples are available in Git at `e5f127fb` when needed.
 They are not required inputs or mandatory regression runs for current proof work.
 
-## Creusot FnGhost callback purity validation
+## Pristine compiler requirement
 
-`tools/creusot-toolpatch/patches/bytes-fn-ghost-purity.patch` targets Creusot
-commit `318615be3b8bbc60d1f6d52469ba5c0bdebed4f1` and changes only
-`creusot/src/validate/purity.rs` (base SHA256
-`5c56221d3f131c6ad1cfc2aebc85363ba84ae548c742a905f3d38100528b1af0`). It
-validates an annotated `#[check(ghost)]` callback body in ghost purity context
-when created from program code, and preserves the existing guard that keeps
-logic contexts logical. The bytes-only setup builds a separate patched
-compiler; vanilla Creusot remains available and the itoa tool selection is
-unchanged.
-
-Scratch translation diagnostics with the patched compiler accepted a positive
-Relaxed load callback that opens `AtomicInvariant` and calls the exact
-`Committer::shoot_load`. The callback is an API/purity-boundary check only; it
-does not prove the atomic memory-order protocol. Direct nested atomics,
-ordinary helpers containing atomics, generic static-trait helper calls, and
-nested ordinary closures were rejected as non-ghost calls. The existing ghost
-capture validator rejected mutation of an outer scalar, and purity validation
-rejected `Cell::set` and raw-pointer `write` calls. Raw pointer dereference was
-also rejected as unsupported. A copyable scalar captured by value and changed
-inside a `move` closure is closure-local and does not mutate the caller's
-scalar. Creusot's existing `tests/should_succeed/purity.rs` also translated
-successfully, including its `#[logic(open)]` trait implementation and call.
-Explicit `#[trusted(ghost)]` helpers remain within the trusted boundary and
-must not conceal native effects.
-
-This compiler correction closes a generic callback purity gap; it adds no
-trusted bytes ownership/count/last-owner/destructor law and proves no
-memory-order correctness by itself. The selected toolchain identity is bound
-by the direct proof runner and receipt.
+The direct-source workflow uses the pristine pinned Creusot compiler. Earlier
+experiments with a bytes-only callback-purity compiler patch are not part of the
+supported toolchain or proof evidence. Any remaining callback translation
+limitations must be handled in the bytes source and contracts; they do not
+justify modifying the compiler used by the verification workflow.

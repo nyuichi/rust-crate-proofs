@@ -5,8 +5,6 @@ base_root=${BYTES_BASE_TOOL_ROOT:-/workspace/proof-tools}
 tool_root=${BYTES_TOOL_ROOT:-/workspace/bytes-proof-tools}
 source "$base_root/activate.sh"
 rustup_binary=$CARGO_HOME/bin/rustup
-repo_root=$(cd "$(dirname "$0")/../../.." && pwd)
-purity_builder="$repo_root/tools/creusot-toolpatch/scripts/build-bytes-fn-ghost-purity.sh"
 creusot_sha=318615be3b8bbc60d1f6d52469ba5c0bdebed4f1
 why3_sha=54c92f96bb0711d6e991c18f10bfbc08d90d028b
 why3find_sha=eab37557d3e24e1913a3c4f44bc5528ef497c6c9
@@ -14,14 +12,22 @@ if [[ -f "$tool_root/installation-manifest.json" ]]; then
  python3 - "$tool_root/installation-manifest.json" <<'PY'
 import hashlib, json, pathlib, sys
 m=json.loads(pathlib.Path(sys.argv[1]).read_text())
+expected_revisions={
+ 'creusot_sha':'318615be3b8bbc60d1f6d52469ba5c0bdebed4f1',
+ 'why3_sha':'54c92f96bb0711d6e991c18f10bfbc08d90d028b',
+ 'why3find_sha':'eab37557d3e24e1913a3c4f44bc5528ef497c6c9',
+}
+if any(m.get(key)!=value for key,value in expected_revisions.items()):
+ raise SystemExit('Installed tool revisions differ from the pinned bytes toolchain')
+expected_binaries={'creusot-rustc','cargo-creusot','why3','why3find','alt-ergo','z3','cvc4','cvc5'}
+if set(m.get('binaries',{}))!=expected_binaries or 'creusot_toolpatch' in m:
+ raise SystemExit('Installed manifest is not the pristine pinned bytes toolchain')
 for name, value in m['binaries'].items():
- if name == 'creusot-rustc-fn-ghost-purity': continue
  p=pathlib.Path(value['path'])
  if not p.is_file() or hashlib.sha256(p.read_bytes()).hexdigest()!=value['sha256']:
   raise SystemExit('Installed binary changed: '+name)
-print('Pinned vanilla bytes toolchain binary hashes verified')
+print('Pristine pinned bytes toolchain binary hashes verified')
 PY
- "$purity_builder"
  exit 0
 fi
 mkdir -p "$tool_root/cargo/bin" "$tool_root/vanilla"
@@ -95,4 +101,3 @@ manifest={'creusot_sha':'318615be3b8bbc60d1f6d52469ba5c0bdebed4f1',
           'binaries':{name:{'path':str(p),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for name,p in paths.items()}}
 (root/'installation-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 PY
-"$purity_builder"
