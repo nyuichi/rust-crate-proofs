@@ -52,8 +52,9 @@ as the old suffix after `min(count, old_len)`. The selected packet invariant
 ties each ticket's allocation identity to its region namespace, base and
 capacity; the capsule protocol ties the same identity to its current protected
 storage authority. The generic ledger split and drop bodies preserve this
-identity. It remains metadata only, and no production clone, split, drop or
-refcount transition chain is established. The native regression
+identity. It remains metadata only. The private unique-Vec split producer is
+proved, but public wrapper reachability and native ARC, clone, drop and refcount
+transition chains are not. The native regression
 `shared_advance_past_len_within_capacity_keeps_empty_view` checks the Shared
 path when count exceeds length but stays within capacity.
 The `BufMut::advance_mut` implementation body has a proof under its
@@ -71,24 +72,25 @@ offset 3 with zero additional advance and checks the visible view. Neither
 result proves a safe public call chain reaches the promotion branch.
 
 The selected source targets include body proofs for the generic `OwnerLedger`
-algebra and the current-value refcount operation wrappers and increment loop.
-An `OwnerTicket` consumes the exact affine singleton fragment for its owner ID.
-Its `OwnerBinding` stores the allocation identity tuple and a half-open range
-`[lo, hi)`; the ledger invariant requires ranges to stay within the allocation
-and remain pairwise disjoint. The selected bodies cover root and two-owner
-registration, splitting a parent range at a valid cut, dropping a registration,
-and replacing the ticket's binding while preserving ticket and authority
-identity. They prove generic ledger operations and do not connect native handle
-split, drop, conversion or refcount transitions to those tickets.
+algebra and current-value refcount operation wrappers. Each `OwnerTicket`
+consumes an exact affine singleton fragment for one native strong reference.
+Its binding records the allocation identity, a `Mutable`/`Readonly` class and
+a half-open interval. Every interval stays in bounds; Mutable intervals are
+disjoint from every other registration, while Readonly intervals may overlap
+one another. The selected bodies cover root and two-owner registration,
+Readonly registration, same-ticket reclassification, splitting a Mutable
+range, dropping a registration and replacing a ticket binding while preserving
+ticket and authority identities.
 
-The count-one packet invariant binds its ticket range to the packet's physical
-region. `SharedState` states that the proof-only physical pool contains exactly
-the in-bounds complement of active owner ranges. The selected initial packet
-construction combines a full-range ticket with an empty pool using the
-body-proved `PhysicalPool::empty_from` constructor and its unit-normalization
-helper. The generic `retire` and `finish` operations also have body proofs, but
-no selected production path calls them to retire regions into the pool or
-recover a full region from it.
+`SharedPayload` places one exact native counter permission model, storage
+authority, physical pool, all-reference ledger and phase state under a generic
+event invariant. The protocol equates the ledger count with the counter
+permission value and defines the pool as the in-bounds complement of Mutable
+intervals. The selected count-one promotion and count-two Vec split producer
+construct payloads with matching tickets and physical regions. Generic pool
+retirement and full-range recovery operations are body-proved, but native ARC
+split, clone, drop, freeze and recovery paths do not yet invoke corresponding
+ledger transitions.
 
 The public `truncate` and `clear` bodies, and unsafe `set_len`, are also
 body-proved from `buffer_view_valid`, a common precondition for a stable
@@ -106,7 +108,7 @@ proofs do not establish that every safe producer or lifecycle path supplies
 safely produced state.
 
 This increment also body-proves `make_count_two_packets`, a generic constructor
-for one count-two capsule and its two owner packets. Under a precondition that
+for one count-two event payload and its two Mutable owner packets. Under a precondition that
 the actual active-owner map covers the full allocation, it places the exact
 counter permission, stored authority, ledger, and empty physical pool into
 one shared state, then returns the actual disjoint ticket and physical-region
@@ -124,22 +126,21 @@ transitions remain outside the selected proof, so the result does not establish
 all safe split states or that every safe state satisfies the common precondition
 for `BytesMut::truncate`.
 
-The selected targets also prove the one-shot `RefCountCell` bootstrap
-extraction body, which
-moves its event permission and recorded scalar value out of the cell and leaves
-the proof-only sidecar detached. No production `Bytes` or `BytesMut` path calls
-that extraction yet; the selected scalar adapters still require the sidecar to
-contain its invariant. The proof-only `new_with_owner` constructor also has a
-body proof for creating one native counter and returning its exact permission
-and initial value while leaving the sidecar empty. The proof branch of
-`promote_to_shared_count_one` uses it; native builds instead use the ordinary
-`RefCountCell::new`. Outside that one initial promotion proof, the ledger and
-refcount proof state are not connected to later production owner operations.
-These results do not establish that the native refcount equals the number of
-registered handles across transitions, that a count of one proves exclusivity,
-or that Shared storage may be reclaimed. They are a partial direct-source
-checkpoint, not complete
-`BytesMut::truncate` verification across all safe states.
+The selected targets prove the one-shot `RefCountCell` bootstrap extraction
+body and the generic `EventBoundInvariant<T>` container and accessors. The
+container keeps the exact counter permission outside its protocol payload; its
+constructor and extraction preserve the counter model and protocol state.
+Generic atomic adapters use one-shot callbacks that preserve this model and
+protocol across each unchanged native atomic operation and ordering. These
+adapter contracts are trusted and limited to sequential normal-return use:
+they do not specify concurrent read coherence, synchronization handoff or
+acquire-imported resources. The count-one and count-two constructors tie the
+event payload to the corresponding ledger and native counter value, and the
+unique-Vec split helper uses the count-two constructor. Later native ARC split,
+clone, drop, freeze and recovery operations remain unconnected, so this
+checkpoint does not establish count-to-reference correspondence across every
+native transition or public `BytesMut::truncate` behavior for every safely
+produced state.
 
 The current increment also body-proves `PhaseAuthority`'s one-shot close
 action, `shared_capsule::make_count_one_packet`, and
@@ -147,9 +148,10 @@ action, `shared_capsule::make_count_one_packet`, and
 constructs a count-one Shared capsule from the actual Vec storage and exact
 native counter permission, with one root ticket over the allocation's full
 physical region and an empty pool. It does not prove every safe call path
-reaches the helper or connect later clone, split, drop, and recovery operations
-to that registration. It therefore gives no general count-to-owner,
-uniqueness, or reclamation guarantee.
+reaches the helper or connect later ARC clone, split, drop, freeze and recovery
+operations to the registration. Initial count-to-ledger construction is
+proved, but later count/registration correspondence, count-one exclusivity,
+and reclamation are not established for every safe Shared state.
 
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current

@@ -41,25 +41,22 @@ that reaches a nonzero cursor; the public `Buf::advance` wrapper is not
 translated. `BufMut::advance_mut` has a body proof, but its trait-refinement
 obligation remains open.
 
-The selected ghost ownership proofs model each ticket as an exact singleton
-fragment carrying a half-open interval within the allocation. The ledger
-invariant requires those intervals to be in bounds and pairwise disjoint;
-body proofs cover root registration, a two-owner registration, splitting a
-parent interval at a valid cut, dropping a registration, and replacing a
-ticket's interval while preserving the authority identity. The count-one
-packet constructor binds its sole full-range ticket to the packet region and
-the initial empty physical pool using the body-proved
-`PhysicalPool::empty_from` constructor and unit-normalization helper. The
-generic pool retirement and full-range finish operations are also body-proved;
-no production path invokes them yet. These generic ledger proofs do not
-connect native handle split, drop, conversion, or refcount transitions to the
-tickets; pool retirement and recovery transitions also remain unproved in a
-production call path. Immutable peers, refcount-to-owner correspondence,
-concurrency, unwind behavior, and safe-state reachability of the common view
-precondition across all Shared, split, clone, drop and freeze paths remain
-outside this checkpoint. Thus the body proofs do not yet establish an
-end-to-end public `BytesMut::truncate` guarantee for every safely produced
-state. See the
+The selected ghost ownership proofs model each native strong reference as an
+exact singleton ticket in one ledger. Mutable tickets own disjoint physical
+intervals; readonly tickets record visible intervals and may overlap one
+another. The physical pool is the in-bounds complement of Mutable intervals.
+Body proofs cover readonly registration and reclassification, root and
+two-owner registration, splitting a Mutable interval, dropping a registration,
+and replacing a ticket binding while preserving ticket and authority
+identities. A generic event payload ties the ledger's reference count to the
+counter permission model; the initial count-one promotion and original Vec
+split producer construct matching payloads and packets. The generic pool
+retirement and full-range recovery helpers also have body proofs, but native
+ARC split, clone, drop, freeze and recovery transitions are not yet connected
+to the ledger. Concurrency, unwind behavior and safe-state reachability of the
+common view precondition across Shared lifecycle paths remain outside this
+checkpoint. Thus these body proofs do not yet establish an end-to-end public
+`BytesMut::truncate` guarantee for every safely produced state. See the
 [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md) and
 [generic Std overlay](verification/std-support/README.md) assumptions.
 

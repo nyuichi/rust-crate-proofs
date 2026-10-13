@@ -107,8 +107,10 @@ impl RefCountCell {
         #[cfg(creusot)]
         {
             let (counter, owner) = NativeCounter::new(value);
-            let invariant =
-                EventBoundInvariant::new(&counter, owner, ghost!(RefCountState { current: value }));
+            let invariant = EventBoundInvariant::new(
+                owner,
+                ghost!(RefCountState { counter_model: snapshot!(counter), current: value }),
+            );
             Self { counter, invariant: ghost!(Some(invariant.into_inner())) }
         }
 
@@ -327,12 +329,18 @@ mod proof {
         type PermPayload = ();
     }
 
-    pub(super) trait CounterProtocol: Protocol {
+    pub(crate) trait CounterProtocol: Protocol {
+        /// Opaque logical identity of the exact counter represented by this
+        /// protocol state. This model is distinct from any native address
+        /// marker used by a higher-level resource registry.
+        #[logic(prophetic)]
+        fn counter_model(self) -> NativeCounter;
+
         #[logic(prophetic)]
         fn agrees_with_value(self, value: usize) -> bool;
     }
 
-    pub(super) struct EventState<T: CounterProtocol> {
+    pub(crate) struct EventState<T: CounterProtocol> {
         pub owner: Perm<NativeCounter>,
         pub current: T,
     }
@@ -347,21 +355,23 @@ mod proof {
 
         #[logic(open(super), prophetic)]
         fn protocol(self) -> bool {
-            self.current.protocol() && self.current.agrees_with_value(self.owner.val())
+            self.current.protocol() &&
+            self.current.counter_model() == *self.owner.ward() &&
+            self.current.agrees_with_value(self.owner.val())
         }
     }
 
-    pub(super) struct EventBoundInvariant<T: CounterProtocol> {
-        inner: Ghost<AtomicInvariant<EventState<T>>>,
+    pub(crate) struct EventBoundInvariant<T: CounterProtocol> {
+        pub(super) inner: Ghost<AtomicInvariant<EventState<T>>>,
     }
 
     impl<T: CounterProtocol> EventBoundInvariant<T> {
         #[check(ghost)]
-        #[requires(counter == owner.ward())]
+        #[requires(current.counter_model() == *owner.ward())]
         #[requires(current.protocol() && current.agrees_with_value(owner.val()))]
-        #[ensures(result.public() == (*counter, current.public()))]
-        pub(super) fn new(
-            counter: &NativeCounter,
+        #[ensures(result.public() == (*owner.ward(), current.public()))]
+        #[ensures(result.invariant())]
+        pub(crate) fn new(
             owner: Ghost<Perm<NativeCounter>>,
             current: Ghost<T>,
         ) -> Ghost<Self> {
@@ -373,7 +383,7 @@ mod proof {
         }
 
         #[logic(open(self))]
-        pub(super) fn public(self) -> (NativeCounter, T::Public) {
+        pub(crate) fn public(self) -> (NativeCounter, T::Public) {
             self.inner.public()
         }
 
@@ -383,13 +393,22 @@ mod proof {
         #[check(ghost)]
         #[ensures(*result.inner_logic().0.ward() == self.public().0)]
         #[ensures(result.inner_logic().1.public() == self.public().1)]
+        #[ensures(result.inner_logic().1.counter_model() ==
+            *result.inner_logic().0.ward())]
         #[ensures(result.inner_logic().1.protocol())]
         #[ensures(result.inner_logic().1.agrees_with_value(result.inner_logic().0.val()))]
-        pub(super) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
+        pub(crate) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
             ghost! {
                 let EventState { owner, current } = self.inner.into_inner().into_inner();
                 (owner, current)
             }
+        }
+    }
+
+    impl<T: CounterProtocol> Invariant for EventBoundInvariant<T> {
+        #[logic(open(super), prophetic)]
+        fn invariant(self) -> bool {
+            self.inner.inner_logic().invariant()
         }
     }
 
@@ -406,14 +425,15 @@ mod proof {
     }
 
     pub(super) struct RefCountState {
+        pub(super) counter_model: Snapshot<NativeCounter>,
         pub(super) current: usize,
     }
 
     impl Protocol for RefCountState {
-        type Public = ();
+        type Public = NativeCounter;
 
-        #[logic(open)]
-        fn public(self) {}
+        #[logic(open(super))]
+        fn public(self) -> NativeCounter { *self.counter_model }
 
         #[logic(open(super), prophetic)]
         fn protocol(self) -> bool {
@@ -422,6 +442,9 @@ mod proof {
     }
 
     impl CounterProtocol for RefCountState {
+        #[logic(open(super), prophetic)]
+        fn counter_model(self) -> NativeCounter { *self.counter_model }
+
         #[logic(open(super), prophetic)]
         fn agrees_with_value(self, value: usize) -> bool {
             self.current == value
@@ -459,6 +482,7 @@ mod proof {
                 f.precondition((&mut s.current, old)) &&
                 (forall<a: A> f.postcondition_once((&mut s.current, old), a) ==>
                     (^s).current.public() == s.current.public() &&
+                    (^s).current.counter_model() == s.current.counter_model() &&
                     (^s).current.protocol() && (^s).current.agrees_with_value(old))
         )]
         #[ensures(exists<s: &mut EventState<T>, old: usize>
@@ -466,8 +490,9 @@ mod proof {
             s.owner.ward() == self && old == s.owner.val() && result.0 == old &&
             f.postcondition_once((&mut s.current, old), *result.1) &&
             (^s).public() == s.public() && (^s).protocol() &&
+            (^s).current.counter_model() == s.current.counter_model() &&
             (^s).owner.val() == old && (^s).owner.ward() == s.owner.ward())]
-        pub(super) fn load_relaxed_with<T, F, A>(
+        pub(crate) fn load_relaxed_with<T, F, A>(
             &self,
             invariant: Ghost<&EventBoundInvariant<T>>,
             f: Ghost<F>,
@@ -493,6 +518,7 @@ mod proof {
                 f.precondition((&mut s.current, old)) &&
                 (forall<a: A> f.postcondition_once((&mut s.current, old), a) ==>
                     (^s).current.public() == s.current.public() &&
+                    (^s).current.counter_model() == s.current.counter_model() &&
                     (^s).current.protocol() && (^s).current.agrees_with_value(old))
         )]
         #[ensures(exists<s: &mut EventState<T>, old: usize>
@@ -500,8 +526,9 @@ mod proof {
             s.owner.ward() == self && old == s.owner.val() && result.0 == old &&
             f.postcondition_once((&mut s.current, old), *result.1) &&
             (^s).public() == s.public() && (^s).protocol() &&
+            (^s).current.counter_model() == s.current.counter_model() &&
             (^s).owner.val() == old && (^s).owner.ward() == s.owner.ward())]
-        pub(super) fn load_acquire_with<T, F, A>(
+        pub(crate) fn load_acquire_with<T, F, A>(
             &self,
             invariant: Ghost<&EventBoundInvariant<T>>,
             f: Ghost<F>,
@@ -528,6 +555,7 @@ mod proof {
                     f.precondition((&mut s.current, old, new)) &&
                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
                         (^s).current.public() == s.current.public() &&
+                        (^s).current.counter_model() == s.current.counter_model() &&
                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
         )]
         #[ensures(exists<s: &mut EventState<T>, old: usize>
@@ -537,6 +565,7 @@ mod proof {
                 Ok(actual) => actual == old && old == expected &&
                     (^s).owner.val() == new && (^s).owner.ward() == s.owner.ward() &&
                     (^s).current.public() == s.current.public() &&
+                    (^s).current.counter_model() == s.current.counter_model() &&
                     (^s).current.protocol() && (^s).current.agrees_with_value(new) &&
                     (^s).public() == s.public() && (^s).protocol() &&
                     (exists<a: A> *result.1 == Ok(a) &&
@@ -544,7 +573,7 @@ mod proof {
                 Err(actual) => actual == old && old != expected &&
                     *result.1 == Err(*f) && (^s) == *s,
             })]
-        pub(super) fn compare_exchange_relaxed_with<T, F, A>(
+        pub(crate) fn compare_exchange_relaxed_with<T, F, A>(
             &self,
             invariant: Ghost<&EventBoundInvariant<T>>,
             expected: usize,
@@ -581,6 +610,7 @@ mod proof {
                     f.precondition((&mut s.current, old, new)) &&
                     (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
                         (^s).current.public() == s.current.public() &&
+                        (^s).current.counter_model() == s.current.counter_model() &&
                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
         )]
         #[ensures(exists<s: &mut EventState<T>, old: usize>
@@ -590,6 +620,7 @@ mod proof {
                 Ok(actual) => actual == old && old == expected &&
                     (^s).owner.val() == new && (^s).owner.ward() == s.owner.ward() &&
                     (^s).current.public() == s.current.public() &&
+                    (^s).current.counter_model() == s.current.counter_model() &&
                     (^s).current.protocol() && (^s).current.agrees_with_value(new) &&
                     (^s).public() == s.public() && (^s).protocol() &&
                     (exists<a: A> *result.1 == Ok(a) &&
@@ -597,7 +628,7 @@ mod proof {
                 Err(actual) => actual == old && old != expected &&
                     *result.1 == Err(*f) && (^s) == *s,
             })]
-        pub(super) fn compare_exchange_acqrel_relaxed_with<T, F, A>(
+        pub(crate) fn compare_exchange_acqrel_relaxed_with<T, F, A>(
             &self,
             invariant: Ghost<&EventBoundInvariant<T>>,
             expected: usize,
@@ -635,6 +666,7 @@ mod proof {
                 (forall<a: A> f.postcondition_once((&mut s.current, old,
                     if old == 0usize { usize::MAX } else { old - 1usize }), a) ==>
                     (^s).current.public() == s.current.public() &&
+                    (^s).current.counter_model() == s.current.counter_model() &&
                     (^s).current.protocol() &&
                     (^s).current.agrees_with_value(
                         if old == 0usize { usize::MAX } else { old - 1usize }))
@@ -649,11 +681,12 @@ mod proof {
             (old > 0usize ==> (^s).owner.val() + 1usize == old) &&
             (^s).owner.ward() == s.owner.ward() &&
             (^s).current.public() == s.current.public() &&
+            (^s).current.counter_model() == s.current.counter_model() &&
             (^s).current.protocol() &&
             (^s).current.agrees_with_value(
                 if old == 0usize { usize::MAX } else { old - 1usize }) &&
             (^s).public() == s.public() && (^s).protocol())]
-        pub(super) fn fetch_sub_release_with<T, F, A>(
+        pub(crate) fn fetch_sub_release_with<T, F, A>(
             &self,
             invariant: Ghost<&EventBoundInvariant<T>>,
             f: Ghost<F>,
@@ -672,14 +705,13 @@ mod proof {
         }
     }
 
-    pub(super) use {EventBoundInvariant as EventInvariant, RefCountState as State};
 }
 
 #[cfg(creusot)]
-use proof::{
-    observe_ref_count, update_ref_count, EventInvariant as EventBoundInvariant,
-    State as RefCountState,
-};
+pub(crate) use proof::{CounterProtocol, EventBoundInvariant};
+
+#[cfg(creusot)]
+use proof::{observe_ref_count, update_ref_count, RefCountState};
 
 #[cfg(creusot)]
 type RefCountInvariant = EventBoundInvariant<RefCountState>;

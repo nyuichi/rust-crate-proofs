@@ -153,131 +153,83 @@ with a proof-only zero-sized `Option` sidecar. Native builds execute the
 original atomic operations once and preserve their orderings. Selected body
 proofs cover the invariant constructor, native-counter getter, Relaxed and
 Acquire loads, both compare-exchange wrappers, Release decrement, the checked
-next-count function, and the `try_increment`/`increment` loop. They also prove
-`take_bootstrap_owner`, which consumes the invariant from a populated sidecar,
-returns its unique permission and recorded scalar value, and leaves the cell's
-sidecar empty while framing the native counter. The `EventBoundInvariant`
-`into_inner` body is proved to move out the same permission and protocol state.
-The proof-only `new_with_owner` constructor body is also proved: it creates the
-native counter once and returns its exact sole permission with the constructor
-value while leaving the cell sidecar empty. The proof branch of
-`promote_to_shared_count_one` uses this helper to connect the corresponding
-native counter construction to the promotion capsule; native builds use the
-ordinary `RefCountCell::new`. The helper by itself creates no handle or
-owner-ledger registration.
-No production `Bytes` or `BytesMut` path calls this extraction yet; current
-scalar adapter callers still require the sidecar to be populated. The increment
-body only establishes guarded arithmetic and normal-return behavior. The
-generic platform abort contract accounts for overflow error not returning from
-`increment`. Compile-time assertions check the cell's size, alignment, and
-drop behavior. The existing native layout test checks `Shared` field offsets;
-it does not exercise the `Owned` prefix cast. That cast relies on the `repr(C)`
-cell with its counter as the first field, and is not claimed as a separate
-runtime test.
+next-count function, and the `try_increment`/`increment` loop. Compile-time
+assertions check the cell's size, alignment, and drop behavior. The existing
+native layout test checks `Shared` field offsets; it does not exercise the
+`Owned` prefix cast. That cast relies on the `repr(C)` cell with its counter as
+the first field, and is not claimed as a separate runtime test.
 
-Contracts for the native adapters are generic trusted primitives with a narrow
-single-thread interpretation. While the sidecar is populated, each adapter
-assumes it opens the unique `AtomicInvariant` stored there, whose public
-projection is bound to that exact `NativeCounter`, lends its current state only
-to the one-shot callback, and restores the invariant before returning. The
-opening does not expose a second state or permit callback reentry. The patched
-FnGhost purity checker rejects native operations from checked callbacks; the
-exact tool identity is bound by the receipt. The body-proved bootstrap helper
-can consume this invariant once and transfer its permission and current scalar
-state out of the cell, but the selected production call cone does not yet
-perform that transfer or route operations through the transferred capsule.
-Each verified operation is bound to the exact stored counter permission and
-current scalar protocol state, and every access to that counter in the selected
-proof cone must use these adapters on one thread. These contracts do not
-describe concurrent loads, read coherence, synchronization handoff, or
-acquire-imported resources. The crate's ordinary native implementation retains
-its concurrent behavior, but these proofs make no concurrent Bytes claim.
+The generic `CounterProtocol`, `EventState<T>`, and
+`EventBoundInvariant<T>` abstraction keeps one exact `Perm<NativeCounter>` in
+the invariant owner and a protocol payload outside it. Its body-proved
+constructor, extraction, and callbacks preserve the exact counter model, public
+mapping, protocol, and current scalar value. Shared payloads use this wrapper
+to carry the allocation storage, all-reference ledger, physical pool, and
+lifecycle phase under the same event state. The Shared payload protocol relates
+the ledger's reference count to that exact counter permission value and binds
+its allocation identity to the stored authority. The initial count-one
+promotion and count-two Vec split construction have body proofs that establish
+those relations and return the matching tickets and regions.
 
-The scalar refcount protocol does not contain owner tickets. The body-proved
-initial promotion path connects one native count of one with one root ledger
-ticket in its capsule. The body proofs do not yet connect later increments,
-clones, splits, conversions, drops, or handle transfers to the `OwnerLedger`,
-so they do not establish count-to-registration equality across those
-transitions or derive count-one exclusivity for recovery. Terminal recovery in
-a production path, Shared allocation retirement and destruction, and
-safe-state reachability of the `buffer_view_valid` precondition across Shared,
-split, clone, drop, freeze, or nonzero-offset states remain unproved. The
-selected `truncate` body is verified under that precondition, but this checkpoint
-does not establish a public `BytesMut::truncate` call chain for every safely
-produced state.
+The native atomic adapters that open this generic event invariant are trusted
+primitives. Their contracts preserve the same permission and counter model,
+and require a one-shot callback to preserve the protocol after the exact
+native operation and ordering. FnGhost purity checks reject native operations
+from the callbacks, and the adapter does not permit callback reentry or a
+second state. These contracts have a sequential normal-return interpretation:
+they do not describe concurrent read coherence, synchronization handoff, or
+acquire-imported resources. The crate retains its ordinary concurrent native
+behavior, but these proofs make no concurrent `Bytes` claim. The generic
+platform abort contract accounts for the overflow error not returning from
+`increment`.
 
-The selected crate targets body-prove the generic
-`ownership_proof::ref_count_ledger` module. Each `OwnerTicket` contains the
-actual affine `Fragment` for one singleton owner ID. The body-proved
-`OwnerTicket::from_fragment` constructor consumes that fragment once and
-establishes its ledger resource ID, owner ID, exact singleton map and stored
-binding. `replace_binding` preserves the ticket identity and explicitly frames
-the authority resource ID while updating the matching map entry; the
-`OwnerBindingUpdate` trait-refinement obligation is also selected and proved.
+The `OwnerLedger` is one affine inventory of all native strong references.
+Each `OwnerTicket` owns the exact singleton fragment for one registration and
+records the common allocation identity, its classification, and a half-open
+interval. Mutable intervals are disjoint from every other registration;
+Readonly intervals may overlap one another. Body proofs cover readonly
+registration and same-ticket reclassification, root and two-Mutable-owner
+registration, splitting a Mutable interval, removing a registration, and
+preserving the authority identity when replacing a ticket binding. The
+ledger's count is the map cardinality. Its generic operations alone do not
+connect arbitrary native lifecycle operations to the registrations.
 
-An `OwnerBinding` contains the common allocation identity tuple (namespace,
-base pointer and capacity) and a half-open range `[lo, hi)`. The ledger
-invariant requires each active range to lie within the allocation and requires
-active ranges to be pairwise disjoint. Body proofs cover a root ticket over
-`[0, capacity)`, a promoted pair split at a supplied cut, `split_owner` splitting
-one live parent interval into adjacent parent and child intervals, and
-`drop_owner` removing one registration. `sole_active_id` characterizes the
-range represented by the only active ticket. These interval and allocation
-fields are metadata: they grant no allocation access authority.
-
-The root-ticket constructor is connected to the selected production
-count-one promotion helper. The two-ticket constructor is connected to the
-selected private original-source Vec split helper, which consumes the actual
-Vec state and installs the two returned packets. The generic `split_owner` and
-drop transitions remain unconnected to native handle operations; no selected
-production clone, drop, conversion, or later refcount transition updates the
-ledger. Consequently the proofs do not establish that later native refcount
-changes remain matched to ledger changes, count-one uniqueness for recovery,
-or a Shared allocation lifecycle.
+For Shared payloads, the physical pool contains exactly the in-bounds
+complement of active Mutable intervals. Readonly intervals do not claim
+physical mutation authority. The count-one packet constructor body-proves the
+initial full-range Mutable ticket and empty pool. The count-two constructor
+body-proves one event payload with two Mutable tickets and physical regions
+partitioning the full allocation. The original-source private
+`split_unique_to_shared` Vec producer consumes a Vec and installs those two
+actual views and packets under its unique-Vec precondition. These proofs do not
+show that the public `split_off`/`split_to` wrappers reach this helper, or that
+ARC split, native clone, freeze, drop, and recovery transitions update the
+ledger and pool. They also do not establish count-one exclusivity or
+reclamation for every safe Shared state.
 
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
 contradiction between a closed authority and a still-valid matching action.
-`shared_capsule::make_count_one_packet` is body-proved to compose the supplied
-header, exact counter permission, storage authority, root ticket, whole
-physical region and open terminal phase into a count-one capsule. The packet
-invariant binds the ticket's allocation identity and `[lo, hi)` range to the
-region namespace, base, capacity and bounds. `SharedState` states that its
-physical pool contains exactly the in-bounds complement of active owner
-ranges. The selected constructor proves the initial case: the ticket owns the
-whole `[0, capacity)` interval and the pool is empty, using the body-proved
-`PhysicalPool::empty_from` constructor and its unit-normalization helper. The
-generic `PhysicalPool::retire` and `finish` operations are also body-proved.
-No selected production path invokes them to retire regions into the pool or
-recover a full region from it. The private `promote_to_shared_count_one` body
-supplies these initial values, including the count-one counter and root ticket.
-This is the only selected production owner-ledger composition; no
-clone/split/drop update path is connected yet.
-The Vec `advance_unchecked` branch assumes a representable position, so it
-does not establish reachability of the promotion branch, and public
-`Buf::advance` is untranslated. Its packet-backed Shared branch proves cursor
-movement under private packet predicates, whose allocation identity is bound
-to current protected storage as described above. The proof adds no trusted
-native count-to-ticket law,
-count-one exclusivity, terminal recovery, or allocation-lifecycle guarantee.
+The generic `PhysicalPool::retire` and `finish` operations are body-proved,
+but the selected production paths do not yet invoke a complete last-reference
+retirement and recovery sequence. The Vec `advance_unchecked` branch assumes a
+representable position, so it does not establish reachability of the promotion
+branch, and public `Buf::advance` is untranslated.
 
-The new `make_count_two_packets` target body-proves a generic count-two
-capsule constructor. Its precondition requires the exact supplied native
-counter permission and stored allocation authority, two distinct tickets
-bound to the same ledger and allocation with adjacent ranges, and an
-active-owner map covering the full allocation. The body puts that one ledger,
-storage authority, counter permission, terminal phase, and an empty pool into
-one `SharedState`, then returns packets carrying the actual two ticket and
-physical-region fragments cut from the full region; both packets share the
-same capsule. The generic `new_promoted_pair` constructor proves the matching
-full-range active-owner coverage for its particular `[0, cut)` and
-`[cut, capacity)` pair. These proofs establish constructor behavior under
-their stated preconditions. The body-proved `split_unique_to_shared` helper
-calls `make_count_two_packets`, then installs the actual left and right
-pointer/length/capacity views with those packets while preserving their common
-capsule and full allocation-slot frame. Its proof depends on the trusted B2
-`VecStorage::resume_owned` adapter and the generic non-wrapping pointer-offset
-assumption above. It establishes this private Vec producer body under its
-unique-state preconditions; it does not prove the public `split_off` or
-`split_to` wrappers, safe call-chain reachability, the ARC split producer, or
-subsequent ARC split, clone/drop/refcount lifecycle transitions.
+Although `truncate`, `clear`, and unsafe `set_len` have body proofs from
+`buffer_view_valid`, their modular precondition still includes a packet-backed
+Shared value's type invariant and the corresponding capsule, ticket, ledger,
+and resource conditions. The new all-reference ledger operations do not yet
+close the safe-produced-state reachability of that precondition across ARC
+split, clone, drop, freeze, `to_mut`, and recovery. The proof therefore does
+not yet establish the requested public `BytesMut::truncate` guarantee for all
+safe states. Immutable-view lifetime and read permissions, concurrent
+behavior, and unwind behavior also remain outside this scope.
+
+The added B2 `VecStorage::resume_owned` adapter and strengthened generic
+`STD-PTRWRAP-01` assumption are described above. Generic Creusot Std ghost and
+resource contracts also participate in the selected proofs; the Vec observer
+and resource assumptions are documented in the [Std overlay](../../std-support/README.md).
+Verification-only exclusions for unrelated comparison, ownership, iterator,
+and Shared-backed bodies are documented beside the source in
+[`bytes.rs`](../../../src/bytes.rs) and [`bytes_mut.rs`](../../../src/bytes_mut.rs).

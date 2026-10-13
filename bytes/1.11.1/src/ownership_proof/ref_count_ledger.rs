@@ -1,11 +1,12 @@
-//! Affine owner registrations for a shared control block.
+//! Affine native-reference registrations for a shared control block.
 //!
-//! The authority map is the exact set of registered live owner IDs. Each
-//! `OwnerTicket` owns one exclusive singleton fragment in that map. This
-//! module proves only the generic registration algebra and its count
-//! projection; a caller must connect count changes to the actual native
-//! atomic event and prove that every handle transfer calls the matching
-//! transition.
+//! The authority map is the exact set of registered live native references.
+//! Each `OwnerTicket` owns one exclusive singleton fragment in that map.
+//! Mutable entries record the full physical interval held by their packet;
+//! readonly entries record only their visible interval. The map count is the
+//! native strong-reference count, while the physical pool excludes Mutable
+//! intervals only. A caller must connect count-changing transitions to the
+//! actual native atomic event and move the corresponding physical authority.
 
 use creusot_std::{
     ghost::resource::{Authority, Fragment},
@@ -21,34 +22,56 @@ use crate::ref_count_limit::MAX_REF_COUNT;
 /// authority for the allocation.
 pub type AllocationBinding = (Id, *mut u8, Int);
 
-/// The exact physical interval currently owned by one mutable handle.
-///
-/// This remains metadata only; the `PhysicalRegion` carried by the packet is
-/// the affine authority for the interval.
-pub type OwnerBinding = (AllocationBinding, Int, Int);
+/// Classification of one native strong reference. Mutable entries name the
+/// full interval held by their `PhysicalRegion`; readonly entries name only
+/// the byte interval visible through that immutable handle.
+#[derive(creusot_std::prelude::Clone, Copy)]
+pub(crate) enum RefKind {
+    Mutable,
+    Readonly,
+}
 
-pub(crate) type ActiveOwners = FMap<Int, Excl<OwnerBinding>>;
+/// Allocation identity, reference class, and that handle's physical/view span.
+/// The binding itself is metadata; a Mutable ticket's `PhysicalRegion` is the
+/// affine authority for its interval.
+pub(crate) type OwnerBinding = (AllocationBinding, RefKind, Int, Int);
+
+pub(crate) type ActiveReferences = FMap<Int, Excl<OwnerBinding>>;
 
 #[logic]
 fn owner_binding_valid(owner: OwnerBinding, allocation: AllocationBinding) -> bool {
     pearlite! {
-        owner.0 == allocation && 0 <= owner.1 && owner.1 <= owner.2 &&
-        owner.2 <= allocation.2
+        owner.0 == allocation && 0 <= owner.2 && owner.2 <= owner.3 &&
+        owner.3 <= allocation.2
     }
 }
 
 #[logic]
-pub(crate) fn active_owner_contains(owners: ActiveOwners, index: Int) -> bool {
+pub(crate) fn active_mutable_contains(owners: ActiveReferences, index: Int) -> bool {
     pearlite! {
         exists<id: Int> match owners.get(id) {
-            Some(Excl((_, lo, hi))) => lo <= index && index < hi,
+            Some(Excl((_, kind, lo, hi))) => match kind {
+                RefKind::Mutable => lo <= index && index < hi,
+                RefKind::Readonly => false,
+            },
             None => false,
         }
     }
 }
 
 #[logic]
-fn owner_ranges_valid(owners: ActiveOwners, allocation: AllocationBinding) -> bool {
+fn spans_compatible(left: OwnerBinding, right: OwnerBinding) -> bool {
+    pearlite! {
+        match (left.1, right.1) {
+            (RefKind::Readonly, RefKind::Readonly) => true,
+            _ => left.2 == left.3 || right.2 == right.3 ||
+                left.3 <= right.2 || right.3 <= left.2,
+        }
+    }
+}
+
+#[logic]
+fn owner_ranges_valid(owners: ActiveReferences, allocation: AllocationBinding) -> bool {
     pearlite! {
         forall<id: Int> match owners.get(id) {
             Some(Excl(owner)) => owner_binding_valid(owner, allocation),
@@ -58,14 +81,29 @@ fn owner_ranges_valid(owners: ActiveOwners, allocation: AllocationBinding) -> bo
 }
 
 #[logic]
-fn owner_ranges_disjoint(owners: ActiveOwners) -> bool {
+fn owner_ranges_disjoint(owners: ActiveReferences) -> bool {
     pearlite! {
-        forall<left: Int, right: Int> match (owners.get(left), owners.get(right)) {
-            (Some(Excl((_, left_lo, left_hi))), Some(Excl((_, right_lo, right_hi)))) =>
-                left == right || left_lo == left_hi || right_lo == right_hi ||
-                    left_hi <= right_lo || right_hi <= left_lo,
+        forall<left_id: Int, right_id: Int> match
+            (owners.get(left_id), owners.get(right_id)) {
+            (Some(Excl(left)), Some(Excl(right))) =>
+                left_id == right_id || spans_compatible(left, right),
             _ => true,
         }
+    }
+}
+
+#[logic]
+fn binding_compatible_with_map(
+    binding: OwnerBinding,
+    references: ActiveReferences,
+    except_id: Int,
+) -> bool {
+    pearlite! {
+        forall<other_id: Int> other_id != except_id ==>
+            match references.get(other_id) {
+                Some(Excl(other)) => spans_compatible(binding, other),
+                None => true,
+            }
     }
 }
 
@@ -100,12 +138,12 @@ impl LocalUpdate<Excl<OwnerBinding>> for OwnerBindingUpdate {
     }
 }
 
-/// One non-duplicable registration for a particular owner in a control block.
+/// One non-duplicable registration for a particular native strong reference.
 #[allow(missing_debug_implementations)]
 pub(crate) struct OwnerTicket {
     ledger_id: Id,
     owner_id: Int,
-    fragment: Fragment<ActiveOwners>,
+    fragment: Fragment<ActiveReferences>,
 }
 
 impl OwnerTicket {
@@ -123,14 +161,14 @@ impl OwnerTicket {
     #[ensures(result.fragment_resource_id() == ledger_id)]
     #[ensures(result.owner_binding() == binding)]
     #[ensures(result.allocation_binding() == binding.0)]
-    #[ensures(result.owned_lo() == binding.1)]
-    #[ensures(result.owned_hi() == binding.2)]
+    #[ensures(result.owned_lo() == binding.2)]
+    #[ensures(result.owned_hi() == binding.3)]
     #[ensures(result.fragment_map() == FMap::singleton(owner_id, Excl(binding)))]
     pub(crate) fn from_fragment(
         ledger_id: Id,
         owner_id: Int,
         binding: OwnerBinding,
-        fragment: Fragment<ActiveOwners>,
+        fragment: Fragment<ActiveReferences>,
     ) -> OwnerTicket {
         let ticket = OwnerTicket {
             ledger_id,
@@ -157,7 +195,7 @@ impl OwnerTicket {
     }
 
     #[logic(open(self))]
-    pub(crate) fn fragment_map(self) -> ActiveOwners {
+    pub(crate) fn fragment_map(self) -> ActiveReferences {
         pearlite! { self.fragment@ }
     }
 
@@ -169,18 +207,23 @@ impl OwnerTicket {
     }
 
     #[logic(open(self))]
+    pub(crate) fn class(&self) -> RefKind {
+        pearlite! { self.owner_binding().1 }
+    }
+
+    #[logic(open(self))]
     pub(crate) fn owner_binding(&self) -> OwnerBinding {
         pearlite! { self.fragment@.get(self.owner_id).unwrap_logic().0 }
     }
 
     #[logic(open(self))]
     pub(crate) fn owned_lo(&self) -> Int {
-        pearlite! { self.owner_binding().1 }
+        pearlite! { self.owner_binding().2 }
     }
 
     #[logic(open(self))]
     pub(crate) fn owned_hi(&self) -> Int {
-        pearlite! { self.owner_binding().2 }
+        pearlite! { self.owner_binding().3 }
     }
 
     /// Replace this ticket's exact singleton payload in both its affine
@@ -194,8 +237,8 @@ impl OwnerTicket {
     #[requires(authority@.get(self.owner_id()) ==
         Some(Excl(self.owner_binding())))]
     #[requires((*new_binding).0 == self.allocation_binding())]
-    #[requires(0 <= (*new_binding).1 && (*new_binding).1 <= (*new_binding).2)]
-    #[requires((*new_binding).2 <= self.allocation_binding().2)]
+    #[requires(0 <= (*new_binding).2 && (*new_binding).2 <= (*new_binding).3)]
+    #[requires((*new_binding).3 <= self.allocation_binding().2)]
     #[ensures((^self).invariant())]
     #[ensures((^self).owner_id() == self.owner_id())]
     #[ensures((^self).ledger_id() == self.ledger_id())]
@@ -210,11 +253,11 @@ impl OwnerTicket {
         Some(Excl(*new_binding)))]
     pub(crate) fn replace_binding(
         &mut self,
-        authority: &mut Authority<ActiveOwners>,
+        authority: &mut Authority<ActiveReferences>,
         new_binding: Snapshot<OwnerBinding>,
     ) -> Ghost<()> {
         let owner_id: Snapshot<Int> = snapshot!(self.owner_id);
-        let old_fragment: Snapshot<ActiveOwners> = snapshot!(self.fragment@);
+        let old_fragment: Snapshot<ActiveReferences> = snapshot!(self.fragment@);
         normalize_singleton_insert(
             old_fragment,
             owner_id,
@@ -249,11 +292,11 @@ impl Invariant for OwnerTicket {
     }
 }
 
-/// An affine proof that the owner map is empty after the final release.
+/// An affine proof that the reference map is empty after the final release.
 #[allow(missing_debug_implementations)]
 pub(crate) struct RetirePermit {
     ledger_id: Id,
-    authority: Authority<ActiveOwners>,
+    authority: Authority<ActiveReferences>,
 }
 
 impl RetirePermit {
@@ -263,7 +306,7 @@ impl RetirePermit {
     }
 
     #[logic(open(self))]
-    pub(crate) fn active_ids(self) -> ActiveOwners {
+    pub(crate) fn active_ids(self) -> ActiveReferences {
         pearlite! { self.authority@ }
     }
 
@@ -276,7 +319,7 @@ impl RetirePermit {
         }
     }
 
-    /// A same-ledger, valid owner ticket would have to compose with this empty
+    /// A same-ledger, valid reference ticket would have to compose with this empty
     /// authority. The exclusive singleton fragment makes that impossible.
     #[check(ghost)]
     #[requires(self.invariant())]
@@ -285,8 +328,8 @@ impl RetirePermit {
     #[ensures(false)]
     pub(crate) fn contradicts_live_ticket(&self, ticket: &OwnerTicket) {
         self.authority.frag_lemma(&ticket.fragment);
-        let fragment: Snapshot<ActiveOwners> = snapshot!(ticket.fragment@);
-        let empty: Snapshot<ActiveOwners> = snapshot!(self.authority@);
+        let fragment: Snapshot<ActiveReferences> = snapshot!(ticket.fragment@);
+        let empty: Snapshot<ActiveReferences> = snapshot!(self.authority@);
         proof_assert!((*fragment).incl(*empty));
         proof_assert!((*fragment).get(ticket.owner_id()) ==
             Some(Excl(ticket.owner_binding())));
@@ -305,7 +348,8 @@ impl Invariant for RetirePermit {
     }
 }
 
-/// Current affine inventory for one native shared control block.
+/// Current affine inventory for every native strong reference to one shared
+/// control block.
 ///
 /// `ledger_id` is the stable Resource identity. Moving the empty authority
 /// into a `RetirePermit` never changes that identity.
@@ -315,7 +359,7 @@ pub(crate) struct OwnerLedger {
     next_id: Int,
     live: bool,
     allocation_binding: AllocationBinding,
-    authority: Option<Authority<ActiveOwners>>,
+    authority: Option<Authority<ActiveReferences>>,
 }
 
 impl OwnerLedger {
@@ -340,15 +384,15 @@ impl OwnerLedger {
     }
 
     #[logic(open(self))]
-    pub(crate) fn active_ids(self) -> ActiveOwners {
+    pub(crate) fn active_ids(self) -> ActiveReferences {
         pearlite! { match self.authority {
             Some(authority) => authority@,
             None => FMap::empty(),
         } }
     }
 
-    /// The logical shared count is exactly the cardinality of the authoritative
-    /// active-ID map; no separately mutable count is stored here.
+    /// The logical native strong-reference count is exactly the cardinality
+    /// of the authoritative map; no separately mutable count is stored here.
     #[logic(open(self))]
     pub(crate) fn count(self) -> Int {
         self.active_ids().len()
@@ -408,8 +452,8 @@ impl OwnerLedger {
         match &self.authority {
             Some(authority) => {
                 authority.frag_lemma(&ticket.fragment);
-                let fragment: Snapshot<ActiveOwners> = snapshot!(ticket.fragment@);
-                let active: Snapshot<ActiveOwners> = snapshot!(authority@);
+                let fragment: Snapshot<ActiveReferences> = snapshot!(ticket.fragment@);
+                let active: Snapshot<ActiveReferences> = snapshot!(authority@);
                 proof_assert!((*fragment).incl(*active));
                 proof_assert!((*fragment).get(ticket.owner_id()) ==
                     Some(Excl(ticket.owner_binding())));
@@ -436,6 +480,7 @@ impl OwnerLedger {
     #[ensures(result.inner_logic().1.owner_id() >= 0)]
     #[ensures(result.inner_logic().1.owner_id() < result.inner_logic().0.next_id())]
     #[ensures(result.inner_logic().1.allocation_binding() == binding.inner_logic())]
+    #[ensures(result.inner_logic().1.class() == RefKind::Mutable)]
     #[ensures(result.inner_logic().1.owned_lo() == 0)]
     #[ensures(result.inner_logic().1.owned_hi() == binding.inner_logic().2)]
     #[requires(binding.inner_logic().2 >= 0)]
@@ -444,12 +489,12 @@ impl OwnerLedger {
     ) -> Ghost<(OwnerLedger, OwnerTicket)> {
         ghost! {
         let binding = binding.into_inner();
-        let mut authority: Authority<ActiveOwners> = Authority::alloc().into_inner();
-        let empty_map: Snapshot<ActiveOwners> = snapshot!(ActiveOwners::unit());
+        let mut authority: Authority<ActiveReferences> = Authority::alloc().into_inner();
+        let empty_map: Snapshot<ActiveReferences> = snapshot!(ActiveReferences::unit());
         proof_assert!(authority@ == *empty_map);
         let root_id: Int = *Int::new(0i128);
-        let root_owner: OwnerBinding = (binding, 0int, binding.2);
-        let root_map: Snapshot<ActiveOwners> =
+        let root_owner: OwnerBinding = (binding, RefKind::Mutable, 0int, binding.2);
+        let root_map: Snapshot<ActiveReferences> =
             snapshot!(FMap::singleton(root_id, Excl(root_owner)));
         let root_fragment = authority.add_fragment(root_map);
         proof_assert!(authority@.ext_eq(*root_map));
@@ -484,7 +529,7 @@ impl OwnerLedger {
     #[ensures(result.inner_logic().0.count() == 2)]
     #[ensures(result.inner_logic().0.agrees_with_value(2))]
     #[ensures(forall<index: Int>
-        active_owner_contains(result.inner_logic().0.active_ids(), index) ==
+        active_mutable_contains(result.inner_logic().0.active_ids(), index) ==
             (0 <= index && index < binding.inner_logic().2))]
     #[ensures(result.inner_logic().1.invariant() && result.inner_logic().2.invariant())]
     #[ensures(result.inner_logic().0.has_ticket(result.inner_logic().1) &&
@@ -493,6 +538,8 @@ impl OwnerLedger {
         result.inner_logic().2.ledger_id() == result.inner_logic().0.ledger_id())]
     #[ensures(result.inner_logic().1.allocation_binding() == binding.inner_logic() &&
         result.inner_logic().2.allocation_binding() == binding.inner_logic())]
+    #[ensures(result.inner_logic().1.class() == RefKind::Mutable &&
+        result.inner_logic().2.class() == RefKind::Mutable)]
     #[ensures(result.inner_logic().1.owner_id() == 0 && result.inner_logic().2.owner_id() == 1)]
     #[ensures(result.inner_logic().1.owner_id() < result.inner_logic().0.next_id() &&
         result.inner_logic().2.owner_id() < result.inner_logic().0.next_id())]
@@ -508,24 +555,24 @@ impl OwnerLedger {
         ghost! {
         let binding = binding.into_inner();
         let cut = cut.into_ghost().into_inner();
-        let mut authority: Authority<ActiveOwners> = Authority::alloc().into_inner();
-        let empty_map: Snapshot<ActiveOwners> = snapshot!(ActiveOwners::unit());
+        let mut authority: Authority<ActiveReferences> = Authority::alloc().into_inner();
+        let empty_map: Snapshot<ActiveReferences> = snapshot!(ActiveReferences::unit());
         proof_assert!(authority@ == *empty_map);
         let first_id: Int = *Int::new(0i128);
         let second_id: Int = *Int::new(1i128);
-        let first_owner: OwnerBinding = (binding, 0int, cut);
-        let second_owner: OwnerBinding = (binding, cut, binding.2);
-        let first_map: Snapshot<ActiveOwners> =
+        let first_owner: OwnerBinding = (binding, RefKind::Mutable, 0int, cut);
+        let second_owner: OwnerBinding = (binding, RefKind::Mutable, cut, binding.2);
+        let first_map: Snapshot<ActiveReferences> =
             snapshot!(FMap::singleton(first_id, Excl(first_owner)));
         let first_fragment = authority.add_fragment(first_map);
         proof_assert!(authority@.ext_eq(*first_map));
-        let after_first: Snapshot<ActiveOwners> = snapshot!(authority@);
+        let after_first: Snapshot<ActiveReferences> = snapshot!(authority@);
         proof_assert!((*after_first).contains(second_id) == false);
-        let second_map: Snapshot<ActiveOwners> =
+        let second_map: Snapshot<ActiveReferences> =
             snapshot!(FMap::singleton(second_id, Excl(second_owner)));
         map_op_fresh_singleton(after_first, snapshot!(second_id), snapshot!(second_owner));
         let second_fragment = authority.add_fragment(second_map);
-        let pair_map: Snapshot<ActiveOwners> =
+        let pair_map: Snapshot<ActiveReferences> =
             snapshot!((*first_map).insert(second_id, Excl(second_owner)));
         proof_assert!(authority@.ext_eq(*pair_map));
         let ledger_id = authority.id_ghost();
@@ -537,7 +584,7 @@ impl OwnerLedger {
             authority: Some(authority),
         };
         proof_assert!(forall<index: Int>
-            active_owner_contains(ledger.active_ids(), index) ==
+            active_mutable_contains(ledger.active_ids(), index) ==
                 (0 <= index && index < binding.2)
         );
         let first = OwnerTicket::from_fragment(
@@ -560,13 +607,14 @@ impl OwnerLedger {
         }
     }
 
-    /// Register a child only after the caller has established a successful
-    /// native increment. A failed/refused update has no child-ticket result.
+    /// Register a Mutable child only after the caller has established a
+    /// successful native increment. A failed/refused update has no child.
     #[check(ghost)]
     #[requires(ledger.inner_logic().invariant() && ledger.inner_logic().is_live())]
-    #[requires(ledger.inner_logic().count() <= MAX_REF_COUNT@)]
+    #[requires(ledger.inner_logic().count() < MAX_REF_COUNT@)]
     #[requires(parent.inner_logic().invariant())]
     #[requires(parent.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
+    #[requires(parent.inner_logic().class() == RefKind::Mutable)]
     #[requires(parent.inner_logic().owned_lo() <= *cut &&
         *cut <= parent.inner_logic().owned_hi())]
     #[ensures((^ledger.inner_logic()).invariant() && (^ledger.inner_logic()).is_live())]
@@ -574,15 +622,16 @@ impl OwnerLedger {
     #[ensures((^ledger.inner_logic()).allocation_binding() ==
         ledger.inner_logic().allocation_binding())]
     #[ensures((^ledger.inner_logic()).count() == ledger.inner_logic().count() + 1)]
+    #[ensures((^ledger.inner_logic()).count() <= MAX_REF_COUNT@)]
     #[ensures((^ledger.inner_logic()).agrees_with_value(ledger.inner_logic().count() + 1))]
     #[ensures((^ledger.inner_logic()).active_ids() ==
         ledger.inner_logic().active_ids()
             .insert(parent.inner_logic().owner_id(), Excl((
-                parent.inner_logic().allocation_binding(),
+                parent.inner_logic().allocation_binding(), RefKind::Mutable,
                 parent.inner_logic().owned_lo(), *cut,
             )))
             .insert(ledger.inner_logic().next_id(), Excl((
-                parent.inner_logic().allocation_binding(),
+                parent.inner_logic().allocation_binding(), RefKind::Mutable,
                 *cut, parent.inner_logic().owned_hi(),
             ))))]
     #[ensures((^ledger.inner_logic()).next_id() == ledger.inner_logic().next_id() + 1)]
@@ -593,13 +642,15 @@ impl OwnerLedger {
     #[ensures(result.inner_logic().fragment_resource_id() == ledger.inner_logic().ledger_id())]
     #[ensures(result.inner_logic().allocation_binding() ==
         parent.inner_logic().allocation_binding())]
+    #[ensures(result.inner_logic().class() == RefKind::Mutable)]
+    #[ensures((^parent.inner_logic()).class() == RefKind::Mutable)]
     #[ensures(result.inner_logic().owned_lo() == *cut)]
     #[ensures(result.inner_logic().owned_hi() == parent.inner_logic().owned_hi())]
     #[ensures((^parent.inner_logic()).owned_lo() == parent.inner_logic().owned_lo())]
     #[ensures((^parent.inner_logic()).owned_hi() == *cut)]
     #[ensures(result.inner_logic().fragment_map() ==
         FMap::singleton(ledger.inner_logic().next_id(),
-            Excl((parent.inner_logic().allocation_binding(), *cut,
+            Excl((parent.inner_logic().allocation_binding(), RefKind::Mutable, *cut,
                 parent.inner_logic().owned_hi()))))]
     #[ensures((^ledger.inner_logic()).has_ticket(result.inner_logic()))]
     pub(crate) fn split_owner(
@@ -612,20 +663,28 @@ impl OwnerLedger {
             let parent = parent.into_inner();
             let cut = cut.into_ghost().into_inner();
             ledger.prove_ticket_is_active(parent);
-            let old_map: Snapshot<ActiveOwners> = snapshot!(ledger.active_ids());
+            let old_map: Snapshot<ActiveReferences> = snapshot!(ledger.active_ids());
             let new_id = ledger.next_id;
-            let parent_binding: Snapshot<OwnerBinding> = snapshot!(
-                parent.fragment@.get(parent.owner_id).unwrap_logic().0
+            let binding_snapshot: Snapshot<AllocationBinding> = snapshot!(
+                parent.fragment@.get(parent.owner_id).unwrap_logic().0.0
             );
-            let (binding, lo, hi) = parent_binding.into_ghost().into_inner();
-            let left_owner: OwnerBinding = (binding, lo, cut);
-            let right_owner: OwnerBinding = (binding, cut, hi);
+            let lo_snapshot: Snapshot<Int> = snapshot!(
+                parent.fragment@.get(parent.owner_id).unwrap_logic().0.2
+            );
+            let hi_snapshot: Snapshot<Int> = snapshot!(
+                parent.fragment@.get(parent.owner_id).unwrap_logic().0.3
+            );
+            let binding = binding_snapshot.into_ghost().into_inner();
+            let lo = lo_snapshot.into_ghost().into_inner();
+            let hi = hi_snapshot.into_ghost().into_inner();
+            let left_owner: OwnerBinding = (binding, RefKind::Mutable, lo, cut);
+            let right_owner: OwnerBinding = (binding, RefKind::Mutable, cut, hi);
             proof_assert!(!(*old_map).contains(new_id));
             parent.replace_binding(
                 ledger.authority.as_mut().unwrap(),
                 snapshot!(left_owner),
             );
-            let after_parent: Snapshot<ActiveOwners> = snapshot!(ledger.active_ids());
+            let after_parent: Snapshot<ActiveReferences> = snapshot!(ledger.active_ids());
             map_op_fresh_singleton(after_parent, snapshot!(new_id), snapshot!(right_owner));
             normalize_singleton_insert(
                 snapshot!(FMap::empty()),
@@ -650,7 +709,137 @@ impl OwnerLedger {
         }
     }
 
-    /// Consume exactly one owner registration. The final ticket is converted
+    /// Register one readonly clone after its native counter increment
+    /// succeeds. Readonly views may overlap other readonly views. Because the
+    /// source view is already disjoint from every Mutable span, the new entry
+    /// remains disjoint from all mutable physical owners as well.
+    #[check(ghost)]
+    #[requires(ledger.inner_logic().invariant() && ledger.inner_logic().is_live())]
+    #[requires(ledger.inner_logic().count() < MAX_REF_COUNT@)]
+    #[requires(source.inner_logic().invariant())]
+    #[requires(source.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
+    #[requires(source.inner_logic().class() == RefKind::Readonly)]
+    #[requires(ledger.inner_logic().has_ticket(*source.inner_logic()))]
+    #[ensures((^ledger.inner_logic()).invariant() && (^ledger.inner_logic()).is_live())]
+    #[ensures((^ledger.inner_logic()).ledger_id() == ledger.inner_logic().ledger_id())]
+    #[ensures((^ledger.inner_logic()).allocation_binding() ==
+        ledger.inner_logic().allocation_binding())]
+    #[ensures((^ledger.inner_logic()).count() == ledger.inner_logic().count() + 1)]
+    #[ensures((^ledger.inner_logic()).count() <= MAX_REF_COUNT@)]
+    #[ensures((^ledger.inner_logic()).agrees_with_value(ledger.inner_logic().count() + 1))]
+    #[ensures((^ledger.inner_logic()).active_ids() ==
+        ledger.inner_logic().active_ids().insert(ledger.inner_logic().next_id(), Excl((
+            ledger.inner_logic().allocation_binding(), RefKind::Readonly,
+            source.inner_logic().owned_lo(), source.inner_logic().owned_hi(),
+        ))))]
+    #[ensures((^ledger.inner_logic()).next_id() == ledger.inner_logic().next_id() + 1)]
+    #[ensures((^ledger.inner_logic()).has_ticket(result.inner_logic()))]
+    #[ensures(result.inner_logic().invariant())]
+    #[ensures(result.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
+    #[ensures(result.inner_logic().owner_id() == ledger.inner_logic().next_id())]
+    #[ensures(result.inner_logic().class() == RefKind::Readonly)]
+    #[ensures(result.inner_logic().allocation_binding() ==
+        ledger.inner_logic().allocation_binding())]
+    #[ensures(result.inner_logic().owner_binding() == (
+        ledger.inner_logic().allocation_binding(), RefKind::Readonly,
+        source.inner_logic().owned_lo(), source.inner_logic().owned_hi()))]
+    #[ensures(result.inner_logic().owned_lo() == source.inner_logic().owned_lo())]
+    #[ensures(result.inner_logic().owned_hi() == source.inner_logic().owned_hi())]
+    pub(crate) fn register_readonly(
+        ledger: Ghost<&mut OwnerLedger>,
+        source: Ghost<&OwnerTicket>,
+    ) -> Ghost<OwnerTicket> {
+        ghost! {
+            let ledger = ledger.into_inner();
+            let source = source.into_inner();
+            ledger.prove_ticket_is_active(source);
+            let old_map: Snapshot<ActiveReferences> = snapshot!(ledger.active_ids());
+            let ref_id = ledger.next_id;
+            let lo_snapshot: Snapshot<Int> = snapshot!(
+                source.fragment@.get(source.owner_id).unwrap_logic().0.2
+            );
+            let hi_snapshot: Snapshot<Int> = snapshot!(
+                source.fragment@.get(source.owner_id).unwrap_logic().0.3
+            );
+            let lo = lo_snapshot.into_ghost().into_inner();
+            let hi = hi_snapshot.into_ghost().into_inner();
+            let binding: OwnerBinding = (
+                ledger.allocation_binding,
+                RefKind::Readonly,
+                lo,
+                hi,
+            );
+            proof_assert!(!(*old_map).contains(ref_id));
+            proof_assert!(binding_compatible_with_map(binding, *old_map, source.owner_id));
+            map_op_fresh_singleton(old_map, snapshot!(ref_id), snapshot!(binding));
+            let fragment = ledger.authority.as_mut().unwrap().add_fragment(
+                snapshot!(FMap::singleton(ref_id, Excl(binding))),
+            );
+            ledger.next_id = ledger.next_id + 1int;
+            let ticket = OwnerTicket::from_fragment(ledger.ledger_id, ref_id, binding, fragment);
+            proof_assert!(ticket.invariant());
+            ledger.prove_ticket_is_active(&ticket);
+            ticket
+        }
+    }
+
+    /// Reclassify one existing native reference without changing its strong
+    /// count or ID. Mutable-to-readonly freezes a visible subspan and returns
+    /// the remainder of its former physical region to the pool. Readonly-to-
+    /// mutable reclassification is allowed only for the sole reference and
+    /// may install any compatible Mutable span. The caller separately recovers
+    /// physical authority from the pool; for a nonzero-offset view it may
+    /// recover the full allocation and return the hidden prefix to the pool.
+    #[check(ghost)]
+    #[requires(ledger.inner_logic().invariant() && ledger.inner_logic().is_live())]
+    #[requires(ticket.inner_logic().invariant())]
+    #[requires(ticket.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
+    #[requires(ledger.inner_logic().has_ticket(*ticket.inner_logic()))]
+    #[requires((*new_binding).0 == ledger.inner_logic().allocation_binding())]
+    #[requires(owner_binding_valid(*new_binding, ledger.inner_logic().allocation_binding()))]
+    #[requires(binding_compatible_with_map(*new_binding,
+        ledger.inner_logic().active_ids(), ticket.inner_logic().owner_id()))]
+    #[requires(match (ticket.inner_logic().class(), (*new_binding).1) {
+        (RefKind::Mutable, RefKind::Readonly) =>
+            ticket.inner_logic().owned_lo() <= (*new_binding).2 &&
+            (*new_binding).2 <= (*new_binding).3 &&
+            (*new_binding).3 <= ticket.inner_logic().owned_hi(),
+        (RefKind::Readonly, RefKind::Mutable) =>
+            ledger.inner_logic().count() == 1,
+        _ => true,
+    })]
+    #[ensures((^ledger.inner_logic()).invariant() && (^ledger.inner_logic()).is_live())]
+    #[ensures((^ledger.inner_logic()).ledger_id() == ledger.inner_logic().ledger_id())]
+    #[ensures((^ledger.inner_logic()).allocation_binding() ==
+        ledger.inner_logic().allocation_binding())]
+    #[ensures((^ledger.inner_logic()).count() == ledger.inner_logic().count())]
+    #[ensures((^ledger.inner_logic()).next_id() == ledger.inner_logic().next_id())]
+    #[ensures((^ledger.inner_logic()).active_ids() ==
+        ledger.inner_logic().active_ids().insert(
+            ticket.inner_logic().owner_id(), Excl(*new_binding)))]
+    #[ensures((^ticket.inner_logic()).invariant())]
+    #[ensures((^ticket.inner_logic()).ledger_id() == ticket.inner_logic().ledger_id())]
+    #[ensures((^ticket.inner_logic()).owner_id() == ticket.inner_logic().owner_id())]
+    #[ensures((^ticket.inner_logic()).owner_binding() == *new_binding)]
+    #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
+    pub(crate) fn reclassify(
+        ledger: Ghost<&mut OwnerLedger>,
+        ticket: Ghost<&mut OwnerTicket>,
+        new_binding: Snapshot<OwnerBinding>,
+    ) {
+        ghost! {
+            let ledger = ledger.into_inner();
+            let ticket = ticket.into_inner();
+            ledger.prove_ticket_is_active(ticket);
+            ticket.replace_binding(
+                ledger.authority.as_mut().unwrap(),
+                new_binding,
+            );
+            ledger.prove_ticket_is_active(ticket);
+        };
+    }
+
+    /// Consume exactly one native-reference registration. The final ticket is converted
     /// into a same-generation permit carrying the empty authority.
     #[check(ghost)]
     #[requires(ledger.inner_logic().invariant() && ledger.inner_logic().is_live())]
@@ -682,26 +871,24 @@ impl OwnerLedger {
             let ledger = ledger.into_inner();
             let ticket = ticket.into_inner();
             ledger.prove_ticket_is_active(&ticket);
-            let before: Snapshot<ActiveOwners> = snapshot!(ledger.active_ids());
+            let before: Snapshot<ActiveReferences> = snapshot!(ledger.active_ids());
             let old_count: Snapshot<Int> = snapshot!((*before).len());
             let old_count = old_count.into_ghost().into_inner();
             let owner_id = ticket.owner_id;
-            let ticket_fragment: Snapshot<ActiveOwners> = snapshot!(ticket.fragment@);
-            let binding_snapshot: Snapshot<OwnerBinding> = snapshot!(
-                (*ticket_fragment).get(ticket.owner_id).unwrap_logic().0
+            let owner_binding: Snapshot<OwnerBinding> = snapshot!(
+                ticket.fragment@.get(ticket.owner_id).unwrap_logic().0
             );
-            let owner_binding = binding_snapshot.into_ghost().into_inner();
             if old_count == 1int {
                 sole_active_id(snapshot!(*ledger), snapshot!(ticket));
             }
             let mut fragment = ticket.fragment;
-            proof_assert!((*before).get(owner_id) == Some(Excl(owner_binding)));
-            factor_singleton_removal(before, snapshot!(owner_id), snapshot!(owner_binding));
+            proof_assert!((*before).get(owner_id) == Some(Excl(*owner_binding)));
+            factor_singleton_removal(before, snapshot!(owner_id), owner_binding);
             ledger.authority
                 .as_mut()
                 .unwrap()
                 .update(&mut fragment, CancelLocalUpdateUnit);
-            let expected_after: Snapshot<ActiveOwners> =
+            let expected_after: Snapshot<ActiveReferences> =
                 snapshot!((*before).remove(owner_id));
             let authority = ledger.authority.as_ref().unwrap();
             proof_assert!(authority@.ext_eq(*expected_after));
@@ -740,18 +927,18 @@ impl Invariant for OwnerLedger {
 #[ensures((*map).op(FMap::singleton(*id, Excl(*binding))) ==
     Some((*map).insert(*id, Excl(*binding))))]
 fn map_op_fresh_singleton(
-    map: Snapshot<ActiveOwners>,
+    map: Snapshot<ActiveReferences>,
     id: Snapshot<Int>,
     binding: Snapshot<OwnerBinding>,
 ) {
-    let single: Snapshot<ActiveOwners> =
+    let single: Snapshot<ActiveReferences> =
         snapshot!(FMap::singleton(*id, Excl(*binding)));
     proof_assert!(forall<key: Int>
         (*map).get(key).op((*single).get(key)) != None);
     proof_assert!(forall<key: Int>
         (*map).get(key).op((*single).get(key)) ==
             Some((*map).insert(*id, Excl(*binding)).get(key)));
-    let composed: Snapshot<ActiveOwners> = snapshot!((*map).total_op(*single));
+    let composed: Snapshot<ActiveReferences> = snapshot!((*map).total_op(*single));
     proof_assert!((*composed).ext_eq((*map).insert(*id, Excl(*binding))));
     proof_assert!((*map).op(*single) == Some((*map).insert(*id, Excl(*binding))));
 }
@@ -765,16 +952,22 @@ fn map_op_fresh_singleton(
 #[ensures((*ledger).active_ids() ==
     FMap::singleton((*ticket).owner_id(), Excl((*ticket).owner_binding())))]
 #[ensures(forall<index: Int>
-    active_owner_contains((*ledger).active_ids(), index) ==
-        ((*ticket).owned_lo() <= index && index < (*ticket).owned_hi()))]
+    active_mutable_contains((*ledger).active_ids(), index) ==
+        match (*ticket).class() {
+            RefKind::Mutable => (*ticket).owned_lo() <= index && index < (*ticket).owned_hi(),
+            RefKind::Readonly => false,
+        })]
 pub(crate) fn sole_active_id(ledger: Snapshot<OwnerLedger>, ticket: Snapshot<OwnerTicket>) {
-    let map: Snapshot<ActiveOwners> = snapshot!((*ledger).active_ids());
+    let map: Snapshot<ActiveReferences> = snapshot!((*ledger).active_ids());
     let id: Snapshot<Int> = snapshot!((*ticket).owner_id());
     let binding: Snapshot<OwnerBinding> = snapshot!((*ticket).owner_binding());
     map_singleton_from_len_one(map, id, binding);
     proof_assert!(forall<index: Int>
-        active_owner_contains(*map, index) ==
-            ((*ticket).owned_lo() <= index && index < (*ticket).owned_hi()));
+        active_mutable_contains(*map, index) ==
+            match (*ticket).class() {
+                RefKind::Mutable => (*ticket).owned_lo() <= index && index < (*ticket).owned_hi(),
+                RefKind::Readonly => false,
+            });
 }
 
 /// A count-one ledger cannot admit two independently borrowed tickets. The
@@ -809,11 +1002,11 @@ pub(crate) fn contradict_two_tickets(
 #[requires((*map).get(*id) == Some(Excl(*binding)))]
 #[ensures(*map == FMap::singleton(*id, Excl(*binding)))]
 fn map_singleton_from_len_one(
-    map: Snapshot<ActiveOwners>,
+    map: Snapshot<ActiveReferences>,
     id: Snapshot<Int>,
     binding: Snapshot<OwnerBinding>,
 ) {
-    let remainder: Snapshot<ActiveOwners> =
+    let remainder: Snapshot<ActiveReferences> =
         snapshot!((*map).remove(*id));
     proof_assert!((*remainder).len() == 0);
     zero_length_map_has_no_ids(remainder);
@@ -832,7 +1025,7 @@ fn map_singleton_from_len_one(
 #[ensures((*map).insert(*id, Excl(*binding)).get(*id) ==
     Some(Excl(*binding)))]
 fn normalize_singleton_insert(
-    map: Snapshot<ActiveOwners>,
+    map: Snapshot<ActiveReferences>,
     id: Snapshot<Int>,
     binding: Snapshot<OwnerBinding>,
 ) {
@@ -845,7 +1038,7 @@ fn normalize_singleton_insert(
             proof_assert!((*map).len() == 1);
             proof_assert!((*map).get(*id) != None);
         }
-        let inserted: Snapshot<ActiveOwners> =
+        let inserted: Snapshot<ActiveReferences> =
             snapshot!((*map).insert(*id, Excl(*binding)));
         proof_assert!((*inserted).get(*id) == Some(Excl(*binding)));
         proof_assert!((*inserted).len() == 1);
@@ -858,7 +1051,7 @@ fn normalize_singleton_insert(
 #[check(ghost)]
 #[requires((*map).len() == 0)]
 #[ensures(forall<key: Int> !(*map).contains(key))]
-fn zero_length_map_has_no_ids(map: Snapshot<ActiveOwners>) {
+fn zero_length_map_has_no_ids(map: Snapshot<ActiveReferences>) {
     proof_assert!(forall<key: Int> (*map).remove(key).len() >= 0);
     proof_assert!(forall<key: Int> (*map).contains(key) ==>
         (*map).remove(key).len() == -1);
@@ -871,14 +1064,14 @@ fn zero_length_map_has_no_ids(map: Snapshot<ActiveOwners>) {
 #[requires((*map).get(*id) == Some(Excl(*binding)))]
 #[ensures((*map).factor(FMap::singleton(*id, Excl(*binding))) == (*map).remove(*id))]
 fn factor_singleton_removal(
-    map: Snapshot<ActiveOwners>,
+    map: Snapshot<ActiveReferences>,
     id: Snapshot<Int>,
     binding: Snapshot<OwnerBinding>,
 ) {
-    let singleton: Snapshot<ActiveOwners> =
+    let singleton: Snapshot<ActiveReferences> =
         snapshot!(FMap::singleton(*id, Excl(*binding)));
     proof_assert!((*singleton).incl(*map));
-    let remainder: Snapshot<ActiveOwners> = snapshot!((*map).factor(*singleton));
+    let remainder: Snapshot<ActiveReferences> = snapshot!((*map).factor(*singleton));
     proof_assert!((*singleton).op(*remainder) == Some(*map));
     proof_assert!(forall<key: Int>
         (*remainder).get(key) == (*map).remove(*id).get(key));

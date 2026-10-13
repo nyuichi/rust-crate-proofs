@@ -1,42 +1,44 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 445 4 445 85 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 468 4 468 85 *)
 
 type namespace_other
 
-type t_Namespace = Namespace_BYTES_MUT_SHARED_CAPSULE int | Namespace_REF_COUNT_EVENT int | Other namespace_other
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
-let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 446 8 446 37
-let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 441 15 441 55
-let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 442 14 442 49
-let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 443 14 443 33
-let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 444 14 444 45
-let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 420 12 420 16
-let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 416 24 416 26
-let%span sref_count_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 427 12 427 33
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 469 8 469 37
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 464 15 464 55
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 465 14 465 49
+let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 466 14 466 33
+let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 467 14 467 45
+let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 440 12 440 16
+let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 436 43 436 62
+let%span sref_count_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 450 12 450 33
 
 use creusot.int.UInt64
 use creusot.prelude.MutBorrow
 use creusot.prelude.Any
 
-type t_RefCountState = { current': UInt64.t }
+type t_NativeCounter
+
+type t_RefCountState = { counter_model: t_NativeCounter; current': UInt64.t }
 
 predicate resolve_refmut_RefCountState [@inline:trivial] (_1: MutBorrow.t t_RefCountState) = _1.final = _1.current
 
 meta "rewrite_def" predicate resolve_refmut_RefCountState
 
-predicate protocol_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 419 8 419 33] (self: t_RefCountState) =
+predicate protocol_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 439 8 439 33] (self: t_RefCountState) =
   [%#sref_count_ops'4] true
 
-function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 416 8 416 23] (self: t_RefCountState) : ()
- = [%#sref_count_ops'5] ()
+function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 436 8 436 40] (self: t_RefCountState) : t_NativeCounter
+ = [%#sref_count_ops'5] self.counter_model
 
-predicate agrees_with_value_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 426 8 426 56] (self: t_RefCountState) (value: UInt64.t) =
+predicate agrees_with_value_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 449 8 449 56] (self: t_RefCountState) (value: UInt64.t) =
   [%#sref_count_ops'6] self.current' = value
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let update_ref_count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 445 4 445 85]
+let update_ref_count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 468 4 468 85]
   (state: MutBorrow.t t_RefCountState) (old': UInt64.t) (new: UInt64.t) (return (x: ())) =
 {[@stop_split] [@expl:update_ref_count requires] [%#sref_count_ops'0] protocol_RefCountState state.current
   /\ state.current.current' = old'}
@@ -45,7 +47,7 @@ let update_ref_count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_
     [ s0 = [ &_15 <- state.current.current' = old' ] s1
     | s1 = any [ br0 -> {_15 = false} (! bb2) | br1 -> {_15} (! bb1) ] ]
   | bb1 = s0
-    [ s0 = [ &state <- { state with current = { current' = new } } ] s1
+    [ s0 = [ &state <- { state with current = { state.current with current' = new } } ] s1
     | s1 = -{resolve_refmut_RefCountState state}- s2
     | s2 = return {_ret} ]
   | bb2 = s0 [ s0 = -{resolve_refmut_RefCountState state}- s1 | s1 = {[%#sref_count_ops] false} any ] ]

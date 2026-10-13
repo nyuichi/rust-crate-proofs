@@ -1,0 +1,902 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 825 4 829 5 *)
+
+(* ownership_proof::ref_count_ledger::OwnerLedger *)
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 93 20 93 44
+let%span sinvariant'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 88 23 88 27
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 83 18 83 67
+let%span soption'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 85 12 86 92
+let%span soption'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 139 18 139 22
+let%span soption'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 137 19 137 23
+let%span soption'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 138 34 138 38
+let%span soption'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
+let%span soption'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
+let%span soption'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 22 14 22 71
+let%span soption'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 24 8 28 9
+let%span soption'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 14 8 18 9
+let%span soption'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 42 14 42 32
+let%span soption'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 870 8 873 9
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 22 8 22 20
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 62 14 62 70
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 63 14 63 88
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 71 8 71 34
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
+let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 24 14 24 71
+let%span sfmap'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 27 12 27 64
+let%span sfmap'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 137 14 137 78
+let%span sfmap'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 139 8 139 83
+let%span sfmap'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 56 14 56 32
+let%span sfmap'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 15 12 19 13
+let%span sfmap'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 162 15 162 64
+let%span sfmap'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 163 14 163 78
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 22 201 26
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 4 203 17
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 199 14 199 29
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 831 25 831 44
+let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 832 25 832 44
+let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 833 12 833 49
+let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 835 16 835 41
+let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 835 16 835 50
+let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 834 12 837 13
+let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 838 12 838 49
+let%span sref_count_ledger'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 830 8 839 9
+let%span sref_count_ledger'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 826 8 826 14
+let%span sref_count_ledger'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 827 8 827 14
+let%span sref_count_ledger'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 794 15 794 81
+let%span sref_count_ledger'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 795 15 795 47
+let%span sref_count_ledger'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 796 15 796 83
+let%span sref_count_ledger'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 797 15 797 69
+let%span sref_count_ledger'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 798 15 798 76
+let%span sref_count_ledger'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 799 15 799 91
+let%span sref_count_ledger'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 800 15 801 75
+let%span sref_count_ledger'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 802 15 810 5
+let%span sref_count_ledger'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 811 14 811 86
+let%span sref_count_ledger'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 812 14 812 85
+let%span sref_count_ledger'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 813 14 814 49
+let%span sref_count_ledger'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 815 14 815 77
+let%span sref_count_ledger'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 816 14 816 81
+let%span sref_count_ledger'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 817 14 819 64
+let%span sref_count_ledger'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 820 14 820 49
+let%span sref_count_ledger'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 821 14 821 85
+let%span sref_count_ledger'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 822 14 822 83
+let%span sref_count_ledger'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 823 14 823 69
+let%span sref_count_ledger'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 824 14 824 73
+let%span sref_count_ledger'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 451 42 451 46
+let%span sref_count_ledger'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 451 48 451 54
+let%span sref_count_ledger'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 443 15 443 31
+let%span sref_count_ledger'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 444 15 444 29
+let%span sref_count_ledger'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 445 15 445 33
+let%span sref_count_ledger'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 446 15 446 53
+let%span sref_count_ledger'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 447 14 447 38
+let%span sref_count_ledger'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 448 14 448 70
+let%span sref_count_ledger'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 449 14 450 65
+let%span sref_count_ledger'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 255 13 255 17
+let%span sref_count_ledger'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 256 8 256 17
+let%span sref_count_ledger'39 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 234 15 234 31
+let%span sref_count_ledger'40 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 235 15 235 36
+let%span sref_count_ledger'41 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 236 15 236 49
+let%span sref_count_ledger'42 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 237 15 238 40
+let%span sref_count_ledger'43 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 239 15 239 60
+let%span sref_count_ledger'44 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 240 15 240 76
+let%span sref_count_ledger'45 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 241 15 241 62
+let%span sref_count_ledger'46 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 242 14 242 33
+let%span sref_count_ledger'47 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 243 14 243 51
+let%span sref_count_ledger'48 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 244 14 244 53
+let%span sref_count_ledger'49 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 245 14 245 75
+let%span sref_count_ledger'50 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 246 14 246 53
+let%span sref_count_ledger'51 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 247 14 248 60
+let%span sref_count_ledger'52 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 249 14 249 49
+let%span sref_count_ledger'53 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 250 14 251 44
+let%span sref_count_ledger'54 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 252 14 253 32
+let%span sref_count_ledger'55 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 378 8 378 17
+let%span sref_count_ledger'56 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 184 8 184 22
+let%span sref_count_ledger'57 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 368 8 368 22
+let%span sref_count_ledger'58 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 432 12 436 50
+let%span sref_count_ledger'59 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 383 8 383 31
+let%span sref_count_ledger'60 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 44 8 45 31
+let%span sref_count_ledger'61 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 102 8 106 13
+let%span sref_count_ledger'62 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 388 20 391 9
+let%span sref_count_ledger'63 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 189 8 189 21
+let%span sref_count_ledger'64 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 211 20 211 42
+let%span sref_count_ledger'65 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 221 20 221 42
+let%span sref_count_ledger'66 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 226 20 226 42
+let%span sref_count_ledger'67 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 398 8 398 31
+let%span sref_count_ledger'68 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 919 8 919 20
+let%span sref_count_ledger'69 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 373 8 373 20
+let%span sref_count_ledger'70 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 291 8 291 20
+let%span sref_count_ledger'71 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 216 20 216 70
+let%span sref_count_ledger'72 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 206 20 206 42
+let%span sref_count_ledger'73 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 194 8 194 26
+let%span sref_count_ledger'74 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 199 20 199 34
+let%span sref_count_ledger'75 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 65 8 69 9
+let%span sref_count_ledger'76 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 410 12 425 13
+let%span sref_count_ledger'77 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 279 12 283 13
+let%span sref_count_ledger'78 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 76 8 79 9
+let%span sref_count_ledger'79 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 86 8 91 9
+let%span sexcl = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 16 8 16 12
+let%span sexcl'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 26 14 26 32
+let%span sexcl'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 20 14 20 71
+let%span sexcl'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/excl.rs" 22 8 22 13
+let%span sresource = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource.rs" 59 12 59 22
+let%span sra = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 92 8 92 42
+let%span sra'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 86 15 86 43
+let%span sra'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 87 14 87 29
+let%span sra'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 153 15 153 30
+let%span sra'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 154 15 154 34
+let%span sra'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 155 14 155 30
+let%span sra'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 165 15 165 34
+let%span sra'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 166 15 166 34
+let%span sra'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 167 14 167 34
+let%span sra'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 174 15 174 24
+let%span sra'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 175 15 175 24
+let%span sra'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 176 14 176 23
+let%span sra'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 50 14 50 39
+let%span sra'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 52 8 52 21
+let%span sauth = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 51 20 51 34
+let%span sauth'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 162 8 162 19
+let%span sauth'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 32 8 35 9
+let%span sauth'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 39 15 39 31
+let%span sauth'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 40 15 40 26
+let%span sauth'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 41 14 41 30
+let%span sauth'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 45 14 45 32
+let%span sauth'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/auth.rs" 49 14 49 37
+let%span sview = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/view.rs" 81 14 81 41
+
+use creusot.prelude.MutBorrow
+use creusot.prelude.Opaque
+use map.Map
+use map.Const
+use creusot.prelude.Any
+use int.Int
+
+type t_Id
+
+type tup3_Id_ptr_u8_Int = { f0: t_Id; f1: Opaque.ptr; f2: int }
+
+type t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int =
+  | None
+  | Some t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_OwnerLedger = {
+  ledger_id: t_Id;
+  next_id: int;
+  live: bool;
+  allocation_binding: tup3_Id_ptr_u8_Int;
+  authority: t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+type tup2_bool_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = {
+  f0'0: bool;
+  f1'0: t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+predicate invariant_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+
+function id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Id
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+type t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : int
+
+axiom len_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [len_Int self]. [%#sfmap'5] ge_log_Int (len_Int self) 0
+
+function view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_RefKind = Mutable | Readonly
+
+type tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = { f0'1: tup3_Id_ptr_u8_Int; f1'1: t_RefKind; f2'1: int; f3'1: int }
+
+type t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = { f0'2: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+type t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int =
+  | None'0
+  | Some'0 t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function to_mapping_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : Map.map int t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) : t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sfmap'1] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate owner_binding_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 42 0 42 82] (owner: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (allocation: tup3_Id_ptr_u8_Int) =
+  [%#sref_count_ledger'60] owner.f0'1 = allocation
+  /\ 0 <= owner.f2'1 /\ owner.f2'1 <= owner.f3'1 /\ owner.f3'1 <= allocation.f2
+
+predicate owner_ranges_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 74 0 74 86] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (allocation: tup3_Id_ptr_u8_Int) =
+  [%#sref_count_ledger'78] forall id: int. match get_Int owners id with
+      | Some'0 {f0'2 = owner} -> owner_binding_valid owner allocation
+      | None'0 -> true
+      end
+
+type tup2_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = {
+  f0'3: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int;
+  f1'3: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+type tup2_RefKind_RefKind = { f0'4: t_RefKind; f1'4: t_RefKind }
+
+predicate spans_compatible [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 63 0 63 68] (left: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (right: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sref_count_ledger'75] match { f0'4 = left.f1'1; f1'4 = right.f1'1 } with
+    | {f0'4 = Readonly; f1'4 = Readonly} -> true
+    | _ -> left.f2'1 = left.f3'1 \/ right.f2'1 = right.f3'1 \/ left.f3'1 <= right.f2'1 \/ right.f3'1 <= left.f2'1
+    end
+
+predicate owner_ranges_disjoint [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 84 0 84 58] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sref_count_ledger'79] forall left_id: int, right_id: int. match { f0'3 = get_Int owners left_id;
+                                                                       f1'3 = get_Int owners right_id } with
+      | {f0'3 = Some'0 {f0'2 = left}; f1'3 = Some'0 {f0'2 = right}} -> left_id = right_id \/ spans_compatible left right
+      | _ -> true
+      end
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) =
+  [%#sfmap'6] get_Int self k <> None'0
+
+meta "rewrite_def" predicate contains_Int
+
+predicate valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 408 4 408 26] (self: t_OwnerLedger) =
+  [%#sref_count_ledger'76] 0 <= self.next_id
+  /\ match { f0'0 = self.live; f1'0 = self.authority } with
+    | {f0'0 = True; f1'0 = Some authority'0} -> invariant_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0
+    /\ id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0 = self.ledger_id
+    /\ gt_log_Int (len_Int (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0)) 0
+    /\ owner_ranges_valid (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0) self.allocation_binding
+    /\ owner_ranges_disjoint (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0)
+    /\ (forall id: int. contains_Int (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0) id
+      -> 0 <= id
+      /\ id < self.next_id
+      /\ match get_Int (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0) id with
+        | Some'0 {f0'2 = owner} -> owner.f0'1 = self.allocation_binding
+        | None'0 -> false
+        end)
+    | {f0'0 = False; f1'0 = None} -> true
+    | _ -> false
+    end
+
+predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 918 4 918 30] (self: t_OwnerLedger) =
+  [%#sref_count_ledger'68] valid self
+
+predicate inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (_1: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+
+axiom inv_axiom:
+  forall x: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x]. inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x
+    -> invariant_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x
+
+predicate inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (_1: t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x]. inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x
+    = match x with
+      | None -> true
+      | Some f0'5 -> inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int f0'5
+      end
+
+predicate inv_OwnerLedger (_1: t_OwnerLedger)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_OwnerLedger [inv_OwnerLedger x]. inv_OwnerLedger x
+    = (invariant_OwnerLedger x
+    /\ inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x.authority)
+
+predicate invariant_refmut_OwnerLedger [@inline:trivial] (self: MutBorrow.t t_OwnerLedger) =
+  [%#sinvariant] inv_OwnerLedger self.current /\ inv_OwnerLedger self.final
+
+meta "rewrite_def" predicate invariant_refmut_OwnerLedger
+
+predicate inv_refmut_OwnerLedger [@inline:trivial] (_1: MutBorrow.t t_OwnerLedger) = invariant_refmut_OwnerLedger _1
+
+meta "rewrite_def" predicate inv_refmut_OwnerLedger
+
+predicate invariant_Ghost_refmut_OwnerLedger [@inline:trivial] (self: MutBorrow.t t_OwnerLedger) =
+  [%#sghost'3] inv_refmut_OwnerLedger self
+
+meta "rewrite_def" predicate invariant_Ghost_refmut_OwnerLedger
+
+predicate inv_Ghost_refmut_OwnerLedger [@inline:trivial] (_1: MutBorrow.t t_OwnerLedger) =
+  invariant_Ghost_refmut_OwnerLedger _1
+
+meta "rewrite_def" predicate inv_Ghost_refmut_OwnerLedger
+
+let into_inner_refmut_OwnerLedger (self: MutBorrow.t t_OwnerLedger) (return (x: MutBorrow.t t_OwnerLedger)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost] inv_Ghost_refmut_OwnerLedger self}
+  any
+  [ return (result: MutBorrow.t t_OwnerLedger) ->
+  {[@stop_split] [@expl:into_inner_refmut_OwnerLedger ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'0] inv_refmut_OwnerLedger result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+type t_Resource_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = {
+  f0'5: t_Resource_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+type t_OwnerTicket = {
+  ledger_id'0: t_Id;
+  owner_id'0: int;
+  fragment'0: t_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+function id_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Resource_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Id
+
+function id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int'0 (self: t_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Id
+ = [%#sauth'0] id_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.f0'5
+
+type t_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int =
+  | None'1
+  | Some'1 t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_Option_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int =
+  | None'2
+  | Some'2 t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function map_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (f: Map.map t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Option_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#soption'11] match self with
+    | None'0 -> None'2
+    | Some'0 x -> Some'2 (Map.get f x)
+    end
+
+function op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (_other: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sexcl] None'0
+
+function commutative_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (b: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom commutative_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall a: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, b: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. [%#sexcl'0] op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a b
+    = op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int b a
+
+function op_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Option_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#soption'9] match { f0'3 = self; f1'3 = other } with
+    | {f0'3 = None'0} -> Some'2 other
+    | {f1'3 = None'0} -> Some'2 self
+    | {f0'3 = Some'0 x; f1'3 = Some'0 y} -> map_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x y) (fun (z: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) -> Some'0 z)
+    end
+
+function commutative_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (b: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom commutative_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall a: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, b: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. [%#soption'10] op_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a b
+    = op_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int b a
+
+function total_op_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom total_op_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, other: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [total_op_Int self other]. ([%#sfmap'13] forall k: int. op_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (get_Int self k) (get_Int other k)
+        <> None'2)
+    -> ([%#sfmap'14] forall k: int. Some'2 (get_Int (total_op_Int self other) k)
+      = op_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (get_Int self k) (get_Int other k))
+
+function op_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ =
+  [%#sfmap'12] if forall k: int. op_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (get_Int self k) (get_Int other k)
+    <> None'2 then
+    Some'1 (total_op_Int self other)
+  else
+    None'1
+
+
+function commutative_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (b: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom commutative_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall a: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, b: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. [%#sfmap'11] op_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a b
+    = op_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int b a
+
+constant empty_Int : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom empty_Int_spec: [%#sfmap'3] len_Int empty_Int = 0
+
+axiom empty_Int_spec'0: [%#sfmap'4] to_mapping_Int empty_Int = Const.const (None'0)
+
+constant unit_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = [%#sfmap'10] empty_Int
+
+axiom unit_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  [%#sfmap'9] forall x: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [op_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x unit_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int]. op_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x unit_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+    = Some'1 x
+
+predicate incl_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sexcl'2] false
+
+axiom incl_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall self: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, other: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [incl_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other]. [%#sexcl'1] incl_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other
+    = (exists factor: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self factor
+      = Some'0 other)
+
+function incl_transitive_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (b: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (c: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom incl_transitive_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall a: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, b: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, c: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. ([%#sra'8] incl_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a b)
+    -> ([%#sra'9] incl_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int b c)
+    -> ([%#sra'10] incl_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a c)
+
+function associative_some_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (b: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (c: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (ab: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (bc: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom associative_some_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall a: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, b: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, c: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, ab: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, bc: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. ([%#sra'5] op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a b
+      = Some'0 ab)
+    -> ([%#sra'6] op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int b c = Some'0 bc)
+    -> ([%#sra'7] op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a bc
+    = op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int ab c)
+
+function associative_none_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (b: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (c: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (bc: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom associative_none_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall a: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, b: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, c: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, bc: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. ([%#sra'2] op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a b
+      = None'0)
+    -> ([%#sra'3] op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int b c = Some'0 bc)
+    -> ([%#sra'4] op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a bc = None'0)
+
+function incl_op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (comb: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom incl_op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall self: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, other: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, comb: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. ([%#sra'0] op_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other
+      = Some'0 comb) -> ([%#sra'1] incl_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self comb)
+
+predicate eq_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [@inline:trivial] (self: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sra'12] self = other
+
+meta "rewrite_def" predicate eq_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom eq_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall self: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, other: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [eq_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other]. [%#sra'11] eq_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other
+    = (self = other)
+
+predicate incl_eq_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sra] eq_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other
+  \/ incl_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other
+
+predicate incl_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#soption'8] match { f0'3 = self; f1'3 = other } with
+    | {f0'3 = None'0} -> true
+    | {f1'3 = None'0} -> false
+    | {f0'3 = Some'0 x; f1'3 = Some'0 y} -> incl_eq_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x y
+    end
+
+axiom incl_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall self: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, other: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [incl_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other]. [%#soption'7] incl_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other
+    = (exists factor: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. op_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self factor
+      = Some'2 other)
+
+predicate incl_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sfmap'8] let r = forall k: int. incl_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (get_Int self k) (get_Int other k) in r
+
+axiom incl_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, other: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [incl_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other]. [%#sfmap'7] incl_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self other
+    = (exists factor: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. op_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self factor
+      = Some'1 other)
+
+predicate rel_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (f: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sauth'1] match a with
+    | Some'1 a'0 -> incl_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int f a'0
+    | None'1 -> true
+    end
+
+function rel_unit_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom rel_unit_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall a: t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. [%#sauth'6] rel_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a unit_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function rel_none_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (f: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom rel_none_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall a: t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, f: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. [%#sauth'5] rel_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (None'1) f
+
+function rel_mono_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (a: t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (f1'2: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (f2'0: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : ()
+
+axiom rel_mono_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall a: t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, f1'2: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, f2'0: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. ([%#sauth'2] rel_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a f1'2)
+    -> ([%#sauth'3] incl_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int f2'0 f1'2)
+    -> ([%#sauth'4] rel_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int a f2'0)
+
+function auth_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Option_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function frag_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom frag_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_spec:
+  forall self: t_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [frag_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self]. [%#sview] rel_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (auth_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self) (frag_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self)
+
+function val_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Resource_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function view_Resource_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [@inline:trivial] (self: t_Resource_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sresource] val_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self
+
+meta "rewrite_def" function view_Resource_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function view_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ =
+  [%#sauth] frag_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (view_Resource_View_AuthViewRel_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.f0'5)
+
+function insert_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) (v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom insert_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, k: int, v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [insert_Int self k v]. [%#sfmap] to_mapping_Int (insert_Int self k v)
+    = Map.set (to_mapping_Int self) k (Some'0 v)
+
+axiom insert_Int_spec'0:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, k: int, v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [insert_Int self k v]. [%#sfmap'0] len_Int (insert_Int self k v)
+    = (if contains_Int self k then len_Int self else len_Int self + 1)
+
+function singleton_Int (k: int) (v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sfmap'2] insert_Int empty_Int k v
+
+constant any_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int : t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function unwrap_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#soption'6] match self with
+    | Some'0 x -> x
+    | None'0 -> any_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+    end
+
+function owner_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 215 4 215 54] (self: t_OwnerTicket) : tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ =
+  [%#sref_count_ledger'71] (unwrap_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (get_Int (view_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0) self.owner_id'0)).f0'2
+
+predicate valid'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 277 4 277 26] (self: t_OwnerTicket) =
+  [%#sref_count_ledger'77] id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int'0 self.fragment'0 = self.ledger_id'0
+  /\ view_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0
+  = singleton_Int self.owner_id'0 { f0'2 = owner_binding self }
+
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 290 4 290 30] (self: t_OwnerTicket) =
+  [%#sref_count_ledger'70] valid'0 self
+
+predicate inv_OwnerTicket (_1: t_OwnerTicket)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_OwnerTicket [inv_OwnerTicket x]. inv_OwnerTicket x = invariant_OwnerTicket x
+
+predicate invariant_refmut_OwnerTicket [@inline:trivial] (self: MutBorrow.t t_OwnerTicket) =
+  [%#sinvariant] inv_OwnerTicket self.current /\ inv_OwnerTicket self.final
+
+meta "rewrite_def" predicate invariant_refmut_OwnerTicket
+
+predicate inv_refmut_OwnerTicket [@inline:trivial] (_1: MutBorrow.t t_OwnerTicket) = invariant_refmut_OwnerTicket _1
+
+meta "rewrite_def" predicate inv_refmut_OwnerTicket
+
+predicate invariant_Ghost_refmut_OwnerTicket [@inline:trivial] (self: MutBorrow.t t_OwnerTicket) =
+  [%#sghost'3] inv_refmut_OwnerTicket self
+
+meta "rewrite_def" predicate invariant_Ghost_refmut_OwnerTicket
+
+predicate inv_Ghost_refmut_OwnerTicket [@inline:trivial] (_1: MutBorrow.t t_OwnerTicket) =
+  invariant_Ghost_refmut_OwnerTicket _1
+
+meta "rewrite_def" predicate inv_Ghost_refmut_OwnerTicket
+
+let into_inner_refmut_OwnerTicket (self: MutBorrow.t t_OwnerTicket) (return (x: MutBorrow.t t_OwnerTicket)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost] inv_Ghost_refmut_OwnerTicket self}
+  any
+  [ return (result: MutBorrow.t t_OwnerTicket) ->
+  {[@stop_split] [@expl:into_inner_refmut_OwnerTicket ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'0] inv_refmut_OwnerTicket result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+predicate invariant_ref_OwnerLedger [@inline:trivial] (self: t_OwnerLedger) = [%#sinvariant'0] inv_OwnerLedger self
+
+meta "rewrite_def" predicate invariant_ref_OwnerLedger
+
+predicate inv_ref_OwnerLedger [@inline:trivial] (_1: t_OwnerLedger) = invariant_ref_OwnerLedger _1
+
+meta "rewrite_def" predicate inv_ref_OwnerLedger
+
+predicate invariant_ref_OwnerTicket [@inline:trivial] (self: t_OwnerTicket) = [%#sinvariant'0] inv_OwnerTicket self
+
+meta "rewrite_def" predicate invariant_ref_OwnerTicket
+
+predicate inv_ref_OwnerTicket [@inline:trivial] (_1: t_OwnerTicket) = invariant_ref_OwnerTicket _1
+
+meta "rewrite_def" predicate inv_ref_OwnerTicket
+
+predicate is_live [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 377 4 377 39] (self: t_OwnerLedger) =
+  [%#sref_count_ledger'55] self.live
+
+function ledger_id'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 183 4 183 39] (self: t_OwnerTicket) : t_Id
+ = [%#sref_count_ledger'56] self.ledger_id'0
+
+function ledger_id'2 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 367 4 367 39] (self: t_OwnerLedger) : t_Id
+ = [%#sref_count_ledger'57] self.ledger_id
+
+function allocation_binding'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 205 4 205 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
+ = [%#sref_count_ledger'72] (owner_binding self).f0'1
+
+function active_ids [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 387 4 387 54] (self: t_OwnerLedger) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sref_count_ledger'62] match self.authority with
+    | Some authority'0 -> view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0
+    | None -> empty_Int
+    end
+
+function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 188 4 188 39] (self: t_OwnerTicket) : int
+ = [%#sref_count_ledger'63] self.owner_id'0
+
+predicate has_ticket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 430 4 430 63] (self: t_OwnerLedger) (ticket: t_OwnerTicket) =
+  [%#sref_count_ledger'58] invariant_OwnerLedger self
+  /\ self.live
+  /\ invariant_OwnerTicket ticket
+  /\ ledger_id'1 ticket = self.ledger_id
+  /\ allocation_binding'0 ticket = self.allocation_binding
+  /\ get_Int (active_ids self) (owner_id ticket) = Some'0 { f0'2 = owner_binding ticket }
+
+function allocation_binding'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 382 4 382 63] (self: t_OwnerLedger) : tup3_Id_ptr_u8_Int
+ = [%#sref_count_ledger'59] self.allocation_binding
+
+let prove_ticket_is_active (self: t_OwnerLedger) (ticket: t_OwnerTicket) (return (x: ())) =
+{[@stop_split] [@expl:prove_ticket_is_active requires] ([@stop_split] [@expl:prove_ticket_is_active 'self' type invariant] [%#sref_count_ledger'28] inv_ref_OwnerLedger self)
+  /\ ([@stop_split] [@expl:prove_ticket_is_active 'ticket' type invariant] [%#sref_count_ledger'29] inv_ref_OwnerTicket ticket)
+  /\ ([@stop_split] [@expl:prove_ticket_is_active requires #0] [%#sref_count_ledger'30] invariant_ref_OwnerLedger self)
+  /\ ([@stop_split] [@expl:prove_ticket_is_active requires #1] [%#sref_count_ledger'31] is_live self)
+  /\ ([@stop_split] [@expl:prove_ticket_is_active requires #2] [%#sref_count_ledger'32] invariant_ref_OwnerTicket ticket)
+  /\ ([@stop_split] [@expl:prove_ticket_is_active requires #3] [%#sref_count_ledger'33] ledger_id'1 ticket
+  = ledger_id'2 self)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:prove_ticket_is_active ensures] ([@stop_split] [@expl:prove_ticket_is_active ensures #0] [%#sref_count_ledger'34] has_ticket self ticket)
+    /\ ([@stop_split] [@expl:prove_ticket_is_active ensures #1] [%#sref_count_ledger'35] allocation_binding'0 ticket
+      = allocation_binding'1 self)
+    /\ ([@stop_split] [@expl:prove_ticket_is_active ensures #2] [%#sref_count_ledger'36] owner_binding ticket
+    = (unwrap_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (get_Int (active_ids self) (owner_id ticket))).f0'2)}
+    (! return {result}) ]
+
+type t_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int =
+  | None'3
+  | Some'3 (MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+
+predicate invariant_refmut_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [@inline:trivial] (self: MutBorrow.t t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sinvariant] inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.current
+  /\ inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.final
+
+meta "rewrite_def" predicate invariant_refmut_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+predicate inv_refmut_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [@inline:trivial] (_1: MutBorrow.t t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  invariant_refmut_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int _1
+
+meta "rewrite_def" predicate inv_refmut_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+predicate invariant_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [@inline:trivial] (self: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sinvariant] inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.current
+  /\ inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.final
+
+meta "rewrite_def" predicate invariant_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+predicate inv_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [@inline:trivial] (_1: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  invariant_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int _1
+
+meta "rewrite_def" predicate inv_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+predicate inv_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (_1: t_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+
+axiom inv_axiom'3 [@rewrite]:
+  forall x: t_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [inv_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x]. inv_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x
+    = match x with
+      | None'3 -> true
+      | Some'3 f0'6 -> inv_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int f0'6
+      end
+
+let as_mut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+  (self_: MutBorrow.t t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+  (return (x: t_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)) =
+{[@stop_split] [@expl:as_mut 'self_' type invariant] [%#soption] inv_refmut_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self_}
+  any
+  [ return (result: t_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) ->
+  {[@stop_split] [@expl:as_mut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int ensures] ([@stop_split] [@expl:as_mut result type invariant] inv_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int result)
+    /\ ([@stop_split] [@expl:as_mut ensures #0] [%#soption'0] self_.current = None
+      -> result = None'3 /\ self_.final = None)
+    /\ ([@stop_split] [@expl:as_mut ensures #1] [%#soption'1] self_.current = None
+    \/ (exists r: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int. result = Some'3 r
+      /\ self_.current = Some (r.current) /\ self_.final = Some (r.final)))}
+    (! return {result}) ]
+
+let unwrap_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+  (self_: t_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+  (return (x: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)) =
+{[@stop_split] [@expl:unwrap_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int requires] ([@stop_split] [@expl:unwrap 'self_' type invariant] [%#soption'2] inv_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self_)
+  /\ ([@stop_split] [@expl:unwrap requires] [%#soption'3] self_ <> None'3)}
+  any
+  [ return (result: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) ->
+  {[@stop_split] [@expl:unwrap_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int ensures] ([@stop_split] [@expl:unwrap result type invariant] inv_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int result)
+    /\ ([@stop_split] [@expl:unwrap ensures] [%#soption'4] Some'3 result = self_)}
+    (! return {result}) ]
+
+function fragment_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 193 4 193 50] (self: t_OwnerTicket) : t_Id
+ = [%#sref_count_ledger'73] id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int'0 self.fragment'0
+
+function fragment_map [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 198 4 198 56] (self: t_OwnerTicket) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sref_count_ledger'74] view_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0
+
+let replace_binding (self: MutBorrow.t t_OwnerTicket)
+  (authority'0: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+  (new_binding: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (return (x: ())) =
+{[@stop_split] [@expl:replace_binding requires] ([@stop_split] [@expl:replace_binding 'self' type invariant] [%#sref_count_ledger'37] inv_refmut_OwnerTicket self)
+  /\ ([@stop_split] [@expl:replace_binding 'authority' type invariant] [%#sref_count_ledger'38] inv_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0)
+  /\ ([@stop_split] [@expl:replace_binding requires #0] [%#sref_count_ledger'39] invariant_refmut_OwnerTicket self)
+  /\ ([@stop_split] [@expl:replace_binding requires #1] [%#sref_count_ledger'40] invariant_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0)
+  /\ ([@stop_split] [@expl:replace_binding requires #2] [%#sref_count_ledger'41] id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0.current
+    = ledger_id'1 self.current)
+  /\ ([@stop_split] [@expl:replace_binding requires #3] [%#sref_count_ledger'42] get_Int (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0.current) (owner_id self.current)
+    = Some'0 { f0'2 = owner_binding self.current })
+  /\ ([@stop_split] [@expl:replace_binding requires #4] [%#sref_count_ledger'43] new_binding.f0'1
+    = allocation_binding'0 self.current)
+  /\ ([@stop_split] [@expl:replace_binding requires #5] [%#sref_count_ledger'44] 0 <= new_binding.f2'1
+    /\ new_binding.f2'1 <= new_binding.f3'1)
+  /\ ([@stop_split] [@expl:replace_binding requires #6] [%#sref_count_ledger'45] new_binding.f3'1
+  <= (allocation_binding'0 self.current).f2)}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:replace_binding ensures] ([@stop_split] [@expl:replace_binding ensures #0] [%#sref_count_ledger'46] invariant_OwnerTicket self.final)
+    /\ ([@stop_split] [@expl:replace_binding ensures #1] [%#sref_count_ledger'47] owner_id self.final
+      = owner_id self.current)
+    /\ ([@stop_split] [@expl:replace_binding ensures #2] [%#sref_count_ledger'48] ledger_id'1 self.final
+      = ledger_id'1 self.current)
+    /\ ([@stop_split] [@expl:replace_binding ensures #3] [%#sref_count_ledger'49] fragment_resource_id self.final
+      = fragment_resource_id self.current)
+    /\ ([@stop_split] [@expl:replace_binding ensures #4] [%#sref_count_ledger'50] owner_binding self.final
+      = new_binding)
+    /\ ([@stop_split] [@expl:replace_binding ensures #5] [%#sref_count_ledger'51] fragment_map self.final
+      = singleton_Int (owner_id self.current) { f0'2 = new_binding })
+    /\ ([@stop_split] [@expl:replace_binding ensures #6] [%#sref_count_ledger'52] id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0.final
+      = id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0.current)
+    /\ ([@stop_split] [@expl:replace_binding ensures #7] [%#sref_count_ledger'53] view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0.final
+      = insert_Int (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0.current) (owner_id self.current) { f0'2 = new_binding })
+    /\ ([@stop_split] [@expl:replace_binding ensures #8] [%#sref_count_ledger'54] get_Int (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0.final) (owner_id self.current)
+    = Some'0 { f0'2 = new_binding })}
+    (! return {result}) ]
+
+predicate resolve_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [@inline:trivial] (_1: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+predicate resolve_refmut_OwnerLedger [@inline:trivial] (_1: MutBorrow.t t_OwnerLedger) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_OwnerLedger
+
+predicate resolve_refmut_OwnerTicket [@inline:trivial] (_1: MutBorrow.t t_OwnerTicket) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_OwnerTicket
+
+let new_unit (x: ()) (return (x'0: ())) = any
+  [ return (result: ()) -> {[@stop_split] [@expl:new ensures] [%#sghost'2] result = x} (! return {result}) ]
+
+predicate binding_compatible_with_map [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 96 0 100 9] (binding: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (references: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (except_id: int) =
+  [%#sref_count_ledger'61] forall other_id: int. other_id <> except_id
+    -> match get_Int references other_id with
+      | Some'0 {f0'2 = other} -> spans_compatible binding other
+      | None'0 -> true
+      end
+
+function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 210 4 210 41] (self: t_OwnerTicket) : t_RefKind
+ = [%#sref_count_ledger'64] (owner_binding self).f1'1
+
+function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 220 4 220 40] (self: t_OwnerTicket) : int
+ = [%#sref_count_ledger'65] (owner_binding self).f2'1
+
+function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 225 4 225 40] (self: t_OwnerTicket) : int
+ = [%#sref_count_ledger'66] (owner_binding self).f3'1
+
+function count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 397 4 397 36] (self: t_OwnerLedger) : int
+ = [%#sref_count_ledger'67] len_Int (active_ids self)
+
+function next_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 372 4 372 38] (self: t_OwnerLedger) : int
+ = [%#sref_count_ledger'69] self.next_id
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let reclassify [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 825 4 829 5]
+  (ledger: MutBorrow.t t_OwnerLedger) (ticket: MutBorrow.t t_OwnerTicket)
+  (new_binding: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (return (x: ())) =
+{[@stop_split] [@expl:reclassify requires] ([@stop_split] [@expl:reclassify 'ledger' type invariant] [%#sref_count_ledger'7] inv_Ghost_refmut_OwnerLedger ledger)
+  /\ ([@stop_split] [@expl:reclassify 'ticket' type invariant] [%#sref_count_ledger'8] inv_Ghost_refmut_OwnerTicket ticket)
+  /\ ([@stop_split] [@expl:reclassify requires #0] [%#sref_count_ledger'9] invariant_refmut_OwnerLedger ledger
+    /\ is_live ledger.current)
+  /\ ([@stop_split] [@expl:reclassify requires #1] [%#sref_count_ledger'10] invariant_refmut_OwnerTicket ticket)
+  /\ ([@stop_split] [@expl:reclassify requires #2] [%#sref_count_ledger'11] ledger_id'1 ticket.current
+    = ledger_id'2 ledger.current)
+  /\ ([@stop_split] [@expl:reclassify requires #3] [%#sref_count_ledger'12] has_ticket ledger.current ticket.current)
+  /\ ([@stop_split] [@expl:reclassify requires #4] [%#sref_count_ledger'13] new_binding.f0'1
+    = allocation_binding'1 ledger.current)
+  /\ ([@stop_split] [@expl:reclassify requires #5] [%#sref_count_ledger'14] owner_binding_valid new_binding (allocation_binding'1 ledger.current))
+  /\ ([@stop_split] [@expl:reclassify requires #6] [%#sref_count_ledger'15] binding_compatible_with_map new_binding (active_ids ledger.current) (owner_id ticket.current))
+  /\ ([@stop_split] [@expl:reclassify requires #7] [%#sref_count_ledger'16] match { f0'4 = class ticket.current;
+                                                                                    f1'4 = new_binding.f1'1 } with
+    | {f0'4 = Mutable; f1'4 = Readonly} -> owned_lo ticket.current <= new_binding.f2'1
+    /\ new_binding.f2'1 <= new_binding.f3'1 /\ new_binding.f3'1 <= owned_hi ticket.current
+    | {f0'4 = Readonly; f1'4 = Mutable} -> count ledger.current = 1
+    | _ -> true
+    end)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = into_inner_refmut_OwnerLedger [%#sref_count_ledger] {ledger}
+        (fun (_x: MutBorrow.t t_OwnerLedger) -> [ &ledger'0 <- _x ] s1)
+    | s1 = into_inner_refmut_OwnerTicket [%#sref_count_ledger'0] {ticket}
+        (fun (_x: MutBorrow.t t_OwnerTicket) -> [ &ticket'0 <- _x ] s2)
+    | s2 = prove_ticket_is_active [%#sref_count_ledger'1] {ledger'0.current} {ticket'0.current}
+        (fun (_x: ()) -> [ &_60 <- _x ] s3)
+    | s3 = MutBorrow.borrow_final <t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int>
+        {ledger'0.current.authority} {MutBorrow.inherit_id (MutBorrow.get_id ledger'0) 4}
+        (fun (_bor: MutBorrow.t t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) ->
+          [ &_68 <- _bor ] -{inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int _bor.final}-
+          [ &ledger'0 <- { ledger'0 with current = { ledger'0.current with authority = _bor.final } } ] s4)
+      [ _ck ->
+      (! {[@expl:type invariant] inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int ledger'0.current.authority}
+        any) ]
+    | s4 = as_mut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [%#sref_count_ledger'2] {_68}
+        (fun (_x: t_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) -> [ &_67 <- _x ] s5)
+    | s5 = unwrap_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [%#sref_count_ledger'3] {_67}
+        (fun (_x: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) -> [ &_66 <- _x ] s6)
+    | s6 = MutBorrow.borrow_final <t_OwnerTicket> {ticket'0.current} {MutBorrow.get_id ticket'0}
+        (fun (_bor: MutBorrow.t t_OwnerTicket) ->
+          [ &_64 <- _bor ] -{inv_OwnerTicket _bor.final}-
+          [ &ticket'0 <- { ticket'0 with current = _bor.final } ] s7)
+      [ _ck -> (! {[@expl:type invariant] inv_OwnerTicket ticket'0.current} any) ]
+    | s7 = MutBorrow.borrow_final <t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int> {_66.current}
+        {MutBorrow.get_id _66}
+        (fun (_bor: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) ->
+          [ &_65 <- _bor ] -{inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int _bor.final}-
+          [ &_66 <- { _66 with current = _bor.final } ] s8)
+      [ _ck ->
+      (! {[@expl:type invariant] inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int _66.current}
+        any) ]
+    | s8 = replace_binding [%#sref_count_ledger'4] {_64} {_65} {new_binding} (fun (_x: ()) -> [ &_63 <- _x ] s9)
+    | s9 = s10
+      [ _ck ->
+      (! {[@expl:type invariant] inv_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int _66}
+        any) ]
+    | s10 = -{resolve_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int _66}- s11
+    | s11 = s12 [ _ck -> (! {[@expl:type invariant] inv_refmut_OwnerLedger ledger'0} any) ]
+    | s12 = -{resolve_refmut_OwnerLedger ledger'0}- s13
+    | s13 = s14 [ _ck -> (! {[@expl:type invariant] inv_refmut_OwnerTicket ticket'0} any) ]
+    | s14 = -{resolve_refmut_OwnerTicket ticket'0}- s15
+    | s15 = prove_ticket_is_active [%#sref_count_ledger'5] {ledger'0.current} {ticket'0.current}
+        (fun (_x: ()) -> [ &_70 <- _x ] s16)
+    | s16 = new_unit [%#sref_count_ledger'6] {_55} (fun (_x: ()) -> [ &_54 <- _x ] s17)
+    | s17 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & ledger: MutBorrow.t t_OwnerLedger = ledger
+  | & ticket: MutBorrow.t t_OwnerTicket = ticket
+  | & new_binding: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = new_binding
+  | & _54: () = Any.any_l ()
+  | & _55: () = Any.any_l ()
+  | & ledger'0: MutBorrow.t t_OwnerLedger = Any.any_l ()
+  | & ticket'0: MutBorrow.t t_OwnerTicket = Any.any_l ()
+  | & _60: () = Any.any_l ()
+  | & _63: () = Any.any_l ()
+  | & _64: MutBorrow.t t_OwnerTicket = Any.any_l ()
+  | & _65: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = Any.any_l ()
+  | & _66: MutBorrow.t t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = Any.any_l ()
+  | & _67: t_Option_refmut_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = Any.any_l ()
+  | & _68: MutBorrow.t t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = Any.any_l ()
+  | & _70: () = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:reclassify ensures] ([@stop_split] [@expl:reclassify ensures #0] [%#sref_count_ledger'17] invariant_OwnerLedger ledger.final
+      /\ is_live ledger.final)
+    /\ ([@stop_split] [@expl:reclassify ensures #1] [%#sref_count_ledger'18] ledger_id'2 ledger.final
+      = ledger_id'2 ledger.current)
+    /\ ([@stop_split] [@expl:reclassify ensures #2] [%#sref_count_ledger'19] allocation_binding'1 ledger.final
+      = allocation_binding'1 ledger.current)
+    /\ ([@stop_split] [@expl:reclassify ensures #3] [%#sref_count_ledger'20] count ledger.final = count ledger.current)
+    /\ ([@stop_split] [@expl:reclassify ensures #4] [%#sref_count_ledger'21] next_id'0 ledger.final
+      = next_id'0 ledger.current)
+    /\ ([@stop_split] [@expl:reclassify ensures #5] [%#sref_count_ledger'22] active_ids ledger.final
+      = insert_Int (active_ids ledger.current) (owner_id ticket.current) { f0'2 = new_binding })
+    /\ ([@stop_split] [@expl:reclassify ensures #6] [%#sref_count_ledger'23] invariant_OwnerTicket ticket.final)
+    /\ ([@stop_split] [@expl:reclassify ensures #7] [%#sref_count_ledger'24] ledger_id'1 ticket.final
+      = ledger_id'1 ticket.current)
+    /\ ([@stop_split] [@expl:reclassify ensures #8] [%#sref_count_ledger'25] owner_id ticket.final
+      = owner_id ticket.current)
+    /\ ([@stop_split] [@expl:reclassify ensures #9] [%#sref_count_ledger'26] owner_binding ticket.final = new_binding)
+    /\ ([@stop_split] [@expl:reclassify ensures #10] [%#sref_count_ledger'27] has_ticket ledger.final ticket.final)}
+    (! return {result}) ]

@@ -1,14 +1,14 @@
 //! Proof-only ownership capsule for a `BytesMut` shared control block.
 //!
-//! This module does not change the native `Shared` layout. Its capsule owns
-//! the exact final header root, counter permission, storage authority, active
-//! owner ledger, and one-shot phase authority. Per-handle ticket and physical
-//! region remain in `SharedOwnerPacket`, outside the shared control block.
+//! This module does not change the native `Shared` layout. Its generic event
+//! invariant owns the one counter permission; the payload owns header/storage
+//! authority, the all-reference ledger, pool, and phase state.
+//! Per-handle tickets and physical regions remain outside the control block.
 
 use alloc::boxed::Box;
 use creusot_std::{
     ghost::{
-        invariant::{declare_namespace, AtomicInvariant, Protocol},
+        invariant::Protocol,
         perm::Perm,
         Ghost, GhostShared,
     },
@@ -19,65 +19,67 @@ use creusot_std::{
 use crate::{
     ownership_proof::{
         raw_vec::{BoundPtr, PhysicalPool, PhysicalRegion},
-        ref_count_ledger::{active_owner_contains, sole_active_id, OwnerLedger, OwnerTicket, RetirePermit},
+        ref_count_ledger::{
+            active_mutable_contains, sole_active_id, OwnerLedger, OwnerTicket, RefKind,
+            RetirePermit,
+        },
         terminal_phase::{PhaseAuthority, TerminalAction},
     },
-    ref_count_ops::NativeCounter,
+    ref_count_ops::{CounterProtocol, EventBoundInvariant, NativeCounter},
     vec_storage::StoredAuthority,
 };
 
 use super::Shared;
 
-declare_namespace! { BYTES_MUT_SHARED_CAPSULE }
-
-/// One stable control-block protocol. Native header, counter, and allocation
-/// metadata stay in their actual fields; this value only owns their ghost
-/// permissions and the current protocol state.
+/// Payload for the generic counter event invariant. The invariant owns the
+/// sole native counter permission outside this value; this payload records
+/// only its opaque model and the shared storage/reference ledgers.
 #[allow(missing_debug_implementations)]
-pub(crate) struct SharedState {
+pub(crate) struct SharedPayload {
     header_id: *mut Shared,
     counter_model: Snapshot<NativeCounter>,
     ledger_id: Id,
     phase_id: Id,
     root: Option<Box<Perm<*const Shared>>>,
-    counter_owner: Option<Perm<NativeCounter>>,
     storage: Option<StoredAuthority>,
     pool: Option<PhysicalPool>,
     ledger: Option<OwnerLedger>,
     retire: Option<RetirePermit>,
     phase: PhaseAuthority,
     terminal_action: Option<TerminalAction>,
-    value: usize,
     closed: bool,
 }
 
-impl Protocol for SharedState {
+impl Protocol for SharedPayload {
     type Public = (*mut (), NativeCounter, Id, Id);
 
     #[logic(open(self))]
     fn public(self) -> Self::Public {
-        (self.header_id as *mut (), *self.counter_model, self.ledger_id, self.phase_id)
+        (
+            self.header_id as *mut (),
+            *self.counter_model,
+            self.ledger_id,
+            self.phase_id,
+        )
     }
 
     #[logic(open(self), prophetic)]
     fn protocol(self) -> bool {
         pearlite! {
         self.phase.invariant() && self.phase.resource_id() == self.phase_id &&
-        match (self.root, self.counter_owner, self.storage, self.pool, self.ledger,
+        match (self.root, self.storage, self.pool, self.ledger,
             self.retire, self.terminal_action) {
-            (Some(root), Some(owner), Some(storage), Some(pool), Some(ledger), None, Some(action)) => {
+            (Some(root), Some(storage), Some(pool), Some(ledger), None, Some(action)) => {
                 let header = root.val();
-                !self.closed && self.value@ > 0 && self.phase.is_open() &&
-                root.invariant() && owner.invariant() && storage.invariant() && pool.invariant() &&
-                ledger.invariant() && ledger.is_live() && ledger.ledger_id() == self.ledger_id &&
+                !self.closed && self.phase.is_open() &&
+                root.invariant() && storage.invariant() && pool.invariant() &&
+                ledger.invariant() && ledger.is_live() && ledger.count() > 0 &&
+                ledger.ledger_id() == self.ledger_id &&
                 action.invariant() &&
                 action.resource_id() == self.phase_id &&
                 *root.ward() == self.header_id as *const Shared &&
-                header.ref_count.counter_model() == *owner.ward() &&
                 header.ref_count.counter_model() == *self.counter_model &&
                 !header.ref_count.has_event_invariant() &&
-                owner.val() == self.value &&
-                ledger.agrees_with_value(self.value@) && ledger.count() > 0 &&
                 ledger.allocation_binding() == (
                     storage.binding(), storage.raw_pointer(), storage.capacity()) &&
                 pool.capacity() == storage.capacity() &&
@@ -85,20 +87,23 @@ impl Protocol for SharedState {
                 pool.resource_id() == storage.binding() &&
                 (forall<index: Int> pool.contains(index) == (
                     0 <= index && index < storage.capacity() &&
-                    !active_owner_contains(ledger.active_ids(), index)
+                    !active_mutable_contains(ledger.active_ids(), index)
                 )) &&
                 header.vec.matches_authority(storage)
             },
-            (Some(root), Some(owner), Some(storage), Some(pool), None, Some(retire), None) => {
+            (Some(root), Some(storage), Some(pool), Some(ledger), Some(retire), None) => {
                 let header = root.val();
-                !self.closed && self.value@ == 0 && self.phase.is_open() &&
-                root.invariant() && owner.invariant() && storage.invariant() && pool.invariant() &&
+                !self.closed && self.phase.is_open() &&
+                root.invariant() && storage.invariant() && pool.invariant() &&
+                ledger.invariant() && !ledger.is_live() && ledger.count() == 0 &&
                 retire.invariant() && retire.ledger_id() == self.ledger_id &&
                 retire.active_ids().is_empty() &&
+                ledger.ledger_id() == self.ledger_id &&
+                ledger.allocation_binding() == (
+                    storage.binding(), storage.raw_pointer(), storage.capacity()) &&
                 *root.ward() == self.header_id as *const Shared &&
-                header.ref_count.counter_model() == *owner.ward() &&
                 header.ref_count.counter_model() == *self.counter_model &&
-                !header.ref_count.has_event_invariant() && owner.val()@ == 0 &&
+                !header.ref_count.has_event_invariant() &&
                 pool.capacity() == storage.capacity() &&
                 pool.namespace() == storage.binding() &&
                 pool.resource_id() == storage.binding() &&
@@ -107,7 +112,7 @@ impl Protocol for SharedState {
                 )) &&
                 header.vec.matches_authority(storage)
             },
-            (None, None, None, None, None, Some(retire), None) =>
+            (None, None, None, None, Some(retire), None) =>
                 self.closed && self.phase.is_closed() && retire.invariant() &&
                 retire.ledger_id() == self.ledger_id && retire.active_ids().is_empty(),
             _ => false,
@@ -116,10 +121,34 @@ impl Protocol for SharedState {
     }
 }
 
-impl Invariant for SharedState {
+impl CounterProtocol for SharedPayload {
+    #[logic(open(self), prophetic)]
+    fn counter_model(self) -> NativeCounter {
+        *self.counter_model
+    }
+
+    #[logic(open(self), prophetic)]
+    fn agrees_with_value(self, value: usize) -> bool {
+        pearlite! {
+            match (self.ledger, self.retire) {
+                (Some(ledger), None) => ledger.invariant() && ledger.agrees_with_value(value@),
+                (Some(ledger), Some(retire)) => ledger.invariant() && !ledger.is_live() &&
+                    ledger.count() == 0 && retire.invariant() &&
+                    retire.ledger_id() == self.ledger_id && retire.active_ids().is_empty() &&
+                    value@ == 0,
+                (None, Some(retire)) => retire.invariant() &&
+                    retire.ledger_id() == self.ledger_id && retire.active_ids().is_empty() &&
+                    value@ == 0,
+                _ => false,
+            }
+        }
+    }
+}
+
+impl Invariant for SharedPayload {
     #[logic(open(self), prophetic)]
     fn invariant(self) -> bool {
-        inv(self.root) && inv(self.counter_owner) && inv(self.storage) &&
+        inv(self.root) && inv(self.storage) &&
         inv(self.pool) && inv(self.ledger) && inv(self.retire) &&
         self.phase.invariant() && inv(self.terminal_action)
     }
@@ -130,7 +159,7 @@ impl Invariant for SharedState {
 /// from ghost raw-allocation descriptors.
 #[allow(missing_debug_implementations)]
 pub(crate) struct SharedOwnerPacket {
-    pub(crate) capsule: Ghost<GhostShared<AtomicInvariant<SharedState>>>,
+    pub(crate) capsule: Ghost<GhostShared<EventBoundInvariant<SharedPayload>>>,
     pub(crate) ticket: Ghost<OwnerTicket>,
     pub(crate) region: Ghost<PhysicalRegion>,
     pub(crate) base: BoundPtr,
@@ -140,7 +169,10 @@ pub(crate) struct SharedOwnerPacket {
 impl SharedOwnerPacket {
     #[logic(open(self))]
     pub(crate) fn capsule_public(self) -> (*mut (), NativeCounter, Id, Id) {
-        pearlite! { self.capsule.inner_logic().val().public() }
+        pearlite! {
+            let payload = self.capsule.inner_logic().val().public().1;
+            (payload.0, payload.1, payload.2, payload.3)
+        }
     }
 
     #[logic(open(self))]
@@ -155,6 +187,7 @@ impl SharedOwnerPacket {
             self.capsule.invariant() &&
             self.ticket.inner_logic().invariant() &&
             self.ticket.inner_logic().ledger_id() == self.capsule_public().2 &&
+            self.ticket.inner_logic().class() == RefKind::Mutable &&
             self.region.inner_logic().invariant() &&
             self.base.invariant() && self.cursor.invariant() &&
             self.ticket.inner_logic().allocation_binding() == (
@@ -215,10 +248,9 @@ impl SharedOwnerPacket {
     }
 }
 
-/// Build the first shared-owner capsule after the native header has reached
-/// its final Box address. The constructor consumes every authority exactly
-/// once and binds the returned packet to the exact counter field and B1
-/// storage namespace supplied by the generic constructors.
+/// Construct the sole Mutable registration for a newly promoted Vec-backed
+/// allocation. The registration map is also the native strong-reference map;
+/// the physical pool excludes the full region held by this packet.
 #[requires(
     root.inner_logic().invariant() &&
     *root.inner_logic().ward() == header_id as *const Shared &&
@@ -229,16 +261,17 @@ impl SharedOwnerPacket {
     storage.inner_logic().0.invariant() &&
     (*root.inner_logic().val()).vec.matches_authority(storage.inner_logic().0) &&
     ledger.inner_logic().0.invariant() && ledger.inner_logic().0.is_live() &&
-    ledger.inner_logic().0.agrees_with_value(value@) && ledger.inner_logic().0.count() == 1 &&
+    ledger.inner_logic().0.agrees_with_value(value@) &&
+    ledger.inner_logic().0.count() == 1 && value@ == 1 &&
     ledger.inner_logic().0.allocation_binding() == (
         storage.inner_logic().0.binding(), storage.inner_logic().0.raw_pointer(),
         storage.inner_logic().0.capacity()) &&
-    value@ == 1 &&
     ledger.inner_logic().0.ledger_id() == ledger.inner_logic().1.ledger_id() &&
     ledger.inner_logic().1.invariant() &&
+    ledger.inner_logic().1.class() == RefKind::Mutable &&
     ledger.inner_logic().0.has_ticket(ledger.inner_logic().1) &&
     ledger.inner_logic().1.owned_lo() == 0 &&
-    ledger.inner_logic().1.owned_hi() == storage.inner_logic().1.capacity() &&
+    ledger.inner_logic().1.owned_hi() == storage.inner_logic().0.capacity() &&
     0 <= ledger.inner_logic().1.owner_id() &&
     ledger.inner_logic().1.owner_id() < ledger.inner_logic().0.next_id() &&
     storage.inner_logic().1.invariant() &&
@@ -259,7 +292,8 @@ impl SharedOwnerPacket {
     phase.inner_logic().1.resource_id() == phase.inner_logic().0.resource_id()
 )]
 #[ensures(result.capsule_public() ==
-    (header_id as *mut (), (*root.inner_logic().val()).ref_count.counter_model(), ledger.inner_logic().0.ledger_id(), phase.inner_logic().0.resource_id()))]
+    (header_id as *mut (), (*root.inner_logic().val()).ref_count.counter_model(),
+        ledger.inner_logic().0.ledger_id(), phase.inner_logic().0.resource_id()))]
 #[ensures(result.base@ == base@ && result.cursor@ == cursor@)]
 #[ensures(result.base.raw_pointer() == base.raw_pointer())]
 #[ensures(result.cursor.raw_pointer() == cursor.raw_pointer())]
@@ -309,27 +343,24 @@ pub(crate) fn make_count_one_packet(
         let pool = PhysicalPool::empty_from(&region);
         let ledger_id = snapshot!(ledger.ledger_id()).into_ghost().into_inner();
         let phase_id = snapshot!(phase.resource_id()).into_ghost().into_inner();
-        let state = SharedState {
+        let state = SharedPayload {
             header_id,
             counter_model: snapshot!(*owner.ward()),
             ledger_id,
             phase_id,
             root: Some(root),
-            counter_owner: Some(owner),
             storage: Some(storage),
             pool: Some(pool),
             ledger: Some(ledger),
             retire: None,
             phase,
             terminal_action: Some(action),
-            value,
             closed: false,
         };
         proof_assert!(state.invariant() && state.protocol());
-        let invariant = AtomicInvariant::new(
-            Ghost::new(state),
-            snapshot!(BYTES_MUT_SHARED_CAPSULE()),
-        );
+        proof_assert!(state.counter_model() == *owner.ward());
+        proof_assert!(state.agrees_with_value(value));
+        let invariant = EventBoundInvariant::new(Ghost::new(owner), Ghost::new(state));
         let capsule = GhostShared::new(invariant).into_inner();
         (capsule, ticket, region)
     };
@@ -337,11 +368,8 @@ pub(crate) fn make_count_one_packet(
     SharedOwnerPacket { capsule, ticket, region, base, cursor }
 }
 
-/// Build the two packets created when a unique Vec-backed handle is first
-/// split into two owners. The one shared capsule owns the exact native
-/// counter permission at value two, opaque Vec storage, pair ledger, and an
-/// empty pool. Its two packets receive the actual disjoint ticket fragments
-/// and physical-region fragments for `[0, cut)` and `[cut, capacity)`.
+/// Build the two Mutable packets created when a unique Vec-backed handle is
+/// first split. Their registrations partition the full physical allocation.
 #[requires(
     root.inner_logic().invariant() &&
     *root.inner_logic().ward() == header_id as *const Shared &&
@@ -364,13 +392,15 @@ pub(crate) fn make_count_one_packet(
     ledger.inner_logic().1.owner_id() != ledger.inner_logic().2.owner_id() &&
     ledger.inner_logic().1.owner_id() < ledger.inner_logic().0.next_id() &&
     ledger.inner_logic().2.owner_id() < ledger.inner_logic().0.next_id() &&
+    ledger.inner_logic().1.class() == RefKind::Mutable &&
+    ledger.inner_logic().2.class() == RefKind::Mutable &&
     ledger.inner_logic().1.allocation_binding() == ledger.inner_logic().0.allocation_binding() &&
     ledger.inner_logic().2.allocation_binding() == ledger.inner_logic().0.allocation_binding() &&
     ledger.inner_logic().1.owned_lo() == 0 && ledger.inner_logic().1.owned_hi() == *cut &&
     ledger.inner_logic().2.owned_lo() == *cut &&
     ledger.inner_logic().2.owned_hi() == storage.inner_logic().0.capacity() &&
     (forall<index: Int>
-        active_owner_contains(ledger.inner_logic().0.active_ids(), index) ==
+        active_mutable_contains(ledger.inner_logic().0.active_ids(), index) ==
             (0 <= index && index < storage.inner_logic().0.capacity())) &&
     storage.inner_logic().1.invariant() &&
     storage.inner_logic().1.namespace() == storage.inner_logic().0.binding() &&
@@ -453,27 +483,24 @@ pub(crate) fn make_count_two_packets(
         let (first_region, second_region) = region.split_at(cut);
         let ledger_id = snapshot!(ledger.ledger_id()).into_ghost().into_inner();
         let phase_id = snapshot!(phase.resource_id()).into_ghost().into_inner();
-        let state = SharedState {
+        let state = SharedPayload {
             header_id,
             counter_model: snapshot!(*owner.ward()),
             ledger_id,
             phase_id,
             root: Some(root),
-            counter_owner: Some(owner),
             storage: Some(storage),
             pool: Some(pool),
             ledger: Some(ledger),
             retire: None,
             phase,
             terminal_action: Some(action),
-            value: 2,
             closed: false,
         };
         proof_assert!(state.invariant() && state.protocol());
-        let invariant = AtomicInvariant::new(
-            Ghost::new(state),
-            snapshot!(BYTES_MUT_SHARED_CAPSULE()),
-        );
+        proof_assert!(state.counter_model() == *owner.ward());
+        proof_assert!(state.agrees_with_value(2usize));
+        let invariant = EventBoundInvariant::new(Ghost::new(owner), Ghost::new(state));
         let capsule = GhostShared::new(invariant).into_inner();
         let first_capsule = capsule.clone();
         (first_capsule, first_ticket, first_region,
