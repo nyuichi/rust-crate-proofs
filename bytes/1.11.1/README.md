@@ -70,6 +70,15 @@ present, so `try_take_header_read_loan` returns `Option`. No selected public
 Shared lifecycle body yet uses these helpers around native counter operations.
 They establish proof plumbing, not safe producer closure for `truncate`.
 
+A generic append-only `ReadyRegistry<R>` now has body proofs for moving the
+producer's actual affine `Fragment<R>` into a fresh permanent slot, taking that
+same capability while leaving a tombstone, and returning it to the slot. Its
+contracts preserve the complete resource id and RA state of every other slot;
+`ReadyCap::update` applies the real authority update to the stored fragment and
+preserves its resource id and key. This registry is not yet used by Bytes
+constructors, `SharedPayload`, or native lifecycle transitions, so it does not
+establish a ready header state or close a safe producer path for `truncate`.
+
 This is a verification fork based on the crates.io 1.11.1 source. It includes
 branch runtime fixes and verification-only annotations/refactors; this evidence
 applies to the fork and does not establish equivalence to the unmodified

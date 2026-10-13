@@ -6,7 +6,7 @@
     "Cargo.toml": "80c93f569cb898cdb79404504a75c6352a43ca242b30e7528879b3bec5941712",
     "creusot_toolpatch_identity_sha256": "a1f743a38cafe6fb0906792634bbefa3698dffaf1d724fc4ab1bc1a988385a09",
     "external_std_package_tree_sha256": "e43b8ba084cb6162697ac2bfe8a8d7a13ed8f7c3eb46d523c04ae2dcae909341",
-    "scripts/check-current-proof.py": "6ab6ef6304d7a6dd1c43b269ea941fe5f870edcb22c1dea28029ddc3d070f3db",
+    "scripts/check-current-proof.py": "a050ce5c035952a09490ee57786cf3759c22d7c774ca4cae9ba5ae531753239a",
     "scripts/prepare-proof-std.py": "a23528cd82fc587c03e60ad5217b578193919910c8d290a81462bf0646e4e68f",
     "scripts/setup-bytes-toolchain.sh": "be90ef9f1f8409dd2423fc2a898528478963798b74e6506d820491ee10173cb9",
     "scripts/verify-current.bash": "0ba1022efa308f919a6e192463a01a680a9cb0918a8630ff9934e62316ce56c0",
@@ -46,10 +46,11 @@
     "src/ownership_proof/adjacent_region.rs": "40bb810e3e7986f30fa7cc938c6ce7adc96e352f9e3cb0eabd1b30fafecac525",
     "src/ownership_proof/bound_ptr.rs": "c0bc20b008df1955b526ebff644c25f426b98d0490022aac883654d37a31f01f",
     "src/ownership_proof/boxed_alignment.rs": "3a7879fc80b9aaad8a72fc8ab8a1cda82038b14f76c0fac0d415d75d35e626f5",
-    "src/ownership_proof/mod.rs": "9193ce78cfacc36a3d6a29713855665e4f3ae7d4837d022cc777176dde9fd46f",
+    "src/ownership_proof/mod.rs": "ebd3d456406d2f0175ab80ac4358b47d238d763dd3de9c447b1fa6bb4f879a55",
     "src/ownership_proof/owned_region.rs": "96b4c5e2234017c75e75ff453599afa4ae4623ad384c91d41f6d691144694282",
     "src/ownership_proof/raw_buffer.rs": "fc9b84a23b54fdb07dce91ab9b5bf83ed8c66508794cd9432551e7ecd3fabdcd",
     "src/ownership_proof/raw_vec.rs": "c55860aaea5970773573180a17e40ca30149c7e3529ef3afc8c1faaab3dbcae3",
+    "src/ownership_proof/ready_registry.rs": "5c366c422cdfe3adb1c306fd61fcf0351bee779739ad761ffdc0bec953eb9249",
     "src/ownership_proof/ref_count_ledger.rs": "33e64276ca5d718879ac67694a884cc7b3013d321c0a2009544deaa22b06682e",
     "src/ownership_proof/scalable_tickets.rs": "c0aa10052797d63b969b21458ef251500b307fdb2261bd35337b2bd63c005aa0",
     "src/ownership_proof/shared_copy.rs": "70f1100a9b0627d0f40f75decbbc0ca36c8c88416e2ca716eaf8c013e9d88359",
@@ -139,7 +140,7 @@
   },
   "translation_diagnostics": {
     "file": "verification/results/direct-bytesmut-len-api/translation.log",
-    "sha256": "bf77233a54cecbe959b1fe6ecb2e04480968530fef4f921f6029cb2ddf537922",
+    "sha256": "11a27b2f48524cd1522ad03730839048bceeefac3da9c23f84521cb0f936b7ed",
     "target_cone_unsupported_calls": []
   },
   "targets": [
@@ -198,6 +199,15 @@
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/map_singleton_from_len_one.coma",
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/normalize_singleton_insert.coma",
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/zero_length_map_has_no_ids.coma",
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_Clone_for_ReadyKey/clone.coma",
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/state.coma",
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/fragment_ref.coma",
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/update.coma",
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/new.coma",
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/entry_state.coma",
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/register.coma",
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/take.coma",
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/return_cap.coma",
     "verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/new.coma",
     "verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/close.coma",
     "verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/contradicts_action.coma",
@@ -277,721 +287,775 @@
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/len.coma",
       "coma_sha256": "8ca4397c981f8d996de14075ac29f05add555b4c5845d53d0b8f0c813d34e0e8",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/len/proof.json",
-      "proof_sha256": "df33f7342474aa6ccbf6f67126313353ea38a52b3bae7e971ae551323f34b6e6"
+      "proof_sha256": "eb40404fd05641090a978c896dd4445c38ea36c9e8d1c87b599d132ceede7356"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/truncate.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/truncate.coma",
       "coma_sha256": "b2d8b3c37e2d29fc0a70cb8bcdb6896be33349e30209cab860ec3088ed81c6fd",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/truncate/proof.json",
-      "proof_sha256": "24f87e9b2218b006b8c00d41dcfadb3973d55c54e4c9c0bcb7b90b0a6d63a413"
+      "proof_sha256": "94b959ecab2c3dff01cacb8c0999d78b8446da6ca874a829bd6d00f23741c044"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_len.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_len.coma",
       "coma_sha256": "25194b9dbc281491b3308bd0218e790499dac82e2ca386e3a28bd8dc6743ec6b",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_len/proof.json",
-      "proof_sha256": "1753fc36291bc005487fb172d9b662cffce2b6c960d01f207e6e888640b9611f"
+      "proof_sha256": "d3690c4473f3dfec116afc00fbdbc565e09947d4d1371b3c52414cf71cd9b2ad"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/from_vec.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/from_vec.coma",
       "coma_sha256": "77d7f609a0c224a5933fa3717f16d1877a86c3a69b289a97dda2f5bf21d438f9",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/from_vec/proof.json",
-      "proof_sha256": "4d2ddcec551ccea138422793f2ff400bb06c6359237b8402976a7fff5804e64f"
+      "proof_sha256": "3eab33a67b2d50896d61250168cceb4b58abc0c92a0a648ca903720ac7fd1a05"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/with_capacity.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/with_capacity.coma",
       "coma_sha256": "e521c7373f672258e5f3900b2ed8f6a3f5559569ebf2c1409c59b65226ade3f9",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/with_capacity/proof.json",
-      "proof_sha256": "35bd47fc092e886bd069e607d4fc0193a2fb4710b248617126c45e2c37668c19"
+      "proof_sha256": "73f6afbbd8abf01bb4ceba67ba122f0614e0e39af392e163551f2dafe30e34a5"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/new.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/new.coma",
       "coma_sha256": "7dcfd3b7c7559a486935e8db319eae0a4dbc93be96c6b3afa0b0e98b96413b5a",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/new/proof.json",
-      "proof_sha256": "1c1f32b49f5dc8007106afca532e26ddcc1ad7229b2b1813d32439365b0c78cc"
+      "proof_sha256": "628ffb5f61630ddc06a3719a7173c56a8d924feacd8a2bccfbc257443570a8f7"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/is_empty.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/is_empty.coma",
       "coma_sha256": "12c7a93eca2753f15456889b7e08dbea6726fbf292b8534a09f09f78f087c56d",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/is_empty/proof.json",
-      "proof_sha256": "a357924e3e9503d88e97316f7d8720cae07b89cdeffb0b9290106cf739ba9458"
+      "proof_sha256": "f39b5babc6a2eff61847c6b5926cb8f46dadac237469aa0f0736ccbfca6083c2"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/zeroed.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/zeroed.coma",
       "coma_sha256": "e9981a027d28e50fe3be771cdf4f6e8df38fbcf925bac7023b7367ced47f0f7f",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/zeroed/proof.json",
-      "proof_sha256": "d513ecf5cf5d47b73b7e4dfdd692fa3ffe3be745ec167fb2e022474216414a8d"
+      "proof_sha256": "ad6d8d4b093655b94687c0485410dcc730ff91ddb5d445b1a3c0b597e96a38ff"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/clear.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/clear.coma",
       "coma_sha256": "cf020ec84ce9f27f1a77b0207a23958f476d05094cdcf13a9972f6fb25d99c6b",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/clear/proof.json",
-      "proof_sha256": "a1f6aedc8201c88dd0fbe02fabba8696c0fe68523cb31c1e8eb064878e27b346"
+      "proof_sha256": "038e77272ffc09490e9c304d7a716804020a9c61ae84c96dca2c09852718b6c4"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_vec_pos.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_vec_pos.coma",
       "coma_sha256": "1e4860d94a9bf788ae149665616b6a545d6a7fee33fba9a1a15740c06823d96d",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_vec_pos/proof.json",
-      "proof_sha256": "7ec02a22b33e1323fea35488beb2e3fc3eddc10c0f267836ee32fc503ca404d8"
+      "proof_sha256": "35a9c2d6bf9066e76e6c1d682c066ecce0dd34f861ac845cdacef325aa9fa93a"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/get_vec_pos.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/get_vec_pos.coma",
       "coma_sha256": "3ee8d162598791b605e55a38a433c731c067169234e9e50e5e8cdd174df9ec31",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/get_vec_pos/proof.json",
-      "proof_sha256": "7c359ea379bab63b91b6a1d08d4048f8a79f932edd3f494e325521632ed0f1e3"
+      "proof_sha256": "c050691deba19099f8b7cedfdfdd29bdd21d19e6433fe1f696feecd058e9d931"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_visible_len.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_visible_len.coma",
       "coma_sha256": "df98eea9a7b562a241ad5361ec0a52f3475cdaf63dcb46a469db71b96e5214a6",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_visible_len/proof.json",
-      "proof_sha256": "2946b3fec648fa3524c070017bf8f4a261615fb9fb2c91bda34cd8979a8c2822"
+      "proof_sha256": "824dbfbfc1fc4c3cef311176cb3fccedc0adfdf7b3e141425976d2eb5f1f6a56"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/advance_vec_layout.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/advance_vec_layout.coma",
       "coma_sha256": "5bf114d7b0ccb0cfeaa2f77d95885005a5d720d90946046b7c60f4c2697d49f9",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/advance_vec_layout/proof.json",
-      "proof_sha256": "4d555905247aad919f3109a7d832a8ee9408c97c9078360e6bc1b57206ef2565"
+      "proof_sha256": "f09e0ef4a981f679cb11cc71ba5e10cad5b77ce33148fd8ad5102e01cb767aba"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/advance_shared_layout.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/advance_shared_layout.coma",
       "coma_sha256": "18b17d5cb7b762fcfa59b1de51031cfd2412a1d8db72337b295128e5cace26ce",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/advance_shared_layout/proof.json",
-      "proof_sha256": "bec02a6101e1ffef65ca2133483efdc10adc7a1f7cc52df2fb20b28b2bdbba65"
+      "proof_sha256": "891e0e326a851f59c9a2f55a853e028e883a6ce331c54c041594b56a7313d5ad"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/advance_unchecked.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/advance_unchecked.coma",
       "coma_sha256": "18d702046215e62efb676e148b77241478b1ae08df7bfe7bbb5275f3da8d50b5",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/advance_unchecked/proof.json",
-      "proof_sha256": "18591d830f8a6aeb57fe54f4d5ec4150f9a5fb97d0b5f62ed6cbc530dbaf0514"
+      "proof_sha256": "99aabe542518224b5e28a357e5fe9a38ce431bf02d6adaa3097b81322706512d"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/promote_to_shared_count_one.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/promote_to_shared_count_one.coma",
       "coma_sha256": "1a9ce29e68b5f538fe8fc7297311a19dc8db90fa2da6703f17ba6e3c10743c3f",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/promote_to_shared_count_one/proof.json",
-      "proof_sha256": "7690b796f336d898b38e3b265efdd5fcfa4be91a79b6d1f3479330417f20b1c6"
+      "proof_sha256": "b9ec3218dc263450e8c873a93c356c12c1418c4dfe0d6b813df583314da7f9fc"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/split_unique_to_shared.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/split_unique_to_shared.coma",
       "coma_sha256": "c6a75719f613858fda0077ff1d676ebc0adb2d39e3be30f869af984d269cf7b0",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/split_unique_to_shared/proof.json",
-      "proof_sha256": "9c60dbfc381e2c2549b7d0addb1902cfc78e6e4103717bc0a6a9f2d4ef654d10"
+      "proof_sha256": "0834972624b024f4de5ea8e257de24125ac2c6a59434bac655bc6a9b454de3fd"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/install_shared_split_views.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/install_shared_split_views.coma",
       "coma_sha256": "91faaae2dcf78c7b8f37f51c512c7660fd288f26a22c739bfc44f320e273ba41",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/install_shared_split_views/proof.json",
-      "proof_sha256": "60354b65af92e879406669865639f4f30d795c6e017fcbde6da516f44a99d6f4"
+      "proof_sha256": "a0dcba5dd9d1df843307898ce2fa2a72fed28a009202dd39bab7eee7fe1974a1"
     },
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/kind.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/kind.coma",
       "coma_sha256": "0299a24cf1368207315ce8a7687ca372eb8197a457019620b554a0c01da61a3a",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BytesMut_0/kind/proof.json",
-      "proof_sha256": "18fa6326b2e919c6db8e5315c949ea837ccc7470c04cd576561fe242472b7221"
+      "proof_sha256": "5a76b2b6b65dd77f50e9b688e82c663871ca449c52927a317dbd35d96c49e832"
     },
     "verif/bytes_rlib/bytes_mut/impl_Default_for_BytesMut/default.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_Default_for_BytesMut/default.coma",
       "coma_sha256": "aa2ff469bed19ffde881fabf5d422f4fb7e8fa2a8f23d84f6762c453b946ea3b",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_Default_for_BytesMut/default/proof.json",
-      "proof_sha256": "b670cc3c890c681e6f44f8d251d1ef0e8f7de15d6eadd1c01dc6d54fdea8aadc"
+      "proof_sha256": "e8a7a952368c9416a3bfad82adf8bd61999f00629e8715089db5838904446ab3"
     },
     "verif/bytes_rlib/bytes_mut/impl_Default_for_BytesMut/default__refines.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_Default_for_BytesMut/default__refines.coma",
       "coma_sha256": "f1fabeecb1e875bd1d00f37df2bf3d87b11d70dbb0cb6393a521faeae5351c8a",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_Default_for_BytesMut/default__refines/proof.json",
-      "proof_sha256": "0d921c9c423bda6eb459ba3e3a5f0eebdccc3fe4a19b321557965f31cf98ec07"
+      "proof_sha256": "d4496f0a007372eccb746512a68a897531cfbec80053594480fb66665ef93f4d"
     },
     "verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut/from.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut/from.coma",
       "coma_sha256": "d39e66f7f0d8a8d5cc859976540383ecb6ad302c9b8fa8287a9f4f8adb9b193c",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut/from/proof.json",
-      "proof_sha256": "c5f3e15706a4387d26cb03d8622ec0966d9310a7720289d4a933c9e386775f46"
+      "proof_sha256": "b4fe817966c5774ab6bea17f8352f79a18ab075d4252fd3322ae7fb12c0e2770"
     },
     "verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut/from__refines.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut/from__refines.coma",
       "coma_sha256": "1e1acbb04f218dd09530d10e5741e0dea120e60b4919e6b37a59e140d6aa8d29",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut/from__refines/proof.json",
-      "proof_sha256": "637e7a0bb6822380ab59bf33bd8f0bbdc5f8ec30c6699604f199f9cc3ad89919"
+      "proof_sha256": "804bae823e003347c94714270d0151efb06151e5f33344a47cfe5d24d8943353"
     },
     "verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut_0/from.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut_0/from.coma",
       "coma_sha256": "87bfe97638a887a0e1784dcd7cfcb0fce6e05144a2f56185ad740d360697e5ac",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut_0/from/proof.json",
-      "proof_sha256": "ff87c4cb9ec325865242b26e33a89c80e05770ed533f036b74d5d7ee6c56a133"
+      "proof_sha256": "b6c4185f3020f3ce5e667dd95592329eba2f609201b2f2e696dbaa6af7bedf00"
     },
     "verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut_0/from__refines.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut_0/from__refines.coma",
       "coma_sha256": "ec09b593c35eff1ecf1fbbb14ddc167ac2f8d225060d2e1e20282e4a4843df30",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_From_for_BytesMut_0/from__refines/proof.json",
-      "proof_sha256": "6c332956f39bcfbf7309237e24eb92516093f709a372e6584f69e1e8aff52eb8"
+      "proof_sha256": "fb93ad74999a0ae9d7a8ddd7135035c4af348b9e9d9d59b05daeac1e8b44af07"
     },
     "verif/bytes_rlib/bytes_mut/original_capacity_to_repr.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/original_capacity_to_repr.coma",
       "coma_sha256": "175829d9c964739556717544eb1a1801b479c2f690a358fafb5217a38243b247",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/original_capacity_to_repr/proof.json",
-      "proof_sha256": "a058cc754034577be0c405f6176e40867ff125860daf4ca66ea623d7878091cd"
+      "proof_sha256": "01db536394f3893884ed2f1e523c0e25ac317f3cb188195bb09408acb92b4c24"
     },
     "verif/bytes_rlib/bytes_mut/original_capacity_from_repr.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/original_capacity_from_repr.coma",
       "coma_sha256": "3c0ab4518529550578d88fb0a37b0df6ca7fd0a052cf6eb63c084948a805ceb5",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/original_capacity_from_repr/proof.json",
-      "proof_sha256": "a24124941089bd9339f42fe66dad835b4d676dba752579ddbf342fa02de98430"
+      "proof_sha256": "c36410f8f2e0d4b3a48b7c3cb855b948d350a538e3fe00ef5e6439493e5c706c"
     },
     "verif/bytes_rlib/capacity_ops/original_capacity_repr_from_data.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/capacity_ops/original_capacity_repr_from_data.coma",
       "coma_sha256": "5aa85daa17e45c4354d9def3ba530a2253d872a66051cba704b617aacdcdb1ae",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/capacity_ops/original_capacity_repr_from_data/proof.json",
-      "proof_sha256": "dcf526a0913196b6de199b2798f24517195a3b4e2d6ebdf2e6fe406bcffddcb0"
+      "proof_sha256": "c82ef4f69f296a10e51613b7996a777b6624716281fa2ac681786bbaa9b5dbe4"
     },
     "verif/bytes_rlib/bytes_mut/unique_initialized_prefix_extend.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/unique_initialized_prefix_extend.coma",
       "coma_sha256": "22b242108b2ea745a0c95998a2a1b99951a99eec20ca6c5fc87ae3bb7c1c1ede",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/unique_initialized_prefix_extend/proof.json",
-      "proof_sha256": "c8643450ab48e81d9a53dd7a092f7778828530104bb42810351b107db8940dde"
+      "proof_sha256": "5425d183d7a803fff692070635795b3b5de967541fcf4ebd2b521feeecd5e184"
     },
     "verif/bytes_rlib/bytes_mut/buffer_initialized_prefix_extend.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/buffer_initialized_prefix_extend.coma",
       "coma_sha256": "14e1da09ef3564a3813a33a635d3b4fde9568c1f8fa352e5cf797a9dadae1a86",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/buffer_initialized_prefix_extend/proof.json",
-      "proof_sha256": "4867b07466691707e278c6b5c943682520e9ee8b1e87443f4cb1414429327c87"
+      "proof_sha256": "11a5e5432002c429307fa7f9a886aef9cc8a0ca710bd8e260cfb911f1baee29d"
     },
     "verif/bytes_rlib/bytes_mut/buffer_prefix_mode_equivalence.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/buffer_prefix_mode_equivalence.coma",
       "coma_sha256": "308076dc8a945781c2609bf3cac4f6c8ae340e1a4ebe877c7d36bc45eb1418c0",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/buffer_prefix_mode_equivalence/proof.json",
-      "proof_sha256": "0d242a080424b9002ec3e76ea438c74e1809b6b56026675c26da058b0295737c"
+      "proof_sha256": "78a4b325e1f13219e5e9615edb2ef9b53f4e2e4e84af6e3e58f2aae0720248b1"
     },
     "verif/bytes_rlib/bytes_mut/unique_initialized_prefix_suffix.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/unique_initialized_prefix_suffix.coma",
       "coma_sha256": "8690cb8eb5121355221db8593fb4c4911d377193f6407f81974c57d763064a7b",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/unique_initialized_prefix_suffix/proof.json",
-      "proof_sha256": "0dfa51ecf69f547e949adc1e8efee80a1d4338ece7b8e91ba99fd2343f10f4b0"
+      "proof_sha256": "58ad57d5858e600b7e85e8ebf6ed9db5bbc03a62d9eb2a8fbcbba5a29f80f81b"
     },
     "verif/bytes_rlib/bytes_mut/impl_BufMut_for_BytesMut/advance_mut.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/impl_BufMut_for_BytesMut/advance_mut.coma",
       "coma_sha256": "654c2d584b514cd4108c7ca6c72ff186217200cf90725907235bb8e67649c3d3",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/impl_BufMut_for_BytesMut/advance_mut/proof.json",
-      "proof_sha256": "99d83031e7f8b80b74de722fd44934f4b4602477dbb176491cec47472a18366b"
+      "proof_sha256": "9efffedc3d5ced4803784d933d508e67367fb6a126f4eb8655999562014bc2d6"
     },
     "verif/bytes_rlib/bytes_mut/vptr.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/vptr.coma",
       "coma_sha256": "5783c4096c69e95e8f0956ab04870dcfe0f417db567fe34994567230b479564b",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/vptr/proof.json",
-      "proof_sha256": "a5b4be7b3e209dd8d0aafee34f78d04cd1cd63a17813d9ca714c38d61fce61a7"
+      "proof_sha256": "aca5e5a6c89ce79db6248f8e1cddd9b16a30b711a16b83665754b0440b5d07f7"
     },
     "verif/bytes_rlib/bytes_mut/invalid_ptr.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/invalid_ptr.coma",
       "coma_sha256": "d2c939dda41ce086704cb3b47d70c20ece2dc712d9196e92533d3b0f6fab7142",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/invalid_ptr/proof.json",
-      "proof_sha256": "6235c6d47f29de28d746c3c71a1c78eb83907e6665f7acecdda891d53dc33a73"
+      "proof_sha256": "f80f2507c1c7edb0318f307425a1ffa8352377cd74b6b2e8b4c2ac1b325bb5b8"
     },
     "verif/bytes_rlib/ownership_proof/view_region/split_view_region.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/view_region/split_view_region.coma",
       "coma_sha256": "6550130e074fbe2f70313216fa0f22d603f88d8a9dc163c9185ee33baae5c4dd",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/view_region/split_view_region/proof.json",
-      "proof_sha256": "ecfef6c314d41f646595b881a6cb2827a9435213b8b2d14f9bd0e093985fb99c"
+      "proof_sha256": "0b084b143756483676f69b2e95bad3a01eb7776c8f6f666e312b34bf6e1c5a03"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/new_root.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/new_root.coma",
       "coma_sha256": "881b48c9d529869aa5bc13ee137d3e2cf8b812fd20775e007efaba358f33ba9c",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/new_root/proof.json",
-      "proof_sha256": "6f1f6d395cda7a9c88bd74204d0660696d02918076ff5a52e65f10c488b527be"
+      "proof_sha256": "6bd54ca3c63c358ec4b2506129d469fb41d2860517b78df33142cc392725c8a9"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/new_promoted_pair.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/new_promoted_pair.coma",
       "coma_sha256": "7eb4b0cb5c67c8c869e41baf62343929d729ceffc63b4c570dd9efe3eaf07bcd",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/new_promoted_pair/proof.json",
-      "proof_sha256": "f733d6d9e049226f934857b8f01ae9fb4daf7264319ddad7c6838b317c7a2e2e"
+      "proof_sha256": "863091dc3305972e8fe8550f8585597ae995705e74e66b838113b5d8ebd433d4"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/register_readonly.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/register_readonly.coma",
       "coma_sha256": "19a29cba31474427bc3640e8b680b6ac823c0ed8b19a9be6b7bdc9d6fc4669b8",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/register_readonly/proof.json",
-      "proof_sha256": "ac6936d0ca5801bd6347f4a906a2cc3970a6d3dae18cf96502e86080e3c56bae"
+      "proof_sha256": "da2210a12094216d74abb313a5a6c2b1c5fa7c4ace027077aa47517358684c03"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/reclassify.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/reclassify.coma",
       "coma_sha256": "5bc8c1ebad42329ac0eedf52a5cf76167c22ff7e20ab2d065d0ee0cf7d12b1d4",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/reclassify/proof.json",
-      "proof_sha256": "b38e49a5c50cc61eb40f50cc9b10cdeaf3c83811fd26d9b774a4f2ecc4aab6e9"
+      "proof_sha256": "1b1a8c8485b5231f394064c20f102eadf0deab2bbc1b206c463c942fd0ea68fc"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/split_owner.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/split_owner.coma",
       "coma_sha256": "45662e463fe10214605d7f2cdab7fd2283443e10e8b18fdeb05c4f485665f119",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/split_owner/proof.json",
-      "proof_sha256": "1eab21cf8818b5147633badd28be798025dcf35d3f350c88362a3400c68648c3"
+      "proof_sha256": "67eac3b6904f9d74d715cedb00c0e9081728b0331261d3ad531685fe68a97ce3"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_Clone_for_RefKind/clone.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_Clone_for_RefKind/clone.coma",
       "coma_sha256": "e59ab5b55d086bf947a6b0e5c3b33eb4b04667929cd561b59b427f6392a73f3a",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_Clone_for_RefKind/clone/proof.json",
-      "proof_sha256": "42573dd15d6b979858cd1fd5b20561103db2a0173e919588f162ac668c39fc30"
+      "proof_sha256": "9f75414b9d2a2981e415ba7f74e4e8dd7ec9697a8f457bd94e70c0fca49f60c3"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerTicket/from_fragment.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerTicket/from_fragment.coma",
       "coma_sha256": "6b173bdb29d3333debd6d4aa14e3eb5a74b8913d6207b6ed6ff7083062db092d",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerTicket/from_fragment/proof.json",
-      "proof_sha256": "959ad570adb92c633f9ce259a7abe8794be6767f7642ce96a263718f5fdeff76"
+      "proof_sha256": "9e08e3bed45b20c395d5aace55c8b081f7afde2aca75be82af5c412e3af9d4a7"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerTicket/replace_binding.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerTicket/replace_binding.coma",
       "coma_sha256": "ada51a8ae26f3c654f209854f7a83e65aea441f3cc2e21c902911edd1a2b5456",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerTicket/replace_binding/proof.json",
-      "proof_sha256": "7cc5e9a0b9ad83d3bb6c8c7823b5236613b5c762531b374cbff268d9150b1a25"
+      "proof_sha256": "a548606898717a9b000703e719b879cb0234bfb2df44e643fb6f41315e4477a7"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_LocalUpdate_for_OwnerBindingUpdate/frame_preserving__refines.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_LocalUpdate_for_OwnerBindingUpdate/frame_preserving__refines.coma",
       "coma_sha256": "67186aacbcdcfa8fc24f125380d16f4a4c9a1cb207ccaa9badca9e457712ed18",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_LocalUpdate_for_OwnerBindingUpdate/frame_preserving__refines/proof.json",
-      "proof_sha256": "dda140de2e9bd3614da8cf24e639ff89b3770186fc6b375bdcb2d51a9b146759"
+      "proof_sha256": "fb93ad74999a0ae9d7a8ddd7135035c4af348b9e9d9d59b05daeac1e8b44af07"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/drop_owner.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/drop_owner.coma",
       "coma_sha256": "a331baff16d12f3f4977162dd9d0b063dbdd1e98f0be117b01c82c25bb79b7d6",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/drop_owner/proof.json",
-      "proof_sha256": "19d6c902cf22d04fce6c137ade8ea89525b15579e23b655ddc5c82fed6406056"
+      "proof_sha256": "b5894e888bef5a3b722645a62e265646d7cf4ebbdbcf9e9fe87ec07c94d596e5"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/prove_ticket_is_active.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/prove_ticket_is_active.coma",
       "coma_sha256": "e40b664a0f6432306e454248a31d5b5b58c188475f35a46e0ee839668ca224dd",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/prove_ticket_is_active/proof.json",
-      "proof_sha256": "5e11de7fe83196b78001f3298bea22fbb1b023fb4bd99fe3e6efb1727cfc4d18"
+      "proof_sha256": "7d6c900f133cec279240276ff91248f9cea18fd4fda948fc35e9d659c7068798"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/contradict_two_tickets.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/contradict_two_tickets.coma",
       "coma_sha256": "f359ddba465895991150372e88f32fe6d2950a1584a12fb5270cd8cb48b3537e",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/contradict_two_tickets/proof.json",
-      "proof_sha256": "234f40bfd2e9009f372ca193757fcadd66f9fc170673e18add73d569fff7b21c"
+      "proof_sha256": "9a85e32f45b8b2220c63c20f5c3102f56dac57b075f96b8363da0f7705cc96c7"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_RetirePermit/contradicts_live_ticket.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_RetirePermit/contradicts_live_ticket.coma",
       "coma_sha256": "5153ed3df1ebe4ac8a9c344531ab6903ee65aa4d59a2cbef0af985de5809478a",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_RetirePermit/contradicts_live_ticket/proof.json",
-      "proof_sha256": "df640ed19adf417d2dc49c13e1f9b3c57fe4676082ac95fd4fb5e6ac138bb73e"
+      "proof_sha256": "537c6bb77c470355140254def1accded9ae6757d9795153911539a7b4387cc78"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/map_op_fresh_singleton.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/map_op_fresh_singleton.coma",
       "coma_sha256": "10ceb3d0624061e0d42adcadf7e8ca307c628c60f39d89a04c8601926f657f32",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/map_op_fresh_singleton/proof.json",
-      "proof_sha256": "f6b57f8d73bd13946b3db516b8b8ee081f1eccc4b992e98ab0d640fb878840fe"
+      "proof_sha256": "58c93cde20e2402bbf0170b9a3ae21f70bd30e3ad8d20030f452477d2261ba5c"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/factor_singleton_removal.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/factor_singleton_removal.coma",
       "coma_sha256": "07554d2f0dc7cb3de8ddcca9a1ad8767658f028b04ba73181c9ec67f6dc8b589",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/factor_singleton_removal/proof.json",
-      "proof_sha256": "fa559816268fc99fa29cc2600df0e363843f96cba97a6f53f4c0026258bf6cb5"
+      "proof_sha256": "1aeda48701de42e87a4de6cb2dc18f6c5a6b31f12f46dee682618c88a6566b19"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/sole_active_id.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/sole_active_id.coma",
       "coma_sha256": "a139a12655daefefa4ed9f2f6e91500368644390947d7a29f4a74bcdf75f7f0c",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/sole_active_id/proof.json",
-      "proof_sha256": "9647bbb09dde10c1c4598566b1081e85133dee65be9e15f36c6359b58eada15b"
+      "proof_sha256": "8325541d2c1ef72284087367c3e106c9c6e418402431f4f61a4a7703712a33e6"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/map_singleton_from_len_one.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/map_singleton_from_len_one.coma",
       "coma_sha256": "2aa8f7ac84a930b49bf91a4ddcb6d523d110fd7c82cb52d00a718c9570dcf16d",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/map_singleton_from_len_one/proof.json",
-      "proof_sha256": "1846990ac8056f6df2ba113e714c2027931cc397677ce7d6b1f7b2d5c21d9af6"
+      "proof_sha256": "f7045f78b1ffd8ea6f6f5b28c6c2bd22b99822ace284b2c6dca4942fb05b63eb"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/normalize_singleton_insert.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/normalize_singleton_insert.coma",
       "coma_sha256": "1ac2a5c2e023426a2e163f1125a920497ae91599d2763bbdc6d838fad1e3ef70",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/normalize_singleton_insert/proof.json",
-      "proof_sha256": "9ce68527fa279cdd39bea57b0e8ce4c4c16fa29f8e3be6776961c1c71c00c706"
+      "proof_sha256": "96c1aabaaec99521f827e5b521d35356d90f8616e37a000140d09813f564ade0"
     },
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/zero_length_map_has_no_ids.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ref_count_ledger/zero_length_map_has_no_ids.coma",
       "coma_sha256": "3876abd8569e0512c5ec76d8a8a6b2790286747793dd19c45d145c314dcd8797",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ref_count_ledger/zero_length_map_has_no_ids/proof.json",
-      "proof_sha256": "d322202138b886ebc776304397b42fb5fe8404bb02a954c9d067c87263ff58ec"
+      "proof_sha256": "c359fd4e865a398c26ebbaea3a2e431c3a11111e7902e2f7b9338b37405ca8b8"
+    },
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_Clone_for_ReadyKey/clone.coma": {
+      "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ready_registry/impl_Clone_for_ReadyKey/clone.coma",
+      "coma_sha256": "de4db43c8fb844661761d9787a6782afcc4ba53047fb9076d5099467531ecba1",
+      "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ready_registry/impl_Clone_for_ReadyKey/clone/proof.json",
+      "proof_sha256": "44ab3ad31ae09d986b68f39b22897ee1fb0c82a1aa5a759e8c6c77a2a59f8c03"
+    },
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/state.coma": {
+      "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/state.coma",
+      "coma_sha256": "ff1ce0422bf2447c35afc90738fad4a54414f265f748f85a04fc4ad683ee5ca4",
+      "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/state/proof.json",
+      "proof_sha256": "06917375a99bd33c6d36d0a3857edf9efb5c9a97c3f89bd942ffbf0d4da7180f"
+    },
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/fragment_ref.coma": {
+      "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/fragment_ref.coma",
+      "coma_sha256": "70e816f03d509fadd06689ac3f818da94dfe359a66af771faeb01613ed948d9b",
+      "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/fragment_ref/proof.json",
+      "proof_sha256": "19a564b98c71eee33f8772584d414e09538b79777c2308d3f923a38141349473"
+    },
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/update.coma": {
+      "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/update.coma",
+      "coma_sha256": "dfc7aa06f8d497b6750dc829693d3652683c9781ff979d87a9f23ae9c21dab6a",
+      "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyCap_R/update/proof.json",
+      "proof_sha256": "2a2bf424f9a12d26cfec46780ca3d33c79f8df52f1e7ea352c553778a3ff3191"
+    },
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/new.coma": {
+      "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/new.coma",
+      "coma_sha256": "ac1de4d4bcccaacee0141fd80c93cbd6a905d7d4c3766b79d89f863a3b95b75f",
+      "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/new/proof.json",
+      "proof_sha256": "1d12635f25e025d4ea72f028cf9ea153260c7839f83791baea98c25ac142fd67"
+    },
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/entry_state.coma": {
+      "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/entry_state.coma",
+      "coma_sha256": "2c667b1573ca3d1eef569016212c8fb0d78655e625a27389e1a1dab7713ff4a8",
+      "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/entry_state/proof.json",
+      "proof_sha256": "c881e7748278061ca59dfefac900590267120208a1ec216793e6e20f4f4c5a6e"
+    },
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/register.coma": {
+      "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/register.coma",
+      "coma_sha256": "69a22cd036e0c712f456631cd52eaaf1f58f84ee237cb9272c42e037b6ff802c",
+      "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/register/proof.json",
+      "proof_sha256": "b1e56ee6c2cabd4d3c318a4e197dd531670ae8f4f2477640ad7450c30718079b"
+    },
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/take.coma": {
+      "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/take.coma",
+      "coma_sha256": "7c1e375039831d4b26ca68f7d4aad7c570b4b949b57502f354ef081e462f4522",
+      "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/take/proof.json",
+      "proof_sha256": "56ef23df0052da3a8491de9b88b8d5715ccb143f4c19fc36414c86b06bad9a2a"
+    },
+    "verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/return_cap.coma": {
+      "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/return_cap.coma",
+      "coma_sha256": "3c61030557ab47b24986224a25b0e4b3dae3612107e3368f80ce9a555f728b59",
+      "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/ready_registry/impl_ReadyRegistry_R/return_cap/proof.json",
+      "proof_sha256": "95b41e25aeb6786991012babe42e446fac57d310a6a63ec279aacf2e23aeecfb"
     },
     "verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/new.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/new.coma",
       "coma_sha256": "2c7deb6f13775127458a74cbc7201cda51fa9d5cf980773340a6904203fe63e9",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/new/proof.json",
-      "proof_sha256": "0fef6ab79e5dfeed8e12c9fffc5605afbc46444eddf5c285649b0412da2db5c2"
+      "proof_sha256": "64f77492c4d196f323a60d7d85bf6538e94234f66d099ac9041a70f97f96d6e9"
     },
     "verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/close.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/close.coma",
       "coma_sha256": "da12660fd1e8ca18382ae2e3e874054c0a3afc54ba12e88e21ed35a1f6456735",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/close/proof.json",
-      "proof_sha256": "e6a414f19996a050acdf81a4e5cc692f694e943cbba1437bbbe79f4cd433f805"
+      "proof_sha256": "1167c87675abbdcbfc4125e915201ba7598fcaca4954b60f09b5b320e46ae4f0"
     },
     "verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/contradicts_action.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/contradicts_action.coma",
       "coma_sha256": "9aaf3ef55a3dabd8301234ad552ae52320790786daa2361487602364bfe1c231",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/contradicts_action/proof.json",
-      "proof_sha256": "1ca89bce5840bb36a1bb86c8ecec97881cc0c57955f45835eed87bb0b6022ce4"
+      "proof_sha256": "35bfc3f65766f70d918e36f137d5067a1d057f3d9a73291ec54d354473a1ec22"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/make_count_one_packet.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/make_count_one_packet.coma",
       "coma_sha256": "2150738dc009d83639f67b3ebfe49e6a401ecbee6999c1e708ed78033ac9f318",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/make_count_one_packet/proof.json",
-      "proof_sha256": "85b7f0cff04ac720556276f49f9c62418fd1cb411e92aa1669baa0d0ac599165"
+      "proof_sha256": "d4501b5098216225b55141344f438adbca0b14ef70217803f437974da272da2e"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/make_count_two_packets.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/make_count_two_packets.coma",
       "coma_sha256": "3383ff4de8d0e7baf12ec05c693019823707a2365a3e8911846c5cdf7d13802c",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/make_count_two_packets/proof.json",
-      "proof_sha256": "8bc0f0e80a832c6422dabdd9a5f98468ac4066ec77c76db28c5df639555170ea"
+      "proof_sha256": "1a067ef8700835cbc4d1938e32ec9abe765e6b73bab1b5bca9b32762458c1ada"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/new.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/new.coma",
       "coma_sha256": "b5233e837a3adce427264243989a6d6c683237a149dd4b9497a3064d7746eff0",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/new/proof.json",
-      "proof_sha256": "568771c8bc94c4a3890aab71dcb88b2dd4f0c604e65afe5918fcff837cfd7054"
+      "proof_sha256": "c9346240aae3b17b0a788edf79ff2cb2fd6a9e584edcaa9ab1ad33dc8fb342db"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/activate.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/activate.coma",
       "coma_sha256": "f4b70c9e2c162cb07e8f43181eac482d58e26e415570af120533fd170f06bd7e",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/activate/proof.json",
-      "proof_sha256": "9660e46ad5ca1efdd6dcda0ed639df5ddecf86e4d6cf69dc5a842a4a61416067"
+      "proof_sha256": "770fd4457b228f175691b18a1c84c10fd0fba2ff90baf5a4a1806e22bb714433"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/require_active_fragment.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/require_active_fragment.coma",
       "coma_sha256": "29f087e39c1a9523175c049d91d555a3e243f91ecf712dd0118ccf3f9a78c1e5",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/require_active_fragment/proof.json",
-      "proof_sha256": "2bbda1c291aa3e6049e8ec68dd07bd41d208c385b843405cc1970273c30ee2a9"
+      "proof_sha256": "0327019637de8636a60ab1f905e76710c7ba2ce0f98137c7495c46d8f1697f8e"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/deactivate.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/deactivate.coma",
       "coma_sha256": "6bf39c162f7e8c7c1ed1a4ba702b8ecd9a19f3e51dafaad4d36f970d2efe6365",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_HeaderLeaseAuthority/deactivate/proof.json",
-      "proof_sha256": "1183d28b879f3292c7aaba3d40e3b807eb338eb3e417a6d7abd7a1ce9a00c612"
+      "proof_sha256": "a41ed19f15890e7e4ba6b046dbdbfaaa618b4acd0f6a608370cefb2219d089c7"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/prove_public_lease_resource_id.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/prove_public_lease_resource_id.coma",
       "coma_sha256": "7fddfa8fd806812b6f907ac7ed640ec811fe3e2351f1f06f51dd5c4f868fd534",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/prove_public_lease_resource_id/proof.json",
-      "proof_sha256": "b4c644223701b1faf57fff305f824fd3e7ff8fc748dcd8e307d534e56f208bc3"
+      "proof_sha256": "dbcd5e61e245111d86a45fb64f1cbeaf0094bb05f9eaa01d6affc727381d846d"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/prove_root_some_implies_lease_idle.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/prove_root_some_implies_lease_idle.coma",
       "coma_sha256": "f83b6b0e79d0bc5fc66e2f5453027efe3110c9594bc7eee254a4782225caacb2",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/prove_root_some_implies_lease_idle/proof.json",
-      "proof_sha256": "c398c3892f87707d15f868a9c4a5bceb4d908d52178ee510698c271e45359863"
+      "proof_sha256": "99d6ce0c72c9de02b5bfbc9e0731f1a7ac68d6fc32c2aa4579aab1dee044f71f"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/prove_current_header_lease.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/prove_current_header_lease.coma",
       "coma_sha256": "2dad55f6cac2910a7b288d23c4e4d7a42b413d128e3152faa3a8bcc870dc7e31",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/prove_current_header_lease/proof.json",
-      "proof_sha256": "94c29f4a949660994265fb0939aa6ee8a43f54e0e3bc8575873aa4a0995f3fd8"
+      "proof_sha256": "620b5eb7103976e0518542545beb013f0bc9a4739322e754ec8409d00a682c6c"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/take_header_read_loan.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/take_header_read_loan.coma",
       "coma_sha256": "8a6b96ed57ea3cf4cd9949906dde07121ef46964e892deaf24342e0dc733e9d9",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/take_header_read_loan/proof.json",
-      "proof_sha256": "3fb42b2588dba1ad994f56fab98a14f89e92933f6778149b426b5721b7118aed"
+      "proof_sha256": "91e78cf52512e1824accd681b9233504b2fb3a3ce806c9f09f3e8c7df096d330"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/restore_header_read_loan.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/restore_header_read_loan.coma",
       "coma_sha256": "597c14a4ac5ebdd50c0aebd3171b0309839ea59bd44e676e6a13372502465968",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedPayload/restore_header_read_loan/proof.json",
-      "proof_sha256": "d9dd88eb2441f1967487ad29a24b9fa22e43c2ab60f74c5539c7d4581a135b40"
+      "proof_sha256": "e79020cb2c67cb1244cac69426f2aae819d458e204600f112659a9966624cabb"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/loaned_native_counter.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/loaned_native_counter.coma",
       "coma_sha256": "b2976ebf9281bd32e372ae404c09fe25fa4b55084796570c9fddc0cca6e2bc6f",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/loaned_native_counter/proof.json",
-      "proof_sha256": "7f0b987066100d0cdd6f15d070a300603a9522de75e9561ce8f9a541ba09dc59"
+      "proof_sha256": "dde6117c4f0aa262c3df1dc915e0fca937f634f3283f57e173407c3e69702d52"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket/allocation_slot.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket/allocation_slot.coma",
       "coma_sha256": "345eb4424cfdc23ab67aa3830be01a3b4dff6f97f121ab21416c035d3e0feace",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket/allocation_slot/proof.json",
-      "proof_sha256": "900b203aa3e0e86f5ed57233b0f36e389c1c017fd0fb976306d7f2e84972caad"
+      "proof_sha256": "0452523efde2462f7fb84d0a8022ca65c5bff028da52c8092df4768f754f1c8b"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/advance_cursor.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/advance_cursor.coma",
       "coma_sha256": "bcaedae8c86c531a4869f921f55cf24be2b25ae46b222ce9e95217f4c674950e",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/advance_cursor/proof.json",
-      "proof_sha256": "6a08b080f15e1ed285d329b2c098919804e7befe026f2d46daee52f16c0b2871"
+      "proof_sha256": "15b1e334aff06d08d5758bbb0303f4c3f77f85e1087d9ceae6856561ad4cec0d"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/try_take_header_read_loan.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/try_take_header_read_loan.coma",
       "coma_sha256": "f9a8fb45359d0d03ad61b32bc55f335140998394465cbe98af63c682eeac2b1f",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/try_take_header_read_loan/proof.json",
-      "proof_sha256": "2fbeb5395f1212f434663ce85025f8f56eedf44fafcb416af22ce448216bea5c"
+      "proof_sha256": "adfdabb1e10be39c3dcd0551cccb8b708cdecf04fa111f81e5cd318c5b6d6e1f"
     },
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/try_restore_header_read_loan.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/try_restore_header_read_loan.coma",
       "coma_sha256": "a2c7c1685b604b4c901367fac7254ff63c523a587f1e9eec947b3f2f37881b31",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/try_restore_header_read_loan/proof.json",
-      "proof_sha256": "acd3cf06284cc8bd1072fb0fb6ba25586c334af8ca82546c6b6117c2fa40fcc3"
+      "proof_sha256": "951561132a4fe000770e1a7b87cd50769a394915a1ab2f7ff654d0c82523456f"
     },
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new.coma",
       "coma_sha256": "ddcd23849209823eb6b3fce6909a10a1e996f6c52612b565a3ae45e36c4cc887",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new/proof.json",
-      "proof_sha256": "936c07ec231ba88383f268e5c65393c4ae2de41d984c6cfb57c7bacd87b94dec"
+      "proof_sha256": "5be4191466e916271aa24f21dba3f16bc5f5dddaf9b4e2299cc63fdbc785a300"
     },
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new_with_owner.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new_with_owner.coma",
       "coma_sha256": "3ba8c2c0738f51bc519589329b511cdfa717bd2a33983170659d8e7bda4246af",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new_with_owner/proof.json",
-      "proof_sha256": "d5fc4c36de7f3c71caa6a9018c8d6220057e3a3e7a7c227a43f37fee37a19563"
+      "proof_sha256": "7ccf66150f17c23ae77b75a3bf73348f035434518cf48e49d9715b84df54e0d1"
     },
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/native_counter.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/native_counter.coma",
       "coma_sha256": "9585bfd32a3420b30ac4701dd6afba7cec2d498352d0d65703f25b7c56a88afb",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/native_counter/proof.json",
-      "proof_sha256": "cc91f4e36da21d64ee902db97a3242066e378da2eb5823602a8f3ba5e6b2ced8"
+      "proof_sha256": "acb71765925edf5327cb26f0d0129d4dda9381c23d8611ad969c503b42c066f0"
     },
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_relaxed.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_relaxed.coma",
       "coma_sha256": "f5513062c9af3fbf8a305bce70f8318f2d42d34dcf45fa8a951f18af9cd0c882",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_relaxed/proof.json",
-      "proof_sha256": "fa1e8ce095fe47a49cce5ce54e40e2b4efa2394557255bf8931a239af76912a4"
+      "proof_sha256": "d008f22cc7fc312590ab418b233ee46ae12d1f9cc022eb1b6fda1cdf96726f2f"
     },
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_acquire.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_acquire.coma",
       "coma_sha256": "f215f3d60edfb956726840528a8a8672808eaa17a7b64836f1b8aed940732a14",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/load_acquire/proof.json",
-      "proof_sha256": "01d88b402624fd328b5084019fdfee5ad124cebfe359a308e19dc84691fab7be"
+      "proof_sha256": "88a6ef3a9b60cc614aafc7905ee19e65693cc74a89ea883e555a598b7c2a17c4"
     },
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/compare_exchange_relaxed.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/compare_exchange_relaxed.coma",
       "coma_sha256": "def441a4577cd845a4cf3748f4fed90cd31d88d1dc54ced1db34290d11a4129e",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/compare_exchange_relaxed/proof.json",
-      "proof_sha256": "0b98036f1091b862090d55c44ec8f8d1d82a3570e27514125edaa4cc69532ca4"
+      "proof_sha256": "c7389a7a9c73a38940b6c9027f0409f34a28c4bc517f3a6d4a814e7b69ceff95"
     },
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/compare_exchange_acqrel_relaxed.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/compare_exchange_acqrel_relaxed.coma",
       "coma_sha256": "50a7675334ca0a1f39c7ac019b941c989c5434cb7dfc14ee2dd638df4fee7e58",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/compare_exchange_acqrel_relaxed/proof.json",
-      "proof_sha256": "d0b4578f710e2c7d1b0e29f1130337b10e50f208bae0c81f82b4f2c3368b0ba9"
+      "proof_sha256": "958c4f10c4ab2ad550bb84af8a23810ebaeec6ceaff63674ae887918e5cd1d5e"
     },
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/fetch_sub_release.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/fetch_sub_release.coma",
       "coma_sha256": "bb43d22bf4373b3c1e58ec53fc01ef3be6240f5ee8ba697a351aba422b5d7718",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/fetch_sub_release/proof.json",
-      "proof_sha256": "aecca00067cd776af7bbda15423d953cb5426d04964fbb12a9bd7f799e2a8914"
+      "proof_sha256": "4a475d8b4d0c3743a49127d78a11bca74d71ce91d6ebdfce57bd82b9aa3d5025"
     },
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/take_bootstrap_owner.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/take_bootstrap_owner.coma",
       "coma_sha256": "4c660dc04e804bb592afda9892f9964fd5035b9d944c4cd702dac7ea253a25a5",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/impl_RefCountCell/take_bootstrap_owner/proof.json",
-      "proof_sha256": "8745b00756ae6a1fb0030f77a35a6808fc4b381d1e71ad54488a871b97a6d462"
+      "proof_sha256": "7b0037cd431e0447feb180956a679020a04b7437ce5574c88bed8e868435a146"
     },
     "verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/new.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/new.coma",
       "coma_sha256": "da8c4b7a370aabe54535713c887739d781f6a1f898f5d0c206f07e648aab28fa",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/new/proof.json",
-      "proof_sha256": "6f84b800fa411ef43235785ff50dfad6680531fc31d376de1267c1b51b2687f7"
+      "proof_sha256": "527d52b8c80521b5d6c2e6a845f83d4bdbd9f9c7f5107f2110f3ed07dd9575ac"
     },
     "verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/into_inner.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/into_inner.coma",
       "coma_sha256": "5da6ea27f8dbf0beb65ef561913db2586ed729f3e543675cba4cabd6c63ab438",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/into_inner/proof.json",
-      "proof_sha256": "54a6bb26a91d7b9f6c82c85358e2f423611f8de2a0c546e37f7c92fb0b612d83"
+      "proof_sha256": "67eff2f3486000bd9629567a4f8a9b683ffd0d43fad855eead98d27b6f5c29e3"
     },
     "verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/open_with_tokens.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/open_with_tokens.coma",
       "coma_sha256": "09dc43bdc336286cc729d8273372f7fb8bf73bf6f5e42cef94607aa2f38cde3c",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/proof/impl_EventBoundInvariant_T/open_with_tokens/proof.json",
-      "proof_sha256": "a1ee9c70edb09434a2c264f16cfaee49a4fb0c5d5d6661b4b55d6bbdc8e16e70"
+      "proof_sha256": "1bdc17f1087448fcd5c224c79be15db771a81ef2ee307ae24d83933cb12bef46"
     },
     "verif/bytes_rlib/ref_count_ops/proof/observe_ref_count.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/proof/observe_ref_count.coma",
       "coma_sha256": "0c7ac6c2abdcb419750d593ee19a299e62f06c19584b12d5d9065f9c60aeb505",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/proof/observe_ref_count/proof.json",
-      "proof_sha256": "ee2a42093189b591428f33b2187e0e308462962633773b0b1cec7db8ee109cbb"
+      "proof_sha256": "26dbd269ce3f25cb30ad739fe8d485a6818dc07f23b64d32b3b2db90d2f1a4a1"
     },
     "verif/bytes_rlib/ref_count_ops/proof/update_ref_count.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/proof/update_ref_count.coma",
       "coma_sha256": "ac1fc617dde0f62e682aadddb8cdb3b63abbe5fcdf55bf9ba09269850931a8e3",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/proof/update_ref_count/proof.json",
-      "proof_sha256": "2686dd446fd446d271c3e7bdccb6c5759f0de617cbe573b0e96f1d3cdb7c87d5"
+      "proof_sha256": "bd5d8eb1918b2b4a851cbfb919addb2e892e85a7100e27fda8afb09fcabdbef4"
     },
     "verif/bytes_rlib/ref_count_limit/next_ref_count.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_limit/next_ref_count.coma",
       "coma_sha256": "00ad44ee8843fb91cba160ab8e36f36afe0a16f370895020e95269b3608f825d",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_limit/next_ref_count/proof.json",
-      "proof_sha256": "4d6b28486450479f4dba6a2907e9e7d6819e4868bd1d0f6530646f7819f46650"
+      "proof_sha256": "d8ec342d49a8489867ad5f7965aa39bd84318a0cd85f86d7db7a4f130948727e"
     },
     "verif/bytes_rlib/ref_count_ops/try_increment.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/try_increment.coma",
       "coma_sha256": "821f8533e4798bbac3f65e62ecd984720c743dfec4da1afe057f56e261da8379",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/try_increment/proof.json",
-      "proof_sha256": "6b0b6537c0352abb627d9f0030992bf5c22face1bf5ee2727f52de444158e221"
+      "proof_sha256": "8bffeb0d81e21883f4b1068e99f25c7ac1cb303d81edc3db5c28764b4045f6e8"
     },
     "verif/bytes_rlib/ref_count_ops/increment.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ref_count_ops/increment.coma",
       "coma_sha256": "b02408ab8c5b00356925894937b2bb9c858466b7bece5a9abb65df9b237c3208",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ref_count_ops/increment/proof.json",
-      "proof_sha256": "d50d5a4b6bbb347a204baae6c6a9406bece9a5b8736833e7fa3e564f1be61f02"
+      "proof_sha256": "5a01dc6fc2771ec81cb5a2ad0c3dbfbfcd5a6e0eb7665a8acd7a44fb0f283d59"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/advance_within.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/advance_within.coma",
       "coma_sha256": "b053001395b9f32e7a8f246e60f523c61ee79eeba5064342a94d704909d7b522",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/advance_within/proof.json",
-      "proof_sha256": "b200bc2087e9e121d0e0b073fda27093bc43bcbc7575dfe447545cc9919b2138"
+      "proof_sha256": "5ec4a4e9b0fea63546abc5c6ba83eb84c6b8ab1083a923c28a5872c53b1b3946"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/raw_pointer.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/raw_pointer.coma",
       "coma_sha256": "ce54a3de1b7ff1b8abd084690ce42e3630db0c0be9037d878a1129da81bdeffd",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/raw_pointer/proof.json",
-      "proof_sha256": "dc9cec0b412b6210ed8b6c230496aa4775f170da7fd06e5289702cd6412d7547"
+      "proof_sha256": "e02601c6646507a49e9917454118742394c13f1a24139a9b34f231e591d7b237"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/as_ptr.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/as_ptr.coma",
       "coma_sha256": "200781d465c7e6291d230939c021116545b16cf01e9a70d37ce41b8c48d04c30",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/as_ptr/proof.json",
-      "proof_sha256": "ac1cee78d103aa6c455b17ee624f1698b78d26e774ced00834898df91c3e7597"
+      "proof_sha256": "ad5fd65406dae22cc6abc4584cd316a574dedd1d1738395517bdf00f1784103f"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/as_non_null.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/as_non_null.coma",
       "coma_sha256": "3c75593cf3911b6250ae4e25e361643d65df99c4029f25a4e7cdbb888b8220dd",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_BoundPtr/as_non_null/proof.json",
-      "proof_sha256": "43379c716c83d48bf3986ea4e04ac11a39aa0ae57604f7c9de42cd959f8a23c4"
+      "proof_sha256": "813618ad4ddda3c70c1b0aa8b0f8db944c368b18904710e65f9707ba2379c037"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/split_at.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/split_at.coma",
       "coma_sha256": "279860546cd2147117f9fefdefdc467365c8d23cb4523a2506cde2a9cf79c064",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/split_at/proof.json",
-      "proof_sha256": "57f215cf43fadc8820370b44081acb53fe9c0610614482e10629e83811a69be3"
+      "proof_sha256": "f7ce6d9bf0e312ddd65f74fc7fafe763ea6c1679851c71f4fa759b90138f9913"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/kernel_unit_is_empty.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/kernel_unit_is_empty.coma",
       "coma_sha256": "4bc877bf07c6e6368f108f9dc09054a51bc23eb96f0df310191eb88023d8cfe1",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/kernel_unit_is_empty/proof.json",
-      "proof_sha256": "feeb232ac48d3c00c0414e55425ac044630726a5d1ff5c99c234d235db161fb5"
+      "proof_sha256": "0ec642460067b3ebdbc631c1f4c900821cf6d7d32597ecd61139f776e351bfb7"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/empty_from.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/empty_from.coma",
       "coma_sha256": "074b27b77c914eca09ca1f45789bf09766873250ffc141817b5f2b0bb7b22626",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/empty_from/proof.json",
-      "proof_sha256": "18b8ea4986425e5bc1f6b943a9c45b92a17d7fdc923a884dcafee5d6470e7388"
+      "proof_sha256": "48229f7813de7bc85a35d8f8742b7bebcef252bc5462ac473ed779dacd58464a"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/retire.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/retire.coma",
       "coma_sha256": "15a8a363208ad4fe2e67c9435e6d406a614fca28579fe27948c54c0741d6ea9d",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/retire/proof.json",
-      "proof_sha256": "e3de8d73f54d010bf26d43e2b7eae09a3571c4891de092e6bd0dd313fdf7177e"
+      "proof_sha256": "3a4f4295f076cc2b72ff80f4bfa7e1218b110702e6d63677f66e50fb94361594"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/finish.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/finish.coma",
       "coma_sha256": "80d54e27619dec7e3e2e65f1f36b6c7b6e839622eed54486645afef22316f84c",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/finish/proof.json",
-      "proof_sha256": "6c5ea1d1e58c0a1ba85914a7c8dbe74f83f5d4f396ccc9b036f0662a3559343a"
+      "proof_sha256": "2df57df85067cb224437ff4c8c56eff2b5ae3fe4f24b3a089be9ed7bebecd37a"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/bind_consumed_vec.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/bind_consumed_vec.coma",
       "coma_sha256": "7b1a299271005807b18e1e61fb364506affcbe2712ca09d73179866a5798ce01",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/bind_consumed_vec/proof.json",
-      "proof_sha256": "2d7a37482c5586177db91ecd052165ee736854e9f51558475fe62a3f9560a435"
+      "proof_sha256": "8369d5bd2fd7ac85f75cc3740a63f5396ccc8d505cf40d770e4e06257796cfa3"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/slots_from_vec.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/slots_from_vec.coma",
       "coma_sha256": "8d0e3096904cb5f6e5313ef88c1c65dcf33158dc6353e7eb9befa0f18c8c8655",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/slots_from_vec/proof.json",
-      "proof_sha256": "5222d2d524503f9435cfd8169feef69837576ba85f497a1cb1cd4ba287336a6c"
+      "proof_sha256": "d6dc62658716e4f8a9175d3247478fe68607155dd0f943b9cd5bfc69e8581bd1"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/slots_from_vec_values.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/slots_from_vec_values.coma",
       "coma_sha256": "447da9c73bc6f892590650157c623052cdc353d14226b60f69f84a4183d17ebe",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/slots_from_vec_values/proof.json",
-      "proof_sha256": "57a1bf5fc7fde5820c8e2e5ca2ee1c659fedb3d9068eb6622d58d935d6c7b2ce"
+      "proof_sha256": "9c68309068763e5b31d20b447b2d7d385722552afd5305bc774035e877538a3c"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/int_from_usize.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/int_from_usize.coma",
       "coma_sha256": "bec6670380703213edaf84b70017b54c4699f731b816e99ba2e6c85051fde0a8",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/int_from_usize/proof.json",
-      "proof_sha256": "81dc5eec36c51b947a678db28be5c954f0917a663951480e1fcb9197a82b6638"
+      "proof_sha256": "bd32940a4a8490d408a78f6e114dd4a7f5471181693c42800f0b2d99d78d60b7"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation/bound_ptr_at_zero.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation/bound_ptr_at_zero.coma",
       "coma_sha256": "de40e92889b8fa935a306dce625bfbbe8eee0ac773643a259dc1cffed79313e1",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation/bound_ptr_at_zero/proof.json",
-      "proof_sha256": "c8f09a18584244bf7ec0e1a28427593f08092ebdd1d67e12452c3318d26e18b3"
+      "proof_sha256": "0abb64dba15ebdd9069a0c17b1217ad92c50df19848bd571ae35763617df7951"
     },
     "verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/split_at.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/split_at.coma",
       "coma_sha256": "da81a3cb55549fc73059cc07fd964b438c6973b4b7685613fc36be62a3d16a6d",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/split_at/proof.json",
-      "proof_sha256": "6334a8c36ea6c6f4a21aab68c2f2ad6e01a9cfa05e5179e084e57d546cc118e8"
+      "proof_sha256": "83cdb7bd121d4ce48f9d88662a01aa5c18ede3d2330d2ea770cced11c55da1e2"
     },
     "verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/into_parts.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/into_parts.coma",
       "coma_sha256": "e562b6bcb0972fafaf79351b275f15bfda3fc12e58ec609f7a3735a3974d4f49",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/into_parts/proof.json",
-      "proof_sha256": "2b75fb44184ab8da85c3e1bc4d0aa2600130ee577d4f326d037dd929702bf832"
+      "proof_sha256": "7b20e56b2af5988813f1a35292089cf8fe64b634036aa8f493b3e5e2c1defc63"
     },
     "verif/bytes_rlib/ownership_proof/owned_region/map_compose_eq.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/owned_region/map_compose_eq.coma",
       "coma_sha256": "0e8cedd5fab4be3b8dbfee1ba7697654ff64957bb58f4b73dfe99fcc346ba938",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/owned_region/map_compose_eq/proof.json",
-      "proof_sha256": "683d704aae04d2c75930ab52d432a513b04ca47124792973376d61fc736e3aeb"
+      "proof_sha256": "67b004aad9c9b0609ec494b08f3a045eac5fd7e45bee1a132d75f0b27f700a80"
     },
     "verif/bytes_rlib/ownership_proof/owned_region/map_op_get.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/owned_region/map_op_get.coma",
       "coma_sha256": "9161e24d86999f89dc117d6734d34f81119aebab6c2873cf8c7e263912a77e17",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/owned_region/map_op_get/proof.json",
-      "proof_sha256": "703f41443efd21cc91df15c7ec17508cf981868d51e523c93119114118c63164"
+      "proof_sha256": "ccd873a451ce31b47041405e74c0b56fbd4ef2137aebecb5bbce731c868d9136"
     },
     "verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/from_model_ledger.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/from_model_ledger.coma",
       "coma_sha256": "ab23233dda4b2d318d2e5079a9f4788fcc62e71d9c4c342fbb450739a5cc10ed",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/from_model_ledger/proof.json",
-      "proof_sha256": "6cb7e760dfe6138e51053a5b0001c6932d01c45cc034caa137a7f3fb189b2d52"
+      "proof_sha256": "6efd5db8afeef4b0bda364ec7f60e4aebbc2bb35d9ca30a24d797ba565440087"
     },
     "verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/slots.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/slots.coma",
       "coma_sha256": "3dee5afbd20554eafa13275bfad1f56fbb240053402af5f6f66d897d4087d096",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/slots/proof.json",
-      "proof_sha256": "9995882171141477232f2d74239910a2e8f2a4f49b560f83a4a0e389f275fc79"
+      "proof_sha256": "d8ad58473a5c85329c368c4d6b85eba083ca4822cddcb0d3f964db82d233ba43"
     },
     "verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/slot.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/slot.coma",
       "coma_sha256": "90802dc5e2e9956dbad325bc11876b89b9bd7780e8339d64cd93631c5c13c455",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/owned_region/impl_OwnedRegion/slot/proof.json",
-      "proof_sha256": "8a18f15af166475cfeb1f692f99b3d292267035ccc78e4abccf8adfd703e0f2f"
+      "proof_sha256": "0b376b255bfe2bc8ded2e694f5fc263951b16f0cabd8803dbfe5320bc1be6c38"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/slot.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/slot.coma",
       "coma_sha256": "59e0783c95d15ac5a065da3f2fd6e83ee7f803dc059f13a6e034e83ac28e3485",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/slot/proof.json",
-      "proof_sha256": "35f80b667d9589cfe2e1d9427751277b811bf9cc6e9dadbca81d50844598aa78"
+      "proof_sha256": "4141ade6683bcad4d2c88169e4ecc6ae877ce1ce9d89126abd2a92efc96bb048"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/prove_prefix_known.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/prove_prefix_known.coma",
       "coma_sha256": "ed80e222ef48ac66c8f3822a089f1486bf87f6741e59e7daddc2472560dc67b7",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/prove_prefix_known/proof.json",
-      "proof_sha256": "92102e5f7784e32b8d74cf9317c71f9e73e79ce9f805c421063413540756ccc8"
+      "proof_sha256": "81fc45a323dbb1380a601127c162b7dc44f8874e15dadf59b782321e4880aebe"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/prove_subregion_prefix_known.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/prove_subregion_prefix_known.coma",
       "coma_sha256": "cf28d0a503b587c53478730db56668c38b2d1b1ca5daa36c988a11137e294115",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/prove_subregion_prefix_known/proof.json",
-      "proof_sha256": "9141f41b04878f2b67c11cbdcfaa86e46ae4225eee909172ab8fc825a5ccfb99"
+      "proof_sha256": "3db29662c1e0fa22837e4b26989ecda6c1061a3bc0f4251e7fd56d60ab2e14d7"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation/namespace_ghost.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation/namespace_ghost.coma",
       "coma_sha256": "dddd2d175ad96dcb925908cfc0b54850b3a81e0813ef32fc03ce0516bcd2551d",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation/namespace_ghost/proof.json",
-      "proof_sha256": "7d00c337786f93248168f8b67599132a7af23a04cefbde6e5ce84f121c27ab95"
+      "proof_sha256": "5e2bd9fc289f396e7cb2e866c624fd7e9d7dfaca938a0d28451cf3164fc4668a"
     },
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation_0/into_ghost.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation_0/into_ghost.coma",
       "coma_sha256": "07bd89397ee2fbed19be749244c165abd3bd8eaa1f698df702ae40de8eec2d2d",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/ownership_proof/raw_vec/impl_RawAllocation_0/into_ghost/proof.json",
-      "proof_sha256": "29b3c3dd41a9539e50d6bfd9f01df28cf57e82ed41ed5516c0f27f3083e03736"
+      "proof_sha256": "6938ea96f712d66fe6167cbe29c957754e3a7ff178134307ee4d803756085a59"
     },
     "verif/bytes_rlib/provenance_specs/wrapping_offset.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/provenance_specs/wrapping_offset.coma",
       "coma_sha256": "0166ef8d10428edd5a476ae07496cf48320b5cbfef3063cd11f1950b1dab8691",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/provenance_specs/wrapping_offset/proof.json",
-      "proof_sha256": "1a6ab6c4e9132dfd90db65bc938e27561410030905425431d1af708df894fce9"
+      "proof_sha256": "9db4b0fc5ee73596e6cf3fb44e37c3b65777a68a94e589e6460d7d5df7ad9dbc"
     },
     "verif/bytes_rlib/capacity_ops/pack_vec_metadata.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/capacity_ops/pack_vec_metadata.coma",
       "coma_sha256": "5fedd367eeb273f73b868073f5ab3ce86d5f75414e90cd5b0d34bf5e39708082",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/capacity_ops/pack_vec_metadata/proof.json",
-      "proof_sha256": "4f9359bf08054f51f1d8ca1996003595afe3aa794b1f873fbb3b5ec4c6ef7f1b"
+      "proof_sha256": "267fe9720715255856017c62a51de4253185093ddb93ed038c1c089b889d0b95"
     },
     "verif/bytes_rlib/capacity_ops/set_vec_pos_in_data.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/capacity_ops/set_vec_pos_in_data.coma",
       "coma_sha256": "1c1c9282985ccc8d58eab4f393cfc99800e6be3894d998b0c6e932072af0a815",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/capacity_ops/set_vec_pos_in_data/proof.json",
-      "proof_sha256": "1397400a09cfe0535b71cdaa56b60a65c7e2abe81a50558aa9d8bf65614439ab"
+      "proof_sha256": "4047f57583dbf116d22be35ffe7a34bf02c83ab899df62ca8253ac6b2908e88e"
     },
     "verif/bytes_rlib/vec_storage/impl_VecPartsWitness/native_parts.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/vec_storage/impl_VecPartsWitness/native_parts.coma",
@@ -1003,43 +1067,43 @@
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/vec_storage/impl_VecPartsWitness/contents_snapshot.coma",
       "coma_sha256": "edfb1ac2fb8e5e21f756d32fb7ed9460ef474968c16e985194b45facad2f4eee",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/vec_storage/impl_VecPartsWitness/contents_snapshot/proof.json",
-      "proof_sha256": "7c376bfc0518d66c0e1bcd7c06d981e14acf9b24204cbc4226a5294a5dad4a32"
+      "proof_sha256": "0a3e8babbebc60bb1543ef2f82b11804135de24ac9d9e1843f5ff6a7d0ffe133"
     },
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/native_ptr.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/vec_storage/impl_VecRawParts/native_ptr.coma",
       "coma_sha256": "f87221dd618325704ff634424a5f515ab382fa93296f5125d758080c12c2a160",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/vec_storage/impl_VecRawParts/native_ptr/proof.json",
-      "proof_sha256": "443f43676a4831b35a91abe24846f0320293814ea5e16f24a9cd24f76d192ab2"
+      "proof_sha256": "58755ace23367a538039dcab6e4afcfc58459d8ccd3e4b002ceacdf76d19d8ba"
     },
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/logical_len.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/vec_storage/impl_VecRawParts/logical_len.coma",
       "coma_sha256": "e84e203b0f1754d40909eb64ff6ea49036aef13d9a14e9043a09fbb48304bd29",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/vec_storage/impl_VecRawParts/logical_len/proof.json",
-      "proof_sha256": "a1cf010cd58a709edb38cca709117178dfb53d88e4c4fc71718b02c0055ef8a2"
+      "proof_sha256": "2ef9e1364acde516bc082ef266086b3e2cba4bc56fe7a8528fc6c88d75adb2b6"
     },
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/logical_capacity.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/vec_storage/impl_VecRawParts/logical_capacity.coma",
       "coma_sha256": "5177d9ec191d4ed9506e6b50f7b24321b6f90aafe693b8538448bc59b6f78f64",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/vec_storage/impl_VecRawParts/logical_capacity/proof.json",
-      "proof_sha256": "13f28251f487104bfaedd87bf3d341c4861bcb656f9f015b8ba57b8126924ce7"
+      "proof_sha256": "c0bf7d288c07dfc51fc3d75a02221c3e3a651159a50a98e7a4652524eb39cfdd"
     },
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/take.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/vec_storage/impl_VecRawParts/take.coma",
       "coma_sha256": "a9d248fe4a5ff8745283616dd15706e401babc20480ca43373978bcf9b962854",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/vec_storage/impl_VecRawParts/take/proof.json",
-      "proof_sha256": "c5a91999241bef683e9afe4b9ede82735bb0153960d5e8d027b3672ccd5e25b1"
+      "proof_sha256": "69d3ed289759ac8f78249110b272de5620e70497d6a91255d53c235e4e196c01"
     },
     "verif/bytes_rlib/vec_storage/impl_VecRawParts/into_proof_authority.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/vec_storage/impl_VecRawParts/into_proof_authority.coma",
       "coma_sha256": "3f5ece5b28294b328f6e4575280eee32f776b4c6697a50d5a2d7c44dd2f51cbb",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/vec_storage/impl_VecRawParts/into_proof_authority/proof.json",
-      "proof_sha256": "a0a9e4bd93796a1b315127a3aff25741132ee29911063864f6e6b973639c88d4"
+      "proof_sha256": "97fce4c2e4c101711e2334b02f102faa2068b106c0053c5b1df72f27be03f10d"
     },
     "verif/bytes_rlib/vec_storage/impl_VecStorage/hold_owned.coma": {
       "coma": "verification/results/direct-bytesmut-len-api/coma/verif/bytes_rlib/vec_storage/impl_VecStorage/hold_owned.coma",
       "coma_sha256": "6c4aebb69d22fb01443961e7aa0def54f3e99400a973fd506c9debf705270ef5",
       "proof": "verification/results/direct-bytesmut-len-api/results/verif/bytes_rlib/vec_storage/impl_VecStorage/hold_owned/proof.json",
-      "proof_sha256": "98adad4015fdc8c7c057bf4ab02372532666601e040e59c0c3daf2b25f6f88f4"
+      "proof_sha256": "8c6dc801fa20011b39f41ef941f05483bd7ea3d0022ec5ed297213b799447557"
     }
   }
 }

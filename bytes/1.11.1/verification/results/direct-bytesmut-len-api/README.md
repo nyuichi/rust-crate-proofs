@@ -153,6 +153,17 @@ operations to the registration. Initial count-to-ledger construction is
 proved, but later count/registration correspondence, count-one exclusivity,
 and reclamation are not established for every safe Shared state.
 
+The selected targets also body-prove the generic append-only
+`ReadyRegistry<R>` resource mover. Registration transfers the actual affine
+`Fragment<R>` into a newly appended permanent slot; taking moves that same
+capability out and leaves a tombstone, and returning it fills the slot with
+that capability. The contracts preserve each other slot's complete resource
+id and RA state. `ReadyCap::update` delegates to the paired authority update and
+preserves the fragment id and registry key. This generic helper is not yet
+integrated with a Bytes producer, `SharedPayload`, or a native lifecycle body;
+it therefore establishes no header-idle invariant or safe-state reachability
+for `BytesMut::truncate`.
+
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current
 inputs without invoking a solver.
