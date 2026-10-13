@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 228 4 228 50 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 230 4 230 50 *)
 
 (* vec_storage::VecRawParts *)
 
@@ -33,13 +33,13 @@ let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
 let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
-let%span svec_storage = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 228 36 228 40
-let%span svec_storage'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 227 65 227 104
-let%span svec_storage'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 276 20 276 29
-let%span svec_storage'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 42 12 59 86
-let%span svec_storage'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 264 20 264 29
-let%span svec_storage'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 270 20 270 29
-let%span svec_storage'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 366 20 366 65
+let%span svec_storage = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 230 36 230 40
+let%span svec_storage'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 229 65 229 104
+let%span svec_storage'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 278 20 278 29
+let%span svec_storage'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 44 12 61 86
+let%span svec_storage'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 266 20 266 29
+let%span svec_storage'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 272 20 272 29
+let%span svec_storage'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 368 20 368 65
 
 use creusot.int.UInt64
 use creusot.prelude.Any
@@ -89,16 +89,16 @@ function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_
 
 function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
 
-function native_ptr_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 263 4 263 51] (self: t_VecRawParts) : Opaque.ptr
+function native_ptr_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 265 4 265 51] (self: t_VecRawParts) : Opaque.ptr
  = [%#svec_storage'3] view_NonNull_u8 self.ptr
 
 function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 266 4 266 39] (self: t_RawAllocation) : int
  = [%#sraw_vec'0] (view_RawAllocation self).f0'0
 
-function native_capacity_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 275 4 275 52] (self: t_VecRawParts) : int
+function native_capacity_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 277 4 277 52] (self: t_VecRawParts) : int
  = [%#svec_storage'1] UInt64.t'int self.cap
 
-function native_len_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 269 4 269 47] (self: t_VecRawParts) : int
+function native_len_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 271 4 271 47] (self: t_VecRawParts) : int
  = [%#svec_storage'4] UInt64.t'int self.len
 
 type t_Excl_unit = { f0'1: () }
@@ -218,10 +218,10 @@ function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof
 axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'11] slot'0 self index
     = slot (view_PhysicalRegion self).f0'5 index
 
-function region_slot_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 365 4 365 75] (self: t_VecRawParts) (index: int) : t_Option_Option_u8
+function region_slot_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 367 4 367 75] (self: t_VecRawParts) (index: int) : t_Option_Option_u8
  = [%#svec_storage'5] slot'0 self.capabilities.f1 index
 
-predicate invariant_VecRawParts [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 40 4 40 30] (self: t_VecRawParts) =
+predicate invariant_VecRawParts [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 42 4 42 30] (self: t_VecRawParts) =
   [%#svec_storage'2] invariant_RawAllocation self.raw
   /\ raw_pointer self.raw = native_ptr_model self
   /\ base_address self.raw = UInt64.t'int (Ptr.addr_logic_u64 (native_ptr_model self))
@@ -297,7 +297,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let logical_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 228 4 228 50]
+let logical_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 230 4 230 50]
   (self: t_VecRawParts) (return (x: UInt64.t)) =
 {[@stop_split] [@expl:logical_capacity 'self' type invariant] [%#svec_storage] inv_ref_VecRawParts self}
   (! bb0

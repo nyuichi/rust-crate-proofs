@@ -378,15 +378,15 @@ help: remove these parentheses
      |
 
 warning: unnecessary parentheses around method argument
-   --> src/ownership_proof/ref_count_ledger.rs:576:50
+   --> src/ownership_proof/ref_count_ledger.rs:585:50
     |
-576 |     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+585 |     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
     |                                                  ^                     ^
     |
 help: remove these parentheses
     |
-576 -     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
-576 +     #[ensures((^ledger.inner_logic()).has_ticket(^parent.inner_logic()))]
+585 -     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+585 +     #[ensures((^ledger.inner_logic()).has_ticket(^parent.inner_logic()))]
     |
 
 warning: unnecessary parentheses around function argument
@@ -444,23 +444,23 @@ warning: unused import: `BorrowMut`
    |                      ^^^^^^^^^
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1223:25
+    --> src/ownership_proof/raw_vec.rs:1235:25
      |
-1223 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1235 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                         ^^^^ help: try ignoring the field: `base: _`
      |
      = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
 
 warning: unused variable: `capacity`
-    --> src/ownership_proof/raw_vec.rs:1223:31
+    --> src/ownership_proof/raw_vec.rs:1235:31
      |
-1223 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1235 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1259:9
+    --> src/ownership_proof/raw_vec.rs:1271:9
      |
-1259 |     let base = bound.as_ptr();
+1271 |     let base = bound.as_ptr();
      |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
 
 warning: unused variable: `from_auth`
@@ -546,6 +546,12 @@ warning: function `reallocate_u8` is never used
 25 | pub(crate) unsafe fn reallocate_u8(base: *mut u8, old_capacity: usize, capacity: usize) -> core::ptr::NonNull<u8> {
    |                      ^^^^^^^^^^^^^
 
+warning: function `make_count_two_packets` is never used
+   --> src/bytes_mut/shared_capsule.rs:430:15
+    |
+430 | pub(crate) fn make_count_two_packets(
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+
 warning: function `vec_pos_from_data` is never used
    --> src/capacity_ops.rs:133:15
     |
@@ -565,15 +571,24 @@ warning: function `copy_to_uninit_prefix` is never used
    |               ^^^^^^^^^^^^^^^^^^^^^
 
 warning: variant `Empty` is never constructed
-   --> src/vec_storage.rs:390:5
+   --> src/vec_storage.rs:392:5
     |
-387 | pub(crate) enum StorageModel {
+389 | pub(crate) enum StorageModel {
     |                 ------------ variant in this enum
 ...
-390 |     Empty { pointer: *mut u8 },
+392 |     Empty { pointer: *mut u8 },
     |     ^^^^^
     |
     = note: `StorageModel` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: associated function `resume_owned` is never used
+   --> src/vec_storage.rs:653:26
+    |
+492 | impl VecStorage {
+    | --------------- associated function in this implementation
+...
+653 |     pub(crate) unsafe fn resume_owned(
+    |                          ^^^^^^^^^^^^
 
 warning: function `equal` is never used
  --> src/comparison_ops.rs:7:15
@@ -671,97 +686,100 @@ warning: method `into_bound_ptr_at_zero` is never used
 589 |     pub(crate) fn into_bound_ptr_at_zero(self) -> (BoundPtr, usize) {
     |                   ^^^^^^^^^^^^^^^^^^^^^^
 
-warning: methods `split_at` and `join` are never used
-   --> src/ownership_proof/raw_vec.rs:744:19
+warning: methods `prefix_known`, `split_at`, and `join` are never used
+   --> src/ownership_proof/raw_vec.rs:728:19
     |
 692 | impl PhysicalRegion {
     | ------------------- methods in this implementation
 ...
-744 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
+728 |     pub(crate) fn prefix_known(self, len: Int) -> bool {
+    |                   ^^^^^^^^^^^^
+...
+756 |     pub(crate) fn split_at(self, at: Int) -> (Self, Self) {
     |                   ^^^^^^^^
 ...
-774 |     pub(crate) fn join(self, other: Self) -> Self {
+786 |     pub(crate) fn join(self, other: Self) -> Self {
     |                   ^^^^
 
 warning: methods `slot`, `retire`, and `finish` are never used
-   --> src/ownership_proof/raw_vec.rs:841:19
+   --> src/ownership_proof/raw_vec.rs:853:19
     |
-819 | impl PhysicalPool {
+831 | impl PhysicalPool {
     | ----------------- methods in this implementation
 ...
-841 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
+853 |     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
     |                   ^^^^
 ...
-914 |     pub(crate) fn retire(self, region: PhysicalRegion) -> Self {
+926 |     pub(crate) fn retire(self, region: PhysicalRegion) -> Self {
     |                   ^^^^^^
 ...
-950 |     pub(crate) fn finish(self, lo: Int) -> PhysicalRegion {
+962 |     pub(crate) fn finish(self, lo: Int) -> PhysicalRegion {
     |                   ^^^^^^
 
 warning: function `detach_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1002:15
+    --> src/ownership_proof/raw_vec.rs:1014:15
      |
-1002 | pub(crate) fn detach_vec(
+1014 | pub(crate) fn detach_vec(
      |               ^^^^^^^^^^
 
 warning: function `detach_boxed_slice` is never used
-    --> src/ownership_proof/raw_vec.rs:1090:15
+    --> src/ownership_proof/raw_vec.rs:1102:15
      |
-1090 | pub(crate) fn detach_boxed_slice(
+1102 | pub(crate) fn detach_boxed_slice(
      |               ^^^^^^^^^^^^^^^^^^
 
 warning: function `deallocate_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1219:22
+    --> src/ownership_proof/raw_vec.rs:1231:22
      |
-1219 | pub(crate) unsafe fn deallocate_vec(
+1231 | pub(crate) unsafe fn deallocate_vec(
      |                      ^^^^^^^^^^^^^^
 
 warning: function `deallocate_bound_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1254:22
+    --> src/ownership_proof/raw_vec.rs:1266:22
      |
-1254 | pub(crate) unsafe fn deallocate_bound_vec(
+1266 | pub(crate) unsafe fn deallocate_bound_vec(
      |                      ^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1303:22
+    --> src/ownership_proof/raw_vec.rs:1315:22
      |
-1303 | pub(crate) unsafe fn borrow_mut<'a>(
+1315 | pub(crate) unsafe fn borrow_mut<'a>(
      |                      ^^^^^^^^^^
 
 warning: function `slot_known_equivalence` is never used
-    --> src/ownership_proof/raw_vec.rs:1325:15
+    --> src/ownership_proof/raw_vec.rs:1337:15
      |
-1325 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+1337 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
      |               ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1364:22
+    --> src/ownership_proof/raw_vec.rs:1376:22
      |
-1364 | pub(crate) unsafe fn borrow_bound_mut<'a>(
+1376 | pub(crate) unsafe fn borrow_bound_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^
 
 warning: function `borrow_bound` is never used
-    --> src/ownership_proof/raw_vec.rs:1472:22
+    --> src/ownership_proof/raw_vec.rs:1484:22
      |
-1472 | pub(crate) unsafe fn borrow_bound<'a>(
+1484 | pub(crate) unsafe fn borrow_bound<'a>(
      |                      ^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound` is never used
-    --> src/ownership_proof/raw_vec.rs:1488:22
+    --> src/ownership_proof/raw_vec.rs:1500:22
      |
-1488 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
+1500 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
      |                      ^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1497:22
+    --> src/ownership_proof/raw_vec.rs:1509:22
      |
-1497 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
+1509 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
      |                      ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_uninit_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1505:22
+    --> src/ownership_proof/raw_vec.rs:1517:22
      |
-1505 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
+1517 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `with_capacity_bound` is never used
@@ -807,42 +825,42 @@ warning: method `contradicts_live_ticket` is never used
     |                   ^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: associated functions `new_promoted_pair`, `split_owner`, and `drop_owner` are never used
-   --> src/ownership_proof/ref_count_ledger.rs:495:19
+   --> src/ownership_proof/ref_count_ledger.rs:500:19
     |
 321 | impl OwnerLedger {
     | ---------------- associated functions in this implementation
 ...
-495 |     pub(crate) fn new_promoted_pair(
+500 |     pub(crate) fn new_promoted_pair(
     |                   ^^^^^^^^^^^^^^^^^
 ...
-592 |     pub(crate) fn split_owner(
+601 |     pub(crate) fn split_owner(
     |                   ^^^^^^^^^^^
 ...
-664 |     pub(crate) fn drop_owner(
+673 |     pub(crate) fn drop_owner(
     |                   ^^^^^^^^^^
 
 warning: function `map_op_fresh_singleton` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:729:4
+   --> src/ownership_proof/ref_count_ledger.rs:738:4
     |
-729 | fn map_op_fresh_singleton(
+738 | fn map_op_fresh_singleton(
     |    ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `contradict_two_tickets` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:775:15
+   --> src/ownership_proof/ref_count_ledger.rs:784:15
     |
-775 | pub(crate) fn contradict_two_tickets(
+784 | pub(crate) fn contradict_two_tickets(
     |               ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `normalize_singleton_insert` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:821:4
+   --> src/ownership_proof/ref_count_ledger.rs:830:4
     |
-821 | fn normalize_singleton_insert(
+830 | fn normalize_singleton_insert(
     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `factor_singleton_removal` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:860:4
+   --> src/ownership_proof/ref_count_ledger.rs:869:4
     |
-860 | fn factor_singleton_removal(
+869 | fn factor_singleton_removal(
     |    ^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: methods `close` and `contradicts_action` are never used
@@ -3000,5 +3018,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 331 warnings (run `cargo fix --lib -p bytes` to apply 40 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.60s
+warning: `bytes` (lib) generated 333 warnings (run `cargo fix --lib -p bytes` to apply 40 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.35s

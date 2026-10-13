@@ -721,6 +721,18 @@ impl PhysicalRegion {
         pearlite! { self.ledger.slot(index) }
     }
 
+    /// Every slot in a prefix of this physical region denotes a known byte.
+    /// This is a logical predicate only; the region's affine token still
+    /// carries the corresponding access authority.
+    #[logic(open(self))]
+    pub(crate) fn prefix_known(self, len: Int) -> bool {
+        pearlite! {
+            0 <= len && len <= self.capacity() &&
+            forall<index: Int> 0 <= index && index < len ==>
+                slot_known(self.slot(index))
+        }
+    }
+
     /// Split only the ledger. The allocation binding and non-objective marker
     /// are preserved unchanged in both returned fragments.
     #[check(ghost)]

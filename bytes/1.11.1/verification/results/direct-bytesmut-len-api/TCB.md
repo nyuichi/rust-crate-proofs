@@ -33,6 +33,28 @@ and consumed-owner transfer from verified Vec, allocator, and `ManuallyDrop`
 contracts; proving only `bind_consumed_vec` would leave that assumption in
 place.
 
+The source now also defines `VecStorage::resume_owned` as a narrow generic B2
+restoration boundary for a future unique-to-Shared producer proof. It consumes
+the matching existing `RawAllocation`, `Recovery`, and full-capacity
+`PhysicalRegion`, requires every slot in the restored Vec prefix to be known,
+and calls `Vec::from_raw_parts` exactly once before immediately wrapping the
+Vec in the opaque `NativeStoredVec(ManuallyDrop<Vec<u8>>)` field. Its contract
+preserves the same native pointer word, allocation base and capacity, every
+full-capacity slot (including known spare slots), the exact recovery resource
+and the exact full-region resource. It returns the corresponding
+`StoredAuthority`, region, and offset-zero `BoundPtr`; it returns no usable Vec
+and mints no B1 namespace, recovery, or region. The caller must have no
+outstanding physical borrow into the allocation. The boundary assumes the
+matching B1 tokens still represent the live original global-allocator `u8`
+allocation and that native `Vec::from_raw_parts` plus the opaque wrapper
+transfer its sole owner without changing allocation bytes. It states no Bytes
+owner, refcount, split, or reclamation rule. This adapter is not yet included
+in the recorded selected producer call cone, so the current saved proof does
+not establish its use by a BytesMut path. Removing this new assumption
+requires a generic Std/B2 contract for exact native owner reconstruction and
+full-allocation preservation, followed by a body proof of the opaque storage
+adoption and metadata binding.
+
 The selected `from_vec`, `with_capacity`, `new`, `zeroed`, `From<&[u8]>`,
 `From<&str>`, and `Default` bodies establish their specified initialized
 prefix and unknown spare slots. They also establish `unique_vec_rebuildable`:
@@ -213,3 +235,19 @@ movement under private packet predicates, whose allocation identity is bound
 to current protected storage as described above. The proof adds no trusted
 native count-to-ticket law,
 count-one exclusivity, terminal recovery, or allocation-lifecycle guarantee.
+
+The new `make_count_two_packets` target body-proves a generic count-two
+capsule constructor. Its precondition requires the exact supplied native
+counter permission and stored allocation authority, two distinct tickets
+bound to the same ledger and allocation with adjacent ranges, and an
+active-owner map covering the full allocation. The body puts that one ledger,
+storage authority, counter permission, terminal phase, and an empty pool into
+one `SharedState`, then returns packets carrying the actual two ticket and
+physical-region fragments cut from the full region; both packets share the
+same capsule. The generic `new_promoted_pair` constructor proves the matching
+full-range active-owner coverage for its particular `[0, cut)` and
+`[cut, capacity)` pair. These proofs establish constructor behavior under
+their stated preconditions. No original-source `BytesMut` split producer
+calls `make_count_two_packets` yet, and they prove no native split/refcount
+transition or public call chain. The separate `VecStorage::resume_owned`
+boundary remains trusted and is not called by this helper.

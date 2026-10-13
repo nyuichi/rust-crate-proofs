@@ -62,6 +62,7 @@ TARGETS = (
     "verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/close.coma",
     "verif/bytes_rlib/ownership_proof/terminal_phase/impl_PhaseAuthority/contradicts_action.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/make_count_one_packet.coma",
+    "verif/bytes_rlib/bytes_mut/shared_capsule/make_count_two_packets.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket/allocation_slot.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/advance_cursor.coma",
     "verif/bytes_rlib/ref_count_ops/impl_RefCountCell/new.coma",

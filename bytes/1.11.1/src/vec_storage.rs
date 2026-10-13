@@ -3,8 +3,10 @@
 //! This type keeps the original `Vec<u8>` value and allocation in place while
 //! the bytes crate exposes disjoint raw-pointer views. It deliberately has no
 //! `Deref`, slice conversion, or public vector access. The internal transfer
-//! methods are currently native runtime operations; their B1/B2/B3 proof-side
-//! authority contracts are still being developed.
+//! methods are native runtime operations. The proof-mode source defines a
+//! generic trusted B2 adapter for rebuilding an opaque storage owner from its
+//! matching B1 allocation and affine capabilities; this adapter does not add
+//! any bytes-specific owner or refcount rule.
 
 use alloc::vec::Vec;
 use core::{mem::ManuallyDrop, ptr::NonNull};
@@ -571,6 +573,115 @@ impl VecStorage {
             model,
         );
         (storage, witness)
+    }
+
+    /// Rebuild the exact Vec owner from matching B1 authority and retain it
+    /// immediately behind opaque storage.
+    ///
+    /// This generic B2 boundary consumes the old allocation descriptor,
+    /// recovery token, and full physical region. It calls
+    /// `Vec::from_raw_parts` once, then returns only `VecStorage`; no usable
+    /// `Vec` or duplicate allocation owner escapes. The returned
+    /// `StoredAuthority` contains the same raw descriptor and recovery token,
+    /// with the supplied logical length, while the returned region is the
+    /// exact same full-capacity resource and slot map. No fresh B1 namespace
+    /// or capability is minted here.
+    ///
+    /// # Safety
+    ///
+    /// `raw` and `capabilities` must be the matching, unconsumed B1 values
+    /// for the same live allocation. The region must cover the full
+    /// allocation, and every slot in `0..len` must be known initialized.
+    /// No physical borrow into the allocation may remain outstanding.
+    /// The B1 descriptor must identify the original global-allocator `u8`
+    /// allocation with a valid `Vec` capacity and non-wrapping address range.
+    ///
+    /// # Trusted interpretation (generic B2)
+    ///
+    /// The contract trusts that `Vec::from_raw_parts` and the immediate
+    /// `NativeStoredVec(ManuallyDrop<Vec<u8>>)` wrapper transfer the one
+    /// native owner without changing the allocation base, pointer word,
+    /// capacity, or any allocation byte.
+    /// The proof-side result preserves every full-capacity slot, including
+    /// known values beyond `len`, and returns the incoming affine recovery and
+    /// region resources unchanged. The only usable native owner is the
+    /// returned opaque `VecStorage`. This does not establish a Bytes owner,
+    /// refcount, handle-split, retirement, or reclamation law.
+    #[trusted]
+    #[requires(
+        raw.invariant() &&
+        capabilities.inner_logic().0.invariant() &&
+        capabilities.inner_logic().1.invariant() &&
+        capabilities.inner_logic().0.namespace() == raw.namespace() &&
+        capabilities.inner_logic().1.namespace() == raw.namespace() &&
+        capabilities.inner_logic().0.capacity() == raw.capacity() &&
+        capabilities.inner_logic().1.capacity() == raw.capacity() &&
+        capabilities.inner_logic().1.resource_id() == raw.namespace() &&
+        capabilities.inner_logic().1.lo() == 0 &&
+        capabilities.inner_logic().1.hi() == raw.capacity() &&
+        len@ <= raw.capacity() &&
+        raw.capacity() <= isize::MAX@ &&
+        raw.base_address() + raw.capacity() <= usize::MAX@ &&
+        capabilities.inner_logic().1.prefix_known(len@)
+    )]
+    #[ensures(result.0.invariant())]
+    #[ensures(result.0.matches_authority(result.1.inner_logic()))]
+    #[ensures(result.0.native_metadata() == (raw.raw_pointer(), len@, raw.capacity()))]
+    #[ensures(result.1.inner_logic().invariant())]
+    #[ensures(result.1.inner_logic().raw@ == raw@)]
+    #[ensures(result.1.inner_logic().raw.raw_pointer() == raw.raw_pointer())]
+    #[ensures(result.1.inner_logic().raw.base_address() == raw.base_address())]
+    #[ensures(result.1.inner_logic().raw.capacity() == raw.capacity())]
+    #[ensures(result.1.inner_logic().binding() == raw.namespace())]
+    #[ensures(result.1.inner_logic().stored_len() == len@)]
+    #[ensures(result.1.inner_logic().recovery@ == capabilities.inner_logic().0@)]
+    #[ensures(result.1.inner_logic().recovery.namespace() == raw.namespace())]
+    #[ensures(result.1.inner_logic().recovery.capacity() == raw.capacity())]
+    #[ensures(result.2.inner_logic().invariant())]
+    #[ensures(result.2.inner_logic()@ == capabilities.inner_logic().1@)]
+    #[ensures(result.2.inner_logic().namespace() == raw.namespace())]
+    #[ensures(result.2.inner_logic().capacity() == raw.capacity())]
+    #[ensures(result.2.inner_logic().resource_id() == capabilities.inner_logic().1.resource_id())]
+    #[ensures(result.2.inner_logic().lo() == 0)]
+    #[ensures(result.2.inner_logic().hi() == raw.capacity())]
+    #[ensures(forall<i: Int> 0 <= i && i < raw.capacity() ==>
+        result.2.inner_logic().slot(i) == capabilities.inner_logic().1.slot(i))]
+    #[ensures(result.3.invariant())]
+    #[ensures(result.3@ == Some((raw.namespace(), raw.capacity(), 0int)))]
+    #[ensures(result.3.raw_pointer() == raw.raw_pointer())]
+    #[ensures(result.3.current_address() == raw.base_address())]
+    pub(crate) unsafe fn resume_owned(
+        raw: RawAllocation,
+        len: usize,
+        capabilities: Ghost<(Recovery, PhysicalRegion)>,
+    ) -> (Self, Ghost<StoredAuthority>, Ghost<PhysicalRegion>, BoundPtr) {
+        let (base, capacity) = raw.bound_ptr_at_zero();
+        let binding = raw.namespace_ghost();
+        let pointer = base.as_non_null();
+        // SAFETY: B1 supplied the exact original allocation descriptor and
+        // the caller supplied its matching full-range affine capabilities.
+        // The trusted contract requires the restored prefix to be initialized.
+        let vec = unsafe { Vec::from_raw_parts(base.as_ptr(), len, capacity) };
+        let model: Ghost<Option<StorageModel>> = ghost! {
+            Some(StorageModel::Owned {
+                key: binding.into_inner(),
+                pointer,
+                len: raw_vec::int_from_usize(len).into_inner(),
+                capacity: raw_vec::int_from_usize(capacity).into_inner(),
+            })
+        };
+        let storage = Self(NativeStoredVec(ManuallyDrop::new(vec)), model);
+        let (recovery, region) = capabilities.split();
+        let ghost_raw = raw.into_ghost();
+        let authority: Ghost<StoredAuthority> = ghost! {
+            StoredAuthority {
+                raw: ghost_raw.into_inner(),
+                recovery: recovery.into_inner(),
+                binding: binding.into_inner(),
+                stored_len: len,
+            }
+        };
+        (storage, authority, region, base)
     }
 
     /// Consume a native Vec into storage plus its separately returned B1

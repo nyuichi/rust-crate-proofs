@@ -336,3 +336,165 @@ pub(crate) fn make_count_one_packet(
     let (capsule, ticket, region) = packet_parts.split();
     SharedOwnerPacket { capsule, ticket, region, base, cursor }
 }
+
+/// Build the two packets created when a unique Vec-backed handle is first
+/// split into two owners. The one shared capsule owns the exact native
+/// counter permission at value two, opaque Vec storage, pair ledger, and an
+/// empty pool. Its two packets receive the actual disjoint ticket fragments
+/// and physical-region fragments for `[0, cut)` and `[cut, capacity)`.
+#[requires(
+    root.inner_logic().invariant() &&
+    *root.inner_logic().ward() == header_id as *const Shared &&
+    owner.inner_logic().0.invariant() &&
+    (*root.inner_logic().val()).ref_count.counter_model() == *owner.inner_logic().0.ward() &&
+    owner.inner_logic().0.val() == 2usize && owner.inner_logic().1 == 2usize &&
+    !(*root.inner_logic().val()).ref_count.has_event_invariant() &&
+    storage.inner_logic().0.invariant() &&
+    (*root.inner_logic().val()).vec.matches_authority(storage.inner_logic().0) &&
+    ledger.inner_logic().0.invariant() && ledger.inner_logic().0.is_live() &&
+    ledger.inner_logic().0.agrees_with_value(2) && ledger.inner_logic().0.count() == 2 &&
+    ledger.inner_logic().0.allocation_binding() == (
+        storage.inner_logic().0.binding(), storage.inner_logic().0.raw_pointer(),
+        storage.inner_logic().0.capacity()) &&
+    ledger.inner_logic().0.ledger_id() == ledger.inner_logic().1.ledger_id() &&
+    ledger.inner_logic().0.ledger_id() == ledger.inner_logic().2.ledger_id() &&
+    ledger.inner_logic().1.invariant() && ledger.inner_logic().2.invariant() &&
+    ledger.inner_logic().0.has_ticket(ledger.inner_logic().1) &&
+    ledger.inner_logic().0.has_ticket(ledger.inner_logic().2) &&
+    ledger.inner_logic().1.owner_id() != ledger.inner_logic().2.owner_id() &&
+    ledger.inner_logic().1.owner_id() < ledger.inner_logic().0.next_id() &&
+    ledger.inner_logic().2.owner_id() < ledger.inner_logic().0.next_id() &&
+    ledger.inner_logic().1.allocation_binding() == ledger.inner_logic().0.allocation_binding() &&
+    ledger.inner_logic().2.allocation_binding() == ledger.inner_logic().0.allocation_binding() &&
+    ledger.inner_logic().1.owned_lo() == 0 && ledger.inner_logic().1.owned_hi() == *cut &&
+    ledger.inner_logic().2.owned_lo() == *cut &&
+    ledger.inner_logic().2.owned_hi() == storage.inner_logic().0.capacity() &&
+    (forall<index: Int>
+        active_owner_contains(ledger.inner_logic().0.active_ids(), index) ==
+            (0 <= index && index < storage.inner_logic().0.capacity())) &&
+    storage.inner_logic().1.invariant() &&
+    storage.inner_logic().1.namespace() == storage.inner_logic().0.binding() &&
+    storage.inner_logic().1.capacity() == storage.inner_logic().0.capacity() &&
+    storage.inner_logic().1.lo() == 0 &&
+    storage.inner_logic().1.hi() == storage.inner_logic().1.capacity() &&
+    0 <= *cut && *cut <= storage.inner_logic().1.capacity() &&
+    base.invariant() &&
+    base@ == Some((storage.inner_logic().1.namespace(), storage.inner_logic().1.capacity(), 0int)) &&
+    base.raw_pointer() == storage.inner_logic().0.raw_pointer() &&
+    left_cursor.invariant() && left_cursor@ != None &&
+    left_cursor@.unwrap_logic().0 == storage.inner_logic().1.namespace() &&
+    left_cursor@.unwrap_logic().1 == storage.inner_logic().1.capacity() &&
+    left_cursor@.unwrap_logic().2 <= *cut &&
+    left_cursor.current_address() == base.current_address() + left_cursor@.unwrap_logic().2 &&
+    right_cursor.invariant() && right_cursor@ != None &&
+    right_cursor@.unwrap_logic().0 == storage.inner_logic().1.namespace() &&
+    right_cursor@.unwrap_logic().1 == storage.inner_logic().1.capacity() &&
+    *cut <= right_cursor@.unwrap_logic().2 &&
+    right_cursor@.unwrap_logic().2 <= storage.inner_logic().1.capacity() &&
+    right_cursor.current_address() == base.current_address() + right_cursor@.unwrap_logic().2 &&
+    phase.inner_logic().0.invariant() && phase.inner_logic().0.is_open() &&
+    phase.inner_logic().1.invariant() &&
+    phase.inner_logic().1.resource_id() == phase.inner_logic().0.resource_id()
+)]
+#[ensures(result.0.invariant() && result.1.invariant())]
+#[ensures(result.0.capsule_public() == result.1.capsule_public())]
+#[ensures(result.0.capsule_public() == (
+    header_id as *mut (), (*root.inner_logic().val()).ref_count.counter_model(),
+    ledger.inner_logic().0.ledger_id(), phase.inner_logic().0.resource_id()))]
+#[ensures(result.0.capsule.inner_logic() == result.1.capsule.inner_logic())]
+#[ensures(result.0.base == base && result.1.base == base)]
+#[ensures(result.0.cursor == left_cursor && result.1.cursor == right_cursor)]
+#[ensures(result.0.ticket.inner_logic() == ledger.inner_logic().1)]
+#[ensures(result.1.ticket.inner_logic() == ledger.inner_logic().2)]
+#[ensures(result.0.region.inner_logic().invariant() && result.1.region.inner_logic().invariant())]
+#[ensures(result.0.region.inner_logic().namespace() == storage.inner_logic().1.namespace())]
+#[ensures(result.1.region.inner_logic().namespace() == storage.inner_logic().1.namespace())]
+#[ensures(result.0.region.inner_logic().capacity() == storage.inner_logic().1.capacity())]
+#[ensures(result.1.region.inner_logic().capacity() == storage.inner_logic().1.capacity())]
+#[ensures(result.0.region.inner_logic().resource_id() == storage.inner_logic().1.resource_id())]
+#[ensures(result.1.region.inner_logic().resource_id() == storage.inner_logic().1.resource_id())]
+#[ensures(result.0.region.inner_logic().lo() == 0 && result.0.region.inner_logic().hi() == *cut)]
+#[ensures(result.1.region.inner_logic().lo() == *cut &&
+    result.1.region.inner_logic().hi() == storage.inner_logic().1.capacity())]
+#[ensures(forall<i: Int> 0 <= i && i < *cut ==>
+    result.0.region.inner_logic().slot(i) == storage.inner_logic().1.slot(i))]
+#[ensures(forall<i: Int> *cut <= i && i < storage.inner_logic().1.capacity() ==>
+    result.1.region.inner_logic().slot(i) == storage.inner_logic().1.slot(i))]
+#[ensures(result.0.ticket.inner_logic().owner_id() !=
+    result.1.ticket.inner_logic().owner_id())]
+#[ensures(result.0.ticket.inner_logic().owned_lo() == result.0.region.inner_logic().lo() &&
+    result.0.ticket.inner_logic().owned_hi() == result.0.region.inner_logic().hi())]
+#[ensures(result.1.ticket.inner_logic().owned_lo() == result.1.region.inner_logic().lo() &&
+    result.1.ticket.inner_logic().owned_hi() == result.1.region.inner_logic().hi())]
+#[check(terminates)]
+pub(crate) fn make_count_two_packets(
+    header_id: *mut Shared,
+    root: Ghost<Box<Perm<*const Shared>>>,
+    owner: Ghost<(Perm<NativeCounter>, usize)>,
+    storage: Ghost<(StoredAuthority, PhysicalRegion)>,
+    ledger: Ghost<(OwnerLedger, OwnerTicket, OwnerTicket)>,
+    phase: Ghost<(PhaseAuthority, TerminalAction)>,
+    base: BoundPtr,
+    left_cursor: BoundPtr,
+    right_cursor: BoundPtr,
+    cut: Snapshot<Int>,
+) -> (SharedOwnerPacket, SharedOwnerPacket) {
+    let packet_parts = ghost! {
+        let root = root.into_inner();
+        let (owner, owner_value) = owner.into_inner();
+        let (storage, region) = storage.into_inner();
+        let (ledger, first_ticket, second_ticket) = ledger.into_inner();
+        let (phase, action) = phase.into_inner();
+        let cut = cut.into_ghost().into_inner();
+        proof_assert!(owner_value == 2usize && owner.val() == 2usize);
+        proof_assert!(ledger.count() == 2 && ledger.agrees_with_value(2));
+        proof_assert!(first_ticket.owner_id() != second_ticket.owner_id());
+        let pool = PhysicalPool::empty_from(&region);
+        let (first_region, second_region) = region.split_at(cut);
+        let ledger_id = snapshot!(ledger.ledger_id()).into_ghost().into_inner();
+        let phase_id = snapshot!(phase.resource_id()).into_ghost().into_inner();
+        let state = SharedState {
+            header_id,
+            counter_model: snapshot!(*owner.ward()),
+            ledger_id,
+            phase_id,
+            root: Some(root),
+            counter_owner: Some(owner),
+            storage: Some(storage),
+            pool: Some(pool),
+            ledger: Some(ledger),
+            retire: None,
+            phase,
+            terminal_action: Some(action),
+            value: 2,
+            closed: false,
+        };
+        proof_assert!(state.invariant() && state.protocol());
+        let invariant = AtomicInvariant::new(
+            Ghost::new(state),
+            snapshot!(BYTES_MUT_SHARED_CAPSULE()),
+        );
+        let capsule = GhostShared::new(invariant).into_inner();
+        let first_capsule = capsule.clone();
+        (first_capsule, first_ticket, first_region,
+            capsule, second_ticket, second_region)
+    };
+    let (first_capsule, first_ticket, first_region,
+        second_capsule, second_ticket, second_region) = packet_parts.split();
+    (
+        SharedOwnerPacket {
+            capsule: first_capsule,
+            ticket: first_ticket,
+            region: first_region,
+            base,
+            cursor: left_cursor,
+        },
+        SharedOwnerPacket {
+            capsule: second_capsule,
+            ticket: second_ticket,
+            region: second_region,
+            base,
+            cursor: right_cursor,
+        },
+    )
+}

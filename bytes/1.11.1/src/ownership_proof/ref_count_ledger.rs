@@ -481,9 +481,14 @@ impl OwnerLedger {
     #[ensures(result.inner_logic().0.allocation_binding() == binding.inner_logic())]
     #[ensures(result.inner_logic().0.count() == 2)]
     #[ensures(result.inner_logic().0.agrees_with_value(2))]
+    #[ensures(forall<index: Int>
+        active_owner_contains(result.inner_logic().0.active_ids(), index) ==
+            (0 <= index && index < binding.inner_logic().2))]
     #[ensures(result.inner_logic().1.invariant() && result.inner_logic().2.invariant())]
     #[ensures(result.inner_logic().0.has_ticket(result.inner_logic().1) &&
         result.inner_logic().0.has_ticket(result.inner_logic().2))]
+    #[ensures(result.inner_logic().1.ledger_id() == result.inner_logic().0.ledger_id() &&
+        result.inner_logic().2.ledger_id() == result.inner_logic().0.ledger_id())]
     #[ensures(result.inner_logic().1.allocation_binding() == binding.inner_logic() &&
         result.inner_logic().2.allocation_binding() == binding.inner_logic())]
     #[ensures(result.inner_logic().1.owner_id() == 0 && result.inner_logic().2.owner_id() == 1)]
@@ -527,6 +532,10 @@ impl OwnerLedger {
             allocation_binding: binding,
             authority: Some(authority),
         };
+        proof_assert!(forall<index: Int>
+            active_owner_contains(ledger.active_ids(), index) ==
+                (0 <= index && index < binding.2)
+        );
         let first = OwnerTicket::from_fragment(
             ledger_id,
             first_id,

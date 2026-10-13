@@ -89,7 +89,20 @@ body-proved `PhysicalPool::empty_from` constructor and its unit-normalization
 helper. The generic `retire` and `finish` operations also have body proofs, but
 no selected production path calls them to retire regions into the pool or
 recover a full region from it.
-They also prove the one-shot `RefCountCell` bootstrap extraction body, which
+
+This increment also body-proves `make_count_two_packets`, a generic constructor
+for one count-two capsule and its two owner packets. Under a precondition that
+the actual active-owner map covers the full allocation, it places the exact
+counter permission, stored authority, ledger, and empty physical pool into
+one shared state, then returns the actual disjoint ticket and physical-region
+fragments for `[0, cut)` and `[cut, capacity)`. `new_promoted_pair` proves that
+coverage for its pair of ranges. No native split producer calls this helper
+yet; it establishes no native split/refcount transition or public call chain.
+The generic `VecStorage::resume_owned` B2 restoration adapter is separately
+trusted and is not called here.
+
+The selected targets also prove the one-shot `RefCountCell` bootstrap
+extraction body, which
 moves its event permission and recorded scalar value out of the cell and leaves
 the proof-only sidecar detached. No production `Bytes` or `BytesMut` path calls
 that extraction yet; the selected scalar adapters still require the sidecar to
