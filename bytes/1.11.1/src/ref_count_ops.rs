@@ -330,6 +330,11 @@ mod proof {
 
     declare_namespace! { REF_COUNT_EVENT }
 
+    #[logic(open)]
+    pub(crate) fn event_namespace() -> creusot_std::ghost::invariant::Namespace {
+        REF_COUNT_EVENT()
+    }
+
     impl PermTarget for NativeCounter {
         type Value<'a>
             = usize
@@ -380,6 +385,7 @@ mod proof {
         #[requires(current.protocol() && current.agrees_with_value(owner.val()))]
         #[ensures(result.public() == (*owner.ward(), current.public()))]
         #[ensures(result.invariant())]
+        #[ensures(result.namespace() == event_namespace())]
         pub(crate) fn new(
             owner: Ghost<Perm<NativeCounter>>,
             current: Ghost<T>,
@@ -792,7 +798,7 @@ mod proof {
 }
 
 #[cfg(creusot)]
-pub(crate) use proof::{CounterProtocol, EventBoundInvariant};
+pub(crate) use proof::{event_namespace, CounterProtocol, EventBoundInvariant};
 
 #[cfg(creusot)]
 use proof::{observe_ref_count, update_ref_count, RefCountState};

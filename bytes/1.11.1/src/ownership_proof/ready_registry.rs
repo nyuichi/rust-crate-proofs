@@ -92,15 +92,16 @@ impl<R: UnitRA> ReadyCap<R> {
     /// through `Authority::update` keeps the fragment resource id stable, which
     /// preserves the key-to-fragment binding.
     #[check(ghost)]
-    #[requires(authority.id() == self.key.resource_id)]
-    #[requires(authority.id() == self.fragment.id())]
-    #[requires(update.premise(authority@, self.fragment@))]
-    #[ensures((^self).key.resource_id == self.key.resource_id)]
-    #[ensures((^self).key.slot == self.key.slot)]
+    #[requires(authority.id() == self.key().resource_id())]
+    #[requires(authority.id() == self.fragment_id())]
+    #[requires(update.premise(authority@, self.fragment_value()))]
+    #[ensures((^self).key() == self.key())]
+    #[ensures((^self).key().resource_id() == self.key().resource_id())]
+    #[ensures((^self).key().slot() == self.key().slot())]
     #[ensures((^authority).id() == authority.id())]
-    #[ensures((^self).fragment.id() == self.fragment.id())]
-    #[ensures((^authority)@ == update.update(authority@, self.fragment@).0)]
-    #[ensures((^self).fragment@ == update.update(authority@, self.fragment@).1)]
+    #[ensures((^self).fragment_id() == self.fragment_id())]
+    #[ensures((^authority)@ == update.update(authority@, self.fragment_value()).0)]
+    #[ensures((^self).fragment_value() == update.update(authority@, self.fragment_value()).1)]
     pub(crate) fn update<U: LocalUpdate<R>>(
         &mut self,
         authority: &mut Authority<R>,
@@ -218,6 +219,7 @@ impl<R: UnitRA> ReadyRegistry<R> {
     #[ensures((^self).invariant())]
     #[ensures(result.inner_logic().resource_id() == fragment.inner_logic().id())]
     #[ensures(result.inner_logic().slot() == self.entries().len())]
+    #[ensures(result.inner_logic().slot() >= 0)]
     #[ensures((^self).entries().len() == self.entries().len() + 1)]
     #[ensures((^self).contains_key(result.inner_logic()))]
     #[ensures(same_entry_state((^self).entry_state(result.inner_logic().slot()),
@@ -246,6 +248,8 @@ impl<R: UnitRA> ReadyRegistry<R> {
     #[requires(self.invariant() && self.contains_key(key))]
     #[ensures((^self).invariant())]
     #[ensures(result.inner_logic().invariant())]
+    #[ensures(result.inner_logic().key() == key)]
+    #[ensures(0 <= key.slot() && key.slot() < self.entries().len())]
     #[ensures(same_entry_state(Some(result.inner_logic().state()), self.entry_state(key.slot())))]
     #[ensures((^self).entry_state(key.slot()) == None)]
     #[ensures((^self).entries().len() == self.entries().len())]
@@ -256,6 +260,7 @@ impl<R: UnitRA> ReadyRegistry<R> {
             let entries = self.entries.borrow_mut().into_inner();
             let slot = entries.get_mut_ghost(key.slot).unwrap();
             let cap = core::mem::replace(slot, None).unwrap();
+            proof_assert!(cap.key == key);
             proof_assert!(cap.key.resource_id == key.resource_id && cap.key.slot == key.slot);
             cap
         }

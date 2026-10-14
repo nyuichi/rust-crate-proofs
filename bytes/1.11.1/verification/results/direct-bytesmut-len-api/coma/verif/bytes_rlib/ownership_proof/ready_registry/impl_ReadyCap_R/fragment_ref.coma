@@ -1,10 +1,10 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 79 4 79 60 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 87 4 87 60 *)
 
 (* ownership_proof::ready_registry::ReadyCap<R> *)
 
 type namespace_other
 
-type t_Namespace = Other namespace_other
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
 let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
@@ -36,13 +36,13 @@ let%span sra'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcoun
 let%span sra'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 233 14 233 39
 let%span sra'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 255 14 255 55
 let%span sra'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 241 14 241 41
-let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 80 8 80 33
-let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 79 32 79 36
-let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 77 14 77 61
-let%span sready_registry'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 78 14 78 60
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 88 8 88 33
+let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 87 32 87 36
+let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 85 14 85 61
+let%span sready_registry'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 86 14 86 60
 let%span sready_registry'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 61 8 61 26
 let%span sready_registry'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 66 20 66 34
-let%span sready_registry'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 110 12 110 76
+let%span sready_registry'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 119 12 119 76
 
 use creusot.prelude.Any
 use int.Int
@@ -68,7 +68,7 @@ function id_View_AuthViewRel_R (self: t_Resource_View_AuthViewRel_R) : t_Id
 
 function id_R (self: t_Fragment_R) : t_Id = [%#sauth] id_View_AuthViewRel_R self.f0
 
-predicate invariant_ReadyCap_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 108 4 108 30] (self: t_ReadyCap_R) =
+predicate invariant_ReadyCap_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 117 4 117 30] (self: t_ReadyCap_R) =
   [%#sready_registry'5] ge_log_Int self.key.slot 0 /\ id_R self.fragment = self.key.resource_id
 
 predicate inv_ReadyCap_R (_1: t_ReadyCap_R)
@@ -184,7 +184,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let fragment_ref_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 79 4 79 60]
+let fragment_ref_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 87 4 87 60]
   (self: t_ReadyCap_R) (return (x: t_Fragment_R)) =
 {[@stop_split] [@expl:fragment_ref 'self' type invariant] [%#sready_registry'0] inv_ref_ReadyCap_R self}
   (! bb0

@@ -6,7 +6,7 @@
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![allow(unexpected_cfgs)]
-#![cfg_attr(creusot, recursion_limit = "512")]
+#![cfg_attr(creusot, recursion_limit = "1024")]
 
 #![doc = r##"Provides abstractions for working with bytes.
 

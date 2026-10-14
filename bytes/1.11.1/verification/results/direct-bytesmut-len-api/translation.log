@@ -47,21 +47,21 @@ warning: unused import: `crate::buf::IntoIter`
    |     ^^^^^^^^^^^^^^^^^^^^
 
 warning: unused import: `string::String`
-  --> src/bytes_mut.rs:13:5
+  --> src/bytes_mut.rs:15:5
    |
-13 |     string::String,
+15 |     string::String,
    |     ^^^^^^^^^^^^^^
 
 warning: unused import: `IntoIter`
-  --> src/bytes_mut.rs:18:18
+  --> src/bytes_mut.rs:20:18
    |
-18 | use crate::buf::{IntoIter, UninitSlice};
+20 | use crate::buf::{IntoIter, UninitSlice};
    |                  ^^^^^^^^
 
 warning: unused import: `AtomicUsize`
-  --> src/bytes_mut.rs:28:44
+  --> src/bytes_mut.rs:32:44
    |
-28 | use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
+32 | use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
    |                                            ^^^^^^^^^^^
 
 warning: unused import: `Recovery`
@@ -70,51 +70,71 @@ warning: unused import: `Recovery`
 22 |         raw_vec::{BoundPtr, PhysicalPool, PhysicalRegion, Recovery},
    |                                                           ^^^^^^^^
 
+warning: unnecessary parentheses around method argument
+   --> src/bytes_mut/shared_capsule.rs:152:9
+    |
+152 |         (^context.inner_logic()),
+    |         ^                      ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+152 -         (^context.inner_logic()),
+152 +         ^context.inner_logic(),
+    |
+
+warning: unnecessary parentheses around method argument
+    --> src/bytes_mut/shared_capsule.rs:1321:5
+     |
+1321 |     (^context.inner_logic()), result.lease_key(),
+     |     ^                      ^
+     |
+help: remove these parentheses
+     |
+1321 -     (^context.inner_logic()), result.lease_key(),
+1321 +     ^context.inner_logic(), result.lease_key(),
+     |
+
+warning: unnecessary parentheses around method argument
+    --> src/bytes_mut/shared_capsule.rs:1506:5
+     |
+1506 |     (^context.inner_logic()), result.0.lease_key(),
+     |     ^                      ^
+     |
+help: remove these parentheses
+     |
+1506 -     (^context.inner_logic()), result.0.lease_key(),
+1506 +     ^context.inner_logic(), result.0.lease_key(),
+     |
+
+warning: unnecessary parentheses around function argument
+   --> src/bytes_mut.rs:528:5
+    |
+528 |     ((*prestate).buffer_prefix_known(upto@) ==
+    |     ^
+529 |         (*prestate).shared_slots_known_upto(upto@)))]
+    |                                                   ^
+    |
+help: remove these parentheses
+    |
+528 ~     (*prestate).buffer_prefix_known(upto@) ==
+529 ~         (*prestate).shared_slots_known_upto(upto@))]
+    |
+
 warning: unnecessary parentheses around function argument
    --> src/bytes_mut.rs:524:5
     |
 524 |     ((*prestate).buffer_prefix_known(upto@) ==
     |     ^
-525 |         (*prestate).shared_slots_known_upto(upto@)))]
-    |                                                   ^
-    |
-    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
-help: remove these parentheses
-    |
-524 ~     (*prestate).buffer_prefix_known(upto@) ==
-525 ~         (*prestate).shared_slots_known_upto(upto@))]
-    |
-
-warning: unnecessary parentheses around function argument
-   --> src/bytes_mut.rs:520:5
-    |
-520 |     ((*prestate).buffer_prefix_known(upto@) ==
-    |     ^
-521 |         (forall<i:Int> 0 <= i && i < upto@ ==>
-522 |             slot_known((*prestate).unique_slot(i)))))]
+525 |         (forall<i:Int> 0 <= i && i < upto@ ==>
+526 |             slot_known((*prestate).unique_slot(i)))))]
     |                                                    ^
     |
 help: remove these parentheses
     |
-520 ~     (*prestate).buffer_prefix_known(upto@) ==
-521 |         (forall<i:Int> 0 <= i && i < upto@ ==>
-522 ~             slot_known((*prestate).unique_slot(i))))]
-    |
-
-warning: unnecessary parentheses around function argument
-   --> src/bytes_mut.rs:528:9
-    |
-528 |         ((*prestate).buffer_prefix_known(upto@) ==
-    |         ^
-529 |             (forall<i:Int> 0 <= i && i < upto@ ==>
-530 |                 slot_known((*prestate).unique_slot(i)))));
-    |                                                        ^
-    |
-help: remove these parentheses
-    |
-528 ~         (*prestate).buffer_prefix_known(upto@) ==
-529 |             (forall<i:Int> 0 <= i && i < upto@ ==>
-530 ~                 slot_known((*prestate).unique_slot(i))));
+524 ~     (*prestate).buffer_prefix_known(upto@) ==
+525 |         (forall<i:Int> 0 <= i && i < upto@ ==>
+526 ~             slot_known((*prestate).unique_slot(i))))]
     |
 
 warning: unnecessary parentheses around function argument
@@ -122,397 +142,413 @@ warning: unnecessary parentheses around function argument
     |
 532 |         ((*prestate).buffer_prefix_known(upto@) ==
     |         ^
-533 |             (*prestate).shared_slots_known_upto(upto@)));
-    |                                                       ^
+533 |             (forall<i:Int> 0 <= i && i < upto@ ==>
+534 |                 slot_known((*prestate).unique_slot(i)))));
+    |                                                        ^
     |
 help: remove these parentheses
     |
 532 ~         (*prestate).buffer_prefix_known(upto@) ==
-533 ~             (*prestate).shared_slots_known_upto(upto@));
+533 |             (forall<i:Int> 0 <= i && i < upto@ ==>
+534 ~                 slot_known((*prestate).unique_slot(i))));
     |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:1374:13
+   --> src/bytes_mut.rs:536:9
+    |
+536 |         ((*prestate).buffer_prefix_known(upto@) ==
+    |         ^
+537 |             (*prestate).shared_slots_known_upto(upto@)));
+    |                                                       ^
+    |
+help: remove these parentheses
+    |
+536 ~         (*prestate).buffer_prefix_known(upto@) ==
+537 ~             (*prestate).shared_slots_known_upto(upto@));
+    |
+
+warning: unnecessary parentheses around function argument
+    --> src/bytes_mut.rs:1495:13
      |
-1374 |             ((^self).unique_valid() &&
+1495 |             ((^self).unique_valid() &&
      |             ^
 ...
-1383 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+1504 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
      |                                                                                     ^
      |
 help: remove these parentheses
      |
-1374 ~             (^self).unique_valid() &&
-1375 |              (^self).unique_pointer() == self.unique_pointer() &&
+1495 ~             (^self).unique_valid() &&
+1496 |              (^self).unique_pointer() == self.unique_pointer() &&
  ...
-1382 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
-1383 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
+1503 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+1504 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:1416:13
+    --> src/bytes_mut.rs:1537:13
      |
-1416 |             ((^self).unique_valid() &&
+1537 |             ((^self).unique_valid() &&
      |             ^
 ...
-1427 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+1548 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
      |                                                                                     ^
      |
 help: remove these parentheses
      |
-1416 ~             (^self).unique_valid() &&
-1417 |              (^self).unique_length() == 0 &&
+1537 ~             (^self).unique_valid() &&
+1538 |              (^self).unique_length() == 0 &&
  ...
-1426 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
-1427 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
+1547 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+1548 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:1501:13
+    --> src/bytes_mut.rs:1622:13
      |
-1501 |             ((^self).unique_valid() &&
+1622 |             ((^self).unique_valid() &&
      |             ^
 ...
-1509 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+1630 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
      |                                                                                     ^
      |
 help: remove these parentheses
      |
-1501 ~             (^self).unique_valid() &&
-1502 |              (^self).unique_pointer() == self.unique_pointer() &&
+1622 ~             (^self).unique_valid() &&
+1623 |              (^self).unique_pointer() == self.unique_pointer() &&
  ...
-1508 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
-1509 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
+1629 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+1630 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:1686:13
+    --> src/bytes_mut.rs:1807:13
      |
-1686 |             ((^self).unique_valid() &&
+1807 |             ((^self).unique_valid() &&
      |             ^
 ...
-1694 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
+1815 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))) &&
      |                                                                                     ^
      |
 help: remove these parentheses
      |
-1686 ~             (^self).unique_valid() &&
-1687 |              (^self).unique_pointer() == self.unique_pointer() &&
+1807 ~             (^self).unique_valid() &&
+1808 |              (^self).unique_pointer() == self.unique_pointer() &&
  ...
-1693 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
-1694 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
+1814 |              (forall<i:Int> 0 <= i && i < self.unique_allocation_capacity() ==>
+1815 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))) &&
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2292:13
+    --> src/bytes_mut.rs:2413:13
      |
-2292 |             ((^self).shared_bytes() == self.shared_bytes().subsequence(
+2413 |             ((^self).shared_bytes() == self.shared_bytes().subsequence(
      |             ^
-2293 |                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@))
+2414 |                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@))
      |                                                                                 ^
      |
 help: remove these parentheses
      |
-2292 ~             (^self).shared_bytes() == self.shared_bytes().subsequence(
-2293 ~                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@)
+2413 ~             (^self).shared_bytes() == self.shared_bytes().subsequence(
+2414 ~                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@)
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2287:13
+    --> src/bytes_mut.rs:2408:13
      |
-2287 |             (0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
+2408 |             (0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
      |             ^
-2288 |                 (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
-2289 |                     self.shared_proof.unwrap_logic().allocation_slot(i))))]
+2409 |                 (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
+2410 |                     self.shared_proof.unwrap_logic().allocation_slot(i))))]
      |                                                                        ^
      |
 help: remove these parentheses
      |
-2287 ~             0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
-2288 |                 (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
-2289 ~                     self.shared_proof.unwrap_logic().allocation_slot(i)))]
+2408 ~             0 <= i && i < self.shared_proof.unwrap_logic().region.inner_logic().capacity() ==>
+2409 |                 (^self).shared_proof.unwrap_logic().allocation_slot(i) ==
+2410 ~                     self.shared_proof.unwrap_logic().allocation_slot(i)))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2283:40
+    --> src/bytes_mut.rs:2404:40
      |
-2283 |         self.shared_layout_valid() ==> ((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@)
+2404 |         self.shared_layout_valid() ==> ((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@)
      |                                        ^                                                            ^
      |
 help: remove these parentheses
      |
-2283 -         self.shared_layout_valid() ==> ((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@)
-2283 +         self.shared_layout_valid() ==> (^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@
+2404 -         self.shared_layout_valid() ==> ((^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@)
+2404 +         self.shared_layout_valid() ==> (^self).ptr.addr_logic()@ == self.ptr.addr_logic()@ + count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2280:40
+    --> src/bytes_mut.rs:2401:40
      |
-2280 |         self.shared_layout_valid() ==> ((^self).cap@ + count@ == self.cap@)
+2401 |         self.shared_layout_valid() ==> ((^self).cap@ + count@ == self.cap@)
      |                                        ^                                  ^
      |
 help: remove these parentheses
      |
-2280 -         self.shared_layout_valid() ==> ((^self).cap@ + count@ == self.cap@)
-2280 +         self.shared_layout_valid() ==> (^self).cap@ + count@ == self.cap@
+2401 -         self.shared_layout_valid() ==> ((^self).cap@ + count@ == self.cap@)
+2401 +         self.shared_layout_valid() ==> (^self).cap@ + count@ == self.cap@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2276:40
+    --> src/bytes_mut.rs:2397:40
      |
-2276 |         self.shared_layout_valid() ==> ((^self).len@ ==
+2397 |         self.shared_layout_valid() ==> ((^self).len@ ==
      |                                        ^
-2277 |             (if count@ <= self.len@ { self.len@ - count@ } else { 0int }))
+2398 |             (if count@ <= self.len@ { self.len@ - count@ } else { 0int }))
      |                                                                          ^
      |
 help: remove these parentheses
      |
-2276 ~         self.shared_layout_valid() ==> (^self).len@ ==
-2277 ~             (if count@ <= self.len@ { self.len@ - count@ } else { 0int })
+2397 ~         self.shared_layout_valid() ==> (^self).len@ ==
+2398 ~             (if count@ <= self.len@ { self.len@ - count@ } else { 0int })
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2273:40
+    --> src/bytes_mut.rs:2394:40
      |
-2273 |         self.shared_layout_valid() ==> ((^self).data == self.data)
+2394 |         self.shared_layout_valid() ==> ((^self).data == self.data)
      |                                        ^                         ^
      |
 help: remove these parentheses
      |
-2273 -         self.shared_layout_valid() ==> ((^self).data == self.data)
-2273 +         self.shared_layout_valid() ==> (^self).data == self.data
+2394 -         self.shared_layout_valid() ==> ((^self).data == self.data)
+2394 +         self.shared_layout_valid() ==> (^self).data == self.data
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2242:13
+    --> src/bytes_mut.rs:2363:13
      |
-2242 |             ((^self).unique_bytes() == self.unique_bytes().subsequence(
+2363 |             ((^self).unique_bytes() == self.unique_bytes().subsequence(
      |             ^
-2243 |                 if count@ <= self.unique_length() { count@ } else { self.unique_length() },
-2244 |                 self.unique_length()))
+2364 |                 if count@ <= self.unique_length() { count@ } else { self.unique_length() },
+2365 |                 self.unique_length()))
      |                                      ^
      |
 help: remove these parentheses
      |
-2242 ~             (^self).unique_bytes() == self.unique_bytes().subsequence(
-2243 |                 if count@ <= self.unique_length() { count@ } else { self.unique_length() },
-2244 ~                 self.unique_length())
+2363 ~             (^self).unique_bytes() == self.unique_bytes().subsequence(
+2364 |                 if count@ <= self.unique_length() { count@ } else { self.unique_length() },
+2365 ~                 self.unique_length())
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2238:13
+    --> src/bytes_mut.rs:2359:13
      |
-2238 |             (0 <= i && i < self.unique_allocation_capacity() ==>
+2359 |             (0 <= i && i < self.unique_allocation_capacity() ==>
      |             ^
-2239 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))))]
+2360 |                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))))]
      |                                                                                    ^
      |
 help: remove these parentheses
      |
-2238 ~             0 <= i && i < self.unique_allocation_capacity() ==>
-2239 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
+2359 ~             0 <= i && i < self.unique_allocation_capacity() ==>
+2360 ~                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2234:13
+    --> src/bytes_mut.rs:2355:13
      |
-2234 |             (0 <= i && i < (^self).unique_capacity() ==>
+2355 |             (0 <= i && i < (^self).unique_capacity() ==>
      |             ^
-2235 |                 (^self).unique_slot(i) == self.unique_slot(count@ + i))))]
+2356 |                 (^self).unique_slot(i) == self.unique_slot(count@ + i))))]
      |                                                                       ^
      |
 help: remove these parentheses
      |
-2234 ~             0 <= i && i < (^self).unique_capacity() ==>
-2235 ~                 (^self).unique_slot(i) == self.unique_slot(count@ + i)))]
+2355 ~             0 <= i && i < (^self).unique_capacity() ==>
+2356 ~                 (^self).unique_slot(i) == self.unique_slot(count@ + i)))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2229:13
+    --> src/bytes_mut.rs:2350:13
      |
-2229 |             ((^self).unique_pointer().addr_logic()@ ==
+2350 |             ((^self).unique_pointer().addr_logic()@ ==
      |             ^
-2230 |                 self.unique_pointer().addr_logic()@ + count@)
+2351 |                 self.unique_pointer().addr_logic()@ + count@)
      |                                                             ^
      |
 help: remove these parentheses
      |
-2229 ~             (^self).unique_pointer().addr_logic()@ ==
-2230 ~                 self.unique_pointer().addr_logic()@ + count@
+2350 ~             (^self).unique_pointer().addr_logic()@ ==
+2351 ~                 self.unique_pointer().addr_logic()@ + count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2224:13
+    --> src/bytes_mut.rs:2345:13
      |
-2224 |             (((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ ==
+2345 |             (((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ ==
      |             ^
-2225 |                 self.unique_offset() + count@)
+2346 |                 self.unique_offset() + count@)
      |                                              ^
      |
 help: remove these parentheses
      |
-2224 ~             ((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ ==
-2225 ~                 self.unique_offset() + count@
+2345 ~             ((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET)@ ==
+2346 ~                 self.unique_offset() + count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2220:13
+    --> src/bytes_mut.rs:2341:13
      |
-2220 |             ((^self).unique_allocation_capacity() == self.unique_allocation_capacity())
+2341 |             ((^self).unique_allocation_capacity() == self.unique_allocation_capacity())
      |             ^                                                                         ^
      |
 help: remove these parentheses
      |
-2220 -             ((^self).unique_allocation_capacity() == self.unique_allocation_capacity())
-2220 +             (^self).unique_allocation_capacity() == self.unique_allocation_capacity()
+2341 -             ((^self).unique_allocation_capacity() == self.unique_allocation_capacity())
+2341 +             (^self).unique_allocation_capacity() == self.unique_allocation_capacity()
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2214:13
+    --> src/bytes_mut.rs:2335:13
      |
-2214 |             ((^self).unique_length() == if count@ <= self.unique_length() {
+2335 |             ((^self).unique_length() == if count@ <= self.unique_length() {
      |             ^
-2215 |                 self.unique_length() - count@
-2216 |             } else { 0 })
+2336 |                 self.unique_length() - count@
+2337 |             } else { 0 })
      |                         ^
      |
 help: remove these parentheses
      |
-2214 ~             (^self).unique_length() == if count@ <= self.unique_length() {
-2215 |                 self.unique_length() - count@
-2216 ~             } else { 0 }
+2335 ~             (^self).unique_length() == if count@ <= self.unique_length() {
+2336 |                 self.unique_length() - count@
+2337 ~             } else { 0 }
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2210:13
+    --> src/bytes_mut.rs:2331:13
      |
-2210 |             ((^self).unique_capacity() == self.unique_capacity() - count@)
+2331 |             ((^self).unique_capacity() == self.unique_capacity() - count@)
      |             ^                                                            ^
      |
 help: remove these parentheses
      |
-2210 -             ((^self).unique_capacity() == self.unique_capacity() - count@)
-2210 +             (^self).unique_capacity() == self.unique_capacity() - count@
+2331 -             ((^self).unique_capacity() == self.unique_capacity() - count@)
+2331 +             (^self).unique_capacity() == self.unique_capacity() - count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2206:13
+    --> src/bytes_mut.rs:2327:13
      |
-2206 |             ((^self).unique_offset() == self.unique_offset() + count@)
+2327 |             ((^self).unique_offset() == self.unique_offset() + count@)
      |             ^                                                        ^
      |
 help: remove these parentheses
      |
-2206 -             ((^self).unique_offset() == self.unique_offset() + count@)
-2206 +             (^self).unique_offset() == self.unique_offset() + count@
+2327 -             ((^self).unique_offset() == self.unique_offset() + count@)
+2327 +             (^self).unique_offset() == self.unique_offset() + count@
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2574:66
+    --> src/bytes_mut.rs:2770:66
      |
-2574 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
+2770 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2574 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
-2574 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> forall<i:Int>
+2770 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> forall<i:Int>
+2770 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> forall<i:Int>
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2568:66
+    --> src/bytes_mut.rs:2764:66
      |
-2568 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
+2764 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2568 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
-2568 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+2764 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+2764 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2567:66
+    --> src/bytes_mut.rs:2763:66
      |
-2567 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
+2763 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2567 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
-2567 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
+2763 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
+2763 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2566:66
+    --> src/bytes_mut.rs:2762:66
      |
-2566 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2762 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2566 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
-2566 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
+2762 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
+2762 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET == pos))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2565:66
+    --> src/bytes_mut.rs:2761:66
      |
-2565 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2761 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2565 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
-2565 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
+2761 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
+2761 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_allocation_capacity() == self.unique_allocation_capacity()))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2564:66
+    --> src/bytes_mut.rs:2760:66
      |
-2564 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2760 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2564 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_length() == self.unique_length()))]
-2564 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_length() == self.unique_length()))]
+2760 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_length() == self.unique_length()))]
+2760 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_length() == self.unique_length()))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2563:66
+    --> src/bytes_mut.rs:2759:66
      |
-2563 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2759 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2563 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_capacity() == self.unique_capacity()))]
-2563 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_capacity() == self.unique_capacity()))]
+2759 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_capacity() == self.unique_capacity()))]
+2759 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_capacity() == self.unique_capacity()))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2562:66
+    --> src/bytes_mut.rs:2758:66
      |
-2562 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2758 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2562 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_pointer() == self.unique_pointer()))]
-2562 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_pointer() == self.unique_pointer()))]
+2758 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_pointer() == self.unique_pointer()))]
+2758 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_pointer() == self.unique_pointer()))]
      |
 
 warning: unnecessary parentheses around function argument
-    --> src/bytes_mut.rs:2561:66
+    --> src/bytes_mut.rs:2757:66
      |
-2561 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
+2757 |     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_...
      |                                                                  ^                                           ^
      |
 help: remove these parentheses
      |
-2561 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_offset() == self.unique_offset()))]
-2561 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_offset() == self.unique_offset()))]
+2757 -     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> (^self).unique_offset() == self.unique_offset()))]
+2757 +     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(self.unique_valid() && pos@ <= MAX_VEC_POS@ ==> (^self).unique_offset() == self.unique_offset()))]
      |
 
 warning: unnecessary parentheses around method argument
@@ -539,40 +575,52 @@ help: remove these parentheses
 824 +     #[ensures((^ledger.inner_logic()).has_ticket(^ticket.inner_logic()))]
     |
 
-warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:638:17
+warning: unnecessary parentheses around method argument
+   --> src/ownership_proof/shared_context.rs:238:9
     |
-638 |                 (old == expected ==>
-    |                 ^
-...
-643 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
-    |                                                                                        ^
+238 |         (^context.inner_logic()),
+    |         ^                      ^
     |
 help: remove these parentheses
     |
-638 ~                 old == expected ==>
-639 |                     f.precondition((&mut s.current, old, new)) &&
-...
-642 |                         (^s).current.counter_model() == s.current.counter_model() &&
-643 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+238 -         (^context.inner_logic()),
+238 +         ^context.inner_logic(),
     |
 
 warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:693:17
+   --> src/ref_count_ops.rs:644:17
     |
-693 |                 (old == expected ==>
+644 |                 (old == expected ==>
     |                 ^
 ...
-698 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+649 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
     |                                                                                        ^
     |
 help: remove these parentheses
     |
-693 ~                 old == expected ==>
-694 |                     f.precondition((&mut s.current, old, new)) &&
+644 ~                 old == expected ==>
+645 |                     f.precondition((&mut s.current, old, new)) &&
 ...
-697 |                         (^s).current.counter_model() == s.current.counter_model() &&
-698 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+648 |                         (^s).current.counter_model() == s.current.counter_model() &&
+649 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+    |
+
+warning: unnecessary parentheses around function argument
+   --> src/ref_count_ops.rs:699:17
+    |
+699 |                 (old == expected ==>
+    |                 ^
+...
+704 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+    |                                                                                        ^
+    |
+help: remove these parentheses
+    |
+699 ~                 old == expected ==>
+700 |                     f.precondition((&mut s.current, old, new)) &&
+...
+703 |                         (^s).current.counter_model() == s.current.counter_model() &&
+704 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
     |
 
 warning: unused import: `borrow::Borrow`
@@ -582,15 +630,15 @@ warning: unused import: `borrow::Borrow`
    |     ^^^^^^^^^^^^^^
 
 warning: unused import: `Borrow`
-  --> src/bytes_mut.rs:11:14
+  --> src/bytes_mut.rs:13:14
    |
-11 |     borrow::{Borrow, BorrowMut},
+13 |     borrow::{Borrow, BorrowMut},
    |              ^^^^^^
 
 warning: unused import: `BorrowMut`
-  --> src/bytes_mut.rs:11:22
+  --> src/bytes_mut.rs:13:22
    |
-11 |     borrow::{Borrow, BorrowMut},
+13 |     borrow::{Borrow, BorrowMut},
    |                      ^^^^^^^^^
 
 warning: unused variable: `base`
@@ -632,9 +680,9 @@ warning: unused variable: `frame`
     |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_frame`
 
 warning: variable does not need to be mutable
-   --> src/ownership_proof/shared_context.rs:191:17
+   --> src/ownership_proof/shared_context.rs:251:17
     |
-191 |             let mut registry = context.ready.borrow_mut().into_inner();
+251 |             let mut registry = context.ready.borrow_mut().into_inner();
     |                 ----^^^^^^^^
     |                 |
     |                 help: remove this `mut`
@@ -642,28 +690,279 @@ warning: variable does not need to be mutable
     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
 
 warning: variable does not need to be mutable
-   --> src/ownership_proof/shared_context.rs:218:17
+   --> src/ownership_proof/shared_context.rs:280:17
     |
-218 |             let mut registry = context.ready.borrow_mut().into_inner();
+280 |             let mut registry = context.ready.borrow_mut().into_inner();
     |                 ----^^^^^^^^
     |                 |
     |                 help: remove this `mut`
 
 warning: variable does not need to be mutable
-   --> src/ownership_proof/shared_context.rs:248:17
+   --> src/ownership_proof/shared_context.rs:310:17
     |
-248 |             let mut registry = context.ready.borrow_mut().into_inner();
+310 |             let mut registry = context.ready.borrow_mut().into_inner();
     |                 ----^^^^^^^^
     |                 |
     |                 help: remove this `mut`
 
 warning: variable does not need to be mutable
-   --> src/ownership_proof/shared_context.rs:275:17
+   --> src/ownership_proof/shared_context.rs:337:17
     |
-275 |             let mut ready = context.ready.borrow_mut().into_inner();
+337 |             let mut ready = context.ready.borrow_mut().into_inner();
     |                 ----^^^^^
     |                 |
     |                 help: remove this `mut`
+
+warning: type `ownership_proof::shared_context::BorrowedSharedContext<'_, core::option::Option<creusot_std::logic::ra::excl::Excl<(creusot_std::logic::Id, core::option::Option<(creusot_std::logic::Int, *mut (), ref_count_ops::NativeCounter, creusot_std::logic::Id, creusot_std::logic::Id, vec_storage::StoredAuthority, vec_storage::VecStorage, usize, ownership_proof::ready_registry::ReadyKey)>)>>>` is more private than the item `bytes_mut::BytesMut::split_off`
+   --> src/bytes_mut.rs:908:5
+    |
+908 | /     pub fn split_off(
+909 | |         &mut self,
+910 | |         at: usize,
+911 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+912 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+913 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split_off` is reachable at visibility `pub`
+    |
+note: but type `ownership_proof::shared_context::BorrowedSharedContext<'_, core::option::Option<creusot_std::logic::ra::excl::Excl<(creusot_std::logic::Id, core::option::Option<(creusot_std::logic::Int, *mut (), ref_count_ops::NativeCounter, creusot_std::logic::Id, creusot_std::logic::Id, vec_storage::StoredAuthority, vec_storage::VecStorage, usize, ownership_proof::ready_registry::ReadyKey)>)>>>` is only usable at visibility `pub(crate)`
+   --> src/ownership_proof/shared_context.rs:26:1
+    |
+ 26 | pub(crate) struct BorrowedSharedContext<'view, R: UnitRA> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: `#[warn(private_interfaces)]` on by default
+
+warning: type `ref_count_ops::NativeCounter` is more private than the item `bytes_mut::BytesMut::split_off`
+   --> src/bytes_mut.rs:908:5
+    |
+908 | /     pub fn split_off(
+909 | |         &mut self,
+910 | |         at: usize,
+911 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+912 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+913 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split_off` is reachable at visibility `pub`
+    |
+note: but type `ref_count_ops::NativeCounter` is only usable at visibility `pub(crate)`
+   --> src/ref_count_ops.rs:19:1
+    |
+ 19 | pub(crate) struct NativeCounter(AtomicUsize);
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `vec_storage::StoredAuthority` is more private than the item `bytes_mut::BytesMut::split_off`
+   --> src/bytes_mut.rs:908:5
+    |
+908 | /     pub fn split_off(
+909 | |         &mut self,
+910 | |         at: usize,
+911 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+912 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+913 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split_off` is reachable at visibility `pub`
+    |
+note: but type `vec_storage::StoredAuthority` is only usable at visibility `pub(crate)`
+   --> src/vec_storage.rs:436:1
+    |
+436 | pub(crate) struct StoredAuthority {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `vec_storage::VecStorage` is more private than the item `bytes_mut::BytesMut::split_off`
+   --> src/bytes_mut.rs:908:5
+    |
+908 | /     pub fn split_off(
+909 | |         &mut self,
+910 | |         at: usize,
+911 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+912 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+913 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split_off` is reachable at visibility `pub`
+    |
+note: but type `vec_storage::VecStorage` is only usable at visibility `pub(crate)`
+   --> src/vec_storage.rs:423:1
+    |
+423 | pub(crate) struct VecStorage(
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `ownership_proof::ready_registry::ReadyKey` is more private than the item `bytes_mut::BytesMut::split_off`
+   --> src/bytes_mut.rs:908:5
+    |
+908 | /     pub fn split_off(
+909 | |         &mut self,
+910 | |         at: usize,
+911 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+912 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+913 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split_off` is reachable at visibility `pub`
+    |
+note: but type `ownership_proof::ready_registry::ReadyKey` is only usable at visibility `pub(crate)`
+   --> src/ownership_proof/ready_registry.rs:18:1
+    |
+ 18 | pub(crate) struct ReadyKey {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `ownership_proof::shared_context::BorrowedSharedContext<'_, core::option::Option<creusot_std::logic::ra::excl::Excl<(creusot_std::logic::Id, core::option::Option<(creusot_std::logic::Int, *mut (), ref_count_ops::NativeCounter, creusot_std::logic::Id, creusot_std::logic::Id, vec_storage::StoredAuthority, vec_storage::VecStorage, usize, ownership_proof::ready_registry::ReadyKey)>)>>>` is more private than the item `bytes_mut::BytesMut::split`
+   --> src/bytes_mut.rs:989:5
+    |
+989 | /     pub fn split(
+990 | |         &mut self,
+991 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+992 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+993 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split` is reachable at visibility `pub`
+    |
+note: but type `ownership_proof::shared_context::BorrowedSharedContext<'_, core::option::Option<creusot_std::logic::ra::excl::Excl<(creusot_std::logic::Id, core::option::Option<(creusot_std::logic::Int, *mut (), ref_count_ops::NativeCounter, creusot_std::logic::Id, creusot_std::logic::Id, vec_storage::StoredAuthority, vec_storage::VecStorage, usize, ownership_proof::ready_registry::ReadyKey)>)>>>` is only usable at visibility `pub(crate)`
+   --> src/ownership_proof/shared_context.rs:26:1
+    |
+ 26 | pub(crate) struct BorrowedSharedContext<'view, R: UnitRA> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `ref_count_ops::NativeCounter` is more private than the item `bytes_mut::BytesMut::split`
+   --> src/bytes_mut.rs:989:5
+    |
+989 | /     pub fn split(
+990 | |         &mut self,
+991 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+992 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+993 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split` is reachable at visibility `pub`
+    |
+note: but type `ref_count_ops::NativeCounter` is only usable at visibility `pub(crate)`
+   --> src/ref_count_ops.rs:19:1
+    |
+ 19 | pub(crate) struct NativeCounter(AtomicUsize);
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `vec_storage::StoredAuthority` is more private than the item `bytes_mut::BytesMut::split`
+   --> src/bytes_mut.rs:989:5
+    |
+989 | /     pub fn split(
+990 | |         &mut self,
+991 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+992 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+993 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split` is reachable at visibility `pub`
+    |
+note: but type `vec_storage::StoredAuthority` is only usable at visibility `pub(crate)`
+   --> src/vec_storage.rs:436:1
+    |
+436 | pub(crate) struct StoredAuthority {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `vec_storage::VecStorage` is more private than the item `bytes_mut::BytesMut::split`
+   --> src/bytes_mut.rs:989:5
+    |
+989 | /     pub fn split(
+990 | |         &mut self,
+991 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+992 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+993 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split` is reachable at visibility `pub`
+    |
+note: but type `vec_storage::VecStorage` is only usable at visibility `pub(crate)`
+   --> src/vec_storage.rs:423:1
+    |
+423 | pub(crate) struct VecStorage(
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `ownership_proof::ready_registry::ReadyKey` is more private than the item `bytes_mut::BytesMut::split`
+   --> src/bytes_mut.rs:989:5
+    |
+989 | /     pub fn split(
+990 | |         &mut self,
+991 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+992 | |         context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+993 | |     ) -> BytesMut {
+    | |_________________^ method `bytes_mut::BytesMut::split` is reachable at visibility `pub`
+    |
+note: but type `ownership_proof::ready_registry::ReadyKey` is only usable at visibility `pub(crate)`
+   --> src/ownership_proof/ready_registry.rs:18:1
+    |
+ 18 | pub(crate) struct ReadyKey {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `ownership_proof::shared_context::BorrowedSharedContext<'_, core::option::Option<creusot_std::logic::ra::excl::Excl<(creusot_std::logic::Id, core::option::Option<(creusot_std::logic::Int, *mut (), ref_count_ops::NativeCounter, creusot_std::logic::Id, creusot_std::logic::Id, vec_storage::StoredAuthority, vec_storage::VecStorage, usize, ownership_proof::ready_registry::ReadyKey)>)>>>` is more private than the item `bytes_mut::BytesMut::split_to`
+    --> src/bytes_mut.rs:1054:5
+     |
+1054 | /     pub fn split_to(
+1055 | |         &mut self,
+1056 | |         at: usize,
+1057 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+1058 | |         context: Option<Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>>,
+1059 | |     ) -> BytesMut {
+     | |_________________^ method `bytes_mut::BytesMut::split_to` is reachable at visibility `pub`
+     |
+note: but type `ownership_proof::shared_context::BorrowedSharedContext<'_, core::option::Option<creusot_std::logic::ra::excl::Excl<(creusot_std::logic::Id, core::option::Option<(creusot_std::logic::Int, *mut (), ref_count_ops::NativeCounter, creusot_std::logic::Id, creusot_std::logic::Id, vec_storage::StoredAuthority, vec_storage::VecStorage, usize, ownership_proof::ready_registry::ReadyKey)>)>>>` is only usable at visibility `pub(crate)`
+    --> src/ownership_proof/shared_context.rs:26:1
+     |
+  26 | pub(crate) struct BorrowedSharedContext<'view, R: UnitRA> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `ref_count_ops::NativeCounter` is more private than the item `bytes_mut::BytesMut::split_to`
+    --> src/bytes_mut.rs:1054:5
+     |
+1054 | /     pub fn split_to(
+1055 | |         &mut self,
+1056 | |         at: usize,
+1057 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+1058 | |         context: Option<Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>>,
+1059 | |     ) -> BytesMut {
+     | |_________________^ method `bytes_mut::BytesMut::split_to` is reachable at visibility `pub`
+     |
+note: but type `ref_count_ops::NativeCounter` is only usable at visibility `pub(crate)`
+    --> src/ref_count_ops.rs:19:1
+     |
+  19 | pub(crate) struct NativeCounter(AtomicUsize);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `vec_storage::StoredAuthority` is more private than the item `bytes_mut::BytesMut::split_to`
+    --> src/bytes_mut.rs:1054:5
+     |
+1054 | /     pub fn split_to(
+1055 | |         &mut self,
+1056 | |         at: usize,
+1057 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+1058 | |         context: Option<Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>>,
+1059 | |     ) -> BytesMut {
+     | |_________________^ method `bytes_mut::BytesMut::split_to` is reachable at visibility `pub`
+     |
+note: but type `vec_storage::StoredAuthority` is only usable at visibility `pub(crate)`
+    --> src/vec_storage.rs:436:1
+     |
+ 436 | pub(crate) struct StoredAuthority {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `vec_storage::VecStorage` is more private than the item `bytes_mut::BytesMut::split_to`
+    --> src/bytes_mut.rs:1054:5
+     |
+1054 | /     pub fn split_to(
+1055 | |         &mut self,
+1056 | |         at: usize,
+1057 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+1058 | |         context: Option<Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>>,
+1059 | |     ) -> BytesMut {
+     | |_________________^ method `bytes_mut::BytesMut::split_to` is reachable at visibility `pub`
+     |
+note: but type `vec_storage::VecStorage` is only usable at visibility `pub(crate)`
+    --> src/vec_storage.rs:423:1
+     |
+ 423 | pub(crate) struct VecStorage(
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type `ownership_proof::ready_registry::ReadyKey` is more private than the item `bytes_mut::BytesMut::split_to`
+    --> src/bytes_mut.rs:1054:5
+     |
+1054 | /     pub fn split_to(
+1055 | |         &mut self,
+1056 | |         at: usize,
+1057 | |         #[cfg(all(creusot, bytes_original_unique_gate))]
+1058 | |         context: Option<Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>>,
+1059 | |     ) -> BytesMut {
+     | |_________________^ method `bytes_mut::BytesMut::split_to` is reachable at visibility `pub`
+     |
+note: but type `ownership_proof::ready_registry::ReadyKey` is only usable at visibility `pub(crate)`
+    --> src/ownership_proof/ready_registry.rs:18:1
+     |
+  18 | pub(crate) struct ReadyKey {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: associated function `new` is never used
   --> src/buf/chain.rs:42:19
@@ -730,89 +1029,107 @@ warning: function `reallocate_u8` is never used
 25 | pub(crate) unsafe fn reallocate_u8(base: *mut u8, old_capacity: usize, capacity: usize) -> core::ptr::NonNull<u8> {
    |                      ^^^^^^^^^^^^^
 
-warning: associated items `activate`, `deactivate`, and `require_active_fragment` are never used
-   --> src/bytes_mut/shared_capsule.rs:156:8
+warning: function `header_lease_stamp_matches_key` is never used
+   --> src/bytes_mut/shared_capsule.rs:115:4
     |
-106 | impl HeaderLeaseAuthority {
+115 | fn header_lease_stamp_matches_key(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `activate`, `deactivate`, `require_active_fragment`, and `require_idle_cap` are never used
+   --> src/bytes_mut/shared_capsule.rs:199:8
+    |
+122 | impl HeaderLeaseAuthority {
     | ------------------------- associated items in this implementation
 ...
-156 |     fn activate(
+199 |     fn activate(
     |        ^^^^^^^^
 ...
-183 |     fn deactivate(
+248 |     fn deactivate(
     |        ^^^^^^^^^^
 ...
-210 |     fn require_active_fragment(
+287 |     fn require_active_fragment(
     |        ^^^^^^^^^^^^^^^^^^^^^^^
+...
+311 |     fn require_idle_cap(&self, cap: &ReadyCap<HeaderLeaseState>) {
+    |        ^^^^^^^^^^^^^^^^
 
 warning: function `same_stored_authority` is never used
-   --> src/bytes_mut/shared_capsule.rs:245:4
+   --> src/bytes_mut/shared_capsule.rs:332:4
     |
-245 | fn same_stored_authority(left: StoredAuthority, right: StoredAuthority) -> bool {
+332 | fn same_stored_authority(left: StoredAuthority, right: StoredAuthority) -> bool {
     |    ^^^^^^^^^^^^^^^^^^^^^
 
 warning: struct `SharedHeaderReadLoan` is never constructed
-   --> src/bytes_mut/shared_capsule.rs:429:19
+   --> src/bytes_mut/shared_capsule.rs:521:19
     |
-429 | pub(crate) struct SharedHeaderReadLoan {
+521 | pub(crate) struct SharedHeaderReadLoan {
     |                   ^^^^^^^^^^^^^^^^^^^^
 
 warning: method `valid` is never used
-   --> src/bytes_mut/shared_capsule.rs:445:8
+   --> src/bytes_mut/shared_capsule.rs:538:8
     |
-443 | impl SharedHeaderReadLoan {
+536 | impl SharedHeaderReadLoan {
     | ------------------------- method in this implementation
-444 |     #[logic(open(self), prophetic)]
-445 |     fn valid(self) -> bool {
+537 |     #[logic(open(self), prophetic)]
+538 |     fn valid(self) -> bool {
     |        ^^^^^
 
-warning: associated items `prove_public_lease_resource_id`, `prove_root_some_implies_lease_idle`, `prove_current_header_lease`, `take_header_read_loan`, and `restore_header_read_loan` are never used
-   --> src/bytes_mut/shared_capsule.rs:484:8
+warning: multiple associated items are never used
+   --> src/bytes_mut/shared_capsule.rs:582:8
     |
-477 | impl SharedPayload {
+575 | impl SharedPayload {
     | ------------------ associated items in this implementation
 ...
-484 |     fn prove_public_lease_resource_id(&self, expected: Snapshot<Id>) {
+582 |     fn prove_public_lease_resource_id(&self, expected: Snapshot<Id>) {
     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-494 |     fn prove_root_some_implies_lease_idle(&self) {
+589 |     fn prove_public_lease_key(&self, expected: Snapshot<ReadyKey>) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+...
+599 |     fn prove_root_some_implies_lease_idle(&self) {
     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-532 |     fn prove_current_header_lease(
+612 |     fn prove_live_owner_ticket(&self, ticket: &OwnerTicket) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+...
+631 |     fn prove_idle_cap_implies_root_some(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+697 |     fn prove_current_header_lease(
     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-619 |     pub(crate) fn take_header_read_loan(
+793 |     pub(crate) fn take_header_read_loan(
     |                   ^^^^^^^^^^^^^^^^^^^^^
 ...
-686 |     pub(crate) fn restore_header_read_loan(
+873 |     pub(crate) fn restore_header_read_loan(
     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `loaned_native_counter` is never used
-   --> src/bytes_mut/shared_capsule.rs:722:15
+   --> src/bytes_mut/shared_capsule.rs:910:15
     |
-722 | pub(crate) fn loaned_native_counter<'a>(
+910 | pub(crate) fn loaned_native_counter<'a>(
     |               ^^^^^^^^^^^^^^^^^^^^^
 
-warning: method `lease_resource_id` is never used
-   --> src/bytes_mut/shared_capsule.rs:758:19
+warning: method `lease_key_ghost` is never used
+   --> src/bytes_mut/shared_capsule.rs:959:19
     |
-743 | impl SharedOwnerPacket {
+932 | impl SharedOwnerPacket {
     | ---------------------- method in this implementation
 ...
-758 |     pub(crate) fn lease_resource_id(&self) -> Id {
-    |                   ^^^^^^^^^^^^^^^^^
+959 |     pub(crate) fn lease_key_ghost(&self) -> Ghost<ReadyKey> {
+    |                   ^^^^^^^^^^^^^^^
 
 warning: methods `try_take_header_read_loan` and `try_restore_header_read_loan` are never used
-   --> src/bytes_mut/shared_capsule.rs:871:19
-    |
-809 | impl SharedOwnerPacket {
-    | ---------------------- methods in this implementation
+    --> src/bytes_mut/shared_capsule.rs:1098:19
+     |
+1013 | impl SharedOwnerPacket {
+     | ---------------------- methods in this implementation
 ...
-871 |     pub(crate) fn try_take_header_read_loan(
-    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+1098 |     pub(crate) fn try_take_header_read_loan(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-932 |     pub(crate) fn try_restore_header_read_loan(
-    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1201 |     pub(crate) fn try_restore_header_read_loan(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `vec_pos_from_data` is never used
    --> src/capacity_ops.rs:133:15
@@ -1128,100 +1445,34 @@ warning: methods `close` and `contradicts_action` are never used
 121 |     pub(crate) fn contradicts_action(&self, action: &TerminalAction) {
     |                   ^^^^^^^^^^^^^^^^^^
 
-warning: struct `ReadyKey` is never constructed
-  --> src/ownership_proof/ready_registry.rs:18:19
-   |
-18 | pub(crate) struct ReadyKey {
-   |                   ^^^^^^^^
-
-warning: methods `resource_id` and `slot` are never used
-  --> src/ownership_proof/ready_registry.rs:25:19
-   |
-23 | impl ReadyKey {
-   | ------------- methods in this implementation
-24 |     #[logic(open(self))]
-25 |     pub(crate) fn resource_id(self) -> Id {
-   |                   ^^^^^^^^^^^
-...
-30 |     pub(crate) fn slot(self) -> Int {
-   |                   ^^^^
-
-warning: struct `ReadyCap` is never constructed
-  --> src/ownership_proof/ready_registry.rs:37:19
-   |
-37 | pub(crate) struct ReadyCap<R: UnitRA> {
-   |                   ^^^^^^^^
-
-warning: methods `state`, `fragment_id`, `fragment_value`, `key`, `fragment_ref`, and `update` are never used
-  --> src/ownership_proof/ready_registry.rs:51:19
-   |
-43 | impl<R: UnitRA> ReadyCap<R> {
-   | --------------------------- methods in this implementation
-...
-51 |     pub(crate) fn state(self) -> (Id, Int, Id, R) {
-   |                   ^^^^^
-...
-60 |     pub(crate) fn fragment_id(self) -> Id {
-   |                   ^^^^^^^^^^^
-...
-65 |     pub(crate) fn fragment_value(self) -> R {
-   |                   ^^^^^^^^^^^^^^
-...
-70 |     pub(crate) fn key(self) -> ReadyKey {
-   |                   ^^^
-...
-79 |     pub(crate) fn fragment_ref(&self) -> Ghost<&Fragment<R>> {
-   |                   ^^^^^^^^^^^^
-...
-96 |     pub(crate) fn update<U: LocalUpdate<R>>(
-   |                   ^^^^^^
-
-warning: struct `ReadyRegistry` is never constructed
-   --> src/ownership_proof/ready_registry.rs:118:19
+warning: methods `key_ghost`, `fragment_ref`, and `update` are never used
+   --> src/ownership_proof/ready_registry.rs:78:19
     |
-118 | pub(crate) struct ReadyRegistry<R: UnitRA> {
-    |                   ^^^^^^^^^^^^^
+ 43 | impl<R: UnitRA> ReadyCap<R> {
+    | --------------------------- methods in this implementation
+...
+ 78 |     pub(crate) fn key_ghost(&self) -> Ghost<ReadyKey> {
+    |                   ^^^^^^^^^
+...
+ 87 |     pub(crate) fn fragment_ref(&self) -> Ghost<&Fragment<R>> {
+    |                   ^^^^^^^^^^^^
+...
+105 |     pub(crate) fn update<U: LocalUpdate<R>>(
+    |                   ^^^^^^
 
-warning: function `same_entry_state` is never used
-   --> src/ownership_proof/ready_registry.rs:124:4
+warning: associated items `new`, `take`, and `return_cap` are never used
+   --> src/ownership_proof/ready_registry.rs:207:19
     |
-124 | fn same_entry_state<R: UnitRA>(
-    |    ^^^^^^^^^^^^^^^^
-
-warning: multiple associated items are never used
-   --> src/ownership_proof/ready_registry.rs:142:8
-    |
-140 | impl<R: UnitRA> ReadyRegistry<R> {
+149 | impl<R: UnitRA> ReadyRegistry<R> {
     | -------------------------------- associated items in this implementation
-141 |     #[logic(open(self))]
-142 |     fn entries(self) -> Seq<Option<ReadyCap<R>>> {
-    |        ^^^^^^^
 ...
-151 |     pub(crate) fn len(self) -> Int {
+207 |     pub(crate) fn new() -> Ghost<Self> {
     |                   ^^^
 ...
-158 |     fn entry_state_model(self, slot: Int) -> Option<(Id, Int, Id, R)> {
-    |        ^^^^^^^^^^^^^^^^^
-...
-169 |     pub(crate) fn entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
-    |                   ^^^^^^^^^^^
-...
-174 |     fn contains_key(self, key: ReadyKey) -> bool {
-    |        ^^^^^^^^^^^^
-...
-191 |     pub(crate) fn has_key(self, key: ReadyKey) -> bool {
-    |                   ^^^^^^^
-...
-198 |     pub(crate) fn new() -> Ghost<Self> {
-    |                   ^^^
-...
-220 |     pub(crate) fn register(&mut self, fragment: Ghost<Fragment<R>>) -> Ghost<ReadyKey> {
-    |                   ^^^^^^^^
-...
-246 |     pub(crate) fn take(&mut self, key: ReadyKey) -> Ghost<ReadyCap<R>> {
+258 |     pub(crate) fn take(&mut self, key: ReadyKey) -> Ghost<ReadyCap<R>> {
     |                   ^^^^
 ...
-271 |     pub(crate) fn return_cap(&mut self, cap: Ghost<ReadyCap<R>>) -> Ghost<()> {
+284 |     pub(crate) fn return_cap(&mut self, cap: Ghost<ReadyCap<R>>) -> Ghost<()> {
     |                   ^^^^^^^^^^
 
 warning: struct `OwnedSharedContext` is never constructed
@@ -1230,73 +1481,55 @@ warning: struct `OwnedSharedContext` is never constructed
 18 | pub(crate) struct OwnedSharedContext<'ctx, R: UnitRA> {
    |                   ^^^^^^^^^^^^^^^^^^
 
-warning: struct `BorrowedSharedContext` is never constructed
-  --> src/ownership_proof/shared_context.rs:26:19
-   |
-26 | pub(crate) struct BorrowedSharedContext<'view, R: UnitRA> {
-   |                   ^^^^^^^^^^^^^^^^^^^^^
-
 warning: associated items `token_namespaces`, `ready_len`, `ready_entry_state`, `ready_has_key`, `from_tokens`, and `reborrow_view` are never used
-  --> src/ownership_proof/shared_context.rs:38:19
+  --> src/ownership_proof/shared_context.rs:37:19
    |
 34 | impl<'ctx, R: UnitRA> OwnedSharedContext<'ctx, R> {
    | ------------------------------------------------- associated items in this implementation
 ...
-38 |     pub(crate) fn token_namespaces(self) -> Set<Namespace> {
+37 |     pub(crate) fn token_namespaces(self) -> Set<Namespace> {
    |                   ^^^^^^^^^^^^^^^^
 ...
-46 |     pub(crate) fn ready_len(self) -> Int {
+44 |     pub(crate) fn ready_len(self) -> Int {
    |                   ^^^^^^^^^
 ...
-54 |     pub(crate) fn ready_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
+51 |     pub(crate) fn ready_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
    |                   ^^^^^^^^^^^^^^^^^
 ...
-60 |     pub(crate) fn ready_has_key(self, key: ReadyKey) -> bool {
+56 |     pub(crate) fn ready_has_key(self, key: ReadyKey) -> bool {
    |                   ^^^^^^^^^^^^^
 ...
-72 |     pub(crate) fn from_tokens(tokens: Ghost<Tokens<'ctx>>) -> Ghost<Self> {
+67 |     pub(crate) fn from_tokens(tokens: Ghost<Tokens<'ctx>>) -> Ghost<Self> {
    |                   ^^^^^^^^^^^
 ...
-95 |     pub(crate) fn reborrow_view<'view>(
+90 |     pub(crate) fn reborrow_view<'view>(
    |                   ^^^^^^^^^^^^^
 
 warning: multiple associated items are never used
-   --> src/ownership_proof/shared_context.rs:110:19
+   --> src/ownership_proof/shared_context.rs:180:19
     |
-107 | impl<'view, R: UnitRA> BorrowedSharedContext<'view, R> {
+102 | impl<'view, R: UnitRA> BorrowedSharedContext<'view, R> {
     | ------------------------------------------------------ associated items in this implementation
 ...
-110 |     pub(crate) fn token_namespaces(self) -> Set<Namespace> {
-    |                   ^^^^^^^^^^^^^^^^
+180 |     pub(crate) fn ready_has_key_ghost(&self, key: ReadyKey) -> Ghost<bool> {
+    |                   ^^^^^^^^^^^^^^^^^^^
 ...
-116 |     pub(crate) fn ready_len(self) -> Int {
-    |                   ^^^^^^^^^
-...
-122 |     pub(crate) fn ready_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
-    |                   ^^^^^^^^^^^^^^^^^
-...
-128 |     pub(crate) fn ready_has_key(self, key: ReadyKey) -> bool {
-    |                   ^^^^^^^^^^^^^
-...
-135 |     pub(crate) fn ready_final_len(self) -> Int {
+189 |     pub(crate) fn ready_final_len(self) -> Int {
     |                   ^^^^^^^^^^^^^^^
 ...
-140 |     pub(crate) fn ready_final_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
+194 |     pub(crate) fn ready_final_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
     |                   ^^^^^^^^^^^^^^^^^^^^^^^
 ...
-154 |     pub(crate) fn reborrow_tokens<'short>(
+208 |     pub(crate) fn reborrow_tokens<'short>(
     |                   ^^^^^^^^^^^^^^^
 ...
-182 |     pub(crate) fn register<'short>(
-    |                   ^^^^^^^^
-...
-209 |     pub(crate) fn take<'short>(
+271 |     pub(crate) fn take<'short>(
     |                   ^^^^
 ...
-239 |     pub(crate) fn return_cap<'short>(
+301 |     pub(crate) fn return_cap<'short>(
     |                   ^^^^^^^^^^
 ...
-266 |     pub(crate) fn reborrow<'short>(
+328 |     pub(crate) fn reborrow<'short>(
     |                   ^^^^^^^^
 
 warning: methods `counter_reference`, `native_counter`, and `take_bootstrap_owner` are never used
@@ -1314,19 +1547,16 @@ warning: methods `counter_reference`, `native_counter`, and `take_bootstrap_owne
 182 |     pub(crate) fn take_bootstrap_owner(
     |                   ^^^^^^^^^^^^^^^^^^^^
 
-warning: methods `namespace`, `open_with_tokens`, and `into_inner` are never used
-   --> src/ref_count_ops.rs:395:23
+warning: methods `open_with_tokens` and `into_inner` are never used
+   --> src/ref_count_ops.rs:450:23
     |
-377 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
+382 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
     |     ----------------------------------------------- methods in this implementation
 ...
-395 |         pub(crate) fn namespace(self) -> creusot_std::ghost::invariant::Namespace {
-    |                       ^^^^^^^^^
-...
-444 |         pub(crate) fn open_with_tokens<A, F>(
+450 |         pub(crate) fn open_with_tokens<A, F>(
     |                       ^^^^^^^^^^^^^^^^
 ...
-484 |         pub(crate) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
+490 |         pub(crate) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
     |                       ^^^^^^^^^^
 
 warning: calling external function `is_empty` with no contract will yield an impossible precondition
@@ -3374,63 +3604,63 @@ warning: calling external function `from_raw_parts` with no contract will yield 
      |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1839:5
+    --> src/bytes.rs:1847:5
      |
-1839 |     core::ptr::null::<u8>().wrapping_add(ptr)
+1847 |     core::ptr::null::<u8>().wrapping_add(ptr)
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:1474:18
+    --> src/bytes_mut.rs:1595:18
      |
-1474 |         unsafe { ptr::write_bytes(dst, value, additional) };
+1595 |         unsafe { ptr::write_bytes(dst, value, additional) };
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2174:18
+    --> src/bytes_mut.rs:2295:18
      |
-2174 |         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
+2295 |         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts_mut` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2179:18
+    --> src/bytes_mut.rs:2300:18
      |
-2179 |         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
+2300 |         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
      |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `add` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2465:28
+    --> src/bytes_mut.rs:2661:28
      |
-2465 |         let ptr = unsafe { self.ptr.as_ptr().add(self.len) };
+2661 |         let ptr = unsafe { self.ptr.as_ptr().add(self.len) };
      |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2784:13
+    --> src/bytes_mut.rs:2989:13
      |
-2784 |             ptr::write_bytes(dst.as_mut_ptr(), val, cnt);
+2989 |             ptr::write_bytes(dst.as_mut_ptr(), val, cnt);
      |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `hash` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2900:9
+    --> src/bytes_mut.rs:3105:9
      |
-2900 |         s.hash(state);
+3105 |         s.hash(state);
      |         ^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:2931:9
+    --> src/bytes_mut.rs:3136:9
      |
-2931 |         fmt::write(self, args)
+3136 |         fmt::write(self, args)
      |         ^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `sub` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:3662:15
+    --> src/bytes_mut.rs:3867:15
      |
-3662 |     let ptr = ptr.sub(off);
+3867 |     let ptr = ptr.sub(off);
      |               ^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes_mut.rs:3666:5
+    --> src/bytes_mut.rs:3871:5
      |
-3666 |     Vec::from_raw_parts(ptr, len, cap)
+3871 |     Vec::from_raw_parts(ptr, len, cap)
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `contains` with no contract will yield an impossible precondition
@@ -3451,5 +3681,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 365 warnings (run `cargo fix --lib -p bytes` to apply 54 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.45s
+warning: `bytes` (lib) generated 379 warnings (run `cargo fix --lib -p bytes` to apply 58 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.15s

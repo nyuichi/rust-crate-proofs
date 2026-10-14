@@ -32,31 +32,27 @@ pub(crate) struct BorrowedSharedContext<'view, R: UnitRA> {
 }
 
 impl<'ctx, R: UnitRA> OwnedSharedContext<'ctx, R> {
-    /// Opaque projection used to frame the exact token namespaces.
-    #[logic(opaque)]
-    #[ensures(result == self.tokens.namespaces())]
+    /// Exact projection used to frame the caller's token namespaces.
+    #[logic(open(self))]
     pub(crate) fn token_namespaces(self) -> Set<Namespace> {
-        self.tokens.namespaces()
+        self.tokens.inner_logic().namespaces()
     }
 
-    /// Opaque registry length for contracts on methods that receive the
+    /// Exact registry length for contracts on methods that receive the
     /// owning context. The registry itself remains private and affine.
-    #[logic(opaque)]
-    #[ensures(result == self.ready.inner_logic().len())]
+    #[logic(open(self))]
     pub(crate) fn ready_len(self) -> Int {
         self.ready.inner_logic().len()
     }
 
     /// Exact logical state at one stable slot, including the actual fragment
     /// identity and complete RA value.
-    #[logic(opaque)]
-    #[ensures(result == self.ready.inner_logic().entry_state(slot))]
+    #[logic(open(self))]
     pub(crate) fn ready_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
         self.ready.inner_logic().entry_state(slot)
     }
 
-    #[logic(opaque)]
-    #[ensures(result == self.ready.inner_logic().has_key(key))]
+    #[logic(open(self))]
     pub(crate) fn ready_has_key(self, key: ReadyKey) -> bool {
         self.ready.inner_logic().has_key(key)
     }
@@ -66,8 +62,7 @@ impl<'ctx, R: UnitRA> OwnedSharedContext<'ctx, R> {
     #[check(ghost)]
     #[requires(tokens.invariant())]
     #[ensures(result.inner_logic().invariant())]
-    #[ensures(result.inner_logic().ready.invariant())]
-    #[ensures(result.inner_logic().ready.inner_logic().len() == 0)]
+    #[ensures(result.inner_logic().ready_len() == 0)]
     #[ensures(result.inner_logic().token_namespaces() == tokens.inner_logic().namespaces())]
     pub(crate) fn from_tokens(tokens: Ghost<Tokens<'ctx>>) -> Ghost<Self> {
         ghost! {
@@ -105,28 +100,76 @@ impl<'ctx, R: UnitRA> OwnedSharedContext<'ctx, R> {
 }
 
 impl<'view, R: UnitRA> BorrowedSharedContext<'view, R> {
-    #[logic(opaque)]
-    #[ensures(result == self.tokens.namespaces())]
+    #[logic(open(self))]
     pub(crate) fn token_namespaces(self) -> Set<Namespace> {
-        self.tokens.namespaces()
+        self.tokens.inner_logic().namespaces()
     }
 
-    #[logic(opaque)]
-    #[ensures(result == self.ready.inner_logic().len())]
+    #[logic(open(self))]
     pub(crate) fn ready_len(self) -> Int {
         self.ready.inner_logic().len()
     }
 
-    #[logic(opaque)]
-    #[ensures(result == self.ready.inner_logic().entry_state(slot))]
+    #[logic(open(self))]
     pub(crate) fn ready_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
         self.ready.inner_logic().entry_state(slot)
     }
 
-    #[logic(opaque)]
-    #[ensures(result == self.ready.inner_logic().has_key(key))]
+    #[logic(open(self))]
     pub(crate) fn ready_has_key(self, key: ReadyKey) -> bool {
         self.ready.inner_logic().has_key(key)
+    }
+
+    /// Exact registration frame over the actual borrowed registry. The key
+    /// itself identifies the appended cap's real fragment value; each older
+    /// slot and the token set remain unchanged.
+    #[logic(opaque)]
+    #[ensures(result == (
+        after.token_namespaces() == self.token_namespaces() &&
+        after.ready_len() == self.ready_len() + 1 &&
+        key.slot() == self.ready_len() &&
+        after.ready_has_key(key) &&
+        after.ready_entry_state(key.slot()) == Some((
+            key.resource_id(), key.slot(), key.resource_id(), fragment_value
+        )) &&
+        (forall<i: Int> 0 <= i && i < self.ready_len() ==>
+            after.ready_entry_state(i) == self.ready_entry_state(i))
+    ))]
+    pub(crate) fn registered_cap(
+        self,
+        after: BorrowedSharedContext<'_, R>,
+        key: ReadyKey,
+        fragment_value: R,
+    ) -> bool {
+        pearlite! {
+            after.token_namespaces() == self.token_namespaces() &&
+            after.ready_len() == self.ready_len() + 1 &&
+            key.slot() == self.ready_len() &&
+            after.ready_has_key(key) &&
+            after.ready_entry_state(key.slot()) == Some((
+                key.resource_id(), key.slot(), key.resource_id(), fragment_value
+            )) &&
+            (forall<i: Int> 0 <= i && i < self.ready_len() ==>
+                after.ready_entry_state(i) == self.ready_entry_state(i))
+        }
+    }
+
+    /// Exact context frame when no readiness capability is registered, taken,
+    /// or returned.
+    #[logic(opaque)]
+    #[ensures(result == (
+        after.token_namespaces() == self.token_namespaces() &&
+        after.ready_len() == self.ready_len() &&
+        (forall<i: Int> 0 <= i && i < self.ready_len() ==>
+            after.ready_entry_state(i) == self.ready_entry_state(i))
+    ))]
+    pub(crate) fn unchanged(self, after: BorrowedSharedContext<'_, R>) -> bool {
+        pearlite! {
+            after.token_namespaces() == self.token_namespaces() &&
+            after.ready_len() == self.ready_len() &&
+            (forall<i: Int> 0 <= i && i < self.ready_len() ==>
+                after.ready_entry_state(i) == self.ready_entry_state(i))
+        }
     }
 
     /// Read the registry's actual ghost model without consuming its exclusive
@@ -184,12 +227,18 @@ impl<'view, R: UnitRA> BorrowedSharedContext<'view, R> {
     #[ensures((^context.inner_logic()).token_namespaces() == context.inner_logic().token_namespaces())]
     #[ensures(result.inner_logic().resource_id() == fragment.inner_logic().id())]
     #[ensures(result.inner_logic().slot() == context.inner_logic().ready_len())]
+    #[ensures(result.inner_logic().slot() >= 0)]
     #[ensures((^context.inner_logic()).ready_len() == context.inner_logic().ready_len() + 1)]
     #[ensures((^context.inner_logic()).ready_entry_state(result.inner_logic().slot()) ==
         Some((result.inner_logic().resource_id(), result.inner_logic().slot(),
             fragment.inner_logic().id(), fragment.inner_logic()@)))]
     #[ensures(forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() ==>
         (^context.inner_logic()).ready_entry_state(i) == context.inner_logic().ready_entry_state(i))]
+    #[ensures(context.inner_logic().registered_cap(
+        (^context.inner_logic()),
+        result.inner_logic(),
+        fragment.inner_logic()@
+    ))]
     pub(crate) fn register<'short>(
         context: Ghost<&'short mut Self>,
         fragment: Ghost<Fragment<R>>,
@@ -212,7 +261,9 @@ impl<'view, R: UnitRA> BorrowedSharedContext<'view, R> {
     #[ensures((^context.inner_logic()).invariant())]
     #[ensures((^context.inner_logic()).token_namespaces() == context.inner_logic().token_namespaces())]
     #[ensures(result.inner_logic().invariant())]
+    #[ensures(result.inner_logic().key() == key)]
     #[ensures(result.inner_logic().state() == context.inner_logic().ready_entry_state(key.slot()).unwrap_logic())]
+    #[ensures(0 <= key.slot() && key.slot() < context.inner_logic().ready_len())]
     #[ensures((^context.inner_logic()).ready_entry_state(key.slot()) == None)]
     #[ensures((^context.inner_logic()).ready_len() == context.inner_logic().ready_len())]
     #[ensures(forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() && i != key.slot() ==>

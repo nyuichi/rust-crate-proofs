@@ -29,7 +29,7 @@ use crate::{
         ready_registry::{ReadyCap, ReadyKey},
         terminal_phase::{PhaseAuthority, TerminalAction},
     },
-    ref_count_ops::{CounterProtocol, EventBoundInvariant, NativeCounter},
+    ref_count_ops::{event_namespace, CounterProtocol, EventBoundInvariant, NativeCounter},
     vec_storage::{StoredAuthority, VecStorage},
 };
 
@@ -69,70 +69,12 @@ pub(crate) type HeaderLeaseStamp = (
     StoredAuthority,
     VecStorage,
     usize,
+    ReadyKey,
 );
-/// The first component is the same exclusive header identity in both phases.
-/// The second component carries the complete frame only while a read loan is
-/// active; the idle state therefore contains no historical byte/counter view.
-pub(crate) type HeaderLeaseState = (
-    Option<Excl<Id>>,
-    Option<Excl<HeaderLeaseStamp>>,
-);
-
-/// The exact context frame produced by one header registration. The newly
-/// appended slot owns the header authority's actual idle fragment; every old
-/// slot, the token set, and the affine registry invariant are preserved.
-#[logic(opaque)]
-#[ensures(result == (
-    after.token_namespaces() == before.token_namespaces() &&
-    after.ready_len() == before.ready_len() + 1 &&
-    key.slot() == before.ready_len() &&
-    after.ready_has_key(key) &&
-    after.ready_entry_state(key.slot()) == Some((
-        key.resource_id(), key.slot(), key.resource_id(),
-        (Some(Excl(key.resource_id())), None)
-    )) &&
-    (forall<i: Int> 0 <= i && i < before.ready_len() ==>
-        after.ready_entry_state(i) == before.ready_entry_state(i))
-))]
-pub(crate) fn header_context_registered_idle(
-    before: &BorrowedSharedContext<'_, HeaderLeaseState>,
-    after: BorrowedSharedContext<'_, HeaderLeaseState>,
-    key: ReadyKey,
-) -> bool {
-    pearlite! {
-        after.token_namespaces() == before.token_namespaces() &&
-        after.ready_len() == before.ready_len() + 1 &&
-        key.slot() == before.ready_len() &&
-        after.ready_has_key(key) &&
-        after.ready_entry_state(key.slot()) == Some((
-            key.resource_id(), key.slot(), key.resource_id(),
-            (Some(Excl(key.resource_id())), None)
-        )) &&
-        (forall<i: Int> 0 <= i && i < before.ready_len() ==>
-            after.ready_entry_state(i) == before.ready_entry_state(i))
-    }
-}
-
-/// Exact full-context frame for a path that does not register or move a
-/// header capability.
-#[logic(opaque)]
-#[ensures(result == (
-    after.token_namespaces() == before.token_namespaces() &&
-    after.ready_len() == before.ready_len() &&
-    (forall<i: Int> 0 <= i && i < before.ready_len() ==>
-        after.ready_entry_state(i) == before.ready_entry_state(i))
-))]
-pub(crate) fn header_context_unchanged(
-    before: &BorrowedSharedContext<'_, HeaderLeaseState>,
-    after: BorrowedSharedContext<'_, HeaderLeaseState>,
-) -> bool {
-    pearlite! {
-        after.token_namespaces() == before.token_namespaces() &&
-        after.ready_len() == before.ready_len() &&
-        (forall<i: Int> 0 <= i && i < before.ready_len() ==>
-            after.ready_entry_state(i) == before.ready_entry_state(i))
-    }
-}
+/// One exclusive value distinguishes idle from every active generation. In
+/// particular, an idle capability cannot compose with an active authority by
+/// treating an absent second tuple component as the unit of a product RA.
+pub(crate) type HeaderLeaseState = Option<Excl<(Id, Option<HeaderLeaseStamp>)>>;
 
 /// The authority retains only the real RA authority. Its one exclusive cap is
 /// moved into the caller context while idle and into the read loan while
@@ -144,7 +86,7 @@ struct HeaderLeaseAuthority {
     authority: Authority<HeaderLeaseState>,
 }
 
-#[logic(open)]
+#[logic(open(self))]
 fn header_lease_stamp(
     generation: Int,
     header_id: *mut Shared,
@@ -154,6 +96,7 @@ fn header_lease_stamp(
     storage: StoredAuthority,
     header_vec: VecStorage,
     original_capacity_repr: usize,
+    lease_key: ReadyKey,
 ) -> HeaderLeaseStamp {
     (
         generation,
@@ -164,7 +107,16 @@ fn header_lease_stamp(
         storage,
         header_vec,
         original_capacity_repr,
+        lease_key,
     )
+}
+
+#[logic(open(self))]
+fn header_lease_stamp_matches_key(
+    stamp: HeaderLeaseStamp,
+    key: ReadyKey,
+) -> bool {
+    pearlite! { stamp.8 == key }
 }
 
 impl HeaderLeaseAuthority {
@@ -173,18 +125,19 @@ impl HeaderLeaseAuthority {
         self.resource_id
     }
 
+    #[logic(open(self))]
+    fn header_id(self) -> *mut Shared {
+        self.header_id
+    }
+
     #[logic(open(self), prophetic)]
     fn is_idle(self) -> bool {
-        pearlite! {
-            self.authority@ == (Some(Excl(self.resource_id)), None)
-        }
+        pearlite! { self.authority@ == Some(Excl((self.resource_id, None))) }
     }
 
     #[logic(open(self), prophetic)]
     fn is_active(self, stamp: HeaderLeaseStamp) -> bool {
-        pearlite! {
-            self.authority@ == (Some(Excl(self.resource_id)), Some(Excl(stamp)))
-        }
+        pearlite! { self.authority@ == Some(Excl((self.resource_id, Some(stamp)))) }
     }
 
     #[check(ghost)]
@@ -192,9 +145,13 @@ impl HeaderLeaseAuthority {
     #[ensures(result.inner_logic().0.invariant())]
     #[ensures(result.inner_logic().0.is_idle())]
     #[ensures(result.inner_logic().0.resource_id() == result.inner_logic().1.resource_id())]
+    #[ensures(result.inner_logic().0.header_id() == header_id)]
+    #[ensures(result.inner_logic().1.slot() >= 0)]
     #[ensures((^context.inner_logic()).invariant())]
-    #[ensures(header_context_registered_idle(
-        context.inner_logic(), (^context.inner_logic()), result.inner_logic().1
+    #[ensures(context.inner_logic().registered_cap(
+        (^context.inner_logic()),
+        result.inner_logic().1,
+        Some(Excl((result.inner_logic().1.resource_id(), None)))
     ))]
     pub(crate) fn new(
         context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
@@ -203,9 +160,8 @@ impl HeaderLeaseAuthority {
         ghost! {
             let mut authority: Authority<HeaderLeaseState> = Authority::alloc().into_inner();
             let resource_id = authority.id_ghost();
-            let mut fragment = authority.add_fragment(snapshot!((None, None)));
-            let idle: HeaderLeaseState = (Some(Excl(resource_id)), None);
-            authority.update(&mut fragment, snapshot!((idle, idle)));
+            let idle: HeaderLeaseState = Some(Excl((resource_id, None)));
+            let fragment = authority.add_fragment(snapshot!(idle));
             let lease = Self {
                 resource_id,
                 header_id,
@@ -222,18 +178,24 @@ impl HeaderLeaseAuthority {
     #[requires(authority.inner_logic().invariant() && authority.inner_logic().is_idle())]
     #[requires(cap.inner_logic().invariant())]
     #[requires(cap.inner_logic().key().resource_id() == authority.inner_logic().resource_id())]
+    #[requires(header_lease_stamp_matches_key(
+        *stamp,
+        cap.inner_logic().key(),
+    ))]
     #[requires(cap.inner_logic().fragment_id() == authority.inner_logic().resource_id())]
     #[requires(cap.inner_logic().fragment_value() ==
-        (Some(Excl(authority.inner_logic().resource_id())), None))]
+        Some(Excl((authority.inner_logic().resource_id(), None))))]
     #[ensures((^authority.inner_logic()).invariant() &&
         (^authority.inner_logic()).is_active(*stamp))]
     #[ensures((^authority.inner_logic()).resource_id() ==
         authority.inner_logic().resource_id())]
+    #[ensures((^authority.inner_logic()).header_id() ==
+        authority.inner_logic().header_id())]
     #[ensures(result.inner_logic().invariant())]
     #[ensures(result.inner_logic().key() == cap.inner_logic().key())]
     #[ensures(result.inner_logic().fragment_id() == authority.inner_logic().resource_id())]
     #[ensures(result.inner_logic().fragment_value() ==
-        (Some(Excl(authority.inner_logic().resource_id())), Some(Excl(*stamp))))]
+        Some(Excl((authority.inner_logic().resource_id(), Some(*stamp)))))]
     fn activate(
         authority: Ghost<&mut Self>,
         stamp: Snapshot<HeaderLeaseStamp>,
@@ -242,23 +204,20 @@ impl HeaderLeaseAuthority {
         ghost! {
             let authority = authority.into_inner();
             let mut cap = cap.into_inner();
-            let idle: HeaderLeaseState = (Some(Excl(authority.resource_id)), None);
+            let idle: HeaderLeaseState = Some(Excl((authority.resource_id, None)));
             let resource_id = authority.resource_id;
             let fragment = cap.fragment_ref().into_inner();
             authority.authority.frag_lemma(fragment);
             proof_assert!(fragment@ == idle);
-            cap.update(&mut authority.authority, snapshot!((idle, (
-                Some(Excl(resource_id)),
-                Some(Excl(*stamp)),
-            ))));
-            proof_assert!(cap.fragment_value() == (
-                Some(Excl(resource_id)),
-                Some(Excl(*stamp)),
-            ));
-            proof_assert!(authority.authority@ == (
-                Some(Excl(resource_id)),
-                Some(Excl(*stamp)),
-            ));
+            proof_assert!(authority.authority@ == idle);
+            cap.update(&mut authority.authority, snapshot!((
+                Some(Excl((resource_id, Some(*stamp)))),
+                Some(Excl((resource_id, Some(*stamp)))),
+            )));
+            proof_assert!(cap.fragment_value() ==
+                Some(Excl((resource_id, Some(*stamp)))));
+            proof_assert!(authority.authority@ ==
+                Some(Excl((resource_id, Some(*stamp)))));
             cap
         }
     }
@@ -268,18 +227,24 @@ impl HeaderLeaseAuthority {
         authority.inner_logic().is_active(*stamp))]
     #[requires(cap.inner_logic().invariant())]
     #[requires(cap.inner_logic().key().resource_id() == authority.inner_logic().resource_id())]
+    #[requires(header_lease_stamp_matches_key(
+        *stamp,
+        cap.inner_logic().key(),
+    ))]
     #[requires(cap.inner_logic().fragment_id() == authority.inner_logic().resource_id())]
     #[requires(cap.inner_logic().fragment_value() ==
-        (Some(Excl(authority.inner_logic().resource_id())), Some(Excl(*stamp))))]
+        Some(Excl((authority.inner_logic().resource_id(), Some(*stamp)))))]
     #[ensures((^authority.inner_logic()).invariant() &&
         (^authority.inner_logic()).is_idle())]
     #[ensures((^authority.inner_logic()).resource_id() ==
         authority.inner_logic().resource_id())]
+    #[ensures((^authority.inner_logic()).header_id() ==
+        authority.inner_logic().header_id())]
     #[ensures(result.inner_logic().invariant())]
     #[ensures(result.inner_logic().key() == cap.inner_logic().key())]
     #[ensures(result.inner_logic().fragment_id() == authority.inner_logic().resource_id())]
     #[ensures(result.inner_logic().fragment_value() ==
-        (Some(Excl(authority.inner_logic().resource_id())), None))]
+        Some(Excl((authority.inner_logic().resource_id(), None))))]
     fn deactivate(
         authority: Ghost<&mut Self>,
         stamp: Snapshot<HeaderLeaseStamp>,
@@ -288,25 +253,18 @@ impl HeaderLeaseAuthority {
         ghost! {
             let authority = authority.into_inner();
             let mut cap = cap.into_inner();
-            let idle: HeaderLeaseState = (Some(Excl(authority.resource_id)), None);
+            let idle: HeaderLeaseState = Some(Excl((authority.resource_id, None)));
             let resource_id = authority.resource_id;
             let fragment = cap.fragment_ref().into_inner();
             authority.authority.frag_lemma(fragment);
             proof_assert!(fragment@.incl_eq(authority.authority@));
-            proof_assert!(fragment@ == (
-                Some(Excl(authority.resource_id)),
-                Some(Excl(*stamp)),
-            ));
-            proof_assert!(authority.authority@ == (
-                Some(Excl(authority.resource_id)),
-                Some(Excl(*stamp)),
-            ));
+            proof_assert!(fragment@ ==
+                Some(Excl((authority.resource_id, Some(*stamp)))));
+            proof_assert!(authority.authority@ ==
+                Some(Excl((authority.resource_id, Some(*stamp)))));
             cap.update(&mut authority.authority, snapshot!((
-                (
-                    Some(Excl(resource_id)),
-                    Some(Excl(*stamp)),
-                ),
-                idle,
+                Some(Excl((resource_id, None))),
+                Some(Excl((resource_id, None))),
             )));
             proof_assert!(authority.authority@ == idle && cap.fragment_value() == idle);
             cap
@@ -320,9 +278,11 @@ impl HeaderLeaseAuthority {
     #[requires(self.invariant())]
     #[requires(cap.invariant())]
     #[requires(cap.key().resource_id() == self.resource_id())]
+    #[requires(header_lease_stamp_matches_key(
+        *stamp, cap.key(),
+    ))]
     #[requires(cap.fragment_id() == self.resource_id())]
-    #[requires(cap.fragment_value() ==
-        (Some(Excl(self.resource_id)), Some(Excl(*stamp))))]
+    #[requires(cap.fragment_value() == Some(Excl((self.resource_id, Some(*stamp)))))]
     #[ensures(self.is_active(*stamp))]
     fn require_active_fragment(
         &self,
@@ -333,8 +293,7 @@ impl HeaderLeaseAuthority {
             let fragment = cap.fragment_ref().into_inner();
             self.authority.frag_lemma(fragment);
             proof_assert!(fragment@.incl_eq(self.authority@));
-            proof_assert!(self.authority@ ==
-                (Some(Excl(self.resource_id)), Some(Excl(*stamp))));
+            proof_assert!(self.authority@ == Some(Excl((self.resource_id, Some(*stamp)))));
             proof_assert!(self.is_active(*stamp));
         };
     }
@@ -347,14 +306,14 @@ impl HeaderLeaseAuthority {
     #[requires(cap.invariant())]
     #[requires(cap.key().resource_id() == self.resource_id())]
     #[requires(cap.fragment_id() == self.resource_id())]
-    #[requires(cap.fragment_value() == (Some(Excl(self.resource_id())), None))]
+    #[requires(cap.fragment_value() == Some(Excl((self.resource_id(), None))))]
     #[ensures(self.is_idle())]
     fn require_idle_cap(&self, cap: &ReadyCap<HeaderLeaseState>) {
         let _ = ghost! {
             let fragment = cap.fragment_ref().into_inner();
             self.authority.frag_lemma(fragment);
             proof_assert!(fragment@.incl_eq(self.authority@));
-            proof_assert!(self.authority@ == (Some(Excl(self.resource_id)), None));
+            proof_assert!(self.authority@ == Some(Excl((self.resource_id, None))));
             proof_assert!(self.is_idle());
         };
     }
@@ -463,6 +422,7 @@ impl Protocol for SharedPayload {
                     storage,
                     *self.header_vec,
                     *self.original_capacity_repr,
+                    self.lease_key,
                 )) &&
                 storage.invariant() && pool.invariant() &&
                 ledger.invariant() && ledger.is_live() && ledger.count() > 0 &&
@@ -492,6 +452,7 @@ impl Protocol for SharedPayload {
                     storage,
                     *self.header_vec,
                     *self.original_capacity_repr,
+                    self.lease_key,
                 )) &&
                 storage.invariant() && pool.invariant() &&
                 ledger.invariant() && !ledger.is_live() && ledger.count() == 0 &&
@@ -588,9 +549,8 @@ impl SharedHeaderReadLoan {
             self.lease_cap.key() == self.lease_key &&
             self.lease_key.resource_id() == self.lease_id &&
             self.lease_cap.fragment_id() == self.lease_id &&
-            self.lease_cap.fragment_value() == (
-                Some(Excl(self.lease_id)),
-                Some(Excl(header_lease_stamp(
+            self.lease_cap.fragment_value() ==
+                Some(Excl((self.lease_id, Some(header_lease_stamp(
                     self.generation,
                     self.header_id,
                     *self.counter_model,
@@ -599,8 +559,8 @@ impl SharedHeaderReadLoan {
                     *self.storage_model,
                     *self.header_vec,
                     *self.original_capacity_repr,
-                ))),
-            )
+                    self.lease_key,
+                )))))
         }
     }
 }
@@ -640,17 +600,61 @@ impl SharedPayload {
         proof_assert!(self.lease.is_idle());
     }
 
-    /// A checked capability in the context proves that this payload is in the
-    /// idle protocol branch and therefore still owns its header root.
+    /// Reconcile the packet's real owner fragment with the current payload.
+    /// Every retired or terminal branch contradicts this live ticket, so a
+    /// successful proof leaves the ledger live and the exact ticket active.
+    #[check(ghost)]
+    #[requires(self.invariant() && self.protocol())]
+    #[requires(ticket.invariant() && ticket.ledger_id() == self.ledger_id)]
+    #[ensures(self.ledger != None && self.ledger.unwrap_logic().is_live())]
+    #[ensures(self.ledger.unwrap_logic().has_ticket(*ticket))]
+    #[ensures(self.retire == None)]
+    fn prove_live_owner_ticket(&self, ticket: &OwnerTicket) {
+        match (&self.ledger, &self.retire) {
+            (Some(ledger), None) => ledger.prove_ticket_is_active(ticket),
+            (Some(_), Some(retire)) => retire.contradicts_live_ticket(ticket),
+            (None, Some(retire)) => retire.contradicts_live_ticket(ticket),
+            (None, None) => proof_assert!(false),
+        }
+    }
+
+    /// A checked idle cap and this packet's actual owner ticket exclude both
+    /// active and terminal states: active leases conflict with the exclusive
+    /// cap, while terminal retirement conflicts with the live ticket.
     #[check(ghost)]
     #[requires(self.invariant() && self.protocol())]
     #[requires(cap.invariant() && cap.key() == self.lease_key)]
     #[requires(cap.fragment_id() == self.lease.resource_id())]
-    #[requires(cap.fragment_value() ==
-        (Some(Excl(self.lease.resource_id())), None))]
+    #[requires(cap.fragment_value() == Some(Excl((self.lease.resource_id(), None))))]
+    #[requires(ticket.invariant() && ticket.ledger_id() == self.ledger_id)]
     #[ensures(self.root != None && self.lease.is_idle())]
-    fn prove_idle_cap_implies_root_some(&self, cap: &ReadyCap<HeaderLeaseState>) {
+    fn prove_idle_cap_implies_root_some(
+        &self,
+        cap: &ReadyCap<HeaderLeaseState>,
+        ticket: &OwnerTicket,
+    ) {
         self.lease.require_idle_cap(cap);
+        self.prove_live_owner_ticket(ticket);
+        match (&self.root, &self.ledger, &self.storage) {
+            (None, Some(_), Some(storage)) => {
+                proof_assert!(self.lease.is_idle() && self.lease.is_active(
+                    header_lease_stamp(
+                        self.lease_generation,
+                        self.header_id,
+                        *self.counter_model,
+                        self.ledger_id,
+                        self.phase_id,
+                        *storage,
+                        *self.header_vec,
+                        *self.original_capacity_repr,
+                        self.lease_key,
+                    )
+                ));
+                proof_assert!(false);
+            }
+            (None, _, _) => proof_assert!(false),
+            (Some(_), _, _) => (),
+        }
         proof_assert!(self.root != None);
     }
 
@@ -688,6 +692,7 @@ impl SharedPayload {
             *loan.inner_logic().storage_model,
             *loan.inner_logic().header_vec,
             *loan.inner_logic().original_capacity_repr,
+            loan.inner_logic().lease_key,
         )))]
     fn prove_current_header_lease(
         payload: Ghost<&SharedPayload>,
@@ -705,6 +710,7 @@ impl SharedPayload {
                 *loan.storage_model,
                 *loan.header_vec,
                 *loan.original_capacity_repr,
+                loan.lease_key,
             ));
             payload.lease.require_active_fragment(loan_stamp, &loan.lease_cap);
             proof_assert!(payload.root == None);
@@ -720,6 +726,7 @@ impl SharedPayload {
                 *storage,
                 *payload.header_vec,
                 *payload.original_capacity_repr,
+                payload.lease_key,
             ));
             proof_assert!(payload.lease.is_active(*current_stamp));
             proof_assert!(*current_stamp == *loan_stamp);
@@ -745,7 +752,7 @@ impl SharedPayload {
     #[requires(cap.inner_logic().key() == payload.inner_logic().lease_key)]
     #[requires(cap.inner_logic().fragment_id() == payload.inner_logic().lease.resource_id())]
     #[requires(cap.inner_logic().fragment_value() ==
-        (Some(Excl(payload.inner_logic().lease.resource_id())), None))]
+        Some(Excl((payload.inner_logic().lease.resource_id(), None))))]
     #[ensures((^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol() &&
         (^payload.inner_logic()).root == None &&
         (^payload.inner_logic()).lease_generation == payload.inner_logic().lease_generation + 1 &&
@@ -762,6 +769,7 @@ impl SharedPayload {
         (^payload.inner_logic()).retire == payload.inner_logic().retire &&
         (^payload.inner_logic()).phase == payload.inner_logic().phase &&
         (^payload.inner_logic()).terminal_action == payload.inner_logic().terminal_action &&
+        (^payload.inner_logic()).lease_key == payload.inner_logic().lease_key &&
         (^payload.inner_logic()).lease.resource_id() == payload.inner_logic().lease.resource_id() &&
         (^payload.inner_logic()).closed == payload.inner_logic().closed &&
         result.inner_logic().invariant() &&
@@ -795,6 +803,7 @@ impl SharedPayload {
                 snapshot!(payload.storage.unwrap_logic());
             let lease_id = payload.lease.resource_id;
             let generation = payload.lease_generation + 1int;
+            let lease_key = cap.key_ghost().into_inner();
             let stamp = snapshot!(header_lease_stamp(
                 generation,
                 payload.header_id,
@@ -804,8 +813,8 @@ impl SharedPayload {
                 *storage_model,
                 *payload.header_vec,
                 *payload.original_capacity_repr,
+                lease_key,
             ));
-            let lease_key = cap.key_ghost().into_inner();
             let lease_cap = HeaderLeaseAuthority::activate(
                 Ghost::new(&mut payload.lease), stamp, Ghost::new(cap),
             ).into_inner();
@@ -852,9 +861,15 @@ impl SharedPayload {
         (^payload.inner_logic()).retire == payload.inner_logic().retire &&
         (^payload.inner_logic()).phase == payload.inner_logic().phase &&
         (^payload.inner_logic()).terminal_action == payload.inner_logic().terminal_action &&
+        (^payload.inner_logic()).lease_key == payload.inner_logic().lease_key &&
         (^payload.inner_logic()).lease.resource_id() == payload.inner_logic().lease.resource_id() &&
         (^payload.inner_logic()).lease.is_idle() &&
         (^payload.inner_logic()).closed == payload.inner_logic().closed)]
+    #[ensures(result.inner_logic().invariant())]
+    #[ensures(result.inner_logic().key() == loan.inner_logic().lease_key)]
+    #[ensures(result.inner_logic().fragment_id() == payload.inner_logic().lease.resource_id())]
+    #[ensures(result.inner_logic().fragment_value() ==
+        Some(Excl((payload.inner_logic().lease.resource_id(), None))))]
     pub(crate) fn restore_header_read_loan(
         payload: Ghost<&mut SharedPayload>,
         loan: Ghost<SharedHeaderReadLoan>,
@@ -871,6 +886,7 @@ impl SharedPayload {
                 *loan.storage_model,
                 *loan.header_vec,
                 *loan.original_capacity_repr,
+                loan.lease_key,
             ));
             SharedPayload::prove_current_header_lease(Ghost::new(&*payload), Ghost::new(&loan));
             let SharedHeaderReadLoan { root, lease_cap, .. } = loan;
@@ -964,6 +980,7 @@ impl SharedOwnerPacket {
                 self.region.inner_logic().capacity()) &&
             self.ticket.inner_logic().allocation_binding() ==
                 self.capsule_allocation_binding() &&
+            self.lease_key.inner_logic() == self.capsule.inner_logic().val().public().1.6 &&
             self.lease_key.inner_logic().resource_id() == self.lease_resource_id() &&
             self.lease_key.inner_logic().resource_id() == self.capsule.inner_logic().val().public().1.6.resource_id() &&
             self.lease_key.inner_logic().slot() == self.capsule.inner_logic().val().public().1.6.slot() &&
@@ -1004,6 +1021,7 @@ impl SharedOwnerPacket {
     #[ensures(result.capsule_public() == self.capsule_public())]
     #[ensures(result.ticket.inner_logic() == self.ticket.inner_logic())]
     #[ensures(result.region.inner_logic() == self.region.inner_logic())]
+    #[ensures(result.lease_key() == self.lease_key())]
     #[ensures(forall<i:Int> 0 <= i && i < self.region.inner_logic().capacity() ==>
         result.allocation_slot(i) == self.allocation_slot(i))]
     #[ensures(result.base == self.base)]
@@ -1034,7 +1052,7 @@ impl SharedOwnerPacket {
         context.inner_logic().ready_entry_state(self.lease_key().slot()) == Some((
             self.lease_key().resource_id(), self.lease_key().slot(),
             self.lease_key().resource_id(),
-            (Some(Excl(self.lease_key().resource_id())), None))))]
+            Some(Excl((self.lease_key().resource_id(), None))))))]
     #[ensures((^self).invariant() &&
         (^self).capsule.inner_logic() == self.capsule.inner_logic() &&
         (^self).ticket.inner_logic() == self.ticket.inner_logic() &&
@@ -1043,6 +1061,8 @@ impl SharedOwnerPacket {
         (^context.inner_logic()).invariant() &&
         (^context.inner_logic()).token_namespaces() == context.inner_logic().token_namespaces() &&
         (^context.inner_logic()).ready_len() == context.inner_logic().ready_len() &&
+        ((result.inner_logic() != None) ==
+            context.inner_logic().ready_has_key(self.lease_key())) &&
         (forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() &&
             i != self.lease_key().slot() ==>
             (^context.inner_logic()).ready_entry_state(i) ==
@@ -1052,8 +1072,6 @@ impl SharedOwnerPacket {
                 context.inner_logic().ready_entry_state(self.lease_key().slot())) &&
         (result.inner_logic() != None ==>
             (^context.inner_logic()).ready_entry_state(self.lease_key().slot()) == None) &&
-        (result.inner_logic() != None ==>
-            context.inner_logic().ready_has_key(self.lease_key())) &&
         (result.inner_logic() != None ==>
             result.inner_logic().unwrap_logic().lease_key == self.lease_key()) &&
         (result.inner_logic() != None ==>
@@ -1084,6 +1102,9 @@ impl SharedOwnerPacket {
         ghost! {
             let context = context.into_inner();
             let key = self.lease_key_ghost().into_inner();
+            // Borrow the packet's actual affine owner ticket. It is neither
+            // reconstructed from its model nor moved into the callback.
+            let ticket_body: Ghost<&OwnerTicket> = Ghost::new(&*self.ticket);
             if !context.ready_has_key_ghost(key).into_inner() {
                 None
             } else {
@@ -1102,11 +1123,13 @@ impl SharedOwnerPacket {
                             payload.agrees_with_value(*owner_value) &&
                             payload.public().4 == *expected_lease_id &&
                             payload.public().6 == *expected_key &&
+                            ticket_body.inner_logic().invariant() &&
+                            ticket_body.inner_logic().ledger_id() == payload.public().2 &&
                             cap.inner_logic().invariant() &&
                             cap.inner_logic().key() == *expected_key &&
                             cap.inner_logic().fragment_id() == *expected_lease_id &&
                             cap.inner_logic().fragment_value() ==
-                                (Some(Excl(*expected_lease_id)), None)
+                                Some(Excl((*expected_lease_id, None)))
                         )]
                         #[ensures(
                             (^payload).public() == payload.public() &&
@@ -1115,6 +1138,7 @@ impl SharedOwnerPacket {
                             (^payload).agrees_with_value(*owner_value) &&
                             match result {
                                 Some(loan) =>
+                                    loan.invariant() &&
                                     loan.header_id == payload.header_id &&
                                     loan.lease_id == payload.lease.resource_id() &&
                                     loan.lease_key == payload.lease_key &&
@@ -1129,9 +1153,10 @@ impl SharedOwnerPacket {
                          owner_model: Snapshot<NativeCounter>,
                          owner_value: Snapshot<usize>| {
                             let cap = cap.into_inner();
+                            let ticket = ticket_body.into_inner();
                             payload.prove_public_lease_resource_id(expected_lease_id);
                             payload.prove_public_lease_key(expected_key);
-                            payload.prove_idle_cap_implies_root_some(&cap);
+                            payload.prove_idle_cap_implies_root_some(&cap, ticket);
                             Some(SharedPayload::take_header_read_loan(
                                 Ghost::new(payload), Ghost::new(cap),
                             ).into_inner())
@@ -1168,7 +1193,7 @@ impl SharedOwnerPacket {
     #[ensures((^context.inner_logic()).ready_entry_state(self.lease_key().slot()) == Some((
         self.lease_key().resource_id(), self.lease_key().slot(),
         self.lease_resource_id(),
-        (Some(Excl(self.lease_resource_id())), None))))]
+        Some(Excl((self.lease_resource_id(), None))))))]
     #[ensures(forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() &&
         i != self.lease_key().slot() ==>
         (^context.inner_logic()).ready_entry_state(i) ==
@@ -1184,6 +1209,7 @@ impl SharedOwnerPacket {
             let expected_lease_id: Snapshot<Id> =
                 snapshot!(self.lease_resource_id());
             let expected_key: Snapshot<ReadyKey> = snapshot!(self.lease_key());
+            let ticket_body: Ghost<&OwnerTicket> = Ghost::new(&*self.ticket);
             let tokens = BorrowedSharedContext::reborrow_tokens(Ghost::new(&mut *context));
             let cap = capsule.to_ref().open_with_tokens(
                 tokens,
@@ -1195,6 +1221,8 @@ impl SharedOwnerPacket {
                         payload.agrees_with_value(*owner_value) &&
                         payload.public().4 == *expected_lease_id &&
                         payload.public().6 == *expected_key &&
+                        ticket_body.inner_logic().invariant() &&
+                        ticket_body.inner_logic().ledger_id() == payload.public().2 &&
                         loan.inner_logic().invariant() &&
                         loan.inner_logic().lease_id == *expected_lease_id &&
                         loan.inner_logic().lease_key == *expected_key
@@ -1203,13 +1231,28 @@ impl SharedOwnerPacket {
                         (^payload).public() == payload.public() &&
                         (^payload).counter_model() == payload.counter_model() &&
                         (^payload).protocol() &&
-                        (^payload).agrees_with_value(*owner_value)
+                        (^payload).agrees_with_value(*owner_value) &&
+                        (^payload).ledger_id == payload.ledger_id &&
+                        (^payload).lease_key == payload.lease_key &&
+                        (^payload).lease.resource_id() == payload.lease.resource_id() &&
+                        (^payload).ledger == payload.ledger &&
+                        (^payload).retire == payload.retire &&
+                        (^payload).phase == payload.phase &&
+                        (^payload).terminal_action == payload.terminal_action &&
+                        (^payload).closed == payload.closed &&
+                        result.invariant() &&
+                        result.key() == (^payload).public().6 &&
+                        result.fragment_id() == (^payload).public().4 &&
+                        result.fragment_value() ==
+                            Some(Excl(((^payload).public().4, None)))
                     )]
                     move |payload: &mut SharedPayload,
                          owner_model: Snapshot<NativeCounter>,
                          owner_value: Snapshot<usize>| {
+                    let ticket = ticket_body.into_inner();
                     payload.prove_public_lease_resource_id(expected_lease_id);
                     payload.prove_public_lease_key(expected_key);
+                    payload.prove_live_owner_ticket(ticket);
                     SharedPayload::restore_header_read_loan(Ghost::new(payload), loan).into_inner()
                 }),
             ).into_inner();
@@ -1263,7 +1306,9 @@ impl SharedOwnerPacket {
     phase.inner_logic().1.resource_id() == phase.inner_logic().0.resource_id()
 )]
 #[requires(context.inner_logic().invariant())]
+#[requires(context.inner_logic().token_namespaces().contains(event_namespace()))]
 #[ensures((^context.inner_logic()).invariant())]
+#[ensures(result.capsule.inner_logic().val().namespace() == event_namespace())]
 #[ensures(result.capsule_public() ==
     (header_id as *mut (), (*root.inner_logic().val()).ref_count.counter_model(),
         ledger.inner_logic().0.ledger_id(), phase.inner_logic().0.resource_id()))]
@@ -1272,8 +1317,9 @@ impl SharedOwnerPacket {
 #[ensures(result.cursor.raw_pointer() == cursor.raw_pointer())]
 #[ensures(result.lease_key().resource_id() == result.lease_resource_id())]
 #[ensures(result.lease_key().slot() == context.inner_logic().ready_len())]
-#[ensures(header_context_registered_idle(
-    context.inner_logic(), (^context.inner_logic()), result.lease_key()
+#[ensures(context.inner_logic().registered_cap(
+    (^context.inner_logic()), result.lease_key(),
+    Some(Excl((result.lease_key().resource_id(), None)))
 ))]
 #[ensures(result.ticket.inner_logic() == ledger.inner_logic().1)]
 #[ensures(result.ticket.inner_logic().allocation_binding() == (
@@ -1420,7 +1466,9 @@ pub(crate) fn make_count_one_packet(
     phase.inner_logic().1.resource_id() == phase.inner_logic().0.resource_id()
 )]
 #[requires(context.inner_logic().invariant())]
+#[requires(context.inner_logic().token_namespaces().contains(event_namespace()))]
 #[ensures((^context.inner_logic()).invariant())]
+#[ensures(result.0.capsule.inner_logic().val().namespace() == event_namespace())]
 #[ensures(result.0.invariant() && result.1.invariant())]
 #[ensures(result.0.capsule_public() == result.1.capsule_public())]
 #[ensures(result.0.capsule_public() == (
@@ -1454,8 +1502,9 @@ pub(crate) fn make_count_one_packet(
 #[ensures(result.0.lease_key() == result.1.lease_key())]
 #[ensures(result.0.lease_key().resource_id() == result.0.lease_resource_id())]
 #[ensures(result.0.lease_key().slot() == context.inner_logic().ready_len())]
-#[ensures(header_context_registered_idle(
-    context.inner_logic(), (^context.inner_logic()), result.0.lease_key()
+#[ensures(context.inner_logic().registered_cap(
+    (^context.inner_logic()), result.0.lease_key(),
+    Some(Excl((result.0.lease_key().resource_id(), None)))
 ))]
 #[check(terminates)]
 pub(crate) fn make_count_two_packets(

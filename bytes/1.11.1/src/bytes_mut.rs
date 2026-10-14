@@ -20,6 +20,8 @@ use alloc::{
 use crate::buf::{IntoIter, UninitSlice};
 use crate::bytes::Vtable;
 #[cfg(all(creusot, bytes_original_unique_gate))]
+use creusot_std::logic::ra::excl::Excl;
+#[cfg(all(creusot, bytes_original_unique_gate))]
 use crate::ownership_proof::{
     boxed_alignment,
     ref_count_ledger::{AllocationBinding, OwnerLedger},
@@ -887,17 +889,20 @@ impl BytesMut {
     /// Panics if `at > capacity`.
     #[must_use = "consider BytesMut::truncate if you don't need the other half"]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        (self.unique_tag_pointer().addr_logic() & KIND_MASK) != KIND_VEC ||
+            context.inner_logic().token_namespaces().contains(crate::ref_count_ops::event_namespace())
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
-            shared_capsule::header_context_registered_idle(
-                context.inner_logic(), ^context.inner_logic(),
-                result.shared_proof.unwrap_logic().lease_key()
+            context.inner_logic().registered_cap(
+                ^context.inner_logic(),
+                result.shared_proof.unwrap_logic().lease_key(),
+                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
             )
         } else {
-            shared_capsule::header_context_unchanged(
-                context.inner_logic(), ^context.inner_logic()
-            )
+            context.inner_logic().unchanged(^context.inner_logic())
         }
     ))]
     pub fn split_off(
@@ -965,17 +970,20 @@ impl BytesMut {
     /// ```
     #[must_use = "consider BytesMut::clear if you don't need the other half"]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        (self.unique_tag_pointer().addr_logic() & KIND_MASK) != KIND_VEC ||
+            context.inner_logic().token_namespaces().contains(crate::ref_count_ops::event_namespace())
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
-            shared_capsule::header_context_registered_idle(
-                context.inner_logic(), ^context.inner_logic(),
-                result.shared_proof.unwrap_logic().lease_key()
+            context.inner_logic().registered_cap(
+                ^context.inner_logic(),
+                result.shared_proof.unwrap_logic().lease_key(),
+                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
             )
         } else {
-            shared_capsule::header_context_unchanged(
-                context.inner_logic(), ^context.inner_logic()
-            )
+            context.inner_logic().unchanged(^context.inner_logic())
         }
     ))]
     pub fn split(
@@ -1021,19 +1029,24 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
         context != None && context.unwrap_logic().inner_logic().invariant()
     ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        (self.unique_tag_pointer().addr_logic() & KIND_MASK) != KIND_VEC ||
+            context.unwrap_logic().inner_logic().token_namespaces().contains(
+                crate::ref_count_ops::event_namespace()
+            )
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^context.unwrap_logic().inner_logic()).invariant()
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
-            shared_capsule::header_context_registered_idle(
-                context.unwrap_logic().inner_logic(),
+            context.unwrap_logic().inner_logic().registered_cap(
                 ^context.unwrap_logic().inner_logic(),
-                result.shared_proof.unwrap_logic().lease_key()
+                result.shared_proof.unwrap_logic().lease_key(),
+                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
             )
         } else {
-            shared_capsule::header_context_unchanged(
-                context.unwrap_logic().inner_logic(),
+            context.unwrap_logic().inner_logic().unchanged(
                 ^context.unwrap_logic().inner_logic()
             )
         }
@@ -1262,10 +1275,14 @@ impl BytesMut {
             }
     )))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        context.inner_logic().token_namespaces().contains(crate::ref_count_ops::event_namespace())
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        shared_capsule::header_context_registered_idle(
-            context.inner_logic(), ^context.inner_logic(),
-            result.shared_proof.unwrap_logic().lease_key()
+        context.inner_logic().registered_cap(
+            ^context.inner_logic(),
+            result.shared_proof.unwrap_logic().lease_key(),
+            Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
         )
     ))]
     unsafe fn split_unique_to_shared(
@@ -2397,22 +2414,40 @@ impl BytesMut {
                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@))
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
-        context != None && context.unwrap_logic().inner_logic().invariant()
+        if context == None {
+            !((self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC &&
+                self.unique_offset() + count@ > MAX_VEC_POS@)
+        } else {
+            context.unwrap_logic().inner_logic().invariant() &&
+                (((self.unique_tag_pointer().addr_logic() & KIND_MASK) != KIND_VEC ||
+                    self.unique_offset() + count@ <= MAX_VEC_POS@) ||
+                    context.unwrap_logic().inner_logic().token_namespaces().contains(
+                        crate::ref_count_ops::event_namespace()
+                    ))
+        }
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        (^context.unwrap_logic().inner_logic()).invariant()
+        if context == None {
+            true
+        } else {
+            (^context.unwrap_logic().inner_logic()).invariant()
+        }
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC &&
+        if context == None {
+            true
+        } else if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC &&
             self.unique_offset() + count@ > MAX_VEC_POS@ {
-            shared_capsule::header_context_registered_idle(
-                context.unwrap_logic().inner_logic(),
+            context.unwrap_logic().inner_logic().registered_cap(
                 ^context.unwrap_logic().inner_logic(),
-                (^self).shared_proof.unwrap_logic().lease_key()
+                (^self).shared_proof.unwrap_logic().lease_key(),
+                Some(Excl((
+                    (^self).shared_proof.unwrap_logic().lease_key().resource_id(),
+                    None,
+                )))
             )
         } else {
-            shared_capsule::header_context_unchanged(
-                context.unwrap_logic().inner_logic(),
+            context.unwrap_logic().inner_logic().unchanged(
                 ^context.unwrap_logic().inner_logic()
             )
         }
@@ -2505,11 +2540,18 @@ impl BytesMut {
         0 <= i && i < self.unique_offset() + self.unique_length() ==>
             (^self).shared_proof.unwrap_logic().allocation_slot(i) == self.unique_allocation_slot(i)))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        context.inner_logic().token_namespaces().contains(crate::ref_count_ops::event_namespace())
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        shared_capsule::header_context_registered_idle(
-            context.inner_logic(), ^context.inner_logic(),
-            (^self).shared_proof.unwrap_logic().lease_key()
+        context.inner_logic().registered_cap(
+            ^context.inner_logic(),
+            (^self).shared_proof.unwrap_logic().lease_key(),
+            Some(Excl((
+                (^self).shared_proof.unwrap_logic().lease_key().resource_id(),
+                None,
+            )))
         )
     ))]
     unsafe fn promote_to_shared_count_one(

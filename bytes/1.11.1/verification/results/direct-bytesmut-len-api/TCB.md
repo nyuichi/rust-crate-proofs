@@ -193,15 +193,28 @@ generation, header pointer, counter, storage authority and allocation binding,
 Vec metadata, ledger and phase. Restoring requires that matching fragment and
 returns that exact permission while restoring the idle lease state.
 
-The packet precondition and namespace token establish permission to attempt an
-open; they do not establish that the root is present. The try-take operation
-therefore returns `Option`, and no proof in this checkpoint makes the `None`
-case unreachable for an arbitrary valid packet. The selected public Shared
-producer and lifecycle bodies do not yet scope these transitions around their
-native counter operations. This lease layer consequently does not close safe
-producer/lifecycle reachability for the common `BytesMut::truncate`
-precondition. The exact selected bodies and prover results are listed in
-[`proof.json`](proof.json).
+The selected private count-one promotion and original-Vec split paths pass the
+caller-supplied context into packet construction. The packet makers register
+the actual idle lease fragment in its `ReadyRegistry`, and packet take/restore
+move that same capability through the context. These body proofs connect the
+internal producer helpers to the lease operations; they do not establish that
+public safe wrappers supply the context or its required namespace tokens.
+The lease RA has one exclusive idle/active value, and the active stamp stores
+the complete `ReadyKey`; idle and active authority therefore cannot compose as
+separate product components or lose the slot identity.
+
+The packet borrows the actual caller context and reborrows its actual `Tokens`
+for `open_with_tokens`. Packet validity and namespace membership alone permit
+an attempt but do not establish that the root is present, so the operation
+returns `Option` and may return `None` when the matching idle cap is absent.
+Its body-proved result equivalence establishes that a matching registered idle
+cap yields `Some`: the packet's actual live `OwnerTicket` and the matching
+lease RA state rule out the terminal root-absent protocol and produce the
+matching loan. No selected public Shared producer or lifecycle body scopes
+these transitions around native counter operations, so the internal
+producer-to-packet proofs do not close public reachability for the common
+`BytesMut::truncate` precondition. The exact selected bodies and prover results
+are listed in [`proof.json`](proof.json).
 
 The native atomic adapters that open this generic event invariant are trusted
 primitives. Their contracts preserve the same permission and counter model,
@@ -234,9 +247,13 @@ and frame the registry's final slot states. Register, take, and return move
 the exact supplied `Fragment` through that registry. These bodies create no
 tokens, fragments, header permission, or new trusted boundary. Token
 membership for a particular capsule namespace remains a separate precondition
-at each open. The context has not been connected to a `BytesMut` producer or
-native lifecycle body, so it does not establish a ready Shared header,
-producer reachability for `buffer_view_valid`, or a verified release path.
+at each open. The selected private count-one promotion and
+`split_unique_to_shared` paths use this context to register their packet's idle
+header capability; packet loan take/restore use it to move the same capability.
+These internal paths do not establish that public wrappers pass a valid context
+or that every safely reachable state satisfies `buffer_view_valid`. Native
+lifecycle integration and a verified explicit release path remain open; the
+crate's automatic `Drop` behavior remains present and unverified here.
 
 For Shared payloads, the physical pool contains exactly the in-bounds
 complement of active Mutable intervals. Readonly intervals do not claim

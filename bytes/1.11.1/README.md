@@ -75,18 +75,25 @@ producer's actual affine `Fragment<R>` into a fresh permanent slot, taking that
 same capability while leaving a tombstone, and returning it to the slot. Its
 contracts preserve the complete resource id and RA state of every other slot;
 `ReadyCap::update` applies the real authority update to the stored fragment and
-preserves its resource id and key. This registry is not yet used by Bytes
-constructors, `SharedPayload`, or native lifecycle transitions, so it does not
-establish a ready header state or close a safe producer path for `truncate`.
+preserves its resource id and key. The selected private count-one promotion
+and original-Vec split producers pass a caller-supplied context into packet
+construction, which registers the actual idle header-lease fragment. The
+packet's take/restore helpers use that context to move the same capability into
+and back out of a header read loan. Public producer wrappers and native
+lifecycle transitions are not yet proved to supply and thread this context, so
+these internal paths do not close safe public reachability for `truncate`.
 
 The selected targets also body-prove an affine `OwnedSharedContext` and its
 borrowed view. Construction consumes a caller-supplied token set and starts
 with an empty registry; reborrows preserve the actual token namespaces and
 frame the registry's exact final entries. Registration, take, and return move
-the producer's actual fragment through that registry. These are carrier
-proofs only: no `BytesMut` producer or native lifecycle path currently passes
-the context, and the context does not establish that a safe producer supplies
-the `buffer_view_valid` precondition for `truncate`.
+the producer's actual fragment through that registry. The selected private
+count-one promotion and `split_unique_to_shared` paths thread this context into
+packet construction, and packet loan take/restore returns the exact capability
+to it. The public safe producer call chains and native lifecycle paths remain
+unproved; this context does not establish that every safely reachable state
+satisfies the `buffer_view_valid` precondition for `truncate` or provide a
+verified explicit release path.
 
 This is a verification fork based on the crates.io 1.11.1 source. It includes
 branch runtime fixes and verification-only annotations/refactors; this evidence
