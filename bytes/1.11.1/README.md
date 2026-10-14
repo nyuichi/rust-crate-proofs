@@ -51,14 +51,20 @@ and replacing a ticket binding while preserving ticket and authority
 identities. A generic event payload ties the ledger's reference count to the
 counter permission model; the initial count-one promotion and original Vec
 split producer construct matching payloads and packets. The generic pool
-retirement and full-range recovery helpers also have body proofs. A generic
-stored-Vec destructor boundary has an exact `drop(storage.take_for_retirement())`
-native body, but no selected release path calls it yet. Native ARC split, clone,
-drop, freeze and recovery transitions are not yet connected to the ledger.
-Concurrency, unwind behavior and safe-state reachability of the
-common view precondition across Shared lifecycle paths remain outside this
-checkpoint. Thus these body proofs do not yet establish an end-to-end public
-`BytesMut::truncate` guarantee for every safely produced state. See the
+retirement and full-range recovery helpers also have body proofs. The original
+`release_shared_common` body now passes its actual stored authority and full
+physical region to the generic `retire_stored_vec` boundary on the final
+release, explicitly destroys the empty replacement VecStorage, and consumes
+the actual Shared root permission before freeing the Box. The crate-private
+unsafe `BytesMut::dispose_shared` path supplies its actual packet and caller
+context to this same native release body and has a body proof. The ordinary
+`release_shared`/automatic `Drop` caller remains untranslated, so this does not
+prove post-Drop context consistency or cover every native ARC clone, split,
+freeze and recovery transition. Concurrency, unwind behavior and safe-state
+reachability of the common view precondition across all Shared lifecycle paths
+remain outside this checkpoint. Thus these body proofs do not yet establish
+an end-to-end public `BytesMut::truncate` guarantee for every safely produced
+state. See the
 [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md) and
 [generic Std overlay](verification/std-support/README.md) assumptions.
 
@@ -68,9 +74,13 @@ protocol, counter-owner agreement and callback frame; packet take/restore
 helpers move the exact boxed header permission into and out of a lease bound to
 its generation and header/storage metadata. Acquisition remains conditional:
 the packet invariant and namespace token do not imply that the header root is
-present, so `try_take_header_read_loan` returns `Option`. No selected public
-Shared lifecycle body yet uses these helpers around native counter operations.
-They establish proof plumbing, not safe producer closure for `truncate`.
+present, so `try_take_header_read_loan` returns `Option`. The selected explicit
+disposal path uses these helpers around the original native decrement, acquire,
+and retirement sequence; its actual packet, matching context rights, terminal
+action, storage authority and full physical region are preserved through that
+source body. Automatic `Drop` remains in place, but its context-free wrapper is
+untranslated and this proof does not claim a post-Drop context state. The
+result does not close every safe producer or lifecycle path for `truncate`.
 
 A generic append-only `ReadyRegistry<R>` now has body proofs for moving the
 producer's actual affine `Fragment<R>` into a fresh permanent slot, taking that
@@ -81,9 +91,11 @@ preserves its resource id and key. The selected private count-one promotion
 and original-Vec split producers pass a caller-supplied context into packet
 construction, which registers the actual idle header-lease fragment. The
 packet's take/restore helpers use that context to move the same capability into
-and back out of a header read loan. Public producer wrappers and native
-lifecycle transitions are not yet proved to supply and thread this context, so
-these internal paths do not close safe public reachability for `truncate`.
+and back out of a header read loan. The crate-private explicit disposal method
+consumes a shared handle and threads this context through the proven native
+release body. Public producer wrappers and ordinary automatic `Drop` still do
+not thread a tracked context, so these internal paths do not close safe public
+reachability for `truncate`.
 
 The selected targets also body-prove an affine `OwnedSharedContext` and its
 borrowed view. Construction consumes a caller-supplied token set and starts

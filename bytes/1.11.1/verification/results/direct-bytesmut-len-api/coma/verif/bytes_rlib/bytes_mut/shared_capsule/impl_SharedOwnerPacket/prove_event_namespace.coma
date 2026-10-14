@@ -1,0 +1,332 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1341 4 1341 46 *)
+
+(* bytes_mut::shared_capsule::SharedOwnerPacket *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1342 22 1342 87
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1341 41 1341 45
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1339 15 1339 31
+let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1340 14 1340 79
+let%span sshared_capsule'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1416 8 1416 20
+let%span sshared_capsule'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1373 4 1373 35
+let%span sshared_capsule'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1330 12 1330 70
+let%span sshared_capsule'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1345 4 1345 24
+let%span sshared_capsule'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1352 8 1352 66
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 691 12 695 33
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 372 12 380 13
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 713 20 713 27
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 399 14 399 60
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 718 20 718 27
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 703 20 703 30
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 708 20 708 30
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 335 8 335 25
+let%span sshared = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/shared.rs" 26 8 26 46
+
+use creusot.prelude.Any
+use creusot.prelude.Opaque
+use creusot.int.Int64
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use int.Int
+
+type t_EventBoundInvariant_SharedPayload
+
+function namespace_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 405 8 405 81] (self: t_EventBoundInvariant_SharedPayload) : t_Namespace
+
+type t_OwnerTicket
+
+type t_PhysicalRegion
+
+type t_BoundPtr
+
+type t_ReadyKey
+
+type t_SharedOwnerPacket = {
+  capsule: t_EventBoundInvariant_SharedPayload;
+  ticket: t_OwnerTicket;
+  region: t_PhysicalRegion;
+  base: t_BoundPtr;
+  cursor: t_BoundPtr;
+  lease_key: t_ReadyKey }
+
+constant event_namespace: t_Namespace = [%#sref_count_ops] Namespace_REF_COUNT_EVENT 0
+
+predicate resolve_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
+
+predicate invariant_EventBoundInvariant_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 504 8 504 34] (self: t_EventBoundInvariant_SharedPayload)
+
+predicate inv_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
+
+axiom inv_axiom:
+  forall x: t_EventBoundInvariant_SharedPayload [inv_EventBoundInvariant_SharedPayload x]. inv_EventBoundInvariant_SharedPayload x
+    -> invariant_EventBoundInvariant_SharedPayload x
+
+predicate invariant_GhostShared_EventBoundInvariant_SharedPayload (self: t_EventBoundInvariant_SharedPayload) =
+  [%#sshared] resolve_EventBoundInvariant_SharedPayload self /\ inv_EventBoundInvariant_SharedPayload self
+
+predicate inv_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivial] (_1: t_EventBoundInvariant_SharedPayload) =
+  invariant_GhostShared_EventBoundInvariant_SharedPayload _1
+
+meta "rewrite_def" predicate inv_GhostShared_EventBoundInvariant_SharedPayload
+
+predicate invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivial] (self: t_EventBoundInvariant_SharedPayload) =
+  [%#sghost] inv_GhostShared_EventBoundInvariant_SharedPayload self
+
+meta "rewrite_def" predicate invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload
+
+type t_NativeCounter
+
+type t_Id
+
+type tup3_Id_ptr_u8_Int = { f0: t_Id; f1: Opaque.ptr; f2: int }
+
+type tup7_ptr_unit_NativeCounter_Id_Id_Id_tup3_Id_ptr_u8_Int_ReadyKey = {
+  f0'0: Opaque.ptr;
+  f1'0: t_NativeCounter;
+  f2'0: t_Id;
+  f3'0: t_Id;
+  f4'0: t_Id;
+  f5'0: tup3_Id_ptr_u8_Int;
+  f6'0: t_ReadyKey }
+
+type tup2_NativeCounter_tup7_ptr_unit_NativeCounter_Id_Id_Id_tup3_Id_ptr_u8_Int_ReadyKey = {
+  f0'1: t_NativeCounter;
+  f1'1: tup7_ptr_unit_NativeCounter_Id_Id_Id_tup3_Id_ptr_u8_Int_ReadyKey }
+
+function public_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 480 8 480 64] (self: t_EventBoundInvariant_SharedPayload) : tup2_NativeCounter_tup7_ptr_unit_NativeCounter_Id_Id_Id_tup3_Id_ptr_u8_Int_ReadyKey
+
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 323 4 323 30] (self: t_OwnerTicket)
+
+function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 216 4 216 39] (self: t_OwnerTicket) : t_Id
+
+type tup4_ptr_unit_NativeCounter_Id_Id = { f0'2: Opaque.ptr; f1'2: t_NativeCounter; f2'2: t_Id; f3'2: t_Id }
+
+function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1328 4 1328 74] (self: t_SharedOwnerPacket) : tup4_ptr_unit_NativeCounter_Id_Id
+ = [%#sshared_capsule'5] let payload = (public_SharedPayload self.capsule).f1'1 in { f0'2 = payload.f0'0;
+                                                                                     f1'2 = payload.f1'0;
+                                                                                     f2'2 = payload.f2'0;
+                                                                                     f3'2 = payload.f3'0 }
+
+type t_RefKind = Mutable | Readonly
+
+function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 243 4 243 41] (self: t_OwnerTicket) : t_RefKind
+
+type t_OwnedRegion
+
+predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 83 4 83 30] (self: t_OwnedRegion)
+
+type tup3_OwnedRegion_Int_Id = { f0'3: t_OwnedRegion; f1'3: int; f2'3: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 677 4 677 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+type t_Excl_unit = { f0'4: () }
+
+type t_Option_Excl_unit = None | Some t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'5: t_Option_Excl_unit; f1'5: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'6: int;
+  f1'6: int;
+  f2'6: t_Id;
+  f3'6: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 689 4 689 30] (self: t_PhysicalRegion) =
+  [%#sraw_vec] invariant_OwnedRegion (view_PhysicalRegion self).f0'3
+  /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'3).f0'6
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'3).f0'6 <= (view_OwnedRegion (view_PhysicalRegion self).f0'3).f1'6
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'3).f1'6 <= (view_PhysicalRegion self).f1'3
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'3).f2'6 = (view_PhysicalRegion self).f2'3
+
+type tup3_Id_Int_Int = { f0'7: t_Id; f1'7: int; f2'7: int }
+
+type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 353 4 353 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 389 4 389 39] (self: t_BoundPtr) : int
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 370 4 370 30] (self: t_BoundPtr) =
+  [%#sraw_vec'0] match view_BoundPtr self with
+    | None'0 -> true
+    | Some'0 {f1'7 = allocation_capacity; f2'7 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity
+    /\ allocation_capacity <= Int64.to_int const_MAX
+    /\ absolute_offset < current_address self
+    /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
+    end
+
+function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 238 4 238 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
+
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 712 4 712 39] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'1] (view_PhysicalRegion self).f2'3
+
+function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 400 4 400 46] (self: t_BoundPtr) : Opaque.ptr
+
+axiom raw_pointer_spec:
+  forall self: t_BoundPtr [raw_pointer self]. [%#sraw_vec'2] UInt64.t'int (Ptr.addr_logic_u64 (raw_pointer self))
+    = current_address self
+
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 717 4 717 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'3] (view_PhysicalRegion self).f1'3
+
+function capsule_allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1346 4 1346 71] (self: t_SharedOwnerPacket) : tup3_Id_ptr_u8_Int
+ = [%#sshared_capsule'6] (public_SharedPayload self.capsule).f1'1.f5'0
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 25 4 25 41] (self: t_ReadyKey) : t_Id
+
+function lease_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1351 4 1351 48] (self: t_SharedOwnerPacket) : t_Id
+ = [%#sshared_capsule'7] let payload = (public_SharedPayload self.capsule).f1'1 in payload.f4'0
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 30 4 30 35] (self: t_ReadyKey) : int
+
+function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 253 4 253 40] (self: t_OwnerTicket) : int
+
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 702 4 702 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'4] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f0'6
+
+function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 258 4 258 40] (self: t_OwnerTicket) : int
+
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 707 4 707 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'5] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f1'6
+
+constant any_tup3_Id_Int_Int : tup3_Id_Int_Int
+
+function unwrap_Option_tup3_Id_Int_Int (self: t_Option_tup3_Id_Int_Int) : tup3_Id_Int_Int =
+  [%#soption'0] match self with
+    | Some'0 x -> x
+    | None'0 -> any_tup3_Id_Int_Int
+    end
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+predicate valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1374 4 1374 26] (self: t_SharedOwnerPacket) =
+  [%#sshared_capsule'4] invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload self.capsule
+  /\ namespace_SharedPayload self.capsule = event_namespace
+  /\ (public_SharedPayload self.capsule).f0'1 = (public_SharedPayload self.capsule).f1'1.f1'0
+  /\ invariant_OwnerTicket self.ticket
+  /\ ledger_id self.ticket = (capsule_public self).f2'2
+  /\ class self.ticket = Mutable
+  /\ invariant_PhysicalRegion self.region
+  /\ invariant_BoundPtr self.base
+  /\ invariant_BoundPtr self.cursor
+  /\ allocation_binding self.ticket
+    = { f0 = namespace self.region; f1 = raw_pointer self.base; f2 = capacity self.region }
+  /\ allocation_binding self.ticket = capsule_allocation_binding self
+  /\ self.lease_key = (public_SharedPayload self.capsule).f1'1.f6'0
+  /\ resource_id self.lease_key = lease_resource_id self
+  /\ resource_id self.lease_key = resource_id (public_SharedPayload self.capsule).f1'1.f6'0
+  /\ slot self.lease_key = slot (public_SharedPayload self.capsule).f1'1.f6'0
+  /\ owned_lo self.ticket = lo self.region
+  /\ owned_hi self.ticket = hi self.region
+  /\ view_BoundPtr self.base = Some'0 { f0'7 = namespace self.region; f1'7 = capacity self.region; f2'7 = 0 }
+  /\ view_BoundPtr self.cursor <> None'0
+  /\ current_address self.cursor
+    = current_address self.base + (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self.cursor)).f2'7
+  /\ (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self.cursor)).f0'7 = namespace self.region
+  /\ (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self.cursor)).f1'7 = capacity self.region
+  /\ 0 <= lo self.region
+  /\ lo self.region <= hi self.region
+  /\ hi self.region <= capacity self.region
+  /\ capacity self.region <= Int64.to_int const_MAX
+  /\ ge_log_Int (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self.cursor)).f2'7 (lo self.region)
+  /\ (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self.cursor)).f2'7 <= hi self.region
+
+predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1415 4 1415 30] (self: t_SharedOwnerPacket) =
+  [%#sshared_capsule'3] valid self
+
+predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivial] (_1: t_EventBoundInvariant_SharedPayload) =
+  invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload _1
+
+meta "rewrite_def" predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload
+
+predicate inv_OwnerTicket (_1: t_OwnerTicket)
+
+axiom inv_axiom'0: forall x: t_OwnerTicket [inv_OwnerTicket x]. inv_OwnerTicket x -> invariant_OwnerTicket x
+
+predicate invariant_Ghost_OwnerTicket [@inline:trivial] (self: t_OwnerTicket) = [%#sghost] inv_OwnerTicket self
+
+meta "rewrite_def" predicate invariant_Ghost_OwnerTicket
+
+predicate inv_Ghost_OwnerTicket [@inline:trivial] (_1: t_OwnerTicket) = invariant_Ghost_OwnerTicket _1
+
+meta "rewrite_def" predicate inv_Ghost_OwnerTicket
+
+predicate inv_PhysicalRegion (_1: t_PhysicalRegion)
+
+axiom inv_axiom'1: forall x: t_PhysicalRegion [inv_PhysicalRegion x]. inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate invariant_Ghost_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) = [%#sghost] inv_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_PhysicalRegion
+
+predicate inv_Ghost_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_Ghost_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_PhysicalRegion
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom'2: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> invariant_BoundPtr x
+
+predicate inv_ReadyKey (_1: t_ReadyKey)
+
+predicate invariant_Ghost_ReadyKey [@inline:trivial] (self: t_ReadyKey) = [%#sghost] inv_ReadyKey self
+
+meta "rewrite_def" predicate invariant_Ghost_ReadyKey
+
+predicate inv_Ghost_ReadyKey [@inline:trivial] (_1: t_ReadyKey) = invariant_Ghost_ReadyKey _1
+
+meta "rewrite_def" predicate inv_Ghost_ReadyKey
+
+predicate inv_SharedOwnerPacket (_1: t_SharedOwnerPacket)
+
+axiom inv_axiom'3 [@rewrite]: forall x: t_SharedOwnerPacket [inv_SharedOwnerPacket x]. inv_SharedOwnerPacket x
+    = (invariant_SharedOwnerPacket x
+    /\ inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload x.capsule
+    /\ inv_Ghost_OwnerTicket x.ticket
+    /\ inv_Ghost_PhysicalRegion x.region
+    /\ inv_BoundPtr x.base /\ inv_BoundPtr x.cursor /\ inv_Ghost_ReadyKey x.lease_key)
+
+predicate invariant_ref_SharedOwnerPacket [@inline:trivial] (self: t_SharedOwnerPacket) =
+  [%#sinvariant] inv_SharedOwnerPacket self
+
+meta "rewrite_def" predicate invariant_ref_SharedOwnerPacket
+
+predicate inv_ref_SharedOwnerPacket [@inline:trivial] (_1: t_SharedOwnerPacket) = invariant_ref_SharedOwnerPacket _1
+
+meta "rewrite_def" predicate inv_ref_SharedOwnerPacket
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let prove_event_namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1341 4 1341 46]
+  (self: t_SharedOwnerPacket) (return (x: ())) =
+{[@stop_split] [@expl:prove_event_namespace requires] ([@stop_split] [@expl:prove_event_namespace 'self' type invariant] [%#sshared_capsule'0] inv_ref_SharedOwnerPacket self)
+  /\ ([@stop_split] [@expl:prove_event_namespace requires] [%#sshared_capsule'1] invariant_ref_SharedOwnerPacket self)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#sshared_capsule] namespace_SharedPayload self.capsule = event_namespace} s1
+    | s1 = return {_ret} ] ] [ & _ret: () = Any.any_l () | & self: t_SharedOwnerPacket = self ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:prove_event_namespace ensures] [%#sshared_capsule'2] namespace_SharedPayload self.capsule
+    = event_namespace}
+    (! return {result}) ]

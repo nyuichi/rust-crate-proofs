@@ -368,6 +368,9 @@ mod proof {
         }
 
         #[logic(open(super), prophetic)]
+        #[ensures(result == (self.current.protocol() &&
+            self.current.counter_model() == *self.owner.ward() &&
+            self.current.agrees_with_value(self.owner.val())))]
         fn protocol(self) -> bool {
             self.current.protocol() &&
             self.current.counter_model() == *self.owner.ward() &&
@@ -384,6 +387,7 @@ mod proof {
         #[requires(current.counter_model() == *owner.ward())]
         #[requires(current.protocol() && current.agrees_with_value(owner.val()))]
         #[ensures(result.public() == (*owner.ward(), current.public()))]
+        #[ensures(result.public().0 == current.counter_model())]
         #[ensures(result.invariant())]
         #[ensures(result.namespace() == event_namespace())]
         pub(crate) fn new(

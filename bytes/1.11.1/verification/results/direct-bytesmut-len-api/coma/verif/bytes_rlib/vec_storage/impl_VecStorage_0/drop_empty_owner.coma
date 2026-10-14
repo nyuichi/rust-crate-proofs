@@ -1,0 +1,200 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 895 4 895 45 *)
+
+(* vec_storage::VecStorage *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 93 20 93 44
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 15 179 16
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 4 181 17
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span svec_storage = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 897 22 897 84
+let%span svec_storage'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 901 17 901 51
+let%span svec_storage'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 906 21 906 33
+let%span svec_storage'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 895 40 895 44
+let%span svec_storage'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 890 8 890 49
+let%span svec_storage'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 893 8 893 39
+let%span svec_storage'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 522 20 522 27
+let%span svec_storage'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 837 4 837 36
+let%span svec_storage'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 513 12 516 13
+let%span svec_storage'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 507 20 507 40
+let%span svec_storage'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 798 12 810 13
+
+use creusot.prelude.Opaque
+use creusot.prelude.MutBorrow
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use creusot.int.Int64
+use creusot.prelude.Any
+use int.Int
+
+type t_NativeStoredVec
+
+type t_NonNull_u8
+
+type t_Id
+
+type t_StorageModel = Pending t_NonNull_u8 int int | Owned t_Id t_NonNull_u8 int int | Empty Opaque.ptr
+
+type t_Option_StorageModel = None | Some t_StorageModel
+
+type t_VecStorage = { f0: t_NativeStoredVec; f1: t_Option_StorageModel }
+
+type tup3_ptr_u8_Int_Int = { f0'0: Opaque.ptr; f1'0: int; f2'0: int }
+
+function view_NativeStoredVec [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 412 4 412 33] (self: t_NativeStoredVec) : tup3_ptr_u8_Int_Int
+
+function native_metadata [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 521 4 521 51] (self: t_VecStorage) : tup3_ptr_u8_Int_Int
+ = [%#svec_storage'5] view_NativeStoredVec self.f0
+
+let drop_empty_native_vec (native: MutBorrow.t t_NativeStoredVec) (return (x: ())) =
+{[@stop_split] [@expl:drop_empty_native_vec requires] [%#svec_storage'6] (view_NativeStoredVec native.current).f1'0 = 0
+  /\ (view_NativeStoredVec native.current).f2'0 = 0}
+  any [ return (result: ()) -> (! return {result}) ]
+
+predicate resolve_refmut_NativeStoredVec [@inline:trivial] (_1: MutBorrow.t t_NativeStoredVec) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_NativeStoredVec
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+predicate is_null_NonNull_u8 (self: t_NonNull_u8) = [%#sptr] addr_NonNull_u8 self = (0: UInt64.t)
+
+predicate invariant_NonNull_u8 (self: t_NonNull_u8) = [%#snonnull'0] not is_null_NonNull_u8 self
+
+predicate inv_NonNull_u8 (_1: t_NonNull_u8)
+
+axiom inv_axiom: forall x: t_NonNull_u8 [inv_NonNull_u8 x]. inv_NonNull_u8 x -> invariant_NonNull_u8 x
+
+predicate inv_StorageModel (_1: t_StorageModel)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_StorageModel [inv_StorageModel x]. inv_StorageModel x
+    = match x with
+      | Pending pointer len capacity -> inv_NonNull_u8 pointer
+      | Owned key pointer len capacity -> inv_NonNull_u8 pointer
+      | Empty pointer -> true
+      end
+
+predicate inv_Option_StorageModel (_1: t_Option_StorageModel)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Option_StorageModel [inv_Option_StorageModel x]. inv_Option_StorageModel x
+    = match x with
+      | None -> true
+      | Some f0'1 -> inv_StorageModel f0'1
+      end
+
+predicate invariant_Ghost_Option_StorageModel [@inline:trivial] (self: t_Option_StorageModel) =
+  [%#sghost'2] inv_Option_StorageModel self
+
+meta "rewrite_def" predicate invariant_Ghost_Option_StorageModel
+
+predicate inv_Ghost_Option_StorageModel [@inline:trivial] (_1: t_Option_StorageModel) =
+  invariant_Ghost_Option_StorageModel _1
+
+meta "rewrite_def" predicate inv_Ghost_Option_StorageModel
+
+let new_Option_StorageModel (x: t_Option_StorageModel) (return (x'0: t_Option_StorageModel)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost] inv_Option_StorageModel x}
+  any
+  [ return (result: t_Option_StorageModel) ->
+  {[@stop_split] [@expl:new_Option_StorageModel ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'0] inv_Ghost_Option_StorageModel result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'1] result = x)}
+    (! return {result}) ]
+
+function storage_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 506 4 506 61] (self: t_VecStorage) : t_Option_StorageModel
+ = [%#svec_storage'8] self.f1
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_VecStorage [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 796 4 796 30] (self: t_VecStorage) =
+  [%#svec_storage'9] match storage_model self with
+    | None -> true
+    | Some (Pending pointer len capacity) -> native_metadata self
+      = { f0'0 = view_NonNull_u8 pointer; f1'0 = len; f2'0 = capacity }
+    /\ 0 <= len
+    /\ len <= capacity
+    /\ capacity <= Int64.to_int const_MAX
+    /\ UInt64.t'int (addr_NonNull_u8 pointer) + capacity <= UInt64.t'int const_MAX'0
+    | Some (Owned _ pointer len capacity) -> native_metadata self
+      = { f0'0 = view_NonNull_u8 pointer; f1'0 = len; f2'0 = capacity }
+    /\ 0 <= len
+    /\ len <= capacity
+    /\ capacity <= Int64.to_int const_MAX
+    /\ UInt64.t'int (addr_NonNull_u8 pointer) + capacity <= UInt64.t'int const_MAX'0
+    | Some (Empty pointer) -> native_metadata self = { f0'0 = pointer; f1'0 = 0; f2'0 = 0 }
+    end
+
+predicate inv_VecStorage (_1: t_VecStorage)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_VecStorage [inv_VecStorage x]. inv_VecStorage x
+    = (invariant_VecStorage x /\ inv_Ghost_Option_StorageModel x.f1)
+
+predicate invariant_refmut_VecStorage [@inline:trivial] (self: MutBorrow.t t_VecStorage) =
+  [%#sinvariant] inv_VecStorage self.current /\ inv_VecStorage self.final
+
+meta "rewrite_def" predicate invariant_refmut_VecStorage
+
+predicate inv_refmut_VecStorage [@inline:trivial] (_1: MutBorrow.t t_VecStorage) = invariant_refmut_VecStorage _1
+
+meta "rewrite_def" predicate inv_refmut_VecStorage
+
+predicate resolve_refmut_VecStorage [@inline:trivial] (_1: MutBorrow.t t_VecStorage) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_VecStorage
+
+predicate is_empty_owner [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 511 4 511 46] (self: t_VecStorage) =
+  [%#svec_storage'7] match storage_model self with
+    | Some (Empty _) -> true
+    | _ -> false
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let drop_empty_owner [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 895 4 895 45]
+  (self: MutBorrow.t t_VecStorage) (return (x: ())) =
+{[@stop_split] [@expl:drop_empty_owner requires] ([@stop_split] [@expl:drop_empty_owner 'self' type invariant] [%#svec_storage'2] inv_refmut_VecStorage self)
+  /\ ([@stop_split] [@expl:drop_empty_owner requires] [%#svec_storage'3] invariant_refmut_VecStorage self
+  /\ is_empty_owner self.current)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#svec_storage] (native_metadata self.current).f1'0 = 0
+      /\ (native_metadata self.current).f2'0 = 0}
+      s1
+    | s1 = MutBorrow.borrow_final <t_NativeStoredVec> {self.current.f0} {MutBorrow.inherit_id (MutBorrow.get_id self) 0}
+        (fun (_bor: MutBorrow.t t_NativeStoredVec) ->
+          [ &_11 <- _bor ] [ &self <- { self with current = { self.current with f0 = _bor.final } } ] s2)
+    | s2 = MutBorrow.borrow_final <t_NativeStoredVec> {_11.current} {MutBorrow.get_id _11}
+        (fun (_bor: MutBorrow.t t_NativeStoredVec) -> [ &_10 <- _bor ] [ &_11 <- { _11 with current = _bor.final } ] s3)
+    | s3 = drop_empty_native_vec [%#svec_storage'0] {_10} (fun (_x: ()) -> [ &_9 <- _x ] s4)
+    | s4 = -{resolve_refmut_NativeStoredVec _11}- s5
+    | s5 = [ &_13 <- None ] s6
+    | s6 = new_Option_StorageModel [%#svec_storage'1] {_13} (fun (_x: t_Option_StorageModel) -> [ &_12 <- _x ] s7)
+    | s7 = [ &self <- { self with current = { self.current with f1 = _12 } } ] s8
+    | s8 = s9 [ _ck -> (! {[@expl:type invariant] inv_refmut_VecStorage self} any) ]
+    | s9 = -{resolve_refmut_VecStorage self}- s10
+    | s10 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & self: MutBorrow.t t_VecStorage = self
+  | & _9: () = Any.any_l ()
+  | & _10: MutBorrow.t t_NativeStoredVec = Any.any_l ()
+  | & _11: MutBorrow.t t_NativeStoredVec = Any.any_l ()
+  | & _12: t_Option_StorageModel = Any.any_l ()
+  | & _13: t_Option_StorageModel = Any.any_l () ])
+  [ return (result: ()) -> {[@stop_split] [@expl:drop_empty_owner ensures] [%#svec_storage'4] storage_model self.final
+    = None}
+    (! return {result}) ]

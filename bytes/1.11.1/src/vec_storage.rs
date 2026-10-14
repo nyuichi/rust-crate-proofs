@@ -508,6 +508,16 @@ impl VecStorage {
     }
 
     #[logic(open(self))]
+    pub(crate) fn is_empty_owner(self) -> bool {
+        pearlite! {
+            match self.storage_model() {
+                Some(StorageModel::Empty { pointer: _ }) => true,
+                _ => false,
+            }
+        }
+    }
+
+    #[logic(open(self))]
     fn native_metadata(self) -> (*mut u8, Int, Int) {
         pearlite! { self.0@ }
     }
@@ -802,22 +812,99 @@ impl Invariant for VecStorage {
     }
 }
 
+/// Construct the exact empty Vec used for `mem::take` replacement storage.
+///
+/// The native body remains `Vec::<u8>::new()`. The proof contract records
+/// only its empty sequence and zero capacity; it says nothing about pointer
+/// liveness, allocation, or Bytes ownership.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), trusted)]
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@.len() == 0))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    creusot_std::std::vec::capacity_model(result) == 0
+))]
+fn new_empty_vec_u8() -> Vec<u8> {
+    Vec::<u8>::new()
+}
+
+/// Run the ordinary native destructor for a sole zero-capacity `Vec<u8>`.
+///
+/// The trusted proof-mode fact is limited to an empty Vec's no-allocation
+/// destructor behavior. The native body is the existing exact
+/// `ManuallyDrop::drop` operation.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), trusted)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    native@.1 == 0 && native@.2 == 0
+))]
+#[inline]
+unsafe fn drop_empty_native_vec(native: &mut NativeStoredVec) {
+    unsafe { ManuallyDrop::drop(&mut native.0) }
+}
+
 impl Default for VecStorage {
     #[inline]
-    #[cfg_attr(creusot, creusot::no_translate)]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.is_empty_owner()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.native_metadata().1 == 0 && result.native_metadata().2 == 0
+    ))]
     fn default() -> Self {
-        Self::hold(Vec::new())
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let empty = new_empty_vec_u8();
+            let (mut storage, witness) = Self::capture_vec_owner(empty);
+            let (pointer, len, capacity) = witness.native_parts();
+            let pointer = pointer.as_ptr();
+            proof_assert!(len@ == 0 && capacity@ == 0);
+            storage.1 = ghost!(Some(StorageModel::Empty {
+                pointer,
+            }));
+            proof_assert!(storage.invariant());
+            storage
+        }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        {
+            Self::hold(Vec::new())
+        }
     }
 }
 
 impl Drop for VecStorage {
     #[inline]
-    #[cfg_attr(creusot, creusot::no_translate)]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.is_empty_owner()
+    ))]
     fn drop(&mut self) {
+        self.drop_empty_owner();
+    }
+}
+
+impl VecStorage {
+    /// Run the ordinary Vec destructor for the initialized empty owner.
+    ///
+    /// Shared's terminal release invokes this same helper explicitly after
+    /// moving its VecStorage field through MaybeUninit, so the allocator
+    /// operation is visible in the checked source body and cannot be repeated
+    /// by Box field-drop glue.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.invariant() && self.is_empty_owner()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).storage_model() == None
+    ))]
+    pub(crate) fn drop_empty_owner(&mut self) {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        proof_assert!(self.native_metadata().1 == 0 && self.native_metadata().2 == 0);
         // The wrapper's normal terminal path is the native Vec destructor.
         // Shared's proof-side drop contract must establish that no packet or
         // borrow remains before this generic storage retirement takes place.
-        unsafe { ManuallyDrop::drop(&mut self.0.0) }
+        unsafe { drop_empty_native_vec(&mut self.0) }
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            // The owner was consumed above. Do not leave a live Vec metadata
+            // model attached to the destroyed native value.
+            self.1 = ghost!(None);
+        }
     }
 }
 

@@ -48,6 +48,7 @@ impl<'ctx, R: UnitRA> OwnedSharedContext<'ctx, R> {
     /// Exact logical state at one stable slot, including the actual fragment
     /// identity and complete RA value.
     #[logic(open(self))]
+    #[ensures(result != None ==> 0 <= slot && slot < self.ready_len())]
     pub(crate) fn ready_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
         self.ready.inner_logic().entry_state(slot)
     }
@@ -111,6 +112,7 @@ impl<'view, R: UnitRA> BorrowedSharedContext<'view, R> {
     }
 
     #[logic(open(self))]
+    #[ensures(result != None ==> 0 <= slot && slot < self.ready_len())]
     pub(crate) fn ready_entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
         self.ready.inner_logic().entry_state(slot)
     }
@@ -118,6 +120,48 @@ impl<'view, R: UnitRA> BorrowedSharedContext<'view, R> {
     #[logic(open(self))]
     pub(crate) fn ready_has_key(self, key: ReadyKey) -> bool {
         self.ready.inner_logic().has_key(key)
+    }
+
+    /// Derive registry membership from the exact occupied slot state. This
+    /// lets callers use a producer-issued key without adding a separate
+    /// membership precondition or reconstructing a capability.
+    #[check(ghost)]
+    #[requires(context.inner_logic().invariant())]
+    #[requires(key.inner_logic().slot() < context.inner_logic().ready_len())]
+    #[requires(match context.inner_logic().ready_entry_state(key.inner_logic().slot()) {
+        Some((resource_id, slot, fragment_id, _)) =>
+            resource_id == key.inner_logic().resource_id() &&
+            slot == key.inner_logic().slot() &&
+            fragment_id == key.inner_logic().resource_id(),
+        None => false,
+    })]
+    #[ensures(context.inner_logic().ready_has_key(key.inner_logic()))]
+    pub(crate) fn prove_ready_has_key_from_entry(
+        context: Ghost<&Self>,
+        key: Ghost<ReadyKey>,
+    ) -> Ghost<()> {
+        ghost! {
+            let context = context.into_inner();
+            proof_assert!(context.ready_has_key(key.inner_logic()));
+        }
+    }
+
+    /// A tombstone at the key's bounded stable slot rules out registry
+    /// membership. The proof observes the actual borrowed registry.
+    #[check(ghost)]
+    #[requires(context.inner_logic().invariant())]
+    #[requires(0 <= key.inner_logic().slot() &&
+        key.inner_logic().slot() < context.inner_logic().ready_len())]
+    #[requires(context.inner_logic().ready_entry_state(key.inner_logic().slot()) == None)]
+    #[ensures(!context.inner_logic().ready_has_key(key.inner_logic()))]
+    pub(crate) fn prove_tombstone_has_no_key(
+        context: Ghost<&Self>,
+        key: Ghost<ReadyKey>,
+    ) -> Ghost<()> {
+        ghost! {
+            let context = context.into_inner();
+            proof_assert!(!context.ready_has_key(key.inner_logic()));
+        }
     }
 
     /// Exact registration frame over the actual borrowed registry. The key

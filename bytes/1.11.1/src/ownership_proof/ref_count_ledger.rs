@@ -902,6 +902,8 @@ impl OwnerLedger {
     #[ensures((^ledger.inner_logic()).count() + 1 == ledger.inner_logic().count())]
     #[ensures((^ledger.inner_logic()).active_ids() ==
         ledger.inner_logic().active_ids().remove(ticket.inner_logic().owner_id()))]
+    #[ensures(result.inner_logic() != None ==>
+        (^ledger.inner_logic()).active_ids() == FMap::empty())]
     #[ensures((^ledger.inner_logic()).next_id() == ledger.inner_logic().next_id())]
     #[ensures(match result.inner_logic() {
         Some(retire) => ledger.inner_logic().count() == 1 &&
@@ -1121,6 +1123,21 @@ fn zero_length_map_has_no_ids(map: Snapshot<ActiveReferences>) {
     proof_assert!(forall<key: Int> (*map).contains(key) ==>
         (*map).remove(key).len() == -1);
     proof_assert!(forall<key: Int> !(*map).contains(key));
+}
+
+/// No finite map entry means no Mutable registration covers any slot. Keep
+/// this bridge explicit for callers that combine the ledger map with the
+/// physical-pool complement.
+#[check(ghost)]
+#[requires((*owners).len() == 0)]
+#[ensures(forall<index: Int>
+    !active_mutable_contains(*owners, index))]
+pub(crate) fn prove_no_active_mutable_on_empty(
+    owners: Snapshot<ActiveReferences>,
+) {
+    zero_length_map_has_no_ids(owners);
+    proof_assert!(forall<index: Int>
+        !active_mutable_contains(*owners, index));
 }
 
 /// Cancelling one exclusive singleton registration factors precisely the

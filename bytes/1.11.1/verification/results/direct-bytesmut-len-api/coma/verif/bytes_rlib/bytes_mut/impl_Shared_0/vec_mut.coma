@@ -1,0 +1,152 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 624 4 624 44 *)
+
+(* bytes_mut::Shared *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 93 20 93 44
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
+let%span smem = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 98 19 98 23
+let%span smem'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 99 18 99 72
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 627 17 627 43
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 624 20 624 24
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 611 66 611 83
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 624 29 624 44
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 613 8 613 43
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 616 8 616 39
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 619 8 619 69
+let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 622 8 622 43
+
+use creusot.int.UInt64
+use creusot.prelude.MutBorrow
+use creusot.prelude.Any
+
+type t_MaybeUninit_VecStorage
+
+type t_RefCountCell
+
+type t_Shared = { vec: t_MaybeUninit_VecStorage; original_capacity_repr: UInt64.t; ref_count: t_RefCountCell }
+
+type t_VecStorage
+
+type t_Option_VecStorage = None | Some t_VecStorage
+
+function view_MaybeUninit_VecStorage (self: t_MaybeUninit_VecStorage) : t_Option_VecStorage
+
+predicate invariant_VecStorage [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 796 4 796 30] (self: t_VecStorage)
+
+predicate inv_VecStorage (_1: t_VecStorage)
+
+axiom inv_axiom: forall x: t_VecStorage [inv_VecStorage x]. inv_VecStorage x -> invariant_VecStorage x
+
+predicate invariant_refmut_VecStorage [@inline:trivial] (self: MutBorrow.t t_VecStorage) =
+  [%#sinvariant] inv_VecStorage self.current /\ inv_VecStorage self.final
+
+meta "rewrite_def" predicate invariant_refmut_VecStorage
+
+predicate inv_refmut_VecStorage [@inline:trivial] (_1: MutBorrow.t t_VecStorage) = invariant_refmut_VecStorage _1
+
+meta "rewrite_def" predicate inv_refmut_VecStorage
+
+let assume_init_mut_VecStorage (self_: MutBorrow.t t_MaybeUninit_VecStorage) (return (x: MutBorrow.t t_VecStorage)) =
+{[@stop_split] [@expl:assume_init_mut requires] [%#smem] view_MaybeUninit_VecStorage self_.current <> None}
+  any
+  [ return (result: MutBorrow.t t_VecStorage) ->
+  {[@stop_split] [@expl:assume_init_mut_VecStorage ensures] ([@stop_split] [@expl:assume_init_mut result type invariant] inv_refmut_VecStorage result)
+    /\ ([@stop_split] [@expl:assume_init_mut ensures] [%#smem'0] view_MaybeUninit_VecStorage self_.current
+      = Some (result.current)
+    /\ view_MaybeUninit_VecStorage self_.final = Some (result.final))}
+    (! return {result}) ]
+
+predicate resolve_refmut_VecStorage [@inline:trivial] (_1: MutBorrow.t t_VecStorage) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_VecStorage
+
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 511 8 511 34] (self: t_RefCountCell)
+
+predicate inv_RefCountCell (_1: t_RefCountCell)
+
+axiom inv_axiom'0: forall x: t_RefCountCell [inv_RefCountCell x]. inv_RefCountCell x -> invariant_RefCountCell x
+
+predicate inv_Shared (_1: t_Shared)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Shared [inv_Shared x]. inv_Shared x = inv_RefCountCell x.ref_count
+
+predicate invariant_refmut_Shared [@inline:trivial] (self: MutBorrow.t t_Shared) =
+  [%#sinvariant] inv_Shared self.current /\ inv_Shared self.final
+
+meta "rewrite_def" predicate invariant_refmut_Shared
+
+predicate inv_refmut_Shared [@inline:trivial] (_1: MutBorrow.t t_Shared) = invariant_refmut_Shared _1
+
+meta "rewrite_def" predicate inv_refmut_Shared
+
+predicate resolve_refmut_Shared [@inline:trivial] (_1: MutBorrow.t t_Shared) = _1.final = _1.current
+
+meta "rewrite_def" predicate resolve_refmut_Shared
+
+constant any_VecStorage : t_VecStorage
+
+function unwrap_Option_VecStorage (self: t_Option_VecStorage) : t_VecStorage = [%#soption'0] match self with
+    | Some x -> x
+    | None -> any_VecStorage
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let vec_mut [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 624 4 624 44] (self: MutBorrow.t t_Shared)
+  (return (x: MutBorrow.t t_VecStorage)) =
+{[@stop_split] [@expl:vec_mut requires] ([@stop_split] [@expl:vec_mut 'self' type invariant] [%#sbytes_mut'0] inv_refmut_Shared self)
+  /\ ([@stop_split] [@expl:vec_mut requires] [%#sbytes_mut'1] view_MaybeUninit_VecStorage self.current.vec <> None)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = MutBorrow.borrow_final <t_MaybeUninit_VecStorage> {self.current.vec}
+        {MutBorrow.inherit_id (MutBorrow.get_id self) 0}
+        (fun (_bor: MutBorrow.t t_MaybeUninit_VecStorage) ->
+          [ &_15 <- _bor ] [ &self <- { self with current = { self.current with vec = _bor.final } } ] s1)
+    | s1 = assume_init_mut_VecStorage [%#sbytes_mut] {_15} (fun (_x: MutBorrow.t t_VecStorage) -> [ &_14 <- _x ] s2)
+    | s2 = MutBorrow.borrow_final <t_VecStorage> {_14.current} {MutBorrow.get_id _14}
+        (fun (_bor: MutBorrow.t t_VecStorage) ->
+          [ &_13 <- _bor ] -{inv_VecStorage _bor.final}-
+          [ &_14 <- { _14 with current = _bor.final } ] s3)
+      [ _ck -> (! {[@expl:type invariant] inv_VecStorage _14.current} any) ]
+    | s3 = MutBorrow.borrow_final <t_VecStorage> {_13.current} {MutBorrow.get_id _13}
+        (fun (_bor: MutBorrow.t t_VecStorage) ->
+          [ &_2 <- _bor ] -{inv_VecStorage _bor.final}-
+          [ &_13 <- { _13 with current = _bor.final } ] s4)
+      [ _ck -> (! {[@expl:type invariant] inv_VecStorage _13.current} any) ]
+    | s4 = MutBorrow.borrow_final <t_VecStorage> {_2.current} {MutBorrow.get_id _2}
+        (fun (_bor: MutBorrow.t t_VecStorage) ->
+          [ &_ret <- _bor ] -{inv_VecStorage _bor.final}-
+          [ &_2 <- { _2 with current = _bor.final } ] s5)
+      [ _ck -> (! {[@expl:type invariant] inv_VecStorage _2.current} any) ]
+    | s5 = s6 [ _ck -> (! {[@expl:type invariant] inv_refmut_VecStorage _14} any) ]
+    | s6 = -{resolve_refmut_VecStorage _14}- s7
+    | s7 = s8 [ _ck -> (! {[@expl:type invariant] inv_refmut_VecStorage _13} any) ]
+    | s8 = -{resolve_refmut_VecStorage _13}- s9
+    | s9 = s10 [ _ck -> (! {[@expl:type invariant] inv_refmut_VecStorage _2} any) ]
+    | s10 = -{resolve_refmut_VecStorage _2}- s11
+    | s11 = s12 [ _ck -> (! {[@expl:type invariant] inv_refmut_Shared self} any) ]
+    | s12 = -{resolve_refmut_Shared self}- s13
+    | s13 = return {_ret} ] ]
+  [ & _ret: MutBorrow.t t_VecStorage = Any.any_l ()
+  | & self: MutBorrow.t t_Shared = self
+  | & _2: MutBorrow.t t_VecStorage = Any.any_l ()
+  | & _13: MutBorrow.t t_VecStorage = Any.any_l ()
+  | & _14: MutBorrow.t t_VecStorage = Any.any_l ()
+  | & _15: MutBorrow.t t_MaybeUninit_VecStorage = Any.any_l () ])
+  [ return (result: MutBorrow.t t_VecStorage) ->
+  {[@stop_split] [@expl:vec_mut ensures] ([@stop_split] [@expl:vec_mut result type invariant] [%#sbytes_mut'2] inv_refmut_VecStorage result)
+    /\ ([@stop_split] [@expl:vec_mut ensures #0] [%#sbytes_mut'3] result.current
+      = unwrap_Option_VecStorage (view_MaybeUninit_VecStorage self.current.vec))
+    /\ ([@stop_split] [@expl:vec_mut ensures #1] [%#sbytes_mut'4] view_MaybeUninit_VecStorage self.final.vec
+      = Some (result.final))
+    /\ ([@stop_split] [@expl:vec_mut ensures #2] [%#sbytes_mut'5] self.final.original_capacity_repr
+      = self.current.original_capacity_repr)
+    /\ ([@stop_split] [@expl:vec_mut ensures #3] [%#sbytes_mut'6] self.final.ref_count = self.current.ref_count)}
+    (! return {result}) ]

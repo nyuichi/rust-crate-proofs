@@ -253,10 +253,15 @@ membership for a particular capsule namespace remains a separate precondition
 at each open. The selected private count-one promotion and
 `split_unique_to_shared` paths use this context to register their packet's idle
 header capability; packet loan take/restore use it to move the same capability.
-These internal paths do not establish that public wrappers pass a valid context
-or that every safely reachable state satisfies `buffer_view_valid`. Native
-lifecycle integration and a verified explicit release path remain open; the
-crate's automatic `Drop` behavior remains present and unverified here.
+The crate-private unsafe `BytesMut::dispose_shared` body consumes a shared
+handle with this actual context and calls the same native release body as the
+ordinary release wrapper. The proof preserves the other registry slots and
+returns the terminal storage, full physical region, and actual root permission
+when this owner is the final one. It does not establish that public producer
+wrappers pass a valid context or that every safely reachable state satisfies
+`buffer_view_valid`. The ordinary automatic `Drop` path remains present; its
+context-free wrapper is untranslated, so its post-Drop context state is not
+verified.
 
 For Shared payloads, the physical pool contains exactly the in-bounds
 complement of active Mutable intervals. Readonly intervals do not claim
@@ -274,11 +279,17 @@ reclamation for every safe Shared state.
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
 contradiction between a closed authority and a still-valid matching action.
-The generic `PhysicalPool::retire` and `finish` operations are body-proved,
-but the selected production paths do not yet invoke a complete last-reference
-retirement and recovery sequence. The Vec `advance_unchecked` branch assumes a
-representable position, so it does not establish reachability of the promotion
-branch, and public `Buf::advance` is untranslated.
+The generic `PhysicalPool::retire` and `finish` operations are body-proved. The
+selected `release_native_owner` and terminal callback connect the actual ticket,
+lease, terminal action, ledger removal, pool finish, and root permission for a
+final owner; `release_shared_common` then runs the original native decrement,
+Acquire load, stored-Vec retirement and Box release sequence. The explicit
+`dispose_shared` body reaches this common native algorithm with its actual
+packet and context. This proves that internal explicit path under its unsafe
+preconditions, not every public ARC split/clone/freeze/recovery transition or
+the context-free automatic `Drop` call chain. The Vec `advance_unchecked`
+branch assumes a representable position, so it does not establish reachability
+of the promotion branch, and public `Buf::advance` is untranslated.
 
 Although `truncate`, `clear`, and unsafe `set_len` have body proofs from
 `buffer_view_valid`, their modular precondition still includes a packet-backed
@@ -307,11 +318,36 @@ running the ordinary `Vec<u8>` destructor. This is interpreted for the
 matching original global-allocator `u8` allocation and its native pointer,
 capacity and layout: a nonzero-capacity allocation is deallocated exactly once;
 zero capacity denotes no allocation. The trusted contract states no Bytes
-refcount, final-winner, phase, or pool-transition rule; those remain
-source-level obligations. No original `release_shared` path calls this helper
-yet, so it is not evidence that Shared release or explicit disposal is proved.
-The existing automatic `Drop` remains unchanged and unverified. Replacing this
-boundary requires a verified generic transfer of the unique native stored Vec
-owner into `Vec<u8>` together with the standard `Vec` destructor contract, and
-a body proof that consumes the same authority and region without changing the
-allocation model.
+refcount, final-winner, phase, or pool-transition rule; those are proved in the
+source call chain.
+
+Two additional narrow generic facts support the empty replacement Vec used by
+`mem::take`: `new_empty_vec_u8` returns the native `Vec::<u8>::new()` with
+length and modeled capacity zero, and `drop_empty_native_vec` invokes the
+ordinary native `ManuallyDrop::drop` for a Vec whose native length and capacity
+are both zero, with no allocation to free. They establish no Bytes-specific
+owner, refcount, phase, or reclamation rule. `VecStorage::default` and its
+empty-owner destructor wrapper remain body-proved around those facts.
+
+The `Shared.vec` field is `MaybeUninit<VecStorage>`, which preserves the native
+field size, alignment and offset checked by the layout test. All three Shared
+constructors initialize it. The checked accessors require the actual field
+view to be initialized and frame the Vec view, original-capacity metadata and
+refcount. In the verified terminal release body, `take_vec_storage` installs
+the same empty default as `mem::take`, `retire_stored_vec` consumes the original
+storage and its actual authority/region, and `drop_empty_vec_field` explicitly
+runs the body-proved empty-owner destructor before setting the field view to
+`None`. The actual root permission then consumes the Box; the field is not
+dropped a second time. The original native atomic/decrement/Acquire and
+allocation-retirement order is shared by `release_shared_common` and the
+explicit consuming path. The ordinary `BytesMut` automatic `Drop` remains in
+the source, but its context-free wrapper is untranslated; no post-Drop context
+consistency or all-safe-state `truncate` guarantee is claimed.
+
+Replacing the stored-Vec boundary requires a verified generic transfer of the
+unique native stored Vec owner into `Vec<u8>` together with the standard
+`Vec` destructor contract, and a body proof that consumes the same authority
+and region without changing the allocation model. Replacing either empty-Vec
+fact requires verified `Vec<u8>` construction/destruction contracts preserving
+the zero-capacity no-allocation case. The selected body proofs leave all
+Bytes-specific release rules in the source.

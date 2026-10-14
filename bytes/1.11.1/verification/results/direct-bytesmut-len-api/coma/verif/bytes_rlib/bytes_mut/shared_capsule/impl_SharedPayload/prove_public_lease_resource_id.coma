@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 582 4 582 68 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 587 4 587 68 *)
 
 (* bytes_mut::shared_capsule::SharedPayload *)
 
@@ -10,14 +10,14 @@ let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-ref
 let%span sboxed = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/boxed.rs" 49 8 49 18
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 537 12 539 34
 let%span sptr'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
-let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 583 22 583 59
-let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 582 39 582 43
-let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 580 15 580 43
-let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 581 14 581 51
-let%span sshared_capsule'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 125 8 125 24
-let%span sshared_capsule'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 341 8 349 9
-let%span sshared_capsule'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 509 8 513 30
-let%span sshared_capsule'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 326 12 326 81
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 588 22 588 59
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 587 39 587 43
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 585 15 585 43
+let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 586 14 586 51
+let%span sshared_capsule'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 126 8 126 24
+let%span sshared_capsule'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 342 8 350 9
+let%span sshared_capsule'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 513 8 517 30
+let%span sshared_capsule'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 327 12 327 81
 
 use creusot.prelude.Opaque
 use creusot.int.UInt64
@@ -33,7 +33,7 @@ type t_HeaderLeaseAuthority = {
   header_id: Opaque.ptr;
   authority: t_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey }
 
-function resource_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 124 4 124 30] (self: t_HeaderLeaseAuthority) : t_Id
+function resource_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 125 4 125 30] (self: t_HeaderLeaseAuthority) : t_Id
  = [%#sshared_capsule'3] self.resource_id
 
 type t_NativeCounter
@@ -94,9 +94,11 @@ predicate is_null_ptr_Shared (self: Opaque.ptr) = [%#sptr'0] Ptr.addr_logic_u64 
 
 function ward_ptr_Shared (self: t_Perm_ptr_Shared) : Opaque.ptr
 
+type t_MaybeUninit_VecStorage
+
 type t_RefCountCell
 
-type t_Shared = { vec: t_VecStorage; original_capacity_repr: UInt64.t; ref_count: t_RefCountCell }
+type t_Shared = { vec: t_MaybeUninit_VecStorage; original_capacity_repr: UInt64.t; ref_count: t_RefCountCell }
 
 predicate metadata_matches_Shared [@inline:trivial] (_value: t_Shared) (_metadata: ()) = true
 
@@ -106,22 +108,15 @@ function val_ptr_Shared (self: t_Perm_ptr_Shared) : t_Shared
 
 function metadata_Shared (_1: Opaque.ptr) : ()
 
-predicate invariant_VecStorage [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 786 4 786 30] (self: t_VecStorage)
-
-predicate inv_VecStorage (_1: t_VecStorage)
-
-axiom inv_axiom: forall x: t_VecStorage [inv_VecStorage x]. inv_VecStorage x -> invariant_VecStorage x
-
-predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 507 8 507 34] (self: t_RefCountCell)
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 511 8 511 34] (self: t_RefCountCell)
 
 predicate inv_RefCountCell (_1: t_RefCountCell)
 
-axiom inv_axiom'0: forall x: t_RefCountCell [inv_RefCountCell x]. inv_RefCountCell x -> invariant_RefCountCell x
+axiom inv_axiom: forall x: t_RefCountCell [inv_RefCountCell x]. inv_RefCountCell x -> invariant_RefCountCell x
 
 predicate inv_Shared (_1: t_Shared)
 
-axiom inv_axiom'1 [@rewrite]: forall x: t_Shared [inv_Shared x]. inv_Shared x
-    = (inv_VecStorage x.vec /\ inv_RefCountCell x.ref_count)
+axiom inv_axiom'0 [@rewrite]: forall x: t_Shared [inv_Shared x]. inv_Shared x = inv_RefCountCell x.ref_count
 
 predicate invariant_ref_Shared [@inline:trivial] (self: t_Shared) = [%#sinvariant] inv_Shared self
 
@@ -138,7 +133,7 @@ predicate invariant_Perm_ptr_Shared (self: t_Perm_ptr_Shared) =
 
 predicate inv_Perm_ptr_Shared (_1: t_Perm_ptr_Shared)
 
-axiom inv_axiom'2 [@rewrite]: forall x: t_Perm_ptr_Shared [inv_Perm_ptr_Shared x]. inv_Perm_ptr_Shared x
+axiom inv_axiom'1 [@rewrite]: forall x: t_Perm_ptr_Shared [inv_Perm_ptr_Shared x]. inv_Perm_ptr_Shared x
     = invariant_Perm_ptr_Shared x
 
 predicate invariant_Box_Perm_ptr_Shared_Global (self: t_Perm_ptr_Shared) = [%#sboxed] inv_Perm_ptr_Shared self
@@ -150,7 +145,7 @@ meta "rewrite_def" predicate inv_Box_Perm_ptr_Shared_Global
 
 predicate inv_Option_Box_Perm_ptr_Shared_Global (_1: t_Option_Box_Perm_ptr_Shared_Global)
 
-axiom inv_axiom'3 [@rewrite]:
+axiom inv_axiom'2 [@rewrite]:
   forall x: t_Option_Box_Perm_ptr_Shared_Global [inv_Option_Box_Perm_ptr_Shared_Global x]. inv_Option_Box_Perm_ptr_Shared_Global x
     = match x with
       | None -> true
@@ -161,12 +156,12 @@ predicate invariant_StoredAuthority [#"/workspace/rust-crate-proofs/bytes/1.11.1
 
 predicate inv_StoredAuthority (_1: t_StoredAuthority)
 
-axiom inv_axiom'4: forall x: t_StoredAuthority [inv_StoredAuthority x]. inv_StoredAuthority x
+axiom inv_axiom'3: forall x: t_StoredAuthority [inv_StoredAuthority x]. inv_StoredAuthority x
     -> invariant_StoredAuthority x
 
 predicate inv_Option_StoredAuthority (_1: t_Option_StoredAuthority)
 
-axiom inv_axiom'5 [@rewrite]:
+axiom inv_axiom'4 [@rewrite]:
   forall x: t_Option_StoredAuthority [inv_Option_StoredAuthority x]. inv_Option_StoredAuthority x
     = match x with
       | None'0 -> true
@@ -177,25 +172,25 @@ predicate invariant_PhysicalPool [#"/workspace/rust-crate-proofs/bytes/1.11.1/sr
 
 predicate inv_PhysicalPool (_1: t_PhysicalPool)
 
-axiom inv_axiom'6: forall x: t_PhysicalPool [inv_PhysicalPool x]. inv_PhysicalPool x -> invariant_PhysicalPool x
+axiom inv_axiom'5: forall x: t_PhysicalPool [inv_PhysicalPool x]. inv_PhysicalPool x -> invariant_PhysicalPool x
 
 predicate inv_Option_PhysicalPool (_1: t_Option_PhysicalPool)
 
-axiom inv_axiom'7 [@rewrite]: forall x: t_Option_PhysicalPool [inv_Option_PhysicalPool x]. inv_Option_PhysicalPool x
+axiom inv_axiom'6 [@rewrite]: forall x: t_Option_PhysicalPool [inv_Option_PhysicalPool x]. inv_Option_PhysicalPool x
     = match x with
       | None'1 -> true
       | Some'1 f0'0 -> inv_PhysicalPool f0'0
       end
 
-predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 983 4 983 30] (self: t_OwnerLedger)
+predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 985 4 985 30] (self: t_OwnerLedger)
 
 predicate inv_OwnerLedger (_1: t_OwnerLedger)
 
-axiom inv_axiom'8: forall x: t_OwnerLedger [inv_OwnerLedger x]. inv_OwnerLedger x -> invariant_OwnerLedger x
+axiom inv_axiom'7: forall x: t_OwnerLedger [inv_OwnerLedger x]. inv_OwnerLedger x -> invariant_OwnerLedger x
 
 predicate inv_Option_OwnerLedger (_1: t_Option_OwnerLedger)
 
-axiom inv_axiom'9 [@rewrite]: forall x: t_Option_OwnerLedger [inv_Option_OwnerLedger x]. inv_Option_OwnerLedger x
+axiom inv_axiom'8 [@rewrite]: forall x: t_Option_OwnerLedger [inv_Option_OwnerLedger x]. inv_Option_OwnerLedger x
     = match x with
       | None'2 -> true
       | Some'2 f0'0 -> inv_OwnerLedger f0'0
@@ -205,28 +200,28 @@ predicate invariant_RetirePermit [#"/workspace/rust-crate-proofs/bytes/1.11.1/sr
 
 predicate inv_RetirePermit (_1: t_RetirePermit)
 
-axiom inv_axiom'10: forall x: t_RetirePermit [inv_RetirePermit x]. inv_RetirePermit x -> invariant_RetirePermit x
+axiom inv_axiom'9: forall x: t_RetirePermit [inv_RetirePermit x]. inv_RetirePermit x -> invariant_RetirePermit x
 
 predicate inv_Option_RetirePermit (_1: t_Option_RetirePermit)
 
-axiom inv_axiom'11 [@rewrite]: forall x: t_Option_RetirePermit [inv_Option_RetirePermit x]. inv_Option_RetirePermit x
+axiom inv_axiom'10 [@rewrite]: forall x: t_Option_RetirePermit [inv_Option_RetirePermit x]. inv_Option_RetirePermit x
     = match x with
       | None'3 -> true
       | Some'3 f0'0 -> inv_RetirePermit f0'0
       end
 
-predicate invariant_PhaseAuthority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/terminal_phase.rs" 136 4 136 30] (self: t_PhaseAuthority)
+predicate invariant_PhaseAuthority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/terminal_phase.rs" 168 4 168 30] (self: t_PhaseAuthority)
 
-predicate invariant_TerminalAction [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/terminal_phase.rs" 42 4 42 30] (self: t_TerminalAction)
+predicate invariant_TerminalAction [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/terminal_phase.rs" 56 4 56 30] (self: t_TerminalAction)
 
 predicate inv_TerminalAction (_1: t_TerminalAction)
 
-axiom inv_axiom'12: forall x: t_TerminalAction [inv_TerminalAction x]. inv_TerminalAction x
+axiom inv_axiom'11: forall x: t_TerminalAction [inv_TerminalAction x]. inv_TerminalAction x
     -> invariant_TerminalAction x
 
 predicate inv_Option_TerminalAction (_1: t_Option_TerminalAction)
 
-axiom inv_axiom'13 [@rewrite]:
+axiom inv_axiom'12 [@rewrite]:
   forall x: t_Option_TerminalAction [inv_Option_TerminalAction x]. inv_Option_TerminalAction x
     = match x with
       | None'4 -> true
@@ -245,12 +240,12 @@ predicate invariant_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_Nativ
 
 function id_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey (self: t_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey) : t_Id
 
-predicate invariant_HeaderLeaseAuthority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 324 4 324 30] (self: t_HeaderLeaseAuthority) =
+predicate invariant_HeaderLeaseAuthority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 325 4 325 30] (self: t_HeaderLeaseAuthority) =
   [%#sshared_capsule'6] invariant_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey self.authority
   /\ id_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey self.authority
   = self.resource_id
 
-predicate invariant_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 508 4 508 30] (self: t_SharedPayload) =
+predicate invariant_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 512 4 512 30] (self: t_SharedPayload) =
   [%#sshared_capsule'5] inv_Option_Box_Perm_ptr_Shared_Global self.root'0
   /\ inv_Option_StoredAuthority self.storage'0
   /\ inv_Option_PhysicalPool self.pool'0
@@ -265,24 +260,24 @@ predicate inv_ReadyKey (_1: t_ReadyKey)
 
 predicate inv_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey (_1: t_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey)
 
-axiom inv_axiom'14:
+axiom inv_axiom'13:
   forall x: t_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey [inv_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey x]. inv_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey x
     -> invariant_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey x
 
 predicate inv_HeaderLeaseAuthority (_1: t_HeaderLeaseAuthority)
 
-axiom inv_axiom'15 [@rewrite]: forall x: t_HeaderLeaseAuthority [inv_HeaderLeaseAuthority x]. inv_HeaderLeaseAuthority x
+axiom inv_axiom'14 [@rewrite]: forall x: t_HeaderLeaseAuthority [inv_HeaderLeaseAuthority x]. inv_HeaderLeaseAuthority x
     = (invariant_HeaderLeaseAuthority x
     /\ inv_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey x.authority)
 
 predicate inv_PhaseAuthority (_1: t_PhaseAuthority)
 
-axiom inv_axiom'16: forall x: t_PhaseAuthority [inv_PhaseAuthority x]. inv_PhaseAuthority x
+axiom inv_axiom'15: forall x: t_PhaseAuthority [inv_PhaseAuthority x]. inv_PhaseAuthority x
     -> invariant_PhaseAuthority x
 
 predicate inv_SharedPayload (_1: t_SharedPayload)
 
-axiom inv_axiom'17 [@rewrite]: forall x: t_SharedPayload [inv_SharedPayload x]. inv_SharedPayload x
+axiom inv_axiom'16 [@rewrite]: forall x: t_SharedPayload [inv_SharedPayload x]. inv_SharedPayload x
     = (invariant_SharedPayload x
     /\ inv_ReadyKey x.lease_key'0
     /\ inv_HeaderLeaseAuthority x.lease'0
@@ -310,7 +305,7 @@ type tup7_ptr_unit_NativeCounter_Id_Id_Id_tup3_Id_ptr_u8_Int_ReadyKey = {
   f5'0: tup3_Id_ptr_u8_Int;
   f6'0: t_ReadyKey }
 
-function public_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 340 4 340 35] (self: t_SharedPayload) : tup7_ptr_unit_NativeCounter_Id_Id_Id_tup3_Id_ptr_u8_Int_ReadyKey
+function public_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 341 4 341 35] (self: t_SharedPayload) : tup7_ptr_unit_NativeCounter_Id_Id_Id_tup3_Id_ptr_u8_Int_ReadyKey
  = [%#sshared_capsule'4] { f0'0 = self.header_id'0;
                            f1'0 = self.counter_model'0;
                            f2'0 = self.ledger_id'0;
@@ -323,7 +318,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let prove_public_lease_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 582 4 582 68]
+let prove_public_lease_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 587 4 587 68]
   (self: t_SharedPayload) (expected: t_Id) (return (x: ())) =
 {[@stop_split] [@expl:prove_public_lease_resource_id requires] ([@stop_split] [@expl:prove_public_lease_resource_id 'self' type invariant] [%#sshared_capsule'0] inv_ref_SharedPayload self)
   /\ ([@stop_split] [@expl:prove_public_lease_resource_id requires] [%#sshared_capsule'1] (public_SharedPayload self).f4'0

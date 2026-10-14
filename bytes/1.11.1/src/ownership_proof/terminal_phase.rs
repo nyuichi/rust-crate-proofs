@@ -35,6 +35,20 @@ impl TerminalAction {
             self.fragment@ == Some(Excl(()))
         }
     }
+
+    /// Two actual close fragments for the same phase cannot coexist. This is
+    /// used to rule out a still-live payload state when the unique terminal
+    /// action has already been returned to the finalizer.
+    #[check(ghost)]
+    #[requires((*self).invariant() && other.invariant())]
+    #[requires((*self).resource_id() == other.resource_id())]
+    #[ensures(false)]
+    pub(crate) fn contradicts_other(&mut self, other: &Self) {
+        self.fragment.valid_op_lemma(&other.fragment);
+        proof_assert!(self.fragment@.op(other.fragment@) != None);
+        proof_assert!(self.fragment@.op(other.fragment@) == None);
+        proof_assert!(false);
+    }
 }
 
 impl Invariant for TerminalAction {
@@ -111,6 +125,24 @@ impl PhaseAuthority {
         self.authority.update(&mut fragment, CancelLocalUpdateUnit);
         proof_assert!(fragment@ == None);
         proof_assert!(self.authority@ == None);
+    }
+
+    /// A valid action for this exact phase forces the authority to remain
+    /// open; the closed state cannot compose with its real exclusive fragment.
+    #[check(ghost)]
+    #[requires(self.invariant())]
+    #[requires(action.invariant() && action.resource_id() == self.resource_id())]
+    #[ensures(self.is_open())]
+    pub(crate) fn require_action(&self, action: &TerminalAction) {
+        let _ = ghost! {
+            self.authority.frag_lemma(&action.fragment);
+            let action_fragment: Snapshot<PhaseValue> = snapshot!(action.fragment@);
+            let phase_authority: Snapshot<PhaseValue> = snapshot!(self.authority@);
+            proof_assert!((*action_fragment).incl(*phase_authority));
+            proof_assert!((*action_fragment).incl_eq(Some(Excl(()))));
+            proof_assert!(*phase_authority == Some(Excl(())));
+            proof_assert!(self.is_open());
+        };
     }
 
     /// A valid action with this resource identity cannot survive closure.

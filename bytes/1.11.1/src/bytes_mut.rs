@@ -587,9 +587,92 @@ fn unique_initialized_prefix_suffix(prestate: Snapshot<BytesMut>, count: usize) 
 // is used. Using `Arc` ended up requiring a number of funky transmutes and
 // other shenanigans to make it work.
 struct Shared {
-    vec: VecStorage,
+    vec: MaybeUninit<VecStorage>,
     original_capacity_repr: usize,
     ref_count: RefCountCell,
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+impl Shared {
+    #[logic(open(self))]
+    #[requires(self.vec@ != None)]
+    fn vec_model(self) -> VecStorage {
+        pearlite! { self.vec@.unwrap_logic() }
+    }
+}
+
+impl Shared {
+    /// Access the initialized VecStorage while its Shared header is live.
+    ///
+    /// All constructors install `MaybeUninit::new`; the terminal release
+    /// changes the field to `uninit` only after explicitly running the empty
+    /// VecStorage destructor and immediately before consuming the Box.
+    #[inline]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.vec@ != None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        *result == self.vec@.unwrap_logic()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).vec@ == Some((^result))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).original_capacity_repr == self.original_capacity_repr
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).ref_count == self.ref_count
+    ))]
+    fn vec_mut(&mut self) -> &mut VecStorage {
+        // SAFETY: Shared constructors initialize the field, and this accessor
+        // is used only before terminal release consumes the header.
+        unsafe { self.vec.assume_init_mut() }
+    }
+
+    /// Move out the current storage while installing the same empty value
+    /// that `mem::take` used before the proof-side MaybeUninit refactor.
+    #[inline]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.vec@ != None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result == self.vec_model()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).vec@ != None && (^self).vec_model().is_empty_owner()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).original_capacity_repr == self.original_capacity_repr
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).ref_count == self.ref_count
+    ))]
+    fn take_vec_storage(&mut self) -> VecStorage {
+        let empty = MaybeUninit::new(VecStorage::default());
+        let previous = core::mem::replace(&mut self.vec, empty);
+        // SAFETY: the precondition and every Shared constructor establish the
+        // old field as initialized.
+        unsafe { previous.assume_init() }
+    }
+
+    /// Explicitly destroy the empty replacement field and mark it dead before
+    /// the root permission deallocates the Shared Box.
+    #[inline]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.vec@ != None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.vec_model().is_empty_owner()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).vec@ == None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).original_capacity_repr == self.original_capacity_repr
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).ref_count == self.ref_count
+    ))]
+    fn drop_empty_vec_field(&mut self) {
+        {
+            // SAFETY: the caller requires an initialized empty VecStorage.
+            let storage = unsafe { self.vec.assume_init_mut() };
+            storage.drop_empty_owner();
+        }
+        self.vec = MaybeUninit::uninit();
+    }
 }
 
 #[cfg(test)]
@@ -1372,7 +1455,7 @@ impl BytesMut {
         let ref_count = RefCountCell::new(2);
 
         let shared = Box::new(Shared {
-            vec,
+            vec: MaybeUninit::new(vec),
             original_capacity_repr,
             ref_count,
         });
@@ -1989,7 +2072,7 @@ impl BytesMut {
                 // This is the only handle to the buffer. It can be reclaimed.
                 // However, before doing the work of copying data, check to make
                 // sure that the vector has enough capacity.
-                let v = &mut (*shared).vec;
+                let v = (*shared).vec_mut();
 
                 let (ptr, v_len, v_capacity) = v.metadata();
 
@@ -2614,7 +2697,11 @@ impl BytesMut {
         #[cfg(not(all(creusot, bytes_original_unique_gate)))]
         let ref_count = RefCountCell::new(1);
 
-        let shared = Box::new(Shared { vec, original_capacity_repr, ref_count });
+        let shared = Box::new(Shared {
+            vec: MaybeUninit::new(vec),
+            original_capacity_repr,
+            ref_count,
+        });
 
         #[cfg(all(creusot, bytes_original_unique_gate))]
         let (header, root) = boxed_alignment::into_raw_aligned(shared);
@@ -2703,7 +2790,9 @@ impl BytesMut {
         // `Arc`, those three fields still are the components of the
         // vector.
         let shared = Box::new(Shared {
-            vec: VecStorage::hold(rebuild_vec(self.ptr.as_ptr(), self.len, self.cap, off)),
+            vec: MaybeUninit::new(VecStorage::hold(rebuild_vec(
+                self.ptr.as_ptr(), self.len, self.cap, off,
+            ))),
             original_capacity_repr,
             ref_count: RefCountCell::new(ref_cnt),
         });
@@ -3230,40 +3319,228 @@ unsafe fn increment_shared(ptr: *mut Shared) {
 
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn release_shared(ptr: *mut Shared) {
-    // `Shared` storage... follow the drop steps from Arc.
-    if (*ptr).ref_count.fetch_sub_release() != 1 {
-        return;
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    unsafe {
+        let _ = release_shared_common(ptr, Ghost::new(None));
+    }
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    unsafe {
+        let _ = release_shared_common(ptr);
+    }
+}
+
+/// The single native body for decrementing and finally retiring a shared
+/// header. A tracked proof call supplies the handle's actual packet and
+/// borrowed context in a Ghost value; ordinary automatic Drop continues to
+/// enter through `release_shared` without claiming a post-Drop context state.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    tracked.inner_logic() != None
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    tracked.inner_logic().unwrap_logic().packet.invariant() &&
+    tracked.inner_logic().unwrap_logic().packet.capsule_public().0 == ptr as *mut ()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    tracked.inner_logic().unwrap_logic().context.inner_logic().invariant() &&
+    tracked.inner_logic().unwrap_logic().context.inner_logic().token_namespaces().contains(
+        tracked.inner_logic().unwrap_logic().packet.capsule.inner_logic().val().namespace())
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    tracked.inner_logic().unwrap_logic().context.inner_logic().ready_entry_state(
+        tracked.inner_logic().unwrap_logic().packet.lease_key().slot()) == Some((
+            tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
+            tracked.inner_logic().unwrap_logic().packet.lease_key().slot(),
+            tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
+            Some(Excl((tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(), None)))
+        )) &&
+    tracked.inner_logic().unwrap_logic().packet.lease_key().slot() <
+        tracked.inner_logic().unwrap_logic().context.inner_logic().ready_len()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (^tracked.inner_logic().unwrap_logic().context.inner_logic()).invariant()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (^tracked.inner_logic().unwrap_logic().context.inner_logic()).token_namespaces() ==
+        tracked.inner_logic().unwrap_logic().context.inner_logic().token_namespaces() &&
+    (^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_len() ==
+        tracked.inner_logic().unwrap_logic().context.inner_logic().ready_len()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 0))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result@ > 1 ==> (^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_entry_state(
+        tracked.inner_logic().unwrap_logic().packet.lease_key().slot()) == Some((
+            tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
+            tracked.inner_logic().unwrap_logic().packet.lease_key().slot(),
+            tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
+            Some(Excl((tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(), None)))
+        ))
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result@ > 1 ==> (^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_has_key(
+        tracked.inner_logic().unwrap_logic().packet.lease_key())
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result@ == 1 ==> !(^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_has_key(
+        tracked.inner_logic().unwrap_logic().packet.lease_key()) &&
+    (^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_entry_state(
+        tracked.inner_logic().unwrap_logic().packet.lease_key().slot()) == None
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    forall<i: Int> 0 <= i && i < tracked.inner_logic().unwrap_logic().context.inner_logic().ready_len() &&
+        i != tracked.inner_logic().unwrap_logic().packet.lease_key().slot() ==>
+        (^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_entry_state(i) ==
+            tracked.inner_logic().unwrap_logic().context.inner_logic().ready_entry_state(i)
+))]
+unsafe fn release_shared_common(
+    ptr: *mut Shared,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    tracked: Ghost<Option<shared_capsule::SharedReleaseProof<'_, '_>>>,
+) -> usize {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (old, retirement) = {
+        let (packet, context) = ghost! {
+            let proof = tracked.into_inner().unwrap();
+            (proof.packet.into_inner(), proof.context.into_inner())
+        }.split();
+        shared_capsule::SharedOwnerPacket::release_native_owner(packet, ptr, context)
+    };
+
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let old = (*ptr).ref_count.fetch_sub_release();
+
+    if old != 1 {
+        return old;
     }
 
-    // This fence is needed to prevent reordering of use of the data and
-    // deletion of the data.  Because it is marked `Release`, the decreasing
-    // of the reference count synchronizes with this `Acquire` fence. This
-    // means that use of the data happens before decreasing the reference
-    // count, which happens before this fence, which happens before the
-    // deletion of the data.
-    //
-    // As explained in the [Boost documentation][1],
-    //
-    // > It is important to enforce any possible access to the object in one
-    // > thread (through an existing reference) to *happen before* deleting
-    // > the object in a different thread. This is achieved by a "release"
-    // > operation after dropping a reference (any access to the object
-    // > through this reference must obviously happened before), and an
-    // > "acquire" operation before deleting the object.
-    //
-    // [1]: (www.boost.org/doc/libs/1_55_0/doc/html/atomic/usage_examples.html)
-    //
-    // Thread sanitizer does not support atomic fences. Use an atomic load
-    // instead.
+    // Proof mode performs this same Acquire load through the packet's event
+    // adapter before `release_native_owner` returns its terminal resources.
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
     (*ptr).ref_count.load_acquire();
 
-    // Transfer and retire the native Vec once; the empty replacement is safe
-    // for the Shared record's ordinary field drop below.
-    let storage = core::mem::take(&mut (*ptr).vec);
-    drop(unsafe { storage.take_for_retirement() });
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let retirement_parts = ghost! {
+        let shared_capsule::SharedRetirementResources { storage, region, root } =
+            retirement.into_inner().unwrap();
+        (storage, region, root)
+    };
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (authority, region, mut root) = retirement_parts.split();
 
-    // Drop the data
+    // Borrow the header through the actual root permission before replacing
+    // its VecStorage. The root is consumed by `Perm::drop` after the Box is
+    // destroyed, so the mutable pointer access cannot outlive the allocation.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let header = unsafe {
+        creusot_std::ghost::perm::Perm::as_mut(
+            ptr,
+            ghost! { root.as_mut() },
+        )
+    };
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let header = &mut *ptr;
+
+    // Transfer and retire the native Vec once. The same empty replacement
+    // that `mem::take` used is explicitly destroyed, then marked uninitialized
+    // before the Shared Box is consumed.
+    let storage = header.take_vec_storage();
+    unsafe {
+        crate::vec_storage::retire_stored_vec(
+            storage,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            authority,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            region,
+        );
+    }
+    header.drop_empty_vec_field();
+
+    // Drop the data. In proof mode `root` is the actual permission returned
+    // with the final terminal transition and is consumed after the native Box.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    unsafe {
+        creusot_std::ghost::perm::Perm::drop(ptr, root);
+    }
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
     drop(Box::from_raw(ptr));
+    old
+}
+
+impl BytesMut {
+    /// Consume this tracked shared handle explicitly through the same native
+    /// release body used by ordinary Drop. The actual packet and context stay
+    /// in Ghost values; `mem::forget` consumes the handle without a second
+    /// implicit release.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.shared_layout_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().token_namespaces().contains(
+        crate::ref_count_ops::event_namespace())))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().ready_entry_state(
+        self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot(),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            Some(Excl((self.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
+        ))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.shared_proof.unwrap_logic().lease_key().slot() <
+        context.inner_logic().ready_len()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).token_namespaces() ==
+        context.inner_logic().token_namespaces()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).ready_len() == context.inner_logic().ready_len()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 1 ==> (^context.inner_logic()).ready_has_key(
+        self.shared_proof.unwrap_logic().lease_key())))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 1 ==> (^context.inner_logic()).ready_entry_state(
+        self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot(),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            Some(Excl((self.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
+        ))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == 1 ==> !(^context.inner_logic()).ready_has_key(
+        self.shared_proof.unwrap_logic().lease_key())))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == 1 ==> (^context.inner_logic()).ready_entry_state(
+        self.shared_proof.unwrap_logic().lease_key().slot()) == None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() &&
+            i != self.shared_proof.unwrap_logic().lease_key().slot() ==>
+            (^context.inner_logic()).ready_entry_state(i) == context.inner_logic().ready_entry_state(i)
+    ))]
+    /// Explicitly consume a shared handle through the source-level release
+    /// body. Automatic `Drop` remains in place for ordinary callers.
+    ///
+    /// # Safety
+    /// The handle must be in its shared representation. In the direct proof
+    /// build, `context` must be its matching live operation context.
+    pub(crate) unsafe fn dispose_shared(
+        self,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        context: creusot_std::ghost::Ghost<
+            &mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>,
+        >,
+    ) -> usize {
+        let mut this = self;
+        let data = this.data;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let packet = this.shared_proof.take().unwrap().into_ghost();
+            let packet = ghost! {
+                let packet = packet.into_inner();
+                packet.prove_event_namespace();
+                packet
+            };
+            core::mem::forget(this);
+            release_shared_common(
+                data,
+                ghost!(Some(shared_capsule::SharedReleaseProof { packet, context })),
+            )
+        }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        {
+            core::mem::forget(this);
+            release_shared_common(data)
+        }
+    }
 }
 
 impl Shared {
@@ -3795,7 +4072,7 @@ impl From<BytesMut> for Vec<u8> {
             let shared = bytes.data;
 
             if unsafe { (*shared).is_unique() } {
-                let storage = core::mem::take(unsafe { &mut (*shared).vec });
+                let storage = unsafe { (*shared).take_vec_storage() };
                 let vec = unsafe { storage.take_for_restore() };
 
                 unsafe { release_shared(shared) };
@@ -3910,7 +4187,7 @@ unsafe fn shared_v_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> V
         let shared = &mut *shared;
 
         // Drop shared
-        let storage = core::mem::take(&mut shared.vec);
+        let storage = shared.take_vec_storage();
         let mut vec = unsafe { storage.take_for_restore() };
         release_shared(shared);
 
@@ -3935,7 +4212,7 @@ unsafe fn shared_v_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> B
 
         // The capacity is always the original capacity of the buffer
         // minus the offset from the start of the buffer
-        let (v_ptr, _, v_capacity) = shared.vec.metadata();
+        let (v_ptr, _, v_capacity) = shared.vec_mut().metadata();
         let offset = ptr.offset_from(v_ptr) as usize;
         let cap = v_capacity - offset;
 

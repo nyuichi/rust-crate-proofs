@@ -175,6 +175,7 @@ impl<R: UnitRA> ReadyRegistry<R> {
     /// records the issued key, fragment resource id, and complete RA value.
     #[logic(opaque)]
     #[ensures(result == self.entry_state_model(slot))]
+    #[ensures(result != None ==> 0 <= slot && slot < self.len())]
     pub(crate) fn entry_state(self, slot: Int) -> Option<(Id, Int, Id, R)> {
         self.entry_state_model(slot)
     }
@@ -197,6 +198,15 @@ impl<R: UnitRA> ReadyRegistry<R> {
     /// returned cap's actual RA state before treating it as an idle lease.
     #[logic(opaque)]
     #[ensures(result == self.contains_key(key))]
+    #[ensures(result == (
+        0 <= key.slot() && key.slot() < self.len() &&
+        match self.entry_state(key.slot()) {
+            Some((resource_id, slot, fragment_id, _)) =>
+                resource_id == key.resource_id() && slot == key.slot() &&
+                fragment_id == key.resource_id(),
+            None => false,
+        }
+    ))]
     pub(crate) fn has_key(self, key: ReadyKey) -> bool {
         self.contains_key(key)
     }
