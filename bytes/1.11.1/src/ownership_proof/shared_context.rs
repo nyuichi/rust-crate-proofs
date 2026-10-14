@@ -129,6 +129,17 @@ impl<'view, R: UnitRA> BorrowedSharedContext<'view, R> {
         self.ready.inner_logic().has_key(key)
     }
 
+    /// Read the registry's actual ghost model without consuming its exclusive
+    /// view, for checked proof bodies that continue moving that view.
+    #[check(ghost)]
+    #[requires(self.invariant())]
+    #[ensures(result.inner_logic() == self.ready_has_key(key))]
+    pub(crate) fn ready_has_key_ghost(&self, key: ReadyKey) -> Ghost<bool> {
+        ghost! {
+            snapshot!(self.ready_has_key(key)).into_ghost().into_inner()
+        }
+    }
+
     /// Prophetic observations describe the registry after the current view's
     /// borrow ends, so a caller can frame legitimate downstream mutations.
     #[logic(open(self), prophetic)]

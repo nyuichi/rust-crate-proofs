@@ -71,6 +71,14 @@ impl<R: UnitRA> ReadyCap<R> {
         self.key
     }
 
+    /// Copy the immutable stable key into ghost code without moving this
+    /// actual affine cap.
+    #[check(ghost)]
+    #[ensures(result.inner_logic() == self.key())]
+    pub(crate) fn key_ghost(&self) -> Ghost<ReadyKey> {
+        ghost! { self.key }
+    }
+
     /// Body-checked access to the actual affine fragment for authority
     /// compatibility lemmas. The reference is confined to ghost code.
     #[check(ghost)]

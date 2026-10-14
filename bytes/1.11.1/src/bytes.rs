@@ -1437,7 +1437,11 @@ unsafe fn promotable_to_mut(
         let v = Vec::from_raw_parts(buf, cap, cap);
 
         let mut b = BytesMut::from_vec(v);
-        b.advance_unchecked(off);
+        b.advance_unchecked(
+            off,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            None,
+        );
         b
     }
 }
@@ -1637,7 +1641,11 @@ unsafe fn shared_to_mut_impl(shared: *mut Shared, ptr: *const u8, len: usize) ->
         let v = Vec::from_raw_parts(buf, len + off, cap);
 
         let mut b = BytesMut::from_vec(v);
-        b.advance_unchecked(off);
+        b.advance_unchecked(
+            off,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            None,
+        );
         b
     } else {
         // Copy the data from Shared in a new Vec, then release it

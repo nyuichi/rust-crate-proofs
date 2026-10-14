@@ -2,6 +2,8 @@
 use creusot_std::prelude::*;
 #[cfg(all(creusot, bytes_original_unique_gate))]
 use crate::ownership_proof::raw_vec::{self, BoundPtr, RawAllocation, Recovery, PhysicalRegion, slot_known};
+#[cfg(all(creusot, bytes_original_unique_gate))]
+use crate::ownership_proof::shared_context::BorrowedSharedContext;
 use core::mem::{self, ManuallyDrop, MaybeUninit};
 use core::ops::{Deref, DerefMut};
 use core::ptr::{self, NonNull};
@@ -884,7 +886,26 @@ impl BytesMut {
     ///
     /// Panics if `at > capacity`.
     #[must_use = "consider BytesMut::truncate if you don't need the other half"]
-    pub fn split_off(&mut self, at: usize) -> BytesMut {
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
+            shared_capsule::header_context_registered_idle(
+                context.inner_logic(), ^context.inner_logic(),
+                result.shared_proof.unwrap_logic().lease_key()
+            )
+        } else {
+            shared_capsule::header_context_unchanged(
+                context.inner_logic(), ^context.inner_logic()
+            )
+        }
+    ))]
+    pub fn split_off(
+        &mut self,
+        at: usize,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+    ) -> BytesMut {
         assert!(
             at <= self.capacity(),
             "split_off out of bounds: {:?} <= {:?}",
@@ -894,12 +915,23 @@ impl BytesMut {
         if self.kind() == KIND_VEC {
             // SAFETY: the bounds assertion above proves the split point is
             // within this Vec-backed view's capacity.
-            return unsafe { self.split_unique_to_shared(at, false) };
+            return unsafe {
+                self.split_unique_to_shared(
+                    at,
+                    false,
+                    #[cfg(all(creusot, bytes_original_unique_gate))]
+                    context,
+                )
+            };
         }
         unsafe {
             let mut other = self.shallow_clone();
             // SAFETY: We've checked that `at` <= `self.capacity()` above.
-            other.advance_unchecked(at);
+            other.advance_unchecked(
+                at,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                Some(context),
+            );
             self.cap = at;
             self.len = cmp::min(self.len, at);
             other
@@ -932,9 +964,31 @@ impl BytesMut {
     /// assert_eq!(other, b"hello world"[..]);
     /// ```
     #[must_use = "consider BytesMut::clear if you don't need the other half"]
-    pub fn split(&mut self) -> BytesMut {
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
+            shared_capsule::header_context_registered_idle(
+                context.inner_logic(), ^context.inner_logic(),
+                result.shared_proof.unwrap_logic().lease_key()
+            )
+        } else {
+            shared_capsule::header_context_unchanged(
+                context.inner_logic(), ^context.inner_logic()
+            )
+        }
+    ))]
+    pub fn split(
+        &mut self,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+    ) -> BytesMut {
         let len = self.len();
-        self.split_to(len)
+        self.split_to(
+            len,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            Some(context),
+        )
     }
 
     /// Splits the buffer into two at the given index.
@@ -964,7 +1018,32 @@ impl BytesMut {
     ///
     /// Panics if `at > len`.
     #[must_use = "consider BytesMut::advance if you don't need the other half"]
-    pub fn split_to(&mut self, at: usize) -> BytesMut {
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        context != None && context.unwrap_logic().inner_logic().invariant()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.unwrap_logic().inner_logic()).invariant()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
+            shared_capsule::header_context_registered_idle(
+                context.unwrap_logic().inner_logic(),
+                ^context.unwrap_logic().inner_logic(),
+                result.shared_proof.unwrap_logic().lease_key()
+            )
+        } else {
+            shared_capsule::header_context_unchanged(
+                context.unwrap_logic().inner_logic(),
+                ^context.unwrap_logic().inner_logic()
+            )
+        }
+    ))]
+    pub fn split_to(
+        &mut self,
+        at: usize,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        context: Option<Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>>,
+    ) -> BytesMut {
         assert!(
             at <= self.len(),
             "split_to out of bounds: {:?} <= {:?}",
@@ -975,14 +1054,25 @@ impl BytesMut {
         if self.kind() == KIND_VEC {
             // SAFETY: the bounds assertion above proves the split point is
             // within this Vec-backed view's initialized prefix.
-            return unsafe { self.split_unique_to_shared(at, true) };
+            return unsafe {
+                self.split_unique_to_shared(
+                    at,
+                    true,
+                    #[cfg(all(creusot, bytes_original_unique_gate))]
+                    context.unwrap(),
+                )
+            };
         }
 
         unsafe {
             let mut other = self.shallow_clone();
             // SAFETY: We've checked that `at` <= `self.len()` and we know that `self.len()` <=
             // `self.capacity()`.
-            self.advance_unchecked(at);
+            self.advance_unchecked(
+                at,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                context,
+            );
             other.cap = at;
             other.len = at;
             other
@@ -1171,7 +1261,20 @@ impl BytesMut {
                 }) == self.unique_allocation_slot(i)
             }
     )))]
-    unsafe fn split_unique_to_shared(&mut self, at: usize, return_left: bool) -> BytesMut {
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        shared_capsule::header_context_registered_idle(
+            context.inner_logic(), ^context.inner_logic(),
+            result.shared_proof.unwrap_logic().lease_key()
+        )
+    ))]
+    unsafe fn split_unique_to_shared(
+        &mut self,
+        at: usize,
+        return_left: bool,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+    ) -> BytesMut {
         debug_assert_eq!(self.kind(), KIND_VEC);
 
         let old_len = self.len;
@@ -1287,6 +1390,7 @@ impl BytesMut {
                 left_cursor,
                 right_cursor,
                 snapshot!(cut@),
+                context,
             )
         };
 
@@ -2292,7 +2396,33 @@ impl BytesMut {
             ((^self).shared_bytes() == self.shared_bytes().subsequence(
                 if count@ <= self.len@ { count@ } else { self.len@ }, self.len@))
     ))]
-    pub(crate) unsafe fn advance_unchecked(&mut self, count: usize) {
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        context != None && context.unwrap_logic().inner_logic().invariant()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.unwrap_logic().inner_logic()).invariant()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC &&
+            self.unique_offset() + count@ > MAX_VEC_POS@ {
+            shared_capsule::header_context_registered_idle(
+                context.unwrap_logic().inner_logic(),
+                ^context.unwrap_logic().inner_logic(),
+                (^self).shared_proof.unwrap_logic().lease_key()
+            )
+        } else {
+            shared_capsule::header_context_unchanged(
+                context.unwrap_logic().inner_logic(),
+                ^context.unwrap_logic().inner_logic()
+            )
+        }
+    ))]
+    pub(crate) unsafe fn advance_unchecked(
+        &mut self,
+        count: usize,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        context: Option<Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>>,
+    ) {
         // Setting the start to 0 is a no-op, so return early if this is the
         // case.
         if count == 0 {
@@ -2326,7 +2456,15 @@ impl BytesMut {
             } else {
                 // The repr must be upgraded to ARC. This is unusual on 64-bit
                 // systems, but the packed Vec offset still has a finite bound.
-                unsafe { self.promote_to_shared_count_one(off, pos, count) };
+                unsafe {
+                    self.promote_to_shared_count_one(
+                        off,
+                        pos,
+                        count,
+                        #[cfg(all(creusot, bytes_original_unique_gate))]
+                        context.unwrap(),
+                    )
+                };
             }
         } else if kind == KIND_ARC {
             unsafe { self.advance_shared_layout(count) };
@@ -2366,7 +2504,22 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
         0 <= i && i < self.unique_offset() + self.unique_length() ==>
             (^self).shared_proof.unwrap_logic().allocation_slot(i) == self.unique_allocation_slot(i)))]
-    unsafe fn promote_to_shared_count_one(&mut self, off: usize, pos: usize, count: usize) {
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        shared_capsule::header_context_registered_idle(
+            context.inner_logic(), ^context.inner_logic(),
+            (^self).shared_proof.unwrap_logic().lease_key()
+        )
+    ))]
+    unsafe fn promote_to_shared_count_one(
+        &mut self,
+        off: usize,
+        pos: usize,
+        count: usize,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+    ) {
         debug_assert_eq!(self.kind(), KIND_VEC);
 
         let original_capacity_repr = crate::capacity_ops::original_capacity_repr_from_data(
@@ -2444,6 +2597,7 @@ impl BytesMut {
                 base,
                 cursor,
                 1,
+                context,
             );
             self.shared_proof = Some(packet);
         }
@@ -2680,12 +2834,21 @@ impl Buf for BytesMut {
         unsafe {
             // SAFETY: We've checked that `cnt` <= `self.remaining()` and we know that
             // `self.remaining()` <= `self.cap`.
-            self.advance_unchecked(cnt);
+            self.advance_unchecked(
+                cnt,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            );
         }
     }
 
+    #[cfg_attr(creusot, creusot::no_translate)]
     fn copy_to_bytes(&mut self, len: usize) -> Bytes {
-        self.split_to(len).freeze()
+        self.split_to(
+            len,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            None,
+        ).freeze()
     }
 }
 
