@@ -39,7 +39,7 @@ pub(crate) type OwnerBinding = (AllocationBinding, RefKind, Int, Int);
 pub(crate) type ActiveReferences = FMap<Int, Excl<OwnerBinding>>;
 
 #[logic]
-fn owner_binding_valid(owner: OwnerBinding, allocation: AllocationBinding) -> bool {
+pub(crate) fn owner_binding_valid(owner: OwnerBinding, allocation: AllocationBinding) -> bool {
     pearlite! {
         owner.0 == allocation && 0 <= owner.2 && owner.2 <= owner.3 &&
         owner.3 <= allocation.2
@@ -120,6 +120,38 @@ pub(crate) fn prove_owner_split_preserves_mutable_coverage(
             active_mutable_contains(*before, index));
 }
 
+/// Reclassifying one Mutable owner as Readonly removes exactly that owner's
+/// former interval from the set covered by Mutable registrations. The
+/// Readonly binding remains in the authoritative map, but does not represent
+/// exclusive physical ownership and therefore does not keep bytes out of the
+/// physical pool.
+#[check(ghost)]
+#[requires(owner_ranges_disjoint(*before))]
+#[requires(ticket.invariant() && ticket.class() == RefKind::Mutable)]
+#[requires((*before).get(ticket.owner_id()) ==
+    Some(Excl(ticket.owner_binding())))]
+#[requires((*after) == (*before).insert(ticket.owner_id(), Excl((
+    ticket.allocation_binding(), RefKind::Readonly, *visible_lo, *visible_hi,
+))))]
+#[requires(ticket.owned_lo() <= *visible_lo && *visible_lo <= *visible_hi &&
+    *visible_hi <= ticket.owned_hi())]
+#[ensures(forall<index: Int>
+    active_mutable_contains(*after, index) ==
+        (active_mutable_contains(*before, index) &&
+            !(ticket.owned_lo() <= index && index < ticket.owned_hi())))]
+pub(crate) fn prove_owner_reclassification_effect(
+    before: Snapshot<ActiveReferences>,
+    after: Snapshot<ActiveReferences>,
+    ticket: Snapshot<OwnerTicket>,
+    visible_lo: Snapshot<Int>,
+    visible_hi: Snapshot<Int>,
+) {
+    proof_assert!(forall<index: Int>
+        active_mutable_contains(*after, index) ==
+            (active_mutable_contains(*before, index) &&
+                !(ticket.owned_lo() <= index && index < ticket.owned_hi())));
+}
+
 #[logic]
 fn spans_compatible(left: OwnerBinding, right: OwnerBinding) -> bool {
     pearlite! {
@@ -142,7 +174,7 @@ fn owner_ranges_valid(owners: ActiveReferences, allocation: AllocationBinding) -
 }
 
 #[logic]
-fn owner_ranges_disjoint(owners: ActiveReferences) -> bool {
+pub(crate) fn owner_ranges_disjoint(owners: ActiveReferences) -> bool {
     pearlite! {
         forall<left_id: Int, right_id: Int> match
             (owners.get(left_id), owners.get(right_id)) {
@@ -510,8 +542,12 @@ impl OwnerLedger {
     #[ensures(ticket.owner_id() < self.next_id())]
     #[ensures(ticket.fragment_resource_id() == self.ledger_id())]
     #[ensures(ticket.allocation_binding() == self.allocation_binding())]
+    #[ensures(self.active_ids().get(ticket.owner_id()) ==
+        Some(Excl(ticket.owner_binding())))]
     #[ensures(ticket.owner_binding() ==
         self.active_ids().get(ticket.owner_id()).unwrap_logic().0)]
+    #[ensures(owner_binding_valid(ticket.owner_binding(), self.allocation_binding()))]
+    #[ensures(owner_ranges_disjoint(self.active_ids()))]
     pub(crate) fn prove_ticket_is_active(&self, ticket: &OwnerTicket) {
         match &self.authority {
             Some(authority) => {
@@ -528,6 +564,45 @@ impl OwnerLedger {
             }
             None => proof_assert!(false),
         }
+    }
+
+    /// A visible subspan of a live Mutable owner can be reclassified as a
+    /// Readonly view without conflicting with any other registered owner.
+    /// The old Mutable interval is disjoint from every other entry by the
+    /// ledger invariant; shrinking that interval and changing its class to
+    /// Readonly preserves compatibility with both Mutable and Readonly peers.
+    #[check(ghost)]
+    #[requires(self.invariant() && self.is_live())]
+    #[requires(ticket.invariant() && ticket.class() == RefKind::Mutable)]
+    #[requires(ticket.ledger_id() == self.ledger_id())]
+    #[requires(self.has_ticket(*ticket))]
+    #[requires(ticket.owned_lo() <= *visible_lo &&
+        *visible_lo <= *visible_hi && *visible_hi <= ticket.owned_hi())]
+    #[ensures(owner_ranges_disjoint(self.active_ids()))]
+    #[ensures(self.active_ids().get(ticket.owner_id()) ==
+        Some(Excl(ticket.owner_binding())))]
+    #[ensures(owner_binding_valid((
+        ticket.allocation_binding(), RefKind::Readonly, *visible_lo, *visible_hi,
+    ), self.allocation_binding()))]
+    #[ensures(binding_compatible_with_map((
+        ticket.allocation_binding(), RefKind::Readonly, *visible_lo, *visible_hi,
+    ), self.active_ids(), ticket.owner_id()))]
+    pub(crate) fn prove_readonly_binding_compatible(
+        &self,
+        ticket: &OwnerTicket,
+        visible_lo: Snapshot<Int>,
+        visible_hi: Snapshot<Int>,
+    ) {
+        self.prove_ticket_is_active(ticket);
+        proof_assert!(owner_ranges_disjoint(self.active_ids()));
+        proof_assert!(self.active_ids().get(ticket.owner_id()) ==
+            Some(Excl(ticket.owner_binding())));
+        proof_assert!(owner_binding_valid((
+            ticket.allocation_binding(), RefKind::Readonly, *visible_lo, *visible_hi,
+        ), self.allocation_binding()));
+        proof_assert!(binding_compatible_with_map((
+            ticket.allocation_binding(), RefKind::Readonly, *visible_lo, *visible_hi,
+        ), self.active_ids(), ticket.owner_id()));
     }
 
     /// A Mutable ticket's interval is represented in the live authority map.
@@ -930,7 +1005,13 @@ impl OwnerLedger {
     #[ensures((^ticket.inner_logic()).invariant())]
     #[ensures((^ticket.inner_logic()).ledger_id() == ticket.inner_logic().ledger_id())]
     #[ensures((^ticket.inner_logic()).owner_id() == ticket.inner_logic().owner_id())]
+    #[ensures((^ticket.inner_logic()).fragment_resource_id() ==
+        ticket.inner_logic().fragment_resource_id())]
     #[ensures((^ticket.inner_logic()).owner_binding() == *new_binding)]
+    #[ensures((^ticket.inner_logic()).class() == (*new_binding).1)]
+    #[ensures((^ticket.inner_logic()).allocation_binding() == (*new_binding).0)]
+    #[ensures((^ticket.inner_logic()).owned_lo() == (*new_binding).2)]
+    #[ensures((^ticket.inner_logic()).owned_hi() == (*new_binding).3)]
     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
     pub(crate) fn reclassify(
         ledger: Ghost<&mut OwnerLedger>,

@@ -84,27 +84,27 @@ help: remove these parentheses
     |
 
 warning: unnecessary parentheses around method argument
-    --> src/bytes_mut/shared_capsule.rs:2805:5
+    --> src/bytes_mut/shared_capsule.rs:2967:5
      |
-2805 |     (^context.inner_logic()), result.lease_key(),
+2967 |     (^context.inner_logic()), result.lease_key(),
      |     ^                      ^
      |
 help: remove these parentheses
      |
-2805 -     (^context.inner_logic()), result.lease_key(),
-2805 +     ^context.inner_logic(), result.lease_key(),
+2967 -     (^context.inner_logic()), result.lease_key(),
+2967 +     ^context.inner_logic(), result.lease_key(),
      |
 
 warning: unnecessary parentheses around method argument
-    --> src/bytes_mut/shared_capsule.rs:2991:5
+    --> src/bytes_mut/shared_capsule.rs:3153:5
      |
-2991 |     (^context.inner_logic()), result.0.lease_key(),
+3153 |     (^context.inner_logic()), result.0.lease_key(),
      |     ^                      ^
      |
 help: remove these parentheses
      |
-2991 -     (^context.inner_logic()), result.0.lease_key(),
-2991 +     ^context.inner_logic(), result.0.lease_key(),
+3153 -     (^context.inner_logic()), result.0.lease_key(),
+3153 +     ^context.inner_logic(), result.0.lease_key(),
      |
 
 warning: unnecessary parentheses around function argument
@@ -564,28 +564,28 @@ help: remove these parentheses
      |
 
 warning: unnecessary parentheses around method argument
-   --> src/ownership_proof/ref_count_ledger.rs:724:50
+   --> src/ownership_proof/ref_count_ledger.rs:799:50
     |
-724 |     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+799 |     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
     |                                                  ^                     ^
     |
 help: remove these parentheses
     |
-724 -     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
-724 +     #[ensures((^ledger.inner_logic()).has_ticket(^parent.inner_logic()))]
+799 -     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+799 +     #[ensures((^ledger.inner_logic()).has_ticket(^parent.inner_logic()))]
     |
 
 warning: unnecessary parentheses around method argument
-   --> src/ownership_proof/ref_count_ledger.rs:934:50
-    |
-934 |     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
-    |                                                  ^                     ^
-    |
+    --> src/ownership_proof/ref_count_ledger.rs:1015:50
+     |
+1015 |     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
+     |                                                  ^                     ^
+     |
 help: remove these parentheses
-    |
-934 -     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
-934 +     #[ensures((^ledger.inner_logic()).has_ticket(^ticket.inner_logic()))]
-    |
+     |
+1015 -     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
+1015 +     #[ensures((^ledger.inner_logic()).has_ticket(^ticket.inner_logic()))]
+     |
 
 warning: unnecessary parentheses around method argument
    --> src/ownership_proof/shared_context.rs:282:9
@@ -692,21 +692,21 @@ warning: unused variable: `base`
      |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
 
 warning: unused variable: `from_auth`
-   --> src/ownership_proof/ref_count_ledger.rs:193:9
+   --> src/ownership_proof/ref_count_ledger.rs:225:9
     |
-193 |         from_auth: Excl<OwnerBinding>,
+225 |         from_auth: Excl<OwnerBinding>,
     |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_from_auth`
 
 warning: unused variable: `from_frag`
-   --> src/ownership_proof/ref_count_ledger.rs:194:9
+   --> src/ownership_proof/ref_count_ledger.rs:226:9
     |
-194 |         from_frag: Excl<OwnerBinding>,
+226 |         from_frag: Excl<OwnerBinding>,
     |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_from_frag`
 
 warning: unused variable: `frame`
-   --> src/ownership_proof/ref_count_ledger.rs:195:9
+   --> src/ownership_proof/ref_count_ledger.rs:227:9
     |
-195 |         frame: Option<Excl<OwnerBinding>>,
+227 |         frame: Option<Excl<OwnerBinding>>,
     |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_frame`
 
 warning: variable does not need to be mutable
@@ -1086,31 +1086,34 @@ warning: method `dispose_shared` is never used
 4049 |     pub(crate) unsafe fn dispose_shared(
      |                          ^^^^^^^^^^^^^^
 
-warning: method `prove_root_some_implies_lease_idle` is never used
+warning: associated items `prove_root_some_implies_lease_idle` and `freeze_mutable_owner` are never used
    --> src/bytes_mut/shared_capsule.rs:760:8
     |
 726 | impl SharedPayload {
-    | ------------------ method in this implementation
+    | ------------------ associated items in this implementation
 ...
 760 |     fn prove_root_some_implies_lease_idle(&self) {
     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+998 |     fn freeze_mutable_owner(
+    |        ^^^^^^^^^^^^^^^^^^^^
 
 warning: method `prove_event_namespace` is never used
-    --> src/bytes_mut/shared_capsule.rs:1589:19
+    --> src/bytes_mut/shared_capsule.rs:1751:19
      |
-1555 | impl SharedOwnerPacket {
+1717 | impl SharedOwnerPacket {
      | ---------------------- method in this implementation
 ...
-1589 |     pub(crate) fn prove_event_namespace(&self) {
+1751 |     pub(crate) fn prove_event_namespace(&self) {
      |                   ^^^^^^^^^^^^^^^^^^^^^
 
 warning: method `try_restore_header_read_loan` is never used
-    --> src/bytes_mut/shared_capsule.rs:2236:19
+    --> src/bytes_mut/shared_capsule.rs:2398:19
      |
-1701 | impl SharedOwnerPacket {
+1863 | impl SharedOwnerPacket {
      | ---------------------- method in this implementation
 ...
-2236 |     pub(crate) fn try_restore_header_read_loan(
+2398 |     pub(crate) fn try_restore_header_read_loan(
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `vec_pos_from_data` is never used
@@ -1323,28 +1326,37 @@ warning: variant `Readonly` is never constructed
 31 |     Readonly,
    |     ^^^^^^^^
 
-warning: function `binding_compatible_with_map` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:157:4
+warning: function `prove_owner_reclassification_effect` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:142:15
     |
-157 | fn binding_compatible_with_map(
+142 | pub(crate) fn prove_owner_reclassification_effect(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `binding_compatible_with_map` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:189:4
+    |
+189 | fn binding_compatible_with_map(
     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-warning: associated functions `register_readonly` and `reclassify` are never used
-   --> src/ownership_proof/ref_count_ledger.rs:858:19
-    |
-426 | impl OwnerLedger {
-    | ---------------- associated functions in this implementation
+warning: associated items `prove_readonly_binding_compatible`, `register_readonly`, and `reclassify` are never used
+    --> src/ownership_proof/ref_count_ledger.rs:590:19
+     |
+ 458 | impl OwnerLedger {
+     | ---------------- associated items in this implementation
 ...
-858 |     pub(crate) fn register_readonly(
-    |                   ^^^^^^^^^^^^^^^^^
+ 590 |     pub(crate) fn prove_readonly_binding_compatible(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-935 |     pub(crate) fn reclassify(
-    |                   ^^^^^^^^^^
+ 933 |     pub(crate) fn register_readonly(
+     |                   ^^^^^^^^^^^^^^^^^
+...
+1016 |     pub(crate) fn reclassify(
+     |                   ^^^^^^^^^^
 
 warning: function `contradict_two_tickets` is never used
-    --> src/ownership_proof/ref_count_ledger.rs:1108:15
+    --> src/ownership_proof/ref_count_ledger.rs:1189:15
      |
-1108 | pub(crate) fn contradict_two_tickets(
+1189 | pub(crate) fn contradict_two_tickets(
      |               ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: method `contradicts_action` is never used
@@ -3553,5 +3565,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 370 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.61s
+warning: `bytes` (lib) generated 371 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 14.06s

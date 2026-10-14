@@ -74,7 +74,7 @@ let%span sbytes_mut'58 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mu
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
-let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1649 14 1649 61
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1811 14 1811 61
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 713 20 713 27
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 718 20 718 27
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1375 16 1375 59
@@ -289,7 +289,7 @@ axiom inv_axiom'4 [@rewrite]:
       | Some f0'6 -> inv_OriginalUniqueProof f0'6
       end
 
-predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1696 4 1696 30] (self: t_SharedOwnerPacket)
+predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1858 4 1858 30] (self: t_SharedOwnerPacket)
 
 predicate resolve_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
 
@@ -319,7 +319,7 @@ predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivi
 
 meta "rewrite_def" predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload
 
-predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 351 4 351 30] (self: t_OwnerTicket)
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 383 4 383 30] (self: t_OwnerTicket)
 
 predicate inv_OwnerTicket (_1: t_OwnerTicket)
 
@@ -617,7 +617,7 @@ type t_NativeCounter
 
 type tup4_ptr_unit_NativeCounter_Id_Id = { f0'8: Opaque.ptr; f1'8: t_NativeCounter; f2'8: t_Id; f3'8: t_Id }
 
-function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1576 4 1576 74] (self: t_SharedOwnerPacket) : tup4_ptr_unit_NativeCounter_Id_Id
+function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1738 4 1738 74] (self: t_SharedOwnerPacket) : tup4_ptr_unit_NativeCounter_Id_Id
 
 constant const_KIND_ARC: UInt64.t = [%#sbytes_mut'34] (0: UInt64.t)
 
@@ -653,7 +653,7 @@ predicate shared_extent_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/b
 predicate shared_layout_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 403 4 403 40] (self: t_BytesMut) =
   [%#sbytes_mut'36] shared_packet_header_valid self /\ shared_cursor_valid self /\ shared_extent_valid self
 
-function allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1650 4 1650 73] (self: t_SharedOwnerPacket) (index: int) : t_Option_Option_u8
+function allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1812 4 1812 73] (self: t_SharedOwnerPacket) (index: int) : t_Option_Option_u8
 
 axiom allocation_slot_spec:
   forall self: t_SharedOwnerPacket, index: int [allocation_slot self index]. [%#sshared_capsule] allocation_slot self index
@@ -695,7 +695,7 @@ type t_ReadyKey
 
 function slot'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 30 4 30 35] (self: t_ReadyKey) : int
 
-function lease_key [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1638 4 1638 46] (self: t_SharedOwnerPacket) : t_ReadyKey
+function lease_key [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1800 4 1800 46] (self: t_SharedOwnerPacket) : t_ReadyKey
 
 function ready_len_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 110 4 110 40] (self: t_BorrowedSharedContext_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey) : int
 
@@ -821,9 +821,9 @@ function shared_bytes [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut
   [%#sbytes_mut'41] Seq.create (UInt64.t'int self.len) (fun (i: int) -> unwrap_Option_u8 (unwrap_Option_Option_u8 (allocation_slot (unwrap_Option_SharedOwnerPacket self.shared_proof) ((unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (unwrap_Option_SharedOwnerPacket self.shared_proof).cursor'0)).f2'0
   + i))))
 
-function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 249 4 249 39] (self: t_OwnerTicket) : int
+function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 281 4 281 39] (self: t_OwnerTicket) : int
 
-function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 244 4 244 39] (self: t_OwnerTicket) : t_Id
+function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 276 4 276 39] (self: t_OwnerTicket) : t_Id
 
 predicate ready_has_key_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 121 4 121 60] (self: t_BorrowedSharedContext_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey) (key: t_ReadyKey)
 

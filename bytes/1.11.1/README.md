@@ -51,7 +51,11 @@ and replacing a ticket binding while preserving ticket and authority
 identities. A generic event payload ties the ledger's reference count to the
 counter permission model; the initial count-one promotion and original Vec
 split producer construct matching payloads and packets. The generic pool
-retirement and full-range recovery helpers also have body proofs. The original
+retirement and full-range recovery helpers also have body proofs. A checked
+`SharedPayload::freeze_mutable_owner` body connects one actual Mutable ticket's
+reclassification to returning its actual region to the physical pool while
+preserving the reference count, storage, and lease/release authority; it does
+not connect the public `BytesMut::freeze` or a readonly `Bytes` lifecycle. The original
 `release_shared_common` body now passes its actual stored authority and full
 physical region to the generic `retire_stored_vec` boundary on the final
 release, explicitly destroys the empty replacement VecStorage, and consumes

@@ -209,7 +209,7 @@ let%span sptr'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span sptr'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 258 14 258 39
 let%span sptr'16 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 263 14 263 65
 let%span sptr'17 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 264 14 264 67
-let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1649 14 1649 61
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1811 14 1811 61
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 718 20 718 27
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1375 16 1375 59
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 399 14 399 60
@@ -497,7 +497,7 @@ axiom inv_axiom'6 [@rewrite]:
       | Some'0 f0'6 -> inv_OriginalUniqueProof f0'6
       end
 
-predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1696 4 1696 30] (self: t_SharedOwnerPacket)
+predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1858 4 1858 30] (self: t_SharedOwnerPacket)
 
 predicate resolve_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
 
@@ -527,7 +527,7 @@ predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivi
 
 meta "rewrite_def" predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload
 
-predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 351 4 351 30] (self: t_OwnerTicket)
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 383 4 383 30] (self: t_OwnerTicket)
 
 predicate inv_OwnerTicket (_1: t_OwnerTicket)
 
@@ -895,7 +895,7 @@ type t_NativeCounter
 
 type tup4_ptr_unit_NativeCounter_Id_Id = { f0'8: Opaque.ptr; f1'8: t_NativeCounter; f2'8: t_Id; f3'8: t_Id }
 
-function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1576 4 1576 74] (self: t_SharedOwnerPacket) : tup4_ptr_unit_NativeCounter_Id_Id
+function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1738 4 1738 74] (self: t_SharedOwnerPacket) : tup4_ptr_unit_NativeCounter_Id_Id
 
 constant const_KIND_ARC: UInt64.t = [%#sbytes_mut'54] (0: UInt64.t)
 
@@ -1056,7 +1056,7 @@ function token_namespaces_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCou
 
 constant event_namespace: t_Namespace = [%#sref_count_ops] Namespace_REF_COUNT_EVENT 0
 
-function allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1650 4 1650 73] (self: t_SharedOwnerPacket) (index: int) : t_Option_Option_u8
+function allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1812 4 1812 73] (self: t_SharedOwnerPacket) (index: int) : t_Option_Option_u8
 
 axiom allocation_slot_spec:
   forall self: t_SharedOwnerPacket, index: int [allocation_slot self index]. [%#sshared_capsule] allocation_slot self index
@@ -1141,7 +1141,7 @@ axiom registered_cap_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_
       -> ready_entry_state_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey after i
       = ready_entry_state_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey self i))
 
-function lease_key [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1638 4 1638 46] (self: t_SharedOwnerPacket) : t_ReadyKey
+function lease_key [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1800 4 1800 46] (self: t_SharedOwnerPacket) : t_ReadyKey
 
 let promote_to_shared_count_one (self: MutBorrow.t t_BytesMut) (off: UInt64.t) (pos: UInt64.t) (count: UInt64.t)
   (context: MutBorrow.t t_BorrowedSharedContext_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey)

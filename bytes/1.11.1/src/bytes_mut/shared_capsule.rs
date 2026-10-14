@@ -23,7 +23,7 @@ use crate::{
         ref_count_ledger::{
             active_mutable_contains, sole_active_id, ActiveReferences,
             AllocationBinding, OwnerLedger, prove_no_active_mutable_on_empty,
-            OwnerTicket, RefKind,
+            prove_owner_reclassification_effect, OwnerTicket, RefKind,
             RetirePermit,
         },
         shared_context::BorrowedSharedContext,
@@ -898,6 +898,168 @@ impl SharedPayload {
                     active_mutable_contains(*before_owners, index));
             (ticket, child, left_region, right_region,
                 ticket_snapshot, region_snapshot, cut_snapshot)
+        }
+    }
+
+    /// Freeze one actual Mutable owner without changing the native strong
+    /// count. The exact ticket is reclassified to its visible Readonly span,
+    /// while the same affine physical region is consumed into the pool. The
+    /// pool/ledger complement and all shared-header metadata are preserved by
+    /// this source-side transition; no authority is reconstructed from the
+    /// snapshots used to state its frames.
+    #[check(ghost)]
+    #[requires(
+        payload.inner_logic().invariant() && payload.inner_logic().protocol() &&
+        ticket.inner_logic().invariant() &&
+        ticket.inner_logic().ledger_id() == payload.inner_logic().ledger_id &&
+        ticket.inner_logic().class() == RefKind::Mutable &&
+        ticket.inner_logic().allocation_binding() == *payload.inner_logic().allocation_binding &&
+        region.inner_logic().invariant() &&
+        ticket.inner_logic().owned_lo() == region.inner_logic().lo() &&
+        ticket.inner_logic().owned_hi() == region.inner_logic().hi() &&
+        ticket.inner_logic().allocation_binding().0 == region.inner_logic().namespace() &&
+        ticket.inner_logic().allocation_binding().2 == region.inner_logic().capacity() &&
+        ticket.inner_logic().owned_lo() <= *visible_lo &&
+        *visible_lo <= *visible_hi && *visible_hi <= ticket.inner_logic().owned_hi() &&
+        payload.inner_logic().ledger != None &&
+        payload.inner_logic().ledger.unwrap_logic().has_ticket(ticket.inner_logic()) &&
+        payload.inner_logic().pool != None
+    )]
+    #[ensures(
+        (^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol() &&
+        (^payload.inner_logic()).public() == payload.inner_logic().public() &&
+        (^payload.inner_logic()).counter_model() == payload.inner_logic().counter_model() &&
+        (^payload.inner_logic()).allocation_binding == payload.inner_logic().allocation_binding &&
+        (^payload.inner_logic()).header_vec == payload.inner_logic().header_vec &&
+        (^payload.inner_logic()).original_capacity_repr == payload.inner_logic().original_capacity_repr &&
+        (^payload.inner_logic()).root == payload.inner_logic().root &&
+        (^payload.inner_logic()).storage == payload.inner_logic().storage &&
+        (^payload.inner_logic()).phase == payload.inner_logic().phase &&
+        (^payload.inner_logic()).retire == payload.inner_logic().retire &&
+        (^payload.inner_logic()).terminal_action == payload.inner_logic().terminal_action &&
+        (^payload.inner_logic()).lease == payload.inner_logic().lease &&
+        (^payload.inner_logic()).lease_key == payload.inner_logic().lease_key &&
+        (^payload.inner_logic()).lease_generation == payload.inner_logic().lease_generation &&
+        (^payload.inner_logic()).closed == payload.inner_logic().closed
+    )]
+    #[ensures(
+        (^payload.inner_logic()).ledger.unwrap_logic().count() ==
+            payload.inner_logic().ledger.unwrap_logic().count() &&
+        (^payload.inner_logic()).ledger.unwrap_logic().next_id() ==
+            payload.inner_logic().ledger.unwrap_logic().next_id() &&
+        (^payload.inner_logic()).ledger.unwrap_logic().ledger_id() ==
+            payload.inner_logic().ledger.unwrap_logic().ledger_id() &&
+        (^payload.inner_logic()).ledger.unwrap_logic().allocation_binding() ==
+            payload.inner_logic().ledger.unwrap_logic().allocation_binding() &&
+        (^payload.inner_logic()).ledger.unwrap_logic().active_ids() ==
+            payload.inner_logic().ledger.unwrap_logic().active_ids().insert(
+                ticket.inner_logic().owner_id(), Excl((
+                    ticket.inner_logic().allocation_binding(), RefKind::Readonly,
+                    *visible_lo, *visible_hi,
+                ))) &&
+        (^payload.inner_logic()).ledger.unwrap_logic().has_ticket(result.inner_logic())
+    )]
+    #[ensures(
+        result.inner_logic().invariant() &&
+        result.inner_logic().ledger_id() == ticket.inner_logic().ledger_id() &&
+        result.inner_logic().owner_id() == ticket.inner_logic().owner_id() &&
+        result.inner_logic().fragment_resource_id() == ticket.inner_logic().fragment_resource_id() &&
+        result.inner_logic().class() == RefKind::Readonly &&
+        result.inner_logic().allocation_binding() == ticket.inner_logic().allocation_binding() &&
+        result.inner_logic().owned_lo() == *visible_lo &&
+        result.inner_logic().owned_hi() == *visible_hi
+    )]
+    #[ensures(
+        (^payload.inner_logic()).pool.unwrap_logic().capacity() ==
+            payload.inner_logic().pool.unwrap_logic().capacity() &&
+        (^payload.inner_logic()).pool.unwrap_logic().namespace() ==
+            payload.inner_logic().pool.unwrap_logic().namespace() &&
+        (^payload.inner_logic()).pool.unwrap_logic().resource_id() ==
+            payload.inner_logic().pool.unwrap_logic().resource_id() &&
+        (forall<index: Int>
+            (^payload.inner_logic()).pool.unwrap_logic().contains(index) ==
+                (payload.inner_logic().pool.unwrap_logic().contains(index) ||
+                    region.inner_logic().lo() <= index && index < region.inner_logic().hi())) &&
+        (forall<index: Int>
+            (^payload.inner_logic()).pool.unwrap_logic().slot(index) ==
+                (if payload.inner_logic().pool.unwrap_logic().contains(index) {
+                    payload.inner_logic().pool.unwrap_logic().slot(index)
+                } else if region.inner_logic().lo() <= index && index < region.inner_logic().hi() {
+                    region.inner_logic().slot(index)
+                } else {
+                    None
+                })) &&
+        (forall<index: Int>
+            (^payload.inner_logic()).pool.unwrap_logic().contains(index) ==
+                (0 <= index && index < (^payload.inner_logic()).pool.unwrap_logic().capacity() &&
+                    !active_mutable_contains(
+                        (^payload.inner_logic()).ledger.unwrap_logic().active_ids(), index)))
+    )]
+    fn freeze_mutable_owner(
+        payload: Ghost<&mut SharedPayload>,
+        ticket: Ghost<OwnerTicket>,
+        region: Ghost<PhysicalRegion>,
+        visible_lo: Snapshot<Int>,
+        visible_hi: Snapshot<Int>,
+    ) -> Ghost<OwnerTicket> {
+        ghost! {
+            let payload = payload.into_inner();
+            let mut ticket = ticket.into_inner();
+            let region = region.into_inner();
+            payload.prove_live_owner_ticket(&ticket);
+            payload.prove_owner_region_excluded_from_pool(&ticket, &region);
+
+            let ticket_before: Snapshot<OwnerTicket> = snapshot!(ticket);
+            let region_before: Snapshot<PhysicalRegion> = snapshot!(region);
+            let before_owners: Snapshot<ActiveReferences> = snapshot!(
+                payload.ledger.unwrap_logic().active_ids()
+            );
+            let before_pool: Snapshot<PhysicalPool> = snapshot!(
+                payload.pool.unwrap_logic()
+            );
+            let new_binding = snapshot!((
+                ticket.allocation_binding(), RefKind::Readonly, *visible_lo, *visible_hi,
+            ));
+            match &payload.ledger {
+                Some(ledger) => ledger.prove_readonly_binding_compatible(
+                    &ticket, visible_lo, visible_hi,
+                ),
+                None => proof_assert!(false),
+            }
+
+            let mut ledger = payload.ledger.take().unwrap();
+            OwnerLedger::reclassify(
+                Ghost::new(&mut ledger),
+                Ghost::new(&mut ticket),
+                new_binding,
+            );
+            payload.ledger = Some(ledger);
+            let after_owners: Snapshot<ActiveReferences> = snapshot!(
+                payload.ledger.unwrap_logic().active_ids()
+            );
+            prove_owner_reclassification_effect(
+                before_owners,
+                after_owners,
+                ticket_before,
+                visible_lo,
+                visible_hi,
+            );
+
+            let mut pool = payload.pool.take().unwrap();
+            pool = pool.retire(region);
+            payload.pool = Some(pool);
+            let after_pool: Snapshot<PhysicalPool> = snapshot!(
+                payload.pool.unwrap_logic()
+            );
+            SharedPayload::prove_pool_complement_after_mutable_release(
+                before_pool,
+                after_pool,
+                before_owners,
+                after_owners,
+                region_before,
+            );
+            proof_assert!(payload.invariant() && payload.protocol());
+            ticket
         }
     }
 

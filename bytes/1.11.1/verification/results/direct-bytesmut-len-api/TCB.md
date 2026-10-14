@@ -256,6 +256,12 @@ ticket leaves Mutable coverage unchanged. The ledger's count is the map
 cardinality. Its generic operations alone do not
 connect arbitrary native lifecycle operations to the registrations.
 
+The checked `SharedPayload::freeze_mutable_owner` transition reclassifies one
+actual Mutable ticket to its visible Readonly span and returns that ticket's
+actual physical region to the pool, preserving the ledger/pool complement and
+payload frames. This internal body is not yet connected to public
+`BytesMut::freeze`, readonly byte reads, or readonly release.
+
 The selected `shared_context` bodies prove a proof-only affine owner and
 borrowed view for an actual caller-supplied `Tokens` value and one
 `ReadyRegistry`. Construction preserves the token namespaces and creates an
@@ -288,9 +294,9 @@ actual views and packets under its unique-Vec precondition. Body proofs cover
 the valid-index, normal-return Vec-backed and packet-backed ARC branches of
 public `split_off`, `split_to`, and `split`; they preserve strict Shared
 layout, byte and view geometry, and the actual context registration. These
-split proofs do not prove native clone, freeze, automatic drop, or recovery
-transitions. They do not establish count-one exclusivity or reclamation for
-every safely produced Shared state.
+split proofs do not prove native clone, public freeze, readonly byte reads,
+automatic drop, or recovery transitions. They do not establish count-one
+exclusivity or reclamation for every safely produced Shared state.
 
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
