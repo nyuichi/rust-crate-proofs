@@ -52,9 +52,10 @@ as the old suffix after `min(count, old_len)`. The selected packet invariant
 ties each ticket's allocation identity to its region namespace, base and
 capacity; the capsule protocol ties the same identity to its current protected
 storage authority. The generic ledger split and drop bodies preserve this
-identity. It remains metadata only. The private unique-Vec split producer is
-proved, but public wrapper reachability and native ARC, clone, drop and refcount
-transition chains are not. The native regression
+identity. It remains metadata only. Both Vec-backed and packet-backed ARC
+branches of the public split wrappers are proved for valid, normal-return
+inputs. Native clone, automatic-drop and other unselected refcount transitions
+are not. The native regression
 `shared_advance_past_len_within_capacity_keeps_empty_view` checks the Shared
 path when count exceeds length but stays within capacity.
 The `BufMut::advance_mut` implementation body has a proof under its
@@ -88,9 +89,10 @@ event invariant. The protocol equates the ledger count with the counter
 permission value and defines the pool as the in-bounds complement of Mutable
 intervals. The selected count-one promotion and count-two Vec split producer
 construct payloads with matching tickets and physical regions. Generic pool
-retirement and full-range recovery operations are body-proved, but native ARC
-split, clone, drop, freeze and recovery paths do not yet invoke corresponding
-ledger transitions.
+retirement and full-range recovery operations are body-proved. The selected
+ARC split and explicit disposal paths connect their actual owner tickets and
+physical regions to the ledger and pool; native clone, freeze, readonly access,
+recovery, and automatic-drop transitions remain unconnected.
 
 The public `truncate` and `clear` bodies, and unsafe `set_len`, are also
 body-proved from `buffer_view_valid`, a common precondition for a stable
@@ -119,12 +121,11 @@ has a body proof that installs the two actual pointer/length/capacity views
 with the returned packets. It preserves the allocation frame and each
 visible initialized prefix under its strong unique-Vec precondition and the
 generic B2 restoration and non-wrapping pointer-offset assumptions described
-in [`TCB.md`](TCB.md). This proves that helper body; the public
-`split_off`/`split_to` wrappers and their call-chain reachability are not
-selected proof targets. The ARC split producer and clone/drop/refcount
-transitions remain outside the selected proof, so the result does not establish
-all safe split states or that every safe state satisfies the common precondition
-for `BytesMut::truncate`.
+in [`TCB.md`](TCB.md). The public `split_off`, `split_to`, and `split` wrappers
+are selected proof targets for valid, normal-return Vec-backed and packet-backed
+ARC branches. These proofs do not establish every safe producer or lifecycle
+state, so they do not show that every safe state satisfies the common
+precondition for `BytesMut::truncate`.
 
 The selected targets prove the one-shot `RefCountCell` bootstrap extraction
 body and the generic `EventBoundInvariant<T>` container and accessors. The
@@ -136,22 +137,22 @@ adapter contracts are trusted and limited to sequential normal-return use:
 they do not specify concurrent read coherence, synchronization handoff or
 acquire-imported resources. The count-one and count-two constructors tie the
 event payload to the corresponding ledger and native counter value, and the
-unique-Vec split helper uses the count-two constructor. Later native ARC split,
-clone, drop, freeze and recovery operations remain unconnected, so this
-checkpoint does not establish count-to-reference correspondence across every
-native transition or public `BytesMut::truncate` behavior for every safely
-produced state.
+unique-Vec split helper uses the count-two constructor. The selected ARC split
+and explicit disposal paths also connect their native source operations to
+those registrations. Native clone, freeze, readonly access, recovery, and
+automatic-drop transitions remain unconnected, so this checkpoint does not
+establish count-to-reference correspondence across every native transition or
+public `BytesMut::truncate` behavior for every safely produced state.
 
-The current increment also body-proves `PhaseAuthority`'s one-shot close
-action, `shared_capsule::make_count_one_packet`, and
-`promote_to_shared_count_one`. For this private promotion helper, the proof
-constructs a count-one Shared capsule from the actual Vec storage and exact
-native counter permission, with one root ticket over the allocation's full
-physical region and an empty pool. It does not prove every safe call path
-reaches the helper or connect later ARC clone, split, drop, freeze and recovery
-operations to the registration. Initial count-to-ledger construction is
-proved, but later count/registration correspondence, count-one exclusivity,
-and reclamation are not established for every safe Shared state.
+The selected targets also body-prove `PhaseAuthority`'s one-shot close action,
+`shared_capsule::make_count_one_packet`, and `promote_to_shared_count_one`. For
+this private promotion helper, the proof constructs a count-one Shared capsule
+from the actual Vec storage and exact native counter permission, with one root
+ticket over the allocation's full physical region and an empty pool. Selected
+ARC split and explicit disposal paths connect their source operations to the
+registration. Native clone, public freeze, readonly access, recovery, and
+automatic Drop remain unconnected, and count-one exclusivity and reclamation
+are not established for every safe Shared state.
 
 The selected targets also body-prove the generic append-only
 `ReadyRegistry<R>` resource mover. Registration transfers the actual affine
@@ -159,10 +160,12 @@ The selected targets also body-prove the generic append-only
 capability out and leaves a tombstone, and returning it fills the slot with
 that capability. The contracts preserve each other slot's complete resource
 id and RA state. `ReadyCap::update` delegates to the paired authority update and
-preserves the fragment id and registry key. This generic helper is not yet
-integrated with a Bytes producer, `SharedPayload`, or a native lifecycle body;
-it therefore establishes no header-idle invariant or safe-state reachability
-for `BytesMut::truncate`.
+preserves the fragment id and registry key. The selected private promotion,
+split, and explicit-disposal paths use this registry to move their actual
+header capability through the caller's Context. `freeze_into_readonly` instead
+borrows the caller's tokens and preserves the existing Context entries.
+These selected routes do not prove every producer or lifecycle path needed for
+`BytesMut::truncate`.
 
 The selected `ownership_proof::shared_context` targets body-prove the affine
 `OwnedSharedContext` and `BorrowedSharedContext` carrier. `from_tokens` moves an
@@ -170,10 +173,18 @@ actual caller-supplied token set into an owner with an empty registry; the
 owner and borrowed-view reborrows preserve the exact token namespaces and
 registry final-state observations. `register`, `take`, and `return_cap` move
 the actual fragment through the registry while framing its other slots. The
-carrier does not create tokens, fragments, or a header permission. No
-`BytesMut` producer or native lifecycle method currently uses it, so these
-targets establish neither a ready Shared header nor producer reachability for
-`buffer_view_valid` or `truncate`.
+carrier does not create tokens, fragments, or a header permission. Selected
+promotion, split, freeze-packet, and explicit-disposal paths use this actual
+context; public freeze, readonly reads and release, and other unselected
+producer and lifecycle paths to `buffer_view_valid` or `truncate` remain
+unproved.
+
+The checked `freeze_into_readonly` path consumes an actual Mutable packet
+ticket and its actual physical region, returns a Readonly ticket and returns
+that region to the pool. It preserves the reference count, storage,
+lease/release authority, caller Tokens, and Context entries. This internal
+transfer is not yet connected to public `BytesMut::freeze`, readonly byte
+reads, or readonly release.
 
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current

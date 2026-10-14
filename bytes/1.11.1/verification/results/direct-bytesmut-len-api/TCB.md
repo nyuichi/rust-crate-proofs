@@ -256,11 +256,12 @@ ticket leaves Mutable coverage unchanged. The ledger's count is the map
 cardinality. Its generic operations alone do not
 connect arbitrary native lifecycle operations to the registrations.
 
-The checked `SharedPayload::freeze_mutable_owner` transition reclassifies one
-actual Mutable ticket to its visible Readonly span and returns that ticket's
-actual physical region to the pool, preserving the ledger/pool complement and
-payload frames. This internal body is not yet connected to public
-`BytesMut::freeze`, readonly byte reads, or readonly release.
+The checked `freeze_into_readonly` path consumes an actual Mutable packet
+ticket and its actual physical region, returns a Readonly ticket and returns
+that region to the pool. It preserves the reference count, storage,
+lease/release authority, caller Tokens, and Context entries. This internal
+transfer is not yet connected to public `BytesMut::freeze`, readonly byte
+reads, or readonly release.
 
 The selected `shared_context` bodies prove a proof-only affine owner and
 borrowed view for an actual caller-supplied `Tokens` value and one

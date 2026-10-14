@@ -621,6 +621,30 @@ impl OwnerLedger {
                 active_mutable_contains(self.active_ids(), index));
     }
 
+    /// An actual Readonly ticket excludes Mutable coverage throughout its
+    /// recorded visible interval. The ticket's own map entry is Readonly, and
+    /// every distinct Mutable entry is disjoint from that span.
+    #[check(ghost)]
+    #[requires(self.invariant() && self.is_live())]
+    #[requires(ticket.invariant() && ticket.class() == RefKind::Readonly)]
+    #[requires(ticket.ledger_id() == self.ledger_id())]
+    #[requires(self.has_ticket(*ticket))]
+    #[ensures(forall<index: Int>
+        ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
+            !active_mutable_contains(self.active_ids(), index))]
+    pub(crate) fn prove_readonly_ticket_excluded_from_mutable_coverage(
+        &self,
+        ticket: &OwnerTicket,
+    ) {
+        self.prove_ticket_is_active(ticket);
+        proof_assert!(owner_ranges_disjoint(self.active_ids()));
+        proof_assert!(self.active_ids().get(ticket.owner_id()) ==
+            Some(Excl(ticket.owner_binding())));
+        proof_assert!(forall<index: Int>
+            ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
+                !active_mutable_contains(self.active_ids(), index));
+    }
+
     /// Construct a count-one shared block and its sole root ticket.
     #[check(ghost)]
     #[ensures(result.inner_logic().0.invariant())]
