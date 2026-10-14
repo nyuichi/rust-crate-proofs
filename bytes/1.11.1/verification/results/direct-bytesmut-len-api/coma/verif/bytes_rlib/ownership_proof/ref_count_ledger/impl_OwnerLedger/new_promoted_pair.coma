@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 601 4 604 55 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 632 4 635 55 *)
 
 (* ownership_proof::ref_count_ledger::OwnerLedger *)
 
@@ -17,6 +17,24 @@ let%span soption'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refc
 let%span soption'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/option.rs" 24 8 28 9
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
 let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 22 8 22 20
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 137 14 137 78
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 139 8 139 83
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 71 8 71 34
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 168 40 168 65
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 171 12 171 41
+let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 62 14 62 70
+let%span sfmap'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 63 14 63 88
+let%span sfmap'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 15 12 19 13
+let%span sfmap'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
+let%span sfmap'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 56 14 56 32
+let%span sfmap'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 162 15 162 64
+let%span sfmap'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 163 14 163 78
+let%span sfmap'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 24 14 24 71
+let%span sfmap'16 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 27 12 27 64
 let%span sauth = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 83 4 83 33
 let%span sauth'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 81 14 81 34
 let%span sauth'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 143 29 143 33
@@ -62,133 +80,117 @@ let%span sra'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount
 let%span sra'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 176 14 176 23
 let%span sra'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 50 14 50 39
 let%span sra'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra.rs" 52 8 52 21
-let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 137 14 137 78
-let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 139 8 139 83
-let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 71 8 71 34
-let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 168 40 168 65
-let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 171 12 171 41
-let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
-let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 62 14 62 70
-let%span sfmap'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 63 14 63 88
-let%span sfmap'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 15 12 19 13
-let%span sfmap'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 45 14 45 31
-let%span sfmap'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
-let%span sfmap'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
-let%span sfmap'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
-let%span sfmap'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 56 14 56 32
-let%span sfmap'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 162 15 162 64
-let%span sfmap'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 163 14 163 78
-let%span sfmap'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 24 14 24 71
-let%span sfmap'16 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ra/fmap.rs" 27 12 27 64
-let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 606 22 606 42
-let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 607 18 607 34
-let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 607 18 607 47
-let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 608 57 608 75
-let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 608 57 608 88
-let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 609 62 609 86
-let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 610 22 610 46
-let%span sref_count_ledger'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 611 38 611 43
-let%span sref_count_ledger'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 611 29 611 44
-let%span sref_count_ledger'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 611 28 611 44
-let%span sref_count_ledger'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 612 39 612 44
-let%span sref_count_ledger'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 612 30 612 45
-let%span sref_count_ledger'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 612 29 612 45
-let%span sref_count_ledger'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 613 68 613 72
-let%span sref_count_ledger'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 616 22 616 66
-let%span sref_count_ledger'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 617 29 617 62
-let%span sref_count_ledger'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 618 22 618 51
-let%span sref_count_ledger'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 619 64 619 74
-let%span sref_count_ledger'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 620 22 620 65
-let%span sref_count_ledger'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 622 22 622 68
-let%span sref_count_ledger'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 623 54 623 63
-let%span sref_count_ledger'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 623 76 623 88
-let%span sref_count_ledger'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 623 8 623 90
-let%span sref_count_ledger'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 624 30 624 64
-let%span sref_count_ledger'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 626 22 626 72
-let%span sref_count_ledger'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 627 22 627 50
-let%span sref_count_ledger'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 628 24 628 44
-let%span sref_count_ledger'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 631 31 631 36
-let%span sref_count_ledger'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 631 22 631 37
-let%span sref_count_ledger'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 631 21 631 37
-let%span sref_count_ledger'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 632 18 632 22
-let%span sref_count_ledger'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 636 22 638 49
-let%span sref_count_ledger'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 640 20 645 9
-let%span sref_count_ledger'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 646 21 651 9
-let%span sref_count_ledger'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 652 22 652 40
-let%span sref_count_ledger'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 653 22 653 61
-let%span sref_count_ledger'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 654 8 654 45
-let%span sref_count_ledger'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 655 8 655 46
-let%span sref_count_ledger'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 605 8 657 9
-let%span sref_count_ledger'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 600 15 600 59
-let%span sref_count_ledger'39 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 604 9 604 55
-let%span sref_count_ledger'40 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 575 14 575 48
-let%span sref_count_ledger'41 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 576 14 576 46
-let%span sref_count_ledger'42 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 577 14 577 51
-let%span sref_count_ledger'43 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 578 14 578 82
-let%span sref_count_ledger'44 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 579 14 579 49
-let%span sref_count_ledger'45 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 580 14 580 57
-let%span sref_count_ledger'46 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 581 14 583 59
-let%span sref_count_ledger'47 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 584 14 584 86
-let%span sref_count_ledger'48 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 585 14 586 65
-let%span sref_count_ledger'49 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 587 14 588 80
-let%span sref_count_ledger'50 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 589 14 590 76
-let%span sref_count_ledger'51 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 591 14 592 58
-let%span sref_count_ledger'52 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 593 14 593 94
-let%span sref_count_ledger'53 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 594 14 595 76
-let%span sref_count_ledger'54 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 596 14 597 49
-let%span sref_count_ledger'55 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 598 14 599 68
-let%span sref_count_ledger'56 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 993 11 993 32
-let%span sref_count_ledger'57 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 994 10 995 44
+let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 637 22 637 42
+let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 638 18 638 34
+let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 638 18 638 47
+let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 639 57 639 75
+let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 639 57 639 88
+let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 640 62 640 86
+let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 641 22 641 46
+let%span sref_count_ledger'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 642 38 642 43
+let%span sref_count_ledger'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 642 29 642 44
+let%span sref_count_ledger'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 642 28 642 44
+let%span sref_count_ledger'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 643 39 643 44
+let%span sref_count_ledger'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 643 30 643 45
+let%span sref_count_ledger'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 643 29 643 45
+let%span sref_count_ledger'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 644 68 644 72
+let%span sref_count_ledger'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 647 22 647 66
+let%span sref_count_ledger'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 648 29 648 62
+let%span sref_count_ledger'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 649 22 649 51
+let%span sref_count_ledger'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 650 64 650 74
+let%span sref_count_ledger'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 651 22 651 65
+let%span sref_count_ledger'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 653 22 653 68
+let%span sref_count_ledger'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 654 54 654 63
+let%span sref_count_ledger'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 654 76 654 88
+let%span sref_count_ledger'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 654 8 654 90
+let%span sref_count_ledger'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 655 30 655 64
+let%span sref_count_ledger'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 657 22 657 72
+let%span sref_count_ledger'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 658 22 658 50
+let%span sref_count_ledger'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 659 24 659 44
+let%span sref_count_ledger'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 662 31 662 36
+let%span sref_count_ledger'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 662 22 662 37
+let%span sref_count_ledger'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 662 21 662 37
+let%span sref_count_ledger'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 663 18 663 22
+let%span sref_count_ledger'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 667 22 669 49
+let%span sref_count_ledger'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 671 20 676 9
+let%span sref_count_ledger'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 677 21 682 9
+let%span sref_count_ledger'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 683 22 683 40
+let%span sref_count_ledger'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 684 22 684 61
+let%span sref_count_ledger'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 685 8 685 45
+let%span sref_count_ledger'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 686 8 686 46
+let%span sref_count_ledger'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 636 8 688 9
+let%span sref_count_ledger'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 631 15 631 59
+let%span sref_count_ledger'39 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 635 9 635 55
+let%span sref_count_ledger'40 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 606 14 606 48
+let%span sref_count_ledger'41 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 607 14 607 46
+let%span sref_count_ledger'42 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 608 14 608 51
+let%span sref_count_ledger'43 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 609 14 609 82
+let%span sref_count_ledger'44 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 610 14 610 49
+let%span sref_count_ledger'45 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 611 14 611 57
+let%span sref_count_ledger'46 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 612 14 614 59
+let%span sref_count_ledger'47 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 615 14 615 86
+let%span sref_count_ledger'48 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 616 14 617 65
+let%span sref_count_ledger'49 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 618 14 619 80
+let%span sref_count_ledger'50 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 620 14 621 76
+let%span sref_count_ledger'51 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 622 14 623 58
+let%span sref_count_ledger'52 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 624 14 624 94
+let%span sref_count_ledger'53 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 625 14 626 76
+let%span sref_count_ledger'54 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 627 14 628 49
+let%span sref_count_ledger'55 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 629 14 630 68
+let%span sref_count_ledger'56 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1053 11 1053 32
+let%span sref_count_ledger'57 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1054 10 1055 44
 let%span sref_count_ledger'58 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 52 8 58 9
-let%span sref_count_ledger'59 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 421 20 424 9
-let%span sref_count_ledger'60 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 188 15 188 41
-let%span sref_count_ledger'61 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 189 15 189 68
-let%span sref_count_ledger'62 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 190 15 190 61
-let%span sref_count_ledger'63 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 205 9 205 20
-let%span sref_count_ledger'64 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 191 14 191 32
-let%span sref_count_ledger'65 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 192 14 192 45
-let%span sref_count_ledger'66 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 193 14 193 43
-let%span sref_count_ledger'67 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 194 14 194 56
-let%span sref_count_ledger'68 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 195 14 195 47
-let%span sref_count_ledger'69 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 196 14 196 54
-let%span sref_count_ledger'70 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 197 14 197 44
-let%span sref_count_ledger'71 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 198 14 198 44
-let%span sref_count_ledger'72 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 199 14 199 79
-let%span sref_count_ledger'73 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 986 8 986 20
-let%span sref_count_ledger'74 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 324 8 324 20
-let%span sref_count_ledger'75 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 485 42 485 46
-let%span sref_count_ledger'76 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 485 48 485 54
-let%span sref_count_ledger'77 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 477 15 477 31
-let%span sref_count_ledger'78 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 478 15 478 29
-let%span sref_count_ledger'79 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 479 15 479 33
-let%span sref_count_ledger'80 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 480 15 480 53
-let%span sref_count_ledger'81 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 481 14 481 38
-let%span sref_count_ledger'82 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 482 14 482 70
-let%span sref_count_ledger'83 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 483 14 484 65
-let%span sref_count_ledger'84 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 411 8 411 17
-let%span sref_count_ledger'85 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 406 8 406 20
-let%span sref_count_ledger'86 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 416 8 416 31
-let%span sref_count_ledger'87 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 431 8 431 31
-let%span sref_count_ledger'88 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 436 14 436 67
-let%span sref_count_ledger'89 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 466 12 470 50
-let%span sref_count_ledger'90 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 217 8 217 22
-let%span sref_count_ledger'91 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 401 8 401 22
-let%span sref_count_ledger'92 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 239 20 239 42
-let%span sref_count_ledger'93 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 244 20 244 42
-let%span sref_count_ledger'94 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 222 8 222 21
-let%span sref_count_ledger'95 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 254 20 254 42
-let%span sref_count_ledger'96 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 259 20 259 42
-let%span sref_count_ledger'97 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 227 8 227 26
-let%span sref_count_ledger'98 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 249 20 249 70
-let%span sref_count_ledger'99 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 232 20 232 34
-let%span sref_count_ledger'100 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 444 12 459 13
-let%span sref_count_ledger'101 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 312 12 316 13
-let%span sref_count_ledger'102 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 109 8 112 9
-let%span sref_count_ledger'103 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 119 8 124 9
-let%span sref_count_ledger'104 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 44 8 45 31
-let%span sref_count_ledger'105 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 98 8 102 9
-let%span sint = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/int.rs" 238 14 238 31
+let%span sref_count_ledger'59 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 449 20 452 9
+let%span sref_count_ledger'60 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 216 15 216 41
+let%span sref_count_ledger'61 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 217 15 217 68
+let%span sref_count_ledger'62 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 218 15 218 61
+let%span sref_count_ledger'63 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 233 9 233 20
+let%span sref_count_ledger'64 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 219 14 219 32
+let%span sref_count_ledger'65 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 220 14 220 45
+let%span sref_count_ledger'66 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 221 14 221 43
+let%span sref_count_ledger'67 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 222 14 222 56
+let%span sref_count_ledger'68 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 223 14 223 47
+let%span sref_count_ledger'69 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 224 14 224 54
+let%span sref_count_ledger'70 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 225 14 225 44
+let%span sref_count_ledger'71 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 226 14 226 44
+let%span sref_count_ledger'72 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 227 14 227 79
+let%span sref_count_ledger'73 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1046 8 1046 20
+let%span sref_count_ledger'74 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 352 8 352 20
+let%span sref_count_ledger'75 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 515 42 515 46
+let%span sref_count_ledger'76 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 515 48 515 54
+let%span sref_count_ledger'77 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 505 15 505 31
+let%span sref_count_ledger'78 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 506 15 506 29
+let%span sref_count_ledger'79 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 507 15 507 33
+let%span sref_count_ledger'80 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 508 15 508 53
+let%span sref_count_ledger'81 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 509 14 509 38
+let%span sref_count_ledger'82 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 510 14 510 48
+let%span sref_count_ledger'83 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 511 14 511 63
+let%span sref_count_ledger'84 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 512 14 512 70
+let%span sref_count_ledger'85 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 513 14 514 65
+let%span sref_count_ledger'86 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 439 8 439 17
+let%span sref_count_ledger'87 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 434 8 434 20
+let%span sref_count_ledger'88 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 444 8 444 31
+let%span sref_count_ledger'89 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 459 8 459 31
+let%span sref_count_ledger'90 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 464 14 464 67
+let%span sref_count_ledger'91 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 494 12 498 50
+let%span sref_count_ledger'92 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 245 8 245 22
+let%span sref_count_ledger'93 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 429 8 429 22
+let%span sref_count_ledger'94 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 267 20 267 42
+let%span sref_count_ledger'95 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 272 20 272 42
+let%span sref_count_ledger'96 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 250 8 250 21
+let%span sref_count_ledger'97 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 282 20 282 42
+let%span sref_count_ledger'98 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 287 20 287 42
+let%span sref_count_ledger'99 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 255 8 255 26
+let%span sref_count_ledger'100 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 277 20 277 70
+let%span sref_count_ledger'101 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 260 20 260 34
+let%span sref_count_ledger'102 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 472 12 487 13
+let%span sref_count_ledger'103 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 340 12 344 13
+let%span sref_count_ledger'104 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 137 8 140 9
+let%span sref_count_ledger'105 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 147 8 152 9
+let%span sref_count_ledger'106 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 44 8 45 31
+let%span sref_count_ledger'107 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 126 8 130 9
 let%span ssnapshot = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/snapshot.rs" 109 14 109 30
+let%span sint = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/int.rs" 238 14 238 31
 
 use creusot.prelude.Opaque
 use map.Map
@@ -598,7 +600,7 @@ predicate active_mutable_contains [#"/workspace/rust-crate-proofs/bytes/1.11.1/s
       | None'0 -> false
       end
 
-function active_ids [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 420 4 420 54] (self: t_OwnerLedger) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+function active_ids [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 448 4 448 54] (self: t_OwnerLedger) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
  = [%#sref_count_ledger'59] match self.authority with
     | Some'2 authority'0 -> view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0
     | None'2 -> empty_Int
@@ -617,42 +619,42 @@ function unwrap_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Opt
     | None'0 -> any_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
     end
 
-function owner_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 248 4 248 54] (self: t_OwnerTicket) : tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+function owner_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 276 4 276 54] (self: t_OwnerTicket) : tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
  =
-  [%#sref_count_ledger'98] (unwrap_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (get_Int (view_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0) self.owner_id'0)).f0'1
+  [%#sref_count_ledger'100] (unwrap_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (get_Int (view_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0) self.owner_id'0)).f0'1
 
-predicate valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 310 4 310 26] (self: t_OwnerTicket) =
-  [%#sref_count_ledger'101] id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0 = self.ledger_id'0
+predicate valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 338 4 338 26] (self: t_OwnerTicket) =
+  [%#sref_count_ledger'103] id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0 = self.ledger_id'0
   /\ view_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0
   = singleton_Int self.owner_id'0 { f0'1 = owner_binding self }
 
-predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 323 4 323 30] (self: t_OwnerTicket) =
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 351 4 351 30] (self: t_OwnerTicket) =
   [%#sref_count_ledger'74] valid self
 
 predicate inv_OwnerTicket (_1: t_OwnerTicket)
 
 axiom inv_axiom'0 [@rewrite]: forall x: t_OwnerTicket [inv_OwnerTicket x]. inv_OwnerTicket x = invariant_OwnerTicket x
 
-function ledger_id'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 216 4 216 39] (self: t_OwnerTicket) : t_Id
- = [%#sref_count_ledger'90] self.ledger_id'0
+function ledger_id'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 244 4 244 39] (self: t_OwnerTicket) : t_Id
+ = [%#sref_count_ledger'92] self.ledger_id'0
 
-function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 221 4 221 39] (self: t_OwnerTicket) : int
- = [%#sref_count_ledger'94] self.owner_id'0
+function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 249 4 249 39] (self: t_OwnerTicket) : int
+ = [%#sref_count_ledger'96] self.owner_id'0
 
-function fragment_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 226 4 226 50] (self: t_OwnerTicket) : t_Id
- = [%#sref_count_ledger'97] id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0
+function fragment_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 254 4 254 50] (self: t_OwnerTicket) : t_Id
+ = [%#sref_count_ledger'99] id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0
 
-function allocation_binding'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 238 4 238 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
- = [%#sref_count_ledger'92] (owner_binding self).f0'0
+function allocation_binding'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 266 4 266 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
+ = [%#sref_count_ledger'94] (owner_binding self).f0'0
 
-function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 253 4 253 40] (self: t_OwnerTicket) : int
- = [%#sref_count_ledger'95] (owner_binding self).f2'0
+function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 281 4 281 40] (self: t_OwnerTicket) : int
+ = [%#sref_count_ledger'97] (owner_binding self).f2'0
 
-function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 258 4 258 40] (self: t_OwnerTicket) : int
- = [%#sref_count_ledger'96] (owner_binding self).f3'0
+function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 286 4 286 40] (self: t_OwnerTicket) : int
+ = [%#sref_count_ledger'98] (owner_binding self).f3'0
 
-function fragment_map [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 231 4 231 56] (self: t_OwnerTicket) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
- = [%#sref_count_ledger'99] view_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0
+function fragment_map [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 259 4 259 56] (self: t_OwnerTicket) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sref_count_ledger'101] view_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int self.fragment'0
 
 let from_fragment (ledger_id'2: t_Id) (owner_id'1: int) (binding: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
   (fragment: t_Fragment_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (return (x: t_OwnerTicket)) =
@@ -688,32 +690,32 @@ predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] oth
 meta "rewrite_def" predicate gt_log_Int
 
 predicate owner_binding_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 42 0 42 82] (owner: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (allocation: tup3_Id_ptr_u8_Int) =
-  [%#sref_count_ledger'104] owner.f0'0 = allocation
+  [%#sref_count_ledger'106] owner.f0'0 = allocation
   /\ 0 <= owner.f2'0 /\ owner.f2'0 <= owner.f3'0 /\ owner.f3'0 <= allocation.f2
 
-predicate owner_ranges_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 107 0 107 86] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (allocation: tup3_Id_ptr_u8_Int) =
-  [%#sref_count_ledger'102] forall id: int. match get_Int owners id with
+predicate owner_ranges_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 135 0 135 86] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (allocation: tup3_Id_ptr_u8_Int) =
+  [%#sref_count_ledger'104] forall id: int. match get_Int owners id with
       | Some'0 {f0'1 = owner} -> owner_binding_valid owner allocation
       | None'0 -> true
       end
 
 type tup2_RefKind_RefKind = { f0'5: t_RefKind; f1'5: t_RefKind }
 
-predicate spans_compatible [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 96 0 96 68] (left: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (right: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
-  [%#sref_count_ledger'105] match { f0'5 = left.f1'0; f1'5 = right.f1'0 } with
+predicate spans_compatible [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 124 0 124 68] (left: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (right: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sref_count_ledger'107] match { f0'5 = left.f1'0; f1'5 = right.f1'0 } with
     | {f0'5 = Readonly; f1'5 = Readonly} -> true
     | _ -> left.f2'0 = left.f3'0 \/ right.f2'0 = right.f3'0 \/ left.f3'0 <= right.f2'0 \/ right.f3'0 <= left.f2'0
     end
 
-predicate owner_ranges_disjoint [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 117 0 117 58] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
-  [%#sref_count_ledger'103] forall left_id: int, right_id: int. match { f0'2 = get_Int owners left_id;
+predicate owner_ranges_disjoint [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 145 0 145 58] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sref_count_ledger'105] forall left_id: int, right_id: int. match { f0'2 = get_Int owners left_id;
                                                                         f1'2 = get_Int owners right_id } with
       | {f0'2 = Some'0 {f0'1 = left}; f1'2 = Some'0 {f0'1 = right}} -> left_id = right_id \/ spans_compatible left right
       | _ -> true
       end
 
-predicate valid'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 442 4 442 26] (self: t_OwnerLedger) =
-  [%#sref_count_ledger'100] 0 <= self.next_id
+predicate valid'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 470 4 470 26] (self: t_OwnerLedger) =
+  [%#sref_count_ledger'102] 0 <= self.next_id
   /\ match { f0'4 = self.live; f1'4 = self.authority } with
     | {f0'4 = True; f1'4 = Some'2 authority'0} -> invariant_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0
     /\ id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int'0 authority'0 = self.ledger_id
@@ -731,7 +733,7 @@ predicate valid'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_pro
     | _ -> false
     end
 
-predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 985 4 985 30] (self: t_OwnerLedger) =
+predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1045 4 1045 30] (self: t_OwnerLedger) =
   [%#sref_count_ledger'73] valid'0 self
 
 predicate inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (_1: t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
@@ -765,22 +767,25 @@ predicate inv_ref_OwnerTicket [@inline:trivial] (_1: t_OwnerTicket) = invariant_
 
 meta "rewrite_def" predicate inv_ref_OwnerTicket
 
-predicate is_live [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 410 4 410 39] (self: t_OwnerLedger) =
-  [%#sref_count_ledger'84] self.live
+predicate is_live [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 438 4 438 39] (self: t_OwnerLedger) =
+  [%#sref_count_ledger'86] self.live
 
-function ledger_id'2 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 400 4 400 39] (self: t_OwnerLedger) : t_Id
- = [%#sref_count_ledger'91] self.ledger_id
+function ledger_id'2 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 428 4 428 39] (self: t_OwnerLedger) : t_Id
+ = [%#sref_count_ledger'93] self.ledger_id
 
-predicate has_ticket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 464 4 464 63] (self: t_OwnerLedger) (ticket: t_OwnerTicket) =
-  [%#sref_count_ledger'89] invariant_OwnerLedger self
+predicate has_ticket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 492 4 492 63] (self: t_OwnerLedger) (ticket: t_OwnerTicket) =
+  [%#sref_count_ledger'91] invariant_OwnerLedger self
   /\ self.live
   /\ invariant_OwnerTicket ticket
   /\ ledger_id'1 ticket = self.ledger_id
   /\ allocation_binding'0 ticket = self.allocation_binding
   /\ get_Int (active_ids self) (owner_id ticket) = Some'0 { f0'1 = owner_binding ticket }
 
-function allocation_binding'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 415 4 415 63] (self: t_OwnerLedger) : tup3_Id_ptr_u8_Int
- = [%#sref_count_ledger'86] self.allocation_binding
+function next_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 433 4 433 38] (self: t_OwnerLedger) : int
+ = [%#sref_count_ledger'87] self.next_id
+
+function allocation_binding'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 443 4 443 63] (self: t_OwnerLedger) : tup3_Id_ptr_u8_Int
+ = [%#sref_count_ledger'88] self.allocation_binding
 
 let prove_ticket_is_active (self: t_OwnerLedger) (ticket: t_OwnerTicket) (return (x: ())) =
 {[@stop_split] [@expl:prove_ticket_is_active requires] ([@stop_split] [@expl:prove_ticket_is_active 'self' type invariant] [%#sref_count_ledger'75] inv_ref_OwnerLedger self)
@@ -793,9 +798,13 @@ let prove_ticket_is_active (self: t_OwnerLedger) (ticket: t_OwnerTicket) (return
   any
   [ return (result: ()) ->
   {[@stop_split] [@expl:prove_ticket_is_active ensures] ([@stop_split] [@expl:prove_ticket_is_active ensures #0] [%#sref_count_ledger'81] has_ticket self ticket)
-    /\ ([@stop_split] [@expl:prove_ticket_is_active ensures #1] [%#sref_count_ledger'82] allocation_binding'0 ticket
+    /\ ([@stop_split] [@expl:prove_ticket_is_active ensures #1] [%#sref_count_ledger'82] owner_id ticket
+      < next_id'0 self)
+    /\ ([@stop_split] [@expl:prove_ticket_is_active ensures #2] [%#sref_count_ledger'83] fragment_resource_id ticket
+      = ledger_id'2 self)
+    /\ ([@stop_split] [@expl:prove_ticket_is_active ensures #3] [%#sref_count_ledger'84] allocation_binding'0 ticket
       = allocation_binding'1 self)
-    /\ ([@stop_split] [@expl:prove_ticket_is_active ensures #2] [%#sref_count_ledger'83] owner_binding ticket
+    /\ ([@stop_split] [@expl:prove_ticket_is_active ensures #4] [%#sref_count_ledger'85] owner_binding ticket
     = (unwrap_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (get_Int (active_ids self) (owner_id ticket))).f0'1)}
     (! return {result}) ]
 
@@ -825,26 +834,23 @@ let new_tup3_OwnerLedger_OwnerTicket_OwnerTicket (x: tup3_OwnerLedger_OwnerTicke
     /\ ([@stop_split] [@expl:new ensures] [%#sghost'5] result = x)}
     (! return {result}) ]
 
-function next_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 405 4 405 38] (self: t_OwnerLedger) : int
- = [%#sref_count_ledger'85] self.next_id
+function count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 458 4 458 36] (self: t_OwnerLedger) : int
+ = [%#sref_count_ledger'89] len_Int (active_ids self)
 
-function count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 430 4 430 36] (self: t_OwnerLedger) : int
- = [%#sref_count_ledger'87] len_Int (active_ids self)
-
-predicate agrees_with_value [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 437 4 437 61] (self: t_OwnerLedger) (value: int)
+predicate agrees_with_value [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 465 4 465 61] (self: t_OwnerLedger) (value: int)
 
 axiom agrees_with_value_spec:
-  forall self: t_OwnerLedger, value: int [agrees_with_value self value]. [%#sref_count_ledger'88] agrees_with_value self value
+  forall self: t_OwnerLedger, value: int [agrees_with_value self value]. [%#sref_count_ledger'90] agrees_with_value self value
     = (invariant_OwnerLedger self /\ count self = value)
 
-function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 243 4 243 41] (self: t_OwnerTicket) : t_RefKind
- = [%#sref_count_ledger'93] (owner_binding self).f1'0
+function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 271 4 271 41] (self: t_OwnerTicket) : t_RefKind
+ = [%#sref_count_ledger'95] (owner_binding self).f1'0
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let new_promoted_pair [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 601 4 604 55]
+let new_promoted_pair [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 632 4 635 55]
   (binding: tup3_Id_ptr_u8_Int) (cut: int) (return (x: tup3_OwnerLedger_OwnerTicket_OwnerTicket)) =
 {[@stop_split] [@expl:new_promoted_pair requires] [%#sref_count_ledger'38] 0 <= cut /\ cut <= binding.f2}
   (! bb0

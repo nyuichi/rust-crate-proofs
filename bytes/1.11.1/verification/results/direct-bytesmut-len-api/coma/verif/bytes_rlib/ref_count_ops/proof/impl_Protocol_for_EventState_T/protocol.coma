@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 374 8 374 33 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 404 8 404 33 *)
 
 (* <ref_count_ops::proof::EventState<T> as creusot_std::ghost::invariant::Protocol> *)
 
@@ -6,7 +6,7 @@ type namespace_other
 
 type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
-let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 371 18 373 61
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 401 18 403 61
 
 use creusot.int.UInt64
 
@@ -20,11 +20,11 @@ predicate protocol_T (self: t_T)
 
 type t_NativeCounter
 
-function counter_model_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 351 8 351 48] (self: t_T) : t_NativeCounter
+function counter_model_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 381 8 381 48] (self: t_T) : t_NativeCounter
 
 function ward_NativeCounter (self: t_Perm_NativeCounter) : t_NativeCounter
 
-predicate agrees_with_value_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 354 8 354 57] (self: t_T) (value: UInt64.t)
+predicate agrees_with_value_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 384 8 384 57] (self: t_T) (value: UInt64.t)
 
 function val_NativeCounter (self: t_Perm_NativeCounter) : UInt64.t
 
@@ -34,7 +34,7 @@ meta "select_lsinst" "all"
 
 constant self : t_EventState_T
 
-predicate protocol_EventState_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 374 8 374 33] (self: t_EventState_T)
+predicate protocol_EventState_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 404 8 404 33] (self: t_EventState_T)
 
 goal vc_protocol_EventState_T: if protocol_T self.current' then
     if counter_model_T self.current' = ward_NativeCounter self.owner then

@@ -1,0 +1,266 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 140 0 144 9 *)
+
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 126 10 139 1
+
+use creusot.prelude.Opaque
+
+type t_OwnerTicket
+
+type tup2_OwnerTicket_OwnerTicket = { f0: t_OwnerTicket; f1: t_OwnerTicket }
+
+type t_Id
+
+function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 244 4 244 39] (self: t_OwnerTicket) : t_Id
+
+function fragment_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 254 4 254 50] (self: t_OwnerTicket) : t_Id
+
+type tup3_Id_ptr_u8_Int = { f0'0: t_Id; f1'0: Opaque.ptr; f2'0: int }
+
+function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 266 4 266 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
+
+type t_RefKind = Mutable | Readonly
+
+function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 271 4 271 41] (self: t_OwnerTicket) : t_RefKind
+
+function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 249 4 249 39] (self: t_OwnerTicket) : int
+
+function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 281 4 281 40] (self: t_OwnerTicket) : int
+
+function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 286 4 286 40] (self: t_OwnerTicket) : int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant before : t_OwnerTicket
+
+constant cut : int
+
+constant split : tup2_OwnerTicket_OwnerTicket
+
+predicate mutable_owner_ticket_split_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 140 0 144 9] (before: t_OwnerTicket) (cut: int) (split: tup2_OwnerTicket_OwnerTicket)
+
+goal vc_mutable_owner_ticket_split_result: if ledger_id split.f0 = ledger_id before then
+    if ledger_id split.f1 = ledger_id before then
+      if fragment_resource_id split.f0 = fragment_resource_id before then
+        if fragment_resource_id split.f1 = fragment_resource_id before then
+          if allocation_binding split.f0 = allocation_binding before then
+            if allocation_binding split.f1 = allocation_binding before then
+              if class split.f0 = Mutable then
+                if class split.f1 = Mutable then
+                  if owner_id split.f0 = owner_id before then
+                    if owner_id split.f1 <> owner_id before then
+                      if owned_lo split.f0 = owned_lo before then
+                        if owned_hi split.f0 = cut then
+                          if owned_lo split.f1 = cut then
+                            [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] (owned_hi split.f1
+                              = owned_hi before)
+                            = (ledger_id split.f0 = ledger_id before
+                            /\ ledger_id split.f1 = ledger_id before
+                            /\ fragment_resource_id split.f0 = fragment_resource_id before
+                            /\ fragment_resource_id split.f1 = fragment_resource_id before
+                            /\ allocation_binding split.f0 = allocation_binding before
+                            /\ allocation_binding split.f1 = allocation_binding before
+                            /\ class split.f0 = Mutable
+                            /\ class split.f1 = Mutable
+                            /\ owner_id split.f0 = owner_id before
+                            /\ owner_id split.f1 <> owner_id before
+                            /\ owned_lo split.f0 = owned_lo before
+                            /\ owned_hi split.f0 = cut
+                            /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+                          else
+                            [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+                            = (ledger_id split.f0 = ledger_id before
+                            /\ ledger_id split.f1 = ledger_id before
+                            /\ fragment_resource_id split.f0 = fragment_resource_id before
+                            /\ fragment_resource_id split.f1 = fragment_resource_id before
+                            /\ allocation_binding split.f0 = allocation_binding before
+                            /\ allocation_binding split.f1 = allocation_binding before
+                            /\ class split.f0 = Mutable
+                            /\ class split.f1 = Mutable
+                            /\ owner_id split.f0 = owner_id before
+                            /\ owner_id split.f1 <> owner_id before
+                            /\ owned_lo split.f0 = owned_lo before
+                            /\ owned_hi split.f0 = cut
+                            /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+                        
+                        else
+                          [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+                          = (ledger_id split.f0 = ledger_id before
+                          /\ ledger_id split.f1 = ledger_id before
+                          /\ fragment_resource_id split.f0 = fragment_resource_id before
+                          /\ fragment_resource_id split.f1 = fragment_resource_id before
+                          /\ allocation_binding split.f0 = allocation_binding before
+                          /\ allocation_binding split.f1 = allocation_binding before
+                          /\ class split.f0 = Mutable
+                          /\ class split.f1 = Mutable
+                          /\ owner_id split.f0 = owner_id before
+                          /\ owner_id split.f1 <> owner_id before
+                          /\ owned_lo split.f0 = owned_lo before
+                          /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+                      
+                      else
+                        [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+                        = (ledger_id split.f0 = ledger_id before
+                        /\ ledger_id split.f1 = ledger_id before
+                        /\ fragment_resource_id split.f0 = fragment_resource_id before
+                        /\ fragment_resource_id split.f1 = fragment_resource_id before
+                        /\ allocation_binding split.f0 = allocation_binding before
+                        /\ allocation_binding split.f1 = allocation_binding before
+                        /\ class split.f0 = Mutable
+                        /\ class split.f1 = Mutable
+                        /\ owner_id split.f0 = owner_id before
+                        /\ owner_id split.f1 <> owner_id before
+                        /\ owned_lo split.f0 = owned_lo before
+                        /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+                    
+                    else
+                      [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+                      = (ledger_id split.f0 = ledger_id before
+                      /\ ledger_id split.f1 = ledger_id before
+                      /\ fragment_resource_id split.f0 = fragment_resource_id before
+                      /\ fragment_resource_id split.f1 = fragment_resource_id before
+                      /\ allocation_binding split.f0 = allocation_binding before
+                      /\ allocation_binding split.f1 = allocation_binding before
+                      /\ class split.f0 = Mutable
+                      /\ class split.f1 = Mutable
+                      /\ owner_id split.f0 = owner_id before
+                      /\ owner_id split.f1 <> owner_id before
+                      /\ owned_lo split.f0 = owned_lo before
+                      /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+                  
+                  else
+                    [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+                    = (ledger_id split.f0 = ledger_id before
+                    /\ ledger_id split.f1 = ledger_id before
+                    /\ fragment_resource_id split.f0 = fragment_resource_id before
+                    /\ fragment_resource_id split.f1 = fragment_resource_id before
+                    /\ allocation_binding split.f0 = allocation_binding before
+                    /\ allocation_binding split.f1 = allocation_binding before
+                    /\ class split.f0 = Mutable
+                    /\ class split.f1 = Mutable
+                    /\ owner_id split.f0 = owner_id before
+                    /\ owner_id split.f1 <> owner_id before
+                    /\ owned_lo split.f0 = owned_lo before
+                    /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+                
+                else
+                  [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+                  = (ledger_id split.f0 = ledger_id before
+                  /\ ledger_id split.f1 = ledger_id before
+                  /\ fragment_resource_id split.f0 = fragment_resource_id before
+                  /\ fragment_resource_id split.f1 = fragment_resource_id before
+                  /\ allocation_binding split.f0 = allocation_binding before
+                  /\ allocation_binding split.f1 = allocation_binding before
+                  /\ class split.f0 = Mutable
+                  /\ class split.f1 = Mutable
+                  /\ owner_id split.f0 = owner_id before
+                  /\ owner_id split.f1 <> owner_id before
+                  /\ owned_lo split.f0 = owned_lo before
+                  /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+              
+              else
+                [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+                = (ledger_id split.f0 = ledger_id before
+                /\ ledger_id split.f1 = ledger_id before
+                /\ fragment_resource_id split.f0 = fragment_resource_id before
+                /\ fragment_resource_id split.f1 = fragment_resource_id before
+                /\ allocation_binding split.f0 = allocation_binding before
+                /\ allocation_binding split.f1 = allocation_binding before
+                /\ class split.f0 = Mutable
+                /\ class split.f1 = Mutable
+                /\ owner_id split.f0 = owner_id before
+                /\ owner_id split.f1 <> owner_id before
+                /\ owned_lo split.f0 = owned_lo before
+                /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+            
+            else
+              [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+              = (ledger_id split.f0 = ledger_id before
+              /\ ledger_id split.f1 = ledger_id before
+              /\ fragment_resource_id split.f0 = fragment_resource_id before
+              /\ fragment_resource_id split.f1 = fragment_resource_id before
+              /\ allocation_binding split.f0 = allocation_binding before
+              /\ allocation_binding split.f1 = allocation_binding before
+              /\ class split.f0 = Mutable
+              /\ class split.f1 = Mutable
+              /\ owner_id split.f0 = owner_id before
+              /\ owner_id split.f1 <> owner_id before
+              /\ owned_lo split.f0 = owned_lo before
+              /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+          
+          else
+            [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+            = (ledger_id split.f0 = ledger_id before
+            /\ ledger_id split.f1 = ledger_id before
+            /\ fragment_resource_id split.f0 = fragment_resource_id before
+            /\ fragment_resource_id split.f1 = fragment_resource_id before
+            /\ allocation_binding split.f0 = allocation_binding before
+            /\ allocation_binding split.f1 = allocation_binding before
+            /\ class split.f0 = Mutable
+            /\ class split.f1 = Mutable
+            /\ owner_id split.f0 = owner_id before
+            /\ owner_id split.f1 <> owner_id before
+            /\ owned_lo split.f0 = owned_lo before
+            /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+        
+        else
+          [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+          = (ledger_id split.f0 = ledger_id before
+          /\ ledger_id split.f1 = ledger_id before
+          /\ fragment_resource_id split.f0 = fragment_resource_id before
+          /\ fragment_resource_id split.f1 = fragment_resource_id before
+          /\ allocation_binding split.f0 = allocation_binding before
+          /\ allocation_binding split.f1 = allocation_binding before
+          /\ class split.f0 = Mutable
+          /\ class split.f1 = Mutable
+          /\ owner_id split.f0 = owner_id before
+          /\ owner_id split.f1 <> owner_id before
+          /\ owned_lo split.f0 = owned_lo before
+          /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+      
+      else
+        [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+        = (ledger_id split.f0 = ledger_id before
+        /\ ledger_id split.f1 = ledger_id before
+        /\ fragment_resource_id split.f0 = fragment_resource_id before
+        /\ fragment_resource_id split.f1 = fragment_resource_id before
+        /\ allocation_binding split.f0 = allocation_binding before
+        /\ allocation_binding split.f1 = allocation_binding before
+        /\ class split.f0 = Mutable
+        /\ class split.f1 = Mutable
+        /\ owner_id split.f0 = owner_id before
+        /\ owner_id split.f1 <> owner_id before
+        /\ owned_lo split.f0 = owned_lo before
+        /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+    
+    else
+      [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+      = (ledger_id split.f0 = ledger_id before
+      /\ ledger_id split.f1 = ledger_id before
+      /\ fragment_resource_id split.f0 = fragment_resource_id before
+      /\ fragment_resource_id split.f1 = fragment_resource_id before
+      /\ allocation_binding split.f0 = allocation_binding before
+      /\ allocation_binding split.f1 = allocation_binding before
+      /\ class split.f0 = Mutable
+      /\ class split.f1 = Mutable
+      /\ owner_id split.f0 = owner_id before
+      /\ owner_id split.f1 <> owner_id before
+      /\ owned_lo split.f0 = owned_lo before
+      /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+  
+  else
+    [@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule] false
+    = (ledger_id split.f0 = ledger_id before
+    /\ ledger_id split.f1 = ledger_id before
+    /\ fragment_resource_id split.f0 = fragment_resource_id before
+    /\ fragment_resource_id split.f1 = fragment_resource_id before
+    /\ allocation_binding split.f0 = allocation_binding before
+    /\ allocation_binding split.f1 = allocation_binding before
+    /\ class split.f0 = Mutable
+    /\ class split.f1 = Mutable
+    /\ owner_id split.f0 = owner_id before
+    /\ owner_id split.f1 <> owner_id before
+    /\ owned_lo split.f0 = owned_lo before
+    /\ owned_hi split.f0 = cut /\ owned_lo split.f1 = cut /\ owned_hi split.f1 = owned_hi before)
+  

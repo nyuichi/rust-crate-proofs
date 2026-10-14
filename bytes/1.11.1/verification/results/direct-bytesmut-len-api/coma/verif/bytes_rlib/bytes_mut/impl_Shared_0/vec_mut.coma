@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 624 4 624 44 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 736 4 736 44 *)
 
 (* bytes_mut::Shared *)
 
@@ -11,14 +11,14 @@ let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
 let%span smem = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 98 19 98 23
 let%span smem'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 99 18 99 72
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 627 17 627 43
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 624 20 624 24
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 611 66 611 83
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 624 29 624 44
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 613 8 613 43
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 616 8 616 39
-let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 619 8 619 69
-let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 622 8 622 43
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 739 17 739 43
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 736 20 736 24
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 723 66 723 83
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 736 29 736 44
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 725 8 725 43
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 728 8 728 39
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 731 8 731 69
+let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 734 8 734 43
 
 use creusot.int.UInt64
 use creusot.prelude.MutBorrow
@@ -65,7 +65,7 @@ predicate resolve_refmut_VecStorage [@inline:trivial] (_1: MutBorrow.t t_VecStor
 
 meta "rewrite_def" predicate resolve_refmut_VecStorage
 
-predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 511 8 511 34] (self: t_RefCountCell)
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 541 8 541 34] (self: t_RefCountCell)
 
 predicate inv_RefCountCell (_1: t_RefCountCell)
 
@@ -99,7 +99,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let vec_mut [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 624 4 624 44] (self: MutBorrow.t t_Shared)
+let vec_mut [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 736 4 736 44] (self: MutBorrow.t t_Shared)
   (return (x: MutBorrow.t t_VecStorage)) =
 {[@stop_split] [@expl:vec_mut requires] ([@stop_split] [@expl:vec_mut 'self' type invariant] [%#sbytes_mut'0] inv_refmut_Shared self)
   /\ ([@stop_split] [@expl:vec_mut requires] [%#sbytes_mut'1] view_MaybeUninit_VecStorage self.current.vec <> None)}

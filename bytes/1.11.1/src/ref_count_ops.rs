@@ -2,6 +2,33 @@ use crate::loom::sync::atomic::{AtomicUsize, Ordering};
 #[cfg(creusot)]
 use creusot_std::ghost::Ghost;
 
+// Keep the native relaxed-load / guarded relaxed-CAS algorithm in one source
+// body. The proof build supplies event-aware load/CAS adapters; native builds
+// supply the original RefCountCell methods.
+macro_rules! try_increment_loop {
+    (
+        $load:block,
+        |$current:ident, $next:ident| $compare_exchange:block
+        $(, #[$loop_invariant:meta])*
+    ) => {{
+        let mut current = $load;
+        $(#[$loop_invariant])*
+        loop {
+            let next = match crate::ref_count_limit::next_ref_count(current) {
+                Some(next) => next,
+                None => break Err(current),
+            };
+
+            let $current = current;
+            let $next = next;
+            match $compare_exchange {
+                Ok(old) => break Ok(old),
+                Err(actual) => current = actual,
+            }
+        }
+    }};
+}
+
 /// Opaque identity for one native reference counter.
 ///
 /// Its only operations are the event methods below. In the proof profile each
@@ -244,7 +271,10 @@ impl RefCountCell {
                 ghost!(self.invariant.borrow().into_inner().as_ref().unwrap()),
                 expected,
                 new,
-                ghost!(|state: &mut RefCountState, old, new| { update_ref_count(state, old, new) }),
+                ghost!(&()),
+                ghost!(|state: &mut RefCountState, old, new, _frame: &()| {
+                    update_ref_count(state, old, new)
+                }),
             );
             ghost! {
                 match callback.into_inner() {
@@ -564,6 +594,19 @@ mod proof {
         state.current = new;
     }
 
+    /// Observe an event protocol at the value read from its native counter.
+    /// This is the generic counterpart of `observe_ref_count`, used when the
+    /// counter is owned by a higher-level capsule rather than a `RefCountCell`.
+    #[check(ghost)]
+    #[requires(state.protocol() && state.agrees_with_value(value))]
+    #[ensures((^state).public() == state.public())]
+    #[ensures((^state).counter_model() == state.counter_model())]
+    #[ensures((^state).protocol())]
+    #[ensures((^state).agrees_with_value(value))]
+    pub(crate) fn observe_event_counter<T: CounterProtocol>(state: &mut T, value: usize) {
+        proof_assert!(state.agrees_with_value(value));
+    }
+
     impl NativeCounter {
         /// Opens the exact hidden state held by `invariant.inner` for this one
         /// Relaxed load, then restores it through the checked callback.
@@ -572,7 +615,7 @@ mod proof {
         #[requires(self == &invariant.public().0)]
         #[requires(forall<s: &mut EventState<T>, old: usize>
             s.public() == invariant.public() && s.protocol() &&
-            s.owner.ward() == self && old == s.owner.val() ==>
+            s.invariant() && s.owner.ward() == self && old == s.owner.val() ==>
                 f.precondition((&mut s.current, old)) &&
                 (forall<a: A> f.postcondition_once((&mut s.current, old), a) ==>
                     (^s).current.public() == s.current.public() &&
@@ -644,10 +687,11 @@ mod proof {
         #[requires(self == &invariant.public().0)]
         #[requires(forall<s: &mut EventState<T>, old: usize>
             s.public() == invariant.public() && s.protocol() &&
-            s.owner.ward() == self && old == s.owner.val() ==>
+            s.invariant() && s.owner.ward() == self && old == s.owner.val() ==>
                 (old == expected ==>
-                    f.precondition((&mut s.current, old, new)) &&
-                    (forall<a: A> f.postcondition_once((&mut s.current, old, new), a) ==>
+                    f.precondition((&mut s.current, old, new, frame.inner_logic())) &&
+                    (forall<a: A> f.postcondition_once(
+                        (&mut s.current, old, new, frame.inner_logic()), a) ==>
                         (^s).current.public() == s.current.public() &&
                         (^s).current.counter_model() == s.current.counter_model() &&
                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
@@ -663,26 +707,33 @@ mod proof {
                     (^s).current.protocol() && (^s).current.agrees_with_value(new) &&
                     (^s).public() == s.public() && (^s).protocol() &&
                     (exists<a: A> *result.1 == Ok(a) &&
-                        f.postcondition_once((&mut s.current, old, new), a)),
+                        f.postcondition_once(
+                            (&mut s.current, old, new, frame.inner_logic()), a)),
                 Err(actual) => actual == old && old != expected &&
                     *result.1 == Err(*f) && (^s) == *s,
             })]
-        pub(crate) fn compare_exchange_relaxed_with<T, F, A>(
+        pub(crate) fn compare_exchange_relaxed_with<T, F, A, C>(
             &self,
             invariant: Ghost<&EventBoundInvariant<T>>,
             expected: usize,
             new: usize,
+            frame: Ghost<&C>,
             f: Ghost<F>,
         ) -> (Result<usize, usize>, Ghost<Result<A, F>>)
         where
             T: CounterProtocol,
-            F: FnGhost + for<'s> FnOnce(&'s mut T, usize, usize) -> A,
+            F: FnGhost + for<'s, 'c> FnOnce(&'s mut T, usize, usize, &'c C) -> A,
         {
             match self.compare_exchange_relaxed_native(expected, new) {
                 Ok(old) => {
                     let callback_result = ghost! {
                         let mut state = Ghost::<&mut EventState<T>>::conjure();
-                        let output = f.into_inner()(&mut state.current, old, new);
+                        let output = f.into_inner()(
+                            &mut state.current,
+                            old,
+                            new,
+                            frame.into_inner(),
+                        );
                         Ok(output)
                     };
                     (Ok(old), callback_result)
@@ -690,6 +741,113 @@ mod proof {
                 Err(actual) => {
                     let callback_result = ghost! { Err(f.into_inner()) };
                     (Err(actual), callback_result)
+                }
+            }
+        }
+
+        /// Run the crate's guarded relaxed-CAS increment loop against an
+        /// arbitrary event invariant. A failed compare-exchange returns the
+        /// same callback closure so its affine captures are retained across
+        /// retries; the callback runs exactly once, after the successful
+        /// native CAS. The loop is shared by the ordinary `RefCountCell`
+        /// increment path and shared-owner splitting.
+        #[requires(self == &invariant.public().0)]
+        #[requires(forall<s: &mut EventState<T>, old: usize>
+            s.public() == invariant.public() && s.protocol() &&
+            s.invariant() && s.owner.ward() == self && old == s.owner.val() ==>
+                (old <= crate::ref_count_limit::MAX_REF_COUNT ==>
+                    callback.precondition((
+                        &mut s.current, old, old + 1usize, frame.inner_logic()
+                    )) &&
+                    (forall<a: A> callback.postcondition_once(
+                        (&mut s.current, old, old + 1usize, frame.inner_logic()), a
+                    ) ==>
+                        (^s).current.public() == s.current.public() &&
+                        (^s).current.counter_model() == s.current.counter_model() &&
+                        (^s).current.protocol() &&
+                        (^s).current.agrees_with_value(old + 1usize)))
+        )]
+        #[ensures(match result.0 {
+            Ok(old) => old <= crate::ref_count_limit::MAX_REF_COUNT &&
+                exists<s: &mut EventState<T>, a: A>
+                    s.public() == invariant.public() && s.protocol() &&
+                    s.owner.ward() == self && old == s.owner.val() &&
+                    result.1.inner_logic() == Ok(a) &&
+                    callback.postcondition_once((
+                        &mut s.current, old, old + 1usize, frame.inner_logic()
+                    ), a) &&
+                    (^s).public() == s.public() && (^s).protocol() &&
+                    (^s).owner.ward() == s.owner.ward() &&
+                    (^s).owner.val() == old + 1usize &&
+                    (^s).current.public() == s.current.public() &&
+                    (^s).current.counter_model() == s.current.counter_model() &&
+                    (^s).current.protocol() &&
+                    (^s).current.agrees_with_value(old + 1usize),
+            Err(old) => old > crate::ref_count_limit::MAX_REF_COUNT &&
+                result.1.inner_logic() == Err(*callback)
+        })]
+        pub(crate) fn try_increment_with<T, F, A, C>(
+            &self,
+            invariant: Ghost<&EventBoundInvariant<T>>,
+            frame: Ghost<&C>,
+            callback: Ghost<F>,
+        ) -> (Result<usize, usize>, Ghost<Result<A, F>>)
+        where
+            T: CounterProtocol,
+            F: FnGhost + for<'s, 'c> FnOnce(&'s mut T, usize, usize, &'c C) -> A,
+        {
+            // The loop owns the affine callback in `callback_slot`; this
+            // snapshot records only its logical identity for the loop
+            // invariant and does not duplicate the callback's captures.
+            let callback_identity: Snapshot<Ghost<F>> = snapshot!(callback);
+            let mut callback_slot = Some(callback);
+            let mut callback_output = None;
+            let result = try_increment_loop!(
+                {
+                    let (value, observation) = self.load_relaxed_with(
+                        invariant,
+                        ghost!(|state: &mut T, value: usize| {
+                            observe_event_counter(state, value)
+                        }),
+                    );
+                    ghost! { let _ = observation.into_inner(); };
+                    value
+                },
+                |current, next| {
+                    let (exchange, callback_result) = self.compare_exchange_relaxed_with(
+                        invariant,
+                        current,
+                        next,
+                        frame,
+                        callback_slot.take().unwrap(),
+                    );
+                    match exchange {
+                        Ok(old) => {
+                            callback_output = Some(ghost! {
+                                callback_result.into_inner().ok().unwrap()
+                            });
+                            Ok(old)
+                        }
+                        Err(actual) => {
+                            callback_slot = Some(ghost! {
+                                callback_result.into_inner().err().unwrap()
+                            });
+                            Err(actual)
+                        }
+                    }
+                },
+                #[invariant(callback_slot == Some(*callback_identity))],
+                #[invariant(callback_output == None)]
+            );
+
+            match result {
+                Ok(old) => {
+                    let output = callback_output.unwrap();
+                    (Ok(old), ghost! { Ok(output.into_inner()) })
+                }
+                Err(old) => {
+                    let unused = callback_slot.unwrap();
+                    (Err(old), ghost! { Err(unused.into_inner()) })
                 }
             }
         }
@@ -820,18 +978,26 @@ use creusot_std::prelude::*;
     Err(old) => old > crate::ref_count_limit::MAX_REF_COUNT,
 }))]
 pub(crate) fn try_increment(cell: &RefCountCell) -> Result<usize, usize> {
-    let mut current = cell.load_relaxed();
-    #[cfg_attr(creusot, invariant(cell.invariant() && cell.has_event_invariant()))]
-    loop {
-        let next = match crate::ref_count_limit::next_ref_count(current) {
-            Some(next) => next,
-            None => return Err(current),
-        };
+    #[cfg(creusot)]
+    {
+        let invariant = ghost! { cell.invariant.borrow().into_inner().as_ref().unwrap() };
+        let (result, callback) = cell.counter.try_increment_with(
+            invariant,
+            ghost!(&()),
+            ghost!(|state: &mut RefCountState, old: usize, new: usize, _frame: &()| {
+                update_ref_count(state, old, new)
+            }),
+        );
+        ghost! { let _ = callback.into_inner(); };
+        return result;
+    }
 
-        match cell.compare_exchange_relaxed(current, next) {
-            Ok(old) => return Ok(old),
-            Err(actual) => current = actual,
-        }
+    #[cfg(not(creusot))]
+    {
+        try_increment_loop!(
+            { cell.load_relaxed() },
+            |current, next| { cell.compare_exchange_relaxed(current, next) }
+        )
     }
 }
 

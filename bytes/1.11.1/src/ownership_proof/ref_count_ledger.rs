@@ -92,6 +92,34 @@ pub(crate) fn prove_owner_removal_effect(
         });
 }
 
+/// Replacing one Mutable owner's interval with its two contiguous children
+/// preserves the exact set of indices covered by live Mutable owners.
+#[check(ghost)]
+#[requires((*before).get(*parent_id) ==
+    Some(Excl((*binding, RefKind::Mutable, *lo, *hi))))]
+#[requires(!(*before).contains(*child_id))]
+#[requires(*lo <= *cut && *cut <= *hi)]
+#[requires(*after == (*before)
+    .insert(*parent_id, Excl((*binding, RefKind::Mutable, *lo, *cut)))
+    .insert(*child_id, Excl((*binding, RefKind::Mutable, *cut, *hi))))]
+#[ensures(forall<index: Int>
+    active_mutable_contains(*after, index) ==
+        active_mutable_contains(*before, index))]
+pub(crate) fn prove_owner_split_preserves_mutable_coverage(
+    before: Snapshot<ActiveReferences>,
+    after: Snapshot<ActiveReferences>,
+    parent_id: Snapshot<Int>,
+    child_id: Snapshot<Int>,
+    binding: Snapshot<AllocationBinding>,
+    lo: Snapshot<Int>,
+    cut: Snapshot<Int>,
+    hi: Snapshot<Int>,
+) {
+    proof_assert!(forall<index: Int>
+        active_mutable_contains(*after, index) ==
+            active_mutable_contains(*before, index));
+}
+
 #[logic]
 fn spans_compatible(left: OwnerBinding, right: OwnerBinding) -> bool {
     pearlite! {
@@ -479,6 +507,8 @@ impl OwnerLedger {
     #[requires(ticket.invariant())]
     #[requires(ticket.ledger_id() == self.ledger_id())]
     #[ensures(self.has_ticket(*ticket))]
+    #[ensures(ticket.owner_id() < self.next_id())]
+    #[ensures(ticket.fragment_resource_id() == self.ledger_id())]
     #[ensures(ticket.allocation_binding() == self.allocation_binding())]
     #[ensures(ticket.owner_binding() ==
         self.active_ids().get(ticket.owner_id()).unwrap_logic().0)]
@@ -493,6 +523,7 @@ impl OwnerLedger {
                     Some(Excl(ticket.owner_binding())));
                 proof_assert!((*active).get(ticket.owner_id()) ==
                     Some(Excl(ticket.owner_binding())));
+                proof_assert!(ticket.owner_id() < self.next_id());
                 proof_assert!(ticket.allocation_binding() == self.allocation_binding());
             }
             None => proof_assert!(false),
@@ -658,10 +689,12 @@ impl OwnerLedger {
     }
 
     /// Register a Mutable child only after the caller has established a
-    /// successful native increment. A failed/refused update has no child.
+    /// successful native increment. A failed/refused update has no child;
+    /// the native guard permits the final transition from MAX_REF_COUNT to
+    /// MAX_REF_COUNT + 1.
     #[check(ghost)]
     #[requires(ledger.inner_logic().invariant() && ledger.inner_logic().is_live())]
-    #[requires(ledger.inner_logic().count() < MAX_REF_COUNT@)]
+    #[requires(ledger.inner_logic().count() <= MAX_REF_COUNT@)]
     #[requires(parent.inner_logic().invariant())]
     #[requires(parent.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
     #[requires(parent.inner_logic().class() == RefKind::Mutable)]
@@ -672,7 +705,7 @@ impl OwnerLedger {
     #[ensures((^ledger.inner_logic()).allocation_binding() ==
         ledger.inner_logic().allocation_binding())]
     #[ensures((^ledger.inner_logic()).count() == ledger.inner_logic().count() + 1)]
-    #[ensures((^ledger.inner_logic()).count() <= MAX_REF_COUNT@)]
+    #[ensures((^ledger.inner_logic()).count() <= MAX_REF_COUNT@ + 1)]
     #[ensures((^ledger.inner_logic()).agrees_with_value(ledger.inner_logic().count() + 1))]
     #[ensures((^ledger.inner_logic()).active_ids() ==
         ledger.inner_logic().active_ids()
@@ -684,16 +717,28 @@ impl OwnerLedger {
                 parent.inner_logic().allocation_binding(), RefKind::Mutable,
                 *cut, parent.inner_logic().owned_hi(),
             ))))]
+    #[ensures(forall<index: Int>
+        active_mutable_contains((^ledger.inner_logic()).active_ids(), index) ==
+            active_mutable_contains(ledger.inner_logic().active_ids(), index))]
     #[ensures((^ledger.inner_logic()).next_id() == ledger.inner_logic().next_id() + 1)]
     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+    #[ensures((^parent.inner_logic()).allocation_binding() ==
+        parent.inner_logic().allocation_binding())]
+    #[ensures(result.inner_logic().owner_id() != parent.inner_logic().owner_id())]
     #[ensures(result.inner_logic().invariant())]
     #[ensures(result.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
     #[ensures(result.inner_logic().owner_id() == ledger.inner_logic().next_id())]
     #[ensures(result.inner_logic().fragment_resource_id() == ledger.inner_logic().ledger_id())]
+    #[ensures(result.inner_logic().fragment_resource_id() ==
+        parent.inner_logic().fragment_resource_id())]
     #[ensures(result.inner_logic().allocation_binding() ==
         parent.inner_logic().allocation_binding())]
     #[ensures(result.inner_logic().class() == RefKind::Mutable)]
     #[ensures((^parent.inner_logic()).class() == RefKind::Mutable)]
+    #[ensures((^parent.inner_logic()).ledger_id() == parent.inner_logic().ledger_id())]
+    #[ensures((^parent.inner_logic()).owner_id() == parent.inner_logic().owner_id())]
+    #[ensures((^parent.inner_logic()).fragment_resource_id() ==
+        parent.inner_logic().fragment_resource_id())]
     #[ensures(result.inner_logic().owned_lo() == *cut)]
     #[ensures(result.inner_logic().owned_hi() == parent.inner_logic().owned_hi())]
     #[ensures((^parent.inner_logic()).owned_lo() == parent.inner_logic().owned_lo())]
@@ -715,6 +760,7 @@ impl OwnerLedger {
             ledger.prove_ticket_is_active(parent);
             let old_map: Snapshot<ActiveReferences> = snapshot!(ledger.active_ids());
             let new_id = ledger.next_id;
+            let parent_id = parent.owner_id;
             let binding_snapshot: Snapshot<AllocationBinding> = snapshot!(
                 parent.fragment@.get(parent.owner_id).unwrap_logic().0.0
             );
@@ -755,6 +801,20 @@ impl OwnerLedger {
             ledger.prove_ticket_is_active(parent);
             proof_assert!(ledger.has_ticket(*parent));
             ledger.prove_ticket_is_active(&child);
+            let after_map: Snapshot<ActiveReferences> = snapshot!(ledger.active_ids());
+            proof_assert!(*after_map == (*old_map)
+                .insert(parent_id, Excl(left_owner))
+                .insert(new_id, Excl(right_owner)));
+            prove_owner_split_preserves_mutable_coverage(
+                old_map,
+                after_map,
+                snapshot!(parent_id),
+                snapshot!(new_id),
+                binding_snapshot,
+                lo_snapshot,
+                snapshot!(cut),
+                hi_snapshot,
+            );
             child
         }
     }
@@ -765,7 +825,7 @@ impl OwnerLedger {
     /// remains disjoint from all mutable physical owners as well.
     #[check(ghost)]
     #[requires(ledger.inner_logic().invariant() && ledger.inner_logic().is_live())]
-    #[requires(ledger.inner_logic().count() < MAX_REF_COUNT@)]
+    #[requires(ledger.inner_logic().count() <= MAX_REF_COUNT@)]
     #[requires(source.inner_logic().invariant())]
     #[requires(source.inner_logic().ledger_id() == ledger.inner_logic().ledger_id())]
     #[requires(source.inner_logic().class() == RefKind::Readonly)]
@@ -775,7 +835,7 @@ impl OwnerLedger {
     #[ensures((^ledger.inner_logic()).allocation_binding() ==
         ledger.inner_logic().allocation_binding())]
     #[ensures((^ledger.inner_logic()).count() == ledger.inner_logic().count() + 1)]
-    #[ensures((^ledger.inner_logic()).count() <= MAX_REF_COUNT@)]
+    #[ensures((^ledger.inner_logic()).count() <= MAX_REF_COUNT@ + 1)]
     #[ensures((^ledger.inner_logic()).agrees_with_value(ledger.inner_logic().count() + 1))]
     #[ensures((^ledger.inner_logic()).active_ids() ==
         ledger.inner_logic().active_ids().insert(ledger.inner_logic().next_id(), Excl((

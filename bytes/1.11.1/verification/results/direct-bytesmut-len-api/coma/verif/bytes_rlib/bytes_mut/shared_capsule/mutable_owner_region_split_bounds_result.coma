@@ -1,0 +1,172 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 173 0 177 9 *)
+
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 163 10 172 1
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 713 20 713 27
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 718 20 718 27
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 723 20 723 30
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 703 20 703 30
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 708 20 708 30
+
+type t_PhysicalRegion
+
+type tup2_PhysicalRegion_PhysicalRegion = { f0: t_PhysicalRegion; f1: t_PhysicalRegion }
+
+type t_Id
+
+type t_OwnedRegion
+
+type tup3_OwnedRegion_Int_Id = { f0'0: t_OwnedRegion; f1'0: int; f2'0: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 677 4 677 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 712 4 712 39] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec] (view_PhysicalRegion self).f2'0
+
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 717 4 717 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'0] (view_PhysicalRegion self).f1'0
+
+type t_Excl_unit = { f0'1: () }
+
+type t_Option_Excl_unit = None | Some t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'2: t_Option_Excl_unit; f1'2: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'3: int;
+  f1'3: int;
+  f2'3: t_Id;
+  f3'3: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 722 4 722 41] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'1] (view_OwnedRegion (view_PhysicalRegion self).f0'0).f2'3
+
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 702 4 702 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'2] (view_OwnedRegion (view_PhysicalRegion self).f0'0).f0'3
+
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 707 4 707 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'3] (view_OwnedRegion (view_PhysicalRegion self).f0'0).f1'3
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant before : t_PhysicalRegion
+
+constant cut : int
+
+constant split : tup2_PhysicalRegion_PhysicalRegion
+
+predicate mutable_owner_region_split_bounds_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 173 0 177 9] (before: t_PhysicalRegion) (cut: int) (split: tup2_PhysicalRegion_PhysicalRegion)
+
+goal vc_mutable_owner_region_split_bounds_result: if namespace split.f0 = namespace before then
+    if namespace split.f1 = namespace before then
+      if capacity split.f0 = capacity before then
+        if capacity split.f1 = capacity before then
+          if resource_id split.f0 = resource_id before then
+            if resource_id split.f1 = resource_id before then
+              if lo split.f0 = lo before then
+                if hi split.f0 = cut then
+                  if lo split.f1 = cut then
+                    [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] (hi split.f1
+                      = hi before)
+                    = (namespace split.f0 = namespace before
+                    /\ namespace split.f1 = namespace before
+                    /\ capacity split.f0 = capacity before
+                    /\ capacity split.f1 = capacity before
+                    /\ resource_id split.f0 = resource_id before
+                    /\ resource_id split.f1 = resource_id before
+                    /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+                  else
+                    [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] false
+                    = (namespace split.f0 = namespace before
+                    /\ namespace split.f1 = namespace before
+                    /\ capacity split.f0 = capacity before
+                    /\ capacity split.f1 = capacity before
+                    /\ resource_id split.f0 = resource_id before
+                    /\ resource_id split.f1 = resource_id before
+                    /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+                
+                else
+                  [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] false
+                  = (namespace split.f0 = namespace before
+                  /\ namespace split.f1 = namespace before
+                  /\ capacity split.f0 = capacity before
+                  /\ capacity split.f1 = capacity before
+                  /\ resource_id split.f0 = resource_id before
+                  /\ resource_id split.f1 = resource_id before
+                  /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+              
+              else
+                [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] false
+                = (namespace split.f0 = namespace before
+                /\ namespace split.f1 = namespace before
+                /\ capacity split.f0 = capacity before
+                /\ capacity split.f1 = capacity before
+                /\ resource_id split.f0 = resource_id before
+                /\ resource_id split.f1 = resource_id before
+                /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+            
+            else
+              [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] false
+              = (namespace split.f0 = namespace before
+              /\ namespace split.f1 = namespace before
+              /\ capacity split.f0 = capacity before
+              /\ capacity split.f1 = capacity before
+              /\ resource_id split.f0 = resource_id before
+              /\ resource_id split.f1 = resource_id before
+              /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+          
+          else
+            [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] false
+            = (namespace split.f0 = namespace before
+            /\ namespace split.f1 = namespace before
+            /\ capacity split.f0 = capacity before
+            /\ capacity split.f1 = capacity before
+            /\ resource_id split.f0 = resource_id before
+            /\ resource_id split.f1 = resource_id before
+            /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+        
+        else
+          [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] false
+          = (namespace split.f0 = namespace before
+          /\ namespace split.f1 = namespace before
+          /\ capacity split.f0 = capacity before
+          /\ capacity split.f1 = capacity before
+          /\ resource_id split.f0 = resource_id before
+          /\ resource_id split.f1 = resource_id before
+          /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+      
+      else
+        [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] false
+        = (namespace split.f0 = namespace before
+        /\ namespace split.f1 = namespace before
+        /\ capacity split.f0 = capacity before
+        /\ capacity split.f1 = capacity before
+        /\ resource_id split.f0 = resource_id before
+        /\ resource_id split.f1 = resource_id before
+        /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+    
+    else
+      [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] false
+      = (namespace split.f0 = namespace before
+      /\ namespace split.f1 = namespace before
+      /\ capacity split.f0 = capacity before
+      /\ capacity split.f1 = capacity before
+      /\ resource_id split.f0 = resource_id before
+      /\ resource_id split.f1 = resource_id before
+      /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+  
+  else
+    [@stop_split] [@expl:mutable_owner_region_split_bounds_result ensures] [%#sshared_capsule] false
+    = (namespace split.f0 = namespace before
+    /\ namespace split.f1 = namespace before
+    /\ capacity split.f0 = capacity before
+    /\ capacity split.f1 = capacity before
+    /\ resource_id split.f0 = resource_id before
+    /\ resource_id split.f1 = resource_id before
+    /\ lo split.f0 = lo before /\ hi split.f0 = cut /\ lo split.f1 = cut /\ hi split.f1 = hi before)
+  

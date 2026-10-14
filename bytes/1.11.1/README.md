@@ -59,8 +59,8 @@ the actual Shared root permission before freeing the Box. The crate-private
 unsafe `BytesMut::dispose_shared` path supplies its actual packet and caller
 context to this same native release body and has a body proof. The ordinary
 `release_shared`/automatic `Drop` caller remains untranslated, so this does not
-prove post-Drop context consistency or cover every native ARC clone, split,
-freeze and recovery transition. Concurrency, unwind behavior and safe-state
+prove post-Drop context consistency or cover every native ARC clone, freeze,
+or recovery transition. Concurrency, unwind behavior and safe-state
 reachability of the common view precondition across all Shared lifecycle paths
 remain outside this checkpoint. Thus these body proofs do not yet establish
 an end-to-end public `BytesMut::truncate` guarantee for every safely produced
@@ -91,11 +91,22 @@ preserves its resource id and key. The selected private count-one promotion
 and original-Vec split producers pass a caller-supplied context into packet
 construction, which registers the actual idle header-lease fragment. The
 packet's take/restore helpers use that context to move the same capability into
-and back out of a header read loan. The crate-private explicit disposal method
-consumes a shared handle and threads this context through the proven native
-release body. Public producer wrappers and ordinary automatic `Drop` still do
-not thread a tracked context, so these internal paths do not close safe public
-reachability for `truncate`.
+and back out of a header read loan. Body proofs cover both Vec-backed and
+packet-backed ARC branches of public `BytesMut::split_off`, `split_to`, and
+`split` for valid, normal-return inputs. The Vec route requires a rebuildable
+unique allocation and registers its idle capability. The ARC route requires
+the existing matching idle entry, performs the source relaxed refcount
+increment once, splits the actual owner ticket and physical region, and
+restores the same capability to its Context entry. Both routes export strict
+Shared layout and initialized-prefix facts, byte/length/capacity/pointer
+relations, distinct owner tickets for one allocation and lease key, and the
+matching idle Context entry for both handles. The crate-private explicit
+disposal method can consume either resulting handle with this actual Context
+and reaches the proven native release body. These split paths do not close
+every safe producer or lifecycle path needed for `truncate`.
+The verified operation sequences explicitly dispose each related Shared
+handle with its caller-supplied context; they do not assume that an untracked
+automatic `Drop` leaves that context consistent.
 
 The selected targets also body-prove an affine `OwnedSharedContext` and its
 borrowed view. Construction consumes a caller-supplied token set and starts
@@ -103,11 +114,13 @@ with an empty registry; reborrows preserve the actual token namespaces and
 frame the registry's exact final entries. Registration, take, and return move
 the producer's actual fragment through that registry. The selected private
 count-one promotion and `split_unique_to_shared` paths thread this context into
-packet construction, and packet loan take/restore returns the exact capability
-to it. The public safe producer call chains and native lifecycle paths remain
-unproved; this context does not establish that every safely reachable state
-satisfies the `buffer_view_valid` precondition for `truncate` or provide a
-verified explicit release path.
+packet construction, as do both Vec-backed and packet-backed ARC branches of
+public split methods. The ARC branch borrows the existing matching idle
+capability and returns it to the same registry entry after splitting actual
+affine resources. Packet loan take/restore returns the exact capability to the
+Context. Other public producer call chains and ordinary automatic lifecycle
+paths remain unproved; this context does not establish that every safely
+reachable state satisfies the `buffer_view_valid` precondition for `truncate`.
 
 This is a verification fork based on the crates.io 1.11.1 source. It includes
 branch runtime fixes and verification-only annotations/refactors; this evidence

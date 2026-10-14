@@ -51,9 +51,10 @@ allocation and that native `Vec::from_raw_parts` plus the opaque wrapper
 transfer its sole owner without changing allocation bytes. It states no Bytes
 owner, refcount, split, or reclamation rule. The selected body proof for the
 private original-source Vec split producer calls this adapter and proves its
-own use of the returned exact resources; the adapter itself remains trusted,
-and the proof does not establish public wrapper reachability. Removing this
-assumption requires a generic Std/B2 contract for exact native owner
+own use of the returned exact resources; the adapter itself remains trusted.
+The public ARC-backed split route operates on an existing Shared header and
+does not call this Vec reconstruction boundary. Removing this assumption
+requires a generic Std/B2 contract for exact native owner
 reconstruction and full-allocation preservation, followed by a body proof of
 the opaque storage adoption and metadata binding.
 
@@ -196,9 +197,20 @@ returns that exact permission while restoring the idle lease state.
 The selected private count-one promotion and original-Vec split paths pass the
 caller-supplied context into packet construction. The packet makers register
 the actual idle lease fragment in its `ReadyRegistry`, and packet take/restore
-move that same capability through the context. These body proofs connect the
-internal producer helpers to the lease operations; they do not establish that
-public safe wrappers supply the context or its required namespace tokens.
+move that same capability through the context. Body proofs cover the
+valid-index, normal-return Vec-backed and packet-backed ARC branches of public
+`BytesMut::split_off`, `split_to`, and `split`. The Vec route passes its
+rebuildable allocation and caller context to the count-two producer. The ARC
+route borrows the existing matching idle lease capability, runs the source
+relaxed increment once, divides the actual Mutable ticket and physical region,
+and restores that capability to the same registry entry. Both routes export
+strict Shared layout and initialized visible bytes, pointer/length/capacity and
+byte results, distinct owner tickets for the same allocation and lease key,
+and the resulting idle Context entry for both handles. These are
+normal-return proofs; they do not establish unwind or concurrent behavior.
+The selected operation sequences explicitly dispose each related Shared
+handle with its caller-supplied context and make no Context-consistency claim
+after an untracked automatic `Drop`.
 The lease RA has one exclusive idle/active value, and the active stamp stores
 the complete `ReadyKey`; idle and active authority therefore cannot compose as
 separate product components or lose the slot identity.
@@ -210,11 +222,13 @@ returns `Option` and may return `None` when the matching idle cap is absent.
 Its body-proved result equivalence establishes that a matching registered idle
 cap yields `Some`: the packet's actual live `OwnerTicket` and the matching
 lease RA state rule out the terminal root-absent protocol and produce the
-matching loan. No selected public Shared producer or lifecycle body scopes
-these transitions around native counter operations, so the internal
-producer-to-packet proofs do not close public reachability for the common
-`BytesMut::truncate` precondition. The exact selected bodies and prover results
-are listed in [`proof.json`](proof.json).
+matching loan. The public split wrappers connect both their Vec and ARC source
+branches to packet construction or actual-packet splitting, and return the
+same idle capability entry for both resulting handles. This does not cover all
+public producer/lifecycle paths. The selected proofs therefore do not close
+public reachability for the common `BytesMut::truncate` precondition. The exact
+selected bodies and prover results are listed in
+[`proof.json`](proof.json).
 
 The native atomic adapters that open this generic event invariant are trusted
 primitives. Their contracts preserve the same permission and counter model,
@@ -270,11 +284,13 @@ initial full-range Mutable ticket and empty pool. The count-two constructor
 body-proves one event payload with two Mutable tickets and physical regions
 partitioning the full allocation. The original-source private
 `split_unique_to_shared` Vec producer consumes a Vec and installs those two
-actual views and packets under its unique-Vec precondition. These proofs do not
-show that the public `split_off`/`split_to` wrappers reach this helper, or that
-ARC split, native clone, freeze, drop, and recovery transitions update the
-ledger and pool. They also do not establish count-one exclusivity or
-reclamation for every safe Shared state.
+actual views and packets under its unique-Vec precondition. Body proofs cover
+the valid-index, normal-return Vec-backed and packet-backed ARC branches of
+public `split_off`, `split_to`, and `split`; they preserve strict Shared
+layout, byte and view geometry, and the actual context registration. These
+split proofs do not prove native clone, freeze, automatic drop, or recovery
+transitions. They do not establish count-one exclusivity or reclamation for
+every safely produced Shared state.
 
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
@@ -286,8 +302,8 @@ final owner; `release_shared_common` then runs the original native decrement,
 Acquire load, stored-Vec retirement and Box release sequence. The explicit
 `dispose_shared` body reaches this common native algorithm with its actual
 packet and context. This proves that internal explicit path under its unsafe
-preconditions, not every public ARC split/clone/freeze/recovery transition or
-the context-free automatic `Drop` call chain. The Vec `advance_unchecked`
+preconditions, not every public clone/freeze/recovery transition or the
+context-free automatic `Drop` call chain. The Vec `advance_unchecked`
 branch assumes a representable position, so it does not establish reachability
 of the promotion branch, and public `Buf::advance` is untranslated.
 
@@ -295,8 +311,9 @@ Although `truncate`, `clear`, and unsafe `set_len` have body proofs from
 `buffer_view_valid`, their modular precondition still includes a packet-backed
 Shared value's type invariant and the corresponding capsule, ticket, ledger,
 and resource conditions. The new all-reference ledger operations do not yet
-close the safe-produced-state reachability of that precondition across ARC
-split, clone, drop, freeze, `to_mut`, and recovery. The proof therefore does
+close the safe-produced-state reachability of that precondition across clone,
+drop, freeze, `to_mut`, and recovery. The selected ARC split path is covered,
+but the proof therefore does
 not yet establish the requested public `BytesMut::truncate` guarantee for all
 safe states. Immutable-view lifetime and read permissions, concurrent
 behavior, and unwind behavior also remain outside this scope.
