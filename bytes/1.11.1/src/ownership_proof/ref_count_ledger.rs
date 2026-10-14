@@ -59,6 +59,39 @@ pub(crate) fn active_mutable_contains(owners: ActiveReferences, index: Int) -> b
     }
 }
 
+/// Describe exactly how removing one registration changes the set of slots
+/// covered by live Mutable owners. Disjointness of the owner map ensures that
+/// no other registration covers a removed Mutable interval; removing a
+/// Readonly registration leaves Mutable coverage unchanged.
+#[check(ghost)]
+#[requires(owner_ranges_disjoint(*before))]
+#[requires(ticket.invariant())]
+#[requires((*before).get(ticket.owner_id()) ==
+    Some(Excl(ticket.owner_binding())))]
+#[requires(*after == (*before).remove(ticket.owner_id()))]
+#[ensures(forall<index: Int>
+    match ticket.class() {
+        RefKind::Mutable => active_mutable_contains(*after, index) ==
+            (active_mutable_contains(*before, index) &&
+                !(ticket.owned_lo() <= index && index < ticket.owned_hi())),
+        RefKind::Readonly => active_mutable_contains(*after, index) ==
+            active_mutable_contains(*before, index),
+    })]
+pub(crate) fn prove_owner_removal_effect(
+    before: Snapshot<ActiveReferences>,
+    after: Snapshot<ActiveReferences>,
+    ticket: Snapshot<OwnerTicket>,
+) {
+    proof_assert!(forall<index: Int>
+        match ticket.class() {
+            RefKind::Mutable => active_mutable_contains(*after, index) ==
+                (active_mutable_contains(*before, index) &&
+                    !(ticket.owned_lo() <= index && index < ticket.owned_hi())),
+            RefKind::Readonly => active_mutable_contains(*after, index) ==
+                active_mutable_contains(*before, index),
+        });
+}
+
 #[logic]
 fn spans_compatible(left: OwnerBinding, right: OwnerBinding) -> bool {
     pearlite! {
@@ -399,7 +432,8 @@ impl OwnerLedger {
     }
 
     /// Relation consumed by the enclosing atomic protocol.
-    #[logic(open(self), prophetic)]
+    #[logic(opaque, prophetic)]
+    #[ensures(result == (self.invariant() && self.count() == value))]
     pub(crate) fn agrees_with_value(self, value: Int) -> bool {
         self.invariant() && self.count() == value
     }
@@ -463,6 +497,22 @@ impl OwnerLedger {
             }
             None => proof_assert!(false),
         }
+    }
+
+    /// A Mutable ticket's interval is represented in the live authority map.
+    /// This body lemma packages the existential witness needed by physical
+    /// pool proofs before the affine ticket is consumed.
+    #[check(ghost)]
+    #[requires(self.has_ticket(*ticket))]
+    #[requires(ticket.class() == RefKind::Mutable)]
+    #[ensures(forall<index: Int>
+        ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
+            active_mutable_contains(self.active_ids(), index))]
+    pub(crate) fn prove_mutable_ticket_covers_interval(&self, ticket: &OwnerTicket) {
+        self.prove_ticket_is_active(ticket);
+        proof_assert!(forall<index: Int>
+            ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
+                active_mutable_contains(self.active_ids(), index));
     }
 
     /// Construct a count-one shared block and its sole root ticket.
@@ -863,6 +913,17 @@ impl OwnerLedger {
     #[ensures(forall<other_id: Int> other_id != ticket.inner_logic().owner_id() ==>
         (^ledger.inner_logic()).active_ids().get(other_id) ==
             ledger.inner_logic().active_ids().get(other_id))]
+    #[ensures(forall<index: Int>
+        match ticket.inner_logic().class() {
+            RefKind::Mutable => active_mutable_contains(
+                (^ledger.inner_logic()).active_ids(), index) ==
+                    (active_mutable_contains(ledger.inner_logic().active_ids(), index) &&
+                        !(ticket.inner_logic().owned_lo() <= index &&
+                            index < ticket.inner_logic().owned_hi())),
+            RefKind::Readonly => active_mutable_contains(
+                (^ledger.inner_logic()).active_ids(), index) ==
+                    active_mutable_contains(ledger.inner_logic().active_ids(), index),
+        })]
     pub(crate) fn drop_owner(
         ledger: Ghost<&mut OwnerLedger>,
         ticket: Ghost<OwnerTicket>,
@@ -872,6 +933,7 @@ impl OwnerLedger {
             let ticket = ticket.into_inner();
             ledger.prove_ticket_is_active(&ticket);
             let before: Snapshot<ActiveReferences> = snapshot!(ledger.active_ids());
+            let ticket_snapshot: Snapshot<OwnerTicket> = snapshot!(ticket);
             let old_count: Snapshot<Int> = snapshot!((*before).len());
             let old_count = old_count.into_ghost().into_inner();
             let owner_id = ticket.owner_id;
@@ -893,7 +955,7 @@ impl OwnerLedger {
             let authority = ledger.authority.as_ref().unwrap();
             proof_assert!(authority@.ext_eq(*expected_after));
 
-            if old_count == 1int {
+            let result = if old_count == 1int {
                 let remaining = ledger.authority.as_ref().unwrap();
                 proof_assert!(remaining@.is_empty());
                 let authority = ledger.authority.take().unwrap();
@@ -908,7 +970,10 @@ impl OwnerLedger {
                 let remaining = ledger.authority.as_ref().unwrap();
                 proof_assert!(remaining@.len() > 0);
                 None
-            }
+            };
+            let after: Snapshot<ActiveReferences> = snapshot!(ledger.active_ids());
+            prove_owner_removal_effect(before, after, ticket_snapshot);
+            result
         }
     }
 }

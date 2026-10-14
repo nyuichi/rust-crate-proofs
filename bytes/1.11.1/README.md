@@ -51,9 +51,11 @@ and replacing a ticket binding while preserving ticket and authority
 identities. A generic event payload ties the ledger's reference count to the
 counter permission model; the initial count-one promotion and original Vec
 split producer construct matching payloads and packets. The generic pool
-retirement and full-range recovery helpers also have body proofs, but native
-ARC split, clone, drop, freeze and recovery transitions are not yet connected
-to the ledger. Concurrency, unwind behavior and safe-state reachability of the
+retirement and full-range recovery helpers also have body proofs. A generic
+stored-Vec destructor boundary has an exact `drop(storage.take_for_retirement())`
+native body, but no selected release path calls it yet. Native ARC split, clone,
+drop, freeze and recovery transitions are not yet connected to the ledger.
+Concurrency, unwind behavior and safe-state reachability of the
 common view precondition across Shared lifecycle paths remain outside this
 checkpoint. Thus these body proofs do not yet establish an end-to-end public
 `BytesMut::truncate` guarantee for every safely produced state. See the

@@ -77,11 +77,11 @@ predicate invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload [@inline
 
 meta "rewrite_def" predicate invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload
 
-predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 290 4 290 30] (self: t_OwnerTicket)
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 323 4 323 30] (self: t_OwnerTicket)
 
 type t_Id
 
-function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 183 4 183 39] (self: t_OwnerTicket) : t_Id
+function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 216 4 216 39] (self: t_OwnerTicket) : t_Id
 
 type t_NativeCounter
 
@@ -112,7 +112,7 @@ function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_m
 
 type t_RefKind = Mutable | Readonly
 
-function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 210 4 210 41] (self: t_OwnerTicket) : t_RefKind
+function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 243 4 243 41] (self: t_OwnerTicket) : t_RefKind
 
 type t_OwnedRegion
 
@@ -167,7 +167,7 @@ predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ow
     /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
     end
 
-function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 205 4 205 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
+function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 238 4 238 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
 
 function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 712 4 712 39] (self: t_PhysicalRegion) : t_Id
  = [%#sraw_vec'1] (view_PhysicalRegion self).f2'3
@@ -191,12 +191,12 @@ function lease_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/byte
 
 function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 30 4 30 35] (self: t_ReadyKey) : int
 
-function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 220 4 220 40] (self: t_OwnerTicket) : int
+function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 253 4 253 40] (self: t_OwnerTicket) : int
 
 function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 702 4 702 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'4] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f0'6
 
-function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 225 4 225 40] (self: t_OwnerTicket) : int
+function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 258 4 258 40] (self: t_OwnerTicket) : int
 
 function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 707 4 707 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'5] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f1'6

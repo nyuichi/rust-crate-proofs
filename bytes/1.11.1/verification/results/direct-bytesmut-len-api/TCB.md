@@ -236,7 +236,10 @@ Readonly intervals may overlap one another. Body proofs cover readonly
 registration and same-ticket reclassification, root and two-Mutable-owner
 registration, splitting a Mutable interval, removing a registration, and
 preserving the authority identity when replacing a ticket binding. The
-ledger's count is the map cardinality. Its generic operations alone do not
+body of `drop_owner` also proves the exact change to Mutable physical coverage:
+removing a Mutable ticket removes only its interval, and removing a Readonly
+ticket leaves Mutable coverage unchanged. The ledger's count is the map
+cardinality. Its generic operations alone do not
 connect arbitrary native lifecycle operations to the registrations.
 
 The selected `shared_context` bodies prove a proof-only affine owner and
@@ -294,3 +297,21 @@ and resource assumptions are documented in the [Std overlay](../../std-support/R
 Verification-only exclusions for unrelated comparison, ownership, iterator,
 and Shared-backed bodies are documented beside the source in
 [`bytes.rs`](../../../src/bytes.rs) and [`bytes_mut.rs`](../../../src/bytes_mut.rs).
+
+`vec_storage::retire_stored_vec` is a generic stored-Vec destructor boundary.
+Its proof-mode preconditions require the actual `StoredAuthority` matching the
+consumed storage and the actual matching, full-capacity `PhysicalRegion`; the
+caller must have no outstanding physical borrow. Its native body is exactly
+`drop(storage.take_for_retirement())`, consuming those proof capabilities and
+running the ordinary `Vec<u8>` destructor. This is interpreted for the
+matching original global-allocator `u8` allocation and its native pointer,
+capacity and layout: a nonzero-capacity allocation is deallocated exactly once;
+zero capacity denotes no allocation. The trusted contract states no Bytes
+refcount, final-winner, phase, or pool-transition rule; those remain
+source-level obligations. No original `release_shared` path calls this helper
+yet, so it is not evidence that Shared release or explicit disposal is proved.
+The existing automatic `Drop` remains unchanged and unverified. Replacing this
+boundary requires a verified generic transfer of the unique native stored Vec
+owner into `Vec<u8>` together with the standard `Vec` destructor contract, and
+a body proof that consumes the same authority and region without changing the
+allocation model.

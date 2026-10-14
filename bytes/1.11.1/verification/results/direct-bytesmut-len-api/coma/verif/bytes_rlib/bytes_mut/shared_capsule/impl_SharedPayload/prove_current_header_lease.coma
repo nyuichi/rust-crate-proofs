@@ -246,7 +246,7 @@ axiom inv_axiom'7 [@rewrite]: forall x: t_Option_PhysicalPool [inv_Option_Physic
       | Some'1 f0'0 -> inv_PhysicalPool f0'0
       end
 
-predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 918 4 918 30] (self: t_OwnerLedger)
+predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 983 4 983 30] (self: t_OwnerLedger)
 
 predicate inv_OwnerLedger (_1: t_OwnerLedger)
 
@@ -260,7 +260,7 @@ axiom inv_axiom'9 [@rewrite]: forall x: t_Option_OwnerLedger [inv_Option_OwnerLe
       | Some'2 f0'0 -> inv_OwnerLedger f0'0
       end
 
-predicate invariant_RetirePermit [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 346 4 346 30] (self: t_RetirePermit)
+predicate invariant_RetirePermit [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 379 4 379 30] (self: t_RetirePermit)
 
 predicate inv_RetirePermit (_1: t_RetirePermit)
 
@@ -602,15 +602,15 @@ predicate is_idle [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/sha
   [%#sshared_capsule'40] view_Authority_Option_Excl_tup2_Id_Option_tup9_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey self.authority
   = Some'6 { f0'2 = { f0'1 = self.resource_id; f1'1 = None'5 } }
 
-predicate is_live [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 377 4 377 39] (self: t_OwnerLedger)
+predicate is_live [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 410 4 410 39] (self: t_OwnerLedger)
 
-function count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 397 4 397 36] (self: t_OwnerLedger) : int
+function count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 430 4 430 36] (self: t_OwnerLedger) : int
 
-function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 367 4 367 39] (self: t_OwnerLedger) : t_Id
+function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 400 4 400 39] (self: t_OwnerLedger) : t_Id
 
 function resource_id'3 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/terminal_phase.rs" 27 4 27 41] (self: t_TerminalAction) : t_Id
 
-function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 382 4 382 63] (self: t_OwnerLedger) : tup3_Id_ptr_u8_Int
+function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 415 4 415 63] (self: t_OwnerLedger) : tup3_Id_ptr_u8_Int
 
 function binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 446 4 446 37] (self: t_StoredAuthority) : t_Id
 
@@ -668,9 +668,9 @@ type t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
 
 predicate active_mutable_contains [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 50 0 50 83] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (index: int)
 
-function active_ids [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 387 4 387 54] (self: t_OwnerLedger) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+function active_ids [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 420 4 420 54] (self: t_OwnerLedger) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
 
-function ledger_id'2 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 304 4 304 39] (self: t_RetirePermit) : t_Id
+function ledger_id'2 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 337 4 337 39] (self: t_RetirePermit) : t_Id
 
 type t_RefKind = Mutable | Readonly
 
@@ -710,7 +710,7 @@ axiom empty_Int_spec'0: [%#sfmap'4] to_mapping_Int'0 empty_Int = Const.const (No
 predicate is_empty_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
   [%#sfmap] ext_eq_Int self empty_Int
 
-function active_ids'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 309 4 309 54] (self: t_RetirePermit) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+function active_ids'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 342 4 342 54] (self: t_RetirePermit) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
 
 predicate is_closed [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/terminal_phase.rs" 66 4 66 41] (self: t_PhaseAuthority)
 

@@ -552,27 +552,27 @@ help: remove these parentheses
      |
 
 warning: unnecessary parentheses around method argument
-   --> src/ownership_proof/ref_count_ledger.rs:638:50
+   --> src/ownership_proof/ref_count_ledger.rs:688:50
     |
-638 |     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+688 |     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
     |                                                  ^                     ^
     |
 help: remove these parentheses
     |
-638 -     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
-638 +     #[ensures((^ledger.inner_logic()).has_ticket(^parent.inner_logic()))]
+688 -     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+688 +     #[ensures((^ledger.inner_logic()).has_ticket(^parent.inner_logic()))]
     |
 
 warning: unnecessary parentheses around method argument
-   --> src/ownership_proof/ref_count_ledger.rs:824:50
+   --> src/ownership_proof/ref_count_ledger.rs:874:50
     |
-824 |     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
+874 |     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
     |                                                  ^                     ^
     |
 help: remove these parentheses
     |
-824 -     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
-824 +     #[ensures((^ledger.inner_logic()).has_ticket(^ticket.inner_logic()))]
+874 -     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
+874 +     #[ensures((^ledger.inner_logic()).has_ticket(^ticket.inner_logic()))]
     |
 
 warning: unnecessary parentheses around method argument
@@ -662,21 +662,21 @@ warning: unused variable: `base`
      |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
 
 warning: unused variable: `from_auth`
-   --> src/ownership_proof/ref_count_ledger.rs:132:9
+   --> src/ownership_proof/ref_count_ledger.rs:165:9
     |
-132 |         from_auth: Excl<OwnerBinding>,
+165 |         from_auth: Excl<OwnerBinding>,
     |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_from_auth`
 
 warning: unused variable: `from_frag`
-   --> src/ownership_proof/ref_count_ledger.rs:133:9
+   --> src/ownership_proof/ref_count_ledger.rs:166:9
     |
-133 |         from_frag: Excl<OwnerBinding>,
+166 |         from_frag: Excl<OwnerBinding>,
     |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_from_frag`
 
 warning: unused variable: `frame`
-   --> src/ownership_proof/ref_count_ledger.rs:134:9
+   --> src/ownership_proof/ref_count_ledger.rs:167:9
     |
-134 |         frame: Option<Excl<OwnerBinding>>,
+167 |         frame: Option<Excl<OwnerBinding>>,
     |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_frame`
 
 warning: variable does not need to be mutable
@@ -1160,6 +1160,12 @@ warning: variant `Empty` is never constructed
     |
     = note: `StorageModel` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
 
+warning: function `retire_stored_vec` is never used
+   --> src/vec_storage.rs:941:22
+    |
+941 | pub(crate) unsafe fn retire_stored_vec(
+    |                      ^^^^^^^^^^^^^^^^^
+
 warning: function `equal` is never used
  --> src/comparison_ops.rs:7:15
   |
@@ -1367,70 +1373,79 @@ warning: variant `Readonly` is never constructed
 31 |     Readonly,
    |     ^^^^^^^^
 
-warning: function `binding_compatible_with_map` is never used
-  --> src/ownership_proof/ref_count_ledger.rs:96:4
+warning: function `prove_owner_removal_effect` is never used
+  --> src/ownership_proof/ref_count_ledger.rs:80:15
    |
-96 | fn binding_compatible_with_map(
-   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+80 | pub(crate) fn prove_owner_removal_effect(
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `binding_compatible_with_map` is never used
+   --> src/ownership_proof/ref_count_ledger.rs:129:4
+    |
+129 | fn binding_compatible_with_map(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: struct `OwnerBindingUpdate` is never constructed
-   --> src/ownership_proof/ref_count_ledger.rs:112:12
+   --> src/ownership_proof/ref_count_ledger.rs:145:12
     |
-112 | pub struct OwnerBindingUpdate(pub Snapshot<OwnerBinding>);
+145 | pub struct OwnerBindingUpdate(pub Snapshot<OwnerBinding>);
     |            ^^^^^^^^^^^^^^^^^^
 
 warning: method `replace_binding` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:254:19
+   --> src/ownership_proof/ref_count_ledger.rs:287:19
     |
-149 | impl OwnerTicket {
+182 | impl OwnerTicket {
     | ---------------- method in this implementation
 ...
-254 |     pub(crate) fn replace_binding(
+287 |     pub(crate) fn replace_binding(
     |                   ^^^^^^^^^^^^^^^
 
 warning: method `contradicts_live_ticket` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:329:19
+   --> src/ownership_proof/ref_count_ledger.rs:362:19
     |
-302 | impl RetirePermit {
+335 | impl RetirePermit {
     | ----------------- method in this implementation
 ...
-329 |     pub(crate) fn contradicts_live_ticket(&self, ticket: &OwnerTicket) {
+362 |     pub(crate) fn contradicts_live_ticket(&self, ticket: &OwnerTicket) {
     |                   ^^^^^^^^^^^^^^^^^^^^^^^
 
-warning: associated functions `split_owner`, `register_readonly`, `reclassify`, and `drop_owner` are never used
-   --> src/ownership_proof/ref_count_ledger.rs:656:19
+warning: associated items `prove_mutable_ticket_covers_interval`, `split_owner`, `register_readonly`, `reclassify`, and `drop_owner` are never used
+   --> src/ownership_proof/ref_count_ledger.rs:511:19
     |
-365 | impl OwnerLedger {
-    | ---------------- associated functions in this implementation
+398 | impl OwnerLedger {
+    | ---------------- associated items in this implementation
 ...
-656 |     pub(crate) fn split_owner(
+511 |     pub(crate) fn prove_mutable_ticket_covers_interval(&self, ticket: &OwnerTicket) {
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+706 |     pub(crate) fn split_owner(
     |                   ^^^^^^^^^^^
 ...
-748 |     pub(crate) fn register_readonly(
+798 |     pub(crate) fn register_readonly(
     |                   ^^^^^^^^^^^^^^^^^
 ...
-825 |     pub(crate) fn reclassify(
+875 |     pub(crate) fn reclassify(
     |                   ^^^^^^^^^^
 ...
-866 |     pub(crate) fn drop_owner(
+927 |     pub(crate) fn drop_owner(
     |                   ^^^^^^^^^^
 
 warning: function `contradict_two_tickets` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:981:15
-    |
-981 | pub(crate) fn contradict_two_tickets(
-    |               ^^^^^^^^^^^^^^^^^^^^^^
+    --> src/ownership_proof/ref_count_ledger.rs:1046:15
+     |
+1046 | pub(crate) fn contradict_two_tickets(
+     |               ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `normalize_singleton_insert` is never used
-    --> src/ownership_proof/ref_count_ledger.rs:1027:4
+    --> src/ownership_proof/ref_count_ledger.rs:1092:4
      |
-1027 | fn normalize_singleton_insert(
+1092 | fn normalize_singleton_insert(
      |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `factor_singleton_removal` is never used
-    --> src/ownership_proof/ref_count_ledger.rs:1066:4
+    --> src/ownership_proof/ref_count_ledger.rs:1131:4
      |
-1066 | fn factor_singleton_removal(
+1131 | fn factor_singleton_removal(
      |    ^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: methods `close` and `contradicts_action` are never used
@@ -3681,5 +3696,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 379 warnings (run `cargo fix --lib -p bytes` to apply 58 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.15s
+warning: `bytes` (lib) generated 381 warnings (run `cargo fix --lib -p bytes` to apply 58 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.38s

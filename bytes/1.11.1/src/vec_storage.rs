@@ -911,3 +911,41 @@ impl VecStorage {
         unsafe { ManuallyDrop::take(&mut storage.0.0) }
     }
 }
+
+/// Consume the one native Vec owner and run its ordinary destructor while
+/// consuming the matching full-allocation recovery and physical authority.
+///
+/// Its native body is exactly `drop(storage.take_for_retirement())`. Its
+/// contract establishes no
+/// Bytes owner-count, winner, phase, or pool-transition rule; callers must
+/// prove those facts from the source-level ownership protocol first.
+///
+/// # Safety
+/// The supplied proof-mode values must be the actual authority paired with
+/// `storage`, and the full physical region must be unborrowed. Native callers
+/// must meet the same lifetime and uniqueness conditions.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), trusted)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(storage.invariant()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    authority.inner_logic().invariant() &&
+        storage.matches_authority(authority.inner_logic())
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    region.inner_logic().invariant() &&
+        region.inner_logic().namespace() == authority.inner_logic().binding() &&
+        region.inner_logic().resource_id() == authority.inner_logic().binding() &&
+        region.inner_logic().capacity() == authority.inner_logic().capacity() &&
+        region.inner_logic().lo() == 0 &&
+        region.inner_logic().hi() == authority.inner_logic().capacity()
+))]
+pub(crate) unsafe fn retire_stored_vec(
+    storage: VecStorage,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    authority: Ghost<StoredAuthority>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    region: Ghost<PhysicalRegion>,
+) {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let _ = (authority, region);
+    drop(unsafe { storage.take_for_retirement() });
+}
