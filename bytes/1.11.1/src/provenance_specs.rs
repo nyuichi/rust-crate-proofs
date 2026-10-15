@@ -50,6 +50,23 @@ extern_spec! {
     }
 }
 
+// STD-PTRWRAP-02: the pinned Std overlay has no contract for the signed raw
+// pointer `wrapping_offset` operation. Restrict this generic fact to one-byte
+// pointees and the non-wrapping address domain. It relates the exact output to
+// the input pointer's logical signed offset; it grants no liveness, allocation,
+// or dereference permission.
+#[cfg(creusot)]
+extern_spec! {
+    impl<T> *mut T {
+        #[requires(size_of_logic::<T>() == 1)]
+        #[requires(0 <= self.addr_logic()@ + offset@)]
+        #[requires(self.addr_logic()@ + offset@ <= usize::MAX@)]
+        #[ensures(result.addr_logic()@ == self.addr_logic()@ + offset@)]
+        #[ensures(result == self.offset_logic(offset@))]
+        fn wrapping_offset(self, offset: isize) -> *mut T;
+    }
+}
+
 /// Read a pointer's address without converting its provenance into an integer.
 #[cfg(any(miri, creusot))]
 #[cfg_attr(creusot, ensures(result == ptr.addr_logic()))]
@@ -91,6 +108,19 @@ pub(crate) fn pointer_addr<T>(ptr: *const T) -> usize {
 #[inline]
 pub(crate) fn wrapping_offset(ptr: *mut u8, offset: usize) -> *mut u8 {
     ptr.wrapping_add(offset)
+}
+
+/// Apply a signed, non-wrapping byte offset to the original pointer.
+///
+/// This exposes only the generic Std pointer-offset relation; callers must
+/// separately establish allocation ownership and memory validity.
+#[cfg_attr(creusot, requires(0 <= ptr.addr_logic()@ + offset@))]
+#[cfg_attr(creusot, requires(ptr.addr_logic()@ + offset@ <= usize::MAX@))]
+#[cfg_attr(creusot, ensures(result == ptr.offset_logic(offset@)))]
+#[cfg_attr(creusot, ensures(result.addr_logic()@ == ptr.addr_logic()@ + offset@))]
+#[inline]
+pub(crate) fn signed_wrapping_offset(ptr: *mut u8, offset: isize) -> *mut u8 {
+    ptr.wrapping_offset(offset)
 }
 
 /// Obtain a pointer with a requested numerical address by applying

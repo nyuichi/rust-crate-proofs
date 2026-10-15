@@ -47,8 +47,17 @@ representable-position preconditions; it preserves the allocation-slot frame.
 The unique layout relation also records that the exact cursor pointer is the
 allocation base offset by the hidden prefix, and the selected Vec advance body
 preserves that relation while reindexing the visible suffix. This is pointer
-metadata only; the reverse native pointer subtraction in `rebuild_vec` is not
-a selected body proof.
+metadata only. A selected body proof covers the original-source
+`BytesMut::rebuild_vec` path called by `promote_to_shared_count_one`: it applies
+the signed offset to the actual cursor pointer, restores the hidden prefix in
+the Vec length and capacity, then passes the actual B1 recovery and full
+physical region to the generic B2 restoration. The selected precondition
+requires that actual recovery capability; other callers that pass no proof,
+including the public Vec-backed `freeze` route, are not covered by this body
+proof. The generic signed pointer contract is limited to a one-byte pointee and
+a non-wrapping numerical address; it grants no allocation or dereference
+authority. No safe public call chain to the nonzero-offset promotion branch is
+established.
 The packet-backed Shared branch is proved under its internal layout and
 initialized-visible-prefix preconditions. It advances the handle pointer and
 packet cursor, reduces length and capacity, preserves the packet capsule,

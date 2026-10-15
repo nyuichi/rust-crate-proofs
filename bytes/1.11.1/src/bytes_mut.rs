@@ -999,7 +999,11 @@ impl BytesMut {
             unsafe {
                 let off = bytes.get_vec_pos();
                 #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
-                let vec = rebuild_vec(bytes.ptr.as_ptr(), bytes.len, bytes.cap, off);
+                let vec = BytesMut::rebuild_vec(
+                    bytes.ptr.as_ptr(), bytes.len, bytes.cap, off,
+                    #[cfg(all(creusot, bytes_original_unique_gate))]
+                    None,
+                );
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 let vec = original_rebuild_unique(bytes.ptr.as_ptr(), bytes.len, bytes.cap, off,
                     bytes.unique_proof.take().unwrap());
@@ -2028,6 +2032,7 @@ impl BytesMut {
         let (vec, storage_region, base, allocation_binding, original_cursor) = {
             let prestate = snapshot!(*self);
             proof_assert!((*prestate).unique_vec_rebuildable());
+            proof_assert!(off@ == (*prestate).unique_offset());
             proof_assert!(at@ <= (*prestate).unique_capacity());
             proof_assert!(forall<i: Int> 0 <= i && i < total_len@ ==>
                 if i < off@ {
@@ -2038,6 +2043,8 @@ impl BytesMut {
             );
 
             let proof = self.unique_proof.take().unwrap();
+            let rebuilt_base = BytesMut::unique_rebuild_base_pointer(&proof, old_pointer, off);
+            proof_assert!(rebuilt_base == proof.raw.raw_pointer());
             let original_cursor = proof.cursor;
             let (binding_base, binding_capacity) = proof.raw.bound_ptr_at_zero();
             let binding_base_pointer = binding_base.as_ptr();
@@ -2071,7 +2078,11 @@ impl BytesMut {
 
         #[cfg(not(all(creusot, bytes_original_unique_gate)))]
         let vec = {
-            let vec = unsafe { rebuild_vec(self.ptr.as_ptr(), old_len, old_cap, off) };
+            let vec = unsafe { BytesMut::rebuild_vec(
+                self.ptr.as_ptr(), old_len, old_cap, off,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            ) };
             VecStorage::hold(vec)
         };
 
@@ -2684,8 +2695,11 @@ impl BytesMut {
                     }
                     // Not enough space, or reusing might be too much overhead:
                     // allocate more space!
-                    let mut v =
-                        ManuallyDrop::new(rebuild_vec(self.ptr.as_ptr(), self.len, self.cap, off));
+                    let mut v = ManuallyDrop::new(BytesMut::rebuild_vec(
+                        self.ptr.as_ptr(), self.len, self.cap, off,
+                        #[cfg(all(creusot, bytes_original_unique_gate))]
+                        None,
+                    ));
                     v.reserve(additional);
 
                     // Update the info
@@ -3331,14 +3345,22 @@ impl BytesMut {
             );
 
             let proof = self.unique_proof.take().unwrap();
-            let vec_len = off + self.len;
-            let vec = unsafe { raw_vec::resume_vec(proof.raw, vec_len, proof.capabilities) };
+            let vec = unsafe {
+                BytesMut::rebuild_vec(
+                    self.ptr.as_ptr(), self.len, self.cap, off,
+                    Some(proof),
+                )
+            };
             VecStorage::hold_owned(vec)
         };
 
         #[cfg(not(all(creusot, bytes_original_unique_gate)))]
         let (vec, base_pointer) = {
-            let mut vec = unsafe { rebuild_vec(self.ptr.as_ptr(), self.len, self.cap, off) };
+            let mut vec = unsafe { BytesMut::rebuild_vec(
+                self.ptr.as_ptr(), self.len, self.cap, off,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            ) };
             let base = vec.as_mut_ptr();
             (VecStorage::hold(vec), base)
         };
@@ -3454,8 +3476,10 @@ impl BytesMut {
         // `Arc`, those three fields still are the components of the
         // vector.
         let shared = Box::new(Shared {
-            vec: MaybeUninit::new(VecStorage::hold(rebuild_vec(
+            vec: MaybeUninit::new(VecStorage::hold(BytesMut::rebuild_vec(
                 self.ptr.as_ptr(), self.len, self.cap, off,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
             ))),
             original_capacity_repr,
             ref_count: RefCountCell::new(ref_cnt),
@@ -3598,7 +3622,11 @@ impl Drop for BytesMut {
                 let off = self.get_vec_pos();
 
                 // Vector storage, free the vector
-                let _ = rebuild_vec(self.ptr.as_ptr(), self.len, self.cap, off);
+                let _ = BytesMut::rebuild_vec(
+                    self.ptr.as_ptr(), self.len, self.cap, off,
+                    #[cfg(all(creusot, bytes_original_unique_gate))]
+                    None,
+                );
             }
         } else if kind == KIND_ARC {
             unsafe { release_shared(self.data) };
@@ -4816,7 +4844,11 @@ impl From<BytesMut> for Vec<u8> {
         let mut vec = if kind == KIND_VEC {
             unsafe {
                 let off = bytes.get_vec_pos();
-                rebuild_vec(bytes.ptr.as_ptr(), bytes.len, bytes.cap, off)
+                BytesMut::rebuild_vec(
+                    bytes.ptr.as_ptr(), bytes.len, bytes.cap, off,
+                    #[cfg(all(creusot, bytes_original_unique_gate))]
+                    None,
+                )
             }
         } else {
             let shared = bytes.data;
@@ -4890,12 +4922,108 @@ unsafe fn original_rebuild_unique(ptr: *mut u8, len: usize, cap: usize, off: usi
     unsafe { raw_vec::resume_vec(proof.raw, len, proof.capabilities) }
 }
 
-unsafe fn rebuild_vec(ptr: *mut u8, mut len: usize, mut cap: usize, off: usize) -> Vec<u8> {
-    let ptr = ptr.sub(off);
-    len += off;
-    cap += off;
+impl BytesMut {
+    /// Execute the offset used by the native Vec reconstruction and relate its
+    /// result to the actual B1 allocation base before the affine capabilities are
+    /// consumed by B2. The pointer and arithmetic facts come from the original
+    /// bound cursor; this helper does not grant allocation or dereference rights.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    #[requires(proof.raw.invariant())]
+    #[requires(proof.base.invariant() && proof.cursor.invariant())]
+    #[requires(proof.raw.raw_pointer() == proof.base.raw_pointer())]
+    #[requires(proof.base@ == Some((proof.raw.namespace(), proof.raw.capacity(), 0int)))]
+    #[requires(proof.cursor@ == Some((proof.raw.namespace(), proof.raw.capacity(), off@)))]
+    #[requires(proof.cursor.raw_pointer() == ptr)]
+    #[requires(proof.cursor.raw_pointer() == proof.base.raw_pointer().offset_logic(off@))]
+    #[requires(proof.cursor.current_address() == proof.base.current_address() + off@)]
+    #[requires(off@ <= proof.raw.capacity())]
+    #[ensures(result == proof.raw.raw_pointer())]
+    fn unique_rebuild_base_pointer(
+        proof: &OriginalUniqueProof,
+        ptr: *mut u8,
+        off: usize,
+    ) -> *mut u8 {
+        proof_assert!(off@ <= isize::MAX@);
+        let delta = -(off as isize);
+        proof_assert!(delta@ == 0 - off@);
+        proof_assert!(ptr.addr_logic()@ == proof.base.current_address() + off@);
+        proof_assert!(ptr.addr_logic()@ + delta@ == proof.base.current_address());
+        proof_assert!(0 <= ptr.addr_logic()@ + delta@);
+        proof_assert!(ptr.addr_logic()@ + delta@ <= usize::MAX@);
 
-    Vec::from_raw_parts(ptr, len, cap)
+        let result = crate::provenance_specs::signed_wrapping_offset(ptr, delta);
+        proof_assert!(result == ptr.offset_logic(delta@));
+        proof_assert!(ptr.offset_logic(delta@) == proof.base.raw_pointer());
+        result
+    }
+
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(off@ <= isize::MAX@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(ptr.addr_logic()@ - off@ >= 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(ptr.addr_logic()@ - off@ <= usize::MAX@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(proof != None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match proof {
+        None => false,
+        Some(proof) =>
+            proof.raw.invariant() &&
+            proof.base.invariant() && proof.cursor.invariant() &&
+            proof.raw.raw_pointer() == proof.base.raw_pointer() &&
+            proof.base@ == Some((proof.raw.namespace(), proof.raw.capacity(), 0int)) &&
+            proof.cursor@ == Some((proof.raw.namespace(), proof.raw.capacity(), off@)) &&
+            proof.cursor.raw_pointer() == ptr &&
+            proof.cursor.raw_pointer() == proof.base.raw_pointer().offset_logic(off@) &&
+            proof.cursor.current_address() == proof.base.current_address() + off@ &&
+            cap@ + off@ == proof.raw.capacity() &&
+            len@ + off@ <= proof.raw.capacity() &&
+            proof.capabilities.inner_logic().0.invariant() &&
+            proof.capabilities.inner_logic().1.invariant() &&
+            proof.capabilities.inner_logic().0.capacity() == proof.raw.capacity() &&
+            proof.capabilities.inner_logic().1.capacity() == proof.raw.capacity() &&
+            proof.capabilities.inner_logic().0.namespace() == proof.raw.namespace() &&
+            proof.capabilities.inner_logic().1.namespace() == proof.raw.namespace() &&
+            proof.capabilities.inner_logic().1.resource_id() == proof.raw.namespace() &&
+            proof.capabilities.inner_logic().1.lo() == 0 &&
+            proof.capabilities.inner_logic().1.hi() == proof.raw.capacity() &&
+            (forall<i: Int> 0 <= i && i < len@ + off@ ==>
+                slot_known(proof.capabilities.inner_logic().1.slot(i)))
+    }))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match proof {
+        None => true,
+        Some(proof) =>
+            result@.len() == len@ + off@ &&
+            creusot_std::std::vec::capacity_model(result) == proof.raw.capacity() &&
+            creusot_std::std::vec::pointer_model(result) == proof.raw.raw_pointer() &&
+            (forall<i: Int> 0 <= i && i < len@ + off@ ==>
+                proof.capabilities.inner_logic().1.slot(i) == Some(Some(result@[i])))
+    }))]
+    unsafe fn rebuild_vec(
+        ptr: *mut u8,
+        mut len: usize,
+        mut cap: usize,
+        off: usize,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        proof: Option<OriginalUniqueProof>,
+    ) -> Vec<u8> {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let proof = proof.unwrap();
+            let ptr = Self::unique_rebuild_base_pointer(&proof, ptr, off);
+            len += off;
+            cap += off;
+
+            proof_assert!(ptr == proof.raw.raw_pointer());
+            proof_assert!(cap@ == proof.raw.capacity());
+            proof_assert!(len@ <= cap@);
+            return unsafe { raw_vec::resume_vec(proof.raw, len, proof.capabilities) };
+        }
+
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        {
+            let ptr = crate::provenance_specs::signed_wrapping_offset(ptr, -(off as isize));
+            len += off;
+            cap += off;
+            Vec::from_raw_parts(ptr, len, cap)
+        }
+    }
 }
 
 // ===== impl SharedVtable =====

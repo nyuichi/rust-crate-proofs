@@ -1,0 +1,158 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 122 0 122 76 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span smem = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 132 10 132 21
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 271 15 271 70
+let%span sptr'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 272 15 272 80
+let%span sptr'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 273 14 273 88
+let%span sptr'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 275 20 275 69
+let%span sptr'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 279 14 279 42
+let%span sptr'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 283 14 283 102
+let%span sptr'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 292 14 292 39
+let%span sptr'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 296 14 296 65
+let%span sptr'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 297 14 297 67
+let%span sptr'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 232 15 232 70
+let%span sptr'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 233 15 233 80
+let%span sptr'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 234 14 234 88
+let%span sptr'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 288 20 288 65
+let%span sptr'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 241 14 241 42
+let%span sptr'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 246 14 246 102
+let%span sptr'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 258 14 258 39
+let%span sptr'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 263 14 263 65
+let%span sptr'16 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 264 14 264 67
+let%span sprovenance_specs = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 123 4 123 31
+let%span sprovenance_specs'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 117 29 117 61
+let%span sprovenance_specs'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 118 29 118 71
+let%span sprovenance_specs'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 119 28 119 63
+let%span sprovenance_specs'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 120 28 120 79
+let%span sprovenance_specs'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 61 19 61 44
+let%span sprovenance_specs'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 62 19 62 52
+let%span sprovenance_specs'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 63 19 63 23
+let%span sprovenance_specs'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 64 18 64 70
+let%span sprovenance_specs'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 65 18 65 54
+
+use creusot.prelude.Opaque
+use creusot.int.Int64
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+use int.Int
+
+constant size_of_u8: int = 1
+
+meta "rewrite_def" constant size_of_u8
+
+axiom size_of_u8_spec: [%#smem] 0 <= size_of_u8
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function offset_ptr_u8 (self: Opaque.ptr) (offset: int) : Opaque.ptr
+
+axiom offset_ptr_u8_spec: forall self: Opaque.ptr, offset: int [offset_ptr_u8 self offset]. ([%#sptr'8] 0
+      <= UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+    -> ([%#sptr'9] UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8 <= UInt64.t'int const_MAX)
+    -> ([%#sptr'10] UInt64.t'int (Ptr.addr_logic_u64 (offset_ptr_u8 self offset))
+    = UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+
+function sub_ptr_u8 (self: Opaque.ptr) (rhs: Opaque.ptr) : int
+
+function sub_offset_ptr_u8 (self: Opaque.ptr) (offset: int) : ()
+
+axiom sub_offset_ptr_u8_spec:
+  forall self: Opaque.ptr, offset: int. [%#sptr'15] sub_ptr_u8 (offset_ptr_u8 self offset) self = offset
+
+axiom sub_offset_ptr_u8_spec'0:
+  forall self: Opaque.ptr, offset: int. [%#sptr'16] sub_ptr_u8 self (offset_ptr_u8 self offset) = - offset
+
+function sub_logic_refl_ptr_u8 (self: Opaque.ptr) : ()
+
+axiom sub_logic_refl_ptr_u8_spec: forall self: Opaque.ptr. [%#sptr'14] sub_ptr_u8 self self = 0
+
+function offset_logic_assoc_ptr_u8 (self: Opaque.ptr) (offset1: int) (offset2: int) : ()
+
+axiom offset_logic_assoc_ptr_u8_spec:
+  forall self: Opaque.ptr, offset1: int, offset2: int. [%#sptr'13] offset_ptr_u8 (offset_ptr_u8 self offset1) offset2
+    = offset_ptr_u8 self (offset1 + offset2)
+
+function offset_logic_zero_ptr_u8 (self: Opaque.ptr) : ()
+
+axiom offset_logic_zero_ptr_u8_spec: forall self: Opaque.ptr. [%#sptr'12] offset_ptr_u8 self 0 = self
+
+function sub_ptr_u8'0 [@inline:trivial] (self: Opaque.ptr) (rhs: Opaque.ptr) : int = [%#sptr'11] sub_ptr_u8 self rhs
+
+meta "rewrite_def" function sub_ptr_u8'0
+
+function offset_ptr_u8'0 [@inline:trivial] (self: Opaque.ptr) (offset: int) : Opaque.ptr =
+  [%#sptr'2] offset_ptr_u8 self offset
+
+meta "rewrite_def" function offset_ptr_u8'0
+
+axiom offset_ptr_u8_spec'0: forall self: Opaque.ptr, offset: int [offset_ptr_u8'0 self offset]. ([%#sptr] 0
+      <= UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+    -> ([%#sptr'0] UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8 <= UInt64.t'int const_MAX)
+    -> ([%#sptr'1] UInt64.t'int (Ptr.addr_logic_u64 (offset_ptr_u8'0 self offset))
+    = UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+
+function sub_offset_ptr_u8'0 (self: Opaque.ptr) (offset: int) : ()
+
+axiom sub_offset_ptr_u8_spec'1:
+  forall self: Opaque.ptr, offset: int. [%#sptr'6] sub_ptr_u8'0 (offset_ptr_u8'0 self offset) self = offset
+
+axiom sub_offset_ptr_u8_spec'2:
+  forall self: Opaque.ptr, offset: int. [%#sptr'7] sub_ptr_u8'0 self (offset_ptr_u8'0 self offset) = - offset
+
+function sub_logic_refl_ptr_u8'0 (self: Opaque.ptr) : ()
+
+axiom sub_logic_refl_ptr_u8_spec'0: forall self: Opaque.ptr. [%#sptr'5] sub_ptr_u8'0 self self = 0
+
+function offset_logic_assoc_ptr_u8'0 (self: Opaque.ptr) (offset1: int) (offset2: int) : ()
+
+axiom offset_logic_assoc_ptr_u8_spec'0:
+  forall self: Opaque.ptr, offset1: int, offset2: int. [%#sptr'4] offset_ptr_u8'0 (offset_ptr_u8'0 self offset1) offset2
+    = offset_ptr_u8'0 self (offset1 + offset2)
+
+function offset_logic_zero_ptr_u8'0 (self: Opaque.ptr) : ()
+
+axiom offset_logic_zero_ptr_u8_spec'0: forall self: Opaque.ptr. [%#sptr'3] offset_ptr_u8'0 self 0 = self
+
+let wrapping_offset_u8 (self_: Opaque.ptr) (offset: Int64.t) (return (x: Opaque.ptr)) =
+{[@stop_split] [@expl:wrapping_offset_u8 requires] ([@stop_split] [@expl:wrapping_offset requires #0] [%#sprovenance_specs'4] size_of_u8
+    = 1)
+  /\ ([@stop_split] [@expl:wrapping_offset requires #1] [%#sprovenance_specs'5] 0
+    <= UInt64.t'int (Ptr.addr_logic_u64 self_) + Int64.to_int offset)
+  /\ ([@stop_split] [@expl:wrapping_offset requires #2] [%#sprovenance_specs'6] UInt64.t'int (Ptr.addr_logic_u64 self_)
+    + Int64.to_int offset
+  <= UInt64.t'int const_MAX)}
+  any
+  [ return (result: Opaque.ptr) ->
+  {[@stop_split] [@expl:wrapping_offset_u8 ensures] ([@stop_split] [@expl:wrapping_offset ensures #0] [%#sprovenance_specs'7] UInt64.t'int (Ptr.addr_logic_u64 result)
+      = UInt64.t'int (Ptr.addr_logic_u64 self_) + Int64.to_int offset)
+    /\ ([@stop_split] [@expl:wrapping_offset ensures #1] [%#sprovenance_specs'8] result
+    = offset_ptr_u8'0 self_ (Int64.to_int offset))}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let signed_wrapping_offset [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 122 0 122 76]
+  (ptr: Opaque.ptr) (offset: Int64.t) (return (x: Opaque.ptr)) =
+{[@stop_split] [@expl:signed_wrapping_offset requires] ([@stop_split] [@expl:signed_wrapping_offset requires #0] [%#sprovenance_specs'0] 0
+    <= UInt64.t'int (Ptr.addr_logic_u64 ptr) + Int64.to_int offset)
+  /\ ([@stop_split] [@expl:signed_wrapping_offset requires #1] [%#sprovenance_specs'1] UInt64.t'int (Ptr.addr_logic_u64 ptr)
+    + Int64.to_int offset
+  <= UInt64.t'int const_MAX)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = wrapping_offset_u8 [%#sprovenance_specs] {ptr} {offset} (fun (_x: Opaque.ptr) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ]
+  [ & _ret: Opaque.ptr = Any.any_l () | & ptr: Opaque.ptr = ptr | & offset: Int64.t = offset ])
+  [ return (result: Opaque.ptr) ->
+  {[@stop_split] [@expl:signed_wrapping_offset ensures] ([@stop_split] [@expl:signed_wrapping_offset ensures #0] [%#sprovenance_specs'2] result
+      = offset_ptr_u8'0 ptr (Int64.to_int offset))
+    /\ ([@stop_split] [@expl:signed_wrapping_offset ensures #1] [%#sprovenance_specs'3] UInt64.t'int (Ptr.addr_logic_u64 result)
+    = UInt64.t'int (Ptr.addr_logic_u64 ptr) + Int64.to_int offset)}
+    (! return {result}) ]

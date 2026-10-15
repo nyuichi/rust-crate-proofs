@@ -155,6 +155,27 @@ unrelated comparison, ownership, iterator and Shared-backed bodies are
 documented beside the source in [`bytes.rs`](../../../src/bytes.rs) and
 [`bytes_mut.rs`](../../../src/bytes_mut.rs).
 
+Generic `STD-PTRWRAP-02` supplies the missing signed-offset contract for
+`*mut T::wrapping_offset` through `signed_wrapping_offset`. It is restricted
+to one-byte pointees and requires the mathematical source address plus signed
+offset to stay in the `usize` address range; it returns the same-pointer
+`offset_logic` result and grants no `PtrLive`, `Perm`, allocation, or
+dereference authority. The selected original-source `BytesMut::rebuild_vec`
+body uses this operation to subtract the hidden prefix, restores the original
+length and capacity, and then consumes the actual `OriginalUniqueProof`
+recovery and full physical region through the existing generic B2
+`resume_vec` boundary. Its selected proof precondition requires that actual
+capability and the complete initialized prefix. The corresponding native
+source operation retains the same signed pointer calculation, length/capacity
+updates, and `Vec::from_raw_parts` reconstruction. Callers that supply no
+proof capability, including the public Vec-backed `freeze` route, are not
+covered by this selected body proof. This contract describes pointer
+arithmetic only and does not assert that a pointer is live or that a caller
+owns the allocation; the B1/B2 resources provide those separate facts.
+This local external specification can be replaced by a matching signed-offset
+contract in the pinned Creusot Std overlay; `signed_wrapping_offset` itself is
+body-checked.
+
 The refcount operation layer has a private `#[repr(transparent)]`
 `NativeCounter` around the existing atomic type and a `#[repr(C)]` `RefCountCell`
 with a proof-only zero-sized `Option` sidecar. Native builds execute the
