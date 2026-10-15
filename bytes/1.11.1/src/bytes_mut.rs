@@ -286,6 +286,8 @@ impl BytesMut {
                 proof.base@ == Some((caps.0.namespace(), proof.raw.capacity(), 0int)) &&
                 proof.cursor@ == Some((caps.0.namespace(), proof.raw.capacity(), self.unique_offset())) &&
                 self.ptr@ == proof.cursor.raw_pointer() &&
+                proof.cursor.raw_pointer() ==
+                    proof.base.raw_pointer().offset_logic(self.unique_offset()) &&
                 proof.cursor.current_address() == proof.base.current_address() + self.unique_offset() &&
                 0 <= self.unique_offset() && self.unique_offset() <= proof.raw.capacity() &&
                 self.unique_offset() + self.cap@ == proof.raw.capacity() &&
@@ -2422,6 +2424,16 @@ impl BytesMut {
         // temporarily exceed this reduced capacity; no public observer can run
         // between these non-panicking updates under the caller's `&mut` borrow.
         self.cap -= count;
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            proof_assert!(forall<i: Int> 0 <= i && i < (*prestate).unique_length() - count@ ==>
+                (^self).unique_slot(i) == (*prestate).unique_slot(count@ + i));
+            proof_assert!(forall<i: Int> 0 <= i && i < (*prestate).unique_length() - count@ ==>
+                slot_known((*prestate).unique_slot(count@ + i)));
+            proof_assert!(forall<i: Int> 0 <= i && i < (*prestate).unique_length() - count@ ==>
+                slot_known((^self).unique_slot(i)));
+        }
     }
 
     /// Move a shared handle's view within its owned physical subregion. The

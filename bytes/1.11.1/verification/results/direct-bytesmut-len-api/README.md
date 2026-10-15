@@ -44,6 +44,11 @@ projections, `set_visible_len`, `advance_vec_layout`, `advance_shared_layout`,
 needed to reconstruct the original Vec. The Vec `advance_unchecked` branch is
 proved under its rebuildable-state, `count <= len`, capacity, and
 representable-position preconditions; it preserves the allocation-slot frame.
+The unique layout relation also records that the exact cursor pointer is the
+allocation base offset by the hidden prefix, and the selected Vec advance body
+preserves that relation while reindexing the visible suffix. This is pointer
+metadata only; the reverse native pointer subtraction in `rebuild_vec` is not
+a selected body proof.
 The packet-backed Shared branch is proved under its internal layout and
 initialized-visible-prefix preconditions. It advances the handle pointer and
 packet cursor, reduces length and capacity, preserves the packet capsule,
