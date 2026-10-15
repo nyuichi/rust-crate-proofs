@@ -19,7 +19,7 @@ use creusot_std::{
 
 use crate::{
     ownership_proof::{
-        raw_vec::{BoundPtr, PhysicalPool, PhysicalRegion, Recovery},
+        raw_vec::{slot_known, BoundPtr, PhysicalPool, PhysicalRegion, Recovery},
         ref_count_ledger::{
             active_mutable_contains, sole_active_id, ActiveReferences,
             AllocationBinding, OwnerLedger, prove_no_active_mutable_on_empty,
@@ -532,6 +532,12 @@ impl Protocol for SharedPayload {
                     0 <= index && index < storage.capacity() &&
                     !active_mutable_contains(ledger.active_ids(), index)
                 )) &&
+                (forall<owner_id: Int> match ledger.active_ids().get(owner_id) {
+                    Some(Excl((_, RefKind::Readonly, lo, hi))) =>
+                        forall<index: Int> lo <= index && index < hi ==>
+                            pool.contains(index) && slot_known(pool.slot(index)),
+                    _ => true,
+                }) &&
                 header.vec@ != None && header.vec_model().matches_authority(storage)
             },
             (Some(root), Some(storage), Some(pool), Some(ledger), Some(retire), None) => {
@@ -589,7 +595,13 @@ impl Protocol for SharedPayload {
                 (forall<index: Int> pool.contains(index) == (
                     0 <= index && index < storage.capacity() &&
                     !active_mutable_contains(ledger.active_ids(), index)
-                ))
+                )) &&
+                (forall<owner_id: Int> match ledger.active_ids().get(owner_id) {
+                    Some(Excl((_, RefKind::Readonly, lo, hi))) =>
+                        forall<index: Int> lo <= index && index < hi ==>
+                            pool.contains(index) && slot_known(pool.slot(index)),
+                    _ => true,
+                })
             },
             (None, Some(storage), Some(pool), Some(ledger), Some(retire), None) => {
                 !self.closed && self.phase.is_open() &&
@@ -781,6 +793,46 @@ impl SharedPayload {
         }
     }
 
+    /// Export the pool-slot consequence for one actual active Readonly ticket.
+    /// Membership comes from its affine ticket and live ledger; the payload
+    /// protocol supplies slot facts from the actual pool resource.
+    #[check(ghost)]
+    #[requires(self.invariant() && self.protocol())]
+    #[requires(ticket.invariant() && ticket.ledger_id() == self.ledger_id)]
+    #[requires(ticket.class() == RefKind::Readonly)]
+    #[ensures(self.ledger != None && self.ledger.unwrap_logic().has_ticket(*ticket))]
+    #[ensures(self.pool != None)]
+    #[ensures(forall<index: Int>
+        ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
+            self.pool.unwrap_logic().contains(index) &&
+                slot_known(self.pool.unwrap_logic().slot(index)))]
+    fn prove_readonly_ticket_pool_known(&self, ticket: &OwnerTicket) {
+        self.prove_live_owner_ticket(ticket);
+        let ledger = match &self.ledger {
+            Some(ledger) => ledger,
+            None => {
+                proof_assert!(false);
+                return;
+            }
+        };
+        let pool = match &self.pool {
+            Some(pool) => pool,
+            None => {
+                proof_assert!(false);
+                return;
+            }
+        };
+        ledger.prove_ticket_is_active(ticket);
+        proof_assert!(ledger.active_ids().get(ticket.owner_id()) ==
+            Some(Excl((
+                ticket.allocation_binding(), ticket.class(),
+                ticket.owned_lo(), ticket.owned_hi(),
+            ))));
+        proof_assert!(forall<index: Int>
+            ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
+                pool.contains(index) && slot_known(pool.slot(index)));
+    }
+
     /// A real active owner ticket excludes retired and zero-owner states.
     /// Combined with the event's counter agreement, it binds the mathematical
     /// count to this native observation and proves the old count is nonzero.
@@ -921,6 +973,8 @@ impl SharedPayload {
         ticket.inner_logic().allocation_binding().2 == region.inner_logic().capacity() &&
         ticket.inner_logic().owned_lo() <= *visible_lo &&
         *visible_lo <= *visible_hi && *visible_hi <= ticket.inner_logic().owned_hi() &&
+        (forall<index: Int> *visible_lo <= index && index < *visible_hi ==>
+            slot_known(region.inner_logic().slot(index))) &&
         payload.inner_logic().ledger != None &&
         payload.inner_logic().ledger.unwrap_logic().has_ticket(ticket.inner_logic()) &&
         payload.inner_logic().pool != None
@@ -1110,6 +1164,22 @@ impl SharedPayload {
         proof_assert!(forall<index: Int>
             self.pool.unwrap_logic().contains(index) ==>
                 !(region.lo() <= index && index < region.hi()));
+    }
+
+    /// Reindex caller facts stated relative to a visible cursor as facts over
+    /// the actual allocation's absolute slot coordinates.
+    #[check(ghost)]
+    #[requires(forall<offset: Int> 0 <= offset && offset < len@ ==>
+        slot_known((*region).slot(*lo + offset)))]
+    #[ensures(forall<index: Int> *lo <= index && index < *lo + len@ ==>
+        slot_known((*region).slot(index)))]
+    fn prove_shifted_region_slots_known(
+        region: Snapshot<PhysicalRegion>,
+        lo: Snapshot<Int>,
+        len: Snapshot<usize>,
+    ) {
+        proof_assert!(forall<index: Int> *lo <= index && index < *lo + len@ ==>
+            slot_known((*region).slot(index)));
     }
 
     /// Re-establish the exact pool/owner complement after one Mutable owner
@@ -2831,6 +2901,11 @@ impl SharedOwnerPacket {
                  owner_value: Snapshot<usize>| {
                     let ticket = ticket.into_inner();
                     let region = region.into_inner();
+                    SharedPayload::prove_shifted_region_slots_known(
+                        snapshot!(region),
+                        callback_frame_ref.5,
+                        snapshot!(len),
+                    );
                     payload.prove_live_owner_ticket(&ticket);
                     let ticket = SharedPayload::freeze_mutable_owner(
                         Ghost::new(payload),
@@ -4146,6 +4221,18 @@ pub(crate) fn make_count_one_packet(
     ledger.inner_logic().1.owned_lo() == 0 && ledger.inner_logic().1.owned_hi() == *cut &&
     ledger.inner_logic().2.owned_lo() == *cut &&
     ledger.inner_logic().2.owned_hi() == storage.inner_logic().0.capacity() &&
+    (forall<owner_id: Int>
+        ledger.inner_logic().0.active_ids().get(owner_id) ==
+            if owner_id == 0 {
+                Some(Excl((ledger.inner_logic().0.allocation_binding(),
+                    RefKind::Mutable, 0int, *cut)))
+            } else if owner_id == 1 {
+                Some(Excl((ledger.inner_logic().0.allocation_binding(),
+                    RefKind::Mutable, *cut,
+                    ledger.inner_logic().0.allocation_binding().2)))
+            } else {
+                None
+            }) &&
     (forall<index: Int>
         active_mutable_contains(ledger.inner_logic().0.active_ids(), index) ==
             (0 <= index && index < storage.inner_logic().0.capacity())) &&
@@ -4235,6 +4322,11 @@ pub(crate) fn make_count_two_packets(
         let (ledger, first_ticket, second_ticket) = ledger.into_inner();
         let (phase, action) = phase.into_inner();
         let cut = cut.into_ghost().into_inner();
+        proof_assert!(forall<owner_id: Int>
+            match ledger.active_ids().get(owner_id) {
+                Some(Excl((_, RefKind::Readonly, _, _))) => false,
+                _ => true,
+            });
         proof_assert!(owner_value == 2usize && owner.val() == 2usize);
         proof_assert!(ledger.count() == 2 && ledger.agrees_with_value(2));
         proof_assert!(first_ticket.owner_id() != second_ticket.owner_id());

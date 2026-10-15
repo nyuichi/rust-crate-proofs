@@ -544,6 +544,9 @@ impl OwnerLedger {
     #[ensures(ticket.allocation_binding() == self.allocation_binding())]
     #[ensures(self.active_ids().get(ticket.owner_id()) ==
         Some(Excl(ticket.owner_binding())))]
+    #[ensures(self.active_ids().get(ticket.owner_id()) == Some(Excl((
+        ticket.allocation_binding(), ticket.class(), ticket.owned_lo(), ticket.owned_hi(),
+    ))))]
     #[ensures(ticket.owner_binding() ==
         self.active_ids().get(ticket.owner_id()).unwrap_logic().0)]
     #[ensures(owner_binding_valid(ticket.owner_binding(), self.allocation_binding()))]
@@ -559,6 +562,10 @@ impl OwnerLedger {
                     Some(Excl(ticket.owner_binding())));
                 proof_assert!((*active).get(ticket.owner_id()) ==
                     Some(Excl(ticket.owner_binding())));
+                proof_assert!((*active).get(ticket.owner_id()) == Some(Excl((
+                    ticket.allocation_binding(), ticket.class(),
+                    ticket.owned_lo(), ticket.owned_hi(),
+                ))));
                 proof_assert!(ticket.owner_id() < self.next_id());
                 proof_assert!(ticket.allocation_binding() == self.allocation_binding());
             }
@@ -727,6 +734,15 @@ impl OwnerLedger {
         result.inner_logic().1.owned_hi() == *cut)]
     #[ensures(result.inner_logic().2.owned_lo() == *cut &&
         result.inner_logic().2.owned_hi() == binding.inner_logic().2)]
+    #[ensures(forall<owner_id: Int> result.inner_logic().0.active_ids().get(owner_id) ==
+        if owner_id == 0 {
+            Some(Excl((binding.inner_logic(), RefKind::Mutable, 0int, *cut)))
+        } else if owner_id == 1 {
+            Some(Excl((binding.inner_logic(), RefKind::Mutable, *cut,
+                binding.inner_logic().2)))
+        } else {
+            None
+        })]
     #[requires(0 <= *cut && *cut <= binding.inner_logic().2)]
     pub(crate) fn new_promoted_pair(
         binding: Ghost<AllocationBinding>,
@@ -783,6 +799,14 @@ impl OwnerLedger {
         proof_assert!(first.invariant() && second.invariant());
         ledger.prove_ticket_is_active(&first);
         ledger.prove_ticket_is_active(&second);
+        proof_assert!(forall<owner_id: Int> ledger.active_ids().get(owner_id) ==
+            if owner_id == first_id {
+                Some(Excl(first_owner))
+            } else if owner_id == second_id {
+                Some(Excl(second_owner))
+            } else {
+                None
+            });
         (ledger, first, second)
         }
     }

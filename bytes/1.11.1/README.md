@@ -57,7 +57,11 @@ Readonly ticket and returns its actual physical region to the pool, while
 preserving the reference count, storage, lease/release authority, caller
 tokens, and Context entries. The selected private freeze helper connects this
 transfer to a `Bytes` sidecar; the public `BytesMut::freeze` body, its native
-static vtable identity, and readonly byte reads remain unproved. The selected
+static vtable identity, and readonly byte reads remain unproved. The payload
+protocol also proves that every active Readonly ticket's visible interval
+remains in the physical pool with known slots; a checked helper derives this
+fact from a live ticket and the actual ledger. This pool fact grants no slice
+borrow authority. The selected
 `Bytes::dispose_shared` path uses that actual Readonly packet and pointer-cell
 permission to enter the same common release body, whose final-owner branch
 retains the original release, acquire, and storage-free order. Automatic
