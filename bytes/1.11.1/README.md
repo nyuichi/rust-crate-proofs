@@ -61,14 +61,17 @@ preserving the reference count, storage, lease/release authority, caller
 tokens, and Context entries. The selected private freeze helper connects this
 transfer to a `Bytes` sidecar; the public `BytesMut::freeze` body, its native
 static vtable identity, and readonly byte reads remain unproved. The payload
-protocol also proves that every active Readonly ticket's visible interval
-remains in the physical pool with known slots; a checked helper derives this
-fact from a live ticket and the actual ledger. This pool fact grants no slice
-borrow authority. The selected
+when there is no active physical lend, the protocol proves that every active
+Readonly ticket's visible interval remains in the physical pool with known
+slots; a checked helper derives this fact from a live ticket and the actual
+ledger. During an active lend, that exact interval is absent from the pool and
+is carried by the actual affine region in the loan, while known slots outside
+it remain in the pool. The pool fact grants no slice borrow authority. The
+selected
 `Bytes::dispose_shared` path uses that actual Readonly packet and pointer-cell
 permission to enter the same common release body, whose final-owner branch
 retains the original release, acquire, and storage-free order. Automatic
-`Bytes`/`BytesMut` Drop remains unchanged and unverified, so the selected
+`Bytes`/`BytesMut` Drop remains in place and unverified, so the selected
 operation sequence explicitly disposes each related handle and makes no
 Context-consistency claim after an untracked automatic Drop. The original
 `release_shared_common` body now passes its actual stored authority and full
@@ -108,9 +111,12 @@ action, storage authority and full physical region are preserved through that
 source body. Automatic `Drop` remains in place, but its context-free wrapper is
 untranslated and this proof does not claim a post-Drop context state. The
 result does not close every safe producer or lifecycle path for `truncate`.
-The lease stamp also carries an optional physical-lend span marker. All
-currently selected payload states require it to be empty; an active lease
-carrying an actual `PhysicalRegion` is not yet proved.
+The lease stamp carries the exact optional physical-lend span marker. The
+private active take/restore transitions are body-proved: they move the actual
+interval between the pool and its affine `PhysicalRegion` while preserving the
+lease and payload frames. Stable payload states still require an empty marker;
+`Bytes::as_slice`, `shared_v_to_vec`, and other readonly byte-read APIs do not
+yet consume this loan.
 
 A generic append-only `ReadyRegistry<R>` now has body proofs for moving the
 producer's actual affine `Fragment<R>` into a fresh permanent slot, taking that

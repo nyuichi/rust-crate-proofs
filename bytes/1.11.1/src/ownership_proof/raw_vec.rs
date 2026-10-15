@@ -960,6 +960,8 @@ impl PhysicalPool {
     #[ensures(result.1.lo() == lo && result.1.hi() == hi)]
     #[ensures(forall<index: Int> result.1.slot(index) ==
         if lo <= index && index < hi { self.slot(index) } else { None })]
+    #[ensures(forall<index: Int> lo <= index && index < hi &&
+        slot_known(self.slot(index)) ==> slot_known(result.1.slot(index)))]
     #[ensures(forall<index: Int> result.0.contains(index) ==
         (self.contains(index) && !(lo <= index && index < hi)))]
     #[ensures(forall<index: Int> result.0.slot(index) ==

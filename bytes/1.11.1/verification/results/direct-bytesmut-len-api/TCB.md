@@ -369,18 +369,23 @@ preserving the actual packet, pointer-cell permission, view and supplied
 vtable value. The public `BytesMut::freeze` body, its native static vtable
 identity, and readonly byte reads remain unproved.
 
-The live `SharedPayload` protocol additionally states that every active
-Readonly ticket's visible interval is contained in the physical pool and each
-slot in that interval is known. `freeze_into_readonly` derives the absolute
-span from the actual region's visible-slot facts, and the body-checked
-mutable-release, mutable-split, and readonly-release transitions preserve the
-protocol. `prove_readonly_ticket_pool_known` exports the span only after
-checking the actual ticket against its live ledger entry and uses the actual
-pool resource for the slot facts. This invariant establishes no physical
-borrow or slice lifetime; readonly byte-read APIs remain outside the proof.
-The lease stamp also carries an optional physical-lend span marker. All
-currently selected payload states require it to be empty; an active lease
-carrying an actual `PhysicalRegion` is not yet proved.
+With no active physical lend, the live `SharedPayload` protocol states that
+every active Readonly ticket's visible interval is contained in the physical
+pool and each slot in that interval is known. During an active lend, the exact
+lent interval is absent from the pool and is carried by the actual affine
+region in the loan; known slots outside it remain in the pool.
+`freeze_into_readonly` derives the absolute span from the actual region's
+visible-slot facts, and the body-checked mutable-release, mutable-split, and
+readonly-release transitions preserve the protocol. The
+`prove_readonly_ticket_pool_known` observer requires no active lend, checks the
+actual ticket against its live ledger entry, and uses the actual pool resource
+for slot facts. This invariant establishes no physical
+borrow or slice lifetime. The lease stamp carries the exact optional
+physical-lend span marker, and the checked private take/restore transitions
+pair that marker with the actual `PhysicalRegion` removed from and returned to
+the pool. The transition is now body-proved. The boxed branch of
+`Bytes::as_slice` is proved; its shared-readonly branch,
+`shared_v_to_vec`, and other readonly byte-read APIs remain outside the proof.
 
 The checked common release carrier accepts a Mutable packet with its actual
 physical region or a Readonly packet with its actual ticket and no region. Its

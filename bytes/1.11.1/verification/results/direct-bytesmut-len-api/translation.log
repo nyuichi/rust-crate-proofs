@@ -65,40 +65,40 @@ warning: unused import: `Recovery`
    |                                                                       ^^^^^^^^
 
 warning: unnecessary parentheses around method argument
-   --> src/bytes_mut/shared_capsule.rs:318:9
+   --> src/bytes_mut/shared_capsule.rs:704:9
     |
-318 |         (^context.inner_logic()),
+704 |         (^context.inner_logic()),
     |         ^                      ^
     |
     = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
 help: remove these parentheses
     |
-318 -         (^context.inner_logic()),
-318 +         ^context.inner_logic(),
+704 -         (^context.inner_logic()),
+704 +         ^context.inner_logic(),
     |
 
 warning: unnecessary parentheses around method argument
-    --> src/bytes_mut/shared_capsule.rs:4157:5
+    --> src/bytes_mut/shared_capsule.rs:4923:5
      |
-4157 |     (^context.inner_logic()), result.lease_key(),
+4923 |     (^context.inner_logic()), result.lease_key(),
      |     ^                      ^
      |
 help: remove these parentheses
      |
-4157 -     (^context.inner_logic()), result.lease_key(),
-4157 +     ^context.inner_logic(), result.lease_key(),
+4923 -     (^context.inner_logic()), result.lease_key(),
+4923 +     ^context.inner_logic(), result.lease_key(),
      |
 
 warning: unnecessary parentheses around method argument
-    --> src/bytes_mut/shared_capsule.rs:4356:5
+    --> src/bytes_mut/shared_capsule.rs:5122:5
      |
-4356 |     (^context.inner_logic()), result.0.lease_key(),
+5122 |     (^context.inner_logic()), result.0.lease_key(),
      |     ^                      ^
      |
 help: remove these parentheses
      |
-4356 -     (^context.inner_logic()), result.0.lease_key(),
-4356 +     ^context.inner_logic(), result.0.lease_key(),
+5122 -     (^context.inner_logic()), result.0.lease_key(),
+5122 +     ^context.inner_logic(), result.0.lease_key(),
      |
 
 warning: unnecessary parentheses around function argument
@@ -558,27 +558,27 @@ help: remove these parentheses
      |
 
 warning: unnecessary parentheses around method argument
-   --> src/ownership_proof/ref_count_ledger.rs:847:50
+   --> src/ownership_proof/ref_count_ledger.rs:872:50
     |
-847 |     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+872 |     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
     |                                                  ^                     ^
     |
 help: remove these parentheses
     |
-847 -     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
-847 +     #[ensures((^ledger.inner_logic()).has_ticket(^parent.inner_logic()))]
+872 -     #[ensures((^ledger.inner_logic()).has_ticket((^parent.inner_logic())))]
+872 +     #[ensures((^ledger.inner_logic()).has_ticket(^parent.inner_logic()))]
     |
 
 warning: unnecessary parentheses around method argument
-    --> src/ownership_proof/ref_count_ledger.rs:1063:50
+    --> src/ownership_proof/ref_count_ledger.rs:1088:50
      |
-1063 |     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
+1088 |     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
      |                                                  ^                     ^
      |
 help: remove these parentheses
      |
-1063 -     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
-1063 +     #[ensures((^ledger.inner_logic()).has_ticket(^ticket.inner_logic()))]
+1088 -     #[ensures((^ledger.inner_logic()).has_ticket((^ticket.inner_logic())))]
+1088 +     #[ensures((^ledger.inner_logic()).has_ticket(^ticket.inner_logic()))]
      |
 
 warning: unnecessary parentheses around method argument
@@ -666,23 +666,23 @@ warning: unused import: `BorrowMut`
    |                      ^^^^^^^^^
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1371:25
+    --> src/ownership_proof/raw_vec.rs:1373:25
      |
-1371 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1373 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                         ^^^^ help: try ignoring the field: `base: _`
      |
      = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
 
 warning: unused variable: `capacity`
-    --> src/ownership_proof/raw_vec.rs:1371:31
+    --> src/ownership_proof/raw_vec.rs:1373:31
      |
-1371 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1373 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1407:9
+    --> src/ownership_proof/raw_vec.rs:1409:9
      |
-1407 |     let base = bound.as_ptr();
+1409 |     let base = bound.as_ptr();
      |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
 
 warning: unused variable: `from_auth`
@@ -1069,12 +1069,12 @@ note: but type `ownership_proof::ready_registry::ReadyKey` is only usable at vis
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: type `bytes_mut::Shared` is more private than the item `bytes_mut::shared_capsule::loaned_native_counter`
-    --> src/bytes_mut/shared_capsule.rs:2165:1
+    --> src/bytes_mut/shared_capsule.rs:2873:1
      |
-2165 | / pub(crate) fn loaned_native_counter<'a>(
-2166 | |     header_id: *const Shared,
-2167 | |     loan: Ghost<&'a SharedHeaderReadLoan>,
-2168 | | ) -> &'a NativeCounter {
+2873 | / pub(crate) fn loaned_native_counter<'a>(
+2874 | |     header_id: *const Shared,
+2875 | |     loan: Ghost<&'a SharedHeaderReadLoan>,
+2876 | | ) -> &'a NativeCounter {
      | |______________________^ function `bytes_mut::shared_capsule::loaned_native_counter` is reachable at visibility `pub(crate)`
      |
 note: but type `bytes_mut::Shared` is only usable at visibility `pub(self)`
@@ -1084,9 +1084,9 @@ note: but type `bytes_mut::Shared` is only usable at visibility `pub(self)`
      | ^^^^^^^^^^^^^
 
 warning: type `bytes_mut::Shared` is more private than the item `bytes_mut::shared_capsule::SharedRetirementResources::root`
-    --> src/bytes_mut/shared_capsule.rs:2230:5
+    --> src/bytes_mut/shared_capsule.rs:2938:5
      |
-2230 |     pub(crate) root: Box<Perm<*const Shared>>,
+2938 |     pub(crate) root: Box<Perm<*const Shared>>,
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ field `bytes_mut::shared_capsule::SharedRetirementResources::root` is reachable at visibility `pub(crate)`
      |
 note: but type `bytes_mut::Shared` is only usable at visibility `pub(self)`
@@ -1096,13 +1096,13 @@ note: but type `bytes_mut::Shared` is only usable at visibility `pub(self)`
      | ^^^^^^^^^^^^^
 
 warning: type `bytes_mut::Shared` is more private than the item `bytes_mut::shared_capsule::SharedReleasePacket::release_native_owner`
-    --> src/bytes_mut/shared_capsule.rs:3943:5
+    --> src/bytes_mut/shared_capsule.rs:4700:5
      |
-3943 | /     pub(crate) fn release_native_owner(
-3944 | |         packet: Ghost<Self>,
-3945 | |         header_id: *mut Shared,
-3946 | |         context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
-3947 | |     ) -> (usize, Ghost<Option<SharedRetirementResources>>) {
+4700 | /     pub(crate) fn release_native_owner(
+4701 | |         packet: Ghost<Self>,
+4702 | |         header_id: *mut Shared,
+4703 | |         context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
+4704 | |     ) -> (usize, Ghost<Option<SharedRetirementResources>>) {
      | |__________________________________________________________^ associated function `bytes_mut::shared_capsule::SharedReleasePacket::release_native_owner` is reachable at visibility `pub(crate)`
      |
 note: but type `bytes_mut::Shared` is only usable at visibility `pub(self)`
@@ -1112,15 +1112,15 @@ note: but type `bytes_mut::Shared` is only usable at visibility `pub(self)`
      | ^^^^^^^^^^^^^
 
 warning: type `bytes_mut::Shared` is more private than the item `bytes_mut::shared_capsule::make_count_one_packet`
-    --> src/bytes_mut/shared_capsule.rs:4181:1
+    --> src/bytes_mut/shared_capsule.rs:4947:1
      |
-4181 | / pub(crate) fn make_count_one_packet(
-4182 | |     header_id: *mut Shared,
-4183 | |     root: Ghost<Box<Perm<*const Shared>>>,
-4184 | |     owner: Ghost<(Perm<NativeCounter>, usize)>,
+4947 | / pub(crate) fn make_count_one_packet(
+4948 | |     header_id: *mut Shared,
+4949 | |     root: Ghost<Box<Perm<*const Shared>>>,
+4950 | |     owner: Ghost<(Perm<NativeCounter>, usize)>,
 ...    |
-4191 | |     context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
-4192 | | ) -> SharedOwnerPacket {
+4957 | |     context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
+4958 | | ) -> SharedOwnerPacket {
      | |______________________^ function `bytes_mut::shared_capsule::make_count_one_packet` is reachable at visibility `pub(crate)`
      |
 note: but type `bytes_mut::Shared` is only usable at visibility `pub(self)`
@@ -1130,15 +1130,15 @@ note: but type `bytes_mut::Shared` is only usable at visibility `pub(self)`
      | ^^^^^^^^^^^^^
 
 warning: type `bytes_mut::Shared` is more private than the item `bytes_mut::shared_capsule::make_count_two_packets`
-    --> src/bytes_mut/shared_capsule.rs:4360:1
+    --> src/bytes_mut/shared_capsule.rs:5126:1
      |
-4360 | / pub(crate) fn make_count_two_packets(
-4361 | |     header_id: *mut Shared,
-4362 | |     root: Ghost<Box<Perm<*const Shared>>>,
-4363 | |     owner: Ghost<(Perm<NativeCounter>, usize)>,
+5126 | / pub(crate) fn make_count_two_packets(
+5127 | |     header_id: *mut Shared,
+5128 | |     root: Ghost<Box<Perm<*const Shared>>>,
+5129 | |     owner: Ghost<(Perm<NativeCounter>, usize)>,
 ...    |
-4371 | |     context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
-4372 | | ) -> (SharedOwnerPacket, SharedOwnerPacket) {
+5137 | |     context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
+5138 | | ) -> (SharedOwnerPacket, SharedOwnerPacket) {
      | |___________________________________________^ function `bytes_mut::shared_capsule::make_count_two_packets` is reachable at visibility `pub(crate)`
      |
 note: but type `bytes_mut::Shared` is only usable at visibility `pub(self)`
@@ -1260,68 +1260,113 @@ warning: methods `dispose_shared` and `dispose_unique` are never used
 4317 |     pub(crate) unsafe fn dispose_unique(self) {
      |                          ^^^^^^^^^^^^^^
 
-warning: methods `prove_root_some_implies_lease_idle` and `prove_readonly_ticket_pool_known` are never used
-   --> src/bytes_mut/shared_capsule.rs:798:8
+warning: function `lend_active_readonly_pool_interval` is never used
+   --> src/bytes_mut/shared_capsule.rs:238:15
     |
-764 | impl SharedPayload {
-    | ------------------ methods in this implementation
+238 | pub(crate) fn lend_active_readonly_pool_interval(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `retire_active_readonly_pool_interval` is never used
+   --> src/bytes_mut/shared_capsule.rs:288:15
+    |
+288 | pub(crate) fn retire_active_readonly_pool_interval(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `header_region_payload_frame` is never used
+   --> src/bytes_mut/shared_capsule.rs:369:4
+    |
+369 | fn header_region_payload_frame(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `header_region_ticket_loan_frame` is never used
+   --> src/bytes_mut/shared_capsule.rs:418:4
+    |
+418 | fn header_region_ticket_loan_frame(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `exact_pool_region_interval_split` is never used
+   --> src/bytes_mut/shared_capsule.rs:468:4
+    |
+468 | fn exact_pool_region_interval_split(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `exact_header_region_lend_transition` is never used
+   --> src/bytes_mut/shared_capsule.rs:504:15
+    |
+504 | pub(crate) fn exact_header_region_lend_transition(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `prove_root_some_implies_lease_idle`, `prove_readonly_ticket_pool_known`, `prove_stable_active_pool_protocol`, `take_header_region_read_loan`, and `restore_header_region_read_loan` are never used
+    --> src/bytes_mut/shared_capsule.rs:1247:8
+     |
+1213 | impl SharedPayload {
+     | ------------------ associated items in this implementation
 ...
-798 |     fn prove_root_some_implies_lease_idle(&self) {
-    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1247 |     fn prove_root_some_implies_lease_idle(&self) {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-836 |     fn prove_readonly_ticket_pool_known(&self, ticket: &OwnerTicket) {
-    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1296 |     fn prove_readonly_ticket_pool_known(&self, ticket: &OwnerTicket) {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1338 |     fn prove_stable_active_pool_protocol(&self) {
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+2598 |     pub(crate) fn take_header_region_read_loan(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+2758 |     pub(crate) fn restore_header_region_read_loan(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: variants `Mutable` and `Readonly` are never constructed
-    --> src/bytes_mut/shared_capsule.rs:2208:5
+    --> src/bytes_mut/shared_capsule.rs:2916:5
      |
-2207 | pub(crate) enum SharedReleasePacket {
+2915 | pub(crate) enum SharedReleasePacket {
      |                 ------------------- variants in this enum
-2208 |     Mutable(SharedOwnerPacket),
+2916 |     Mutable(SharedOwnerPacket),
      |     ^^^^^^^
-2209 |     Readonly(SharedReadonlyPacket),
+2917 |     Readonly(SharedReadonlyPacket),
      |     ^^^^^^^^
 
 warning: method `is_mutable` is never used
-    --> src/bytes_mut/shared_capsule.rs:2259:8
+    --> src/bytes_mut/shared_capsule.rs:2967:8
      |
-2247 | impl SharedReleaseOwner {
+2955 | impl SharedReleaseOwner {
      | ----------------------- method in this implementation
 ...
-2259 |     fn is_mutable(&self) -> bool {
+2967 |     fn is_mutable(&self) -> bool {
      |        ^^^^^^^^^^
 
 warning: methods `into_release_packet` and `prove_event_namespace` are never used
-    --> src/bytes_mut/shared_capsule.rs:2547:19
+    --> src/bytes_mut/shared_capsule.rs:3259:19
      |
-2516 | impl SharedOwnerPacket {
+3228 | impl SharedOwnerPacket {
      | ---------------------- methods in this implementation
 ...
-2547 |     pub(crate) fn into_release_packet(self) -> Ghost<SharedReleasePacket> {
+3259 |     pub(crate) fn into_release_packet(self) -> Ghost<SharedReleasePacket> {
      |                   ^^^^^^^^^^^^^^^^^^^
 ...
-2570 |     pub(crate) fn prove_event_namespace(&self) {
+3282 |     pub(crate) fn prove_event_namespace(&self) {
      |                   ^^^^^^^^^^^^^^^^^^^^^
 
 warning: methods `into_release_packet` and `prove_event_namespace` are never used
-    --> src/bytes_mut/shared_capsule.rs:2702:19
+    --> src/bytes_mut/shared_capsule.rs:3414:19
      |
-2689 | impl SharedReadonlyPacket {
+3401 | impl SharedReadonlyPacket {
      | ------------------------- methods in this implementation
 ...
-2702 |     pub(crate) fn into_release_packet(self) -> Ghost<SharedReleasePacket> {
+3414 |     pub(crate) fn into_release_packet(self) -> Ghost<SharedReleasePacket> {
      |                   ^^^^^^^^^^^^^^^^^^^
 ...
-2725 |     pub(crate) fn prove_event_namespace(&self) {
+3437 |     pub(crate) fn prove_event_namespace(&self) {
      |                   ^^^^^^^^^^^^^^^^^^^^^
 
 warning: method `try_restore_header_read_loan` is never used
-    --> src/bytes_mut/shared_capsule.rs:3532:19
+    --> src/bytes_mut/shared_capsule.rs:4276:19
      |
-2785 | impl SharedOwnerPacket {
+3497 | impl SharedOwnerPacket {
      | ---------------------- method in this implementation
 ...
-3532 |     pub(crate) fn try_restore_header_read_loan(
+4276 |     pub(crate) fn try_restore_header_read_loan(
      |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `vec_pos_from_data` is never used
@@ -1430,60 +1475,60 @@ warning: method `join` is never used
     |                   ^^^^
 
 warning: method `lend_interval` is never used
-   --> src/ownership_proof/raw_vec.rs:971:19
+   --> src/ownership_proof/raw_vec.rs:973:19
     |
 870 | impl PhysicalPool {
     | ----------------- method in this implementation
 ...
-971 |     pub(crate) fn lend_interval(self, lo: Int, hi: Int) -> (Self, PhysicalRegion) {
+973 |     pub(crate) fn lend_interval(self, lo: Int, hi: Int) -> (Self, PhysicalRegion) {
     |                   ^^^^^^^^^^^^^
 
 warning: function `detach_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1118:15
+    --> src/ownership_proof/raw_vec.rs:1120:15
      |
-1118 | pub(crate) fn detach_vec(
+1120 | pub(crate) fn detach_vec(
      |               ^^^^^^^^^^
 
 warning: function `deallocate_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1367:22
+    --> src/ownership_proof/raw_vec.rs:1369:22
      |
-1367 | pub(crate) unsafe fn deallocate_vec(
+1369 | pub(crate) unsafe fn deallocate_vec(
      |                      ^^^^^^^^^^^^^^
 
 warning: function `borrow_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1451:22
+    --> src/ownership_proof/raw_vec.rs:1453:22
      |
-1451 | pub(crate) unsafe fn borrow_mut<'a>(
+1453 | pub(crate) unsafe fn borrow_mut<'a>(
      |                      ^^^^^^^^^^
 
 warning: function `slot_known_equivalence` is never used
-    --> src/ownership_proof/raw_vec.rs:1473:15
+    --> src/ownership_proof/raw_vec.rs:1475:15
      |
-1473 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+1475 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
      |               ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1512:22
+    --> src/ownership_proof/raw_vec.rs:1514:22
      |
-1512 | pub(crate) unsafe fn borrow_bound_mut<'a>(
+1514 | pub(crate) unsafe fn borrow_bound_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound` is never used
-    --> src/ownership_proof/raw_vec.rs:1636:22
+    --> src/ownership_proof/raw_vec.rs:1638:22
      |
-1636 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
+1638 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
      |                      ^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1645:22
+    --> src/ownership_proof/raw_vec.rs:1647:22
      |
-1645 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
+1647 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
      |                      ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_uninit_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1653:22
+    --> src/ownership_proof/raw_vec.rs:1655:22
      |
-1653 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
+1655 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `with_capacity_bound` is never used
@@ -1504,19 +1549,22 @@ warning: function `split_view_region` is never used
 59 | pub(crate) fn split_view_region(
    |               ^^^^^^^^^^^^^^^^^
 
-warning: associated function `register_readonly` is never used
-   --> src/ownership_proof/ref_count_ledger.rs:981:19
-    |
-458 | impl OwnerLedger {
-    | ---------------- associated function in this implementation
+warning: associated items `prove_readonly_owner_interval_excluded_from_mutable_coverage` and `register_readonly` are never used
+    --> src/ownership_proof/ref_count_ledger.rs:669:19
+     |
+ 458 | impl OwnerLedger {
+     | ---------------- associated items in this implementation
 ...
-981 |     pub(crate) fn register_readonly(
-    |                   ^^^^^^^^^^^^^^^^^
+ 669 |     pub(crate) fn prove_readonly_owner_interval_excluded_from_mutable_coverage(
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1006 |     pub(crate) fn register_readonly(
+     |                   ^^^^^^^^^^^^^^^^^
 
 warning: function `contradict_two_tickets` is never used
-    --> src/ownership_proof/ref_count_ledger.rs:1237:15
+    --> src/ownership_proof/ref_count_ledger.rs:1262:15
      |
-1237 | pub(crate) fn contradict_two_tickets(
+1262 | pub(crate) fn contradict_two_tickets(
      |               ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: method `contradicts_action` is never used
@@ -3728,5 +3776,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 379 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.17s
+warning: `bytes` (lib) generated 385 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 14s

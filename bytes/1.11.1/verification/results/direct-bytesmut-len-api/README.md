@@ -229,6 +229,9 @@ private `freeze_shared_view` body carries the actual Readonly packet into a
 `BytesMut::freeze` body and native static vtable identity remain unproved.
 `Bytes::dispose_shared` consumes the actual sidecar and its pointer-cell
 permission, then reaches the common release body with the caller's Context.
+The private header-region take/restore transition is also body-proved using
+the same actual Readonly ticket, lease stamp, pool and affine `PhysicalRegion`;
+readonly byte-read APIs remain unconnected to that loan.
 The native regression `explicit_readonly_dispose_releases_shared_split_once`
 checks split, truncate, freeze, and disposal of both related handles, including
 the 2-to-1 counter transition and surviving bytes. Readonly byte reads and

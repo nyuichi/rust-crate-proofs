@@ -1,0 +1,232 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 669 4 674 5 *)
+
+(* ownership_proof::ref_count_ledger::OwnerLedger *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 22 8 22 20
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
+let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 675 22 675 62
+let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 676 22 677 62
+let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 670 9 670 13
+let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 663 15 663 49
+let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 664 15 666 7
+let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 667 14 668 58
+let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 179 8 184 9
+let%span sref_count_ledger'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 481 20 484 9
+let%span sref_count_ledger'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 52 8 58 9
+let%span sref_count_ledger'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 471 8 471 17
+let%span sref_count_ledger'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 476 8 476 31
+let%span sref_count_ledger'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 158 8 162 9
+let%span sref_count_ledger'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1200 8 1200 20
+let%span sref_count_ledger'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 504 12 519 13
+let%span sref_count_ledger'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 169 8 172 9
+let%span sref_count_ledger'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 44 8 45 31
+
+use creusot.prelude.Opaque
+use map.Map
+use map.Const
+use creusot.prelude.Any
+use int.Int
+
+type t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_Id
+
+type tup3_Id_ptr_u8_Int = { f0: t_Id; f1: Opaque.ptr; f2: int }
+
+type t_RefKind = Mutable | Readonly
+
+type tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = { f0'0: tup3_Id_ptr_u8_Int; f1'0: t_RefKind; f2'0: int; f3'0: int }
+
+type t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = { f0'1: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+type t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = None | Some t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type tup2_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = {
+  f0'2: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int;
+  f1'2: t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+function to_mapping_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : Map.map int t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) : t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+type tup2_RefKind_RefKind = { f0'3: t_RefKind; f1'3: t_RefKind }
+
+predicate spans_compatible [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 156 0 156 68] (left: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (right: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sref_count_ledger'10] match { f0'3 = left.f1'0; f1'3 = right.f1'0 } with
+    | {f0'3 = Readonly; f1'3 = Readonly} -> true
+    | _ -> left.f2'0 = left.f3'0 \/ right.f2'0 = right.f3'0 \/ left.f3'0 <= right.f2'0 \/ right.f3'0 <= left.f2'0
+    end
+
+predicate owner_ranges_disjoint [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 177 0 177 69] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sref_count_ledger'5] forall left_id: int, right_id: int. match { f0'2 = get_Int owners left_id;
+                                                                      f1'2 = get_Int owners right_id } with
+      | {f0'2 = Some {f0'1 = left}; f1'2 = Some {f0'1 = right}} -> left_id = right_id \/ spans_compatible left right
+      | _ -> true
+      end
+
+type t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int =
+  | None'0
+  | Some'0 t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_OwnerLedger = {
+  ledger_id: t_Id;
+  next_id: int;
+  live: bool;
+  allocation_binding: tup3_Id_ptr_u8_Int;
+  authority: t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+function view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : int
+
+axiom len_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [len_Int self]. [%#sfmap'2] ge_log_Int (len_Int self) 0
+
+constant empty_Int : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom empty_Int_spec: [%#sfmap'0] len_Int empty_Int = 0
+
+axiom empty_Int_spec'0: [%#sfmap'1] to_mapping_Int empty_Int = Const.const (None)
+
+function active_ids [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 480 4 480 54] (self: t_OwnerLedger) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sref_count_ledger'6] match self.authority with
+    | Some'0 authority'0 -> view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0
+    | None'0 -> empty_Int
+    end
+
+predicate active_mutable_contains [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 50 0 50 83] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (index: int) =
+  [%#sref_count_ledger'7] exists id: int. match get_Int owners id with
+      | Some {f0'1 = {f1'0 = kind; f2'0 = lo; f3'0 = hi}} -> match kind with
+        | Mutable -> lo <= index /\ index < hi
+        | Readonly -> false
+        end
+      | None -> false
+      end
+
+type tup2_bool_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = {
+  f0'4: bool;
+  f1'4: t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+predicate invariant_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+
+function id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (self: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_Id
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+predicate owner_binding_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 42 0 42 93] (owner: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (allocation: tup3_Id_ptr_u8_Int) =
+  [%#sref_count_ledger'14] owner.f0'0 = allocation
+  /\ 0 <= owner.f2'0 /\ owner.f2'0 <= owner.f3'0 /\ owner.f3'0 <= allocation.f2
+
+predicate owner_ranges_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 167 0 167 86] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (allocation: tup3_Id_ptr_u8_Int) =
+  [%#sref_count_ledger'13] forall id: int. match get_Int owners id with
+      | Some {f0'1 = owner} -> owner_binding_valid owner allocation
+      | None -> true
+      end
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) =
+  [%#sfmap'3] get_Int self k <> None
+
+meta "rewrite_def" predicate contains_Int
+
+predicate valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 502 4 502 26] (self: t_OwnerLedger) =
+  [%#sref_count_ledger'12] 0 <= self.next_id
+  /\ match { f0'4 = self.live; f1'4 = self.authority } with
+    | {f0'4 = True; f1'4 = Some'0 authority'0} -> invariant_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0
+    /\ id_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0 = self.ledger_id
+    /\ gt_log_Int (len_Int (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0)) 0
+    /\ owner_ranges_valid (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0) self.allocation_binding
+    /\ owner_ranges_disjoint (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0)
+    /\ (forall id: int. contains_Int (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0) id
+      -> 0 <= id
+      /\ id < self.next_id
+      /\ match get_Int (view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0) id with
+        | Some {f0'1 = owner} -> owner.f0'0 = self.allocation_binding
+        | None -> false
+        end)
+    | {f0'4 = False; f1'4 = None'0} -> true
+    | _ -> false
+    end
+
+predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1199 4 1199 30] (self: t_OwnerLedger) =
+  [%#sref_count_ledger'11] valid self
+
+predicate inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (_1: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+
+axiom inv_axiom:
+  forall x: t_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x]. inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x
+    -> invariant_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x
+
+predicate inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int (_1: t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x]. inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0'5 -> inv_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int f0'5
+      end
+
+predicate inv_OwnerLedger (_1: t_OwnerLedger)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_OwnerLedger [inv_OwnerLedger x]. inv_OwnerLedger x
+    = (invariant_OwnerLedger x
+    /\ inv_Option_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int x.authority)
+
+predicate invariant_ref_OwnerLedger [@inline:trivial] (self: t_OwnerLedger) = [%#sinvariant] inv_OwnerLedger self
+
+meta "rewrite_def" predicate invariant_ref_OwnerLedger
+
+predicate inv_ref_OwnerLedger [@inline:trivial] (_1: t_OwnerLedger) = invariant_ref_OwnerLedger _1
+
+meta "rewrite_def" predicate inv_ref_OwnerLedger
+
+predicate is_live [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 470 4 470 39] (self: t_OwnerLedger) =
+  [%#sref_count_ledger'8] self.live
+
+function allocation_binding'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 475 4 475 63] (self: t_OwnerLedger) : tup3_Id_ptr_u8_Int
+ = [%#sref_count_ledger'9] self.allocation_binding
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let prove_readonly_owner_interval_excluded_from_mutable_coverage [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 669 4 674 5]
+  (self: t_OwnerLedger) (owner_id: int) (lo: int) (hi: int) (return (x: ())) =
+{[@stop_split] [@expl:prove_readonly_owner_interval_excluded_from_mutable_coverage requires] ([@stop_split] [@expl:prove_readonly_owner_interval_excluded_from_mutable_coverage 'self' type invariant] [%#sref_count_ledger'1] inv_ref_OwnerLedger self)
+  /\ ([@stop_split] [@expl:prove_readonly_owner_interval_excluded_from_mutable_coverage requires #0] [%#sref_count_ledger'2] invariant_ref_OwnerLedger self
+    /\ is_live self)
+  /\ ([@stop_split] [@expl:prove_readonly_owner_interval_excluded_from_mutable_coverage requires #1] [%#sref_count_ledger'3] get_Int (active_ids self) owner_id
+  = Some { f0'1 = { f0'0 = allocation_binding'0 self; f1'0 = Readonly; f2'0 = lo; f3'0 = hi } })}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#sref_count_ledger] owner_ranges_disjoint (active_ids self)} s1
+    | s1 = {[@expl:assertion] [%#sref_count_ledger'0] forall index: int. lo <= index /\ index < hi
+        -> not active_mutable_contains (active_ids self) index}
+      s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l () | & self: t_OwnerLedger = self | & lo: int = lo | & hi: int = hi ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:prove_readonly_owner_interval_excluded_from_mutable_coverage ensures] [%#sref_count_ledger'4] forall index: int. lo
+          <= index
+        /\ index < hi -> not active_mutable_contains (active_ids self) index}
+    (! return {result}) ]

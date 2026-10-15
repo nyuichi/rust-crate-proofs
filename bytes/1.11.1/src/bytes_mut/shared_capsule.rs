@@ -128,7 +128,393 @@ fn no_active_lend(payload: SharedPayload) -> bool {
 
 #[logic(open(self), prophetic)]
 fn no_active_lend_loan(loan: SharedHeaderReadLoan) -> bool {
-    pearlite! { loan.lent_span == None }
+    pearlite! { loan.lent_span == None && loan.lent_region == None }
+}
+
+/// Exact pool state while the header lease is active. In the ordinary case,
+/// every Readonly span remains in the pool. A physical lend removes exactly
+/// one complete active Readonly ticket span; the affine loan carries the
+/// corresponding `PhysicalRegion`.
+#[logic(opaque, prophetic)]
+#[ensures(result == (
+    pool.capacity() == capacity && pool.namespace() == binding &&
+    pool.resource_id() == binding &&
+    match lent_span {
+        None =>
+            (forall<index: Int> pool.contains(index) == (
+                0 <= index && index < capacity &&
+                !active_mutable_contains(ledger.active_ids(), index)
+            )) &&
+            (forall<owner_id: Int> match ledger.active_ids().get(owner_id) {
+                Some(Excl((_, RefKind::Readonly, lo, hi))) =>
+                    forall<index: Int> lo <= index && index < hi ==>
+                        pool.contains(index) && slot_known(pool.slot(index)),
+                _ => true,
+            }),
+        Some((owner_id, lo, hi)) =>
+            0 <= lo && lo <= hi && hi <= capacity &&
+            ledger.active_ids().get(owner_id) ==
+                Some(Excl((ledger.allocation_binding(), RefKind::Readonly, lo, hi))) &&
+            (forall<index: Int> pool.contains(index) == (
+                0 <= index && index < capacity &&
+                !active_mutable_contains(ledger.active_ids(), index) &&
+                !(lo <= index && index < hi)
+            )) &&
+            (forall<other_owner: Int> match ledger.active_ids().get(other_owner) {
+                Some(Excl((_, RefKind::Readonly, other_lo, other_hi))) =>
+                    forall<index: Int> other_lo <= index && index < other_hi &&
+                        !(lo <= index && index < hi) ==>
+                            pool.contains(index) && slot_known(pool.slot(index)),
+                _ => true,
+            }),
+    }
+))]
+pub(crate) fn active_lease_pool_protocol(
+    pool: PhysicalPool,
+    ledger: OwnerLedger,
+    capacity: Int,
+    binding: Id,
+    lent_span: Option<LentSpan>,
+) -> bool {
+    pearlite! {
+        pool.capacity() == capacity && pool.namespace() == binding &&
+        pool.resource_id() == binding &&
+        match lent_span {
+            None =>
+                (forall<index: Int> pool.contains(index) == (
+                    0 <= index && index < capacity &&
+                    !active_mutable_contains(ledger.active_ids(), index)
+                )) &&
+                (forall<owner_id: Int> match ledger.active_ids().get(owner_id) {
+                    Some(Excl((_, RefKind::Readonly, lo, hi))) =>
+                        forall<index: Int> lo <= index && index < hi ==>
+                            pool.contains(index) && slot_known(pool.slot(index)),
+                    _ => true,
+                }),
+            Some((owner_id, lo, hi)) =>
+                0 <= lo && lo <= hi && hi <= capacity &&
+                ledger.active_ids().get(owner_id) ==
+                    Some(Excl((ledger.allocation_binding(), RefKind::Readonly, lo, hi))) &&
+                (forall<index: Int> pool.contains(index) == (
+                    0 <= index && index < capacity &&
+                    !active_mutable_contains(ledger.active_ids(), index) &&
+                    !(lo <= index && index < hi)
+                )) &&
+                (forall<other_owner: Int> match ledger.active_ids().get(other_owner) {
+                    Some(Excl((_, RefKind::Readonly, other_lo, other_hi))) =>
+                        forall<index: Int> other_lo <= index && index < other_hi &&
+                            !(lo <= index && index < hi) ==>
+                                pool.contains(index) && slot_known(pool.slot(index)),
+                    _ => true,
+                }),
+        }
+    }
+}
+
+/// Move one active Readonly ticket's known span out of a stable pool and
+/// establish the corresponding active-lease pool relation. The pool and
+/// region are the results of the actual affine interval split; the protocol
+/// transition is derived from the old pool frame and the same active ledger.
+#[check(ghost)]
+#[requires(pool.invariant())]
+#[requires(active_lease_pool_protocol(
+    pool, *ledger, (*storage).capacity(), (*storage).binding(), None,
+))]
+#[requires(ledger.active_ids().get(owner_id) == Some(Excl((
+    ledger.allocation_binding(), RefKind::Readonly, lo, hi,
+))))]
+#[requires(0 <= lo && lo <= hi && hi <= (*storage).capacity())]
+#[requires(forall<index: Int> lo <= index && index < hi ==>
+    pool.contains(index) && slot_known(pool.slot(index)))]
+#[ensures(active_lease_pool_protocol(
+    result.0, *ledger, (*storage).capacity(), (*storage).binding(),
+    Some((owner_id, lo, hi)),
+))]
+#[ensures(exact_pool_region_interval_split(
+    pool, result.0, result.1, lo, hi,
+))]
+#[ensures(forall<index: Int> lo <= index && index < hi ==>
+    slot_known(result.1.slot(index)))]
+pub(crate) fn lend_active_readonly_pool_interval(
+    pool: PhysicalPool,
+    ledger: Snapshot<OwnerLedger>,
+    storage: Snapshot<StoredAuthority>,
+    owner_id: Int,
+    lo: Int,
+    hi: Int,
+) -> (PhysicalPool, PhysicalRegion) {
+    let old_pool: Snapshot<PhysicalPool> = snapshot!(pool);
+    let (new_pool, region) = pool.lend_interval(lo, hi);
+    proof_assert!(active_lease_pool_protocol(
+        new_pool, *ledger, (*storage).capacity(), (*storage).binding(),
+        Some((owner_id, lo, hi)),
+    ));
+    proof_assert!(exact_pool_region_interval_split(*old_pool, new_pool, region, lo, hi));
+    (new_pool, region)
+}
+
+/// Return the actual lent Readonly region to its complementary pool and
+/// re-establish the stable pool relation. This is the inverse affine
+/// interval transfer; the marker and authoritative ticket entry must match
+/// the same span, and Known slots come from the carried region itself.
+#[check(ghost)]
+#[requires(pool.invariant() && region.invariant())]
+#[requires(ledger.invariant() && ledger.is_live())]
+#[requires(active_lease_pool_protocol(
+    pool, *ledger, (*storage).capacity(), (*storage).binding(),
+    Some((owner_id, lo, hi)),
+))]
+#[requires(ledger.active_ids().get(owner_id) == Some(Excl((
+    ledger.allocation_binding(), RefKind::Readonly, lo, hi,
+))))]
+#[requires(region.lo() == lo && region.hi() == hi)]
+#[requires(region.capacity() == (*storage).capacity() &&
+    region.namespace() == (*storage).binding() &&
+    region.resource_id() == (*storage).binding())]
+#[requires(forall<index: Int> lo <= index && index < hi ==>
+    slot_known(region.slot(index)))]
+#[ensures(active_lease_pool_protocol(
+    result, *ledger, (*storage).capacity(), (*storage).binding(), None,
+))]
+#[ensures(result.capacity() == pool.capacity())]
+#[ensures(result.namespace() == pool.namespace())]
+#[ensures(result.resource_id() == pool.resource_id())]
+#[ensures(forall<index: Int> result.contains(index) ==
+    (pool.contains(index) || lo <= index && index < hi))]
+#[ensures(forall<index: Int> result.slot(index) ==
+    if pool.contains(index) { pool.slot(index) }
+    else if lo <= index && index < hi { region.slot(index) }
+    else { None })]
+pub(crate) fn retire_active_readonly_pool_interval(
+    pool: PhysicalPool,
+    region: PhysicalRegion,
+    ledger: &OwnerLedger,
+    storage: Snapshot<StoredAuthority>,
+    owner_id: Int,
+    lo: Int,
+    hi: Int,
+) -> PhysicalPool {
+    let old_pool: Snapshot<PhysicalPool> = snapshot!(pool);
+    let old_region: Snapshot<PhysicalRegion> = snapshot!(region);
+    ledger.prove_readonly_owner_interval_excluded_from_mutable_coverage(
+        owner_id, lo, hi,
+    );
+    let result = pool.retire(region);
+    proof_assert!(active_lease_pool_protocol(
+        result, *ledger, (*storage).capacity(), (*storage).binding(), None,
+    ));
+    proof_assert!(result.capacity() == (*old_pool).capacity());
+    proof_assert!(result.namespace() == (*old_pool).namespace());
+    proof_assert!(result.resource_id() == (*old_pool).resource_id());
+    proof_assert!(forall<index: Int> result.contains(index) ==
+        ((*old_pool).contains(index) || lo <= index && index < hi));
+    proof_assert!(forall<index: Int> result.slot(index) ==
+        if (*old_pool).contains(index) { (*old_pool).slot(index) }
+        else if lo <= index && index < hi { (*old_region).slot(index) }
+        else { None });
+    result
+}
+
+#[logic(opaque, prophetic)]
+#[ensures(result == (match (lent_span, region) {
+    (None, None) => true,
+    (Some((_, lo, hi)), Some(region)) =>
+        region.invariant() && region.lo() == lo && region.hi() == hi &&
+        region.namespace() == storage.binding() &&
+        region.resource_id() == storage.binding() &&
+        region.capacity() == storage.capacity() &&
+        forall<index: Int> lo <= index && index < hi ==>
+            slot_known(region.slot(index)),
+    _ => false,
+}))]
+pub(crate) fn lent_region_matches(
+    lent_span: Option<LentSpan>,
+    region: Option<PhysicalRegion>,
+    storage: StoredAuthority,
+) -> bool {
+    pearlite! {
+        match (lent_span, region) {
+            (None, None) => true,
+            (Some((_, lo, hi)), Some(region)) =>
+                region.invariant() && region.lo() == lo && region.hi() == hi &&
+                region.namespace() == storage.binding() &&
+                region.resource_id() == storage.binding() &&
+                region.capacity() == storage.capacity() &&
+                forall<index: Int> lo <= index && index < hi ==>
+                    slot_known(region.slot(index)),
+            _ => false,
+        }
+    }
+}
+
+/// Payload facts which are unchanged when the header lease is activated.
+#[logic(opaque, prophetic)]
+#[ensures(result == (
+    after.invariant() && after.protocol() && after.root == None &&
+    after.public() == before.public() &&
+    after.counter_model == before.counter_model &&
+    after.allocation_binding == before.allocation_binding &&
+    after.header_vec == before.header_vec &&
+    after.original_capacity_repr == before.original_capacity_repr &&
+    after.ledger_id == before.ledger_id && after.phase_id == before.phase_id &&
+    after.storage == before.storage && after.ledger == before.ledger &&
+    after.retire == before.retire && after.phase == before.phase &&
+    after.terminal_action == before.terminal_action &&
+    after.lease_key == before.lease_key &&
+    after.lease.resource_id() == before.lease.resource_id() &&
+    after.closed == before.closed &&
+    after.lease_generation == before.lease_generation + 1 &&
+    after.lent_span == Some((ticket.owner_id(), ticket.owned_lo(), ticket.owned_hi()))
+))]
+fn header_region_payload_frame(
+    before: SharedPayload,
+    after: SharedPayload,
+    ticket: OwnerTicket,
+) -> bool {
+    pearlite! {
+        after.invariant() && after.protocol() && after.root == None &&
+        after.public() == before.public() &&
+        after.counter_model == before.counter_model &&
+        after.allocation_binding == before.allocation_binding &&
+        after.header_vec == before.header_vec &&
+        after.original_capacity_repr == before.original_capacity_repr &&
+        after.ledger_id == before.ledger_id && after.phase_id == before.phase_id &&
+        after.storage == before.storage && after.ledger == before.ledger &&
+        after.retire == before.retire && after.phase == before.phase &&
+        after.terminal_action == before.terminal_action &&
+        after.lease_key == before.lease_key &&
+        after.lease.resource_id() == before.lease.resource_id() &&
+        after.closed == before.closed &&
+        after.lease_generation == before.lease_generation + 1 &&
+        after.lent_span == Some((ticket.owner_id(), ticket.owned_lo(), ticket.owned_hi()))
+    }
+}
+
+/// The returned loan carries the exact root and active-capability identity,
+/// while the ticket is the live readonly owner whose span was lent.
+#[logic(opaque, prophetic)]
+#[ensures(result == (
+    before.root != None && before.ledger != None &&
+    ticket.class() == RefKind::Readonly && ticket.ledger_id() == before.ledger_id &&
+    ticket.allocation_binding() == *before.allocation_binding &&
+    before.ledger.unwrap_logic().active_ids().get(ticket.owner_id()) ==
+        Some(Excl((ticket.allocation_binding(), ticket.class(),
+            ticket.owned_lo(), ticket.owned_hi()))) &&
+    loan.invariant() && Some(loan.root) == before.root &&
+    loan.generation == after.lease_generation &&
+    loan.header_id == before.header_id &&
+    loan.counter_model == before.counter_model &&
+    loan.header_vec == before.header_vec &&
+    loan.original_capacity_repr == before.original_capacity_repr &&
+    same_stored_authority(*loan.storage_model, before.storage.unwrap_logic()) &&
+    loan.ledger_id == before.ledger_id && loan.phase_id == before.phase_id &&
+    loan.lease_id == before.lease.resource_id() &&
+    loan.lease_key == before.lease_key &&
+    loan.lease_cap.key() == before.lease_key &&
+    loan.lease_cap.fragment_id() == before.lease.resource_id() &&
+    loan.lent_span == after.lent_span &&
+    lent_region_matches(loan.lent_span, loan.lent_region, *loan.storage_model)
+))]
+fn header_region_ticket_loan_frame(
+    before: SharedPayload,
+    after: SharedPayload,
+    ticket: OwnerTicket,
+    loan: SharedHeaderReadLoan,
+) -> bool {
+    pearlite! {
+        before.root != None && before.ledger != None &&
+        ticket.class() == RefKind::Readonly && ticket.ledger_id() == before.ledger_id &&
+        ticket.allocation_binding() == *before.allocation_binding &&
+        before.ledger.unwrap_logic().active_ids().get(ticket.owner_id()) ==
+            Some(Excl((ticket.allocation_binding(), ticket.class(),
+                ticket.owned_lo(), ticket.owned_hi()))) &&
+        loan.invariant() && Some(loan.root) == before.root &&
+        loan.generation == after.lease_generation &&
+        loan.header_id == before.header_id &&
+        loan.counter_model == before.counter_model &&
+        loan.header_vec == before.header_vec &&
+        loan.original_capacity_repr == before.original_capacity_repr &&
+        same_stored_authority(*loan.storage_model, before.storage.unwrap_logic()) &&
+        loan.ledger_id == before.ledger_id && loan.phase_id == before.phase_id &&
+        loan.lease_id == before.lease.resource_id() &&
+        loan.lease_key == before.lease_key &&
+        loan.lease_cap.key() == before.lease_key &&
+        loan.lease_cap.fragment_id() == before.lease.resource_id() &&
+        loan.lent_span == after.lent_span &&
+        lent_region_matches(loan.lent_span, loan.lent_region, *loan.storage_model)
+    }
+}
+
+/// The pool keeps every other slot unchanged, including Unknown-valued slots
+/// outside the lent interval, while the actual region owns the ticket span.
+#[logic(opaque, prophetic)]
+#[ensures(result == (
+    new_pool.capacity() == old_pool.capacity() &&
+    new_pool.namespace() == old_pool.namespace() &&
+    new_pool.resource_id() == old_pool.resource_id() &&
+    region.invariant() && region.capacity() == old_pool.capacity() &&
+    region.namespace() == old_pool.namespace() &&
+    region.resource_id() == old_pool.resource_id() &&
+    region.lo() == lo && region.hi() == hi &&
+    (forall<index: Int> new_pool.contains(index) ==
+        (old_pool.contains(index) && !(lo <= index && index < hi))) &&
+    (forall<index: Int> new_pool.slot(index) ==
+        if old_pool.contains(index) && !(lo <= index && index < hi) {
+            old_pool.slot(index)
+        } else { None }) &&
+    (forall<index: Int> region.slot(index) ==
+        if lo <= index && index < hi { old_pool.slot(index) } else { None })
+))]
+fn exact_pool_region_interval_split(
+    old_pool: PhysicalPool,
+    new_pool: PhysicalPool,
+    region: PhysicalRegion,
+    lo: Int,
+    hi: Int,
+) -> bool {
+    pearlite! {
+        new_pool.capacity() == old_pool.capacity() &&
+        new_pool.namespace() == old_pool.namespace() &&
+        new_pool.resource_id() == old_pool.resource_id() &&
+        region.invariant() && region.capacity() == old_pool.capacity() &&
+        region.namespace() == old_pool.namespace() &&
+        region.resource_id() == old_pool.resource_id() &&
+        region.lo() == lo && region.hi() == hi &&
+        (forall<index: Int> new_pool.contains(index) ==
+            (old_pool.contains(index) && !(lo <= index && index < hi))) &&
+        (forall<index: Int> new_pool.slot(index) ==
+            if old_pool.contains(index) && !(lo <= index && index < hi) {
+                old_pool.slot(index)
+            } else { None }) &&
+        (forall<index: Int> region.slot(index) ==
+            if lo <= index && index < hi { old_pool.slot(index) } else { None })
+    }
+}
+
+/// Exact state transition exported by the active region-lend operation.
+#[logic(opaque, prophetic)]
+#[ensures(result == (
+    header_region_payload_frame(before, after, ticket) &&
+    header_region_ticket_loan_frame(before, after, ticket, loan) &&
+    before.pool != None && after.pool != None &&
+    exact_pool_region_interval_split(
+        before.pool.unwrap_logic(), after.pool.unwrap_logic(),
+        loan.lent_region.unwrap_logic(), ticket.owned_lo(), ticket.owned_hi())
+))]
+pub(crate) fn exact_header_region_lend_transition(
+    before: SharedPayload,
+    after: SharedPayload,
+    ticket: OwnerTicket,
+    loan: SharedHeaderReadLoan,
+) -> bool {
+    pearlite! {
+        header_region_payload_frame(before, after, ticket) &&
+        header_region_ticket_loan_frame(before, after, ticket, loan) &&
+        before.pool != None && after.pool != None &&
+        exact_pool_region_interval_split(
+            before.pool.unwrap_logic(), after.pool.unwrap_logic(),
+            loan.lent_region.unwrap_logic(), ticket.owned_lo(), ticket.owned_hi())
+    }
 }
 
 #[logic(open(self))]
@@ -544,19 +930,9 @@ impl Protocol for SharedPayload {
                     storage.binding(), storage.raw_pointer(), storage.capacity()) &&
                 *self.allocation_binding == (
                     storage.binding(), storage.raw_pointer(), storage.capacity()) &&
-                pool.capacity() == storage.capacity() &&
-                pool.namespace() == storage.binding() &&
-                pool.resource_id() == storage.binding() &&
-                (forall<index: Int> pool.contains(index) == (
-                    0 <= index && index < storage.capacity() &&
-                    !active_mutable_contains(ledger.active_ids(), index)
-                )) &&
-                (forall<owner_id: Int> match ledger.active_ids().get(owner_id) {
-                    Some(Excl((_, RefKind::Readonly, lo, hi))) =>
-                        forall<index: Int> lo <= index && index < hi ==>
-                            pool.contains(index) && slot_known(pool.slot(index)),
-                    _ => true,
-                }) &&
+                active_lease_pool_protocol(
+                    pool, ledger, storage.capacity(), storage.binding(), None,
+                ) &&
                 header.vec@ != None && header.vec_model().matches_authority(storage)
             },
             (Some(root), Some(storage), Some(pool), Some(ledger), Some(retire), None) => {
@@ -600,7 +976,6 @@ impl Protocol for SharedPayload {
                     self.lease_key,
                     self.lent_span,
                 )) &&
-                no_active_lend(self) &&
                 storage.invariant() && pool.invariant() &&
                 ledger.invariant() && ledger.is_live() && ledger.count() > 0 &&
                 ledger.ledger_id() == self.ledger_id &&
@@ -610,19 +985,9 @@ impl Protocol for SharedPayload {
                 *self.allocation_binding == (
                     storage.binding(), storage.raw_pointer(), storage.capacity()) &&
                 self.header_vec.matches_authority(storage) &&
-                pool.capacity() == storage.capacity() &&
-                pool.namespace() == storage.binding() &&
-                pool.resource_id() == storage.binding() &&
-                (forall<index: Int> pool.contains(index) == (
-                    0 <= index && index < storage.capacity() &&
-                    !active_mutable_contains(ledger.active_ids(), index)
-                )) &&
-                (forall<owner_id: Int> match ledger.active_ids().get(owner_id) {
-                    Some(Excl((_, RefKind::Readonly, lo, hi))) =>
-                        forall<index: Int> lo <= index && index < hi ==>
-                            pool.contains(index) && slot_known(pool.slot(index)),
-                    _ => true,
-                })
+                active_lease_pool_protocol(
+                    pool, ledger, storage.capacity(), storage.binding(), self.lent_span,
+                )
             },
             (None, Some(storage), Some(pool), Some(ledger), Some(retire), None) => {
                 !self.closed && self.phase.is_open() &&
@@ -701,7 +1066,8 @@ impl Invariant for SharedPayload {
 
 /// Affine, read-only access to a Shared header while its root permission is
 /// temporarily outside the event payload. It carries the exact root and lease
-/// capability; it cannot expose a mutable header borrow or physical authority.
+/// capability. Optional physical authority is present only as the actual
+/// affine `PhysicalRegion` paired with its exact lease span.
 #[allow(missing_debug_implementations)]
 pub(crate) struct SharedHeaderReadLoan {
     root: Box<Perm<*const Shared>>,
@@ -715,7 +1081,9 @@ pub(crate) struct SharedHeaderReadLoan {
     generation: Int,
     lease_id: Id,
     lease_key: ReadyKey,
+    stamp: Snapshot<HeaderLeaseStamp>,
     lent_span: Option<LentSpan>,
+    lent_region: Option<PhysicalRegion>,
     lease_cap: ReadyCap<HeaderLeaseState>,
 }
 
@@ -732,13 +1100,14 @@ impl SharedHeaderReadLoan {
             self.root.val().original_capacity_repr == *self.original_capacity_repr &&
             self.root.val().vec_model().matches_authority(*self.storage_model) &&
             self.generation > 0 &&
-            no_active_lend_loan(self) &&
+            lent_region_matches(self.lent_span, self.lent_region, *self.storage_model) &&
             self.lease_cap.invariant() &&
             self.lease_cap.key() == self.lease_key &&
             self.lease_key.resource_id() == self.lease_id &&
             self.lease_cap.fragment_id() == self.lease_id &&
             self.lease_cap.fragment_value() ==
-                Some(Excl((self.lease_id, Some(header_lease_stamp(
+                Some(Excl((self.lease_id, Some(*self.stamp)))) &&
+            *self.stamp == header_lease_stamp(
                     self.generation,
                     self.header_id,
                     *self.counter_model,
@@ -749,8 +1118,88 @@ impl SharedHeaderReadLoan {
                     *self.original_capacity_repr,
                     self.lease_key,
                     self.lent_span,
-                )))))
+                )
         }
+    }
+
+    /// Build the shared proof-only loan carrier from the actual activated
+    /// capability and exact header facts. Keeping this constructor common to
+    /// ordinary and region-backed takes makes the stored stamp relation and
+    /// active cap relation one checked boundary.
+    #[check(ghost)]
+    #[requires(root.invariant())]
+    #[requires(*root.ward() == header_id as *const Shared)]
+    #[requires(root.val().ref_count.counter_model() == *counter_model)]
+    #[requires(!root.val().ref_count.has_event_invariant())]
+    #[requires(root.val().vec@ != None)]
+    #[requires(root.val().vec_model() == *header_vec)]
+    #[requires(root.val().original_capacity_repr == *original_capacity_repr)]
+    #[requires(root.val().vec_model().matches_authority(*storage_model))]
+    #[requires(generation > 0)]
+    #[requires(lent_region_matches(lent_span, lent_region, *storage_model))]
+    #[requires(*stamp == header_lease_stamp(
+        generation, header_id, *counter_model, ledger_id, phase_id,
+        *storage_model, *header_vec, *original_capacity_repr, lease_key,
+        lent_span,
+    ))]
+    #[requires(lease_cap.invariant())]
+    #[requires(lease_cap.key() == lease_key)]
+    #[requires(lease_key.resource_id() == lease_id)]
+    #[requires(lease_cap.fragment_id() == lease_id)]
+    #[requires(lease_cap.fragment_value() ==
+        Some(Excl((lease_id, Some(*stamp)))))]
+    #[ensures(result.invariant())]
+    #[ensures(result.root == root)]
+    #[ensures(result.header_id == header_id)]
+    #[ensures(result.counter_model == counter_model)]
+    #[ensures(result.header_vec == header_vec)]
+    #[ensures(result.original_capacity_repr == original_capacity_repr)]
+    #[ensures(result.storage_model == storage_model)]
+    #[ensures(result.ledger_id == ledger_id)]
+    #[ensures(result.phase_id == phase_id)]
+    #[ensures(result.generation == generation)]
+    #[ensures(result.lease_id == lease_id)]
+    #[ensures(result.lease_key == lease_key)]
+    #[ensures(result.stamp == stamp)]
+    #[ensures(result.lent_span == lent_span)]
+    #[ensures(result.lent_region == lent_region)]
+    #[ensures(result.lease_cap == lease_cap)]
+    fn from_active_parts(
+        root: Box<Perm<*const Shared>>,
+        header_id: *mut Shared,
+        counter_model: Snapshot<NativeCounter>,
+        header_vec: Snapshot<VecStorage>,
+        original_capacity_repr: Snapshot<usize>,
+        storage_model: Snapshot<StoredAuthority>,
+        ledger_id: Id,
+        phase_id: Id,
+        generation: Int,
+        lease_id: Id,
+        lease_key: ReadyKey,
+        stamp: Snapshot<HeaderLeaseStamp>,
+        lent_span: Option<LentSpan>,
+        lent_region: Option<PhysicalRegion>,
+        lease_cap: ReadyCap<HeaderLeaseState>,
+    ) -> SharedHeaderReadLoan {
+        let loan = SharedHeaderReadLoan {
+            root,
+            header_id,
+            counter_model,
+            header_vec,
+            original_capacity_repr,
+            storage_model,
+            ledger_id,
+            phase_id,
+            generation,
+            lease_id,
+            lease_key,
+            stamp,
+            lent_span,
+            lent_region,
+            lease_cap,
+        };
+        proof_assert!(loan.invariant());
+        loan
     }
 }
 
@@ -809,6 +1258,10 @@ impl SharedPayload {
     #[ensures(self.ledger.unwrap_logic().has_ticket(*ticket))]
     #[ensures(self.ledger.unwrap_logic().allocation_binding() ==
         ticket.allocation_binding())]
+    #[ensures(ticket.allocation_binding() == *self.allocation_binding)]
+    #[ensures(self.ledger.unwrap_logic().active_ids().get(ticket.owner_id()) ==
+        Some(Excl((ticket.allocation_binding(), ticket.class(),
+            ticket.owned_lo(), ticket.owned_hi()))))]
     #[ensures(self.retire == None)]
     fn prove_live_owner_ticket(&self, ticket: &OwnerTicket) {
         match (&self.ledger, &self.retire) {
@@ -828,7 +1281,14 @@ impl SharedPayload {
     #[requires(ticket.invariant() && ticket.ledger_id() == self.ledger_id)]
     #[requires(ticket.class() == RefKind::Readonly)]
     #[ensures(self.ledger != None && self.ledger.unwrap_logic().has_ticket(*ticket))]
+    #[ensures(self.ledger.unwrap_logic().active_ids().get(ticket.owner_id()) ==
+        Some(Excl((ticket.allocation_binding(), ticket.class(),
+            ticket.owned_lo(), ticket.owned_hi()))))]
+    #[ensures(ticket.allocation_binding() == *self.allocation_binding)]
     #[ensures(self.pool != None)]
+    #[ensures(0 <= ticket.owned_lo() &&
+        ticket.owned_lo() <= ticket.owned_hi() &&
+        ticket.owned_hi() <= self.pool.unwrap_logic().capacity())]
     #[ensures(forall<index: Int>
         ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
             self.pool.unwrap_logic().contains(index) &&
@@ -858,6 +1318,31 @@ impl SharedPayload {
         proof_assert!(forall<index: Int>
             ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
                 pool.contains(index) && slot_known(pool.slot(index)));
+    }
+
+    /// Export the stable pool relation before moving the pool into an
+    /// interval-lend transition. This keeps the root-present protocol's
+    /// relation available across the affine `Option::take` boundary.
+    #[check(ghost)]
+    #[requires(self.invariant() && self.protocol())]
+    #[requires(self.root != None && self.lent_span == None)]
+    #[requires(self.storage != None && self.pool != None && self.ledger != None)]
+    #[requires(self.ledger.unwrap_logic().is_live())]
+    #[ensures(active_lease_pool_protocol(
+        self.pool.unwrap_logic(),
+        self.ledger.unwrap_logic(),
+        self.storage.unwrap_logic().capacity(),
+        self.storage.unwrap_logic().binding(),
+        None,
+    ))]
+    fn prove_stable_active_pool_protocol(&self) {
+        proof_assert!(active_lease_pool_protocol(
+            self.pool.unwrap_logic(),
+            self.ledger.unwrap_logic(),
+            self.storage.unwrap_logic().capacity(),
+            self.storage.unwrap_logic().binding(),
+            None,
+        ));
     }
 
     /// A real active owner ticket excludes retired and zero-owner states.
@@ -1809,6 +2294,7 @@ impl SharedPayload {
     #[requires(ticket.invariant() && ticket.ledger_id() == self.ledger_id)]
     #[ensures(self.root != None && self.lease.is_idle())]
     #[ensures(self.lent_span == None)]
+    #[ensures(self.ledger != None && self.ledger.unwrap_logic().is_live())]
     fn prove_idle_cap_implies_root_some(
         &self,
         cap: &ReadyCap<HeaderLeaseState>,
@@ -1877,7 +2363,7 @@ impl SharedPayload {
             *loan.inner_logic().original_capacity_repr,
             loan.inner_logic().lease_key,
             loan.inner_logic().lent_span,
-        )) && loan.inner_logic().lent_span == None)]
+            )))]
     fn prove_current_header_lease(
         payload: Ghost<&SharedPayload>,
         loan: Ghost<&SharedHeaderReadLoan>,
@@ -2039,6 +2525,7 @@ impl SharedPayload {
         result.inner_logic().lease_key == payload.inner_logic().lease_key &&
         same_stored_authority(*result.inner_logic().storage_model,
             payload.inner_logic().storage.unwrap_logic()))]
+    #[ensures(no_active_lend_loan(result.inner_logic()))]
     pub(crate) fn take_header_read_loan(
         payload: Ghost<&mut SharedPayload>,
         cap: Ghost<ReadyCap<HeaderLeaseState>>,
@@ -2069,21 +2556,242 @@ impl SharedPayload {
                 Ghost::new(&mut payload.lease), stamp, Ghost::new(cap),
             ).into_inner();
             payload.lease_generation = generation;
-            SharedHeaderReadLoan {
+            SharedHeaderReadLoan::from_active_parts(
                 root,
-                header_id: payload.header_id,
-                counter_model: payload.counter_model,
-                header_vec: payload.header_vec,
-                original_capacity_repr: payload.original_capacity_repr,
+                payload.header_id,
+                payload.counter_model,
+                payload.header_vec,
+                payload.original_capacity_repr,
                 storage_model,
-                ledger_id: payload.ledger_id,
-                phase_id: payload.phase_id,
+                payload.ledger_id,
+                payload.phase_id,
                 generation,
                 lease_id,
                 lease_key,
-                lent_span: payload.lent_span,
+                stamp,
+                payload.lent_span,
+                None,
                 lease_cap,
-            }
+            )
+        }
+    }
+
+    /// Move one Readonly ticket's exact, fully known physical span out of the
+    /// stable pool and pair it with the active header lease. The returned
+    /// loan owns the actual region; the marker alone never grants access.
+    #[check(ghost)]
+    #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().lent_span == None)]
+    #[requires(payload.inner_logic().root != None && payload.inner_logic().lease.is_idle())]
+    #[requires(cap.inner_logic().invariant())]
+    #[requires(cap.inner_logic().key() == payload.inner_logic().lease_key)]
+    #[requires(cap.inner_logic().fragment_id() == payload.inner_logic().lease.resource_id())]
+    #[requires(cap.inner_logic().fragment_value() ==
+        Some(Excl((payload.inner_logic().lease.resource_id(), None))))]
+    #[requires(ticket.inner_logic().invariant() &&
+        ticket.inner_logic().ledger_id() == payload.inner_logic().ledger_id)]
+    #[requires(ticket.inner_logic().class() == RefKind::Readonly)]
+    #[ensures(exact_header_region_lend_transition(
+        *payload.inner_logic(), ^payload.inner_logic(),
+        *ticket.inner_logic(), result.inner_logic(),
+    ))]
+    pub(crate) fn take_header_region_read_loan(
+        payload: Ghost<&mut SharedPayload>,
+        cap: Ghost<ReadyCap<HeaderLeaseState>>,
+        ticket: Ghost<&OwnerTicket>,
+    ) -> Ghost<SharedHeaderReadLoan> {
+        ghost! {
+            let payload = payload.into_inner();
+            let cap = cap.into_inner();
+            let ticket = ticket.into_inner();
+            payload.lease.require_idle_cap(&cap);
+            payload.prove_idle_cap_implies_root_some(&cap, ticket);
+            payload.prove_readonly_ticket_pool_known(ticket);
+            payload.prove_stable_active_pool_protocol();
+
+            let owner_id = snapshot!(ticket.owner_id()).into_ghost().into_inner();
+            let lo = snapshot!(ticket.owned_lo()).into_ghost().into_inner();
+            let hi = snapshot!(ticket.owned_hi()).into_ghost().into_inner();
+            let lent_span = Some((owner_id, lo, hi));
+            let ledger_model: Snapshot<OwnerLedger> =
+                snapshot!(payload.ledger.unwrap_logic());
+            let storage_model: Snapshot<StoredAuthority> =
+                snapshot!(payload.storage.unwrap_logic());
+            let old_pool = payload.pool.take().unwrap();
+            let (pool, region) = lend_active_readonly_pool_interval(
+                old_pool,
+                ledger_model,
+                storage_model,
+                owner_id,
+                lo,
+                hi,
+            );
+            payload.pool = Some(pool);
+            payload.lent_span = lent_span;
+
+            let root = payload.root.take().unwrap();
+            let lease_id = payload.lease.resource_id;
+            let generation = payload.lease_generation + 1int;
+            let lease_key = cap.key_ghost().into_inner();
+            let stamp = snapshot!(header_lease_stamp(
+                generation,
+                payload.header_id,
+                *payload.counter_model,
+                payload.ledger_id,
+                payload.phase_id,
+                *storage_model,
+                *payload.header_vec,
+                *payload.original_capacity_repr,
+                lease_key,
+                lent_span,
+            ));
+            let lease_cap = HeaderLeaseAuthority::activate(
+                Ghost::new(&mut payload.lease), stamp, Ghost::new(cap),
+            ).into_inner();
+            payload.lease_generation = generation;
+
+            proof_assert!(payload.lease.resource_id() == lease_id);
+            proof_assert!(lease_cap.fragment_value() ==
+                Some(Excl((lease_id, Some(header_lease_stamp(
+                    generation,
+                    payload.header_id,
+                    *payload.counter_model,
+                    payload.ledger_id,
+                    payload.phase_id,
+                    *storage_model,
+                    *payload.header_vec,
+                    *payload.original_capacity_repr,
+                    lease_key,
+                    lent_span,
+                ))))));
+
+            proof_assert!(lent_region_matches(
+                lent_span, Some(region), *storage_model,
+            ));
+            let loan = SharedHeaderReadLoan::from_active_parts(
+                root,
+                payload.header_id,
+                payload.counter_model,
+                payload.header_vec,
+                payload.original_capacity_repr,
+                storage_model,
+                payload.ledger_id,
+                payload.phase_id,
+                generation,
+                lease_id,
+                lease_key,
+                stamp,
+                lent_span,
+                Some(region),
+                lease_cap,
+            );
+            proof_assert!(payload.invariant() && payload.protocol());
+            loan
+        }
+    }
+
+    /// Consume an active Readonly region loan, retire its actual affine
+    /// region into the complementary pool, deactivate the exact lease stamp,
+    /// and restore the saved header root. The pool and region join is the
+    /// body-checked inverse of `take_header_region_read_loan`.
+    #[check(ghost)]
+    #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().root == None)]
+    #[requires(payload.inner_logic().lent_span == loan.inner_logic().lent_span)]
+    #[requires(match (loan.inner_logic().lent_span, loan.inner_logic().lent_region) {
+        (Some((_, lo, hi)), Some(region)) => region.invariant() &&
+            region.lo() == lo && region.hi() == hi,
+        _ => false,
+    })]
+    #[requires(loan.inner_logic().invariant())]
+    #[requires(payload.inner_logic().lease.resource_id() == loan.inner_logic().lease_id)]
+    #[requires(payload.inner_logic().lease_key == loan.inner_logic().lease_key)]
+    #[ensures((^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol())]
+    #[ensures((^payload.inner_logic()).root == Some(loan.inner_logic().root))]
+    #[ensures((^payload.inner_logic()).lent_span == None)]
+    #[ensures((^payload.inner_logic()).lease.is_idle())]
+    #[ensures((^payload.inner_logic()).lease_generation == payload.inner_logic().lease_generation)]
+    #[ensures((^payload.inner_logic()).header_id == payload.inner_logic().header_id)]
+    #[ensures((^payload.inner_logic()).counter_model == payload.inner_logic().counter_model)]
+    #[ensures((^payload.inner_logic()).allocation_binding == payload.inner_logic().allocation_binding)]
+    #[ensures((^payload.inner_logic()).header_vec == payload.inner_logic().header_vec)]
+    #[ensures((^payload.inner_logic()).original_capacity_repr == payload.inner_logic().original_capacity_repr)]
+    #[ensures((^payload.inner_logic()).ledger_id == payload.inner_logic().ledger_id)]
+    #[ensures((^payload.inner_logic()).phase_id == payload.inner_logic().phase_id)]
+    #[ensures((^payload.inner_logic()).storage == payload.inner_logic().storage)]
+    #[ensures((^payload.inner_logic()).ledger == payload.inner_logic().ledger)]
+    #[ensures((^payload.inner_logic()).retire == payload.inner_logic().retire)]
+    #[ensures((^payload.inner_logic()).phase == payload.inner_logic().phase)]
+    #[ensures((^payload.inner_logic()).terminal_action == payload.inner_logic().terminal_action)]
+    #[ensures((^payload.inner_logic()).lease_key == payload.inner_logic().lease_key)]
+    #[ensures((^payload.inner_logic()).lease.resource_id() == payload.inner_logic().lease.resource_id())]
+    #[ensures((^payload.inner_logic()).closed == payload.inner_logic().closed)]
+    #[ensures(active_lease_pool_protocol(
+        (^payload.inner_logic()).pool.unwrap_logic(),
+        (^payload.inner_logic()).ledger.unwrap_logic(),
+        (^payload.inner_logic()).storage.unwrap_logic().capacity(),
+        (^payload.inner_logic()).storage.unwrap_logic().binding(),
+        None,
+    ))]
+    #[ensures(forall<index: Int>
+        (^payload.inner_logic()).pool.unwrap_logic().contains(index) ==
+            (payload.inner_logic().pool.unwrap_logic().contains(index) ||
+                match loan.inner_logic().lent_span {
+                    Some((_, lo, hi)) => lo <= index && index < hi,
+                    None => false,
+                }))]
+    #[ensures(forall<index: Int>
+        (^payload.inner_logic()).pool.unwrap_logic().slot(index) ==
+            if payload.inner_logic().pool.unwrap_logic().contains(index) {
+                payload.inner_logic().pool.unwrap_logic().slot(index)
+            } else if match loan.inner_logic().lent_span {
+                Some((_, lo, hi)) => lo <= index && index < hi,
+                None => false,
+            } {
+                loan.inner_logic().lent_region.unwrap_logic().slot(index)
+            } else { None })]
+    #[ensures(result.inner_logic().invariant())]
+    #[ensures(result.inner_logic().key() == loan.inner_logic().lease_key)]
+    #[ensures(result.inner_logic().fragment_id() == payload.inner_logic().lease.resource_id())]
+    #[ensures(result.inner_logic().fragment_value() ==
+        Some(Excl((payload.inner_logic().lease.resource_id(), None))))]
+    pub(crate) fn restore_header_region_read_loan(
+        payload: Ghost<&mut SharedPayload>,
+        loan: Ghost<SharedHeaderReadLoan>,
+    ) -> Ghost<ReadyCap<HeaderLeaseState>> {
+        ghost! {
+            let payload = payload.into_inner();
+            let loan = loan.into_inner();
+            SharedPayload::prove_current_header_lease(
+                Ghost::new(&*payload), Ghost::new(&loan),
+            );
+
+            let (owner_id, lo, hi) = loan.lent_span.unwrap();
+            let region = loan.lent_region.unwrap();
+            let storage_model: Snapshot<StoredAuthority> =
+                snapshot!(payload.storage.unwrap_logic());
+            let pool = payload.pool.take().unwrap();
+            let ledger = payload.ledger.as_ref().unwrap();
+            let pool = retire_active_readonly_pool_interval(
+                pool,
+                region,
+                ledger,
+                storage_model,
+                owner_id,
+                lo,
+                hi,
+            );
+            payload.pool = Some(pool);
+
+            let stamp = loan.stamp;
+            let SharedHeaderReadLoan { root, lease_cap, .. } = loan;
+            let cap = HeaderLeaseAuthority::deactivate(
+                Ghost::new(&mut payload.lease), stamp, Ghost::new(lease_cap),
+            ).into_inner();
+            payload.lent_span = None;
+            payload.root = Some(root);
+            proof_assert!(payload.invariant() && payload.protocol());
+            cap
         }
     }
 
@@ -2095,7 +2803,7 @@ impl SharedPayload {
     #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
     #[requires(payload.inner_logic().lent_span == None)]
     #[requires(loan.inner_logic().invariant())]
-    #[requires(loan.inner_logic().lent_span == None)]
+    #[requires(no_active_lend_loan(loan.inner_logic()))]
     #[requires(payload.inner_logic().lease.resource_id() == loan.inner_logic().lease_id)]
     #[requires(payload.inner_logic().lease_key == loan.inner_logic().lease_key)]
     #[ensures((^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol() &&
@@ -2302,6 +3010,8 @@ impl SharedReleasePacket {
     #[ensures(result.inner_logic() != None ==>
         (^context.inner_logic()).ready_entry_state(key.inner_logic().slot()) == None)]
     #[ensures(result.inner_logic() != None ==>
+        no_active_lend_loan(result.inner_logic().unwrap_logic()))]
+    #[ensures(result.inner_logic() != None ==>
         result.inner_logic().unwrap_logic().invariant() &&
         result.inner_logic().unwrap_logic().lease_key == key.inner_logic() &&
         result.inner_logic().unwrap_logic().lease_id == key.inner_logic().resource_id() &&
@@ -2363,6 +3073,7 @@ impl SharedReleasePacket {
                             (^payload).agrees_with_value(*owner_value) &&
                             match result {
                                 Some(loan) => loan.invariant() &&
+                                    no_active_lend_loan(loan) &&
                                     loan.header_id == payload.header_id &&
                                     loan.lease_id == payload.lease.resource_id() &&
                                     loan.lease_key == payload.lease_key &&
@@ -2478,6 +3189,7 @@ impl SharedReleasePacket {
     #[ensures(result.inner_logic() != None ==>
         result.inner_logic().unwrap_logic().invariant() &&
         result.inner_logic().unwrap_logic().lease_key == self.lease_key() &&
+        no_active_lend_loan(result.inner_logic().unwrap_logic()) &&
         result.inner_logic().unwrap_logic().lease_id == self.lease_key().resource_id() &&
         result.inner_logic().unwrap_logic().header_id ==
             self.capsule_public().0 as *mut Shared &&
@@ -2870,6 +3582,14 @@ impl SharedOwnerPacket {
             BorrowedSharedContext::prove_ready_has_key_from_entry(
                 Ghost::new(&**context_ref), Ghost::new(lease_key),
             );
+            // Keep the actual idle lease capability out of the callback's
+            // registry slot while the invariant proves the matching stable
+            // payload state. The same affine capability is returned below.
+            let cap = BorrowedSharedContext::take(
+                Ghost::new(&mut **context_ref), lease_key,
+            );
+            let cap_body: Ghost<&ReadyCap<HeaderLeaseState>> =
+                ghost! { cap.borrow().into_inner() };
             let tokens = BorrowedSharedContext::reborrow_tokens(
                 Ghost::new(&mut **context_ref),
             );
@@ -2884,6 +3604,11 @@ impl SharedOwnerPacket {
                     payload.public().2 == *callback_frame_ref.0 &&
                     payload.public().4 == *callback_frame_ref.4 &&
                     payload.public().6 == *callback_frame_ref.3 &&
+                    cap_body.inner_logic().invariant() &&
+                    cap_body.inner_logic().key() == *callback_frame_ref.3 &&
+                    cap_body.inner_logic().fragment_id() == *callback_frame_ref.4 &&
+                    cap_body.inner_logic().fragment_value() ==
+                        Some(Excl((*callback_frame_ref.4, None))) &&
                     ticket.inner_logic().invariant() &&
                     ticket.inner_logic().ledger_id() == *callback_frame_ref.0 &&
                     ticket.inner_logic().owner_id() == *callback_frame_ref.1 &&
@@ -2952,8 +3677,10 @@ impl SharedOwnerPacket {
                 |payload: &mut SharedPayload,
                  owner_model: Snapshot<NativeCounter>,
                  owner_value: Snapshot<usize>| {
+                    let cap = cap_body.into_inner();
                     let ticket = ticket.into_inner();
                     let region = region.into_inner();
+                    payload.prove_idle_cap_implies_root_some(cap, &ticket);
                     SharedPayload::prove_shifted_region_slots_known(
                         snapshot!(region),
                         callback_frame_ref.5,
@@ -2979,6 +3706,9 @@ impl SharedOwnerPacket {
                 }
                 ),
             ).into_inner();
+            BorrowedSharedContext::return_cap(
+                Ghost::new(&mut **context_ref), cap,
+            );
             (capsule, readonly_ticket, lease_key)
         };
         let (capsule, readonly_ticket, lease_key) = packet_parts.split();
@@ -3063,6 +3793,7 @@ impl SharedOwnerPacket {
     #[requires(loan.inner_logic().invariant())]
     #[requires(loan.inner_logic().lease_key == key.inner_logic())]
     #[requires(loan.inner_logic().lease_id == key.inner_logic().resource_id())]
+    #[requires(no_active_lend_loan(loan.inner_logic()))]
     #[ensures(result.0.invariant() && result.1.invariant())]
     #[ensures(result.0.capsule.inner_logic() == capsule.inner_logic() &&
         result.1.capsule.inner_logic() == capsule.inner_logic())]
@@ -3264,6 +3995,7 @@ impl SharedOwnerPacket {
             expected_before_region,
             expected_cut,
         );
+        let loan_for_callback = &loan;
         let counter = loaned_native_counter(
             header_id as *const Shared,
             ghost! { loan.borrow().into_inner() },
@@ -3282,6 +4014,10 @@ impl SharedOwnerPacket {
                     payload.public().4 == *expected_lease_id &&
                     payload.public().6 == *expected_key &&
                     payload.public().3 == *expected_phase &&
+                    loan_for_callback.inner_logic().invariant() &&
+                    no_active_lend_loan(loan_for_callback.inner_logic()) &&
+                    loan_for_callback.inner_logic().lease_id == *expected_lease_id &&
+                    loan_for_callback.inner_logic().lease_key == *expected_key &&
                     ticket.inner_logic().invariant() &&
                     ticket.inner_logic().ledger_id() == payload.public().2 &&
                     ticket.inner_logic().class() == RefKind::Mutable &&
@@ -3324,6 +4060,10 @@ impl SharedOwnerPacket {
                       new: usize,
                       frame: &(Snapshot<OwnerTicket>, Snapshot<PhysicalRegion>, Snapshot<Int>)| {
                     payload.prove_live_owner_matches_counter(&ticket, old);
+                    SharedPayload::prove_current_header_lease(
+                        Ghost::new(&*payload),
+                        Ghost::new(loan_for_callback.borrow().into_inner()),
+                    );
                     SharedPayload::split_mutable_owner_after_increment(
                         Ghost::new(payload), ticket, region, cut,
                         old, new,
@@ -3402,6 +4142,8 @@ impl SharedOwnerPacket {
         (result.inner_logic() != None ==>
             result.inner_logic().unwrap_logic().invariant()) &&
         (result.inner_logic() != None ==>
+            no_active_lend_loan(result.inner_logic().unwrap_logic())) &&
+        (result.inner_logic() != None ==>
             result.inner_logic().unwrap_logic().header_id ==
                 self.capsule_public().0 as *mut Shared) &&
         (result.inner_logic() != None ==>
@@ -3469,6 +4211,7 @@ impl SharedOwnerPacket {
                             match result {
                                 Some(loan) =>
                                     loan.invariant() &&
+                                    no_active_lend_loan(loan) &&
                                     loan.header_id == payload.header_id &&
                                     loan.lease_id == payload.lease.resource_id() &&
                                     loan.lease_key == payload.lease_key &&
@@ -3505,6 +4248,7 @@ impl SharedOwnerPacket {
     #[check(ghost)]
     #[requires(self.invariant())]
     #[requires(loan.inner_logic().invariant())]
+    #[requires(no_active_lend_loan(loan.inner_logic()))]
     #[requires(loan.inner_logic().lease_id == self.lease_resource_id())]
     #[requires(loan.inner_logic().lease_key == self.lease_key())]
     #[requires(context.inner_logic().invariant())]
@@ -3555,6 +4299,7 @@ impl SharedOwnerPacket {
                         ticket_body.inner_logic().invariant() &&
                         ticket_body.inner_logic().ledger_id() == payload.public().2 &&
                         loan.inner_logic().invariant() &&
+                        no_active_lend_loan(loan.inner_logic()) &&
                         loan.inner_logic().lease_id == *expected_lease_id &&
                         loan.inner_logic().lease_key == *expected_key
                     )]
@@ -3581,6 +4326,10 @@ impl SharedOwnerPacket {
                          owner_model: Snapshot<NativeCounter>,
                          owner_value: Snapshot<usize>| {
                     let ticket = ticket_body.into_inner();
+                    SharedPayload::prove_current_header_lease(
+                        Ghost::new(&*payload),
+                        Ghost::new(loan.borrow().into_inner()),
+                    );
                     payload.prove_public_lease_resource_id(expected_lease_id);
                     payload.prove_public_lease_key(expected_key);
                     payload.prove_live_owner_ticket(ticket);
@@ -3608,6 +4357,7 @@ impl SharedOwnerPacket {
     #[requires(key.inner_logic() == loan.inner_logic().lease_key)]
     #[requires(key.inner_logic().resource_id() == loan.inner_logic().lease_id)]
     #[requires(loan.inner_logic().invariant())]
+    #[requires(no_active_lend_loan(loan.inner_logic()))]
     #[requires(context.inner_logic().invariant())]
     #[requires(context.inner_logic().ready_entry_state(key.inner_logic().slot()) == None)]
     #[requires(key.inner_logic().slot() < context.inner_logic().ready_len())]
@@ -3648,6 +4398,7 @@ impl SharedOwnerPacket {
                         payload.public().4 == *expected_lease_id &&
                         payload.public().6 == *expected_key &&
                         loan.inner_logic().invariant() &&
+                        no_active_lend_loan(loan.inner_logic()) &&
                         loan.inner_logic().lease_id == *expected_lease_id &&
                         loan.inner_logic().lease_key == *expected_key
                     )]
@@ -3673,6 +4424,10 @@ impl SharedOwnerPacket {
                     move |payload: &mut SharedPayload,
                          owner_model: Snapshot<NativeCounter>,
                          owner_value: Snapshot<usize>| {
+                        SharedPayload::prove_current_header_lease(
+                            Ghost::new(&*payload),
+                            Ghost::new(loan.borrow().into_inner()),
+                        );
                         SharedPayload::restore_header_read_loan(
                             Ghost::new(payload), loan,
                         ).into_inner()
@@ -3704,6 +4459,7 @@ impl SharedOwnerPacket {
     #[requires(key.inner_logic() == loan.inner_logic().lease_key)]
     #[requires(key.inner_logic().resource_id() == loan.inner_logic().lease_id)]
     #[requires(loan.inner_logic().invariant())]
+    #[requires(no_active_lend_loan(loan.inner_logic()))]
     #[requires(action.inner_logic().invariant())]
     #[requires(action.inner_logic().resource_id() == loan.inner_logic().phase_id)]
     #[requires(context.inner_logic().ready_entry_state(key.inner_logic().slot()) == None)]
@@ -3778,6 +4534,7 @@ impl SharedOwnerPacket {
                         payload.public().6 == *expected_key &&
                         payload.public().3 == *expected_phase &&
                         loan.invariant() &&
+                        no_active_lend_loan(loan.inner_logic()) &&
                         loan.lease_key == *expected_key &&
                         loan.phase_id == *expected_phase &&
                         action.invariant() &&
@@ -3983,6 +4740,7 @@ impl SharedReleasePacket {
         let expected_lease_id: Snapshot<Id> = snapshot!(key.inner_logic().resource_id());
         let expected_ledger_id: Snapshot<Id> = snapshot!(ticket.inner_logic().ledger_id());
         let expected_phase: Snapshot<Id> = snapshot!(loan.inner_logic().phase_id);
+        let loan_for_callback = &loan;
         let counter = loaned_native_counter(
             header_id as *const Shared,
             ghost! { loan.borrow().into_inner() },
@@ -4001,6 +4759,10 @@ impl SharedReleasePacket {
                     payload.public().4 == *expected_lease_id &&
                     payload.public().6 == *expected_key &&
                     payload.public().3 == *expected_phase &&
+                    loan_for_callback.inner_logic().invariant() &&
+                    no_active_lend_loan(loan_for_callback.inner_logic()) &&
+                    loan_for_callback.inner_logic().lease_id == *expected_lease_id &&
+                    loan_for_callback.inner_logic().lease_key == *expected_key &&
                     ticket.inner_logic().invariant() &&
                     ticket.inner_logic().ledger_id() == payload.public().2 &&
                     match region.inner_logic() {
@@ -4039,6 +4801,10 @@ impl SharedReleasePacket {
                      new: usize| {
                     payload.prove_live_owner_matches_counter(&ticket, old);
                     proof_assert!(new@ + 1 == old@);
+                    SharedPayload::prove_current_header_lease(
+                        Ghost::new(&*payload),
+                        Ghost::new(loan_for_callback.borrow().into_inner()),
+                    );
                     let ticket = ticket.into_inner();
                     let owner = match region.into_inner() {
                         Some(region) => Ghost::new(SharedReleaseOwner::Mutable {

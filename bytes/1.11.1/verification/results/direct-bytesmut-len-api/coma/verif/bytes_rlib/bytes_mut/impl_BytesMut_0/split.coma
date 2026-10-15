@@ -101,7 +101,7 @@ let%span sshared_context'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/owne
 let%span sshared_context'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 204 14 209 5
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 709 20 709 27
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 714 20 714 27
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1468 16 1468 59
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1470 16 1470 59
 let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 395 14 395 60
 let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 704 20 704 30
 let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 687 12 691 33
@@ -124,7 +124,7 @@ let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
 let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
 let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
-let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2630 14 2630 61
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3342 14 3342 61
 
 use creusot.int.UInt64
 use creusot.prelude.Opaque
@@ -308,7 +308,7 @@ axiom inv_axiom'4 [@rewrite]:
       | Some f0'6 -> inv_OriginalUniqueProof f0'6
       end
 
-predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2677 4 2677 30] (self: t_SharedOwnerPacket)
+predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3389 4 3389 30] (self: t_SharedOwnerPacket)
 
 predicate resolve_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
 
@@ -674,7 +674,7 @@ predicate unique_layout_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/b
 
 type t_Option_Option_u8 = None'6 | Some'6 t_Option_u8
 
-predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1467 0 1467 58] (slot: t_Option_Option_u8) =
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1469 0 1469 58] (slot: t_Option_Option_u8) =
   [%#sraw_vec'1] exists value: UInt8.t. slot = Some'6 (Some'4 value)
 
 function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
@@ -712,7 +712,7 @@ type t_NativeCounter
 
 type tup4_ptr_unit_NativeCounter_Id_Id = { f0'8: Opaque.ptr; f1'8: t_NativeCounter; f2'8: t_Id; f3'8: t_Id }
 
-function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2557 4 2557 74] (self: t_SharedOwnerPacket) : tup4_ptr_unit_NativeCounter_Id_Id
+function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3269 4 3269 74] (self: t_SharedOwnerPacket) : tup4_ptr_unit_NativeCounter_Id_Id
 
 constant const_KIND_ARC: UInt64.t = [%#sbytes_mut'34] (0: UInt64.t)
 
@@ -748,7 +748,7 @@ predicate shared_extent_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/b
 predicate shared_layout_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 405 4 405 40] (self: t_BytesMut) =
   [%#sbytes_mut'36] shared_packet_header_valid self /\ shared_cursor_valid self /\ shared_extent_valid self
 
-function allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2631 4 2631 73] (self: t_SharedOwnerPacket) (index: int) : t_Option_Option_u8
+function allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3343 4 3343 73] (self: t_SharedOwnerPacket) (index: int) : t_Option_Option_u8
 
 axiom allocation_slot_spec:
   forall self: t_SharedOwnerPacket, index: int [allocation_slot self index]. [%#sshared_capsule] allocation_slot self index
@@ -790,7 +790,7 @@ type t_ReadyKey
 
 function slot'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 30 4 30 35] (self: t_ReadyKey) : int
 
-function lease_key [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2619 4 2619 46] (self: t_SharedOwnerPacket) : t_ReadyKey
+function lease_key [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3331 4 3331 46] (self: t_SharedOwnerPacket) : t_ReadyKey
 
 function ready_len_Option_Excl_tup2_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 110 4 110 40] (self: t_BorrowedSharedContext_Option_Excl_tup2_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int) : int
 
@@ -921,7 +921,7 @@ function shared_bytes [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut
   [%#sbytes_mut'41] Seq.create (UInt64.t'int self.len) (fun (i: int) -> unwrap_Option_u8 (unwrap_Option_Option_u8 (allocation_slot (unwrap_Option_SharedOwnerPacket self.shared_proof) ((unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (unwrap_Option_SharedOwnerPacket self.shared_proof).cursor'0)).f2'0
   + i))))
 
-function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 281 4 281 39] (self: t_OwnerTicket) : int
+function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 281 4 281 40] (self: t_OwnerTicket) : int
 
 function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 276 4 276 39] (self: t_OwnerTicket) : t_Id
 

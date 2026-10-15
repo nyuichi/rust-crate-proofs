@@ -38,7 +38,7 @@ pub(crate) type OwnerBinding = (AllocationBinding, RefKind, Int, Int);
 
 pub(crate) type ActiveReferences = FMap<Int, Excl<OwnerBinding>>;
 
-#[logic]
+#[logic(open)]
 pub(crate) fn owner_binding_valid(owner: OwnerBinding, allocation: AllocationBinding) -> bool {
     pearlite! {
         owner.0 == allocation && 0 <= owner.2 && owner.2 <= owner.3 &&
@@ -278,7 +278,7 @@ impl OwnerTicket {
     }
 
     #[logic(open(self))]
-    pub(crate) fn owner_id(self) -> Int {
+    pub(crate) fn owner_id(&self) -> Int {
         self.owner_id
     }
 
@@ -550,6 +550,9 @@ impl OwnerLedger {
     #[ensures(ticket.owner_binding() ==
         self.active_ids().get(ticket.owner_id()).unwrap_logic().0)]
     #[ensures(owner_binding_valid(ticket.owner_binding(), self.allocation_binding()))]
+    #[ensures(0 <= ticket.owned_lo())]
+    #[ensures(ticket.owned_lo() <= ticket.owned_hi())]
+    #[ensures(ticket.owned_hi() <= self.allocation_binding().2)]
     #[ensures(owner_ranges_disjoint(self.active_ids()))]
     pub(crate) fn prove_ticket_is_active(&self, ticket: &OwnerTicket) {
         match &self.authority {
@@ -650,6 +653,28 @@ impl OwnerLedger {
         proof_assert!(forall<index: Int>
             ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
                 !active_mutable_contains(self.active_ids(), index));
+    }
+
+    /// A currently registered Readonly span cannot overlap any active
+    /// Mutable owner. This projection is keyed by the authoritative map entry
+    /// so callers restoring a physical lend need not duplicate or mint the
+    /// affine owner ticket.
+    #[check(ghost)]
+    #[requires(self.invariant() && self.is_live())]
+    #[requires(self.active_ids().get(owner_id) == Some(Excl((
+        self.allocation_binding(), RefKind::Readonly, lo, hi,
+    ))))]
+    #[ensures(forall<index: Int> lo <= index && index < hi ==>
+        !active_mutable_contains(self.active_ids(), index))]
+    pub(crate) fn prove_readonly_owner_interval_excluded_from_mutable_coverage(
+        &self,
+        owner_id: Int,
+        lo: Int,
+        hi: Int,
+    ) {
+        proof_assert!(owner_ranges_disjoint(self.active_ids()));
+        proof_assert!(forall<index: Int> lo <= index && index < hi ==>
+            !active_mutable_contains(self.active_ids(), index));
     }
 
     /// Construct a count-one shared block and its sole root ticket.
