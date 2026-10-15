@@ -120,6 +120,13 @@ stronger proof preconditions than the trait prestate. Immutable peers,
 refcount-to-owner correspondence, concurrency and unwind behavior remain
 outside the selected `BytesMut` proof scope.
 
+The private `BytesMut::as_slice` body is checked from `buffer_view_valid` and
+returns a slice whose bytes equal `buffer_bytes()`. Its unique and Shared
+branches pass the actual cursor and corresponding actual `PhysicalRegion` to
+the existing generic B4-read `borrow_bound` boundary, whose native body uses
+`slice::from_raw_parts`; this proof adds no access authority and does not prove
+the public `Buf::chunk`, `AsRef`, or `Deref` paths.
+
 The native Shared reserve-growth path now compacts the handle's initialized
 visible bytes to the Vec base before setting its length and calling
 `Vec::reserve`. This prevents a hidden prefix that another disjoint handle

@@ -14,6 +14,7 @@ import sys
 TARGETS = (
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/len.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/truncate.coma",
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/as_slice.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/set_len.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/from_vec.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/with_capacity.coma",

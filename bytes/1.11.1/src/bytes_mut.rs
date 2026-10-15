@@ -3019,8 +3019,26 @@ impl BytesMut {
         }
     }
 
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.buffer_view_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == self.buffer_bytes()))]
     #[inline]
     fn as_slice(&self) -> &[u8] {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            if let Some(proof) = self.unique_proof.as_ref() {
+                unsafe {
+                    raw_vec::borrow_bound(
+                        &proof.cursor,
+                        self.len,
+                        ghost! { &proof.capabilities.1 },
+                    )
+                }
+            } else {
+                let packet = self.shared_proof.as_ref().unwrap();
+                unsafe { raw_vec::borrow_bound(&packet.cursor, self.len, packet.region.borrow()) }
+            }
+        }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
     }
 

@@ -120,6 +120,13 @@ proofs do not establish that every safe producer or lifecycle path supplies
 `buffer_view_valid`; they do not prove the public truncate behavior for every
 safely produced state.
 
+The private `BytesMut::as_slice` body is also checked under
+`buffer_view_valid`: it borrows the actual Vec region or the actual Shared
+packet region through the existing B4 read boundary and returns bytes equal to
+`buffer_bytes()`. The native `from_raw_parts` read remains in that source path;
+this does not prove its `Buf::chunk`, `AsRef`, or `Deref` callers, or readonly
+`Bytes` reads.
+
 This increment also body-proves `make_count_two_packets`, a generic constructor
 for one count-two event payload and its two Mutable owner packets. Under a precondition that
 the actual active-owner map covers the full allocation, it places the exact
