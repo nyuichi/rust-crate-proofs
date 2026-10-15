@@ -217,6 +217,7 @@ TARGETS = (
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalRegion/split_at.coma",
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/kernel_unit_is_empty.coma",
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/empty_from.coma",
+    "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/lend_interval.coma",
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/retire.coma",
     "verif/bytes_rlib/ownership_proof/raw_vec/impl_PhysicalPool/finish.coma",
     "verif/bytes_rlib/ownership_proof/raw_vec/bind_consumed_vec.coma",

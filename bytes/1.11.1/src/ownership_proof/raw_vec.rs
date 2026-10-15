@@ -940,6 +940,71 @@ impl PhysicalPool {
         }
     }
 
+    /// Lend one fully present interval from the retired-resource pool.
+    ///
+    /// This transfers the actual affine resource for the interval into a
+    /// `PhysicalRegion`; it preserves all slot values, including `Unknown`
+    /// values, and does not itself grant a byte read. The complementary pool
+    /// retains every other resource entry unchanged.
+    #[check(ghost)]
+    #[requires(self.invariant())]
+    #[requires(0 <= lo && lo <= hi && hi <= self.capacity())]
+    #[requires(forall<index: Int> lo <= index && index < hi ==> self.contains(index))]
+    #[ensures(result.0.invariant() && result.1.invariant())]
+    #[ensures(result.0.capacity() == self.capacity())]
+    #[ensures(result.0.namespace() == self.namespace())]
+    #[ensures(result.0.resource_id() == self.resource_id())]
+    #[ensures(result.1.capacity() == self.capacity())]
+    #[ensures(result.1.namespace() == self.namespace())]
+    #[ensures(result.1.resource_id() == self.resource_id())]
+    #[ensures(result.1.lo() == lo && result.1.hi() == hi)]
+    #[ensures(forall<index: Int> result.1.slot(index) ==
+        if lo <= index && index < hi { self.slot(index) } else { None })]
+    #[ensures(forall<index: Int> result.0.contains(index) ==
+        (self.contains(index) && !(lo <= index && index < hi)))]
+    #[ensures(forall<index: Int> result.0.slot(index) ==
+        if self.contains(index) && !(lo <= index && index < hi) {
+            self.slot(index)
+        } else {
+            None
+        })]
+    pub(crate) fn lend_interval(self, lo: Int, hi: Int) -> (Self, PhysicalRegion) {
+        let inside_slots: Snapshot<SlotMap> = snapshot! {
+            self.resource@.1.filter(|(index, _)| lo <= index && index < hi)
+        };
+        let outside_slots: Snapshot<SlotMap> = snapshot! {
+            self.resource@.1.filter(|(index, _)| !(lo <= index && index < hi))
+        };
+        let whole_slots: Snapshot<SlotMap> = snapshot!(self.resource@.1);
+        ghost! {
+            proof_assert!(forall<index: Int>
+                (*inside_slots).get(index).op((*outside_slots).get(index)) ==
+                    Some((*whole_slots).get(index))
+            );
+            map_compose_eq(inside_slots, outside_slots, whole_slots);
+        };
+
+        let inside_value: Snapshot<KernelRA> = snapshot!((None, *inside_slots));
+        let outside_value: Snapshot<KernelRA> = snapshot!((None, *outside_slots));
+        proof_assert!((*inside_value).op(*outside_value) == Some(self.resource@));
+        proof_assert!(KernelRA::incl_eq_op(*inside_value, *outside_value, self.resource@));
+
+        let (inside_resource, outside_resource) =
+            self.resource.split(inside_value, outside_value);
+        let descriptor = self.descriptor;
+        let region = PhysicalRegion {
+            ledger: OwnedRegion::from_model_ledger(lo, hi, inside_resource),
+            descriptor,
+            _not_objective: NotObjective {},
+        };
+        let pool = Self {
+            descriptor,
+            resource: outside_resource,
+            _not_objective: NotObjective {},
+        };
+        (pool, region)
+    }
+
     /// Retire one affine physical region into this allocation's pool.
     ///
     /// The consumed region's Resource is joined into the pool Resource. The

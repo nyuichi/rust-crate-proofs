@@ -666,23 +666,23 @@ warning: unused import: `BorrowMut`
    |                      ^^^^^^^^^
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1306:25
+    --> src/ownership_proof/raw_vec.rs:1371:25
      |
-1306 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1371 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                         ^^^^ help: try ignoring the field: `base: _`
      |
      = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
 
 warning: unused variable: `capacity`
-    --> src/ownership_proof/raw_vec.rs:1306:31
+    --> src/ownership_proof/raw_vec.rs:1371:31
      |
-1306 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1371 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1342:9
+    --> src/ownership_proof/raw_vec.rs:1407:9
      |
-1342 |     let base = bound.as_ptr();
+1407 |     let base = bound.as_ptr();
      |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
 
 warning: unused variable: `from_auth`
@@ -1429,52 +1429,61 @@ warning: method `join` is never used
 825 |     pub(crate) fn join(self, other: Self) -> Self {
     |                   ^^^^
 
+warning: method `lend_interval` is never used
+   --> src/ownership_proof/raw_vec.rs:971:19
+    |
+870 | impl PhysicalPool {
+    | ----------------- method in this implementation
+...
+971 |     pub(crate) fn lend_interval(self, lo: Int, hi: Int) -> (Self, PhysicalRegion) {
+    |                   ^^^^^^^^^^^^^
+
 warning: function `detach_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1053:15
+    --> src/ownership_proof/raw_vec.rs:1118:15
      |
-1053 | pub(crate) fn detach_vec(
+1118 | pub(crate) fn detach_vec(
      |               ^^^^^^^^^^
 
 warning: function `deallocate_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1302:22
+    --> src/ownership_proof/raw_vec.rs:1367:22
      |
-1302 | pub(crate) unsafe fn deallocate_vec(
+1367 | pub(crate) unsafe fn deallocate_vec(
      |                      ^^^^^^^^^^^^^^
 
 warning: function `borrow_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1386:22
+    --> src/ownership_proof/raw_vec.rs:1451:22
      |
-1386 | pub(crate) unsafe fn borrow_mut<'a>(
+1451 | pub(crate) unsafe fn borrow_mut<'a>(
      |                      ^^^^^^^^^^
 
 warning: function `slot_known_equivalence` is never used
-    --> src/ownership_proof/raw_vec.rs:1408:15
+    --> src/ownership_proof/raw_vec.rs:1473:15
      |
-1408 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+1473 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
      |               ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1447:22
+    --> src/ownership_proof/raw_vec.rs:1512:22
      |
-1447 | pub(crate) unsafe fn borrow_bound_mut<'a>(
+1512 | pub(crate) unsafe fn borrow_bound_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound` is never used
-    --> src/ownership_proof/raw_vec.rs:1571:22
+    --> src/ownership_proof/raw_vec.rs:1636:22
      |
-1571 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
+1636 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
      |                      ^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1580:22
+    --> src/ownership_proof/raw_vec.rs:1645:22
      |
-1580 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
+1645 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
      |                      ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_uninit_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1588:22
+    --> src/ownership_proof/raw_vec.rs:1653:22
      |
-1588 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
+1653 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `with_capacity_bound` is never used
@@ -3719,5 +3728,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 378 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.51s
+warning: `bytes` (lib) generated 379 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.96s

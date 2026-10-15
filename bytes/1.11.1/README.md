@@ -51,7 +51,10 @@ and replacing a ticket binding while preserving ticket and authority
 identities. A generic event payload ties the ledger's reference count to the
 counter permission model; the initial count-one promotion and original Vec
 split producer construct matching payloads and packets. The generic pool
-retirement and full-range recovery helpers also have body proofs. A checked
+interval lender, retirement, and full-range recovery helpers also have body
+proofs. The lender transfers the actual affine resource for a fully present
+interval and preserves unknown slots; it grants no byte-read authority by
+itself. A checked
 `freeze_into_readonly` path moves an actual Mutable packet's ticket to a
 Readonly ticket and returns its actual physical region to the pool, while
 preserving the reference count, storage, lease/release authority, caller

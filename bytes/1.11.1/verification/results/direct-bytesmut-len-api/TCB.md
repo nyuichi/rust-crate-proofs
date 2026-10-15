@@ -429,8 +429,12 @@ exclusivity or reclamation for every safely produced Shared state.
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
 contradiction between a closed authority and a still-valid matching action.
-The generic `PhysicalPool::retire` and `finish` operations are body-proved. The
-selected `release_native_owner` and terminal callback connect the actual ticket,
+The generic `PhysicalPool::lend_interval`, `retire`, and `finish` operations
+are body-proved. `lend_interval` requires every slot in its requested interval
+to be present in the pool, partitions the actual affine resource, and preserves
+all slot values including Unknowns. It grants no byte-read authority by itself
+and states no Bytes ownership law. The selected `release_native_owner` and
+terminal callback connect the actual ticket,
 lease, terminal action, ledger removal, pool finish, and root permission for a
 final owner; `release_shared_common` then runs the original native decrement,
 Acquire load, stored-Vec retirement and Box release sequence. The explicit
