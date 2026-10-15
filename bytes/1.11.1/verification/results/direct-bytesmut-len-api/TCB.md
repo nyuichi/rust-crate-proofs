@@ -48,13 +48,15 @@ The Box-only B1-BOX boundary also consumes an actual `Box<[u8]>` through the
 same source `Box::into_raw` helper and provides the sealed matching resources;
 there is no pure Box-content-to-pointer observer. The source body then proves
 the internal boxed sidecar and pointer-cell permission from the actual returned
-resources. Its address-tag helper uses only the generic integer-to-pointer
-adapter's numerical-address postcondition, which supplies no provenance,
-liveness, or dereference authority. The constructor stores the vtable selected
-from its supplied even/odd inputs, but does not prove either input has the
-identity of a particular static vtable. This sidecar is an internal constructor
-carrier only: no public `From<Vec>` or `From<Box>` postcondition, destructor,
-or lifecycle path is proved from it.
+resources. Tagging an even base and untagging its odd tagged cell value use the
+generic one-byte `wrapping_add` and `wrapping_offset` contracts. Their exact
+pointer-offset relations preserve the input pointer provenance for nonwrapping
+offsets, while granting no allocation liveness or dereference permission. The
+old integer-to-pointer adapter has been removed. The constructor stores the
+vtable selected from its supplied even/odd inputs, but does not prove either
+input has the identity of a particular static vtable. Public `From<Vec>` and
+`From<Box>` postconditions and the ordinary vtable-driven Drop/callback path
+remain unproved.
 
 The selected private `Bytes::as_slice` body also has a boxed-sidecar branch
 under `original_boxed_valid`. It passes that sidecar's matching base and actual
@@ -62,6 +64,25 @@ full physical region to the existing B4 shared-read boundary, and proves the
 returned bytes equal the saved boxed contents. This does not prove a public
 `From` postcondition, `Buf::chunk`, `AsRef`, `Deref`, reads from other readonly
 `Bytes` states, or destruction.
+
+The original `free_boxed_slice` source body is also translated and checked for
+the explicit boxed release entry. It computes capacity from that function's
+actual `(buf, offset, len)` operands. The proof-only release payload is required
+to tie `buf` exactly to the offset-zero B1 base, `offset` exactly to a bounded
+view in the same namespace and capacity, and `view_offset + len` to the full
+allocation capacity. Its actual addresses must be ordered and nonoverflowing;
+the payload also carries the matching complete Recovery and physical-region
+resources. From these facts the same capacity calculation equals the B1
+capacity, which is then consumed through the existing B3 deallocator. Native
+cleanup and B3 use the same `allocation_ops::deallocate_u8` primitive.
+
+`Bytes::dispose_boxed` is an unsafe original-source entry for an unpromoted,
+full-view boxed-slice handle. It reads the actual pointer cell with its carried
+permission, exactly untags the even-base representation when needed, forgets
+the handle, and calls the original `free_boxed_slice` body with the actual B1
+release payload. Its source body is present in native builds as well. This
+entry does not establish the auto-Drop path, dynamic vtable dispatch, or
+release rights for cloned, sliced, converted, promoted, or other `Bytes` states.
 
 The source now also defines `VecStorage::resume_owned` as a narrow generic B2
 restoration boundary used by the selected private unique-to-Shared producer

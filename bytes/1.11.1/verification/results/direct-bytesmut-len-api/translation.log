@@ -666,23 +666,23 @@ warning: unused import: `BorrowMut`
    |                      ^^^^^^^^^
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1310:25
+    --> src/ownership_proof/raw_vec.rs:1306:25
      |
-1310 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1306 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                         ^^^^ help: try ignoring the field: `base: _`
      |
      = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
 
 warning: unused variable: `capacity`
-    --> src/ownership_proof/raw_vec.rs:1310:31
+    --> src/ownership_proof/raw_vec.rs:1306:31
      |
-1310 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
+1306 |     let RawAllocation { base, capacity, namespace: _, _not_objective: _ } = raw;
      |                               ^^^^^^^^ help: try ignoring the field: `capacity: _`
 
 warning: unused variable: `base`
-    --> src/ownership_proof/raw_vec.rs:1346:9
+    --> src/ownership_proof/raw_vec.rs:1342:9
      |
-1346 |     let base = bound.as_ptr();
+1342 |     let base = bound.as_ptr();
      |         ^^^^ help: if this is intentional, prefix it with an underscore: `_base`
 
 warning: unused variable: `from_auth`
@@ -1212,14 +1212,17 @@ warning: function `reallocate_u8` is never used
 25 | pub(crate) unsafe fn reallocate_u8(base: *mut u8, old_capacity: usize, capacity: usize) -> core::ptr::NonNull<u8> {
    |                      ^^^^^^^^^^^^^
 
-warning: method `dispose_shared` is never used
-   --> src/bytes.rs:329:26
+warning: methods `dispose_shared` and `dispose_boxed` are never used
+   --> src/bytes.rs:343:26
     |
-263 | impl Bytes {
-    | ---------- method in this implementation
+277 | impl Bytes {
+    | ---------- methods in this implementation
 ...
-329 |     pub(crate) unsafe fn dispose_shared(
+343 |     pub(crate) unsafe fn dispose_shared(
     |                          ^^^^^^^^^^^^^^
+...
+382 |     pub(crate) unsafe fn dispose_boxed(self) {
+    |                          ^^^^^^^^^^^^^
 
 warning: constant `ORIGINAL_CAPACITY_MASK` is never used
    --> src/bytes_mut.rs:823:7
@@ -1370,9 +1373,9 @@ warning: function `pointer_with_address` is never used
     |               ^^^^^^^^^^^^^^^^^^^^
 
 warning: function `metadata_pointer` is never used
-   --> src/provenance_specs.rs:166:15
+   --> src/provenance_specs.rs:143:15
     |
-166 | pub(crate) fn metadata_pointer(addr: usize) -> *mut u8 {
+143 | pub(crate) fn metadata_pointer(addr: usize) -> *mut u8 {
     |               ^^^^^^^^^^^^^^^^
 
 warning: function `detach_bound_vec` is never used
@@ -1391,93 +1394,84 @@ warning: method `join` is never used
     |                   ^^^^
 
 warning: function `slots_grown` is never used
-  --> src/ownership_proof/raw_vec.rs:97:4
+  --> src/ownership_proof/raw_vec.rs:93:4
    |
-97 | fn slots_grown(old: SlotMap, old_capacity: Int, capacity: Int) -> SlotMap {
+93 | fn slots_grown(old: SlotMap, old_capacity: Int, capacity: Int) -> SlotMap {
    |    ^^^^^^^^^^^
 
 warning: function `reallocate_bound` is never used
-   --> src/ownership_proof/raw_vec.rs:128:22
+   --> src/ownership_proof/raw_vec.rs:124:22
     |
-128 | pub(crate) unsafe fn reallocate_bound(base: BoundPtr, old_capacity: usize, capacity: usize,
+124 | pub(crate) unsafe fn reallocate_bound(base: BoundPtr, old_capacity: usize, capacity: usize,
     |                      ^^^^^^^^^^^^^^^^
 
-warning: associated items `unbound`, `offset_from_bound_base`, and `retreat_within` are never used
-   --> src/ownership_proof/raw_vec.rs:407:19
+warning: associated items `unbound` and `retreat_within` are never used
+   --> src/ownership_proof/raw_vec.rs:403:19
     |
-385 | impl BoundPtr {
+381 | impl BoundPtr {
     | ------------- associated items in this implementation
 ...
-407 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
+403 |     pub(crate) fn unbound(pointer: NonNull<u8>) -> Self {
     |                   ^^^^^^^
 ...
-454 |     pub(crate) fn offset_from_bound_base(&self, base: Self) -> usize {
-    |                   ^^^^^^^^^^^^^^^^^^^^^^
-...
-466 |     pub(crate) fn retreat_within(&self, count: usize) -> Self {
+462 |     pub(crate) fn retreat_within(&self, count: usize) -> Self {
     |                   ^^^^^^^^^^^^^^
 
 warning: method `join` is never used
-   --> src/ownership_proof/raw_vec.rs:829:19
+   --> src/ownership_proof/raw_vec.rs:825:19
     |
-700 | impl PhysicalRegion {
+696 | impl PhysicalRegion {
     | ------------------- method in this implementation
 ...
-829 |     pub(crate) fn join(self, other: Self) -> Self {
+825 |     pub(crate) fn join(self, other: Self) -> Self {
     |                   ^^^^
 
 warning: function `detach_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1057:15
+    --> src/ownership_proof/raw_vec.rs:1053:15
      |
-1057 | pub(crate) fn detach_vec(
+1053 | pub(crate) fn detach_vec(
      |               ^^^^^^^^^^
 
 warning: function `deallocate_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1306:22
+    --> src/ownership_proof/raw_vec.rs:1302:22
      |
-1306 | pub(crate) unsafe fn deallocate_vec(
+1302 | pub(crate) unsafe fn deallocate_vec(
      |                      ^^^^^^^^^^^^^^
 
-warning: function `deallocate_bound_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1341:22
-     |
-1341 | pub(crate) unsafe fn deallocate_bound_vec(
-     |                      ^^^^^^^^^^^^^^^^^^^^
-
 warning: function `borrow_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1390:22
+    --> src/ownership_proof/raw_vec.rs:1386:22
      |
-1390 | pub(crate) unsafe fn borrow_mut<'a>(
+1386 | pub(crate) unsafe fn borrow_mut<'a>(
      |                      ^^^^^^^^^^
 
 warning: function `slot_known_equivalence` is never used
-    --> src/ownership_proof/raw_vec.rs:1412:15
+    --> src/ownership_proof/raw_vec.rs:1408:15
      |
-1412 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
+1408 | pub(crate) fn slot_known_equivalence(slot: Option<Option<u8>>) {}
      |               ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1451:22
+    --> src/ownership_proof/raw_vec.rs:1447:22
      |
-1451 | pub(crate) unsafe fn borrow_bound_mut<'a>(
+1447 | pub(crate) unsafe fn borrow_bound_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound` is never used
-    --> src/ownership_proof/raw_vec.rs:1575:22
+    --> src/ownership_proof/raw_vec.rs:1571:22
      |
-1575 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
+1571 | pub(crate) unsafe fn borrow_empty_bound<'a>(bound: &'a BoundPtr) -> &'a [u8] {
      |                      ^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1584:22
+    --> src/ownership_proof/raw_vec.rs:1580:22
      |
-1584 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
+1580 | pub(crate) unsafe fn borrow_empty_bound_mut<'a>(bound: &'a BoundPtr) -> &'a mut [u8] {
      |                      ^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `borrow_empty_bound_uninit_mut` is never used
-    --> src/ownership_proof/raw_vec.rs:1592:22
+    --> src/ownership_proof/raw_vec.rs:1588:22
      |
-1592 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
+1588 | pub(crate) unsafe fn borrow_empty_bound_uninit_mut<'a>(
      |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: function `with_capacity_bound` is never used
@@ -1607,9 +1601,9 @@ warning: method `into_inner` is never used
     |                       ^^^^^^^^^^
 
 warning: missing documentation for an associated function
-   --> src/bytes.rs:385:5
+   --> src/bytes.rs:460:5
     |
-385 |     pub fn new() -> Self {
+460 |     pub fn new() -> Self {
     |     ^^^^^^^^^^^^^^^^^^^^
     |
 note: the lint level is defined here
@@ -1619,9 +1613,9 @@ note: the lint level is defined here
     |         ^^^^^^^^^^^^
 
 warning: missing documentation for an associated function
-   --> src/bytes.rs:442:5
+   --> src/bytes.rs:517:5
     |
-442 |     pub fn from_static(bytes: &'static [u8]) -> Self {
+517 |     pub fn from_static(bytes: &'static [u8]) -> Self {
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: calling external function `is_empty` with no contract will yield an impossible precondition
@@ -3615,57 +3609,57 @@ warning: calling external function `handle_alloc_error` with no contract will yi
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `new` with no contract will yield an impossible precondition
-   --> src/bytes.rs:454:19
+   --> src/bytes.rs:529:19
     |
-454 |             data: BytesDataCell::new(ptr::null_mut()),
+529 |             data: BytesDataCell::new(ptr::null_mut()),
     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-   --> src/bytes.rs:819:46
+   --> src/bytes.rs:894:46
     |
-819 |             return Bytes::new_empty_with_ptr(self.ptr.wrapping_add(at));
+894 |             return Bytes::new_empty_with_ptr(self.ptr.wrapping_add(at));
     |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-   --> src/bytes.rs:868:27
+   --> src/bytes.rs:943:27
     |
-868 |             let end_ptr = self.ptr.wrapping_add(at);
+943 |             let end_ptr = self.ptr.wrapping_add(at);
     |                           ^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1103:22
+    --> src/bytes.rs:1178:22
      |
-1103 |         { self.ptr = self.ptr.add(by); }
+1178 |         { self.ptr = self.ptr.add(by); }
      |                      ^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `hash` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1198:9
+    --> src/bytes.rs:1273:9
      |
-1198 |         self.as_slice().hash(state);
+1273 |         self.as_slice().hash(state);
      |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `into_bytes` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1755:21
+    --> src/bytes.rs:1853:21
      |
-1755 |         Bytes::from(s.into_bytes())
+1853 |         Bytes::from(s.into_bytes())
      |                     ^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1796:17
+    --> src/bytes.rs:1894:17
      |
-1796 |     let slice = slice::from_raw_parts(ptr, len);
+1894 |     let slice = slice::from_raw_parts(ptr, len);
      |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1801:17
+    --> src/bytes.rs:1899:17
      |
-1801 |     let slice = slice::from_raw_parts(ptr, len);
+1899 |     let slice = slice::from_raw_parts(ptr, len);
      |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:2421:5
+    --> src/bytes.rs:2546:5
      |
-2421 |     core::ptr::null::<u8>().wrapping_add(ptr)
+2546 |     core::ptr::null::<u8>().wrapping_add(ptr)
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
@@ -3722,5 +3716,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 379 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 14.65s
+warning: `bytes` (lib) generated 378 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.45s

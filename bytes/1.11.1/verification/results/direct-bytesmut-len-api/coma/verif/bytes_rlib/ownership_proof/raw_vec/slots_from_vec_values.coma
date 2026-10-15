@@ -1,18 +1,18 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 74 0 74 81 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 70 0 70 81 *)
 
 type namespace_other
 
 type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
-let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 75 18 78 10
-let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 69 11 69 25
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 70 10 73 6
-let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 52 10 52 18
-let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 45 11 45 24
-let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 46 10 47 36
-let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 48 10 51 6
-let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 54 4 64 5
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 71 18 74 10
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 65 11 65 25
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 66 10 69 6
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 48 10 48 18
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 41 11 41 24
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 42 10 43 36
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 44 10 47 6
+let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 50 4 60 5
 let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
 let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
 let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 45 14 45 31
@@ -73,7 +73,7 @@ axiom insert_Int_spec'0:
   forall self: t_FMap_Int_Excl_Option_u8, k: int, v: t_Excl_Option_u8 [insert_Int self k v]. [%#sfmap'4] len_Int (insert_Int self k v)
     = (if contains_Int self k then len_Int self else len_Int self + 1)
 
-function slots_from_vec [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 53 0 53 62] (contents: Seq.seq UInt8.t) (capacity: int) : t_FMap_Int_Excl_Option_u8
+function slots_from_vec [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 49 0 49 62] (contents: Seq.seq UInt8.t) (capacity: int) : t_FMap_Int_Excl_Option_u8
 
 axiom slots_from_vec_def:
   forall contents: Seq.seq UInt8.t, capacity: int [slots_from_vec contents capacity]. ([%#sraw_vec'3] 0 <= capacity)
@@ -104,7 +104,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let slots_from_vec_values [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 74 0 74 81]
+let slots_from_vec_values [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 70 0 70 81]
   (contents: Seq.seq UInt8.t) (capacity: UInt64.t) (return (x: ())) =
 {[@stop_split] [@expl:slots_from_vec_values requires] [%#sraw_vec'0] 0 <= UInt64.t'int capacity}
   (! bb0

@@ -136,29 +136,6 @@ pub(crate) fn pointer_with_address(ptr: *mut u8, new_addr: usize) -> *mut u8 {
     wrapping_offset(ptr, diff)
 }
 
-/// Convert a numerical address back into a raw pointer for metadata tagging.
-///
-/// This operation exposes only the requested address. In ordinary builds it
-/// matches the integer-to-pointer cast used by `bytes`' existing `ptr_map`;
-/// Miri uses a provenance-preserving offset so pointer diagnostics remain
-/// useful. Neither implementation establishes allocation ownership or grants
-/// dereference permission.
-#[cfg_attr(creusot, trusted)]
-#[cfg_attr(creusot, ensures(result.addr_logic() == new_addr))]
-#[inline]
-pub(crate) fn pointer_from_integer_address(ptr: *mut u8, new_addr: usize) -> *mut u8 {
-    #[cfg(miri)]
-    {
-        let old_addr = pointer_addr(ptr);
-        ptr.wrapping_add(new_addr.wrapping_sub(old_addr))
-    }
-    #[cfg(not(miri))]
-    {
-        let _ = ptr;
-        new_addr as *mut u8
-    }
-}
-
 /// Build a provenance-less pointer used only to store integer metadata in a
 /// pointer-typed field. No allocation permission is associated with it.
 #[cfg_attr(creusot, ensures(result.addr_logic() == addr))]

@@ -44,9 +44,11 @@ representation, vtable-identity, or lifecycle claim.
 
 Replacement path: move the one-byte capacity bound into the upstream Vec
 capacity contract; replace B1-BOX-VEC with upstream Vec/Box raw-parts contracts
-and a body proof of the source transfer; and replace the trusted numerical
-integer-to-pointer adapter with an upstream pointer-cast contract or a body
-proof of the standard operation.
+and a body proof of the source transfer; and replace STD-PTRWRAP-01/02 with
+upstream exact contracts for the one-byte wrapping-add and wrapping-offset
+operations, or body-prove those standard operations. These pointer contracts
+state exact nonwrapping offsets only and grant no allocation or dereference
+authority.
 
 The installer refuses an unexpected stock package, patch hash, private
 destination, candidate tree, or conflicting Cargo override. It never replaces

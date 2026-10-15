@@ -143,6 +143,13 @@ This is limited to that internal proof carrier; it does not prove public
 `From<Vec>` or `From<Box>` contracts, `Buf::chunk`, `AsRef`, `Deref`, other
 readonly `Bytes` states, or destruction.
 
+The original `free_boxed_slice` body now shares its actual base/view/length
+capacity calculation with an explicit unsafe `Bytes::dispose_boxed` entry.
+That proof entry consumes the boxed sidecar's real B1 recovery and full-region
+authority through the existing B3 boundary. It applies only to the unpromoted
+full boxed view; ordinary vtable-driven Drop and cleanup callbacks remain
+unproved.
+
 This increment also body-proves `make_count_two_packets`, a generic constructor
 for one count-two event payload and its two Mutable owner packets. Under a precondition that
 the actual active-owner map covers the full allocation, it places the exact

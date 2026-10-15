@@ -18,6 +18,9 @@ Bytes-specific ownership/refcount/last-owner/destructor laws need body proofs.
 Reviewed generic physical/library/tool boundaries may be trusted with strong
 contracts, native interpretation and a replacement path. Consult pinned Std and
 upstream examples when blocked. A separate model is not implementation coverage.
+Missing generic creusot-std contracts may be supplied through helpers without
+separate approval; Bytes-specific ownership/refcount/split/final-free laws still
+require body proofs.
 
 The current runner translates the original crate source directly with the
 verification-only `bytes_original_unique_gate`. Do not update saved input hashes

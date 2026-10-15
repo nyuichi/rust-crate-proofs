@@ -14,10 +14,6 @@
 //! alone proves no allocation liveness. B2 consumes full Recovery and region
 //! coverage before rebuilding the standard Vec.
 
-#[cfg(not(creusot))]
-#[path = "../allocation_ops.rs"]
-mod allocation_ops;
-
 use alloc::vec::Vec;
 use core::{mem::ManuallyDrop, ptr::NonNull};
 
@@ -128,7 +124,7 @@ fn slots_grown(old: SlotMap, old_capacity: Int, capacity: Int) -> SlotMap {
 pub(crate) unsafe fn reallocate_bound(base: BoundPtr, old_capacity: usize, capacity: usize,
     capabilities: Ghost<(Recovery, PhysicalRegion)>) -> (BoundPtr, Ghost<(Recovery, PhysicalRegion)>) {
     #[cfg(not(creusot))]
-    let pointer = unsafe { allocation_ops::reallocate_u8(base.pointer.as_ptr(), old_capacity, capacity) };
+    let pointer = unsafe { crate::allocation_ops::reallocate_u8(base.pointer.as_ptr(), old_capacity, capacity) };
     #[cfg(creusot)]
     let pointer = base.pointer;
     let slots = snapshot! { slots_grown(capabilities.inner_logic().1.ledger.slots(), old_capacity@, capacity@) };
@@ -1312,7 +1308,7 @@ pub(crate) unsafe fn deallocate_vec(
     // SAFETY: B1 supplied the exact base/capacity/layout and B3 requires the
     // unique recovery marker plus complete physical-region authority.
     #[cfg(not(creusot))]
-    unsafe { allocation_ops::deallocate_u8(base.as_ptr(), capacity); }
+    unsafe { crate::allocation_ops::deallocate_u8(base.as_ptr(), capacity); }
 }
 
 /// Deallocate through a sealed offset-zero [`BoundPtr`] descriptor.
@@ -1348,7 +1344,7 @@ pub(crate) unsafe fn deallocate_bound_vec(
     // SAFETY: the sealed descriptor maps this pointer to the original B1 base,
     // and the full affine capabilities are consumed by this B3 boundary.
     #[cfg(not(creusot))]
-    unsafe { allocation_ops::deallocate_u8(base, capacity); }
+    unsafe { crate::allocation_ops::deallocate_u8(base, capacity); }
 }
 
 /// Borrow a nonempty initialized interval from the B1 allocation.

@@ -95,6 +95,14 @@ struct OriginalBoxedProof {
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
+struct BoxedReleaseProof {
+    base: BoundPtr,
+    view: BoundPtr,
+    view_offset: usize,
+    capabilities: Ghost<(Recovery, PhysicalRegion)>,
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
 impl Bytes {
     /// The Bytes view produced by consuming a nonempty boxed slice is backed
     /// by the exact B1 allocation and full initialized region returned while
@@ -124,6 +132,12 @@ impl Bytes {
                             self.ptr.addr_logic()@ + 1
                         } else {
                             self.ptr.addr_logic()@
+                        }) &&
+                    proof.data_cell_permission.inner_logic().val() as *mut u8 == (
+                        if proof.even_pointer {
+                            proof.base.raw_pointer().offset_logic(1)
+                        } else {
+                            proof.base.raw_pointer()
                         }) &&
                     (*proof.contents).len() == self.len@ &&
                     forall<i:Int> 0 <= i && i < self.len@ ==>
@@ -353,6 +367,67 @@ impl Bytes {
             let ptr = this.data.with_mut(|ptr| *ptr);
             core::mem::forget(this);
             crate::bytes_mut::release_readonly_shared(ptr)
+        }
+    }
+
+    /// Explicitly release a nonempty, full-view boxed-slice handle through the
+    /// same source cleanup function used by the vtable path.
+    ///
+    /// # Safety
+    /// The handle must be the unpromoted full view produced directly from a
+    /// nonempty boxed slice. It must not have been cloned, sliced, converted,
+    /// or otherwise transferred before this call.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.original_boxed_valid()))]
+    #[cfg_attr(all(creusot, not(bytes_original_unique_gate)), creusot::no_translate)]
+    pub(crate) unsafe fn dispose_boxed(self) {
+        let mut this = self;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let boxed = this.original_boxed.take().unwrap();
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let mut permission = ghost! { boxed.data_cell_permission.into_inner() };
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let tagged = crate::loom::sync::atomic::NativePtr::exclusive_read(
+            &mut this.data,
+            ghost!(&mut *permission),
+        );
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let tagged = this.data.with_mut(|ptr| *ptr);
+        let even_pointer = crate::provenance_specs::pointer_addr(this.ptr) % 2 == 0;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        proof_assert!(even_pointer == boxed.even_pointer);
+        let native_buf = if even_pointer {
+            untagged_vec_data_pointer(tagged.cast())
+        } else {
+            tagged.cast()
+        };
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let base = boxed.base;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let capabilities = boxed.capabilities;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        proof_assert!(native_buf == base.raw_pointer());
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let view = base;
+        let view_ptr = this.ptr;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        proof_assert!(view_ptr == view.raw_pointer() as *const u8);
+        let len = this.len;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let release = BoxedReleaseProof {
+            base,
+            view,
+            view_offset: 0,
+            capabilities,
+        };
+        core::mem::forget(this);
+        unsafe {
+            free_boxed_slice(
+                native_buf,
+                view_ptr,
+                len,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                Some(release),
+            )
         }
     }
 
@@ -1545,13 +1620,36 @@ pub(crate) fn boxed_slice_into_raw(slice: Box<[u8]>) -> *mut [u8] {
 #[cfg_attr(all(creusot, any(bytes_original_freeze_gate, bytes_original_unique_gate)), ensures(
     result.addr_logic()@ == ptr.addr_logic()@ + 1
 ))]
+#[cfg_attr(all(creusot, any(bytes_original_freeze_gate, bytes_original_unique_gate)), ensures(
+    result == ptr.offset_logic(1)
+))]
 fn tagged_vec_data_pointer(ptr: *mut u8) -> *mut u8 {
-    let addr = crate::provenance_specs::pointer_addr(ptr);
-    // Setting KIND_VEC on an even address is exactly adding one. Keep the OR
-    // expression for odd inputs so the helper retains ptr_map's full native
-    // address behavior, although callers pass only even pointers.
-    let tagged_addr = if addr % 2 == 0 { addr + KIND_VEC } else { addr | KIND_VEC };
-    crate::provenance_specs::pointer_from_integer_address(ptr, tagged_addr)
+    crate::provenance_specs::wrapping_offset(ptr, KIND_VEC)
+}
+
+#[cfg_attr(all(creusot, any(bytes_original_freeze_gate, bytes_original_unique_gate)), requires(
+    ptr.addr_logic()@ % 2 == 1
+))]
+#[cfg_attr(all(creusot, any(bytes_original_freeze_gate, bytes_original_unique_gate)), ensures(
+    result.addr_logic()@ + 1 == ptr.addr_logic()@
+))]
+#[cfg_attr(all(creusot, any(bytes_original_freeze_gate, bytes_original_unique_gate)), ensures(
+    result == ptr.offset_logic(-1)
+))]
+fn untagged_vec_data_pointer(ptr: *mut u8) -> *mut u8 {
+    crate::provenance_specs::signed_wrapping_offset(ptr, -1)
+}
+
+#[cfg_attr(creusot, requires(base_addr@ <= view_addr@))]
+#[cfg_attr(creusot, requires(view_addr@ - base_addr@ + len@ <= usize::MAX@))]
+#[cfg_attr(creusot, ensures(result@ == view_addr@ - base_addr@ + len@))]
+#[inline]
+fn boxed_slice_capacity_from_addresses(
+    base_addr: usize,
+    view_addr: usize,
+    len: usize,
+) -> usize {
+    view_addr - base_addr + len
 }
 
 #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base.invariant()))]
@@ -1943,7 +2041,7 @@ unsafe fn promotable_even_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize
         shallow_clone_arc(shared.cast(), ptr, len)
     } else {
         debug_assert_eq!(kind, KIND_VEC);
-        let buf = ptr_map(shared.cast(), |addr| addr & !KIND_MASK);
+        let buf = untagged_vec_data_pointer(shared.cast());
         shallow_clone_vec(data, shared, buf, ptr, len)
     }
 }
@@ -2012,14 +2110,14 @@ unsafe fn promotable_to_mut(
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_even_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {
     promotable_to_vec(data, ptr, len, |shared| {
-        ptr_map(shared.cast(), |addr| addr & !KIND_MASK)
+        untagged_vec_data_pointer(shared.cast())
     })
 }
 
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn promotable_even_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {
     promotable_to_mut(data, ptr, len, |shared| {
-        ptr_map(shared.cast(), |addr| addr & !KIND_MASK)
+        untagged_vec_data_pointer(shared.cast())
     })
 }
 
@@ -2033,8 +2131,14 @@ unsafe fn promotable_even_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: us
             release_shared(shared.cast());
         } else {
             debug_assert_eq!(kind, KIND_VEC);
-            let buf = ptr_map(shared.cast(), |addr| addr & !KIND_MASK);
-            free_boxed_slice(buf, ptr, len);
+            let buf = untagged_vec_data_pointer(shared.cast());
+            free_boxed_slice(
+                buf,
+                ptr,
+                len,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            );
         }
     });
 }
@@ -2073,7 +2177,13 @@ unsafe fn promotable_odd_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usi
         } else {
             debug_assert_eq!(kind, KIND_VEC);
 
-            free_boxed_slice(shared.cast(), ptr, len);
+            free_boxed_slice(
+                shared.cast(),
+                ptr,
+                len,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            );
         }
     });
 }
@@ -2091,10 +2201,54 @@ unsafe fn promotable_is_unique(data: &AtomicPtr<()>) -> bool {
     }
 }
 
-#[cfg_attr(creusot, creusot::no_translate)]
-unsafe fn free_boxed_slice(buf: *mut u8, offset: *const u8, len: usize) {
-    let cap = offset.offset_from(buf) as usize + len;
-    dealloc(buf, Layout::from_size_align(cap, 1).unwrap())
+#[cfg_attr(all(creusot, not(bytes_original_unique_gate)), creusot::no_translate)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match proof {
+    Some(release) => {
+        release.base.invariant() && release.view.invariant() &&
+        release.capabilities.inner_logic().0.invariant() &&
+        release.capabilities.inner_logic().1.invariant() &&
+        buf == release.base.raw_pointer() &&
+        offset == release.view.raw_pointer() as *const u8 &&
+        release.base@ == Some((release.capabilities.inner_logic().0.namespace(),
+            release.capabilities.inner_logic().0.capacity(), 0int)) &&
+        release.view@ == Some((release.capabilities.inner_logic().0.namespace(),
+            release.capabilities.inner_logic().0.capacity(), release.view_offset@)) &&
+        release.base.current_address() + release.view_offset@ == release.view.current_address() &&
+        release.view_offset@ + len@ == release.capabilities.inner_logic().0.capacity() &&
+        buf.addr_logic()@ <= offset.addr_logic()@ &&
+        offset.addr_logic()@ - buf.addr_logic()@ + len@ <= usize::MAX@ &&
+        release.capabilities.inner_logic().1.capacity() == release.capabilities.inner_logic().0.capacity() &&
+        release.capabilities.inner_logic().1.namespace() == release.capabilities.inner_logic().0.namespace() &&
+        release.capabilities.inner_logic().1.resource_id() == release.capabilities.inner_logic().0.namespace() &&
+        release.capabilities.inner_logic().1.lo() == 0 &&
+        release.capabilities.inner_logic().1.hi() == release.capabilities.inner_logic().0.capacity()
+    },
+    None => false,
+}))]
+unsafe fn free_boxed_slice(
+    buf: *mut u8,
+    offset: *const u8,
+    len: usize,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    proof: Option<BoxedReleaseProof>,
+) {
+    let cap = boxed_slice_capacity_from_addresses(
+        crate::provenance_specs::pointer_addr(buf),
+        crate::provenance_specs::pointer_addr(offset.cast_mut()),
+        len,
+    );
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    if let Some(release) = proof {
+        let described_offset = release.view.offset_from_bound_base(release.base);
+        proof_assert!(described_offset@ == release.view_offset@);
+        proof_assert!(buf.addr_logic()@ == release.base.current_address());
+        proof_assert!(offset.addr_logic()@ == release.view.current_address());
+        proof_assert!(cap@ == release.view_offset@ + len@);
+        proof_assert!(cap@ == release.capabilities.inner_logic().0.capacity());
+        unsafe { raw_vec::deallocate_bound_vec(release.base, cap, release.capabilities) };
+    }
+    #[cfg(not(creusot))]
+    crate::allocation_ops::deallocate_u8(buf, cap)
 }
 
 // ===== impl SharedVtable =====
@@ -2386,35 +2540,6 @@ unsafe fn free_shared(ptr: *mut Shared) {
     let cap = (*ptr).cap;
     dealloc(buf, Layout::from_size_align(cap, 1).unwrap());
     dealloc(ptr.cast(), Layout::new::<Shared>());
-}
-
-// Ideally we would always use this version of `ptr_map` since it is strict
-// provenance compatible, but it results in worse codegen. We will however still
-// use it on miri because it gives better diagnostics for people who test bytes
-// code with miri.
-//
-// See https://github.com/tokio-rs/bytes/pull/545 for more info.
-#[cfg(miri)]
-#[cfg_attr(creusot, creusot::no_translate)]
-fn ptr_map<F>(ptr: *mut u8, f: F) -> *mut u8
-where
-    F: FnOnce(usize) -> usize,
-{
-    let old_addr = ptr as usize;
-    let new_addr = f(old_addr);
-    let diff = new_addr.wrapping_sub(old_addr);
-    ptr.wrapping_add(diff)
-}
-
-#[cfg(not(miri))]
-#[cfg_attr(creusot, creusot::no_translate)]
-fn ptr_map<F>(ptr: *mut u8, f: F) -> *mut u8
-where
-    F: FnOnce(usize) -> usize,
-{
-    let old_addr = ptr as usize;
-    let new_addr = f(old_addr);
-    new_addr as *mut u8
 }
 
 fn without_provenance(ptr: usize) -> *const u8 {

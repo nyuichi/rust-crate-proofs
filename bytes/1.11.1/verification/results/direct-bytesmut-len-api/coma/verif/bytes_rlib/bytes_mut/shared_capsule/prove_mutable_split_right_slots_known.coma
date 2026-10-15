@@ -5,15 +5,15 @@ type namespace_other
 type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
-let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1407 16 1407 59
-let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 727 14 727 43
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 708 20 708 30
-let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 713 20 713 27
-let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 718 20 718 27
-let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 723 20 723 30
-let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 703 20 703 30
-let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1403 16 1403 59
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 723 14 723 43
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 704 20 704 30
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 709 20 709 27
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 714 20 714 27
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 719 20 719 30
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 699 20 699 30
 let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
 let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 264 18 266 43
 let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 238 11 243 1
 let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 244 11 244 30
@@ -36,7 +36,7 @@ type t_Option_u8 = None | Some UInt8.t
 
 type t_Option_Option_u8 = None'0 | Some'0 t_Option_u8
 
-predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1406 0 1406 58] (slot: t_Option_Option_u8) =
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1402 0 1402 58] (slot: t_Option_Option_u8) =
   [%#sraw_vec] exists value: UInt8.t. slot = Some'0 (Some value)
 
 type t_PhysicalRegion
@@ -82,9 +82,9 @@ axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#so
 
 type tup3_OwnedRegion_Int_Id = { f0'3: t_OwnedRegion; f1'3: int; f2'3: t_Id }
 
-function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 677 4 677 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 673 4 673 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
 
-function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 728 4 728 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 724 4 724 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
 
 axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'0] slot'0 self index
     = slot (view_PhysicalRegion self).f0'3 index
@@ -136,19 +136,19 @@ axiom mutable_owner_ticket_split_result_spec:
 
 type tup2_PhysicalRegion_PhysicalRegion = { f0'7: t_PhysicalRegion; f1'7: t_PhysicalRegion }
 
-function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 712 4 712 39] (self: t_PhysicalRegion) : t_Id
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 708 4 708 39] (self: t_PhysicalRegion) : t_Id
  = [%#sraw_vec'2] (view_PhysicalRegion self).f2'3
 
-function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 717 4 717 39] (self: t_PhysicalRegion) : int
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 713 4 713 39] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'3] (view_PhysicalRegion self).f1'3
 
-function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 722 4 722 41] (self: t_PhysicalRegion) : t_Id
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 718 4 718 41] (self: t_PhysicalRegion) : t_Id
  = [%#sraw_vec'4] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f2'2
 
-function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 702 4 702 33] (self: t_PhysicalRegion) : int
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 698 4 698 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'5] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f0'2
 
-function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 707 4 707 33] (self: t_PhysicalRegion) : int
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 703 4 703 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'1] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f1'2
 
 predicate mutable_owner_region_split_bounds_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 173 0 177 9] (before: t_PhysicalRegion) (cut: int) (split: tup2_PhysicalRegion_PhysicalRegion)
