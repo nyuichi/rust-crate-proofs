@@ -1,5 +1,9 @@
 #[cfg(all(creusot, bytes_original_freeze_gate))]
 use creusot_std::{prelude::*, ghost::perm::Perm};
+#[cfg(all(creusot, bytes_original_unique_gate))]
+use creusot_std::prelude::*;
+#[cfg(all(creusot, bytes_original_unique_gate))]
+use creusot_std::logic::Id;
 #[cfg(all(creusot, bytes_original_freeze_gate))]
 use crate::ownership_proof::{raw_vec::{self, BoundPtr, Recovery, PhysicalRegion, slot_known}, boxed_alignment};
 #[cfg(all(creusot, bytes_original_shared_gate))]
@@ -71,6 +75,84 @@ impl Bytes {
     #[logic(open(self))]
     pub(crate) fn original_frozen_pointer(self) -> *const u8 { self.ptr }
 }
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+impl Bytes {
+    /// The readonly packet carried by a BytesMut ARC freeze agrees with this
+    /// handle's concrete view. This records the owner transition and pointer
+    /// view; vtable-driven read and release behavior remain separate proof
+    /// obligations.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn readonly_packet_valid(self) -> bool {
+        pearlite! {
+            match self.readonly_packet {
+                Some(packet) =>
+                    packet.invariant() &&
+                    packet.cursor.raw_pointer() as *const u8 == self.ptr &&
+                    packet.len@ == self.len@ &&
+                    packet.cursor.current_address() == self.ptr.addr_logic()@,
+                None => false,
+            }
+        }
+    }
+
+    /// Exact proof projections for the private readonly packet carried by a
+    /// BytesMut ARC freeze. These expose metadata only; the affine ticket and
+    /// region remain in the packet field.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn proof_view_pointer(self) -> *const u8 {
+        self.ptr
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn proof_view_len(self) -> Int {
+        pearlite! { self.len@ }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn readonly_packet_public(self) -> Option<(*mut (), crate::ref_count_ops::NativeCounter, Id, Id)> {
+        pearlite! { match self.readonly_packet {
+            Some(packet) => Some(packet.capsule_public()),
+            None => None,
+        }}
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn readonly_packet_key(self) -> Option<crate::ownership_proof::ready_registry::ReadyKey> {
+        pearlite! { match self.readonly_packet {
+            Some(packet) => Some(packet.lease_key()),
+            None => None,
+        }}
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn readonly_packet_ticket_frame(self) -> Option<(
+        Id,
+        creusot_std::logic::Int,
+        Id,
+        crate::ownership_proof::ref_count_ledger::RefKind,
+        crate::ownership_proof::ref_count_ledger::AllocationBinding,
+        creusot_std::logic::Int,
+        creusot_std::logic::Int,
+    )> {
+        pearlite! { match self.readonly_packet {
+            Some(packet) => {
+                let ticket = packet.ticket.inner_logic();
+                Some((
+                    ticket.ledger_id(),
+                    ticket.owner_id(),
+                    ticket.fragment_resource_id(),
+                    ticket.class(),
+                    ticket.allocation_binding(),
+                    ticket.owned_lo(),
+                    ticket.owned_hi(),
+                ))
+            },
+            None => None,
+        }}
+    }
+}
+
 // Temporary ordinary translation leaves. No atomic value/state, refcount,
 // vtable identity or callback law is assumed. Native branches below still use
 // the exact original core/loom constructors and SHARED_VTABLE reference.
@@ -156,6 +238,8 @@ impl Bytes {
     #[cfg(not(any(all(loom, test), all(creusot, bytes_original_constructor_gate))))]
     pub const fn from_static(bytes: &'static [u8]) -> Self {
         Bytes {
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_packet: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
@@ -169,6 +253,8 @@ impl Bytes {
     #[cfg(all(loom, test, not(all(creusot, bytes_original_constructor_gate))))]
     pub fn from_static(bytes: &'static [u8]) -> Self {
         Bytes {
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_packet: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
@@ -195,6 +281,8 @@ impl Bytes {
         let ptr = without_provenance(ptr as usize);
 
         Bytes {
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_packet: None,
 
             #[cfg(all(creusot, bytes_original_freeze_gate))]
 
@@ -279,6 +367,8 @@ impl Bytes {
         }));
 
         let mut ret = Bytes {
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_packet: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: NonNull::dangling().as_ptr(),
@@ -657,13 +747,41 @@ impl Bytes {
     }
 
     #[inline]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.ptr == ptr))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.len@ == len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.data == data))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.vtable == vtable))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.readonly_packet == readonly_packet))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match readonly_packet {
+        Some(packet) => packet.invariant() &&
+            packet.cursor.raw_pointer() as *const u8 == ptr &&
+            packet.len@ == len@,
+        None => true,
+    }))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match readonly_packet {
+        Some(_) => result.readonly_packet_valid(),
+        None => true,
+    }))]
     pub(crate) unsafe fn with_vtable(
         ptr: *const u8,
         len: usize,
         data: AtomicPtr<()>,
         vtable: &'static Vtable,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_packet: Option<crate::bytes_mut::shared_capsule::SharedReadonlyPacket>,
     ) -> Bytes {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            proof_assert!(match readonly_packet {
+                Some(packet) => packet.invariant() &&
+                    packet.cursor.raw_pointer() as *const u8 == ptr &&
+                    packet.len@ == len@,
+                None => true,
+            });
+        }
         Bytes {
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_packet,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr,
@@ -1105,6 +1223,8 @@ impl From<Vec<u8>> for Bytes {
             "internal: Box<Shared> should have an aligned pointer",
         );
         Bytes {
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_packet: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: Some(OriginalFrozenProof { base, capabilities, shared, shared_owner }),
             ptr,
@@ -1149,6 +1269,8 @@ impl From<Box<[u8]>> for Bytes {
         if ptr as usize & 0x1 == 0 {
             let data = ptr_map(ptr, |addr| addr | KIND_VEC);
             Bytes {
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                readonly_packet: None,
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 original_frozen: None,
                 ptr,
@@ -1158,6 +1280,8 @@ impl From<Box<[u8]>> for Bytes {
             }
         } else {
             Bytes {
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                readonly_packet: None,
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 original_frozen: None,
                 ptr,
@@ -1277,6 +1401,8 @@ unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> By
     crate::ref_count_ops::increment(&*owned.cast::<RefCountCell>());
 
     Bytes {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_packet: None,
 
         #[cfg(all(creusot, bytes_original_freeze_gate))]
 
@@ -1679,6 +1805,8 @@ unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> 
     crate::ref_count_ops::increment(&(*shared).ref_cnt);
 
     Bytes {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_packet: None,
 
         #[cfg(all(creusot, bytes_original_freeze_gate))]
 
@@ -1743,6 +1871,8 @@ unsafe fn shallow_clone_vec(
             // The upgrade was successful, the new handle can be
             // returned.
             Bytes {
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                readonly_packet: None,
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 original_frozen: None,
                 ptr: offset,

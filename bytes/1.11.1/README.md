@@ -56,7 +56,12 @@ retirement and full-range recovery helpers also have body proofs. A checked
 Readonly ticket and returns its actual physical region to the pool, while
 preserving the reference count, storage, lease/release authority, caller
 tokens, and Context entries. This internal path is not connected to public
-`BytesMut::freeze`, readonly byte reads, or readonly release. The original
+`BytesMut::freeze` or readonly byte reads. The common checked release carrier
+also consumes either a Mutable packet with its actual region or a Readonly
+packet with its actual ticket and no region; the Readonly branch leaves the
+pool unchanged. The explicit `dispose_shared` caller currently supplies only a
+Mutable packet, so the frozen-`Bytes` sidecar and its vtable release remain
+unconnected. The original
 `release_shared_common` body now passes its actual stored authority and full
 physical region to the generic `retire_stored_vec` boundary on the final
 release, explicitly destroys the empty replacement VecStorage, and consumes

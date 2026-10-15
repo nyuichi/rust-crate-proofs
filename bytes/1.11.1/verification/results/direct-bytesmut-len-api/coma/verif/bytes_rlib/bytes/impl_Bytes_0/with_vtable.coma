@@ -1,0 +1,228 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 765 4 772 14 *)
+
+(* bytes::Bytes *)
+
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sbytes = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 775 26 780 13
+let%span sbytes'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 768 8 768 12
+let%span sbytes'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 771 8 771 23
+let%span sbytes'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 755 66 760 5
+let%span sbytes'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 772 9 772 14
+let%span sbytes'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 750 65 750 82
+let%span sbytes'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 751 65 751 84
+let%span sbytes'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 752 65 752 84
+let%span sbytes'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 753 65 753 88
+let%span sbytes'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 754 65 754 106
+let%span sbytes'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 761 65 764 5
+let%span sbytes'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 88 12 95 13
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 399 14 399 60
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 372 12 380 13
+let%span sshared = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/shared.rs" 26 8 26 46
+
+use creusot.int.UInt64
+use creusot.prelude.Opaque
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+use creusot.int.Int64
+use int.Int
+
+type t_EventBoundInvariant_SharedPayload
+
+type t_OwnerTicket
+
+type t_BoundPtr
+
+type t_ReadyKey
+
+type t_SharedReadonlyPacket = {
+  capsule: t_EventBoundInvariant_SharedPayload;
+  ticket: t_OwnerTicket;
+  base: t_BoundPtr;
+  cursor: t_BoundPtr;
+  len: UInt64.t;
+  lease_key: t_ReadyKey }
+
+type t_Option_SharedReadonlyPacket = None | Some t_SharedReadonlyPacket
+
+predicate invariant_SharedReadonlyPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2561 4 2561 30] (self: t_SharedReadonlyPacket)
+
+function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 389 4 389 39] (self: t_BoundPtr) : int
+
+function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 400 4 400 46] (self: t_BoundPtr) : Opaque.ptr
+
+axiom raw_pointer_spec:
+  forall self: t_BoundPtr [raw_pointer self]. [%#sraw_vec] UInt64.t'int (Ptr.addr_logic_u64 (raw_pointer self))
+    = current_address self
+
+type t_Atomic_ptr_unit
+
+type t_Vtable = {
+  clone': Opaque.ptr;
+  into_vec: Opaque.ptr;
+  into_mut: Opaque.ptr;
+  is_unique: Opaque.ptr;
+  drop: Opaque.ptr }
+
+type t_Bytes = {
+  ptr'0: Opaque.ptr;
+  len'0: UInt64.t;
+  data'0: t_Atomic_ptr_unit;
+  vtable'0: t_Vtable;
+  readonly_packet'0: t_Option_SharedReadonlyPacket }
+
+predicate inv_Atomic_ptr_unit (_1: t_Atomic_ptr_unit)
+
+predicate resolve_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
+
+predicate invariant_EventBoundInvariant_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 534 8 534 34] (self: t_EventBoundInvariant_SharedPayload)
+
+predicate inv_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
+
+axiom inv_axiom:
+  forall x: t_EventBoundInvariant_SharedPayload [inv_EventBoundInvariant_SharedPayload x]. inv_EventBoundInvariant_SharedPayload x
+    -> invariant_EventBoundInvariant_SharedPayload x
+
+predicate invariant_GhostShared_EventBoundInvariant_SharedPayload (self: t_EventBoundInvariant_SharedPayload) =
+  [%#sshared] resolve_EventBoundInvariant_SharedPayload self /\ inv_EventBoundInvariant_SharedPayload self
+
+predicate inv_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivial] (_1: t_EventBoundInvariant_SharedPayload) =
+  invariant_GhostShared_EventBoundInvariant_SharedPayload _1
+
+meta "rewrite_def" predicate inv_GhostShared_EventBoundInvariant_SharedPayload
+
+predicate invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivial] (self: t_EventBoundInvariant_SharedPayload) =
+  [%#sghost] inv_GhostShared_EventBoundInvariant_SharedPayload self
+
+meta "rewrite_def" predicate invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload
+
+predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivial] (_1: t_EventBoundInvariant_SharedPayload) =
+  invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload _1
+
+meta "rewrite_def" predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload
+
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 383 4 383 30] (self: t_OwnerTicket)
+
+predicate inv_OwnerTicket (_1: t_OwnerTicket)
+
+axiom inv_axiom'0: forall x: t_OwnerTicket [inv_OwnerTicket x]. inv_OwnerTicket x -> invariant_OwnerTicket x
+
+predicate invariant_Ghost_OwnerTicket [@inline:trivial] (self: t_OwnerTicket) = [%#sghost] inv_OwnerTicket self
+
+meta "rewrite_def" predicate invariant_Ghost_OwnerTicket
+
+predicate inv_Ghost_OwnerTicket [@inline:trivial] (_1: t_OwnerTicket) = invariant_Ghost_OwnerTicket _1
+
+meta "rewrite_def" predicate inv_Ghost_OwnerTicket
+
+type t_Id
+
+type tup3_Id_Int_Int = { f0: t_Id; f1: int; f2: int }
+
+type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 353 4 353 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 370 4 370 30] (self: t_BoundPtr) =
+  [%#sraw_vec'0] match view_BoundPtr self with
+    | None'0 -> true
+    | Some'0 {f1 = allocation_capacity; f2 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity
+    /\ allocation_capacity <= Int64.to_int const_MAX
+    /\ absolute_offset < current_address self
+    /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
+    end
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom'1: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> invariant_BoundPtr x
+
+predicate inv_ReadyKey (_1: t_ReadyKey)
+
+predicate invariant_Ghost_ReadyKey [@inline:trivial] (self: t_ReadyKey) = [%#sghost] inv_ReadyKey self
+
+meta "rewrite_def" predicate invariant_Ghost_ReadyKey
+
+predicate inv_Ghost_ReadyKey [@inline:trivial] (_1: t_ReadyKey) = invariant_Ghost_ReadyKey _1
+
+meta "rewrite_def" predicate inv_Ghost_ReadyKey
+
+predicate inv_SharedReadonlyPacket (_1: t_SharedReadonlyPacket)
+
+axiom inv_axiom'2 [@rewrite]: forall x: t_SharedReadonlyPacket [inv_SharedReadonlyPacket x]. inv_SharedReadonlyPacket x
+    = (invariant_SharedReadonlyPacket x
+    /\ inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload x.capsule
+    /\ inv_Ghost_OwnerTicket x.ticket /\ inv_BoundPtr x.base /\ inv_BoundPtr x.cursor /\ inv_Ghost_ReadyKey x.lease_key)
+
+predicate inv_Option_SharedReadonlyPacket (_1: t_Option_SharedReadonlyPacket)
+
+axiom inv_axiom'3 [@rewrite]:
+  forall x: t_Option_SharedReadonlyPacket [inv_Option_SharedReadonlyPacket x]. inv_Option_SharedReadonlyPacket x
+    = match x with
+      | None -> true
+      | Some f0'0 -> inv_SharedReadonlyPacket f0'0
+      end
+
+predicate inv_Bytes (_1: t_Bytes)
+
+axiom inv_axiom'4 [@rewrite]: forall x: t_Bytes [inv_Bytes x]. inv_Bytes x
+    = (inv_Atomic_ptr_unit x.data'0 /\ inv_Option_SharedReadonlyPacket x.readonly_packet'0)
+
+predicate readonly_packet_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 86 4 86 53] (self: t_Bytes) =
+  [%#sbytes'10] match self.readonly_packet'0 with
+    | Some packet -> invariant_SharedReadonlyPacket packet
+    /\ raw_pointer packet.cursor = self.ptr'0
+    /\ UInt64.t'int packet.len = UInt64.t'int self.len'0
+    /\ current_address packet.cursor = UInt64.t'int (Ptr.addr_logic_u64 self.ptr'0)
+    | None -> false
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let with_vtable [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 765 4 772 14] (ptr: Opaque.ptr)
+  (len'1: UInt64.t) (data: t_Atomic_ptr_unit) (vtable: t_Vtable) (readonly_packet: t_Option_SharedReadonlyPacket)
+  (return (x: t_Bytes)) =
+{[@stop_split] [@expl:with_vtable requires] ([@stop_split] [@expl:with_vtable 'data' type invariant] [%#sbytes'0] inv_Atomic_ptr_unit data)
+  /\ ([@stop_split] [@expl:with_vtable 'readonly_packet' type invariant] [%#sbytes'1] inv_Option_SharedReadonlyPacket readonly_packet)
+  /\ ([@stop_split] [@expl:with_vtable requires] [%#sbytes'2] match readonly_packet with
+    | Some packet -> invariant_SharedReadonlyPacket packet
+    /\ raw_pointer packet.cursor = ptr /\ UInt64.t'int packet.len = UInt64.t'int len'1
+    | None -> true
+    end)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#sbytes] match readonly_packet with
+        | Some packet -> invariant_SharedReadonlyPacket packet
+        /\ raw_pointer packet.cursor = ptr /\ UInt64.t'int packet.len = UInt64.t'int len'1
+        | None -> true
+        end}
+      s1
+    | s1 = [ &_ret <- { ptr'0 = ptr;
+                        len'0 = len'1;
+                        data'0 = data;
+                        vtable'0 = vtable;
+                        readonly_packet'0 = readonly_packet } ] s2
+    | s2 = return {_ret} ] ]
+  [ & _ret: t_Bytes = Any.any_l ()
+  | & ptr: Opaque.ptr = ptr
+  | & len'1: UInt64.t = len'1
+  | & data: t_Atomic_ptr_unit = data
+  | & vtable: t_Vtable = vtable
+  | & readonly_packet: t_Option_SharedReadonlyPacket = readonly_packet ])
+  [ return (result: t_Bytes) ->
+  {[@stop_split] [@expl:with_vtable ensures] ([@stop_split] [@expl:with_vtable result type invariant] [%#sbytes'3] inv_Bytes result)
+    /\ ([@stop_split] [@expl:with_vtable ensures #0] [%#sbytes'4] result.ptr'0 = ptr)
+    /\ ([@stop_split] [@expl:with_vtable ensures #1] [%#sbytes'5] UInt64.t'int result.len'0 = UInt64.t'int len'1)
+    /\ ([@stop_split] [@expl:with_vtable ensures #2] [%#sbytes'6] result.data'0 = data)
+    /\ ([@stop_split] [@expl:with_vtable ensures #3] [%#sbytes'7] result.vtable'0 = vtable)
+    /\ ([@stop_split] [@expl:with_vtable ensures #4] [%#sbytes'8] result.readonly_packet'0 = readonly_packet)
+    /\ ([@stop_split] [@expl:with_vtable ensures #5] [%#sbytes'9] match readonly_packet with
+      | Some _ -> readonly_packet_valid result
+      | None -> true
+      end)}
+    (! return {result}) ]

@@ -1,0 +1,139 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1178 4 1183 5 *)
+
+(* bytes_mut::shared_capsule::SharedPayload *)
+
+type namespace_other
+
+type t_Namespace = Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 892 20 892 45
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 877 20 877 27
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 882 20 882 27
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 887 20 887 27
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 898 12 901 13
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1184 22 1187 67
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1159 15 1159 64
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1160 15 1160 68
+let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1161 15 1161 70
+let%span sshared_capsule'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1162 15 1162 74
+let%span sshared_capsule'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1163 15 1164 71
+let%span sshared_capsule'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1165 15 1166 63
+let%span sshared_capsule'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1167 15 1170 64
+let%span sshared_capsule'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1171 15 1173 58
+let%span sshared_capsule'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1174 14 1177 63
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+
+use creusot.int.UInt8
+use map.Map
+use creusot.prelude.Any
+use int.Int
+
+type t_PhysicalPool
+
+type t_FMap_Int_Excl_Option_u8
+
+type t_Option_u8 = None | Some UInt8.t
+
+type t_Excl_Option_u8 = { f0: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'0 | Some'0 t_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap'0] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) = [%#sfmap] get_Int self k <> None'0
+
+meta "rewrite_def" predicate contains_Int
+
+type t_Id
+
+type t_Excl_unit = { f0'0: () }
+
+type t_Option_Excl_unit = None'1 | Some'1 t_Excl_unit
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'1: t_Option_Excl_unit; f1'1: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Id = {
+  f0'2: int;
+  f1'2: t_Id;
+  f2'2: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8;
+  f3'2: t_Id }
+
+function view_PhysicalPool [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 853 4 853 33] (self: t_PhysicalPool) : tup4_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Id
+
+predicate contains [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 891 4 891 52] (self: t_PhysicalPool) (index: int) =
+  [%#sraw_vec] contains_Int (view_PhysicalPool self).f2'2.f1'1 index
+
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 876 4 876 39] (self: t_PhysicalPool) : int
+ = [%#sraw_vec'0] (view_PhysicalPool self).f0'2
+
+type t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+predicate active_mutable_contains [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 50 0 50 83] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (index: int)
+
+predicate inv_Snapshot_PhysicalPool [@inline:trivial] (_1: t_PhysicalPool) = true
+
+meta "rewrite_def" predicate inv_Snapshot_PhysicalPool
+
+predicate invariant_ref_Snapshot_PhysicalPool [@inline:trivial] (self: t_PhysicalPool) =
+  [%#sinvariant] inv_Snapshot_PhysicalPool self
+
+meta "rewrite_def" predicate invariant_ref_Snapshot_PhysicalPool
+
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 881 4 881 39] (self: t_PhysicalPool) : t_Id
+ = [%#sraw_vec'1] (view_PhysicalPool self).f1'2
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 886 4 886 41] (self: t_PhysicalPool) : t_Id
+ = [%#sraw_vec'2] (view_PhysicalPool self).f3'2
+
+type t_Option_Option_u8 = None'2 | Some'2 t_Option_u8
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 896 4 896 62] (self: t_PhysicalPool) (index: int) : t_Option_Option_u8
+ = [%#sraw_vec'3] match get_Int (view_PhysicalPool self).f2'2.f1'1 index with
+    | None'0 -> None'2
+    | Some'0 {f0 = value} -> Some'2 value
+    end
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let prove_pool_complement_after_readonly_release [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1178 4 1183 5]
+  (before_pool: t_PhysicalPool) (after_pool: t_PhysicalPool)
+  (before_owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+  (after_owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (return (x: ())) =
+{[@stop_split] [@expl:prove_pool_complement_after_readonly_release requires] ([@stop_split] [@expl:prove_pool_complement_after_readonly_release requires #0] [%#sshared_capsule'0] invariant_ref_Snapshot_PhysicalPool before_pool
+    /\ invariant_ref_Snapshot_PhysicalPool after_pool)
+  /\ ([@stop_split] [@expl:prove_pool_complement_after_readonly_release requires #1] [%#sshared_capsule'1] capacity before_pool
+    = capacity after_pool)
+  /\ ([@stop_split] [@expl:prove_pool_complement_after_readonly_release requires #2] [%#sshared_capsule'2] namespace before_pool
+    = namespace after_pool)
+  /\ ([@stop_split] [@expl:prove_pool_complement_after_readonly_release requires #3] [%#sshared_capsule'3] resource_id before_pool
+    = resource_id after_pool)
+  /\ ([@stop_split] [@expl:prove_pool_complement_after_readonly_release requires #4] [%#sshared_capsule'4] forall index: int. contains after_pool index
+      = contains before_pool index)
+  /\ ([@stop_split] [@expl:prove_pool_complement_after_readonly_release requires #5] [%#sshared_capsule'5] forall index: int. slot after_pool index
+      = slot before_pool index)
+  /\ ([@stop_split] [@expl:prove_pool_complement_after_readonly_release requires #6] [%#sshared_capsule'6] forall index: int. contains before_pool index
+      = (0 <= index /\ index < capacity before_pool /\ not active_mutable_contains before_owners index))
+  /\ ([@stop_split] [@expl:prove_pool_complement_after_readonly_release requires #7] [%#sshared_capsule'7] forall index: int. active_mutable_contains after_owners index
+    = active_mutable_contains before_owners index)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#sshared_capsule] forall index: int. contains after_pool index
+        = (0 <= index /\ index < capacity after_pool /\ not active_mutable_contains after_owners index)}
+      s1
+    | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & after_pool: t_PhysicalPool = after_pool
+  | & after_owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = after_owners ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:prove_pool_complement_after_readonly_release ensures] [%#sshared_capsule'8] forall index: int. contains after_pool index
+      = (0 <= index /\ index < capacity after_pool /\ not active_mutable_contains after_owners index)}
+    (! return {result}) ]

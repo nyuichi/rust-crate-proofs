@@ -91,4 +91,6 @@ pub struct Bytes {
     original_bytes: creusot_std::prelude::Ghost<OriginalBytesProof>,
     #[cfg(all(creusot, bytes_original_shared_gate))]
     original_shared: creusot_std::prelude::Ghost<OriginalSharedProof>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    readonly_packet: Option<crate::bytes_mut::shared_capsule::SharedReadonlyPacket>,
 }

@@ -261,7 +261,14 @@ ticket and its actual physical region, returns a Readonly ticket and returns
 that region to the pool. It preserves the reference count, storage,
 lease/release authority, caller Tokens, and Context entries. This internal
 transfer is not yet connected to public `BytesMut::freeze`, readonly byte
-reads, or readonly release.
+reads, or frozen-`Bytes` release.
+
+The checked common release carrier accepts a Mutable packet with its actual
+physical region or a Readonly packet with its actual ticket and no region. Its
+Readonly body consumes the ticket, leaves the pool unchanged, and reaches the
+same final-owner retirement path. No native frozen-`Bytes` sidecar or vtable
+caller supplies that Readonly variant yet, and readonly byte access remains
+unproved.
 
 The selected `shared_context` bodies prove a proof-only affine owner and
 borrowed view for an actual caller-supplied `Tokens` value and one
@@ -308,9 +315,11 @@ lease, terminal action, ledger removal, pool finish, and root permission for a
 final owner; `release_shared_common` then runs the original native decrement,
 Acquire load, stored-Vec retirement and Box release sequence. The explicit
 `dispose_shared` body reaches this common native algorithm with its actual
-packet and context. This proves that internal explicit path under its unsafe
-preconditions, not every public clone/freeze/recovery transition or the
-context-free automatic `Drop` call chain. The Vec `advance_unchecked`
+Mutable packet and context. The common release carrier's Readonly branch is
+also body-proved, but the native `Bytes` sidecar/vtable path does not yet call
+it. The proof covers only this internal explicit path under its unsafe
+preconditions. It does not cover every public clone/freeze/recovery transition
+or the context-free automatic `Drop` call chain. The Vec `advance_unchecked`
 branch assumes a representable position, so it does not establish reachability
 of the promotion branch, and public `Buf::advance` is untranslated.
 

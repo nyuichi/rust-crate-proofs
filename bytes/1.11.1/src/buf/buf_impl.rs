@@ -2374,7 +2374,10 @@ pub trait Buf {
         #[cfg(not(creusot))]
         let taken = self.take(len);
         ret.put(taken);
-        ret.freeze()
+            ret.freeze(
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            )
     }
 
     /// Creates an adaptor which will read at most `limit` bytes from `self`.

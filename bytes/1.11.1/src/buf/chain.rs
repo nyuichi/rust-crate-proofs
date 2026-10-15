@@ -196,7 +196,10 @@ where
             #[cfg(not(creusot))]
             let taken = (&mut self.b).take(len - a_rem);
             ret.put(taken);
-            ret.freeze()
+            ret.freeze(
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            )
         }
     }
 }
