@@ -2593,6 +2593,16 @@ impl SharedReadonlyPacket {
         }
     }
 
+    /// Export the Readonly packet invariant's static event namespace to the
+    /// shared native release adapter. This observes the actual capsule held
+    /// by the packet and creates no capability.
+    #[check(ghost)]
+    #[requires(self.invariant())]
+    #[ensures(self.capsule.inner_logic().val().namespace() == event_namespace())]
+    pub(crate) fn prove_event_namespace(&self) {
+        proof_assert!(self.capsule.inner_logic().val().namespace() == event_namespace());
+    }
+
     #[logic(open(self))]
     pub(crate) fn capsule_allocation_binding(self) -> AllocationBinding {
         pearlite! { self.capsule.inner_logic().val().public().1.5 }
@@ -2664,13 +2674,13 @@ impl SharedOwnerPacket {
                 self.cursor@.unwrap_logic().2 + index)))]
     #[requires(context.inner_logic().invariant())]
     #[requires(context.inner_logic().token_namespaces().contains(event_namespace()))]
-    #[requires(self.lease_key.inner_logic().slot() < context.inner_logic().ready_len())]
+    #[requires(self.lease_key().slot() < context.inner_logic().ready_len())]
     #[requires(context.inner_logic().ready_entry_state(
-        self.lease_key.inner_logic().slot()) == Some((
-            self.lease_key.inner_logic().resource_id(),
-            self.lease_key.inner_logic().slot(),
-            self.lease_key.inner_logic().resource_id(),
-            Some(Excl((self.lease_key.inner_logic().resource_id(), None)))
+        self.lease_key().slot()) == Some((
+            self.lease_key().resource_id(),
+            self.lease_key().slot(),
+            self.lease_key().resource_id(),
+            Some(Excl((self.lease_key().resource_id(), None)))
         )))]
     #[ensures(result.invariant())]
     #[ensures(result.capsule.inner_logic() == self.capsule.inner_logic())]

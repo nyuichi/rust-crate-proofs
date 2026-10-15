@@ -3,6 +3,8 @@ use creusot_std::{prelude::*, ghost::perm::Perm};
 #[cfg(all(creusot, bytes_original_unique_gate))]
 use creusot_std::prelude::*;
 #[cfg(all(creusot, bytes_original_unique_gate))]
+use creusot_std::logic::ra::excl::Excl;
+#[cfg(all(creusot, bytes_original_unique_gate))]
 use creusot_std::logic::Id;
 #[cfg(all(creusot, bytes_original_freeze_gate))]
 use crate::ownership_proof::{raw_vec::{self, BoundPtr, Recovery, PhysicalRegion, slot_known}, boxed_alignment};
@@ -27,6 +29,8 @@ use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
 use crate::ref_count_ops::RefCountCell;
 use crate::{Buf, BytesMut};
+
+pub(crate) type BytesDataCell = AtomicPtr<()>;
 
 // Creusot-only exclusions below cover unrelated vtable/lifecycle, pointer-range, and generic
 // adapter bodies. Their native APIs remain present; no Bytes-specific trusted contract replaces
@@ -85,13 +89,15 @@ impl Bytes {
     #[logic(open(self), prophetic)]
     pub(crate) fn readonly_packet_valid(self) -> bool {
         pearlite! {
-            match self.readonly_packet {
-                Some(packet) =>
+            match (self.readonly_packet, self.readonly_cell_permission.inner_logic()) {
+                (Some(packet), Some(permission)) =>
                     packet.invariant() &&
                     packet.cursor.raw_pointer() as *const u8 == self.ptr &&
                     packet.len@ == self.len@ &&
-                    packet.cursor.current_address() == self.ptr.addr_logic()@,
-                None => false,
+                    packet.cursor.current_address() == self.ptr.addr_logic()@ &&
+                    permission.ward().raw_cell() == &self.data &&
+                    permission.val() == packet.capsule_public().0,
+                _ => false,
             }
         }
     }
@@ -107,6 +113,28 @@ impl Bytes {
     #[logic(open(self), prophetic)]
     pub(crate) fn proof_view_len(self) -> Int {
         pearlite! { self.len@ }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn proof_vtable(self) -> &'static Vtable {
+        self.vtable
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn proof_data_cell(self) -> BytesDataCell {
+        self.data
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn readonly_packet_state(self) -> Option<crate::bytes_mut::shared_capsule::SharedReadonlyPacket> {
+        self.readonly_packet
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn readonly_cell_permission_state(
+        self,
+    ) -> Option<creusot_std::ghost::perm::Perm<crate::loom::sync::atomic::NativePtr<()>>> {
+        self.readonly_cell_permission.inner_logic()
     }
 
     #[logic(open(self), prophetic)]
@@ -185,6 +213,82 @@ impl Bytes {
         }
     }
 
+    /// Explicitly release a handle produced by the BytesMut ARC freeze path.
+    /// This consumes the readonly owner and delegates to the same shared
+    /// native release body as the BytesMut owner path. Ordinary `Drop` and
+    /// vtable callbacks are unchanged and remain outside this proof entry.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.readonly_packet_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        context.inner_logic().token_namespaces().contains(crate::ref_count_ops::event_namespace())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        context.inner_logic().ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()) == Some((
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot(),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            Some(Excl((self.readonly_packet_key().unwrap_logic().resource_id(), None)))
+        )) && self.readonly_packet_key().unwrap_logic().slot() < context.inner_logic().ready_len()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.inner_logic()).token_namespaces() == context.inner_logic().token_namespaces() &&
+        (^context.inner_logic()).ready_len() == context.inner_logic().ready_len()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 1 ==>
+        (^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
+        (^context.inner_logic()).ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()) == Some((
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot(),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            Some(Excl((self.readonly_packet_key().unwrap_logic().resource_id(), None)))
+        ))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == 1 ==>
+        !(^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
+        (^context.inner_logic()).ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()) == None
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() &&
+            i != self.readonly_packet_key().unwrap_logic().slot() ==>
+            (^context.inner_logic()).ready_entry_state(i) == context.inner_logic().ready_entry_state(i)
+    ))]
+    ///
+    /// # Safety
+    /// The handle must be an ARC-backed readonly handle produced by the
+    /// BytesMut freeze path. In the direct proof build, `context` must be its
+    /// matching live operation context.
+    pub(crate) unsafe fn dispose_shared(
+        self,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        context: Ghost<&mut crate::ownership_proof::shared_context::BorrowedSharedContext<
+            '_, crate::bytes_mut::shared_capsule::HeaderLeaseState,
+        >>,
+    ) -> usize {
+        let mut this = self;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let packet = this.readonly_packet.take().unwrap();
+            let permission = mem::replace(&mut this.readonly_cell_permission, ghost!(None));
+            let mut permission = ghost! { permission.into_inner().unwrap() };
+            let ptr = crate::loom::sync::atomic::NativePtr::exclusive_read(
+                &mut this.data,
+                ghost!(&mut *permission),
+            );
+            core::mem::forget(this);
+            crate::bytes_mut::release_readonly_shared(
+                ptr, packet, context,
+            )
+        }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        {
+            let ptr = this.data.with_mut(|ptr| *ptr);
+            core::mem::forget(this);
+            crate::bytes_mut::release_readonly_shared(ptr)
+        }
+    }
+
     /// Creates a new empty `Bytes`.
     ///
     /// This will not allocate and the returned `Bytes` handle will be empty.
@@ -198,10 +302,20 @@ impl Bytes {
     /// assert_eq!(&b[..], b"");
     /// ```
     #[inline]
-    #[cfg(not(any(all(loom, test), all(creusot, bytes_original_constructor_gate))))]
+    #[cfg(not(any(
+        all(loom, test),
+        all(creusot, bytes_original_constructor_gate),
+        all(creusot, bytes_original_unique_gate),
+    )))]
     pub const fn new() -> Self {
         // Make it a named const to work around
         // "unsizing casts are not allowed in const fn"
+        const EMPTY: &[u8] = &[];
+        Bytes::from_static(EMPTY)
+    }
+
+    #[cfg(all(creusot, bytes_original_unique_gate, not(bytes_original_constructor_gate)))]
+    pub fn new() -> Self {
         const EMPTY: &[u8] = &[];
         Bytes::from_static(EMPTY)
     }
@@ -235,16 +349,38 @@ impl Bytes {
     /// assert_eq!(&b[..], b"hello");
     /// ```
     #[inline]
-    #[cfg(not(any(all(loom, test), all(creusot, bytes_original_constructor_gate))))]
+    #[cfg(not(any(
+        all(loom, test),
+        all(creusot, bytes_original_constructor_gate),
+        all(creusot, bytes_original_unique_gate),
+    )))]
     pub const fn from_static(bytes: &'static [u8]) -> Self {
         Bytes {
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_packet: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
             len: bytes.len(),
-            data: AtomicPtr::new(ptr::null_mut()),
+            data: BytesDataCell::new(ptr::null_mut()),
+            vtable: &STATIC_VTABLE,
+        }
+    }
+
+    #[cfg(all(creusot, bytes_original_unique_gate, not(bytes_original_constructor_gate)))]
+    pub fn from_static(bytes: &'static [u8]) -> Self {
+        Bytes {
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_packet: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            original_frozen: None,
+            ptr: bytes.as_ptr(),
+            len: bytes.len(),
+            data: BytesDataCell::new(ptr::null_mut()),
             vtable: &STATIC_VTABLE,
         }
     }
@@ -255,11 +391,13 @@ impl Bytes {
         Bytes {
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_packet: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
             len: bytes.len(),
-            data: AtomicPtr::new(ptr::null_mut()),
+            data: BytesDataCell::new(ptr::null_mut()),
             vtable: &STATIC_VTABLE,
         }
     }
@@ -283,13 +421,15 @@ impl Bytes {
         Bytes {
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_packet: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_cell_permission: ghost!(None),
 
             #[cfg(all(creusot, bytes_original_freeze_gate))]
 
             original_frozen: None,
             ptr,
             len: 0,
-            data: AtomicPtr::new(ptr::null_mut()),
+            data: BytesDataCell::new(ptr::null_mut()),
             vtable: &STATIC_VTABLE,
         }
     }
@@ -369,11 +509,13 @@ impl Bytes {
         let mut ret = Bytes {
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_packet: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: NonNull::dangling().as_ptr(),
             len: 0,
-            data: AtomicPtr::new(owned.cast()),
+            data: BytesDataCell::new(owned.cast()),
             vtable: &Owned::<T>::VTABLE,
         };
 
@@ -747,28 +889,68 @@ impl Bytes {
     }
 
     #[inline]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.ptr == ptr))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.len@ == len@))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.data == data))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.vtable == vtable))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.readonly_packet == readonly_packet))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match readonly_packet {
-        Some(packet) => packet.invariant() &&
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.proof_view_pointer() == ptr))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.proof_view_len() == len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.proof_data_cell() == data))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.proof_vtable() == vtable))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.readonly_packet_state() == readonly_packet))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.readonly_packet_public() == match readonly_packet {
+            Some(packet) => Some(packet.capsule_public()),
+            None => None,
+        }
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.readonly_packet_key() == match readonly_packet {
+            Some(packet) => Some(packet.lease_key()),
+            None => None,
+        }
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.readonly_packet_ticket_frame() == match readonly_packet {
+            Some(packet) => {
+                let ticket = packet.ticket.inner_logic();
+                Some((
+                    ticket.ledger_id(),
+                    ticket.owner_id(),
+                    ticket.fragment_resource_id(),
+                    ticket.class(),
+                    ticket.allocation_binding(),
+                    ticket.owned_lo(),
+                    ticket.owned_hi(),
+                ))
+            },
+            None => None,
+        }
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.readonly_cell_permission_state() == readonly_cell_permission.inner_logic()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match (readonly_packet, readonly_cell_permission.inner_logic()) {
+        (Some(packet), Some(permission)) => packet.invariant() &&
             packet.cursor.raw_pointer() as *const u8 == ptr &&
-            packet.len@ == len@,
-        None => true,
+            packet.len@ == len@ &&
+            permission.ward().raw_cell() == &data &&
+            permission.val() == packet.capsule_public().0,
+        (None, None) => true,
+        _ => false,
     }))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match readonly_packet {
-        Some(_) => result.readonly_packet_valid(),
-        None => true,
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match (readonly_packet, readonly_cell_permission.inner_logic()) {
+        (Some(_), Some(_)) => result.readonly_packet_valid(),
+        (None, None) => true,
+        _ => false,
     }))]
     pub(crate) unsafe fn with_vtable(
         ptr: *const u8,
         len: usize,
-        data: AtomicPtr<()>,
+        data: BytesDataCell,
         vtable: &'static Vtable,
         #[cfg(all(creusot, bytes_original_unique_gate))]
         readonly_packet: Option<crate::bytes_mut::shared_capsule::SharedReadonlyPacket>,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_cell_permission: creusot_std::ghost::Ghost<Option<
+            creusot_std::ghost::perm::Perm<crate::loom::sync::atomic::NativePtr<()>>
+        >>,
     ) -> Bytes {
         #[cfg(all(creusot, bytes_original_unique_gate))]
         {
@@ -778,10 +960,19 @@ impl Bytes {
                     packet.len@ == len@,
                 None => true,
             });
+            proof_assert!(match (readonly_packet, readonly_cell_permission.inner_logic()) {
+                (Some(packet), Some(permission)) =>
+                    permission.ward().raw_cell() == &data &&
+                    permission.val() == packet.capsule_public().0,
+                (None, None) => true,
+                _ => false,
+            });
         }
         Bytes {
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_packet,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_cell_permission,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr,
@@ -1225,6 +1416,8 @@ impl From<Vec<u8>> for Bytes {
         Bytes {
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_packet: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: Some(OriginalFrozenProof { base, capabilities, shared, shared_owner }),
             ptr,
@@ -1233,7 +1426,7 @@ impl From<Vec<u8>> for Bytes {
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 { original_atomic_ptr_new(shared as _) }
                 #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
-                { AtomicPtr::new(shared as _) }
+                { BytesDataCell::new(shared as _) }
             },
             vtable: {
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
@@ -1271,22 +1464,26 @@ impl From<Box<[u8]>> for Bytes {
             Bytes {
                 #[cfg(all(creusot, bytes_original_unique_gate))]
                 readonly_packet: None,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                readonly_cell_permission: ghost!(None),
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 original_frozen: None,
                 ptr,
                 len,
-                data: AtomicPtr::new(data.cast()),
+                data: BytesDataCell::new(data.cast()),
                 vtable: &PROMOTABLE_EVEN_VTABLE,
             }
         } else {
             Bytes {
                 #[cfg(all(creusot, bytes_original_unique_gate))]
                 readonly_packet: None,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                readonly_cell_permission: ghost!(None),
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 original_frozen: None,
                 ptr,
                 len,
-                data: AtomicPtr::new(ptr.cast()),
+                data: BytesDataCell::new(ptr.cast()),
                 vtable: &PROMOTABLE_ODD_VTABLE,
             }
         }
@@ -1403,13 +1600,15 @@ unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> By
     Bytes {
         #[cfg(all(creusot, bytes_original_unique_gate))]
         readonly_packet: None,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_cell_permission: ghost!(None),
 
         #[cfg(all(creusot, bytes_original_freeze_gate))]
 
         original_frozen: None,
         ptr,
         len,
-        data: AtomicPtr::new(owned as _),
+        data: BytesDataCell::new(owned as _),
         vtable: &Owned::<T>::VTABLE,
     }
 }
@@ -1685,8 +1884,8 @@ static SHARED_VTABLE: Vtable = Vtable {
     is_unique: shared_is_unique,
     drop: shared_drop,
 };
-// The actual static identity and every Bytes Shared transition remain in the excluded
-// lifecycle cone; this constant exists only so unrelated Rust typechecking can finish.
+// This proof-build constant supports Rust typechecking of excluded Shared-vtable
+// lifecycle code. Its address and vtable transitions are not part of the proof.
 #[cfg(creusot)]
 const SHARED_VTABLE: Vtable = Vtable {
     clone: shared_clone,
@@ -1695,7 +1894,6 @@ const SHARED_VTABLE: Vtable = Vtable {
     is_unique: shared_is_unique,
     drop: shared_drop,
 };
-
 const KIND_ARC: usize = 0b0;
 const KIND_VEC: usize = 0b1;
 const KIND_MASK: usize = 0b1;
@@ -1807,13 +2005,15 @@ unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> 
     Bytes {
         #[cfg(all(creusot, bytes_original_unique_gate))]
         readonly_packet: None,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_cell_permission: ghost!(None),
 
         #[cfg(all(creusot, bytes_original_freeze_gate))]
 
         original_frozen: None,
         ptr,
         len,
-        data: AtomicPtr::new(shared as _),
+        data: BytesDataCell::new(shared as _),
         vtable: &SHARED_VTABLE,
     }
 }
@@ -1873,11 +2073,13 @@ unsafe fn shallow_clone_vec(
             Bytes {
                 #[cfg(all(creusot, bytes_original_unique_gate))]
                 readonly_packet: None,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                readonly_cell_permission: ghost!(None),
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 original_frozen: None,
                 ptr: offset,
                 len,
-                data: AtomicPtr::new(shared as _),
+                data: BytesDataCell::new(shared as _),
                 vtable: &SHARED_VTABLE,
             }
         }

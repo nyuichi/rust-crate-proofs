@@ -93,9 +93,12 @@ retirement and full-range recovery operations are body-proved. The selected
 ARC split and explicit disposal paths connect their actual owner tickets and
 physical regions to the ledger and pool. The common release carrier also
 body-proves the Readonly-ticket branch: it consumes the actual ticket without
-changing the pool and uses the same final-owner path. Native clone, public
-freeze, readonly reads, the frozen-`Bytes` sidecar/vtable caller, recovery, and
-automatic-drop transitions remain unconnected.
+changing the pool and uses the same final-owner path. The selected private
+freeze helper carries that actual Readonly packet and pointer-cell permission
+into `Bytes`; the selected `Bytes::dispose_shared` body consumes them and
+calls the common release body. The public `BytesMut::freeze` body and native
+static vtable identity, readonly byte reads, native clone, recovery and
+automatic-drop transitions remain unproved.
 
 The public `truncate` and `clear` bodies, and unsafe `set_len`, are also
 body-proved from `buffer_view_valid`, a common precondition for a stable
@@ -142,9 +145,9 @@ acquire-imported resources. The count-one and count-two constructors tie the
 event payload to the corresponding ledger and native counter value, and the
 unique-Vec split helper uses the count-two constructor. The selected ARC split
 and explicit disposal paths also connect their native source operations to
-those registrations. Native clone, public freeze, readonly reads,
-frozen-`Bytes` vtable release, recovery, and automatic-drop transitions remain
-unconnected, so this checkpoint does not
+those registrations. Native clone, the public `BytesMut::freeze` body and its
+static vtable identity, readonly byte reads, recovery, and automatic-drop
+transitions remain unproved, so this checkpoint does not
 establish count-to-reference correspondence across every native transition or
 public `BytesMut::truncate` behavior for every safely produced state.
 
@@ -154,9 +157,8 @@ this private promotion helper, the proof constructs a count-one Shared capsule
 from the actual Vec storage and exact native counter permission, with one root
 ticket over the allocation's full physical region and an empty pool. Selected
 ARC split and explicit disposal paths connect their source operations to the
-registration. Native clone, public freeze, readonly reads,
-frozen-`Bytes` vtable release, recovery, and automatic Drop remain unconnected,
-and count-one exclusivity and reclamation
+registration. Native clone, public `BytesMut::freeze`, readonly reads,
+recovery, and automatic Drop remain unproved, and count-one exclusivity and reclamation
 are not established for every safe Shared state.
 
 The selected targets also body-prove the generic append-only
@@ -180,20 +182,24 @@ registry final-state observations. `register`, `take`, and `return_cap` move
 the actual fragment through the registry while framing its other slots. The
 carrier does not create tokens, fragments, or a header permission. Selected
 promotion, split, freeze-packet, and explicit-disposal paths use this actual
-context; public freeze, readonly reads, frozen-`Bytes` vtable release, and
-other unselected producer and lifecycle paths to `buffer_view_valid` or
-`truncate` remain unproved.
+context; public freeze, readonly reads, and other unselected producer and
+lifecycle paths to `buffer_view_valid` or `truncate` remain unproved.
 
 The checked `freeze_into_readonly` path consumes an actual Mutable packet
 ticket and its actual physical region, returns a Readonly ticket and returns
 that region to the pool. It preserves the reference count, storage,
-lease/release authority, caller Tokens, and Context entries. This internal
-transfer is not yet connected to public `BytesMut::freeze` or readonly byte
-reads. The selected common release body accepts either an actual Mutable owner
-ticket and region or an actual Readonly ticket without a region; its Readonly
-branch leaves the physical pool unchanged. The explicit `dispose_shared`
-caller still supplies only a Mutable packet, so frozen-`Bytes` sidecar and
-vtable release remain unconnected.
+lease/release authority, caller Tokens, and Context entries. The selected
+private `freeze_shared_view` body carries the actual Readonly packet into a
+`Bytes` sidecar and preserves the supplied vtable input, but the public
+`BytesMut::freeze` body and native static vtable identity remain unproved.
+`Bytes::dispose_shared` consumes the actual sidecar and its pointer-cell
+permission, then reaches the common release body with the caller's Context.
+The native regression `explicit_readonly_dispose_releases_shared_split_once`
+checks split, truncate, freeze, and disposal of both related handles, including
+the 2-to-1 counter transition and surviving bytes. Readonly byte reads and
+ordinary automatic Drop remain unproved; selected operation sequences
+explicitly dispose each related handle and assume no Context state after an
+untracked automatic Drop.
 
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current

@@ -13,6 +13,7 @@ let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcoun
 let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 4 181 17
 let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
 let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 365 8 365 25
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 691 12 695 33
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 372 12 380 13
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 713 20 713 27
@@ -42,14 +43,13 @@ let%span sshared_capsule'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/byt
 let%span sshared_capsule'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2512 4 2512 35
 let%span sshared_capsule'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2278 12 2281 13
 let%span sshared_capsule'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2591 12 2591 70
-let%span sshared_capsule'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2608 8 2608 36
+let%span sshared_capsule'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2618 8 2618 36
 let%span sshared_capsule'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2484 4 2484 24
 let%span sshared_capsule'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2491 8 2491 66
 let%span sshared_capsule'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2562 8 2562 20
-let%span sshared_capsule'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2611 4 2611 35
-let%span sshared_capsule'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2596 4 2596 24
-let%span sshared_capsule'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2601 4 2601 24
-let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 365 8 365 25
+let%span sshared_capsule'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2621 4 2621 35
+let%span sshared_capsule'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2606 4 2606 24
+let%span sshared_capsule'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2611 4 2611 24
 
 use creusot.int.UInt64
 use creusot.prelude.Opaque
@@ -290,13 +290,13 @@ function capsule_public'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes
                                                                                         f2'2 = payload.f2'0;
                                                                                         f3'2 = payload.f3'0 }
 
-function capsule_allocation_binding'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2597 4 2597 71] (self: t_SharedReadonlyPacket) : tup3_Id_ptr_u8_Int
+function capsule_allocation_binding'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2607 4 2607 71] (self: t_SharedReadonlyPacket) : tup3_Id_ptr_u8_Int
  = [%#sshared_capsule'25] (public_SharedPayload self.capsule'0).f1'1.f5'0
 
-function lease_resource_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2602 4 2602 47] (self: t_SharedReadonlyPacket) : t_Id
+function lease_resource_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2612 4 2612 47] (self: t_SharedReadonlyPacket) : t_Id
  = [%#sshared_capsule'26] (public_SharedPayload self.capsule'0).f1'1.f4'0
 
-predicate valid'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2612 4 2612 26] (self: t_SharedReadonlyPacket) =
+predicate valid'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2622 4 2622 26] (self: t_SharedReadonlyPacket) =
   [%#sshared_capsule'24] invariant_Ghost_GhostShared_EventBoundInvariant_SharedPayload self.capsule'0
   /\ namespace_SharedPayload self.capsule'0 = event_namespace
   /\ (public_SharedPayload self.capsule'0).f0'1 = (public_SharedPayload self.capsule'0).f1'1.f1'0
@@ -441,7 +441,7 @@ function capsule_namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/byte
 function lease_key'1 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2496 4 2496 46] (self: t_SharedOwnerPacket) : t_ReadyKey
  = [%#sshared_capsule'15] self.lease_key
 
-function lease_key'2 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2607 4 2607 45] (self: t_SharedReadonlyPacket) : t_ReadyKey
+function lease_key'2 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2617 4 2617 45] (self: t_SharedReadonlyPacket) : t_ReadyKey
  = [%#sshared_capsule'20] self.lease_key'0
 
 function lease_key'3 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2308 4 2308 46] (self: t_SharedReleasePacket) : t_ReadyKey

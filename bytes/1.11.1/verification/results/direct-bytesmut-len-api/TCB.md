@@ -242,6 +242,22 @@ behavior, but these proofs make no concurrent `Bytes` claim. The generic
 platform abort contract accounts for the overflow error not returning from
 `increment`.
 
+The proof-only `NativePtr<T>` wrapper has two narrow generic trusted
+operations. `new_with_permission` executes one native `AtomicPtr::new(value)`
+and returns a permission for that exact cell with modeled pointer value
+`value`. `exclusive_read` requires the borrowed cell to be the cell named by
+that permission, executes native `get_mut`, returns the permission's pointer
+value, and preserves the cell and permission. The checked
+`into_raw_with_permission` move retains the identity of the whole atomic cell.
+This permission describes only the pointer cell and its stored pointer value;
+it grants no authority over the pointed-to header or allocation. The selected
+Readonly disposal body uses it only to read its own unchanged cell; the
+separate actual packet and root permission remain the source of header access.
+These local adapters can be replaced once the pinned Std overlay exposes
+reviewed contracts for the actual core `AtomicPtr` constructor and exclusive
+`get_mut` with the same cell/value relation. No Creusot change or Bytes-specific
+law is needed.
+
 The `OwnerLedger` is one affine inventory of all native strong references.
 Each `OwnerTicket` owns the exact singleton fragment for one registration and
 records the common allocation identity, its classification, and a half-open
@@ -259,16 +275,21 @@ connect arbitrary native lifecycle operations to the registrations.
 The checked `freeze_into_readonly` path consumes an actual Mutable packet
 ticket and its actual physical region, returns a Readonly ticket and returns
 that region to the pool. It preserves the reference count, storage,
-lease/release authority, caller Tokens, and Context entries. This internal
-transfer is not yet connected to public `BytesMut::freeze`, readonly byte
-reads, or frozen-`Bytes` release.
+lease/release authority, caller Tokens, and Context entries. The selected
+private `freeze_shared_view` body connects this transfer to a `Bytes` sidecar,
+preserving the actual packet, pointer-cell permission, view and supplied
+vtable value. The public `BytesMut::freeze` body, its native static vtable
+identity, and readonly byte reads remain unproved.
 
 The checked common release carrier accepts a Mutable packet with its actual
 physical region or a Readonly packet with its actual ticket and no region. Its
 Readonly body consumes the ticket, leaves the pool unchanged, and reaches the
-same final-owner retirement path. No native frozen-`Bytes` sidecar or vtable
-caller supplies that Readonly variant yet, and readonly byte access remains
-unproved.
+same final-owner retirement path. The selected `Bytes::dispose_shared` body
+consumes the actual Readonly sidecar and cell permission, reads the pointer
+from that same cell, forgets the handle to prevent a second release, and calls
+the common release body with its actual packet and Context. This does not
+prove public freeze reachability, native static vtable identity, readonly
+byte access, or ordinary automatic Drop.
 
 The selected `shared_context` bodies prove a proof-only affine owner and
 borrowed view for an actual caller-supplied `Tokens` value and one
@@ -281,11 +302,12 @@ membership for a particular capsule namespace remains a separate precondition
 at each open. The selected private count-one promotion and
 `split_unique_to_shared` paths use this context to register their packet's idle
 header capability; packet loan take/restore use it to move the same capability.
-The crate-private unsafe `BytesMut::dispose_shared` body consumes a shared
-handle with this actual context and calls the same native release body as the
-ordinary release wrapper. The proof preserves the other registry slots and
-returns the terminal storage, full physical region, and actual root permission
-when this owner is the final one. It does not establish that public producer
+The crate-private unsafe `BytesMut::dispose_shared` and `Bytes::dispose_shared`
+bodies consume their shared handles with this actual context and call the same
+native release body as the ordinary release wrapper. The proof preserves the
+other registry slots; the common release path recovers the terminal storage,
+full physical region and actual root permission and consumes them in final
+native destruction when this is the last owner. It does not establish that public producer
 wrappers pass a valid context or that every safely reachable state satisfies
 `buffer_view_valid`. The ordinary automatic `Drop` path remains present; its
 context-free wrapper is untranslated, so its post-Drop context state is not
@@ -314,12 +336,14 @@ selected `release_native_owner` and terminal callback connect the actual ticket,
 lease, terminal action, ledger removal, pool finish, and root permission for a
 final owner; `release_shared_common` then runs the original native decrement,
 Acquire load, stored-Vec retirement and Box release sequence. The explicit
-`dispose_shared` body reaches this common native algorithm with its actual
-Mutable packet and context. The common release carrier's Readonly branch is
-also body-proved, but the native `Bytes` sidecar/vtable path does not yet call
-it. The proof covers only this internal explicit path under its unsafe
-preconditions. It does not cover every public clone/freeze/recovery transition
-or the context-free automatic `Drop` call chain. The Vec `advance_unchecked`
+`dispose_shared` bodies reach this common native algorithm with their actual
+Mutable or Readonly packet and context. For Readonly disposal, the selected
+`NativePtr` adapters expose the handle's actual atomic cell value without
+converting cell permission into header authority; the packet's root permission
+remains the source of header access. The proof covers these internal explicit
+paths under their unsafe preconditions. It does not cover every public
+clone/freeze/recovery transition or the context-free automatic `Drop` call
+chain. The Vec `advance_unchecked`
 branch assumes a representable position, so it does not establish reachability
 of the promotion branch, and public `Buf::advance` is untranslated.
 
