@@ -33,6 +33,29 @@ and consumed-owner transfer from verified Vec, allocator, and `ManuallyDrop`
 contracts; proving only `bind_consumed_vec` would leave that assumption in
 place.
 
+The Std overlay additionally assumes that the opaque `capacity_model` for a
+Vec with one-byte elements is at most `isize::MAX`; it makes no such claim for
+zero-sized elements. The original-source full-capacity Vec constructor uses
+this bound to meet the narrow B1-BOX-VEC boundary's allocation-size
+precondition.
+
+The full-capacity Vec-to-Bytes route connects the actual `Vec::into_boxed_slice`
+and `Box::into_raw` operations through `raw_vec::detach_full_capacity_vec`.
+This B1-BOX-VEC boundary assumes the generic Vec-to-Box transfer preserves the
+same allocation and that the consumed Box yields the sealed recovery and full
+physical region for that allocation, including its initialized byte slots.
+The Box-only B1-BOX boundary also consumes an actual `Box<[u8]>` through the
+same source `Box::into_raw` helper and provides the sealed matching resources;
+there is no pure Box-content-to-pointer observer. The source body then proves
+the internal boxed sidecar and pointer-cell permission from the actual returned
+resources. Its address-tag helper uses only the generic integer-to-pointer
+adapter's numerical-address postcondition, which supplies no provenance,
+liveness, or dereference authority. The constructor stores the vtable selected
+from its supplied even/odd inputs, but does not prove either input has the
+identity of a particular static vtable. This sidecar is an internal constructor
+carrier only: no public `From<Vec>` or `From<Box>` postcondition, destructor,
+or lifecycle path is proved from it.
+
 The source now also defines `VecStorage::resume_owned` as a narrow generic B2
 restoration boundary used by the selected private unique-to-Shared producer
 proof. It consumes the matching existing `RawAllocation`, `Recovery`, and

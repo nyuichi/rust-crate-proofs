@@ -150,7 +150,7 @@
          #[ensures(result.0@.to_bytes().len() == ix@)]
 --- a/src/std/vec.rs
 +++ b/src/std/vec.rs
-@@ -3,11 +3,24 @@
+@@ -3,11 +3,25 @@
  #[cfg(creusot)]
  use crate::{invariant::inv, resolve::structural_resolve, std::slice::SliceIndexSpec};
  use crate::{logic::ops::IndexLogic, prelude::*};
@@ -173,6 +173,7 @@
 +#[cfg(creusot)]
 +#[trusted]
 +#[logic(opaque)]
++#[ensures(crate::std::mem::size_of_logic::<T>() == 1 ==> result <= isize::MAX@)]
 +pub fn capacity_model<T, A: Allocator>(vector: Vec<T, A>) -> Int {
 +    dead
 +}

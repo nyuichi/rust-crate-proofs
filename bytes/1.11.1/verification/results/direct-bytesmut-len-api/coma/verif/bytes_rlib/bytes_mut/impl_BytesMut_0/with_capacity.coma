@@ -39,9 +39,10 @@ let%span sbytes_mut'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mu
 let%span sbytes_mut'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 262 20 262 77
 let%span sbytes_mut'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 876 4 876 53
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
-let%span svec = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/vec.rs" 142 18 142 36
-let%span svec'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/vec.rs" 143 18 143 53
-let%span svec'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/vec.rs" 52 14 52 41
+let%span svec = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/vec.rs" 143 18 143 36
+let%span svec'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/vec.rs" 144 18 144 53
+let%span svec'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/vec.rs" 53 14 53 41
+let%span svec'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/vec.rs" 21 10 21 78
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 271 15 271 70
@@ -63,7 +64,7 @@ let%span sptr'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span sptr'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 263 14 263 65
 let%span sptr'16 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 264 14 264 67
 let%span sptr'17 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
-let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1375 16 1375 59
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1407 16 1407 59
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 372 12 380 13
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 247 12 248 56
 let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 273 20 273 27
@@ -80,7 +81,6 @@ let%span sraw_vec'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_
 let%span sraw_vec'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 708 20 708 30
 let%span sraw_vec'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 727 14 727 43
 let%span sshared = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/shared.rs" 26 8 26 46
-let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
 let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 108 8 108 34
 let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 168 40 168 65
 let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 171 12 171 41
@@ -88,13 +88,14 @@ let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
 let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
 let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
 
 use creusot.int.UInt64
 use seq.Seq
 use creusot.int.UInt8
+use creusot.int.Int64
 use creusot.prelude.Opaque
 use creusot.prelude.Ptr
-use creusot.int.Int64
 use map.Map
 use map.Const
 use creusot.prelude.Any
@@ -114,7 +115,18 @@ predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other
 
 meta "rewrite_def" predicate ge_log_Int
 
+constant size_of_u8: int = 1
+
+meta "rewrite_def" constant size_of_u8
+
+axiom size_of_u8_spec: [%#smem] 0 <= size_of_u8
+
+constant const_MAX'0: Int64.t = (9223372036854775807: Int64.t)
+
 function capacity_model_u8 (vector: t_Vec_u8_Global) : int
+
+axiom capacity_model_u8_spec: forall vector: t_Vec_u8_Global [capacity_model_u8 vector]. [%#svec'2] size_of_u8 = 1
+    -> capacity_model_u8 vector <= Int64.to_int const_MAX'0
 
 let with_capacity_u8 (capacity: UInt64.t) (return (x: t_Vec_u8_Global)) = any
   [ return (result: t_Vec_u8_Global) ->
@@ -189,8 +201,6 @@ type tup3_Id_Int_Int = { f0'0: t_Id; f1'0: int; f2'0: int }
 type t_Option_tup3_Id_Int_Int = None'1 | Some'1 tup3_Id_Int_Int
 
 function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 353 4 353 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
-
-constant const_MAX'0: Int64.t = (9223372036854775807: Int64.t)
 
 function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 389 4 389 39] (self: t_BoundPtr) : int
 
@@ -448,12 +458,6 @@ function unique_offset [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mu
  =
   [%#sbytes_mut'25] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (unwrap_Option_OriginalUniqueProof self.unique_proof).cursor)).f2'0
 
-constant size_of_u8: int = 1
-
-meta "rewrite_def" constant size_of_u8
-
-axiom size_of_u8_spec: [%#smem] 0 <= size_of_u8
-
 function offset_ptr_u8 (self: Opaque.ptr) (offset: int) : Opaque.ptr
 
 axiom offset_ptr_u8_spec: forall self: Opaque.ptr, offset: int [offset_ptr_u8 self offset]. ([%#sptr'8] 0
@@ -578,7 +582,7 @@ predicate unique_layout_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/b
 
 type t_Option_Option_u8 = None'5 | Some'5 t_Option_u8
 
-predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1374 0 1374 58] (slot: t_Option_Option_u8) =
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1406 0 1406 58] (slot: t_Option_Option_u8) =
   [%#sraw_vec] exists value: UInt8.t. slot = Some'5 (Some'3 value)
 
 function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8

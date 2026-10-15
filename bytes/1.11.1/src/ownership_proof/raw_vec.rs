@@ -1148,7 +1148,7 @@ pub(crate) fn detach_boxed_slice(
     let input_model = snapshot!(input@);
     let len = input.len();
     let capacity = len;
-    let base = alloc::boxed::Box::into_raw(input) as *mut u8;
+    let base = crate::bytes::boxed_slice_into_raw(input) as *mut u8;
     // SAFETY: Box::into_raw returns a non-null pointer, including an empty
     // boxed slice. No owner remains alongside the consumed physical authority.
     let base = unsafe { NonNull::new_unchecked(base) };
@@ -1195,6 +1195,38 @@ pub(crate) fn detach_boxed_slice(
         len,
         capabilities,
     )
+}
+
+/// B1-BOX-VEC: consume a full-capacity Vec through the source's
+/// `Vec::into_boxed_slice` and Box raw-pointer path. This combined generic
+/// boundary supplies the exact Vec-to-Box pointer relation missing from the
+/// pinned Std contract, while the returned recovery and region are the actual
+/// B1 capabilities minted by consuming that same Box. It states no Bytes
+/// representation, vtable, reference-count, or destructor rule.
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[trusted]
+#[requires(input@.len() > 0)]
+#[requires(input@.len() == creusot_std::std::vec::capacity_model(input))]
+#[requires(creusot_std::std::vec::capacity_model(input) <= isize::MAX@)]
+#[ensures(result.0.invariant())]
+#[ensures(result.0.raw_pointer() == creusot_std::std::vec::pointer_model(input))]
+#[ensures(result.1@ == input@.len())]
+#[ensures(result.0.capacity() == input@.len())]
+#[ensures(result.2.inner_logic().0.invariant() && result.2.inner_logic().1.invariant())]
+#[ensures(result.2.inner_logic().0.capacity() == input@.len())]
+#[ensures(result.2.inner_logic().1.capacity() == input@.len())]
+#[ensures(result.2.inner_logic().0.namespace() == result.0.namespace())]
+#[ensures(result.2.inner_logic().1.namespace() == result.0.namespace())]
+#[ensures(result.2.inner_logic().1.resource_id() == result.0.namespace())]
+#[ensures(result.2.inner_logic().1.lo() == 0)]
+#[ensures(result.2.inner_logic().1.hi() == input@.len())]
+#[ensures(forall<index: Int> 0 <= index && index < input@.len() ==>
+    result.2.inner_logic().1.slot(index) == Some(Some(input@[index])))]
+pub(crate) fn detach_full_capacity_vec(
+    input: Vec<u8>,
+) -> (RawAllocation, usize, Ghost<(Recovery, PhysicalRegion)>) {
+    let boxed = input.into_boxed_slice();
+    detach_boxed_slice(boxed)
 }
 
 /// Rebuild the original Vec from a complete physical region and its Recovery.

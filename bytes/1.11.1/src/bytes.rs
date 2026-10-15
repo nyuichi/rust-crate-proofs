@@ -6,8 +6,10 @@ use creusot_std::prelude::*;
 use creusot_std::logic::ra::excl::Excl;
 #[cfg(all(creusot, bytes_original_unique_gate))]
 use creusot_std::logic::Id;
+#[cfg(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_unique_gate)))]
+use crate::ownership_proof::raw_vec::{self, BoundPtr, PhysicalRegion, Recovery, slot_known};
 #[cfg(all(creusot, bytes_original_freeze_gate))]
-use crate::ownership_proof::{raw_vec::{self, BoundPtr, Recovery, PhysicalRegion, slot_known}, boxed_alignment};
+use crate::ownership_proof::boxed_alignment;
 #[cfg(all(creusot, bytes_original_shared_gate))]
 use creusot_std::prelude::*;
 use core::mem::{self, ManuallyDrop};
@@ -78,6 +80,70 @@ impl Bytes {
     }
     #[logic(open(self))]
     pub(crate) fn original_frozen_pointer(self) -> *const u8 { self.ptr }
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+struct OriginalBoxedProof {
+    base: BoundPtr,
+    capabilities: Ghost<(Recovery, PhysicalRegion)>,
+    contents: Snapshot<Seq<u8>>,
+    even_pointer: bool,
+    vtable: &'static Vtable,
+    data_cell_permission: Ghost<creusot_std::ghost::perm::Perm<
+        crate::loom::sync::atomic::NativePtr<()>,
+    >>,
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+impl Bytes {
+    /// The Bytes view produced by consuming a nonempty boxed slice is backed
+    /// by the exact B1 allocation and full initialized region returned while
+    /// consuming that Box.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_boxed_valid(self) -> bool {
+        pearlite! {
+            match self.original_boxed {
+                None => false,
+                Some(proof) => {
+                    let caps = proof.capabilities.inner_logic();
+                    proof.base.invariant() && caps.0.invariant() && caps.1.invariant() &&
+                    proof.base@ == Some((caps.0.namespace(), caps.0.capacity(), 0int)) &&
+                    self.ptr == proof.base.raw_pointer() as *const u8 &&
+                    self.len@ == caps.0.capacity() &&
+                    caps.1.capacity() == caps.0.capacity() &&
+                    caps.1.namespace() == caps.0.namespace() &&
+                    caps.1.resource_id() == caps.0.namespace() &&
+                    caps.1.lo() == 0 && caps.1.hi() == caps.0.capacity() &&
+                    self.readonly_packet == None &&
+                    self.readonly_cell_permission.inner_logic() == None &&
+                    proof.even_pointer == (self.ptr.addr_logic()@ % 2 == 0) &&
+                    self.vtable == proof.vtable &&
+                    proof.data_cell_permission.inner_logic().ward().raw_cell() == &self.data &&
+                    proof.data_cell_permission.inner_logic().val().addr_logic()@ == (
+                        if proof.even_pointer {
+                            self.ptr.addr_logic()@ + 1
+                        } else {
+                            self.ptr.addr_logic()@
+                        }) &&
+                    forall<i:Int> 0 <= i && i < self.len@ ==>
+                        slot_known(caps.1.slot(i)) &&
+                        caps.1.slot(i) == Some(Some((*proof.contents)[i]))
+                }
+            }
+        }
+    }
+
+    #[logic(open(self))]
+    pub(crate) fn original_boxed_bytes(self) -> Seq<u8> {
+        pearlite! {
+            *self.original_boxed.unwrap_logic().contents
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_boxed_vtable(self) -> &'static Vtable {
+        self.original_boxed.unwrap_logic().vtable
+    }
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
@@ -360,6 +426,8 @@ impl Bytes {
             readonly_packet: None,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
@@ -376,6 +444,8 @@ impl Bytes {
             readonly_packet: None,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
@@ -393,6 +463,8 @@ impl Bytes {
             readonly_packet: None,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
@@ -423,6 +495,8 @@ impl Bytes {
             readonly_packet: None,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
 
             #[cfg(all(creusot, bytes_original_freeze_gate))]
 
@@ -511,6 +585,8 @@ impl Bytes {
             readonly_packet: None,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: NonNull::dangling().as_ptr(),
@@ -973,6 +1049,8 @@ impl Bytes {
             readonly_packet,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_cell_permission,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr,
@@ -1389,7 +1467,12 @@ impl From<Vec<u8>> for Bytes {
             #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
             {
                 let vec = ManuallyDrop::into_inner(vec);
-                return Bytes::from(vec.into_boxed_slice());
+                if len == 0 {
+                    return Bytes::from(vec.into_boxed_slice());
+                }
+                return from_full_capacity_vec(
+                    vec, &PROMOTABLE_EVEN_VTABLE, &PROMOTABLE_ODD_VTABLE,
+                );
             }
         }
 
@@ -1418,6 +1501,8 @@ impl From<Vec<u8>> for Bytes {
             readonly_packet: None,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: Some(OriginalFrozenProof { base, capabilities, shared, shared_owner }),
             ptr,
@@ -1440,6 +1525,174 @@ impl From<Vec<u8>> for Bytes {
 }
 
 
+/// Perform the native boxed-slice raw transfer shared by the B1 boundary and
+/// the ordinary `Bytes` constructor.
+pub(crate) fn boxed_slice_into_raw(slice: Box<[u8]>) -> *mut [u8] {
+    Box::into_raw(slice)
+}
+
+#[cfg_attr(all(creusot, any(bytes_original_freeze_gate, bytes_original_unique_gate)), requires(
+    ptr.addr_logic()@ % 2 == 0
+))]
+#[cfg_attr(all(creusot, any(bytes_original_freeze_gate, bytes_original_unique_gate)), ensures(
+    result.addr_logic()@ == ptr.addr_logic()@ + 1
+))]
+fn tagged_vec_data_pointer(ptr: *mut u8) -> *mut u8 {
+    let addr = crate::provenance_specs::pointer_addr(ptr);
+    // Setting KIND_VEC on an even address is exactly adding one. Keep the OR
+    // expression for odd inputs so the helper retains ptr_map's full native
+    // address behavior, although callers pass only even pointers.
+    let tagged_addr = if addr % 2 == 0 { addr + KIND_VEC } else { addr | KIND_VEC };
+    crate::provenance_specs::pointer_from_integer_address(ptr, tagged_addr)
+}
+
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base.invariant()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base.raw_pointer() == ptr))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    capabilities.inner_logic().0.invariant() && capabilities.inner_logic().1.invariant()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    base@ == Some((capabilities.inner_logic().0.namespace(), len@, 0int))
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    capabilities.inner_logic().0.capacity() == len@ &&
+    capabilities.inner_logic().1.capacity() == len@
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    capabilities.inner_logic().1.namespace() == capabilities.inner_logic().0.namespace() &&
+    capabilities.inner_logic().1.resource_id() == capabilities.inner_logic().0.namespace()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    capabilities.inner_logic().1.lo() == 0 && capabilities.inner_logic().1.hi() == len@
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    forall<i:Int> 0 <= i && i < len@ ==>
+        capabilities.inner_logic().1.slot(i) == Some(Some((*bytes)[i]))
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.original_boxed_valid()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.original_boxed_bytes() == *bytes
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.ptr == ptr as *const u8))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.original_boxed_vtable() == if ptr.addr_logic()@ % 2 == 0 { even_vtable } else { odd_vtable }
+))]
+fn promotable_from_raw_parts(
+    ptr: *mut u8,
+    len: usize,
+    even_vtable: &'static Vtable,
+    odd_vtable: &'static Vtable,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    bytes: Snapshot<Seq<u8>>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    base: BoundPtr,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    capabilities: Ghost<(Recovery, PhysicalRegion)>,
+) -> Bytes {
+    let even_pointer = crate::provenance_specs::pointer_addr(ptr) % 2 == 0;
+    let tagged_data = if even_pointer { tagged_vec_data_pointer(ptr) } else { ptr };
+    let vtable = if even_pointer { even_vtable } else { odd_vtable };
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (cell, permission) =
+        crate::loom::sync::atomic::NativePtr::new_with_permission(tagged_data.cast());
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (data, permission) = cell.into_raw_with_permission(permission);
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let data = BytesDataCell::new(tagged_data.cast());
+    Bytes {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_packet: None,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_cell_permission: ghost!(None),
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        original_boxed: Some(OriginalBoxedProof {
+            base,
+            capabilities,
+            contents: bytes,
+            even_pointer,
+            vtable,
+            data_cell_permission: permission,
+        }),
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+        original_frozen: None,
+        ptr,
+        len,
+        data,
+        vtable,
+    }
+}
+
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(slice@.len() > 0))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.original_boxed_valid()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.original_boxed_bytes() == slice@
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.original_boxed_vtable() == if result.ptr.addr_logic()@ % 2 == 0 { even_vtable } else { odd_vtable }
+))]
+fn from_boxed_slice_inner(
+    slice: Box<[u8]>,
+    even_vtable: &'static Vtable,
+    odd_vtable: &'static Vtable,
+) -> Bytes {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    {
+        let contents = snapshot!(slice@);
+        let len = slice.len();
+        let (raw, _captured_len, capabilities) = raw_vec::detach_boxed_slice(slice);
+        let (base, _capacity) = raw.into_bound_ptr_at_zero();
+        return promotable_from_raw_parts(
+            base.as_ptr(), len, even_vtable, odd_vtable, contents, base, capabilities,
+        );
+    }
+
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    {
+        // Box<[u8]> does not allocate for empty slices, so there is no aligned
+        // pointer available for KIND_VEC stashing.
+        if slice.is_empty() {
+            return Bytes::new();
+        }
+        let len = slice.len();
+        let ptr = boxed_slice_into_raw(slice) as *mut u8;
+        promotable_from_raw_parts(ptr, len, even_vtable, odd_vtable)
+    }
+}
+
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(input@.len() > 0))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    input@.len() == creusot_std::std::vec::capacity_model(input)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.original_boxed_valid()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.original_boxed_bytes() == input@
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.ptr == creusot_std::std::vec::pointer_model(input) as *const u8
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.original_boxed_vtable() == if result.ptr.addr_logic()@ % 2 == 0 { even_vtable } else { odd_vtable }
+))]
+fn from_full_capacity_vec(
+    input: Vec<u8>,
+    even_vtable: &'static Vtable,
+    odd_vtable: &'static Vtable,
+) -> Bytes {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    {
+        let contents = snapshot!(input@);
+        let (raw, len, capabilities) = raw_vec::detach_full_capacity_vec(input);
+        let (base, _capacity) = raw.into_bound_ptr_at_zero();
+        return promotable_from_raw_parts(
+            base.as_ptr(), len, even_vtable, odd_vtable, contents, base, capabilities,
+        );
+    }
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    {
+        from_boxed_slice_inner(input.into_boxed_slice(), even_vtable, odd_vtable)
+    }
+}
+
 impl From<Box<[u8]>> for Bytes {
     #[cfg_attr(creusot, creusot::no_translate)]
     #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(result.original_bytes_valid()))]
@@ -1447,46 +1700,20 @@ impl From<Box<[u8]>> for Bytes {
     fn from(slice: Box<[u8]>) -> Bytes {
         #[cfg(all(creusot, bytes_original_constructor_gate))]
         { return original_bytes_from_box(slice); }
-        #[cfg(not(all(creusot, bytes_original_constructor_gate)))]
+        #[cfg(all(creusot, bytes_original_unique_gate))]
         {
-        // Box<[u8]> doesn't contain a heap allocation for empty slices,
-        // so the pointer isn't aligned enough for the KIND_VEC stashing to
-        // work.
-        if slice.is_empty() {
-            return Bytes::new();
-        }
-
-        let len = slice.len();
-        let ptr = Box::into_raw(slice) as *mut u8;
-
-        if ptr as usize & 0x1 == 0 {
-            let data = ptr_map(ptr, |addr| addr | KIND_VEC);
-            Bytes {
-                #[cfg(all(creusot, bytes_original_unique_gate))]
-                readonly_packet: None,
-                #[cfg(all(creusot, bytes_original_unique_gate))]
-                readonly_cell_permission: ghost!(None),
-                #[cfg(all(creusot, bytes_original_freeze_gate))]
-                original_frozen: None,
-                ptr,
-                len,
-                data: BytesDataCell::new(data.cast()),
-                vtable: &PROMOTABLE_EVEN_VTABLE,
+            if slice.is_empty() {
+                return Bytes::new();
             }
-        } else {
-            Bytes {
-                #[cfg(all(creusot, bytes_original_unique_gate))]
-                readonly_packet: None,
-                #[cfg(all(creusot, bytes_original_unique_gate))]
-                readonly_cell_permission: ghost!(None),
-                #[cfg(all(creusot, bytes_original_freeze_gate))]
-                original_frozen: None,
-                ptr,
-                len,
-                data: BytesDataCell::new(ptr.cast()),
-                vtable: &PROMOTABLE_ODD_VTABLE,
-            }
+            from_boxed_slice_inner(
+                slice, &PROMOTABLE_EVEN_VTABLE, &PROMOTABLE_ODD_VTABLE,
+            )
         }
+        #[cfg(not(all(creusot, any(bytes_original_constructor_gate, bytes_original_unique_gate))))]
+        {
+            from_boxed_slice_inner(
+                slice, &PROMOTABLE_EVEN_VTABLE, &PROMOTABLE_ODD_VTABLE,
+            )
         }
     }
 }
@@ -1602,6 +1829,8 @@ unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> By
         readonly_packet: None,
         #[cfg(all(creusot, bytes_original_unique_gate))]
         readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
 
         #[cfg(all(creusot, bytes_original_freeze_gate))]
 
@@ -2007,6 +2236,8 @@ unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> 
         readonly_packet: None,
         #[cfg(all(creusot, bytes_original_unique_gate))]
         readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
 
         #[cfg(all(creusot, bytes_original_freeze_gate))]
 
@@ -2075,6 +2306,8 @@ unsafe fn shallow_clone_vec(
                 readonly_packet: None,
                 #[cfg(all(creusot, bytes_original_unique_gate))]
                 readonly_cell_permission: ghost!(None),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_boxed: None,
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 original_frozen: None,
                 ptr: offset,

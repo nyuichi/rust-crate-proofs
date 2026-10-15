@@ -30,6 +30,24 @@ observer is metadata only; the sealed matching B1/B2 capabilities remain
 independently required. These assumptions add no bytes-specific ownership or
 refcount theorem and no termination attributes.
 
+For an element type whose modeled size is exactly one byte, `capacity_model`
+is also bounded by `isize::MAX`, matching Rust's maximum Vec allocation size.
+This conditional bound does not constrain zero-sized element types.
+
+The pinned Std contracts do not expose Box pointer identity or physical
+allocation resources. The original-source proof therefore passes the actual
+consumed `Box<[u8]>` through a narrow B1-BOX boundary; the nonempty full-capacity
+`Vec<u8>` route uses B1-BOX-VEC to connect that same Vec through
+`into_boxed_slice` and the Box raw-pointer transfer. These boundaries preserve
+the actual allocation resources used by the source proof and make no Bytes
+representation, vtable-identity, or lifecycle claim.
+
+Replacement path: move the one-byte capacity bound into the upstream Vec
+capacity contract; replace B1-BOX-VEC with upstream Vec/Box raw-parts contracts
+and a body proof of the source transfer; and replace the trusted numerical
+integer-to-pointer adapter with an upstream pointer-cast contract or a body
+proof of the standard operation.
+
 The installer refuses an unexpected stock package, patch hash, private
 destination, candidate tree, or conflicting Cargo override. It never replaces
 an existing private package. The manifest records the exact reviewed candidate

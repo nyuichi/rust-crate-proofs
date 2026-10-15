@@ -97,4 +97,6 @@ pub struct Bytes {
     readonly_cell_permission: creusot_std::ghost::Ghost<Option<
         creusot_std::ghost::perm::Perm<crate::loom::sync::atomic::NativePtr<()>>,
     >>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    original_boxed: Option<OriginalBoxedProof>,
 }
