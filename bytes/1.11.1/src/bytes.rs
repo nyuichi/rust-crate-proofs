@@ -370,6 +370,101 @@ impl Bytes {
         }
     }
 
+    /// Proof entry for the Readonly shared copy path. It transfers the actual
+    /// packet and operation context to the same all-build nonunique source
+    /// helper used by the native vtable callback. That helper lends the
+    /// packet's physical interval for the B4-backed copy, restores it, and
+    /// releases this owner through the common source release body. The unique
+    /// Vec reconstruction branch remains a separate path.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    #[requires(self.readonly_packet_valid())]
+    #[requires(context.inner_logic().invariant())]
+    #[requires(context.inner_logic().token_namespaces().contains(
+        crate::ref_count_ops::event_namespace()
+    ))]
+    #[requires(self.readonly_packet_key().unwrap_logic().slot() <
+        context.inner_logic().ready_len())]
+    #[requires(context.inner_logic().ready_entry_state(
+        self.readonly_packet_key().unwrap_logic().slot()) == Some((
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot(),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            Some(Excl((
+                self.readonly_packet_key().unwrap_logic().resource_id(), None
+            )))
+        )))]
+    #[ensures(result.bytes@ == *result.witness.inner_logic().contents)]
+    #[ensures(*result.witness.inner_logic().release_old_count > 0)]
+    #[ensures(*result.witness.inner_logic().release_old_count > 1 ==>
+        (^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
+        (^context.inner_logic()).ready_entry_state(
+            self.readonly_packet_key().unwrap_logic().slot()) == Some((
+                self.readonly_packet_key().unwrap_logic().resource_id(),
+                self.readonly_packet_key().unwrap_logic().slot(),
+                self.readonly_packet_key().unwrap_logic().resource_id(),
+                Some(Excl((self.readonly_packet_key().unwrap_logic().resource_id(), None)))
+            )))]
+    #[ensures(*result.witness.inner_logic().release_old_count == 1 ==>
+        !(^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
+        (^context.inner_logic()).ready_entry_state(
+            self.readonly_packet_key().unwrap_logic().slot()) == None)]
+    #[ensures((*result.witness.inner_logic().region).invariant())]
+    #[ensures((*result.witness.inner_logic().region).resource_id() ==
+        (*result.witness.inner_logic().region).namespace())]
+    #[ensures(*result.witness.inner_logic().pointer == self.ptr)]
+    #[ensures((*result.witness.inner_logic().contents).len() == self.len@)]
+    #[ensures((*result.witness.inner_logic().region).namespace() ==
+        self.readonly_packet_state().unwrap_logic().cursor@.unwrap_logic().0)]
+    #[ensures((*result.witness.inner_logic().region).capacity() ==
+        self.readonly_packet_state().unwrap_logic().cursor@.unwrap_logic().1)]
+    #[ensures(*result.witness.inner_logic().start ==
+        self.readonly_packet_state().unwrap_logic().cursor@.unwrap_logic().2)]
+    #[ensures((*result.witness.inner_logic().region).lo() <=
+        *result.witness.inner_logic().start)]
+    #[ensures(*result.witness.inner_logic().start +
+        (*result.witness.inner_logic().contents).len() <=
+            (*result.witness.inner_logic().region).hi())]
+    #[ensures(forall<index: Int>
+        0 <= index && index < (*result.witness.inner_logic().contents).len() ==>
+            (*result.witness.inner_logic().region).slot(
+                *result.witness.inner_logic().start + index) ==
+                Some(Some((*result.witness.inner_logic().contents)[index])))]
+    #[ensures((^context.inner_logic()).invariant())]
+    #[ensures((^context.inner_logic()).token_namespaces() ==
+        context.inner_logic().token_namespaces())]
+    #[ensures((^context.inner_logic()).ready_len() == context.inner_logic().ready_len())]
+    #[ensures(forall<index: Int>
+        0 <= index && index < context.inner_logic().ready_len() &&
+        index != self.readonly_packet_key().unwrap_logic().slot() ==>
+            (^context.inner_logic()).ready_entry_state(index) ==
+                context.inner_logic().ready_entry_state(index))]
+    pub(crate) unsafe fn copy_shared_readonly_to_vec_with_context(
+        self,
+        context: Ghost<&mut crate::ownership_proof::shared_context::BorrowedSharedContext<
+            '_, crate::bytes_mut::shared_capsule::HeaderLeaseState,
+        >>,
+    ) -> crate::bytes_mut::SharedReadonlyCopyResult {
+        let mut this = self;
+        let packet = this.readonly_packet.take().unwrap();
+        let permission = mem::replace(&mut this.readonly_cell_permission, ghost!(None));
+        let mut permission = ghost! { permission.into_inner().unwrap() };
+        let shared = crate::loom::sync::atomic::NativePtr::exclusive_read(
+            &mut this.data,
+            ghost!(&mut *permission),
+        );
+        let ptr = this.ptr;
+        let len = this.len;
+        core::mem::forget(this);
+        let copied = crate::bytes_mut::shared_v_to_vec_nonunique(
+            shared, ptr, len,
+            Some(crate::bytes_mut::SharedReadonlyCopyProof {
+                packet,
+                context,
+            }),
+        );
+        copied
+    }
+
     /// Explicitly release a nonempty, full-view boxed-slice handle through the
     /// same source cleanup function used by the vtable path.
     ///

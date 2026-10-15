@@ -367,7 +367,7 @@ lease/release authority, caller Tokens, and Context entries. The selected
 private `freeze_shared_view` body connects this transfer to a `Bytes` sidecar,
 preserving the actual packet, pointer-cell permission, view and supplied
 vtable value. The public `BytesMut::freeze` body, its native static vtable
-identity, and readonly byte reads remain unproved.
+identity, and public readonly byte-read APIs remain unproved.
 
 With no active physical lend, the live `SharedPayload` protocol states that
 every active Readonly ticket's visible interval is contained in the physical
@@ -379,13 +379,27 @@ visible-slot facts, and the body-checked mutable-release, mutable-split, and
 readonly-release transitions preserve the protocol. The
 `prove_readonly_ticket_pool_known` observer requires no active lend, checks the
 actual ticket against its live ledger entry, and uses the actual pool resource
-for slot facts. This invariant establishes no physical
-borrow or slice lifetime. The lease stamp carries the exact optional
-physical-lend span marker, and the checked private take/restore transitions
-pair that marker with the actual `PhysicalRegion` removed from and returned to
-the pool. The transition is now body-proved. The boxed branch of
-`Bytes::as_slice` is proved; its shared-readonly branch,
-`shared_v_to_vec`, and other readonly byte-read APIs remain outside the proof.
+for slot facts. This invariant establishes no physical borrow or slice
+lifetime. The lease stamp carries the exact optional physical-lend span
+marker, and the checked private take/restore transitions pair that marker with
+the actual `PhysicalRegion` removed from and returned to the pool.
+
+The checked private `Bytes::copy_shared_readonly_to_vec_with_context` entry
+passes its actual Readonly packet and caller Context through the nonunique
+shared copy source body. The body borrows the packet view through the loan's
+actual B4 region, performs the same `slice::to_vec` copy operation used by the
+native helper, ties the returned bytes to the region's known slots with a
+value-only witness, restores the affine region, and reaches the original
+shared release body. The witness snapshots the old count returned by that
+body, and the postcondition preserves the exact ready-slot result: a retained
+key and idle cap when the old count exceeds one, or the tombstone when it is
+one. This snapshot reports the result but supplies no authority. This proves
+the internal nonunique copy and release
+path under its actual packet/context preconditions. It does not prove the
+outer no-translate vtable callback, native static vtable identity, public
+vtable dispatch, or the callback's Acquire/unique branch. The boxed branch of
+`Bytes::as_slice` is proved; its shared-readonly branch and other readonly
+byte-read APIs remain outside the proof.
 
 The checked common release carrier accepts a Mutable packet with its actual
 physical region or a Readonly packet with its actual ticket and no region. Its
@@ -430,7 +444,7 @@ actual views and packets under its unique-Vec precondition. Body proofs cover
 the valid-index, normal-return Vec-backed and packet-backed ARC branches of
 public `split_off`, `split_to`, and `split`; they preserve strict Shared
 layout, byte and view geometry, and the actual context registration. These
-split proofs do not prove native clone, public freeze, readonly byte reads,
+split proofs do not prove native clone, public freeze, public readonly byte reads,
 automatic drop, or recovery transitions. They do not establish count-one
 exclusivity or reclamation for every safely produced Shared state.
 

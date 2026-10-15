@@ -60,8 +60,8 @@ Readonly ticket and returns its actual physical region to the pool, while
 preserving the reference count, storage, lease/release authority, caller
 tokens, and Context entries. The selected private freeze helper connects this
 transfer to a `Bytes` sidecar; the public `BytesMut::freeze` body, its native
-static vtable identity, and readonly byte reads remain unproved. The payload
-when there is no active physical lend, the protocol proves that every active
+static vtable identity, and public readonly byte-read APIs remain unproved. With
+no active physical lend, the protocol proves that every active
 Readonly ticket's visible interval remains in the physical pool with known
 slots; a checked helper derives this fact from a live ticket and the actual
 ledger. During an active lend, that exact interval is absent from the pool and
@@ -114,9 +114,18 @@ result does not close every safe producer or lifecycle path for `truncate`.
 The lease stamp carries the exact optional physical-lend span marker. The
 private active take/restore transitions are body-proved: they move the actual
 interval between the pool and its affine `PhysicalRegion` while preserving the
-lease and payload frames. Stable payload states still require an empty marker;
-`Bytes::as_slice`, `shared_v_to_vec`, and other readonly byte-read APIs do not
-yet consume this loan.
+lease and payload frames. The checked private
+`Bytes::copy_shared_readonly_to_vec_with_context` path now uses that loan to
+borrow through B4, perform the shared `slice::to_vec` source operation, tie a
+value-only copy witness to the actual region slots, restore the region, and
+enter the original shared release body. Its value-only witness also records
+the returned old count, so the postcondition distinguishes a retained key and
+idle cap from the final-owner tombstone. This body-checks the selected
+nonunique copy and release path under an actual Readonly packet and caller
+Context. It does
+not prove the public vtable dispatch, native static vtable identity, or the
+outer native callback's Acquire/unique branch; the shared-readonly branch of
+`Bytes::as_slice` and public freeze remain unproved.
 
 A generic append-only `ReadyRegistry<R>` now has body proofs for moving the
 producer's actual affine `Fragment<R>` into a fresh permanent slot, taking that

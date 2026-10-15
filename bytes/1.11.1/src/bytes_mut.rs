@@ -54,6 +54,42 @@ struct SharedSplitView {
     packet: shared_capsule::SharedOwnerPacket,
 }
 
+/// Proof-only input for the source helper that performs the ordinary
+/// nonunique `Bytes`-to-`Vec` copy and releases that same shared owner. The
+/// packet supplies the physical region used by the checked borrow; the
+/// context is returned through the original shared-release body.
+#[cfg(all(creusot, bytes_original_unique_gate))]
+pub(crate) struct SharedReadonlyCopyProof<'context, 'tokens> {
+    pub(crate) packet: shared_capsule::SharedReadonlyPacket,
+    pub(crate) context: Ghost<
+        &'context mut BorrowedSharedContext<'tokens, shared_capsule::HeaderLeaseState>,
+    >,
+}
+
+/// Value witness for the bytes read while a `SharedHeaderReadLoan` held the
+/// actual physical region. The snapshots record only the values needed to
+/// state the copy result; the affine region itself is restored before the
+/// helper returns.
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[allow(missing_debug_implementations)]
+pub(crate) struct SharedReadonlyReadWitness {
+    pub(crate) region: Snapshot<PhysicalRegion>,
+    pub(crate) pointer: Snapshot<*const u8>,
+    pub(crate) start: Snapshot<Int>,
+    pub(crate) contents: Snapshot<Seq<u8>>,
+    pub(crate) release_old_count: Snapshot<Int>,
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[allow(missing_debug_implementations)]
+pub(crate) struct SharedReadonlyCopyResult {
+    pub(crate) bytes: Vec<u8>,
+    pub(crate) witness: Ghost<SharedReadonlyReadWitness>,
+}
+
+#[cfg(not(all(creusot, bytes_original_unique_gate)))]
+pub(crate) type SharedReadonlyCopyResult = Vec<u8>;
+
 #[cfg(all(creusot, bytes_original_unique_gate))]
 impl SharedSplitView {
     /// Packet facts needed to install this exact native view. The predicate is
@@ -4229,6 +4265,76 @@ pub(crate) unsafe fn release_readonly_shared(
     }
 }
 
+/// The single release operation at the end of the shared nonunique copy
+/// source helper. The tracked source carries its actual Readonly packet and
+/// context into the existing common release body; the native callback uses
+/// the original context-free release wrapper.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match tracked {
+    None => false,
+    Some(proof) =>
+        proof.packet.invariant() &&
+        proof.packet.capsule_public().0 == ptr &&
+        proof.context.inner_logic().invariant() &&
+        proof.context.inner_logic().token_namespaces().contains(
+            crate::ref_count_ops::event_namespace()) &&
+        proof.packet.lease_key().slot() < proof.context.inner_logic().ready_len() &&
+        proof.context.inner_logic().ready_entry_state(
+            proof.packet.lease_key().slot()) == Some((
+                proof.packet.lease_key().resource_id(),
+                proof.packet.lease_key().slot(),
+                proof.packet.lease_key().resource_id(),
+                Some(Excl((proof.packet.lease_key().resource_id(), None)))
+            ))
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match tracked {
+    None => false,
+    Some(proof) =>
+        (^proof.context.inner_logic()).invariant() &&
+        (^proof.context.inner_logic()).token_namespaces() ==
+            proof.context.inner_logic().token_namespaces() &&
+        (^proof.context.inner_logic()).ready_len() ==
+            proof.context.inner_logic().ready_len() &&
+        forall<index: Int>
+            0 <= index && index < proof.context.inner_logic().ready_len() &&
+            index != proof.packet.lease_key().slot() ==>
+                (^proof.context.inner_logic()).ready_entry_state(index) ==
+                    proof.context.inner_logic().ready_entry_state(index)
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 0))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match tracked {
+    None => false,
+    Some(proof) => result@ > 1 ==>
+        (^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
+        (^proof.context.inner_logic()).ready_entry_state(
+            proof.packet.lease_key().slot()) == Some((
+                proof.packet.lease_key().resource_id(),
+                proof.packet.lease_key().slot(),
+                proof.packet.lease_key().resource_id(),
+                Some(Excl((proof.packet.lease_key().resource_id(), None)))
+            ))
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match tracked {
+    None => false,
+    Some(proof) => result@ == 1 ==>
+        !(^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
+        (^proof.context.inner_logic()).ready_entry_state(
+            proof.packet.lease_key().slot()) == None
+}))]
+pub(crate) unsafe fn release_shared_after_nonunique(
+    ptr: *mut (),
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    tracked: Option<SharedReadonlyCopyProof<'_, '_>>,
+) -> usize {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    {
+        let proof = tracked.unwrap();
+        release_readonly_shared(ptr, proof.packet, proof.context)
+    }
+
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    release_shared_common(ptr.cast())
+}
+
 impl BytesMut {
     /// Consume this tracked shared handle explicitly through the same native
     /// release body used by ordinary Drop. The actual packet and context stay
@@ -5097,6 +5203,164 @@ static SHARED_VTABLE: Vtable = Vtable {
     drop: shared_v_drop,
 };
 
+/// Copy one borrowed shared view into its owned vector. Both the ordinary
+/// nonunique vtable branch and the checked Readonly-region path use this
+/// source operation, so the proof path exercises the same `slice::to_vec`
+/// copy used by the native callback.
+#[inline]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == bytes@))]
+pub(crate) fn shared_readonly_slice_to_vec(bytes: &[u8]) -> Vec<u8> {
+    bytes.to_vec()
+}
+
+/// Shared nonunique source operation for converting a readonly `Bytes` view
+/// into an owned vector. The ordinary callback takes its slice from the
+/// original raw pointer and uses the original release wrapper. The checked
+/// Readonly entry supplies the packet's actual region and context, so this
+/// same operation borrows through B4, copies, restores the region, and then
+/// enters the same common release body.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match proof {
+    None => false,
+    Some(proof) =>
+        proof.packet.invariant() &&
+        proof.packet.capsule_public().0 == shared &&
+        proof.packet.cursor.raw_pointer() == ptr as *mut u8 &&
+        proof.packet.len@ == len@ &&
+        proof.context.inner_logic().invariant() &&
+        proof.context.inner_logic().token_namespaces().contains(
+            crate::ref_count_ops::event_namespace()) &&
+        proof.packet.lease_key().slot() < proof.context.inner_logic().ready_len() &&
+        proof.context.inner_logic().ready_entry_state(
+            proof.packet.lease_key().slot()) == Some((
+                proof.packet.lease_key().resource_id(),
+                proof.packet.lease_key().slot(),
+                proof.packet.lease_key().resource_id(),
+                Some(Excl((proof.packet.lease_key().resource_id(), None)))
+            ))
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.bytes@ == *result.witness.inner_logic().contents &&
+    (*result.witness.inner_logic().region).invariant() &&
+    (*result.witness.inner_logic().region).resource_id() ==
+        (*result.witness.inner_logic().region).namespace() &&
+    *result.witness.inner_logic().pointer == ptr &&
+    *result.witness.inner_logic().start == proof.unwrap_logic().packet.cursor@.unwrap_logic().2 &&
+    (*result.witness.inner_logic().contents).len() == len@ &&
+    (*result.witness.inner_logic().region).namespace() ==
+        proof.unwrap_logic().packet.cursor@.unwrap_logic().0 &&
+    (*result.witness.inner_logic().region).capacity() ==
+        proof.unwrap_logic().packet.cursor@.unwrap_logic().1 &&
+    (*result.witness.inner_logic().region).lo() <=
+        *result.witness.inner_logic().start &&
+    *result.witness.inner_logic().start +
+        (*result.witness.inner_logic().contents).len() <=
+            (*result.witness.inner_logic().region).hi() &&
+    forall<index: Int>
+        0 <= index && index < (*result.witness.inner_logic().contents).len() ==>
+            (*result.witness.inner_logic().region).slot(
+                *result.witness.inner_logic().start + index) ==
+                Some(Some((*result.witness.inner_logic().contents)[index]))
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match proof {
+    None => false,
+    Some(proof) =>
+        (^proof.context.inner_logic()).invariant() &&
+        (^proof.context.inner_logic()).token_namespaces() ==
+            proof.context.inner_logic().token_namespaces() &&
+        (^proof.context.inner_logic()).ready_len() ==
+            proof.context.inner_logic().ready_len() &&
+        forall<index: Int>
+            0 <= index && index < proof.context.inner_logic().ready_len() &&
+            index != proof.packet.lease_key().slot() ==>
+                (^proof.context.inner_logic()).ready_entry_state(index) ==
+                    proof.context.inner_logic().ready_entry_state(index)
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match proof {
+    None => false,
+    Some(proof) => *result.witness.inner_logic().release_old_count > 0 &&
+        (*result.witness.inner_logic().release_old_count > 1 ==>
+            (^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
+            (^proof.context.inner_logic()).ready_entry_state(
+                proof.packet.lease_key().slot()) == Some((
+                    proof.packet.lease_key().resource_id(),
+                    proof.packet.lease_key().slot(),
+                    proof.packet.lease_key().resource_id(),
+                    Some(Excl((proof.packet.lease_key().resource_id(), None)))
+                ))) &&
+        (*result.witness.inner_logic().release_old_count == 1 ==>
+            !(^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
+            (^proof.context.inner_logic()).ready_entry_state(
+                proof.packet.lease_key().slot()) == None)
+}))]
+pub(crate) unsafe fn shared_v_to_vec_nonunique(
+    shared: *mut (),
+    ptr: *const u8,
+    len: usize,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    proof: Option<SharedReadonlyCopyProof<'_, '_>>,
+) -> SharedReadonlyCopyResult {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let mut proof = proof.unwrap();
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let take_context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>> = ghost! {
+        let context = proof.context.borrow_mut().into_inner();
+        &mut **context
+    };
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let loan = proof.packet.take_header_region_read_loan(take_context);
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let bytes = proof.packet.borrow_slice_from_header_read_loan(loan.borrow());
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let bytes = slice::from_raw_parts(ptr, len);
+
+    // This is the single executable copy site for both source paths.
+    let copied = shared_readonly_slice_to_vec(bytes);
+
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let read_pointer: Snapshot<*const u8> = snapshot!(ptr);
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let source_proof = &proof;
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let read_start: Snapshot<Int> = snapshot!(source_proof.packet.cursor@.unwrap_logic().2);
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let read_contents: Snapshot<Seq<u8>> = snapshot!(bytes@);
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let read_region: Ghost<Snapshot<PhysicalRegion>> = ghost! {
+        let read_loan = loan.borrow().into_inner();
+        read_loan.lent_region_snapshot()
+    };
+
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let restore_context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>> = ghost! {
+        let context = proof.context.borrow_mut().into_inner();
+        &mut **context
+    };
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    proof.packet.restore_header_region_read_loan(restore_context, loan);
+    let _release_old_count = release_shared_after_nonunique(
+        shared,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        Some(proof),
+    );
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    {
+        let witness = ghost! {
+            SharedReadonlyReadWitness {
+                region: read_region.into_inner(),
+                pointer: read_pointer,
+                start: read_start,
+                contents: read_contents,
+                release_old_count: snapshot!(_release_old_count@),
+            }
+        };
+        SharedReadonlyCopyResult { bytes: copied, witness }
+    }
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    {
+        copied
+    }
+}
+
 // The native static identity and vtable-driven lifecycle remain outside this
 // proof. This same-name constant only permits typechecking those no_translate
 // source bodies; checked helpers receive their vtable as an input value.
@@ -5146,9 +5410,17 @@ unsafe fn shared_v_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> V
 
         vec
     } else {
-        let v = slice::from_raw_parts(ptr, len).to_vec();
-        release_shared(shared);
-        v
+        unsafe {
+            let copied = shared_v_to_vec_nonunique(
+                shared.cast(), ptr, len,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            );
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            { copied.bytes }
+            #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+            { copied }
+        }
     }
 }
 

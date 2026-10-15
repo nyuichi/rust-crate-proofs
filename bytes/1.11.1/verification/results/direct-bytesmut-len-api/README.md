@@ -111,7 +111,7 @@ changing the pool and uses the same final-owner path. The selected private
 freeze helper carries that actual Readonly packet and pointer-cell permission
 into `Bytes`; the selected `Bytes::dispose_shared` body consumes them and
 calls the common release body. The public `BytesMut::freeze` body and native
-static vtable identity, readonly byte reads, native clone, recovery and
+static vtable identity, public readonly byte-read APIs, native clone, recovery and
 automatic-drop transitions remain unproved.
 
 The public `truncate` and `clear` bodies, and unsafe `set_len`, are also
@@ -181,7 +181,7 @@ event payload to the corresponding ledger and native counter value, and the
 unique-Vec split helper uses the count-two constructor. The selected ARC split
 and explicit disposal paths also connect their native source operations to
 those registrations. Native clone, the public `BytesMut::freeze` body and its
-static vtable identity, readonly byte reads, recovery, and automatic-drop
+static vtable identity, public readonly byte reads, recovery, and automatic-drop
 transitions remain unproved, so this checkpoint does not
 establish count-to-reference correspondence across every native transition or
 public `BytesMut::truncate` behavior for every safely produced state.
@@ -230,11 +230,12 @@ private `freeze_shared_view` body carries the actual Readonly packet into a
 `Bytes::dispose_shared` consumes the actual sidecar and its pointer-cell
 permission, then reaches the common release body with the caller's Context.
 The private header-region take/restore transition is also body-proved using
-the same actual Readonly ticket, lease stamp, pool and affine `PhysicalRegion`;
-readonly byte-read APIs remain unconnected to that loan.
+the same actual Readonly ticket, lease stamp, pool and affine `PhysicalRegion`.
+The checked private nonunique `Bytes`-to-`Vec` copy uses that loan for its
+B4-backed source read; public readonly byte-read APIs remain unconnected to it.
 The native regression `explicit_readonly_dispose_releases_shared_split_once`
 checks split, truncate, freeze, and disposal of both related handles, including
-the 2-to-1 counter transition and surviving bytes. Readonly byte reads and
+the 2-to-1 counter transition and surviving bytes. Public readonly byte reads and
 ordinary automatic Drop remain unproved; selected operation sequences
 explicitly dispose each related handle and assume no Context state after an
 untracked automatic Drop.

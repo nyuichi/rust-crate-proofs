@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1247 4 1247 48 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1281 4 1281 48 *)
 
 (* bytes_mut::shared_capsule::SharedPayload *)
 
@@ -11,8 +11,8 @@ let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
 let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 22 8 22 20
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 712 15 712 32
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 714 20 714 44
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 748 15 748 32
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 750 20 750 44
 let%span sboxed = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/boxed.rs" 49 8 49 18
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 537 12 539 34
 let%span sptr'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
@@ -30,10 +30,10 @@ let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
 let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
 let%span sfmap'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
-let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1248 22 1248 42
-let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1247 43 1247 47
-let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1245 15 1245 71
-let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1246 14 1246 34
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1282 22 1282 42
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1281 43 1281 47
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1279 15 1279 71
+let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1280 14 1280 34
 let%span sshared_capsule'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 687 20 687 75
 let%span sshared_capsule'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 907 8 1027 9
 let%span sshared_capsule'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1059 8 1063 30
@@ -411,7 +411,7 @@ function unwrap_Option_VecStorage (self: t_Option_VecStorage) : t_VecStorage = [
     | None'8 -> any_VecStorage
     end
 
-function vec_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 713 4 713 36] (self: t_Shared) : t_VecStorage
+function vec_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 749 4 749 36] (self: t_Shared) : t_VecStorage
  = [%#sbytes_mut'0] unwrap_Option_VecStorage (view_MaybeUninit_VecStorage self.vec)
 
 predicate has_event_invariant [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 136 4 136 51] (self: t_RefCountCell)
@@ -694,7 +694,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let prove_root_some_implies_lease_idle [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1247 4 1247 48]
+let prove_root_some_implies_lease_idle [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1281 4 1281 48]
   (self: t_SharedPayload) (return (x: ())) =
 {[@stop_split] [@expl:prove_root_some_implies_lease_idle requires] ([@stop_split] [@expl:prove_root_some_implies_lease_idle 'self' type invariant] [%#sshared_capsule'0] inv_ref_SharedPayload self)
   /\ ([@stop_split] [@expl:prove_root_some_implies_lease_idle requires] [%#sshared_capsule'1] invariant_ref_SharedPayload self
