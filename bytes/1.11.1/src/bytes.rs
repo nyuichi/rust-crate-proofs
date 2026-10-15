@@ -1,14 +1,15 @@
-#[cfg(all(creusot, bytes_original_freeze_gate))]
+#[cfg(any(
+    all(creusot, bytes_original_freeze_gate),
+    all(creusot, bytes_original_unique_gate),
+))]
 use creusot_std::{prelude::*, ghost::perm::Perm};
-#[cfg(all(creusot, bytes_original_unique_gate))]
-use creusot_std::prelude::*;
 #[cfg(all(creusot, bytes_original_unique_gate))]
 use creusot_std::logic::ra::excl::Excl;
 #[cfg(all(creusot, bytes_original_unique_gate))]
 use creusot_std::logic::Id;
 #[cfg(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_unique_gate)))]
 use crate::ownership_proof::raw_vec::{self, BoundPtr, PhysicalRegion, Recovery, slot_known};
-#[cfg(all(creusot, bytes_original_freeze_gate))]
+#[cfg(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_unique_gate)))]
 use crate::ownership_proof::boxed_alignment;
 #[cfg(all(creusot, bytes_original_shared_gate))]
 use creusot_std::prelude::*;
@@ -95,6 +96,23 @@ struct OriginalBoxedProof {
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
+struct OriginalSpareSharedProof {
+    base: BoundPtr,
+    capabilities: Ghost<(Recovery, PhysicalRegion)>,
+    contents: Snapshot<Seq<u8>>,
+    shared: *mut Shared,
+    shared_owner: Ghost<Box<Perm<*const Shared>>>,
+    counter_owner: Ghost<(
+        creusot_std::ghost::perm::Perm<crate::ref_count_ops::NativeCounter>,
+        usize,
+    )>,
+    vtable: &'static Vtable,
+    data_cell_permission: Ghost<creusot_std::ghost::perm::Perm<
+        crate::loom::sync::atomic::NativePtr<()>,
+    >>,
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
 struct BoxedReleaseProof {
     base: BoundPtr,
     view: BoundPtr,
@@ -124,6 +142,7 @@ impl Bytes {
                     caps.1.lo() == 0 && caps.1.hi() == caps.0.capacity() &&
                     self.readonly_packet == None &&
                     self.readonly_cell_permission.inner_logic() == None &&
+                    self.original_spare_shared == None &&
                     proof.even_pointer == (self.ptr.addr_logic()@ % 2 == 0) &&
                     self.vtable == proof.vtable &&
                     proof.data_cell_permission.inner_logic().ward().raw_cell() == &self.data &&
@@ -159,6 +178,125 @@ impl Bytes {
     pub(crate) fn original_boxed_vtable(self) -> &'static Vtable {
         self.original_boxed.unwrap_logic().vtable
     }
+
+    /// The spare-capacity Vec constructor preserves the actual Vec allocation,
+    /// Shared header Box, and pointer-cell and counter permissions.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_spare_shared_valid(self) -> bool {
+        pearlite! {
+            self.original_spare_shared_allocation_valid() &&
+            self.original_spare_shared_header_valid() &&
+            self.original_spare_shared_counter_valid() &&
+            self.original_spare_shared_cell_valid()
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_spare_shared_allocation_valid(self) -> bool {
+        pearlite! {
+            match self.original_spare_shared {
+                None => false,
+                Some(proof) => {
+                    let caps = proof.capabilities.inner_logic();
+                    proof.base.invariant() &&
+                    caps.0.invariant() && caps.1.invariant() &&
+                    proof.base@ == Some((caps.0.namespace(), caps.0.capacity(), 0int)) &&
+                    self.ptr == proof.base.raw_pointer() as *const u8 &&
+                    self.len@ == (*proof.contents).len() &&
+                    self.len@ < caps.0.capacity() &&
+                    caps.1.capacity() == caps.0.capacity() &&
+                    caps.1.namespace() == caps.0.namespace() &&
+                    caps.1.resource_id() == caps.0.namespace() &&
+                    caps.1.lo() == 0 && caps.1.hi() == caps.0.capacity() &&
+                    (forall<i:Int> 0 <= i && i < self.len@ ==>
+                        caps.1.slot(i) == Some(Some((*proof.contents)[i]))) &&
+                    (forall<i:Int> self.len@ <= i && i < caps.0.capacity() ==>
+                        caps.1.slot(i) == Some(None))
+                }
+            }
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_spare_shared_header_valid(self) -> bool {
+        pearlite! {
+            self.original_spare_shared_tag_clear() &&
+            self.original_spare_shared_header_state_valid()
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_spare_shared_tag_clear(self) -> bool {
+        pearlite! {
+            match self.original_spare_shared {
+                None => false,
+                Some(proof) => (proof.shared.addr_logic() & KIND_MASK) == 0usize
+            }
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_spare_shared_header_state_valid(self) -> bool {
+        pearlite! {
+            match self.original_spare_shared {
+                None => false,
+                Some(proof) => {
+                    let caps = proof.capabilities.inner_logic();
+                    proof.shared_owner.inner_logic().invariant() &&
+                    *proof.shared_owner.ward() == proof.shared as *const Shared &&
+                    proof.shared_owner.val().buf == proof.base.raw_pointer() &&
+                    proof.shared_owner.val().cap@ == caps.0.capacity() &&
+                    proof.shared_owner.val().ref_cnt.invariant() &&
+                    !proof.shared_owner.val().ref_cnt.has_event_invariant()
+                }
+            }
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_spare_shared_counter_valid(self) -> bool {
+        pearlite! {
+            match self.original_spare_shared {
+                None => false,
+                Some(proof) => {
+                    let counter = proof.counter_owner.inner_logic();
+                    counter.0.invariant() &&
+                    *counter.0.ward() == proof.shared_owner.val().ref_cnt.counter_model() &&
+                    counter.0.val() == 1usize && counter.1 == 1usize
+                }
+            }
+        }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_spare_shared_cell_valid(self) -> bool {
+        pearlite! {
+            match self.original_spare_shared {
+                None => false,
+                Some(proof) => {
+                    self.readonly_packet == None &&
+                    self.readonly_cell_permission.inner_logic() == None &&
+                    self.original_boxed == None &&
+                    self.vtable == proof.vtable &&
+                    proof.data_cell_permission.inner_logic().invariant() &&
+                    proof.data_cell_permission.inner_logic().ward().raw_cell() == &self.data &&
+                    proof.data_cell_permission.inner_logic().val() == proof.shared as *mut ()
+                }
+            }
+        }
+    }
+
+    #[logic(open(self))]
+    pub(crate) fn original_spare_shared_bytes(self) -> Seq<u8> {
+        pearlite! { *self.original_spare_shared.unwrap_logic().contents }
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_spare_shared_capacity(self) -> Int {
+        pearlite! {
+            self.original_spare_shared.unwrap_logic().capabilities.inner_logic().0.capacity()
+        }
+    }
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
@@ -176,6 +314,8 @@ impl Bytes {
                     packet.cursor.raw_pointer() as *const u8 == self.ptr &&
                     packet.len@ == self.len@ &&
                     packet.cursor.current_address() == self.ptr.addr_logic()@ &&
+                    self.original_boxed == None &&
+                    self.original_spare_shared == None &&
                     permission.ward().raw_cell() == &self.data &&
                     permission.val() == packet.capsule_public().0,
                 _ => false,
@@ -599,6 +739,8 @@ impl Bytes {
             readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
@@ -617,6 +759,8 @@ impl Bytes {
             readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
@@ -636,6 +780,8 @@ impl Bytes {
             readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: bytes.as_ptr(),
@@ -668,6 +814,8 @@ impl Bytes {
             readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
 
             #[cfg(all(creusot, bytes_original_freeze_gate))]
 
@@ -758,6 +906,8 @@ impl Bytes {
             readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr: NonNull::dangling().as_ptr(),
@@ -1222,6 +1372,8 @@ impl Bytes {
             readonly_cell_permission,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: None,
             ptr,
@@ -1609,6 +1761,108 @@ impl From<&'static str> for Bytes {
     }
 }
 
+/// Construct the ordinary shared header for a Vec with spare capacity.
+/// The proof profile carries the actual B1 allocation and the permissions
+/// for the header, counter, and data cell; the native profile performs the
+/// same Vec-to-Shared transfer and leaves the existing vtable lifecycle
+/// unchanged.
+#[cfg_attr(all(creusot, not(bytes_original_unique_gate)), creusot::no_translate)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    vec@.len() < creusot_std::std::vec::capacity_model(vec)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.original_spare_shared_valid()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.original_spare_shared_bytes() == vec@
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.ptr == creusot_std::std::vec::pointer_model(vec) as *const u8
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.len@ == vec@.len()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.original_spare_shared_capacity() == creusot_std::std::vec::capacity_model(vec)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.vtable == vtable))]
+fn from_spare_capacity_vec(vec: Vec<u8>, vtable: &'static Vtable) -> Bytes {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (ptr, len, cap, base, capabilities, contents) = {
+        let contents = snapshot!(vec@);
+        let (raw, len, capabilities) = raw_vec::detach_vec(vec);
+        let (base, cap) = raw.into_bound_ptr_at_zero();
+        (base.as_ptr(), len, cap, base, capabilities, contents)
+    };
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let (ptr, len, cap) = {
+        let mut vec = ManuallyDrop::new(vec);
+        (vec.as_mut_ptr(), vec.len(), vec.capacity())
+    };
+
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (ref_cnt, counter_owner) = RefCountCell::new_with_owner(1);
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let ref_cnt = RefCountCell::new(1);
+
+    // Keep the native shared-header construction in one source body.
+    let shared = Box::new(Shared { buf: ptr, cap, ref_cnt });
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (shared, shared_owner) = boxed_alignment::into_raw_aligned(shared);
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let shared = Box::into_raw(shared);
+
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    boxed_alignment::aligned_address_has_clear_low_bit(
+        crate::provenance_specs::pointer_addr(shared), core::mem::align_of::<Shared>()
+    );
+
+    debug_assert!(
+        0 == (crate::provenance_specs::pointer_addr(shared) & KIND_MASK),
+        "internal: Box<Shared> should have an aligned pointer",
+    );
+
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (data, data_cell_permission) = {
+        let (cell, permission) =
+            crate::loom::sync::atomic::NativePtr::new_with_permission(shared.cast());
+        cell.into_raw_with_permission(permission)
+    };
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let data = BytesDataCell::new(shared.cast());
+
+    let result = Bytes {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_packet: None,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        readonly_cell_permission: ghost!(None),
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        original_boxed: None,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        original_spare_shared: Some(OriginalSpareSharedProof {
+            base,
+            capabilities,
+            contents,
+            shared,
+            shared_owner,
+            counter_owner,
+            vtable,
+            data_cell_permission,
+        }),
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+        original_frozen: None,
+        ptr,
+        len,
+        data,
+        vtable,
+    };
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    {
+        proof_assert!(result.original_spare_shared_allocation_valid());
+        proof_assert!(result.original_spare_shared_tag_clear());
+        proof_assert!(result.original_spare_shared_header_state_valid());
+        proof_assert!(result.original_spare_shared_counter_valid());
+        proof_assert!(result.original_spare_shared_cell_valid());
+    }
+    result
+}
+
 impl From<Vec<u8>> for Bytes {
     #[cfg_attr(all(creusot, bytes_original_shared_gate), requires(vec@.len() < creusot_std::std::vec::capacity_model(vec)))]
     #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(result.original_shared_valid()))]
@@ -1628,9 +1882,7 @@ impl From<Vec<u8>> for Bytes {
         #[cfg(not(all(creusot, any(bytes_original_shared_gate, bytes_original_constructor_gate))))]
         {
         #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
-        let mut vec = ManuallyDrop::new(vec);
-        #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
-        let (ptr, len, cap) = (vec.as_mut_ptr(), vec.len(), vec.capacity());
+        let (len, cap) = (vec.len(), vec.capacity());
         #[cfg(all(creusot, bytes_original_freeze_gate))]
         let (ptr, len, cap, base, capabilities) = {
             let (raw, len, capabilities) = raw_vec::detach_vec(vec);
@@ -1644,7 +1896,6 @@ impl From<Vec<u8>> for Bytes {
             { unreachable!("selected spare-capacity Shared path"); }
             #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
             {
-                let vec = ManuallyDrop::into_inner(vec);
                 if len == 0 {
                     return Bytes::from(vec.into_boxed_slice());
                 }
@@ -1654,6 +1905,13 @@ impl From<Vec<u8>> for Bytes {
             }
         }
 
+        #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+        {
+            return from_spare_capacity_vec(vec, &SHARED_VTABLE);
+        }
+
+        #[cfg(all(creusot, bytes_original_freeze_gate))]
+        {
         let shared = Box::new(Shared {
             buf: ptr,
             cap,
@@ -1681,6 +1939,8 @@ impl From<Vec<u8>> for Bytes {
             readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             original_frozen: Some(OriginalFrozenProof { base, capabilities, shared, shared_owner }),
             ptr,
@@ -1697,6 +1957,7 @@ impl From<Vec<u8>> for Bytes {
                 #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
                 { &SHARED_VTABLE }
             },
+        }
         }
         }
     }
@@ -1815,6 +2076,8 @@ fn promotable_from_raw_parts(
             vtable,
             data_cell_permission: permission,
         }),
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        original_spare_shared: None,
         #[cfg(all(creusot, bytes_original_freeze_gate))]
         original_frozen: None,
         ptr,
@@ -2033,6 +2296,8 @@ unsafe fn owned_clone<T>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> By
         readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
 
         #[cfg(all(creusot, bytes_original_freeze_gate))]
 
@@ -2496,6 +2761,8 @@ unsafe fn shallow_clone_arc(shared: *mut Shared, ptr: *const u8, len: usize) -> 
         readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
 
         #[cfg(all(creusot, bytes_original_freeze_gate))]
 
@@ -2566,6 +2833,8 @@ unsafe fn shallow_clone_vec(
                 readonly_cell_permission: ghost!(None),
             #[cfg(all(creusot, bytes_original_unique_gate))]
             original_boxed: None,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            original_spare_shared: None,
                 #[cfg(all(creusot, bytes_original_freeze_gate))]
                 original_frozen: None,
                 ptr: offset,

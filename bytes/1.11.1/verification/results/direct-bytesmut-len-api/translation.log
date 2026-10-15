@@ -29,15 +29,15 @@ warning: unused import: `crate::Buf`
   |     ^^^^^^^^^^
 
 warning: unused import: `cmp`
-  --> src/bytes.rs:18:12
+  --> src/bytes.rs:19:12
    |
-18 | use core::{cmp, fmt, hash, ptr, slice};
+19 | use core::{cmp, fmt, hash, ptr, slice};
    |            ^^^
 
 warning: unused import: `crate::buf::IntoIter`
-  --> src/bytes.rs:28:5
+  --> src/bytes.rs:29:5
    |
-28 | use crate::buf::IntoIter;
+29 | use crate::buf::IntoIter;
    |     ^^^^^^^^^^^^^^^^^^^^
 
 warning: unused import: `string::String`
@@ -648,9 +648,9 @@ help: remove these parentheses
     |
 
 warning: unused import: `borrow::Borrow`
-  --> src/bytes.rs:22:5
+  --> src/bytes.rs:23:5
    |
-22 |     borrow::Borrow,
+23 |     borrow::Borrow,
    |     ^^^^^^^^^^^^^^
 
 warning: unused import: `Borrow`
@@ -1213,18 +1213,18 @@ warning: function `reallocate_u8` is never used
    |                      ^^^^^^^^^^^^^
 
 warning: methods `dispose_shared`, `copy_shared_readonly_to_vec_with_context`, and `dispose_boxed` are never used
-   --> src/bytes.rs:343:26
+   --> src/bytes.rs:483:26
     |
-277 | impl Bytes {
+417 | impl Bytes {
     | ---------- methods in this implementation
 ...
-343 |     pub(crate) unsafe fn dispose_shared(
+483 |     pub(crate) unsafe fn dispose_shared(
     |                          ^^^^^^^^^^^^^^
 ...
-441 |     pub(crate) unsafe fn copy_shared_readonly_to_vec_with_context(
+581 |     pub(crate) unsafe fn copy_shared_readonly_to_vec_with_context(
     |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-477 |     pub(crate) unsafe fn dispose_boxed(self) {
+617 |     pub(crate) unsafe fn dispose_boxed(self) {
     |                          ^^^^^^^^^^^^^
 
 warning: constant `ORIGINAL_CAPACITY_MASK` is never used
@@ -1409,12 +1409,6 @@ warning: method `join` is never used
 825 |     pub(crate) fn join(self, other: Self) -> Self {
     |                   ^^^^
 
-warning: function `detach_vec` is never used
-    --> src/ownership_proof/raw_vec.rs:1120:15
-     |
-1120 | pub(crate) fn detach_vec(
-     |               ^^^^^^^^^^
-
 warning: function `deallocate_vec` is never used
     --> src/ownership_proof/raw_vec.rs:1369:22
      |
@@ -1584,9 +1578,9 @@ warning: method `into_inner` is never used
     |                       ^^^^^^^^^^
 
 warning: missing documentation for an associated function
-   --> src/bytes.rs:555:5
+   --> src/bytes.rs:695:5
     |
-555 |     pub fn new() -> Self {
+695 |     pub fn new() -> Self {
     |     ^^^^^^^^^^^^^^^^^^^^
     |
 note: the lint level is defined here
@@ -1596,9 +1590,9 @@ note: the lint level is defined here
     |         ^^^^^^^^^^^^
 
 warning: missing documentation for an associated function
-   --> src/bytes.rs:612:5
+   --> src/bytes.rs:754:5
     |
-612 |     pub fn from_static(bytes: &'static [u8]) -> Self {
+754 |     pub fn from_static(bytes: &'static [u8]) -> Self {
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: calling external function `is_empty` with no contract will yield an impossible precondition
@@ -3592,57 +3586,57 @@ warning: calling external function `handle_alloc_error` with no contract will yi
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `new` with no contract will yield an impossible precondition
-   --> src/bytes.rs:624:19
+   --> src/bytes.rs:768:19
     |
-624 |             data: BytesDataCell::new(ptr::null_mut()),
+768 |             data: BytesDataCell::new(ptr::null_mut()),
     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-   --> src/bytes.rs:989:46
-    |
-989 |             return Bytes::new_empty_with_ptr(self.ptr.wrapping_add(at));
-    |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
+    --> src/bytes.rs:1139:46
+     |
+1139 |             return Bytes::new_empty_with_ptr(self.ptr.wrapping_add(at));
+     |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1038:27
+    --> src/bytes.rs:1188:27
      |
-1038 |             let end_ptr = self.ptr.wrapping_add(at);
+1188 |             let end_ptr = self.ptr.wrapping_add(at);
      |                           ^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1273:22
+    --> src/bytes.rs:1425:22
      |
-1273 |         { self.ptr = self.ptr.add(by); }
+1425 |         { self.ptr = self.ptr.add(by); }
      |                      ^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `hash` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1368:9
+    --> src/bytes.rs:1520:9
      |
-1368 |         self.as_slice().hash(state);
+1520 |         self.as_slice().hash(state);
      |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `into_bytes` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1948:21
+    --> src/bytes.rs:2211:21
      |
-1948 |         Bytes::from(s.into_bytes())
+2211 |         Bytes::from(s.into_bytes())
      |                     ^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1989:17
+    --> src/bytes.rs:2252:17
      |
-1989 |     let slice = slice::from_raw_parts(ptr, len);
+2252 |     let slice = slice::from_raw_parts(ptr, len);
      |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1994:17
+    --> src/bytes.rs:2257:17
      |
-1994 |     let slice = slice::from_raw_parts(ptr, len);
+2257 |     let slice = slice::from_raw_parts(ptr, len);
      |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:2641:5
+    --> src/bytes.rs:2910:5
      |
-2641 |     core::ptr::null::<u8>().wrapping_add(ptr)
+2910 |     core::ptr::null::<u8>().wrapping_add(ptr)
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
@@ -3699,5 +3693,5 @@ warning: calling external function `new` with no contract will yield an impossib
 189 |         std::io::Error::new(std::io::ErrorKind::Other, error)
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
-warning: `bytes` (lib) generated 376 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 20s
+warning: `bytes` (lib) generated 375 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 18s

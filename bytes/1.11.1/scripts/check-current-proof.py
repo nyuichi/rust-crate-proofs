@@ -49,6 +49,7 @@ TARGETS = (
     "verif/bytes_rlib/bytes/promotable_from_raw_parts.coma",
     "verif/bytes_rlib/bytes/from_boxed_slice_inner.coma",
     "verif/bytes_rlib/bytes/from_full_capacity_vec.coma",
+    "verif/bytes_rlib/bytes/from_spare_capacity_vec.coma",
     "verif/bytes_rlib/loom/sync/atomic/impl_NativePtr_T/into_raw_with_permission.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/kind.coma",
     "verif/bytes_rlib/bytes_mut/impl_Default_for_BytesMut/default.coma",

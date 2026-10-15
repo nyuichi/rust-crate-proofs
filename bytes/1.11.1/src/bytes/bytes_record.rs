@@ -99,4 +99,6 @@ pub struct Bytes {
     >>,
     #[cfg(all(creusot, bytes_original_unique_gate))]
     original_boxed: Option<OriginalBoxedProof>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    original_spare_shared: Option<OriginalSpareSharedProof>,
 }

@@ -150,6 +150,16 @@ authority through the existing B3 boundary. It applies only to the unpromoted
 full boxed view; ordinary vtable-driven Drop and cleanup callbacks remain
 unproved.
 
+The original spare-capacity `From<Vec<u8>>` branch now calls the body-proved
+`from_spare_capacity_vec` source helper. Its private carrier holds the actual
+Vec allocation resources, Shared header Box permission, count-one counter
+permission, and pointer-cell permission, tied to the original contents and
+passed vtable. This proves the internal initial constructor state only; it
+does not establish the public `From<Vec>` contract, static `SHARED_VTABLE`
+identity, later reference-count transitions, or release and automatic Drop.
+This `bytes::Shared` carrier is not the `bytes_mut::Shared` Context/ledger
+protocol.
+
 This increment also body-proves `make_count_two_packets`, a generic constructor
 for one count-two event payload and its two Mutable owner packets. Under a precondition that
 the actual active-owner map covers the full allocation, it places the exact

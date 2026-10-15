@@ -58,6 +58,23 @@ input has the identity of a particular static vtable. Public `From<Vec>` and
 `From<Box>` postconditions and the ordinary vtable-driven Drop/callback path
 remain unproved.
 
+The original `From<Vec<u8>>` spare-capacity branch now calls the source helper
+`from_spare_capacity_vec`. Its body consumes the actual Vec through B1
+`raw_vec::detach_vec`, builds the original `bytes::Shared { buf, cap, ref_cnt }`
+header, and constructs the same `Bytes` pointer-cell and supplied vtable. The
+private carrier preserves the matching recovery and full physical region,
+initialized contents and Unknown spare slots, the actual aligned header Box
+permission, the exact counter permission with value one, and the actual data
+cell permission. This proves only the internal initial carrier for this
+helper. It does not connect that distinct `bytes::Shared` header to the
+`bytes_mut::Shared` Context/ledger protocol, prove the static `SHARED_VTABLE`
+identity, or prove public `From<Vec>` postconditions, clone/refcount updates,
+release, or automatic Drop. No VecStorage model or Bytes-specific ownership
+contract is used. B1 Vec capture, Box alignment conversion, and the native
+counter and pointer-cell constructors remain the generic physical/permission
+boundaries; they can be replaced by exact generic Std and allocator contracts
+without changing the Bytes-specific proof obligations.
+
 The selected private `Bytes::as_slice` body also has a boxed-sidecar branch
 under `original_boxed_valid`. It passes that sidecar's matching base and actual
 full physical region to the existing B4 shared-read boundary, and proves the
