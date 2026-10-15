@@ -123,6 +123,29 @@ pub(crate) fn signed_wrapping_offset(ptr: *mut u8, offset: isize) -> *mut u8 {
     ptr.wrapping_offset(offset)
 }
 
+/// Apply the standard pointer-distance operation when the two operands are
+/// the same non-null byte pointer.
+///
+/// The proof contract covers only this equal-pointer case and concludes a
+/// zero distance. Native callers may use the same operation with other
+/// same-allocation operands; this helper provides no general-distance
+/// theorem, liveness fact, or dereference permission.
+///
+/// # Safety
+/// Both pointers must refer to the same allocated object. The selected proof
+/// path additionally requires exact pointer equality, supplied by its B1
+/// allocation and header-frame facts.
+#[cfg_attr(creusot, trusted)]
+#[cfg_attr(creusot, requires(pointer == base))]
+#[cfg_attr(creusot, requires(pointer.addr_logic()@ != 0))]
+#[cfg_attr(creusot, ensures(result == 0isize))]
+#[inline]
+pub(crate) unsafe fn offset_from_equal_u8(pointer: *const u8, base: *const u8) -> isize {
+    // SAFETY: the caller guarantees both operands belong to the same live
+    // allocation; in the selected proof path they are the same non-null word.
+    unsafe { pointer.offset_from(base) }
+}
+
 /// Obtain a pointer with a requested numerical address by applying
 /// provenance-preserving wrapping pointer arithmetic to the original pointer.
 ///

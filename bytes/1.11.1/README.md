@@ -97,7 +97,13 @@ permission, forgets the handle, and enters the original `release_shared` and
 `free_shared` source bodies with the exact counter, header Box and full B1
 allocation resources. It proves the Release decrement, Acquire load, byte
 allocation deallocation and header deallocation for that sole full-view state.
-The public `From<Vec>` postcondition, cloning/refcount transitions, vtable
+For the same carrier, the private `Bytes::into_mut_spare_shared` and original
+`shared_to_mut_impl` bodies also prove the count-one transfer: one Acquire
+load, header deallocation without running `Shared::drop`, B2 Vec recovery,
+`BytesMut::from_vec`, and the original zero-offset advance. The result preserves
+the exact pointer, visible bytes, length, full capacity, and unknown spare
+slots. This does not prove the public `Bytes::try_into_mut` vtable dispatch.
+The public `From<Vec>` postcondition, cloning/refcount transitions, other vtable
 callbacks and automatic Drop remain unproved.
 
 The crate-private unsafe `BytesMut::dispose_unique` body also consumes a

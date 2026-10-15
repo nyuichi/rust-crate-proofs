@@ -8,7 +8,7 @@ use creusot_std::logic::ra::excl::Excl;
 #[cfg(all(creusot, bytes_original_unique_gate))]
 use creusot_std::logic::Id;
 #[cfg(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_unique_gate)))]
-use crate::ownership_proof::raw_vec::{self, BoundPtr, PhysicalRegion, Recovery, slot_known};
+use crate::ownership_proof::raw_vec::{self, BoundPtr, PhysicalRegion, RawAllocation, Recovery, slot_known};
 #[cfg(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_unique_gate)))]
 use crate::ownership_proof::boxed_alignment;
 #[cfg(all(creusot, bytes_original_shared_gate))]
@@ -97,6 +97,7 @@ struct OriginalBoxedProof {
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
 struct OriginalSpareSharedProof {
+    raw: RawAllocation,
     base: BoundPtr,
     capabilities: Ghost<(Recovery, PhysicalRegion)>,
     contents: Snapshot<Seq<u8>>,
@@ -122,7 +123,11 @@ impl OriginalSpareSharedProof {
             let caps = self.capabilities.inner_logic();
             let counter = self.counter_owner.inner_logic();
             self.shared == shared &&
+            self.raw.invariant() &&
             self.base.invariant() && caps.0.invariant() && caps.1.invariant() &&
+            self.raw.raw_pointer() == self.base.raw_pointer() &&
+            self.raw.capacity() == caps.0.capacity() &&
+            self.raw.namespace() == caps.0.namespace() &&
             self.base@ == Some((caps.0.namespace(), caps.0.capacity(), 0int)) &&
             caps.1.capacity() == caps.0.capacity() &&
             caps.1.namespace() == caps.0.namespace() &&
@@ -138,6 +143,19 @@ impl OriginalSpareSharedProof {
             counter.0.invariant() &&
             *counter.0.ward() == self.shared_owner.val().ref_cnt.counter_model() &&
             counter.0.val() == count && counter.1 == count
+        }
+    }
+
+    /// Exact count-one handoff to the original Vec-backed mutable layout.
+    #[logic(open(self), prophetic)]
+    fn take_mut_valid(self, shared: *mut Shared, ptr: *const u8, len: usize) -> bool {
+        pearlite! {
+            self.release_valid(shared, 1usize) &&
+            ptr == self.base.raw_pointer() as *const u8 &&
+            len@ == (*self.contents).len() &&
+            len@ <= self.raw.capacity() &&
+            (forall<i:Int> 0 <= i && i < len@ ==>
+                self.capabilities.inner_logic().1.slot(i) == Some(Some((*self.contents)[i])))
         }
     }
 }
@@ -228,8 +246,12 @@ impl Bytes {
                 None => false,
                 Some(proof) => {
                     let caps = proof.capabilities.inner_logic();
+                    proof.raw.invariant() &&
                     proof.base.invariant() &&
                     caps.0.invariant() && caps.1.invariant() &&
+                    proof.raw.raw_pointer() == proof.base.raw_pointer() &&
+                    proof.raw.capacity() == caps.0.capacity() &&
+                    proof.raw.namespace() == caps.0.namespace() &&
                     proof.base@ == Some((caps.0.namespace(), caps.0.capacity(), 0int)) &&
                     self.ptr == proof.base.raw_pointer() as *const u8 &&
                     self.len@ == (*proof.contents).len() &&
@@ -748,6 +770,62 @@ impl Bytes {
         unsafe { release_shared(shared, Some(proof)) };
         #[cfg(not(all(creusot, bytes_original_unique_gate)))]
         unsafe { release_shared(shared) };
+    }
+
+    /// Convert the unpromoted spare-capacity Shared representation back to
+    /// the original unique Vec-backed BytesMut path.
+    ///
+    /// # Safety
+    /// The handle must be the unchanged, sole handle returned by the spare-
+    /// capacity `From<Vec<u8>>` constructor.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.original_spare_shared_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_vec_rebuildable()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == self.len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_offset() == 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.unique_capacity() == self.original_spare_shared_capacity()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.unique_allocation_capacity() == self.original_spare_shared_capacity()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.unique_pointer() == self.ptr as *mut u8
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.unique_bytes() == self.original_spare_shared_bytes()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        result.unique_length() <= i && i < result.unique_capacity() ==>
+            result.unique_slot(i) == Some(None)
+    ))]
+    #[cfg_attr(all(creusot, not(bytes_original_unique_gate)), creusot::no_translate)]
+    pub(crate) unsafe fn into_mut_spare_shared(self) -> BytesMut {
+        let mut this = self;
+        let ptr = this.ptr;
+        let len = this.len;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let mut proof = this.original_spare_shared.take().unwrap();
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let mut permission = ghost! { proof.data_cell_permission.into_inner() };
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let shared = crate::loom::sync::atomic::NativePtr::exclusive_read(
+            &mut this.data,
+            ghost!(&mut *permission),
+        ).cast::<Shared>();
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        { proof.data_cell_permission = permission; }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let shared = this.data.with_mut(|pointer| *pointer).cast::<Shared>();
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            proof_assert!(shared == proof.shared);
+            proof_assert!(proof.take_mut_valid(shared, ptr, len));
+        }
+        mem::forget(this);
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        unsafe { shared_to_mut_impl(shared, ptr, len, Some(proof)) }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        unsafe { shared_to_mut_impl(shared, ptr, len) }
     }
 
     /// Creates a new empty `Bytes`.
@@ -1877,11 +1955,11 @@ impl From<&'static str> for Bytes {
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.vtable == vtable))]
 fn from_spare_capacity_vec(vec: Vec<u8>, vtable: &'static Vtable) -> Bytes {
     #[cfg(all(creusot, bytes_original_unique_gate))]
-    let (ptr, len, cap, base, capabilities, contents) = {
+    let (ptr, len, cap, raw, base, capabilities, contents) = {
         let contents = snapshot!(vec@);
         let (raw, len, capabilities) = raw_vec::detach_vec(vec);
-        let (base, cap) = raw.into_bound_ptr_at_zero();
-        (base.as_ptr(), len, cap, base, capabilities, contents)
+        let (base, cap) = raw.bound_ptr_at_zero();
+        (base.as_ptr(), len, cap, raw, base, capabilities, contents)
     };
     #[cfg(not(all(creusot, bytes_original_unique_gate)))]
     let (ptr, len, cap) = {
@@ -1929,6 +2007,7 @@ fn from_spare_capacity_vec(vec: Vec<u8>, vtable: &'static Vtable) -> Bytes {
         original_boxed: None,
         #[cfg(all(creusot, bytes_original_unique_gate))]
         original_spare_shared: Some(OriginalSpareSharedProof {
+            raw,
             base,
             capabilities,
             contents,
@@ -2537,7 +2616,13 @@ unsafe fn promotable_to_mut(
     let kind = shared as usize & KIND_MASK;
 
     if kind == KIND_ARC {
-        shared_to_mut_impl(shared.cast(), ptr, len)
+        shared_to_mut_impl(
+            shared.cast(),
+            ptr,
+            len,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            None,
+        )
     } else {
         // KIND_VEC is a view of an underlying buffer at a certain offset.
         // The ptr + len always represents the end of that buffer.
@@ -2796,8 +2881,62 @@ unsafe fn shared_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec
     shared_to_vec_impl(data.load(Ordering::Relaxed).cast(), ptr, len)
 }
 
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(false))]
 #[cfg_attr(creusot, creusot::no_translate)]
-unsafe fn shared_to_mut_impl(shared: *mut Shared, ptr: *const u8, len: usize) -> BytesMut {
+unsafe fn shared_to_mut_nonunique(
+    shared: *mut Shared,
+    ptr: *const u8,
+    len: usize,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    proof: Option<OriginalSpareSharedProof>,
+) -> BytesMut {
+    // Keep the original native copy-and-release fallback in one source body.
+    let v = slice::from_raw_parts(ptr, len).to_vec();
+    release_shared(
+        shared,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        proof,
+    );
+    BytesMut::from_vec(v)
+}
+
+#[cfg_attr(all(creusot, not(bytes_original_unique_gate)), creusot::no_translate)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match proof {
+    Some(release) => release.take_mut_valid(shared, ptr, len),
+    None => false,
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_vec_rebuildable()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.unique_bytes() == match proof {
+        Some(release) => *release.contents,
+        None => Seq::empty(),
+    }
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_length() == len@))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_offset() == 0))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match proof {
+    Some(release) => result.unique_capacity() == release.raw.capacity(),
+    None => false,
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match proof {
+    Some(release) => result.unique_allocation_capacity() == release.raw.capacity(),
+    None => false,
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.unique_pointer() == ptr as *mut u8))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+    result.unique_length() <= i && i < result.unique_capacity() ==>
+        result.unique_slot(i) == Some(None)
+))]
+unsafe fn shared_to_mut_impl(
+    shared: *mut Shared,
+    ptr: *const u8,
+    len: usize,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    proof: Option<OriginalSpareSharedProof>,
+) -> BytesMut {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let mut proof = proof.unwrap();
+
     // The goal is to check if the current handle is the only handle
     // that currently has access to the buffer. This is done by
     // checking if the `ref_cnt` is currently 1.
@@ -2810,16 +2949,52 @@ unsafe fn shared_to_mut_impl(shared: *mut Shared, ptr: *const u8, len: usize) ->
     // visible to the current thread.
     //
     // Otherwise, we take the other branch, copy the data and call `release_shared`.
-    if (*shared).ref_cnt.load_acquire() == 1 {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (ref_count, counter_owner) = {
+        let shared_ref = unsafe {
+            creusot_std::ghost::perm::Perm::as_ref(shared, ghost!(&*proof.shared_owner))
+        };
+        shared_ref.ref_cnt.native_counter().load_acquire_owned(proof.counter_owner)
+    };
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    { proof.counter_owner = counter_owner; }
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let ref_count = (*shared).ref_cnt.load_acquire();
+
+    if ref_count == 1 {
         // Deallocate the `Shared` instance without running its destructor.
-        let shared = *Box::from_raw(shared);
-        let shared = ManuallyDrop::new(shared);
-        let buf = shared.buf;
-        let cap = shared.cap;
+        let (buf, cap) = {
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            let shared_ref = unsafe {
+                creusot_std::ghost::perm::Perm::as_ref(shared, ghost!(&*proof.shared_owner))
+            };
+            #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+            let shared_ref = unsafe { &*shared };
+            (shared_ref.buf, shared_ref.cap)
+        };
+
+        // The original Box move freed only the header allocation at this
+        // point; Shared's destructor was suppressed. Use the same generic
+        // no-drop Box boundary before computing the byte-pointer offset.
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        unsafe {
+            crate::allocation_ops::deallocate_box_without_drop(shared, proof.shared_owner)
+        };
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        unsafe { crate::allocation_ops::deallocate_box_without_drop(shared) };
 
         // Rebuild Vec
-        let off = ptr.offset_from(buf) as usize;
-        let v = Vec::from_raw_parts(buf, len + off, cap);
+        let off = unsafe {
+            crate::provenance_specs::offset_from_equal_u8(ptr, buf)
+        } as usize;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let v = {
+            proof_assert!(buf == proof.base.raw_pointer());
+            proof_assert!(cap@ == proof.raw.capacity());
+            unsafe { raw_vec::resume_vec(proof.raw, len + off, proof.capabilities) }
+        };
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let v = unsafe { Vec::from_raw_parts(buf, len + off, cap) };
 
         let mut b = BytesMut::from_vec(v);
         b.advance_unchecked(
@@ -2829,20 +3004,26 @@ unsafe fn shared_to_mut_impl(shared: *mut Shared, ptr: *const u8, len: usize) ->
         );
         b
     } else {
-        // Copy the data from Shared in a new Vec, then release it
-        let v = slice::from_raw_parts(ptr, len).to_vec();
-        release_shared(
+        // The native fallback is outside the count-one proof carrier's domain.
+        unsafe { shared_to_mut_nonunique(
             shared,
+            ptr,
+            len,
             #[cfg(all(creusot, bytes_original_unique_gate))]
-            None,
-        );
-        BytesMut::from_vec(v)
+            Some(proof),
+        ) }
     }
 }
 
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shared_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {
-    shared_to_mut_impl(data.load(Ordering::Relaxed).cast(), ptr, len)
+    shared_to_mut_impl(
+        data.load(Ordering::Relaxed).cast(),
+        ptr,
+        len,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        None,
+    )
 }
 
 #[cfg_attr(creusot, creusot::no_translate)]
@@ -3151,6 +3332,7 @@ mod fuzz {
 #[cfg(all(test, not(loom)))]
 mod original_release_tests {
     use super::Bytes;
+    use crate::Buf;
     use std::vec::Vec;
 
     #[test]
@@ -3165,5 +3347,37 @@ mod original_release_tests {
         // SAFETY: this handle came directly from the spare-capacity Vec
         // constructor and has not been cloned or otherwise transferred.
         unsafe { bytes.dispose_spare_shared() };
+    }
+
+    #[test]
+    fn try_into_mut_reclaims_spare_capacity_shared_buffer_at_offsets() {
+        let mut input = Vec::with_capacity(32);
+        input.extend_from_slice(b"spare capacity payload");
+        let capacity = input.capacity();
+
+        let mut bytes = Bytes::from(input);
+        bytes.advance(6);
+        let mut bytes_mut = bytes
+            .try_into_mut()
+            .expect("the unshared spare-capacity buffer is unique");
+        assert_eq!(&bytes_mut[..], b"capacity payload");
+        assert_eq!(bytes_mut.capacity(), capacity - 6);
+
+        bytes_mut.truncate(5);
+        assert_eq!(&bytes_mut[..], b"capac");
+
+        let mut empty_input = Vec::with_capacity(24);
+        empty_input.extend_from_slice(b"empty view");
+        let empty_capacity = empty_input.capacity();
+        let end = empty_input.len();
+        let mut empty_bytes = Bytes::from(empty_input);
+        empty_bytes.advance(end);
+        assert!(empty_bytes.is_empty());
+
+        let empty_mut = empty_bytes
+            .try_into_mut()
+            .expect("the empty spare-capacity view is unique");
+        assert!(empty_mut.is_empty());
+        assert_eq!(empty_mut.capacity(), empty_capacity - end);
     }
 }

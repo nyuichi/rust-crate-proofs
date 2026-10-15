@@ -75,6 +75,24 @@ counter and pointer-cell constructors remain the generic physical/permission
 boundaries; they can be replaced by exact generic Std and allocator contracts
 without changing the Bytes-specific proof obligations.
 
+For the same full-view, count-one spare-capacity carrier, the selected original
+`shared_to_mut_impl` and private `Bytes::into_mut_spare_shared` bodies prove the
+unique recovery branch: one Acquire load, header deallocation without running
+`Shared::drop`, exact B2 Vec reconstruction, `BytesMut::from_vec`, and the
+original zero-offset advance. The result preserves the input pointer, visible
+bytes, length, full allocation capacity and Unknown spare slots. The generic
+trusted `offset_from_equal_u8` adapter is used only where the actual native
+operands are equal and non-null, yielding offset zero; it does not specify a
+general pointer distance, provenance, liveness, or dereference fact. The
+replacement path is a matching generic Std contract for `offset_from` on the
+same allocation, then a body proof of the adapter. This does not prove the
+public `Bytes::try_into_mut` vtable dispatch, the nonunique branch, public
+`From<Vec>` postconditions, or automatic Drop.
+The original nonunique copy/release fallback remains in the native
+`shared_to_mut_nonunique` helper. In the checked count-one entry, its call has a
+false precondition derived from the actual count-one carrier and Acquire
+result; the helper body and that fallback remain unproved.
+
 The selected private `Bytes::as_slice` body has boxed and spare-capacity
 branches under `original_borrowable_valid`. Each passes the carrier's matching
 base and actual physical region to the existing B4 shared-read boundary, and

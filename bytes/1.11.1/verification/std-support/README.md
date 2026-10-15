@@ -74,3 +74,12 @@ and state no Bytes ownership or lifecycle rule. Their replacement path is to
 add matching generic Std atomic-permission and Box-allocation contracts, then
 body-prove the adapters against the native atomic operation and allocator
 deallocation.
+
+The selected count-one spare-capacity recovery path also uses the generic
+trusted `offset_from_equal_u8` adapter. It requires equal, non-null `u8`
+pointers and states only that the native `offset_from` result is zero. It does
+not grant allocation identity, pointer provenance, liveness, or access
+permission; the original B1 carrier supplies its independent physical
+resources. Its replacement path is an exact generic Std `offset_from` contract
+for pointers into the same allocation, followed by a body proof of the
+adapter.

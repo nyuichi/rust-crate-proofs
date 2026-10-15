@@ -4,7 +4,8 @@ On this verification fork based on crates.io `bytes` 1.11.1, selected
 constructor bodies establish that `with_capacity(n)` returns an empty buffer
 with capacity at least `n`, and `zeroed(n)` returns `n` zero bytes with
 capacity at least `n`. The selected crate-private `from_vec(v)` conversion
-preserves `v`'s length and bytes; `new` and `Default` establish an empty
+preserves `v`'s pointer, zero offset, full allocation capacity, length and
+bytes; `new` and `Default` establish an empty
 buffer. These results apply to this fork; its native source refactors are not
 shown equivalent to the unmodified release.
 
@@ -159,6 +160,15 @@ does not establish the public `From<Vec>` contract, static `SHARED_VTABLE`
 identity, later reference-count transitions, or release and automatic Drop.
 This `bytes::Shared` carrier is not the `bytes_mut::Shared` Context/ledger
 protocol.
+
+Under this actual count-one carrier, the original `shared_to_mut_impl` body
+and private `Bytes::into_mut_spare_shared` body also prove the unique recovery
+branch. They perform one Acquire load, deallocate the `Shared` header without
+running its destructor, resume the exact Vec through B2, call the original
+`BytesMut::from_vec`, and apply the original zero-offset advance. The result
+retains the input pointer, visible bytes, length, full allocation capacity and
+Unknown spare slots. This does not prove the public `Bytes::try_into_mut`
+vtable dispatch, the unselected nonunique branch, or ordinary Drop.
 
 This increment also body-proves `make_count_two_packets`, a generic constructor
 for one count-two event payload and its two Mutable owner packets. Under a precondition that
