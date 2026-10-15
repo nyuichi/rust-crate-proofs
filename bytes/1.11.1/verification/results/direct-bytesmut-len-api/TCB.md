@@ -453,7 +453,22 @@ path under its actual packet/context preconditions. It does not prove the
 outer no-translate vtable callback, native static vtable identity, public
 vtable dispatch, or the callback's Acquire/unique branch. The boxed and
 spare-capacity branches of `Bytes::as_slice` are proved; its shared-readonly
-branch and other readonly byte-read APIs remain outside the proof.
+branch and other public readonly byte-read APIs remain outside the proof.
+
+The private `Bytes::copy_shared_readonly_to_mut_with_context` entry reads the
+actual pointer-cell permission and passes its packet and caller Context to the
+same all-build `shared_v_to_mut_nonunique` helper called by the original
+`shared_v_to_mut` callback's nonunique continuation. That helper calls the
+checked copy-and-release body, then calls the original `BytesMut::from_vec`
+once. Its body proof preserves the read witness, the exact conditional
+post-release Context state, and the copied Vec snapshot's contents, pointer,
+capacity, initialized prefix and Unknown spare slots. This proves the shared
+copy-to-Mutable helper and its Context-aware entry, but it does not prove that
+the outer no-translate callback selects this continuation or establish the
+public vtable dispatch or static vtable identity. The native regression
+`nonunique_frozen_view_converts_to_mutable_copy_without_changing_sibling`
+exercises `split_off`, `freeze`, and `BytesMut::from` while the Mutable sibling
+remains alive, then checks the copied view and sibling after truncation.
 
 The checked common release carrier accepts a Mutable packet with its actual
 physical region or a Readonly packet with its actual ticket and no region. Its

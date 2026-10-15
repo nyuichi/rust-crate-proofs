@@ -87,6 +87,17 @@ pub(crate) struct SharedReadonlyCopyResult {
     pub(crate) witness: Ghost<SharedReadonlyReadWitness>,
 }
 
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[allow(missing_debug_implementations)]
+pub(crate) struct SharedReadonlyMutableResult {
+    pub(crate) buffer: BytesMut,
+    pub(crate) witness: Ghost<SharedReadonlyReadWitness>,
+    pub(crate) output_vector: Snapshot<Vec<u8>>,
+}
+
+#[cfg(not(all(creusot, bytes_original_unique_gate)))]
+pub(crate) type SharedReadonlyMutableResult = BytesMut;
+
 #[cfg(not(all(creusot, bytes_original_unique_gate)))]
 pub(crate) type SharedReadonlyCopyResult = Vec<u8>;
 
@@ -4620,6 +4631,22 @@ mod tests {
     }
 
     #[test]
+    fn nonunique_frozen_view_converts_to_mutable_copy_without_changing_sibling() {
+        let mut sibling = BytesMut::from(&b"head:payload:tail"[..]);
+        let readonly = sibling.split_off(5).freeze();
+
+        // The mutable sibling remains alive, so this conversion exercises
+        // the shared vtable's nonunique copy, release, and from_vec path.
+        let mut copied = BytesMut::from(readonly);
+        assert_eq!(&copied[..], b"payload:tail");
+        assert_eq!(&sibling[..], b"head:");
+
+        copied.truncate(7);
+        assert_eq!(&copied[..], b"payload");
+        assert_eq!(&sibling[..], b"head:");
+    }
+
+    #[test]
     fn reserve_compacts_visible_bytes_before_growing_after_hidden_prefix_is_uninitialized() {
         let original: Vec<u8> = (0..80).map(|i| i as u8).collect();
         let expected = original[32..].to_vec();
@@ -5433,6 +5460,132 @@ pub(crate) unsafe fn shared_v_to_vec_nonunique(
     }
 }
 
+/// Complete the original nonunique Shared-to-BytesMut source path. Both the
+/// native vtable callback and the checked Context-aware entry call this one
+/// all-build body, which performs the shared copy/release helper and then
+/// installs the resulting Vec through the original `BytesMut::from_vec`.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match proof {
+    None => false,
+    Some(proof) =>
+        proof.packet.invariant() &&
+        proof.packet.capsule_public().0 == shared &&
+        proof.packet.cursor.raw_pointer() == ptr as *mut u8 &&
+        proof.packet.len@ == len@ &&
+        proof.context.inner_logic().invariant() &&
+        proof.context.inner_logic().token_namespaces().contains(
+            crate::ref_count_ops::event_namespace()) &&
+        proof.packet.lease_key().slot() < proof.context.inner_logic().ready_len() &&
+        proof.context.inner_logic().ready_entry_state(
+            proof.packet.lease_key().slot()) == Some((
+                proof.packet.lease_key().resource_id(),
+                proof.packet.lease_key().slot(),
+                proof.packet.lease_key().resource_id(),
+                Some(Excl((proof.packet.lease_key().resource_id(), None)))
+            ))
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.buffer.unique_valid() &&
+    result.buffer.unique_vec_rebuildable() &&
+    result.buffer.unique_length() == len@ &&
+    result.buffer.unique_bytes() == *result.witness.inner_logic().contents &&
+    result.buffer.unique_offset() == 0 &&
+    result.buffer.unique_pointer() ==
+        creusot_std::std::vec::pointer_model(*result.output_vector) &&
+    result.buffer.unique_capacity() ==
+        creusot_std::std::vec::capacity_model(*result.output_vector) &&
+    result.buffer.unique_allocation_capacity() ==
+        creusot_std::std::vec::capacity_model(*result.output_vector) &&
+    creusot_std::std::vec::capacity_model(*result.output_vector) >= len@ &&
+    (*result.output_vector)@ == *result.witness.inner_logic().contents &&
+    (forall<index: Int>
+        0 <= index && index < len@ ==>
+            result.buffer.unique_slot(index) ==
+                Some(Some((*result.witness.inner_logic().contents)[index]))) &&
+    (forall<index: Int>
+        len@ <= index && index < creusot_std::std::vec::capacity_model(*result.output_vector) ==>
+            result.buffer.unique_slot(index) == Some(None))
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    (*result.witness.inner_logic().region).invariant() &&
+    (*result.witness.inner_logic().region).resource_id() ==
+        (*result.witness.inner_logic().region).namespace() &&
+    *result.witness.inner_logic().pointer == ptr &&
+    *result.witness.inner_logic().start == proof.unwrap_logic().packet.cursor@.unwrap_logic().2 &&
+    (*result.witness.inner_logic().contents).len() == len@ &&
+    (*result.witness.inner_logic().region).namespace() ==
+        proof.unwrap_logic().packet.cursor@.unwrap_logic().0 &&
+    (*result.witness.inner_logic().region).capacity() ==
+        proof.unwrap_logic().packet.cursor@.unwrap_logic().1 &&
+    (*result.witness.inner_logic().region).lo() <= *result.witness.inner_logic().start &&
+    *result.witness.inner_logic().start + (*result.witness.inner_logic().contents).len() <=
+        (*result.witness.inner_logic().region).hi() &&
+    forall<index: Int>
+        0 <= index && index < (*result.witness.inner_logic().contents).len() ==>
+            (*result.witness.inner_logic().region).slot(
+                *result.witness.inner_logic().start + index) ==
+                Some(Some((*result.witness.inner_logic().contents)[index]))
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match proof {
+    None => false,
+    Some(proof) =>
+        *result.witness.inner_logic().release_old_count > 0 &&
+        (^proof.context.inner_logic()).invariant() &&
+        (^proof.context.inner_logic()).token_namespaces() ==
+            proof.context.inner_logic().token_namespaces() &&
+        (^proof.context.inner_logic()).ready_len() ==
+            proof.context.inner_logic().ready_len() &&
+        (*result.witness.inner_logic().release_old_count > 1 ==>
+            (^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
+            (^proof.context.inner_logic()).ready_entry_state(
+                proof.packet.lease_key().slot()) == Some((
+                    proof.packet.lease_key().resource_id(),
+                    proof.packet.lease_key().slot(),
+                    proof.packet.lease_key().resource_id(),
+                    Some(Excl((proof.packet.lease_key().resource_id(), None)))
+                ))) &&
+        (*result.witness.inner_logic().release_old_count == 1 ==>
+            !(^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
+            (^proof.context.inner_logic()).ready_entry_state(
+                proof.packet.lease_key().slot()) == None) &&
+        forall<index: Int>
+            0 <= index && index < proof.context.inner_logic().ready_len() &&
+            index != proof.packet.lease_key().slot() ==>
+                (^proof.context.inner_logic()).ready_entry_state(index) ==
+                    proof.context.inner_logic().ready_entry_state(index)
+}))]
+pub(crate) unsafe fn shared_v_to_mut_nonunique(
+    shared: *mut (),
+    ptr: *const u8,
+    len: usize,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    proof: Option<SharedReadonlyCopyProof<'_, '_>>,
+) -> SharedReadonlyMutableResult {
+    let copied = shared_v_to_vec_nonunique(
+        shared,
+        ptr,
+        len,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        proof,
+    );
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let output_vector = snapshot!(copied.bytes);
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let witness = copied.witness;
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let bytes = copied.bytes;
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let bytes = copied;
+    let buffer = BytesMut::from_vec(bytes);
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    {
+        SharedReadonlyMutableResult { buffer, witness, output_vector }
+    }
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    {
+        buffer
+    }
+}
+
 // The native static identity and vtable-driven lifecycle remain outside this
 // proof. This same-name constant only permits typechecking those no_translate
 // source bodies; checked helpers receive their vtable as an input value.
@@ -5522,9 +5675,16 @@ unsafe fn shared_v_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> B
             shared_proof: None,
         }
     } else {
-        let v = slice::from_raw_parts(ptr, len).to_vec();
-        release_shared(shared);
-        BytesMut::from_vec(v)
+        let copied = shared_v_to_mut_nonunique(
+            shared.cast(), ptr, len,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            None,
+        );
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let buffer = copied.buffer;
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let buffer = copied;
+        buffer
     }
 }
 

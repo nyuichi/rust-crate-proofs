@@ -675,6 +675,118 @@ impl Bytes {
         copied
     }
 
+    /// Convert a packet-backed Readonly view into a fresh mutable Vec owner
+    /// through the same nonunique copy/release source operation used by the
+    /// original `shared_v_to_mut` callback. The returned witness records the
+    /// copied values and the exact conditional Context result of releasing
+    /// this Readonly owner.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    #[requires(self.readonly_packet_valid())]
+    #[requires(context.inner_logic().invariant())]
+    #[requires(context.inner_logic().token_namespaces().contains(
+        crate::ref_count_ops::event_namespace()
+    ))]
+    #[requires(self.readonly_packet_key().unwrap_logic().slot() <
+        context.inner_logic().ready_len())]
+    #[requires(context.inner_logic().ready_entry_state(
+        self.readonly_packet_key().unwrap_logic().slot()) == Some((
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot(),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            Some(Excl((
+                self.readonly_packet_key().unwrap_logic().resource_id(), None
+            )))
+        )))]
+    #[ensures(result.buffer.unique_valid())]
+    #[ensures(result.buffer.unique_vec_rebuildable())]
+    #[ensures(result.buffer.unique_length() == self.len@)]
+    #[ensures(result.buffer.unique_bytes() == *result.witness.inner_logic().contents)]
+    #[ensures(result.buffer.unique_offset() == 0)]
+    #[ensures(result.buffer.unique_pointer() ==
+        creusot_std::std::vec::pointer_model(*result.output_vector))]
+    #[ensures(result.buffer.unique_capacity() ==
+        creusot_std::std::vec::capacity_model(*result.output_vector))]
+    #[ensures(result.buffer.unique_allocation_capacity() ==
+        creusot_std::std::vec::capacity_model(*result.output_vector))]
+    #[ensures((*result.output_vector)@ == *result.witness.inner_logic().contents)]
+    #[ensures(forall<index: Int>
+        0 <= index && index < self.len@ ==>
+            result.buffer.unique_slot(index) ==
+                Some(Some((*result.witness.inner_logic().contents)[index])))]
+    #[ensures(forall<index: Int>
+        self.len@ <= index && index <
+            creusot_std::std::vec::capacity_model(*result.output_vector) ==>
+            result.buffer.unique_slot(index) == Some(None))]
+    #[ensures(*result.witness.inner_logic().release_old_count > 0)]
+    #[ensures(*result.witness.inner_logic().release_old_count > 1 ==>
+        (^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
+        (^context.inner_logic()).ready_entry_state(
+            self.readonly_packet_key().unwrap_logic().slot()) == Some((
+                self.readonly_packet_key().unwrap_logic().resource_id(),
+                self.readonly_packet_key().unwrap_logic().slot(),
+                self.readonly_packet_key().unwrap_logic().resource_id(),
+                Some(Excl((self.readonly_packet_key().unwrap_logic().resource_id(), None)))
+            )))]
+    #[ensures(*result.witness.inner_logic().release_old_count == 1 ==>
+        !(^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
+        (^context.inner_logic()).ready_entry_state(
+            self.readonly_packet_key().unwrap_logic().slot()) == None)]
+    #[ensures((*result.witness.inner_logic().region).invariant())]
+    #[ensures((*result.witness.inner_logic().region).resource_id() ==
+        (*result.witness.inner_logic().region).namespace())]
+    #[ensures(*result.witness.inner_logic().pointer == self.ptr)]
+    #[ensures((*result.witness.inner_logic().contents).len() == self.len@)]
+    #[ensures((*result.witness.inner_logic().region).namespace() ==
+        self.readonly_packet_state().unwrap_logic().cursor@.unwrap_logic().0)]
+    #[ensures((*result.witness.inner_logic().region).capacity() ==
+        self.readonly_packet_state().unwrap_logic().cursor@.unwrap_logic().1)]
+    #[ensures(*result.witness.inner_logic().start ==
+        self.readonly_packet_state().unwrap_logic().cursor@.unwrap_logic().2)]
+    #[ensures((*result.witness.inner_logic().region).lo() <=
+        *result.witness.inner_logic().start)]
+    #[ensures(*result.witness.inner_logic().start +
+        (*result.witness.inner_logic().contents).len() <=
+            (*result.witness.inner_logic().region).hi())]
+    #[ensures(forall<index: Int>
+        0 <= index && index < (*result.witness.inner_logic().contents).len() ==>
+            (*result.witness.inner_logic().region).slot(
+                *result.witness.inner_logic().start + index) ==
+                Some(Some((*result.witness.inner_logic().contents)[index])))]
+    #[ensures((^context.inner_logic()).invariant())]
+    #[ensures((^context.inner_logic()).token_namespaces() ==
+        context.inner_logic().token_namespaces())]
+    #[ensures((^context.inner_logic()).ready_len() == context.inner_logic().ready_len())]
+    #[ensures(forall<index: Int>
+        0 <= index && index < context.inner_logic().ready_len() &&
+        index != self.readonly_packet_key().unwrap_logic().slot() ==>
+            (^context.inner_logic()).ready_entry_state(index) ==
+                context.inner_logic().ready_entry_state(index))]
+    pub(crate) unsafe fn copy_shared_readonly_to_mut_with_context(
+        self,
+        context: Ghost<&mut crate::ownership_proof::shared_context::BorrowedSharedContext<
+            '_, crate::bytes_mut::shared_capsule::HeaderLeaseState,
+        >>,
+    ) -> crate::bytes_mut::SharedReadonlyMutableResult {
+        let mut this = self;
+        let packet = this.readonly_packet.take().unwrap();
+        let permission = mem::replace(&mut this.readonly_cell_permission, ghost!(None));
+        let mut permission = ghost! { permission.into_inner().unwrap() };
+        let shared = crate::loom::sync::atomic::NativePtr::exclusive_read(
+            &mut this.data,
+            ghost!(&mut *permission),
+        );
+        let ptr = this.ptr;
+        let len = this.len;
+        core::mem::forget(this);
+        crate::bytes_mut::shared_v_to_mut_nonunique(
+            shared, ptr, len,
+            Some(crate::bytes_mut::SharedReadonlyCopyProof {
+                packet,
+                context,
+            }),
+        )
+    }
+
     /// Explicitly release a nonempty, full-view boxed-slice handle through the
     /// same source cleanup function used by the vtable path.
     ///

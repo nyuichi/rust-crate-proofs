@@ -143,6 +143,17 @@ not prove the public vtable dispatch, native static vtable identity, or the
 outer native callback's Acquire/unique branch; the shared-readonly branch of
 `Bytes::as_slice` and public freeze remain unproved.
 
+The private `Bytes::copy_shared_readonly_to_mut_with_context` entry also reads
+the actual data cell and calls the all-build `shared_v_to_mut_nonunique`
+source helper. That helper uses the same copy-and-release body, then calls the
+original `BytesMut::from_vec` once. Its postcondition relates the new mutable
+buffer's contents, pointer, capacity and spare slots to the copied Vec
+snapshot, while preserving the read witness and the exact conditional
+Context result of releasing the old owner. The native `shared_v_to_mut`
+callback's nonunique continuation calls this same helper; the callback's
+unique test, outer dispatch, native static vtable identity and automatic Drop
+remain unproved.
+
 A generic append-only `ReadyRegistry<R>` now has body proofs for moving the
 producer's actual affine `Fragment<R>` into a fresh permanent slot, taking that
 same capability while leaving a tombstone, and returning it to the slot. Its

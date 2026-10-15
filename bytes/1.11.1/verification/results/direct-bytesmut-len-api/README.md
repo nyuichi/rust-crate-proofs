@@ -252,13 +252,20 @@ permission, then reaches the common release body with the caller's Context.
 The private header-region take/restore transition is also body-proved using
 the same actual Readonly ticket, lease stamp, pool and affine `PhysicalRegion`.
 The checked private nonunique `Bytes`-to-`Vec` copy uses that loan for its
-B4-backed source read; public readonly byte-read APIs remain unconnected to it.
+B4-backed source read. The private Context-aware `Bytes`-to-`BytesMut` entry
+and the all-build nonunique callback helper then reuse the same copy/release
+body and call the original `BytesMut::from_vec`; their output preserves the
+copy contents, Vec pointer/capacity, spare-slot frame and exact conditional
+Context result. Public readonly byte-read APIs remain unconnected to it.
 The native regression `explicit_readonly_dispose_releases_shared_split_once`
 checks split, truncate, freeze, and disposal of both related handles, including
 the 2-to-1 counter transition and surviving bytes. Public readonly byte reads and
 ordinary automatic Drop remain unproved; selected operation sequences
 explicitly dispose each related handle and assume no Context state after an
-untracked automatic Drop.
+untracked automatic Drop. The native regression
+`nonunique_frozen_view_converts_to_mutable_copy_without_changing_sibling`
+also exercises the shared nonunique `Bytes`-to-`BytesMut` callback while its
+Mutable sibling remains alive.
 
 Use `./verify-all.bash` to regenerate the translation and run fresh proofs, or
 `./verify-all.bash --check` to validate this saved evidence against current
