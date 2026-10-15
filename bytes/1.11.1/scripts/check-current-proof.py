@@ -39,6 +39,7 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/split.coma",
     "verif/bytes_rlib/bytes/impl_Bytes_1/with_vtable.coma",
     "verif/bytes_rlib/bytes/impl_Bytes_1/dispose_shared.coma",
+    "verif/bytes_rlib/bytes/impl_Bytes_1/as_slice.coma",
     "verif/bytes_rlib/bytes/tagged_vec_data_pointer.coma",
     "verif/bytes_rlib/bytes/promotable_from_raw_parts.coma",
     "verif/bytes_rlib/bytes/from_boxed_slice_inner.coma",

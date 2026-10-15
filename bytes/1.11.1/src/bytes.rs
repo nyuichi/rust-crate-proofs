@@ -125,6 +125,7 @@ impl Bytes {
                         } else {
                             self.ptr.addr_logic()@
                         }) &&
+                    (*proof.contents).len() == self.len@ &&
                     forall<i:Int> 0 <= i && i < self.len@ ==>
                         slot_known(caps.1.slot(i)) &&
                         caps.1.slot(i) == Some(Some((*proof.contents)[i]))
@@ -1068,6 +1069,8 @@ impl Bytes {
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result@ == self.original_frozen_bytes()))]
     #[cfg_attr(all(creusot, bytes_original_constructor_gate), requires(self.original_bytes_valid()))]
     #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(result@ == self.original_bytes_content()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.original_boxed_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == self.original_boxed_bytes()))]
     #[inline]
     fn as_slice(&self) -> &[u8] {
         #[cfg(all(creusot, bytes_original_constructor_gate))]
@@ -1079,7 +1082,12 @@ impl Bytes {
             let proof = self.original_frozen.as_ref().unwrap();
             unsafe { raw_vec::borrow_bound(&proof.base, self.len, ghost! { &proof.capabilities.1 }) }
         }
-        #[cfg(not(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_shared_gate), all(creusot, bytes_original_constructor_gate))))]
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let proof = self.original_boxed.as_ref().unwrap();
+            unsafe { raw_vec::borrow_bound(&proof.base, self.len, ghost! { &proof.capabilities.1 }) }
+        }
+        #[cfg(not(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_shared_gate), all(creusot, bytes_original_constructor_gate), all(creusot, bytes_original_unique_gate))))]
         unsafe { slice::from_raw_parts(self.ptr, self.len) }
     }
 
@@ -1569,6 +1577,7 @@ fn tagged_vec_data_pointer(ptr: *mut u8) -> *mut u8 {
     forall<i:Int> 0 <= i && i < len@ ==>
         capabilities.inner_logic().1.slot(i) == Some(Some((*bytes)[i]))
 ))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires((*bytes).len() == len@))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.original_boxed_valid()))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
     result.original_boxed_bytes() == *bytes

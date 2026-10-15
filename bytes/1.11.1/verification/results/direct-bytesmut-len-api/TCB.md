@@ -56,6 +56,13 @@ identity of a particular static vtable. This sidecar is an internal constructor
 carrier only: no public `From<Vec>` or `From<Box>` postcondition, destructor,
 or lifecycle path is proved from it.
 
+The selected private `Bytes::as_slice` body also has a boxed-sidecar branch
+under `original_boxed_valid`. It passes that sidecar's matching base and actual
+full physical region to the existing B4 shared-read boundary, and proves the
+returned bytes equal the saved boxed contents. This does not prove a public
+`From` postcondition, `Buf::chunk`, `AsRef`, `Deref`, reads from other readonly
+`Bytes` states, or destruction.
+
 The source now also defines `VecStorage::resume_owned` as a narrow generic B2
 restoration boundary used by the selected private unique-to-Shared producer
 proof. It consumes the matching existing `RawAllocation`, `Recovery`, and

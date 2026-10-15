@@ -136,6 +136,13 @@ packet region through the existing B4 read boundary and returns bytes equal to
 this does not prove its `Buf::chunk`, `AsRef`, or `Deref` callers, or readonly
 `Bytes` reads.
 
+The selected private `Bytes::as_slice` body also proves its boxed-sidecar
+branch under `original_boxed_valid`. It borrows the matching actual full
+physical region through the same B4 boundary and returns the saved boxed bytes.
+This is limited to that internal proof carrier; it does not prove public
+`From<Vec>` or `From<Box>` contracts, `Buf::chunk`, `AsRef`, `Deref`, other
+readonly `Bytes` states, or destruction.
+
 This increment also body-proves `make_count_two_packets`, a generic constructor
 for one count-two event payload and its two Mutable owner packets. Under a precondition that
 the actual active-owner map covers the full allocation, it places the exact
