@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 220 0 225 9 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 239 0 244 9 *)
 
 type namespace_other
 
@@ -12,10 +12,10 @@ let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_p
 let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 723 14 723 43
 let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
 let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
-let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 215 10 219 1
-let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 126 10 139 1
-let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 163 10 172 1
-let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 192 10 197 1
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 234 10 238 1
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 145 10 158 1
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 182 10 191 1
+let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 211 10 216 1
 
 use creusot.prelude.Opaque
 use creusot.int.UInt8
@@ -54,7 +54,7 @@ function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_pro
 
 function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 318 4 318 40] (self: t_OwnerTicket) : int
 
-predicate mutable_owner_ticket_split_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 140 0 144 9] (before: t_OwnerTicket) (cut: int) (split: tup2_OwnerTicket_OwnerTicket)
+predicate mutable_owner_ticket_split_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 159 0 163 9] (before: t_OwnerTicket) (cut: int) (split: tup2_OwnerTicket_OwnerTicket)
 
 axiom mutable_owner_ticket_split_result_spec:
   forall before: t_OwnerTicket, cut: int, split: tup2_OwnerTicket_OwnerTicket [mutable_owner_ticket_split_result before cut split]. [%#sshared_capsule'0] mutable_owner_ticket_split_result before cut split
@@ -110,7 +110,7 @@ function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw
 function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 703 4 703 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'3] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f1'6
 
-predicate mutable_owner_region_split_bounds_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 173 0 177 9] (before: t_PhysicalRegion) (cut: int) (split: tup2_PhysicalRegion_PhysicalRegion)
+predicate mutable_owner_region_split_bounds_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 192 0 196 9] (before: t_PhysicalRegion) (cut: int) (split: tup2_PhysicalRegion_PhysicalRegion)
 
 axiom mutable_owner_region_split_bounds_result_spec:
   forall before: t_PhysicalRegion, cut: int, split: tup2_PhysicalRegion_PhysicalRegion [mutable_owner_region_split_bounds_result before cut split]. [%#sshared_capsule'1] mutable_owner_region_split_bounds_result before cut split
@@ -150,7 +150,7 @@ function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof
 axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'4] slot'0 self index
     = slot (view_PhysicalRegion self).f0'3 index
 
-predicate mutable_owner_region_split_slots_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 198 0 202 9] (before: t_PhysicalRegion) (cut: int) (split: tup2_PhysicalRegion_PhysicalRegion)
+predicate mutable_owner_region_split_slots_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 217 0 221 9] (before: t_PhysicalRegion) (cut: int) (split: tup2_PhysicalRegion_PhysicalRegion)
 
 axiom mutable_owner_region_split_slots_result_spec:
   forall before: t_PhysicalRegion, cut: int, split: tup2_PhysicalRegion_PhysicalRegion [mutable_owner_region_split_slots_result before cut split]. [%#sshared_capsule'2] mutable_owner_region_split_slots_result before cut split
@@ -169,7 +169,7 @@ constant cut : int
 
 constant split : tup4_OwnerTicket_OwnerTicket_PhysicalRegion_PhysicalRegion
 
-predicate mutable_owner_split_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 220 0 225 9] (before_ticket: t_OwnerTicket) (before_region: t_PhysicalRegion) (cut: int) (split: tup4_OwnerTicket_OwnerTicket_PhysicalRegion_PhysicalRegion)
+predicate mutable_owner_split_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 239 0 244 9] (before_ticket: t_OwnerTicket) (before_region: t_PhysicalRegion) (cut: int) (split: tup4_OwnerTicket_OwnerTicket_PhysicalRegion_PhysicalRegion)
 
 goal vc_mutable_owner_split_result:
   ([@stop_split] [@expl:mutable_owner_ticket_split_result ensures] [%#sshared_capsule'0] mutable_owner_ticket_split_result before_ticket cut { f0'0 = split.f0;

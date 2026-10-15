@@ -108,6 +108,9 @@ action, storage authority and full physical region are preserved through that
 source body. Automatic `Drop` remains in place, but its context-free wrapper is
 untranslated and this proof does not claim a post-Drop context state. The
 result does not close every safe producer or lifecycle path for `truncate`.
+The lease stamp also carries an optional physical-lend span marker. All
+currently selected payload states require it to be empty; an active lease
+carrying an actual `PhysicalRegion` is not yet proved.
 
 A generic append-only `ReadyRegistry<R>` now has body proofs for moving the
 producer's actual affine `Fragment<R>` into a fresh permanent slot, taking that

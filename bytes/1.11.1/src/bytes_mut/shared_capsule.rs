@@ -50,6 +50,10 @@ pub(crate) struct SharedPayload {
     phase_id: Id,
     lease_generation: Int,
     lease_key: ReadyKey,
+    /// An active physical-pool lend is marked independently from the header
+    /// lease. Ordinary operations keep this empty; the later region-loan
+    /// transition must carry the matching actual `PhysicalRegion`.
+    lent_span: Option<LentSpan>,
     lease: HeaderLeaseAuthority,
     root: Option<Box<Perm<*const Shared>>>,
     storage: Option<StoredAuthority>,
@@ -61,6 +65,8 @@ pub(crate) struct SharedPayload {
     closed: bool,
 }
 
+pub(crate) type LentSpan = (Int, Int, Int);
+
 pub(crate) type HeaderLeaseStamp = (
     Int,
     *mut (),
@@ -71,6 +77,7 @@ pub(crate) type HeaderLeaseStamp = (
     VecStorage,
     usize,
     ReadyKey,
+    Option<LentSpan>,
 );
 /// One exclusive value distinguishes idle from every active generation. In
 /// particular, an idle capability cannot compose with an active authority by
@@ -98,6 +105,7 @@ fn header_lease_stamp(
     header_vec: VecStorage,
     original_capacity_repr: usize,
     lease_key: ReadyKey,
+    lent_span: Option<LentSpan>,
 ) -> HeaderLeaseStamp {
     (
         generation,
@@ -109,7 +117,18 @@ fn header_lease_stamp(
         header_vec,
         original_capacity_repr,
         lease_key,
+        lent_span,
     )
+}
+
+#[logic(open(self), prophetic)]
+fn no_active_lend(payload: SharedPayload) -> bool {
+    pearlite! { payload.lent_span == None }
+}
+
+#[logic(open(self), prophetic)]
+fn no_active_lend_loan(loan: SharedHeaderReadLoan) -> bool {
+    pearlite! { loan.lent_span == None }
 }
 
 #[logic(open(self))]
@@ -508,7 +527,7 @@ impl Protocol for SharedPayload {
             self.retire, self.terminal_action) {
             (Some(root), Some(storage), Some(pool), Some(ledger), None, Some(action)) => {
                 let header = root.val();
-                !self.closed && self.phase.is_open() &&
+                no_active_lend(self) && !self.closed && self.phase.is_open() &&
                 self.lease.is_idle() &&
                 root.invariant() && storage.invariant() && pool.invariant() &&
                 ledger.invariant() && ledger.is_live() && ledger.count() > 0 &&
@@ -542,7 +561,7 @@ impl Protocol for SharedPayload {
             },
             (Some(root), Some(storage), Some(pool), Some(ledger), Some(retire), None) => {
                 let header = root.val();
-                !self.closed && self.phase.is_open() &&
+                no_active_lend(self) && !self.closed && self.phase.is_open() &&
                 self.lease.is_idle() &&
                 root.invariant() && storage.invariant() && pool.invariant() &&
                 ledger.invariant() && !ledger.is_live() && ledger.count() == 0 &&
@@ -579,7 +598,9 @@ impl Protocol for SharedPayload {
                     *self.header_vec,
                     *self.original_capacity_repr,
                     self.lease_key,
+                    self.lent_span,
                 )) &&
+                no_active_lend(self) &&
                 storage.invariant() && pool.invariant() &&
                 ledger.invariant() && ledger.is_live() && ledger.count() > 0 &&
                 ledger.ledger_id() == self.ledger_id &&
@@ -615,7 +636,9 @@ impl Protocol for SharedPayload {
                     *self.header_vec,
                     *self.original_capacity_repr,
                     self.lease_key,
+                    self.lent_span,
                 )) &&
+                no_active_lend(self) &&
                 storage.invariant() && pool.invariant() &&
                 ledger.invariant() && !ledger.is_live() && ledger.count() == 0 &&
                 retire.invariant() && retire.ledger_id() == self.ledger_id &&
@@ -633,7 +656,7 @@ impl Protocol for SharedPayload {
                 ))
             },
             (None, None, None, None, Some(retire), None) =>
-                self.closed && self.phase.is_closed() && self.lease.is_idle() && retire.invariant() &&
+                no_active_lend(self) && self.closed && self.phase.is_closed() && self.lease.is_idle() && retire.invariant() &&
                 retire.ledger_id() == self.ledger_id && retire.active_ids().is_empty(),
             _ => false,
         }
@@ -692,6 +715,7 @@ pub(crate) struct SharedHeaderReadLoan {
     generation: Int,
     lease_id: Id,
     lease_key: ReadyKey,
+    lent_span: Option<LentSpan>,
     lease_cap: ReadyCap<HeaderLeaseState>,
 }
 
@@ -708,6 +732,7 @@ impl SharedHeaderReadLoan {
             self.root.val().original_capacity_repr == *self.original_capacity_repr &&
             self.root.val().vec_model().matches_authority(*self.storage_model) &&
             self.generation > 0 &&
+            no_active_lend_loan(self) &&
             self.lease_cap.invariant() &&
             self.lease_cap.key() == self.lease_key &&
             self.lease_key.resource_id() == self.lease_id &&
@@ -723,6 +748,7 @@ impl SharedHeaderReadLoan {
                     *self.header_vec,
                     *self.original_capacity_repr,
                     self.lease_key,
+                    self.lent_span,
                 )))))
         }
     }
@@ -798,6 +824,7 @@ impl SharedPayload {
     /// protocol supplies slot facts from the actual pool resource.
     #[check(ghost)]
     #[requires(self.invariant() && self.protocol())]
+    #[requires(self.lent_span == None)]
     #[requires(ticket.invariant() && ticket.ledger_id() == self.ledger_id)]
     #[requires(ticket.class() == RefKind::Readonly)]
     #[ensures(self.ledger != None && self.ledger.unwrap_logic().has_ticket(*ticket))]
@@ -858,6 +885,7 @@ impl SharedPayload {
     /// coverage.
     #[check(ghost)]
     #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().lent_span == None)]
     #[requires(payload.inner_logic().agrees_with_value(old))]
     #[requires(old@ <= crate::ref_count_limit::MAX_REF_COUNT@)]
     #[requires(new@ == old@ + 1)]
@@ -872,6 +900,7 @@ impl SharedPayload {
     #[requires(ticket.inner_logic().owned_lo() <= *cut &&
         *cut <= ticket.inner_logic().owned_hi())]
     #[ensures((^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol())]
+    #[ensures((^payload.inner_logic()).lent_span == payload.inner_logic().lent_span)]
     #[ensures((^payload.inner_logic()).agrees_with_value(new))]
     #[ensures((^payload.inner_logic()).public() == payload.inner_logic().public())]
     #[ensures((^payload.inner_logic()).counter_model() == payload.inner_logic().counter_model())]
@@ -962,6 +991,7 @@ impl SharedPayload {
     #[check(ghost)]
     #[requires(
         payload.inner_logic().invariant() && payload.inner_logic().protocol() &&
+        payload.inner_logic().lent_span == None &&
         ticket.inner_logic().invariant() &&
         ticket.inner_logic().ledger_id() == payload.inner_logic().ledger_id &&
         ticket.inner_logic().class() == RefKind::Mutable &&
@@ -981,6 +1011,7 @@ impl SharedPayload {
     )]
     #[ensures(
         (^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol() &&
+        (^payload.inner_logic()).lent_span == payload.inner_logic().lent_span &&
         (^payload.inner_logic()).public() == payload.inner_logic().public() &&
         (^payload.inner_logic()).counter_model() == payload.inner_logic().counter_model() &&
         (^payload.inner_logic()).allocation_binding == payload.inner_logic().allocation_binding &&
@@ -1311,6 +1342,7 @@ impl SharedPayload {
     /// interval can stand in for these affine resources.
     #[check(ghost)]
     #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().lent_span == None)]
     #[requires(payload.inner_logic().counter_model() == *owner_model)]
     #[requires(payload.inner_logic().agrees_with_value(*old))]
     #[requires(old@ > 0 && new@ + 1 == old@)]
@@ -1331,6 +1363,7 @@ impl SharedPayload {
     #[requires(region.inner_logic().capacity() ==
         payload.inner_logic().ledger.unwrap_logic().allocation_binding().2)]
     #[ensures((^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol())]
+    #[ensures((^payload.inner_logic()).lent_span == payload.inner_logic().lent_span)]
     #[ensures((^payload.inner_logic()).public() == payload.inner_logic().public())]
     #[ensures((^payload.inner_logic()).counter_model() == payload.inner_logic().counter_model())]
     #[ensures((^payload.inner_logic()).agrees_with_value(*new))]
@@ -1487,6 +1520,7 @@ impl SharedPayload {
     /// path consumes no fabricated or reconstructed region capability.
     #[check(ghost)]
     #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().lent_span == None)]
     #[requires(payload.inner_logic().counter_model() == *owner_model)]
     #[requires(payload.inner_logic().agrees_with_value(*old))]
     #[requires(old@ > 0 && new@ + 1 == old@)]
@@ -1497,6 +1531,7 @@ impl SharedPayload {
     #[requires(ticket.inner_logic().ledger_id() == payload.inner_logic().ledger_id)]
     #[requires(ticket.inner_logic().class() == RefKind::Readonly)]
     #[ensures((^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol())]
+    #[ensures((^payload.inner_logic()).lent_span == payload.inner_logic().lent_span)]
     #[ensures((^payload.inner_logic()).public() == payload.inner_logic().public())]
     #[ensures((^payload.inner_logic()).counter_model() == payload.inner_logic().counter_model())]
     #[ensures((^payload.inner_logic()).agrees_with_value(*new))]
@@ -1638,6 +1673,7 @@ impl SharedPayload {
     /// pool and are removed from the owner ledger without altering that pool.
     #[check(ghost)]
     #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().lent_span == None)]
     #[requires(payload.inner_logic().counter_model() == *owner_model)]
     #[requires(payload.inner_logic().agrees_with_value(*old))]
     #[requires(old@ > 0 && new@ + 1 == old@)]
@@ -1656,6 +1692,7 @@ impl SharedPayload {
             ticket.class() == RefKind::Readonly,
     })]
     #[ensures((^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol())]
+    #[ensures((^payload.inner_logic()).lent_span == payload.inner_logic().lent_span)]
     #[ensures((^payload.inner_logic()).public() == payload.inner_logic().public())]
     #[ensures((^payload.inner_logic()).counter_model() == payload.inner_logic().counter_model())]
     #[ensures((^payload.inner_logic()).agrees_with_value(*new))]
@@ -1771,6 +1808,7 @@ impl SharedPayload {
     #[requires(cap.fragment_value() == Some(Excl((self.lease.resource_id(), None))))]
     #[requires(ticket.invariant() && ticket.ledger_id() == self.ledger_id)]
     #[ensures(self.root != None && self.lease.is_idle())]
+    #[ensures(self.lent_span == None)]
     fn prove_idle_cap_implies_root_some(
         &self,
         cap: &ReadyCap<HeaderLeaseState>,
@@ -1791,6 +1829,7 @@ impl SharedPayload {
                         *self.header_vec,
                         *self.original_capacity_repr,
                         self.lease_key,
+                        self.lent_span,
                     )
                 ));
                 proof_assert!(false);
@@ -1820,6 +1859,7 @@ impl SharedPayload {
         payload.inner_logic().original_capacity_repr == loan.inner_logic().original_capacity_repr &&
         payload.inner_logic().ledger_id == loan.inner_logic().ledger_id &&
         payload.inner_logic().phase_id == loan.inner_logic().phase_id &&
+        payload.inner_logic().lent_span == loan.inner_logic().lent_span &&
         loan.inner_logic().lease_cap.fragment_id() ==
             payload.inner_logic().lease.resource_id() &&
         loan.inner_logic().lease_key == payload.inner_logic().lease_key &&
@@ -1836,7 +1876,8 @@ impl SharedPayload {
             *loan.inner_logic().header_vec,
             *loan.inner_logic().original_capacity_repr,
             loan.inner_logic().lease_key,
-        )))]
+            loan.inner_logic().lent_span,
+        )) && loan.inner_logic().lent_span == None)]
     fn prove_current_header_lease(
         payload: Ghost<&SharedPayload>,
         loan: Ghost<&SharedHeaderReadLoan>,
@@ -1854,6 +1895,7 @@ impl SharedPayload {
                 *loan.header_vec,
                 *loan.original_capacity_repr,
                 loan.lease_key,
+                loan.lent_span,
             ));
             payload.lease.require_active_fragment(loan_stamp, &loan.lease_cap);
             proof_assert!(payload.root == None);
@@ -1870,6 +1912,7 @@ impl SharedPayload {
                 *payload.header_vec,
                 *payload.original_capacity_repr,
                 payload.lease_key,
+                payload.lent_span,
             ));
             proof_assert!(payload.lease.is_active(*current_stamp));
             proof_assert!(*current_stamp == *loan_stamp);
@@ -1890,6 +1933,7 @@ impl SharedPayload {
     /// zero. The active loan rules out the closed, idle-header protocol state.
     #[check(ghost)]
     #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().lent_span == None)]
     #[requires(payload.inner_logic().agrees_with_value(*value))]
     #[requires(payload.inner_logic().public().4 == loan.inner_logic().lease_id)]
     #[requires(loan.inner_logic().invariant())]
@@ -1949,6 +1993,7 @@ impl SharedPayload {
     /// mutable header borrow.
     #[check(ghost)]
     #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().lent_span == None)]
     #[requires(payload.inner_logic().root != None && payload.inner_logic().lease.is_idle())]
     #[requires(cap.inner_logic().invariant())]
     #[requires(cap.inner_logic().key() == payload.inner_logic().lease_key)]
@@ -1972,6 +2017,7 @@ impl SharedPayload {
         (^payload.inner_logic()).phase == payload.inner_logic().phase &&
         (^payload.inner_logic()).terminal_action == payload.inner_logic().terminal_action &&
         (^payload.inner_logic()).lease_key == payload.inner_logic().lease_key &&
+        (^payload.inner_logic()).lent_span == payload.inner_logic().lent_span &&
         (^payload.inner_logic()).lease.resource_id() == payload.inner_logic().lease.resource_id() &&
         (^payload.inner_logic()).closed == payload.inner_logic().closed &&
         result.inner_logic().invariant() &&
@@ -1986,6 +2032,7 @@ impl SharedPayload {
             (*payload.inner_logic().allocation_binding).2 &&
         result.inner_logic().header_vec == payload.inner_logic().header_vec &&
         result.inner_logic().original_capacity_repr == payload.inner_logic().original_capacity_repr &&
+        result.inner_logic().lent_span == payload.inner_logic().lent_span &&
         result.inner_logic().ledger_id == payload.inner_logic().ledger_id &&
         result.inner_logic().phase_id == payload.inner_logic().phase_id &&
         result.inner_logic().lease_id == payload.inner_logic().lease.resource_id() &&
@@ -2016,6 +2063,7 @@ impl SharedPayload {
                 *payload.header_vec,
                 *payload.original_capacity_repr,
                 lease_key,
+                payload.lent_span,
             ));
             let lease_cap = HeaderLeaseAuthority::activate(
                 Ghost::new(&mut payload.lease), stamp, Ghost::new(cap),
@@ -2033,6 +2081,7 @@ impl SharedPayload {
                 generation,
                 lease_id,
                 lease_key,
+                lent_span: payload.lent_span,
                 lease_cap,
             }
         }
@@ -2044,7 +2093,9 @@ impl SharedPayload {
     /// resources while this lease is held.
     #[check(ghost)]
     #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().lent_span == None)]
     #[requires(loan.inner_logic().invariant())]
+    #[requires(loan.inner_logic().lent_span == None)]
     #[requires(payload.inner_logic().lease.resource_id() == loan.inner_logic().lease_id)]
     #[requires(payload.inner_logic().lease_key == loan.inner_logic().lease_key)]
     #[ensures((^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol() &&
@@ -2064,6 +2115,7 @@ impl SharedPayload {
         (^payload.inner_logic()).phase == payload.inner_logic().phase &&
         (^payload.inner_logic()).terminal_action == payload.inner_logic().terminal_action &&
         (^payload.inner_logic()).lease_key == payload.inner_logic().lease_key &&
+        (^payload.inner_logic()).lent_span == payload.inner_logic().lent_span &&
         (^payload.inner_logic()).lease.resource_id() == payload.inner_logic().lease.resource_id() &&
         (^payload.inner_logic()).lease.is_idle() &&
         (^payload.inner_logic()).closed == payload.inner_logic().closed)]
@@ -2089,6 +2141,7 @@ impl SharedPayload {
                 *loan.header_vec,
                 *loan.original_capacity_repr,
                 loan.lease_key,
+                loan.lent_span,
             ));
             SharedPayload::prove_current_header_lease(Ghost::new(&*payload), Ghost::new(&loan));
             let SharedHeaderReadLoan { root, lease_cap, .. } = loan;
@@ -3782,6 +3835,7 @@ impl SharedOwnerPacket {
                                 *payload.header_vec,
                                 *payload.original_capacity_repr,
                                 payload.lease_key,
+                                payload.lent_span,
                             )
                         );
                         let SharedHeaderReadLoan { root, lease_cap, .. } = loan;
@@ -4168,6 +4222,7 @@ pub(crate) fn make_count_one_packet(
             phase_id,
             lease_generation: 0int,
             lease_key,
+            lent_span: None,
             lease,
             root: Some(root),
             storage: Some(storage),
@@ -4352,6 +4407,7 @@ pub(crate) fn make_count_two_packets(
             phase_id,
             lease_generation: 0int,
             lease_key,
+            lent_span: None,
             lease,
             root: Some(root),
             storage: Some(storage),
