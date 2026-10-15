@@ -136,12 +136,12 @@ packet region through the existing B4 read boundary and returns bytes equal to
 this does not prove its `Buf::chunk`, `AsRef`, or `Deref` callers, or readonly
 `Bytes` reads.
 
-The selected private `Bytes::as_slice` body also proves its boxed-sidecar
-branch under `original_boxed_valid`. It borrows the matching actual full
-physical region through the same B4 boundary and returns the saved boxed bytes.
-This is limited to that internal proof carrier; it does not prove public
-`From<Vec>` or `From<Box>` contracts, `Buf::chunk`, `AsRef`, `Deref`, other
-readonly `Bytes` states, or destruction.
+The selected private `Bytes::as_slice` body proves its boxed and spare-capacity
+carriers under `original_borrowable_valid`. Each branch borrows the matching
+actual physical region through the same B4 boundary and returns the saved
+visible bytes. This is limited to those internal proof carriers; it does not
+prove public `From<Vec>` or `From<Box>` contracts, `Buf::chunk`, `AsRef`,
+`Deref`, the shared-readonly `Bytes` state, or destruction.
 
 The original `free_boxed_slice` body now shares its actual base/view/length
 capacity calculation with an explicit unsafe `Bytes::dispose_boxed` entry.

@@ -75,12 +75,12 @@ counter and pointer-cell constructors remain the generic physical/permission
 boundaries; they can be replaced by exact generic Std and allocator contracts
 without changing the Bytes-specific proof obligations.
 
-The selected private `Bytes::as_slice` body also has a boxed-sidecar branch
-under `original_boxed_valid`. It passes that sidecar's matching base and actual
-full physical region to the existing B4 shared-read boundary, and proves the
-returned bytes equal the saved boxed contents. This does not prove a public
-`From` postcondition, `Buf::chunk`, `AsRef`, `Deref`, reads from other readonly
-`Bytes` states, or destruction.
+The selected private `Bytes::as_slice` body has boxed and spare-capacity
+branches under `original_borrowable_valid`. Each passes the carrier's matching
+base and actual physical region to the existing B4 shared-read boundary, and
+proves the returned bytes equal that carrier's saved visible contents. This
+does not prove a public `From` postcondition, `Buf::chunk`, `AsRef`, `Deref`,
+the shared-readonly `Bytes` state, or destruction.
 
 The original `free_boxed_slice` source body is also translated and checked for
 the explicit boxed release entry. It computes capacity from that function's
@@ -414,9 +414,9 @@ one. This snapshot reports the result but supplies no authority. This proves
 the internal nonunique copy and release
 path under its actual packet/context preconditions. It does not prove the
 outer no-translate vtable callback, native static vtable identity, public
-vtable dispatch, or the callback's Acquire/unique branch. The boxed branch of
-`Bytes::as_slice` is proved; its shared-readonly branch and other readonly
-byte-read APIs remain outside the proof.
+vtable dispatch, or the callback's Acquire/unique branch. The boxed and
+spare-capacity branches of `Bytes::as_slice` are proved; its shared-readonly
+branch and other readonly byte-read APIs remain outside the proof.
 
 The checked common release carrier accepts a Mutable packet with its actual
 physical region or a Readonly packet with its actual ticket and no region. Its

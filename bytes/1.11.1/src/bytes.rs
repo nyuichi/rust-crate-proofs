@@ -297,6 +297,24 @@ impl Bytes {
             self.original_spare_shared.unwrap_logic().capabilities.inner_logic().0.capacity()
         }
     }
+
+    /// An original Bytes view backed by either the boxed-slice or the
+    /// spare-capacity Vec carrier owns an actual B1 region for its visible
+    /// bytes. The representation modes are mutually exclusive.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_borrowable_valid(self) -> bool {
+        self.original_boxed_valid() || self.original_spare_shared_valid()
+    }
+
+    #[logic(open(self), prophetic)]
+    pub(crate) fn original_borrowable_bytes(self) -> Seq<u8> {
+        pearlite! {
+            match self.original_boxed {
+                Some(proof) => *proof.contents,
+                None => *self.original_spare_shared.unwrap_logic().contents
+            }
+        }
+    }
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
@@ -1391,8 +1409,8 @@ impl Bytes {
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result@ == self.original_frozen_bytes()))]
     #[cfg_attr(all(creusot, bytes_original_constructor_gate), requires(self.original_bytes_valid()))]
     #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(result@ == self.original_bytes_content()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.original_boxed_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == self.original_boxed_bytes()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.original_borrowable_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == self.original_borrowable_bytes()))]
     #[inline]
     fn as_slice(&self) -> &[u8] {
         #[cfg(all(creusot, bytes_original_constructor_gate))]
@@ -1406,8 +1424,17 @@ impl Bytes {
         }
         #[cfg(all(creusot, bytes_original_unique_gate))]
         {
-            let proof = self.original_boxed.as_ref().unwrap();
-            unsafe { raw_vec::borrow_bound(&proof.base, self.len, ghost! { &proof.capabilities.1 }) }
+            match self.original_boxed.as_ref() {
+                Some(proof) => unsafe {
+                    raw_vec::borrow_bound(&proof.base, self.len, ghost! { &proof.capabilities.1 })
+                },
+                None => {
+                    let proof = self.original_spare_shared.as_ref().unwrap();
+                    unsafe {
+                        raw_vec::borrow_bound(&proof.base, self.len, ghost! { &proof.capabilities.1 })
+                    }
+                }
+            }
         }
         #[cfg(not(any(all(creusot, bytes_original_freeze_gate), all(creusot, bytes_original_shared_gate), all(creusot, bytes_original_constructor_gate), all(creusot, bytes_original_unique_gate))))]
         unsafe { slice::from_raw_parts(self.ptr, self.len) }
