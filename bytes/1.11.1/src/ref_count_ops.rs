@@ -1,6 +1,6 @@
 use crate::loom::sync::atomic::{AtomicUsize, Ordering};
 #[cfg(creusot)]
-use creusot_std::ghost::Ghost;
+use creusot_std::ghost::{perm::Perm, Ghost};
 
 // Keep the native relaxed-load / guarded relaxed-CAS algorithm in one source
 // body. The proof build supplies event-aware load/CAS adapters; native builds
@@ -96,6 +96,61 @@ impl NativeCounter {
     #[cfg_attr(creusot, creusot::no_translate)]
     fn fetch_sub_release_native(&self) -> usize {
         self.0.fetch_sub(1, Ordering::Release)
+    }
+
+    /// Generic sequential adapter for a detached exclusive permission to
+    /// this exact counter. The native operation is the same single Release
+    /// decrement used by `RefCountCell`; the permission records its returned
+    /// value for a later Acquire observation.
+    #[cfg(creusot)]
+    #[trusted]
+    #[requires(owner.inner_logic().0.invariant())]
+    #[requires(owner.inner_logic().0.ward() == self)]
+    #[requires(owner.inner_logic().0.val() == owner.inner_logic().1)]
+    #[ensures(result.0 == owner.inner_logic().1)]
+    #[ensures(result.1.inner_logic().0.invariant())]
+    #[ensures(result.1.inner_logic().0.ward() == owner.inner_logic().0.ward())]
+    #[ensures(result.1.inner_logic().0.val() == if owner.inner_logic().1 == 0usize {
+        usize::MAX
+    } else {
+        owner.inner_logic().1 - 1usize
+    })]
+    #[ensures(result.1.inner_logic().1 == if owner.inner_logic().1 == 0usize {
+        usize::MAX
+    } else {
+        owner.inner_logic().1 - 1usize
+    })]
+    pub(crate) fn fetch_sub_release_owned(
+        &self,
+        owner: Ghost<(Perm<NativeCounter>, usize)>,
+    ) -> (usize, Ghost<(Perm<NativeCounter>, usize)>) {
+        let old = self.fetch_sub_release_native();
+        let owner = ghost! {
+            let (permission, value) = owner.into_inner();
+            (permission, value.wrapping_sub(1usize))
+        };
+        (old, owner)
+    }
+
+    /// Generic sequential Acquire observation for the same detached counter
+    /// permission. It performs exactly one native Acquire load and preserves
+    /// that permission and its value.
+    #[cfg(creusot)]
+    #[trusted]
+    #[requires(owner.inner_logic().0.invariant())]
+    #[requires(owner.inner_logic().0.ward() == self)]
+    #[requires(owner.inner_logic().0.val() == owner.inner_logic().1)]
+    #[ensures(result.0 == owner.inner_logic().1)]
+    #[ensures(result.1.inner_logic().0.invariant())]
+    #[ensures(result.1.inner_logic().0.ward() == owner.inner_logic().0.ward())]
+    #[ensures(result.1.inner_logic().0.val() == owner.inner_logic().1)]
+    #[ensures(result.1.inner_logic().1 == owner.inner_logic().1)]
+    pub(crate) fn load_acquire_owned(
+        &self,
+        owner: Ghost<(Perm<NativeCounter>, usize)>,
+    ) -> (usize, Ghost<(Perm<NativeCounter>, usize)>) {
+        let value = self.load_acquire_native();
+        (value, owner)
     }
 }
 

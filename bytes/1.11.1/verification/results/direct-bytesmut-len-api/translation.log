@@ -594,57 +594,57 @@ help: remove these parentheses
     |
 
 warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:691:17
+   --> src/ref_count_ops.rs:746:17
     |
-691 |                 (old == expected ==>
+746 |                 (old == expected ==>
     |                 ^
 ...
-697 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+752 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
     |                                                                                        ^
     |
 help: remove these parentheses
     |
-691 ~                 old == expected ==>
-692 |                     f.precondition((&mut s.current, old, new, frame.inner_logic())) &&
+746 ~                 old == expected ==>
+747 |                     f.precondition((&mut s.current, old, new, frame.inner_logic())) &&
 ...
-696 |                         (^s).current.counter_model() == s.current.counter_model() &&
-697 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+751 |                         (^s).current.counter_model() == s.current.counter_model() &&
+752 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
     |
 
 warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:758:17
+   --> src/ref_count_ops.rs:813:17
     |
-758 |                 (old <= crate::ref_count_limit::MAX_REF_COUNT ==>
+813 |                 (old <= crate::ref_count_limit::MAX_REF_COUNT ==>
     |                 ^
 ...
-768 |                         (^s).current.agrees_with_value(old + 1usize)))
+823 |                         (^s).current.agrees_with_value(old + 1usize)))
     |                                                                      ^
     |
 help: remove these parentheses
     |
-758 ~                 old <= crate::ref_count_limit::MAX_REF_COUNT ==>
-759 |                     callback.precondition((
+813 ~                 old <= crate::ref_count_limit::MAX_REF_COUNT ==>
+814 |                     callback.precondition((
 ...
-767 |                         (^s).current.protocol() &&
-768 ~                         (^s).current.agrees_with_value(old + 1usize)) 
+822 |                         (^s).current.protocol() &&
+823 ~                         (^s).current.agrees_with_value(old + 1usize)) 
     |
 
 warning: unnecessary parentheses around function argument
-   --> src/ref_count_ops.rs:861:17
+   --> src/ref_count_ops.rs:916:17
     |
-861 |                 (old == expected ==>
+916 |                 (old == expected ==>
     |                 ^
 ...
-866 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
+921 |                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
     |                                                                                        ^
     |
 help: remove these parentheses
     |
-861 ~                 old == expected ==>
-862 |                     f.precondition((&mut s.current, old, new)) &&
+916 ~                 old == expected ==>
+917 |                     f.precondition((&mut s.current, old, new)) &&
 ...
-865 |                         (^s).current.counter_model() == s.current.counter_model() &&
-866 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
+920 |                         (^s).current.counter_model() == s.current.counter_model() &&
+921 ~                         (^s).current.protocol() && (^s).current.agrees_with_value(new)) 
     |
 
 warning: unused import: `borrow::Borrow`
@@ -1201,31 +1201,34 @@ warning: function `new` is never used
    |        ^^^
 
 warning: function `deallocate_u8` is never used
-  --> src/allocation_ops.rs:10:22
+  --> src/allocation_ops.rs:38:22
    |
-10 | pub(crate) unsafe fn deallocate_u8(base: *mut u8, capacity: usize) {
+38 | pub(crate) unsafe fn deallocate_u8(base: *mut u8, capacity: usize) {
    |                      ^^^^^^^^^^^^^
 
 warning: function `reallocate_u8` is never used
-  --> src/allocation_ops.rs:25:22
+  --> src/allocation_ops.rs:53:22
    |
-25 | pub(crate) unsafe fn reallocate_u8(base: *mut u8, old_capacity: usize, capacity: usize) -> core::ptr::NonNull<u8> {
+53 | pub(crate) unsafe fn reallocate_u8(base: *mut u8, old_capacity: usize, capacity: usize) -> core::ptr::NonNull<u8> {
    |                      ^^^^^^^^^^^^^
 
-warning: methods `dispose_shared`, `copy_shared_readonly_to_vec_with_context`, and `dispose_boxed` are never used
-   --> src/bytes.rs:501:26
+warning: methods `dispose_shared`, `copy_shared_readonly_to_vec_with_context`, `dispose_boxed`, and `dispose_spare_shared` are never used
+   --> src/bytes.rs:531:26
     |
-435 | impl Bytes {
+465 | impl Bytes {
     | ---------- methods in this implementation
 ...
-501 |     pub(crate) unsafe fn dispose_shared(
+531 |     pub(crate) unsafe fn dispose_shared(
     |                          ^^^^^^^^^^^^^^
 ...
-599 |     pub(crate) unsafe fn copy_shared_readonly_to_vec_with_context(
+629 |     pub(crate) unsafe fn copy_shared_readonly_to_vec_with_context(
     |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
-635 |     pub(crate) unsafe fn dispose_boxed(self) {
+665 |     pub(crate) unsafe fn dispose_boxed(self) {
     |                          ^^^^^^^^^^^^^
+...
+726 |     pub(crate) unsafe fn dispose_spare_shared(self) {
+    |                          ^^^^^^^^^^^^^^^^^^^^
 
 warning: constant `ORIGINAL_CAPACITY_MASK` is never used
    --> src/bytes_mut.rs:859:7
@@ -1557,30 +1560,30 @@ warning: associated function `exclusive_read` is never used
    |                           ^^^^^^^^^^^^^^
 
 warning: methods `take_bootstrap_owner` and `compare_exchange_relaxed` are never used
-   --> src/ref_count_ops.rs:209:19
+   --> src/ref_count_ops.rs:264:19
     |
-115 | impl RefCountCell {
+170 | impl RefCountCell {
     | ----------------- methods in this implementation
 ...
-209 |     pub(crate) fn take_bootstrap_owner(
+264 |     pub(crate) fn take_bootstrap_owner(
     |                   ^^^^^^^^^^^^^^^^^^^^
 ...
-263 |     pub(crate) fn compare_exchange_relaxed(
+318 |     pub(crate) fn compare_exchange_relaxed(
     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: method `into_inner` is never used
-   --> src/ref_count_ops.rs:524:23
+   --> src/ref_count_ops.rs:579:23
     |
-415 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
+470 |     impl<T: CounterProtocol> EventBoundInvariant<T> {
     |     ----------------------------------------------- method in this implementation
 ...
-524 |         pub(crate) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
+579 |         pub(crate) fn into_inner(self) -> Ghost<(Perm<NativeCounter>, T)> {
     |                       ^^^^^^^^^^
 
 warning: missing documentation for an associated function
-   --> src/bytes.rs:713:5
+   --> src/bytes.rs:779:5
     |
-713 |     pub fn new() -> Self {
+779 |     pub fn new() -> Self {
     |     ^^^^^^^^^^^^^^^^^^^^
     |
 note: the lint level is defined here
@@ -1590,9 +1593,9 @@ note: the lint level is defined here
     |         ^^^^^^^^^^^^
 
 warning: missing documentation for an associated function
-   --> src/bytes.rs:772:5
+   --> src/bytes.rs:838:5
     |
-772 |     pub fn from_static(bytes: &'static [u8]) -> Self {
+838 |     pub fn from_static(bytes: &'static [u8]) -> Self {
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: calling external function `is_empty` with no contract will yield an impossible precondition
@@ -3544,99 +3547,99 @@ warning: calling external function `drain` with no contract will yield an imposs
    |         ^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_size_align_unchecked` with no contract will yield an impossible precondition
-  --> src/allocation_ops.rs:14:31
+  --> src/allocation_ops.rs:42:31
    |
-14 |         let layout = unsafe { alloc::alloc::Layout::from_size_align_unchecked(capacity, 1) };
+42 |         let layout = unsafe { alloc::alloc::Layout::from_size_align_unchecked(capacity, 1) };
    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `dealloc` with no contract will yield an impossible precondition
-  --> src/allocation_ops.rs:15:18
+  --> src/allocation_ops.rs:43:18
    |
-15 |         unsafe { alloc::alloc::dealloc(base, layout); }
+43 |         unsafe { alloc::alloc::dealloc(base, layout); }
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `array` with no contract will yield an impossible precondition
-  --> src/allocation_ops.rs:27:18
+  --> src/allocation_ops.rs:55:18
    |
-27 |     let layout = Layout::array::<u8>(capacity).expect("capacity overflow");
+55 |     let layout = Layout::array::<u8>(capacity).expect("capacity overflow");
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_size_align_unchecked` with no contract will yield an impossible precondition
-  --> src/allocation_ops.rs:32:35
+  --> src/allocation_ops.rs:60:35
    |
-32 |         let old_layout = unsafe { Layout::from_size_align_unchecked(old_capacity, 1) };
+60 |         let old_layout = unsafe { Layout::from_size_align_unchecked(old_capacity, 1) };
    |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `realloc` with no contract will yield an impossible precondition
-  --> src/allocation_ops.rs:33:18
+  --> src/allocation_ops.rs:61:18
    |
-33 |         unsafe { realloc(base, old_layout, capacity) }
+61 |         unsafe { realloc(base, old_layout, capacity) }
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `alloc` with no contract will yield an impossible precondition
-  --> src/allocation_ops.rs:30:18
+  --> src/allocation_ops.rs:58:18
    |
-30 |         unsafe { alloc(layout) }
+58 |         unsafe { alloc(layout) }
    |                  ^^^^^^^^^^^^^ function called here
 
 warning: calling external function `handle_alloc_error` with no contract will yield an impossible precondition
-  --> src/allocation_ops.rs:37:17
+  --> src/allocation_ops.rs:65:17
    |
-37 |         None => handle_alloc_error(layout),
+65 |         None => handle_alloc_error(layout),
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `new` with no contract will yield an impossible precondition
-   --> src/bytes.rs:786:19
+   --> src/bytes.rs:852:19
     |
-786 |             data: BytesDataCell::new(ptr::null_mut()),
+852 |             data: BytesDataCell::new(ptr::null_mut()),
     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1157:46
+    --> src/bytes.rs:1223:46
      |
-1157 |             return Bytes::new_empty_with_ptr(self.ptr.wrapping_add(at));
+1223 |             return Bytes::new_empty_with_ptr(self.ptr.wrapping_add(at));
      |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1206:27
+    --> src/bytes.rs:1272:27
      |
-1206 |             let end_ptr = self.ptr.wrapping_add(at);
+1272 |             let end_ptr = self.ptr.wrapping_add(at);
      |                           ^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1452:22
+    --> src/bytes.rs:1518:22
      |
-1452 |         { self.ptr = self.ptr.add(by); }
+1518 |         { self.ptr = self.ptr.add(by); }
      |                      ^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `hash` with no contract will yield an impossible precondition
-    --> src/bytes.rs:1547:9
+    --> src/bytes.rs:1613:9
      |
-1547 |         self.as_slice().hash(state);
+1613 |         self.as_slice().hash(state);
      |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `into_bytes` with no contract will yield an impossible precondition
-    --> src/bytes.rs:2238:21
+    --> src/bytes.rs:2304:21
      |
-2238 |         Bytes::from(s.into_bytes())
+2304 |         Bytes::from(s.into_bytes())
      |                     ^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes.rs:2279:17
+    --> src/bytes.rs:2345:17
      |
-2279 |     let slice = slice::from_raw_parts(ptr, len);
+2345 |     let slice = slice::from_raw_parts(ptr, len);
      |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `from_raw_parts` with no contract will yield an impossible precondition
-    --> src/bytes.rs:2284:17
+    --> src/bytes.rs:2350:17
      |
-2284 |     let slice = slice::from_raw_parts(ptr, len);
+2350 |     let slice = slice::from_raw_parts(ptr, len);
      |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `wrapping_add` with no contract will yield an impossible precondition
-    --> src/bytes.rs:2937:5
+    --> src/bytes.rs:3093:5
      |
-2937 |     core::ptr::null::<u8>().wrapping_add(ptr)
+3093 |     core::ptr::null::<u8>().wrapping_add(ptr)
      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: calling external function `write_bytes` with no contract will yield an impossible precondition
@@ -3694,4 +3697,4 @@ warning: calling external function `new` with no contract will yield an impossib
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function called here
 
 warning: `bytes` (lib) generated 375 warnings (run `cargo fix --lib -p bytes` to apply 60 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 22s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 19s

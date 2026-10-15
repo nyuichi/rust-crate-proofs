@@ -80,15 +80,25 @@ release, explicitly destroys the empty replacement VecStorage, and consumes
 the actual Shared root permission before freeing the Box. The crate-private
 unsafe `BytesMut::dispose_shared` path supplies its actual packet and caller
 context to this same native release body and has a body proof. The ordinary
-`release_shared`/automatic `Drop` caller remains untranslated, so this does not
-prove post-Drop context consistency or cover every native ARC clone, freeze,
-or recovery transition. Concurrency, unwind behavior and safe-state
+automatic `Drop` caller remains untranslated, so this does not prove post-Drop
+context consistency or cover every native ARC clone, freeze, or recovery
+transition. Concurrency, unwind behavior and safe-state
 reachability of the common view precondition across all Shared lifecycle paths
 remain outside this checkpoint. Thus these body proofs do not yet establish
 an end-to-end public `BytesMut::truncate` guarantee for every safely produced
 state. See the
 [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md) and
 [generic Std overlay](verification/std-support/README.md) assumptions.
+
+The distinct `bytes::Shared` created by the spare-capacity `From<Vec<u8>>`
+branch also has a checked explicit count-one release path. The private unsafe
+`Bytes::dispose_spare_shared` body reads the pointer through its actual
+permission, forgets the handle, and enters the original `release_shared` and
+`free_shared` source bodies with the exact counter, header Box and full B1
+allocation resources. It proves the Release decrement, Acquire load, byte
+allocation deallocation and header deallocation for that sole full-view state.
+The public `From<Vec>` postcondition, cloning/refcount transitions, vtable
+callbacks and automatic Drop remain unproved.
 
 The crate-private unsafe `BytesMut::dispose_unique` body also consumes a
 rebuildable Vec-backed handle: it reconstructs the original allocation through

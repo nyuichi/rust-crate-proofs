@@ -82,6 +82,25 @@ proves the returned bytes equal that carrier's saved visible contents. This
 does not prove a public `From` postcondition, `Buf::chunk`, `AsRef`, `Deref`,
 the shared-readonly `Bytes` state, or destruction.
 
+The selected private `Bytes::dispose_spare_shared` body consumes the actual
+count-one spare-capacity carrier. It reads the shared pointer from its actual
+pointer-cell permission, forgets the handle, and calls the original
+`release_shared` source body with the exact header Box permission, counter
+permission, recovery token, and full physical region. The selected
+`release_shared` body proves the one-owner Release decrement, Acquire load,
+and call to the original `free_shared` body; `free_shared` reads the header
+through its Box permission, deallocates the exact B1 byte allocation, then
+deallocates the header without running `Shared::drop`. The only trusted
+boundaries here are generic: owned-permission Release/Acquire atomic
+operations, the existing B3 full-allocation deallocation while consuming B1
+resources, and sized Box deallocation without its pointee destructor. Their
+replacement path is a matching generic Std contract for the atomic permission
+operations and Box allocator layout, plus the existing allocator contract.
+This establishes only the explicit
+unpromoted count-one spare-capacity entry. Public `From<Vec>` postconditions,
+cloning or other refcount transitions, vtable callbacks, and automatic Drop
+remain unproved.
+
 The original `free_boxed_slice` source body is also translated and checked for
 the explicit boxed release entry. It computes capacity from that function's
 actual `(buf, offset, len)` operands. The proof-only release payload is required

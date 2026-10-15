@@ -113,6 +113,36 @@ struct OriginalSpareSharedProof {
 }
 
 #[cfg(all(creusot, bytes_original_unique_gate))]
+impl OriginalSpareSharedProof {
+    /// The release carrier keeps the actual header Box, counter permission,
+    /// and full B1 allocation tied to the same native Shared pointer.
+    #[logic(open(self), prophetic)]
+    fn release_valid(self, shared: *mut Shared, count: usize) -> bool {
+        pearlite! {
+            let caps = self.capabilities.inner_logic();
+            let counter = self.counter_owner.inner_logic();
+            self.shared == shared &&
+            self.base.invariant() && caps.0.invariant() && caps.1.invariant() &&
+            self.base@ == Some((caps.0.namespace(), caps.0.capacity(), 0int)) &&
+            caps.1.capacity() == caps.0.capacity() &&
+            caps.1.namespace() == caps.0.namespace() &&
+            caps.1.resource_id() == caps.0.namespace() &&
+            caps.1.lo() == 0 && caps.1.hi() == caps.0.capacity() &&
+            0 < caps.0.capacity() &&
+            self.shared_owner.inner_logic().invariant() &&
+            *self.shared_owner.ward() == shared as *const Shared &&
+            self.shared_owner.val().buf == self.base.raw_pointer() &&
+            self.shared_owner.val().cap@ == caps.0.capacity() &&
+            self.shared_owner.val().ref_cnt.invariant() &&
+            !self.shared_owner.val().ref_cnt.has_event_invariant() &&
+            counter.0.invariant() &&
+            *counter.0.ward() == self.shared_owner.val().ref_cnt.counter_model() &&
+            counter.0.val() == count && counter.1 == count
+        }
+    }
+}
+
+#[cfg(all(creusot, bytes_original_unique_gate))]
 struct BoxedReleaseProof {
     base: BoundPtr,
     view: BoundPtr,
@@ -682,6 +712,42 @@ impl Bytes {
                 Some(release),
             )
         }
+    }
+
+    /// Explicitly release the unpromoted count-one Shared handle created by
+    /// the spare-capacity `From<Vec<u8>>` path.
+    ///
+    /// # Safety
+    /// The handle must be the sole, full-view handle returned by that
+    /// constructor and must not have been cloned, sliced, converted, or
+    /// otherwise transferred before this call.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.original_spare_shared_valid()))]
+    #[cfg_attr(all(creusot, not(bytes_original_unique_gate)), creusot::no_translate)]
+    pub(crate) unsafe fn dispose_spare_shared(self) {
+        let mut this = self;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let mut proof = this.original_spare_shared.take().unwrap();
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let mut permission = ghost! { proof.data_cell_permission.into_inner() };
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let shared = crate::loom::sync::atomic::NativePtr::exclusive_read(
+            &mut this.data,
+            ghost!(&mut *permission),
+        ).cast::<Shared>();
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        { proof.data_cell_permission = permission; }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        let shared = this.data.with_mut(|pointer| *pointer).cast::<Shared>();
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            proof_assert!(shared == proof.shared);
+            proof_assert!(proof.release_valid(shared, 1usize));
+        }
+        core::mem::forget(this);
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        unsafe { release_shared(shared, Some(proof)) };
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        unsafe { release_shared(shared) };
     }
 
     /// Creates a new empty `Bytes`.
@@ -2515,7 +2581,11 @@ unsafe fn promotable_even_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: us
         let kind = shared as usize & KIND_MASK;
 
         if kind == KIND_ARC {
-            release_shared(shared.cast());
+            release_shared(
+                shared.cast(),
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            );
         } else {
             debug_assert_eq!(kind, KIND_VEC);
             let buf = untagged_vec_data_pointer(shared.cast());
@@ -2560,7 +2630,11 @@ unsafe fn promotable_odd_drop(data: &mut AtomicPtr<()>, ptr: *const u8, len: usi
         let kind = shared as usize & KIND_MASK;
 
         if kind == KIND_ARC {
-            release_shared(shared.cast());
+            release_shared(
+                shared.cast(),
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            );
         } else {
             debug_assert_eq!(kind, KIND_VEC);
 
@@ -2708,7 +2782,11 @@ unsafe fn shared_to_vec_impl(shared: *mut Shared, ptr: *const u8, len: usize) ->
         Vec::from_raw_parts(buf, len, cap)
     } else {
         let v = slice::from_raw_parts(ptr, len).to_vec();
-        release_shared(shared);
+        release_shared(
+            shared,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            None,
+        );
         v
     }
 }
@@ -2753,7 +2831,11 @@ unsafe fn shared_to_mut_impl(shared: *mut Shared, ptr: *const u8, len: usize) ->
     } else {
         // Copy the data from Shared in a new Vec, then release it
         let v = slice::from_raw_parts(ptr, len).to_vec();
-        release_shared(shared);
+        release_shared(
+            shared,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            None,
+        );
         BytesMut::from_vec(v)
     }
 }
@@ -2773,7 +2855,11 @@ pub(crate) unsafe fn shared_is_unique(data: &AtomicPtr<()>) -> bool {
 #[cfg_attr(creusot, creusot::no_translate)]
 unsafe fn shared_drop(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {
     data.with_mut(|shared| {
-        release_shared(shared.cast());
+        release_shared(
+            shared.cast(),
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            None,
+        );
     });
 }
 
@@ -2884,10 +2970,38 @@ unsafe fn shallow_clone_vec(
     }
 }
 
-#[cfg_attr(creusot, creusot::no_translate)]
-unsafe fn release_shared(ptr: *mut Shared) {
+#[cfg_attr(all(creusot, not(bytes_original_unique_gate)), creusot::no_translate)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match proof {
+    Some(release) => release.release_valid(ptr, 1usize),
+    None => false,
+}))]
+unsafe fn release_shared(
+    ptr: *mut Shared,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    proof: Option<OriginalSpareSharedProof>,
+) {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let mut proof = proof.unwrap();
+
+    // In the checked carrier path, inspect the header through its actual Box
+    // permission. Other paths preserve the original unverified raw access.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let shared_ref = unsafe {
+        creusot_std::ghost::perm::Perm::as_ref(ptr, ghost!(&*proof.shared_owner))
+    };
+
     // `Shared` storage... follow the drop steps from Arc.
-    if (*ptr).ref_cnt.fetch_sub_release() != 1 {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (old_count, counter_owner) = shared_ref
+        .ref_cnt
+        .native_counter()
+        .fetch_sub_release_owned(proof.counter_owner);
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    { proof.counter_owner = counter_owner; }
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let old_count = (*ptr).ref_cnt.fetch_sub_release();
+
+    if old_count != 1 {
         return;
     }
 
@@ -2911,10 +3025,22 @@ unsafe fn release_shared(ptr: *mut Shared) {
     //
     // Thread sanitizer does not support atomic fences. Use an atomic load
     // instead.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let (_observed_count, counter_owner) = shared_ref
+        .ref_cnt
+        .native_counter()
+        .load_acquire_owned(proof.counter_owner);
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    { proof.counter_owner = counter_owner; }
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
     (*ptr).ref_cnt.load_acquire();
 
     // Explicit cleanup has the same payload/control effects as dropping the Box.
-    free_shared(ptr);
+    free_shared(
+        ptr,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        Some(proof),
+    );
 }
 
 // The explicit final cleanup below bypasses Shared::drop. All of its fields
@@ -2922,15 +3048,45 @@ unsafe fn release_shared(ptr: *mut Shared) {
 // In particular a substituted atomic type must not carry destructor effects.
 const _: [(); 0] = [(); mem::needs_drop::<AtomicUsize>() as usize];
 
-#[cfg_attr(creusot, creusot::no_translate)]
-unsafe fn free_shared(ptr: *mut Shared) {
+#[cfg_attr(all(creusot, not(bytes_original_unique_gate)), creusot::no_translate)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match proof {
+    Some(release) => release.release_valid(ptr, 0usize),
+    None => false,
+}))]
+unsafe fn free_shared(
+    ptr: *mut Shared,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    proof: Option<OriginalSpareSharedProof>,
+) {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let release = proof.unwrap();
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let shared_ref = unsafe {
+        creusot_std::ghost::perm::Perm::as_ref(ptr, ghost!(&*release.shared_owner))
+    };
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let shared_ref = unsafe { &*ptr };
+
     // SAFETY: release_shared has recovered the sole reference after Acquire.
     // The allocation was made by Box<Shared>; buf/cap describe its separate
     // global-allocator byte allocation. Preserve the original destruction order.
-    let buf = (*ptr).buf;
-    let cap = (*ptr).cap;
-    dealloc(buf, Layout::from_size_align(cap, 1).unwrap());
-    dealloc(ptr.cast(), Layout::new::<Shared>());
+    let buf = shared_ref.buf;
+    let cap = shared_ref.cap;
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    {
+        proof_assert!(release.shared == ptr);
+        proof_assert!(buf == release.base.raw_pointer());
+        proof_assert!(cap@ == release.capabilities.inner_logic().0.capacity());
+        unsafe { raw_vec::deallocate_bound_vec(release.base, cap, release.capabilities) };
+        unsafe {
+            crate::allocation_ops::deallocate_box_without_drop(ptr, release.shared_owner)
+        };
+    }
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    {
+        unsafe { crate::allocation_ops::deallocate_u8(buf, cap) };
+        unsafe { crate::allocation_ops::deallocate_box_without_drop(ptr) };
+    }
 }
 
 fn without_provenance(ptr: usize) -> *const u8 {
@@ -2989,5 +3145,25 @@ mod fuzz {
             t1.join().unwrap();
             t2.join().unwrap();
         });
+    }
+}
+
+#[cfg(all(test, not(loom)))]
+mod original_release_tests {
+    use super::Bytes;
+    use std::vec::Vec;
+
+    #[test]
+    fn explicitly_dispose_spare_capacity_shared_handle() {
+        let mut input = Vec::with_capacity(32);
+        input.extend_from_slice(b"spare capacity payload");
+        assert!(input.capacity() > input.len());
+
+        let bytes = Bytes::from(input);
+        assert_eq!(&bytes[..], b"spare capacity payload");
+
+        // SAFETY: this handle came directly from the spare-capacity Vec
+        // constructor and has not been cloned or otherwise transferred.
+        unsafe { bytes.dispose_spare_shared() };
     }
 }

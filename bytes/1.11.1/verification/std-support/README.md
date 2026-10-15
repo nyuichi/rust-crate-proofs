@@ -65,3 +65,12 @@ UTF-8 implementation. Consequently, `BytesMut::from(&str)` content results
 depend on this generic encoding assumption. The replacement path is to
 body-prove `char::to_utf8` against Rust's UTF-8 encoding and derive the string
 byte relation from that result; no bytes-specific string law is needed.
+
+The explicit spare-capacity release proof also uses generic trusted source
+adapters for one owned-permission Release decrement, one owned-permission
+Acquire load, and deallocation of a sized Box allocation without invoking its
+pointee destructor. They require the exact actual counter or Box permission
+and state no Bytes ownership or lifecycle rule. Their replacement path is to
+add matching generic Std atomic-permission and Box-allocation contracts, then
+body-prove the adapters against the native atomic operation and allocator
+deallocation.

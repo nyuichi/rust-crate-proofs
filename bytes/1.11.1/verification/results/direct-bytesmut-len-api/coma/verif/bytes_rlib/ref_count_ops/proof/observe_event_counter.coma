@@ -1,17 +1,17 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 606 4 606 88 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 661 4 661 88 *)
 
 type namespace_other
 
 type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
 let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 93 20 93 44
-let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 607 22 607 52
-let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 606 60 606 65
-let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 601 15 601 65
-let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 602 14 602 49
-let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 603 14 603 63
-let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 604 14 604 33
-let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 605 14 605 47
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 662 22 662 52
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 661 60 661 65
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 656 15 656 65
+let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 657 14 657 49
+let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 658 14 658 63
+let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 659 14 659 33
+let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 660 14 660 47
 
 use creusot.prelude.MutBorrow
 use creusot.int.UInt64
@@ -34,7 +34,7 @@ predicate resolve_refmut_T [@inline:trivial] (_1: MutBorrow.t t_T) = _1.final = 
 
 meta "rewrite_def" predicate resolve_refmut_T
 
-predicate agrees_with_value_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 384 8 384 57] (self: t_T) (value: UInt64.t)
+predicate agrees_with_value_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 439 8 439 57] (self: t_T) (value: UInt64.t)
 
 predicate protocol_T (self: t_T)
 
@@ -44,13 +44,13 @@ function public_T (self: t_T) : t_Public
 
 type t_NativeCounter
 
-function counter_model_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 381 8 381 48] (self: t_T) : t_NativeCounter
+function counter_model_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 436 8 436 48] (self: t_T) : t_NativeCounter
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let observe_event_counter_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 606 4 606 88]
+let observe_event_counter_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 661 4 661 88]
   (state: MutBorrow.t t_T) (value: UInt64.t) (return (x: ())) =
 {[@stop_split] [@expl:observe_event_counter_T requires] ([@stop_split] [@expl:observe_event_counter 'state' type invariant] [%#sref_count_ops'0] inv_refmut_T state)
   /\ ([@stop_split] [@expl:observe_event_counter requires] [%#sref_count_ops'1] protocol_T state.current
