@@ -80,6 +80,14 @@ state. See the
 [selected TCB](verification/results/direct-bytesmut-len-api/TCB.md) and
 [generic Std overlay](verification/std-support/README.md) assumptions.
 
+The crate-private unsafe `BytesMut::dispose_unique` body also consumes a
+rebuildable Vec-backed handle: it reconstructs the original allocation through
+the checked signed-offset `rebuild_vec` path, captures that actual Vec with
+`VecStorage::hold_owned`, then consumes the resulting authority and full region
+through `retire_stored_vec`. Its native branch performs the same reconstruction
+and drops that Vec once. This narrow explicit path does not prove public freeze,
+unselected `rebuild_vec` callers, or automatic `BytesMut::drop`.
+
 The verification-only Shared capsule also has body-proved affine header-loan
 transitions. A token-aware `EventBoundInvariant::open_with_tokens` exposes the
 protocol, counter-owner agreement and callback frame; packet take/restore

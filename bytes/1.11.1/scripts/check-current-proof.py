@@ -60,6 +60,7 @@ TARGETS = (
     "verif/bytes_rlib/provenance_specs/signed_wrapping_offset.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_2/unique_rebuild_base_pointer.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_2/rebuild_vec.coma",
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut_1/dispose_unique.coma",
     "verif/bytes_rlib/ownership_proof/view_region/split_view_region.coma",
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/new_root.coma",
     "verif/bytes_rlib/ownership_proof/ref_count_ledger/impl_OwnerLedger/new_promoted_pair.coma",

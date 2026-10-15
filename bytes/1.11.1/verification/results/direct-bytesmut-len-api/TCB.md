@@ -176,6 +176,15 @@ This local external specification can be replaced by a matching signed-offset
 contract in the pinned Creusot Std overlay; `signed_wrapping_offset` itself is
 body-checked.
 
+The selected crate-private `BytesMut::dispose_unique` body requires the actual
+rebuildable unique proof state. It uses `rebuild_vec` to consume that proof and
+the existing B2 boundary to restore a Vec, then passes the actual Vec through
+the body-proved `VecStorage::hold_owned` composition and the existing B3
+`retire_stored_vec` boundary. The native body runs the same signed-offset
+reconstruction and drops the Vec once. This does not prove callers that pass no
+unique proof, public freeze, or automatic `BytesMut::drop`; no Bytes-specific
+allocation or destruction trust was added.
+
 The refcount operation layer has a private `#[repr(transparent)]`
 `NativeCounter` around the existing atomic type and a `#[repr(C)]` `RefCountCell`
 with a proof-only zero-sized `Option` sidecar. Native builds execute the

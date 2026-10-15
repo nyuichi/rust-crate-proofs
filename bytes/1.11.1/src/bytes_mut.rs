@@ -4302,6 +4302,53 @@ impl BytesMut {
             release_shared_common(data)
         }
     }
+
+    /// Explicitly consume a unique Vec-backed handle through the original
+    /// Vec reconstruction path. The proof build carries the actual unique
+    /// allocation capability into the generic B2/B3 boundaries; ordinary
+    /// automatic `Drop` remains unchanged.
+    ///
+    /// # Safety
+    /// The handle must be in its unique Vec-backed representation. The
+    /// reconstructed Vec must not have any outstanding physical borrow.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.unique_vec_rebuildable()
+    ))]
+    pub(crate) unsafe fn dispose_unique(self) {
+        let mut this = self;
+        let ptr = this.ptr.as_ptr();
+        let len = this.len;
+        let cap = this.cap;
+        let off = this.get_vec_pos();
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let this_ref: &BytesMut = &this;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let prestate = snapshot!(*this_ref);
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        unique_initialized_prefix_suffix(prestate, len);
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let proof = this.unique_proof.take().unwrap();
+
+        // Reconstruct the allocation below and consume it exactly once. If
+        // this handle's Drop ran as well, it would reconstruct the same Vec.
+        core::mem::forget(this);
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let vec = unsafe { BytesMut::rebuild_vec(ptr, len, cap, off, Some(proof)) };
+            let (storage, authority_region, _base, _binding) = VecStorage::hold_owned(vec);
+            let (authority, region) = authority_region.split();
+            unsafe { crate::vec_storage::retire_stored_vec(storage, authority, region) };
+        }
+
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        {
+            let vec = unsafe { BytesMut::rebuild_vec(ptr, len, cap, off) };
+            drop(vec);
+        }
+    }
 }
 
 impl Shared {
@@ -4435,6 +4482,19 @@ mod tests {
         assert_eq!(buffer.len(), len);
         assert_eq!(buffer.capacity(), cap);
         assert_eq!(&buffer[..], expected.as_slice());
+    }
+
+    #[test]
+    fn explicit_unique_dispose_releases_nonzero_offset_vec_once() {
+        let mut buffer = BytesMut::from_vec((0u8..24).collect());
+        Buf::advance(&mut buffer, 5);
+
+        assert_eq!(unsafe { buffer.get_vec_pos() }, 5);
+        assert_eq!(&buffer[..], &(5u8..24).collect::<Vec<_>>());
+
+        // This consumes the original allocation after rebuilding its base
+        // pointer from the current nonzero-offset view.
+        unsafe { buffer.dispose_unique() };
     }
 
     #[test]
