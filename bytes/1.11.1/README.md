@@ -34,14 +34,19 @@ allocation slots are framed while current-view slots are reindexed. The Vec
 path retains its full allocation-slot frame and updates the visible prefix in
 two phases. The Shared path advances the packet cursor and retains its
 packet-specific allocation-slot and lease-key frames under the internal layout
-and initialized-view preconditions. The selected capsule and packet invariants
+and initialized-view preconditions. When advancing crosses its packed-position
+limit, the selected private path promotes through the supplied Context to a
+count-one Shared packet while preserving the original allocation namespace
+and physical slots, registering the new ready-cap entry, and retaining prior
+Context entries. The selected capsule and packet invariants
 tie each packet's ghost allocation identity (namespace, base and capacity) to
 the protected Shared storage through its ledger ticket; the ticket's owned
 interval also matches the packet's physical region. The identity and interval
 metadata grant no access authority, and the proofs do not establish every
 public producer or later owner-lifecycle path. Selected Shared split sequences
-reach a nonzero packet cursor, but public `Buf::advance` and the public
-Vec-backed position-advance path remain unproved. `BufMut::advance_mut` has a
+reach a nonzero packet cursor, but public `Buf::advance` and a public producer
+chain supplying Context for packed-position promotion remain unproved.
+`BufMut::advance_mut` has a
 body proof, but its trait-refinement obligation remains open.
 
 The original `BytesMut::extend_from_slice` body is also selected for its

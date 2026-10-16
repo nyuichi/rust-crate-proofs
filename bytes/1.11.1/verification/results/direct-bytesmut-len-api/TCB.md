@@ -218,9 +218,13 @@ updates. The selected constructor bodies establish `unique_vec_rebuildable` at
 offset zero. Body proofs for `advance_vec_layout` and `set_visible_len`
 establish the two phases of a Vec cursor advance while preserving all
 allocation slots. The Vec `advance_unchecked` branch is body-proved with a
-rebuildable Vec state, `count <= len`, capacity bounds and representable packed
-position. The packet-backed Shared branch is body-proved with the handle's
-packet-layout and initialized-visible-prefix preconditions.
+rebuildable Vec state and `count <= len`; it handles both representable packed
+positions and packed-position overflow. The overflow branch uses the supplied
+Context to promote the same allocation to a count-one Shared packet while
+preserving its original allocation namespace and physical slots, registering
+the new ready-cap entry, and retaining prior Context entries. The packet-backed
+Shared branch is body-proved with the handle's packet-layout and
+initialized-visible-prefix preconditions.
 Both selected branches export a common view postcondition: the result remains
 `buffer_view_valid`, length and bytes follow the saturated advance, capacity
 and cursor advance together, the exact native pointer is offset by `count`,
@@ -236,7 +240,8 @@ identity metadata and grants no allocation access. The selected proof does not
 establish every production path that creates or preserves the relation, or
 Shared reads, recovery, exclusivity or lifecycle behavior. Selected Shared
 split sequences produce a nonzero packet cursor, but public `Buf::advance` and
-the public Vec-backed position-advance path remain unproved. The
+a public producer chain supplying Context for packed-position promotion remain
+unproved. The
 trait-refinement obligation for `BufMut::advance_mut` also remains unproved
 because its body has stronger proof preconditions than the trait prestate.
 These cursor proofs alone do not establish the full peer lifecycle,
@@ -664,9 +669,9 @@ converting cell permission into header authority; the packet's root permission
 remains the source of header access. The proof covers these internal explicit
 paths under their unsafe preconditions. It does not cover every public
 clone/freeze/recovery transition or the context-free automatic `Drop` call
-chain. The Vec `advance_unchecked`
-branch assumes a representable position, so it does not establish reachability
-of the promotion branch, and public `Buf::advance` is untranslated.
+chain. The selected private Vec `advance_unchecked` body proves the promotion
+branch under its actual Context precondition; public `Buf::advance` remains
+untranslated and does not establish that Context connection.
 
 Although `truncate`, `clear`, and unsafe `set_len` have body proofs from
 `buffer_view_valid`, their modular precondition still includes a packet-backed

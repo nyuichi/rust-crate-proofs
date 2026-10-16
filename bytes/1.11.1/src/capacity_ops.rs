@@ -130,6 +130,7 @@ pub(crate) fn original_capacity_repr_from_data(data: usize) -> usize {
 /// Read the encoded vector offset from the packed metadata word.
 #[cfg_attr(creusot, bitwise_proof)]
 #[cfg_attr(creusot, ensures(result == data >> VEC_POS_OFFSET))]
+#[cfg_attr(creusot, ensures(result@ <= MAX_VEC_POS@))]
 pub(crate) fn vec_pos_from_data(data: usize) -> usize {
     data >> VEC_POS_OFFSET
 }
