@@ -85,6 +85,8 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/unique_initialized_prefix_extend.coma",
     "verif/bytes_rlib/bytes_mut/buffer_initialized_prefix_extend.coma",
     "verif/bytes_rlib/bytes_mut/frame_lemmas/buffer_view_slot_frame_to_allocation_frame.coma",
+    "verif/bytes_rlib/bytes_mut/frame_lemmas/equal_buffer_bytes_preserve_view_slots.coma",
+    "verif/bytes_rlib/bytes_mut/frame_lemmas/buffer_bytes_append_from_slots.coma",
     "verif/bytes_rlib/bytes_mut/buffer_prefix_mode_equivalence.coma",
     "verif/bytes_rlib/bytes_mut/unique_initialized_prefix_suffix.coma",
     "verif/bytes_rlib/bytes_mut/impl_BufMut_for_BytesMut/advance_mut.coma",

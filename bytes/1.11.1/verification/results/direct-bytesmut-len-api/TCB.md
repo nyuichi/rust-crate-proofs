@@ -417,9 +417,11 @@ reviewed contracts for the actual core `AtomicPtr` constructor and exclusive
 `get_mut` with the same cell/value relation. No Creusot change or Bytes-specific
 law is needed.
 
-The selected in-capacity `BytesMut::extend_from_slice` body uses the same
-all-build `write_spare_prefix` helper for unique and packet-backed Shared
-views. That checked helper calls the existing generic
+The selected `BytesMut::extend_from_slice` body covers unique and
+packet-backed Shared views when the bytes fit the view's existing spare
+capacity, and the unique Vec case when the original cheap-reclaim guard holds.
+All cases use the same all-build `write_spare_prefix` helper. That checked
+helper calls the existing generic
 `storage_ops::copy_to_uninit_prefix_raw` effect boundary. For typed, disjoint
 `&[u8]` source and `&mut [MaybeUninit<u8>]` destination slices with source
 length no greater than destination length, its native `copy_nonoverlapping`
@@ -428,10 +430,10 @@ length and suffix. This effect grants no allocation, liveness, Vec-owner,
 refcount, or Bytes-specific authority. The verified `copy_to_uninit_prefix`
 loop has the same functional specification, but the selected source body
 continues to call the original raw-copy helper. No new trusted boundary was
-added for Shared append. The selected unique Vec reclaim helper also calls this
-same generic raw-copy boundary once; its B4 borrows and B1 recovery/region
-resources are established by checked source bodies and are not supplied by the
-copy contract.
+added for Shared append. Unique Vec reclaim and its subsequent append use the
+same generic raw-copy boundary; the helper's B4 borrows and B1 recovery/region
+resources are established by checked source bodies and are not supplied by
+the copy contract.
 
 The generic all-build `provenance_specs::sub_within_region` adapter executes
 the original native `ptr::sub` operation once for both the checked B1 retreat
@@ -464,7 +466,8 @@ spare-capacity short circuit and call to this same helper. The proof does not
 cover the Vec allocation fallback, general reserve policy, or shared ARC
 fallback, and does not establish general public API coverage.
 
-The selected in-capacity `BytesMut::resize` body calls the generic
+The selected in-capacity `BytesMut::resize` cases and its unique cheap-reclaim
+case call the generic
 `storage_ops::fill_uninit_prefix_raw` effect boundary for its original native
 `ptr::write_bytes` operation. Its contract requires the count to fit the
 borrowed `MaybeUninit<u8>` slice, initializes exactly that prefix to the
@@ -473,7 +476,10 @@ generic pointer effect absent from the pinned Std model; it grants no Bytes
 layout, allocation, liveness, Vec-owner, or refcount facts. Replace the
 boundary when Std provides a body-checked initialized-prefix effect for
 `ptr::write_bytes`. The Bytes-specific slot, packet, pointer, length, and
-capacity facts are proved by `fill_spare_prefix` and `resize`.
+capacity facts are proved by `fill_spare_prefix` and `resize`. The reclaim
+case preserves the actual Vec proof resources and allocation capacity while
+rebasing the Vec view to offset zero; it does not include allocation growth or
+the shared ARC fallback.
 
 The `OwnerLedger` is one affine inventory of all native strong references.
 Each `OwnerTicket` owns the exact singleton fragment for one registration and

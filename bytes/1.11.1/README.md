@@ -42,26 +42,31 @@ translated. `BufMut::advance_mut` has a body proof, but its trait-refinement
 obligation remains open.
 
 The original `BytesMut::extend_from_slice` body is also selected for its
-in-capacity unique and packet-backed Shared cases. The input must fit the
-existing view's spare capacity, so `reserve` returns without growth. Both
-representations then call the same all-build `write_spare_prefix` helper, which
-borrows the actual uninitialized suffix and calls the original raw-copy helper;
-`advance_mut` consumes the initialized prefix. The postconditions preserve the
-buffer view, append the exact input bytes, and keep the pointer, capacity, old
-prefix, allocation slots outside the write window, and remaining spare slots.
-The unique case also preserves Vec rebuildability, while the Shared case
-preserves packet metadata, the actual owner ticket and lease key, and the
-shared layout. This gives an in-capacity source path into `truncate`; reserve
-growth, reclaim, and allocation remain outside this proof.
+in-capacity unique and packet-backed Shared cases, plus the unique Vec
+cheap-reclaim case. The input either fits the existing view's spare capacity,
+or the unique Vec view satisfies the original offset and amortized reclaim
+guard. Both representations use the same all-build `write_spare_prefix`
+helper, which borrows the actual uninitialized suffix and calls the original
+raw-copy helper; `advance_mut` consumes the initialized prefix. The
+postconditions preserve the buffer view, append the exact input bytes, and
+frame allocation slots outside the write window. On the in-capacity path they
+also preserve the pointer, capacity, hidden allocation prefix, and remaining
+spare slots. On
+unique reclaim, they preserve the actual Vec proof resources and allocation
+capacity while reporting the rebased zero-offset pointer and capacity. The
+Shared case preserves packet metadata, the actual owner ticket and lease key,
+and the shared layout. Allocation growth and the shared ARC fallback remain
+outside this proof.
 
-The original `BytesMut::resize` body is selected when the requested length is
-at most the existing capacity. It proves shrinking through `truncate`, the
-equal-length no-op, and within-capacity growth through the same `reserve`,
-spare-fill, and `set_len` source calls. Growth fills exactly the newly visible
-slots with the requested value in either buffer representation while retaining
+The original `BytesMut::resize` body proves shrinking through `truncate`, the
+equal-length no-op, within-capacity growth in either representation, and
+unique Vec growth through the original cheap-reclaim guard. Growth fills
+exactly the newly visible slots with the requested value through the same
+`reserve`, spare-fill, and `set_len` source calls. The in-capacity paths retain
 the pointer, capacity, packet or Vec frame, and all allocation slots outside
-the written range. This covers length growth without capacity growth; reserve
-growth, reclaim, and allocation remain outside the proof.
+the written range. Unique reclaim preserves the Vec proof resources and total
+allocation capacity while rebasing the visible Vec to offset zero. Capacity
+allocation growth and the shared ARC fallback remain outside the proof.
 
 The selected `BytesMut::try_reclaim` body covers the unique Vec case under its
 `unique_valid` proof precondition. It retains the existing spare-capacity
