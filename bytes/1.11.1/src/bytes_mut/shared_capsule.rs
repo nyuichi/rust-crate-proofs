@@ -4300,6 +4300,85 @@ impl SharedOwnerPacket {
         (metadata.0, metadata.1, metadata.2, offset)
     }
 
+    /// Borrow the spare suffix through the packet's actual mutable region.
+    /// The returned slice carries the physical borrow; the packet keeps its
+    /// original capsule, ticket, and allocation descriptors.
+    #[requires(self.invariant())]
+    #[requires(visible@ <= capacity@)]
+    #[requires(self.cursor@.unwrap_logic().2 + capacity@ <= self.region.inner_logic().hi())]
+    #[requires(forall<index: Int> 0 <= index && index < visible@ ==>
+        slot_known(self.region.inner_logic().slot(
+            self.cursor@.unwrap_logic().2 + index)))]
+    #[ensures(result@.len() == capacity@ - visible@ &&
+        (^result)@.len() == capacity@ - visible@)]
+    #[ensures((^self).invariant())]
+    #[ensures((^self).capsule == self.capsule)]
+    #[ensures((^self).capsule_public() == self.capsule_public())]
+    #[ensures((^self).ticket == self.ticket)]
+    #[ensures((^self).base == self.base && (^self).cursor == self.cursor)]
+    #[ensures((^self).lease_key() == self.lease_key())]
+    #[ensures((^self).region.inner_logic().namespace() == self.region.inner_logic().namespace())]
+    #[ensures((^self).region.inner_logic().capacity() == self.region.inner_logic().capacity())]
+    #[ensures((^self).region.inner_logic().lo() == self.region.inner_logic().lo())]
+    #[ensures((^self).region.inner_logic().hi() == self.region.inner_logic().hi())]
+    #[ensures((^self).region.inner_logic().resource_id() == self.region.inner_logic().resource_id())]
+    #[ensures((^self).region.inner_logic().invariant())]
+    #[ensures((^self).base.invariant() && (^self).cursor.invariant())]
+    #[ensures((^self).base@ == Some((
+        (^self).region.inner_logic().namespace(),
+        (^self).region.inner_logic().capacity(), 0int
+    )))]
+    #[ensures((^self).cursor@ != None)]
+    #[ensures((^self).cursor@.unwrap_logic().0 ==
+        (^self).region.inner_logic().namespace())]
+    #[ensures((^self).cursor@.unwrap_logic().1 ==
+        (^self).region.inner_logic().capacity())]
+    #[ensures((^self).cursor.current_address() ==
+        (^self).base.current_address() + (^self).cursor@.unwrap_logic().2)]
+    #[ensures((^self).region.inner_logic().lo() <=
+        (^self).cursor@.unwrap_logic().2)]
+    #[ensures((^self).cursor@.unwrap_logic().2 <=
+        (^self).region.inner_logic().hi())]
+    #[ensures((^self).capsule_public().0.addr_logic() & super::KIND_MASK ==
+        super::KIND_ARC)]
+    #[ensures((^self).ticket.inner_logic().allocation_binding() ==
+        ((^self).region.inner_logic().namespace(), (^self).base.raw_pointer(),
+            (^self).region.inner_logic().capacity()))]
+    #[ensures((^self).ticket.inner_logic().allocation_binding() ==
+        (^self).capsule_allocation_binding())]
+    #[ensures((^self).ticket.inner_logic().owned_lo() ==
+        (^self).region.inner_logic().lo())]
+    #[ensures((^self).ticket.inner_logic().owned_hi() ==
+        (^self).region.inner_logic().hi())]
+    #[ensures(forall<index: Int> 0 <= index && index < visible@ ==>
+        slot_known((^self).region.inner_logic().slot(
+            self.cursor@.unwrap_logic().2 + index)))]
+    #[ensures(forall<index: Int> visible@ <= index && index < capacity@ ==>
+        self.region.inner_logic().slot(self.cursor@.unwrap_logic().2 + index) ==
+            Some(result@[index - visible@]@))]
+    #[ensures(forall<index: Int> visible@ <= index && index < capacity@ ==>
+        (^self).region.inner_logic().slot(self.cursor@.unwrap_logic().2 + index) ==
+            Some((^result)@[index - visible@]@))]
+    #[ensures(forall<index: Int>
+        !(self.cursor@.unwrap_logic().2 + visible@ <= index &&
+          index < self.cursor@.unwrap_logic().2 + capacity@) ==>
+            (^self).region.inner_logic().slot(index) == self.region.inner_logic().slot(index))]
+    pub(crate) fn borrow_spare_capacity_mut<'a>(
+        &'a mut self,
+        visible: usize,
+        capacity: usize,
+    ) -> &'a mut [core::mem::MaybeUninit<u8>] {
+        self.prove_cursor_within_region();
+        unsafe {
+            crate::ownership_proof::raw_vec::borrow_spare_preserving_prefix(
+                self.cursor,
+                visible,
+                capacity,
+                self.region.borrow_mut(),
+            )
+        }
+    }
+
     /// Move the proof packet into Creusot's ghost heap. The native handle
     /// keeps only its ordinary pointer/length fields; the ticket, region,
     /// capsule, and registry key remain Ghost-owned proof state.

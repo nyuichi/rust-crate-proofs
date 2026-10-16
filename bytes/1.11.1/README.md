@@ -42,14 +42,17 @@ translated. `BufMut::advance_mut` has a body proof, but its trait-refinement
 obligation remains open.
 
 The original `BytesMut::extend_from_slice` body is also selected for its
-in-capacity case: the input must fit in the existing unique view's spare
-capacity. `reserve` then returns without growth, `spare_capacity_mut` lends the
-actual uninitialized suffix, the source calls its same raw-copy helper, and
-`advance_mut` consumes the initialized prefix. The postcondition preserves the
-unique layout and buffer view, records the appended bytes, and keeps the
-pointer, capacity, old prefix, and remaining spare slots. This gives an
-in-capacity source path into `truncate`; reserve growth, reclaim, and allocation
-remain outside this proof.
+in-capacity unique and packet-backed Shared cases. The input must fit the
+existing view's spare capacity, so `reserve` returns without growth. Both
+representations then call the same all-build `write_spare_prefix` helper, which
+borrows the actual uninitialized suffix and calls the original raw-copy helper;
+`advance_mut` consumes the initialized prefix. The postconditions preserve the
+buffer view, append the exact input bytes, and keep the pointer, capacity, old
+prefix, allocation slots outside the write window, and remaining spare slots.
+The unique case also preserves Vec rebuildability, while the Shared case
+preserves packet metadata, the actual owner ticket and lease key, and the
+shared layout. This gives an in-capacity source path into `truncate`; reserve
+growth, reclaim, and allocation remain outside this proof.
 
 The selected ghost ownership proofs model each native strong reference as an
 exact singleton ticket in one ledger. Mutable tickets own disjoint physical
@@ -199,19 +202,21 @@ disposes the sibling with the same Context. It proves the actual count sequence
 proof; it does not prove public `BytesMut::freeze` dispatch, static vtable
 identity, or automatic Drop.
 
-A second selected composition covers the unique recovery branch. It splits a
-unique allocation, explicitly disposes one handle so the survivor's actual
-count is one, freezes the survivor through the private shared-view helper, then
-uses the original unique-promotion source helper with the actual ticket,
-physical region, and caller Context. One Acquire result selects the count-one
-transition; the helper lends the real `[cursor, allocation_capacity)` suffix,
-including Unknown spare slots, and returns a Mutable view over the same
-allocation. The proof truncates and explicitly disposes that view, leaving the
-Context's final tombstone. This selected sequence proves the private
-count-one transition and its inputs; it does not prove public
-`BytesMut::from(Bytes)` dispatch, static vtable identity, or automatic Drop.
-The focused native regression also checks that the original public path keeps
-the allocation pointer, spare capacity, and visible bytes at a nonzero offset.
+A second selected composition covers the shared in-capacity append and unique
+recovery branch. It splits a unique allocation, appends to the survivor while
+the peer is live, checks that the peer bytes and shared key remain unchanged at
+count two, and truncates the survivor. It then explicitly disposes the peer,
+freezes the survivor through the private shared-view helper, and uses the
+original unique-promotion source helper with the actual ticket, physical region,
+and caller Context. One Acquire result selects the count-one transition; the
+helper lends the real `[cursor, allocation_capacity)` suffix, including Unknown
+spare slots, and returns a Mutable view over the same allocation. Explicitly
+disposing that view leaves the Context's final tombstone. This selected
+sequence proves the shared append, private count-one transition, and their
+inputs; it does not prove public `BytesMut::from(Bytes)` dispatch, static
+vtable identity, or automatic Drop. The focused native regression also checks
+that the original public path keeps the allocation pointer, spare capacity,
+and visible bytes at a nonzero offset.
 
 The selected targets also body-prove an affine `OwnedSharedContext` and its
 borrowed view. Construction consumes a caller-supplied token set and starts

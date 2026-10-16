@@ -417,15 +417,18 @@ reviewed contracts for the actual core `AtomicPtr` constructor and exclusive
 `get_mut` with the same cell/value relation. No Creusot change or Bytes-specific
 law is needed.
 
-The selected in-capacity `BytesMut::extend_from_slice` body calls the existing
-generic `storage_ops::copy_to_uninit_prefix_raw` effect boundary. For typed,
-disjoint `&[u8]` source and `&mut [MaybeUninit<u8>]` destination slices with
-source length no greater than destination length, its native
-`copy_nonoverlapping` call initializes exactly the source-length prefix and
-preserves the destination length and suffix. This effect grants no allocation,
-liveness, Vec-owner, refcount, or Bytes-specific authority. The verified
-`copy_to_uninit_prefix` loop has the same functional specification, but the
-selected source body continues to call the original raw-copy helper.
+The selected in-capacity `BytesMut::extend_from_slice` body uses the same
+all-build `write_spare_prefix` helper for unique and packet-backed Shared
+views. That checked helper calls the existing generic
+`storage_ops::copy_to_uninit_prefix_raw` effect boundary. For typed, disjoint
+`&[u8]` source and `&mut [MaybeUninit<u8>]` destination slices with source
+length no greater than destination length, its native `copy_nonoverlapping`
+call initializes exactly the source-length prefix and preserves the destination
+length and suffix. This effect grants no allocation, liveness, Vec-owner,
+refcount, or Bytes-specific authority. The verified `copy_to_uninit_prefix`
+loop has the same functional specification, but the selected source body
+continues to call the original raw-copy helper. No new trusted boundary was
+added for Shared append.
 
 The `OwnerLedger` is one affine inventory of all native strong references.
 Each `OwnerTicket` owns the exact singleton fragment for one registration and
@@ -506,21 +509,23 @@ count transition from two owners, to one idle owner, to the final tombstone.
 This sequence does not prove the public freeze dispatch or static vtable
 identity, and it bypasses the automatic Drop wrapper.
 
-A second selected operation sequence exercises the unique branch of the
-original `shared_v_to_mut` source helper. Starting from a unique Vec-backed
-Mutable view, it splits the allocation, explicitly disposes one handle with
-the actual Context, and freezes the surviving shared view. The remaining
-ticket is then the sole live owner at count one. The original one-Acquire
-promotion helper moves that actual Readonly ticket to Mutable over
-`[cursor, allocation_capacity)`, lending the actual physical suffix including
-Unknown spare slots. The resulting view keeps the allocation pointer and
-capacity; the scenario truncates and explicitly disposes it, reaching the
-final Context tombstone. A native regression checks the analogous public path
-at a nonzero offset, preserving the same pointer, spare capacity, and visible
-bytes. This proves the selected private helper and
-context-aware entry under their actual packet and Context preconditions. It
-does not prove the public `BytesMut::from(Bytes)` callback dispatch, static
-vtable identity, or automatic Drop.
+A second selected operation sequence exercises shared in-capacity append and
+the unique branch of the original `shared_v_to_mut` source helper. Starting
+from a unique Vec-backed Mutable view, it splits the allocation and appends to
+the survivor while the peer remains live. It checks that the peer bytes and
+shared key are unchanged at count two, then truncates the survivor. The proof
+explicitly disposes the peer with the actual Context before freezing the
+survivor. The remaining ticket is then the sole live owner at count one. The
+original one-Acquire promotion helper moves that actual Readonly ticket to
+Mutable over `[cursor, allocation_capacity)`, lending the actual physical
+suffix including Unknown spare slots. The resulting view keeps the allocation
+pointer and capacity; explicitly disposing it reaches the final Context
+tombstone. A native regression checks the analogous public path at a nonzero
+offset, preserving the same pointer, spare capacity, and visible bytes. This
+proves the selected private helper and context-aware entry under their actual
+packet and Context preconditions. It does not prove the public
+`BytesMut::from(Bytes)` callback dispatch, static vtable identity, or automatic
+Drop.
 
 The checked common release carrier accepts a Mutable packet with its actual
 physical region or a Readonly packet with its actual ticket and no region. Its
