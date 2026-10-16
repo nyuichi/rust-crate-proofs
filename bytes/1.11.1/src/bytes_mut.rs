@@ -3153,6 +3153,7 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(extend@.len() <= self.unique_capacity() - self.unique_length()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).buffer_view_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_length() == self.unique_length() + extend@.len()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_bytes() == self.unique_bytes().concat(extend@)))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_pointer() == self.unique_pointer() && (^self).unique_capacity() == self.unique_capacity() && (^self).unique_tag_pointer() == self.unique_tag_pointer()))]

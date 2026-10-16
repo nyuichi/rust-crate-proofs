@@ -417,6 +417,16 @@ reviewed contracts for the actual core `AtomicPtr` constructor and exclusive
 `get_mut` with the same cell/value relation. No Creusot change or Bytes-specific
 law is needed.
 
+The selected in-capacity `BytesMut::extend_from_slice` body calls the existing
+generic `storage_ops::copy_to_uninit_prefix_raw` effect boundary. For typed,
+disjoint `&[u8]` source and `&mut [MaybeUninit<u8>]` destination slices with
+source length no greater than destination length, its native
+`copy_nonoverlapping` call initializes exactly the source-length prefix and
+preserves the destination length and suffix. This effect grants no allocation,
+liveness, Vec-owner, refcount, or Bytes-specific authority. The verified
+`copy_to_uninit_prefix` loop has the same functional specification, but the
+selected source body continues to call the original raw-copy helper.
+
 The `OwnerLedger` is one affine inventory of all native strong references.
 Each `OwnerTicket` owns the exact singleton fragment for one registration and
 records the common allocation identity, its classification, and a half-open

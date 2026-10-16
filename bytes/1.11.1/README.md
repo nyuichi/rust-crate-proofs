@@ -41,6 +41,16 @@ that reaches a nonzero cursor; the public `Buf::advance` wrapper is not
 translated. `BufMut::advance_mut` has a body proof, but its trait-refinement
 obligation remains open.
 
+The original `BytesMut::extend_from_slice` body is also selected for its
+in-capacity case: the input must fit in the existing unique view's spare
+capacity. `reserve` then returns without growth, `spare_capacity_mut` lends the
+actual uninitialized suffix, the source calls its same raw-copy helper, and
+`advance_mut` consumes the initialized prefix. The postcondition preserves the
+unique layout and buffer view, records the appended bytes, and keeps the
+pointer, capacity, old prefix, and remaining spare slots. This gives an
+in-capacity source path into `truncate`; reserve growth, reclaim, and allocation
+remain outside this proof.
+
 The selected ghost ownership proofs model each native strong reference as an
 exact singleton ticket in one ledger. Mutable tickets own disjoint physical
 intervals; readonly tickets record visible intervals and may overlap one
