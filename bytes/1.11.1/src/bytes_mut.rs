@@ -660,6 +660,16 @@ impl BytesMut {
         proof_assert!(self.buffer_view_valid());
     }
 
+    /// Convert common view-prefix knowledge into the packet's shared-prefix
+    /// observation at a stable shared-layout point.
+    #[check(ghost)]
+    #[requires(self.shared_layout_valid() && self.buffer_view_valid())]
+    #[ensures(self.shared_visible_prefix_known())]
+    fn prove_shared_visible_prefix_from_buffer_view(&self) {
+        buffer_prefix_mode_equivalence(snapshot!(*self), self.len);
+        proof_assert!(self.shared_visible_prefix_known());
+    }
+
     /// Stable shared physical layout needed for a length-only operation. This
     /// retains the native ARC tag and capsule/header pointer relation but
     /// deliberately excludes the capsule protocol, native refcount, and owner
@@ -7373,6 +7383,7 @@ pub(crate) unsafe fn prove_split_dispose_freeze_promote_truncate_and_dispose(
         context_ref.inner_logic().ready_entry_state(lease_key.inner_logic().slot()),
         lease_key.inner_logic().resource_id(), lease_key.inner_logic().slot()) == 1int);
 
+    survivor.prove_shared_visible_prefix_from_buffer_view();
     let readonly = survivor.freeze(Some(ghost!(&mut **context_ref)));
     proof_assert!(shared_capsule::header_lease_ready_entry_count(
         context_ref.inner_logic().ready_entry_state(lease_key.inner_logic().slot()),
@@ -7394,6 +7405,60 @@ pub(crate) unsafe fn prove_split_dispose_freeze_promote_truncate_and_dispose(
     proof_assert!(!context_ref.inner_logic().ready_has_key(lease_key.inner_logic()));
     proof_assert!(context_ref.inner_logic().ready_entry_state(
         lease_key.inner_logic().slot()) == None);
+}
+
+/// Check the public slice-constructor-to-Shared overflow path on an actual
+/// BytesMut source sequence: copy a byte slice into a unique Vec owner, advance
+/// past the packed Vec-position limit using the supplied Context, truncate the
+/// resulting Shared view, then explicitly dispose its only handle through that
+/// same Context.
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[requires(MAX_VEC_POS@ < count@)]
+#[requires(count@ <= src@.len())]
+#[requires(truncate_to@ <= src@.len() - count@)]
+#[requires(context.inner_logic().invariant())]
+#[requires(context.inner_logic().token_namespaces().contains(
+    crate::ref_count_ops::event_namespace()
+))]
+#[ensures((^context.inner_logic()).invariant())]
+#[ensures((^context.inner_logic()).token_namespaces() ==
+    context.inner_logic().token_namespaces())]
+#[ensures((^context.inner_logic()).ready_len() ==
+    context.inner_logic().ready_len() + 1)]
+#[ensures(forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() ==>
+    (^context.inner_logic()).ready_entry_state(i) ==
+        context.inner_logic().ready_entry_state(i))]
+#[ensures((^context.inner_logic()).ready_entry_state(
+    context.inner_logic().ready_len()) == None)]
+pub(crate) unsafe fn prove_from_slice_overflow_advance_truncate_and_dispose(
+    src: &[u8],
+    count: usize,
+    truncate_to: usize,
+    context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+) {
+    let mut context_ref = ghost!(context.into_inner());
+    let original_bytes: Snapshot<Seq<u8>> = snapshot!(src@);
+    let mut buffer = BytesMut::from(src);
+    proof_assert!(buffer.unique_valid() && buffer.unique_vec_rebuildable());
+
+    unsafe {
+        buffer.advance_unchecked(
+            count,
+            Some(ghost!(&mut **context_ref)),
+        );
+    }
+    proof_assert!(buffer.shared_layout_valid() && buffer.shared_visible_prefix_known());
+    proof_assert!(buffer.buffer_bytes() ==
+        (*original_bytes).subsequence(count@, (*original_bytes).len()));
+
+    buffer.truncate(truncate_to);
+    proof_assert!(buffer.shared_layout_valid() && buffer.buffer_view_valid());
+    proof_assert!(buffer.buffer_bytes() ==
+        (*original_bytes).subsequence(count@, (*original_bytes).len())
+            .subsequence(0, truncate_to@));
+
+    let final_count = unsafe { buffer.dispose_shared(ghost!(&mut **context_ref)) };
+    proof_assert!(final_count@ == 1);
 }
 
 // The native static identity and vtable-driven lifecycle remain outside this

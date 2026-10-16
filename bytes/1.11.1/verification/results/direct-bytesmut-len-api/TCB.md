@@ -225,6 +225,13 @@ preserving its original allocation namespace and physical slots, registering
 the new ready-cap entry, and retaining prior Context entries. The packet-backed
 Shared branch is body-proved with the handle's packet-layout and
 initialized-visible-prefix preconditions.
+The selected closed source sequence starts from a symbolic byte slice and
+actual Context, calls the public `BytesMut::from(&[u8])` constructor, advances
+across the packed-position limit, truncates the resulting Shared view, and
+explicitly disposes its sole handle. Its post preserves prior Context entries
+and leaves the new ready-cap slot empty. This is one preconditioned internal
+normal-return witness, not a general public producer or safe-state reachability
+result.
 Both selected branches export a common view postcondition: the result remains
 `buffer_view_valid`, length and bytes follow the saturated advance, capacity
 and cursor advance together, the exact native pointer is offset by `count`,

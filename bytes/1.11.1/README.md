@@ -46,6 +46,12 @@ metadata grant no access authority, and the proofs do not establish every
 public producer or later owner-lifecycle path. Selected Shared split sequences
 reach a nonzero packet cursor, but public `Buf::advance` and a public producer
 chain supplying Context for packed-position promotion remain unproved.
+One closed proof sequence starts from a symbolic byte slice and Context, calls
+the public `BytesMut::from(&[u8])` constructor, crosses the packed-position
+limit, truncates the Shared view, and explicitly disposes its sole handle. It
+preserves prior Context entries and leaves the newly allocated ready-cap slot
+empty; this preconditioned witness does not establish general safe-state
+reachability.
 `BufMut::advance_mut` has a
 body proof, but its trait-refinement obligation remains open.
 
