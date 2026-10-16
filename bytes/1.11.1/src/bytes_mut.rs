@@ -37,6 +37,9 @@ use crate::{Buf, BufMut, Bytes, TryGetError};
 #[cfg(all(creusot, bytes_original_unique_gate))]
 #[path = "bytes_mut/shared_capsule.rs"]
 pub(crate) mod shared_capsule;
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[path = "bytes_mut/frame_lemmas.rs"]
+mod frame_lemmas;
 
 // Creusot-only exclusions below cover unrelated Shared/refcount/recovery and adapter bodies.
 // Native APIs remain present, and excluded implementations are not treated as proven contracts.
@@ -2698,12 +2701,12 @@ impl BytesMut {
         0 <= i && i < count@ ==>
             (^self).buffer_allocation_slot(self.buffer_cursor_offset() + self.len@ + i) ==
                 Some(Some(value))))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<j:Int>
-        count@ <= j && j < self.cap@ - self.len@ ==>
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        self.len@ + count@ <= i && i < self.cap@ ==>
             (^self).buffer_allocation_slot(
-                self.buffer_cursor_offset() + self.len@ + j) ==
+                self.buffer_cursor_offset() + i) ==
             self.buffer_allocation_slot(
-                self.buffer_cursor_offset() + self.len@ + j)))]
+                self.buffer_cursor_offset() + i)))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
         self.buffer_cursor_offset() + self.cap@ <= i &&
         i < self.buffer_allocation_capacity() ==>
@@ -2741,9 +2744,21 @@ impl BytesMut {
     ))]
     #[inline]
     unsafe fn fill_spare_prefix(&mut self, count: usize, value: u8) {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let before: Snapshot<BytesMut> = snapshot!(*self);
+
         let dst = self.spare_capacity_mut();
         debug_assert!(dst.len() >= count);
         unsafe { crate::storage_ops::fill_uninit_prefix_raw(dst, count, value) };
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let _ = ghost! {
+            frame_lemmas::buffer_view_slot_frame_to_allocation_frame(
+                before,
+                snapshot!(*self),
+                count,
+            );
+        };
     }
 
     /// Complete a length-only transition after the new visible prefix has
@@ -3042,8 +3057,66 @@ impl BytesMut {
     ///
     /// Panics if the new capacity overflows `usize`.
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.buffer_view_valid()))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(additional@ <= self.cap@ - self.len@))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(^self == *self))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        additional@ <= self.cap@ - self.len@ || (
+            self.unique_valid() &&
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >= additional@ &&
+            self.unique_offset() >= self.unique_length()
+        )
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).buffer_view_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        additional@ <= (^self).cap@ - (^self).len@
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).len@ == self.len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).buffer_bytes() == self.buffer_bytes()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        additional@ <= self.cap@ - self.len@ ==> ^self == *self
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        additional@ > self.cap@ - self.len@ &&
+        self.unique_capacity() - self.unique_length() + self.unique_offset() >= additional@ &&
+        self.unique_offset() >= self.unique_length() ==> (
+            (^self).unique_valid() &&
+            (^self).unique_vec_rebuildable() &&
+            (^self).unique_length() == self.unique_length() &&
+            (^self).unique_offset() == 0 &&
+            (^self).unique_capacity() == self.unique_capacity() + self.unique_offset() &&
+            (^self).unique_capacity() == (^self).unique_allocation_capacity() &&
+            (^self).unique_pointer() ==
+                self.unique_pointer().offset_logic(0 - self.unique_offset()) &&
+            (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+            (^self).unique_bytes() == self.unique_bytes() &&
+            (^self).unique_proof.unwrap_logic().raw == self.unique_proof.unwrap_logic().raw &&
+            (^self).unique_proof.unwrap_logic().base == self.unique_proof.unwrap_logic().base &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().0 ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().0 &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.namespace() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.namespace() &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.capacity() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.capacity() &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.lo() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.lo() &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.hi() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.hi() &&
+            (^self).shared_proof == self.shared_proof &&
+            ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+                (self.unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) &&
+            (forall<i:Int> 0 <= i && i < self.unique_length() ==>
+                (^self).unique_allocation_slot(i) == Some(Some(self.unique_bytes()[i]))) &&
+            (forall<i:Int> self.unique_length() <= i &&
+                i < self.unique_allocation_capacity() ==>
+                (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))
+        )
+    ))]
     #[inline]
     pub fn reserve(&mut self, additional: usize) {
         let len = self.len();
@@ -3061,7 +3134,58 @@ impl BytesMut {
 
     // In separate function to allow the short-circuits in `reserve` and `try_reclaim` to
     // be inline-able. Significantly helps performance. Returns false if it did not succeed.
-    #[cfg_attr(creusot, creusot::no_translate)]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.unique_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        !allocate || (
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >= additional@ &&
+            self.unique_offset() >= self.unique_length()
+        )
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result == (
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >= additional@ &&
+            self.unique_offset() >= self.unique_length()
+        )
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        !result ==> ^self == *self
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result ==> (
+            (^self).unique_valid() &&
+            (^self).unique_vec_rebuildable() &&
+            (^self).unique_length() == self.unique_length() &&
+            (^self).unique_offset() == 0 &&
+            (^self).unique_capacity() == self.unique_capacity() + self.unique_offset() &&
+            (^self).unique_capacity() == (^self).unique_allocation_capacity() &&
+            (^self).unique_pointer() ==
+                self.unique_pointer().offset_logic(0 - self.unique_offset()) &&
+            (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+            (^self).unique_bytes() == self.unique_bytes() &&
+            (^self).unique_proof.unwrap_logic().raw == self.unique_proof.unwrap_logic().raw &&
+            (^self).unique_proof.unwrap_logic().base == self.unique_proof.unwrap_logic().base &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().0 ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().0 &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.namespace() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.namespace() &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.capacity() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.capacity() &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.lo() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.lo() &&
+            (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.hi() ==
+                self.unique_proof.unwrap_logic().capabilities.inner_logic().1.hi() &&
+            (^self).shared_proof == self.shared_proof &&
+            ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+                (self.unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) &&
+            (forall<i:Int> 0 <= i && i < self.unique_length() ==>
+                (^self).unique_allocation_slot(i) == Some(Some(self.unique_bytes()[i]))) &&
+            (forall<i:Int> self.unique_length() <= i &&
+                i < self.unique_allocation_capacity() ==>
+                (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))
+        )
+    ))]
     fn reserve_inner(&mut self, additional: usize, allocate: bool) -> bool {
         let len = self.len();
         let kind = self.kind();
@@ -3100,23 +3224,28 @@ impl BytesMut {
                     }
                     // Not enough space, or reusing might be too much overhead:
                     // allocate more space!
-                    let mut v = ManuallyDrop::new(BytesMut::rebuild_vec(
-                        self.ptr.as_ptr(), self.len, self.cap, off,
-                        #[cfg(all(creusot, bytes_original_unique_gate))]
-                        None,
-                    ));
-                    v.reserve(additional);
-
-                    // Update the info
-                    self.ptr = vptr(v.as_mut_ptr().add(off));
-                    self.cap = v.capacity() - off;
-                    debug_assert_eq!(self.len, v.len() - off);
+                    self.reserve_vec_allocation(additional, off);
                 }
 
                 return true;
             }
         }
 
+        // The ARC-backed path is outside the checked unique-Vec reserve
+        // slice. Keep its original implementation in one native worker so
+        // translating the Vec path does not need to translate raw Shared
+        // pointer dereferences in this unreachable branch.
+        self.reserve_shared_inner(additional, allocate, len, kind)
+    }
+
+    #[cfg_attr(creusot, creusot::no_translate)]
+    fn reserve_shared_inner(
+        &mut self,
+        additional: usize,
+        allocate: bool,
+        len: usize,
+        kind: usize,
+    ) -> bool {
         debug_assert_eq!(kind, KIND_ARC);
         let shared: *mut Shared = self.data;
 
@@ -3244,6 +3373,30 @@ impl BytesMut {
         self.cap = v.capacity();
         debug_assert_eq!(self.len, v.len());
         true
+    }
+
+    // The checked Vec reserve domain excludes this allocating fallback: when
+    // `allocate` is true it requires the reclaim guard, and when the guard is
+    // false the native path returns before reaching this worker. Keep the
+    // original allocation statements together outside that checked source
+    // span; the selected no-op and unique reclaim bodies remain the operations
+    // under proof.
+    #[cfg_attr(creusot, creusot::no_translate)]
+    #[inline]
+    fn reserve_vec_allocation(&mut self, additional: usize, off: usize) {
+        unsafe {
+            let mut v = ManuallyDrop::new(BytesMut::rebuild_vec(
+                self.ptr.as_ptr(), self.len, self.cap, off,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            ));
+            v.reserve(additional);
+
+            // Update the info
+            self.ptr = vptr(v.as_mut_ptr().add(off));
+            self.cap = v.capacity() - off;
+            debug_assert_eq!(self.len, v.len() - off);
+        }
     }
 
     /// Move an initialized unique Vec view back to its allocation base.

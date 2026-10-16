@@ -68,9 +68,16 @@ The selected `BytesMut::try_reclaim` body covers the unique Vec case under its
 short circuit and calls `try_reclaim_unique_vec_prefix` with the original
 amortized reclaim guard. That checked helper performs the original one-copy
 reclaim, retains the actual recovery and physical-region resources, and proves
-the resulting zero-offset Vec geometry and spare-capacity result. The generic
-`reserve_inner` selection/allocation policy and the shared ARC fallback remain
-outside this proof.
+the resulting zero-offset Vec geometry and spare-capacity result. Allocation
+paths and unrestricted `reserve_inner` selection policy, including its shared
+ARC fallback, remain outside this proof.
+
+The selected `BytesMut::reserve` body now also proves its existing in-capacity
+no-op for either representation and the unique Vec reclaim case under the
+same guard. In that case it reaches the original `reserve_inner` body, whose
+checked domain preserves the exact reclaim result and frame through the shared
+one-copy helper. Allocation growth and the shared ARC fallback remain outside
+the proof; the precondition does not establish general reserve coverage.
 
 The selected ghost ownership proofs model each native strong reference as an
 exact singleton ticket in one ledger. Mutable tickets own disjoint physical

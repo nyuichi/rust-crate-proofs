@@ -449,18 +449,20 @@ supply and preserve the actual B1 descriptors and region. Replace this
 adapter when the pinned Std model provides a body-checked `ptr::sub` contract
 with the same pointer relation.
 
-The selected `BytesMut::try_reclaim` body is proved for its unique Vec case
-under the `unique_valid` proof precondition. It retains the existing
-spare-capacity early return and calls `try_reclaim_unique_vec_prefix` with the
-same amortized guard used by the original `reserve_inner` branch. The checked
-helper performs the original one-copy unique Vec prefix reclaim under its
-exact-offset and non-overlap preconditions. Its checked B1 helper splits the
-actual physical region, borrows the disjoint initialized source and
-uninitialized destination, performs the existing raw-copy operation, and
-rejoins the region. The source helper then preserves the Recovery capability
-and proves the resulting zero-offset Vec geometry and spare-capacity result.
-This does not prove the general `reserve_inner` allocation policy or the
-shared ARC fallback.
+The selected `BytesMut::reserve` body proves its existing in-capacity no-op
+for either representation and its unique Vec reclaim case under the original
+amortized guard. It calls the original `reserve_inner` body, which is
+body-checked on a restricted domain: `unique_valid`, and either
+`allocate == false` or the reclaim guard holds. The original source tests the
+same guard and calls `try_reclaim_unique_vec_prefix`; when it fails with
+`allocate == false`, it returns false without mutation. The unique reclaim
+helper preserves the actual RawAllocation, base descriptor, Recovery, region
+identity and bounds, tag, bytes, and outside-prefix slot frame, and proves
+zero-offset Vec geometry and sufficient spare capacity. `BytesMut::try_reclaim`
+is also proved for its unique Vec case under `unique_valid`, including its
+spare-capacity short circuit and call to this same helper. The proof does not
+cover the Vec allocation fallback, general reserve policy, or shared ARC
+fallback, and does not establish general public API coverage.
 
 The selected in-capacity `BytesMut::resize` body calls the generic
 `storage_ops::fill_uninit_prefix_raw` effect boundary for its original native

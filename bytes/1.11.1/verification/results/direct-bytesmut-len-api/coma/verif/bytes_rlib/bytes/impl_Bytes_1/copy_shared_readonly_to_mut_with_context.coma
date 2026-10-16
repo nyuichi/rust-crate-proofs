@@ -19,12 +19,12 @@ let%span smem'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcoun
 let%span smem'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 132 10 132 21
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 22 8 22 20
 let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6519 4 6519 9
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6415 62 6436 1
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6520 5 6520 32
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6438 4 6457 59
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6460 4 6477 75
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6479 61 6513 1
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6672 4 6672 9
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6568 62 6589 1
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6673 5 6673 32
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6591 4 6610 59
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6613 4 6630 75
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 6632 61 6666 1
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 136 19 136 23
 let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 136 4 136 37
 let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 135 14 135 32
@@ -1168,21 +1168,21 @@ axiom inv_axiom'18 [@rewrite]:
   forall x: t_SharedReadonlyMutableResult [inv_SharedReadonlyMutableResult x]. inv_SharedReadonlyMutableResult x
     = inv_BytesMut x.buffer
 
-predicate unique_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 433 4 433 44] (self: t_BytesMut)
+predicate unique_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 436 4 436 44] (self: t_BytesMut)
 
-predicate unique_vec_rebuildable [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 455 4 455 54] (self: t_BytesMut)
+predicate unique_vec_rebuildable [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 458 4 458 54] (self: t_BytesMut)
 
-function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 320 4 320 44] (self: t_BytesMut) : int
+function unique_length [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 323 4 323 44] (self: t_BytesMut) : int
 
-function unique_bytes [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 506 4 506 47] (self: t_BytesMut) : Seq.seq UInt8.t
+function unique_bytes [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 509 4 509 47] (self: t_BytesMut) : Seq.seq UInt8.t
 
-function unique_offset [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 324 4 324 44] (self: t_BytesMut) : int
+function unique_offset [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 327 4 327 44] (self: t_BytesMut) : int
 
-function unique_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 332 4 332 49] (self: t_BytesMut) : Opaque.ptr
+function unique_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 335 4 335 49] (self: t_BytesMut) : Opaque.ptr
 
 function pointer_model_u8 (vector: t_Vec_u8_Global) : Opaque.ptr
 
-function unique_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 322 4 322 46] (self: t_BytesMut) : int
+function unique_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 325 4 325 46] (self: t_BytesMut) : int
 
 constant size_of_u8: int = 1
 
@@ -1195,7 +1195,7 @@ function capacity_model_u8 (vector: t_Vec_u8_Global) : int
 axiom capacity_model_u8_spec: forall vector: t_Vec_u8_Global [capacity_model_u8 vector]. [%#svec] size_of_u8 = 1
     -> capacity_model_u8 vector <= Int64.to_int const_MAX
 
-function unique_allocation_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 328 4 328 57] (self: t_BytesMut) : int
+function unique_allocation_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 331 4 331 57] (self: t_BytesMut) : int
 
 predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other <= self
 
@@ -1211,7 +1211,7 @@ type t_Option_u8 = None'12 | Some'12 UInt8.t
 
 type t_Option_Option_u8 = None'13 | Some'13 t_Option_u8
 
-function unique_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 502 4 502 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
+function unique_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 505 4 505 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
 
 function resource_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 771 4 771 41] (self: t_PhysicalRegion) : t_Id
  = [%#sraw_vec'0] (view_OwnedRegion (view_PhysicalRegion self).f0'2).f2'5
