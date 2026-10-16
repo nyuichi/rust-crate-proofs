@@ -19,6 +19,8 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/resize.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/reclaim_unique_prefix.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/finish_reclaimed_unique_layout.coma",
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/try_reclaim_unique_vec_prefix.coma",
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/try_reclaim.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/fill_spare_prefix.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/from_vec.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/with_capacity.coma",
