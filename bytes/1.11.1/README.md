@@ -69,18 +69,23 @@ spare slots. On
 unique reclaim, they preserve the actual Vec proof resources and allocation
 capacity while reporting the rebased zero-offset pointer and capacity. The
 Shared case preserves packet metadata, the actual owner ticket and lease key,
-and the shared layout. Allocation growth and the shared ARC fallback remain
-outside this proof.
+and the shared layout. The unique Vec allocation-growth case is also selected
+when the rebuilt prefix is known and the cheap-reclaim guard does not apply;
+it preserves the initialized prefix and exact appended bytes while recording
+new spare slots as Unknown. The shared ARC allocation fallback and unrestricted
+reserve policy remain outside this proof.
 
 The original `BytesMut::resize` body proves shrinking through `truncate`, the
-equal-length no-op, within-capacity growth in either representation, and
-unique Vec growth through the original cheap-reclaim guard. Growth fills
-exactly the newly visible slots with the requested value through the same
-`reserve`, spare-fill, and `set_len` source calls. The in-capacity paths retain
+equal-length no-op, within-capacity growth in either representation, unique Vec
+growth through the original cheap-reclaim guard, and unique Vec allocation
+growth when the rebuilt prefix is known and that guard does not apply. Growth
+fills exactly the newly visible slots with the requested value through the
+same `reserve`, spare-fill, and `set_len` source calls. In-capacity paths retain
 the pointer, capacity, packet or Vec frame, and all allocation slots outside
 the written range. Unique reclaim preserves the Vec proof resources and total
-allocation capacity while rebasing the visible Vec to offset zero. Capacity
-allocation growth and the shared ARC fallback remain outside the proof.
+allocation capacity while rebasing the visible Vec to offset zero. Allocation
+growth preserves the initialized prefix and records new spare slots as
+Unknown; the shared ARC allocation fallback remains outside the proof.
 
 The selected `BytesMut::try_reclaim` body covers the unique Vec case under its
 `unique_valid` proof precondition. It retains the existing spare-capacity
@@ -105,11 +110,14 @@ outside the proof, and this precondition does not establish general reserve
 coverage.
 
 One closed body proof starts from a symbolic slice through the public slice
-constructor, advances the unique Vec view to offset one, forces reserve growth
-past its actual spare capacity, truncates the grown view, and explicitly
-disposes it. This preconditioned witness connects the selected growth worker
-to the existing unique-view operations; it does not prove general public API
-reachability.
+constructor and advances the unique Vec view to offset one. It appends a
+symbolic input, checking allocation growth on the branch where that input
+exceeds the actual spare capacity. When there is room below Vec's maximum
+after that prefix, it resizes one byte beyond the actual view capacity to
+force allocation growth. It checks the resulting bytes, truncates, and explicitly
+disposes the Vec owner. This preconditioned witness connects the selected
+append and resize growth bodies to existing unique-view operations; it does
+not prove general public API reachability.
 
 The selected ghost ownership proofs model each native strong reference as an
 exact singleton ticket in one ledger. Mutable tickets own disjoint physical

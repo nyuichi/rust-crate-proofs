@@ -166,6 +166,7 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/prove_split_dispose_freeze_promote_truncate_and_dispose.coma",
     "verif/bytes_rlib/bytes_mut/prove_from_slice_overflow_advance_truncate_and_dispose.coma",
     "verif/bytes_rlib/bytes_mut/prove_from_slice_nonzero_cursor_reserve_growth_truncate_and_dispose.coma",
+    "verif/bytes_rlib/bytes_mut/prove_from_slice_nonzero_cursor_append_resize_growth_truncate_and_dispose.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/mutable_owner_ticket_split_result.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/mutable_owner_region_split_bounds_result.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/mutable_owner_region_split_slots_result.coma",

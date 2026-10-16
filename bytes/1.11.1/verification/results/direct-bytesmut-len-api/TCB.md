@@ -437,6 +437,12 @@ law is needed.
 The selected `BytesMut::extend_from_slice` body covers unique and
 packet-backed Shared views when the bytes fit the view's existing spare
 capacity, and the unique Vec case when the original cheap-reclaim guard holds.
+It also covers unique Vec allocation growth when the initialized Vec prefix is
+rebuildable and that guard does not apply. This branch preserves the old
+initialized prefix, writes the exact input bytes, and records the new spare
+slots as Unknown; it does not claim the old pointer, allocation descriptor, or
+spare-slot map survives reallocation. The shared ARC allocation fallback and
+unrestricted reserve policy remain outside the proof.
 All cases use the same all-build `write_spare_prefix` helper. That checked
 helper calls the existing generic
 `storage_ops::copy_to_uninit_prefix_raw` effect boundary. For typed, disjoint
@@ -509,15 +515,16 @@ ARC allocation fallback, unrestricted reserve policy, and general public API
 coverage remain outside the proof.
 
 One closed body witness starts from a symbolic slice using the public slice
-constructor, advances the unique Vec view to offset one, requests one more
-element than its actual spare capacity to force Vec allocation growth,
-truncates the resulting view, and explicitly disposes the unique owner. It
-checks the preserved visible suffix and the capacity increase. The witness is
-preconditioned and does not establish general safe-state reachability or
-public API coverage.
+constructor and advances the unique Vec view to offset one. It appends a
+symbolic input, checking allocation growth on the branch where that input
+exceeds the actual spare capacity. When the retained prefix leaves room below
+Vec's maximum, it resizes one byte beyond the actual view capacity to force
+Vec allocation growth. It checks the resulting bytes, truncates, and explicitly
+disposes the unique owner. The witness is preconditioned and does not establish
+general safe-state reachability or public API coverage.
 
-The selected in-capacity `BytesMut::resize` cases and its unique cheap-reclaim
-case call the generic
+The selected in-capacity `BytesMut::resize` cases, its unique cheap-reclaim
+case, and its unique Vec allocation-growth case call the generic
 `storage_ops::fill_uninit_prefix_raw` effect boundary for its original native
 `ptr::write_bytes` operation. Its contract requires the count to fit the
 borrowed `MaybeUninit<u8>` slice, initializes exactly that prefix to the
@@ -528,8 +535,10 @@ boundary when Std provides a body-checked initialized-prefix effect for
 `ptr::write_bytes`. The Bytes-specific slot, packet, pointer, length, and
 capacity facts are proved by `fill_spare_prefix` and `resize`. The reclaim
 case preserves the actual Vec proof resources and allocation capacity while
-rebasing the Vec view to offset zero; it does not include allocation growth or
-the shared ARC fallback.
+rebasing the Vec view to offset zero. The allocation-growth case preserves the
+initialized prefix, writes the new visible fill range, and records newly
+captured spare slots as Unknown. The shared ARC allocation fallback remains
+outside the proof.
 
 The `OwnerLedger` is one affine inventory of all native strong references.
 Each `OwnerTicket` owns the exact singleton fragment for one registration and

@@ -2786,16 +2786,24 @@ impl BytesMut {
             self.unique_offset() >= self.unique_length() &&
             self.unique_capacity() - self.unique_length() + self.unique_offset() >=
                 new_len@ - self.len@
+        ) || (
+            new_len@ > self.cap@ && self.unique_vec_rebuildable()
         )
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).buffer_view_valid() && (^self).len@ == new_len@ &&
-        (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
         (^self).buffer_bytes() == if new_len@ <= self.len@ {
             self.buffer_bytes().subsequence(0, new_len@)
         } else {
             self.buffer_bytes().concat(Seq::create(new_len@ - self.len@, |_i:Int| value))
         }
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (new_len@ <= self.cap@ || (
+            self.unique_valid() && self.unique_offset() >= self.unique_length() &&
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >=
+                new_len@ - self.len@
+        )) ==> (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity()
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         new_len@ <= self.cap@ ==>
@@ -2841,7 +2849,11 @@ impl BytesMut {
         self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        self.unique_layout_valid() ==>
+        self.unique_layout_valid() && (new_len@ <= self.cap@ || (
+            self.unique_valid() && self.unique_offset() >= self.unique_length() &&
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >=
+                new_len@ - self.len@
+        )) ==>
             ((^self).unique_proof.unwrap_logic().raw ==
                  self.unique_proof.unwrap_logic().raw &&
              (^self).unique_proof.unwrap_logic().base ==
@@ -2872,13 +2884,18 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         self.shared_layout_valid() ==> (^self).shared_layout_valid()
     ))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        (^self).buffer_cursor_offset() + (^self).len@ <= i &&
-        i < (^self).buffer_allocation_capacity() ==>
-            (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        new_len@ > self.cap@ &&
-        self.unique_valid() &&
+        (new_len@ <= self.cap@ || (
+            self.unique_valid() && self.unique_offset() >= self.unique_length() &&
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >=
+                new_len@ - self.len@
+        )) ==> forall<i:Int>
+            (^self).buffer_cursor_offset() + (^self).len@ <= i &&
+            i < (^self).buffer_allocation_capacity() ==>
+                (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        new_len@ > self.cap@ && self.unique_valid() &&
         self.unique_offset() >= self.unique_length() &&
         self.unique_capacity() - self.unique_length() + self.unique_offset() >=
             new_len@ - self.len@ ==>
@@ -2899,6 +2916,30 @@ impl BytesMut {
                  (^self).unique_allocation_slot(i) == Some(Some(value))) &&
              (forall<i:Int> new_len@ <= i && i < self.unique_allocation_capacity() ==>
                  (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        new_len@ > self.cap@ && self.unique_vec_rebuildable() &&
+        !(self.unique_offset() >= self.unique_length() &&
+          self.unique_capacity() - self.unique_length() + self.unique_offset() >=
+              new_len@ - self.len@) ==>
+            ((^self).unique_valid() &&
+             (^self).unique_vec_rebuildable() &&
+             (^self).unique_length() == new_len@ &&
+             (^self).unique_offset() == self.unique_offset() &&
+             (^self).unique_capacity() >= new_len@ &&
+             (^self).unique_allocation_capacity() >=
+                 self.unique_offset() + new_len@ &&
+             (^self).unique_allocation_capacity() > self.unique_allocation_capacity() &&
+             (^self).unique_tag_pointer() == self.unique_tag_pointer() &&
+             (^self).data == self.data &&
+             (forall<i:Int> 0 <= i && i < self.unique_offset() + self.unique_length() ==>
+                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)) &&
+             (forall<i:Int> self.unique_offset() + self.unique_length() <= i &&
+                 i < self.unique_offset() + new_len@ ==>
+                 (^self).unique_allocation_slot(i) == Some(Some(value))) &&
+             (forall<i:Int> self.unique_offset() + new_len@ <= i &&
+                 i < (^self).unique_allocation_capacity() ==>
+                 (^self).unique_allocation_slot(i) == Some(None)))
     ))]
     pub fn resize(&mut self, new_len: usize, value: u8) {
         #[cfg(all(creusot, bytes_original_unique_gate))]
@@ -4305,12 +4346,21 @@ impl BytesMut {
             self.unique_offset() >= self.unique_length() &&
             self.unique_capacity() - self.unique_length() + self.unique_offset() >=
                 extend@.len()
+        ) || (
+            self.unique_vec_rebuildable() &&
+            extend@.len() > self.unique_capacity() - self.unique_length()
         )
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).buffer_view_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).len@ == self.len@ + extend@.len()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).buffer_bytes() == self.buffer_bytes().concat(extend@)))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).buffer_allocation_capacity() == self.buffer_allocation_capacity()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (extend@.len() <= self.cap@ - self.len@ || (
+            self.unique_valid() && self.unique_offset() >= self.unique_length() &&
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >=
+                extend@.len()
+        )) ==> (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity()
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         extend@.len() <= self.cap@ - self.len@ ==>
             ((^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data &&
@@ -4343,10 +4393,16 @@ impl BytesMut {
                     self.buffer_cursor_offset() + self.len@ + j) ==
                 self.buffer_allocation_slot(
                     self.buffer_cursor_offset() + self.len@ + j)))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
-        self.buffer_cursor_offset() + self.cap@ <= i &&
-        i < self.buffer_allocation_capacity() ==>
-            (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (extend@.len() <= self.cap@ - self.len@ || (
+            self.unique_valid() && self.unique_offset() >= self.unique_length() &&
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >=
+                extend@.len()
+        )) ==> forall<i:Int>
+            self.buffer_cursor_offset() + self.cap@ <= i &&
+            i < self.buffer_allocation_capacity() ==>
+                (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         extend@.len() <= self.cap@ - self.len@ && self.unique_layout_valid() ==>
             ((^self).unique_valid() &&
@@ -4369,13 +4425,21 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         self.shared_layout_valid() ==> (^self).shared_layout_valid()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        forall<i:Int>
+        (extend@.len() <= self.cap@ - self.len@ || (
+            self.unique_valid() && self.unique_offset() >= self.unique_length() &&
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >=
+                extend@.len()
+        )) ==> forall<i:Int>
             (^self).buffer_cursor_offset() + (^self).len@ <= i &&
             i < (^self).buffer_allocation_capacity() ==>
                 (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        self.unique_layout_valid() ==>
+        self.unique_layout_valid() && (extend@.len() <= self.cap@ - self.len@ || (
+            self.unique_valid() && self.unique_offset() >= self.unique_length() &&
+            self.unique_capacity() - self.unique_length() + self.unique_offset() >=
+                extend@.len()
+        )) ==>
             ((^self).unique_proof.unwrap_logic().raw ==
                  self.unique_proof.unwrap_logic().raw &&
              (^self).unique_proof.unwrap_logic().base ==
@@ -4416,6 +4480,32 @@ impl BytesMut {
              (forall<i:Int> self.len@ + extend@.len() <= i &&
                  i < self.unique_allocation_capacity() ==>
                  (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        extend@.len() > self.cap@ - self.len@ &&
+        self.unique_vec_rebuildable() &&
+        !(self.unique_capacity() - self.unique_length() + self.unique_offset() >= extend@.len() &&
+          self.unique_offset() >= self.unique_length()) ==>
+            ((^self).unique_valid() &&
+             (^self).unique_vec_rebuildable() &&
+             (^self).unique_length() == self.len@ + extend@.len() &&
+             (^self).unique_offset() == self.unique_offset() &&
+             (^self).unique_capacity() >= self.len@ + extend@.len() &&
+             (^self).unique_allocation_capacity() >=
+                 self.unique_offset() + self.len@ + extend@.len() &&
+             (^self).unique_allocation_capacity() > self.unique_allocation_capacity() &&
+             (^self).unique_tag_pointer() == self.unique_tag_pointer() &&
+             (^self).data == self.data &&
+             (^self).shared_proof == self.shared_proof &&
+             (forall<i:Int> 0 <= i && i < self.unique_offset() + self.unique_length() ==>
+                 (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i)) &&
+             (forall<i:Int> self.unique_offset() + self.unique_length() <= i &&
+                 i < self.unique_offset() + self.len@ + extend@.len() ==>
+                 (^self).unique_allocation_slot(i) ==
+                     Some(Some(extend@[i - (self.unique_offset() + self.len@)]))) &&
+             (forall<i:Int> self.unique_offset() + self.len@ + extend@.len() <= i &&
+                 i < (^self).unique_allocation_capacity() ==>
+                 (^self).unique_allocation_slot(i) == Some(None)))
     ))]
     #[inline]
     pub fn extend_from_slice(&mut self, extend: &[u8]) {
@@ -7682,6 +7772,92 @@ pub(crate) unsafe fn prove_from_slice_nonzero_cursor_reserve_growth_truncate_and
     proof_assert!(buffer.unique_vec_rebuildable());
     proof_assert!(buffer.unique_length() == truncate_to@);
     proof_assert!(buffer.unique_bytes() == (*expected).subsequence(0, truncate_to@));
+
+    unsafe { buffer.dispose_unique() };
+}
+
+/// Exercise append and resize after a public slice construction and a nonzero
+/// cursor advance. Runtime capacity observations account for `to_vec` possibly
+/// over-allocating; when there is room below Vec's maximum capacity after the
+/// retained one-byte prefix, resize requests one byte beyond the actual view
+/// capacity, forcing the unique Vec allocation-growth path before truncate
+/// and explicit disposal.
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[requires(3 <= src@.len())]
+#[requires(truncate_to@ <= src@.len() - 1 + extend@.len())]
+pub(crate) unsafe fn prove_from_slice_nonzero_cursor_append_resize_growth_truncate_and_dispose(
+    src: &[u8],
+    extend: &[u8],
+    truncate_to: usize,
+) {
+    let original_bytes: Snapshot<Seq<u8>> = snapshot!(src@);
+    let mut buffer = BytesMut::from(src);
+    proof_assert!(buffer.unique_valid() && buffer.unique_vec_rebuildable());
+    proof_assert!(buffer.unique_bytes() == *original_bytes);
+    crate::capacity_ops::prove_max_vec_pos_nonzero();
+    proof_assert!(buffer.advance_keeps_unique_vec(1));
+
+    unsafe { buffer.advance_unchecked(1, None) };
+    proof_assert!(buffer.unique_valid() && buffer.unique_vec_rebuildable());
+    proof_assert!(buffer.unique_offset() == 1);
+    proof_assert!(buffer.unique_length() == (*original_bytes).len() - 1);
+
+    let expected_prefix: Snapshot<Seq<u8>> = snapshot!(
+        (*original_bytes).subsequence(1, (*original_bytes).len())
+    );
+    let old_view_capacity = buffer.capacity();
+    let old_view_spare = old_view_capacity - buffer.len();
+    if extend.len() > old_view_spare {
+        proof_assert!(buffer.unique_offset() < buffer.unique_length());
+        proof_assert!(extend@.len() > buffer.unique_capacity() - buffer.unique_length());
+    }
+
+    buffer.extend_from_slice(extend);
+    if extend.len() > old_view_spare {
+        proof_assert!(buffer.unique_valid() && buffer.unique_vec_rebuildable());
+        proof_assert!(buffer.unique_offset() == 1);
+        let new_view_capacity = buffer.capacity();
+        proof_assert!(new_view_capacity@ > old_view_capacity@);
+    }
+    let expected_after_append: Snapshot<Seq<u8>> = snapshot!(
+        (*expected_prefix).concat(extend@)
+    );
+    proof_assert!(buffer.unique_bytes() == *expected_after_append);
+    proof_assert!(buffer.unique_valid() && buffer.unique_vec_rebuildable());
+    proof_assert!(buffer.unique_offset() == 1);
+    proof_assert!(buffer.unique_length() == (*expected_after_append).len());
+    proof_assert!(buffer.unique_offset() < buffer.unique_length());
+
+    let resize_start_len = buffer.len();
+    let resize_start_capacity = buffer.capacity();
+    let do_resize = resize_start_capacity < isize::MAX as usize - 1;
+    let resize_len = if do_resize {
+        resize_start_capacity + 1
+    } else {
+        resize_start_len
+    };
+    let resize_added = resize_len - resize_start_len;
+    let resize_value: u8 = 0xA5;
+    proof_assert!(resize_start_len@ == (*expected_after_append).len());
+    let expected_after_resize: Snapshot<Seq<u8>> = snapshot!(
+        (*expected_after_append).concat(Seq::create(resize_added@, |_i:Int| resize_value))
+    );
+    if do_resize {
+        proof_assert!(resize_len@ > resize_start_capacity@);
+        proof_assert!(resize_len@ > resize_start_len@);
+        buffer.resize(resize_len, resize_value);
+        let resize_result_capacity = buffer.capacity();
+        proof_assert!(buffer.unique_valid() && buffer.unique_vec_rebuildable());
+        proof_assert!(buffer.unique_offset() == 1);
+        proof_assert!(resize_result_capacity@ > resize_start_capacity@);
+    }
+    proof_assert!(buffer.unique_bytes() == *expected_after_resize);
+
+    buffer.truncate(truncate_to);
+    proof_assert!(buffer.unique_vec_rebuildable());
+    proof_assert!(buffer.unique_length() == truncate_to@);
+    proof_assert!(buffer.unique_bytes() ==
+        (*expected_after_resize).subsequence(0, truncate_to@));
 
     unsafe { buffer.dispose_unique() };
 }
