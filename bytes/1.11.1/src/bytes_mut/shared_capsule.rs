@@ -13,7 +13,7 @@ use creusot_std::{
         resource::Authority,
         Ghost, GhostShared,
     },
-    logic::{ra::{excl::Excl, RA}, Id},
+    logic::{ra::{excl::Excl, RA}, FMap, Id},
     prelude::*,
 };
 
@@ -23,6 +23,7 @@ use crate::{
         ref_count_ledger::{
             active_mutable_contains, sole_active_id, ActiveReferences,
             AllocationBinding, OwnerLedger, prove_no_active_mutable_on_empty,
+            prove_owner_readonly_to_mutable_effect,
             prove_owner_reclassification_effect, OwnerTicket, RefKind,
             RetirePermit,
         },
@@ -1251,7 +1252,8 @@ impl Invariant for SharedPayload {
         inv(self.pool) && inv(self.ledger) && inv(self.retire) &&
         self.phase.invariant() && inv(self.terminal_action) &&
         inv(self.header_vec) && inv(self.original_capacity_repr) &&
-        self.lease.invariant()
+        self.lease.invariant() &&
+        (self.header_id.addr_logic() & super::KIND_MASK) == super::KIND_ARC
     }
 }
 
@@ -1287,6 +1289,18 @@ pub(crate) struct SharedHeaderReadLoanState {
 }
 
 impl SharedHeaderReadLoan {
+    /// Project the actual storage authority before the affine loan is split.
+    /// The snapshot records value metadata only; the root permission and
+    /// borrowed Vec remain the source of allocation liveness and access.
+    #[check(ghost)]
+    #[requires(self.invariant())]
+    #[ensures(*result == *self.state.storage_model)]
+    #[ensures((*result).invariant())]
+    #[ensures(self.root.val().vec_model().matches_authority(*result))]
+    pub(crate) fn storage_authority_snapshot(&self) -> Snapshot<StoredAuthority> {
+        self.state.storage_model
+    }
+
     #[logic(open(self), prophetic)]
     pub(crate) fn lease_count_value(self) -> Int {
         pearlite! { header_lease_count(self.state.lease_cap.fragment_value()) }
@@ -1354,6 +1368,7 @@ impl SharedHeaderReadLoan {
     #[requires(root.val().vec_model() == *header_vec)]
     #[requires(root.val().original_capacity_repr == *original_capacity_repr)]
     #[requires(root.val().vec_model().matches_authority(*storage_model))]
+    #[requires((*storage_model).invariant())]
     #[requires(generation > 0)]
     #[requires(lent_region_matches(lent_span, lent_region, *storage_model))]
     #[requires(*stamp == header_lease_stamp(
@@ -1375,6 +1390,7 @@ impl SharedHeaderReadLoan {
     #[ensures(result.state.header_vec == header_vec)]
     #[ensures(result.state.original_capacity_repr == original_capacity_repr)]
     #[ensures(result.state.storage_model == storage_model)]
+    #[ensures((*result.state.storage_model).invariant())]
     #[ensures(result.state.ledger_id == ledger_id)]
     #[ensures(result.state.phase_id == phase_id)]
     #[ensures(result.state.generation == generation)]
@@ -1421,6 +1437,7 @@ impl SharedHeaderReadLoan {
             },
         };
         proof_assert!(loan.invariant());
+        proof_assert!((*loan.state.storage_model).invariant());
         loan
     }
 }
@@ -1430,6 +1447,7 @@ impl Invariant for SharedHeaderReadLoanState {
     fn invariant(self) -> bool {
         pearlite! {
             self.generation > 0 &&
+            (*self.storage_model).invariant() &&
             lent_region_matches(self.lent_span, self.lent_region, *self.storage_model) &&
             self.lease_cap.invariant() &&
             self.lease_cap.key() == self.lease_key &&
@@ -1513,6 +1531,9 @@ impl SharedPayload {
     #[ensures(self.ledger.unwrap_logic().active_ids().get(ticket.owner_id()) ==
         Some(Excl((ticket.allocation_binding(), ticket.class(),
             ticket.owned_lo(), ticket.owned_hi()))))]
+    #[ensures(0 <= ticket.owned_lo() &&
+        ticket.owned_lo() <= ticket.owned_hi() &&
+        ticket.owned_hi() <= self.ledger.unwrap_logic().allocation_binding().2)]
     #[ensures(self.retire == None)]
     #[ensures(self.terminal_action != None)]
     fn prove_live_owner_ticket(&self, ticket: &OwnerTicket) {
@@ -1570,6 +1591,304 @@ impl SharedPayload {
         proof_assert!(forall<index: Int>
             ticket.owned_lo() <= index && index < ticket.owned_hi() ==>
                 pool.contains(index) && slot_known(pool.slot(index)));
+    }
+
+    /// A count-one Readonly ticket is the only ledger entry, so the active
+    /// pool protocol says the actual pool contains the entire allocation.
+    /// This is the physical source for promoting a cursor view into a
+    /// Mutable suffix; the ticket and counter observation remain the proof
+    /// of uniqueness, while this function only exposes the pool consequence.
+    #[check(ghost)]
+    #[requires(self.invariant() && self.protocol())]
+    #[requires(self.agrees_with_value(value) && value@ == 1)]
+    #[requires(self.lent_span == None)]
+    #[requires(ticket.invariant() && ticket.ledger_id() == self.ledger_id)]
+    #[requires(ticket.class() == RefKind::Readonly)]
+    #[ensures(self.ledger != None && self.ledger.unwrap_logic().is_live())]
+    #[ensures(self.ledger.unwrap_logic().count() == 1)]
+    #[ensures(self.ledger.unwrap_logic().has_ticket(*ticket))]
+    #[ensures(self.ledger.unwrap_logic().active_ids() ==
+        FMap::singleton(ticket.owner_id(), Excl(ticket.owner_binding())))]
+    #[ensures(self.pool != None)]
+    #[ensures(self.pool.unwrap_logic().capacity() ==
+        self.ledger.unwrap_logic().allocation_binding().2)]
+    #[ensures(forall<index: Int> 0 <= index &&
+        index < self.pool.unwrap_logic().capacity() ==>
+            self.pool.unwrap_logic().contains(index))]
+    fn prove_unique_readonly_full_pool(
+        &self,
+        ticket: &OwnerTicket,
+        value: usize,
+    ) {
+        self.prove_live_owner_matches_counter(ticket, value);
+        let ledger = match &self.ledger {
+            Some(ledger) => ledger,
+            None => {
+                proof_assert!(false);
+                return;
+            }
+        };
+        let pool = match &self.pool {
+            Some(pool) => pool,
+            None => {
+                proof_assert!(false);
+                return;
+            }
+        };
+        ledger.prove_ticket_is_active(ticket);
+        sole_active_id(snapshot!(*ledger), snapshot!(*ticket));
+        proof_assert!(ledger.count() == 1);
+        proof_assert!(forall<index: Int>
+            active_mutable_contains(ledger.active_ids(), index) == false);
+        proof_assert!(forall<index: Int>
+            0 <= index && index < pool.capacity() ==>
+                pool.contains(index));
+    }
+
+    /// Reclassify the actual unique Readonly ticket and transfer its complete
+    /// allocation suffix from the actual pool into a Mutable region. The
+    /// prefix before `lo` stays in the pool; Unknown spare slots in the
+    /// suffix remain Unknown in the returned region.
+    #[check(ghost)]
+    #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().agrees_with_value(value) && value@ == 1)]
+    #[requires(payload.inner_logic().lent_span == None)]
+    #[requires(ticket.inner_logic().invariant() &&
+        ticket.inner_logic().ledger_id() == payload.inner_logic().ledger_id &&
+        ticket.inner_logic().class() == RefKind::Readonly)]
+    #[requires(ticket.inner_logic().owned_lo() <= *lo)]
+    #[requires(*lo <= ticket.inner_logic().owned_hi())]
+    #[requires(ticket.inner_logic().owned_hi() <=
+        payload.inner_logic().ledger.unwrap_logic().allocation_binding().2)]
+    #[ensures(
+        (^payload.inner_logic()).invariant() && (^payload.inner_logic()).protocol() &&
+        (^payload.inner_logic()).public() == payload.inner_logic().public() &&
+        (^payload.inner_logic()).counter_model() == payload.inner_logic().counter_model() &&
+        (^payload.inner_logic()).allocation_binding == payload.inner_logic().allocation_binding &&
+        (^payload.inner_logic()).header_vec == payload.inner_logic().header_vec &&
+        (^payload.inner_logic()).original_capacity_repr == payload.inner_logic().original_capacity_repr &&
+        (^payload.inner_logic()).root == payload.inner_logic().root &&
+        (^payload.inner_logic()).storage == payload.inner_logic().storage &&
+        (^payload.inner_logic()).phase == payload.inner_logic().phase &&
+        (^payload.inner_logic()).retire == payload.inner_logic().retire &&
+        (^payload.inner_logic()).terminal_action == payload.inner_logic().terminal_action &&
+        (^payload.inner_logic()).lease == payload.inner_logic().lease &&
+        (^payload.inner_logic()).lease_key == payload.inner_logic().lease_key &&
+        (^payload.inner_logic()).lease_generation == payload.inner_logic().lease_generation
+    )]
+    #[ensures(
+        (^payload.inner_logic()).ledger.unwrap_logic().count() == 1 &&
+        (^payload.inner_logic()).ledger.unwrap_logic().ledger_id() == payload.inner_logic().ledger.unwrap_logic().ledger_id() &&
+        (^payload.inner_logic()).ledger.unwrap_logic().allocation_binding() == payload.inner_logic().ledger.unwrap_logic().allocation_binding() &&
+        (^payload.inner_logic()).ledger.unwrap_logic().next_id() == payload.inner_logic().ledger.unwrap_logic().next_id() &&
+        (^payload.inner_logic()).ledger.unwrap_logic().has_ticket((^ticket.inner_logic()))
+    )]
+    #[ensures(
+        (^ticket.inner_logic()).invariant() &&
+        (^ticket.inner_logic()).ledger_id() == ticket.inner_logic().ledger_id() &&
+        (^ticket.inner_logic()).owner_id() == ticket.inner_logic().owner_id() &&
+        (^ticket.inner_logic()).fragment_resource_id() == ticket.inner_logic().fragment_resource_id() &&
+        (^ticket.inner_logic()).allocation_binding() == ticket.inner_logic().allocation_binding() &&
+        (^ticket.inner_logic()).class() == RefKind::Mutable &&
+        (^ticket.inner_logic()).owned_lo() == *lo &&
+        (^ticket.inner_logic()).owned_hi() == payload.inner_logic().ledger.unwrap_logic().allocation_binding().2
+    )]
+    #[ensures(
+        result.inner_logic().invariant() &&
+        result.inner_logic().namespace() == payload.inner_logic().ledger.unwrap_logic().allocation_binding().0 &&
+        result.inner_logic().capacity() == payload.inner_logic().ledger.unwrap_logic().allocation_binding().2 &&
+        result.inner_logic().lo() == *lo &&
+        result.inner_logic().hi() == payload.inner_logic().ledger.unwrap_logic().allocation_binding().2 &&
+        (forall<index: Int> result.inner_logic().slot(index) ==
+            if *lo <= index && index < payload.inner_logic().ledger.unwrap_logic().allocation_binding().2 {
+                payload.inner_logic().pool.unwrap_logic().slot(index)
+            } else { None }) &&
+        (forall<index: Int> *lo <= index && index < ticket.inner_logic().owned_hi() ==>
+            slot_known(result.inner_logic().slot(index))) &&
+        (forall<index: Int> 0 <= index && index < *lo ==>
+            (^payload.inner_logic()).pool.unwrap_logic().slot(index) ==
+                payload.inner_logic().pool.unwrap_logic().slot(index) &&
+            (^payload.inner_logic()).pool.unwrap_logic().contains(index) ==
+                payload.inner_logic().pool.unwrap_logic().contains(index))
+    )]
+    pub(crate) fn promote_unique_readonly_owner(
+        payload: Ghost<&mut SharedPayload>,
+        ticket: Ghost<&mut OwnerTicket>,
+        value: usize,
+        lo: Snapshot<Int>,
+    ) -> Ghost<PhysicalRegion> {
+        ghost! {
+            let payload = payload.into_inner();
+            let ticket = ticket.into_inner();
+            let lo = lo.into_ghost().into_inner();
+            payload.prove_unique_readonly_full_pool(ticket, value);
+            payload.prove_readonly_ticket_pool_known(ticket);
+
+            let before_owners: Snapshot<ActiveReferences> =
+                snapshot!(payload.ledger.unwrap_logic().active_ids());
+            let before_pool: Snapshot<PhysicalPool> =
+                snapshot!(payload.pool.unwrap_logic());
+            let before_ticket: Snapshot<OwnerTicket> = snapshot!(*ticket);
+            let binding = snapshot!((
+                ticket.allocation_binding(), RefKind::Mutable, lo,
+                payload.ledger.unwrap_logic().allocation_binding().2,
+            ));
+            let ledger = payload.ledger.as_mut().unwrap();
+            ledger.prove_singleton_reclassification_compatible(
+                &*ticket, binding,
+            );
+            OwnerLedger::reclassify(
+                Ghost::new(ledger), Ghost::new(ticket), binding,
+            );
+            let after_owners: Snapshot<ActiveReferences> =
+                snapshot!(payload.ledger.unwrap_logic().active_ids());
+            let capacity_snapshot: Snapshot<Int> = snapshot!(
+                payload.ledger.unwrap_logic().allocation_binding().2
+            );
+            prove_owner_readonly_to_mutable_effect(
+                before_owners, after_owners, before_ticket,
+                snapshot!(lo), capacity_snapshot,
+            );
+
+            let capacity = capacity_snapshot.into_ghost().into_inner();
+            let mut pool = payload.pool.take().unwrap();
+            let (new_pool, region) = pool.lend_interval(lo, capacity);
+            payload.pool = Some(new_pool);
+            let after_pool: Snapshot<PhysicalPool> =
+                snapshot!(payload.pool.unwrap_logic());
+            SharedPayload::prove_pool_complement_after_mutable_acquire(
+                before_pool, after_pool, before_owners, after_owners,
+                snapshot!(region), lo, capacity,
+            );
+            proof_assert!(active_lease_pool_protocol(
+                payload.pool.unwrap_logic(), payload.ledger.unwrap_logic(),
+                payload.storage.unwrap_logic().capacity(),
+                payload.storage.unwrap_logic().binding(), None,
+            ));
+            proof_assert!(payload.invariant() && payload.protocol());
+            proof_assert!(ticket.class() == RefKind::Mutable);
+            proof_assert!(ticket.owned_lo() == lo);
+            proof_assert!(ticket.owned_hi() == capacity);
+            region
+        }
+    }
+
+    /// Apply the actual owner-ledger/pool transition for one Acquire
+    /// observation. The callback result carries only the updated actual
+    /// ticket and optional region; packet assembly remains outside the
+    /// callback so the event proof does not duplicate packet invariants.
+    #[check(ghost)]
+    #[requires(payload.inner_logic().invariant() && payload.inner_logic().protocol())]
+    #[requires(payload.inner_logic().agrees_with_value(value))]
+    #[requires(payload.inner_logic().lent_span == None)]
+    #[requires(ticket.inner_logic().invariant() &&
+        ticket.inner_logic().ledger_id() == payload.inner_logic().ledger_id &&
+        ticket.inner_logic().class() == RefKind::Readonly &&
+        ticket.inner_logic().allocation_binding() ==
+            *payload.inner_logic().allocation_binding)]
+    #[requires(ticket.inner_logic().owned_lo() <= *lo &&
+        *lo <= ticket.inner_logic().owned_hi() &&
+        ticket.inner_logic().owned_hi() <=
+            payload.inner_logic().ledger.unwrap_logic().allocation_binding().2)]
+    #[requires(*visible_hi == ticket.inner_logic().owned_hi())]
+    #[requires(loan.inner_logic().invariant() &&
+        no_active_lend_state(loan.inner_logic()))]
+    #[requires(payload.inner_logic().lease.resource_id() ==
+        loan.inner_logic().lease_id)]
+    #[ensures(header_lease_count(
+        loan.inner_logic().lease_cap.fragment_value(),
+    ) == value@)]
+    #[ensures(value@ > 0)]
+    #[ensures((^payload.inner_logic()).invariant() &&
+        (^payload.inner_logic()).protocol() &&
+        (^payload.inner_logic()).public() == payload.inner_logic().public() &&
+        (^payload.inner_logic()).counter_model() ==
+            payload.inner_logic().counter_model() &&
+        (^payload.inner_logic()).agrees_with_value(value))]
+    #[ensures(result.inner_logic().invariant())]
+    #[ensures((^payload.inner_logic()).allocation_binding ==
+        payload.inner_logic().allocation_binding &&
+        (^payload.inner_logic()).header_vec == payload.inner_logic().header_vec &&
+        (^payload.inner_logic()).original_capacity_repr ==
+            payload.inner_logic().original_capacity_repr &&
+        (^payload.inner_logic()).root == payload.inner_logic().root &&
+        (^payload.inner_logic()).storage == payload.inner_logic().storage &&
+        (^payload.inner_logic()).phase == payload.inner_logic().phase &&
+        (^payload.inner_logic()).retire == payload.inner_logic().retire &&
+        (^payload.inner_logic()).terminal_action ==
+            payload.inner_logic().terminal_action &&
+        (^payload.inner_logic()).lease == payload.inner_logic().lease &&
+        (^payload.inner_logic()).lease_key == payload.inner_logic().lease_key &&
+        (^payload.inner_logic()).lease_generation ==
+            payload.inner_logic().lease_generation &&
+        (^payload.inner_logic()).closed == payload.inner_logic().closed)]
+    #[ensures(match result.inner_logic().region {
+        Some(region) => value@ == 1 &&
+            result.inner_logic().ticket.inner_logic().invariant() &&
+            result.inner_logic().ticket.inner_logic().ledger_id() ==
+                ticket.inner_logic().ledger_id() &&
+            result.inner_logic().ticket.inner_logic().owner_id() ==
+                ticket.inner_logic().owner_id() &&
+            result.inner_logic().ticket.inner_logic().fragment_resource_id() ==
+                ticket.inner_logic().fragment_resource_id() &&
+            result.inner_logic().ticket.inner_logic().allocation_binding() ==
+                ticket.inner_logic().allocation_binding() &&
+            result.inner_logic().ticket.inner_logic().class() == RefKind::Mutable &&
+            result.inner_logic().ticket.inner_logic().owned_lo() == *lo &&
+            result.inner_logic().ticket.inner_logic().owned_hi() ==
+                payload.inner_logic().ledger.unwrap_logic().allocation_binding().2 &&
+            region.inner_logic().invariant() &&
+            region.inner_logic().resource_id() == region.inner_logic().namespace() &&
+            region.inner_logic().namespace() == ticket.inner_logic().allocation_binding().0 &&
+            region.inner_logic().capacity() == ticket.inner_logic().allocation_binding().2 &&
+            region.inner_logic().lo() == *lo &&
+            region.inner_logic().hi() == ticket.inner_logic().allocation_binding().2 &&
+            (forall<index: Int> region.inner_logic().slot(index) ==
+                if *lo <= index && index < ticket.inner_logic().allocation_binding().2 {
+                    payload.inner_logic().pool.unwrap_logic().slot(index)
+                } else { None }) &&
+            *lo <= ticket.inner_logic().owned_hi() &&
+            (forall<index: Int> *lo <= index &&
+                index < ticket.inner_logic().owned_hi() ==>
+                slot_known(region.inner_logic().slot(index))),
+        None => value@ != 1 && (^payload.inner_logic()) == *payload.inner_logic() &&
+            result.inner_logic().ticket.inner_logic() == ticket.inner_logic(),
+    })]
+    #[ensures(*result.inner_logic().visible_hi == *visible_hi)]
+    #[ensures(value@ > 0)]
+    pub(crate) fn transition_unique_readonly_owner(
+        payload: Ghost<&mut SharedPayload>,
+        ticket: Ghost<OwnerTicket>,
+        loan: Ghost<&SharedHeaderReadLoanState>,
+        value: usize,
+        lo: Snapshot<Int>,
+        visible_hi: Snapshot<Int>,
+    ) -> Ghost<SharedReadonlyOwnerTransition> {
+        ghost! {
+            let payload = payload.into_inner();
+            let mut ticket = ticket.into_inner();
+            let loan = loan.into_inner();
+            payload.prove_live_owner_matches_counter(&ticket, value);
+            SharedPayload::prove_current_header_lease(
+                Ghost::new(&*payload), Ghost::new(loan),
+            );
+            if value == 1 {
+                let region = SharedPayload::promote_unique_readonly_owner(
+                    Ghost::new(payload), Ghost::new(&mut ticket), value, lo,
+                ).into_inner();
+                SharedReadonlyOwnerTransition {
+                    ticket: Ghost::new(ticket),
+                    region: Some(Ghost::new(region)),
+                    visible_hi,
+                }
+            } else {
+                SharedReadonlyOwnerTransition {
+                    ticket: Ghost::new(ticket),
+                    region: None,
+                    visible_hi,
+                }
+            }
+        }
     }
 
     /// Export the stable pool relation before moving the pool into an
@@ -2089,6 +2408,44 @@ impl SharedPayload {
         before_owners: Snapshot<ActiveReferences>,
         after_owners: Snapshot<ActiveReferences>,
         region: Snapshot<PhysicalRegion>,
+    ) {
+        proof_assert!(forall<index: Int>
+            (*after_pool).contains(index) ==
+                (0 <= index && index < (*after_pool).capacity() &&
+                    !active_mutable_contains(*after_owners, index)));
+    }
+
+    /// Re-establish the pool/owner complement when a unique Readonly ticket
+    /// becomes Mutable and receives the matching actual pool interval.
+    #[check(ghost)]
+    #[requires(before_pool.invariant() && after_pool.invariant())]
+    #[requires((*before_pool).capacity() == (*after_pool).capacity())]
+    #[requires(region.invariant())]
+    #[requires(region.lo() == lo && region.hi() == hi)]
+    #[requires(region.capacity() == (*before_pool).capacity())]
+    #[requires(forall<index: Int>
+        (*before_pool).contains(index) ==
+            (0 <= index && index < (*before_pool).capacity() &&
+                !active_mutable_contains(*before_owners, index)))]
+    #[requires(forall<index: Int>
+        (*after_pool).contains(index) ==
+            ((*before_pool).contains(index) && !(lo <= index && index < hi)))]
+    #[requires(forall<index: Int>
+        active_mutable_contains(*after_owners, index) ==
+            (active_mutable_contains(*before_owners, index) ||
+                lo <= index && index < hi))]
+    #[ensures(forall<index: Int>
+        (*after_pool).contains(index) ==
+            (0 <= index && index < (*after_pool).capacity() &&
+                !active_mutable_contains(*after_owners, index)))]
+    fn prove_pool_complement_after_mutable_acquire(
+        before_pool: Snapshot<PhysicalPool>,
+        after_pool: Snapshot<PhysicalPool>,
+        before_owners: Snapshot<ActiveReferences>,
+        after_owners: Snapshot<ActiveReferences>,
+        region: Snapshot<PhysicalRegion>,
+        lo: Int,
+        hi: Int,
     ) {
         proof_assert!(forall<index: Int>
             (*after_pool).contains(index) ==
@@ -3012,6 +3369,7 @@ impl SharedPayload {
         result.inner_logic().state.generation == (^payload.inner_logic()).lease_generation &&
         result.inner_logic().state.header_id == payload.inner_logic().header_id &&
         result.inner_logic().state.counter_model == payload.inner_logic().counter_model &&
+        (*result.inner_logic().state.storage_model).invariant() &&
         (*result.inner_logic().state.storage_model).binding() ==
             (*payload.inner_logic().allocation_binding).0 &&
         (*result.inner_logic().state.storage_model).raw_pointer() ==
@@ -3398,6 +3756,7 @@ impl SharedPayload {
 #[requires(*root.inner_logic().ward() == header_id)]
 #[ensures(result == root.inner_logic().val().ref_count.counter_reference())]
 #[ensures(*result == root.inner_logic().val().ref_count.counter_model())]
+#[check(terminates)]
 pub(crate) fn loaned_native_counter<'a>(
     header_id: *const Shared,
     root: Ghost<&'a Perm<*const Shared>>,
@@ -3432,6 +3791,63 @@ pub(crate) struct SharedReadonlyPacket {
     pub(crate) cursor: BoundPtr,
     pub(crate) len: usize,
     pub(crate) lease_key: Ghost<ReadyKey>,
+}
+
+/// Result of the one real Acquire used by the original unique shared-view
+/// conversion. The same readonly handle remains available when the observed
+/// count is not one; the unique arm owns the reclassified ticket and actual
+/// physical suffix returned by the capsule transition.
+#[allow(missing_debug_implementations)]
+pub(crate) enum SharedReadonlyPromotion {
+    Unique(SharedOwnerPacket),
+    NotUnique(SharedReadonlyPacket),
+}
+
+/// The actual ownership transition produced inside the one-Acquire callback.
+/// It deliberately carries only the owner ticket and optional physical region;
+/// packet metadata and Context restoration stay outside the atomic callback.
+#[allow(missing_debug_implementations)]
+pub(crate) struct SharedReadonlyOwnerTransition {
+    pub(crate) ticket: Ghost<OwnerTicket>,
+    pub(crate) region: Option<Ghost<PhysicalRegion>>,
+    pub(crate) visible_hi: Snapshot<Int>,
+}
+
+impl SharedReadonlyOwnerTransition {
+    #[logic(open(self), prophetic)]
+    pub(crate) fn valid(self) -> bool {
+        pearlite! {
+            self.ticket.inner_logic().invariant() &&
+            match self.region {
+                Some(region) =>
+                    self.ticket.inner_logic().class() == RefKind::Mutable &&
+                    region.inner_logic().invariant() &&
+                    region.inner_logic().resource_id() == region.inner_logic().namespace() &&
+                    region.inner_logic().namespace() ==
+                        self.ticket.inner_logic().allocation_binding().0 &&
+                    region.inner_logic().capacity() ==
+                        self.ticket.inner_logic().allocation_binding().2 &&
+                    self.ticket.inner_logic().owned_hi() ==
+                        self.ticket.inner_logic().allocation_binding().2 &&
+                    region.inner_logic().lo() == self.ticket.inner_logic().owned_lo() &&
+                    region.inner_logic().hi() == self.ticket.inner_logic().owned_hi() &&
+                    self.ticket.inner_logic().owned_lo() <= *self.visible_hi &&
+                    *self.visible_hi <= self.ticket.inner_logic().owned_hi() &&
+                    (forall<index: Int>
+                        self.ticket.inner_logic().owned_lo() <= index &&
+                        index < *self.visible_hi ==>
+                            slot_known(region.inner_logic().slot(index))),
+                None => self.ticket.inner_logic().class() == RefKind::Readonly,
+            }
+        }
+    }
+}
+
+impl Invariant for SharedReadonlyOwnerTransition {
+    #[logic(open(self), prophetic)]
+    fn invariant(self) -> bool {
+        self.valid()
+    }
 }
 
 /// Common proof carrier for the one Release event shared by Mutable and
@@ -3546,6 +3962,7 @@ impl SharedReleasePacket {
             capsule.inner_logic().val().public().1.1 &&
         result.inner_logic().unwrap_logic().state.phase_id ==
             capsule.inner_logic().val().public().1.3 &&
+        (*result.inner_logic().unwrap_logic().state.storage_model).invariant() &&
         (*result.inner_logic().unwrap_logic().state.storage_model).binding() ==
             ticket.inner_logic().allocation_binding().0 &&
         (*result.inner_logic().unwrap_logic().state.storage_model).raw_pointer() ==
@@ -3622,6 +4039,7 @@ impl SharedReleasePacket {
                                         (*payload.allocation_binding).1 &&
                                     (*loan.state.storage_model).capacity() ==
                                         (*payload.allocation_binding).2 &&
+                                    (*loan.state.storage_model).invariant() &&
                                     header_lease_count(
                                         loan.state.lease_cap.fragment_value()) == *expected_count,
                                 None => false,
@@ -3781,6 +4199,107 @@ impl Invariant for SharedReleasePacket {
 }
 
 impl SharedOwnerPacket {
+    /// Read the retained Vec's metadata under the packet's actual header root.
+    /// The lease is temporarily removed from the caller's registry, the
+    /// original Shared header is borrowed through its root permission, and
+    /// the same idle cap is restored before this returns.
+    #[check(terminates)]
+    #[requires(self.invariant())]
+    #[requires(header_id as *mut () == self.capsule_public().0)]
+    #[requires(pointer == self.cursor.raw_pointer() as *const u8)]
+    #[requires(context.inner_logic().invariant())]
+    #[requires(context.inner_logic().token_namespaces().contains(event_namespace()))]
+    #[requires(self.lease_key().slot() < context.inner_logic().ready_len())]
+    #[requires(header_lease_ready_entry_idle(
+        context.inner_logic().ready_entry_state(self.lease_key().slot()),
+        self.lease_key().resource_id(), self.lease_key().slot(),
+        self.lease_key().resource_id()))]
+    #[ensures(self.invariant())]
+    #[ensures((^self) == *self)]
+    #[ensures(result.0 == self.base.raw_pointer())]
+    #[ensures(result.1@ <= result.2@)]
+    #[ensures(result.2@ == self.ticket.inner_logic().allocation_binding().2)]
+    #[ensures(result.3@ == self.cursor@.unwrap_logic().2)]
+    #[ensures((^context.inner_logic()).invariant())]
+    #[ensures((^context.inner_logic()).token_namespaces() ==
+        context.inner_logic().token_namespaces())]
+    #[ensures((^context.inner_logic()).ready_len() == context.inner_logic().ready_len())]
+    #[ensures((^context.inner_logic()).ready_has_key(self.lease_key()))]
+    #[ensures(header_lease_ready_entry_idle(
+        (^context.inner_logic()).ready_entry_state(self.lease_key().slot()),
+        self.lease_key().resource_id(), self.lease_key().slot(),
+        self.lease_key().resource_id()))]
+    #[ensures(header_lease_ready_entry_count(
+        (^context.inner_logic()).ready_entry_state(self.lease_key().slot()),
+        self.lease_key().resource_id(), self.lease_key().slot()) ==
+        header_lease_ready_entry_count(
+            context.inner_logic().ready_entry_state(self.lease_key().slot()),
+            self.lease_key().resource_id(), self.lease_key().slot()))]
+    #[ensures(forall<index: Int>
+        0 <= index && index < context.inner_logic().ready_len() &&
+        index != self.lease_key().slot() ==>
+            (^context.inner_logic()).ready_entry_state(index) ==
+                context.inner_logic().ready_entry_state(index))]
+    pub(crate) fn read_vec_metadata_offset(
+        &mut self,
+        header_id: *mut Shared,
+        pointer: *const u8,
+        context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
+    ) -> (*mut u8, usize, usize, isize) {
+        let mut context_ref = ghost!(context.into_inner());
+        let key = self.lease_key_ghost();
+        let capsule = self.capsule;
+        let loan = ghost! {
+            BorrowedSharedContext::prove_ready_has_key_from_entry(
+                Ghost::new(&**context_ref), key,
+            );
+            SharedReleasePacket::try_take_header_read_loan_for(
+                capsule,
+                key,
+                Ghost::new(&*self.ticket),
+                Ghost::new(&mut **context_ref),
+            ).into_inner().unwrap()
+        };
+        let storage_authority = ghost! {
+            loan.borrow().into_inner().storage_authority_snapshot()
+        };
+        let (mut root, state) = ghost! {
+            let SharedHeaderReadLoan { root, state } = loan.into_inner();
+            (root, state)
+        }.split();
+        let region = self.region.borrow();
+        let (metadata, offset) = {
+            let header = unsafe {
+                Perm::as_mut(header_id, ghost! { root.as_mut() })
+            };
+            header.vec_mut().prove_authority_matches(storage_authority);
+            let (pointer, len, capacity, offset) = unsafe {
+                crate::vec_storage::shared_vec_metadata_offset(
+                    header.vec_mut(),
+                    pointer,
+                    &self.base,
+                    &self.cursor,
+                    region,
+                    storage_authority,
+                )
+            };
+            ((pointer, len, capacity), offset)
+        };
+        let loan = ghost! {
+            SharedHeaderReadLoan {
+                root: root.into_inner(),
+                state: state.into_inner(),
+            }
+        };
+        SharedOwnerPacket::restore_lease_after_owner_release(
+            capsule,
+            key,
+            ghost! { &mut **context_ref },
+            loan,
+        );
+        (metadata.0, metadata.1, metadata.2, offset)
+    }
+
     /// Move the proof packet into Creusot's ghost heap. The native handle
     /// keeps only its ordinary pointer/length fields; the ticket, region,
     /// capsule, and registry key remain Ghost-owned proof state.
@@ -3866,11 +4385,29 @@ impl SharedOwnerPacket {
         self.cursor@.unwrap_logic().2)]
     #[ensures(self.cursor@.unwrap_logic().2 <=
         self.region.inner_logic().hi())]
+    #[ensures((self.capsule_public().0.addr_logic() & super::KIND_MASK) ==
+        super::KIND_ARC)]
+    #[ensures(self.ticket.inner_logic().allocation_binding() ==
+        (self.region.inner_logic().namespace(), self.base.raw_pointer(),
+            self.region.inner_logic().capacity()))]
+    #[ensures(self.ticket.inner_logic().allocation_binding() ==
+        self.capsule_allocation_binding())]
+    #[ensures(self.ticket.inner_logic().owned_lo() == self.region.inner_logic().lo())]
+    #[ensures(self.ticket.inner_logic().owned_hi() == self.region.inner_logic().hi())]
     pub(crate) fn prove_cursor_within_region(&self) {
         proof_assert!(self.region.inner_logic().lo() <=
             self.cursor@.unwrap_logic().2);
+        proof_assert!((self.capsule_public().0.addr_logic() & super::KIND_MASK) ==
+            super::KIND_ARC);
         proof_assert!(self.cursor@.unwrap_logic().2 <=
             self.region.inner_logic().hi());
+        proof_assert!(self.ticket.inner_logic().allocation_binding() ==
+            (self.region.inner_logic().namespace(), self.base.raw_pointer(),
+                self.region.inner_logic().capacity()));
+        proof_assert!(self.ticket.inner_logic().allocation_binding() ==
+            self.capsule_allocation_binding());
+        proof_assert!(self.ticket.inner_logic().owned_lo() == self.region.inner_logic().lo());
+        proof_assert!(self.ticket.inner_logic().owned_hi() == self.region.inner_logic().hi());
     }
 
     #[logic(open(self))]
@@ -3908,6 +4445,8 @@ impl SharedOwnerPacket {
             self.capsule.inner_logic().val().namespace() == event_namespace() &&
             self.capsule.inner_logic().val().public().0 ==
                 self.capsule.inner_logic().val().public().1.1 &&
+            (self.capsule_public().0.addr_logic() & super::KIND_MASK) ==
+                super::KIND_ARC &&
             self.ticket.inner_logic().invariant() &&
             self.ticket.inner_logic().ledger_id() == self.capsule_public().2 &&
             self.ticket.inner_logic().class() == RefKind::Mutable &&
@@ -3952,6 +4491,129 @@ impl Invariant for SharedReadonlyPacket {
     #[logic(open(self), prophetic)]
     fn invariant(self) -> bool {
         self.valid()
+    }
+}
+
+impl SharedReadonlyOwnerTransition {
+    /// Reassemble a packet after the atomic callback has returned only the
+    /// changed affine owner rights. The source snapshot supplies value facts;
+    /// the capsule, pointer descriptors, ticket, and region below are the
+    /// actual values moved through the checked transitions.
+    #[check(ghost)]
+    // Validate the historical packet value itself, not Snapshot's trivial
+    // wrapper invariant. Actual permissions are still supplied separately.
+    #[requires((*source).invariant())]
+    #[requires(transition.inner_logic().invariant())]
+    #[requires(capsule.inner_logic() == source.capsule.inner_logic())]
+    #[requires(base == source.base)]
+    #[requires(cursor == source.cursor)]
+    #[requires(len@ == source.len@)]
+    #[requires(lease_key.inner_logic() == source.lease_key.inner_logic())]
+    #[requires(transition.inner_logic().ticket.inner_logic().ledger_id() ==
+        source.ticket.inner_logic().ledger_id())]
+    #[requires(transition.inner_logic().ticket.inner_logic().owner_id() ==
+        source.ticket.inner_logic().owner_id())]
+    #[requires(transition.inner_logic().ticket.inner_logic().fragment_resource_id() ==
+        source.ticket.inner_logic().fragment_resource_id())]
+    #[requires(transition.inner_logic().ticket.inner_logic().allocation_binding() ==
+        source.ticket.inner_logic().allocation_binding())]
+    #[requires(match transition.inner_logic().region {
+        Some(_) => value@ == 1 &&
+            transition.inner_logic().ticket.inner_logic().class() == RefKind::Mutable &&
+            transition.inner_logic().ticket.inner_logic().owned_lo() ==
+                cursor@.unwrap_logic().2 &&
+            transition.inner_logic().ticket.inner_logic().owned_hi() ==
+                source.ticket.inner_logic().allocation_binding().2,
+        None => value@ != 1,
+    })]
+    #[requires(*transition.inner_logic().visible_hi ==
+        cursor@.unwrap_logic().2 + len@)]
+    #[requires(match transition.inner_logic().region {
+        Some(_) => true,
+        None => transition.inner_logic().ticket.inner_logic() ==
+            source.ticket.inner_logic(),
+    })]
+    #[ensures(match result {
+        SharedReadonlyPromotion::Unique(packet) => value@ == 1 &&
+            packet.invariant() &&
+            packet.capsule.inner_logic() == capsule.inner_logic() &&
+            packet.capsule_public() == (*source).capsule_public() &&
+            packet.ticket.inner_logic().ledger_id() ==
+                source.ticket.inner_logic().ledger_id() &&
+            packet.ticket.inner_logic().owner_id() ==
+                source.ticket.inner_logic().owner_id() &&
+            packet.ticket.inner_logic().fragment_resource_id() ==
+                source.ticket.inner_logic().fragment_resource_id() &&
+            packet.ticket.inner_logic().allocation_binding() ==
+                source.ticket.inner_logic().allocation_binding() &&
+            packet.ticket.inner_logic().class() == RefKind::Mutable &&
+            packet.ticket.inner_logic().owned_lo() == cursor@.unwrap_logic().2 &&
+            packet.ticket.inner_logic().owned_hi() ==
+                source.ticket.inner_logic().allocation_binding().2 &&
+            packet.region.inner_logic().lo() == cursor@.unwrap_logic().2 &&
+            packet.region.inner_logic().hi() ==
+                source.ticket.inner_logic().allocation_binding().2 &&
+            packet.region.inner_logic().capacity() ==
+                source.ticket.inner_logic().allocation_binding().2 &&
+            packet.ticket.inner_logic().owned_hi() ==
+                source.ticket.inner_logic().allocation_binding().2 &&
+            packet.cursor@ != None &&
+            cursor@.unwrap_logic().2 + len@ <=
+                packet.region.inner_logic().hi() &&
+            (forall<index: Int> cursor@.unwrap_logic().2 <= index &&
+                index < cursor@.unwrap_logic().2 + len@ ==>
+                slot_known(packet.region.inner_logic().slot(index))) &&
+            packet.base == base && packet.cursor == cursor &&
+            packet.lease_key() == lease_key.inner_logic(),
+        SharedReadonlyPromotion::NotUnique(packet) => value@ != 1 &&
+            packet.invariant() &&
+            packet.capsule.inner_logic() == capsule.inner_logic() &&
+            packet.ticket.inner_logic() == source.ticket.inner_logic() &&
+            packet.base == base && packet.cursor == cursor &&
+            packet.len@ == len@ && packet.lease_key() == lease_key.inner_logic(),
+    })]
+    pub(crate) fn finish_acquire_promotion(
+        source: Snapshot<SharedReadonlyPacket>,
+        capsule: Ghost<GhostShared<EventBoundInvariant<SharedPayload>>>,
+        base: BoundPtr,
+        cursor: BoundPtr,
+        len: usize,
+        lease_key: Ghost<ReadyKey>,
+        value: usize,
+        transition: Ghost<SharedReadonlyOwnerTransition>,
+    ) -> SharedReadonlyPromotion {
+        let (ticket, region) = ghost! {
+            let transition = transition.into_inner();
+            (
+                transition.ticket.into_inner(),
+                match transition.region {
+                    Some(region) => Some(region.into_inner()),
+                    None => None,
+                },
+            )
+        }.split();
+        if value == 1 {
+            proof_assert!(region.inner_logic() != None);
+            let region = ghost! { region.into_inner().unwrap() };
+            SharedReadonlyPromotion::Unique(SharedOwnerPacket {
+                capsule,
+                ticket,
+                region,
+                base,
+                cursor,
+                lease_key,
+            })
+        } else {
+            proof_assert!(region.inner_logic() == None);
+            SharedReadonlyPromotion::NotUnique(SharedReadonlyPacket {
+                capsule,
+                ticket,
+                base,
+                cursor,
+                len,
+                lease_key,
+            })
+        }
     }
 }
 
@@ -4027,6 +4689,206 @@ impl SharedReadonlyPacket {
     #[ensures(result.inner_logic() == self.lease_key())]
     pub(crate) fn lease_key_ghost(&self) -> Ghost<ReadyKey> {
         self.lease_key
+    }
+
+    /// Observe this packet's real native counter once with Acquire ordering.
+    /// If that same observation is one, reclassify this actual Readonly owner
+    /// and take its actual physical suffix; otherwise return the original
+    /// Readonly packet unchanged. The active header lease is restored through
+    /// the same Context slot on both paths.
+    #[check(terminates)]
+    #[requires(self.invariant())]
+    #[requires(self.capsule_public().0 == header_id as *mut ())]
+    #[requires(context.inner_logic().invariant())]
+    #[requires(context.inner_logic().token_namespaces().contains(event_namespace()))]
+    #[requires(self.lease_key().slot() < context.inner_logic().ready_len())]
+    #[requires(header_lease_ready_entry_idle(
+        context.inner_logic().ready_entry_state(self.lease_key().slot()),
+        self.lease_key().resource_id(), self.lease_key().slot(),
+        self.lease_key().resource_id()))]
+    #[ensures(result.0@ > 0)]
+    #[ensures(result.0@ == header_lease_ready_entry_count(
+        context.inner_logic().ready_entry_state(self.lease_key().slot()),
+        self.lease_key().resource_id(), self.lease_key().slot()))]
+    #[ensures((^context.inner_logic()).invariant())]
+    #[ensures((^context.inner_logic()).token_namespaces() ==
+        context.inner_logic().token_namespaces())]
+    #[ensures((^context.inner_logic()).ready_len() == context.inner_logic().ready_len())]
+    #[ensures(header_lease_ready_entry_idle(
+        (^context.inner_logic()).ready_entry_state(self.lease_key().slot()),
+        self.lease_key().resource_id(), self.lease_key().slot(),
+        self.lease_key().resource_id()))]
+    #[ensures(header_lease_ready_entry_count(
+        (^context.inner_logic()).ready_entry_state(self.lease_key().slot()),
+        self.lease_key().resource_id(), self.lease_key().slot()) == result.0@)]
+    #[ensures(forall<index: Int>
+        0 <= index && index < context.inner_logic().ready_len() &&
+        index != self.lease_key().slot() ==>
+            (^context.inner_logic()).ready_entry_state(index) ==
+                context.inner_logic().ready_entry_state(index))]
+    #[ensures(match result.1 {
+        SharedReadonlyPromotion::Unique(packet) =>
+            result.0@ == 1 && packet.invariant() &&
+            packet.capsule.inner_logic() == self.capsule.inner_logic() &&
+            packet.capsule_public() == self.capsule_public() &&
+                    packet.ticket.inner_logic().allocation_binding() ==
+                        self.ticket.inner_logic().allocation_binding() &&
+            packet.ticket.inner_logic().owner_id() == self.ticket.inner_logic().owner_id() &&
+            packet.ticket.inner_logic().class() == RefKind::Mutable &&
+            packet.ticket.inner_logic().owned_lo() == self.cursor@.unwrap_logic().2 &&
+            packet.ticket.inner_logic().owned_hi() ==
+                self.ticket.inner_logic().allocation_binding().2 &&
+            packet.region.inner_logic().lo() == self.cursor@.unwrap_logic().2 &&
+            packet.region.inner_logic().hi() ==
+                self.ticket.inner_logic().allocation_binding().2 &&
+            packet.region.inner_logic().capacity() ==
+                self.ticket.inner_logic().allocation_binding().2 &&
+            packet.ticket.inner_logic().owned_hi() ==
+                self.ticket.inner_logic().allocation_binding().2 &&
+            packet.cursor@ != None &&
+            self.cursor@.unwrap_logic().2 + self.len@ <=
+                packet.region.inner_logic().hi() &&
+            (forall<index: Int> 0 <= index && index < self.len@ ==>
+                slot_known(packet.region.inner_logic().slot(
+                    self.cursor@.unwrap_logic().2 + index))) &&
+            packet.base == self.base && packet.cursor == self.cursor &&
+            packet.lease_key() == self.lease_key(),
+        SharedReadonlyPromotion::NotUnique(packet) =>
+            result.0@ != 1 && packet.invariant() &&
+            packet.capsule.inner_logic() == self.capsule.inner_logic() &&
+            packet.ticket.inner_logic() == self.ticket.inner_logic() &&
+            packet.base == self.base && packet.cursor == self.cursor &&
+            packet.len@ == self.len@ && packet.lease_key() == self.lease_key(),
+    })]
+    pub(crate) fn acquire_and_promote_unique(
+        self,
+        header_id: *const (),
+        context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
+    ) -> (usize, SharedReadonlyPromotion) {
+        let source = snapshot!(self);
+        let SharedReadonlyPacket { capsule, ticket, base, cursor, len, lease_key } = self;
+        let mut context_ref = ghost!(context.into_inner());
+        let lo: Snapshot<Int> = snapshot!(cursor@.unwrap_logic().2);
+        let visible_hi_for_transition: Snapshot<Int> =
+            snapshot!(ticket.inner_logic().owned_hi());
+        let visible_hi_for_frame: Snapshot<Int> =
+            snapshot!(ticket.inner_logic().owned_hi());
+        proof_assert!(*visible_hi_for_transition == ticket.inner_logic().owned_hi());
+        proof_assert!(*visible_hi_for_frame == ticket.inner_logic().owned_hi());
+
+        let loan = ghost! {
+            BorrowedSharedContext::prove_ready_has_key_from_entry(
+                Ghost::new(&**context_ref), lease_key,
+            );
+            SharedReleasePacket::try_take_header_read_loan_for(
+                capsule,
+                lease_key,
+                Ghost::new(&*ticket),
+                Ghost::new(&mut **context_ref),
+            ).into_inner().unwrap()
+        };
+        let loan_ref = loan.borrow();
+        let root_ref = ghost!(loan_ref.into_inner().root.as_ref());
+        let counter = loaned_native_counter(header_id.cast(), root_ref);
+        let (value, output) = counter.load_acquire_with_frame(
+            ghost! { capsule.into_inner().to_ref() },
+            loan_ref,
+            ghost!(
+                #[requires(
+                    payload.invariant() && payload.protocol() &&
+                    payload.counter_model() == *loan.state.counter_model &&
+                    payload.agrees_with_value(value) &&
+                    ticket.inner_logic().invariant() &&
+                    ticket.inner_logic().ledger_id() == payload.ledger_id &&
+                    ticket.inner_logic().class() == RefKind::Readonly &&
+                    ticket.inner_logic().allocation_binding() == *payload.allocation_binding &&
+                    *lo == cursor@.unwrap_logic().2 &&
+                    ticket.inner_logic().owned_lo() <= *lo &&
+                    *lo <= ticket.inner_logic().owned_hi() &&
+                    *visible_hi_for_transition ==
+                        ticket.inner_logic().owned_hi() &&
+                    *visible_hi_for_frame == *visible_hi_for_transition &&
+                    loan.invariant() &&
+                    no_active_lend_state(&loan.state) &&
+                    payload.lease.resource_id() ==
+                        loan.state.lease_id
+                )]
+                #[ensures(
+                    (^payload).invariant() && (^payload).protocol() &&
+                    (^payload).public() == payload.public() &&
+                    (^payload).counter_model() == payload.counter_model() &&
+                    (^payload).agrees_with_value(value) &&
+                    value@ > 0 &&
+                    result.invariant() &&
+                    (^payload).allocation_binding == payload.allocation_binding &&
+                    (^payload).header_vec == payload.header_vec &&
+                    (^payload).original_capacity_repr == payload.original_capacity_repr &&
+                    (^payload).root == payload.root &&
+                    (^payload).storage == payload.storage &&
+                    (^payload).phase == payload.phase &&
+                    (^payload).retire == payload.retire &&
+                    (^payload).terminal_action == payload.terminal_action &&
+                    (^payload).lease == payload.lease &&
+                    (^payload).lease_key == payload.lease_key &&
+                    (^payload).lease_generation == payload.lease_generation &&
+                    (^payload).closed == payload.closed &&
+                    header_lease_count(
+                        loan.state.lease_cap.fragment_value(),
+                    ) == value@ &&
+                    *result.visible_hi ==
+                        old(*visible_hi_for_frame) &&
+                    match result.region {
+                        Some(region) => value@ == 1 &&
+                            result.ticket.inner_logic().class() == RefKind::Mutable &&
+                            result.ticket.inner_logic().owner_id() ==
+                                old(ticket.inner_logic().owner_id()) &&
+                            result.ticket.inner_logic().ledger_id() ==
+                                old(ticket.inner_logic().ledger_id()) &&
+                            result.ticket.inner_logic().fragment_resource_id() ==
+                                old(ticket.inner_logic().fragment_resource_id()) &&
+                            result.ticket.inner_logic().allocation_binding() ==
+                                old(ticket.inner_logic().allocation_binding()) &&
+                            result.ticket.inner_logic().owned_lo() == old(*lo) &&
+                            result.ticket.inner_logic().owned_hi() ==
+                                old(ticket.inner_logic().allocation_binding().2) &&
+                            region.inner_logic().namespace() ==
+                                old(ticket.inner_logic().allocation_binding().0) &&
+                            region.inner_logic().capacity() ==
+                                old(ticket.inner_logic().allocation_binding().2) &&
+                            region.inner_logic().lo() == old(*lo) &&
+                            region.inner_logic().hi() ==
+                                old(ticket.inner_logic().allocation_binding().2),
+                        None => value@ != 1 &&
+                            result.ticket.inner_logic() ==
+                                old(ticket.inner_logic()),
+                    }
+                )]
+                move |payload: &mut SharedPayload, value: usize,
+                      loan: &SharedHeaderReadLoan| {
+                    let ticket = ticket.into_inner();
+                    payload.prove_live_owner_ticket(&ticket);
+                    SharedPayload::prove_current_header_lease(
+                        Ghost::new(&*payload), Ghost::new(&loan.state),
+                    );
+                    let transition = SharedPayload::transition_unique_readonly_owner(
+                        Ghost::new(payload), Ghost::new(ticket),
+                        Ghost::new(&loan.state), value, lo,
+                        visible_hi_for_transition,
+                    );
+                    transition.into_inner()
+                }
+            ),
+        );
+
+        let restore_context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>> =
+            ghost! { &mut **context_ref };
+        SharedOwnerPacket::restore_lease_after_owner_release(
+            capsule, lease_key, restore_context, loan,
+        );
+        let promoted = SharedReadonlyOwnerTransition::finish_acquire_promotion(
+            source, capsule, base, cursor, len, lease_key, value, output,
+        );
+        (value, promoted)
     }
 
     /// Take this packet's actual Readonly ticket span out of the payload pool
@@ -4337,6 +5199,8 @@ impl SharedReadonlyPacket {
             self.ticket.inner_logic().invariant() &&
             self.ticket.inner_logic().ledger_id() == self.capsule_public().2 &&
             self.ticket.inner_logic().class() == RefKind::Readonly &&
+            (self.capsule_public().0.addr_logic() & super::KIND_MASK) ==
+                super::KIND_ARC &&
             self.ticket.inner_logic().allocation_binding() ==
                 self.capsule_allocation_binding() &&
             self.base.invariant() && self.cursor.invariant() &&
@@ -5960,6 +6824,7 @@ impl SharedReleasePacket {
 )]
 #[requires(context.inner_logic().invariant())]
 #[requires(context.inner_logic().token_namespaces().contains(event_namespace()))]
+#[requires((header_id.addr_logic() & super::KIND_MASK) == super::KIND_ARC)]
 #[ensures((^context.inner_logic()).invariant())]
 #[ensures(result.capsule.inner_logic().val().namespace() == event_namespace())]
 #[ensures(result.capsule_public() ==
@@ -5994,6 +6859,8 @@ impl SharedReleasePacket {
 #[ensures(result.region.inner_logic().lo() == 0)]
 #[ensures(result.region.inner_logic().hi() == result.region.inner_logic().capacity())]
 #[ensures(result.invariant())]
+#[ensures((result.capsule_public().0.addr_logic() & super::KIND_MASK) ==
+    super::KIND_ARC)]
 #[check(terminates)]
 pub(crate) fn make_count_one_packet(
     header_id: *mut Shared,
@@ -6136,6 +7003,7 @@ pub(crate) fn make_count_one_packet(
 )]
 #[requires(context.inner_logic().invariant())]
 #[requires(context.inner_logic().token_namespaces().contains(event_namespace()))]
+#[requires((header_id.addr_logic() & super::KIND_MASK) == super::KIND_ARC)]
 #[ensures((^context.inner_logic()).invariant())]
 #[ensures(result.0.capsule.inner_logic().val().namespace() == event_namespace())]
 #[ensures(result.0.invariant() && result.1.invariant())]
@@ -6186,6 +7054,8 @@ pub(crate) fn make_count_one_packet(
     result.0.capsule_public().2 &&
     result.1.ticket.inner_logic().fragment_resource_id() ==
         result.1.capsule_public().2)]
+#[ensures((result.0.capsule_public().0.addr_logic() & super::KIND_MASK) ==
+    super::KIND_ARC)]
 #[ensures((^context.inner_logic()).token_namespaces() ==
     context.inner_logic().token_namespaces())]
 #[ensures((^context.inner_logic()).ready_len() ==

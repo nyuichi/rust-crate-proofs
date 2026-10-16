@@ -133,11 +133,11 @@ type t_Bytes = {
   original_boxed'2: t_Option_OriginalBoxedProof;
   original_spare_shared'2: t_Option_OriginalSpareSharedProof }
 
-predicate invariant_SharedReadonlyPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3953 4 3953 30] (self: t_SharedReadonlyPacket)
+predicate invariant_SharedReadonlyPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 4492 4 4492 30] (self: t_SharedReadonlyPacket)
 
 predicate resolve_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
 
-predicate invariant_EventBoundInvariant_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 665 8 665 34] (self: t_EventBoundInvariant_SharedPayload)
+predicate invariant_EventBoundInvariant_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 666 8 666 34] (self: t_EventBoundInvariant_SharedPayload)
 
 predicate inv_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
 
@@ -163,7 +163,7 @@ predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivi
 
 meta "rewrite_def" predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload
 
-predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 393 4 393 30] (self: t_OwnerTicket)
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 423 4 423 30] (self: t_OwnerTicket)
 
 predicate inv_OwnerTicket (_1: t_OwnerTicket)
 
@@ -349,7 +349,7 @@ function val_ptr_Shared (self: t_Perm_ptr_Shared) : t_Shared
 
 function metadata_Shared (_1: Opaque.ptr) : ()
 
-predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 672 8 672 34] (self: t_RefCountCell)
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 673 8 673 34] (self: t_RefCountCell)
 
 predicate inv_RefCountCell (_1: t_RefCountCell)
 
@@ -463,7 +463,7 @@ type t_NativeCounter
 
 type tup4_ptr_unit_NativeCounter_Id_Id = { f0'8: Opaque.ptr; f1'8: t_NativeCounter; f2'8: t_Id; f3'8: t_Id }
 
-function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3983 4 3983 74] (self: t_SharedReadonlyPacket) : tup4_ptr_unit_NativeCounter_Id_Id
+function capsule_public [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 4645 4 4645 74] (self: t_SharedReadonlyPacket) : tup4_ptr_unit_NativeCounter_Id_Id
 
 predicate readonly_packet_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 379 4 379 53] (self: t_Bytes) =
   [%#sbytes'15] match { f0'7 = self.readonly_packet'2; f1'7 = self.readonly_cell_permission'2 } with
@@ -489,7 +489,7 @@ function unwrap_Option_SharedReadonlyPacket (self: t_Option_SharedReadonlyPacket
 function readonly_packet_state [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 420 4 420 111] (self: t_Bytes) : t_Option_SharedReadonlyPacket
  = [%#sbytes'16] self.readonly_packet'2
 
-function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 281 4 281 40] (self: t_OwnerTicket) : int
+function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 311 4 311 40] (self: t_OwnerTicket) : int
 
 type t_RefKind = Mutable | Readonly
 
@@ -516,17 +516,17 @@ function unwrap_Option_tup7_Id_Int_Id_RefKind_tup3_Id_ptr_u8_Int_Int_Int (self: 
     | None'5 -> any_tup7_Id_Int_Id_RefKind_tup3_Id_ptr_u8_Int_Int_Int
     end
 
-function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 276 4 276 39] (self: t_OwnerTicket) : t_Id
+function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 306 4 306 39] (self: t_OwnerTicket) : t_Id
 
-function fragment_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 286 4 286 50] (self: t_OwnerTicket) : t_Id
+function fragment_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 316 4 316 50] (self: t_OwnerTicket) : t_Id
 
-function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 313 4 313 41] (self: t_OwnerTicket) : t_RefKind
+function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 343 4 343 41] (self: t_OwnerTicket) : t_RefKind
 
-function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 308 4 308 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
+function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 338 4 338 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
 
-function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 323 4 323 40] (self: t_OwnerTicket) : int
+function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 353 4 353 40] (self: t_OwnerTicket) : int
 
-function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 328 4 328 40] (self: t_OwnerTicket) : int
+function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 358 4 358 40] (self: t_OwnerTicket) : int
 
 function readonly_packet_ticket_frame [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 448 4 456 6] (self: t_Bytes) : t_Option_tup7_Id_Int_Id_RefKind_tup3_Id_ptr_u8_Int_Int_Int
  = [%#sbytes'17] match self.readonly_packet'2 with

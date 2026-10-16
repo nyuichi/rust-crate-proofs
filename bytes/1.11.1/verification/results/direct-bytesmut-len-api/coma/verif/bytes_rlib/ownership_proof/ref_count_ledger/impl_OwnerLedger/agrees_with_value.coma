@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 507 4 507 61 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 537 4 537 61 *)
 
 (* ownership_proof::ref_count_ledger::OwnerLedger *)
 
@@ -13,15 +13,15 @@ let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
 let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 45 14 45 31
 let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
-let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 506 14 506 67
-let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1210 8 1210 20
-let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 501 8 501 31
-let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 514 12 529 13
-let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 491 20 494 9
-let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 169 8 172 9
-let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 179 8 184 9
+let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 536 14 536 67
+let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1265 8 1265 20
+let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 531 8 531 31
+let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 544 12 559 13
+let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 521 20 524 9
+let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 199 8 202 9
+let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 209 8 214 9
 let%span sref_count_ledger'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 44 8 45 31
-let%span sref_count_ledger'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 158 8 162 9
+let%span sref_count_ledger'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 188 8 192 9
 
 use creusot.prelude.Opaque
 use map.Map
@@ -91,7 +91,7 @@ predicate owner_binding_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/o
   [%#sref_count_ledger'6] owner.f0'1 = allocation
   /\ 0 <= owner.f2'1 /\ owner.f2'1 <= owner.f3'1 /\ owner.f3'1 <= allocation.f2
 
-predicate owner_ranges_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 167 0 167 86] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (allocation: tup3_Id_ptr_u8_Int) =
+predicate owner_ranges_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 197 0 197 86] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (allocation: tup3_Id_ptr_u8_Int) =
   [%#sref_count_ledger'4] forall id: int. match get_Int owners id with
       | Some'0 {f0'2 = owner} -> owner_binding_valid owner allocation
       | None'0 -> true
@@ -103,13 +103,13 @@ type tup2_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int_Option_Excl_tup4_t
 
 type tup2_RefKind_RefKind = { f0'4: t_RefKind; f1'4: t_RefKind }
 
-predicate spans_compatible [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 156 0 156 68] (left: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (right: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+predicate spans_compatible [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 186 0 186 68] (left: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (right: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
   [%#sref_count_ledger'7] match { f0'4 = left.f1'1; f1'4 = right.f1'1 } with
     | {f0'4 = Readonly; f1'4 = Readonly} -> true
     | _ -> left.f2'1 = left.f3'1 \/ right.f2'1 = right.f3'1 \/ left.f3'1 <= right.f2'1 \/ right.f3'1 <= left.f2'1
     end
 
-predicate owner_ranges_disjoint [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 177 0 177 69] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+predicate owner_ranges_disjoint [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 207 0 207 69] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
   [%#sref_count_ledger'5] forall left_id: int, right_id: int. match { f0'3 = get_Int owners left_id;
                                                                       f1'3 = get_Int owners right_id } with
       | {f0'3 = Some'0 {f0'2 = left}; f1'3 = Some'0 {f0'2 = right}} -> left_id = right_id \/ spans_compatible left right
@@ -121,7 +121,7 @@ predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr
 
 meta "rewrite_def" predicate contains_Int
 
-predicate valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 512 4 512 26] (self: t_OwnerLedger) =
+predicate valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 542 4 542 26] (self: t_OwnerLedger) =
   [%#sref_count_ledger'2] 0 <= self.next_id
   /\ match { f0'0 = self.live; f1'0 = self.authority } with
     | {f0'0 = True; f1'0 = Some authority'0} -> invariant_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0
@@ -140,7 +140,7 @@ predicate valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof
     | _ -> false
     end
 
-predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1209 4 1209 30] (self: t_OwnerLedger) =
+predicate invariant_OwnerLedger [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1264 4 1264 30] (self: t_OwnerLedger) =
   [%#sref_count_ledger'0] valid self
 
 constant empty_Int : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
@@ -149,13 +149,13 @@ axiom empty_Int_spec: [%#sfmap'2] len_Int empty_Int = 0
 
 axiom empty_Int_spec'0: [%#sfmap'3] to_mapping_Int empty_Int = Const.const (None'0)
 
-function active_ids [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 490 4 490 54] (self: t_OwnerLedger) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+function active_ids [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 520 4 520 54] (self: t_OwnerLedger) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
  = [%#sref_count_ledger'3] match self.authority with
     | Some authority'0 -> view_Authority_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int authority'0
     | None -> empty_Int
     end
 
-function count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 500 4 500 36] (self: t_OwnerLedger) : int
+function count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 530 4 530 36] (self: t_OwnerLedger) : int
  = [%#sref_count_ledger'1] len_Int (active_ids self)
 
 meta "compute_max_steps" 1000000
@@ -166,7 +166,7 @@ constant self : t_OwnerLedger
 
 constant value : int
 
-predicate agrees_with_value [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 507 4 507 61] (self: t_OwnerLedger) (value: int)
+predicate agrees_with_value [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 537 4 537 61] (self: t_OwnerLedger) (value: int)
 
 goal vc_agrees_with_value: if invariant_OwnerLedger self then
     [@stop_split] [@expl:agrees_with_value ensures] [%#sref_count_ledger] (count self = value)

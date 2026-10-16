@@ -189,6 +189,20 @@ disposes the sibling with the same Context. It proves the actual count sequence
 proof; it does not prove public `BytesMut::freeze` dispatch, static vtable
 identity, or automatic Drop.
 
+A second selected composition covers the unique recovery branch. It splits a
+unique allocation, explicitly disposes one handle so the survivor's actual
+count is one, freezes the survivor through the private shared-view helper, then
+uses the original unique-promotion source helper with the actual ticket,
+physical region, and caller Context. One Acquire result selects the count-one
+transition; the helper lends the real `[cursor, allocation_capacity)` suffix,
+including Unknown spare slots, and returns a Mutable view over the same
+allocation. The proof truncates and explicitly disposes that view, leaving the
+Context's final tombstone. This selected sequence proves the private
+count-one transition and its inputs; it does not prove public
+`BytesMut::from(Bytes)` dispatch, static vtable identity, or automatic Drop.
+The focused native regression also checks that the original public path keeps
+the allocation pointer, spare capacity, and visible bytes at a nonzero offset.
+
 The selected targets also body-prove an affine `OwnedSharedContext` and its
 borrowed view. Construction consumes a caller-supplied token set and starts
 with an empty registry; reborrows preserve the actual token namespaces and

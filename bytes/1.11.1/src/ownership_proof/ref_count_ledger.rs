@@ -152,6 +152,36 @@ pub(crate) fn prove_owner_reclassification_effect(
                 !(ticket.owned_lo() <= index && index < ticket.owned_hi())));
 }
 
+/// Reclassifying one Readonly owner as Mutable adds exactly its new owned
+/// interval to the set of slots covered by Mutable registrations. This is
+/// the inverse of the Readonly transition above; the active map update itself
+/// remains the actual exclusive ticket update performed by `reclassify`.
+#[check(ghost)]
+#[requires(ticket.invariant() && ticket.class() == RefKind::Readonly)]
+#[requires((*before).get(ticket.owner_id()) ==
+    Some(Excl(ticket.owner_binding())))]
+#[requires(*after == (*before).insert(ticket.owner_id(), Excl((
+    ticket.allocation_binding(), RefKind::Mutable, *new_lo, *new_hi,
+))))]
+#[requires(ticket.owned_lo() <= *new_lo && *new_lo <= ticket.owned_hi())]
+#[requires(*new_lo <= *new_hi && *new_hi <= ticket.allocation_binding().2)]
+#[ensures(forall<index: Int>
+    active_mutable_contains(*after, index) ==
+        (active_mutable_contains(*before, index) ||
+            (*new_lo <= index && index < *new_hi)))]
+pub(crate) fn prove_owner_readonly_to_mutable_effect(
+    before: Snapshot<ActiveReferences>,
+    after: Snapshot<ActiveReferences>,
+    ticket: Snapshot<OwnerTicket>,
+    new_lo: Snapshot<Int>,
+    new_hi: Snapshot<Int>,
+) {
+    proof_assert!(forall<index: Int>
+        active_mutable_contains(*after, index) ==
+            (active_mutable_contains(*before, index) ||
+                (*new_lo <= index && index < *new_hi)));
+}
+
 #[logic]
 fn spans_compatible(left: OwnerBinding, right: OwnerBinding) -> bool {
     pearlite! {
@@ -623,6 +653,31 @@ impl OwnerLedger {
         proof_assert!(binding_compatible_with_map((
             ticket.allocation_binding(), RefKind::Readonly, *visible_lo, *visible_hi,
         ), self.active_ids(), ticket.owner_id()));
+    }
+
+    /// Project compatibility for any proposed binding of a genuine count-one
+    /// ticket. The actual ticket proves the singleton active map; this checked
+    /// boundary keeps the ledger's internal compatibility predicate reusable
+    /// without exposing its definition to callers.
+    #[check(ghost)]
+    #[requires(self.invariant() && self.is_live() && self.count() == 1)]
+    #[requires(ticket.invariant())]
+    #[requires(ticket.ledger_id() == self.ledger_id() && self.has_ticket(*ticket))]
+    #[requires((*new_binding).0 == self.allocation_binding())]
+    #[requires(0 <= (*new_binding).2 && (*new_binding).2 <= (*new_binding).3 &&
+        (*new_binding).3 <= self.allocation_binding().2)]
+    #[ensures(binding_compatible_with_map(
+        *new_binding, self.active_ids(), ticket.owner_id()))]
+    pub(crate) fn prove_singleton_reclassification_compatible(
+        &self,
+        ticket: &OwnerTicket,
+        new_binding: Snapshot<OwnerBinding>,
+    ) {
+        self.prove_ticket_is_active(ticket);
+        sole_active_id(snapshot!(*self), snapshot!(*ticket));
+        proof_assert!(binding_compatible_with_map(
+            *new_binding, self.active_ids(), ticket.owner_id(),
+        ));
     }
 
     /// A Mutable ticket's interval is represented in the live authority map.

@@ -414,6 +414,62 @@ impl View for NativeStoredVec {
     }
 }
 
+impl NativeStoredVec {
+    /// Read only the pointer, length, and capacity of the retained Vec.
+    ///
+    /// This generic Std boundary exposes the opaque Vec metadata view and
+    /// leaves its value unchanged. It does not expose the Vec contents or
+    /// grant allocation access.
+    #[cfg_attr(creusot, trusted)]
+    #[cfg_attr(creusot, ensures(result.0 == self@.0))]
+    #[cfg_attr(creusot, ensures(result.1@ == self@.1))]
+    #[cfg_attr(creusot, ensures(result.2@ == self@.2))]
+    #[cfg_attr(creusot, ensures((^self) == *self))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), check(terminates))]
+    fn metadata(&mut self) -> (*mut u8, usize, usize) {
+        let vec = &mut *self.0;
+        (vec.as_mut_ptr(), vec.len(), vec.capacity())
+    }
+
+    /// Apply `offset_from` while this actual Vec owner keeps its allocation
+    /// live. B1 descriptors identify the exact operands and establish that
+    /// they are in the same allocation; the borrow of `self` supplies the
+    /// live Vec owner required by Rust's pointer-distance operation.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), trusted)]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base == base_descriptor.raw_pointer() as *const u8))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor.invariant() && cursor@ != None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base_descriptor.invariant() && base_descriptor@ != None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(pointer == cursor.raw_pointer() as *const u8))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base_descriptor.raw_pointer() == self@.0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().0 == base_descriptor@.unwrap_logic().0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().1 == base_descriptor@.unwrap_logic().1))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().1 == self@.2))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base_descriptor@.unwrap_logic().2 == 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().2 <= self@.2))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(region.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(region.inner_logic().namespace() == base_descriptor@.unwrap_logic().0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(region.inner_logic().capacity() == base_descriptor@.unwrap_logic().1))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(region.inner_logic().lo() <= cursor@.unwrap_logic().2))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().2 <= region.inner_logic().hi()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == cursor@.unwrap_logic().2))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self) == *self))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), check(terminates))]
+    #[inline]
+    unsafe fn offset_from_bound(
+        &mut self,
+        pointer: *const u8,
+        base: *const u8,
+        #[cfg(all(creusot, bytes_original_unique_gate))] base_descriptor: &BoundPtr,
+        #[cfg(all(creusot, bytes_original_unique_gate))] cursor: &BoundPtr,
+        #[cfg(all(creusot, bytes_original_unique_gate))] region: Ghost<&PhysicalRegion>,
+    ) -> isize {
+        let _ = self;
+        // SAFETY: `self` remains the actual Vec owner for this operation;
+        // the descriptors bind these exact pointer operands to its allocation.
+        unsafe { pointer.offset_from(base) }
+    }
+}
+
 /// A native Vec allocation retained behind a non-accessible storage handle.
 ///
 /// The outer ghost metadata is body-updatable. Its zero-sized field preserves
@@ -933,10 +989,100 @@ impl VecStorage {
     /// pointer grants no byte access by itself; access still requires the
     /// matching physical region capability.
     #[inline]
-    #[cfg_attr(creusot, creusot::no_translate)]
+    #[cfg_attr(creusot, ensures(result.0 == self.native_metadata().0))]
+    #[cfg_attr(creusot, ensures(result.1@ == self.native_metadata().1))]
+    #[cfg_attr(creusot, ensures(result.2@ == self.native_metadata().2))]
+    #[cfg_attr(creusot, ensures((^self) == *self))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), check(terminates))]
     pub(crate) fn metadata(&mut self) -> (*mut u8, usize, usize) {
-        let vec = &mut *self.0.0;
-        (vec.as_mut_ptr(), vec.len(), vec.capacity())
+        self.0.metadata()
+    }
+
+    /// Read native metadata while exposing its already-established relation
+    /// to this exact stored allocation. The authority is value metadata only;
+    /// the Vec owner remains borrowed here and the caller still needs the
+    /// matching physical capability for byte access.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    #[requires(self.invariant())]
+    #[requires((*authority.inner_logic()).invariant())]
+    #[requires(self.matches_authority(*authority.inner_logic()))]
+    #[ensures(result.0 == (*authority.inner_logic()).raw_pointer())]
+    #[ensures(result.1@ == (*authority.inner_logic()).stored_len())]
+    #[ensures(result.2@ == (*authority.inner_logic()).capacity())]
+    #[ensures(result.0 == self.native_metadata().0)]
+    #[ensures(result.1@ == self.native_metadata().1)]
+    #[ensures(result.2@ == self.native_metadata().2)]
+    #[ensures((^self) == *self)]
+    #[check(terminates)]
+    pub(crate) fn metadata_for_authority(
+        &mut self,
+        authority: Ghost<Snapshot<StoredAuthority>>,
+    ) -> (*mut u8, usize, usize) {
+        let metadata = self.metadata();
+        proof_assert!(metadata.0 == (*authority.inner_logic()).raw_pointer());
+        proof_assert!(metadata.1@ == (*authority.inner_logic()).stored_len());
+        proof_assert!(metadata.2@ == (*authority.inner_logic()).capacity());
+        metadata
+    }
+
+    /// Project the facts hidden by the opaque allocation-matching predicate.
+    /// This observes an existing VecStorage/StoredAuthority relation and
+    /// returns no allocation or byte-access permission.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    #[requires(self.matches_authority(*authority.inner_logic()))]
+    #[ensures((*authority.inner_logic()).invariant())]
+    #[ensures(self.native_metadata().0 == (*authority.inner_logic()).raw_pointer())]
+    #[ensures(self.native_metadata().1 == (*authority.inner_logic()).stored_len())]
+    #[ensures(self.native_metadata().2 == (*authority.inner_logic()).capacity())]
+    #[check(ghost)]
+    pub(crate) fn prove_authority_matches(&self, authority: Ghost<Snapshot<StoredAuthority>>) {
+        proof_assert!((*authority.inner_logic()).invariant());
+        proof_assert!(self.native_metadata().0 == (*authority.inner_logic()).raw_pointer());
+        proof_assert!(self.native_metadata().1 == (*authority.inner_logic()).stored_len());
+        proof_assert!(self.native_metadata().2 == (*authority.inner_logic()).capacity());
+    }
+
+    /// Keep the actual Vec owner borrowed while measuring the distance from
+    /// its allocation base to a B1-bound cursor. This is pointer metadata
+    /// only; the descriptors and Vec borrow grant no byte access.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor.invariant() && cursor@ != None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base_descriptor.invariant() && base_descriptor@ != None))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base == base_descriptor.raw_pointer() as *const u8))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(pointer == cursor.raw_pointer() as *const u8))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base_descriptor.raw_pointer() == self.native_metadata().0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().0 == base_descriptor@.unwrap_logic().0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().1 == base_descriptor@.unwrap_logic().1))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().1 == self.native_metadata().2))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(base_descriptor@.unwrap_logic().2 == 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().2 <= self.native_metadata().2))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(region.inner_logic().invariant()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(region.inner_logic().namespace() == base_descriptor@.unwrap_logic().0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(region.inner_logic().capacity() == base_descriptor@.unwrap_logic().1))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(region.inner_logic().lo() <= cursor@.unwrap_logic().2))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(cursor@.unwrap_logic().2 <= region.inner_logic().hi()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == cursor@.unwrap_logic().2))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self) == *self))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), check(terminates))]
+    #[inline]
+    pub(crate) unsafe fn offset_from_bound(
+        &mut self,
+        pointer: *const u8,
+        base: *const u8,
+        #[cfg(all(creusot, bytes_original_unique_gate))] base_descriptor: &BoundPtr,
+        #[cfg(all(creusot, bytes_original_unique_gate))] cursor: &BoundPtr,
+        #[cfg(all(creusot, bytes_original_unique_gate))] region: Ghost<&PhysicalRegion>,
+    ) -> isize {
+        // SAFETY: the body retains the actual VecStorage borrow through the
+        // generic native Vec `offset_from` operation.
+        unsafe {
+            self.0.offset_from_bound(
+                pointer,
+                base,
+                #[cfg(all(creusot, bytes_original_unique_gate))] base_descriptor,
+                #[cfg(all(creusot, bytes_original_unique_gate))] cursor,
+                #[cfg(all(creusot, bytes_original_unique_gate))] region,
+            )
+        }
     }
 
     /// Mutate Vec length after the caller has physically initialized the
@@ -997,6 +1143,74 @@ impl VecStorage {
         // must dispose the returned Vec exactly once through the B3 boundary.
         unsafe { ManuallyDrop::take(&mut storage.0.0) }
     }
+}
+
+/// Read the native Vec metadata and measure the current view offset in one
+/// source body. Both the original callback and the proof-backed entry use
+/// this helper; the caller supplies the actual VecStorage borrow, while the
+/// proof-only descriptors and region witness bind the pointer distance to a
+/// live allocation without granting byte access.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(storage.invariant()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires((*authority.inner_logic()).invariant()))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    storage.matches_authority(*authority.inner_logic())
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    base.invariant() && base@ != None &&
+    cursor.invariant() && cursor@ != None &&
+    pointer == cursor.raw_pointer() as *const u8 &&
+    base.raw_pointer() == (*authority.inner_logic()).raw_pointer() &&
+    base@.unwrap_logic().0 == (*authority.inner_logic()).binding() &&
+    base@.unwrap_logic().1 == (*authority.inner_logic()).capacity() &&
+    cursor@.unwrap_logic().0 == (*authority.inner_logic()).binding() &&
+    cursor@.unwrap_logic().1 == (*authority.inner_logic()).capacity() &&
+    base@.unwrap_logic().2 == 0 &&
+    cursor@.unwrap_logic().2 <= (*authority.inner_logic()).capacity()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    region.inner_logic().invariant() &&
+    region.inner_logic().namespace() == (*authority.inner_logic()).binding() &&
+    region.inner_logic().capacity() == (*authority.inner_logic()).capacity() &&
+    region.inner_logic().lo() <= cursor@.unwrap_logic().2 &&
+    cursor@.unwrap_logic().2 <= region.inner_logic().hi()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.0 == (*authority.inner_logic()).raw_pointer() &&
+    result.1@ == (*authority.inner_logic()).stored_len() &&
+    result.2@ == (*authority.inner_logic()).capacity() &&
+    result.1@ <= result.2@ &&
+    result.3@ == cursor@.unwrap_logic().2 &&
+    (^storage) == *storage
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.0 == (*authority.inner_logic()).raw_pointer() &&
+    result.1@ == (*authority.inner_logic()).stored_len() &&
+    result.2@ == (*authority.inner_logic()).capacity()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), check(terminates))]
+#[inline]
+pub(crate) unsafe fn shared_vec_metadata_offset(
+    storage: &mut VecStorage,
+    pointer: *const u8,
+    #[cfg(all(creusot, bytes_original_unique_gate))] base: &BoundPtr,
+    #[cfg(all(creusot, bytes_original_unique_gate))] cursor: &BoundPtr,
+    #[cfg(all(creusot, bytes_original_unique_gate))] region: Ghost<&PhysicalRegion>,
+    #[cfg(all(creusot, bytes_original_unique_gate))] authority: Ghost<Snapshot<StoredAuthority>>,
+) -> (*mut u8, usize, usize, isize) {
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    let metadata = storage.metadata_for_authority(authority);
+    #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+    let metadata = storage.metadata();
+    let offset = unsafe {
+        storage.offset_from_bound(
+            pointer,
+            metadata.0 as *const u8,
+            #[cfg(all(creusot, bytes_original_unique_gate))] base,
+            #[cfg(all(creusot, bytes_original_unique_gate))] cursor,
+            #[cfg(all(creusot, bytes_original_unique_gate))] region,
+        )
+    };
+    (metadata.0, metadata.1, metadata.2, offset)
 }
 
 /// Consume the one native Vec owner and run its ordinary destructor while

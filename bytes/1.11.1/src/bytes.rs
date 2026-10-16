@@ -563,6 +563,12 @@ impl Bytes {
         (^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
         crate::bytes_mut::shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()), self.readonly_packet_key().unwrap_logic().resource_id(), self.readonly_packet_key().unwrap_logic().slot(), self.readonly_packet_key().unwrap_logic().resource_id())
     ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 1 ==>
+        crate::bytes_mut::shared_capsule::header_lease_ready_entry_count(
+            (^context.inner_logic()).ready_entry_state(
+                self.readonly_packet_key().unwrap_logic().slot()),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot()) == result@ - 1))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == 1 ==>
         !(^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
         (^context.inner_logic()).ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()) == None
@@ -826,6 +832,100 @@ impl Bytes {
                 packet,
                 context,
                 peer_ticket,
+            }),
+        )
+    }
+
+    /// Exercise the original unique Shared-to-BytesMut arm with the actual
+    /// readonly packet and its Context. The one Acquire observation selects
+    /// the unique transition; the shared source helper then performs the
+    /// original metadata, offset, and BytesMut construction statements.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    #[requires(self.readonly_packet_valid())]
+    #[requires(context.inner_logic().invariant())]
+    #[requires(context.inner_logic().token_namespaces().contains(
+        crate::ref_count_ops::event_namespace()))]
+    #[requires(self.readonly_packet_key().unwrap_logic().slot() <
+        context.inner_logic().ready_len())]
+    #[requires(crate::bytes_mut::shared_capsule::header_lease_ready_entry_idle(
+        context.inner_logic().ready_entry_state(
+            self.readonly_packet_key().unwrap_logic().slot()),
+        self.readonly_packet_key().unwrap_logic().resource_id(),
+        self.readonly_packet_key().unwrap_logic().slot(),
+        self.readonly_packet_key().unwrap_logic().resource_id()))]
+    #[requires(crate::bytes_mut::shared_capsule::header_lease_ready_entry_count(
+        context.inner_logic().ready_entry_state(
+            self.readonly_packet_key().unwrap_logic().slot()),
+        self.readonly_packet_key().unwrap_logic().resource_id(),
+        self.readonly_packet_key().unwrap_logic().slot()) == 1)]
+    #[ensures(result.shared_view_valid() && result.buffer_view_valid())]
+    #[ensures(result.shared_layout_valid())]
+    #[ensures(result.unique_length() == self.proof_view_len())]
+    #[ensures(result.unique_pointer() == self.proof_view_pointer() as *mut u8)]
+    #[ensures(result.unique_tag_pointer() ==
+        self.readonly_packet_state().unwrap_logic().capsule_public().0)]
+    #[ensures(result.shared_lease_key() ==
+        self.readonly_packet_key().unwrap_logic())]
+    #[ensures((^context.inner_logic()).invariant())]
+    #[ensures((^context.inner_logic()).token_namespaces() ==
+        context.inner_logic().token_namespaces())]
+    #[ensures((^context.inner_logic()).ready_len() == context.inner_logic().ready_len())]
+    #[ensures(crate::bytes_mut::shared_capsule::header_lease_ready_entry_idle(
+        (^context.inner_logic()).ready_entry_state(
+            self.readonly_packet_key().unwrap_logic().slot()),
+        self.readonly_packet_key().unwrap_logic().resource_id(),
+        self.readonly_packet_key().unwrap_logic().slot(),
+        self.readonly_packet_key().unwrap_logic().resource_id()))]
+    #[ensures(crate::bytes_mut::shared_capsule::header_lease_ready_entry_count(
+        (^context.inner_logic()).ready_entry_state(
+            self.readonly_packet_key().unwrap_logic().slot()),
+        self.readonly_packet_key().unwrap_logic().resource_id(),
+        self.readonly_packet_key().unwrap_logic().slot()) == 1)]
+    #[ensures(forall<i: Int>
+        0 <= i && i < context.inner_logic().ready_len() &&
+        i != self.readonly_packet_key().unwrap_logic().slot() ==>
+            (^context.inner_logic()).ready_entry_state(i) ==
+                context.inner_logic().ready_entry_state(i))]
+    pub(crate) unsafe fn promote_shared_readonly_to_mut_with_context(
+        self,
+        context: Ghost<&mut crate::ownership_proof::shared_context::BorrowedSharedContext<
+            '_, crate::bytes_mut::shared_capsule::HeaderLeaseState,
+        >>,
+    ) -> BytesMut {
+        let mut context_ref = ghost!(context.into_inner());
+        let mut this = self;
+        let packet = this.take_readonly_packet_for_copy();
+        packet.prove_ticket_ledger_matches_capsule();
+        let permission = mem::replace(&mut this.readonly_cell_permission, ghost!(None));
+        let mut permission = ghost! { permission.into_inner().unwrap() };
+        let shared = crate::loom::sync::atomic::NativePtr::exclusive_read(
+            &mut this.data,
+            ghost!(&mut *permission),
+        );
+        let ptr = this.ptr;
+        let len = this.len;
+        core::mem::forget(this);
+
+        let (observed, promotion) = packet.acquire_and_promote_unique(
+            shared.cast(),
+            ghost! { &mut **context_ref },
+        );
+        proof_assert!(observed == 1usize);
+        let packet = match promotion {
+            crate::bytes_mut::shared_capsule::SharedReadonlyPromotion::Unique(packet) => {
+                packet
+            }
+            crate::bytes_mut::shared_capsule::SharedReadonlyPromotion::NotUnique(_) => {
+                panic!("count-one promotion returned a shared packet")
+            }
+        };
+        crate::bytes_mut::shared_v_to_mut_unique(
+            shared.cast(),
+            ptr,
+            len,
+            Some(crate::bytes_mut::SharedReadonlyUniqueProof {
+                packet,
+                context: ghost! { &mut **context_ref },
             }),
         )
     }
@@ -3487,7 +3587,7 @@ mod fuzz {
 #[cfg(all(test, not(loom)))]
 mod original_release_tests {
     use super::Bytes;
-    use crate::Buf;
+    use crate::{Buf, BytesMut};
     use std::vec::Vec;
 
     #[test]
@@ -3534,5 +3634,36 @@ mod original_release_tests {
             .expect("the empty spare-capacity view is unique");
         assert!(empty_mut.is_empty());
         assert_eq!(empty_mut.capacity(), empty_capacity - end);
+    }
+
+    #[test]
+    fn unique_frozen_split_view_reuses_its_allocation_and_spare_capacity() {
+        let mut prefix = BytesMut::with_capacity(64);
+        prefix.extend_from_slice(b"header: tail payload");
+        assert!(prefix.capacity() > prefix.len());
+
+        let mut tail = prefix.split_off(8);
+        let expected = b"tail payload";
+        let pointer = tail.as_ptr();
+        let tail_capacity = tail.capacity();
+        assert_eq!(&tail[..], expected);
+        assert!(tail_capacity > tail.len());
+
+        // Dropping the prefix leaves the frozen tail as the sole Shared owner,
+        // so From<Bytes> exercises the original shared unique-promotion arm.
+        drop(prefix);
+        let readonly = tail.freeze();
+        assert_eq!(readonly.as_ptr(), pointer);
+
+        let mut recovered = BytesMut::from(readonly);
+        assert_eq!(recovered.as_ptr(), pointer);
+        assert_eq!(recovered.capacity(), tail_capacity);
+        assert_eq!(&recovered[..], expected);
+
+        recovered.truncate(4);
+        assert_eq!(&recovered[..], b"tail");
+        recovered.extend_from_slice(b"!");
+        assert_eq!(&recovered[..], b"tail!");
+        drop(recovered);
     }
 }

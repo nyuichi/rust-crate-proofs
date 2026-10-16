@@ -243,6 +243,7 @@ impl RefCountCell {
     /// place the enclosing header at its final address.
     #[cfg_attr(creusot, ensures(result == self.counter_reference()))]
     #[cfg_attr(creusot, ensures(*result == self.counter_model()))]
+    #[cfg_attr(creusot, check(terminates))]
     pub(crate) fn native_counter(&self) -> &NativeCounter {
         &self.counter
     }
@@ -782,6 +783,7 @@ mod proof {
         #[requires(self == &invariant.public().0)]
         #[requires(forall<s: &mut EventState<T>, old: usize>
             s.public() == invariant.public() && s.protocol() &&
+            s.invariant() &&
             s.owner.ward() == self && old == s.owner.val() ==>
                 f.precondition((&mut s.current, old)) &&
                 (forall<a: A> f.postcondition_once((&mut s.current, old), a) ==>
@@ -791,6 +793,7 @@ mod proof {
         )]
         #[ensures(exists<s: &mut EventState<T>, old: usize>
             s.public() == invariant.public() && s.protocol() &&
+            s.invariant() &&
             s.owner.ward() == self && old == s.owner.val() && result.0 == old &&
             f.postcondition_once((&mut s.current, old), *result.1) &&
             (^s).public() == s.public() && (^s).protocol() &&
@@ -811,6 +814,55 @@ mod proof {
                 f.into_inner()(&mut state.current, value)
             };
             (value, output)
+        }
+
+        /// Preserve an explicit generic Ghost frame across the same single
+        /// Acquire adapter. The frame is passed to the callback by value;
+        /// this avoids relying on closure-capture postconditions for facts
+        /// that must be related to the unchanged atomic event state.
+        #[check(terminates)]
+        #[requires(self == &invariant.public().0)]
+        #[requires(forall<s: &mut EventState<T>, old: usize>
+            s.public() == invariant.public() && s.protocol() &&
+            s.invariant() &&
+            s.owner.ward() == self && old == s.owner.val() ==>
+                f.precondition((&mut s.current, old, frame.inner_logic())) &&
+                (forall<a: A> f.postcondition_once(
+                    (&mut s.current, old, frame.inner_logic()), a
+                ) ==>
+                    (^s).current.public() == s.current.public() &&
+                    (^s).current.counter_model() == s.current.counter_model() &&
+                    (^s).current.protocol() && (^s).current.agrees_with_value(old))
+        )]
+        #[ensures(exists<s: &mut EventState<T>, old: usize, a: A>
+            s.public() == invariant.public() && s.protocol() && s.invariant() &&
+            s.owner.ward() == self && old == s.owner.val() && result.0 == old &&
+            result.1.inner_logic() == a &&
+            f.postcondition_once(
+                (&mut s.current, old, frame.inner_logic()), a
+            ) &&
+            (^s).public() == s.public() && (^s).protocol() &&
+            (^s).current.counter_model() == s.current.counter_model() &&
+            (^s).current.protocol() && (^s).current.agrees_with_value(old) &&
+            (^s).owner.val() == old && (^s).owner.ward() == s.owner.ward())]
+        pub(crate) fn load_acquire_with_frame<T, F, A, C>(
+            &self,
+            invariant: Ghost<&EventBoundInvariant<T>>,
+            frame: Ghost<C>,
+            f: Ghost<F>,
+        ) -> (usize, Ghost<A>)
+        where
+            T: CounterProtocol,
+            F: FnGhost + for<'s> FnOnce(&'s mut T, usize, C) -> A,
+        {
+            let callback = ghost! {
+                let callback = f.into_inner();
+                let frame = frame.into_inner();
+                FnGhostWrapper(move |state: &mut T, value: usize| {
+                    callback(state, value, frame)
+                })
+            };
+            self.load_acquire_with(invariant, callback)
         }
 
         #[trusted]
@@ -1000,6 +1052,7 @@ mod proof {
         #[requires(self == &invariant.public().0)]
         #[requires(forall<s: &mut EventState<T>, old: usize>
             s.public() == invariant.public() && s.protocol() &&
+            s.invariant() &&
             s.owner.ward() == self && old == s.owner.val() ==>
                 (old == expected ==>
                     f.precondition((&mut s.current, old, new)) &&
@@ -1070,6 +1123,7 @@ mod proof {
         )]
         #[ensures(exists<s: &mut EventState<T>, old: usize>
             s.public() == invariant.public() && s.protocol() &&
+            s.invariant() &&
             s.owner.ward() == self && old == s.owner.val() && result.0 == old &&
             f.postcondition_once((&mut s.current, old,
                 if old == 0usize { usize::MAX } else { old - 1usize },

@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3654 4 3654 27 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3684 4 3684 27 *)
 
 (* bytes_mut::BytesMut *)
 
@@ -7,12 +7,12 @@ type namespace_other
 type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
 let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3656 19 3656 67
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3659 15 3659 24
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3654 13 3654 17
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3652 65 3652 127
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3654 4 3654 27
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 322 68 322 88
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3686 19 3686 67
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3689 15 3689 24
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3684 13 3684 17
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3682 65 3682 127
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3684 4 3684 27
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 334 68 334 88
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
@@ -206,11 +206,11 @@ axiom inv_axiom'4 [@rewrite]:
       | Some f0'6 -> inv_OriginalUniqueProof f0'6
       end
 
-predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3946 4 3946 30] (self: t_SharedOwnerPacket)
+predicate invariant_SharedOwnerPacket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 4485 4 4485 30] (self: t_SharedOwnerPacket)
 
 predicate resolve_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
 
-predicate invariant_EventBoundInvariant_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 665 8 665 34] (self: t_EventBoundInvariant_SharedPayload)
+predicate invariant_EventBoundInvariant_SharedPayload [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 666 8 666 34] (self: t_EventBoundInvariant_SharedPayload)
 
 predicate inv_EventBoundInvariant_SharedPayload (_1: t_EventBoundInvariant_SharedPayload)
 
@@ -236,7 +236,7 @@ predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload [@inline:trivi
 
 meta "rewrite_def" predicate inv_Ghost_GhostShared_EventBoundInvariant_SharedPayload
 
-predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 393 4 393 30] (self: t_OwnerTicket)
+predicate invariant_OwnerTicket [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 423 4 423 30] (self: t_OwnerTicket)
 
 predicate inv_OwnerTicket (_1: t_OwnerTicket)
 
@@ -292,14 +292,14 @@ predicate inv_ref_BytesMut [@inline:trivial] (_1: t_BytesMut) = invariant_ref_By
 
 meta "rewrite_def" predicate inv_ref_BytesMut
 
-function unique_tag_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 322 4 322 53] (self: t_BytesMut) : Opaque.ptr
+function unique_tag_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 334 4 334 53] (self: t_BytesMut) : Opaque.ptr
  = [%#sbytes_mut'4] self.data
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let kind [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3654 4 3654 27] (self: t_BytesMut)
+let kind [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3684 4 3684 27] (self: t_BytesMut)
   (return (x: UInt64.t)) = {[@stop_split] [@expl:kind 'self' type invariant] [%#sbytes_mut'1] inv_ref_BytesMut self}
   (! bb0
   [ bb0 = s0

@@ -93,6 +93,18 @@ The original nonunique copy/release fallback remains in the native
 false precondition derived from the actual count-one carrier and Acquire
 result; the helper body and that fallback remain unproved.
 
+For the separate `bytes_mut::Shared` count-one promotion path, the generic
+`NativeStoredVec::metadata` boundary observes only the actual stored Vec's
+pointer, length, and capacity and preserves the Vec owner. The generic
+`NativeStoredVec::offset_from_bound` boundary executes the original native
+`offset_from` while that actual Vec and a same-allocation physical-region
+borrow keep the allocation live; B1 descriptors bind the exact base and cursor
+operands. The standard pointer contract permits equal-address pointers or
+pointers within one allocated object. These facts expose pointer distance only,
+not byte access or a Bytes ownership rule. Body-checked `VecStorage` wrappers
+relate the metadata to its matching stored-allocation authority. This is a
+generic Std boundary, not a trusted Bytes-specific promotion rule.
+
 The selected private `Bytes::as_slice` body has boxed and spare-capacity
 branches under `original_borrowable_valid`. Each passes the carrier's matching
 base and actual physical region to the existing B4 shared-read boundary, and
@@ -384,6 +396,11 @@ behavior, but these proofs make no concurrent `Bytes` claim. The generic
 platform abort contract accounts for the overflow error not returning from
 `increment`.
 
+The body-checked `NativeCounter::load_acquire_with_frame` adapter delegates to
+the same one-shot Acquire operation, passing its actual generic Ghost frame to
+the callback and binding the callback output to the returned Ghost value. It
+adds no trusted boundary or Bytes-specific atomic law.
+
 The proof-only `NativePtr<T>` wrapper has two narrow generic trusted
 operations. `new_with_permission` executes one native `AtomicPtr::new(value)`
 and returns a permission for that exact cell with modeled pointer value
@@ -479,6 +496,22 @@ count transition from two owners, to one idle owner, to the final tombstone.
 This sequence does not prove the public freeze dispatch or static vtable
 identity, and it bypasses the automatic Drop wrapper.
 
+A second selected operation sequence exercises the unique branch of the
+original `shared_v_to_mut` source helper. Starting from a unique Vec-backed
+Mutable view, it splits the allocation, explicitly disposes one handle with
+the actual Context, and freezes the surviving shared view. The remaining
+ticket is then the sole live owner at count one. The original one-Acquire
+promotion helper moves that actual Readonly ticket to Mutable over
+`[cursor, allocation_capacity)`, lending the actual physical suffix including
+Unknown spare slots. The resulting view keeps the allocation pointer and
+capacity; the scenario truncates and explicitly disposes it, reaching the
+final Context tombstone. A native regression checks the analogous public path
+at a nonzero offset, preserving the same pointer, spare capacity, and visible
+bytes. This proves the selected private helper and
+context-aware entry under their actual packet and Context preconditions. It
+does not prove the public `BytesMut::from(Bytes)` callback dispatch, static
+vtable identity, or automatic Drop.
+
 The checked common release carrier accepts a Mutable packet with its actual
 physical region or a Readonly packet with its actual ticket and no region. Its
 Readonly body consumes the ticket, leaves the pool unchanged, and reaches the
@@ -523,8 +556,10 @@ the valid-index, normal-return Vec-backed and packet-backed ARC branches of
 public `split_off`, `split_to`, and `split`; they preserve strict Shared
 layout, byte and view geometry, and the actual context registration. These
 split proofs do not prove native clone, public freeze, public readonly byte reads,
-automatic drop, or recovery transitions. They do not establish count-one
-exclusivity or reclamation for every safely produced Shared state.
+automatic drop, or every recovery transition. They do not establish count-one
+exclusivity or reclamation for every safely produced Shared state. The separate
+selected count-one sequence above proves one concrete unique-owner promotion
+and final disposal, not a general count-one guarantee.
 
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the
@@ -552,12 +587,12 @@ of the promotion branch, and public `Buf::advance` is untranslated.
 Although `truncate`, `clear`, and unsafe `set_len` have body proofs from
 `buffer_view_valid`, their modular precondition still includes a packet-backed
 Shared value's type invariant and the corresponding capsule, ticket, ledger,
-and resource conditions. The new all-reference ledger operations do not yet
-close the safe-produced-state reachability of that precondition across clone,
-drop, freeze, `to_mut`, and recovery. The selected ARC split path is covered,
-but the proof therefore does
-not yet establish the requested public `BytesMut::truncate` guarantee for all
-safe states. Immutable-view lifetime and read permissions, concurrent
+and resource conditions. The new all-reference ledger operations and the
+selected split/recovery sequences do not close the safe-produced-state
+reachability of that precondition for all paths across clone, drop, freeze,
+`to_mut`, and recovery. The proof therefore does not establish the requested
+public `BytesMut::truncate` guarantee for all safe states. Immutable-view
+lifetime and read permissions, concurrent
 behavior, and unwind behavior also remain outside this scope.
 
 The added B2 `VecStorage::resume_owned` adapter and strengthened generic
