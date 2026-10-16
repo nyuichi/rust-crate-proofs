@@ -1143,6 +1143,36 @@ impl BytesMut {
         self.cap
     }
 
+    /// Retain the original Vec arm behind an unselected worker. The focused
+    /// public-freeze proof has an ARC-layout precondition, so it cannot enter
+    /// this arm.
+    #[cfg_attr(creusot, creusot::no_translate)]
+    fn freeze_vec_branch(bytes: Self) -> Bytes {
+        #[allow(unused_mut)]
+        let mut bytes = ManuallyDrop::new(bytes);
+        unsafe {
+            // Just re-use `Bytes` internal Vec vtable.
+            let off = bytes.get_vec_pos();
+            #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+            let vec = BytesMut::rebuild_vec(
+                bytes.ptr.as_ptr(), bytes.len, bytes.cap, off,
+                #[cfg(all(creusot, bytes_original_unique_gate))]
+                None,
+            );
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            let vec = original_rebuild_unique(
+                bytes.ptr.as_ptr(), bytes.len, bytes.cap, off,
+                bytes.unique_proof.take().unwrap(),
+            );
+            #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
+            let mut b: Bytes = vec.into();
+            #[cfg(all(creusot, bytes_original_freeze_gate))]
+            let mut b: Bytes = Bytes::from(vec);
+            b.advance(off);
+            b
+        }
+    }
+
     /// Converts `self` into an immutable `Bytes`.
     ///
     /// The conversion is zero cost and is used to indicate that the slice
@@ -1167,58 +1197,96 @@ impl BytesMut {
     /// assert_eq!(&b2[..], b"hello world");
     /// th.join().unwrap();
     /// ```
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.shared_layout_valid() && self.shared_visible_prefix_known()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        context != None && context.unwrap_logic().inner_logic().invariant() &&
+        context.unwrap_logic().inner_logic().token_namespaces().contains(
+            crate::ref_count_ops::event_namespace()
+        )
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        0 <= self.shared_proof.unwrap_logic().lease_key().slot() &&
+        self.shared_proof.unwrap_logic().lease_key().slot() <
+            context.unwrap_logic().inner_logic().ready_len() &&
+        shared_capsule::header_lease_ready_entry_idle(
+            context.unwrap_logic().inner_logic().ready_entry_state(
+                self.shared_proof.unwrap_logic().lease_key().slot(),
+            ),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot(),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+        )
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result.readonly_packet_valid() &&
+        result.proof_view_pointer() == self.ptr@ as *const u8 &&
+        result.proof_view_len() == self.len@ &&
+        result.readonly_packet_public() == Some(
+            self.shared_proof.unwrap_logic().capsule_public()
+        ) &&
+        result.readonly_packet_key() == Some(
+            self.shared_proof.unwrap_logic().lease_key()
+        ) &&
+        result.readonly_packet_ticket_frame() == Some((
+            self.shared_proof.unwrap_logic().ticket.inner_logic().ledger_id(),
+            self.shared_proof.unwrap_logic().ticket.inner_logic().owner_id(),
+            self.shared_proof.unwrap_logic().ticket.inner_logic().fragment_resource_id(),
+            crate::ownership_proof::ref_count_ledger::RefKind::Readonly,
+            self.shared_proof.unwrap_logic().ticket.inner_logic().allocation_binding(),
+            self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2,
+            self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2 + self.len@,
+        )) &&
+        result.readonly_contents_at_freeze() == self.shared_bytes()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.unwrap_logic().inner_logic()).invariant()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        context.unwrap_logic().inner_logic().unchanged(
+            ^context.unwrap_logic().inner_logic()
+        ) &&
+        context.unwrap_logic().inner_logic().token_namespaces() ==
+            (^context.unwrap_logic().inner_logic()).token_namespaces() &&
+        context.unwrap_logic().inner_logic().ready_len() ==
+            (^context.unwrap_logic().inner_logic()).ready_len() &&
+        forall<index: Int> 0 <= index &&
+            index < context.unwrap_logic().inner_logic().ready_len() ==>
+            context.unwrap_logic().inner_logic().ready_entry_state(index) ==
+                (^context.unwrap_logic().inner_logic()).ready_entry_state(index)
+    ))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(self.unique_valid()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), requires(self.unique_length() < self.unique_capacity()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_valid()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_bytes() == self.unique_bytes()))]
     #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(result.original_frozen_pointer() == self.unique_pointer() as *const u8))]
     #[inline]
-    // Native freeze installs or transfers a Bytes vtable; its Shared ownership transition is
-    // outside this direct BytesMut length-operation proof scope.
-    #[cfg_attr(creusot, creusot::no_translate)]
     pub fn freeze(
         self,
         #[cfg(all(creusot, bytes_original_unique_gate))]
         context: Option<Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>>,
     ) -> Bytes {
-        let mut bytes = ManuallyDrop::new(self);
-        if bytes.kind() == KIND_VEC {
-            // Just re-use `Bytes` internal Vec vtable
-            unsafe {
-                let off = bytes.get_vec_pos();
-                #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
-                let vec = BytesMut::rebuild_vec(
-                    bytes.ptr.as_ptr(), bytes.len, bytes.cap, off,
-                    #[cfg(all(creusot, bytes_original_unique_gate))]
-                    None,
-                );
-                #[cfg(all(creusot, bytes_original_freeze_gate))]
-                let vec = original_rebuild_unique(bytes.ptr.as_ptr(), bytes.len, bytes.cap, off,
-                    bytes.unique_proof.take().unwrap());
-                #[cfg(not(all(creusot, bytes_original_freeze_gate)))]
-                let mut b: Bytes = vec.into();
-                #[cfg(all(creusot, bytes_original_freeze_gate))]
-                let mut b: Bytes = Bytes::from(vec);
-                b.advance(off);
-                b
-            }
+        let kind = self.kind();
+        if kind == KIND_VEC {
+            Self::freeze_vec_branch(self)
         } else {
-            debug_assert_eq!(bytes.kind(), KIND_ARC);
+            debug_assert_eq!(kind, KIND_ARC);
 
             #[cfg(all(creusot, bytes_original_freeze_gate))]
             { unreachable!("selected Vec/off0 path"); }
             #[cfg(all(creusot, bytes_original_unique_gate))]
             {
                 Self::freeze_shared_view(
-                    ManuallyDrop::into_inner(bytes),
-                    &SHARED_VTABLE,
+                    self,
+                    shared_vtable_for_freeze(),
                     context.unwrap(),
                 )
             }
             #[cfg(not(all(creusot, bytes_original_unique_gate)))]
             {
-                let vtable = &SHARED_VTABLE;
-                Self::freeze_shared_view(ManuallyDrop::into_inner(bytes), vtable)
+                let vtable = shared_vtable_for_freeze();
+                Self::freeze_shared_view(self, vtable)
             }
         }
     }
@@ -1262,7 +1330,11 @@ impl BytesMut {
             self.shared_proof.unwrap_logic().ticket.inner_logic().allocation_binding(),
             self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2,
             self.shared_proof.unwrap_logic().cursor@.unwrap_logic().2 + self.len@
-        ))
+        )) &&
+        result.readonly_contents_at_freeze() == self.shared_bytes()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.inner_logic()).invariant()
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         context.inner_logic().unchanged(^context.inner_logic())
@@ -6955,8 +7027,8 @@ pub(crate) unsafe fn shared_v_to_mut_nonunique(
 /// sequence: split one unique Vec owner, freeze one side into a Readonly
 /// packet, copy it back to a fresh Mutable Vec while the other ticket remains
 /// borrowed, truncate and explicitly dispose the new Vec, then explicitly
-/// dispose the surviving shared peer using the same Context. The native
-/// vtable identity itself remains an input to this source-level check.
+/// dispose the surviving shared peer using the same Context. This checks the
+/// public shared-freeze branch without asserting a global vtable identity.
 #[cfg(all(creusot, bytes_original_unique_gate))]
 #[requires(source.unique_valid() && source.unique_vec_rebuildable())]
 #[requires(0 <= split_at@ && split_at@ <= source.unique_length())]
@@ -6969,7 +7041,6 @@ pub(crate) unsafe fn prove_split_freeze_copy_truncate_and_dispose_both(
     mut source: BytesMut,
     split_at: usize,
     truncate_to: usize,
-    vtable: &'static Vtable,
     context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
 ) {
     let mut context_ref = ghost!(context.into_inner());
@@ -6977,10 +7048,7 @@ pub(crate) unsafe fn prove_split_freeze_copy_truncate_and_dispose_both(
         split_at,
         ghost!(&mut **context_ref),
     );
-    let readonly = readonly_source.freeze_shared_view(
-        vtable,
-        ghost!(&mut **context_ref),
-    );
+    let readonly = readonly_source.freeze(Some(ghost!(&mut **context_ref)));
     let peer_key = source.shared_proof.as_ref().unwrap().lease_key_ghost();
     proof_assert!(shared_capsule::header_lease_ready_entry_count(
         context_ref.inner_logic().ready_entry_state(peer_key.inner_logic().slot()),
@@ -7031,7 +7099,6 @@ pub(crate) unsafe fn prove_split_dispose_freeze_promote_truncate_and_dispose(
     split_at: usize,
     append: &[u8],
     truncate_to: usize,
-    vtable: &'static Vtable,
     context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
 ) {
     let mut context_ref = ghost!(context.into_inner());
@@ -7073,10 +7140,7 @@ pub(crate) unsafe fn prove_split_dispose_freeze_promote_truncate_and_dispose(
         context_ref.inner_logic().ready_entry_state(lease_key.inner_logic().slot()),
         lease_key.inner_logic().resource_id(), lease_key.inner_logic().slot()) == 1int);
 
-    let readonly = survivor.freeze_shared_view(
-        vtable,
-        ghost!(&mut **context_ref),
-    );
+    let readonly = survivor.freeze(Some(ghost!(&mut **context_ref)));
     proof_assert!(shared_capsule::header_lease_ready_entry_count(
         context_ref.inner_logic().ready_entry_state(lease_key.inner_logic().slot()),
         lease_key.inner_logic().resource_id(), lease_key.inner_logic().slot()) == 1int);
@@ -7102,6 +7166,11 @@ pub(crate) unsafe fn prove_split_dispose_freeze_promote_truncate_and_dispose(
 // The native static identity and vtable-driven lifecycle remain outside this
 // proof. This same-name constant only permits typechecking those no_translate
 // source bodies; checked helpers receive their vtable as an input value.
+#[cfg_attr(creusot, creusot::no_translate)]
+fn shared_vtable_for_freeze() -> &'static Vtable {
+    &SHARED_VTABLE
+}
+
 #[cfg(creusot)]
 const SHARED_VTABLE: Vtable = Vtable {
     clone: shared_v_clone,

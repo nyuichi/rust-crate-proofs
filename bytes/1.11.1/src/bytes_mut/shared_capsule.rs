@@ -3791,6 +3791,11 @@ pub(crate) struct SharedReadonlyPacket {
     pub(crate) cursor: BoundPtr,
     pub(crate) len: usize,
     pub(crate) lease_key: Ghost<ReadyKey>,
+    /// Value-only record of the bytes established at the readonly transition.
+    /// The freeze callback ties it to the exact physical slots returned to
+    /// the capsule pool; it is not a read capability or a substitute for the
+    /// actual readonly ticket.
+    pub(crate) contents_at_freeze: Ghost<Snapshot<Seq<u8>>>,
 }
 
 /// Result of the one real Acquire used by the original unique shared-view
@@ -4607,6 +4612,7 @@ impl SharedReadonlyOwnerTransition {
     })]
     #[requires(*transition.inner_logic().visible_hi ==
         cursor@.unwrap_logic().2 + len@)]
+    #[requires(*contents_at_freeze.inner_logic() == source.contents_at_freeze())]
     #[requires(match transition.inner_logic().region {
         Some(_) => true,
         None => transition.inner_logic().ticket.inner_logic() ==
@@ -4649,7 +4655,8 @@ impl SharedReadonlyOwnerTransition {
             packet.capsule.inner_logic() == capsule.inner_logic() &&
             packet.ticket.inner_logic() == source.ticket.inner_logic() &&
             packet.base == base && packet.cursor == cursor &&
-            packet.len@ == len@ && packet.lease_key() == lease_key.inner_logic(),
+            packet.len@ == len@ && packet.lease_key() == lease_key.inner_logic() &&
+            packet.contents_at_freeze() == source.contents_at_freeze(),
     })]
     pub(crate) fn finish_acquire_promotion(
         source: Snapshot<SharedReadonlyPacket>,
@@ -4658,6 +4665,7 @@ impl SharedReadonlyOwnerTransition {
         cursor: BoundPtr,
         len: usize,
         lease_key: Ghost<ReadyKey>,
+        contents_at_freeze: Ghost<Snapshot<Seq<u8>>>,
         value: usize,
         transition: Ghost<SharedReadonlyOwnerTransition>,
     ) -> SharedReadonlyPromotion {
@@ -4691,12 +4699,22 @@ impl SharedReadonlyOwnerTransition {
                 cursor,
                 len,
                 lease_key,
+                contents_at_freeze,
             })
         }
     }
 }
 
 impl SharedReadonlyPacket {
+    /// The byte values certified at this packet's readonly transition. The
+    /// certificate is value-only and grants no access through the native
+    /// pointer; the checked freeze callback binds it to the actual returned
+    /// pool slots.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn contents_at_freeze(self) -> Seq<u8> {
+        pearlite! { *self.contents_at_freeze.inner_logic() }
+    }
+
     /// Move this Readonly packet's actual ticket into the common Release
     /// carrier. Its `None` region is a type-state fact, not a reconstructed
     /// capability; the payload pool already contains this view.
@@ -4712,10 +4730,12 @@ impl SharedReadonlyPacket {
     #[ensures(result.inner_logic().owner_id() ==
         self.ticket.inner_logic().owner_id())]
     pub(crate) fn into_release_packet(self) -> Ghost<SharedReleasePacket> {
-        let SharedReadonlyPacket { capsule, ticket, base, cursor, len, lease_key } = self;
+        let SharedReadonlyPacket {
+            capsule, ticket, base, cursor, len, lease_key, contents_at_freeze,
+        } = self;
         ghost! {
             SharedReleasePacket::Readonly(SharedReadonlyPacket {
-                capsule, ticket, base, cursor, len, lease_key,
+                capsule, ticket, base, cursor, len, lease_key, contents_at_freeze,
             })
         }
     }
@@ -4837,7 +4857,8 @@ impl SharedReadonlyPacket {
             packet.capsule.inner_logic() == self.capsule.inner_logic() &&
             packet.ticket.inner_logic() == self.ticket.inner_logic() &&
             packet.base == self.base && packet.cursor == self.cursor &&
-            packet.len@ == self.len@ && packet.lease_key() == self.lease_key(),
+            packet.len@ == self.len@ && packet.lease_key() == self.lease_key() &&
+            packet.contents_at_freeze() == self.contents_at_freeze(),
     })]
     pub(crate) fn acquire_and_promote_unique(
         self,
@@ -4845,7 +4866,9 @@ impl SharedReadonlyPacket {
         context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
     ) -> (usize, SharedReadonlyPromotion) {
         let source = snapshot!(self);
-        let SharedReadonlyPacket { capsule, ticket, base, cursor, len, lease_key } = self;
+        let SharedReadonlyPacket {
+            capsule, ticket, base, cursor, len, lease_key, contents_at_freeze,
+        } = self;
         let mut context_ref = ghost!(context.into_inner());
         let lo: Snapshot<Int> = snapshot!(cursor@.unwrap_logic().2);
         let visible_hi_for_transition: Snapshot<Int> =
@@ -4965,7 +4988,8 @@ impl SharedReadonlyPacket {
             capsule, lease_key, restore_context, loan,
         );
         let promoted = SharedReadonlyOwnerTransition::finish_acquire_promotion(
-            source, capsule, base, cursor, len, lease_key, value, output,
+            source, capsule, base, cursor, len, lease_key, contents_at_freeze,
+            value, output,
         );
         (value, promoted)
     }
@@ -5297,6 +5321,7 @@ impl SharedReadonlyPacket {
                 self.cursor@.unwrap_logic().2 &&
             self.ticket.inner_logic().owned_hi() ==
                 self.cursor@.unwrap_logic().2 + self.len@ &&
+            (*self.contents_at_freeze.inner_logic()).len() == self.len@ &&
             0 <= self.ticket.inner_logic().owned_lo() &&
             self.ticket.inner_logic().owned_hi() <=
                 self.capsule_allocation_binding().2 &&
@@ -5349,6 +5374,12 @@ impl SharedOwnerPacket {
         self.cursor@.unwrap_logic().2)]
     #[ensures(result.ticket.inner_logic().owned_hi() ==
         self.cursor@.unwrap_logic().2 + len@)]
+    #[ensures(result.contents_at_freeze() == Seq::create(
+        len@,
+        |index: Int| self.region.inner_logic().slot(
+            self.cursor@.unwrap_logic().2 + index,
+        ).unwrap_logic().unwrap_logic(),
+    ))]
     #[ensures((^context.inner_logic()).invariant())]
     #[ensures((^context.inner_logic()).token_namespaces() ==
         context.inner_logic().token_namespaces())]
@@ -5375,6 +5406,12 @@ impl SharedOwnerPacket {
         let visible_lo: Snapshot<Int> = snapshot!(cursor@.unwrap_logic().2);
         let visible_hi: Snapshot<Int> = snapshot!(cursor@.unwrap_logic().2 + len@);
         let region_before: Snapshot<PhysicalRegion> = snapshot!(region.inner_logic());
+        let contents_at_freeze: Snapshot<Seq<u8>> = snapshot!(Seq::create(
+            len@,
+            |index: Int| region.inner_logic().slot(
+                cursor@.unwrap_logic().2 + index,
+            ).unwrap_logic().unwrap_logic(),
+        ));
         let callback_frame = (
             snapshot!(ticket.inner_logic().ledger_id()),
             snapshot!(ticket.inner_logic().owner_id()),
@@ -5384,6 +5421,7 @@ impl SharedOwnerPacket {
             visible_lo,
             visible_hi,
             region_before,
+            contents_at_freeze,
         );
         let callback_frame_ref = &callback_frame;
         let mut context_ref = ghost!(context.into_inner());
@@ -5405,7 +5443,7 @@ impl SharedOwnerPacket {
                 Ghost::new(&mut **context_ref),
             );
             let capsule = capsule.into_inner();
-            let readonly_ticket = capsule.to_ref().open_with_tokens(
+            let readonly_output = capsule.to_ref().open_with_tokens(
                 tokens,
                 ghost!(
                 #[requires(
@@ -5442,6 +5480,12 @@ impl SharedOwnerPacket {
                     *callback_frame_ref.7 == region.inner_logic() &&
                     region.inner_logic().lo() <= *callback_frame_ref.5 &&
                     *callback_frame_ref.6 <= region.inner_logic().hi() &&
+                    *callback_frame_ref.8 == Seq::create(
+                        len@,
+                        |index: Int| region.inner_logic().slot(
+                            *callback_frame_ref.5 + index,
+                        ).unwrap_logic().unwrap_logic(),
+                    ) &&
                     (forall<index: Int> 0 <= index && index < len@ ==>
                         crate::ownership_proof::raw_vec::slot_known(
                             region.inner_logic().slot(*callback_frame_ref.5 + index)))
@@ -5457,15 +5501,22 @@ impl SharedOwnerPacket {
                         (^payload).ledger.unwrap_logic().count() &&
                     (^payload).ledger.unwrap_logic().next_id() ==
                         payload.ledger.unwrap_logic().next_id() &&
-                    (^payload).ledger.unwrap_logic().has_ticket(result) &&
-                    result.invariant() &&
-                    result.ledger_id() == *callback_frame_ref.0 &&
-                    result.owner_id() == *callback_frame_ref.1 &&
-                    result.fragment_resource_id() == *callback_frame_ref.2 &&
-                    result.class() == RefKind::Readonly &&
-                    result.allocation_binding() == *payload.allocation_binding &&
-                    result.owned_lo() == *callback_frame_ref.5 &&
-                    result.owned_hi() == *callback_frame_ref.6 &&
+                    (^payload).ledger.unwrap_logic().has_ticket(result.0) &&
+                    result.0.invariant() &&
+                    result.0.ledger_id() == *callback_frame_ref.0 &&
+                    result.0.owner_id() == *callback_frame_ref.1 &&
+                    result.0.fragment_resource_id() == *callback_frame_ref.2 &&
+                    result.0.class() == RefKind::Readonly &&
+                    result.0.allocation_binding() == *payload.allocation_binding &&
+                    result.0.owned_lo() == *callback_frame_ref.5 &&
+                    result.0.owned_hi() == *callback_frame_ref.6 &&
+                    *result.1 == *callback_frame_ref.8 &&
+                    *result.1 == Seq::create(
+                        len@,
+                        |index: Int| (^payload).pool.unwrap_logic().slot(
+                            *callback_frame_ref.5 + index,
+                        ).unwrap_logic().unwrap_logic(),
+                    ) &&
                     (forall<index: Int>
                         (*callback_frame_ref.7).lo() <= index &&
                             index < (*callback_frame_ref.7).hi() ==>
@@ -5515,16 +5566,24 @@ impl SharedOwnerPacket {
                             ),
                         None => proof_assert!(false),
                     }
-                    ticket
+                    let contents_at_freeze = snapshot!(Seq::create(
+                        len@,
+                        |index: Int| payload.pool.unwrap_logic().slot(
+                            *callback_frame_ref.5 + index,
+                        ).unwrap_logic().unwrap_logic(),
+                    ));
+                    (ticket, contents_at_freeze)
                 }
                 ),
             ).into_inner();
+            let (readonly_ticket, contents_at_freeze) = readonly_output;
             BorrowedSharedContext::return_cap(
                 Ghost::new(&mut **context_ref), cap,
             );
-            (capsule, readonly_ticket, lease_key)
+            (capsule, readonly_ticket, lease_key, contents_at_freeze)
         };
-        let (capsule, readonly_ticket, lease_key) = packet_parts.split();
+        let (capsule, readonly_ticket, lease_key, contents_at_freeze) =
+            packet_parts.split();
 
         let packet = SharedReadonlyPacket {
             capsule,
@@ -5533,6 +5592,7 @@ impl SharedOwnerPacket {
             cursor,
             len,
             lease_key,
+            contents_at_freeze,
         };
         proof_assert!(packet.invariant());
         packet

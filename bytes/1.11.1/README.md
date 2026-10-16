@@ -36,10 +36,10 @@ ghost allocation identity (namespace, base and capacity) to the protected
 Shared storage through its ledger ticket; the ticket's owned interval also
 matches the packet's physical region. The identity and interval metadata grant
 no access authority, and the proofs do not establish every public producer or
-later owner-lifecycle path. They also do not establish a safe public-call chain
-that reaches a nonzero cursor; the public `Buf::advance` wrapper is not
-translated. `BufMut::advance_mut` has a body proof, but its trait-refinement
-obligation remains open.
+later owner-lifecycle path. The selected Shared split sequences do reach a
+nonzero packet cursor, but the public `Buf::advance` wrapper and the
+Vec-backed position-advance path remain unproved. `BufMut::advance_mut` has a
+body proof, but its trait-refinement obligation remains open.
 
 The original `BytesMut::extend_from_slice` body is also selected for its
 in-capacity unique and packet-backed Shared cases, plus the unique Vec
@@ -101,9 +101,15 @@ itself. A checked
 `freeze_into_readonly` path moves an actual Mutable packet's ticket to a
 Readonly ticket and returns its actual physical region to the pool, while
 preserving the reference count, storage, lease/release authority, caller
-tokens, and Context entries. The selected private freeze helper connects this
-transfer to a `Bytes` sidecar; the public `BytesMut::freeze` body, its native
-static vtable identity, and public readonly byte-read APIs remain unproved. With
+tokens, and Context entries. The selected Shared branch of public
+`BytesMut::freeze` connects this transfer to a `Bytes` sidecar under the
+actual Shared packet and caller Context preconditions. Its
+`contents_at_freeze` result is a value-only certificate tied by the checked
+callback to the physical slots returned to the pool; it grants no byte-read
+authority and does not claim that later pool contents remain equal. The
+vtable value is passed opaquely through the checked helper: static vtable
+identity and callback execution remain unproved. The Vec-backed freeze branch
+and public readonly byte-read APIs also remain outside the proof. With
 no active physical lend, the protocol proves that every active
 Readonly ticket's visible interval remains in the physical pool with known
 slots; a checked helper derives this fact from a live ticket and the actual
@@ -154,7 +160,8 @@ rebuildable Vec-backed handle: it reconstructs the original allocation through
 the checked signed-offset `rebuild_vec` path, captures that actual Vec with
 `VecStorage::hold_owned`, then consumes the resulting authority and full region
 through `retire_stored_vec`. Its native branch performs the same reconstruction
-and drops that Vec once. This narrow explicit path does not prove public freeze,
+and drops that Vec once. This narrow explicit path does not prove the public
+Vec-backed freeze branch,
 unselected `rebuild_vec` callers, or automatic `BytesMut::drop`.
 
 The verification-only Shared capsule also has body-proved affine header-loan
@@ -181,10 +188,11 @@ enter the original shared release body. Its value-only witness also records
 the returned old count, so the postcondition distinguishes a retained key and
 idle cap from the final-owner tombstone. This body-checks the selected
 nonunique copy and release path under an actual Readonly packet and caller
-Context. It does
-not prove the public vtable dispatch, native static vtable identity, or the
-outer native callback's Acquire/unique branch; the shared-readonly branch of
-`Bytes::as_slice` and public freeze remain unproved.
+Context. It does not prove native static vtable identity or the outer native
+callback's Acquire/unique branch. The shared-readonly branch of
+`Bytes::as_slice` remains unproved. The Shared branch of public freeze is
+covered separately under its actual packet and Context preconditions; static
+vtable identity and callback execution remain unproved.
 
 The private `Bytes::copy_shared_readonly_to_mut_with_context` entry also reads
 the actual data cell and calls the all-build `shared_v_to_mut_nonunique`
@@ -224,27 +232,29 @@ handle with its caller-supplied context; they do not assume that an untracked
 automatic `Drop` leaves that context consistent.
 
 One selected composition proof starts from a rebuildable unique Vec, performs
-`split_off`, freezes one side through the private shared-view helper, copies it
-through the checked Readonly-to-Mutable path while borrowing the sibling's
-actual ticket, truncates and explicitly disposes the copied Vec, then explicitly
-disposes the sibling with the same Context. It proves the actual count sequence
-2 → 1 → terminal tombstone. The vtable is an input to this private-source
-proof; it does not prove public `BytesMut::freeze` dispatch, static vtable
-identity, or automatic Drop.
+`split_off`, freezes one side through the Shared branch of public
+`BytesMut::freeze`, copies it through the checked Readonly-to-Mutable path while
+borrowing the sibling's actual ticket, truncates and explicitly disposes the
+copied Vec, then explicitly disposes the sibling with the same Context. It
+proves the actual count sequence 2 → 1 → terminal tombstone. Both composition
+proofs exercise the selected public Shared freeze branch. They do not
+establish static vtable identity or callback execution, and bypass automatic
+Drop.
 
 A second selected composition covers the shared in-capacity append and unique
 recovery branch. It splits a unique allocation, appends to the survivor while
 the peer is live, checks that the peer bytes and shared key remain unchanged at
 count two, and truncates the survivor. It then explicitly disposes the peer,
-freezes the survivor through the private shared-view helper, and uses the
-original unique-promotion source helper with the actual ticket, physical region,
-and caller Context. One Acquire result selects the count-one transition; the
+freezes the survivor through the Shared branch of public `BytesMut::freeze`,
+and uses the original unique-promotion source helper with the actual ticket,
+physical region, and caller Context. One Acquire result selects the count-one transition; the
 helper lends the real `[cursor, allocation_capacity)` suffix, including Unknown
 spare slots, and returns a Mutable view over the same allocation. Explicitly
 disposing that view leaves the Context's final tombstone. This selected
-sequence proves the shared append, private count-one transition, and their
-inputs; it does not prove public `BytesMut::from(Bytes)` dispatch, static
-vtable identity, or automatic Drop. The focused native regression also checks
+sequence proves the shared append, public Shared freeze branch, private
+count-one transition, and their inputs; it does not prove public
+`BytesMut::from(Bytes)` dispatch, static vtable identity, callback execution,
+or automatic Drop. The focused native regression also checks
 that the original public path keeps the allocation pointer, spare capacity,
 and visible bytes at a nonzero offset.
 

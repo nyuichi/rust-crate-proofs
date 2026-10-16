@@ -244,6 +244,7 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/shared_v_to_mut_unique.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_1/dispose_shared.coma",
     "verif/bytes_rlib/bytes_mut/release_readonly_shared.coma",
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/freeze.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/freeze_shared_view.coma",
     "verif/bytes_rlib/bytes_mut/impl_Shared_0/vec_mut.coma",
     "verif/bytes_rlib/bytes_mut/impl_Shared_0/take_vec_storage.coma",

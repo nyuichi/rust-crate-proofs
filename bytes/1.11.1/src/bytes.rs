@@ -421,6 +421,14 @@ impl Bytes {
         self.readonly_packet
     }
 
+    /// The values certified by the BytesMut Shared-freeze transition. This
+    /// is a proof-time value record, not a claim about vtable reads or a
+    /// replacement for the packet's actual readonly ticket.
+    #[logic(open(self), prophetic)]
+    pub(crate) fn readonly_contents_at_freeze(self) -> Seq<u8> {
+        pearlite! { self.readonly_packet.unwrap_logic().contents_at_freeze() }
+    }
+
     #[logic(open(self), prophetic)]
     pub(crate) fn readonly_cell_permission_state(
         self,
@@ -1708,6 +1716,10 @@ impl Bytes {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.proof_data_cell() == data))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.proof_vtable() == vtable))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result.readonly_packet_state() == readonly_packet))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match readonly_packet {
+        Some(packet) => result.readonly_contents_at_freeze() == packet.contents_at_freeze(),
+        None => true,
+    }))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         result.readonly_packet_public() == match readonly_packet {
             Some(packet) => Some(packet.capsule_public()),
