@@ -1,0 +1,66 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 144 0 144 41 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span scapacity_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 145 37 145 51
+let%span scapacity_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 145 27 145 33
+let%span scapacity_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 145 27 145 51
+let%span scapacity_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 146 19 146 54
+let%span scapacity_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 147 18 147 32
+let%span scapacity_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 143 10 143 27
+let%span scapacity_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 144 0 144 41
+let%span scapacity_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 132 28 132 60
+let%span scapacity_ops'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 133 28 133 51
+let%span scapacity_ops'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 30 38 30 66
+let%span scapacity_ops'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 30 52 30 66
+let%span scapacity_ops'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 30 38 30 48
+
+use creusot.int.UInt64BW
+use creusot.prelude.Any
+use int.Int
+
+constant const_VEC_POS_OFFSET: UInt64BW.t = [%#scapacity_ops'5] (5: UInt64BW.t)
+
+constant const_MAX: UInt64BW.t = (18446744073709551615: UInt64BW.t)
+
+constant const_MAX_VEC_POS [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 30 0 30 35] : UInt64BW.t
+
+let set_MAX_VEC_POS (return) = bb0
+  [ bb0 = s0
+    [ s0 = [ &_1 <- UInt64BW.lt ([%#scapacity_ops'9] const_VEC_POS_OFFSET) ([%#scapacity_ops'8] (64: UInt64BW.t)) ] s1
+    | s1 = {[@expl:Shr overflow] [%#scapacity_ops'8] _1} s2
+    | s2 = UInt64BW.shr [%#scapacity_ops'8] {[%#scapacity_ops'10] const_MAX}
+        {UInt64BW.to_BV256 ([%#scapacity_ops'9] const_VEC_POS_OFFSET)} (fun (_x: UInt64BW.t) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ] [ & _ret: UInt64BW.t = Any.any_l () | & _1: bool = Any.any_l () ]
+  [ return (_const: UInt64BW.t) -> -{const_MAX_VEC_POS = _const}- return ]
+
+let vec_pos_from_data (data: UInt64BW.t) (return (x: UInt64BW.t)) = any
+  [ return (result: UInt64BW.t) ->
+  {[@stop_split] [@expl:vec_pos_from_data ensures] ([@stop_split] [@expl:vec_pos_from_data ensures #0] [%#scapacity_ops'6] result
+      = UInt64BW.shr data const_VEC_POS_OFFSET)
+    /\ ([@stop_split] [@expl:vec_pos_from_data ensures #1] [%#scapacity_ops'7] UInt64BW.t'int result
+    <= UInt64BW.t'int const_MAX_VEC_POS)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let prove_max_vec_pos_nonzero [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 144 0 144 41]
+  (return (x: ())) = (! set_MAX_VEC_POS
+    (bb0
+    [ bb0 = s0
+      [ s0 = UInt64BW.shl [%#scapacity_ops'1] {[%#scapacity_ops'0] (1: UInt64BW.t)}
+          {UInt64BW.to_BV256 ([%#scapacity_ops] const_VEC_POS_OFFSET)}
+          (fun (_x: UInt64BW.t) -> [ &encoded_position <- _x ] s1)
+      | s1 = vec_pos_from_data [%#scapacity_ops'2] {encoded_position} (fun (_x: UInt64BW.t) -> [ &position <- _x ] s2)
+      | s2 = {[@expl:assertion] [%#scapacity_ops'3] UInt64BW.t'int position = 1} s3
+      | s3 = return {_ret} ] ]
+    [ & _ret: () = Any.any_l ()
+    | & encoded_position: UInt64BW.t = Any.any_l ()
+    | & position: UInt64BW.t = Any.any_l () ]))
+  [ return (result: ()) -> {[@stop_split] [@expl:prove_max_vec_pos_nonzero ensures] [%#scapacity_ops'4] 1
+    <= UInt64BW.t'int const_MAX_VEC_POS}
+    (! return {result}) ]

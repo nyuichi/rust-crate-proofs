@@ -468,20 +468,53 @@ supply and preserve the actual B1 descriptors and region. Replace this
 adapter when the pinned Std model provides a body-checked `ptr::sub` contract
 with the same pointer relation.
 
-The selected `BytesMut::reserve` body proves its existing in-capacity no-op
-for either representation and its unique Vec reclaim case under the original
-amortized guard. It calls the original `reserve_inner` body, which is
-body-checked on a restricted domain: `unique_valid`, and either
-`allocate == false` or the reclaim guard holds. The original source tests the
-same guard and calls `try_reclaim_unique_vec_prefix`; when it fails with
-`allocate == false`, it returns false without mutation. The unique reclaim
-helper preserves the actual RawAllocation, base descriptor, Recovery, region
-identity and bounds, tag, bytes, and outside-prefix slot frame, and proves
-zero-offset Vec geometry and sufficient spare capacity. `BytesMut::try_reclaim`
-is also proved for its unique Vec case under `unique_valid`, including its
-spare-capacity short circuit and call to this same helper. The proof does not
-cover the Vec allocation fallback, general reserve policy, or shared ARC
-fallback, and does not establish general public API coverage.
+The generic all-build `provenance_specs::add_within_region` adapter executes
+the original native `ptr::add` operation once when the unique Vec growth worker
+repositions its cursor after reallocation. The pinned pointer contracts do not
+expose this raw-pointer addition effect. In proof builds, its trusted
+precondition requires the actual offset-zero B1 `BoundPtr`, the matching
+borrowed live `PhysicalRegion`, the exact base pointer, an in-region result,
+and the standard `isize::MAX` bound. A zero count permits an empty/dangling
+Vec pointer under the Std pointer contract. Its postcondition relates the
+result pointer to that exact input pointer and count; it grants no allocation,
+byte-access, Vec-owner, or refcount authority. Replace this adapter when the
+pinned Std model provides a body-checked `ptr::add` contract with the same
+pointer relation.
+
+The selected `BytesMut::reserve` body proves its in-capacity no-op for either
+representation, its unique Vec reclaim case under the original amortized
+guard, and unique Vec allocation growth when the request exceeds the view's
+spare capacity and `unique_vec_rebuildable` holds. The checked
+`reserve_inner` body retains the original reclaim guard and no-allocation
+behavior; its growth arm runs only after that guard fails. The growth worker
+consumes the old B1 resources through the original `rebuild_vec`/B2 resume,
+executes the original single `Vec::reserve`, and captures the resulting Vec
+through the existing B1 `VecRawParts::take` boundary. It preserves visible
+bytes and every initialized slot in the reconstructed prefix, refreshes the
+RawAllocation/Recovery/PhysicalRegion for the resulting allocation, and
+records new spare slots as Unknown. It does not claim the old spare slot map
+survives reallocation. The pinned Std declaration for `Vec::reserve` preserves
+the Vec sequence but does not supply the capacity effects required here or
+model the consuming `ManuallyDrop` transfer. The generic trusted
+`provenance_specs::reserve_vec_owned` boundary supplies only the missing
+Vec-wide normal-return effect: unchanged Vec value, nondecreasing capacity,
+and capacity at least `len + additional`. Its native body is exactly a
+`ManuallyDrop` guard around one `Vec::reserve` and `ManuallyDrop::into_inner`;
+it grants no Bytes metadata, allocation-ledger, slot-map, or ownership-protocol
+effect. Replace this adapter when the pinned Std model provides the composed
+generic effect. `BytesMut::try_reclaim` remains
+proved for its unique Vec case under `unique_valid`, including its
+spare-capacity short circuit and call to the same reclaim helper. The shared
+ARC allocation fallback, unrestricted reserve policy, and general public API
+coverage remain outside the proof.
+
+One closed body witness starts from a symbolic slice using the public slice
+constructor, advances the unique Vec view to offset one, requests one more
+element than its actual spare capacity to force Vec allocation growth,
+truncates the resulting view, and explicitly disposes the unique owner. It
+checks the preserved visible suffix and the capacity increase. The witness is
+preconditioned and does not establish general safe-state reachability or
+public API coverage.
 
 The selected in-capacity `BytesMut::resize` cases and its unique cheap-reclaim
 case call the generic

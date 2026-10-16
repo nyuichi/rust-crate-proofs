@@ -91,12 +91,25 @@ the resulting zero-offset Vec geometry and spare-capacity result. Allocation
 paths and unrestricted `reserve_inner` selection policy, including its shared
 ARC fallback, remain outside this proof.
 
-The selected `BytesMut::reserve` body now also proves its existing in-capacity
-no-op for either representation and the unique Vec reclaim case under the
-same guard. In that case it reaches the original `reserve_inner` body, whose
-checked domain preserves the exact reclaim result and frame through the shared
-one-copy helper. Allocation growth and the shared ARC fallback remain outside
-the proof; the precondition does not establish general reserve coverage.
+The selected `BytesMut::reserve` body proves its in-capacity no-op for either
+representation, the unique Vec reclaim case under the original guard, and the
+unique Vec allocation-growth case when the request exceeds the view's spare
+capacity and the reconstructed Vec prefix is known. After the original cheap
+reclaim guard fails, the shared source worker consumes the old B1 resources to
+rebuild the Vec, calls the original single `Vec::reserve`, and captures fresh
+B1 resources for its resulting allocation. It preserves visible bytes and the
+initialized allocation prefix; the newly observed spare slots are Unknown.
+The `reserve_inner` proof keeps the original guard and no-allocation behavior.
+The shared ARC allocation fallback and unrestricted reserve policy remain
+outside the proof, and this precondition does not establish general reserve
+coverage.
+
+One closed body proof starts from a symbolic slice through the public slice
+constructor, advances the unique Vec view to offset one, forces reserve growth
+past its actual spare capacity, truncates the grown view, and explicitly
+disposes it. This preconditioned witness connects the selected growth worker
+to the existing unique-view operations; it does not prove general public API
+reachability.
 
 The selected ghost ownership proofs model each native strong reference as an
 exact singleton ticket in one ledger. Mutable tickets own disjoint physical

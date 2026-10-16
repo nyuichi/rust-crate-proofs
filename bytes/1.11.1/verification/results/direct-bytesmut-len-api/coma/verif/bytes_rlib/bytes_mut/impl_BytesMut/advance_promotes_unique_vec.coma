@@ -14,15 +14,13 @@ let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcoun
 let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 486 14 489 5
 let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 471 12 471 68
 let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 339 20 339 77
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1102 27 1102 55
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1102 41 1102 55
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1102 27 1102 37
-let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 449 12 451 48
-let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 460 12 462 59
-let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 490 4 490 71
-let%span sbytes_mut'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 420 12 443 13
-let%span sbytes_mut'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 565 20 565 77
-let%span sbytes_mut'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 560 20 560 93
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1126 27 1126 59
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 449 12 451 48
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 460 12 462 59
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 420 12 443 13
+let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 565 20 565 77
+let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 560 20 560 93
+let%span sbytes_mut'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 490 4 490 71
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 271 15 271 70
 let%span sptr'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 272 15 272 80
 let%span sptr'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 273 14 273 88
@@ -65,6 +63,9 @@ let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
 let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
 let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
+let%span scapacity_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 30 38 30 66
+let%span scapacity_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 30 52 30 66
+let%span scapacity_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 30 38 30 48
 
 use creusot.int.UInt64
 use creusot.prelude.Opaque
@@ -365,14 +366,14 @@ function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw
 function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 756 4 756 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'13] (view_OwnedRegion (view_PhysicalRegion self).f0'6).f1'7
 
-constant const_VEC_POS_OFFSET: UInt64.t = [%#sbytes_mut'7] (5: UInt64.t)
+constant const_VEC_POS_OFFSET: UInt64.t = [%#sbytes_mut'8] (5: UInt64.t)
 
-constant const_KIND_MASK: UInt64.t = [%#sbytes_mut'7] (1: UInt64.t)
+constant const_KIND_MASK: UInt64.t = [%#sbytes_mut'8] (1: UInt64.t)
 
-constant const_KIND_VEC: UInt64.t = [%#sbytes_mut'7] (1: UInt64.t)
+constant const_KIND_VEC: UInt64.t = [%#sbytes_mut'8] (1: UInt64.t)
 
 predicate unique_layout_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 418 4 418 51] (self: t_BytesMut) =
-  [%#sbytes_mut'8] self.shared_proof = None'0
+  [%#sbytes_mut'5] self.shared_proof = None'0
   /\ self.unique_proof <> None
   /\ (let proof = unwrap_Option_OriginalUniqueProof self.unique_proof in let caps = proof.capabilities in invariant_BoundPtr proof.base
   /\ invariant_BoundPtr proof.cursor
@@ -419,18 +420,18 @@ axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]
     = slot (view_PhysicalRegion self).f0'6 index
 
 function unique_allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 559 4 559 80] (self: t_BytesMut) (index: int) : t_Option_Option_u8
- = [%#sbytes_mut'10] slot'0 (unwrap_Option_OriginalUniqueProof self.unique_proof).capabilities.f1 index
+ = [%#sbytes_mut'7] slot'0 (unwrap_Option_OriginalUniqueProof self.unique_proof).capabilities.f1 index
 
 function unique_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 564 4 564 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
- = [%#sbytes_mut'9] unique_allocation_slot self (unique_offset self + index)
+ = [%#sbytes_mut'6] unique_allocation_slot self (unique_offset self + index)
 
 predicate unique_valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 447 4 447 44] (self: t_BytesMut) =
-  [%#sbytes_mut'5] unique_layout_valid self
+  [%#sbytes_mut'3] unique_layout_valid self
   /\ UInt64.le self.len self.cap
   /\ (forall i: int. 0 <= i /\ i < UInt64.t'int self.len -> slot_known (unique_slot self i))
 
 predicate unique_hidden_prefix_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 458 4 458 58] (self: t_BytesMut) =
-  [%#sbytes_mut'6] unique_layout_valid self
+  [%#sbytes_mut'4] unique_layout_valid self
   /\ (forall i: int. 0 <= i /\ i < unique_offset self -> slot_known (unique_allocation_slot self i))
 
 predicate unique_vec_rebuildable [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 469 4 469 54] (self: t_BytesMut) =
@@ -440,16 +441,20 @@ predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other
 
 meta "rewrite_def" predicate gt_log_Int
 
-constant const_MAX_VEC_POS [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1102 0 1102 24] : UInt64.t
+constant const_VEC_POS_OFFSET'0: UInt64.t = [%#sbytes_mut'8] (5: UInt64.t)
+
+constant const_MAX_VEC_POS [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/capacity_ops.rs" 30 0 30 35] : UInt64.t
 
 let set_MAX_VEC_POS (return) = bb0
   [ bb0 = s0
-    [ s0 = [ &_1 <- UInt64.lt ([%#sbytes_mut'3] const_VEC_POS_OFFSET) ([%#sbytes_mut'2] (64: UInt64.t)) ] s1
-    | s1 = {[@expl:Shr overflow] [%#sbytes_mut'2] _1} s2
-    | s2 = UInt64.shr [%#sbytes_mut'2] {[%#sbytes_mut'4] const_MAX'0}
-        {UInt64.t'int ([%#sbytes_mut'3] const_VEC_POS_OFFSET)} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s3)
+    [ s0 = [ &_1 <- UInt64.lt ([%#scapacity_ops'0] const_VEC_POS_OFFSET'0) ([%#scapacity_ops] (64: UInt64.t)) ] s1
+    | s1 = {[@expl:Shr overflow] [%#scapacity_ops] _1} s2
+    | s2 = UInt64.shr [%#scapacity_ops] {[%#scapacity_ops'1] const_MAX'0}
+        {UInt64.t'int ([%#scapacity_ops'0] const_VEC_POS_OFFSET'0)} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s3)
     | s3 = return {_ret} ] ] [ & _ret: UInt64.t = Any.any_l () | & _1: bool = Any.any_l () ]
   [ return (_const: UInt64.t) -> -{const_MAX_VEC_POS = _const}- return ]
+
+constant const_MAX_VEC_POS'0: UInt64.t = [%#sbytes_mut'2] const_MAX_VEC_POS
 
 meta "compute_max_steps" 1000000
 
@@ -464,10 +469,10 @@ predicate advance_promotes_unique_vec [#"/workspace/rust-crate-proofs/bytes/1.11
 let vc_advance_promotes_unique_vec (return) = (! set_MAX_VEC_POS (ret))
   [ ret -> {if unique_vec_rebuildable self then
       [@stop_split] [@expl:advance_promotes_unique_vec ensures] [%#sbytes_mut] gt_log_Int (unique_offset self
-        + count) (UInt64.t'int const_MAX_VEC_POS)
-      = (unique_vec_rebuildable self /\ gt_log_Int (unique_offset self + count) (UInt64.t'int const_MAX_VEC_POS))
+        + count) (UInt64.t'int const_MAX_VEC_POS'0)
+      = (unique_vec_rebuildable self /\ gt_log_Int (unique_offset self + count) (UInt64.t'int const_MAX_VEC_POS'0))
     else
       [@stop_split] [@expl:advance_promotes_unique_vec ensures] [%#sbytes_mut] false
-      = (unique_vec_rebuildable self /\ gt_log_Int (unique_offset self + count) (UInt64.t'int const_MAX_VEC_POS))
+      = (unique_vec_rebuildable self /\ gt_log_Int (unique_offset self + count) (UInt64.t'int const_MAX_VEC_POS'0))
     }
     (! return) ]

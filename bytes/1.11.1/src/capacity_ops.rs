@@ -135,6 +135,18 @@ pub(crate) fn vec_pos_from_data(data: usize) -> usize {
     data >> VEC_POS_OFFSET
 }
 
+/// Establish that the packed Vec-position field has a usable positive range.
+/// A shifted single-bit encoding witnesses position one; the checked extractor
+/// supplies the existing generic upper-bound contract for the field.
+#[cfg(creusot)]
+#[bitwise_proof]
+#[ensures(1 <= MAX_VEC_POS@)]
+pub(crate) fn prove_max_vec_pos_nonzero() {
+    let encoded_position = 1usize << VEC_POS_OFFSET;
+    let position = vec_pos_from_data(encoded_position);
+    proof_assert!(position@ == 1);
+}
+
 /// Replace the packed vector offset while preserving all five low metadata bits.
 #[cfg_attr(creusot, bitwise_proof)]
 #[cfg_attr(creusot, requires(pos@ <= MAX_VEC_POS@))]

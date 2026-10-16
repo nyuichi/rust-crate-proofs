@@ -13,6 +13,8 @@ use creusot_std::prelude::*;
 use creusot_std::std::mem::size_of_logic;
 #[cfg(all(creusot, bytes_original_unique_gate))]
 use crate::ownership_proof::raw_vec::{BoundPtr, PhysicalRegion};
+use alloc::vec::Vec;
+use core::{mem::ManuallyDrop, ptr::NonNull};
 
 /// Compare thin pointers by address without granting logical provenance
 /// identity. Normal builds retain native pointer equality and the crate's
@@ -198,6 +200,75 @@ pub(crate) unsafe fn sub_within_region(
     #[cfg(all(creusot, bytes_original_unique_gate))] region: Ghost<&PhysicalRegion>,
 ) -> *mut u8 {
     unsafe { pointer.sub(count) }
+}
+
+// STD-PTRADD-01: the pinned pointer model does not provide the exact effect
+// for raw-pointer `add`. Retain the native operation and relate only its
+// result to the matching B1 base descriptor and borrowed live region. The
+// descriptor/region pair is supplied by the caller; this helper creates no
+// ownership or dereference permission.
+//
+// # Safety
+// For nonzero counts, the pointer must be the offset-zero base of the same
+// live allocation witnessed by the actual B1 region, and the result must be
+// in that allocation or one-past it. A zero count may use an empty/dangling
+// Vec pointer, as permitted by the standard pointer contract.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), trusted)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    base.invariant() && base@ != None && region.inner_logic().invariant()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match base@ {
+    Some((namespace, capacity, offset)) =>
+        offset == 0 && pointer@ == base.raw_pointer() &&
+        region.inner_logic().namespace() == namespace &&
+        region.inner_logic().capacity() == capacity &&
+        region.inner_logic().resource_id() == namespace &&
+        region.inner_logic().lo() <= offset &&
+        offset + count@ <= region.inner_logic().hi() &&
+        base.current_address() + count@ <= usize::MAX@,
+    None => false,
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= isize::MAX@))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result == pointer@.offset_logic(count@)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.addr_logic()@ == base.current_address() + count@
+))]
+#[inline]
+pub(crate) unsafe fn add_within_region(
+    pointer: NonNull<u8>,
+    count: usize,
+    #[cfg(all(creusot, bytes_original_unique_gate))] base: &BoundPtr,
+    #[cfg(all(creusot, bytes_original_unique_gate))] region: Ghost<&PhysicalRegion>,
+) -> *mut u8 {
+    unsafe { pointer.as_ptr().add(count) }
+}
+
+// STD-VEC-RESERVE-01: the pinned Std model specifies `Vec::reserve` on a
+// directly borrowed Vec, but its contract only preserves the Vec sequence; it
+// does not provide the capacity effects required here or model the generic
+// consuming transfer through `ManuallyDrop`. Keep the original Vec owner
+// guarded across the reserve call (including its unwind path), and expose only
+// the standard Vec value/capacity effect on normal return: the Vec value is
+// preserved, capacity does not decrease, and the requested `len + additional`
+// capacity is met.
+// This says nothing about Bytes metadata, allocation ledgers, slot maps, or
+// ownership protocols.
+#[cfg_attr(creusot, trusted)]
+#[cfg_attr(creusot, ensures(result@ == input@))]
+#[cfg_attr(creusot, ensures(
+    creusot_std::std::vec::capacity_model(result) >=
+        creusot_std::std::vec::capacity_model(input)
+))]
+#[cfg_attr(creusot, ensures(
+    creusot_std::std::vec::capacity_model(result) >= input@.len() + additional@
+))]
+#[inline]
+pub(crate) fn reserve_vec_owned(input: Vec<u8>, additional: usize) -> Vec<u8> {
+    let mut guarded = ManuallyDrop::new(input);
+    guarded.reserve(additional);
+    ManuallyDrop::into_inner(guarded)
 }
 
 /// Obtain a pointer with a requested numerical address by applying

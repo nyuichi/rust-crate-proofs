@@ -26,6 +26,7 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/with_capacity.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/reserve.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/reserve_inner.coma",
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/reserve_vec_allocation.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/spare_capacity_mut.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/write_spare_prefix.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut_0/extend_from_slice.coma",
@@ -84,6 +85,7 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/original_capacity_from_repr.coma",
     "verif/bytes_rlib/capacity_ops/original_capacity_repr_from_data.coma",
     "verif/bytes_rlib/bytes_mut/unique_initialized_prefix_extend.coma",
+    "verif/bytes_rlib/bytes_mut/prove_unique_rebuilt_prefix_known.coma",
     "verif/bytes_rlib/bytes_mut/buffer_initialized_prefix_extend.coma",
     "verif/bytes_rlib/bytes_mut/frame_lemmas/buffer_view_slot_frame_to_allocation_frame.coma",
     "verif/bytes_rlib/bytes_mut/frame_lemmas/equal_buffer_bytes_preserve_view_slots.coma",
@@ -163,6 +165,7 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/prove_split_freeze_copy_truncate_and_dispose_both.coma",
     "verif/bytes_rlib/bytes_mut/prove_split_dispose_freeze_promote_truncate_and_dispose.coma",
     "verif/bytes_rlib/bytes_mut/prove_from_slice_overflow_advance_truncate_and_dispose.coma",
+    "verif/bytes_rlib/bytes_mut/prove_from_slice_nonzero_cursor_reserve_growth_truncate_and_dispose.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/mutable_owner_ticket_split_result.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/mutable_owner_region_split_bounds_result.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/mutable_owner_region_split_slots_result.coma",
@@ -310,6 +313,7 @@ TARGETS = (
     "verif/bytes_rlib/provenance_specs/wrapping_offset.coma",
     "verif/bytes_rlib/capacity_ops/pack_vec_metadata.coma",
     "verif/bytes_rlib/capacity_ops/vec_pos_from_data.coma",
+    "verif/bytes_rlib/capacity_ops/prove_max_vec_pos_nonzero.coma",
     "verif/bytes_rlib/capacity_ops/set_vec_pos_in_data.coma",
     "verif/bytes_rlib/vec_storage/impl_VecPartsWitness/native_parts.coma",
     "verif/bytes_rlib/vec_storage/impl_VecPartsWitness/contents_snapshot.coma",
@@ -328,6 +332,7 @@ TARGETS = (
     "verif/bytes_rlib/vec_storage/impl_Drop_for_VecStorage/drop.coma",
     "verif/bytes_rlib/vec_storage/impl_VecStorage_0/drop_empty_owner.coma",
 )
+
 EVIDENCE_TARGETS = TARGETS
 EVIDENCE = "verification/results/direct-bytesmut-len-api"
 PINNED = {
