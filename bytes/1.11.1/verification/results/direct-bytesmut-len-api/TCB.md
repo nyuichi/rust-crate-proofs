@@ -430,6 +430,17 @@ loop has the same functional specification, but the selected source body
 continues to call the original raw-copy helper. No new trusted boundary was
 added for Shared append.
 
+The selected in-capacity `BytesMut::resize` body calls the generic
+`storage_ops::fill_uninit_prefix_raw` effect boundary for its original native
+`ptr::write_bytes` operation. Its contract requires the count to fit the
+borrowed `MaybeUninit<u8>` slice, initializes exactly that prefix to the
+requested byte, and preserves the slice length and suffix. This completes the
+generic pointer effect absent from the pinned Std model; it grants no Bytes
+layout, allocation, liveness, Vec-owner, or refcount facts. Replace the
+boundary when Std provides a body-checked initialized-prefix effect for
+`ptr::write_bytes`. The Bytes-specific slot, packet, pointer, length, and
+capacity facts are proved by `fill_spare_prefix` and `resize`.
+
 The `OwnerLedger` is one affine inventory of all native strong references.
 Each `OwnerTicket` owns the exact singleton fragment for one registration and
 records the common allocation identity, its classification, and a half-open

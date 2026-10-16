@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2613 4 2613 49 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2748 4 2748 49 *)
 
 (* bytes_mut::BytesMut *)
 
@@ -11,12 +11,12 @@ let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
 let%span smem = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 132 10 132 21
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2617 53 2617 58
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2617 12 2617 69
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2616 16 2618 9
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2613 28 2613 32
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2584 8 2586 44
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2589 8 2610 73
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2752 53 2752 58
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2752 12 2752 69
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2751 16 2753 9
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2748 28 2748 32
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2719 8 2721 44
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2724 8 2745 73
 let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 776 11 776 44
 let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 777 11 777 36
 let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 778 10 781 52
@@ -42,7 +42,7 @@ let%span sbytes_mut'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mu
 let%span sbytes_mut'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 673 12 674 47
 let%span sbytes_mut'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 468 20 468 77
 let%span sbytes_mut'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 592 12 594 83
-let%span sbytes_mut'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2613 4 2613 49
+let%span sbytes_mut'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2748 4 2748 49
 let%span sbytes_mut'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 586 20 586 59
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
 let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
@@ -742,7 +742,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let set_visible_len [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2613 4 2613 49]
+let set_visible_len [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 2748 4 2748 49]
   (self: MutBorrow.t t_BytesMut) (new_len: UInt64.t) (return (x: ())) =
 {[@stop_split] [@expl:set_visible_len requires] ([@stop_split] [@expl:set_visible_len 'self' type invariant] [%#sbytes_mut'2] inv_refmut_BytesMut self)
   /\ ([@stop_split] [@expl:set_visible_len requires] [%#sbytes_mut'3] buffer_layout_valid self.current
@@ -771,8 +771,7 @@ let set_visible_len [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.r
     /\ self.final.unique_proof = self.current.unique_proof
     /\ self.final.shared_proof = self.current.shared_proof
     /\ buffer_allocation_capacity self.final = buffer_allocation_capacity self.current
-    /\ (forall i: int. 0 <= i /\ i < buffer_allocation_capacity self.current
-        -> buffer_allocation_slot self.final i = buffer_allocation_slot self.current i)
+    /\ (forall i: int. buffer_allocation_slot self.final i = buffer_allocation_slot self.current i)
     /\ buffer_bytes self.final
       = Seq.create (UInt64.t'int new_len) (fun (i: int) -> unwrap_Option_u8 (unwrap_Option_Option_u8 (buffer_slot self.current i)))
     /\ (unique_layout_valid self.current

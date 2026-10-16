@@ -2553,8 +2553,74 @@ impl BytesMut {
     /// buf.resize(4, 0x3);
     /// assert_eq!(&buf[..], &[0x1, 0x1, 0x3, 0x3]);
     /// ```
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.buffer_view_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(new_len@ <= self.cap@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).buffer_view_valid() && (^self).len@ == new_len@ &&
+        (^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data &&
+        (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
+        (^self).buffer_cursor_offset() == self.buffer_cursor_offset() &&
+        (^self).buffer_bytes() == if new_len@ <= self.len@ {
+            self.buffer_bytes().subsequence(0, new_len@)
+        } else {
+            self.buffer_bytes().concat(Seq::create(new_len@ - self.len@, |_i:Int| value))
+        }
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        new_len@ <= self.len@ ==> forall<i:Int>
+            0 <= i && i < self.buffer_allocation_capacity() ==>
+                (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        new_len@ > self.len@ ==> forall<i:Int>
+            0 <= i && i < self.buffer_cursor_offset() + self.len@ ==>
+                (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        new_len@ > self.len@ ==> forall<i:Int>
+            new_len@ <= i && i < self.cap@ ==>
+                (^self).buffer_slot(i) == self.buffer_slot(i)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        new_len@ > self.len@ ==> forall<i:Int>
+            self.buffer_cursor_offset() + self.cap@ <= i &&
+            i < self.buffer_allocation_capacity() ==>
+                (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        new_len@ > self.len@ ==> forall<i:Int>
+            self.len@ <= i && i < new_len@ ==>
+                (^self).buffer_slot(i) == Some(Some(value))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_layout_valid() ==>
+            ((^self).unique_valid() &&
+             (^self).unique_pointer() == self.unique_pointer() &&
+             (^self).unique_capacity() == self.unique_capacity() &&
+             (^self).unique_offset() == self.unique_offset() &&
+             (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+             (^self).unique_tag_pointer() == self.unique_tag_pointer())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_view_layout_valid() ==>
+            ((^self).shared_view_valid() &&
+             self.same_shared_capsule(^self) &&
+             (^self).shared_lease_key() == self.shared_lease_key() &&
+             self.same_shared_ticket(^self) &&
+             self.same_shared_base(^self) &&
+             (^self).shared_cursor_offset() == self.shared_cursor_offset() &&
+             (^self).shared_region_capacity() == self.shared_region_capacity())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> (^self).shared_layout_valid()
+    ))]
     pub fn resize(&mut self, new_len: usize, value: u8) {
         let additional = if let Some(additional) = new_len.checked_sub(self.len()) {
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            proof_assert!(new_len@ == self.len@ + additional@);
             additional
         } else {
             self.truncate(new_len);
@@ -2566,14 +2632,83 @@ impl BytesMut {
         }
 
         self.reserve(additional);
-        let dst = self.spare_capacity_mut().as_mut_ptr();
-        // SAFETY: `spare_capacity_mut` returns a valid, properly aligned pointer and we've
-        // reserved enough space to write `additional` bytes.
-        unsafe { ptr::write_bytes(dst, value, additional) };
+        // SAFETY: `reserve` above ensures the spare view can hold all newly
+        // requested bytes, including on the native capacity-growth path.
+        unsafe { self.fill_spare_prefix(additional, value) };
 
         // SAFETY: There are at least `new_len` initialized bytes in the buffer so no
         // uninitialized bytes are being exposed.
         unsafe { self.set_len(new_len) };
+    }
+
+    /// Fill a prefix of this view's actual spare capacity without changing its
+    /// visible length. This connects the generic raw-fill effect to the
+    /// Vec-backed or packet-backed buffer slots.
+    ///
+    /// # Safety
+    /// `count` must fit in the current spare capacity.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.buffer_view_valid()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= self.cap@ - self.len@))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).buffer_view_valid() && (^self).len@ == self.len@ &&
+        (^self).buffer_bytes() == self.buffer_bytes() &&
+        (^self).ptr == self.ptr && (^self).cap == self.cap && (^self).data == self.data &&
+        (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
+        (^self).buffer_cursor_offset() == self.buffer_cursor_offset()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < self.buffer_cursor_offset() + self.len@ ==>
+            (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        0 <= i && i < count@ ==>
+            (^self).buffer_allocation_slot(self.buffer_cursor_offset() + self.len@ + i) ==
+                Some(Some(value))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<j:Int>
+        count@ <= j && j < self.cap@ - self.len@ ==>
+            (^self).buffer_allocation_slot(
+                self.buffer_cursor_offset() + self.len@ + j) ==
+            self.buffer_allocation_slot(
+                self.buffer_cursor_offset() + self.len@ + j)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        self.buffer_cursor_offset() + self.cap@ <= i &&
+        i < self.buffer_allocation_capacity() ==>
+            (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        self.len@ <= i && i < self.len@ + count@ ==>
+            (^self).buffer_slot(i) == Some(Some(value))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i:Int>
+        self.len@ + count@ <= i && i < self.cap@ ==>
+            (^self).buffer_slot(i) == self.buffer_slot(i)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_layout_valid() ==>
+            ((^self).unique_valid() &&
+             (^self).unique_pointer() == self.unique_pointer() &&
+             (^self).unique_capacity() == self.unique_capacity() &&
+             (^self).unique_offset() == self.unique_offset() &&
+             (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+             (^self).unique_tag_pointer() == self.unique_tag_pointer())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.unique_vec_rebuildable() ==> (^self).unique_vec_rebuildable()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_view_layout_valid() ==>
+            ((^self).shared_view_valid() &&
+             self.same_shared_capsule(^self) &&
+             (^self).shared_lease_key() == self.shared_lease_key() &&
+             self.same_shared_ticket(^self) &&
+             self.same_shared_base(^self) &&
+             (^self).shared_cursor_offset() == self.shared_cursor_offset() &&
+             (^self).shared_region_capacity() == self.shared_region_capacity())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        self.shared_layout_valid() ==> (^self).shared_layout_valid()
+    ))]
+    #[inline]
+    unsafe fn fill_spare_prefix(&mut self, count: usize, value: u8) {
+        let dst = self.spare_capacity_mut();
+        debug_assert!(dst.len() >= count);
+        unsafe { crate::storage_ops::fill_uninit_prefix_raw(dst, count, value) };
     }
 
     /// Complete a length-only transition after the new visible prefix has
@@ -2591,7 +2726,7 @@ impl BytesMut {
         (^self).unique_proof == self.unique_proof &&
         (^self).shared_proof == self.shared_proof &&
         (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
-        (forall<i:Int> 0 <= i && i < self.buffer_allocation_capacity() ==>
+        (forall<i:Int>
             (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)) &&
         (^self).buffer_bytes() == Seq::create(new_len@, |i:Int|
             self.buffer_slot(i).unwrap_logic().unwrap_logic()) &&
@@ -2786,7 +2921,7 @@ impl BytesMut {
         (^self).unique_proof == self.unique_proof &&
         (^self).shared_proof == self.shared_proof &&
         (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
-        (forall<i:Int> 0 <= i && i < self.buffer_allocation_capacity() ==>
+        (forall<i:Int>
             (^self).buffer_allocation_slot(i) == self.buffer_allocation_slot(i)) &&
         (^self).buffer_bytes() == Seq::create(len@, |i:Int|
             self.buffer_slot(i).unwrap_logic().unwrap_logic()) &&

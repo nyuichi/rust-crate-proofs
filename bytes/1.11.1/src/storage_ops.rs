@@ -28,6 +28,30 @@ pub(crate) unsafe fn copy_to_uninit_prefix_raw(dst: &mut [MaybeUninit<u8>], src:
     unsafe { core::ptr::copy_nonoverlapping(src.as_ptr(), dst.as_mut_ptr().cast(), src.len()) };
 }
 
+/// Typed effect boundary for the native memset used by `BytesMut::resize`.
+///
+/// This generic boundary describes only the initialized prefix written into a
+/// caller-owned uninitialized slice. It does not grant allocation identity,
+/// liveness, Vec ownership, refcount, or Bytes-specific authority.
+/// The pinned standard-library pointer contract does not model this memory
+/// effect yet. Replace this boundary when `ptr::write_bytes` has a verified
+/// initialized-prefix contract that preserves the rest of the borrowed slice.
+///
+/// # Safety
+/// `count` must not exceed `dst.len()`. The mutable slice provides a valid,
+/// properly aligned destination, including when `count` is zero.
+#[trusted]
+#[requires(count@ <= dst@.len())]
+#[ensures((^dst)@.len() == dst@.len())]
+#[ensures(forall<i> 0 <= i && i < count@ ==> (^dst)@[i]@ == Some(value))]
+#[ensures(forall<i> count@ <= i && i < dst@.len() ==> (^dst)@[i]@ == dst@[i]@)]
+#[inline]
+pub(crate) unsafe fn fill_uninit_prefix_raw(
+    dst: &mut [MaybeUninit<u8>], count: usize, value: u8,
+) {
+    unsafe { core::ptr::write_bytes(dst.as_mut_ptr().cast::<u8>(), value, count) };
+}
+
 /// Fill the first `count` destination slots, leaving the suffix unchanged.
 #[requires(count@ <= dst@.len())]
 #[ensures((^dst)@.len() == dst@.len())]

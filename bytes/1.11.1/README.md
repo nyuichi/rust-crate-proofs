@@ -54,6 +54,15 @@ preserves packet metadata, the actual owner ticket and lease key, and the
 shared layout. This gives an in-capacity source path into `truncate`; reserve
 growth, reclaim, and allocation remain outside this proof.
 
+The original `BytesMut::resize` body is selected when the requested length is
+at most the existing capacity. It proves shrinking through `truncate`, the
+equal-length no-op, and within-capacity growth through the same `reserve`,
+spare-fill, and `set_len` source calls. Growth fills exactly the newly visible
+slots with the requested value in either buffer representation while retaining
+the pointer, capacity, packet or Vec frame, and all allocation slots outside
+the written range. This covers length growth without capacity growth; reserve
+growth, reclaim, and allocation remain outside the proof.
+
 The selected ghost ownership proofs model each native strong reference as an
 exact singleton ticket in one ledger. Mutable tickets own disjoint physical
 intervals; readonly tickets record visible intervals and may overlap one
