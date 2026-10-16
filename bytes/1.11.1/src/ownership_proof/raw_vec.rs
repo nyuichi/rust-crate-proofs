@@ -482,6 +482,59 @@ impl BoundPtr {
         { Self { pointer } }
     }
 
+    /// Move a checked cursor backward using the same native `sub` operation
+    /// while updating only its B1 offset metadata.
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    #[requires(self.invariant() && self@ != None)]
+    #[requires(base.invariant() && base@ != None)]
+    #[requires(region.inner_logic().invariant())]
+    #[requires(match (self@, base@) {
+        (Some((namespace, capacity, offset)), Some((base_namespace, base_capacity, base_offset))) =>
+            namespace == base_namespace && capacity == base_capacity && base_offset == 0 &&
+            self.raw_pointer() == base.raw_pointer().offset_logic(offset) &&
+            count@ <= offset &&
+            region.inner_logic().namespace() == namespace &&
+            region.inner_logic().capacity() == capacity &&
+            region.inner_logic().lo() <= offset - count@ &&
+            offset <= region.inner_logic().hi(),
+        _ => false,
+    })]
+    #[requires(count@ <= isize::MAX@)]
+    #[ensures(result.invariant())]
+    #[ensures(result@ == Some((self@.unwrap_logic().0, self@.unwrap_logic().1,
+        self@.unwrap_logic().2 - count@)))]
+    #[ensures(result.current_address() == self.current_address() - count@)]
+    #[ensures(result.raw_pointer() == self.raw_pointer().offset_logic(0 - count@))]
+    #[ensures(match (self@, base@) {
+        (Some((_, _, offset)), Some((_, _, _))) =>
+            result.raw_pointer() == base.raw_pointer().offset_logic(offset - count@),
+        _ => false,
+    })]
+    pub(crate) fn retreat_within_region(
+        &self,
+        count: usize,
+        base: BoundPtr,
+        region: Ghost<&PhysicalRegion>,
+    ) -> Self {
+        let pointer = unsafe {
+            NonNull::new_unchecked(crate::provenance_specs::sub_within_region(
+                self.pointer.as_ptr(), count, self, &base, region,
+            ))
+        };
+        let binding = ghost! {
+            let count_int: Int = *Int::new(count as i128);
+            match self.binding.into_inner() {
+                None => None,
+                Some(binding) => Some(BoundPtrBinding {
+                    namespace: binding.namespace,
+                    allocation_capacity: binding.allocation_capacity,
+                    absolute_offset: binding.absolute_offset - count_int,
+                }),
+            }
+        };
+        Self { pointer, binding }
+    }
+
     /// Advance this bound descriptor within its original allocation.
     ///
     /// The pointer word is updated from its existing provenance with

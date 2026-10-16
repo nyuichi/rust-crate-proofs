@@ -12,8 +12,8 @@ let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcou
 let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
 let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 22 8 22 20
 let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 853 15 853 32
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 855 20 855 44
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 888 15 888 32
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 890 20 890 44
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 22 201 26
 let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 4 203 17
 let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 199 14 199 29
@@ -24,12 +24,12 @@ let%span sghost'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refco
 let%span sboxed = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/boxed.rs" 49 8 49 18
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 537 12 539 34
 let%span sptr'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
-let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 873 20 873 27
-let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 878 20 878 27
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 883 20 883 27
-let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 888 20 888 45
-let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1470 16 1470 59
-let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 894 12 897 13
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 926 20 926 27
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 931 20 931 27
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 936 20 936 27
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 941 20 941 45
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1523 16 1523 59
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 947 12 950 13
 let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1966 25 1966 44
 let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1967 23 1967 40
 let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1968 12 1968 64
@@ -328,7 +328,7 @@ axiom inv_axiom'5 [@rewrite]:
       | Some'1 f0'1 -> inv_StoredAuthority f0'1
       end
 
-predicate invariant_PhysicalPool [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 859 4 859 30] (self: t_PhysicalPool)
+predicate invariant_PhysicalPool [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 912 4 912 30] (self: t_PhysicalPool)
 
 predicate inv_PhysicalPool (_1: t_PhysicalPool)
 
@@ -561,7 +561,7 @@ function unwrap_Option_VecStorage (self: t_Option_VecStorage) : t_VecStorage = [
     | None'8 -> any_VecStorage
     end
 
-function vec_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 854 4 854 36] (self: t_Shared) : t_VecStorage
+function vec_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 889 4 889 36] (self: t_Shared) : t_VecStorage
  = [%#sbytes_mut'0] unwrap_Option_VecStorage (view_MaybeUninit_VecStorage self.vec)
 
 predicate has_event_invariant [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 191 4 191 51] (self: t_RefCountCell)
@@ -588,15 +588,15 @@ type tup4_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Id = {
   f2'7: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8;
   f3'7: t_Id }
 
-function view_PhysicalPool [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 849 4 849 33] (self: t_PhysicalPool) : tup4_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Id
+function view_PhysicalPool [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 902 4 902 33] (self: t_PhysicalPool) : tup4_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8_Id
 
-function capacity'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 872 4 872 39] (self: t_PhysicalPool) : int
+function capacity'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 925 4 925 39] (self: t_PhysicalPool) : int
  = [%#sraw_vec] (view_PhysicalPool self).f0'7
 
-function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 877 4 877 39] (self: t_PhysicalPool) : t_Id
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 930 4 930 39] (self: t_PhysicalPool) : t_Id
  = [%#sraw_vec'0] (view_PhysicalPool self).f1'7
 
-function resource_id'4 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 882 4 882 41] (self: t_PhysicalPool) : t_Id
+function resource_id'4 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 935 4 935 41] (self: t_PhysicalPool) : t_Id
  = [%#sraw_vec'1] (view_PhysicalPool self).f3'7
 
 type t_Option_u8 = None'10 | Some'10 UInt8.t
@@ -617,7 +617,7 @@ predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: i
 
 meta "rewrite_def" predicate contains_Int
 
-predicate contains [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 887 4 887 52] (self: t_PhysicalPool) (index: int) =
+predicate contains [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 940 4 940 52] (self: t_PhysicalPool) (index: int) =
   [%#sraw_vec'2] contains_Int (view_PhysicalPool self).f2'7.f1'6 index
 
 type t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
@@ -645,10 +645,10 @@ meta "rewrite_def" function get_Int'0
 
 type t_Option_Option_u8 = None'13 | Some'13 t_Option_u8
 
-predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1469 0 1469 58] (slot'0: t_Option_Option_u8) =
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1522 0 1522 58] (slot'0: t_Option_Option_u8) =
   [%#sraw_vec'3] exists value: UInt8.t. slot'0 = Some'13 (Some'10 value)
 
-function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 892 4 892 62] (self: t_PhysicalPool) (index: int) : t_Option_Option_u8
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 945 4 945 62] (self: t_PhysicalPool) (index: int) : t_Option_Option_u8
  = [%#sraw_vec'4] match get_Int (view_PhysicalPool self).f2'7.f1'6 index with
     | None'11 -> None'13
     | Some'11 {f0'8 = value} -> Some'13 value

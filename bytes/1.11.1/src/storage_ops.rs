@@ -6,7 +6,8 @@
 use core::mem::MaybeUninit;
 use creusot_std::prelude::*;
 
-/// Typed effect boundary for the native memcpy used by BytesMut::extend_from_slice.
+/// Typed effect boundary for the native memcpy used by BytesMut::extend_from_slice
+/// and unique Vec prefix reclaim.
 ///
 /// Temporary generic trust: the pinned pointer contracts do not describe
 /// copy_nonoverlapping's effect on a borrowed MaybeUninit slice. This leaf

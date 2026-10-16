@@ -59,16 +59,38 @@ python3 "$checker" --snapshot > "$input_snapshot"
 # Serialize translation and solver use with the shared proof lock.
 exec 9>"${BYTES_PROOF_LOCK:-/tmp/itoa-creusot-proof.lock}"
 flock 9
-# The ignored verifier output is rebuilt from the live crate source each run.
-rm -rf verif
-if ! cargo clean --package bytes; then
-    printf 'Could not clear the bytes translation artifact before fresh verification\n' >&2
+# Use a fresh Cargo target directory to force translation without deleting any
+# existing verifier output or build cache. Keep the directory for inspection.
+mkdir -p "$tool_root/targets"
+translation_target_dir=$(mktemp -d "$tool_root/targets/bytes-proof-XXXXXX")
+export CARGO_TARGET_DIR="$translation_target_dir"
+export CARGO_INCREMENTAL=0
+
+mapfile -t targets < <(python3 "$checker" --targets)
+if [[ ${#targets[@]} -eq 0 ]]; then
+    printf 'The direct runner has no proof targets\n' >&2
     exit 1
 fi
+translation_started_ns=$(date +%s%N)
 if ! cargo creusot --only=coma -- --locked > "$translation_log" 2>&1; then
     cat "$translation_log" >&2
     exit 1
 fi
+
+python3 - "$translation_started_ns" "${targets[@]}" <<'PY'
+from pathlib import Path
+import sys
+
+started_ns = int(sys.argv[1])
+targets = [Path(name) for name in sys.argv[2:]]
+stale = [str(target) for target in targets
+         if not target.is_file() or target.stat().st_size == 0
+         or target.stat().st_mtime_ns < started_ns]
+if stale:
+    print("Fresh translation did not emit current selected COMA targets:", file=sys.stderr)
+    print("\n".join(stale), file=sys.stderr)
+    raise SystemExit(1)
+PY
 
 # Creusot may leave this exact generated erasure file while translating the
 # direct crate package. It is not part of the pinned Std input tree; remove
@@ -87,11 +109,6 @@ sed 's/^memlimit = .*/memlimit = 1024/' \
 export DUNE_DIR_LOCATIONS="why3find:lib:$CREUSOT_DATA_HOME/share/why3find"
 export WHY3CONFIG="$CREUSOT_DATA_HOME/creusot_why3.conf"
 
-mapfile -t targets < <(python3 "$checker" --targets)
-if [[ ${#targets[@]} -eq 0 ]]; then
-    printf 'The direct runner has no proof targets\n' >&2
-    exit 1
-fi
 for target in "${targets[@]}"; do
     if [[ ! -s "$target" ]]; then
         printf 'Fresh translation did not emit target %s\n' "$target" >&2

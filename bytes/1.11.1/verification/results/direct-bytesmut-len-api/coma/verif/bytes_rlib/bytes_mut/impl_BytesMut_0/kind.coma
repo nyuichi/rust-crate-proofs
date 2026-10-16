@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3941 4 3941 27 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 4076 4 4076 27 *)
 
 (* bytes_mut::BytesMut *)
 
@@ -7,11 +7,11 @@ type namespace_other
 type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
 let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3943 19 3943 67
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3946 15 3946 24
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3941 13 3941 17
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3939 65 3939 127
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3941 4 3941 27
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 4078 19 4078 67
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 4081 15 4081 24
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 4076 13 4076 17
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 4074 65 4074 127
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 4076 4 4076 27
 let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 334 68 334 88
 let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
 let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
@@ -19,9 +19,9 @@ let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-ref
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 368 12 376 13
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 243 12 244 56
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 687 12 691 33
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 740 12 744 33
 let%span sshared = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/shared.rs" 26 8 26 46
-let%span sprovenance_specs = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 72 28 72 54
+let%span sprovenance_specs = "/workspace/rust-crate-proofs/bytes/1.11.1/src/provenance_specs.rs" 74 28 74 54
 
 use creusot.prelude.Opaque
 use creusot.int.UInt64
@@ -147,7 +147,7 @@ predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src
 
 type tup3_OwnedRegion_Int_Id = { f0'2: t_OwnedRegion; f1'2: int; f2'2: t_Id }
 
-function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 673 4 673 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 726 4 726 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
 
 type t_Excl_unit = { f0'3: () }
 
@@ -165,7 +165,7 @@ type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
 
 function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
 
-predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 685 4 685 30] (self: t_PhysicalRegion) =
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 738 4 738 30] (self: t_PhysicalRegion) =
   [%#sraw_vec'1] invariant_OwnedRegion (view_PhysicalRegion self).f0'2
   /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5
   /\ (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f1'5
@@ -299,7 +299,7 @@ meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let kind [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 3941 4 3941 27] (self: t_BytesMut)
+let kind [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 4076 4 4076 27] (self: t_BytesMut)
   (return (x: UInt64.t)) = {[@stop_split] [@expl:kind 'self' type invariant] [%#sbytes_mut'1] inv_ref_BytesMut self}
   (! bb0
   [ bb0 = s0

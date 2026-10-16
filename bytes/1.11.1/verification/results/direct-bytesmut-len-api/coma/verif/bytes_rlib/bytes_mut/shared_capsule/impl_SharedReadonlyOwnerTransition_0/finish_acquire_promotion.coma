@@ -24,16 +24,16 @@ let%span sghost'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refco
 let%span sghost'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 227 14 227 36
 let%span sghost'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
 let%span sghost'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 120 8 120 22
-let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 699 20 699 30
-let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 704 20 704 30
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 714 20 714 27
-let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1470 16 1470 59
-let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 723 14 723 43
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 752 20 752 30
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 757 20 757 30
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 767 20 767 27
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1523 16 1523 59
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 776 14 776 43
 let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 368 12 376 13
 let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 395 14 395 60
-let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 687 12 691 33
-let%span sraw_vec'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 719 20 719 30
-let%span sraw_vec'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 709 20 709 27
+let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 740 12 744 33
+let%span sraw_vec'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 772 20 772 30
+let%span sraw_vec'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 762 20 762 27
 let%span sshared = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/shared.rs" 26 8 26 46
 let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 423 8 423 25
 let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 4665 29 4665 52
@@ -117,7 +117,7 @@ type t_Id
 
 type tup3_OwnedRegion_Int_Id = { f0: t_OwnedRegion; f1: int; f2: t_Id }
 
-function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 673 4 673 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 726 4 726 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
 
 type t_Excl_unit = { f0'0: () }
 
@@ -135,41 +135,41 @@ type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
 
 function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
 
-predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 685 4 685 30] (self: t_PhysicalRegion) =
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 738 4 738 30] (self: t_PhysicalRegion) =
   [%#sraw_vec'6] invariant_OwnedRegion (view_PhysicalRegion self).f0
   /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0).f0'2
   /\ (view_OwnedRegion (view_PhysicalRegion self).f0).f0'2 <= (view_OwnedRegion (view_PhysicalRegion self).f0).f1'2
   /\ (view_OwnedRegion (view_PhysicalRegion self).f0).f1'2 <= (view_PhysicalRegion self).f1
   /\ (view_OwnedRegion (view_PhysicalRegion self).f0).f2'2 = (view_PhysicalRegion self).f2
 
-function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 718 4 718 41] (self: t_PhysicalRegion) : t_Id
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 771 4 771 41] (self: t_PhysicalRegion) : t_Id
  = [%#sraw_vec'7] (view_OwnedRegion (view_PhysicalRegion self).f0).f2'2
 
-function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 708 4 708 39] (self: t_PhysicalRegion) : t_Id
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 761 4 761 39] (self: t_PhysicalRegion) : t_Id
  = [%#sraw_vec'8] (view_PhysicalRegion self).f2
 
 type tup3_Id_ptr_u8_Int = { f0'3: t_Id; f1'3: Opaque.ptr; f2'3: int }
 
 function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 338 4 338 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
 
-function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 713 4 713 39] (self: t_PhysicalRegion) : int
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 766 4 766 39] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'1] (view_PhysicalRegion self).f1
 
 function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 358 4 358 40] (self: t_OwnerTicket) : int
 
-function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 698 4 698 33] (self: t_PhysicalRegion) : int
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 751 4 751 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec] (view_OwnedRegion (view_PhysicalRegion self).f0).f0'2
 
 function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 353 4 353 40] (self: t_OwnerTicket) : int
 
-function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 703 4 703 33] (self: t_PhysicalRegion) : int
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 756 4 756 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'0] (view_OwnedRegion (view_PhysicalRegion self).f0).f1'2
 
 type t_Option_u8 = None'1 | Some'1 UInt8.t
 
 type t_Option_Option_u8 = None'2 | Some'2 t_Option_u8
 
-predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1469 0 1469 58] (slot: t_Option_Option_u8) =
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1522 0 1522 58] (slot: t_Option_Option_u8) =
   [%#sraw_vec'2] exists value: UInt8.t. slot = Some'2 (Some'1 value)
 
 type t_Excl_Option_u8 = { f0'4: t_Option_u8 }
@@ -191,7 +191,7 @@ axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#so
       | Some'3 {f0'4 = value} -> Some'2 value
       end
 
-function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 724 4 724 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 777 4 777 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
 
 axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'3] slot'0 self index
     = slot (view_PhysicalRegion self).f0 index

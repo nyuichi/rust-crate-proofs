@@ -428,7 +428,36 @@ length and suffix. This effect grants no allocation, liveness, Vec-owner,
 refcount, or Bytes-specific authority. The verified `copy_to_uninit_prefix`
 loop has the same functional specification, but the selected source body
 continues to call the original raw-copy helper. No new trusted boundary was
-added for Shared append.
+added for Shared append. The selected unique Vec reclaim helper also calls this
+same generic raw-copy boundary once; its B4 borrows and B1 recovery/region
+resources are established by checked source bodies and are not supplied by the
+copy contract.
+
+The generic all-build `provenance_specs::sub_within_region` adapter executes
+the original native `ptr::sub` operation once for both the checked B1 retreat
+and the normal reclaim path. The pinned pointer contracts do not expose its
+unsigned pointer-subtraction effect. In proof builds, its trusted precondition
+requires the actual cursor and offset-zero base `BoundPtr` descriptors and a
+borrowed live `PhysicalRegion` for the same namespace and capacity, the
+cursor's exact pointer relation to that base and offset, and the old and
+resulting offsets within the region; the count is within `isize::MAX`. A zero
+count is valid for an empty allocation, while nonzero subtraction uses the
+live allocation tied to the actual region. Its postconditions state only the
+resulting pointer relation to the cursor and base. It grants no allocation,
+byte-access, Vec-owner, or refcount authority. The checked reclaim bodies
+supply and preserve the actual B1 descriptors and region. Replace this
+adapter when the pinned Std model provides a body-checked `ptr::sub` contract
+with the same pointer relation.
+
+The selected `BytesMut::reclaim_unique_prefix` body proves the original
+one-copy unique Vec prefix reclaim under its `unique_valid`, exact-offset, and
+non-overlap preconditions. Its checked B1 helper splits the actual physical
+region, borrows the disjoint initialized source and uninitialized destination,
+performs the existing raw-copy operation, and rejoins the region. The source
+helper then preserves the Recovery capability and proves the resulting
+zero-offset Vec geometry and allocation-slot frame. This does not prove the
+`reserve_inner` branch selection, the full `try_reclaim` policy, the allocation
+fallback, or a public safe path to this helper.
 
 The selected in-capacity `BytesMut::resize` body calls the generic
 `storage_ops::fill_uninit_prefix_raw` effect boundary for its original native

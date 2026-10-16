@@ -457,6 +457,41 @@ impl BytesMut {
             self.unique_valid() && self.unique_hidden_prefix_known()
         }
     }
+    /// The private reclaim copy has already moved the proof cursor and copied
+    /// the visible bytes to the allocation base, while the native BytesMut
+    /// fields still describe the old view. This predicate is the checked
+    /// boundary for committing the remaining pointer/tag/capacity phase.
+    #[logic(open(self), prophetic)]
+    fn unique_reclaim_layout_ready(self, off: Int, base: *mut u8) -> bool {
+        pearlite! {
+            self.shared_proof == None && self.unique_proof != None && {
+                let proof = self.unique_proof.unwrap_logic();
+                let caps = proof.capabilities.inner_logic();
+                let region = caps.1;
+                proof.base.invariant() && proof.cursor.invariant() &&
+                proof.raw.invariant() &&
+                proof.raw.namespace() == caps.0.namespace() &&
+                proof.raw.raw_pointer() == proof.base.raw_pointer() &&
+                proof.base@ == Some((caps.0.namespace(), proof.raw.capacity(), 0int)) &&
+                proof.cursor@ == Some((caps.0.namespace(), proof.raw.capacity(), 0int)) &&
+                proof.cursor.raw_pointer() == proof.base.raw_pointer() &&
+                proof.cursor.raw_pointer() == base &&
+                proof.cursor.current_address() == proof.base.current_address() &&
+                caps.0.invariant() && caps.1.invariant() &&
+                caps.0.capacity() == proof.raw.capacity() &&
+                caps.1.capacity() == proof.raw.capacity() &&
+                caps.1.namespace() == caps.0.namespace() &&
+                caps.1.resource_id() == caps.0.namespace() &&
+                caps.1.lo() == 0 && caps.1.hi() == proof.raw.capacity() &&
+                self.len@ <= self.cap@ &&
+                self.cap@ + off == proof.raw.capacity() &&
+                (self.data.addr_logic() & 3usize) == 1usize &&
+                (self.data.addr_logic() & KIND_MASK) == KIND_VEC &&
+                forall<i: Int> 0 <= i && i < self.len@ ==>
+                    raw_vec::slot_known(region.slot(i))
+            }
+        }
+    }
     /// Slot in allocation coordinates, including hidden prefixes and suffixes.
     #[logic(open(self))]
     pub(crate) fn unique_allocation_slot(self, index: Int) -> Option<Option<u8>> {
@@ -3060,17 +3095,9 @@ impl BytesMut {
                     // There's enough space, and it's not too much overhead:
                     // reuse the space!
                     //
-                    // Just move the pointer back to the start after copying
-                    // data back.
-                    let base_ptr = self.ptr.as_ptr().sub(off);
-                    // Since `off >= self.len()`, the two regions don't overlap.
-                    ptr::copy_nonoverlapping(self.ptr.as_ptr(), base_ptr, self.len);
-                    self.ptr = vptr(base_ptr);
-                    self.set_vec_pos(0);
-
-                    // Length stays constant, but since we moved backwards we
-                    // can gain capacity back.
-                    self.cap += off;
+                    // The checked private kernel retains the original one-copy
+                    // operation while moving the unique Vec view to its base.
+                    unsafe { self.reclaim_unique_prefix(off) };
                 } else {
                     if !allocate {
                         return false;
@@ -3221,6 +3248,114 @@ impl BytesMut {
         self.cap = v.capacity();
         debug_assert_eq!(self.len, v.len());
         true
+    }
+
+    /// Move an initialized unique Vec view back to its allocation base.
+    ///
+    /// The actual reclaim caller remains inside `reserve_inner`; this helper
+    /// checks the physical copy and the resulting unique Vec geometry without
+    /// claiming that reserve selection or allocation policy is verified.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.unique_valid() && off@ == self.unique_offset() &&
+        self.unique_length() <= off@ &&
+        off@ + self.unique_capacity() == self.unique_allocation_capacity()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).unique_valid() && (^self).unique_vec_rebuildable() &&
+        (^self).unique_length() == self.unique_length() &&
+        (^self).unique_offset() == 0 &&
+        (^self).unique_capacity() == self.unique_capacity() + off@ &&
+        (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+        (^self).unique_pointer() == self.unique_pointer().offset_logic(0 - off@) &&
+        (^self).unique_proof.unwrap_logic().raw == self.unique_proof.unwrap_logic().raw &&
+        (^self).unique_proof.unwrap_logic().base == self.unique_proof.unwrap_logic().base &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().0 ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().0 &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.namespace() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.namespace() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.capacity() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.capacity() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.resource_id() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.lo() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.lo() &&
+        (^self).unique_proof.unwrap_logic().capabilities.inner_logic().1.hi() ==
+            self.unique_proof.unwrap_logic().capabilities.inner_logic().1.hi() &&
+        (^self).shared_proof == self.shared_proof &&
+        ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+            (self.unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) &&
+        (^self).unique_bytes() == self.unique_bytes() &&
+        (forall<i:Int> 0 <= i && i < self.unique_length() ==>
+            (^self).unique_allocation_slot(i) == Some(Some(self.unique_bytes()[i]))) &&
+        (forall<i:Int> self.unique_length() <= i &&
+            i < self.unique_allocation_capacity() ==>
+            (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))
+    ))]
+    unsafe fn reclaim_unique_prefix(&mut self, off: usize) {
+        let base_ptr: *mut u8;
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let mut proof = self.unique_proof.take().unwrap();
+            let (recovery, region) = proof.capabilities.split();
+            let (cursor, region) = crate::ownership_proof::unique_reclaim::reclaim(
+                proof.cursor, proof.base, off, self.len, region,
+            );
+            base_ptr = cursor.as_ptr();
+            proof.cursor = cursor;
+            proof.capabilities = ghost! {
+                (recovery.into_inner(), region.into_inner())
+            };
+            self.unique_proof = Some(proof);
+        }
+
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        {
+            let base_ptr_native = unsafe {
+                crate::provenance_specs::sub_within_region(self.ptr.as_ptr(), off)
+            };
+            let source = unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) };
+            let destination = unsafe {
+                slice::from_raw_parts_mut(base_ptr_native.cast::<MaybeUninit<u8>>(), self.len)
+            };
+            // The caller established `off >= len`, so the source and
+            // destination slices are disjoint ranges in the same allocation.
+            unsafe { crate::storage_ops::copy_to_uninit_prefix_raw(destination, source) };
+            base_ptr = base_ptr_native;
+        }
+
+        self.finish_reclaimed_unique_layout(base_ptr, off);
+    }
+
+    /// Commit the original Vec-layout mutation after the physical reclaim copy
+    /// has returned its actual base cursor and updated region.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.unique_reclaim_layout_ready(off@, base_ptr)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).unique_valid() && (^self).unique_vec_rebuildable() &&
+        (^self).unique_length() == self.unique_length() &&
+        (^self).unique_offset() == 0 &&
+        (^self).unique_capacity() == self.unique_capacity() + off@ &&
+        (^self).unique_allocation_capacity() == self.unique_allocation_capacity() &&
+        (^self).ptr@ == base_ptr &&
+        (^self).len == self.len &&
+        (^self).cap@ == self.cap@ + off@ &&
+        (^self).unique_proof == self.unique_proof &&
+        (^self).shared_proof == self.shared_proof &&
+        ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+            (self.unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) &&
+        (^self).unique_bytes() == self.unique_bytes() &&
+        (forall<i:Int> 0 <= i && i < self.unique_length() ==>
+            (^self).unique_allocation_slot(i) == Some(Some(self.unique_bytes()[i]))) &&
+        (forall<i:Int> self.unique_length() <= i &&
+            i < self.unique_allocation_capacity() ==>
+            (^self).unique_allocation_slot(i) == self.unique_allocation_slot(i))
+    ))]
+    unsafe fn finish_reclaimed_unique_layout(&mut self, base_ptr: *mut u8, off: usize) {
+        self.ptr = vptr(base_ptr);
+        self.set_vec_pos(0);
+        self.cap += off;
     }
 
     /// Attempts to cheaply reclaim already allocated capacity for at least `additional` more
@@ -4030,6 +4165,20 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((self.unique_valid() && pos@ <= MAX_VEC_POS@) ==> ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
         (self.unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK)))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        ((^self).unique_tag_pointer().addr_logic() >> VEC_POS_OFFSET) == pos
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        ((^self).unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK) ==
+            (self.unique_tag_pointer().addr_logic() & NOT_VEC_POS_MASK)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        ((^self).unique_tag_pointer().addr_logic() & KIND_MASK) ==
+            (self.unique_tag_pointer().addr_logic() & KIND_MASK)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).ptr == self.ptr))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).len == self.len))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).cap == self.cap))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(((^self).unique_tag_pointer().addr_logic() & 3usize) ==
         (self.unique_tag_pointer().addr_logic() & 3usize)))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^self).unique_proof == self.unique_proof))]
@@ -5152,6 +5301,31 @@ mod tests {
         copied.truncate(7);
         assert_eq!(&copied[..], b"payload");
         assert_eq!(&sibling[..], b"head:");
+    }
+
+    #[test]
+    fn try_reclaim_compacts_unique_vec_prefix_without_allocation() {
+        let mut original = Vec::with_capacity(64);
+        original.extend(0u8..64);
+        let allocation_capacity = original.capacity();
+        let allocation_base = original.as_ptr();
+        let mut buffer = BytesMut::from_vec(original);
+
+        Buf::advance(&mut buffer, 32);
+        assert_eq!(buffer.as_ptr() as usize, allocation_base as usize + 32);
+        assert_eq!(buffer.len(), 32);
+        assert_eq!(buffer.capacity(), allocation_capacity - 32);
+        assert_eq!(&buffer[..], &(32u8..64).collect::<Vec<_>>());
+
+        // The request exceeds this view's spare capacity by exactly the
+        // reclaimable prefix, so this exercises the unique Vec copy path.
+        let additional = allocation_capacity - 32;
+        assert!(buffer.try_reclaim(additional));
+
+        assert_eq!(buffer.as_ptr(), allocation_base);
+        assert_eq!(buffer.len(), 32);
+        assert_eq!(buffer.capacity(), allocation_capacity);
+        assert_eq!(&buffer[..], &(32u8..64).collect::<Vec<_>>());
     }
 
     #[test]

@@ -11,6 +11,8 @@
 use creusot_std::prelude::*;
 #[cfg(creusot)]
 use creusot_std::std::mem::size_of_logic;
+#[cfg(all(creusot, bytes_original_unique_gate))]
+use crate::ownership_proof::raw_vec::{BoundPtr, PhysicalRegion};
 
 /// Compare thin pointers by address without granting logical provenance
 /// identity. Normal builds retain native pointer equality and the crate's
@@ -144,6 +146,58 @@ pub(crate) unsafe fn offset_from_equal_u8(pointer: *const u8, base: *const u8) -
     // SAFETY: the caller guarantees both operands belong to the same live
     // allocation; in the selected proof path they are the same non-null word.
     unsafe { pointer.offset_from(base) }
+}
+
+// STD-PTRSUB-01: The pinned pointer contracts do not describe the unsigned
+// pointer-subtraction effect. Keep the original native `sub` operation in one
+// all-build adapter used by both the checked B1 retreat and the native reclaim
+// path. In proof builds, the actual cursor/base descriptors and borrowed live
+// region tie the raw pointer arithmetic to one allocation; they grant no
+// dereference or ownership permission.
+//
+// # Safety
+// For nonzero `count`, `pointer` must be derived from the same live allocation
+// as `base` and `count` must remain within it. A zero count is valid for an
+// empty allocation. Proof builds additionally require the actual B1 cursor,
+// offset-zero base, and live PhysicalRegion for that allocation.
+#[cfg_attr(all(creusot, bytes_original_unique_gate), trusted)]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    cursor.invariant() && cursor@ != None && base.invariant() && base@ != None &&
+    region.inner_logic().invariant()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(match (cursor@, base@) {
+    (Some((namespace, capacity, offset)), Some((base_namespace, base_capacity, base_offset))) =>
+        pointer == cursor.raw_pointer() &&
+        namespace == base_namespace && capacity == base_capacity && base_offset == 0 &&
+        pointer == base.raw_pointer().offset_logic(offset) &&
+        count@ <= offset &&
+        region.inner_logic().namespace() == namespace &&
+        region.inner_logic().capacity() == capacity &&
+        region.inner_logic().lo() <= offset - count@ &&
+        offset <= region.inner_logic().hi(),
+    _ => false,
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(count@ <= isize::MAX@))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result.addr_logic()@ == cursor.current_address() - count@
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result == pointer.offset_logic(0 - count@)
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match (cursor@, base@) {
+    (Some((_, _, offset)), Some((_, _, _))) =>
+        result == base.raw_pointer().offset_logic(offset - count@),
+    _ => false,
+}))]
+#[inline]
+pub(crate) unsafe fn sub_within_region(
+    pointer: *mut u8,
+    count: usize,
+    #[cfg(all(creusot, bytes_original_unique_gate))] cursor: &BoundPtr,
+    #[cfg(all(creusot, bytes_original_unique_gate))] base: &BoundPtr,
+    #[cfg(all(creusot, bytes_original_unique_gate))] region: Ghost<&PhysicalRegion>,
+) -> *mut u8 {
+    unsafe { pointer.sub(count) }
 }
 
 /// Obtain a pointer with a requested numerical address by applying

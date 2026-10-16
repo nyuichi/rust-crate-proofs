@@ -15,12 +15,12 @@ let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refco
 let%span snonnull'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 50 8 50 29
 let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 395 14 395 60
-let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 709 20 709 27
-let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 714 20 714 27
-let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 699 20 699 30
-let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 704 20 704 30
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 762 20 762 27
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 767 20 767 27
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 752 20 752 30
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 757 20 757 30
 let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 368 12 376 13
-let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 687 12 691 33
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 740 12 744 33
 let%span svec_storage = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 1078 12 1084 13
 let%span svec_storage'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 1068 13 1068 17
 let%span svec_storage'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 1071 57 1071 72
@@ -131,7 +131,7 @@ predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src
 
 type tup3_OwnedRegion_Int_Id = { f0'1: t_OwnedRegion; f1'1: int; f2'1: t_Id }
 
-function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 673 4 673 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 726 4 726 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
 
 type t_Excl_unit = { f0'2: () }
 
@@ -149,7 +149,7 @@ type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
 
 function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
 
-predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 685 4 685 30] (self: t_PhysicalRegion) =
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 738 4 738 30] (self: t_PhysicalRegion) =
   [%#sraw_vec'5] invariant_OwnedRegion (view_PhysicalRegion self).f0'1
   /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'1).f0'4
   /\ (view_OwnedRegion (view_PhysicalRegion self).f0'1).f0'4 <= (view_OwnedRegion (view_PhysicalRegion self).f0'1).f1'4
@@ -196,16 +196,16 @@ function unwrap_Option_tup3_Id_Int_Int (self: t_Option_tup3_Id_Int_Int) : tup3_I
     | None'0 -> any_tup3_Id_Int_Int
     end
 
-function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 708 4 708 39] (self: t_PhysicalRegion) : t_Id
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 761 4 761 39] (self: t_PhysicalRegion) : t_Id
  = [%#sraw_vec'0] (view_PhysicalRegion self).f2'1
 
-function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 713 4 713 39] (self: t_PhysicalRegion) : int
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 766 4 766 39] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'1] (view_PhysicalRegion self).f1'1
 
-function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 698 4 698 33] (self: t_PhysicalRegion) : int
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 751 4 751 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'2] (view_OwnedRegion (view_PhysicalRegion self).f0'1).f0'4
 
-function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 703 4 703 33] (self: t_PhysicalRegion) : int
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 756 4 756 33] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'3] (view_OwnedRegion (view_PhysicalRegion self).f0'1).f1'4
 
 let offset_from_bound (self: MutBorrow.t t_NativeStoredVec) (pointer: Opaque.ptr) (base: Opaque.ptr)

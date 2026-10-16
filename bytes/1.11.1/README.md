@@ -63,6 +63,14 @@ the pointer, capacity, packet or Vec frame, and all allocation slots outside
 the written range. This covers length growth without capacity growth; reserve
 growth, reclaim, and allocation remain outside the proof.
 
+The private `BytesMut::reclaim_unique_prefix` body proves the original
+unique-Vec reclaim operation under its exact unique-layout and offset
+preconditions. It performs one prefix copy into the allocation's reclaimed
+space, retains the actual recovery and physical-region resources, and proves
+the resulting zero-offset Vec geometry and allocation-slot frame. This is a
+helper-level proof: `reserve_inner` selection, the enclosing `try_reclaim`
+policy, and any public safe path reaching this helper remain unproved.
+
 The selected ghost ownership proofs model each native strong reference as an
 exact singleton ticket in one ledger. Mutable tickets own disjoint physical
 intervals; readonly tickets record visible intervals and may overlap one
