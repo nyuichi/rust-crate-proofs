@@ -27,17 +27,20 @@ original-source proofs include the local ownership, provenance and
 capacity-representation helper bodies in their call cone.
 
 The private `advance_unchecked` body has selected Vec and packet-backed Shared
-cursor proofs. The Vec path retains the full allocation-slot frame and updates
-the visible prefix in two phases. The Shared path advances the packet cursor
-and proves the new pointer, length, capacity, visible-byte suffix and complete
-packet allocation-slot frame under its internal layout and initialized-view
-preconditions. The selected capsule and packet invariants tie each packet's
-ghost allocation identity (namespace, base and capacity) to the protected
-Shared storage through its ledger ticket; the ticket's owned interval also
-matches the packet's physical region. The identity and interval metadata grant
-no access authority, and the proofs do not establish every public producer or
-later owner-lifecycle path. The selected Shared split sequences do reach a
-nonzero packet cursor, but the public `Buf::advance` wrapper and the
+cursor proofs. Both branches export a common view postcondition: the resulting
+view is valid, its length and bytes reflect the saturated advance, capacity and
+cursor move together, the exact native pointer advances by `count`, and
+allocation slots are framed while current-view slots are reindexed. The Vec
+path retains its full allocation-slot frame and updates the visible prefix in
+two phases. The Shared path advances the packet cursor and retains its
+packet-specific allocation-slot and lease-key frames under the internal layout
+and initialized-view preconditions. The selected capsule and packet invariants
+tie each packet's ghost allocation identity (namespace, base and capacity) to
+the protected Shared storage through its ledger ticket; the ticket's owned
+interval also matches the packet's physical region. The identity and interval
+metadata grant no access authority, and the proofs do not establish every
+public producer or later owner-lifecycle path. Selected Shared split sequences
+reach a nonzero packet cursor, but public `Buf::advance` and the public
 Vec-backed position-advance path remain unproved. `BufMut::advance_mut` has a
 body proof, but its trait-refinement obligation remains open.
 

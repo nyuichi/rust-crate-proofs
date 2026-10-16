@@ -1,4 +1,4 @@
-(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 970 4 970 38 *)
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 995 4 995 38 *)
 
 (* bytes_mut::Shared *)
 
@@ -12,17 +12,17 @@ let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refc
 let%span smem = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 98 19 98 23
 let%span smem'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 99 18 99 72
 let%span smem'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 73 18 73 33
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 973 35 973 61
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 974 12 974 38
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 976 19 976 40
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 970 33 970 37
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 959 66 959 83
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 961 8 961 41
-let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 963 65 963 85
-let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 965 8 965 69
-let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 968 8 968 43
-let%span sbytes_mut'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 899 15 899 32
-let%span sbytes_mut'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 901 20 901 44
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 998 35 998 61
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 999 12 999 38
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1001 19 1001 40
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 995 33 995 37
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 984 66 984 83
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 986 8 986 41
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 988 65 988 85
+let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 990 8 990 69
+let%span sbytes_mut'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 993 8 993 43
+let%span sbytes_mut'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 924 15 924 32
+let%span sbytes_mut'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 926 20 926 44
 let%span svec_storage = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 951 40 951 44
 let%span svec_storage'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 946 8 946 49
 let%span svec_storage'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 949 8 949 39
@@ -129,14 +129,14 @@ function unwrap_Option_VecStorage (self: t_Option_VecStorage) : t_VecStorage = [
     | None -> any_VecStorage
     end
 
-function vec_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 900 4 900 36] (self: t_Shared) : t_VecStorage
+function vec_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 925 4 925 36] (self: t_Shared) : t_VecStorage
  = [%#sbytes_mut'9] unwrap_Option_VecStorage (view_MaybeUninit_VecStorage self.vec)
 
 meta "compute_max_steps" 1000000
 
 meta "select_lsinst" "all"
 
-let drop_empty_vec_field [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 970 4 970 38]
+let drop_empty_vec_field [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 995 4 995 38]
   (self: MutBorrow.t t_Shared) (return (x: ())) =
 {[@stop_split] [@expl:drop_empty_vec_field requires] ([@stop_split] [@expl:drop_empty_vec_field 'self' type invariant] [%#sbytes_mut'2] inv_refmut_Shared self)
   /\ ([@stop_split] [@expl:drop_empty_vec_field requires #0] [%#sbytes_mut'3] view_MaybeUninit_VecStorage self.current.vec

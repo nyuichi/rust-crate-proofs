@@ -221,6 +221,7 @@ TARGETS = (
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket/prove_cursor_within_region.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket/read_vec_metadata_offset.coma",
     "verif/bytes_rlib/bytes_mut/impl_BytesMut/prove_shared_layout_implies_view_layout.coma",
+    "verif/bytes_rlib/bytes_mut/impl_BytesMut/prove_buffer_view_valid_from_mode.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/loaned_native_counter.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket/allocation_slot.coma",
     "verif/bytes_rlib/bytes_mut/shared_capsule/impl_SharedOwnerPacket_0/advance_cursor.coma",

@@ -221,6 +221,11 @@ allocation slots. The Vec `advance_unchecked` branch is body-proved with a
 rebuildable Vec state, `count <= len`, capacity bounds and representable packed
 position. The packet-backed Shared branch is body-proved with the handle's
 packet-layout and initialized-visible-prefix preconditions.
+Both selected branches export a common view postcondition: the result remains
+`buffer_view_valid`, length and bytes follow the saturated advance, capacity
+and cursor advance together, the exact native pointer is offset by `count`,
+allocation slots are framed, and current-view slots are reindexed. The branch-
+specific Vec authority and Shared packet/key frames remain in force.
 `advance_shared_layout` and `SharedOwnerPacket::advance_cursor` preserve the
 packet capsule, ticket, physical-region descriptor, base and allocation slots
 while advancing the cursor, pointer, visible suffix and remaining capacity.
@@ -229,13 +234,13 @@ base pointer and capacity) to its physical region; the capsule protocol ties
 that same identity to its current protected storage authority. This tuple is
 identity metadata and grants no allocation access. The selected proof does not
 establish every production path that creates or preserves the relation, or
-Shared reads, recovery, exclusivity or lifecycle behavior. No selected proof
-establishes a safe public call chain that produces a nonzero offset: public
-`Buf::advance` is untranslated. The trait-refinement
-obligation for `BufMut::advance_mut` also remains unproved because its body has
-stronger proof preconditions than the trait prestate. Immutable peers,
-refcount-to-owner correspondence, concurrency and unwind behavior remain
-outside the selected `BytesMut` proof scope.
+Shared reads, recovery, exclusivity or lifecycle behavior. Selected Shared
+split sequences produce a nonzero packet cursor, but public `Buf::advance` and
+the public Vec-backed position-advance path remain unproved. The
+trait-refinement obligation for `BufMut::advance_mut` also remains unproved
+because its body has stronger proof preconditions than the trait prestate.
+These cursor proofs alone do not establish the full peer lifecycle,
+refcount-to-owner correspondence, concurrency, or unwind behavior.
 
 The private `BytesMut::as_slice` body is checked from `buffer_view_valid` and
 returns a slice whose bytes equal `buffer_bytes()`. Its unique and Shared

@@ -116,6 +116,20 @@ for target in "${targets[@]}"; do
         exit 1
     fi
 done
+python3 - "${targets[@]}" <<'PY'
+from pathlib import Path
+import sys
+
+bad = []
+for name in sys.argv[1:]:
+    path = Path(name)
+    if "ERROR_UNBOUND" in path.read_text(errors="replace"):
+        bad.append(name)
+if bad:
+    print("Fresh selected COMA contains unbound projections:", file=sys.stderr)
+    print("\n".join(bad), file=sys.stderr)
+    raise SystemExit(1)
+PY
 if ! cargo creusot --only=prove --no-cache --why3session --why3find-arg=-f --why3find-arg=-j --why3find-arg=1 "${targets[@]}"; then
     printf 'Fresh direct-source proof failed; translator output follows\n' >&2
     cat "$translation_log" >&2

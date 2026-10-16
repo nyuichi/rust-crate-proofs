@@ -6,14 +6,14 @@ type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
 
 let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
 let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
-let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 697 12 703 13
-let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 747 12 751 13
-let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 734 12 738 13
-let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 720 12 724 13
-let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 506 20 506 77
-let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 501 20 501 93
-let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 328 20 328 77
-let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 332 20 332 67
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 722 12 728 13
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 772 12 776 13
+let%span sbytes_mut'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 759 12 763 13
+let%span sbytes_mut'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 745 12 749 13
+let%span sbytes_mut'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 517 20 517 77
+let%span sbytes_mut'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 512 20 512 93
+let%span sbytes_mut'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 339 20 339 77
+let%span sbytes_mut'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 343 20 343 67
 let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 776 14 776 43
 let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 767 20 767 27
 let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 263 20 263 27
@@ -148,7 +148,7 @@ function unwrap_Option_OriginalUniqueProof (self: t_Option_OriginalUniqueProof) 
     | None -> any_OriginalUniqueProof
     end
 
-function unique_allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 500 4 500 80] (self: t_BytesMut) (index: int) : t_Option_Option_u8
+function unique_allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 511 4 511 80] (self: t_BytesMut) (index: int) : t_Option_Option_u8
  = [%#sbytes_mut'4] slot'0 (unwrap_Option_OriginalUniqueProof self.unique_proof).capabilities.f1 index
 
 type tup3_Id_Int_Int = { f0'5: t_Id; f1'5: int; f2'5: int }
@@ -165,11 +165,11 @@ function unwrap_Option_tup3_Id_Int_Int (self: t_Option_tup3_Id_Int_Int) : tup3_I
 
 function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 349 4 349 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
 
-function unique_offset [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 327 4 327 44] (self: t_BytesMut) : int
+function unique_offset [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 338 4 338 44] (self: t_BytesMut) : int
  =
   [%#sbytes_mut'5] (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr (unwrap_Option_OriginalUniqueProof self.unique_proof).cursor)).f2'5
 
-function unique_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 505 4 505 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
+function unique_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 516 4 516 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
  = [%#sbytes_mut'3] unique_allocation_slot self (unique_offset self + index)
 
 constant any_SharedOwnerPacket : t_SharedOwnerPacket
@@ -180,7 +180,7 @@ function unwrap_Option_SharedOwnerPacket (self: t_Option_SharedOwnerPacket) : t_
     | None'0 -> any_SharedOwnerPacket
     end
 
-function buffer_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 695 4 695 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
+function buffer_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 720 4 720 69] (self: t_BytesMut) (index: int) : t_Option_Option_u8
  = [%#sbytes_mut] if self.unique_proof <> None then
     unique_slot self index
   else
@@ -188,14 +188,14 @@ function buffer_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.
     + index)
 
 
-function buffer_allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 745 4 745 80] (self: t_BytesMut) (index: int) : t_Option_Option_u8
+function buffer_allocation_slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 770 4 770 80] (self: t_BytesMut) (index: int) : t_Option_Option_u8
  = [%#sbytes_mut'0] if self.unique_proof <> None then
     unique_allocation_slot self index
   else
     slot'0 (unwrap_Option_SharedOwnerPacket self.shared_proof).region'0 index
 
 
-function buffer_cursor_offset [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 732 4 732 51] (self: t_BytesMut) : int
+function buffer_cursor_offset [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 757 4 757 51] (self: t_BytesMut) : int
  = [%#sbytes_mut'1] if self.unique_proof <> None then
     unique_offset self
   else
@@ -209,13 +209,13 @@ function view_RawAllocation [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/own
 function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 262 4 262 39] (self: t_RawAllocation) : int
  = [%#sraw_vec'1] (view_RawAllocation self).f0'6
 
-function unique_allocation_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 331 4 331 57] (self: t_BytesMut) : int
+function unique_allocation_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 342 4 342 57] (self: t_BytesMut) : int
  = [%#sbytes_mut'6] capacity (unwrap_Option_OriginalUniqueProof self.unique_proof).raw
 
 function capacity'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 766 4 766 39] (self: t_PhysicalRegion) : int
  = [%#sraw_vec'0] (view_PhysicalRegion self).f1'4
 
-function buffer_allocation_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 718 4 718 57] (self: t_BytesMut) : int
+function buffer_allocation_capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 743 4 743 57] (self: t_BytesMut) : int
  = [%#sbytes_mut'2] if self.unique_proof <> None then
     unique_allocation_capacity self
   else
