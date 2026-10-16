@@ -287,6 +287,16 @@ impl OwnerTicket {
         self.fragment.id()
     }
 
+    /// The actual singleton ticket fragment uses this ticket's ledger ID as
+    /// its resource identity. This derives a reusable field relation from
+    /// the ticket's own invariant; it does not create or duplicate a ticket.
+    #[check(ghost)]
+    #[requires(self.invariant())]
+    #[ensures(self.fragment_resource_id() == self.ledger_id())]
+    pub(crate) fn prove_fragment_resource_matches_ledger(&self) {
+        proof_assert!(self.fragment_resource_id() == self.ledger_id());
+    }
+
     #[logic(open(self))]
     pub(crate) fn fragment_map(self) -> ActiveReferences {
         pearlite! { self.fragment@ }

@@ -326,14 +326,15 @@ impl RefCountCell {
                 ghost!(self.invariant.borrow().into_inner().as_ref().unwrap()),
                 expected,
                 new,
-                ghost!(&()),
-                ghost!(|state: &mut RefCountState, old, new, _frame: &()| {
-                    update_ref_count(state, old, new)
+                ghost!(()),
+                ghost!(|state: &mut RefCountState, old, new, _frame: ()| {
+                    update_ref_count(state, old, new);
+                    ((), ())
                 }),
             );
             ghost! {
                 match callback.into_inner() {
-                    Ok(()) | Err(_) => (),
+                    Ok(((), ())) | Err((_, ())) => (),
                 }
             };
             result
@@ -387,7 +388,8 @@ impl RefCountCell {
             self.counter
                 .fetch_sub_release_with(
                     ghost!(self.invariant.borrow().into_inner().as_ref().unwrap()),
-                    ghost!(|state: &mut RefCountState, old, new| {
+                    ghost!(()),
+                    ghost!(|state: &mut RefCountState, old, new, _frame: ()| {
                         update_ref_count(state, old, new)
                     }),
                 )
@@ -556,6 +558,80 @@ mod proof {
                         let owner_model = snapshot!(*state.owner.ward());
                         let owner_value = snapshot!(state.owner.val());
                         callback(&mut state.current, owner_model, owner_value)
+                    }),
+                )
+            }
+        }
+
+        /// Open the event state while passing a value-only frame explicitly
+        /// to the callback. This keeps callback postconditions independent
+        /// of captured values that the callback consumes while restoring an
+        /// affine loan.
+        #[check(ghost)]
+        #[requires(tokens.contains(self.namespace()))]
+        #[requires(forall<s: &mut EventState<T>>
+            s.public() == self.public() &&
+                s.current.protocol() &&
+                s.current.counter_model() == *s.owner.ward() &&
+                s.current.agrees_with_value(s.owner.val()) &&
+                inv(s) ==>
+                f.precondition((
+                    &mut s.current,
+                    Snapshot::new(*s.owner.ward()),
+                    Snapshot::new(s.owner.val()),
+                    frame,
+                )) &&
+                (forall<res: A> f.postcondition_once((
+                    &mut s.current,
+                    Snapshot::new(*s.owner.ward()),
+                    Snapshot::new(s.owner.val()),
+                    frame,
+                ), res) ==>
+                    (^s).current.public() == s.current.public() &&
+                    (^s).current.counter_model() == s.current.counter_model() &&
+                    (^s).current.protocol() &&
+                    (^s).current.agrees_with_value(s.owner.val()))
+        )]
+        #[ensures(exists<s: &mut EventState<T>>
+            s.public() == self.public() &&
+            s.current.protocol() &&
+            s.current.counter_model() == *s.owner.ward() &&
+            s.current.agrees_with_value(s.owner.val()) &&
+            inv(s) &&
+            f.postcondition_once((
+                &mut s.current,
+                Snapshot::new(*s.owner.ward()),
+                Snapshot::new(s.owner.val()),
+                frame,
+            ), *result) &&
+            (^s).current.public() == s.current.public() &&
+            (^s).current.counter_model() == s.current.counter_model() &&
+            (^s).current.protocol() &&
+            (^s).current.agrees_with_value(s.owner.val()) &&
+            (^s).owner.val() == s.owner.val() &&
+            (^s).owner.ward() == s.owner.ward())]
+        pub(crate) fn open_with_tokens_with_frame<A, F, G>(
+            &self,
+            tokens: Ghost<creusot_std::ghost::invariant::Tokens<'_>>,
+            frame: Snapshot<G>,
+            f: Ghost<F>,
+        ) -> Ghost<A>
+        where
+            F: FnGhost + for<'s> FnOnce(
+                &'s mut T,
+                Snapshot<NativeCounter>,
+                Snapshot<usize>,
+                Snapshot<G>,
+            ) -> A,
+        {
+            ghost! {
+                let callback = f.into_inner();
+                self.inner.borrow().open(
+                    tokens.into_inner(),
+                    FnGhostWrapper(|state: &mut EventState<T>| {
+                        let owner_model = snapshot!(*state.owner.ward());
+                        let owner_value = snapshot!(state.owner.val());
+                        callback(&mut state.current, owner_model, owner_value, frame)
                     }),
                 )
             }
@@ -745,8 +821,9 @@ mod proof {
             s.invariant() && s.owner.ward() == self && old == s.owner.val() ==>
                 (old == expected ==>
                     f.precondition((&mut s.current, old, new, frame.inner_logic())) &&
-                    (forall<a: A> f.postcondition_once(
-                        (&mut s.current, old, new, frame.inner_logic()), a) ==>
+                    (forall<a: A, updated: C> f.postcondition_once(
+                        (&mut s.current, old, new, frame.inner_logic()),
+                        (a, updated)) ==>
                         (^s).current.public() == s.current.public() &&
                         (^s).current.counter_model() == s.current.counter_model() &&
                         (^s).current.protocol() && (^s).current.agrees_with_value(new)))
@@ -761,40 +838,43 @@ mod proof {
                     (^s).current.counter_model() == s.current.counter_model() &&
                     (^s).current.protocol() && (^s).current.agrees_with_value(new) &&
                     (^s).public() == s.public() && (^s).protocol() &&
-                    (exists<a: A> *result.1 == Ok(a) &&
+                    (exists<a: A, updated: C> *result.1 == Ok((a, updated)) &&
                         f.postcondition_once(
-                            (&mut s.current, old, new, frame.inner_logic()), a)),
+                            (&mut s.current, old, new, frame.inner_logic()),
+                            (a, updated))),
                 Err(actual) => actual == old && old != expected &&
-                    *result.1 == Err(*f) && (^s) == *s,
+                    *result.1 == Err((*f, frame.inner_logic())) && (^s) == *s,
             })]
         pub(crate) fn compare_exchange_relaxed_with<T, F, A, C>(
             &self,
             invariant: Ghost<&EventBoundInvariant<T>>,
             expected: usize,
             new: usize,
-            frame: Ghost<&C>,
+            frame: Ghost<C>,
             f: Ghost<F>,
-        ) -> (Result<usize, usize>, Ghost<Result<A, F>>)
+        ) -> (Result<usize, usize>, Ghost<Result<(A, C), (F, C)>>)
         where
             T: CounterProtocol,
-            F: FnGhost + for<'s, 'c> FnOnce(&'s mut T, usize, usize, &'c C) -> A,
+            F: FnGhost + for<'s> FnOnce(&'s mut T, usize, usize, C) -> (A, C),
         {
             match self.compare_exchange_relaxed_native(expected, new) {
                 Ok(old) => {
                     let callback_result = ghost! {
                         let mut state = Ghost::<&mut EventState<T>>::conjure();
-                        let output = f.into_inner()(
+                        let (output, updated_frame) = f.into_inner()(
                             &mut state.current,
                             old,
                             new,
                             frame.into_inner(),
                         );
-                        Ok(output)
+                        Ok((output, updated_frame))
                     };
                     (Ok(old), callback_result)
                 }
                 Err(actual) => {
-                    let callback_result = ghost! { Err(f.into_inner()) };
+                    let callback_result = ghost! {
+                        Err((f.into_inner(), frame.into_inner()))
+                    };
                     (Err(actual), callback_result)
                 }
             }
@@ -814,8 +894,9 @@ mod proof {
                     callback.precondition((
                         &mut s.current, old, old + 1usize, frame.inner_logic()
                     )) &&
-                    (forall<a: A> callback.postcondition_once(
-                        (&mut s.current, old, old + 1usize, frame.inner_logic()), a
+                    (forall<a: A, updated: C> callback.postcondition_once(
+                        (&mut s.current, old, old + 1usize, frame.inner_logic()),
+                        (a, updated)
                     ) ==>
                         (^s).current.public() == s.current.public() &&
                         (^s).current.counter_model() == s.current.counter_model() &&
@@ -824,13 +905,13 @@ mod proof {
         )]
         #[ensures(match result.0 {
             Ok(old) => old <= crate::ref_count_limit::MAX_REF_COUNT &&
-                exists<s: &mut EventState<T>, a: A>
+                exists<s: &mut EventState<T>, a: A, updated: C>
                     s.public() == invariant.public() && s.protocol() &&
                     s.owner.ward() == self && old == s.owner.val() &&
-                    result.1.inner_logic() == Ok(a) &&
+                    result.1.inner_logic() == Ok((a, updated)) &&
                     callback.postcondition_once((
                         &mut s.current, old, old + 1usize, frame.inner_logic()
-                    ), a) &&
+                    ), (a, updated)) &&
                     (^s).public() == s.public() && (^s).protocol() &&
                     (^s).owner.ward() == s.owner.ward() &&
                     (^s).owner.val() == old + 1usize &&
@@ -839,22 +920,24 @@ mod proof {
                     (^s).current.protocol() &&
                     (^s).current.agrees_with_value(old + 1usize),
             Err(old) => old > crate::ref_count_limit::MAX_REF_COUNT &&
-                result.1.inner_logic() == Err(*callback)
+                result.1.inner_logic() == Err((*callback, frame.inner_logic()))
         })]
         pub(crate) fn try_increment_with<T, F, A, C>(
             &self,
             invariant: Ghost<&EventBoundInvariant<T>>,
-            frame: Ghost<&C>,
+            frame: Ghost<C>,
             callback: Ghost<F>,
-        ) -> (Result<usize, usize>, Ghost<Result<A, F>>)
+        ) -> (Result<usize, usize>, Ghost<Result<(A, C), (F, C)>>)
         where
             T: CounterProtocol,
-            F: FnGhost + for<'s, 'c> FnOnce(&'s mut T, usize, usize, &'c C) -> A,
+            F: FnGhost + for<'s> FnOnce(&'s mut T, usize, usize, C) -> (A, C),
         {
             // The loop owns the affine callback in `callback_slot`; this
             // snapshot records only its logical identity for the loop
             // invariant and does not duplicate the callback's captures.
             let callback_identity: Snapshot<Ghost<F>> = snapshot!(callback);
+            let initial_frame: Snapshot<Ghost<C>> = snapshot!(frame);
+            let mut frame_slot = Some(frame);
             let mut callback_slot = Some(callback);
             let mut callback_output = None;
             let result = try_increment_loop!(
@@ -873,7 +956,7 @@ mod proof {
                         invariant,
                         current,
                         next,
-                        frame,
+                        frame_slot.take().unwrap(),
                         callback_slot.take().unwrap(),
                     );
                     match exchange {
@@ -884,15 +967,19 @@ mod proof {
                             Ok(old)
                         }
                         Err(actual) => {
-                            callback_slot = Some(ghost! {
+                            let (callback, frame) = ghost! {
                                 callback_result.into_inner().err().unwrap()
-                            });
+                            }.split();
+                            callback_slot = Some(callback);
+                            frame_slot = Some(frame);
                             Err(actual)
                         }
                     }
                 },
                 #[invariant(callback_slot == Some(*callback_identity))],
-                #[invariant(callback_output == None)]
+                #[invariant(callback_output == None)],
+                #[invariant(callback_output == None ==>
+                    frame_slot == Some(*initial_frame))]
             );
 
             match result {
@@ -902,7 +989,8 @@ mod proof {
                 }
                 Err(old) => {
                     let unused = callback_slot.unwrap();
-                    (Err(old), ghost! { Err(unused.into_inner()) })
+                    let frame = frame_slot.unwrap();
+                    (Err(old), ghost! { Err((unused.into_inner(), frame.into_inner())) })
                 }
             }
         }
@@ -969,9 +1057,11 @@ mod proof {
             s.public() == invariant.public() && s.protocol() &&
             s.owner.ward() == self && old == s.owner.val() ==>
                 f.precondition((&mut s.current, old,
-                    if old == 0usize { usize::MAX } else { old - 1usize })) &&
+                    if old == 0usize { usize::MAX } else { old - 1usize },
+                    frame.inner_logic())) &&
                 (forall<a: A> f.postcondition_once((&mut s.current, old,
-                    if old == 0usize { usize::MAX } else { old - 1usize }), a) ==>
+                    if old == 0usize { usize::MAX } else { old - 1usize },
+                    frame.inner_logic()), a) ==>
                     (^s).current.public() == s.current.public() &&
                     (^s).current.counter_model() == s.current.counter_model() &&
                     (^s).current.protocol() &&
@@ -982,7 +1072,8 @@ mod proof {
             s.public() == invariant.public() && s.protocol() &&
             s.owner.ward() == self && old == s.owner.val() && result.0 == old &&
             f.postcondition_once((&mut s.current, old,
-                if old == 0usize { usize::MAX } else { old - 1usize }), *result.1) &&
+                if old == 0usize { usize::MAX } else { old - 1usize },
+                frame.inner_logic()), *result.1) &&
             (^s).owner.val() == if old == 0usize { usize::MAX } else { old - 1usize } &&
             (old == 0usize ==> (^s).owner.val() == usize::MAX) &&
             (old > 0usize ==> (^s).owner.val() + 1usize == old) &&
@@ -993,20 +1084,21 @@ mod proof {
             (^s).current.agrees_with_value(
                 if old == 0usize { usize::MAX } else { old - 1usize }) &&
             (^s).public() == s.public() && (^s).protocol())]
-        pub(crate) fn fetch_sub_release_with<T, F, A>(
+        pub(crate) fn fetch_sub_release_with<T, F, A, Frame>(
             &self,
             invariant: Ghost<&EventBoundInvariant<T>>,
+            frame: Ghost<Frame>,
             f: Ghost<F>,
         ) -> (usize, Ghost<A>)
         where
             T: CounterProtocol,
-            F: FnGhost + for<'s> FnOnce(&'s mut T, usize, usize) -> A,
+            F: FnGhost + for<'s> FnOnce(&'s mut T, usize, usize, Frame) -> A,
         {
             let old = self.fetch_sub_release_native();
             let output = ghost! {
                 let new = old.wrapping_sub(1usize);
                 let mut state = Ghost::<&mut EventState<T>>::conjure();
-                f.into_inner()(&mut state.current, old, new)
+                f.into_inner()(&mut state.current, old, new, frame.into_inner())
             };
             (old, output)
         }
@@ -1038,9 +1130,10 @@ pub(crate) fn try_increment(cell: &RefCountCell) -> Result<usize, usize> {
         let invariant = ghost! { cell.invariant.borrow().into_inner().as_ref().unwrap() };
         let (result, callback) = cell.counter.try_increment_with(
             invariant,
-            ghost!(&()),
-            ghost!(|state: &mut RefCountState, old: usize, new: usize, _frame: &()| {
-                update_ref_count(state, old, new)
+            ghost!(()),
+            ghost!(|state: &mut RefCountState, old: usize, new: usize, _frame: ()| {
+                update_ref_count(state, old, new);
+                ((), ())
             }),
         );
         ghost! { let _ = callback.into_inner(); };

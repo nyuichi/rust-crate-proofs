@@ -470,6 +470,15 @@ public vtable dispatch or static vtable identity. The native regression
 exercises `split_off`, `freeze`, and `BytesMut::from` while the Mutable sibling
 remains alive, then checks the copied view and sibling after truncation.
 
+The selected composition body also starts from a rebuildable unique Vec,
+splits it, calls the private freeze helper with an explicit vtable input, and
+uses the actual sibling ticket while copying the Readonly side into a new
+Mutable Vec. It truncates and explicitly disposes that Vec, then explicitly
+disposes the sibling with the same Context. The body proves the actual Context
+count transition from two owners, to one idle owner, to the final tombstone.
+This sequence does not prove the public freeze dispatch or static vtable
+identity, and it bypasses the automatic Drop wrapper.
+
 The checked common release carrier accepts a Mutable packet with its actual
 physical region or a Readonly packet with its actual ticket and no region. Its
 Readonly body consumes the ticket, leaves the pool unchanged, and reaches the

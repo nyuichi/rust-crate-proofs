@@ -59,11 +59,15 @@ struct SharedSplitView {
 /// packet supplies the physical region used by the checked borrow; the
 /// context is returned through the original shared-release body.
 #[cfg(all(creusot, bytes_original_unique_gate))]
-pub(crate) struct SharedReadonlyCopyProof<'context, 'tokens> {
+pub(crate) struct SharedReadonlyCopyProof<'context, 'tokens, 'peer> {
     pub(crate) packet: shared_capsule::SharedReadonlyPacket,
     pub(crate) context: Ghost<
         &'context mut BorrowedSharedContext<'tokens, shared_capsule::HeaderLeaseState>,
     >,
+    /// Optional actual sibling ticket. When supplied, the release callback
+    /// uses its affine fragment to prove that this copy cannot be the final
+    /// owner, so the sibling's ReadyCap remains available to its caller.
+    pub(crate) peer_ticket: Ghost<Option<&'peer OwnerTicket>>,
 }
 
 /// Value witness for the bytes read while a `SharedHeaderReadLoan` held the
@@ -1158,15 +1162,7 @@ impl BytesMut {
         0 <= self.shared_proof.unwrap_logic().lease_key().slot() &&
         self.shared_proof.unwrap_logic().lease_key().slot() <
             context.inner_logic().ready_len() &&
-        context.inner_logic().ready_entry_state(
-            self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                self.shared_proof.unwrap_logic().lease_key().slot(),
-                self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                Some(Excl((
-                    self.shared_proof.unwrap_logic().lease_key().resource_id(), None
-                )))
-            ))
+        shared_capsule::header_lease_ready_entry_idle(context.inner_logic().ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()), self.shared_proof.unwrap_logic().lease_key().resource_id(), self.shared_proof.unwrap_logic().lease_key().slot(), self.shared_proof.unwrap_logic().lease_key().resource_id())
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         result.readonly_packet_valid() &&
@@ -1191,6 +1187,16 @@ impl BytesMut {
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         context.inner_logic().unchanged(^context.inner_logic())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.inner_logic()).token_namespaces() ==
+            context.inner_logic().token_namespaces()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.inner_logic()).ready_len() == context.inner_logic().ready_len() &&
+        forall<index: Int> 0 <= index && index < context.inner_logic().ready_len() ==>
+            (^context.inner_logic()).ready_entry_state(index) ==
+                context.inner_logic().ready_entry_state(index)
     ))]
     fn freeze_shared_view(
         mut self,
@@ -1312,13 +1318,7 @@ impl BytesMut {
         (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC ||
         (0 <= self.shared_proof.unwrap_logic().lease_key().slot() &&
          self.shared_proof.unwrap_logic().lease_key().slot() < context.inner_logic().ready_len() &&
-         context.inner_logic().ready_entry_state(
-             self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                 self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                 self.shared_proof.unwrap_logic().lease_key().slot(),
-                 self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                 Some(Excl((self.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-             )))
+         shared_capsule::header_lease_ready_entry_idle(context.inner_logic().ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()), self.shared_proof.unwrap_logic().lease_key().resource_id(), self.shared_proof.unwrap_logic().lease_key().slot(), self.shared_proof.unwrap_logic().lease_key().resource_id()))
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).shared_layout_valid() && result.shared_layout_valid() &&
@@ -1340,6 +1340,10 @@ impl BytesMut {
             result.shared_proof.unwrap_logic().ticket.inner_logic().owner_id() &&
         (^self).shared_proof.unwrap_logic().ticket.inner_logic().ledger_id() ==
             result.shared_proof.unwrap_logic().ticket.inner_logic().ledger_id() &&
+        (^self).shared_proof.unwrap_logic().ticket.inner_logic().fragment_resource_id() ==
+            result.shared_proof.unwrap_logic().ticket.inner_logic().fragment_resource_id() &&
+        (^self).shared_proof.unwrap_logic().ticket.inner_logic().allocation_binding() ==
+            result.shared_proof.unwrap_logic().ticket.inner_logic().allocation_binding() &&
         (^self).shared_proof.unwrap_logic().region.inner_logic().namespace() ==
             result.shared_proof.unwrap_logic().region.inner_logic().namespace() &&
         (^self).shared_proof.unwrap_logic().region.inner_logic().capacity() ==
@@ -1361,27 +1365,37 @@ impl BytesMut {
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.inner_logic()).token_namespaces() ==
+            context.inner_logic().token_namespaces()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
-            context.inner_logic().registered_cap(
-                ^context.inner_logic(),
-                result.shared_proof.unwrap_logic().lease_key(),
-                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-            )
+            (^context.inner_logic()).ready_len() == context.inner_logic().ready_len() + 1 &&
+            forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() ==>
+                (^context.inner_logic()).ready_entry_state(i) ==
+                    context.inner_logic().ready_entry_state(i)
         } else {
-            context.inner_logic().unchanged(^context.inner_logic())
+            (^context.inner_logic()).ready_len() == context.inner_logic().ready_len() &&
+            forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() &&
+                i != result.shared_proof.unwrap_logic().lease_key().slot() ==>
+                    (^context.inner_logic()).ready_entry_state(i) ==
+                        context.inner_logic().ready_entry_state(i)
+        }
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
+            shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state(result.shared_proof.unwrap_logic().lease_key().slot()), result.shared_proof.unwrap_logic().lease_key().resource_id(), result.shared_proof.unwrap_logic().lease_key().slot(), result.shared_proof.unwrap_logic().lease_key().resource_id()) &&
+            shared_capsule::header_lease_ready_entry_count((^context.inner_logic()).ready_entry_state(result.shared_proof.unwrap_logic().lease_key().slot()), result.shared_proof.unwrap_logic().lease_key().resource_id(), result.shared_proof.unwrap_logic().lease_key().slot()) == 2
+        } else {
+            shared_capsule::header_lease_ready_entry_count((^context.inner_logic()).ready_entry_state(result.shared_proof.unwrap_logic().lease_key().slot()), result.shared_proof.unwrap_logic().lease_key().resource_id(), result.shared_proof.unwrap_logic().lease_key().slot()) ==
+                shared_capsule::header_lease_ready_entry_count(context.inner_logic().ready_entry_state(result.shared_proof.unwrap_logic().lease_key().slot()), result.shared_proof.unwrap_logic().lease_key().resource_id(), result.shared_proof.unwrap_logic().lease_key().slot()) + 1
         }
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         0 <= result.shared_proof.unwrap_logic().lease_key().slot() &&
         result.shared_proof.unwrap_logic().lease_key().slot() <
             (^context.inner_logic()).ready_len() &&
-        (^context.inner_logic()).ready_entry_state(
-            result.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                result.shared_proof.unwrap_logic().lease_key().resource_id(),
-                result.shared_proof.unwrap_logic().lease_key().slot(),
-                result.shared_proof.unwrap_logic().lease_key().resource_id(),
-                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-            ))
+        shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state(result.shared_proof.unwrap_logic().lease_key().slot()), result.shared_proof.unwrap_logic().lease_key().resource_id(), result.shared_proof.unwrap_logic().lease_key().slot(), result.shared_proof.unwrap_logic().lease_key().resource_id())
     ))]
     pub fn split_off(
         &mut self,
@@ -1464,13 +1478,7 @@ impl BytesMut {
         (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC ||
         (0 <= self.shared_proof.unwrap_logic().lease_key().slot() &&
          self.shared_proof.unwrap_logic().lease_key().slot() < context.inner_logic().ready_len() &&
-         context.inner_logic().ready_entry_state(
-             self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                 self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                 self.shared_proof.unwrap_logic().lease_key().slot(),
-                 self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                 Some(Excl((self.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-             )))
+         shared_capsule::header_lease_ready_entry_idle(context.inner_logic().ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()), self.shared_proof.unwrap_logic().lease_key().resource_id(), self.shared_proof.unwrap_logic().lease_key().slot(), self.shared_proof.unwrap_logic().lease_key().resource_id()))
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).shared_layout_valid() && result.shared_layout_valid() &&
@@ -1507,27 +1515,65 @@ impl BytesMut {
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.inner_logic()).token_namespaces() ==
+            context.inner_logic().token_namespaces()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
-            context.inner_logic().registered_cap(
-                ^context.inner_logic(),
-                result.shared_proof.unwrap_logic().lease_key(),
-                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-            )
+            (^context.inner_logic()).ready_len() == context.inner_logic().ready_len() + 1 &&
+            forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() ==>
+                (^context.inner_logic()).ready_entry_state(i) ==
+                    context.inner_logic().ready_entry_state(i)
         } else {
-            context.inner_logic().unchanged(^context.inner_logic())
+            (^context.inner_logic()).ready_len() == context.inner_logic().ready_len() &&
+            forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() &&
+                i != result.shared_proof.unwrap_logic().lease_key().slot() ==>
+                (^context.inner_logic()).ready_entry_state(i) ==
+                    context.inner_logic().ready_entry_state(i)
+        }
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
+            shared_capsule::header_lease_ready_entry_idle(
+                (^context.inner_logic()).ready_entry_state(
+                    result.shared_proof.unwrap_logic().lease_key().slot()),
+                result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                result.shared_proof.unwrap_logic().lease_key().slot(),
+                result.shared_proof.unwrap_logic().lease_key().resource_id()) &&
+            shared_capsule::header_lease_ready_entry_count(
+                (^context.inner_logic()).ready_entry_state(
+                    result.shared_proof.unwrap_logic().lease_key().slot()),
+                result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                result.shared_proof.unwrap_logic().lease_key().slot()) == 2
+        } else {
+            shared_capsule::header_lease_ready_entry_idle(
+                (^context.inner_logic()).ready_entry_state(
+                    result.shared_proof.unwrap_logic().lease_key().slot()),
+                result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                result.shared_proof.unwrap_logic().lease_key().slot(),
+                result.shared_proof.unwrap_logic().lease_key().resource_id()) &&
+            shared_capsule::header_lease_ready_entry_count(
+                (^context.inner_logic()).ready_entry_state(
+                    result.shared_proof.unwrap_logic().lease_key().slot()),
+                result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                result.shared_proof.unwrap_logic().lease_key().slot()) ==
+                shared_capsule::header_lease_ready_entry_count(
+                    context.inner_logic().ready_entry_state(
+                        result.shared_proof.unwrap_logic().lease_key().slot()),
+                    result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                    result.shared_proof.unwrap_logic().lease_key().slot()) + 1
         }
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         0 <= result.shared_proof.unwrap_logic().lease_key().slot() &&
         result.shared_proof.unwrap_logic().lease_key().slot() <
             (^context.inner_logic()).ready_len() &&
-        (^context.inner_logic()).ready_entry_state(
-            result.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                result.shared_proof.unwrap_logic().lease_key().resource_id(),
-                result.shared_proof.unwrap_logic().lease_key().slot(),
-                result.shared_proof.unwrap_logic().lease_key().resource_id(),
-                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-            ))
+        shared_capsule::header_lease_ready_entry_idle(
+            (^context.inner_logic()).ready_entry_state(
+                result.shared_proof.unwrap_logic().lease_key().slot()),
+            result.shared_proof.unwrap_logic().lease_key().resource_id(),
+            result.shared_proof.unwrap_logic().lease_key().slot(),
+            result.shared_proof.unwrap_logic().lease_key().resource_id())
     ))]
     pub fn split(
         &mut self,
@@ -1590,13 +1636,7 @@ impl BytesMut {
         (0 <= self.shared_proof.unwrap_logic().lease_key().slot() &&
          self.shared_proof.unwrap_logic().lease_key().slot() <
             context.unwrap_logic().inner_logic().ready_len() &&
-         context.unwrap_logic().inner_logic().ready_entry_state(
-             self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                 self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                 self.shared_proof.unwrap_logic().lease_key().slot(),
-                 self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                 Some(Excl((self.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-             )))
+         shared_capsule::header_lease_ready_entry_idle(context.unwrap_logic().inner_logic().ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()), self.shared_proof.unwrap_logic().lease_key().resource_id(), self.shared_proof.unwrap_logic().lease_key().slot(), self.shared_proof.unwrap_logic().lease_key().resource_id()))
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).shared_layout_valid() && result.shared_layout_valid() &&
@@ -1637,29 +1677,64 @@ impl BytesMut {
         (^context.unwrap_logic().inner_logic()).invariant()
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        context.unwrap_logic().inner_logic().token_namespaces() ==
+            (^context.unwrap_logic().inner_logic()).token_namespaces()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
-            context.unwrap_logic().inner_logic().registered_cap(
-                ^context.unwrap_logic().inner_logic(),
-                result.shared_proof.unwrap_logic().lease_key(),
-                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-            )
+            (^context.unwrap_logic().inner_logic()).ready_len() ==
+                context.unwrap_logic().inner_logic().ready_len() + 1 &&
+            forall<i: Int> 0 <= i &&
+                i < context.unwrap_logic().inner_logic().ready_len() ==>
+                (^context.unwrap_logic().inner_logic()).ready_entry_state(i) ==
+                    context.unwrap_logic().inner_logic().ready_entry_state(i)
         } else {
-            context.unwrap_logic().inner_logic().unchanged(
-                ^context.unwrap_logic().inner_logic()
-            )
+            (^context.unwrap_logic().inner_logic()).ready_len() ==
+                context.unwrap_logic().inner_logic().ready_len() &&
+            forall<i: Int> 0 <= i &&
+                i < context.unwrap_logic().inner_logic().ready_len() &&
+                i != result.shared_proof.unwrap_logic().lease_key().slot() ==>
+                (^context.unwrap_logic().inner_logic()).ready_entry_state(i) ==
+                    context.unwrap_logic().inner_logic().ready_entry_state(i)
+        }
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC {
+            shared_capsule::header_lease_ready_entry_idle(
+                (^context.unwrap_logic().inner_logic()).ready_entry_state(
+                    result.shared_proof.unwrap_logic().lease_key().slot()),
+                result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                result.shared_proof.unwrap_logic().lease_key().slot(),
+                result.shared_proof.unwrap_logic().lease_key().resource_id()) &&
+            shared_capsule::header_lease_ready_entry_count(
+                (^context.unwrap_logic().inner_logic()).ready_entry_state(
+                    result.shared_proof.unwrap_logic().lease_key().slot()),
+                result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                result.shared_proof.unwrap_logic().lease_key().slot()) == 2
+        } else {
+            shared_capsule::header_lease_ready_entry_idle(
+                (^context.unwrap_logic().inner_logic()).ready_entry_state(
+                    result.shared_proof.unwrap_logic().lease_key().slot()),
+                result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                result.shared_proof.unwrap_logic().lease_key().slot(),
+                result.shared_proof.unwrap_logic().lease_key().resource_id()) &&
+            shared_capsule::header_lease_ready_entry_count(
+                (^context.unwrap_logic().inner_logic()).ready_entry_state(
+                    result.shared_proof.unwrap_logic().lease_key().slot()),
+                result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                result.shared_proof.unwrap_logic().lease_key().slot()) ==
+            shared_capsule::header_lease_ready_entry_count(
+                context.unwrap_logic().inner_logic().ready_entry_state(
+                    result.shared_proof.unwrap_logic().lease_key().slot()),
+                result.shared_proof.unwrap_logic().lease_key().resource_id(),
+                result.shared_proof.unwrap_logic().lease_key().slot()) + 1
         }
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         0 <= result.shared_proof.unwrap_logic().lease_key().slot() &&
         result.shared_proof.unwrap_logic().lease_key().slot() <
             (^context.unwrap_logic().inner_logic()).ready_len() &&
-        (^context.unwrap_logic().inner_logic()).ready_entry_state(
-            result.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                result.shared_proof.unwrap_logic().lease_key().resource_id(),
-                result.shared_proof.unwrap_logic().lease_key().slot(),
-                result.shared_proof.unwrap_logic().lease_key().resource_id(),
-                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-            ))
+        shared_capsule::header_lease_ready_entry_idle((^context.unwrap_logic().inner_logic()).ready_entry_state(result.shared_proof.unwrap_logic().lease_key().slot()), result.shared_proof.unwrap_logic().lease_key().resource_id(), result.shared_proof.unwrap_logic().lease_key().slot(), result.shared_proof.unwrap_logic().lease_key().resource_id())
     ))]
     pub fn split_to(
         &mut self,
@@ -1711,6 +1786,7 @@ impl BytesMut {
         (^self).shared_layout_valid() && result.shared_layout_valid() &&
         (^self).shared_visible_prefix_known() && result.shared_visible_prefix_known() &&
         (^self).shared_view_valid() && result.shared_view_valid() &&
+        (^self).buffer_view_valid() && result.buffer_view_valid() &&
         (^self).ptr@ == if return_left { right.ptr@ } else { left.ptr@ } &&
         result.ptr@ == if return_left { left.ptr@ } else { right.ptr@ } &&
         (^self).len@ == if return_left { right.len@ } else { left.len@ } &&
@@ -1747,7 +1823,7 @@ impl BytesMut {
             self.shared_proof = Some(self_view.packet);
         }
 
-        BytesMut {
+        let result = BytesMut {
             ptr: other_view.ptr,
             len: other_view.len,
             cap: other_view.cap,
@@ -1756,7 +1832,15 @@ impl BytesMut {
             unique_proof: None,
             #[cfg(all(creusot, bytes_original_unique_gate))]
             shared_proof: Some(other_view.packet),
+        };
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            self.prove_shared_layout_implies_view_layout();
+            result.prove_shared_layout_implies_view_layout();
         }
+
+        result
     }
 
     /// Split an already shared view with the same native refcount increment
@@ -1779,18 +1863,13 @@ impl BytesMut {
         0 <= self.shared_proof.unwrap_logic().lease_key().slot() &&
         self.shared_proof.unwrap_logic().lease_key().slot() <
             context.inner_logic().ready_len() &&
-        context.inner_logic().ready_entry_state(
-            self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                self.shared_proof.unwrap_logic().lease_key().slot(),
-                self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                Some(Excl((self.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-            ))
+        shared_capsule::header_lease_ready_entry_idle(context.inner_logic().ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()), self.shared_proof.unwrap_logic().lease_key().resource_id(), self.shared_proof.unwrap_logic().lease_key().slot(), self.shared_proof.unwrap_logic().lease_key().resource_id())
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).shared_layout_valid() && result.shared_layout_valid() &&
         (^self).shared_visible_prefix_known() && result.shared_visible_prefix_known() &&
-        (^self).shared_view_valid() && result.shared_view_valid()
+        (^self).shared_view_valid() && result.shared_view_valid() &&
+        (^self).buffer_view_valid() && result.buffer_view_valid()
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).data == self.data && result.data == self.data &&
@@ -1808,6 +1887,10 @@ impl BytesMut {
             result.shared_proof.unwrap_logic().ticket.inner_logic().owner_id() &&
         (^self).shared_proof.unwrap_logic().ticket.inner_logic().ledger_id() ==
             result.shared_proof.unwrap_logic().ticket.inner_logic().ledger_id() &&
+        (^self).shared_proof.unwrap_logic().ticket.inner_logic().fragment_resource_id() ==
+            result.shared_proof.unwrap_logic().ticket.inner_logic().fragment_resource_id() &&
+        (^self).shared_proof.unwrap_logic().ticket.inner_logic().allocation_binding() ==
+            result.shared_proof.unwrap_logic().ticket.inner_logic().allocation_binding() &&
         (^self).shared_proof.unwrap_logic().region.inner_logic().namespace() ==
             self.shared_proof.unwrap_logic().region.inner_logic().namespace() &&
         result.shared_proof.unwrap_logic().region.inner_logic().namespace() ==
@@ -1854,17 +1937,27 @@ impl BytesMut {
         }
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        context.inner_logic().unchanged(^context.inner_logic()) &&
-        (^context.inner_logic()).invariant()
+        (^context.inner_logic()).invariant() &&
+        shared_capsule::header_lease_ready_entry_count(
+            (^context.inner_logic()).ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot()) ==
+        shared_capsule::header_lease_ready_entry_count(
+            context.inner_logic().ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot()) + 1
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        (^context.inner_logic()).ready_entry_state(
-            self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                self.shared_proof.unwrap_logic().lease_key().slot(),
-                self.shared_proof.unwrap_logic().lease_key().resource_id(),
-                Some(Excl((self.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-            ))
+        (^context.inner_logic()).token_namespaces() ==
+            context.inner_logic().token_namespaces() &&
+        (^context.inner_logic()).ready_len() == context.inner_logic().ready_len() &&
+        forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() &&
+            i != self.shared_proof.unwrap_logic().lease_key().slot() ==>
+                (^context.inner_logic()).ready_entry_state(i) ==
+                    context.inner_logic().ready_entry_state(i)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()), self.shared_proof.unwrap_logic().lease_key().resource_id(), self.shared_proof.unwrap_logic().lease_key().slot(), self.shared_proof.unwrap_logic().lease_key().resource_id())
     ))]
     unsafe fn split_shared_view(
         &mut self,
@@ -1986,6 +2079,7 @@ impl BytesMut {
         (^self).shared_layout_valid() && result.shared_layout_valid() &&
         (^self).shared_visible_prefix_known() && result.shared_visible_prefix_known() &&
         (^self).shared_view_valid() && result.shared_view_valid() &&
+        (^self).buffer_view_valid() && result.buffer_view_valid() &&
         (^self).data == result.data &&
         (^self).shared_proof.unwrap_logic().capsule_public() ==
             result.shared_proof.unwrap_logic().capsule_public() &&
@@ -1995,6 +2089,10 @@ impl BytesMut {
             result.shared_proof.unwrap_logic().ticket.inner_logic().owner_id() &&
         (^self).shared_proof.unwrap_logic().ticket.inner_logic().ledger_id() ==
             result.shared_proof.unwrap_logic().ticket.inner_logic().ledger_id() &&
+        (^self).shared_proof.unwrap_logic().ticket.inner_logic().fragment_resource_id() ==
+            result.shared_proof.unwrap_logic().ticket.inner_logic().fragment_resource_id() &&
+        (^self).shared_proof.unwrap_logic().ticket.inner_logic().allocation_binding() ==
+            result.shared_proof.unwrap_logic().ticket.inner_logic().allocation_binding() &&
         (^self).shared_proof.unwrap_logic().region.inner_logic().namespace() ==
             self.unique_proof.unwrap_logic().raw.namespace() &&
         result.shared_proof.unwrap_logic().region.inner_logic().namespace() ==
@@ -2098,20 +2196,20 @@ impl BytesMut {
         context.inner_logic().token_namespaces().contains(crate::ref_count_ops::event_namespace())
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        context.inner_logic().registered_cap(
-            ^context.inner_logic(),
-            result.shared_proof.unwrap_logic().lease_key(),
-            Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-        )
+        shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state(result.shared_proof.unwrap_logic().lease_key().slot()), result.shared_proof.unwrap_logic().lease_key().resource_id(), result.shared_proof.unwrap_logic().lease_key().slot(), result.shared_proof.unwrap_logic().lease_key().resource_id())
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        (^context.inner_logic()).ready_entry_state(
-            result.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-                result.shared_proof.unwrap_logic().lease_key().resource_id(),
-                result.shared_proof.unwrap_logic().lease_key().slot(),
-                result.shared_proof.unwrap_logic().lease_key().resource_id(),
-                Some(Excl((result.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-            ))
+        (^context.inner_logic()).token_namespaces() ==
+            context.inner_logic().token_namespaces() &&
+        (^context.inner_logic()).ready_len() == context.inner_logic().ready_len() + 1 &&
+        shared_capsule::header_lease_ready_entry_count(
+            (^context.inner_logic()).ready_entry_state(
+                result.shared_proof.unwrap_logic().lease_key().slot()),
+            result.shared_proof.unwrap_logic().lease_key().resource_id(),
+            result.shared_proof.unwrap_logic().lease_key().slot()) == 2 &&
+        forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() ==>
+            (^context.inner_logic()).ready_entry_state(i) ==
+                context.inner_logic().ready_entry_state(i)
     ))]
     unsafe fn split_unique_to_shared(
         &mut self,
@@ -3318,14 +3416,7 @@ impl BytesMut {
             true
         } else if (self.unique_tag_pointer().addr_logic() & KIND_MASK) == KIND_VEC &&
             self.unique_offset() + count@ > MAX_VEC_POS@ {
-            context.unwrap_logic().inner_logic().registered_cap(
-                ^context.unwrap_logic().inner_logic(),
-                (^self).shared_lease_key(),
-                Some(Excl((
-                    (^self).shared_lease_key().resource_id(),
-                    None,
-                )))
-            )
+            shared_capsule::header_lease_ready_entry_idle((^context.unwrap_logic().inner_logic()).ready_entry_state((^self).shared_lease_key().slot()), (^self).shared_lease_key().resource_id(), (^self).shared_lease_key().slot(), (^self).shared_lease_key().resource_id())
         } else {
             context.unwrap_logic().inner_logic().unchanged(
                 ^context.unwrap_logic().inner_logic()
@@ -3425,14 +3516,7 @@ impl BytesMut {
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        context.inner_logic().registered_cap(
-            ^context.inner_logic(),
-            (^self).shared_proof.unwrap_logic().lease_key(),
-            Some(Excl((
-                (^self).shared_proof.unwrap_logic().lease_key().resource_id(),
-                None,
-            )))
-        )
+        shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state((^self).shared_proof.unwrap_logic().lease_key().slot()), (^self).shared_proof.unwrap_logic().lease_key().resource_id(), (^self).shared_proof.unwrap_logic().lease_key().slot(), (^self).shared_proof.unwrap_logic().lease_key().resource_id())
     ))]
     unsafe fn promote_to_shared_count_one(
         &mut self,
@@ -4163,15 +4247,21 @@ unsafe fn release_shared(ptr: *mut Shared) {
         tracked.inner_logic().unwrap_logic().packet.capsule_namespace())
 ))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
-    tracked.inner_logic().unwrap_logic().context.inner_logic().ready_entry_state(
-        tracked.inner_logic().unwrap_logic().packet.lease_key().slot()) == Some((
-            tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
-            tracked.inner_logic().unwrap_logic().packet.lease_key().slot(),
-            tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
-            Some(Excl((tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(), None)))
-        )) &&
+    shared_capsule::header_lease_ready_entry_idle(tracked.inner_logic().unwrap_logic().context.inner_logic().ready_entry_state(tracked.inner_logic().unwrap_logic().packet.lease_key().slot()), tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(), tracked.inner_logic().unwrap_logic().packet.lease_key().slot(), tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id()) &&
     tracked.inner_logic().unwrap_logic().packet.lease_key().slot() <
         tracked.inner_logic().unwrap_logic().context.inner_logic().ready_len()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    tracked.inner_logic().unwrap_logic().peer_ticket.inner_logic() == None ||
+    match tracked.inner_logic().unwrap_logic().peer_ticket.inner_logic() {
+        Some(peer) => peer.invariant() &&
+            peer.ledger_id() == tracked.inner_logic().unwrap_logic().packet.capsule_public().2 &&
+            peer.fragment_resource_id() == tracked.inner_logic().unwrap_logic().packet.capsule_public().2 &&
+            peer.allocation_binding() ==
+                tracked.inner_logic().unwrap_logic().packet.owner_allocation_binding() &&
+            peer.owner_id() != tracked.inner_logic().unwrap_logic().packet.owner_id(),
+        None => true,
+    }
 ))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
     (^tracked.inner_logic().unwrap_logic().context.inner_logic()).invariant()
@@ -4184,13 +4274,27 @@ unsafe fn release_shared(ptr: *mut Shared) {
 ))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 0))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-    result@ > 1 ==> (^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_entry_state(
-        tracked.inner_logic().unwrap_logic().packet.lease_key().slot()) == Some((
-            tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
-            tracked.inner_logic().unwrap_logic().packet.lease_key().slot(),
-            tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
-            Some(Excl((tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(), None)))
-        ))
+    result@ == shared_capsule::header_lease_ready_entry_count(
+        tracked.inner_logic().unwrap_logic().context.inner_logic().ready_entry_state(
+            tracked.inner_logic().unwrap_logic().packet.lease_key().slot()),
+        tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
+        tracked.inner_logic().unwrap_logic().packet.lease_key().slot())
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    tracked.inner_logic().unwrap_logic().peer_ticket.inner_logic() != None ==> result@ > 1
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result@ > 1 ==> (shared_capsule::header_lease_ready_entry_idle(
+        (^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_entry_state(
+            tracked.inner_logic().unwrap_logic().packet.lease_key().slot()),
+        tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
+        tracked.inner_logic().unwrap_logic().packet.lease_key().slot(),
+        tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id()) &&
+    shared_capsule::header_lease_ready_entry_count(
+        (^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_entry_state(
+            tracked.inner_logic().unwrap_logic().packet.lease_key().slot()),
+        tracked.inner_logic().unwrap_logic().packet.lease_key().resource_id(),
+        tracked.inner_logic().unwrap_logic().packet.lease_key().slot()) == result@ - 1)
 ))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
     result@ > 1 ==> (^tracked.inner_logic().unwrap_logic().context.inner_logic()).ready_has_key(
@@ -4211,15 +4315,21 @@ unsafe fn release_shared(ptr: *mut Shared) {
 unsafe fn release_shared_common(
     ptr: *mut Shared,
     #[cfg(all(creusot, bytes_original_unique_gate))]
-    tracked: Ghost<Option<shared_capsule::SharedReleaseProof<'_, '_>>>,
+    tracked: Ghost<Option<shared_capsule::SharedReleaseProof<'_, '_, '_>>>,
 ) -> usize {
     #[cfg(all(creusot, bytes_original_unique_gate))]
     let (old, retirement) = {
-        let (packet, context) = ghost! {
+        let (packet, context, peer_ticket) = ghost! {
             let proof = tracked.into_inner().unwrap();
-            (proof.packet.into_inner(), proof.context.into_inner())
+            (
+                proof.packet.into_inner(),
+                proof.context.into_inner(),
+                proof.peer_ticket.into_inner(),
+            )
         }.split();
-        shared_capsule::SharedReleasePacket::release_native_owner(packet, ptr, context)
+        shared_capsule::SharedReleasePacket::release_native_owner(
+            packet, ptr, context, peer_ticket,
+        )
     };
 
     #[cfg(not(all(creusot, bytes_original_unique_gate)))]
@@ -4295,27 +4405,41 @@ unsafe fn release_shared_common(
     context.inner_logic().token_namespaces().contains(crate::ref_count_ops::event_namespace())
 ))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
-    context.inner_logic().ready_entry_state(packet.lease_key().slot()) == Some((
-        packet.lease_key().resource_id(),
-        packet.lease_key().slot(),
-        packet.lease_key().resource_id(),
-        Some(Excl((packet.lease_key().resource_id(), None)))
-    )) && packet.lease_key().slot() < context.inner_logic().ready_len()
+    shared_capsule::header_lease_ready_entry_idle(context.inner_logic().ready_entry_state(packet.lease_key().slot()), packet.lease_key().resource_id(), packet.lease_key().slot(), packet.lease_key().resource_id()) && packet.lease_key().slot() < context.inner_logic().ready_len()
+))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+    peer_ticket.inner_logic() == None || match peer_ticket.inner_logic() {
+        Some(peer) => peer.invariant() &&
+            peer.ledger_id() == packet.capsule_public().2 &&
+            peer.fragment_resource_id() == packet.capsule_public().2 &&
+            peer.allocation_binding() == packet.ticket.inner_logic().allocation_binding() &&
+            peer.owner_id() != packet.ticket.inner_logic().owner_id(),
+        None => true,
+    }
 ))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
     (^context.inner_logic()).token_namespaces() == context.inner_logic().token_namespaces() &&
     (^context.inner_logic()).ready_len() == context.inner_logic().ready_len()
 ))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    result@ == shared_capsule::header_lease_ready_entry_count(
+        context.inner_logic().ready_entry_state(packet.lease_key().slot()),
+        packet.lease_key().resource_id(), packet.lease_key().slot())
+))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 0))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+    peer_ticket.inner_logic() != None ==> result@ > 1
+))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 1 ==>
     (^context.inner_logic()).ready_has_key(packet.lease_key()) &&
-    (^context.inner_logic()).ready_entry_state(packet.lease_key().slot()) == Some((
-        packet.lease_key().resource_id(),
-        packet.lease_key().slot(),
-        packet.lease_key().resource_id(),
-        Some(Excl((packet.lease_key().resource_id(), None)))
-    ))
+    shared_capsule::header_lease_ready_entry_idle(
+        (^context.inner_logic()).ready_entry_state(packet.lease_key().slot()),
+        packet.lease_key().resource_id(), packet.lease_key().slot(),
+        packet.lease_key().resource_id()) &&
+    shared_capsule::header_lease_ready_entry_count(
+        (^context.inner_logic()).ready_entry_state(packet.lease_key().slot()),
+        packet.lease_key().resource_id(), packet.lease_key().slot()) == result@ - 1
 ))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == 1 ==>
     !(^context.inner_logic()).ready_has_key(packet.lease_key()) &&
@@ -4332,6 +4456,8 @@ pub(crate) unsafe fn release_readonly_shared(
     packet: shared_capsule::SharedReadonlyPacket,
     #[cfg(all(creusot, bytes_original_unique_gate))]
     context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    peer_ticket: Ghost<Option<&OwnerTicket>>,
 ) -> usize {
     #[cfg(all(creusot, bytes_original_unique_gate))]
     {
@@ -4339,7 +4465,7 @@ pub(crate) unsafe fn release_readonly_shared(
         let packet = packet.into_release_packet();
         release_shared_common(
             ptr.cast(),
-            ghost!(Some(shared_capsule::SharedReleaseProof { packet, context })),
+            ghost!(Some(shared_capsule::SharedReleaseProof { packet, context, peer_ticket })),
         )
     }
     #[cfg(not(all(creusot, bytes_original_unique_gate)))]
@@ -4361,13 +4487,16 @@ pub(crate) unsafe fn release_readonly_shared(
         proof.context.inner_logic().token_namespaces().contains(
             crate::ref_count_ops::event_namespace()) &&
         proof.packet.lease_key().slot() < proof.context.inner_logic().ready_len() &&
-        proof.context.inner_logic().ready_entry_state(
-            proof.packet.lease_key().slot()) == Some((
-                proof.packet.lease_key().resource_id(),
-                proof.packet.lease_key().slot(),
-                proof.packet.lease_key().resource_id(),
-                Some(Excl((proof.packet.lease_key().resource_id(), None)))
-            ))
+        shared_capsule::header_lease_ready_entry_idle(proof.context.inner_logic().ready_entry_state(proof.packet.lease_key().slot()), proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot(), proof.packet.lease_key().resource_id()) &&
+        (proof.peer_ticket.inner_logic() == None ||
+            match proof.peer_ticket.inner_logic() {
+                Some(peer) => peer.invariant() &&
+                    peer.ledger_id() == proof.packet.capsule_public().2 &&
+                    peer.fragment_resource_id() == proof.packet.capsule_public().2 &&
+                    peer.allocation_binding() == proof.packet.ticket.inner_logic().allocation_binding() &&
+                    peer.owner_id() != proof.packet.ticket.inner_logic().owner_id(),
+                None => true,
+            })
 }))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match tracked {
     None => false,
@@ -4386,15 +4515,25 @@ pub(crate) unsafe fn release_readonly_shared(
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 0))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match tracked {
     None => false,
+    Some(proof) => result@ == shared_capsule::header_lease_ready_entry_count(
+        proof.context.inner_logic().ready_entry_state(proof.packet.lease_key().slot()),
+        proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot())
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match tracked {
+    None => false,
+    Some(proof) => proof.peer_ticket.inner_logic() != None ==> result@ > 1,
+}))]
+#[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match tracked {
+    None => false,
     Some(proof) => result@ > 1 ==>
         (^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
-        (^proof.context.inner_logic()).ready_entry_state(
-            proof.packet.lease_key().slot()) == Some((
-                proof.packet.lease_key().resource_id(),
-                proof.packet.lease_key().slot(),
-                proof.packet.lease_key().resource_id(),
-                Some(Excl((proof.packet.lease_key().resource_id(), None)))
-            ))
+        shared_capsule::header_lease_ready_entry_idle(
+            (^proof.context.inner_logic()).ready_entry_state(proof.packet.lease_key().slot()),
+            proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot(),
+            proof.packet.lease_key().resource_id()) &&
+        shared_capsule::header_lease_ready_entry_count(
+            (^proof.context.inner_logic()).ready_entry_state(proof.packet.lease_key().slot()),
+            proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot()) == result@ - 1
 }))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match tracked {
     None => false,
@@ -4406,12 +4545,12 @@ pub(crate) unsafe fn release_readonly_shared(
 pub(crate) unsafe fn release_shared_after_nonunique(
     ptr: *mut (),
     #[cfg(all(creusot, bytes_original_unique_gate))]
-    tracked: Option<SharedReadonlyCopyProof<'_, '_>>,
+    tracked: Option<SharedReadonlyCopyProof<'_, '_, '_>>,
 ) -> usize {
     #[cfg(all(creusot, bytes_original_unique_gate))]
     {
         let proof = tracked.unwrap();
-        release_readonly_shared(ptr, proof.packet, proof.context)
+        release_readonly_shared(ptr, proof.packet, proof.context, proof.peer_ticket)
     }
 
     #[cfg(not(all(creusot, bytes_original_unique_gate)))]
@@ -4427,29 +4566,24 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().invariant()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().token_namespaces().contains(
         crate::ref_count_ops::event_namespace())))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(context.inner_logic().ready_entry_state(
-        self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-            self.shared_proof.unwrap_logic().lease_key().resource_id(),
-            self.shared_proof.unwrap_logic().lease_key().slot(),
-            self.shared_proof.unwrap_logic().lease_key().resource_id(),
-            Some(Excl((self.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-        ))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(shared_capsule::header_lease_ready_entry_idle(context.inner_logic().ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()), self.shared_proof.unwrap_logic().lease_key().resource_id(), self.shared_proof.unwrap_logic().lease_key().slot(), self.shared_proof.unwrap_logic().lease_key().resource_id())))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(self.shared_proof.unwrap_logic().lease_key().slot() <
         context.inner_logic().ready_len()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).token_namespaces() ==
         context.inner_logic().token_namespaces()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).ready_len() == context.inner_logic().ready_len()))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result@ == shared_capsule::header_lease_ready_entry_count(
+            context.inner_logic().ready_entry_state(
+                self.shared_proof.unwrap_logic().lease_key().slot()),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot())
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 0))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 1 ==> (^context.inner_logic()).ready_has_key(
         self.shared_proof.unwrap_logic().lease_key())))]
-    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 1 ==> (^context.inner_logic()).ready_entry_state(
-        self.shared_proof.unwrap_logic().lease_key().slot()) == Some((
-            self.shared_proof.unwrap_logic().lease_key().resource_id(),
-            self.shared_proof.unwrap_logic().lease_key().slot(),
-            self.shared_proof.unwrap_logic().lease_key().resource_id(),
-            Some(Excl((self.shared_proof.unwrap_logic().lease_key().resource_id(), None)))
-        ))))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 1 ==> shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state(self.shared_proof.unwrap_logic().lease_key().slot()), self.shared_proof.unwrap_logic().lease_key().resource_id(), self.shared_proof.unwrap_logic().lease_key().slot(), self.shared_proof.unwrap_logic().lease_key().resource_id())))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == 1 ==> !(^context.inner_logic()).ready_has_key(
         self.shared_proof.unwrap_logic().lease_key())))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == 1 ==> (^context.inner_logic()).ready_entry_state(
@@ -4482,7 +4616,9 @@ impl BytesMut {
             core::mem::forget(this);
             release_shared_common(
                 data,
-                ghost!(Some(shared_capsule::SharedReleaseProof { packet, context })),
+                ghost!(Some(shared_capsule::SharedReleaseProof {
+                    packet, context, peer_ticket: ghost!(None),
+                })),
             )
         }
         #[cfg(not(all(creusot, bytes_original_unique_gate)))]
@@ -5325,17 +5461,20 @@ pub(crate) fn shared_readonly_slice_to_vec(bytes: &[u8]) -> Vec<u8> {
         proof.packet.capsule_public().0 == shared &&
         proof.packet.cursor.raw_pointer() == ptr as *mut u8 &&
         proof.packet.len@ == len@ &&
+        (proof.peer_ticket.inner_logic() == None ||
+            match proof.peer_ticket.inner_logic() {
+                Some(peer) => peer.invariant() &&
+                    peer.ledger_id() == proof.packet.capsule_public().2 &&
+                    peer.fragment_resource_id() == proof.packet.capsule_public().2 &&
+                    peer.allocation_binding() == proof.packet.ticket.inner_logic().allocation_binding() &&
+                    peer.owner_id() != proof.packet.ticket.inner_logic().owner_id(),
+                None => true,
+            }) &&
         proof.context.inner_logic().invariant() &&
         proof.context.inner_logic().token_namespaces().contains(
             crate::ref_count_ops::event_namespace()) &&
         proof.packet.lease_key().slot() < proof.context.inner_logic().ready_len() &&
-        proof.context.inner_logic().ready_entry_state(
-            proof.packet.lease_key().slot()) == Some((
-                proof.packet.lease_key().resource_id(),
-                proof.packet.lease_key().slot(),
-                proof.packet.lease_key().resource_id(),
-                Some(Excl((proof.packet.lease_key().resource_id(), None)))
-            ))
+        shared_capsule::header_lease_ready_entry_idle(proof.context.inner_logic().ready_entry_state(proof.packet.lease_key().slot()), proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot(), proof.packet.lease_key().resource_id())
 }))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
     result.bytes@ == *result.witness.inner_logic().contents &&
@@ -5377,15 +5516,22 @@ pub(crate) fn shared_readonly_slice_to_vec(bytes: &[u8]) -> Vec<u8> {
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(match proof {
     None => false,
     Some(proof) => *result.witness.inner_logic().release_old_count > 0 &&
+        *result.witness.inner_logic().release_old_count ==
+            shared_capsule::header_lease_ready_entry_count(
+                proof.context.inner_logic().ready_entry_state(proof.packet.lease_key().slot()),
+                proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot()) &&
+        (proof.peer_ticket.inner_logic() != None ==>
+            *result.witness.inner_logic().release_old_count > 1) &&
         (*result.witness.inner_logic().release_old_count > 1 ==>
             (^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
-            (^proof.context.inner_logic()).ready_entry_state(
-                proof.packet.lease_key().slot()) == Some((
-                    proof.packet.lease_key().resource_id(),
-                    proof.packet.lease_key().slot(),
-                    proof.packet.lease_key().resource_id(),
-                    Some(Excl((proof.packet.lease_key().resource_id(), None)))
-                ))) &&
+            shared_capsule::header_lease_ready_entry_idle(
+                (^proof.context.inner_logic()).ready_entry_state(proof.packet.lease_key().slot()),
+                proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot(),
+                proof.packet.lease_key().resource_id()) &&
+            shared_capsule::header_lease_ready_entry_count(
+                (^proof.context.inner_logic()).ready_entry_state(proof.packet.lease_key().slot()),
+                proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot()) ==
+                    *result.witness.inner_logic().release_old_count - 1) &&
         (*result.witness.inner_logic().release_old_count == 1 ==>
             !(^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
             (^proof.context.inner_logic()).ready_entry_state(
@@ -5396,7 +5542,7 @@ pub(crate) unsafe fn shared_v_to_vec_nonunique(
     ptr: *const u8,
     len: usize,
     #[cfg(all(creusot, bytes_original_unique_gate))]
-    proof: Option<SharedReadonlyCopyProof<'_, '_>>,
+    proof: Option<SharedReadonlyCopyProof<'_, '_, '_>>,
 ) -> SharedReadonlyCopyResult {
     #[cfg(all(creusot, bytes_original_unique_gate))]
     let mut proof = proof.unwrap();
@@ -5471,17 +5617,20 @@ pub(crate) unsafe fn shared_v_to_vec_nonunique(
         proof.packet.capsule_public().0 == shared &&
         proof.packet.cursor.raw_pointer() == ptr as *mut u8 &&
         proof.packet.len@ == len@ &&
+        (proof.peer_ticket.inner_logic() == None ||
+            match proof.peer_ticket.inner_logic() {
+                Some(peer) => peer.invariant() &&
+                    peer.ledger_id() == proof.packet.capsule_public().2 &&
+                    peer.fragment_resource_id() == proof.packet.capsule_public().2 &&
+                    peer.allocation_binding() == proof.packet.ticket.inner_logic().allocation_binding() &&
+                    peer.owner_id() != proof.packet.ticket.inner_logic().owner_id(),
+                None => true,
+            }) &&
         proof.context.inner_logic().invariant() &&
         proof.context.inner_logic().token_namespaces().contains(
             crate::ref_count_ops::event_namespace()) &&
         proof.packet.lease_key().slot() < proof.context.inner_logic().ready_len() &&
-        proof.context.inner_logic().ready_entry_state(
-            proof.packet.lease_key().slot()) == Some((
-                proof.packet.lease_key().resource_id(),
-                proof.packet.lease_key().slot(),
-                proof.packet.lease_key().resource_id(),
-                Some(Excl((proof.packet.lease_key().resource_id(), None)))
-            ))
+        shared_capsule::header_lease_ready_entry_idle(proof.context.inner_logic().ready_entry_state(proof.packet.lease_key().slot()), proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot(), proof.packet.lease_key().resource_id())
 }))]
 #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
     result.buffer.unique_valid() &&
@@ -5529,6 +5678,12 @@ pub(crate) unsafe fn shared_v_to_vec_nonunique(
     None => false,
     Some(proof) =>
         *result.witness.inner_logic().release_old_count > 0 &&
+        *result.witness.inner_logic().release_old_count ==
+            shared_capsule::header_lease_ready_entry_count(
+                proof.context.inner_logic().ready_entry_state(proof.packet.lease_key().slot()),
+                proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot()) &&
+        (proof.peer_ticket.inner_logic() != None ==>
+            *result.witness.inner_logic().release_old_count > 1) &&
         (^proof.context.inner_logic()).invariant() &&
         (^proof.context.inner_logic()).token_namespaces() ==
             proof.context.inner_logic().token_namespaces() &&
@@ -5536,13 +5691,14 @@ pub(crate) unsafe fn shared_v_to_vec_nonunique(
             proof.context.inner_logic().ready_len() &&
         (*result.witness.inner_logic().release_old_count > 1 ==>
             (^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
-            (^proof.context.inner_logic()).ready_entry_state(
-                proof.packet.lease_key().slot()) == Some((
-                    proof.packet.lease_key().resource_id(),
-                    proof.packet.lease_key().slot(),
-                    proof.packet.lease_key().resource_id(),
-                    Some(Excl((proof.packet.lease_key().resource_id(), None)))
-                ))) &&
+            shared_capsule::header_lease_ready_entry_idle(
+                (^proof.context.inner_logic()).ready_entry_state(proof.packet.lease_key().slot()),
+                proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot(),
+                proof.packet.lease_key().resource_id()) &&
+            shared_capsule::header_lease_ready_entry_count(
+                (^proof.context.inner_logic()).ready_entry_state(proof.packet.lease_key().slot()),
+                proof.packet.lease_key().resource_id(), proof.packet.lease_key().slot()) ==
+                    *result.witness.inner_logic().release_old_count - 1) &&
         (*result.witness.inner_logic().release_old_count == 1 ==>
             !(^proof.context.inner_logic()).ready_has_key(proof.packet.lease_key()) &&
             (^proof.context.inner_logic()).ready_entry_state(
@@ -5558,7 +5714,7 @@ pub(crate) unsafe fn shared_v_to_mut_nonunique(
     ptr: *const u8,
     len: usize,
     #[cfg(all(creusot, bytes_original_unique_gate))]
-    proof: Option<SharedReadonlyCopyProof<'_, '_>>,
+    proof: Option<SharedReadonlyCopyProof<'_, '_, '_>>,
 ) -> SharedReadonlyMutableResult {
     let copied = shared_v_to_vec_nonunique(
         shared,
@@ -5584,6 +5740,57 @@ pub(crate) unsafe fn shared_v_to_mut_nonunique(
     {
         buffer
     }
+}
+
+/// Check the actual owner/context composition used by the public operation
+/// sequence: split one unique Vec owner, freeze one side into a Readonly
+/// packet, copy it back to a fresh Mutable Vec while the other ticket remains
+/// borrowed, truncate and explicitly dispose the new Vec, then explicitly
+/// dispose the surviving shared peer using the same Context. The native
+/// vtable identity itself remains an input to this source-level check.
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[requires(source.unique_valid() && source.unique_vec_rebuildable())]
+#[requires(0 <= split_at@ && split_at@ <= source.unique_length())]
+#[requires(context.inner_logic().invariant())]
+#[requires(context.inner_logic().token_namespaces().contains(
+    crate::ref_count_ops::event_namespace()
+))]
+#[ensures((^context.inner_logic()).invariant())]
+pub(crate) unsafe fn prove_split_freeze_copy_truncate_and_dispose_both(
+    mut source: BytesMut,
+    split_at: usize,
+    truncate_to: usize,
+    vtable: &'static Vtable,
+    context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+) {
+    let mut context_ref = ghost!(context.into_inner());
+    let readonly_source = source.split_off(
+        split_at,
+        ghost!(&mut **context_ref),
+    );
+    let readonly = readonly_source.freeze_shared_view(
+        vtable,
+        ghost!(&mut **context_ref),
+    );
+    let peer_key = source.shared_proof.as_ref().unwrap().lease_key_ghost();
+    proof_assert!(shared_capsule::header_lease_ready_entry_count(
+        context_ref.inner_logic().ready_entry_state(peer_key.inner_logic().slot()),
+        peer_key.inner_logic().resource_id(), peer_key.inner_logic().slot()) == 2int);
+    let peer_ticket = ghost!(Some(&*source.shared_proof.as_ref().unwrap().ticket));
+    let mut copied = readonly.copy_shared_readonly_to_mut_with_context(
+        ghost!(&mut **context_ref),
+        peer_ticket,
+    );
+    copied.buffer.truncate(truncate_to);
+    unsafe { copied.buffer.dispose_unique() };
+    proof_assert!(*copied.witness.inner_logic().release_old_count == 2);
+    proof_assert!(shared_capsule::header_lease_ready_entry_count(
+        context_ref.inner_logic().ready_entry_state(peer_key.inner_logic().slot()),
+        peer_key.inner_logic().resource_id(), peer_key.inner_logic().slot()) == 1int);
+    let final_count = unsafe { source.dispose_shared(ghost!(&mut **context_ref)) };
+    proof_assert!(final_count@ == 1);
+    proof_assert!(!context_ref.inner_logic().ready_has_key(peer_key.inner_logic()));
+    proof_assert!(context_ref.inner_logic().ready_entry_state(peer_key.inner_logic().slot()) == None);
 }
 
 // The native static identity and vtable-driven lifecycle remain outside this

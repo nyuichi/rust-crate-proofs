@@ -180,6 +180,15 @@ The verified operation sequences explicitly dispose each related Shared
 handle with its caller-supplied context; they do not assume that an untracked
 automatic `Drop` leaves that context consistent.
 
+One selected composition proof starts from a rebuildable unique Vec, performs
+`split_off`, freezes one side through the private shared-view helper, copies it
+through the checked Readonly-to-Mutable path while borrowing the sibling's
+actual ticket, truncates and explicitly disposes the copied Vec, then explicitly
+disposes the sibling with the same Context. It proves the actual count sequence
+2 → 1 → terminal tombstone. The vtable is an input to this private-source
+proof; it does not prove public `BytesMut::freeze` dispatch, static vtable
+identity, or automatic Drop.
+
 The selected targets also body-prove an affine `OwnedSharedContext` and its
 borrowed view. Construction consumes a caller-supplied token set and starts
 with an empty registry; reborrows preserve the actual token namespaces and

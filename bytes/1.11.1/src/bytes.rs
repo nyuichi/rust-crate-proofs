@@ -470,6 +470,36 @@ impl Bytes {
             None => None,
         }}
     }
+
+    /// Take the actual packet while retaining the ticket identity exported
+    /// by this Bytes value's proof frame.
+    #[requires(self.readonly_packet_valid())]
+    #[ensures(result == self.readonly_packet_state().unwrap_logic())]
+    #[ensures(result.invariant())]
+    #[ensures(result.ticket.inner_logic().owner_id() ==
+        self.readonly_packet_ticket_frame().unwrap_logic().1)]
+    #[ensures((^self).readonly_packet_state() == None)]
+    #[ensures((^self).proof_data_cell() == self.proof_data_cell())]
+    #[ensures((^self).proof_view_pointer() == self.proof_view_pointer())]
+    #[ensures((^self).proof_view_len() == self.proof_view_len())]
+    #[ensures((^self).proof_vtable() == self.proof_vtable())]
+    #[ensures((^self).readonly_cell_permission_state() == self.readonly_cell_permission_state())]
+    #[ensures((^self).original_boxed == self.original_boxed)]
+    #[ensures((^self).original_spare_shared == self.original_spare_shared)]
+    #[cfg_attr(all(creusot, bytes_original_freeze_gate), ensures(
+        (^self).original_frozen == self.original_frozen
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_constructor_gate), ensures(
+        (^self).original_bytes == self.original_bytes
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_shared_gate), ensures(
+        (^self).original_shared == self.original_shared
+    ))]
+    pub(crate) fn take_readonly_packet_for_copy(
+        &mut self,
+    ) -> crate::bytes_mut::shared_capsule::SharedReadonlyPacket {
+        self.readonly_packet.take().unwrap()
+    }
 }
 
 // Temporary ordinary translation leaves. No atomic value/state, refcount,
@@ -514,12 +544,7 @@ impl Bytes {
         context.inner_logic().token_namespaces().contains(crate::ref_count_ops::event_namespace())
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
-        context.inner_logic().ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()) == Some((
-            self.readonly_packet_key().unwrap_logic().resource_id(),
-            self.readonly_packet_key().unwrap_logic().slot(),
-            self.readonly_packet_key().unwrap_logic().resource_id(),
-            Some(Excl((self.readonly_packet_key().unwrap_logic().resource_id(), None)))
-        )) && self.readonly_packet_key().unwrap_logic().slot() < context.inner_logic().ready_len()
+        crate::bytes_mut::shared_capsule::header_lease_ready_entry_idle(context.inner_logic().ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()), self.readonly_packet_key().unwrap_logic().resource_id(), self.readonly_packet_key().unwrap_logic().slot(), self.readonly_packet_key().unwrap_logic().resource_id()) && self.readonly_packet_key().unwrap_logic().slot() < context.inner_logic().ready_len()
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures((^context.inner_logic()).invariant()))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
@@ -527,14 +552,16 @@ impl Bytes {
         (^context.inner_logic()).ready_len() == context.inner_logic().ready_len()
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 0))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        result@ == crate::bytes_mut::shared_capsule::header_lease_ready_entry_count(
+            context.inner_logic().ready_entry_state(
+                self.readonly_packet_key().unwrap_logic().slot()),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot())
+    ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ > 1 ==>
         (^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
-        (^context.inner_logic()).ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()) == Some((
-            self.readonly_packet_key().unwrap_logic().resource_id(),
-            self.readonly_packet_key().unwrap_logic().slot(),
-            self.readonly_packet_key().unwrap_logic().resource_id(),
-            Some(Excl((self.readonly_packet_key().unwrap_logic().resource_id(), None)))
-        ))
+        crate::bytes_mut::shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()), self.readonly_packet_key().unwrap_logic().resource_id(), self.readonly_packet_key().unwrap_logic().slot(), self.readonly_packet_key().unwrap_logic().resource_id())
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result@ == 1 ==>
         !(^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
@@ -569,7 +596,7 @@ impl Bytes {
             );
             core::mem::forget(this);
             crate::bytes_mut::release_readonly_shared(
-                ptr, packet, context,
+                ptr, packet, context, ghost!(None),
             )
         }
         #[cfg(not(all(creusot, bytes_original_unique_gate)))]
@@ -594,26 +621,25 @@ impl Bytes {
     ))]
     #[requires(self.readonly_packet_key().unwrap_logic().slot() <
         context.inner_logic().ready_len())]
-    #[requires(context.inner_logic().ready_entry_state(
-        self.readonly_packet_key().unwrap_logic().slot()) == Some((
-            self.readonly_packet_key().unwrap_logic().resource_id(),
-            self.readonly_packet_key().unwrap_logic().slot(),
-            self.readonly_packet_key().unwrap_logic().resource_id(),
-            Some(Excl((
-                self.readonly_packet_key().unwrap_logic().resource_id(), None
-            )))
-        )))]
+    #[requires(crate::bytes_mut::shared_capsule::header_lease_ready_entry_idle(context.inner_logic().ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()), self.readonly_packet_key().unwrap_logic().resource_id(), self.readonly_packet_key().unwrap_logic().slot(), self.readonly_packet_key().unwrap_logic().resource_id()))]
     #[ensures(result.bytes@ == *result.witness.inner_logic().contents)]
     #[ensures(*result.witness.inner_logic().release_old_count > 0)]
+    #[ensures(*result.witness.inner_logic().release_old_count ==
+        crate::bytes_mut::shared_capsule::header_lease_ready_entry_count(
+            context.inner_logic().ready_entry_state(
+                self.readonly_packet_key().unwrap_logic().slot()),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot()))]
+    #[ensures(*result.witness.inner_logic().release_old_count > 1 ==>
+        crate::bytes_mut::shared_capsule::header_lease_ready_entry_count(
+            (^context.inner_logic()).ready_entry_state(
+                self.readonly_packet_key().unwrap_logic().slot()),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot()) ==
+                *result.witness.inner_logic().release_old_count - 1)]
     #[ensures(*result.witness.inner_logic().release_old_count > 1 ==>
         (^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
-        (^context.inner_logic()).ready_entry_state(
-            self.readonly_packet_key().unwrap_logic().slot()) == Some((
-                self.readonly_packet_key().unwrap_logic().resource_id(),
-                self.readonly_packet_key().unwrap_logic().slot(),
-                self.readonly_packet_key().unwrap_logic().resource_id(),
-                Some(Excl((self.readonly_packet_key().unwrap_logic().resource_id(), None)))
-            )))]
+        crate::bytes_mut::shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()), self.readonly_packet_key().unwrap_logic().resource_id(), self.readonly_packet_key().unwrap_logic().slot(), self.readonly_packet_key().unwrap_logic().resource_id()))]
     #[ensures(*result.witness.inner_logic().release_old_count == 1 ==>
         !(^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
         (^context.inner_logic()).ready_entry_state(
@@ -670,6 +696,7 @@ impl Bytes {
             Some(crate::bytes_mut::SharedReadonlyCopyProof {
                 packet,
                 context,
+                peer_ticket: ghost!(None),
             }),
         );
         copied
@@ -688,18 +715,17 @@ impl Bytes {
     ))]
     #[requires(self.readonly_packet_key().unwrap_logic().slot() <
         context.inner_logic().ready_len())]
-    #[requires(context.inner_logic().ready_entry_state(
-        self.readonly_packet_key().unwrap_logic().slot()) == Some((
-            self.readonly_packet_key().unwrap_logic().resource_id(),
-            self.readonly_packet_key().unwrap_logic().slot(),
-            self.readonly_packet_key().unwrap_logic().resource_id(),
-            Some(Excl((
-                self.readonly_packet_key().unwrap_logic().resource_id(), None
-            )))
-        )))]
+    #[requires(crate::bytes_mut::shared_capsule::header_lease_ready_entry_idle(context.inner_logic().ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()), self.readonly_packet_key().unwrap_logic().resource_id(), self.readonly_packet_key().unwrap_logic().slot(), self.readonly_packet_key().unwrap_logic().resource_id()))]
+    #[requires(peer_ticket.inner_logic() == None || match peer_ticket.inner_logic() {
+        Some(peer) => peer.invariant() &&
+            peer.ledger_id() == self.readonly_packet_ticket_frame().unwrap_logic().0 &&
+            peer.allocation_binding() == self.readonly_packet_ticket_frame().unwrap_logic().4 &&
+            peer.owner_id() != self.readonly_packet_ticket_frame().unwrap_logic().1,
+        None => true,
+    })]
     #[ensures(result.buffer.unique_valid())]
     #[ensures(result.buffer.unique_vec_rebuildable())]
-    #[ensures(result.buffer.unique_length() == self.len@)]
+    #[ensures(result.buffer.unique_length() == self.proof_view_len())]
     #[ensures(result.buffer.unique_bytes() == *result.witness.inner_logic().contents)]
     #[ensures(result.buffer.unique_offset() == 0)]
     #[ensures(result.buffer.unique_pointer() ==
@@ -710,23 +736,32 @@ impl Bytes {
         creusot_std::std::vec::capacity_model(*result.output_vector))]
     #[ensures((*result.output_vector)@ == *result.witness.inner_logic().contents)]
     #[ensures(forall<index: Int>
-        0 <= index && index < self.len@ ==>
+        0 <= index && index < self.proof_view_len() ==>
             result.buffer.unique_slot(index) ==
                 Some(Some((*result.witness.inner_logic().contents)[index])))]
     #[ensures(forall<index: Int>
-        self.len@ <= index && index <
+        self.proof_view_len() <= index && index <
             creusot_std::std::vec::capacity_model(*result.output_vector) ==>
             result.buffer.unique_slot(index) == Some(None))]
     #[ensures(*result.witness.inner_logic().release_old_count > 0)]
+    #[ensures(*result.witness.inner_logic().release_old_count ==
+        crate::bytes_mut::shared_capsule::header_lease_ready_entry_count(
+            context.inner_logic().ready_entry_state(
+                self.readonly_packet_key().unwrap_logic().slot()),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot()))]
+    #[ensures(*result.witness.inner_logic().release_old_count > 1 ==>
+        crate::bytes_mut::shared_capsule::header_lease_ready_entry_count(
+            (^context.inner_logic()).ready_entry_state(
+                self.readonly_packet_key().unwrap_logic().slot()),
+            self.readonly_packet_key().unwrap_logic().resource_id(),
+            self.readonly_packet_key().unwrap_logic().slot()) ==
+                *result.witness.inner_logic().release_old_count - 1)]
+    #[ensures(peer_ticket.inner_logic() != None ==>
+        *result.witness.inner_logic().release_old_count > 1)]
     #[ensures(*result.witness.inner_logic().release_old_count > 1 ==>
         (^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
-        (^context.inner_logic()).ready_entry_state(
-            self.readonly_packet_key().unwrap_logic().slot()) == Some((
-                self.readonly_packet_key().unwrap_logic().resource_id(),
-                self.readonly_packet_key().unwrap_logic().slot(),
-                self.readonly_packet_key().unwrap_logic().resource_id(),
-                Some(Excl((self.readonly_packet_key().unwrap_logic().resource_id(), None)))
-            )))]
+        crate::bytes_mut::shared_capsule::header_lease_ready_entry_idle((^context.inner_logic()).ready_entry_state(self.readonly_packet_key().unwrap_logic().slot()), self.readonly_packet_key().unwrap_logic().resource_id(), self.readonly_packet_key().unwrap_logic().slot(), self.readonly_packet_key().unwrap_logic().resource_id()))]
     #[ensures(*result.witness.inner_logic().release_old_count == 1 ==>
         !(^context.inner_logic()).ready_has_key(self.readonly_packet_key().unwrap_logic()) &&
         (^context.inner_logic()).ready_entry_state(
@@ -734,8 +769,8 @@ impl Bytes {
     #[ensures((*result.witness.inner_logic().region).invariant())]
     #[ensures((*result.witness.inner_logic().region).resource_id() ==
         (*result.witness.inner_logic().region).namespace())]
-    #[ensures(*result.witness.inner_logic().pointer == self.ptr)]
-    #[ensures((*result.witness.inner_logic().contents).len() == self.len@)]
+    #[ensures(*result.witness.inner_logic().pointer == self.proof_view_pointer())]
+    #[ensures((*result.witness.inner_logic().contents).len() == self.proof_view_len())]
     #[ensures((*result.witness.inner_logic().region).namespace() ==
         self.readonly_packet_state().unwrap_logic().cursor@.unwrap_logic().0)]
     #[ensures((*result.witness.inner_logic().region).capacity() ==
@@ -766,9 +801,16 @@ impl Bytes {
         context: Ghost<&mut crate::ownership_proof::shared_context::BorrowedSharedContext<
             '_, crate::bytes_mut::shared_capsule::HeaderLeaseState,
         >>,
+        peer_ticket: Ghost<Option<&crate::ownership_proof::ref_count_ledger::OwnerTicket>>,
     ) -> crate::bytes_mut::SharedReadonlyMutableResult {
         let mut this = self;
-        let packet = this.readonly_packet.take().unwrap();
+        ghost! {
+            if let Some(peer) = *peer_ticket.borrow().into_inner() {
+                peer.prove_fragment_resource_matches_ledger();
+            }
+        };
+        let packet = this.take_readonly_packet_for_copy();
+        packet.prove_ticket_ledger_matches_capsule();
         let permission = mem::replace(&mut this.readonly_cell_permission, ghost!(None));
         let mut permission = ghost! { permission.into_inner().unwrap() };
         let shared = crate::loom::sync::atomic::NativePtr::exclusive_read(
@@ -783,6 +825,7 @@ impl Bytes {
             Some(crate::bytes_mut::SharedReadonlyCopyProof {
                 packet,
                 context,
+                peer_ticket,
             }),
         )
     }
