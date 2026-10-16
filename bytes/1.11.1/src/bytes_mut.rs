@@ -494,10 +494,9 @@ impl BytesMut {
         }
     }
     #[logic(open(self), prophetic)]
-    pub(crate) fn advance_promotion_frame(self, after: Self, count: Int) -> bool {
+    pub(crate) fn advance_promotion_authority_frame(self, after: Self, count: Int) -> bool {
         pearlite! {
             self.advance_promotes_unique_vec(count) ==>
-                after.shared_layout_valid() && after.shared_visible_prefix_known() &&
                 after.shared_proof.unwrap_logic().base.raw_pointer() ==
                     self.unique_proof.unwrap_logic().base.raw_pointer() &&
                 after.shared_proof.unwrap_logic().ticket.inner_logic().allocation_binding() == (
@@ -1616,6 +1615,10 @@ impl BytesMut {
         result.ptr.addr_logic()@ == self.ptr.addr_logic()@ + at@
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).buffer_cursor_offset() == self.buffer_cursor_offset() &&
+        result.buffer_cursor_offset() == self.buffer_cursor_offset() + at@
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).shared_bytes() == self.buffer_bytes().subsequence(
             0, if at@ <= self.len@ { at@ } else { self.len@ }) &&
         result.shared_bytes() == self.buffer_bytes().subsequence(
@@ -2048,6 +2051,12 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).shared_layout_valid() && result.shared_layout_valid() &&
         (^self).shared_visible_prefix_known() && result.shared_visible_prefix_known() &&
+        (^self).shared_proof.unwrap_logic().original_capacity_repr()@ <=
+            crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+                crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@ &&
+        result.shared_proof.unwrap_logic().original_capacity_repr()@ <=
+            crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+                crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@ &&
         (^self).shared_view_valid() && result.shared_view_valid() &&
         (^self).buffer_view_valid() && result.buffer_view_valid() &&
         (^self).ptr@ == if return_left { right.ptr@ } else { left.ptr@ } &&
@@ -2061,7 +2070,17 @@ impl BytesMut {
         (^self).shared_proof.unwrap_logic() ==
             (if return_left { right.packet } else { left.packet }) &&
         result.shared_proof.unwrap_logic() ==
-            (if return_left { left.packet } else { right.packet })
+            (if return_left { left.packet } else { right.packet }) &&
+        (^self).shared_cursor_offset() == if return_left {
+            right.packet.cursor@.unwrap_logic().2
+        } else {
+            left.packet.cursor@.unwrap_logic().2
+        } &&
+        result.shared_cursor_offset() == if return_left {
+            left.packet.cursor@.unwrap_logic().2
+        } else {
+            right.packet.cursor@.unwrap_logic().2
+        }
     ))]
     unsafe fn install_shared_split_views(
         &mut self,
@@ -2069,6 +2088,12 @@ impl BytesMut {
         right: SharedSplitView,
         return_left: bool,
     ) -> BytesMut {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            left.packet.prove_original_capacity_repr_bound();
+            right.packet.prove_original_capacity_repr_bound();
+        }
+
         let (self_view, other_view) = if return_left {
             (right, left)
         } else {
@@ -2180,6 +2205,18 @@ impl BytesMut {
         result.ptr.addr_logic()@ == if return_left {
             self.ptr.addr_logic()@
         } else { self.ptr.addr_logic()@ + at@ }
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).shared_cursor_offset() == if return_left {
+            self.shared_cursor_offset() + at@
+        } else {
+            self.shared_cursor_offset()
+        } &&
+        result.shared_cursor_offset() == if return_left {
+            self.shared_cursor_offset()
+        } else {
+            self.shared_cursor_offset() + at@
+        }
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).shared_bytes() == if return_left {
@@ -2341,6 +2378,12 @@ impl BytesMut {
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         (^self).shared_layout_valid() && result.shared_layout_valid() &&
         (^self).shared_visible_prefix_known() && result.shared_visible_prefix_known() &&
+        (^self).shared_proof.unwrap_logic().original_capacity_repr()@ <=
+            crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+                crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@ &&
+        result.shared_proof.unwrap_logic().original_capacity_repr()@ <=
+            crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+                crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@ &&
         (^self).shared_view_valid() && result.shared_view_valid() &&
         (^self).buffer_view_valid() && result.buffer_view_valid() &&
         (^self).data == result.data &&
@@ -2401,6 +2444,16 @@ impl BytesMut {
             self.unique_pointer().addr_logic()@
         } else {
             self.unique_pointer().addr_logic()@ + at@
+        } &&
+        (^self).shared_cursor_offset() == if return_left {
+            self.unique_offset() + at@
+        } else {
+            self.unique_offset()
+        } &&
+        result.shared_cursor_offset() == if return_left {
+            self.unique_offset()
+        } else {
+            self.unique_offset() + at@
         } &&
         (if return_left { result.ptr@ } else { (^self).ptr@ }) == self.ptr@ &&
         (if return_left {
@@ -3798,28 +3851,215 @@ impl BytesMut {
             return false;
         }
 
+        self.reserve_shared_copy_detach(
+            shared,
+            new_cap,
+            #[cfg(all(creusot, bytes_original_unique_gate))]
+            None,
+        )
+    }
+
+    /// Copy a shared visible view into one guarded Vec, release that exact
+    /// Mutable owner through its Context, then install fresh unique Vec parts.
+    /// This is the original copy-detach fallback body, factored so its actual
+    /// packet, region borrow, and release can be checked together. The proof
+    /// Context argument is erased from ordinary builds and does not change the
+    /// native operation order.
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.shared_layout_valid() && self.shared_visible_prefix_known()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.shared_proof.unwrap_logic().invariant() &&
+        self.shared_proof.unwrap_logic().capsule_public().0 == shared as *mut () &&
+        self.shared_proof.unwrap_logic().cursor.raw_pointer() == self.ptr@
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        requested@ >= self.len@
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        context != None && context.unwrap_logic().inner_logic().invariant() &&
+        context.unwrap_logic().inner_logic().token_namespaces().contains(
+            crate::ref_count_ops::event_namespace())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), requires(
+        self.shared_proof.unwrap_logic().lease_key().slot() <
+            context.unwrap_logic().inner_logic().ready_len() &&
+        shared_capsule::header_lease_ready_entry_idle(
+            context.unwrap_logic().inner_logic().ready_entry_state(
+                self.shared_proof.unwrap_logic().lease_key().slot()),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot(),
+            self.shared_proof.unwrap_logic().lease_key().resource_id())
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(result))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^self).unique_valid() && (^self).unique_vec_rebuildable() &&
+        (^self).shared_proof == None && (^self).unique_proof != None &&
+        (^self).unique_length() == self.len@ && (^self).unique_offset() == 0 &&
+        (^self).unique_capacity() >= requested@ &&
+        (^self).unique_allocation_capacity() == (^self).unique_capacity() &&
+        (^self).unique_bytes() == self.buffer_bytes() &&
+        (^self).buffer_bytes() == self.buffer_bytes() &&
+        (^self).unique_tag_pointer().addr_logic()@ ==
+            self.shared_proof.unwrap_logic().original_capacity_repr()@ * 4 + 1
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i: Int>
+        0 <= i && i < self.len@ ==>
+            (^self).unique_allocation_slot(i) == Some(Some(self.buffer_bytes()[i]))
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i: Int>
+        self.len@ <= i && i < (^self).unique_allocation_capacity() ==>
+            (^self).unique_allocation_slot(i) == Some(None)
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        (^context.unwrap_logic().inner_logic()).invariant() &&
+        (^context.unwrap_logic().inner_logic()).token_namespaces() ==
+            context.unwrap_logic().inner_logic().token_namespaces() &&
+        (^context.unwrap_logic().inner_logic()).ready_len() ==
+            context.unwrap_logic().inner_logic().ready_len()
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        shared_capsule::header_lease_ready_entry_count(
+            context.unwrap_logic().inner_logic().ready_entry_state(
+                self.shared_proof.unwrap_logic().lease_key().slot()),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot()) == 1 ==>
+        !(^context.unwrap_logic().inner_logic()).ready_has_key(
+            self.shared_proof.unwrap_logic().lease_key()) &&
+        (^context.unwrap_logic().inner_logic()).ready_entry_state(
+            self.shared_proof.unwrap_logic().lease_key().slot()) == None
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
+        shared_capsule::header_lease_ready_entry_count(
+            context.unwrap_logic().inner_logic().ready_entry_state(
+                self.shared_proof.unwrap_logic().lease_key().slot()),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot()) > 1 ==>
+        (^context.unwrap_logic().inner_logic()).ready_has_key(
+            self.shared_proof.unwrap_logic().lease_key()) &&
+        shared_capsule::header_lease_ready_entry_idle(
+            (^context.unwrap_logic().inner_logic()).ready_entry_state(
+                self.shared_proof.unwrap_logic().lease_key().slot()),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot(),
+            self.shared_proof.unwrap_logic().lease_key().resource_id()) &&
+        shared_capsule::header_lease_ready_entry_count(
+            (^context.unwrap_logic().inner_logic()).ready_entry_state(
+                self.shared_proof.unwrap_logic().lease_key().slot()),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot()) ==
+        shared_capsule::header_lease_ready_entry_count(
+            context.unwrap_logic().inner_logic().ready_entry_state(
+                self.shared_proof.unwrap_logic().lease_key().slot()),
+            self.shared_proof.unwrap_logic().lease_key().resource_id(),
+            self.shared_proof.unwrap_logic().lease_key().slot()) - 1
+    ))]
+    #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i: Int>
+        0 <= i && i < context.unwrap_logic().inner_logic().ready_len() &&
+        i != self.shared_proof.unwrap_logic().lease_key().slot() ==>
+        (^context.unwrap_logic().inner_logic()).ready_entry_state(i) ==
+            context.unwrap_logic().inner_logic().ready_entry_state(i)
+    ))]
+    fn reserve_shared_copy_detach(
+        &mut self,
+        shared: *mut Shared,
+        requested: usize,
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        context: Option<Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>>,
+    ) -> bool {
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let mut context = context.unwrap();
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        self.prove_shared_layout_implies_view_layout();
+
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let original_capacity_repr = {
+            let pointer = self.ptr.as_ptr();
+            let packet = self.shared_proof.as_mut().unwrap();
+            packet.prove_original_capacity_repr_bound();
+            let read_context: Ghost<
+                &mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>,
+            > = ghost! {
+                let context_ref = context.borrow_mut().into_inner();
+                &mut **context_ref
+            };
+            let (_, _, _, _, repr) =
+                packet.read_vec_metadata_offset(shared, pointer, read_context);
+            repr
+        };
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
         let original_capacity_repr = unsafe { (*shared).original_capacity_repr };
+
         let original_capacity = original_capacity_from_repr(original_capacity_repr);
+        let requested = cmp::max(requested, original_capacity);
 
-        new_cap = cmp::max(new_cap, original_capacity);
+        // Keep the Vec in a ManuallyDrop-backed carrier across the old-owner
+        // release. Its generic contracts expose only Vec sequence/capacity;
+        // all packet and allocation authority stays with BytesMut.
+        let mut guarded = crate::provenance_specs::guarded_byte_vec_with_capacity(requested);
+        let source = self.as_slice();
+        crate::provenance_specs::guarded_byte_vec_extend_from_slice(&mut guarded, source);
 
-        // Create a new vector to store the data
-        let mut v = ManuallyDrop::new(Vec::with_capacity(new_cap));
+        // Release the exact shared owner only after the visible bytes have
+        // been copied into the guarded allocation.
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            let packet = self.shared_proof.take().unwrap();
+            packet.prove_event_namespace();
+            let packet = packet.into_release_packet();
+            let release_context: Ghost<
+                &mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>,
+            > = ghost! {
+                let context_ref = context.borrow_mut().into_inner();
+                &mut **context_ref
+            };
+            let _ = unsafe {
+                release_shared_common(
+                    shared,
+                    ghost!(Some(shared_capsule::SharedReleaseProof {
+                        packet,
+                        context: release_context,
+                        peer_ticket: ghost!(None),
+                    })),
+                )
+            };
+        }
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        unsafe {
+            release_shared(shared);
+        }
 
-        // Copy the bytes
-        v.extend_from_slice(self.as_ref());
+        let vec = crate::provenance_specs::guarded_byte_vec_into_inner(guarded);
+        let parts = VecRawParts::take(vec);
+        let native_ptr = parts.native_ptr();
+        let len = parts.logical_len();
+        let cap = parts.logical_capacity();
 
-        // Release the shared handle. This must be done *after* the bytes are
-        // copied.
-        unsafe { release_shared(shared) };
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        let unique_proof = {
+            let (raw, capabilities) = parts.into_proof_authority();
+            let (base, _) = raw.bound_ptr_at_zero();
+            Some(OriginalUniqueProof {
+                base,
+                cursor: base,
+                raw,
+                capabilities,
+            })
+        };
+        #[cfg(not(all(creusot, bytes_original_unique_gate)))]
+        parts.discard_unmodeled();
 
-        // Update self
-        let data = (original_capacity_repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC;
-
+        let data = crate::capacity_ops::pack_vec_metadata(original_capacity_repr);
         self.data = invalid_ptr(data);
-        self.ptr = vptr(v.as_mut_ptr());
-        self.cap = v.capacity();
-        debug_assert_eq!(self.len, v.len());
+        self.ptr = vptr(native_ptr.as_ptr());
+        self.cap = cap;
+        #[cfg(all(creusot, bytes_original_unique_gate))]
+        {
+            self.unique_proof = unique_proof;
+            self.shared_proof = None;
+        }
+        debug_assert_eq!(self.len, len);
         true
     }
 
@@ -4762,7 +5002,7 @@ impl BytesMut {
     // If a unique Vec cursor crosses the packed-position limit, the helper
     // installs a count-one packet from the same allocation and Context.
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
-        self.advance_promotion_frame(^self, count@)
+        self.advance_promotion_authority_frame(^self, count@)
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(
         self.advance_promotes_unique_vec(count@) ==>
@@ -4918,7 +5158,7 @@ impl BytesMut {
         (^self).buffer_allocation_capacity() == self.buffer_allocation_capacity() &&
         (^self).unique_pointer() == self.unique_pointer().offset_logic(count@) &&
         (^self).shared_layout_valid() && (^self).shared_visible_prefix_known() &&
-        self.advance_promotion_frame(^self, count@)
+        self.advance_promotion_authority_frame(^self, count@)
     ))]
     #[cfg_attr(all(creusot, bytes_original_unique_gate), ensures(forall<i: Int>
         0 <= i && i < (^self).buffer_allocation_capacity() ==>
@@ -6428,6 +6668,37 @@ mod tests {
     }
 
     #[test]
+    fn reserve_on_shared_split_view_copies_and_preserves_peer() {
+        let mut input = Vec::with_capacity(1024);
+        input.extend(0u8..128);
+        let original_capacity = input.capacity();
+        let original_capacity_repr = original_capacity_to_repr(original_capacity);
+        let mut left = BytesMut::from_vec(input);
+        let mut right = left.split_off(64);
+        let left_bytes: Vec<u8> = (0u8..64).collect();
+        let right_bytes: Vec<u8> = (64u8..128).collect();
+        let old_right_capacity = right.capacity();
+        let additional = old_right_capacity - right.len() + 1;
+
+        // Both split views are alive, so the shared fallback must copy the
+        // right view into a new Vec after its actual spare-capacity request.
+        right.reserve(additional);
+
+        assert_eq!(right.kind(), KIND_VEC);
+        assert_eq!(left.kind(), KIND_ARC);
+        assert!(right.capacity() >= right.len() + additional);
+        assert!(right.capacity() > old_right_capacity);
+        assert_eq!(&right[..], right_bytes.as_slice());
+        assert_eq!(&left[..], left_bytes.as_slice());
+        assert_eq!(
+            crate::capacity_ops::original_capacity_repr_from_data(
+                crate::provenance_specs::pointer_addr(right.data),
+            ),
+            original_capacity_repr,
+        );
+    }
+
+    #[test]
     fn reserve_grows_unique_vec_after_nonzero_cursor() {
         let mut input = Vec::with_capacity(64);
         input.extend(0u8..64);
@@ -7402,7 +7673,7 @@ pub(crate) unsafe fn shared_v_to_mut_unique(
     #[cfg(all(creusot, bytes_original_unique_gate))]
     let (metadata, owner_packet) = {
         let SharedReadonlyUniqueProof { mut packet, context } = proof.unwrap();
-        let (base, vec_len, vec_capacity, offset) =
+        let (base, vec_len, vec_capacity, offset, _original_capacity_repr) =
             packet.read_vec_metadata_offset(shared.cast(), ptr, context);
         packet.prove_cursor_within_region();
         ((base, vec_len, vec_capacity, offset), packet)
@@ -7627,6 +7898,83 @@ pub(crate) unsafe fn prove_split_freeze_copy_truncate_and_dispose_both(
     proof_assert!(final_count@ == 1);
     proof_assert!(!context_ref.inner_logic().ready_has_key(peer_key.inner_logic()));
     proof_assert!(context_ref.inner_logic().ready_entry_state(peer_key.inner_logic().slot()) == None);
+}
+
+/// Check the Shared copy-detach worker with two real split owners and one
+/// caller Context: construct from a public slice, split, copy one view into a
+/// fresh Vec while its peer remains live, truncate and explicitly dispose the
+/// new unique owner, then explicitly dispose the peer through the same Context.
+/// This checks the worker's actual packet/release composition, not the
+/// untranslated `reserve_shared_inner` dispatch that selects it.
+#[cfg(all(creusot, bytes_original_unique_gate))]
+#[requires(2 <= src@.len())]
+#[requires(truncate_to@ <= src@.len() - 1)]
+#[requires(context.inner_logic().invariant())]
+#[requires(context.inner_logic().token_namespaces().contains(
+    crate::ref_count_ops::event_namespace()
+))]
+#[ensures((^context.inner_logic()).invariant())]
+#[ensures((^context.inner_logic()).token_namespaces() ==
+    context.inner_logic().token_namespaces())]
+#[ensures((^context.inner_logic()).ready_len() ==
+    context.inner_logic().ready_len() + 1)]
+#[ensures(forall<i: Int> 0 <= i && i < context.inner_logic().ready_len() ==>
+    (^context.inner_logic()).ready_entry_state(i) ==
+        context.inner_logic().ready_entry_state(i))]
+#[ensures((^context.inner_logic()).ready_entry_state(
+    context.inner_logic().ready_len()) == None)]
+pub(crate) unsafe fn prove_from_slice_shared_copy_detach_truncate_and_dispose_both(
+    src: &[u8],
+    truncate_to: usize,
+    context: Ghost<&mut BorrowedSharedContext<'_, shared_capsule::HeaderLeaseState>>,
+) {
+    let original_bytes: Snapshot<Seq<u8>> = snapshot!(src@);
+    let mut context_ref = ghost!(context.into_inner());
+    let initial_ready_len: Snapshot<Int> =
+        snapshot!(context_ref.inner_logic().ready_len());
+    let mut peer = BytesMut::from(src);
+    proof_assert!(peer.unique_valid() && peer.unique_vec_rebuildable());
+    proof_assert!(peer.unique_bytes() == *original_bytes);
+
+    let mut copied = peer.split_off(1, ghost!(&mut **context_ref));
+    let lease_key = copied.shared_proof.as_ref().unwrap().lease_key_ghost();
+    proof_assert!(lease_key.inner_logic().slot() == *initial_ready_len);
+    proof_assert!(copied.buffer_cursor_offset() == 1int);
+    proof_assert!(copied.buffer_bytes() ==
+        (*original_bytes).subsequence(1, (*original_bytes).len()));
+    proof_assert!(peer.buffer_bytes() == (*original_bytes).subsequence(0, 1));
+    proof_assert!(shared_capsule::header_lease_ready_entry_count(
+        context_ref.inner_logic().ready_entry_state(lease_key.inner_logic().slot()),
+        lease_key.inner_logic().resource_id(), lease_key.inner_logic().slot()) == 2int);
+
+    let shared: *mut Shared = copied.data;
+    let requested = copied.len();
+    let detached = copied.reserve_shared_copy_detach(
+        shared,
+        requested,
+        Some(ghost!(&mut **context_ref)),
+    );
+    proof_assert!(detached);
+    proof_assert!(copied.unique_valid() && copied.unique_vec_rebuildable());
+    proof_assert!(copied.buffer_bytes() ==
+        (*original_bytes).subsequence(1, (*original_bytes).len()));
+    proof_assert!(copied.unique_offset() == 0 &&
+        copied.unique_length() == (*original_bytes).len() - 1);
+    proof_assert!(shared_capsule::header_lease_ready_entry_count(
+        context_ref.inner_logic().ready_entry_state(lease_key.inner_logic().slot()),
+        lease_key.inner_logic().resource_id(), lease_key.inner_logic().slot()) == 1int);
+
+    copied.truncate(truncate_to);
+    proof_assert!(copied.unique_bytes() ==
+        (*original_bytes).subsequence(1, (*original_bytes).len())
+            .subsequence(0, truncate_to@));
+    unsafe { copied.dispose_unique() };
+
+    let final_count = unsafe { peer.dispose_shared(ghost!(&mut **context_ref)) };
+    proof_assert!(final_count@ == 1);
+    proof_assert!(!context_ref.inner_logic().ready_has_key(lease_key.inner_logic()));
+    proof_assert!(context_ref.inner_logic().ready_entry_state(
+        lease_key.inner_logic().slot()) == None);
 }
 
 /// Check shared spare-capacity writing and the sole-owner promotion sequence

@@ -265,10 +265,12 @@ The native Shared reserve-growth path now compacts the handle's initialized
 visible bytes to the Vec base before setting its length and calling
 `Vec::reserve`. This prevents a hidden prefix that another disjoint handle
 could leave uninitialized from being included in the Vec length. The existing
-regression test exercises that sequence. Shared reserve remains
-`no_translate`, so this is native test evidence, not a body proof; it does not
-establish Shared ownership or lifecycle properties, nor claim that a prior
-execution was observed to have undefined behavior.
+regression test exercises that sequence. `reserve_shared_inner` remains
+`no_translate`, so its dispatch is not proved. The separate
+`reserve_shared_copy_detach` body proof below covers the copy, actual owner
+release and Vec recapture worker under its packet and Context preconditions;
+it does not verify the dispatch or claim that a prior execution was observed
+to have undefined behavior.
 
 The supporting `split_view_region` body preserves the full physical allocation
 while splitting the cursor-relative visible region, including any hidden
@@ -511,8 +513,32 @@ effect. Replace this adapter when the pinned Std model provides the composed
 generic effect. `BytesMut::try_reclaim` remains
 proved for its unique Vec case under `unique_valid`, including its
 spare-capacity short circuit and call to the same reclaim helper. The shared
-ARC allocation fallback, unrestricted reserve policy, and general public API
-coverage remain outside the proof.
+ARC allocation fallback dispatch, unrestricted reserve policy, and general
+public API coverage remain outside the proof.
+
+The private `BytesMut::reserve_shared_copy_detach` worker is separately
+body-checked under an actual Shared packet, known visible prefix, and supplied
+Context. It borrows the visible bytes through the checked `as_slice` body,
+copies them into a guarded Vec, releases the actual Mutable packet through the
+original common release body, then captures that same Vec as fresh unique B1
+resources. The postcondition preserves the copied bytes, a known initialized
+prefix, the original packed capacity representation, and the exact Context
+entry transition; new spare slots are `Some(None)`. A closed source witness
+starts from `From<&[u8]>`, uses `split_off(1)` so a peer remains live during
+the copy, then truncates and explicitly disposes the new unique owner and the
+Shared peer. This verifies the selected worker and lifecycle composition.
+`reserve_shared_inner` remains untranslated, so the proof does not establish
+the public Shared reserve dispatch or its broader allocation policy.
+
+`provenance_specs::GuardedByteVec` has three trusted generic Vec effects for
+this transfer. `with_capacity` supplies an empty Vec value and the requested
+capacity lower bound; `extend_from_slice` supplies exact sequence append and
+unchanged capacity when the source fits; `into_inner` consumes the wrapper
+and returns its one Vec value and capacity. Their bodies use the corresponding
+native Vec operations inside a `ManuallyDrop` guard. These contracts add no
+Bytes layout, pointer, allocation identity, Context, refcount, or ownership
+authority. Replace them when the pinned Std models provide these generic
+normal-return effects.
 
 One closed body witness starts from a symbolic slice using the public slice
 constructor and advances the unique Vec view to offset one. It appends a
@@ -698,6 +724,14 @@ readonly byte reads, automatic drop, or every recovery transition. They do not e
 exclusivity or reclamation for every safely produced Shared state. The separate
 selected count-one sequence above proves one concrete unique-owner promotion
 and final disposal, not a general count-one guarantee.
+
+The actual `SharedPayload` protocol also bounds its immutable packed
+`original_capacity_repr` to `0..=7`. The two tracked packet constructors get
+that bound from `original_capacity_repr_from_data`; a checked packet observer
+derives it from the actual capsule invariant. Header-read loans and split
+packets preserve the exact representation. The bound supports repacking the
+same metadata when the copy-detach worker installs its new Vec owner; it
+grants no allocation or byte-access authority.
 
 The added `terminal_phase` bodies prove creation of a matching affine close
 action, its one-shot transition to a retained empty authority, and the

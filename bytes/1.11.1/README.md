@@ -12,6 +12,15 @@ slice and string conversions establish the copied contents. `From<&str>` uses
 the generic Std model `Seq<char>::to_bytes()`; the concrete native UTF-8 encoder
 is not proved by this crate run (see the [Std overlay notes](verification/std-support/README.md)).
 
+An item-level rustdoc-JSON census of the 1.11.1 source at checkpoint
+`1523308d` counted 642 source-defined public callable definitions and
+trait-implementation endpoints, excluding external blanket implementations
+and re-export duplicates. Eight endpoints (1.2%) have selected body proofs,
+together with any required trait-refinement proofs, over normal-return inputs
+without additional state or regime restrictions. Twelve more are proved only
+under preconditions or selected branches, for 20 of 642 endpoints (3.1%) total.
+This is an endpoint count, not a claim of full public API coverage.
+
 `BytesMut::len` and `is_empty` are proved without a representation
 precondition. From a `buffer_view_valid` prestate, `clear` sets the length to
 zero and `truncate(n)` sets it to `min(n, old_len)`. Both preserve the visible
@@ -105,9 +114,22 @@ rebuild the Vec, calls the original single `Vec::reserve`, and captures fresh
 B1 resources for its resulting allocation. It preserves visible bytes and the
 initialized allocation prefix; the newly observed spare slots are Unknown.
 The `reserve_inner` proof keeps the original guard and no-allocation behavior.
-The shared ARC allocation fallback and unrestricted reserve policy remain
+The shared ARC allocation fallback dispatch and unrestricted reserve policy remain
 outside the proof, and this precondition does not establish general reserve
 coverage.
+
+The private `reserve_shared_copy_detach` worker also has a body proof for its
+Shared copy-and-release operation. It reads the view through the checked
+`as_slice` body, copies into a guarded Vec, releases the actual Mutable packet
+through the common release body with the supplied Context, then captures that
+same Vec as a new unique allocation. Its checked post preserves the bytes,
+rebuildable initialized prefix, original capacity representation, and Context
+entry effects; new spare slots are Unknown. A closed source witness starts at
+the public slice constructor, uses `split_off(1)` to keep a peer live during
+the copy, truncates and explicitly disposes the new unique owner, then
+explicitly disposes the peer. `reserve_shared_inner` remains `no_translate`,
+so this proves the selected worker and lifecycle composition, not the public
+Shared reserve dispatch.
 
 One closed body proof starts from a symbolic slice through the public slice
 constructor and advances the unique Vec view to offset one. It appends a

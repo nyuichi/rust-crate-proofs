@@ -111,6 +111,7 @@ pub(crate) fn reconstructed_original_capacity(cap: usize) -> usize {
 #[cfg_attr(creusot, bitwise_proof)]
 #[cfg_attr(creusot, requires(repr@ <= MAX_ORIGINAL_CAPACITY_WIDTH@ - MIN_ORIGINAL_CAPACITY_WIDTH@))]
 #[cfg_attr(creusot, ensures(result == (repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC))]
+#[cfg_attr(creusot, ensures(result@ == repr@ * 4 + 1))]
 #[cfg_attr(creusot, ensures(((result & ORIGINAL_CAPACITY_MASK) >> ORIGINAL_CAPACITY_OFFSET) == repr))]
 #[cfg_attr(creusot, ensures(result & KIND_MASK == KIND_VEC))]
 #[cfg_attr(creusot, ensures(result >> VEC_POS_OFFSET == 0usize))]

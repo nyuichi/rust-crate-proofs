@@ -1075,7 +1075,7 @@ fn same_stored_authority(left: StoredAuthority, right: StoredAuthority) -> bool 
 }
 
 impl Protocol for SharedPayload {
-    type Public = (*mut (), NativeCounter, Id, Id, Id, AllocationBinding, ReadyKey);
+    type Public = (*mut (), NativeCounter, Id, Id, Id, AllocationBinding, ReadyKey, usize);
 
     #[logic(open(self))]
     fn public(self) -> Self::Public {
@@ -1087,6 +1087,7 @@ impl Protocol for SharedPayload {
             self.lease.resource_id(),
             *self.allocation_binding,
             self.lease_key,
+            *self.original_capacity_repr,
         )
     }
 
@@ -1248,12 +1249,18 @@ impl CounterProtocol for SharedPayload {
 impl Invariant for SharedPayload {
     #[logic(open(self), prophetic)]
     fn invariant(self) -> bool {
-        inv(self.root) && inv(self.storage) &&
-        inv(self.pool) && inv(self.ledger) && inv(self.retire) &&
-        self.phase.invariant() && inv(self.terminal_action) &&
-        inv(self.header_vec) && inv(self.original_capacity_repr) &&
-        self.lease.invariant() &&
-        (self.header_id.addr_logic() & super::KIND_MASK) == super::KIND_ARC
+        pearlite! {
+            let original_capacity_repr = *self.original_capacity_repr;
+            inv(self.root) && inv(self.storage) &&
+            inv(self.pool) && inv(self.ledger) && inv(self.retire) &&
+            self.phase.invariant() && inv(self.terminal_action) &&
+            inv(self.header_vec) && inv(self.original_capacity_repr) &&
+            original_capacity_repr@ <=
+                crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+                    crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@ &&
+            self.lease.invariant() &&
+            (self.header_id.addr_logic() & super::KIND_MASK) == super::KIND_ARC
+        }
     }
 }
 
@@ -3973,7 +3980,9 @@ impl SharedReleasePacket {
         (*result.inner_logic().unwrap_logic().state.storage_model).raw_pointer() ==
             ticket.inner_logic().allocation_binding().1 &&
         (*result.inner_logic().unwrap_logic().state.storage_model).capacity() ==
-            ticket.inner_logic().allocation_binding().2)]
+            ticket.inner_logic().allocation_binding().2 &&
+        *result.inner_logic().unwrap_logic().state.original_capacity_repr ==
+            capsule.inner_logic().val().public().1.7)]
     #[ensures(result.inner_logic() != None ==>
         header_lease_count(
             result.inner_logic().unwrap_logic().state.lease_cap.fragment_value()
@@ -4044,6 +4053,8 @@ impl SharedReleasePacket {
                                         (*payload.allocation_binding).1 &&
                                     (*loan.state.storage_model).capacity() ==
                                         (*payload.allocation_binding).2 &&
+                                    *loan.state.original_capacity_repr ==
+                                        *payload.original_capacity_repr &&
                                     (*loan.state.storage_model).invariant() &&
                                     header_lease_count(
                                         loan.state.lease_cap.fragment_value()) == *expected_count,
@@ -4225,6 +4236,7 @@ impl SharedOwnerPacket {
     #[ensures(result.1@ <= result.2@)]
     #[ensures(result.2@ == self.ticket.inner_logic().allocation_binding().2)]
     #[ensures(result.3@ == self.cursor@.unwrap_logic().2)]
+    #[ensures(result.4 == self.original_capacity_repr())]
     #[ensures((^context.inner_logic()).invariant())]
     #[ensures((^context.inner_logic()).token_namespaces() ==
         context.inner_logic().token_namespaces())]
@@ -4250,7 +4262,7 @@ impl SharedOwnerPacket {
         header_id: *mut Shared,
         pointer: *const u8,
         context: Ghost<&mut BorrowedSharedContext<'_, HeaderLeaseState>>,
-    ) -> (*mut u8, usize, usize, isize) {
+    ) -> (*mut u8, usize, usize, isize, usize) {
         let mut context_ref = ghost!(context.into_inner());
         let key = self.lease_key_ghost();
         let capsule = self.capsule;
@@ -4273,11 +4285,12 @@ impl SharedOwnerPacket {
             (root, state)
         }.split();
         let region = self.region.borrow();
-        let (metadata, offset) = {
+        let (metadata, offset, original_capacity_repr) = {
             let header = unsafe {
                 Perm::as_mut(header_id, ghost! { root.as_mut() })
             };
             header.vec_mut().prove_authority_matches(storage_authority);
+            let original_capacity_repr = header.original_capacity_repr;
             let (pointer, len, capacity, offset) = unsafe {
                 crate::vec_storage::shared_vec_metadata_offset(
                     header.vec_mut(),
@@ -4288,7 +4301,8 @@ impl SharedOwnerPacket {
                     storage_authority,
                 )
             };
-            ((pointer, len, capacity), offset)
+            proof_assert!(original_capacity_repr == self.original_capacity_repr());
+            ((pointer, len, capacity), offset, original_capacity_repr)
         };
         let loan = ghost! {
             SharedHeaderReadLoan {
@@ -4302,7 +4316,7 @@ impl SharedOwnerPacket {
             ghost! { &mut **context_ref },
             loan,
         );
-        (metadata.0, metadata.1, metadata.2, offset)
+        (metadata.0, metadata.1, metadata.2, offset, original_capacity_repr)
     }
 
     /// Borrow the spare suffix through the packet's actual mutable region.
@@ -4433,6 +4447,29 @@ impl SharedOwnerPacket {
         }
     }
 
+    /// Value projection of the original-capacity header word. A checked
+    /// header-read method binds this value to the live header through its
+    /// actual root permission before a caller uses it to install metadata.
+    #[logic(open(self))]
+    #[requires(self.invariant())]
+    pub(crate) fn original_capacity_repr(self) -> usize {
+        pearlite! { self.capsule.inner_logic().val().public().1.7 }
+    }
+
+    /// Export the immutable packed-capacity bound from this packet's actual
+    /// capsule invariant. The value itself is a snapshot projection; this
+    /// checked observer does not read or borrow the Shared header.
+    #[check(ghost)]
+    #[requires(self.invariant())]
+    #[ensures(self.original_capacity_repr()@ <=
+        crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+            crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@)]
+    pub(crate) fn prove_original_capacity_repr_bound(&self) {
+        proof_assert!(self.capsule.inner_logic().val().public().1.7@ <=
+            crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+                crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@);
+    }
+
     /// Expose the packet's static event namespace through its invariant.
     /// This lets sibling modules derive the namespace from an actual packet
     /// instead of strengthening their callers with a redundant assumption.
@@ -4529,6 +4566,9 @@ impl SharedOwnerPacket {
             self.capsule.inner_logic().val().namespace() == event_namespace() &&
             self.capsule.inner_logic().val().public().0 ==
                 self.capsule.inner_logic().val().public().1.1 &&
+            self.capsule.inner_logic().val().public().1.7@ <=
+                crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+                    crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@ &&
             (self.capsule_public().0.addr_logic() & super::KIND_MASK) ==
                 super::KIND_ARC &&
             self.ticket.inner_logic().invariant() &&
@@ -5299,6 +5339,9 @@ impl SharedReadonlyPacket {
             self.capsule.inner_logic().val().namespace() == event_namespace() &&
             self.capsule.inner_logic().val().public().0 ==
                 self.capsule.inner_logic().val().public().1.1 &&
+            self.capsule.inner_logic().val().public().1.7@ <=
+                crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+                    crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@ &&
             self.ticket.inner_logic().invariant() &&
             self.ticket.inner_logic().ledger_id() == self.capsule_public().2 &&
             self.ticket.inner_logic().class() == RefKind::Readonly &&
@@ -6964,6 +7007,9 @@ impl SharedReleasePacket {
 #[requires(context.inner_logic().invariant())]
 #[requires(context.inner_logic().token_namespaces().contains(event_namespace()))]
 #[requires((header_id.addr_logic() & super::KIND_MASK) == super::KIND_ARC)]
+#[requires((*root.inner_logic().val()).original_capacity_repr@ <=
+    crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+        crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@)]
 #[ensures((^context.inner_logic()).invariant())]
 #[ensures(result.capsule.inner_logic().val().namespace() == event_namespace())]
 #[ensures(result.capsule_public() ==
@@ -7140,6 +7186,9 @@ pub(crate) fn make_count_one_packet(
     phase.inner_logic().1.invariant() &&
     phase.inner_logic().1.resource_id() == phase.inner_logic().0.resource_id()
 )]
+#[requires((*root.inner_logic().val()).original_capacity_repr@ <=
+    crate::capacity_ops::MAX_ORIGINAL_CAPACITY_WIDTH@ -
+        crate::capacity_ops::MIN_ORIGINAL_CAPACITY_WIDTH@)]
 #[requires(context.inner_logic().invariant())]
 #[requires(context.inner_logic().token_namespaces().contains(event_namespace()))]
 #[requires((header_id.addr_logic() & super::KIND_MASK) == super::KIND_ARC)]

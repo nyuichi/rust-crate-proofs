@@ -16,6 +16,90 @@ use crate::ownership_proof::raw_vec::{BoundPtr, PhysicalRegion};
 use alloc::vec::Vec;
 use core::{mem::ManuallyDrop, ptr::NonNull};
 
+/// A private, drop-free Vec carrier for the Shared copy-detach path. The
+/// native Vec remains inside `ManuallyDrop` until the caller has released the
+/// old Shared owner; the proof-only fields are value snapshots, not pointer or
+/// allocation authority.
+#[allow(missing_debug_implementations)]
+pub(crate) struct GuardedByteVec {
+    native: ManuallyDrop<Vec<u8>>,
+    #[cfg(creusot)]
+    contents: Snapshot<Seq<u8>>,
+    #[cfg(creusot)]
+    capacity: Snapshot<Int>,
+}
+
+#[cfg(creusot)]
+impl GuardedByteVec {
+    #[logic(open(self))]
+    pub(crate) fn contents(&self) -> Seq<u8> {
+        pearlite! { *self.contents }
+    }
+
+    #[logic(open(self))]
+    pub(crate) fn capacity(&self) -> Int {
+        pearlite! { *self.capacity }
+    }
+}
+
+/// STD-GUARDED-VEC-01: the pinned Std model does not cover the generic
+/// consuming `ManuallyDrop<Vec<u8>>` carrier used to keep a Vec owner guarded
+/// across a separate ownership-release operation. This boundary records only
+/// the normal-return Vec sequence and capacity produced by
+/// `Vec::with_capacity`; it creates no pointer, allocation, Bytes, Context, or
+/// ownership fact.
+#[cfg_attr(creusot, trusted)]
+#[cfg_attr(creusot, ensures(result.contents() == Seq::empty()))]
+#[cfg_attr(creusot, ensures(result.capacity() >= requested@))]
+pub(crate) fn guarded_byte_vec_with_capacity(requested: usize) -> GuardedByteVec {
+    let native = Vec::with_capacity(requested);
+    #[cfg(creusot)]
+    let contents = snapshot!(native@);
+    #[cfg(creusot)]
+    let capacity = snapshot!(creusot_std::std::vec::capacity_model(native));
+    GuardedByteVec {
+        native: ManuallyDrop::new(native),
+        #[cfg(creusot)]
+        contents,
+        #[cfg(creusot)]
+        capacity,
+    }
+}
+
+/// STD-GUARDED-VEC-02: expose only the ordinary Vec append effect when the
+/// requested bytes fit in the carrier's existing capacity. The native body is
+/// one `Vec::extend_from_slice` call. No allocation identity or byte pointer
+/// is specified.
+#[cfg_attr(creusot, trusted)]
+#[cfg_attr(creusot, requires(guard.contents().len() + source@.len() <= guard.capacity()))]
+#[cfg_attr(creusot, ensures((^guard).contents() == guard.contents().concat(source@)))]
+#[cfg_attr(creusot, ensures((^guard).capacity() == guard.capacity()))]
+pub(crate) fn guarded_byte_vec_extend_from_slice(
+    guard: &mut GuardedByteVec,
+    source: &[u8],
+) {
+    #[cfg(creusot)]
+    let old_contents = guard.contents;
+    guard.native.extend_from_slice(source);
+    #[cfg(creusot)]
+    {
+        guard.contents = snapshot!((*old_contents).concat(source@));
+    }
+}
+
+/// STD-GUARDED-VEC-03: consume the guarded wrapper and return its one native
+/// Vec owner. The postcondition relates only the resulting Vec value and
+/// capacity to the snapshots carried by the wrapper; it does not preserve or
+/// duplicate the wrapper after the transfer.
+#[cfg_attr(creusot, trusted)]
+#[cfg_attr(creusot, ensures(result@ == guard.contents()))]
+#[cfg_attr(creusot, ensures(
+    creusot_std::std::vec::capacity_model(result) == guard.capacity()
+))]
+pub(crate) fn guarded_byte_vec_into_inner(guard: GuardedByteVec) -> Vec<u8> {
+    ManuallyDrop::into_inner(guard.native)
+}
+
 /// Compare thin pointers by address without granting logical provenance
 /// identity. Normal builds retain native pointer equality and the crate's
 /// minimum supported Rust version; the proof build uses the address-only spec.
