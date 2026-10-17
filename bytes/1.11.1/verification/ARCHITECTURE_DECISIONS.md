@@ -20,3 +20,11 @@ boundary. The current theorem is sequential and normal-return only.
 
 Past rejected routes and examples are available in Git at `e5f127fb` when needed.
 They are not required inputs or mandatory regression runs for current proof work.
+
+## Pristine compiler requirement
+
+The direct-source workflow uses the pristine pinned Creusot compiler. Earlier
+experiments with a bytes-only callback-purity compiler patch are not part of the
+supported toolchain or proof evidence. Any remaining callback translation
+limitations must be handled in the bytes source and contracts; they do not
+justify modifying the compiler used by the verification workflow.

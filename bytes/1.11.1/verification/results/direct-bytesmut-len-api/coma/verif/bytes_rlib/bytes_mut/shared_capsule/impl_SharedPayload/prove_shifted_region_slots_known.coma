@@ -1,0 +1,98 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2377 4 2381 5 *)
+
+(* bytes_mut::shared_capsule::SharedPayload *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2382 22 2383 45
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2373 15 2374 48
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2375 14 2376 41
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1523 16 1523 59
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 776 14 776 43
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+
+use creusot.int.UInt64
+use creusot.int.UInt8
+use map.Map
+use creusot.prelude.Any
+use int.Int
+
+type t_Option_u8 = None | Some UInt8.t
+
+type t_Option_Option_u8 = None'0 | Some'0 t_Option_u8
+
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1522 0 1522 58] (slot: t_Option_Option_u8) =
+  [%#sraw_vec] exists value: UInt8.t. slot = Some'0 (Some value)
+
+type t_PhysicalRegion
+
+type t_OwnedRegion
+
+type t_Excl_Option_u8 = { f0: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'1 | Some'1 t_Excl_Option_u8
+
+type t_FMap_Int_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+type t_Id
+
+type t_Excl_unit = { f0'0: () }
+
+type t_Option_Excl_unit = None'2 | Some'2 t_Excl_unit
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'1: t_Option_Excl_unit; f1'1: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'2: int;
+  f1'2: int;
+  f2'2: t_Id;
+  f3'2: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#sowned_region] slot self index
+    = match get_Int (view_OwnedRegion self).f3'2.f1'1 index with
+      | None'1 -> None'0
+      | Some'1 {f0 = value} -> Some'0 value
+      end
+
+type tup3_OwnedRegion_Int_Id = { f0'3: t_OwnedRegion; f1'3: int; f2'3: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 726 4 726 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 777 4 777 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'0] slot'0 self index
+    = slot (view_PhysicalRegion self).f0'3 index
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let prove_shifted_region_slots_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 2377 4 2381 5]
+  (region: t_PhysicalRegion) (lo: int) (len: UInt64.t) (return (x: ())) =
+{[@stop_split] [@expl:prove_shifted_region_slots_known requires] [%#sshared_capsule'0] forall offset: int. 0 <= offset
+      /\ offset < UInt64.t'int len -> slot_known (slot'0 region (lo + offset))}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#sshared_capsule] forall index: int. lo <= index /\ index < lo + UInt64.t'int len
+        -> slot_known (slot'0 region index)}
+      s1
+    | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l () | & region: t_PhysicalRegion = region | & lo: int = lo | & len: UInt64.t = len ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:prove_shifted_region_slots_known ensures] [%#sshared_capsule'1] forall index: int. lo <= index
+        /\ index < lo + UInt64.t'int len -> slot_known (slot'0 region index)}
+    (! return {result}) ]

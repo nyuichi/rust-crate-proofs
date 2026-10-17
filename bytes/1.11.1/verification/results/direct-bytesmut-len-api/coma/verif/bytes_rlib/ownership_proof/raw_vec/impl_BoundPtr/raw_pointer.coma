@@ -1,0 +1,47 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 396 4 396 46 *)
+
+(* ownership_proof::raw_vec::BoundPtr *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span snonnull = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr/nonnull.rs" 38 8 38 32
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 395 14 395 60
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 386 20 386 46
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+
+type t_NonNull_u8
+
+type t_Id
+
+type t_BoundPtrBinding = { namespace: t_Id; allocation_capacity: int; absolute_offset: int }
+
+type t_Option_BoundPtrBinding = None | Some t_BoundPtrBinding
+
+type t_BoundPtr = { pointer: t_NonNull_u8; binding: t_Option_BoundPtrBinding }
+
+function view_NonNull_u8 (self: t_NonNull_u8) : Opaque.ptr
+
+function addr_NonNull_u8 [@inline:trivial] (self: t_NonNull_u8) : UInt64.t =
+  [%#snonnull] Ptr.addr_logic_u64 (view_NonNull_u8 self)
+
+meta "rewrite_def" function addr_NonNull_u8
+
+function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 385 4 385 39] (self: t_BoundPtr) : int
+ = [%#sraw_vec'0] UInt64.t'int (addr_NonNull_u8 self.pointer)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_BoundPtr
+
+function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 396 4 396 46] (self: t_BoundPtr) : Opaque.ptr
+
+goal vc_raw_pointer:
+  [@stop_split] [@expl:raw_pointer ensures] [%#sraw_vec] UInt64.t'int (Ptr.addr_logic_u64 (view_NonNull_u8 self.pointer))
+  = current_address self

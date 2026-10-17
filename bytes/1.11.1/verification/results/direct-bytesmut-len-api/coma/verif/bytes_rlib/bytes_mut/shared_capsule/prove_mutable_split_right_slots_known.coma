@@ -1,0 +1,218 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 739 0 750 1 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 751 18 753 43
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 725 11 730 1
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 731 11 731 30
+let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 732 11 732 73
+let%span sshared_capsule'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 733 11 733 58
+let%span sshared_capsule'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 734 11 735 73
+let%span sshared_capsule'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 736 10 738 39
+let%span sshared_capsule'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 702 10 706 1
+let%span sshared_capsule'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 613 10 626 1
+let%span sshared_capsule'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 650 10 659 1
+let%span sshared_capsule'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 679 10 684 1
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1523 16 1523 59
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 776 14 776 43
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 757 20 757 30
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 762 20 762 27
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 767 20 767 27
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 772 20 772 30
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 752 20 752 30
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+
+use creusot.int.UInt8
+use map.Map
+use creusot.prelude.Any
+use creusot.prelude.Opaque
+use int.Int
+
+type t_Option_u8 = None | Some UInt8.t
+
+type t_Option_Option_u8 = None'0 | Some'0 t_Option_u8
+
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1522 0 1522 58] (slot: t_Option_Option_u8) =
+  [%#sraw_vec] exists value: UInt8.t. slot = Some'0 (Some value)
+
+type t_PhysicalRegion
+
+type t_OwnedRegion
+
+type t_Excl_Option_u8 = { f0: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'1 | Some'1 t_Excl_Option_u8
+
+type t_FMap_Int_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+type t_Id
+
+type t_Excl_unit = { f0'0: () }
+
+type t_Option_Excl_unit = None'2 | Some'2 t_Excl_unit
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'1: t_Option_Excl_unit; f1'1: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'2: int;
+  f1'2: int;
+  f2'2: t_Id;
+  f3'2: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#sowned_region] slot self index
+    = match get_Int (view_OwnedRegion self).f3'2.f1'1 index with
+      | None'1 -> None'0
+      | Some'1 {f0 = value} -> Some'0 value
+      end
+
+type tup3_OwnedRegion_Int_Id = { f0'3: t_OwnedRegion; f1'3: int; f2'3: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 726 4 726 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 777 4 777 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'0] slot'0 self index
+    = slot (view_PhysicalRegion self).f0'3 index
+
+type t_OwnerTicket
+
+type tup4_OwnerTicket_OwnerTicket_PhysicalRegion_PhysicalRegion = {
+  f0'4: t_OwnerTicket;
+  f1'4: t_OwnerTicket;
+  f2'4: t_PhysicalRegion;
+  f3'4: t_PhysicalRegion }
+
+type tup2_OwnerTicket_OwnerTicket = { f0'5: t_OwnerTicket; f1'5: t_OwnerTicket }
+
+function ledger_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 306 4 306 39] (self: t_OwnerTicket) : t_Id
+
+function fragment_resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 316 4 316 50] (self: t_OwnerTicket) : t_Id
+
+type tup3_Id_ptr_u8_Int = { f0'6: t_Id; f1'6: Opaque.ptr; f2'6: int }
+
+function allocation_binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 338 4 338 64] (self: t_OwnerTicket) : tup3_Id_ptr_u8_Int
+
+type t_RefKind = Mutable | Readonly
+
+function class [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 343 4 343 41] (self: t_OwnerTicket) : t_RefKind
+
+function owner_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 311 4 311 40] (self: t_OwnerTicket) : int
+
+function owned_lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 353 4 353 40] (self: t_OwnerTicket) : int
+
+function owned_hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 358 4 358 40] (self: t_OwnerTicket) : int
+
+predicate mutable_owner_ticket_split_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 627 0 631 9] (before: t_OwnerTicket) (cut: int) (split: tup2_OwnerTicket_OwnerTicket)
+
+axiom mutable_owner_ticket_split_result_spec:
+  forall before: t_OwnerTicket, cut: int, split: tup2_OwnerTicket_OwnerTicket [mutable_owner_ticket_split_result before cut split]. [%#sshared_capsule'7] mutable_owner_ticket_split_result before cut split
+    = (ledger_id split.f0'5 = ledger_id before
+    /\ ledger_id split.f1'5 = ledger_id before
+    /\ fragment_resource_id split.f0'5 = fragment_resource_id before
+    /\ fragment_resource_id split.f1'5 = fragment_resource_id before
+    /\ allocation_binding split.f0'5 = allocation_binding before
+    /\ allocation_binding split.f1'5 = allocation_binding before
+    /\ class split.f0'5 = Mutable
+    /\ class split.f1'5 = Mutable
+    /\ owner_id split.f0'5 = owner_id before
+    /\ owner_id split.f1'5 <> owner_id before
+    /\ owned_lo split.f0'5 = owned_lo before
+    /\ owned_hi split.f0'5 = cut /\ owned_lo split.f1'5 = cut /\ owned_hi split.f1'5 = owned_hi before)
+
+type tup2_PhysicalRegion_PhysicalRegion = { f0'7: t_PhysicalRegion; f1'7: t_PhysicalRegion }
+
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 761 4 761 39] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'2] (view_PhysicalRegion self).f2'3
+
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 766 4 766 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'3] (view_PhysicalRegion self).f1'3
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 771 4 771 41] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'4] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f2'2
+
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 751 4 751 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'5] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f0'2
+
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 756 4 756 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'1] (view_OwnedRegion (view_PhysicalRegion self).f0'3).f1'2
+
+predicate mutable_owner_region_split_bounds_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 660 0 664 9] (before: t_PhysicalRegion) (cut: int) (split: tup2_PhysicalRegion_PhysicalRegion)
+
+axiom mutable_owner_region_split_bounds_result_spec:
+  forall before: t_PhysicalRegion, cut: int, split: tup2_PhysicalRegion_PhysicalRegion [mutable_owner_region_split_bounds_result before cut split]. [%#sshared_capsule'8] mutable_owner_region_split_bounds_result before cut split
+    = (namespace split.f0'7 = namespace before
+    /\ namespace split.f1'7 = namespace before
+    /\ capacity split.f0'7 = capacity before
+    /\ capacity split.f1'7 = capacity before
+    /\ resource_id split.f0'7 = resource_id before
+    /\ resource_id split.f1'7 = resource_id before
+    /\ lo split.f0'7 = lo before /\ hi split.f0'7 = cut /\ lo split.f1'7 = cut /\ hi split.f1'7 = hi before)
+
+predicate mutable_owner_region_split_slots_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 685 0 689 9] (before: t_PhysicalRegion) (cut: int) (split: tup2_PhysicalRegion_PhysicalRegion)
+
+axiom mutable_owner_region_split_slots_result_spec:
+  forall before: t_PhysicalRegion, cut: int, split: tup2_PhysicalRegion_PhysicalRegion [mutable_owner_region_split_slots_result before cut split]. [%#sshared_capsule'9] mutable_owner_region_split_slots_result before cut split
+    = ((forall i: int. slot'0 split.f0'7 i = (if lo before <= i /\ i < cut then slot'0 before i else None'0))
+    /\ (forall i: int. slot'0 split.f1'7 i = (if cut <= i /\ i < hi before then slot'0 before i else None'0)))
+
+predicate mutable_owner_split_result [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 707 0 712 9] (before_ticket: t_OwnerTicket) (before_region: t_PhysicalRegion) (cut: int) (split: tup4_OwnerTicket_OwnerTicket_PhysicalRegion_PhysicalRegion)
+
+axiom mutable_owner_split_result_spec:
+  forall before_ticket: t_OwnerTicket, before_region: t_PhysicalRegion, cut: int, split: tup4_OwnerTicket_OwnerTicket_PhysicalRegion_PhysicalRegion [mutable_owner_split_result before_ticket before_region cut split]. [%#sshared_capsule'6] mutable_owner_split_result before_ticket before_region cut split
+    = (mutable_owner_ticket_split_result before_ticket cut { f0'5 = split.f0'4; f1'5 = split.f1'4 }
+    /\ mutable_owner_region_split_bounds_result before_region cut { f0'7 = split.f2'4; f1'7 = split.f3'4 }
+    /\ mutable_owner_region_split_slots_result before_region cut { f0'7 = split.f2'4; f1'7 = split.f3'4 })
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let prove_mutable_split_right_slots_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 739 0 750 1]
+  (before_ticket: t_OwnerTicket) (before_region: t_PhysicalRegion) (cut: int) (parent_ticket: t_OwnerTicket)
+  (child_ticket: t_OwnerTicket) (left_region: t_PhysicalRegion) (right_region: t_PhysicalRegion) (old_cursor: int)
+  (old_len: int) (right_len: int) (return (x: ())) =
+{[@stop_split] [@expl:prove_mutable_split_right_slots_known requires] ([@stop_split] [@expl:prove_mutable_split_right_slots_known requires #0] [%#sshared_capsule'0] mutable_owner_split_result before_ticket before_region cut { f0'4 = parent_ticket;
+                                                                                                                                                                                                                                  f1'4 = child_ticket;
+                                                                                                                                                                                                                                  f2'4 = left_region;
+                                                                                                                                                                                                                                  f3'4 = right_region })
+  /\ ([@stop_split] [@expl:prove_mutable_split_right_slots_known requires #1] [%#sshared_capsule'1] ge_log_Int cut old_cursor)
+  /\ ([@stop_split] [@expl:prove_mutable_split_right_slots_known requires #2] [%#sshared_capsule'2] right_len = 0
+    \/ cut + right_len <= old_cursor + old_len)
+  /\ ([@stop_split] [@expl:prove_mutable_split_right_slots_known requires #3] [%#sshared_capsule'3] old_cursor + old_len
+    <= hi before_region)
+  /\ ([@stop_split] [@expl:prove_mutable_split_right_slots_known requires #4] [%#sshared_capsule'4] forall i: int. old_cursor
+        <= i
+      /\ i < old_cursor + old_len -> slot_known (slot'0 before_region i))}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#sshared_capsule] forall i: int. 0 <= i /\ i < right_len
+        -> slot_known (slot'0 right_region (cut + i))}
+      s1
+    | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & cut: int = cut
+  | & right_region: t_PhysicalRegion = right_region
+  | & right_len: int = right_len ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:prove_mutable_split_right_slots_known ensures] [%#sshared_capsule'5] forall i: int. 0 <= i
+        /\ i < right_len -> slot_known (slot'0 right_region (cut + i))}
+    (! return {result}) ]

@@ -1,0 +1,61 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 17 9 17 36 *)
+
+(* <ownership_proof::ready_registry::ReadyKey as core::clone::Clone> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 19 4 19 19
+let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 20 4 20 13
+let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 17 9 17 36
+let%span sint = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/int.rs" 35 14 35 29
+let%span sint'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/int.rs" 36 4 36 27
+let%span sid = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/id.rs" 18 14 18 29
+let%span sid'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/id.rs" 19 4 19 27
+
+use creusot.prelude.Any
+
+type t_Id
+
+type t_ReadyKey = { resource_id: t_Id; slot: int }
+
+let clone_Id (self: t_Id) (return (x: t_Id)) = any
+  [ return (result: t_Id) -> {[@stop_split] [@expl:clone ensures] [%#sid] result = self} (! return {result}) ]
+
+let clone_Int (self: int) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:clone ensures] [%#sint] result = self} (! return {result}) ]
+
+predicate postcondition_clone (self: ()) (args: t_Id) (result: t_Id) =
+  [%#sid'0] let self'0 = args in [%#sid] result = self'0
+
+meta "rewrite_def" predicate postcondition_clone
+
+predicate postcondition_clone'0 (self: ()) (args: int) (result: int) =
+  [%#sint'0] let self'0 = args in [%#sint] result = self'0
+
+meta "rewrite_def" predicate postcondition_clone'0
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let clone_ReadyKey [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 17 9 17 36]
+  (self: t_ReadyKey) (return (x: t_ReadyKey)) = (! bb0
+  [ bb0 = s0
+    [ s0 = [ &_6 <- self.resource_id ] s1
+    | s1 = clone_Id [%#sready_registry] {_6} (fun (_x: t_Id) -> [ &_4 <- _x ] s2)
+    | s2 = [ &_9 <- self.slot ] s3
+    | s3 = clone_Int [%#sready_registry'0] {_9} (fun (_x: int) -> [ &_7 <- _x ] s4)
+    | s4 = [ &_ret <- { resource_id = _4; slot = _7 } ] s5
+    | s5 = return {_ret} ] ]
+  [ & _ret: t_ReadyKey = Any.any_l ()
+  | & self: t_ReadyKey = self
+  | & _4: t_Id = Any.any_l ()
+  | & _6: t_Id = Any.any_l ()
+  | & _7: int = Any.any_l ()
+  | & _9: int = Any.any_l () ])
+  [ return (result: t_ReadyKey) ->
+  {[@stop_split] [@expl:clone ensures] [%#sready_registry'1] postcondition_clone () self.resource_id result.resource_id
+    /\ postcondition_clone'0 () self.slot result.slot}
+    (! return {result}) ]

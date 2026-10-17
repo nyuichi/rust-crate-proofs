@@ -1,0 +1,33 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 28 9 28 36 *)
+
+(* <ownership_proof::ref_count_ledger::RefKind as core::clone::Clone> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 28 9 28 36
+
+use creusot.prelude.Any
+
+type t_RefKind = Mutable | Readonly
+
+type tup2_RefKind_RefKind = { f0: t_RefKind; f1: t_RefKind }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let clone_RefKind [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 28 9 28 36]
+  (self: t_RefKind) (return (x: t_RefKind)) = (! bb0
+  [ bb0 = any [ br0 -> {self = Mutable} (! bb4) | br1 -> {self = Readonly} (! bb3) ]
+  | bb3 = s0 [ s0 = [ &_ret <- Readonly ] s1 | s1 = return {_ret} ]
+  | bb4 = s0 [ s0 = [ &_ret <- Mutable ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_RefKind = Any.any_l () | & self: t_RefKind = self ])
+  [ return (result: t_RefKind) -> {[@stop_split] [@expl:clone ensures] [%#sref_count_ledger] match { f0 = self;
+                                                                                                     f1 = result } with
+      | {f0 = Mutable; f1 = Mutable} -> true
+      | {f0 = Readonly; f1 = Readonly} -> true
+      | _ -> false
+      end}
+    (! return {result}) ]

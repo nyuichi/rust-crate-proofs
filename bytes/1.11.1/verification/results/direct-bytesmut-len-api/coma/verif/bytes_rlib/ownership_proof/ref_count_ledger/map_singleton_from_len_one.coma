@@ -1,0 +1,144 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1350 0 1354 1 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 77 14 77 67
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 78 14 78 84
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 168 40 168 65
+let%span sfmap'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 171 12 171 41
+let%span sfmap'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 71 8 71 34
+let%span sfmap'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 62 14 62 70
+let%span sfmap'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 63 14 63 88
+let%span sfmap'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 45 14 45 31
+let%span sfmap'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 46 14 46 55
+let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1356 18 1356 36
+let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1357 18 1357 41
+let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1358 4 1358 41
+let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1359 18 1359 79
+let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1360 18 1360 57
+let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1361 18 1361 69
+let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1347 11 1347 28
+let%span sref_count_ledger'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1348 11 1348 50
+let%span sref_count_ledger'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1349 10 1349 54
+let%span sref_count_ledger'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1398 11 1398 28
+let%span sref_count_ledger'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1399 10 1399 48
+
+use creusot.prelude.Opaque
+use map.Map
+use map.Const
+use creusot.prelude.Any
+use int.Int
+
+type t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_Id
+
+type tup3_Id_ptr_u8_Int = { f0: t_Id; f1: Opaque.ptr; f2: int }
+
+type t_RefKind = Mutable | Readonly
+
+type tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = { f0'0: tup3_Id_ptr_u8_Int; f1'0: t_RefKind; f2'0: int; f3'0: int }
+
+type t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = { f0'1: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+type t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = None | Some t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function to_mapping_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : Map.map int t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : int
+
+axiom len_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [len_Int self]. [%#sfmap'1] ge_log_Int (len_Int self) 0
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) : t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sfmap'2] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) =
+  [%#sfmap'6] get_Int self k <> None
+
+meta "rewrite_def" predicate contains_Int
+
+function remove_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom remove_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, k: int [remove_Int self k]. [%#sfmap] to_mapping_Int (remove_Int self k)
+    = Map.set (to_mapping_Int self) k (None)
+
+axiom remove_Int_spec'0:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, k: int [remove_Int self k]. [%#sfmap'0] len_Int (remove_Int self k)
+    = (if contains_Int self k then len_Int self - 1 else len_Int self)
+
+let zero_length_map_has_no_ids (map: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (return (x: ())) =
+{[@stop_split] [@expl:zero_length_map_has_no_ids requires] [%#sref_count_ledger'8] len_Int map = 0}
+  any
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:zero_length_map_has_no_ids ensures] [%#sref_count_ledger'9] forall key: int. not contains_Int map key}
+    (! return {result}) ]
+
+predicate ext_eq_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (other: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) =
+  [%#sfmap'4] forall k: int. get_Int self k = get_Int other k
+
+axiom ext_eq_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, other: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [self
+    = other]. [%#sfmap'3] ext_eq_Int self other = (self = other)
+
+function insert_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) (v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom insert_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, k: int, v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [insert_Int self k v]. [%#sfmap'7] to_mapping_Int (insert_Int self k v)
+    = Map.set (to_mapping_Int self) k (Some v)
+
+axiom insert_Int_spec'0:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, k: int, v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [insert_Int self k v]. [%#sfmap'8] len_Int (insert_Int self k v)
+    = (if contains_Int self k then len_Int self else len_Int self + 1)
+
+constant empty_Int : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom empty_Int_spec: [%#sfmap'9] len_Int empty_Int = 0
+
+axiom empty_Int_spec'0: [%#sfmap'10] to_mapping_Int empty_Int = Const.const (None)
+
+function singleton_Int (k: int) (v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sfmap'5] insert_Int empty_Int k v
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let map_singleton_from_len_one [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 1350 0 1354 1]
+  (map: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (id: int)
+  (binding: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (return (x: ())) =
+{[@stop_split] [@expl:map_singleton_from_len_one requires] ([@stop_split] [@expl:map_singleton_from_len_one requires #0] [%#sref_count_ledger'5] len_Int map
+    = 1)
+  /\ ([@stop_split] [@expl:map_singleton_from_len_one requires #1] [%#sref_count_ledger'6] get_Int map id
+  = Some { f0'1 = binding })}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = [ &remainder <- [%#sref_count_ledger] remove_Int map id ] s1
+    | s1 = {[@expl:assertion] [%#sref_count_ledger'0] len_Int remainder = 0} s2
+    | s2 = zero_length_map_has_no_ids [%#sref_count_ledger'1] {remainder} (fun (_x: ()) -> [ &_21 <- _x ] s3)
+    | s3 = {[@expl:assertion] [%#sref_count_ledger'2] forall other: int. other <> id -> get_Int map other = None} s4
+    | s4 = {[@expl:assertion] [%#sref_count_ledger'3] get_Int map id = Some { f0'1 = binding }} s5
+    | s5 = {[@expl:assertion] [%#sref_count_ledger'4] ext_eq_Int map (singleton_Int id { f0'1 = binding })} s6
+    | s6 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & map: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = map
+  | & id: int = id
+  | & binding: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = binding
+  | & remainder: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = Any.any_l ()
+  | & _21: () = Any.any_l () ])
+  [ return (result: ()) -> {[@stop_split] [@expl:map_singleton_from_len_one ensures] [%#sref_count_ledger'7] map
+    = singleton_Int id { f0'1 = binding }}
+    (! return {result}) ]

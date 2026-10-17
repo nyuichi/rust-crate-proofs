@@ -111,9 +111,11 @@ pub(crate) fn reconstructed_original_capacity(cap: usize) -> usize {
 #[cfg_attr(creusot, bitwise_proof)]
 #[cfg_attr(creusot, requires(repr@ <= MAX_ORIGINAL_CAPACITY_WIDTH@ - MIN_ORIGINAL_CAPACITY_WIDTH@))]
 #[cfg_attr(creusot, ensures(result == (repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC))]
+#[cfg_attr(creusot, ensures(result@ == repr@ * 4 + 1))]
 #[cfg_attr(creusot, ensures(((result & ORIGINAL_CAPACITY_MASK) >> ORIGINAL_CAPACITY_OFFSET) == repr))]
 #[cfg_attr(creusot, ensures(result & KIND_MASK == KIND_VEC))]
 #[cfg_attr(creusot, ensures(result >> VEC_POS_OFFSET == 0usize))]
+#[cfg_attr(creusot, ensures(result & 3usize == 1usize))]
 pub(crate) fn pack_vec_metadata(repr: usize) -> usize {
     (repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC
 }
@@ -129,8 +131,21 @@ pub(crate) fn original_capacity_repr_from_data(data: usize) -> usize {
 /// Read the encoded vector offset from the packed metadata word.
 #[cfg_attr(creusot, bitwise_proof)]
 #[cfg_attr(creusot, ensures(result == data >> VEC_POS_OFFSET))]
+#[cfg_attr(creusot, ensures(result@ <= MAX_VEC_POS@))]
 pub(crate) fn vec_pos_from_data(data: usize) -> usize {
     data >> VEC_POS_OFFSET
+}
+
+/// Establish that the packed Vec-position field has a usable positive range.
+/// A shifted single-bit encoding witnesses position one; the checked extractor
+/// supplies the existing generic upper-bound contract for the field.
+#[cfg(creusot)]
+#[bitwise_proof]
+#[ensures(1 <= MAX_VEC_POS@)]
+pub(crate) fn prove_max_vec_pos_nonzero() {
+    let encoded_position = 1usize << VEC_POS_OFFSET;
+    let position = vec_pos_from_data(encoded_position);
+    proof_assert!(position@ == 1);
 }
 
 /// Replace the packed vector offset while preserving all five low metadata bits.
@@ -140,6 +155,7 @@ pub(crate) fn vec_pos_from_data(data: usize) -> usize {
 #[cfg_attr(creusot, ensures((result >> VEC_POS_OFFSET) == pos))]
 #[cfg_attr(creusot, ensures(result & NOT_VEC_POS_MASK == data & NOT_VEC_POS_MASK))]
 #[cfg_attr(creusot, ensures(result & KIND_MASK == data & KIND_MASK))]
+#[cfg_attr(creusot, ensures(result & 3usize == data & 3usize))]
 pub(crate) fn set_vec_pos_in_data(data: usize, pos: usize) -> usize {
     (pos << VEC_POS_OFFSET) | (data & NOT_VEC_POS_MASK)
 }

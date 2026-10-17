@@ -1,0 +1,155 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3767 0 3770 22 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 247 34 247 38
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 244 32 244 66
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 245 32 245 63
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3771 26 3771 55
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3772 4 3772 37
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3769 4 3769 8
+let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3762 11 3762 41
+let%span sshared_capsule'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3763 11 3763 50
+let%span sshared_capsule'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3764 10 3764 74
+let%span sshared_capsule'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3765 10 3765 71
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 632 40 632 43
+let%span sptr'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 628 15 628 33
+let%span sptr'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 632 4 632 74
+let%span sptr'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 629 14 629 35
+let%span sptr'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 537 12 539 34
+let%span sptr'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.prelude.Ptr
+use creusot.prelude.Any
+
+type t_Perm_ptr_Shared
+
+type t_MaybeUninit_VecStorage
+
+type t_RefCountCell
+
+type t_Shared = { vec: t_MaybeUninit_VecStorage; original_capacity_repr: UInt64.t; ref_count: t_RefCountCell }
+
+predicate is_null_ptr_Shared (self: Opaque.ptr) = [%#sptr'4] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+function ward_ptr_Shared (self: t_Perm_ptr_Shared) : Opaque.ptr
+
+predicate metadata_matches_Shared [@inline:trivial] (_value: t_Shared) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_Shared
+
+function val_ptr_Shared (self: t_Perm_ptr_Shared) : t_Shared
+
+function metadata_Shared (_1: Opaque.ptr) : ()
+
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 673 8 673 34] (self: t_RefCountCell)
+
+predicate inv_RefCountCell (_1: t_RefCountCell)
+
+axiom inv_axiom: forall x: t_RefCountCell [inv_RefCountCell x]. inv_RefCountCell x -> invariant_RefCountCell x
+
+predicate inv_Shared (_1: t_Shared)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Shared [inv_Shared x]. inv_Shared x = inv_RefCountCell x.ref_count
+
+predicate invariant_ref_Shared [@inline:trivial] (self: t_Shared) = [%#sinvariant] inv_Shared self
+
+meta "rewrite_def" predicate invariant_ref_Shared
+
+predicate inv_ref_Shared [@inline:trivial] (_1: t_Shared) = invariant_ref_Shared _1
+
+meta "rewrite_def" predicate inv_ref_Shared
+
+predicate invariant_Perm_ptr_Shared (self: t_Perm_ptr_Shared) =
+  [%#sptr'3] not is_null_ptr_Shared (ward_ptr_Shared self)
+  /\ metadata_matches_Shared (val_ptr_Shared self) (metadata_Shared (ward_ptr_Shared self))
+  /\ inv_ref_Shared (val_ptr_Shared self)
+
+predicate inv_Perm_ptr_Shared (_1: t_Perm_ptr_Shared)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Perm_ptr_Shared [inv_Perm_ptr_Shared x]. inv_Perm_ptr_Shared x
+    = invariant_Perm_ptr_Shared x
+
+predicate invariant_ref_Perm_ptr_Shared [@inline:trivial] (self: t_Perm_ptr_Shared) =
+  [%#sinvariant] inv_Perm_ptr_Shared self
+
+meta "rewrite_def" predicate invariant_ref_Perm_ptr_Shared
+
+predicate inv_ref_Perm_ptr_Shared [@inline:trivial] (_1: t_Perm_ptr_Shared) = invariant_ref_Perm_ptr_Shared _1
+
+meta "rewrite_def" predicate inv_ref_Perm_ptr_Shared
+
+predicate invariant_Ghost_ref_Perm_ptr_Shared [@inline:trivial] (self: t_Perm_ptr_Shared) =
+  [%#sghost] inv_ref_Perm_ptr_Shared self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_Perm_ptr_Shared
+
+predicate inv_Ghost_ref_Perm_ptr_Shared [@inline:trivial] (_1: t_Perm_ptr_Shared) =
+  invariant_Ghost_ref_Perm_ptr_Shared _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_Perm_ptr_Shared
+
+let as_ref_Shared (ptr: Opaque.ptr) (own: t_Perm_ptr_Shared) (return (x: t_Shared)) =
+{[@stop_split] [@expl:as_ref_Shared requires] ([@stop_split] [@expl:as_ref 'own' type invariant] [%#sptr] inv_Ghost_ref_Perm_ptr_Shared own)
+  /\ ([@stop_split] [@expl:as_ref requires] [%#sptr'0] ptr = ward_ptr_Shared own)}
+  any
+  [ return (result: t_Shared) ->
+  {[@stop_split] [@expl:as_ref_Shared ensures] ([@stop_split] [@expl:as_ref result type invariant] [%#sptr'1] inv_ref_Shared result)
+    /\ ([@stop_split] [@expl:as_ref ensures] [%#sptr'2] result = val_ptr_Shared own)}
+    (! return {result}) ]
+
+type t_NativeCounter
+
+predicate invariant_ref_RefCountCell [@inline:trivial] (self: t_RefCountCell) = [%#sinvariant] inv_RefCountCell self
+
+meta "rewrite_def" predicate invariant_ref_RefCountCell
+
+predicate inv_ref_RefCountCell [@inline:trivial] (_1: t_RefCountCell) = invariant_ref_RefCountCell _1
+
+meta "rewrite_def" predicate inv_ref_RefCountCell
+
+function counter_reference [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 185 4 185 60] (self: t_RefCountCell) : t_NativeCounter
+
+function counter_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 176 4 176 54] (self: t_RefCountCell) : t_NativeCounter
+
+let native_counter (self: t_RefCountCell) (return (x: t_NativeCounter)) =
+{[@stop_split] [@expl:native_counter 'self' type invariant] [%#sref_count_ops] inv_ref_RefCountCell self}
+  any
+  [ return (result: t_NativeCounter) ->
+  {[@stop_split] [@expl:native_counter ensures] ([@stop_split] [@expl:native_counter ensures #0] [%#sref_count_ops'0] result
+      = counter_reference self)
+    /\ ([@stop_split] [@expl:native_counter ensures #1] [%#sref_count_ops'1] result = counter_model self)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let loaned_native_counter [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 3767 0 3770 22]
+  (header_id: Opaque.ptr) (root: t_Perm_ptr_Shared) (return (x: t_NativeCounter)) =
+{[@stop_split] [@expl:loaned_native_counter requires] ([@stop_split] [@expl:loaned_native_counter 'root' type invariant] [%#sshared_capsule'1] inv_Ghost_ref_Perm_ptr_Shared root)
+  /\ ([@stop_split] [@expl:loaned_native_counter requires #0] [%#sshared_capsule'2] invariant_ref_Perm_ptr_Shared root)
+  /\ ([@stop_split] [@expl:loaned_native_counter requires #1] [%#sshared_capsule'3] ward_ptr_Shared root = header_id)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = as_ref_Shared [%#sshared_capsule] {header_id} {root} (fun (_x: t_Shared) -> [ &header <- _x ] s1)
+    | s1 = native_counter [%#sshared_capsule'0] {header.ref_count} (fun (_x: t_NativeCounter) -> [ &_15 <- _x ] s2)
+    | s2 = [ &_ret <- _15 ] s3
+    | s3 = return {_ret} ] ]
+  [ & _ret: t_NativeCounter = Any.any_l ()
+  | & header_id: Opaque.ptr = header_id
+  | & root: t_Perm_ptr_Shared = root
+  | & header: t_Shared = Any.any_l ()
+  | & _15: t_NativeCounter = Any.any_l () ])
+  [ return (result: t_NativeCounter) ->
+  {[@stop_split] [@expl:loaned_native_counter ensures] ([@stop_split] [@expl:loaned_native_counter ensures #0] [%#sshared_capsule'4] result
+      = counter_reference (val_ptr_Shared root).ref_count)
+    /\ ([@stop_split] [@expl:loaned_native_counter ensures #1] [%#sshared_capsule'5] result
+    = counter_model (val_ptr_Shared root).ref_count)}
+    (! return {result}) ]

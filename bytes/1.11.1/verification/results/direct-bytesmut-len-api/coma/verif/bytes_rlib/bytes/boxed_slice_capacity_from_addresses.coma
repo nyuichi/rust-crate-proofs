@@ -1,0 +1,44 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 2442 0 2446 10 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sbytes = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 2447 4 2447 25
+let%span sbytes'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 2447 4 2447 31
+let%span sbytes'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 2438 29 2438 53
+let%span sbytes'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 2439 29 2439 74
+let%span sbytes'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 2440 28 2440 69
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let boxed_slice_capacity_from_addresses [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes.rs" 2442 0 2446 10]
+  (base_addr: UInt64.t) (view_addr: UInt64.t) (len: UInt64.t) (return (x: UInt64.t)) =
+{[@stop_split] [@expl:boxed_slice_capacity_from_addresses requires] ([@stop_split] [@expl:boxed_slice_capacity_from_addresses requires #0] [%#sbytes'1] UInt64.t'int base_addr
+    <= UInt64.t'int view_addr)
+  /\ ([@stop_split] [@expl:boxed_slice_capacity_from_addresses requires #1] [%#sbytes'2] UInt64.t'int view_addr
+      - UInt64.t'int base_addr
+    + UInt64.t'int len
+  <= UInt64.t'int const_MAX)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = UInt64.sub [%#sbytes] {view_addr} {base_addr} (fun (_x: UInt64.t) -> [ &_15 <- _x ] s1)
+    | s1 = UInt64.add [%#sbytes'0] {_15} {len} (fun (_x: UInt64.t) -> [ &_ret <- _x ] s2)
+    | s2 = return {_ret} ] ]
+  [ & _ret: UInt64.t = Any.any_l ()
+  | & base_addr: UInt64.t = base_addr
+  | & view_addr: UInt64.t = view_addr
+  | & len: UInt64.t = len
+  | & _15: UInt64.t = Any.any_l () ])
+  [ return (result: UInt64.t) ->
+  {[@stop_split] [@expl:boxed_slice_capacity_from_addresses ensures] [%#sbytes'3] UInt64.t'int result
+    = UInt64.t'int view_addr - UInt64.t'int base_addr + UInt64.t'int len}
+    (! return {result}) ]

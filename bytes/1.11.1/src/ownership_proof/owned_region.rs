@@ -72,7 +72,7 @@ pub(crate) struct OwnedRegion {
 impl View for OwnedRegion {
     type ViewTy = (Int, Int, Id, KernelRA);
 
-    #[logic]
+    #[logic(open(self))]
     fn view(self) -> Self::ViewTy {
         pearlite! { (self.lo, self.hi, self.resource.id(), self.resource@) }
     }
@@ -103,6 +103,12 @@ impl OwnedRegion {
     #[requires(forall<index: Int> resource@.1.contains(index) == (lo <= index && index < hi))]
     #[ensures(result.lo() == lo && result.hi() == hi)]
     #[ensures(result@.3 == resource@)]
+    #[ensures(result.slots() == resource@.1)]
+    #[ensures(forall<index: Int> result.slot(index) ==
+        match resource@.1.get(index) {
+            None => None,
+            Some(Excl(value)) => Some(value),
+        })]
     #[ensures(result.resource_id() == resource.id())]
     #[ensures(result.invariant())]
     pub(crate) fn from_model_ledger(lo: Int, hi: Int, resource: Resource<KernelRA>) -> Self {
@@ -145,17 +151,22 @@ impl OwnedRegion {
     }
 
     /// Read-only slot map used by the separate physical bridge.
-    #[logic(open)]
+    #[logic(open(self))]
+    #[ensures(result == self@.3.1)]
     pub(crate) fn slots(self) -> FMap<Int, Excl<Option<u8>>> {
-        pearlite! { self@.3.1 }
+        pearlite! { self.resource@.1 }
     }
 
     /// Slot model at an index. The outer option records whether the index is
     /// in this region; the inner option records whether a value is known.
-    #[logic(open)]
+    #[logic(open(self))]
+    #[ensures(result == match self@.3.1.get(index) {
+        None => None,
+        Some(Excl(value)) => Some(value),
+    })]
     pub(crate) fn slot(self, index: Int) -> Option<Option<u8>> {
         pearlite! {
-            match self@.3.1.get(index) {
+            match self.resource@.1.get(index) {
                 None => None,
                 Some(Excl(value)) => Some(value),
             }

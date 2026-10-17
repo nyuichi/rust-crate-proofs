@@ -83,7 +83,7 @@ pub struct Bytes {
     ptr: *const u8,
     len: usize,
     // inlined "trait object"
-    data: AtomicPtr<()>,
+    data: BytesDataCell,
     vtable: &'static Vtable,
     #[cfg(all(creusot, bytes_original_freeze_gate))]
     original_frozen: Option<OriginalFrozenProof>,
@@ -91,4 +91,14 @@ pub struct Bytes {
     original_bytes: creusot_std::prelude::Ghost<OriginalBytesProof>,
     #[cfg(all(creusot, bytes_original_shared_gate))]
     original_shared: creusot_std::prelude::Ghost<OriginalSharedProof>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    readonly_packet: Option<crate::bytes_mut::shared_capsule::SharedReadonlyPacket>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    readonly_cell_permission: creusot_std::ghost::Ghost<Option<
+        creusot_std::ghost::perm::Perm<crate::loom::sync::atomic::NativePtr<()>>,
+    >>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    original_boxed: Option<OriginalBoxedProof>,
+    #[cfg(all(creusot, bytes_original_unique_gate))]
+    original_spare_shared: Option<OriginalSpareSharedProof>,
 }

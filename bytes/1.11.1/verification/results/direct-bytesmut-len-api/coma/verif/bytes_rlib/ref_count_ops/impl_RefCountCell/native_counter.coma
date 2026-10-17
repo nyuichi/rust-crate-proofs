@@ -1,0 +1,112 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 247 4 247 57 *)
+
+(* ref_count_ops::RefCountCell *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 247 34 247 38
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 244 32 244 66
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 245 32 245 63
+let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 186 8 186 21
+let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 177 20 177 32
+let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 675 16 678 17
+let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 667 12 667 48
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+
+use creusot.prelude.Any
+
+type t_NativeCounter
+
+type t_AtomicInvariant_EventState_RefCountState
+
+type t_EventBoundInvariant_RefCountState = { inner: t_AtomicInvariant_EventState_RefCountState }
+
+type t_Option_EventBoundInvariant_RefCountState = None | Some t_EventBoundInvariant_RefCountState
+
+type t_RefCountCell = { counter: t_NativeCounter; invariant': t_Option_EventBoundInvariant_RefCountState }
+
+type tup2_NativeCounter_NativeCounter = { f0: t_NativeCounter; f1: t_NativeCounter }
+
+function public_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 642 8 642 64] (self: t_EventBoundInvariant_RefCountState) : tup2_NativeCounter_NativeCounter
+
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 673 8 673 34] (self: t_RefCountCell) =
+  [%#sref_count_ops'4] match self.invariant' with
+    | None -> true
+    | Some invariant''0 -> (public_RefCountState invariant''0).f0 = self.counter
+    end
+
+predicate inv_AtomicInvariant_EventState_RefCountState [@inline:trivial] (_1: t_AtomicInvariant_EventState_RefCountState) =
+  true
+
+meta "rewrite_def" predicate inv_AtomicInvariant_EventState_RefCountState
+
+predicate invariant_ref_AtomicInvariant_EventState_RefCountState [@inline:trivial] (self: t_AtomicInvariant_EventState_RefCountState) =
+  [%#sinvariant] inv_AtomicInvariant_EventState_RefCountState self
+
+meta "rewrite_def" predicate invariant_ref_AtomicInvariant_EventState_RefCountState
+
+predicate invariant_EventBoundInvariant_RefCountState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 666 8 666 34] (self: t_EventBoundInvariant_RefCountState) =
+  [%#sref_count_ops'5] invariant_ref_AtomicInvariant_EventState_RefCountState self.inner
+
+predicate inv_EventBoundInvariant_RefCountState (_1: t_EventBoundInvariant_RefCountState)
+
+axiom inv_axiom [@rewrite]:
+  forall x: t_EventBoundInvariant_RefCountState [inv_EventBoundInvariant_RefCountState x]. inv_EventBoundInvariant_RefCountState x
+    = invariant_EventBoundInvariant_RefCountState x
+
+predicate inv_Option_EventBoundInvariant_RefCountState (_1: t_Option_EventBoundInvariant_RefCountState)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_Option_EventBoundInvariant_RefCountState [inv_Option_EventBoundInvariant_RefCountState x]. inv_Option_EventBoundInvariant_RefCountState x
+    = match x with
+      | None -> true
+      | Some f0'0 -> inv_EventBoundInvariant_RefCountState f0'0
+      end
+
+predicate invariant_Ghost_Option_EventBoundInvariant_RefCountState [@inline:trivial] (self: t_Option_EventBoundInvariant_RefCountState) =
+  [%#sghost] inv_Option_EventBoundInvariant_RefCountState self
+
+meta "rewrite_def" predicate invariant_Ghost_Option_EventBoundInvariant_RefCountState
+
+predicate inv_Ghost_Option_EventBoundInvariant_RefCountState [@inline:trivial] (_1: t_Option_EventBoundInvariant_RefCountState) =
+  invariant_Ghost_Option_EventBoundInvariant_RefCountState _1
+
+meta "rewrite_def" predicate inv_Ghost_Option_EventBoundInvariant_RefCountState
+
+predicate inv_RefCountCell (_1: t_RefCountCell)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_RefCountCell [inv_RefCountCell x]. inv_RefCountCell x
+    = (invariant_RefCountCell x /\ inv_Ghost_Option_EventBoundInvariant_RefCountState x.invariant')
+
+predicate invariant_ref_RefCountCell [@inline:trivial] (self: t_RefCountCell) = [%#sinvariant] inv_RefCountCell self
+
+meta "rewrite_def" predicate invariant_ref_RefCountCell
+
+predicate inv_ref_RefCountCell [@inline:trivial] (_1: t_RefCountCell) = invariant_ref_RefCountCell _1
+
+meta "rewrite_def" predicate inv_ref_RefCountCell
+
+function counter_reference [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 185 4 185 60] (self: t_RefCountCell) : t_NativeCounter
+ = [%#sref_count_ops'2] self.counter
+
+function counter_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 176 4 176 54] (self: t_RefCountCell) : t_NativeCounter
+ = [%#sref_count_ops'3] self.counter
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let native_counter [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 247 4 247 57]
+  (self: t_RefCountCell) (return (x: t_NativeCounter)) =
+{[@stop_split] [@expl:native_counter 'self' type invariant] [%#sref_count_ops] inv_ref_RefCountCell self}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_6 <- self.counter ] s1 | s1 = [ &_ret <- _6 ] s2 | s2 = return {_ret} ] ]
+  [ & _ret: t_NativeCounter = Any.any_l () | & self: t_RefCountCell = self | & _6: t_NativeCounter = Any.any_l () ])
+  [ return (result: t_NativeCounter) ->
+  {[@stop_split] [@expl:native_counter ensures] ([@stop_split] [@expl:native_counter ensures #0] [%#sref_count_ops'0] result
+      = counter_reference self)
+    /\ ([@stop_split] [@expl:native_counter ensures #1] [%#sref_count_ops'1] result = counter_model self)}
+    (! return {result}) ]
