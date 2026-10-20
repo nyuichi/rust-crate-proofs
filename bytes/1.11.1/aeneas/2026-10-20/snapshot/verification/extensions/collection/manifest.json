@@ -1,0 +1,46 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "collection",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Collection.bytes_from_iterator_returns_vec_conversion",
+      "rust_functions": [
+        "bytes::bytes::{impl core::iter::traits::collect::FromIterator<u8> for bytes::bytes::Bytes}::from_iter"
+      ],
+      "verified_behavior": "The transparent FromIterator body collects its input through the supplied IntoIterator dictionary and passes the resulting Vec through the Bytes From<Vec<u8>> conversion.",
+      "assumptions": [
+        "The standard Vec FromIterator operation returns the supplied Vec.",
+        "The frozen opaque Vec-to-Bytes conversion returns the supplied Bytes."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "core.sync.atomic.Atomic",
+        "bytes.Bytes.Insts.CoreConvertFromVecU8.from",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Collection.without_provenance_returns_pointer_operation",
+      "rust_functions": [
+        "bytes::bytes::without_provenance"
+      ],
+      "verified_behavior": "Returns exactly the result of applying the translated raw-pointer wrapping_add operation to the translated null pointer and requested offset; this does not assert pointer provenance or address semantics.",
+      "assumptions": [
+        "The translated null-pointer primitive returns the supplied pointer.",
+        "The translated raw-pointer wrapping_add operation returns the supplied pointer result."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "core.ptr.null",
+        "core.ptr.const_ptr.RawPtrConstT.wrapping_add"
+      ]
+    }
+  ],
+  "blocked_roots": []
+}

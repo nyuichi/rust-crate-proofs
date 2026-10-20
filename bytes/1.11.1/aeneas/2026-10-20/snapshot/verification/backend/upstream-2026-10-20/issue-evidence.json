@@ -1,0 +1,683 @@
+{
+  "checked_on": "2026-10-20",
+  "items": [
+    {
+      "kind": "aeneas_issue",
+      "number": 961,
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "issue": {
+            "url": "https://github.com/AeneasVerif/aeneas/issues/961",
+            "title": "Mismatch between trait and impl models with `&mut` in type parameter",
+            "issue_number": 961,
+            "body": "## Rust reproducer\n\n```rust\ntrait T<Arg> {\n    fn f(arg: Arg);\n}\n\nimpl T<&mut u8> for u16 {\n    fn f(arg: &mut u8) {\n        \n    }\n}\n```\n\n## Problem\n\nThe extracted lean looks like:\n```lean\nstructure T (Self : Type) (Arg : Type) where\n  f : Arg → Result Unit\n\ndef U16.Insts.Aeneas_testTMut0U8.f (arg : Std.U8) : Result Std.U8 := do\n  ok arg\n\ndef U16.Insts.Aeneas_testTMut0U8 : T Std.U16 Std.U8 := {\n  f := U16.Insts.Aeneas_testTMut0U8.f\n}\n```\nWhich is invalid because the expected signature for `f` is to return `Result Unit` and it is instantiated with `Result Std.U8`\n\nIt is quite similar to https://github.com/AeneasVerif/aeneas/issues/960 as both issues come from trait definitions which make assumptions on type parameters and associated types, and impls that don't verify these assumptions. \n\nI found these issues when trying to write code with closures taking `&mut` arguments.",
+            "state": "open",
+            "user": {
+              "login": "maximebuyse",
+              "name": "maximebuyse",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/u/45398004?v=4",
+              "id": 45398004
+            },
+            "assignees": null,
+            "labels": [
+              {
+                "name": "translation",
+                "color": "58b37f",
+                "description": ""
+              }
+            ],
+            "milestone": null,
+            "state_reason": null,
+            "comments": 1,
+            "created_at": "2026-04-29T08:29:40Z",
+            "updated_at": "2026-07-22T16:05:15Z",
+            "closed_at": null,
+            "display_url": "https://github.com/AeneasVerif/aeneas/issues/961",
+            "display_title": "Mismatch between trait and impl models with `&mut` in type parameter"
+          },
+          "url": "https://github.com/AeneasVerif/aeneas/issues/961",
+          "title": "Mismatch between trait and impl models with `&mut` in type parameter",
+          "display_url": "https://github.com/AeneasVerif/aeneas/issues/961",
+          "display_title": "Mismatch between trait and impl models with `&mut` in type parameter"
+        },
+        "isError": false
+      },
+      "comments": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "comments": [
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/961#issuecomment-5015034753",
+              "body": "I hit this (b59d5188c082) and reduced it to a similar example as well:\n\n```rust\nfn f(b: &mut bool) {\n    Some(b).map(|_| ());\n}\n```\n\nLean error:\n\n```\nerror: Issue.lean:33:15: Type mismatch\n  CoreOpsFunctionFnOnceTupleMutBoolTuple.call_once\nhas type\n  closure → Bool → Result Bool\nbut is expected to have type\n  closure → Bool → Result Unit\nerror: Issue.lean:38:34: expected a product type, got\n  Option Unit\n```",
+              "user": {
+                "login": "ojeda",
+                "name": "ojeda",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/1054456?v=4",
+                "id": 1054456
+              },
+              "id": 5015034753,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">I hit this (<a class=\"commit-link\" data-hovercard-type=\"commit\" data-hovercard-url=\"https://github.com/AeneasVerif/aeneas/commit/b59d5188c082f704a418c7cb4e52ad69328002d1/hovercard\" href=\"https://github.com/AeneasVerif/aeneas/commit/b59d5188c082f704a418c7cb4e52ad69328002d1\"><tt>b59d518</tt></a>) and reduced it to a similar example as well:</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"fn f(b: &amp;mut bool) {\n    Some(b).map(|_| ());\n}\"><pre class=\"notranslate\"><span class=\"pl-k\">fn</span> <span class=\"pl-en\">f</span><span class=\"pl-kos\">(</span><span class=\"pl-s1\">b</span><span class=\"pl-kos\">:</span> <span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-smi\">bool</span><span class=\"pl-kos\">)</span> <span class=\"pl-kos\">{</span>\n    <span class=\"pl-en\">Some</span><span class=\"pl-kos\">(</span>b<span class=\"pl-kos\">)</span><span class=\"pl-kos\">.</span><span class=\"pl-en\">map</span><span class=\"pl-kos\">(</span>|_| <span class=\"pl-kos\">(</span><span class=\"pl-kos\">)</span><span class=\"pl-kos\">)</span><span class=\"pl-kos\">;</span>\n<span class=\"pl-kos\">}</span></pre></div>\n<p dir=\"auto\">Lean error:</p>\n<div class=\"snippet-clipboard-content notranslate position-relative overflow-auto\" data-snippet-clipboard-copy-content=\"error: Issue.lean:33:15: Type mismatch\n  CoreOpsFunctionFnOnceTupleMutBoolTuple.call_once\nhas type\n  closure → Bool → Result Bool\nbut is expected to have type\n  closure → Bool → Result Unit\nerror: Issue.lean:38:34: expected a product type, got\n  Option Unit\"><pre class=\"notranslate\"><code class=\"notranslate\">error: Issue.lean:33:15: Type mismatch\n  CoreOpsFunctionFnOnceTupleMutBoolTuple.call_once\nhas type\n  closure → Bool → Result Bool\nbut is expected to have type\n  closure → Bool → Result Unit\nerror: Issue.lean:38:34: expected a product type, got\n  Option Unit\n</code></pre></div>"
+            }
+          ],
+          "url": "https://github.com/AeneasVerif/aeneas/issues/961",
+          "title": "AeneasVerif/aeneas Issue #961 comments",
+          "display_url": "https://github.com/AeneasVerif/aeneas/issues/961",
+          "display_title": "AeneasVerif/aeneas Issue #961 comments"
+        },
+        "isError": false
+      }
+    },
+    {
+      "kind": "aeneas_issue",
+      "number": 1152,
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "issue": {
+            "url": "https://github.com/AeneasVerif/aeneas/issues/1152",
+            "title": "Lean backend can generate Iterator.next with extra back-function component",
+            "issue_number": 1152,
+            "body": "### Summary\n\nThe Lean backend can generate an `Iterator.next` implementation whose type\ncontains an extra back-function component, then assign it directly to\n`core.iter.traits.iterator.Iterator.next`. The generated Lean does not typecheck.\n\nI hit this while translating `datrs/sparse-bitfield`.\n\n### Versions Used\n\n- Aeneas: `a2e779f00fc384c2f4d1131bbd573dc948ddf0d7`\n- Charon pin from that Aeneas commit: `9dd7f23c8458b2366ce0b5ca7529c5ad4c5fb350`\n- Lean toolchain used for `lake build`: `leanprover/lean4:v4.30.0-rc2`\n\n### Detailed Instructions to Reproduce\n\nStarting from a checkout of `datrs/sparse-bitfield` at the following revision:\n\n```bash\ngit clone https://github.com/datrs/sparse-bitfield.git\ncd sparse-bitfield\ngit checkout 049fe04~1\n\n# Build Charon/Aeneas (tested at the Aeneas commit listed above), then make sure both\n# binaries are on PATH, or replace these commands with explicit paths.\ncharon cargo --preset=aeneas\naeneas -backend lean -dest lean_out sparse_bitfield.llbc\n```\n\nThen create a small Lean project that depends on Aeneas at the same commit:\n\n```lean\n-- lakefile.lean\nimport Lake\nopen Lake DSL\n\npackage aeneas_repro where\n\nrequire aeneas from git \"https://github.com/AeneasVerif/aeneas.git\" @ \"a2e779f00fc384c2f4d1131bbd573dc948ddf0d7\" / \"backends/lean\"\n\n@[default_target]\nlean_lib TranslatedCode where\n  srcDir := \"src\"\n```\n\n```bash\nmkdir -p src/TranslatedCode\ncp lean_out/SparseBitfield.lean src/TranslatedCode/SparseBitfield.lean\nprintf \"import TranslatedCode.SparseBitfield\\n\" > src/TranslatedCode.lean\nprintf \"leanprover/lean4:v4.30.0-rc2\\n\" > lean-toolchain\nlake build\n```\n\n### Generated Lean\n\nThe generated `next` function has an extra `(iter.Iter -> iter.Iter)` component:\n\n```lean\n/-- [sparse_bitfield::iter::{impl core::iter::traits::iterator::Iterator<bool> for sparse_bitfield::iter::Iter<'a>}::next]:\n    Source: 'src/iter.rs', lines 27:2-37:3\n    Visibility: public -/\ndef iter.Iter.Insts.CoreIterTraitsIteratorIteratorBool.next\n  (self : iter.Iter) :\n  Result ((Option Bool) × iter.Iter × (iter.Iter → iter.Iter))\n  := do\n  let i ← self.cursor + 1#usize\n  let i1 ← Bitfield.len self.inner\n  if self.cursor >= i1\n  then\n    let back'a := fun self1 => { self with inner := self1.inner }\n    ok (none, { self with cursor := i }, back'a)\n  else\n    let (b, b1) ← Bitfield.get self.inner self.cursor\n    let back'a := fun self1 => { self with inner := self1.inner }\n    ok (some b, { inner := b1, cursor := i }, back'a)\n```\n\nbut the trait implementation assigns it to `Iterator.next`:\n\n```lean\n/-- Trait implementation: [sparse_bitfield::iter::{impl core::iter::traits::iterator::Iterator<bool> for sparse_bitfield::iter::Iter<'a>}]\n    Source: 'src/iter.rs', lines 24:0-38:1 -/\n@[reducible]\ndef iter.Iter.Insts.CoreIterTraitsIteratorIteratorBool :\n  core.iter.traits.iterator.Iterator iter.Iter Bool := {\n  next := iter.Iter.Insts.CoreIterTraitsIteratorIteratorBool.next\n}\n```\n\nThe Aeneas Lean library expects:\n\n```lean\nstructure core.iter.traits.iterator.Iterator (Self : Type) (Self_Item : Type)\n  where\n  next : Self → Result ((Option Self_Item) × Self)\n  step_by : Self → Usize → Result (core.iter.adapters.step_by.StepBy Self)\n  enumerate : Self → Result (core.iter.adapters.enumerate.Enumerate Self)\n  take : Self → Usize → Result (core.iter.adapters.take.Take Self)\n```\n\n### `lake build` error\n\n```text\nerror: src/TranslatedCode/SparseBitfield.lean:305:10: Type mismatch\n```\n\n### Expected behavior\n\nThe generated `Iterator.next` field should have type:\n\n```lean\niter.Iter → Result ((Option Bool) × iter.Iter)\n```\n\nor the trait impl should wrap/adapt the generated function so the back-function\ncomponent is not exposed as the `Iterator.next` field.\n\nThe Rust-side iterator implementation is valid: `Iterator::next` should return\n`Option<bool>`. The generated Lean function appears to have retained a\nstate/back-function artifact from translating the internal update to\n`self.inner`, but the generated trait record field was not adapted to the\nLean `Iterator.next` signature.\n\n",
+            "state": "open",
+            "user": {
+              "login": "aditink",
+              "name": "aditink",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/u/24940384?v=4",
+              "id": 24940384
+            },
+            "assignees": null,
+            "labels": null,
+            "milestone": null,
+            "state_reason": null,
+            "comments": 1,
+            "created_at": "2026-06-22T19:13:09Z",
+            "updated_at": "2026-08-15T16:30:33Z",
+            "closed_at": null,
+            "display_url": "https://github.com/AeneasVerif/aeneas/issues/1152",
+            "display_title": "Lean backend can generate Iterator.next with extra back-function component"
+          },
+          "url": "https://github.com/AeneasVerif/aeneas/issues/1152",
+          "title": "Lean backend can generate Iterator.next with extra back-function component",
+          "display_url": "https://github.com/AeneasVerif/aeneas/issues/1152",
+          "display_title": "Lean backend can generate Iterator.next with extra back-function component"
+        },
+        "isError": false
+      },
+      "comments": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "comments": [
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/1152#issuecomment-5303165178",
+              "body": "I have hit the same issue with this independent minimization:\n\n```rust\nfn f(s: &mut [u32]) {\n    let _ = s.iter_mut().take(1);\n}\n```\n\n**Versions**:\n- Aeneas: daa85d7e8940 (i.e. latest as of the time of submission)\n- Charon: 0.1.232",
+              "user": {
+                "login": "ojeda",
+                "name": "ojeda",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/1054456?v=4",
+                "id": 1054456
+              },
+              "id": 5303165178,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">I have hit the same issue with this independent minimization:</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"fn f(s: &amp;mut [u32]) {\n    let _ = s.iter_mut().take(1);\n}\"><pre class=\"notranslate\"><span class=\"pl-k\">fn</span> <span class=\"pl-en\">f</span><span class=\"pl-kos\">(</span><span class=\"pl-s1\">s</span><span class=\"pl-kos\">:</span> <span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-kos\">[</span><span class=\"pl-smi\">u32</span><span class=\"pl-kos\">]</span><span class=\"pl-kos\">)</span> <span class=\"pl-kos\">{</span>\n    <span class=\"pl-k\">let</span> _ = s<span class=\"pl-kos\">.</span><span class=\"pl-en\">iter_mut</span><span class=\"pl-kos\">(</span><span class=\"pl-kos\">)</span><span class=\"pl-kos\">.</span><span class=\"pl-en\">take</span><span class=\"pl-kos\">(</span><span class=\"pl-c1\">1</span><span class=\"pl-kos\">)</span><span class=\"pl-kos\">;</span>\n<span class=\"pl-kos\">}</span></pre></div>\n<p dir=\"auto\"><strong>Versions</strong>:</p>\n<ul dir=\"auto\">\n<li>Aeneas: <a class=\"commit-link\" data-hovercard-type=\"commit\" data-hovercard-url=\"https://github.com/AeneasVerif/aeneas/commit/daa85d7e89400fa978be83fedbc7e475a83f0889/hovercard\" href=\"https://github.com/AeneasVerif/aeneas/commit/daa85d7e89400fa978be83fedbc7e475a83f0889\"><tt>daa85d7</tt></a> (i.e. latest as of the time of submission)</li>\n<li>Charon: 0.1.232</li>\n</ul>"
+            }
+          ],
+          "url": "https://github.com/AeneasVerif/aeneas/issues/1152",
+          "title": "AeneasVerif/aeneas Issue #1152 comments",
+          "display_url": "https://github.com/AeneasVerif/aeneas/issues/1152",
+          "display_title": "AeneasVerif/aeneas Issue #1152 comments"
+        },
+        "isError": false
+      }
+    },
+    {
+      "kind": "aeneas_issue",
+      "number": 1046,
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "issue": {
+            "url": "https://github.com/AeneasVerif/aeneas/issues/1046",
+            "title": "FnOnce problem: `call_once` return type is `Result (closure state)` instead of `Result Unit`",
+            "issue_number": 1046,
+            "body": "We see this problem in the [SparsePostQuantumRatchet](https://github.com/Beneficial-AI-Foundation/SparsePostQuantumRatchet-verify)\nby prost-generated `merge` functions for proto `oneof` fields. The problem affects three merge functions extracted by Aeneas in that repo: `proto.pq_ratchet.pq_ratchet_state.Inner.merge`, `proto.pq_ratchet.v1_msg.InnerMsg.merge`, `proto.pq_ratchet.v1_state.InnerState.merge`.\n\nAs far as I can see it is due to `call_once`. The problem shows in the following mwe:\n\n```rust\npub struct S;\n\nfn f(_: &mut S) -> Result<(), String> { Ok(()) }\n\npub fn g(out: &mut S) -> Result<(), String> {\n    let mut v = S;\n    f(&mut v).map(|_| *out = v)\n}\n```\n\nThe Aeneas generated Lean code is:\n```lean\ndef g.closure.Insts.CoreOpsFunctionFnOnceTupleTupleTuple.call_once\n  (c : g.closure) (_ : Unit) :\n  Result g.closure    -- PROBLEM: should be Result Unit?\n  := do\n  let (_, s) := c\n  ok (s, s)\n```\nwhich then causes a type mismatch:\n```lean\ndef g.closure.Insts.CoreOpsFunctionFnOnceTupleTupleTuple :\n  core.ops.function.FnOnce g.closure Unit Unit := {\n  call_once := g.closure.Insts.CoreOpsFunctionFnOnceTupleTupleTuple.call_once\n  -- type mismatch: call_once has type g.closure → Unit → Result g.closure\n  --                  expected         g.closure → Unit → Result Unit\n}\n```\nand an error with the return type:\n```lean\nlet (r1, c) ←\n  core.result.Result.map g.closure.Insts.CoreOpsFunctionFnOnceTupleTupleTuple\n    r (out, v)\nlet (out1, _) := c   -- ERROR: expected a product type, got Result Unit String\n```",
+            "state": "open",
+            "user": {
+              "login": "oliver-butterley",
+              "name": "oliver-butterley",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/u/51876429?v=4",
+              "id": 51876429
+            },
+            "assignees": null,
+            "labels": [
+              {
+                "name": "translation",
+                "color": "58b37f",
+                "description": ""
+              }
+            ],
+            "milestone": null,
+            "state_reason": null,
+            "comments": 1,
+            "created_at": "2026-05-20T20:43:53Z",
+            "updated_at": "2026-07-23T09:20:27Z",
+            "closed_at": null,
+            "display_url": "https://github.com/AeneasVerif/aeneas/issues/1046",
+            "display_title": "FnOnce problem: `call_once` return type is `Result (closure state)` instead of `Result Unit`"
+          },
+          "url": "https://github.com/AeneasVerif/aeneas/issues/1046",
+          "title": "FnOnce problem: `call_once` return type is `Result (closure state)` instead of `Result Unit`",
+          "display_url": "https://github.com/AeneasVerif/aeneas/issues/1046",
+          "display_title": "FnOnce problem: `call_once` return type is `Result (closure state)` instead of `Result Unit`"
+        },
+        "isError": false
+      },
+      "comments": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "comments": [
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/1046#issuecomment-5015034346",
+              "body": "I hit this (b59d5188c082) and reduced it to a similar example as well:\n\n```rust\nfn f(b: &mut bool) {\n    Some(()).map(|_| *b = true);\n}\n```\n\nLean error:\n\n```\nerror: Issue.lean:33:15: Type mismatch\n  CoreOpsFunctionFnOnceTupleTupleTuple.call_once\nhas type\n  closure → Unit → Result closure\nbut is expected to have type\n  closure → Unit → Result Unit\nerror: Issue.lean:38:34: expected a product type, got\n  Option Unit\n```",
+              "user": {
+                "login": "ojeda",
+                "name": "ojeda",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/1054456?v=4",
+                "id": 1054456
+              },
+              "id": 5015034346,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">I hit this (<a class=\"commit-link\" data-hovercard-type=\"commit\" data-hovercard-url=\"https://github.com/AeneasVerif/aeneas/commit/b59d5188c082f704a418c7cb4e52ad69328002d1/hovercard\" href=\"https://github.com/AeneasVerif/aeneas/commit/b59d5188c082f704a418c7cb4e52ad69328002d1\"><tt>b59d518</tt></a>) and reduced it to a similar example as well:</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"fn f(b: &amp;mut bool) {\n    Some(()).map(|_| *b = true);\n}\"><pre class=\"notranslate\"><span class=\"pl-k\">fn</span> <span class=\"pl-en\">f</span><span class=\"pl-kos\">(</span><span class=\"pl-s1\">b</span><span class=\"pl-kos\">:</span> <span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-smi\">bool</span><span class=\"pl-kos\">)</span> <span class=\"pl-kos\">{</span>\n    <span class=\"pl-en\">Some</span><span class=\"pl-kos\">(</span><span class=\"pl-kos\">(</span><span class=\"pl-kos\">)</span><span class=\"pl-kos\">)</span><span class=\"pl-kos\">.</span><span class=\"pl-en\">map</span><span class=\"pl-kos\">(</span>|_| <span class=\"pl-c1\">*</span>b = <span class=\"pl-c1\">true</span><span class=\"pl-kos\">)</span><span class=\"pl-kos\">;</span>\n<span class=\"pl-kos\">}</span></pre></div>\n<p dir=\"auto\">Lean error:</p>\n<div class=\"snippet-clipboard-content notranslate position-relative overflow-auto\" data-snippet-clipboard-copy-content=\"error: Issue.lean:33:15: Type mismatch\n  CoreOpsFunctionFnOnceTupleTupleTuple.call_once\nhas type\n  closure → Unit → Result closure\nbut is expected to have type\n  closure → Unit → Result Unit\nerror: Issue.lean:38:34: expected a product type, got\n  Option Unit\"><pre class=\"notranslate\"><code class=\"notranslate\">error: Issue.lean:33:15: Type mismatch\n  CoreOpsFunctionFnOnceTupleTupleTuple.call_once\nhas type\n  closure → Unit → Result closure\nbut is expected to have type\n  closure → Unit → Result Unit\nerror: Issue.lean:38:34: expected a product type, got\n  Option Unit\n</code></pre></div>"
+            }
+          ],
+          "url": "https://github.com/AeneasVerif/aeneas/issues/1046",
+          "title": "AeneasVerif/aeneas Issue #1046 comments",
+          "display_url": "https://github.com/AeneasVerif/aeneas/issues/1046",
+          "display_title": "AeneasVerif/aeneas Issue #1046 comments"
+        },
+        "isError": false
+      }
+    },
+    {
+      "kind": "aeneas_issue",
+      "number": 1215,
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "issue": {
+            "url": "https://github.com/AeneasVerif/aeneas/issues/1215",
+            "title": "Limitation instantiating generic types with mutable references",
+            "issue_number": 1215,
+            "body": "This issue tracks minimal examples regarding the limitation of instantiating generic types with mutable references. The main categories so far are:\n- `Self` type of a trait (see below for `Default` and [comment](https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5015094569) for `FromResidual`)\n- Generic types of a trait (see #961 for custom trait)\n- Associated types of a trait (see [comment](https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5016701168) for custom trait)\n- Generic types of a function (see [comment](https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5001571398) for generic identity function)\n\n---\n\nRun `cargo new --lib foo && lake new foo lib && cd foo`.\n\nClone or link the Aeneas repository under `aeneas`. For example `ln -s ~/github/AeneasVerif/aeneas .` in my case.\n\nUse the proper Lean toolchain: `rm lean-toolchain && ln -s aeneas/backends/lean/lean-toolchain .`\n\nAppend the following at the end of `lakefile.toml`:\n\n```toml\n[[require]]\nname = \"aeneas\"\npath = \"aeneas/backends/lean\"\n```\n\nUpdate `src/lib.rs` with:\n\n```rust\npub fn foo() {\n    bar::<&mut [u8]>();\n}\n\nfn bar<T: Default>() {}\n```\n\nOr alternatively with:\n\n```rust\npub fn foo() {\n    bar::<&mut u8>();\n}\n\nfn bar<T: Bar>() {}\n\ntrait Bar {\n    fn bar(self) -> Self;\n}\nimpl<T> Bar for &mut T {\n    fn bar(self) -> Self {\n        self\n    }\n}\n```\n\nRun `charon cargo --preset=aeneas && aeneas foo.llbc -backend lean && lake build`.\n\nExpected output: No error.\n\nActual output (relevant part only):\n\n```\nerror: Foo.lean:34:13: Type mismatch\n  CoreDefaultDefault.default T\nhas type\n  Result (Slice T × (Slice T → Unit))\nbut is expected to have type\n  Result (Slice T)\n```\n\nActual output for the alternative (revelant part only):\n\n```\nerror: Foo.lean:32:9: Type mismatch\n  FooBar.bar\nhas type\n  ?m.2 → Result (?m.2 × (?m.2 → ?m.2))\nbut is expected to have type\n  T → Result T\n```\n\nAeneas version: 94fc4cc\nCharon version: 0.1.223 (this is the one pinned by Aeneas, namely 5a501733)\n\nThis has been seen while testing Aeneas. There is no impact or urgency. I did not test against older versions to know if it's a regression.\n\nSee #1214 for context. This might be related to #961 but differs in the fact that `Self` is in return position.",
+            "state": "open",
+            "user": {
+              "login": "ia0",
+              "name": "ia0",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/u/969295?v=4",
+              "id": 969295
+            },
+            "assignees": null,
+            "labels": null,
+            "milestone": null,
+            "state_reason": "reopened",
+            "comments": 7,
+            "created_at": "2026-07-17T08:23:06Z",
+            "updated_at": "2026-07-31T11:13:39Z",
+            "closed_at": null,
+            "display_url": "https://github.com/AeneasVerif/aeneas/issues/1215",
+            "display_title": "Limitation instantiating generic types with mutable references"
+          },
+          "url": "https://github.com/AeneasVerif/aeneas/issues/1215",
+          "title": "Limitation instantiating generic types with mutable references",
+          "display_url": "https://github.com/AeneasVerif/aeneas/issues/1215",
+          "display_title": "Limitation instantiating generic types with mutable references"
+        },
+        "isError": false
+      },
+      "comments": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "comments": [
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5001571398",
+              "body": "Actually this issue seems more fundamental, namely the lack of support for generic types instantiated with mutable references.\n\nHere's another example without traits:\n\n```rust\nfn main() {\n    let mut y = 13;\n    *id(&mut y) = 42;\n    id(y);\n}\n\nfn id<T>(x: T) -> T {\n    x\n}\n```\n\nThe generated code is:\n\n```lean4\n/-- [foo::id]:\n    Source: 'src/main.rs', lines 7:0-9:1 -/\ndef id {T : Type} (x : T) : Result T := do\n  ok x\n\n/-- [foo::main]:\n    Source: 'src/main.rs', lines 1:0-5:1 -/\ndef main : Result Unit := do\n  let (_, id_back) ← id 13#i32\n  let y := id_back 42#i32\n  let _ ← id y\n  ok ()\n```\n\nWith the following type error (on the do keyword of main):\n\n```\nerror: Foo/Funs.lean:25:26: expected a product type, got\n  IScalar IScalarTy.I32\n```\n\nI could not find an existing issue about this. We could either recycle this one or create a new one as \"Known limitation: instantiation with mutable references\".",
+              "user": {
+                "login": "ia0",
+                "name": "ia0",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/969295?v=4",
+                "id": 969295
+              },
+              "id": 5001571398,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">Actually this issue seems more fundamental, namely the lack of support for generic types instantiated with mutable references.</p>\n<p dir=\"auto\">Here's another example without traits:</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"fn main() {\n    let mut y = 13;\n    *id(&amp;mut y) = 42;\n    id(y);\n}\n\nfn id&lt;T&gt;(x: T) -&gt; T {\n    x\n}\"><pre class=\"notranslate\"><span class=\"pl-k\">fn</span> <span class=\"pl-en\">main</span><span class=\"pl-kos\">(</span><span class=\"pl-kos\">)</span> <span class=\"pl-kos\">{</span>\n    <span class=\"pl-k\">let</span> <span class=\"pl-k\">mut</span> y = <span class=\"pl-c1\">13</span><span class=\"pl-kos\">;</span>\n    <span class=\"pl-c1\">*</span><span class=\"pl-en\">id</span><span class=\"pl-kos\">(</span><span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> y<span class=\"pl-kos\">)</span> = <span class=\"pl-c1\">42</span><span class=\"pl-kos\">;</span>\n    <span class=\"pl-en\">id</span><span class=\"pl-kos\">(</span>y<span class=\"pl-kos\">)</span><span class=\"pl-kos\">;</span>\n<span class=\"pl-kos\">}</span>\n\n<span class=\"pl-k\">fn</span> <span class=\"pl-en\">id</span><span class=\"pl-kos\">&lt;</span><span class=\"pl-smi\">T</span><span class=\"pl-kos\">&gt;</span><span class=\"pl-kos\">(</span><span class=\"pl-s1\">x</span><span class=\"pl-kos\">:</span> <span class=\"pl-smi\">T</span><span class=\"pl-kos\">)</span> -&gt; <span class=\"pl-smi\">T</span> <span class=\"pl-kos\">{</span>\n    x\n<span class=\"pl-kos\">}</span></pre></div>\n<p dir=\"auto\">The generated code is:</p>\n<div class=\"highlight highlight-source-lean4 notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"/-- [foo::id]:\n    Source: 'src/main.rs', lines 7:0-9:1 -/\ndef id {T : Type} (x : T) : Result T := do\n  ok x\n\n/-- [foo::main]:\n    Source: 'src/main.rs', lines 1:0-5:1 -/\ndef main : Result Unit := do\n  let (_, id_back) ← id 13#i32\n  let y := id_back 42#i32\n  let _ ← id y\n  ok ()\"><pre class=\"notranslate\"><span class=\"pl-c\">/-- <span class=\"pl-pds\">[</span><span class=\"pl-corl\">foo::id</span><span class=\"pl-pds\">]</span>:</span>\n<span class=\"pl-c\">    Source: 'src/main.rs', lines 7:0-9:1 -/</span>\n<span class=\"pl-k\">def</span> <span class=\"pl-en\">id</span> {T : <span class=\"pl-k\">Type</span>} (x : T) : Result T := <span class=\"pl-k\">do</span>\n  ok x\n\n<span class=\"pl-c\">/-- <span class=\"pl-pds\">[</span><span class=\"pl-corl\">foo::main</span><span class=\"pl-pds\">]</span>:</span>\n<span class=\"pl-c\">    Source: 'src/main.rs', lines 1:0-5:1 -/</span>\n<span class=\"pl-k\">def</span> <span class=\"pl-en\">main</span> : Result Unit := <span class=\"pl-k\">do</span>\n  <span class=\"pl-k\">let</span> (_, id_back) ← id <span class=\"pl-c1\">13</span>#i32\n  <span class=\"pl-k\">let</span> y := id_back <span class=\"pl-c1\">42</span>#i32\n  <span class=\"pl-k\">let</span> _ ← id y\n  ok ()</pre></div>\n<p dir=\"auto\">With the following type error (on the do keyword of main):</p>\n<div class=\"snippet-clipboard-content notranslate position-relative overflow-auto\" data-snippet-clipboard-copy-content=\"error: Foo/Funs.lean:25:26: expected a product type, got\n  IScalar IScalarTy.I32\"><pre class=\"notranslate\"><code class=\"notranslate\">error: Foo/Funs.lean:25:26: expected a product type, got\n  IScalar IScalarTy.I32\n</code></pre></div>\n<p dir=\"auto\">I could not find an existing issue about this. We could either recycle this one or create a new one as \"Known limitation: instantiation with mutable references\".</p>"
+            },
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5001841870",
+              "body": "I too am surprised we didn't write it anywhere, we're aware of this and have been working towards solving it. Thanks for the report!",
+              "user": {
+                "login": "Nadrieril",
+                "name": "Nadrieril",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/6783654?v=4",
+                "id": 6783654
+              },
+              "id": 5001841870,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">I too am surprised we didn't write it anywhere, we're aware of this and have been working towards solving it. Thanks for the report!</p>"
+            },
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5003076978",
+              "body": "I've sent https://github.com/AeneasVerif/aeneas/pull/1218 so that it's documented somewhere. We could still keep this issue open if we need a tracking issue.",
+              "user": {
+                "login": "ia0",
+                "name": "ia0",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/969295?v=4",
+                "id": 969295
+              },
+              "id": 5003076978,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">I've sent <a class=\"issue-link js-issue-link\" data-error-text=\"Failed to load title\" data-id=\"4911122999\" data-permission-text=\"Title is private\" data-url=\"https://github.com/AeneasVerif/aeneas/issues/1218\" data-hovercard-type=\"pull_request\" data-hovercard-url=\"/AeneasVerif/aeneas/pull/1218/hovercard\" href=\"https://github.com/AeneasVerif/aeneas/pull/1218\">#1218</a> so that it's documented somewhere. We could still keep this issue open if we need a tracking issue.</p>"
+            },
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5015094569",
+              "body": "I hit what looks like this as well (b59d5188c082) from code that reduces to:\n\n```rust\nfn f(v: Option<&mut u8>) -> Option<&mut u8> {\n    Some(v?)\n}\n```\n\nLean error:\n\n```\nerror: Issue.lean:27:5: expected a product type, got\n  core.ops.control_flow.ControlFlow (Option core.convert.Infallible) U8\n```",
+              "user": {
+                "login": "ojeda",
+                "name": "ojeda",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/1054456?v=4",
+                "id": 1054456
+              },
+              "id": 5015094569,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">I hit what looks like this as well (<a class=\"commit-link\" data-hovercard-type=\"commit\" data-hovercard-url=\"https://github.com/AeneasVerif/aeneas/commit/b59d5188c082f704a418c7cb4e52ad69328002d1/hovercard\" href=\"https://github.com/AeneasVerif/aeneas/commit/b59d5188c082f704a418c7cb4e52ad69328002d1\"><tt>b59d518</tt></a>) from code that reduces to:</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"fn f(v: Option&lt;&amp;mut u8&gt;) -&gt; Option&lt;&amp;mut u8&gt; {\n    Some(v?)\n}\"><pre class=\"notranslate\"><span class=\"pl-k\">fn</span> <span class=\"pl-en\">f</span><span class=\"pl-kos\">(</span><span class=\"pl-s1\">v</span><span class=\"pl-kos\">:</span> <span class=\"pl-smi\">Option</span><span class=\"pl-kos\">&lt;</span><span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-smi\">u8</span><span class=\"pl-kos\">&gt;</span><span class=\"pl-kos\">)</span> -&gt; <span class=\"pl-smi\">Option</span><span class=\"pl-kos\">&lt;</span><span class=\"pl-c1\">&amp;</span><span class=\"pl-k\">mut</span> <span class=\"pl-smi\">u8</span><span class=\"pl-kos\">&gt;</span> <span class=\"pl-kos\">{</span>\n    <span class=\"pl-en\">Some</span><span class=\"pl-kos\">(</span>v?<span class=\"pl-kos\">)</span>\n<span class=\"pl-kos\">}</span></pre></div>\n<p dir=\"auto\">Lean error:</p>\n<div class=\"snippet-clipboard-content notranslate position-relative overflow-auto\" data-snippet-clipboard-copy-content=\"error: Issue.lean:27:5: expected a product type, got\n  core.ops.control_flow.ControlFlow (Option core.convert.Infallible) U8\"><pre class=\"notranslate\"><code class=\"notranslate\">error: Issue.lean:27:5: expected a product type, got\n  core.ops.control_flow.ControlFlow (Option core.convert.Infallible) U8\n</code></pre></div>"
+            },
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5016680020",
+              "body": "Indeed. This one comes from `FromResidual` through the `?` notation. I've updated the top post with the main categories where this limitation can show up, and updated the title to make it clear this is a known limitation (so more of a tracking issue than a bug report).",
+              "user": {
+                "login": "ia0",
+                "name": "ia0",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/969295?v=4",
+                "id": 969295
+              },
+              "id": 5016680020,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">Indeed. This one comes from <code class=\"notranslate\">FromResidual</code> through the <code class=\"notranslate\">?</code> notation. I've updated the top post with the main categories where this limitation can show up, and updated the title to make it clear this is a known limitation (so more of a tracking issue than a bug report).</p>"
+            },
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5016701168",
+              "body": "For completeness, here's an example with associated types:\n\n```rust\ntrait Foo {\n    type Bar;\n    fn bar(self) -> Self::Bar;\n}\nimpl<'a> Foo for &'a mut u8 {\n    type Bar = &'a mut u8;\n    fn bar(self) -> &'a mut u8 {\n        self\n    }\n}\n\nfn foo() {\n    let mut x = 42u8;\n    let y = x.bar();\n}\n```\n\n```\nerror: Foo.lean:32:9: Type mismatch\n  FooFooMutAU8.bar\nhas type\n  U8 → Result (U8 × (U8 → U8))\nbut is expected to have type\n  U8 → Result U8\n```\n\nNote that there's 2 issues: one due to `Self` as an argument and one due to the associated type as a result.",
+              "user": {
+                "login": "ia0",
+                "name": "ia0",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/969295?v=4",
+                "id": 969295
+              },
+              "id": 5016701168,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">For completeness, here's an example with associated types:</p>\n<div class=\"highlight highlight-source-rust notranslate position-relative overflow-auto\" dir=\"auto\" data-snippet-clipboard-copy-content=\"trait Foo {\n    type Bar;\n    fn bar(self) -&gt; Self::Bar;\n}\nimpl&lt;'a&gt; Foo for &amp;'a mut u8 {\n    type Bar = &amp;'a mut u8;\n    fn bar(self) -&gt; &amp;'a mut u8 {\n        self\n    }\n}\n\nfn foo() {\n    let mut x = 42u8;\n    let y = x.bar();\n}\"><pre class=\"notranslate\"><span class=\"pl-k\">trait</span> <span class=\"pl-smi\">Foo</span> <span class=\"pl-kos\">{</span>\n    <span class=\"pl-k\">type</span> <span class=\"pl-smi\">Bar</span><span class=\"pl-kos\">;</span>\n    <span class=\"pl-k\">fn</span> <span class=\"pl-en\">bar</span><span class=\"pl-kos\">(</span><span class=\"pl-smi\">self</span><span class=\"pl-kos\">)</span> -&gt; <span class=\"pl-smi\">Self</span><span class=\"pl-kos\">::</span><span class=\"pl-smi\">Bar</span><span class=\"pl-kos\">;</span>\n<span class=\"pl-kos\">}</span>\n<span class=\"pl-k\">impl</span><span class=\"pl-kos\">&lt;</span><span class=\"pl-c1\">'</span><span class=\"pl-ent\">a</span><span class=\"pl-kos\">&gt;</span> <span class=\"pl-smi\">Foo</span> <span class=\"pl-k\">for</span> <span class=\"pl-c1\">&amp;</span><span class=\"pl-c1\">'</span><span class=\"pl-ent\">a</span> <span class=\"pl-k\">mut</span> <span class=\"pl-smi\">u8</span> <span class=\"pl-kos\">{</span>\n    <span class=\"pl-k\">type</span> <span class=\"pl-smi\">Bar</span> = <span class=\"pl-c1\">&amp;</span><span class=\"pl-c1\">'</span><span class=\"pl-ent\">a</span> <span class=\"pl-k\">mut</span> <span class=\"pl-smi\">u8</span><span class=\"pl-kos\">;</span>\n    <span class=\"pl-k\">fn</span> <span class=\"pl-en\">bar</span><span class=\"pl-kos\">(</span><span class=\"pl-smi\">self</span><span class=\"pl-kos\">)</span> -&gt; <span class=\"pl-c1\">&amp;</span><span class=\"pl-c1\">'</span><span class=\"pl-ent\">a</span> <span class=\"pl-k\">mut</span> <span class=\"pl-smi\">u8</span> <span class=\"pl-kos\">{</span>\n        <span class=\"pl-smi\">self</span>\n    <span class=\"pl-kos\">}</span>\n<span class=\"pl-kos\">}</span>\n\n<span class=\"pl-k\">fn</span> <span class=\"pl-en\">foo</span><span class=\"pl-kos\">(</span><span class=\"pl-kos\">)</span> <span class=\"pl-kos\">{</span>\n    <span class=\"pl-k\">let</span> <span class=\"pl-k\">mut</span> x = <span class=\"pl-c1\">42u8</span><span class=\"pl-kos\">;</span>\n    <span class=\"pl-k\">let</span> y = x<span class=\"pl-kos\">.</span><span class=\"pl-en\">bar</span><span class=\"pl-kos\">(</span><span class=\"pl-kos\">)</span><span class=\"pl-kos\">;</span>\n<span class=\"pl-kos\">}</span></pre></div>\n<div class=\"snippet-clipboard-content notranslate position-relative overflow-auto\" data-snippet-clipboard-copy-content=\"error: Foo.lean:32:9: Type mismatch\n  FooFooMutAU8.bar\nhas type\n  U8 → Result (U8 × (U8 → U8))\nbut is expected to have type\n  U8 → Result U8\"><pre class=\"notranslate\"><code class=\"notranslate\">error: Foo.lean:32:9: Type mismatch\n  FooFooMutAU8.bar\nhas type\n  U8 → Result (U8 × (U8 → U8))\nbut is expected to have type\n  U8 → Result U8\n</code></pre></div>\n<p dir=\"auto\">Note that there's 2 issues: one due to <code class=\"notranslate\">Self</code> as an argument and one due to the associated type as a result.</p>"
+            },
+            {
+              "url": "https://github.com/AeneasVerif/aeneas/issues/1215#issuecomment-5142247622",
+              "body": "Fabel generated:\n\n> Two reproducers from a formal-verification campaign over an\n> arkworks-based crypto workload\n> ([PolymeshAssociation/crypto @ `zk_audit_july_2026`](https://github.com/PolymeshAssociation/crypto/tree/zk_audit_july_2026)),\n> as data points for prioritizing this limitation:\n>\n> (a) *\"Self type of a trait\" category*: the blanket impls\n> [`impl<R: Read + ?Sized> Read for &mut R` and `impl<W: Write + ?Sized> Write for &mut W`](https://github.com/arkworks-rs/std/blob/master/src/io/mod.rs)\n> of [`ark_std::io`](https://docs.rs/ark-std/0.5.0/ark_std/io/index.html)\n> (`src/io/mod.rs` lines 228 and 283 in ark-std 0.5.0) are emitted as axiom\n> signatures carrying an extra `× (R → R)` back-propagation component that\n> the corresponding trait field does not have, so the instance does not\n> type-check against the trait (cf. #961, #1152).\n>\n> (b) *Generic instantiated with `&mut` at call sites*:\n> [`CanonicalSerialize::serialize_compressed<W: Write>(&self, writer: W)`](https://github.com/arkworks-rs/algebra/blob/v0.5.0/serialize/src/lib.rs#L115)\n> (ark-serialize 0.5.0) invoked as `x.serialize_compressed(&mut writer)?` —\n> e.g. [`schnorr_pok/src/discrete_log.rs` lines 140–142](https://github.com/PolymeshAssociation/crypto/blob/zk_audit_july_2026/schnorr_pok/src/discrete_log.rs#L140-L142)\n> — produces call sites that destructure `let (r, writer1) ← …` against a\n> trait declaration emitted *without* the `× W` component, so the generated\n> model is internally ill-typed.\n\n(The workload actually builds against\n[PolymeshAssociation/arkworks-algebra @ `be949ad`](https://github.com/PolymeshAssociation/arkworks-algebra/tree/be949ad980da003b1a43abe81c6d54dbaef8b26a),\na fork of arkworks-rs/algebra v0.5 — the `Field`/`SqrtPrecomputation`/\n`CanonicalSerialize` shapes cited above are unmodified upstream API, so the\ncanonical links are given.)",
+              "user": {
+                "login": "PlanetMacro",
+                "name": "PlanetMacro",
+                "email": null,
+                "avatar_url": "https://avatars.githubusercontent.com/u/52966723?v=4",
+                "id": 52966723
+              },
+              "id": 5142247622,
+              "pull_request_review_id": null,
+              "in_reply_to_id": null,
+              "created_at": null,
+              "updated_at": null,
+              "review": null,
+              "side": null,
+              "line": null,
+              "start_line": null,
+              "path": null,
+              "body_html": "<p dir=\"auto\">Fabel generated:</p>\n<blockquote>\n<p dir=\"auto\">Two reproducers from a formal-verification campaign over an<br>\narkworks-based crypto workload<br>\n(<a href=\"https://github.com/PolymeshAssociation/crypto/tree/zk_audit_july_2026\">PolymeshAssociation/crypto @ <code class=\"notranslate\">zk_audit_july_2026</code></a>),<br>\nas data points for prioritizing this limitation:</p>\n<p dir=\"auto\">(a) <em>\"Self type of a trait\" category</em>: the blanket impls<br>\n<a href=\"https://github.com/arkworks-rs/std/blob/master/src/io/mod.rs\"><code class=\"notranslate\">impl&lt;R: Read + ?Sized&gt; Read for &amp;mut R</code> and <code class=\"notranslate\">impl&lt;W: Write + ?Sized&gt; Write for &amp;mut W</code></a><br>\nof <a href=\"https://docs.rs/ark-std/0.5.0/ark_std/io/index.html\" rel=\"nofollow\"><code class=\"notranslate\">ark_std::io</code></a><br>\n(<code class=\"notranslate\">src/io/mod.rs</code> lines 228 and 283 in ark-std 0.5.0) are emitted as axiom<br>\nsignatures carrying an extra <code class=\"notranslate\">× (R → R)</code> back-propagation component that<br>\nthe corresponding trait field does not have, so the instance does not<br>\ntype-check against the trait (cf. <a class=\"issue-link js-issue-link\" data-error-text=\"Failed to load title\" data-id=\"4348995030\" data-permission-text=\"Title is private\" data-url=\"https://github.com/AeneasVerif/aeneas/issues/961\" data-hovercard-type=\"issue\" data-hovercard-url=\"/AeneasVerif/aeneas/issues/961/hovercard\" href=\"https://github.com/AeneasVerif/aeneas/issues/961\">#961</a>, <a class=\"issue-link js-issue-link\" data-error-text=\"Failed to load title\" data-id=\"4719814744\" data-permission-text=\"Title is private\" data-url=\"https://github.com/AeneasVerif/aeneas/issues/1152\" data-hovercard-type=\"issue\" data-hovercard-url=\"/AeneasVerif/aeneas/issues/1152/hovercard\" href=\"https://github.com/AeneasVerif/aeneas/issues/1152\">#1152</a>).</p>\n<p dir=\"auto\">(b) <em>Generic instantiated with <code class=\"notranslate\">&amp;mut</code> at call sites</em>:<br>\n<a href=\"https://github.com/arkworks-rs/algebra/blob/v0.5.0/serialize/src/lib.rs#L115\"><code class=\"notranslate\">CanonicalSerialize::serialize_compressed&lt;W: Write&gt;(&amp;self, writer: W)</code></a><br>\n(ark-serialize 0.5.0) invoked as <code class=\"notranslate\">x.serialize_compressed(&amp;mut writer)?</code> —<br>\ne.g. <a href=\"https://github.com/PolymeshAssociation/crypto/blob/zk_audit_july_2026/schnorr_pok/src/discrete_log.rs#L140-L142\"><code class=\"notranslate\">schnorr_pok/src/discrete_log.rs</code> lines 140–142</a><br>\n— produces call sites that destructure <code class=\"notranslate\">let (r, writer1) ← …</code> against a<br>\ntrait declaration emitted <em>without</em> the <code class=\"notranslate\">× W</code> component, so the generated<br>\nmodel is internally ill-typed.</p>\n</blockquote>\n<p dir=\"auto\">(The workload actually builds against<br>\n<a href=\"https://github.com/PolymeshAssociation/arkworks-algebra/tree/be949ad980da003b1a43abe81c6d54dbaef8b26a\">PolymeshAssociation/arkworks-algebra @ <code class=\"notranslate\">be949ad</code></a>,<br>\na fork of arkworks-rs/algebra v0.5 — the <code class=\"notranslate\">Field</code>/<code class=\"notranslate\">SqrtPrecomputation</code>/<br>\n<code class=\"notranslate\">CanonicalSerialize</code> shapes cited above are unmodified upstream API, so the<br>\ncanonical links are given.)</p>"
+            }
+          ],
+          "url": "https://github.com/AeneasVerif/aeneas/issues/1215",
+          "title": "AeneasVerif/aeneas Issue #1215 comments",
+          "display_url": "https://github.com/AeneasVerif/aeneas/issues/1215",
+          "display_title": "AeneasVerif/aeneas Issue #1215 comments"
+        },
+        "isError": false
+      }
+    },
+    {
+      "kind": "aeneas_issue",
+      "number": 1411,
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "issue": {
+            "url": "https://github.com/AeneasVerif/aeneas/issues/1411",
+            "title": "Bug: Lean backend emits namespace references captured by structure fields and local binders",
+            "issue_number": 1411,
+            "body": "Valid Rust with a module named `types` and a structure field also named `types` extracts to Lean that fails to elaborate. Structure fields introduce local binders, so a later type reference such as `types.T` resolves through the earlier field instead of the namespace.\n\n```rust\npub mod types {\n    pub struct T { pub value: u32 }\n}\npub struct S {\n    pub types: u32,\n    pub value: types::T,\n}\n```\n\nFunction parameters can capture constructor references too.\n\n```rust\npub mod types {\n    pub enum Kind { A, B }\n}\n\npub fn constructor(types: u32) -> (u32, types::Kind) {\n    (types, types::Kind::A)\n}\n```\n\nThe problem is in Aeneas's Lean name generation, after Charon extraction.\n\n**Charon command**:\n```\ncharon rustc \\\n     --preset=aeneas --sysroot=default \\\n     --dest-file=namespace_shadow.llbc \\\n     -- --crate-type=lib namespace-shadow.rs \\\n     --out-dir out\n```\n\n**Aeneas command**:\n```\naeneas -backend lean \\\n     out/namespace_shadow.llbc \\\n     -dest out \\\n     -namespace NamespaceShadow -no-progress-bar\n```\n\n**Versions**:\n- Aeneas: 557eff83ecef5083b98a52a94ca7fae63d6c1dab\n- Charon: c8f15d7d658c86a95658f71ad99cddd4be002e04\n\n**Aeneas output**:\n\n```text\n[Info ] Imported: lean/.build/upstream-reports/namespace_shadow.llbc\n[Info ] Generated: lean/.build/upstream-reports/before/NamespaceShadow.lean\n[Info ] Total execution time: 0.099256 seconds\n```\n\n**Lean translation**:\n\n```-- THIS FILE WAS AUTOMATICALLY GENERATED BY AENEAS\n-- [minimal_shadow]\nmodule\npublic import Aeneas\n@[expose] public section\nopen Aeneas Aeneas.Std Result ControlFlow Error\nset_option linter.dupNamespace false\nset_option linter.hashCommand false\nset_option linter.unusedVariables false\nset_option linter.style.whitespace false\nset_option linter.style.setOption false\nset_option linter.style.longLine false\n\n/- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/\nset_option maxHeartbeats 1000000\n\n/- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/\nset_option maxRecDepth 2048\n\nnamespace MinimalShadow\n\n/-- [minimal_shadow::types::T]\n    Source: '/var/folders/cq/83bfd5b96l36nmw0g9cbxjq40000gn/T/itasca-upstream-i4c75a5l/minimal-shadow.rs', lines 2:4-2:35\n    Visibility: public -/\nstructure types.T where\n  value : Std.U32\n\n/-- [minimal_shadow::S]\n    Source: '/var/folders/cq/83bfd5b96l36nmw0g9cbxjq40000gn/T/itasca-upstream-i4c75a5l/minimal-shadow.rs', lines 4:0-7:1\n    Visibility: public -/\nstructure S where\n  types : Std.U32\n  value : types.T\n\nend MinimalShadow\n```\n\n**Explain the bug**:\n\n`value: types.T` is the problem in `structure S`. It should be:\n\n```\nstructure S where\n  types : Std.U32\n  value : _root_.MinimalShadow.types.T\n```\n\n**Priority / impact**: This can be worked around with source renaming. But would be nice not to have to.\n\n**Where was this seen?**:\n\nI'm porting the proofs for my wasm validator crate from Rocq to Lean on this branch: https://github.com/eqrion/itasca/tree/lean-port\n\n**Regression?**: Unsure, this is my first project using Aeneas with Lean.\n\nClaude generated this fix in Aeneas to qualify names. Feel free to take it if reasonable.\n\n```\ndiff --git a/src/extract/ExtractBase.ml b/src/extract/ExtractBase.ml\nindex 30ab2204..83f03037 100644\n--- a/src/extract/ExtractBase.ml\n+++ b/src/extract/ExtractBase.ml\n@@ -2101,12 +2101,25 @@ let name_append_index (basename : string) (i : int) : string =\n   basename ^ string_of_int i\n \n let basename_to_unique (ctx : extraction_ctx) (name : string) =\n+  let shadows_namespace s =\n+    let prefix = s ^ \".\" in\n+    (* A local [types] also shadows [types.Kind.A], not just the exact name\n+       [types]. Search the ordered set rather than scanning it per binder. *)\n+    match\n+      StringSet.find_first_opt\n+        (fun name -> String.compare name prefix >= 0)\n+        ctx.names_maps.names_map.names_set\n+    with\n+    | Some name -> String.starts_with ~prefix name\n+    | None -> false\n+  in\n   let collision s =\n     (* Note that we ignore the \"unsafe\" names which contain in particular\n        field names: we want to allow using field names for variables if\n        the backend allows such collisions *)\n     StringSet.mem s ctx.names_maps.names_map.names_set\n     || StringSet.mem s ctx.names_maps.strict_names_map.names_set\n+    || (backend () = Lean && shadows_namespace s)\n   in\n   basename_to_unique_aux collision name_append_index name\n \ndiff --git a/src/extract/ExtractTypes.ml b/src/extract/ExtractTypes.ml\nindex 983e0ccb..dc723479 100644\n--- a/src/extract/ExtractTypes.ml\n+++ b/src/extract/ExtractTypes.ml\n@@ -372,7 +372,26 @@ let rec extract_ty (span : Meta.span) (ctx : extraction_ctx) (fmt : F.formatter)\n               if print_paren then F.pp_print_string fmt \"(\";\n               (* TODO: for now, only the opaque *functions* are extracted in the\n                  opaque module. The opaque *types* are builtin. *)\n-              F.pp_print_string fmt (ctx_get_type (Some span) type_id ctx);\n+              let name = ctx_get_type (Some span) type_id ctx in\n+              let name =\n+                match (backend (), type_id) with\n+                | Lean, TAdtId id when not (TypeDeclId.Set.mem id no_params_tys)\n+                  -> (\n+                    match TypeDeclId.Map.find_opt id ctx.trans_types with\n+                    | Some { builtin_info = None; _ } ->\n+                        (* Structure fields are local binders in Lean. A field\n+                           called [types] shadows the namespace in [types.T].\n+                           Qualify references to generated types, but leave\n+                           builtin names and the current recursive group alone.\n+                           Declaration names still use [ctx_get_type] directly. *)\n+                        let namespace =\n+                          Option.value !Config.namespace ~default:ctx.crate.name\n+                        in\n+                        escape_name (\"_root_.\" ^ namespace ^ \".\" ^ name)\n+                    | _ -> name)\n+                | _ -> name\n+              in\n+              F.pp_print_string fmt name;\n               (* We might need to:\n                  - filter the type arguments, if the type is builtin (for instance,\n                    we filter the global allocator type argument for `Vec`).\n```\n",
+            "state": "open",
+            "user": {
+              "login": "eqrion",
+              "name": "eqrion",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/u/4984292?v=4",
+              "id": 4984292
+            },
+            "assignees": null,
+            "labels": [
+              {
+                "name": "bug",
+                "color": "d73a4a",
+                "description": "Something isn't working"
+              }
+            ],
+            "milestone": null,
+            "state_reason": null,
+            "comments": 1,
+            "created_at": "2026-10-09T17:26:18Z",
+            "updated_at": "2026-10-12T12:59:41Z",
+            "closed_at": null,
+            "display_url": "https://github.com/AeneasVerif/aeneas/issues/1411",
+            "display_title": "Bug: Lean backend emits namespace references captured by structure fields and local binders"
+          },
+          "url": "https://github.com/AeneasVerif/aeneas/issues/1411",
+          "title": "Bug: Lean backend emits namespace references captured by structure fields and local binders",
+          "display_url": "https://github.com/AeneasVerif/aeneas/issues/1411",
+          "display_title": "Bug: Lean backend emits namespace references captured by structure fields and local binders"
+        },
+        "isError": false
+      }
+    },
+    {
+      "kind": "charon_issue",
+      "number": 399,
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "issue": {
+            "url": "https://github.com/AeneasVerif/charon/issues/399",
+            "title": "The name pattern `{_}` doesn't work as expected",
+            "issue_number": 399,
+            "body": "The pattern `alloc::vec::{_}::set_len` is expected to match `alloc::vec::Vec<T, ...>::set_len` (when using the Rust name pattern matcher) but doesn't (note that `alloc::vec::_::set_len` does).",
+            "state": "open",
+            "user": {
+              "login": "sonmarcho",
+              "name": "sonmarcho",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/u/14029289?v=4",
+              "id": 14029289
+            },
+            "assignees": null,
+            "labels": [
+              {
+                "name": "A-name-matcher",
+                "color": "C2E0C6",
+                "description": "Area: names and matching on names"
+              }
+            ],
+            "milestone": null,
+            "state_reason": null,
+            "comments": 5,
+            "created_at": "2024-10-02T12:21:37Z",
+            "updated_at": "2025-10-17T13:52:21Z",
+            "closed_at": null,
+            "display_url": "https://github.com/AeneasVerif/charon/issues/399",
+            "display_title": "The name pattern `{_}` doesn't work as expected"
+          },
+          "url": "https://github.com/AeneasVerif/charon/issues/399",
+          "title": "The name pattern `{_}` doesn't work as expected",
+          "display_url": "https://github.com/AeneasVerif/charon/issues/399",
+          "display_title": "The name pattern `{_}` doesn't work as expected"
+        },
+        "isError": false
+      }
+    },
+    {
+      "kind": "charon_issue",
+      "number": 404,
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "issue": {
+            "url": "https://github.com/AeneasVerif/charon/issues/404",
+            "title": "Improve the name matchers",
+            "issue_number": 404,
+            "body": "The name matchers (the Rust and the OCaml one) have strong limitations. In particuler, the OCaml name matcher doesn't handle locally bound regions properly, meaning the patterns it can match are not as precise as they could be.",
+            "state": "open",
+            "user": {
+              "login": "sonmarcho",
+              "name": "sonmarcho",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/u/14029289?v=4",
+              "id": 14029289
+            },
+            "assignees": null,
+            "labels": [
+              {
+                "name": "A-name-matcher",
+                "color": "C2E0C6",
+                "description": "Area: names and matching on names"
+              }
+            ],
+            "milestone": null,
+            "state_reason": null,
+            "comments": 0,
+            "created_at": "2024-10-03T16:02:33Z",
+            "updated_at": "2025-10-17T13:52:22Z",
+            "closed_at": null,
+            "display_url": "https://github.com/AeneasVerif/charon/issues/404",
+            "display_title": "Improve the name matchers"
+          },
+          "url": "https://github.com/AeneasVerif/charon/issues/404",
+          "title": "Improve the name matchers",
+          "display_url": "https://github.com/AeneasVerif/charon/issues/404",
+          "display_title": "Improve the name matchers"
+        },
+        "isError": false
+      }
+    },
+    {
+      "kind": "aeneas_pr",
+      "number": 1457,
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Action completed."
+          }
+        ],
+        "structuredContent": {
+          "pull_request": {
+            "url": "https://github.com/AeneasVerif/aeneas/pull/1457",
+            "number": 1457,
+            "state": "closed",
+            "merged": true,
+            "mergeable": false,
+            "draft": false,
+            "body": "The cases below were not supported.\n\nThe symbolic evaluation forgot to introduce a region abstraction to project the 'static lifetime of `Y` when introducing the corresponding symbolic value:\n```rust\npub struct S(pub &'static u8);\n\nconst Y: S = S(&0);\n\npub fn f() -> S {\n    Y\n}\n```\n\nThis is due to a limitation when merging shared borrows in joins - the temporary solution is to detect the case and make it recoverable in the join:\n```rust\npub struct M(pub &'static &'static u8);\n\npub fn f(_m: M, a: bool) {\n    if a {}\n    if a {}\n}\n```",
+            "title": "Fix several unsupported cases in the symbolic evaluation",
+            "base": "main",
+            "base_sha": "e62dd83d133d9043e7d3628096838b7430f36565",
+            "head": "son/static4",
+            "head_sha": "e4e716422a8d46a9d0400fcdb13bd1929f0440ee",
+            "head_repo_id": 423842039,
+            "head_repo_full_name": "AeneasVerif/aeneas",
+            "merge_commit_sha": "fc321a28317f458338ce01fe684927eae0fa8f9e",
+            "user": {
+              "login": "sonmarcho",
+              "name": "sonmarcho",
+              "email": null,
+              "avatar_url": "https://avatars.githubusercontent.com/u/14029289?v=4",
+              "id": 14029289
+            },
+            "requested_reviewers": null,
+            "requested_team_reviewers": null,
+            "diff": "@@ -1975,7 +1975,10 @@ let lookup_shared_value_opt (span : Meta.span) (env : env) (bid : BorrowId.id) :\n \n let lookup_shared_value (span : Meta.span) (env : env) (bid : BorrowId.id) :\n     tvalue =\n-  Option.get (lookup_shared_value_opt span env bid)\n+  [%unwrap_with_span] span\n+    (lookup_shared_value_opt span env bid)\n+    (\"Could not find the shared loan for borrow \" ^ BorrowId.to_string bid\n+   ^ \" (dangling shared borrow)\")\n \n let ctx_lookup_shared_value span ctx = lookup_shared_value span ctx.env\n \n@@ -460,6 +460,12 @@ let eval_operand_no_reorganize (config : config) (span : Meta.span)\n               [%cassert] span (ref_kind = RShared)\n                 \"Mutable references for lifetime 'static are not supported\";\n               let sval = mk_fresh_symbolic_tvalue span ctx ty_inner in\n+              (* The value may contain static borrows: we need to project their\n+                 loans *)\n+              let ctx =\n+                push_static_loans_proj_for_symbolic_value span ctx\n+                  (value_as_symbolic span sval.value)\n+              in\n               (* Create a shared loan containing the constant (in a region\n                  abstraction owning the static region), as well as a shared\n                  borrow *)\n@@ -480,6 +486,13 @@ let eval_operand_no_reorganize (config : config) (span : Meta.span)\n           | _ ->\n               [%ldebug \"not a static ref\"];\n               let v = mk_fresh_symbolic_tvalue span ctx ty in\n+              (* The value may contain static borrows (hidden in ADTs, for\n+                 instance [struct S(&'static u8)]): we need to project their\n+                 loans *)\n+              let ctx =\n+                push_static_loans_proj_for_symbolic_value span ctx\n+                  (value_as_symbolic span v.value)\n+              in\n               (* Wrap the generated expression *)\n               let cf e =\n                 SymbolicAst.IntroSymbolic\n@@ -1323,13 +1323,57 @@ let merge_into_first_abstraction (span : Meta.span) (abs_kind : abs_kind)\n   InterpAbs.merge_into_first_abstraction span abs_kind ~can_end ~with_abs_conts\n     (Some merge_funs) ctx aid0 aid1\n \n+(** Check whether a non-frozen region abstraction contains a shared loan whose\n+    shared value contains concrete borrows.\n+\n+    The collapse doesn't support this case: when computing the maps from\n+    abstractions to borrows/loans (see\n+    {!InterpMatchCtxs.compute_abs_borrows_loans_maps}) we can't register such\n+    borrows. We use this function to fail early with a recoverable error in\n+    {!collapse_ctx}. *)\n+let ctx_has_borrows_in_shared_loans_of_non_frozen_abs (ctx : eval_ctx) : bool =\n+  let frozen = ctx_get_frozen_abs_set ctx in\n+  let has_borrows =\n+    object\n+      inherit [_] iter_tvalue\n+      method! visit_borrow_content _ _ = raise Found\n+    end\n+  in\n+  let visitor =\n+    object\n+      inherit [_] iter_tavalue as super\n+\n+      method! visit_aloan_content env lc =\n+        (match lc with\n+        | ASharedLoan (_, _, sv, _) -> has_borrows#visit_tvalue () sv\n+        | _ -> ());\n+        super#visit_aloan_content env lc\n+    end\n+  in\n+  try\n+    env_iter_abs\n+      (fun abs ->\n+        if not (AbsId.Set.mem abs.abs_id frozen) then\n+          List.iter (visitor#visit_tavalue ()) abs.avalues)\n+      ctx.env;\n+    false\n+  with Found -> true\n+\n let collapse_ctx config (span : Meta.span)\n     ?(sequence : (abs_id * abs_id * abs_id) list ref option = None)\n     ?(shared_borrows_seq :\n         (abs_id * int * proj_marker * borrow_or_proj * ty) list ref option =\n       None) (fresh_abs_kind : abs_kind) ~(recoverable : bool)\n     ~(with_abs_conts : bool) (ctx : eval_ctx) : eval_ctx =\n   [%ldebug \"Initial ctx:\\n\" ^ eval_ctx_to_string ctx];\n+  (* The collapse doesn't support shared loans whose shared value contains\n+     borrows in the abstractions it may modify: we check this here so that the\n+     error is recoverable (if it is allowed, the caller can then decide not to\n+     join, for instance by duplicating the code after a branching). *)\n+  [%cassert_recover] recoverable span\n+    (not (ctx_has_borrows_in_shared_loans_of_non_frozen_abs ctx))\n+    \"Joining region abstractions containing shared loans whose shared value \\\n+     contains borrows is not supported yet\";\n   let merge_funs =\n     mk_collapse_ctx_merge_duplicate_funs span fresh_abs_kind ~recoverable\n       ~with_abs_conts ctx\n@@ -579,7 +579,7 @@ let eval_function_call_symbolic_inst (span : Meta.span) (func : fn_ptr)\n \n     We return the value as well as its type with regions. Note that we currently\n     only support globals whose (instantiated) type doesn't contain regions,\n-    except for a top-level static shared reference. *)\n+    except for static shared references. *)\n let eval_global_as_fresh_symbolic_value (span : Meta.span)\n     (gref : global_decl_ref) (ctx : eval_ctx) :\n     eval_ctx * tvalue * rty * (SA.expr -> SA.expr) =\n@@ -606,6 +606,8 @@ let eval_global_as_fresh_symbolic_value (span : Meta.span)\n          abstraction owning the static region, allowing the borrow to live as\n          long as needed. *)\n       let sval = mk_fresh_symbolic_value span ctx inner_ty in\n+      (* The value may contain static borrows: we need to project their loans *)\n+      let ctx = push_static_loans_proj_for_symbolic_value span ctx sval in\n       let v = mk_tvalue_from_symbolic_value sval in\n       let ctx, borrow = push_value_to_static_shared_loan span ctx v inner_ty in\n       let cc = S.synthesize_global_eval gref sval in\n@@ -621,6 +623,9 @@ let eval_global_as_fresh_symbolic_value (span : Meta.span)\n       let ty = Subst.erase_regions_substitute_types subst global.ty in\n       [%cassert] span (ty_no_regions ty) \"Unimplemented\";\n       let sval = mk_fresh_symbolic_value span ctx ty in\n+      (* The value may contain static borrows (hidden in ADTs, for instance\n+         [struct S(&'static u8)]): we need to project their loans *)\n+      let ctx = push_static_loans_proj_for_symbolic_value span ctx sval in\n       let cc = S.synthesize_global_eval gref sval in\n       (ctx, mk_tvalue_from_symbolic_value sval, ty, cc)\n \n@@ -292,6 +292,55 @@ let mk_eproj_loans_value_from_symbolic_value env\n       ty = svalue.sv_ty;\n     }\n \n+(** Given a fresh symbolic value [sv] (typically introduced for the value of a\n+    global), if its type contains borrows living in the static region (for\n+    instance because it is an ADT with fields of type [&'static T]), push a\n+    fresh region abstraction owning the static region and containing a loan\n+    projector over [sv].\n+\n+    This is similar to what we do for the input values of a function: this way,\n+    when we expand [sv] we can introduce the loans corresponding to the static\n+    shared borrows it contains (otherwise those borrows would be dangling).\n+\n+    We only support shared static borrows. *)\n+let push_static_loans_proj_for_symbolic_value (span : Meta.span)\n+    (ctx : eval_ctx) (sv : symbolic_value) : eval_ctx =\n+  let type_infos = ctx.type_ctx.type_infos in\n+  let static_regions = RegionSet.singleton RStatic in\n+  if not (ty_has_regions_in_set type_infos static_regions sv.sv_ty) then ctx\n+  else begin\n+    [%cassert] span\n+      (not\n+         (ty_has_mut_borrow_for_region_in_set type_infos static_regions sv.sv_ty))\n+      \"Unimplemented: constants and globals whose value contains mutable \\\n+       borrows with the 'static lifetime (only shared 'static borrows are \\\n+       supported)\";\n+    let loan_proj =\n+      mk_aproj_loans_value_from_symbolic_value type_infos static_regions sv\n+        sv.sv_ty\n+    in\n+    (* The abstraction doesn't have any computational content *)\n+    let cont : abs_cont =\n+      {\n+        output = Some (mk_etuple ~borrow_proj:true []);\n+        input = Some (mk_etuple ~borrow_proj:false []);\n+      }\n+    in\n+    let abs : abs =\n+      {\n+        abs_id = ctx.fresh_abs_id ();\n+        kind = Static;\n+        can_end = true;\n+        parents = AbsId.Set.empty;\n+        regions = { owned = static_regions };\n+        ended_subabs = AbsLevelSet.empty;\n+        avalues = [ loan_proj ];\n+        cont = Some cont;\n+      }\n+    in\n+    { ctx with env = EAbs abs :: ctx.env }\n+  end\n+\n (** Create a borrows projector from a symbolic value *)\n let mk_aproj_borrows_from_symbolic_value (span : Meta.span)\n     (type_infos : TypesAnalysis.type_infos) (proj_regions : region_set)\n@@ -161,4 +161,58 @@ def THREE_FEATURES : Std.U32 :=\n   let i := FEATURE_A ||| FEATURE_B\n   i ||| FEATURE_C\n \n+/-- [constants_lean::StaticRef]\n+    Source: 'tests/src/constants-lean.rs', lines 61:0-61:38\n+    Visibility: public -/\n+@[reducible]\n+def StaticRef := Std.U8\n+\n+/-- [constants_lean::STATIC_REF]\n+    Source: 'tests/src/constants-lean.rs', lines 63:0-63:44 -/\n+@[global_simps, irreducible] def STATIC_REF : StaticRef := 0#u8\n+\n+/-- [constants_lean::get_static_ref]:\n+    Source: 'tests/src/constants-lean.rs', lines 65:0-67:1\n+    Visibility: public -/\n+def get_static_ref : Result StaticRef := do\n+  ok STATIC_REF\n+\n+/-- [constants_lean::read_static_ref]:\n+    Source: 'tests/src/constants-lean.rs', lines 69:0-71:1\n+    Visibility: public -/\n+def read_static_ref : Result Std.U8 := do\n+  let i := STATIC_REF\n+  ok i\n+\n+/-- [constants_lean::StaticStr]\n+    Source: 'tests/src/constants-lean.rs', lines 73:0-76:1\n+    Visibility: public -/\n+structure StaticStr where\n+  «name» : Str\n+  value : Std.U32\n+\n+/-- [constants_lean::STATIC_STR]\n+    Source: 'tests/src/constants-lean.rs', lines 78:0-81:2 -/\n+@[global_simps, irreducible]\n+def STATIC_STR : StaticStr := { «name» := (toStr \"hello\"), value := 3#u32 }\n+\n+/-- [constants_lean::get_static_str_name]:\n+    Source: 'tests/src/constants-lean.rs', lines 83:0-85:1\n+    Visibility: public -/\n+def get_static_str_name : Result Str := do\n+  ok STATIC_STR.name\n+\n+/-- Trait declaration: [constants_lean::HasStaticRef]\n+    Source: 'tests/src/constants-lean.rs', lines 88:0-90:1\n+    Visibility: public -/\n+structure HasStaticRef (Self : Type _) where\n+  C : Result StaticRef\n+\n+/-- [constants_lean::read_trait_static_ref]:\n+    Source: 'tests/src/constants-lean.rs', lines 92:0-94:1\n+    Visibility: public -/\n+def read_trait_static_ref\n+  {T : Type _} (HasStaticRefInst : HasStaticRef T) : Result Std.U8 := do\n+  HasStaticRefInst.C\n+\n end constants_lean\n@@ -75,4 +75,36 @@ def join_nested_shared_in_loop (b : Bool) (n : Std.U32) : Result Std.I32 := do\n   else join_nested_shared_in_loop_loop1 n 0#u32\n        ok 2#i32\n \n+/-- [join_duplicate::NestedStaticRef]\n+    Source: 'tests/src/join-duplicate.rs', lines 39:0-39:53\n+    Visibility: public -/\n+@[reducible]\n+def NestedStaticRef := Std.U8\n+\n+/-- [join_duplicate::join_nested_shared_input]:\n+    Source: 'tests/src/join-duplicate.rs', lines 41:0-44:1\n+    Visibility: public -/\n+def join_nested_shared_input\n+  (_m : NestedStaticRef) (a : Bool) : Result Unit := do\n+  if a\n+  then if a\n+       then ok ()\n+       else ok ()\n+  else if a\n+       then ok ()\n+       else ok ()\n+\n+/-- [join_duplicate::join_nested_shared_input_generic]:\n+    Source: 'tests/src/join-duplicate.rs', lines 46:0-49:1\n+    Visibility: public -/\n+def join_nested_shared_input_generic\n+  (_m : Std.U8) (a : Bool) : Result Unit := do\n+  if a\n+  then if a\n+       then ok ()\n+       else ok ()\n+  else if a\n+       then ok ()\n+       else ok ()\n+\n end join_duplicate\n@@ -55,3 +55,40 @@ const FEATURE_C: u32 = 0x20;\n \n const TWO_FEATURES: u32 = FEATURE_A | FEATURE_B;\n const THREE_FEATURES: u32 = FEATURE_A | FEATURE_B | FEATURE_C;\n+\n+// Globals whose type contains static borrows hidden in an ADT: when expanding\n+// the value of the global we must be able to find the loans of those borrows.\n+pub struct StaticRef(pub &'static u8);\n+\n+const STATIC_REF: StaticRef = StaticRef(&0);\n+\n+pub fn get_static_ref() -> StaticRef {\n+    STATIC_REF\n+}\n+\n+pub fn read_static_ref() -> u8 {\n+    *STATIC_REF.0\n+}\n+\n+pub struct StaticStr {\n+    pub name: &'static str,\n+    pub value: u32,\n+}\n+\n+const STATIC_STR: StaticStr = StaticStr {\n+    name: \"hello\",\n+    value: 3,\n+};\n+\n+pub fn get_static_str_name() -> &'static str {\n+    STATIC_STR.name\n+}\n+\n+// Same as above, but with a trait associated constant\n+pub trait HasStaticRef {\n+    const C: StaticRef;\n+}\n+\n+pub fn read_trait_static_ref<T: HasStaticRef>() -> u8 {\n+    *T::C.0\n+}\n@@ -28,3 +28,22 @@ fn join_nested_shared_in_loop(b: bool, n: u32) -> i32 {\n     }\n     **p\n }\n+\n+// Regression test.\n+//\n+// The input contains nested shared borrows. Before the first `if`, preparing\n+// the switch introduces a region abstraction containing a shared loan whose\n+// shared value is itself a shared borrow: the collapse performed by the join\n+// doesn't support this. The join must then fail with a *recoverable* error so\n+// that we fall back to duplicating the code after the branching.\n+pub struct NestedStaticRef(pub &'static &'static u8);\n+\n+pub fn join_nested_shared_input(_m: NestedStaticRef, a: bool) {\n+    if a {}\n+    if a {}\n+}\n+\n+pub fn join_nested_shared_input_generic<'a, 'b>(_m: &'a &'b u8, a: bool) {\n+    if a {}\n+    if a {}\n+}",
+            "comments": [],
+            "created_at": "2026-10-16T10:29:38Z",
+            "updated_at": "2026-10-19T10:07:21Z",
+            "closed_at": "2026-10-19T10:07:20Z",
+            "merged_at": "2026-10-19T10:07:20Z",
+            "commits": 3,
+            "changed_files": 9,
+            "additions": 258,
+            "deletions": 2,
+            "display_url": "https://github.com/AeneasVerif/aeneas/pull/1457",
+            "display_title": "Fix several unsupported cases in the symbolic evaluation"
+          },
+          "url": "https://github.com/AeneasVerif/aeneas/pull/1457",
+          "title": "Fix several unsupported cases in the symbolic evaluation",
+          "diff": "@@ -1975,7 +1975,10 @@ let lookup_shared_value_opt (span : Meta.span) (env : env) (bid : BorrowId.id) :\n \n let lookup_shared_value (span : Meta.span) (env : env) (bid : BorrowId.id) :\n     tvalue =\n-  Option.get (lookup_shared_value_opt span env bid)\n+  [%unwrap_with_span] span\n+    (lookup_shared_value_opt span env bid)\n+    (\"Could not find the shared loan for borrow \" ^ BorrowId.to_string bid\n+   ^ \" (dangling shared borrow)\")\n \n let ctx_lookup_shared_value span ctx = lookup_shared_value span ctx.env\n \n@@ -460,6 +460,12 @@ let eval_operand_no_reorganize (config : config) (span : Meta.span)\n               [%cassert] span (ref_kind = RShared)\n                 \"Mutable references for lifetime 'static are not supported\";\n               let sval = mk_fresh_symbolic_tvalue span ctx ty_inner in\n+              (* The value may contain static borrows: we need to project their\n+                 loans *)\n+              let ctx =\n+                push_static_loans_proj_for_symbolic_value span ctx\n+                  (value_as_symbolic span sval.value)\n+              in\n               (* Create a shared loan containing the constant (in a region\n                  abstraction owning the static region), as well as a shared\n                  borrow *)\n@@ -480,6 +486,13 @@ let eval_operand_no_reorganize (config : config) (span : Meta.span)\n           | _ ->\n               [%ldebug \"not a static ref\"];\n               let v = mk_fresh_symbolic_tvalue span ctx ty in\n+              (* The value may contain static borrows (hidden in ADTs, for\n+                 instance [struct S(&'static u8)]): we need to project their\n+                 loans *)\n+              let ctx =\n+                push_static_loans_proj_for_symbolic_value span ctx\n+                  (value_as_symbolic span v.value)\n+              in\n               (* Wrap the generated expression *)\n               let cf e =\n                 SymbolicAst.IntroSymbolic\n@@ -1323,13 +1323,57 @@ let merge_into_first_abstraction (span : Meta.span) (abs_kind : abs_kind)\n   InterpAbs.merge_into_first_abstraction span abs_kind ~can_end ~with_abs_conts\n     (Some merge_funs) ctx aid0 aid1\n \n+(** Check whether a non-frozen region abstraction contains a shared loan whose\n+    shared value contains concrete borrows.\n+\n+    The collapse doesn't support this case: when computing the maps from\n+    abstractions to borrows/loans (see\n+    {!InterpMatchCtxs.compute_abs_borrows_loans_maps}) we can't register such\n+    borrows. We use this function to fail early with a recoverable error in\n+    {!collapse_ctx}. *)\n+let ctx_has_borrows_in_shared_loans_of_non_frozen_abs (ctx : eval_ctx) : bool =\n+  let frozen = ctx_get_frozen_abs_set ctx in\n+  let has_borrows =\n+    object\n+      inherit [_] iter_tvalue\n+      method! visit_borrow_content _ _ = raise Found\n+    end\n+  in\n+  let visitor =\n+    object\n+      inherit [_] iter_tavalue as super\n+\n+      method! visit_aloan_content env lc =\n+        (match lc with\n+        | ASharedLoan (_, _, sv, _) -> has_borrows#visit_tvalue () sv\n+        | _ -> ());\n+        super#visit_aloan_content env lc\n+    end\n+  in\n+  try\n+    env_iter_abs\n+      (fun abs ->\n+        if not (AbsId.Set.mem abs.abs_id frozen) then\n+          List.iter (visitor#visit_tavalue ()) abs.avalues)\n+      ctx.env;\n+    false\n+  with Found -> true\n+\n let collapse_ctx config (span : Meta.span)\n     ?(sequence : (abs_id * abs_id * abs_id) list ref option = None)\n     ?(shared_borrows_seq :\n         (abs_id * int * proj_marker * borrow_or_proj * ty) list ref option =\n       None) (fresh_abs_kind : abs_kind) ~(recoverable : bool)\n     ~(with_abs_conts : bool) (ctx : eval_ctx) : eval_ctx =\n   [%ldebug \"Initial ctx:\\n\" ^ eval_ctx_to_string ctx];\n+  (* The collapse doesn't support shared loans whose shared value contains\n+     borrows in the abstractions it may modify: we check this here so that the\n+     error is recoverable (if it is allowed, the caller can then decide not to\n+     join, for instance by duplicating the code after a branching). *)\n+  [%cassert_recover] recoverable span\n+    (not (ctx_has_borrows_in_shared_loans_of_non_frozen_abs ctx))\n+    \"Joining region abstractions containing shared loans whose shared value \\\n+     contains borrows is not supported yet\";\n   let merge_funs =\n     mk_collapse_ctx_merge_duplicate_funs span fresh_abs_kind ~recoverable\n       ~with_abs_conts ctx\n@@ -579,7 +579,7 @@ let eval_function_call_symbolic_inst (span : Meta.span) (func : fn_ptr)\n \n     We return the value as well as its type with regions. Note that we currently\n     only support globals whose (instantiated) type doesn't contain regions,\n-    except for a top-level static shared reference. *)\n+    except for static shared references. *)\n let eval_global_as_fresh_symbolic_value (span : Meta.span)\n     (gref : global_decl_ref) (ctx : eval_ctx) :\n     eval_ctx * tvalue * rty * (SA.expr -> SA.expr) =\n@@ -606,6 +606,8 @@ let eval_global_as_fresh_symbolic_value (span : Meta.span)\n          abstraction owning the static region, allowing the borrow to live as\n          long as needed. *)\n       let sval = mk_fresh_symbolic_value span ctx inner_ty in\n+      (* The value may contain static borrows: we need to project their loans *)\n+      let ctx = push_static_loans_proj_for_symbolic_value span ctx sval in\n       let v = mk_tvalue_from_symbolic_value sval in\n       let ctx, borrow = push_value_to_static_shared_loan span ctx v inner_ty in\n       let cc = S.synthesize_global_eval gref sval in\n@@ -621,6 +623,9 @@ let eval_global_as_fresh_symbolic_value (span : Meta.span)\n       let ty = Subst.erase_regions_substitute_types subst global.ty in\n       [%cassert] span (ty_no_regions ty) \"Unimplemented\";\n       let sval = mk_fresh_symbolic_value span ctx ty in\n+      (* The value may contain static borrows (hidden in ADTs, for instance\n+         [struct S(&'static u8)]): we need to project their loans *)\n+      let ctx = push_static_loans_proj_for_symbolic_value span ctx sval in\n       let cc = S.synthesize_global_eval gref sval in\n       (ctx, mk_tvalue_from_symbolic_value sval, ty, cc)\n \n@@ -292,6 +292,55 @@ let mk_eproj_loans_value_from_symbolic_value env\n       ty = svalue.sv_ty;\n     }\n \n+(** Given a fresh symbolic value [sv] (typically introduced for the value of a\n+    global), if its type contains borrows living in the static region (for\n+    instance because it is an ADT with fields of type [&'static T]), push a\n+    fresh region abstraction owning the static region and containing a loan\n+    projector over [sv].\n+\n+    This is similar to what we do for the input values of a function: this way,\n+    when we expand [sv] we can introduce the loans corresponding to the static\n+    shared borrows it contains (otherwise those borrows would be dangling).\n+\n+    We only support shared static borrows. *)\n+let push_static_loans_proj_for_symbolic_value (span : Meta.span)\n+    (ctx : eval_ctx) (sv : symbolic_value) : eval_ctx =\n+  let type_infos = ctx.type_ctx.type_infos in\n+  let static_regions = RegionSet.singleton RStatic in\n+  if not (ty_has_regions_in_set type_infos static_regions sv.sv_ty) then ctx\n+  else begin\n+    [%cassert] span\n+      (not\n+         (ty_has_mut_borrow_for_region_in_set type_infos static_regions sv.sv_ty))\n+      \"Unimplemented: constants and globals whose value contains mutable \\\n+       borrows with the 'static lifetime (only shared 'static borrows are \\\n+       supported)\";\n+    let loan_proj =\n+      mk_aproj_loans_value_from_symbolic_value type_infos static_regions sv\n+        sv.sv_ty\n+    in\n+    (* The abstraction doesn't have any computational content *)\n+    let cont : abs_cont =\n+      {\n+        output = Some (mk_etuple ~borrow_proj:true []);\n+        input = Some (mk_etuple ~borrow_proj:false []);\n+      }\n+    in\n+    let abs : abs =\n+      {\n+        abs_id = ctx.fresh_abs_id ();\n+        kind = Static;\n+        can_end = true;\n+        parents = AbsId.Set.empty;\n+        regions = { owned = static_regions };\n+        ended_subabs = AbsLevelSet.empty;\n+        avalues = [ loan_proj ];\n+        cont = Some cont;\n+      }\n+    in\n+    { ctx with env = EAbs abs :: ctx.env }\n+  end\n+\n (** Create a borrows projector from a symbolic value *)\n let mk_aproj_borrows_from_symbolic_value (span : Meta.span)\n     (type_infos : TypesAnalysis.type_infos) (proj_regions : region_set)\n@@ -161,4 +161,58 @@ def THREE_FEATURES : Std.U32 :=\n   let i := FEATURE_A ||| FEATURE_B\n   i ||| FEATURE_C\n \n+/-- [constants_lean::StaticRef]\n+    Source: 'tests/src/constants-lean.rs', lines 61:0-61:38\n+    Visibility: public -/\n+@[reducible]\n+def StaticRef := Std.U8\n+\n+/-- [constants_lean::STATIC_REF]\n+    Source: 'tests/src/constants-lean.rs', lines 63:0-63:44 -/\n+@[global_simps, irreducible] def STATIC_REF : StaticRef := 0#u8\n+\n+/-- [constants_lean::get_static_ref]:\n+    Source: 'tests/src/constants-lean.rs', lines 65:0-67:1\n+    Visibility: public -/\n+def get_static_ref : Result StaticRef := do\n+  ok STATIC_REF\n+\n+/-- [constants_lean::read_static_ref]:\n+    Source: 'tests/src/constants-lean.rs', lines 69:0-71:1\n+    Visibility: public -/\n+def read_static_ref : Result Std.U8 := do\n+  let i := STATIC_REF\n+  ok i\n+\n+/-- [constants_lean::StaticStr]\n+    Source: 'tests/src/constants-lean.rs', lines 73:0-76:1\n+    Visibility: public -/\n+structure StaticStr where\n+  «name» : Str\n+  value : Std.U32\n+\n+/-- [constants_lean::STATIC_STR]\n+    Source: 'tests/src/constants-lean.rs', lines 78:0-81:2 -/\n+@[global_simps, irreducible]\n+def STATIC_STR : StaticStr := { «name» := (toStr \"hello\"), value := 3#u32 }\n+\n+/-- [constants_lean::get_static_str_name]:\n+    Source: 'tests/src/constants-lean.rs', lines 83:0-85:1\n+    Visibility: public -/\n+def get_static_str_name : Result Str := do\n+  ok STATIC_STR.name\n+\n+/-- Trait declaration: [constants_lean::HasStaticRef]\n+    Source: 'tests/src/constants-lean.rs', lines 88:0-90:1\n+    Visibility: public -/\n+structure HasStaticRef (Self : Type _) where\n+  C : Result StaticRef\n+\n+/-- [constants_lean::read_trait_static_ref]:\n+    Source: 'tests/src/constants-lean.rs', lines 92:0-94:1\n+    Visibility: public -/\n+def read_trait_static_ref\n+  {T : Type _} (HasStaticRefInst : HasStaticRef T) : Result Std.U8 := do\n+  HasStaticRefInst.C\n+\n end constants_lean\n@@ -75,4 +75,36 @@ def join_nested_shared_in_loop (b : Bool) (n : Std.U32) : Result Std.I32 := do\n   else join_nested_shared_in_loop_loop1 n 0#u32\n        ok 2#i32\n \n+/-- [join_duplicate::NestedStaticRef]\n+    Source: 'tests/src/join-duplicate.rs', lines 39:0-39:53\n+    Visibility: public -/\n+@[reducible]\n+def NestedStaticRef := Std.U8\n+\n+/-- [join_duplicate::join_nested_shared_input]:\n+    Source: 'tests/src/join-duplicate.rs', lines 41:0-44:1\n+    Visibility: public -/\n+def join_nested_shared_input\n+  (_m : NestedStaticRef) (a : Bool) : Result Unit := do\n+  if a\n+  then if a\n+       then ok ()\n+       else ok ()\n+  else if a\n+       then ok ()\n+       else ok ()\n+\n+/-- [join_duplicate::join_nested_shared_input_generic]:\n+    Source: 'tests/src/join-duplicate.rs', lines 46:0-49:1\n+    Visibility: public -/\n+def join_nested_shared_input_generic\n+  (_m : Std.U8) (a : Bool) : Result Unit := do\n+  if a\n+  then if a\n+       then ok ()\n+       else ok ()\n+  else if a\n+       then ok ()\n+       else ok ()\n+\n end join_duplicate\n@@ -55,3 +55,40 @@ const FEATURE_C: u32 = 0x20;\n \n const TWO_FEATURES: u32 = FEATURE_A | FEATURE_B;\n const THREE_FEATURES: u32 = FEATURE_A | FEATURE_B | FEATURE_C;\n+\n+// Globals whose type contains static borrows hidden in an ADT: when expanding\n+// the value of the global we must be able to find the loans of those borrows.\n+pub struct StaticRef(pub &'static u8);\n+\n+const STATIC_REF: StaticRef = StaticRef(&0);\n+\n+pub fn get_static_ref() -> StaticRef {\n+    STATIC_REF\n+}\n+\n+pub fn read_static_ref() -> u8 {\n+    *STATIC_REF.0\n+}\n+\n+pub struct StaticStr {\n+    pub name: &'static str,\n+    pub value: u32,\n+}\n+\n+const STATIC_STR: StaticStr = StaticStr {\n+    name: \"hello\",\n+    value: 3,\n+};\n+\n+pub fn get_static_str_name() -> &'static str {\n+    STATIC_STR.name\n+}\n+\n+// Same as above, but with a trait associated constant\n+pub trait HasStaticRef {\n+    const C: StaticRef;\n+}\n+\n+pub fn read_trait_static_ref<T: HasStaticRef>() -> u8 {\n+    *T::C.0\n+}\n@@ -28,3 +28,22 @@ fn join_nested_shared_in_loop(b: bool, n: u32) -> i32 {\n     }\n     **p\n }\n+\n+// Regression test.\n+//\n+// The input contains nested shared borrows. Before the first `if`, preparing\n+// the switch introduces a region abstraction containing a shared loan whose\n+// shared value is itself a shared borrow: the collapse performed by the join\n+// doesn't support this. The join must then fail with a *recoverable* error so\n+// that we fall back to duplicating the code after the branching.\n+pub struct NestedStaticRef(pub &'static &'static u8);\n+\n+pub fn join_nested_shared_input(_m: NestedStaticRef, a: bool) {\n+    if a {}\n+    if a {}\n+}\n+\n+pub fn join_nested_shared_input_generic<'a, 'b>(_m: &'a &'b u8, a: bool) {\n+    if a {}\n+    if a {}\n+}",
+          "comments": null,
+          "display_url": "https://github.com/AeneasVerif/aeneas/pull/1457",
+          "display_title": "Fix several unsupported cases in the symbolic evaluation"
+        },
+        "isError": false
+      }
+    }
+  ]
+}

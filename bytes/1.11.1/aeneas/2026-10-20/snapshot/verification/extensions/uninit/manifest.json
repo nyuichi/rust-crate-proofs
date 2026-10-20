@@ -1,0 +1,220 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "uninit",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Uninit.index_range",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::Index<core::ops::range::Range<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:235:16-237:17",
+          "source_impl_short_name": "impl_Index_Range_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "For a valid start..end range, the actual slice-index body selects the corresponding sublist; if the existing opaque uninit_ref conversion succeeds while preserving contents, the wrapper returns that converted view with length end-start.",
+      "assumptions": [
+        "r.start <= r.end <= self.length",
+        "uninit_ref on the selected slice succeeds and preserves its list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_from",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::Index<core::ops::range::RangeFrom<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:235:16-237:17",
+          "source_impl_short_name": "impl_Index_RangeFrom_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "For a valid start.. range, the actual slice-index body selects the suffix; if uninit_ref succeeds and preserves contents, the wrapper returns that converted suffix with length self.length-start.",
+      "assumptions": [
+        "r.start <= self.length",
+        "uninit_ref on the selected suffix succeeds and preserves its list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_full",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::Index<core::ops::range::RangeFull, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:235:16-237:17",
+          "source_impl_short_name": "impl_Index_RangeFull_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "The actual slice-index body selects the entire input; if uninit_ref succeeds and preserves contents, the wrapper returns the converted full view with unchanged length.",
+      "assumptions": [
+        "uninit_ref on the input slice succeeds and preserves its list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_to",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::Index<core::ops::range::RangeTo<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:235:16-237:17",
+          "source_impl_short_name": "impl_Index_RangeTo_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "For a valid ..end range, the actual slice-index body selects the prefix; if uninit_ref succeeds and preserves contents, the wrapper returns that converted prefix with length end.",
+      "assumptions": [
+        "r.end <= self.length",
+        "uninit_ref on the selected prefix succeeds and preserves its list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_mut_range",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::IndexMut<core::ops::range::Range<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index_mut",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:242:16-244:17",
+          "source_impl_short_name": "impl_IndexMut_Range_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "For a valid start..end range, the actual mutable slice-index callback replaces that subrange; after the opaque uninit conversion's backward callback preserves replacement contents, the wrapper returns the matching setSlice! update.",
+      "assumptions": [
+        "r.start <= r.end <= self.length",
+        "uninit on the selected subslice succeeds",
+        "the uninit backward callback preserves replacement list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_mut_from",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::IndexMut<core::ops::range::RangeFrom<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index_mut",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:242:16-244:17",
+          "source_impl_short_name": "impl_IndexMut_RangeFrom_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "For a valid start.. range, the actual mutable slice-index callback replaces the suffix; after the opaque uninit conversion's backward callback preserves replacement contents, the wrapper returns the matching setSlice! update.",
+      "assumptions": [
+        "r.start <= self.length",
+        "uninit on the selected suffix succeeds",
+        "the uninit backward callback preserves replacement list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_mut_full",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::IndexMut<core::ops::range::RangeFull, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index_mut",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:242:16-244:17",
+          "source_impl_short_name": "impl_IndexMut_RangeFull_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "The actual mutable slice-index callback is identity on the replacement slice; the wrapper returns the backward callback supplied by the opaque uninit conversion.",
+      "assumptions": [
+        "uninit on the input slice succeeds"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_mut_to",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::IndexMut<core::ops::range::RangeTo<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index_mut",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:242:16-244:17",
+          "source_impl_short_name": "impl_IndexMut_RangeTo_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "For a valid ..end range, the actual mutable slice-index callback replaces the prefix; after the opaque uninit conversion's backward callback preserves replacement contents, the wrapper returns the matching prefix setSlice! update.",
+      "assumptions": [
+        "r.end <= self.length",
+        "uninit on the selected prefix succeeds",
+        "the uninit backward callback preserves replacement list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_inclusive",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::Index<core::ops::range::RangeInclusive<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:235:16-237:17",
+          "source_impl_short_name": "impl_Index_RangeInclusive_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "The transparent wrapper returns the content-preserving uninit_ref conversion of the selected slice when the frozen opaque core RangeInclusive index operation succeeds.",
+      "assumptions": [
+        "the frozen opaque core SliceIndex RangeInclusive operation succeeds with selected",
+        "uninit_ref on selected succeeds and preserves its list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_mut_inclusive",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::IndexMut<core::ops::range::RangeInclusive<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index_mut",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:242:16-244:17",
+          "source_impl_short_name": "impl_IndexMut_RangeInclusive_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "The transparent wrapper composes the frozen opaque core RangeInclusive mutation callback with the opaque uninit backward callback; under their explicit update/content laws, the resulting callback updates the indexed range.",
+      "assumptions": [
+        "the frozen opaque core SliceIndex RangeInclusive mutable operation succeeds with selected and a callback that setSlice!s at r.start",
+        "uninit on selected succeeds",
+        "the uninit backward callback preserves replacement list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_to_inclusive",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::Index<core::ops::range::RangeToInclusive<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:235:16-237:17",
+          "source_impl_short_name": "impl_Index_RangeToInclusive_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "The transparent wrapper returns the content-preserving uninit_ref conversion of the selected slice when the frozen opaque core RangeToInclusive index operation succeeds.",
+      "assumptions": [
+        "the frozen opaque core SliceIndex RangeToInclusive operation succeeds with selected",
+        "uninit_ref on selected succeeds and preserves its list contents"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Uninit.index_mut_to_inclusive",
+      "rust_functions": [
+        {
+          "target": "{impl core::ops::index::IndexMut<core::ops::range::RangeToInclusive<usize>, bytes::buf::uninit_slice::UninitSlice> for bytes::buf::uninit_slice::UninitSlice}::index_mut",
+          "source_file": "src/buf/uninit_slice.rs",
+          "source_span": "src/buf/uninit_slice.rs:242:16-244:17",
+          "source_impl_short_name": "impl_IndexMut_RangeToInclusive_for_UninitSlice"
+        }
+      ],
+      "verified_behavior": "The transparent wrapper composes the frozen opaque core RangeToInclusive mutation callback with the opaque uninit backward callback; under their explicit update/content laws, the resulting callback updates the indexed prefix.",
+      "assumptions": [
+        "the frozen opaque core SliceIndex RangeToInclusive mutable operation succeeds with selected and a callback that setSlice!s at index 0",
+        "uninit on selected succeeds",
+        "the uninit backward callback preserves replacement list contents"
+      ]
+    }
+  ],
+  "blocked_roots": [
+    {
+      "rust_function": "bytes::buf::uninit_slice::{bytes::buf::uninit_slice::UninitSlice}::new",
+      "reason": "Already frozen opaque by the verified crate baseline; no new opacity was introduced."
+    },
+    {
+      "rust_function": "bytes::buf::uninit_slice::{bytes::buf::uninit_slice::UninitSlice}::uninit_ref",
+      "reason": "Already frozen opaque by the verified crate baseline; its behavior appears only as an explicit conversion precondition."
+    },
+    {
+      "rust_function": "bytes::buf::uninit_slice::{impl core::convert::From<&'a mut [u8]> for &'a mut bytes::buf::uninit_slice::UninitSlice}::from",
+      "reason": "Scoped out of this group after Aeneas emitted an unsupported mutable closure-triple forwarding signature; not a target body and the frozen opacity metadata was unchanged."
+    },
+    {
+      "rust_function": "bytes::buf::uninit_slice::{impl core::convert::From<&'a mut [core::mem::maybe_uninit::MaybeUninit<u8>]> for &'a mut bytes::buf::uninit_slice::UninitSlice}::from",
+      "reason": "Scoped out of this group after Aeneas emitted an unsupported mutable closure-triple forwarding signature; not a target body and the frozen opacity metadata was unchanged."
+    }
+  ]
+}

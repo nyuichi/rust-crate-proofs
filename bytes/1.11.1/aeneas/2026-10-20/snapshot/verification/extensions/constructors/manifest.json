@@ -1,0 +1,101 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "constructors",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Constructors.bytes_from_static_records_slice_metadata",
+      "rust_functions": [
+        "bytes::bytes::Bytes::from_static"
+      ],
+      "verified_behavior": "On successful primitive pointer/atomic/vtable calls, from_static stores the slice pointer and logical length with the supplied atomic state and static vtable.",
+      "assumptions": [
+        "Slice::as_ptr returns the supplied pointer.",
+        "null_mut and Atomic::new return the supplied successful values.",
+        "STATIC_VTABLE returns the supplied vtable."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.STATIC_VTABLE",
+        "bytes.Vtable",
+        "core.ptr.null_mut",
+        "core.slice.Slice.as_ptr",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.AtomicRawPtrMutTAlign8RawPtrMutT.new",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Constructors.bytes_new_returns_empty_handle",
+      "rust_functions": [
+        "bytes::bytes::Bytes::new"
+      ],
+      "verified_behavior": "On successful primitive pointer/atomic/vtable calls, Bytes::new returns a handle of length zero with those results.",
+      "assumptions": [
+        "Slice::as_ptr on new.EMPTY returns the supplied pointer.",
+        "null_mut and Atomic::new return the supplied successful values.",
+        "STATIC_VTABLE returns the supplied vtable."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.STATIC_VTABLE",
+        "bytes.Vtable",
+        "core.ptr.null_mut",
+        "core.slice.Slice.as_ptr",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.AtomicRawPtrMutTAlign8RawPtrMutT.new",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Constructors.bytes_default_returns_empty_handle",
+      "rust_functions": [
+        "{impl core::default::Default for bytes::bytes::Bytes}::default"
+      ],
+      "verified_behavior": "On successful primitive pointer/atomic/vtable calls, Bytes::default returns a handle of length zero with those results.",
+      "assumptions": [
+        "Slice::as_ptr on new.EMPTY returns the supplied pointer.",
+        "null_mut and Atomic::new return the supplied successful values.",
+        "STATIC_VTABLE returns the supplied vtable."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.STATIC_VTABLE",
+        "bytes.Vtable",
+        "core.ptr.null_mut",
+        "core.slice.Slice.as_ptr",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.AtomicRawPtrMutTAlign8RawPtrMutT.new",
+        "core.sync.atomic.private.Align8"
+      ]
+    }
+  ],
+  "blocked_roots": [],
+  "dependency_classification": {
+    "standard_logic_axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "opaque_type_axioms": [
+      "bytes.Vtable",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "opaque_behavior_axioms": [
+      "core.ptr.null_mut",
+      "core.slice.Slice.as_ptr",
+      "core.sync.atomic.AtomicRawPtrMutTAlign8RawPtrMutT.new"
+    ],
+    "note": "Opaque type axioms declare abstract representation types only. Opaque behavior axioms are translated Rust/library operations with no proved body in this profile. Per-theorem exact axiom dependencies are listed on each proof and rechecked into receipt.json.",
+    "opaque_value_axioms": [
+      "bytes.STATIC_VTABLE"
+    ]
+  }
+}

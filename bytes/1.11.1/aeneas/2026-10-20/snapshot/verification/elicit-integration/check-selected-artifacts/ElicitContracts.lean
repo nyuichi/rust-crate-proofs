@@ -1,0 +1,15 @@
+import ElicitAdapter
+import ElicitGenerated
+open Aeneas Aeneas.Std Result ElicitGenerated
+elicit_contract ElicitContracts.c_0ab59922312519d0 for ElicitGenerated.buf.chain.Chain.first_mut requires (by intros; exact True) ensures (fun self out => out.1 = self.a ∧ ∀ replacement, (out.2 replacement).a = replacement ∧ (out.2 replacement).b = self.b)
+elicit_contract ElicitContracts.c_0a3770d6fb2dbe56 for ElicitGenerated.buf.chain.Chain.first_ref requires (by intros; exact True) ensures (fun self out => out = self.a)
+elicit_contract ElicitContracts.c_cdf4d241f0e1fb55 for ElicitGenerated.buf.chain.Chain.into_inner requires (by intros; exact True) ensures (fun self out => out.1 = self.a ∧ out.2 = self.b)
+elicit_contract ElicitContracts.c_4be354299d19c21d for ElicitGenerated.buf.chain.Chain.last_mut requires (by intros; exact True) ensures (fun self out => out.1 = self.b ∧ ∀ replacement, (out.2 replacement).a = self.a ∧ (out.2 replacement).b = replacement)
+elicit_contract ElicitContracts.c_7142f49d9af652c8 for ElicitGenerated.buf.chain.Chain.last_ref requires (by intros; exact True) ensures (fun self out => out = self.b)
+elicit_contract ElicitContracts.c_76945f5528ea3028 for ElicitGenerated.buf.chain.Chain.new requires (by intros; exact True) ensures (fun a b out => out.a = a ∧ out.b = b)
+elicit_contract ElicitContracts.c_67ab1aad488d2950 for ElicitGenerated.buf.take.Take.into_inner requires (by intros; exact True) ensures (fun self out => out = self.inner)
+elicit_contract ElicitContracts.c_fe100f19c2bba7e6 for ElicitGenerated.buf.take.Take.impl.limit requires (by intros; exact True) ensures (fun self out => out = self.limit)
+elicit_contract ElicitContracts.c_6664141dae95d86d for ElicitGenerated.buf.take.Take.set_limit requires (by intros; exact True) ensures (fun self lim out => out.inner = self.inner ∧ out.limit = lim)
+elicit_contract ElicitContracts.c_03820710b16d0a9a for ElicitGenerated.buf.take.new requires (by intros; exact True) ensures (fun inner limit out => out.inner = inner ∧ out.limit = limit)
+elicit_contract ElicitContracts.c_26b458661b6dffb1 for ElicitGenerated.bytes.Bytes.impl.len requires (by intros; exact True) ensures (fun self out => out = self.len)
+elicit_contract ElicitContracts.c_6aa70a75372247cf for ElicitGenerated.bytes_mut.BytesMut.impl.len requires (by intros; exact True) ensures (fun self out => out = self.len)

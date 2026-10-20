@@ -1,0 +1,689 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "core",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Core.bytes_copy_from_slice_returns_converted_vector",
+      "rust_functions": [
+        "bytes::bytes::Bytes::copy_from_slice"
+      ],
+      "verified_behavior": "Returns the supplied successful Vec conversion result as the Bytes result.",
+      "assumptions": [
+        "The translated slice-to-Vec call returns the supplied Vec.",
+        "The opaque Vec-to-Bytes conversion returns the supplied Bytes."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "core.sync.atomic.Atomic",
+        "bytes.Bytes.Insts.CoreConvertFromVecU8.from",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_from_vec_records_vector_metadata",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::from_vec"
+      ],
+      "verified_behavior": "Stores the pointer, length, and capacity metadata obtained along the successful generated Vec conversion path.",
+      "assumptions": [
+        "ManuallyDrop operations, Vec pointer/capacity, byte-pointer wrapping, capacity encoding, and invalid-pointer construction return the supplied successful values."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.invalid_ptr",
+        "bytes_mut.vptr",
+        "alloc.vec.Vec.as_mut_ptr",
+        "alloc.vec.Vec.capacity",
+        "core.mem.manually_drop.ManuallyDrop",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.mem.manually_drop.ManuallyDrop.new",
+        "core.sync.atomic.private.Align8",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_new_uses_zero_capacity_constructor",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::new"
+      ],
+      "verified_behavior": "Delegates construction to with_capacity(0).",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.invalid_ptr",
+        "bytes_mut.vptr",
+        "alloc.vec.Vec.as_mut_ptr",
+        "alloc.vec.Vec.capacity",
+        "core.mem.manually_drop.ManuallyDrop",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.mem.manually_drop.ManuallyDrop.new",
+        "core.sync.atomic.private.Align8",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_split_uses_current_length",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::split"
+      ],
+      "verified_behavior": "Calls split_to with the receiver current length.",
+      "assumptions": [
+        "split_to returns the supplied pair."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.split_to",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_zeroed_builds_zero_vector",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::zeroed"
+      ],
+      "verified_behavior": "Builds a zero-filled Vec of the requested length and converts it with the supplied successful BytesMut conversion.",
+      "assumptions": [
+        "Vec::from_elem succeeds with the supplied vector.",
+        "BytesMut::from_vec succeeds with the supplied output."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.invalid_ptr",
+        "bytes_mut.vptr",
+        "alloc.vec.Vec.as_mut_ptr",
+        "alloc.vec.Vec.capacity",
+        "core.mem.manually_drop.ManuallyDrop",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.mem.manually_drop.ManuallyDrop.new",
+        "core.sync.atomic.private.Align8",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_zeroed_returns_requested_length",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::zeroed"
+      ],
+      "verified_behavior": "For each supplied successful allocation and pointer-construction path, preserves the requested logical length in the returned BytesMut.",
+      "assumptions": [
+        "Vec::from_elem and the ManuallyDrop, pointer, capacity, capacity-encoding, and invalid-pointer calls return the supplied successful outcomes."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.invalid_ptr",
+        "bytes_mut.vptr",
+        "alloc.vec.Vec.as_mut_ptr",
+        "alloc.vec.Vec.capacity",
+        "core.mem.manually_drop.ManuallyDrop",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.mem.manually_drop.ManuallyDrop.new",
+        "core.sync.atomic.private.Align8",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_with_capacity_returns_empty_buffer",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::with_capacity"
+      ],
+      "verified_behavior": "For each supplied successful allocation and pointer-construction path, returns length zero and the obtained capacity.",
+      "assumptions": [
+        "Vec::with_capacity produces the supplied Vec; the ManuallyDrop, pointer, capacity, capacity-encoding, and invalid-pointer calls return the supplied successful outcomes."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.invalid_ptr",
+        "bytes_mut.vptr",
+        "alloc.vec.Vec.as_mut_ptr",
+        "alloc.vec.Vec.capacity",
+        "core.mem.manually_drop.ManuallyDrop",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.mem.manually_drop.ManuallyDrop.new",
+        "core.sync.atomic.private.Align8",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_clear_truncates_to_zero",
+      "rust_functions": [
+        "bytes::bytes::Bytes::clear"
+      ],
+      "verified_behavior": "Delegates clear to truncate(self, 0).",
+      "assumptions": [
+        "truncate returns the supplied updated Bytes."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.truncate",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_buf_remaining_returns_length",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for bytes::bytes::Bytes}::remaining"
+      ],
+      "verified_behavior": "Buf::remaining returns the stored Bytes length.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes.Vtable",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_buf_chunk_returns_as_slice",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for bytes::bytes::Bytes}::chunk"
+      ],
+      "verified_behavior": "Buf::chunk returns the successful as_slice result.",
+      "assumptions": [
+        "Bytes::as_slice succeeds with the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_buf_copy_to_bytes_returns_split",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for bytes::bytes::Bytes}::copy_to_bytes"
+      ],
+      "verified_behavior": "Buf::copy_to_bytes returns the supplied split_to result.",
+      "assumptions": [
+        "Bytes::split_to succeeds with the supplied pair."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.split_to",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_default_is_zero_capacity_construction",
+      "rust_functions": [
+        "{impl core::default::Default for bytes::bytes_mut::BytesMut}::default",
+        "bytes::bytes_mut::BytesMut::new"
+      ],
+      "verified_behavior": "BytesMut::default delegates through new to with_capacity(0).",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.invalid_ptr",
+        "bytes_mut.vptr",
+        "alloc.vec.Vec.as_mut_ptr",
+        "alloc.vec.Vec.capacity",
+        "core.mem.manually_drop.ManuallyDrop",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.mem.manually_drop.ManuallyDrop.new",
+        "core.sync.atomic.private.Align8",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+        "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_deref_returns_as_slice",
+      "rust_functions": [
+        "{impl core::ops::deref::Deref<[u8]> for bytes::bytes_mut::BytesMut}::deref"
+      ],
+      "verified_behavior": "Deref returns the successful BytesMut::as_slice result.",
+      "assumptions": [
+        "BytesMut::as_slice succeeds with the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_clone_converts_full_slice",
+      "rust_functions": [
+        "{impl core::clone::Clone for bytes::bytes_mut::BytesMut}::clone"
+      ],
+      "verified_behavior": "Clone views the full current slice and returns the supplied conversion of that slice into a shared BytesMut.",
+      "assumptions": [
+        "BytesMut::as_slice succeeds with the supplied slice.",
+        "The opaque shared-slice conversion succeeds with the supplied clone."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "bytes_mut.BytesMut.Insts.CoreConvertFromSharedASliceU8.from",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_try_into_mut_when_unique",
+      "rust_functions": [
+        "bytes::bytes::Bytes::try_into_mut"
+      ],
+      "verified_behavior": "When is_unique returns true, try_into_mut returns the supplied successful BytesMut conversion wrapped in Ok.",
+      "assumptions": [
+        "Bytes::is_unique returns true.",
+        "The opaque Bytes-to-BytesMut conversion succeeds with the supplied output."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.is_unique",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "bytes_mut.BytesMut.Insts.CoreConvertFromBytes.from",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_try_into_mut_when_shared",
+      "rust_functions": [
+        "bytes::bytes::Bytes::try_into_mut"
+      ],
+      "verified_behavior": "When is_unique returns false, try_into_mut returns Err containing the original Bytes.",
+      "assumptions": [
+        "Bytes::is_unique returns false."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.is_unique",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "bytes_mut.BytesMut.Insts.CoreConvertFromBytes.from",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_reserve_noop_when_additional_fits",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::reserve"
+      ],
+      "verified_behavior": "If available capacity covers additional, reserve returns the unchanged receiver.",
+      "assumptions": [
+        "The capacity-minus-length operation returns the supplied remainder.",
+        "additional is at most that remainder."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.reserve_inner",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_reserve_fit_preserves_slice_observation",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::reserve"
+      ],
+      "verified_behavior": "When additional capacity fits, reserve returns a handle with the same length, capacity, and identical Aeneas as_slice observation as the input.",
+      "assumptions": [
+        "The translated capacity-minus-length operation returns the supplied remainder.",
+        "The requested additional capacity is at most that remainder."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "bytes_mut.BytesMut.reserve_inner",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_reserve_returns_inner_state_when_additional_does_not_fit",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::reserve"
+      ],
+      "verified_behavior": "If additional exceeds available capacity, reserve returns the state from reserve_inner.",
+      "assumptions": [
+        "The capacity-minus-length operation returns the supplied remainder.",
+        "additional does not fit that remainder.",
+        "reserve_inner succeeds with the supplied state."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.reserve_inner",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_try_reclaim_reports_success_without_changing_state",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::try_reclaim"
+      ],
+      "verified_behavior": "If additional fits, try_reclaim reports success and preserves the receiver.",
+      "assumptions": [
+        "The capacity-minus-length operation returns the supplied remainder.",
+        "additional is at most that remainder."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.reserve_inner",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_try_reclaim_delegates_when_additional_does_not_fit",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::try_reclaim"
+      ],
+      "verified_behavior": "If additional does not fit, try_reclaim delegates to reserve_inner with clear=false.",
+      "assumptions": [
+        "The capacity-minus-length operation returns the supplied remainder.",
+        "additional does not fit that remainder."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.reserve_inner",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_unsplit_empty_left_returns_other",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::unsplit"
+      ],
+      "verified_behavior": "An empty left buffer makes unsplit return the right buffer unchanged.",
+      "assumptions": [
+        "The left buffer length is zero."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "bytes_mut.BytesMut.extend_from_slice",
+        "bytes_mut.BytesMut.try_unsplit",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_unsplit_uses_successful_in_place_join",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::unsplit"
+      ],
+      "verified_behavior": "After a successful in-place try_unsplit, unsplit returns the joined buffer.",
+      "assumptions": [
+        "The left buffer is nonempty.",
+        "try_unsplit succeeds with the supplied joined buffer."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "bytes_mut.BytesMut.extend_from_slice",
+        "bytes_mut.BytesMut.try_unsplit",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_unsplit_extends_after_failed_in_place_join",
+      "rust_functions": [
+        "bytes::bytes_mut::BytesMut::unsplit"
+      ],
+      "verified_behavior": "After try_unsplit fails, unsplit obtains the other slice and returns the supplied extend_from_slice result.",
+      "assumptions": [
+        "The left buffer is nonempty.",
+        "try_unsplit returns the supplied failure state.",
+        "AsRef succeeds with the supplied slice.",
+        "extend_from_slice succeeds with the supplied joined buffer."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "bytes_mut.BytesMut.extend_from_slice",
+        "bytes_mut.BytesMut.try_unsplit",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_buf_remaining_returns_length",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for bytes::bytes_mut::BytesMut}::remaining"
+      ],
+      "verified_behavior": "Buf::remaining returns the stored BytesMut length.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_buf_chunk_returns_as_slice",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for bytes::bytes_mut::BytesMut}::chunk"
+      ],
+      "verified_behavior": "Buf::chunk returns the successful as_slice result.",
+      "assumptions": [
+        "BytesMut::as_slice succeeds with the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_as_ref_returns_as_slice",
+      "rust_functions": [
+        "{impl core::convert::AsRef<[u8]> for bytes::bytes_mut::BytesMut}::as_ref"
+      ],
+      "verified_behavior": "AsRef<[u8]> returns the successful as_slice result.",
+      "assumptions": [
+        "BytesMut::as_slice succeeds with the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_copy_to_bytes_returns_frozen_split",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for bytes::bytes_mut::BytesMut}::copy_to_bytes"
+      ],
+      "verified_behavior": "Buf::copy_to_bytes splits the requested prefix, freezes that prefix, and returns it with the remainder.",
+      "assumptions": [
+        "split_to succeeds with the supplied prefix and remainder.",
+        "freeze succeeds with the supplied Bytes."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes_mut.BytesMut.freeze",
+        "bytes_mut.BytesMut.split_to",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_ord_matches_slice_order",
+      "rust_functions": [
+        "{impl core::cmp::Ord for bytes::bytes::Bytes}::cmp"
+      ],
+      "verified_behavior": "Ord::cmp returns the successful lexicographic slice comparison result.",
+      "assumptions": [
+        "Both Bytes::as_slice calls succeed with the supplied slices.",
+        "Slice Ord::cmp succeeds with the supplied ordering."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "Slice.Insts.CoreCmpOrd.cmp",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Core.bytes_mut_ord_matches_slice_order",
+      "rust_functions": [
+        "{impl core::cmp::Ord for bytes::bytes_mut::BytesMut}::cmp"
+      ],
+      "verified_behavior": "Ord::cmp returns the successful lexicographic slice comparison result.",
+      "assumptions": [
+        "Both BytesMut::as_slice calls succeed with the supplied slices.",
+        "Slice Ord::cmp succeeds with the supplied ordering."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "Slice.Insts.CoreCmpOrd.cmp",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    }
+  ],
+  "blocked_roots": [
+    {
+      "rust_function": "{impl core::fmt::Write for bytes::bytes_mut::BytesMut}::write_str",
+      "reason": "Its extracted body typechecks through Aeneas, but the generated module does not Lean-typecheck because the current BufMut `put_slice` signature returns a closure triple where the caller expects a plain result, and the BufMut default chain method has a related backward-signature mismatch. This function remains transparent; no generated body or opacity boundary was changed."
+    },
+    {
+      "rust_function": "{impl core::iter::traits::collect::IntoIterator<u8, bytes::buf::iter::IntoIter<bytes::bytes::Bytes>> for bytes::bytes::Bytes}::into_iter",
+      "reason": "The concrete wrapper body is extracted, but its IntoIterator dictionary requires the associated Buf implementation, whose generated `chain.default` field currently has the known backward-signature mismatch and prevents Lean typechecking. No generated body or opacity boundary was changed."
+    },
+    {
+      "rust_function": "{impl core::iter::traits::collect::IntoIterator<u8, bytes::buf::iter::IntoIter<bytes::bytes_mut::BytesMut>> for bytes::bytes_mut::BytesMut}::into_iter",
+      "reason": "The concrete wrapper body is extracted, but its IntoIterator dictionary requires the associated Buf implementation, whose generated `chain.default` field currently has the known backward-signature mismatch and prevents Lean typechecking. No generated body or opacity boundary was changed."
+    }
+  ],
+  "dependency_classification": {
+    "standard_logic_axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "opaque_type_axioms": [
+      "bytes.Vtable",
+      "core.mem.manually_drop.ManuallyDrop",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "opaque_behavior_axioms": [
+      "Slice.Insts.CoreCmpOrd.cmp",
+      "alloc.vec.Vec.as_mut_ptr",
+      "alloc.vec.Vec.capacity",
+      "bytes.Bytes.Insts.CoreConvertFromVecU8.from",
+      "bytes.Bytes.as_slice",
+      "bytes.Bytes.is_unique",
+      "bytes.Bytes.split_to",
+      "bytes.Bytes.truncate",
+      "bytes_mut.BytesMut.Insts.CoreConvertFromBytes.from",
+      "bytes_mut.BytesMut.Insts.CoreConvertFromSharedASliceU8.from",
+      "bytes_mut.BytesMut.as_slice",
+      "bytes_mut.BytesMut.extend_from_slice",
+      "bytes_mut.BytesMut.freeze",
+      "bytes_mut.BytesMut.reserve_inner",
+      "bytes_mut.BytesMut.split_to",
+      "bytes_mut.BytesMut.try_unsplit",
+      "bytes_mut.invalid_ptr",
+      "bytes_mut.vptr",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut",
+      "core.mem.manually_drop.ManuallyDrop.new"
+    ],
+    "note": "Opaque type axioms declare abstract representation types only. Opaque behavior axioms are translated Rust/library operations with no proved body in this profile. Per-theorem exact axiom dependencies are listed on each proof and rechecked into receipt.json.",
+    "opaque_value_axioms": []
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "borrowed_iter",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.BorrowedIter.bytes_borrowed_iterator_starts_at_slice_front",
+      "rust_functions": [
+        "bytes::bytes::{impl core::iter::traits::collect::IntoIterator<&'a bytes::bytes::Bytes, &'a u8, core::slice::iter::Iter<'a, u8>>}::into_iter"
+      ],
+      "source_file": "src/bytes.rs",
+      "source_span": "src/bytes.rs:768:4-768:40",
+      "verified_behavior": "Given the successful frozen Bytes::as_slice result, the borrowed IntoIterator body returns Aeneas's slice iterator over exactly that slice at index zero.",
+      "assumptions": [
+        "Bytes::as_slice returns the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.bytes.Vtable",
+        "bytes.bytes.Bytes.as_slice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.BorrowedIter.bytes_mut_borrowed_iterator_starts_at_slice_front",
+      "rust_functions": [
+        "bytes::bytes_mut::{impl core::iter::traits::collect::IntoIterator<&'a bytes::bytes_mut::BytesMut, &'a u8, core::slice::iter::Iter<'a, u8>>}::into_iter"
+      ],
+      "source_file": "src/bytes_mut.rs",
+      "source_span": "src/bytes_mut.rs:1384:4-1384:40",
+      "verified_behavior": "Given the successful frozen BytesMut::as_slice result, the borrowed IntoIterator body returns Aeneas's slice iterator over exactly that slice at index zero. The actual AsRef forwarding body is unfolded in the proof.",
+      "assumptions": [
+        "BytesMut::as_slice returns the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.bytes_mut.BytesMut.as_slice",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    }
+  ],
+  "blocked_roots": []
+}

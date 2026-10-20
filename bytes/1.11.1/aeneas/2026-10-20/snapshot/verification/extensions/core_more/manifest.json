@@ -1,0 +1,204 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "core_more",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.CoreMore.bytes_partial_eq_uses_slice_eq",
+      "rust_functions": [
+        "{impl core::cmp::PartialEq<bytes::bytes::Bytes> for bytes::bytes::Bytes}::eq"
+      ],
+      "verified_behavior": "PartialEq::eq compares the successful Bytes slice views using the generated slice-equality routine.",
+      "assumptions": [
+        "Both Bytes::as_slice calls succeed with the supplied slices.",
+        "The slice-equality routine succeeds with the supplied Boolean."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ],
+      "source_file": "src/bytes.rs",
+      "source_span": "src/bytes.rs:782:4-784:5"
+    },
+    {
+      "theorem": "BytesProofs.CoreMore.bytes_mut_partial_eq_uses_slice_eq",
+      "rust_functions": [
+        "{impl core::cmp::PartialEq<bytes::bytes_mut::BytesMut> for bytes::bytes_mut::BytesMut}::eq"
+      ],
+      "verified_behavior": "PartialEq::eq compares the successful BytesMut slice views using the generated slice-equality routine.",
+      "assumptions": [
+        "Both BytesMut::as_slice calls succeed with the supplied slices.",
+        "The slice-equality routine succeeds with the supplied Boolean."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ],
+      "source_file": "src/bytes_mut.rs",
+      "source_span": "src/bytes_mut.rs:1300:4-1302:5"
+    },
+    {
+      "theorem": "BytesProofs.CoreMore.bytes_partial_eq_characterizes_slice_equality",
+      "rust_functions": [
+        "{impl core::cmp::PartialEq<bytes::bytes::Bytes> for bytes::bytes::Bytes}::eq"
+      ],
+      "verified_behavior": "When slice equality succeeds, its Boolean is true exactly when the two slice values are equal; the Bytes equality method returns that Boolean.",
+      "assumptions": [
+        "Both Bytes::as_slice calls succeed.",
+        "The slice-equality routine succeeds with the supplied Boolean."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ],
+      "source_file": "src/bytes.rs",
+      "source_span": "src/bytes.rs:782:4-784:5"
+    },
+    {
+      "theorem": "BytesProofs.CoreMore.bytes_mut_partial_eq_characterizes_slice_equality",
+      "rust_functions": [
+        "{impl core::cmp::PartialEq<bytes::bytes_mut::BytesMut> for bytes::bytes_mut::BytesMut}::eq"
+      ],
+      "verified_behavior": "When slice equality succeeds, its Boolean is true exactly when the two slice values are equal; the BytesMut equality method returns that Boolean.",
+      "assumptions": [
+        "Both BytesMut::as_slice calls succeed.",
+        "The slice-equality routine succeeds with the supplied Boolean."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ],
+      "source_file": "src/bytes_mut.rs",
+      "source_span": "src/bytes_mut.rs:1300:4-1302:5"
+    },
+    {
+      "theorem": "BytesProofs.CoreMore.bytes_partial_eq_returns_boolean_characterizing_slices",
+      "rust_functions": [
+        "{impl core::cmp::PartialEq<bytes::bytes::Bytes> for bytes::bytes::Bytes}::eq"
+      ],
+      "verified_behavior": "For successful as_slice calls, equality returns some Boolean and that Boolean is true exactly when the two resulting slices are equal.",
+      "assumptions": [
+        "Both Bytes::as_slice calls succeed."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ],
+      "source_file": "src/bytes.rs",
+      "source_span": "src/bytes.rs:782:4-784:5"
+    },
+    {
+      "theorem": "BytesProofs.CoreMore.bytes_mut_partial_eq_returns_boolean_characterizing_slices",
+      "rust_functions": [
+        "{impl core::cmp::PartialEq<bytes::bytes_mut::BytesMut> for bytes::bytes_mut::BytesMut}::eq"
+      ],
+      "verified_behavior": "For successful as_slice calls, equality returns some Boolean and that Boolean is true exactly when the two resulting slices are equal.",
+      "assumptions": [
+        "Both BytesMut::as_slice calls succeed."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ],
+      "source_file": "src/bytes_mut.rs",
+      "source_span": "src/bytes_mut.rs:1300:4-1302:5"
+    },
+    {
+      "theorem": "BytesProofs.CoreMore.bytes_partial_cmp_wraps_slice_order",
+      "rust_functions": [
+        "{impl core::cmp::PartialOrd<bytes::bytes::Bytes> for bytes::bytes::Bytes}::partial_cmp"
+      ],
+      "verified_behavior": "PartialOrd::partial_cmp returns Some of the successful slice Ord comparison.",
+      "assumptions": [
+        "Both Bytes::as_slice calls succeed.",
+        "Slice Ord::cmp succeeds with the supplied ordering."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "Slice.Insts.CoreCmpOrd.cmp",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ],
+      "source_file": "src/bytes.rs",
+      "source_span": "src/bytes.rs:788:4-790:5"
+    },
+    {
+      "theorem": "BytesProofs.CoreMore.bytes_mut_partial_cmp_wraps_slice_order",
+      "rust_functions": [
+        "{impl core::cmp::PartialOrd<bytes::bytes_mut::BytesMut> for bytes::bytes_mut::BytesMut}::partial_cmp"
+      ],
+      "verified_behavior": "PartialOrd::partial_cmp returns Some of the successful slice Ord comparison.",
+      "assumptions": [
+        "Both BytesMut::as_slice calls succeed.",
+        "Slice Ord::cmp succeeds with the supplied ordering."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "Slice.Insts.CoreCmpOrd.cmp",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ],
+      "source_file": "src/bytes_mut.rs",
+      "source_span": "src/bytes_mut.rs:1306:4-1308:5"
+    }
+  ],
+  "blocked_roots": [],
+  "dependency_classification": {
+    "standard_logic_axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "opaque_type_axioms": [
+      "bytes.Vtable",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "opaque_behavior_axioms": [
+      "Slice.Insts.CoreCmpOrd.cmp",
+      "bytes.Bytes.as_slice",
+      "bytes_mut.BytesMut.as_slice"
+    ],
+    "note": "Opaque type axioms declare abstract representation types only. Opaque behavior axioms are translated Rust/library operations with no proved body in this profile. Per-theorem exact axiom dependencies are listed on each proof and rechecked into receipt.json.",
+    "opaque_value_axioms": []
+  }
+}

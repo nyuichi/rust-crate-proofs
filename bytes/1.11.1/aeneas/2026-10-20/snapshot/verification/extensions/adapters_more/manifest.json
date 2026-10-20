@@ -1,0 +1,622 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "adapters_more",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.limit_new_fields",
+      "rust_functions": [
+        "bytes::buf::limit::new"
+      ],
+      "verified_behavior": "The constructor stores the supplied inner value and limit.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.limit_into_inner_returns_field",
+      "rust_functions": [
+        "bytes::buf::limit::Limit::into_inner"
+      ],
+      "verified_behavior": "Returns the stored inner value.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.limit_get_ref_returns_field",
+      "rust_functions": [
+        "bytes::buf::limit::Limit::get_ref"
+      ],
+      "verified_behavior": "Returns a shared view of the stored inner value.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.limit_get_mut_focuses_inner",
+      "rust_functions": [
+        "bytes::buf::limit::Limit::get_mut"
+      ],
+      "verified_behavior": "Returns the inner value and a reconstruction closure that changes only the inner field.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.limit_limit_returns_field",
+      "rust_functions": [
+        "bytes::buf::limit::Limit::limit"
+      ],
+      "verified_behavior": "Returns the stored limit.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.limit_set_limit_changes_only_limit",
+      "rust_functions": [
+        "bytes::buf::limit::Limit::set_limit"
+      ],
+      "verified_behavior": "Sets the limit while preserving the inner value.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.limit_remaining_mut_uses_min",
+      "rust_functions": [
+        "{impl bytes::buf::buf_mut::BufMut for bytes::buf::limit::Limit}::remaining_mut"
+      ],
+      "verified_behavior": "Returns the minimum of the inner writable capacity and the configured limit.",
+      "assumptions": [
+        "The inner BufMut.remaining_mut callback succeeds with innerRemaining."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "buf.writer.Writer",
+        "core.io.io_slice.IoSlice",
+        "core.mem.maybe_uninit.MaybeUninit",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.limit_remaining_mut_is_bounded",
+      "rust_functions": [
+        "{impl bytes::buf::buf_mut::BufMut for bytes::buf::limit::Limit}::remaining_mut"
+      ],
+      "verified_behavior": "The successful result is bounded by both inner writable capacity and configured limit.",
+      "assumptions": [
+        "The inner BufMut.remaining_mut callback succeeds with innerRemaining."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "buf.writer.Writer",
+        "core.io.io_slice.IoSlice",
+        "core.mem.maybe_uninit.MaybeUninit",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.limit_chunk_mut_composes_inner_update",
+      "rust_functions": [
+        "{impl bytes::buf::buf_mut::BufMut for bytes::buf::limit::Limit}::chunk_mut"
+      ],
+      "verified_behavior": "Caps the mutable chunk to min(inner chunk length, limit) and composes the index-update and inner-state reconstruction callbacks.",
+      "assumptions": [
+        "The inner BufMut.chunk_mut callback succeeds with innerChunk and innerBack.",
+        "UninitSlice.len succeeds with innerLen.",
+        "IndexMut<RangeTo<Usize>> succeeds with the capped slice and indexBack."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "buf.writer.Writer",
+        "buf.uninit_slice.UninitSlice.uninit",
+        "core.io.io_slice.IoSlice",
+        "core.mem.maybe_uninit.MaybeUninit",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.take_get_mut_focuses_inner",
+      "rust_functions": [
+        "bytes::buf::take::Take::get_mut"
+      ],
+      "verified_behavior": "Returns the inner value and a reconstruction closure preserving the current limit.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.chain_chunk_uses_first_when_available",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for bytes::buf::chain::Chain}::chunk"
+      ],
+      "verified_behavior": "Returns the first buffer chunk when the first buffer reports remaining data.",
+      "assumptions": [
+        "The first Buf.has_remaining callback returns true.",
+        "The first Buf.chunk callback succeeds with chunkA."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "core.io.io_slice.IoSlice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.chain_chunk_uses_second_when_first_empty",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for bytes::buf::chain::Chain}::chunk"
+      ],
+      "verified_behavior": "Returns the second buffer chunk when the first buffer reports no remaining data.",
+      "assumptions": [
+        "The first Buf.has_remaining callback returns false.",
+        "The second Buf.chunk callback succeeds with chunkB."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "core.io.io_slice.IoSlice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.chain_chunks_vectored_delegates_in_order",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for bytes::buf::chain::Chain}::chunks_vectored"
+      ],
+      "verified_behavior": "Passes the first buffer\u2019s remaining destination suffix to the second, adds both counts, and composes the destination update closures.",
+      "assumptions": [
+        "First Buf.chunks_vectored succeeds with count n and dstA.",
+        "Slice index_mut at n succeeds with the suffix and indexBack.",
+        "Second Buf.chunks_vectored succeeds with count m and updated suffix.",
+        "The scalar addition n + m succeeds with total."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "core.io.io_slice.IoSlice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.chain_remaining_mut_is_saturating_sum",
+      "rust_functions": [
+        "{impl bytes::buf::buf_mut::BufMut for bytes::buf::chain::Chain}::remaining_mut"
+      ],
+      "verified_behavior": "Returns the saturating sum of the two buffers\u2019 writable capacities.",
+      "assumptions": [
+        "Both inner BufMut.remaining_mut callbacks succeed."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "buf.writer.Writer",
+        "core.io.io_slice.IoSlice",
+        "core.mem.maybe_uninit.MaybeUninit",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.chain_chunk_mut_uses_first_when_available",
+      "rust_functions": [
+        "{impl bytes::buf::buf_mut::BufMut for bytes::buf::chain::Chain}::chunk_mut"
+      ],
+      "verified_behavior": "Returns the first mutable chunk and composes its update closure into the first Chain field when the first buffer has writable space.",
+      "assumptions": [
+        "The first BufMut.has_remaining_mut callback returns true.",
+        "The first BufMut.chunk_mut callback succeeds with chunkA and backA."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "buf.writer.Writer",
+        "core.io.io_slice.IoSlice",
+        "core.mem.maybe_uninit.MaybeUninit",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.chain_chunk_mut_uses_second_when_first_full",
+      "rust_functions": [
+        "{impl bytes::buf::buf_mut::BufMut for bytes::buf::chain::Chain}::chunk_mut"
+      ],
+      "verified_behavior": "Returns the second mutable chunk and composes its update closure into the second Chain field when the first buffer is full.",
+      "assumptions": [
+        "The first BufMut.has_remaining_mut callback returns false.",
+        "The second BufMut.chunk_mut callback succeeds with chunkB and backB."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "buf.writer.Writer",
+        "core.io.io_slice.IoSlice",
+        "core.mem.maybe_uninit.MaybeUninit",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.chain_into_iter_wraps_self",
+      "rust_functions": [
+        "{impl core::iter::traits::collect::IntoIterator for bytes::buf::chain::Chain}::into_iter"
+      ],
+      "verified_behavior": "Wraps the Chain value as the inner state of IntoIter.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "core.io.io_slice.IoSlice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.into_iter_new_field",
+      "rust_functions": [
+        "bytes::buf::iter::IntoIter::new"
+      ],
+      "verified_behavior": "Constructs IntoIter with the supplied inner value.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.into_iter_into_inner_returns_field",
+      "rust_functions": [
+        "bytes::buf::iter::IntoIter::into_inner"
+      ],
+      "verified_behavior": "Returns the stored inner value.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.into_iter_get_ref_returns_field",
+      "rust_functions": [
+        "bytes::buf::iter::IntoIter::get_ref"
+      ],
+      "verified_behavior": "Returns a shared view of the stored inner value.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.into_iter_get_mut_focuses_inner",
+      "rust_functions": [
+        "bytes::buf::iter::IntoIter::get_mut"
+      ],
+      "verified_behavior": "Returns the inner value and a reconstruction closure that replaces it.",
+      "assumptions": [],
+      "axioms": [
+        "propext",
+        "Quot.sound"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.into_iter_size_hint_is_exact",
+      "rust_functions": [
+        "{impl core::iter::traits::iterator::Iterator for bytes::buf::iter::IntoIter}::size_hint"
+      ],
+      "verified_behavior": "Uses the inner Buf.remaining result as both the lower bound and exact upper bound.",
+      "assumptions": [
+        "The inner Buf.remaining callback succeeds with remaining."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "core.io.io_slice.IoSlice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.into_iter_next_returns_none_when_empty",
+      "rust_functions": [
+        "{impl core::iter::traits::iterator::Iterator for bytes::buf::iter::IntoIter}::next"
+      ],
+      "verified_behavior": "Returns None and preserves the iterator state when inner Buf.has_remaining is false.",
+      "assumptions": [
+        "The inner Buf.has_remaining callback returns false."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "core.io.io_slice.IoSlice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.into_iter_next_consumes_first_chunk_byte",
+      "rust_functions": [
+        "{impl core::iter::traits::iterator::Iterator for bytes::buf::iter::IntoIter}::next"
+      ],
+      "verified_behavior": "Returns the byte at index zero of the first inner chunk and updates the iterator with the state advanced by one byte.",
+      "assumptions": [
+        "The inner Buf.has_remaining callback returns true.",
+        "The inner Buf.chunk callback succeeds.",
+        "Indexing chunk byte zero succeeds with byte.",
+        "The inner Buf.advance callback succeeds for one byte with inner-prime."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "F32",
+        "F64",
+        "bytes.Vtable",
+        "buf.reader.Reader",
+        "core.io.io_slice.IoSlice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.vecdeque_remaining_delegates_to_len",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for alloc::collections::vec_deque::VecDeque}::remaining"
+      ],
+      "verified_behavior": "Returns VecDeque.len.",
+      "assumptions": [
+        "VecDeque.len succeeds with remaining."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "alloc.collections.vec_deque.VecDeque",
+        "alloc.collections.vec_deque.VecDeque.len"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.vecdeque_chunk_uses_second_when_first_empty",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for alloc::collections::vec_deque::VecDeque}::chunk"
+      ],
+      "verified_behavior": "Selects the second contiguous slice returned by as_slices when the first slice is empty.",
+      "assumptions": [
+        "VecDeque.as_slices succeeds with s1 and s2.",
+        "Slice.is_empty s1 returns true."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "alloc.collections.vec_deque.VecDeque",
+        "alloc.collections.vec_deque.VecDeque.as_slices"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.vecdeque_chunk_uses_first_when_nonempty",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for alloc::collections::vec_deque::VecDeque}::chunk"
+      ],
+      "verified_behavior": "Selects the first contiguous slice returned by as_slices when it is nonempty.",
+      "assumptions": [
+        "VecDeque.as_slices succeeds with s1 and s2.",
+        "Slice.is_empty s1 returns false."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "alloc.collections.vec_deque.VecDeque",
+        "alloc.collections.vec_deque.VecDeque.as_slices"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.vecdeque_chunks_vectored_returns_zero_when_empty",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for alloc::collections::vec_deque::VecDeque}::chunks_vectored"
+      ],
+      "verified_behavior": "Returns zero written and preserves dst when VecDeque.is_empty is true.",
+      "assumptions": [
+        "VecDeque.is_empty returns true."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "alloc.collections.vec_deque.VecDeque",
+        "core.io.io_slice.IoSlice",
+        "alloc.collections.vec_deque.VecDeque.as_slices",
+        "alloc.collections.vec_deque.VecDeque.is_empty",
+        "core.io.io_slice.IoSlice.new"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.vecdeque_chunks_vectored_returns_zero_for_empty_dst",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for alloc::collections::vec_deque::VecDeque}::chunks_vectored"
+      ],
+      "verified_behavior": "Returns zero written and preserves an empty destination when the deque is nonempty.",
+      "assumptions": [
+        "VecDeque.is_empty returns false.",
+        "Slice.is_empty dst returns true."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "alloc.collections.vec_deque.VecDeque",
+        "core.io.io_slice.IoSlice",
+        "alloc.collections.vec_deque.VecDeque.as_slices",
+        "alloc.collections.vec_deque.VecDeque.is_empty",
+        "core.io.io_slice.IoSlice.new"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.vecdeque_chunks_vectored_writes_first_slice_when_second_empty",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for alloc::collections::vec_deque::VecDeque}::chunks_vectored"
+      ],
+      "verified_behavior": "Writes the first contiguous deque slice to destination slot zero and returns count one when the second slice is empty.",
+      "assumptions": [
+        "VecDeque.is_empty returns false.",
+        "Slice.is_empty dst returns false.",
+        "VecDeque.as_slices succeeds.",
+        "IoSlice.new s1 succeeds.",
+        "Slice.index_mut_usize dst 0 succeeds.",
+        "Slice.is_empty s2 returns true."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "alloc.collections.vec_deque.VecDeque",
+        "core.io.io_slice.IoSlice",
+        "alloc.collections.vec_deque.VecDeque.as_slices",
+        "alloc.collections.vec_deque.VecDeque.is_empty",
+        "core.io.io_slice.IoSlice.new"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.vecdeque_chunks_vectored_writes_two_slices_when_space_remains",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for alloc::collections::vec_deque::VecDeque}::chunks_vectored"
+      ],
+      "verified_behavior": "Writes both contiguous deque slices to destination slots zero and one and returns count two when the second slice is nonempty and the post-first-write destination length is not one.",
+      "assumptions": [
+        "VecDeque.is_empty returns false.",
+        "Slice.is_empty dst and Slice.is_empty s2 both return false.",
+        "VecDeque.as_slices succeeds.",
+        "IoSlice.new succeeds for both slices.",
+        "Slice.index_mut_usize dst 0 succeeds.",
+        "Slice.len after the first write succeeds with slots \u2260 1.",
+        "Slice.update at destination index one succeeds."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "alloc.collections.vec_deque.VecDeque",
+        "core.io.io_slice.IoSlice",
+        "alloc.collections.vec_deque.VecDeque.as_slices",
+        "alloc.collections.vec_deque.VecDeque.is_empty",
+        "core.io.io_slice.IoSlice.new"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.AdaptersMore.vecdeque_advance_returns_drain_state",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for alloc::collections::vec_deque::VecDeque}::advance"
+      ],
+      "verified_behavior": "advance returns the VecDeque state supplied by the modeled drain(..cnt) callback.",
+      "assumptions": [
+        "VecDeque.drain(..cnt) succeeds with drained and self-prime.",
+        "The opaque VecDeque::drain callback returns the supplied state; actual prefix removal and Drain destruction semantics are not proved by this theorem."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "alloc.collections.vec_deque.VecDeque",
+        "alloc.collections.vec_deque.VecDeque.drain",
+        "alloc.collections.vec_deque.drain.Drain",
+        "core.ops.range.RangeTo.Insts.CoreOpsRangeRangeBounds.end_bound",
+        "core.ops.range.RangeTo.Insts.CoreOpsRangeRangeBounds.start_bound"
+      ]
+    }
+  ],
+  "blocked_roots": [
+    {
+      "rust_function": "{impl bytes::buf::buf_impl::Buf for bytes::buf::take::Take}::copy_to_bytes",
+      "reason": "The adapter body is not included because the current Aeneas translation gives the generic mutable-borrow callback as a closure triple, while the corresponding Buf method signature expects the plain returned state. The backend agent is handling this signature mismatch; this group has not changed extraction boundaries or generated bodies."
+    },
+    {
+      "rust_function": "{impl bytes::buf::buf_impl::Buf for bytes::buf::chain::Chain}::copy_to_bytes",
+      "reason": "The adapter body is not included because the current Aeneas translation gives the generic mutable-borrow callback as a closure triple, while the corresponding Buf method signature expects the plain returned state. The backend agent is handling this signature mismatch; this group has not changed extraction boundaries or generated bodies."
+    }
+  ]
+}
